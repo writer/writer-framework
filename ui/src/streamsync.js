@@ -8,7 +8,7 @@ export default {
     startTime: null,
 
     init: async function () {
-        const response = await fetch("http://localhost:5000/init");
+        const response = await fetch("/api/init");
         const initData = await response.json();
 
         this.components = initData.components;
@@ -16,7 +16,9 @@ export default {
     },
 
     startSync: function () {
-        this.webSocket = new WebSocket("ws://localhost:5000/echo");
+        const url = new URL("/api/echo", window.location.href);
+        url.protocol = url.protocol.replace("http", "ws");
+        this.webSocket = new WebSocket(url.href);
 
         this.webSocket.onmessage = (wsEvent) => {
             const freshState = JSON.parse(wsEvent.data);

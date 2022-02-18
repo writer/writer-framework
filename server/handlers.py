@@ -5,7 +5,6 @@ import io
 import base64
 import numpy as np
 import streamsync as ss
-import threading
 
 mpl.use("Agg")
 
