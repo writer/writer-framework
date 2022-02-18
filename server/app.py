@@ -10,9 +10,10 @@ import handlers
 app = flask.Flask(__name__, static_url_path="/static")
 sock = flask_sock.Sock(app)
 
+
 # Pack the initial state and components
 
-@app.route("/init")
+@app.route("/api/init")
 @cross_origin()
 def init():
     response_payload = {
@@ -24,15 +25,9 @@ def init():
     return response
 
 
-@app.route("/<path:path>")
-def send_static(path):
-    directory = app.root_path + "/static"
-    return flask.send_from_directory(directory=directory, path=path)
-
-
 # Listen to events, call the handlers, respond with mutations
 
-@sock.route('/echo')
+@sock.route('/api/echo')
 def echo(sock):
     session_state = copy.deepcopy(handlers.ss.initial_state)
     while True:
@@ -47,6 +42,12 @@ def echo(sock):
             handlers.keep_alive(session_state)
         
         sock.send(session_state.json_mutations())
+
+
+@app.route("/<path:path>")
+def send_static(path):
+    directory = app.root_path + "/static"
+    return flask.send_from_directory(directory=directory, path=path)
 
 
 if __name__ == "__main__":
