@@ -1,74 +1,39 @@
 <template>
 	<div class="App">
 
-		<div class="header">
+		<div class="topLine"></div>
+
+		<header>
 			<img src="./assets/sslogo.png" alt="Streamsync" />
-			<h1>Hot drinks demo</h1>
-		</div>
+			<h1>{{ title }}</h1>
+		</header>
 
-		<div class="section">
-			<h2>Gato</h2>
-			Gato means cat in Spanish
-		</div>
+		<main>
+			<div ref="container">
+			</div>
+		</main>
 
-		<div v-for="component, componentId in streamsync.components" :key="componentId" class="componentShell">
-
-			<!--<h3 class="sectionHeading">Heading</h3>-->
-
-			<h1 v-if="component.type == 'heading'" :ref="(el) => { registerComponent(el, componentId, component) }">
-				{{ getContent("text", component) }}
-			</h1>
-
-			<h3 v-if="component.type == 'label'" :ref="(el) => { registerComponent(el, componentId, component) }">
-				{{ getContent("text", component) }}
-			</h3>
-
-			<input v-if="component.type == 'slider'" type="range" :value="getContent('value', component)" :ref="(el) => { registerComponent(el, componentId, component) }">
-
-			<button v-if="component.type == 'button'" :ref="(el) => { registerComponent(el, componentId, component) }">{{ getContent("text", component) }}</button>
-
-			<p v-if="component.type == 'text'" :ref="(el) => { registerComponent(el, componentId, component) }">{{ getContent("text", component) }}</p>
-
-
-		</div>
 
 		<img :src="streamsync.state.plot" />
-
 
 	</div>
 </template>
 
 <script>
+
 export default {
 	inject: [ "streamsync" ],
+	
+	mounted: function () {
+		this.streamsync.mountComponents(this.$refs.container);
+		document.title = this.title;
+	},
 
-	methods: {
-		registerComponent: function (el, componentId, component) {
-			if (el.dataset.streamsyncId) return;
-			el.dataset.streamsyncId = componentId;
-
-			if (!component.handlers) return;
-
-			Object.keys(component.handlers).forEach(eventType => {
-				el.addEventListener(eventType, (event) => { this.forwardEvent(event); });
-			});
-		},
-
-		getContent: function (key, component) {
-			if (!component.content) return null;
-			const s = component.content[key];
-			if (s.charAt(0) != "@") return s; // String literal
-			const stateKey = s.substring(1); // Not a string literal, get from state
-
-			return this.streamsync.state[stateKey];
-		},
-
-		forwardEvent: function (event) {
-			this.streamsync.startTime = performance.now();
-			this.streamsync.forward(event)
+	computed: {
+		title: function () {
+			return this.streamsync.state.title ?? "Streamsync App";
 		}
 	}
-
 }
 </script>
 
@@ -76,36 +41,45 @@ export default {
 
 body {
 	margin: 0;
-	font-family: sans-serif;
+	font-family: Roboto, sans-serif;
 	color: #202020;
 	font-size: 0.75rem;
 	--separator: rgba(0, 0, 0, 0.1);
 }
 
-.header {
-	padding: 16px 24px 16px 24px;
-	border-bottom: 1px solid var(--separator);
+.topLine {
+	height: 4px;
+	background: rgb(54,203,62);
+	background: linear-gradient(188deg, rgba(54,203,62,1) 0%, rgba(53,72,95,1) 100%);
+}
+
+header {
+	padding: 24px 24px 0 24px;
 	display: flex;
 	align-items: center;
 }
 
-.header img {
+header img {
 	height: 32px;
-	margin-right: 24px;
+	margin-right: 16px;
+}
+
+main {
+	padding: 8px 24px 24px 24px;
 }
 
 h1 {
 	margin: 0;
 	font-weight: normal;
-	font-size: 1.2rem;
+	font-size: 1.35rem;
 }
 
 h2 {
-	font-size: 0.9rem;
+	font-size: 1.2rem;
 	letter-spacing: 0.03rem;
-	font-weight: bold;
+	font-weight: normal;
 	margin: 0;
-	margin-bottom: 8px;
+	margin-bottom: 16px;
 }
 
 h3 {
@@ -114,30 +88,10 @@ h3 {
 	font-size: 1rem;
 }
 
-.section {
-	padding: 24px;
-	display: block;
-	border-bottom: 1px solid var(--separator);
-}
-
-p {
-	margin: 0;
-}
-
-.componentShell {
-	margin: 16px;
-	padding: 16px;
-	position: relative;
-	display: block;
-	z-index: 1;
-/*	border: 1px solid #f0f0f0;*/
-	border-radius: 4px;
-}
-
-.componentShell .sectionHeading {
-	padding-bottom: 16px;
+.component {
+	margin-top: 16px;
 	margin-bottom: 16px;
-	border-bottom: 1px solid #f0f0f0;
 }
+
 
 </style>

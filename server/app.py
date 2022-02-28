@@ -1,5 +1,4 @@
 import flask
-from flask_cors import cross_origin
 import flask_sock
 import json
 import copy
@@ -14,11 +13,12 @@ sock = flask_sock.Sock(app)
 # Pack the initial state and components
 
 @app.route("/api/init")
-@cross_origin()
 def init():
+    initial_state = handlers.ss.initial_state.state
+    active_components = handlers.ss.get_active_components(initial_state)
     response_payload = {
-        "state": handlers.ss.initial_state.state,
-        "components": handlers.ss.components
+        "state": initial_state,
+        "components": active_components
     } 
     response = json.dumps(response_payload, default=lambda x: True) # Replace handler functions for True
     
@@ -27,21 +27,26 @@ def init():
 
 # Listen to events, call the handlers, respond with mutations
 
-@sock.route('/api/echo')
+@sock.route("/api/echo")
 def echo(sock):
     session_state = copy.deepcopy(handlers.ss.initial_state)
     while True:
         data = json.loads(sock.receive())
         type = data["type"]
-        
-        if type != "keep_alive":
-            target_id = data["targetId"]
-            value = data["value"]
-            handlers.ss.components[target_id]["handlers"][type](session_state, value)
-        else:
-            handlers.keep_alive(session_state)
-        
-        sock.send(session_state.json_mutations())
+        target_id = data["targetId"]
+        value = data["value"]
+        session_components = handlers.ss.get_active_components(session_state)
+
+        # Trigger handler (component needs to be active in the session)
+        session_components[target_id]["handlers"][type](session_state, value)
+
+        # Reobtaining session components to account for state changes that may have caused components to become active/inactive
+        session_components = handlers.ss.get_active_components(session_state)
+
+        sock.send(json.dumps({
+            "mutations": session_state.mutations(),
+            "components": session_components
+        }, default=lambda x: True))
 
 
 @app.route("/<path:path>")
