@@ -1,6 +1,5 @@
 import uuid
-import json
-
+from contextlib import contextmanager
 
 class StreamsyncState:
 
@@ -10,6 +9,7 @@ class StreamsyncState:
         self.mutated = set()
 
 
+    # State mutations are detected by intercepting the setter
     def __setitem__(self, key, value):
         self.state[key] = value
         self.mutated.add(key)
@@ -19,46 +19,113 @@ class StreamsyncState:
         return self.state[key]
         
 
-    def json_mutations(self):
+    # Mutations are consumed once and cleared after that
+    def mutations(self):
         mutated_state = {x:self.state[x] for x in self.mutated}
         self.mutated = set()
-        return json.dumps(mutated_state)
+        return mutated_state
 
 
-components = {}
+class ComponentManager:
+
+
+    def __init__(self):
+        self.components = {}
+        self.status_modified = set()
+        self.container_stack = []
+
+
+    def get_active_container(self):
+        if len(self.container_stack) > 0:
+            return self.container_stack[-1]
+        else:
+            return None
+
+
+    def add_component(self, type, content=None, handlers=None, conditioner=None):
+        component_id = str(uuid.uuid4())
+        entry = {
+            "id": component_id,
+            "type": type,
+            "content": content,
+            "handlers": handlers,
+            "container": self.get_active_container(),
+            "conditioner": conditioner
+        }
+        self.components[component_id] = entry
+        return entry
+
+
+    def is_component_active(self, id, state):
+        component = self.components[id]
+        if component["container"]: # If it's a child component, check that its parent is active
+            if not self.is_component_active(component["container"], state):
+                return False # If not active, the child is also not active
+        if not component["conditioner"] or component["conditioner"](state):
+            return True
+        return False
+
+
+    def get_active(self, state):
+        active_components = {}
+        for id, component in self.components.items():
+            if self.is_component_active(id, state):
+                active_components[id] = component
+            else:
+                placeholder = {
+                    "id": component["id"],
+                    "type": component["type"],
+                    "placeholder": True,
+                    "container": component["container"] if "container" in component else None
+                }
+                active_components[id] = placeholder
+        return active_components
+    
+
+cm = ComponentManager()
 initial_state = StreamsyncState()
 
 
 def init_state(state_dict):
-    for k, v in state_dict.items():
-        initial_state[k] = v
+    initial_state.state = state_dict    
 
 
-def component(type, content=None, handlers=None):
-    component_id = str(uuid.uuid4())
-
-    components[component_id] = {
-        "type": type,
-        "content": content,
-        "handlers": handlers
-    }
+def get_active_components(state):
+    return cm.get_active(state)
 
 
-def label(text, handlers=None):
-    component("label", {"text": text}, handlers)
+@contextmanager
+def section(title = None):
+    resource = cm.add_component("section", {"title": title})
+    try:
+        cm.container_stack.append(resource["id"])
+        yield resource
+    finally:
+        cm.container_stack.pop()
 
 
-def heading(text, handlers=None):
-    component("heading", {"text": text}, handlers)
+@contextmanager
+def when(conditioner):
+    global active_container
+    resource = cm.add_component("when", None, None, conditioner)
+    try:
+        cm.container_stack.append(resource["id"])
+        yield resource
+    finally:
+        cm.container_stack.pop()
+
+
+def title(text, handlers=None):
+    cm.add_component("title", {"text": text}, handlers)
 
 
 def slider(value, handlers=None):
-    component("slider", {"value": value}, handlers)
+    cm.add_component("slider", {"value": value}, handlers)
 
 
 def button(text, handlers=None):
-    component("button", {"text": text}, handlers)
+    cm.add_component("button", {"text": text}, handlers)
 
 
 def text(text, handlers=None):
-    component("text", {"text": text}, handlers)
+    cm.add_component("text", {"text": text}, handlers)
