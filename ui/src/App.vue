@@ -45,6 +45,7 @@ body {
 	color: #202020;
 	font-size: 0.75rem;
 	--separator: rgba(0, 0, 0, 0.1);
+	--subtleHighlight: rgba(0, 0, 0, 0.03);
 }
 
 .topLine {

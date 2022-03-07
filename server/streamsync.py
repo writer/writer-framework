@@ -1,5 +1,29 @@
 import uuid
 from contextlib import contextmanager
+import matplotlib
+import matplotlib.figure
+import types
+import io
+import base64
+
+
+def serialise(value):
+    if isinstance(value, matplotlib.figure.Figure):
+        fig = value
+        iobytes = io.BytesIO()
+        fig.savefig(iobytes, format="png")
+        iobytes.seek(0)
+        base64_str = base64.b64encode(iobytes.read()).decode("latin-1")
+        dataurl = "data:image/png;base64," + base64_str
+        matplotlib.pyplot.close(fig)
+        return dataurl
+    elif isinstance(value, types.FunctionType):
+        return True
+    elif isinstance(value, dict):
+        return {k:serialise(v) for k, v in value.items()}
+    else:
+        return value
+
 
 class StreamsyncState:
 
@@ -11,7 +35,7 @@ class StreamsyncState:
 
     # State mutations are detected by intercepting the setter
     def __setitem__(self, key, value):
-        self.state[key] = value
+        self.state[key] = serialise(value)
         self.mutated.add(key)
 
 
@@ -47,7 +71,7 @@ class ComponentManager:
         entry = {
             "id": component_id,
             "type": type,
-            "content": content,
+            "content": serialise(content),
             "handlers": handlers,
             "container": self.get_active_container(),
             "conditioner": conditioner
@@ -94,6 +118,7 @@ def get_active_components(state):
     return cm.get_active(state)
 
 
+
 @contextmanager
 def section(title = None):
     resource = cm.add_component("section", {"title": title})
@@ -119,8 +144,8 @@ def title(text, handlers=None):
     cm.add_component("title", {"text": text}, handlers)
 
 
-def slider(value, handlers=None):
-    cm.add_component("slider", {"value": value}, handlers)
+def slider(value, min=0, max=100, handlers=None):
+    cm.add_component("slider", {"value": value, "min": min, "max": max}, handlers)
 
 
 def button(text, handlers=None):
@@ -129,3 +154,7 @@ def button(text, handlers=None):
 
 def text(text, handlers=None):
     cm.add_component("text", {"text": text}, handlers)
+
+
+def pyplot(fig, handlers=None):
+    cm.add_component("pyplot", {"figure": fig})

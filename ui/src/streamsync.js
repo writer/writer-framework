@@ -29,12 +29,10 @@ export default {
 
         this.webSocket.onmessage = (wsEvent) => {
             const data = JSON.parse(wsEvent.data);
-            
             const mutations = data.mutations;
-            Object.assign(this.state, mutations); // Ingest mutations coming from the server
-
             const components = data.components;
-
+            
+            Object.assign(this.state, mutations); // Ingest mutations coming from the server
             Object.keys(this.components).forEach(key => {
                 if (components[key] === undefined) {
                     delete this.components[key];
@@ -42,9 +40,6 @@ export default {
             });
 
             Object.assign(this.components, components);
-
-            const endTime = performance.now();            
-			console.log(`Performance ${ endTime - this.startTime } mills`);
         };
 
         this.webSocket.onclose = () => { this.reconnect(); };
@@ -65,25 +60,38 @@ export default {
     },
 
     // Get content value, evaluating references to state.
-    // For example, "animal: @animal" will be evaluated as "animal: dog" if the state contains a key "animal" with value "dog".  
+    // For example, "Pet: @animal" will be evaluated as "Pet: dog" if the state contains a key "animal" with value "dog".  
     // Called by rendered components to populate themselves.
 
     getContentValue: function (componentId, key) {
         const component = this.components[componentId];
         if (!component.content) return null;
         const expr = component.content[key];
-        if (!expr) return;
+        if (expr === undefined || expr === null) return null;
+
+        if (isNaN(expr) === false) return expr; // If it's a number, don't attempt to look for references to state 
         
         // Look for state references (marked by @) and replace them by state values
+
+        // monoMatch: If the expression only contains a state reference, return the latter, rather than a string.
+        // This prevents references to null state values to be converted into strings with the value "null".
+        // For example, if state["a"] = null: "@a" will evaluate to null. "value is @a" will evaluate to "value is null".
+        let monoMatch; 
 
         const evaluatedExpr = expr.replace(/[\\]?@([\w]*)/g, (match, p1) => {
             if (match.charAt(0) == "\\") return match.substring(1); // Escaped @, don't evaluate, return without \
             if (!p1 || this.state[p1] === undefined) return;
 
+            if (expr === match) { // The whole expression consists of a single reference
+                monoMatch = this.state[p1];
+                return;
+            }
+
             return this.state[p1]
         });
 
-        return evaluatedExpr;
+        const value = monoMatch === undefined ? evaluatedExpr : monoMatch;
+        return value;
     },
 
     // Forward event via websocket
@@ -91,11 +99,9 @@ export default {
     forward: function (event) {
         if (!this.webSocket) return;
 
-        this.startTime = performance.now();
-
         const wsData = {
             type: event.type,
-            targetId: event.target?.dataset.streamsyncId,
+            targetId: event.target?.closest("[data-streamsync-id]").dataset.streamsyncId,
             value: event.target?.value || null
         };
 

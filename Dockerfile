@@ -14,8 +14,8 @@ RUN pip3 install -r requirements.txt
 
 COPY ./server /app
 
-ENTRYPOINT [ "python3" ]
+ENTRYPOINT [ "python3", "app.py" ]
 
 EXPOSE 5000
 
-CMD [ "app.py" ]
+CMD [ "user_script" ]

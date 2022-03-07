@@ -5,10 +5,14 @@ import CoreText from "./core_components/CoreText.vue";
 import CoreButton from "./core_components/CoreButton.vue";
 import CoreSection from "./core_components/CoreSection.vue";
 import CoreWhen from "./core_components/CoreWhen.vue";
+import CoreSlider from "./core_components/CoreSlider.vue";
+import CorePyplot from "./core_components/CorePyplot.vue";
 
 export default {
     "button": CoreButton,
     "text": CoreText,
     "section": CoreSection,
-    "when": CoreWhen
+    "when": CoreWhen,
+    "slider": CoreSlider,
+    "pyplot": CorePyplot
 }

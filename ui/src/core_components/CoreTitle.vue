@@ -1,5 +1,5 @@
 <template>
-	<button class="CoreButton component" :data-streamsync-id="componentId" v-show="!isPlaceholder">
+	<button class="CoreButton" :data-streamsync-id="componentId" v-if="!isPlaceholder">
         <slot>{{ text }}</slot>
     </button>
 </template>
@@ -8,7 +8,8 @@
 export default {
     inject: [ "streamsync" ],
 	props: {
-        componentId: String
+        componentId: String,
+        isPlaceholder: Boolean
     },
     mounted: function () {
         this.streamsync.addEventListeners(this.componentId, this.$el);
@@ -16,9 +17,6 @@ export default {
     computed: {
         text: function () {
             return this.streamsync.getContentValue(this.componentId, "text");
-        },
-        isPlaceholder: function () {
-            return this.streamsync.components[this.componentId].placeholder;
         }
     }
 }
@@ -30,14 +28,13 @@ button {
     font-size: 0.8rem;
     border-radius: 8px;
     border: 1px solid var(--separator);
-    padding: 12px;
-    background: white;
+    padding: 8px;
+    background: #f0f0f0;
     display: block;
-    cursor: pointer;
 }
 
 button:hover {
-    border: 1px solid #35485F;
+    background: #e0e0e0;
 }
 
 </style>
