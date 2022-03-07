@@ -6,7 +6,7 @@ By avoiding a rerun of the whole script, Streamsync can react more than 70 times
 
 Sample app:
 
-```
+```python
 import streamsync as ss
 
 def increment(state, value=None): # Event handler which receives a copy of session state as an argument
@@ -23,6 +23,8 @@ with ss.when(lambda state: state["counter"] >= 10 and state["counter"] < 20): # 
 with ss.when(lambda state: state["counter"] >= 20):
     ss.text("You've earned a gold medal for reaching 20 🥇")
 ```
+
+![2022-03-06_02-02-00](https://user-images.githubusercontent.com/64783088/157095031-a2cf242f-7b5d-438f-bd80-3e0c15e24bec.gif)
 
 Please note that for the time being Streamsync isn't a viable, fully-fledged alternative to Streamlit, but rather a demonstration that a much faster alternative is possible. If there's some interest, I'll develop this into a viable alternative.
 
