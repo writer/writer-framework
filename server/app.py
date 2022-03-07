@@ -30,8 +30,8 @@ def init():
 # Call the event handlers. These will likely modify session state.
 # Respond with state mutations and active components.
 
-@sock.route("/api/echo")
-def echo(sock):
+@sock.route("/api/stream")
+def stream(sock):
 
     # Each session gets its own state, initialised with the contents of the initial state.
 

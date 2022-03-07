@@ -1,24 +1,14 @@
 import streamsync as ss
 
-def increment(state, value=None):
-    state["counter"] += 1
 
-# If the "title" value is set, it's used as a title
+def mouseover(state, value=None):
+    state["message"] = "You're mouseovering me."
 
-ss.init_state({
-    "counter": 0, "title": "App Name"
-})
 
-ss.heading("This is a heading")
+def mouseout(state, value=None):
+    state["message"] = "You're not mouseovering me"
 
-with ss.section("This is a section title"):
-    ss.text("The count is @counter.")
-    ss.button("Increment", handlers={"click": increment})
 
-    # Nested context managers for "section" and "when" components are allowed 
-
-    with ss.when(lambda state: state["counter"] >= 10 and state["counter"] < 20):
-        ss.text("Well done on reaching 10, here's a trophy: 🏆. Keep going!")
-
-    with ss.when(lambda state: state["counter"] >= 20):
-        ss.text("You've earned a gold medal for reaching 20 🥇")
+ss.init_state({"message": "You're not mouseovering me", "title": "Streamsync demo"})
+with ss.section():
+    ss.heading("@message", handlers={"mouseover": mouseover, "mouseout": mouseout})

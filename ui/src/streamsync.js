@@ -23,7 +23,7 @@ export default {
     // Open and setup websocket
 
     startSync: function () {
-        const url = new URL("/api/echo", window.location.href);
+        const url = new URL("/api/stream", window.location.href);
         url.protocol = url.protocol.replace("http", "ws");
         this.webSocket = new WebSocket(url.href);
 
