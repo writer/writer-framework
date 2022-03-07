@@ -156,5 +156,9 @@ def text(text, handlers=None):
     cm.add_component("text", {"text": text}, handlers)
 
 
+def heading(text, handlers=None):
+    cm.add_component("heading", {"text": text}, handlers)
+
+
 def pyplot(fig, handlers=None):
     cm.add_component("pyplot", {"figure": fig})

@@ -7,6 +7,7 @@ import CoreSection from "./core_components/CoreSection.vue";
 import CoreWhen from "./core_components/CoreWhen.vue";
 import CoreSlider from "./core_components/CoreSlider.vue";
 import CorePyplot from "./core_components/CorePyplot.vue";
+import CoreHeading from "./core_components/CoreHeading.vue";
 
 export default {
     "button": CoreButton,
@@ -14,5 +15,6 @@ export default {
     "section": CoreSection,
     "when": CoreWhen,
     "slider": CoreSlider,
-    "pyplot": CorePyplot
+    "pyplot": CorePyplot,
+    "heading": CoreHeading
 }
