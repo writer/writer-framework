@@ -13,9 +13,6 @@
 			</div>
 		</main>
 
-
-		<img :src="streamsync.state.plot" />
-
 	</div>
 </template>
 
