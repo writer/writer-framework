@@ -39,6 +39,12 @@ This will run the app "user_script.py" and map Flask's port to 5010:
 docker run -p 5010:5000 streamsync user_script
 ```
 
+To access the frontend:
+
+```
+http://localhost:5010/index.html
+```
+
 To create your own app, start by creating a .py file into the /server folder. Feel free to explore the examples user_script.py, user_script_2.py and user_script_3.py to get familiar with the syntax.
 
 ## Authors
