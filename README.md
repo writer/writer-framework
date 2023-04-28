@@ -2,7 +2,7 @@
 
 Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python.
 
-![Streamsync Builder screenshot](docs/docs/public/images/sc1.png "Streamsync Builder screenshot")
+![Streamsync Builder screenshot](docs/docs/public/sc1.png "Streamsync Builder screenshot")
 
 ### It's fast.
 
