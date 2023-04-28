@@ -1,0 +1,263 @@
+@font-face {
+	font-family: "Inter";
+	src: url("../assets/Inter-Regular.woff2") format("woff2"),
+		url("../assets/Inter-Regular.ttf") format("truetype");
+}
+
+.BuilderApp {
+	--builderBackgroundColor: #ffffff;
+	--builderAccentColor: #29cf00;
+	--builderSuccessColor: #29cf00;
+	--builderErrorColor: #ff3d00;
+	--builderHeaderBackgroundColor: #353535;
+	--builderHeaderBackgroundHoleColor: #202020;
+	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
+	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
+	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
+	--builderSeparatorColor: rgba(0, 0, 0, 0.1);
+	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
+	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
+	--builderSelectedColor: rgba(210, 234, 244, 0.8);
+	--builderIntenseSelectedColor: #0094d1;
+	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
+	--builderSubtleHighlightColorSolid: #f2f2f2;
+	--builderDisabledColor: rgb(180, 180, 180);
+	--builderSidebarWidth: max(265px, 27vh);
+	--builderSettingsWidth: max(265px, 27vh);
+	--builderActionOngoingColor: rgba(0, 0, 0, 0.7);
+}
+
+h1,
+h2,
+h3 {
+	font-weight: 300;
+	margin: 0;
+}
+
+h1 {
+	font-size: 1.3rem;
+}
+
+h2 {
+	font-size: 1rem;
+}
+
+h3 {
+	font-size: 0.8rem;
+}
+
+h4 {
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 0.65rem;
+	letter-spacing: 0.2ch;
+}
+
+.insertionOverlay {
+	background: rgba(210, 234, 244, 0.5);
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	max-height: 100%;
+	max-width: 100%;
+}
+
+.insertionOverlay .label {
+	border-radius: 16px;
+	box-shadow: 0 0 8px -1px rgba(0, 0, 0, 0.4);
+	position: absolute;
+	right: 0;
+	height: 24px;
+	padding: 4px 16px 0 16px;
+	top: -24px;
+	color: white;
+	background: var(--builderActionOngoingColor);
+}
+
+button {
+	border: none;
+	background: var(--builderSubtleSeparatorColor);
+	outline: none;
+	color: var(--builderPrimaryTextColor);
+	padding: 10px 12px 10px 12px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	cursor: pointer;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+button:focus,
+button:hover {
+	background: var(--builderActionOngoingColor);
+	color: var(--builderBackgroundColor);
+}
+
+button:has(i + i) {
+	gap: 0;
+}
+
+button[variant="subtle"] {
+	background: unset;
+}
+button[variant="subtle"]:hover,
+button[variant="subtle"]:focus {
+	background: var(--builderActionOngoingColor);
+	color: var(--builderBackgroundColor);
+}
+
+textarea[variant="code"] {
+	font-family: Consolas, monospace;
+}
+
+code {
+	font-family: monospace;
+}
+
+.markdown code {
+	background-color: var(--builderSubtleSeparatorColor);
+	padding: 2px;
+}
+
+.windowBar {
+	padding: 12px 12px 12px 24px;
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	position: sticky;
+	top: 0;
+	background: var(--builderSubtleHighlightColorSolid);
+	z-index: 2;
+	font-size: 0.8rem;
+}
+
+.windowBar .icon {
+	margin-right: 8px;
+	display: flex;
+	align-items: center;
+}
+
+.windowBar .title {
+	flex: 1 0 auto;
+}
+
+.windowBar .windowAction {
+	height: 24px;
+	min-width: 24px;
+	padding-left: 8px;
+	padding-right: 8px;
+	flex: 0 0 auto;
+	display: flex;
+	border-radius: 12px;
+	align-items: center;
+	justify-content: center;
+	background: var(--builderSubtleHighlightColor);
+	cursor: pointer;
+	margin-left: 8px;
+	outline: none;
+}
+
+.windowBar .windowAction:focus,
+.windowBar .windowAction:hover {
+	color: var(--builderBackgroundColor);
+	background: var(--builderActionOngoingColor);
+}
+
+.sectionTitle {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.fieldWrapper {
+	position: relative;
+	width: 100%;
+	margin-top: 16px;
+}
+
+:is(.fieldWrapper, .fieldWrapperMain) > .name {
+	position: absolute;
+	top: 0;
+	left: 8px;
+	background: var(--builderBackgroundColor);
+	padding: 0 4px 4px 4px;
+	font-size: 0.7rem;
+	z-index: 1;
+}
+
+:is(.fieldWrapper, .fieldWrapperMain) .name .type {
+	color: var(--builderSecondaryTextColor);
+}
+
+:is(.fieldWrapper, .fieldWrapperMain) .content {
+	position: relative;
+	top: 6px;
+	margin-bottom: 14px;
+	width: 100%;
+	border-radius: 4px;
+	border: 1px solid var(--builderSeparatorColor);
+	font-size: 0.75rem;
+	background: var(--builderBackgroundColor);
+	outline: none;
+}
+
+:is(.fieldWrapper, .fieldWrapperMain) .content:focus-within {
+	border: 1px solid var(--builderPrimaryTextColor);
+}
+
+:is(.fieldWrapper, .fieldWrapperMain) .content textarea,
+:is(.fieldWrapper, .fieldWrapperMain) .content input {
+	border: 0;
+	outline: none;
+	width: 100%;
+}
+
+.fieldWrapper > .desc {
+	color: var(--builderSecondaryTextColor);
+	font-size: 0.7rem;
+}
+
+.chipStack {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.chip {
+	font-size: 0.75rem;
+	border-radius: 16px;
+	padding: 8px 12px 8px 12px;
+	cursor: pointer;
+	outline: none;
+	background: var(--builderBackgroundColor);
+}
+
+.chip:focus,
+.chip.active:focus,
+.chip:hover,
+.chip.active:hover {
+	color: var(--builderBackgroundColor);
+	background: var(--builderActionOngoingColor);
+}
+
+.chip.active {
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.countLabel {
+	background: var(--builderIntenseSelectedColor);
+	display: inline-flex;
+	color: var(--builderBackgroundColor);
+	align-items: center;
+	justify-content: center;
+	padding-left: 4px;
+	padding-right: 4px;
+	min-width: 20px;
+	height: 20px;
+	border-radius: 10px;
+	margin-left: 8px;
+	font-size: 0.7rem;
+}

@@ -1,0 +1,70 @@
+# Testing
+
+Testing a Streamsync application is easy. Given that event handlers are plain Python functions that take arguments such as `state` and `payload`, you can inject your own and test whether the outcome is correct. This section will use `pytest` examples.
+
+## State
+
+### Accessing the initial state
+
+To get started, import your app's entry point, `main`. This will initialise state and make event handlers available. The initial state is available in the module, at `main.ss.initial_state` provided you imported `streamsync` as `ss`.
+
+### Creating states
+
+For testing purposes, you can create your own state using the `StreamsyncState` class in `streamsync.core`. Pass a dictionary when constructing it.
+
+```py
+from streamsync.core import StreamsyncState
+
+artificial_state = StreamsyncState({
+    "a": 3,
+    "b": 6
+})
+```
+
+## Example
+
+The code of a Streamsync application basically consists of two things:
+
+- Initial state
+- Event handlers
+
+It's straightforward to test both, as shown below.
+
+### The app
+
+```py
+import streamsync as ss
+
+def handle_multiplication(state):
+    state["n"] = state["a"]*state["b"]
+
+ss.init_state({
+    "counter": 0,
+    "a": 0,
+    "b": 0
+})
+```
+
+### The tests
+
+```py
+from streamsync.core import StreamsyncState
+import main
+
+
+class TestApp:
+
+    initial_state = main.ss.initial_state
+    artificial_state = StreamsyncState({
+        "a": 3,
+        "b": 2
+    })
+
+    def test_counter_must_start_from_zero(self):
+        assert self.initial_state["counter"] == 0
+
+    def test_handle_multiplication(self):
+        main.handle_multiplication(self.artificial_state)
+        assert self.artificial_state["n"] == 6
+
+```

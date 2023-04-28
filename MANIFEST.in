@@ -1,0 +1,3 @@
+recursive-include src/streamsync/app_templates *
+recursive-include src/streamsync/static *
+include src/streamsync/py.typed

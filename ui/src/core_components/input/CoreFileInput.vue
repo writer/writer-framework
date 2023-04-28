@@ -1,0 +1,159 @@
+<template>
+	<div class="CoreFileInput" ref="rootEl">
+		<div class="main">
+			<div class="inputContainer">
+				<label>{{ fields.label }}</label>
+				<input
+					type="file"
+					ref="fileEl"
+					v-on:change="fileChange($event as InputEvent)"
+					:multiple="allowMultipleFilesFlag"
+				/>
+			</div>
+			<div class="message" v-if="message">{{ message }}</div>
+		</div>
+	</div>
+</template>
+
+<script lang="ts">
+import { FieldType } from "../../streamsyncTypes";
+
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
+
+const description = "A user input component that allows users to upload files.";
+
+const onChangeHandlerStub = `
+def onchange_handler(state, payload):
+
+	# An array of dictionaries is provided in the payload
+	# The dictionaries have the properties name, type and data
+    # The data property is a file-like object
+
+    uploaded_files = payload
+    for i, uploaded_file in enumerate(uploaded_files):
+		name = uploaded_file.get("name")
+        file_data = uploaded_file.get("data")
+        with open(f"{name}-{i}.jpeg", "wb") as file_handle:
+            file_handle.write(file_data)`.trim();
+
+export default {
+	streamsync: {
+		name: "File Input",
+		description,
+		category: "Input",
+		fields: {
+			label: {
+				name: "Label",
+				init: "Input Label",
+				type: FieldType.Text,
+			},
+			allowMultipleFiles: {
+				name: "Allow multiple files",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
+		},
+		events: {
+			"ss-file-change": {
+				desc: "Capture changes to this control.",
+				stub: onChangeHandlerStub,
+				bindable: true,
+			},
+		},
+	},
+};
+</script>
+
+<script setup lang="ts">
+import { computed, inject, Ref, ref, watch } from "vue";
+import injectionKeys from "../../injectionKeys";
+import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+
+const fields = inject(injectionKeys.evaluatedFields);
+const rootEl: Ref<HTMLInputElement> = ref(null);
+const fileEl: Ref<HTMLInputElement> = ref(null);
+const message:Ref<string> = ref(null);
+const ss = inject(injectionKeys.core);
+const componentId = inject(injectionKeys.componentId);
+
+const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+
+const allowMultipleFilesFlag = computed(() => {
+	return fields.value.allowMultipleFiles == "yes" ? true : undefined;
+});
+
+const encodeFile = async (file: File) => {
+	var reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	return new Promise((resolve, reject) => {
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error);
+	});
+};
+
+const fileChange = async (ev: InputEvent) => {
+	const el = ev.target as HTMLInputElement;
+	if (!el.files || el.files.length == 0) return;
+
+	const getValue = async () => {
+		let accumSize = 0;
+		message.value = null;
+		const encodedFiles = Promise.all(
+			Array.from(el.files).map(async (f) => {
+				accumSize += f.size;
+				const fileItem = {
+					name: f.name,
+					type: f.type,
+					data: await encodeFile(f),
+				};
+				return fileItem;
+			})
+		);
+		if (accumSize > MAX_FILE_SIZE) {
+			message.value = `Files are too big. Total size limit is ${ Math.floor((MAX_FILE_SIZE/Math.pow(1024, 2))) }mb.`; 
+			return [];
+		}
+		return encodedFiles;
+	};
+
+
+	formValue.value = getValue();
+
+	handleInput(getValue(), "ss-file-change");
+};
+
+watch(formValue, (newValue: string) => {
+	if (typeof newValue === "undefined" && fileEl.value) {
+		fileEl.value.value = "";
+	}
+});
+</script>
+
+<style scoped>
+@import "../../renderer/sharedStyles.css";
+
+.CoreFileInput {
+	width: 100%;
+}
+
+label {
+	display: block;
+	margin-bottom: 8px;
+}
+
+input {
+	max-width: 70ch;
+	width: 100%;
+	margin: 0;
+	border: 1px solid var(--separatorColor);
+}
+
+.message {
+	margin-top: 8px;
+}
+</style>

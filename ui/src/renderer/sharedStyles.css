@@ -1,0 +1,165 @@
+@font-face {
+	font-family: "Inter";
+	src: url("../assets/Inter-Regular.ttf") format("truetype"),
+		url("../assets/Inter-Regular.woff2") format("woff2");
+}
+
+input,
+button,
+textarea,
+select {
+	outline: none;
+	border: 1px solid var(--separatorColor);
+	font-size: 0.75rem;
+	padding: 4px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+	border: 1px solid var(--primaryTextColor);
+}
+
+h1,
+h2,
+h3,
+h4 {
+	font-weight: 300;
+	margin: 0;
+	color: var(--primaryTextColor);
+}
+
+h1 {
+	font-size: 1.3rem;
+}
+
+h2 {
+	font-size: 1rem;
+}
+
+h3 {
+	font-size: 0.9rem;
+}
+
+h4 {
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 0.65rem;
+	letter-spacing: 0.2ch;
+}
+
+ul,
+ol {
+	padding: 0;
+	padding-inline-start: 0;
+	margin-block-start: 0;
+}
+
+li {
+	margin: 0 0 0 32px;
+}
+
+hr {
+	border: none;
+	border-top: 1px solid var(--separatorColor);
+}
+
+label {
+	color: var(--primaryTextColor);
+}
+
+code {
+	background-color: var(--separatorColor);
+}
+
+button {
+	background: var(--buttonColor);
+	font-size: 0.8rem;
+	border-radius: 8px;
+	padding: 12px;
+	display: block;
+	cursor: pointer;
+	color: var(--buttonTextColor);
+	box-shadow: var(--buttonShadow);
+}
+
+button:focus,
+button:hover {
+	border: 1px solid var(--buttonTextColor);
+}
+
+.component {
+	font-size: 0.8rem;
+}
+
+.component.selected {
+	background-color: var(--builderSelectedColor);
+}
+
+[data-streamsync-slot-of-id] {
+	display: none;
+	opacity: 0;
+	border-radius: 2px;
+	border: 1px solid var(--separatorColor);
+	box-shadow: 0 0 3px 0 var(--separatorColor) inset;
+	min-height: 0px;
+	min-width: 0px;
+	overflow: hidden;
+	animation: appear 0.2s reverse;
+}
+
+[data-streamsync-slot-of-id].highlighted {
+	background: var(--builderIntenseSelectedColor);
+}
+
+[data-streamsync-container] {
+	display: flex;
+	gap: 16px;
+}
+
+[data-streamsync-container]:not(.horizontal) {
+	flex-direction: column;
+}
+
+[data-streamsync-container].horizontal {
+	flex-direction: row;
+}
+
+[data-streamsync-container].crackedContainer > [data-streamsync-slot-of-id] {
+	animation: appearVertical 0.2s forwards;
+	display: block;
+}
+
+[data-streamsync-container].crackedContainer.horizontal
+	> [data-streamsync-slot-of-id] {
+	animation: appearHorizontal 0.2s forwards;
+	display: block;
+}
+
+@keyframes appearHorizontal {
+	0% {
+		min-height: 0px;
+		min-width: 0px;
+		opacity: 0;
+	}
+
+	100% {
+		min-height: 24px;
+		min-width: 4px;
+		opacity: 1;
+	}
+}
+
+@keyframes appearVertical {
+	0% {
+		min-height: 0px;
+		min-width: 0px;
+		opacity: 0;
+	}
+
+	100% {
+		min-height: 4px;
+		min-width: 24px;
+		opacity: 1;
+	}
+}

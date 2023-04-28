@@ -1,22 +1,37 @@
 {
-  "name": "streamsync-ui",
-  "version": "0.0.0",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview --port 5050",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
-  },
-  "dependencies": {
-    "vue": "^3.2.29"
-  },
-  "devDependencies": {
-    "@rushstack/eslint-patch": "^1.1.0",
-    "@vitejs/plugin-vue": "^2.1.0",
-    "@vue/eslint-config-prettier": "^7.0.0",
-    "eslint": "^8.5.0",
-    "eslint-plugin-vue": "^8.2.0",
-    "prettier": "^2.5.1",
-    "vite": "^2.7.13"
-  }
+	"name": "streamsync-ui",
+	"version": "0.0.0",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview --port 5050",
+		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+		"buildintopackage": "vite build && cp -R dist/* ../streamsync/static"
+	},
+	"dependencies": {
+		"@monaco-editor/loader": "^1.3.2",
+		"marked": "^4.2.4",
+		"monaco-editor": "^0.34.1",
+		"monaco-languageclient": "^4.0.3",
+		"plotly.js-dist": "^2.20.0",
+		"remixicon": "^2.5.0",
+		"typescript": "^4.9.4",
+		"vega": "^5.22.1",
+		"vega-embed": "^6.21.0",
+		"vega-lite": "^5.6.0",
+		"vue": "^3.2.45",
+		"vue-dompurify-html": "^3.1.2"
+	},
+	"devDependencies": {
+		"@rushstack/eslint-patch": "^1.2.0",
+		"@types/marked": "^4.0.8",
+		"@vitejs/plugin-vue": "^2.3.4",
+		"@volar-plugins/vetur": "latest",
+		"@vue/eslint-config-prettier": "^7.0.0",
+		"eslint": "^8.30.0",
+		"eslint-plugin-vue": "^8.7.1",
+		"prettier": "^2.8.1",
+		"vite": "^2.9.15",
+		"vite-plugin-monaco-editor": "^1.1.0"
+	}
 }
