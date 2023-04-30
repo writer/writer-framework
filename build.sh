@@ -27,5 +27,5 @@ cp -r ./apps/hello ./src/streamsync/app_templates
 
 # PYTHON PACKAGE BUILD
 
-rm -f ./dist/*
+rm -rf ./dist/*
 python -m build
