@@ -5,11 +5,11 @@
 It works on Linux, Mac and Windows. Python 3.9.2 or higher is required.
 
 ```sh
-pip install streamsync
+pip install streamsync[ds]
 streamsync hello
 ```
 
-- The first command will install Streamsync using `pip`.
+- The first command will install Streamsync using `pip` and include the optional data science dependencies.
 - The second command will create a demo application in the subfolder "hello" and start Streamsync Builder, the framework's visual editor, which will be accessible via a local URL.
 
 We recommend using a virtual environment.
