@@ -13,7 +13,7 @@
 		"marked": "^4.2.4",
 		"monaco-editor": "^0.34.1",
 		"monaco-languageclient": "^4.0.3",
-		"plotly.js-dist": "^2.20.0",
+		"plotly.js-dist-min": "^2.22.0",
 		"remixicon": "^2.5.0",
 		"typescript": "^4.9.4",
 		"vega": "^5.22.1",
