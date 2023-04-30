@@ -16,3 +16,4 @@ src/streamsync.egg-info/
 *.DS_Store
 src/streamsync/static
 playground/
+compose-dev.yaml

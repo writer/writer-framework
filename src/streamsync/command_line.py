@@ -11,7 +11,7 @@ def main():
     parser.add_argument("command", choices=[
                         "run", "edit", "create", "hello"])
     parser.add_argument(
-        "path", nargs='?', help="Path to the app's folder")
+        "path", nargs="?", help="Path to the app's folder")
     parser.add_argument(
         "--port", help="The port on which to run the server.")
     parser.add_argument(
@@ -37,15 +37,13 @@ def main():
         logging.warning("Streamsync Builder will only accept local requests (via HTTP origin header).")
 
     if command in ("edit"):
-
-        # Builder is hardcoded to use default host (local)
-
         streamsync.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host)
     if command in ("run"):
         streamsync.serve.serve(
             absolute_app_path, mode="run", port=port, host=host)
     elif command in ("hello"):
+        _check_hello_dependencies()
         create_app("hello", template_name="hello")
         streamsync.serve.serve("hello", mode="edit",
                                port=port, host=host)
@@ -66,6 +64,14 @@ def _get_absolute_app_path(app_path: str):
     else:
         return os.path.join(os.getcwd(), app_path)
 
+
+def _check_hello_dependencies():
+    try:
+        import pandas
+        import plotly-express
+    except ImportError:
+        logging.error("Running streamsync hello requires the data science optional dependencies. Install them with:\npip install streamsync[ds]")
+        return
 
 if __name__ == "__main__":
     main()
