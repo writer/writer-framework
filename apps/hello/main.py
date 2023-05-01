@@ -33,9 +33,6 @@ def handle_story_download(state):
     state.file_download(data, file_name)
 
 
-def handle_open_streamsync_website(state):
-    state.open_url("https://streamsync.cloud")
-
 # LOAD / GENERATE DATA
 
 

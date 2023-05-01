@@ -51,7 +51,7 @@ const renderChart = async () => {
 	if (import.meta.env.SSR) return;
 
 	if (!fields.value?.spec || !chartTargetEl.value) return;
-	const Plotly = await import("plotly.js-dist");
+	const Plotly = await import("plotly.js-dist-min");
 
 	if (rootEl.value.clientHeight == 0) return;
 
