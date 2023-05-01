@@ -5,7 +5,7 @@
 It works on Linux, Mac and Windows. Python 3.9.2 or higher is required.
 
 ```sh
-pip install streamsync[ds]
+pip install "streamsync[ds]"
 streamsync hello
 ```
 
