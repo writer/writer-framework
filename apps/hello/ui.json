@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.4"
+        "streamsync_version": "0.1.5"
     },
     "components": {
         "root": {
@@ -909,23 +909,6 @@
             "position": 1,
             "handlers": {
                 "click": "handle_story_download"
-            },
-            "visible": true
-        },
-        "c9c3a3fa-df85-47d6-a01d-01c4a4ac7b9e": {
-            "id": "c9c3a3fa-df85-47d6-a01d-01c4a4ac7b9e",
-            "type": "button",
-            "content": {
-                "text": "Visit streamsync.cloud",
-                "icon": "link",
-                "buttonColor": "#29cf00",
-                "buttonTextColor": "#ffffff",
-                "buttonShadow": "0px 3px 14px -12px #000000"
-            },
-            "parentId": "70d82458-a08f-4005-8f96-dc8d3ba92fad",
-            "position": 1,
-            "handlers": {
-                "click": "handle_open_streamsync_website"
             },
             "visible": true
         }

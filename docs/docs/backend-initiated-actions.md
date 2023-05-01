@@ -39,6 +39,10 @@ def handle_open_streamsync_website(state):
 
 The URL will be safely opened with `noopener` and `noreferrer` options.
 
+::: warning Popup blockers
+Given that the URL is opened asynchronously, popup blockers will likely block the new window —unless the user has opted in.
+:::
+
 ## Changing the active page
 
 The active page and route parameters can be changed using the methods `set_page` and `set_route_vars`. This is explained in more detail in [Page Routes](page-routes.html).
