@@ -64,3 +64,11 @@ You can specify a port and host. Specifying `--host 0.0.0.0` enables you to shar
 ```sh
 streamsync run my_app --port 5000 --host 0.0.0.0
 ```
+
+## Running as a module
+
+If you need to run Streamsync as a module, you can use the `streamsync.command_line` module.
+
+```sh
+python -m streamsync.command_line run my_app
+```
