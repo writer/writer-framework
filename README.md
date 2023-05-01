@@ -22,7 +22,7 @@ Streamsync is an open-source framework for creating data apps. Build user interf
 Getting started with Streamsync is easy. It works on Linux, Mac and Windows.
 
 ```sh
-pip install streamsync[ds]
+pip install "streamsync[ds]"
 streamsync hello
 ```
 
