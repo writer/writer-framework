@@ -14,7 +14,7 @@ class TestApp:
         assert df1 != df2
 
     def test_highlighted_members(self):
-        hml = self.app_state["highlighted_members_dict"]
+        hml = self.app_state["highlighted_members"]
         assert isinstance(hml, list)
         assert len(hml) > 0
 
