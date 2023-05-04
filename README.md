@@ -1,8 +1,10 @@
+[![Downloads](https://static.pepy.tech/badge/streamsync)](https://pepy.tech/project/streamsync)   ![GitHub Repo stars](https://img.shields.io/github/stars/ramedina86/streamsync?style=social)
+
 ## What is Streamsync?
 
 Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python. Check out a [live demo](https://hello.streamsync.cloud/) of an app.
 
-![Streamsync Builder screenshot](docs/docs/public/sc1.png "Streamsync Builder screenshot")
+![Streamsync Builder screenshot](https://raw.githubusercontent.com/ramedina86/streamsync/master/docs/docs/public/sc1.png "Streamsync Builder screenshot")
 
 ### It's fast.
 
