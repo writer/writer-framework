@@ -46,3 +46,7 @@ Continuing with the Food Selector example above, the following handler can be li
 def handle_add_to_list(state, context):
     state["order_list"] += [context["itemId"]]
 ```
+
+::: warning Binding to context isn't possible
+Although context can be consumed similarly to state, using the `@{my_element}` syntax, only state can be used for two-way binding. If writing data from context is needed, use an event handler like the one shown above.
+:::

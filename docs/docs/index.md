@@ -11,7 +11,7 @@ hero:
       link: /introduction
     - theme: alt
       text: View on GitHub
-      link: https://github.com/ramedina86/streamsync
+      link: https://github.com/streamsync-cloud/streamsync
 features:
   - title: Fast ⚡️
     details: Scripts are only loaded once across all sessions. Backend and frontend application states are synchronised using WebSockets.
