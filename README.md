@@ -28,7 +28,7 @@ The event handler and state are linked to the UI using Streamsync Builder, the f
 
 ### Developer-friendly
 - It's all contained in a standard Python package, just one `pip install` away.
-- User interfaces are saved as JSON, so they can be version controlled with the rest of the application.
+- User interfaces are saved as JSON, so they can be version controlled together with the rest of the application.
 - Use your local code editor and get instant refreshes when you save your code. Alternatively, use the provided web-based editor.
 - You edit the UI while your app is running. No hitting "Preview" and seeing something completely different to what you expected.
 
@@ -38,7 +38,7 @@ The event handler and state are linked to the UI using Streamsync Builder, the f
 - The script only runs once.
 - Non-blocking by default. Events are handled asynchronously in a thread pool running in a dedicated process.
 
-*End-to-end figure, including DOM mutation. Tested locally on a Macbook Air M2.
+*End-to-end figure, including DOM mutation. Tested locally on a Macbook Air M2. [Measurement methodology](https://medium.com/@ramiromedina/measuring-time-elapsed-between-an-event-and-its-associated-dom-mutation-80431ad576e1).
 
 ### Flexible
 - Elements are highly customisable with no CSS required, allowing for shadows, button icons, background colours, etc.
