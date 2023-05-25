@@ -2,7 +2,7 @@
 
 Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python. Check out a [live demo](https://hello.streamsync.cloud/) of an app.
 
-![Streamsync Builder screenshot](https://raw.githubusercontent.com/ramedina86/streamsync/master/docs/docs/public/sc1.png "Streamsync Builder screenshot")
+![Streamsync Builder screenshot](https://raw.githubusercontent.com/streamsync-cloud/streamsync/master/docs/docs/public/sc1.png "Streamsync Builder screenshot")
 
 It's an alternative to Plotly Dash, Streamlit and Gradio. Its focused on the creation of web applications for data analytics and machine learning.
 

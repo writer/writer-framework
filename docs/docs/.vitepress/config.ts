@@ -5,7 +5,7 @@ export default {
   themeConfig: {
     logo: "/logo.svg",
     socialLinks: [
-      { icon: "github", link: "https://github.com/ramedina86/streamsync" },
+      { icon: "github", link: "https://github.com/streamsync-cloud/streamsync" },
     ],
     nav: [{ text: "Guide", link: "/introduction" }],
     sidebar: [
