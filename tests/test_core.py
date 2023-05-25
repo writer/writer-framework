@@ -15,6 +15,9 @@ raw_state_dict = {
     "name": "Robert",
     "age": 1,
     "interests": ["lamps", "cars"],
+    "state.with.dots": {
+        "photo.jpeg": "Not available",
+    },
     "features": {
         "eyes": "green",
         "height": "very short"
@@ -43,21 +46,25 @@ class TestStateProxy:
         d = self.sp.to_dict()
         assert d.get("name") == "Robert"
         assert d.get("age") == 1
+        assert d.get("state.with.dots").get("photo.jpeg") == "Not available"
         assert d.get("utfࠀ") == 23
 
     def test_mutations(self) -> None:
         self.sp["age"] = 2
         self.sp["interests"].append("dogs")
         self.sp["features"]["height"] = "short"
+        self.sp["state.with.dots"]["photo.jpeg"] = "Corrupted"
         d = self.sp.to_dict()
         assert d.get("age") == 2
         assert d.get("interests") == ["lamps", "cars", "dogs"]
         assert d.get("features").get("height") == "short"
+        assert d.get("state.with.dots").get("photo.jpeg") == "Corrupted"
 
         self.sp.apply("age")
         m = self.sp.get_mutations_as_dict()
         assert m.get("age") == 2
         assert m.get("features.height") == "short"
+        assert m.get("state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
 
     def test_private_members(self) -> None:
         d = self.sp.to_dict()

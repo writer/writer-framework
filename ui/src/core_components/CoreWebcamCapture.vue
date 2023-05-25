@@ -115,7 +115,7 @@ const getVideoDevices = async () => {
 };
 
 const refreshRate = computed(() => {
-	return fields.value?.refreshRate;
+	return fields.refreshRate.value;
 });
 
 watch(refreshRate, (newRate, prevRate) => {

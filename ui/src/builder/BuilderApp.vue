@@ -321,6 +321,7 @@ onMounted(() => {
 	height: 100vh;
 	position: relative;
 	overflow: hidden;
+	background: var(--builderBackgroundColor);
 }
 
 .mainGrid {

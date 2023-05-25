@@ -1,9 +1,9 @@
 <template>
-	<div class="CoreHeading" :style="{ 'text-align': fields.alignment }">
-		<h1 v-if="fields.headingType == 'h1'">{{ fields.text }}</h1>
-		<h3 v-else-if="fields.headingType == 'h3'">{{ fields.text }}</h3>
-		<h4 v-else-if="fields.headingType == 'h4'">{{ fields.text }}</h4>
-		<h2 v-else>{{ fields.text }}</h2>
+	<div class="CoreHeading" :style="{ 'text-align': fields.alignment.value }">
+		<h1 v-if="fields.headingType.value == 'h1'">{{ fields.text.value }}</h1>
+		<h3 v-else-if="fields.headingType.value == 'h3'">{{ fields.text.value }}</h3>
+		<h4 v-else-if="fields.headingType.value == 'h4'">{{ fields.text.value }}</h4>
+		<h2 v-else>{{ fields.text.value }}</h2>
 	</div>
 </template>
 

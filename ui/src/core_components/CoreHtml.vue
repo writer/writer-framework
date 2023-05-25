@@ -54,11 +54,11 @@ export default {
 		const fields = inject(injectionKeys.evaluatedFields);
 		return () => {
 			return h(
-				fields.value.element,
+				fields.element.value,
 				{
-					...fields.value.attrs,
+					...fields.attrs.value,
 					"data-streamsync-container": "",
-					style: fields.value.styles,
+					style: fields.styles.value,
 				},
 				slots.default({})
 			);

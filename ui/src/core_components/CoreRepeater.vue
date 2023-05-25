@@ -50,12 +50,12 @@ export default {
 
 		const children = computed(() => ss.getComponents(componentId, true));
 		const getRepeatedChildrenVNodes = () => {
-			if (typeof fields.value.repeaterObject !== "object") {
+			if (typeof fields.repeaterObject.value !== "object") {
 				return [];
 			}
 
 			const repeatedChildrenVNodes = Object.values(
-				fields.value.repeaterObject
+				fields.repeaterObject.value
 			).map((item, itemIndex) =>
 				children.value.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, itemIndex)
@@ -72,7 +72,7 @@ export default {
 					"data-streamsync-container": "",
 				},
 				children.value.length == 0 ||
-					Object.keys(fields.value.repeaterObject).length == 0
+					Object.keys(fields.repeaterObject.value).length == 0
 					? slots.default({})
 					: getRepeatedChildrenVNodes()
 			);
