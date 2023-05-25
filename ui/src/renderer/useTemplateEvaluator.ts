@@ -1,3 +1,4 @@
+import { ComputedRef, computed } from "vue";
 import { Core, FieldType, InstancePath } from "../streamsyncTypes";
 
 export function useTemplateEvaluator(ss: Core) {
@@ -73,15 +74,15 @@ export function useTemplateEvaluator(ss: Core) {
 
 	function getEvaluatedFields(
 		instancePath: InstancePath
-	): Record<string, any> {
+	): Record<string, ComputedRef<any>> {
 		const { componentId } = instancePath.at(-1);
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
-		const evaluatedFields: Record<string, any> = {};
+		const evaluatedFields: Record<string, ComputedRef<any>> = {};
 		const { fields } = ss.getComponentDefinition(component.type);
 		if (!fields) return;
 		Object.keys(fields).forEach((fieldKey) => {
-			evaluatedFields[fieldKey] = evaluateField(instancePath, fieldKey);
+			evaluatedFields[fieldKey] = computed(() => evaluateField(instancePath, fieldKey));
 		});
 
 		return evaluatedFields;
@@ -90,6 +91,7 @@ export function useTemplateEvaluator(ss: Core) {
 	function evaluateField(instancePath: InstancePath, fieldKey: string) {
 		const { componentId } = instancePath.at(-1);
 		const component = ss.getComponentById(componentId);
+		if (!component) return;
 		const { fields } = ss.getComponentDefinition(component.type);
 		const contentValue = component.content?.[fieldKey];
 		const defaultValue = fields[fieldKey].default;

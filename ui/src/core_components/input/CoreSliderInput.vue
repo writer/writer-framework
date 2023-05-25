@@ -1,14 +1,14 @@
 <template>
 	<div class="CoreSliderInput" ref="rootEl">
-		<label>{{ fields.label }}</label>
+		<label>{{ fields.label.value }}</label>
 		<div class="inputArea">
 			<input
 				type="range"
 				:value="formValue"
 				v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change')"
-				:min="fields.minValue"
-				:max="fields.maxValue"
-				:step="fields.stepSize"
+				:min="fields.minValue.value"
+				:max="fields.maxValue.value"
+				:step="fields.stepSize.value"
 			/>
 			<div class="valueContainer">
 				<h3>{{ formValue }}</h3>

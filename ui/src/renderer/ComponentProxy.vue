@@ -25,9 +25,8 @@ export default {
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
 		const templateEvaluator = useTemplateEvaluator(ss);
-		const evaluatedFields = computed(() =>
-			templateEvaluator.getEvaluatedFields(instancePath)
-		);
+		
+		const evaluatedFields = templateEvaluator.getEvaluatedFields(instancePath);
 
 		const children = computed(() => ss.getComponents(componentId, true));
 		const isBeingEdited = computed(
@@ -125,9 +124,9 @@ export default {
 				isSelected.value = isNowSelected;
 			}
 		);
-		watch(evaluatedFields, () => {
+		watch(() => evaluatedFields, () => {
 			isSelected.value = false;
-		});
+		}, {deep: true});
 
 		const isChildless = computed(() => children.value.length == 0);
 		const isVisible = computed(() => ss.isComponentVisible(componentId));
@@ -180,8 +179,8 @@ export default {
 			const styleVars = {};
 			Object.keys(fields).forEach((key) => {
 				if (!fields[key].applyStyleVariable) return;
-				if (!evaluatedFields.value[key]) return;
-				styleVars[`--${key}`] = evaluatedFields.value[key];
+				if (!evaluatedFields[key]) return;
+				styleVars[`--${key}`] = evaluatedFields[key].value;
 			});
 			return styleVars;
 		});

@@ -2,15 +2,15 @@
 	<div class="CoreImage" :style="rootStyle">
 		<img
 			:src="src"
-			:alt="fields.caption"
+			:alt="fields.caption.value"
 			draggable="false"
 			:style="imgStyle"
 		/>
 		<div
-			v-if="fields.caption || fields.caption === 0"
+			v-if="fields.caption.value || fields.caption.value === 0"
 			class="captionContainer"
 		>
-			{{ fields.caption }}
+			{{ fields.caption.value }}
 		</div>
 	</div>
 </template>
@@ -107,7 +107,7 @@ const rootStyle = computed(() => {
 });
 
 watch(
-	() => fields.value?.src,
+	() => fields.src.value,
 	(newSrc) => {
 		src = newSrc;
 	},
@@ -115,7 +115,8 @@ watch(
 );
 
 const imgStyle = computed(() => {
-	const { maxWidth, maxHeight } = fields.value;
+	const maxWidth = fields.maxWidth.value;
+	const maxHeight = fields.maxHeight.value;
 	return {
 		"max-width": maxWidth !== -1 ? `${maxWidth}px` : undefined,
 		"max-height": maxHeight !== -1 ? `${maxHeight}px` : undefined,

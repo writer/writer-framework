@@ -40,24 +40,22 @@ const rootInstancePath: InstancePath = [
 ];
 const rootInstanceData = [ref(null)];
 const rootComponent: Ref<Component> = ref(pages[0]);
-const rootFields = computed(() =>
-	templateEvaluator.getEvaluatedFields(rootInstancePath)
-);
+const rootFields = templateEvaluator.getEvaluatedFields(rootInstancePath);
 const rootStyle = computed(() => {
 	return {
-		"--accentColor": rootFields.value.accentColor,
-		"--emptinessColor": rootFields.value.emptinessColor,
-		"--containerBackgroundColor": rootFields.value.parentIdBackgroundColor,
-		"--primaryTextColor": rootFields.value.primaryTextColor,
-		"--secondaryTextColor": rootFields.value.secondaryTextColor,
-		"--separatorColor": rootFields.value.separatorColor,
+		"--accentColor": rootFields.accentColor?.value,
+		"--emptinessColor": rootFields.emptinessColor?.value,
+		"--containerBackgroundColor": rootFields.parentIdBackgroundColor?.value,
+		"--primaryTextColor": rootFields.primaryTextColor?.value,
+		"--secondaryTextColor": rootFields.secondaryTextColor?.value,
+		"--separatorColor": rootFields.separatorColor?.value,
 	};
 });
 
 const isMessagePending = computed(() => ss.isMessagePending.value);
 
 watch(
-	() => rootFields.value.appName,
+	() => rootFields.appName?.value,
 	(appName: string) => {
 		updateTitle(appName);
 	},

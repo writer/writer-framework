@@ -2,7 +2,7 @@
 	<div
 		class="CoreHorizontalStack horizontal"
 		data-streamsync-container
-		:class="[`justify-${fields.alignment}`]"
+		:class="[`justify-${fields.alignment.value}`]"
 	>
 		<slot></slot>
 	</div>
@@ -23,8 +23,7 @@ export default {
 		fields: {
 			alignment: {
 				name: "Alignment",
-				default: null,
-				init: "left",
+				default: "left",
 				type: FieldType.Text,
 				options: {
 					left: "Left",

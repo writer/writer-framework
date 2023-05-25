@@ -2,10 +2,10 @@
 	<div class="CoreButton">
 		<button>
 			<i
-				v-if="fields.icon"
-				:class="[`ri-${fields.icon}-line`, `ri-${fields.icon}`]"
+				v-if="fields.icon.value"
+				:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
 			></i>
-			{{ fields.text }}
+			{{ fields.text.value }}
 		</button>
 	</div>
 </template>

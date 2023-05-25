@@ -9,9 +9,9 @@
 			collapsed: isCollapsed,
 		}"
 	>
-		<div class="header" v-if="fields.title || isCollapsible">
+		<div class="header" v-if="fields.title.value || isCollapsible">
 			<div class="titleContainer" v-if="!isCollapsed">
-				<h2 v-if="fields.title">{{ fields.title }}</h2>
+				<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
 			</div>
 			<div
 				class="collapser"
@@ -24,9 +24,9 @@
 				></IconGen>
 			</div>
 		</div>
-		<div class="collapsedTitle" v-if="isCollapsed && fields.title">
+		<div class="collapsedTitle" v-if="isCollapsed && fields.title.value">
 			<div class="transformed">
-				<div class="content">{{ fields.title }}</div>
+				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
 		<div
@@ -137,17 +137,17 @@ const ss = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
 
 const fields = inject(injectionKeys.evaluatedFields);
-const isCollapsible = computed(() => fields.value?.isCollapsible == "yes");
+const isCollapsible = computed(() => fields.isCollapsible.value == "yes");
 const isCollapsed: Ref<boolean> = ref(
-	fields.value?.isCollapsible == "yes" &&
-		fields.value?.startCollapsed == "yes"
+	fields.isCollapsible.value == "yes" &&
+		fields.startCollapsed.value == "yes"
 );
-const isSticky = computed(() => fields.value?.isSticky == "yes");
+const isSticky = computed(() => fields.isSticky.value == "yes");
 
 const rootStyle = computed(() => {
 	let flex: string;
 	if (!isCollapsed.value) {
-		flex = `${fields.value.width} 0 0`;
+		flex = `${fields.width.value} 0 0`;
 	} else {
 		flex = `0 0 32px`;
 	}
@@ -170,8 +170,8 @@ const containerStyle = computed(() => {
 		center: "center",
 		bottom: "end",
 	};
-	const alignItems = horizontalAlignMap[fields.value.horizontalAlignment];
-	const justifyContent = verticalAlignMap[fields.value.verticalAlignment];
+	const alignItems = horizontalAlignMap[fields.horizontalAlignment.value];
+	const justifyContent = verticalAlignMap[fields.verticalAlignment.value];
 	const style = {
 		"align-items": alignItems,
 		"justify-content": justifyContent,
@@ -206,7 +206,7 @@ const columnsData: ComputedRef<Ref> = computed(() => {
 
 const position = computed(() => ss.getComponentById(componentId)?.position);
 
-watch([() => fields.value?.isCollapsible, position], () => {
+watch([() => fields.isCollapsible.value, position], () => {
 	const cd = columnsData.value;
 	if (!cd) return;
 	cd.value = { minimumNonCollapsiblePosition: undefined };

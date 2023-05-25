@@ -18,7 +18,7 @@
 			"
 			v-on:click="activateTab"
 		>
-			{{ fields.name }}
+			{{ fields.name.value }}
 		</div>
 		<div
 			class="container"

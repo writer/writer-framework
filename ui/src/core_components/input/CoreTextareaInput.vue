@@ -1,11 +1,11 @@
 <template>
 	<div class="CoreTextareaInput" ref="rootEl">
-		<label>{{ fields.label }}</label>
+		<label>{{ fields.label.value }}</label>
 		<textarea
 			:value="formValue"
 			v-on:input="($event) => handleInput(($event.target as HTMLTextAreaElement).value, 'ss-change')"
-			:placeholder="fields.placeholder"
-			:rows="fields.rows"
+			:placeholder="fields.placeholder.value"
+			:rows="fields.rows.value"
 		></textarea>
 	</div>
 </template>

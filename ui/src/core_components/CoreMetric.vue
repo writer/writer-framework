@@ -1,10 +1,10 @@
 <template>
 	<div class="CoreMetric" :style="rootStyle">
-		<div class="name" v-if="fields.name">{{ fields.name }}</div>
-		<div class="description" v-if="fields.description">
-			{{ fields.description }}
+		<div class="name" v-if="fields.name.value">{{ fields.name.value }}</div>
+		<div class="description" v-if="fields.description.value">
+			{{ fields.description.value }}
 		</div>
-		<div class="value">{{ fields.metricValue }}</div>
+		<div class="value">{{ fields.metricValue.value }}</div>
 		<div class="note" v-if="noteWithoutPrefix">{{ noteWithoutPrefix }}</div>
 	</div>
 </template>
@@ -76,7 +76,7 @@ import {
 const fields = inject(injectionKeys.evaluatedFields);
 
 const sentiment = computed(() => {
-	const note: string = fields.value?.note;
+	const note: string = fields.note.value;
 	if (!note) return "neutral";
 	const firstChar = note.charAt(0);
 	if (firstChar == "+") {
@@ -88,7 +88,7 @@ const sentiment = computed(() => {
 });
 
 const noteWithoutPrefix = computed(() => {
-	const note: string = fields.value?.note;
+	const note: string = fields.note.value;
 	if (!note) return;
 	const firstChar = note.charAt(0);
 	if (firstChar == "+" || firstChar == "-") {
@@ -98,11 +98,10 @@ const noteWithoutPrefix = computed(() => {
 });
 
 const rootStyle = computed(() => {
-	if (!fields.value) return;
 	const sentimentColors = {
-		positive: fields.value.positiveColor,
-		neutral: fields.value.neutralColor,
-		negative: fields.value.negativeColor,
+		positive: fields.positiveColor.value,
+		neutral: fields.neutralColor.value,
+		negative: fields.negativeColor.value,
 	};
 	return {
 		"--messageActiveSentimentColor": sentimentColors[sentiment.value],

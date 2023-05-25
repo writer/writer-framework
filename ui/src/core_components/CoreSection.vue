@@ -1,6 +1,6 @@
 <template>
-	<div class="CoreSection" :class="{ snapMode: fields.snapMode == 'yes' }">
-		<h2 v-if="fields.title">{{ fields.title }}</h2>
+	<div class="CoreSection" :class="{ snapMode: fields.snapMode.value == 'yes' }">
+		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
 		<div data-streamsync-container><slot></slot></div>
 	</div>
 </template>
