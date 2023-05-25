@@ -1,37 +1,63 @@
 <template>
-	<div class="CoreDataframe" :style="rootStyle">
-		<table v-if="!isEmpty">
-			<thead>
-				<tr>
-					<th v-if="isShowIndex"></th>
-					<th v-for="columnIndex in columnIndexes" :key="columnIndex">
-						{{ columnIndex }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="rowIndex in rowIndexes" :key="rowIndex">
-					<td v-if="isShowIndex" class="rowIndex">
-						{{ rowIndex }}
-					</td>
-					<td v-for="columnName in columnIndexes" :key="columnName">
-						{{ dfData[columnName][rowIndex] }}
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="empty" v-else>Empty dataframe.</div>
+	<div
+		class="CoreDataframe"
+		:style="rootStyle"
+		v-on:scroll="handleScroll"
+		ref="rootEl"
+	>
+		<div class="dfGrid" :style="gridStyle">
+			<div
+				v-if="isIndexShown"
+				data-streamsync-grid-col="0"
+				class="dfCell dfIndexCell"
+				:style="gridHeadStyle"
+				title="Index"
+				v-on:dblclick="recalculateColumnWidths"
+			></div>
+			<div
+				v-for="(columnName, columnPosition) in columnIndexes"
+				:data-streamsync-grid-col="
+					columnPosition + (isIndexShown ? 1 : 0)
+				"
+				:key="columnName"
+				class="dfCell"
+				:style="gridHeadStyle"
+				:title="columnName"
+				v-on:dblclick="recalculateColumnWidths"
+			>
+				{{ columnName }}
+			</div>
+
+			<template v-for="rowIndex in slicedRowIndexes" :key="rowIndex">
+				<div v-if="isIndexShown" class="dfCell dfIndexCell">
+					{{ rowIndex }}
+				</div>
+				<div
+					class="dfCell"
+					v-for="(columnName, columnPosition) in columnIndexes"
+					:key="columnName"
+				>
+					{{ dfData[columnName][rowIndex] }}
+				</div>
+			</template>
+		</div>
+
+		<!-- <div class="empty" v-else>Empty dataframe.</div> -->
+		<div class="endpoint" :style="endpointStyle"></div>
 	</div>
 </template>
 
 <script lang="ts">
-import { computed, inject } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import {
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
 } from "../renderer/sharedStyleFields";
+import { onMounted } from "vue";
+import { watch } from "vue";
+import { nextTick } from "vue";
 
 const description = "A component to display Pandas DataFrames.";
 
@@ -56,6 +82,13 @@ export default {
 				type: FieldType.Object,
 				default: defaultDataframe,
 			},
+			displayRowCount: {
+				name: "Display row count",
+				desc: "Specifies how many rows to show simultaneously.",
+				type: FieldType.Number,
+				category: FieldCategory.Style,
+				default: "10",
+			},
 			primaryTextColor,
 			secondaryTextColor,
 			separatorColor,
@@ -63,6 +96,7 @@ export default {
 				name: "Background",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
+				default: "#ffffff",
 				applyStyleVariable: true,
 			},
 			dataframeHeaderRowBackgroundColor: {
@@ -98,18 +132,43 @@ export default {
 <script setup lang="ts">
 import injectionKeys from "../injectionKeys";
 
+/**
+ * Only a certain amount of rows is rendered at a time (MAX_ROWS_RENDERED),
+ * to prevent filling the DOM with unnecessary rows.
+ */
+const ROW_HEIGHT_PX = 36; // Must match CSS
+const MIN_COLUMN_WIDTH_PX = 80;
+
 const fields = inject(injectionKeys.evaluatedFields);
+const rootEl: Ref<HTMLElement> = ref();
 
-const dfData = computed(() => fields.value?.dataframe?.data);
-
-const isShowIndex = computed(() => fields.value?.showIndex == "yes");
+const dfData = computed(() => fields.dataframe.value?.data);
+const isIndexShown = computed(() => fields.showIndex.value == "yes");
+const relativePosition: Ref<number> = ref(0);
 
 const columnIndexes = computed(() => {
 	return Object.keys(dfData.value ?? {});
 });
 
+const columnCount = computed(
+	() => columnIndexes.value.length + (isIndexShown.value ? 1 : 0),
+);
+const rowCount = computed(() => rowIndexes.value.length);
+const displayRowCount = computed(() => Math.min(fields.displayRowCount.value, rowCount.value));
+const startRow = computed(() =>
+	Math.min(
+		Math.floor(relativePosition.value * rowCount.value),
+		rowCount.value - displayRowCount.value,
+	),
+);
+
+const columnWidths: Ref<number[]> = ref([]);
+watch(columnCount, () => {
+	recalculateColumnWidths();
+});
+
 const isEmpty = computed(() => {
-	const e = !dfData.value || columnIndexes.value.length == 0;
+	const e = !dfData.value || columnCount.value == 0;
 	return e;
 });
 
@@ -119,12 +178,76 @@ const rowIndexes = computed(() => {
 	return rowIndexes;
 });
 
-const rootStyle = computed(() => {
-	const fontStyle = fields.value.fontStyle;
+const slicedRowIndexes = computed(() => {
+	const sliced = rowIndexes.value.slice(
+		startRow.value,
+		startRow.value + displayRowCount.value,
+	);
+	return sliced;
+});
 
+const rootStyle = computed(() => {
+	const fontStyle = fields.fontStyle.value;
 	return {
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
 	};
+});
+
+const gridHeadStyle = computed(() => {
+	return {
+		"background-color": fields.dataframeHeaderRowBackgroundColor.value,
+	};
+});
+
+const gridStyle = computed(() => {
+	let templateColumns: string;
+
+	if (columnWidths.value.length == 0) {
+		templateColumns = `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
+	} else {
+		templateColumns = columnWidths.value
+			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px`)
+			.join(" ");
+	}
+
+	return {
+		"grid-template-columns": templateColumns,
+		"grid-template-rows": `repeat(${displayRowCount.value}, 36px)`,
+	};
+});
+
+const endpointStyle = computed(() => {
+	const rowCount = rowIndexes.value.length;
+	const totalCount = ROW_HEIGHT_PX * rowCount;
+	return {
+		top: `${totalCount}px`,
+	};
+});
+
+function handleScroll(ev: Event) {
+	const scrollTop = rootEl.value.scrollTop;
+	relativePosition.value =
+		(scrollTop + ROW_HEIGHT_PX) / rootEl.value.scrollHeight;
+}
+
+async function recalculateColumnWidths() {
+	columnWidths.value = [];
+	await nextTick();
+	const columnHeadersEls = rootEl.value?.querySelectorAll(
+		"[data-streamsync-grid-col]",
+	);
+	columnHeadersEls?.forEach((headerEl) => {
+		const headerHTMLEl = headerEl as HTMLElement;
+		const columnPosition = headerHTMLEl.dataset.streamsyncGridCol;
+		const { width } = headerHTMLEl.getBoundingClientRect();
+		columnWidths.value[columnPosition] = width;
+	});
+}
+
+onMounted(() => {
+	new ResizeObserver(recalculateColumnWidths).observe(rootEl.value, {
+		box: "border-box",
+	});
 });
 </script>
 
@@ -136,34 +259,42 @@ const rootStyle = computed(() => {
 	font-size: 0.8rem;
 	width: fit-content;
 	max-width: 100%;
-	max-height: 80vh;
+	max-height: 90vh;
 	overflow: auto;
 	border: 1px solid var(--separatorColor);
 	width: 100%;
+	display: block;
+	position: relative;
 }
 
-table {
-	width: 100%;
-	border-spacing: 0;
-	border-collapse: separate;
-}
-
-th {
+.dfGrid {
 	position: sticky;
 	top: 0;
-	padding: 8px;
-	color: var(--primaryTextColor);
-	background-color: var(--dataframeHeaderRowBackgroundColor);
-	border: 0.5px solid var(--separatorColor);
+	display: grid;
 }
 
-td {
-	border: 0.5px solid var(--separatorColor);
+.dfCell {
 	padding: 8px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	white-space: nowrap;
 	color: var(--primaryTextColor);
+	border-bottom: 1px solid var(--separatorColor);
 }
 
-td.rowIndex {
+.dfCell:not(.dfIndexCell) {
+	border-left: 1px solid var(--separatorColor);
+}
+
+.dfIndexCell {
 	color: var(--secondaryTextColor);
+}
+
+.endpoint {
+	position: absolute;
+	height: 1px;
+	width: 1px;
 }
 </style>
