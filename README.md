@@ -24,7 +24,7 @@ ss.init_state({
 
 The event handler and state are linked to the UI using Streamsync Builder, the framework's visual editor.
 
-![Counter Increment example](/introduction.counter.gif)
+![Counter Increment example](docs/docs/public/introduction.counter.gif)
 
 ### Developer-friendly
 - It's all contained in a standard Python package, just one `pip install` away.
