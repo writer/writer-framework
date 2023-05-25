@@ -28,9 +28,9 @@ The event handler and state are linked to the UI using Streamsync Builder, the f
 
 ### Developer-friendly
 - It's all contained in a standard Python package, just one `pip install` away.
-- The visual editor was built from scratch to provide the best experience possible. You edit the UI while your app is running. No hitting "Preview" and seeing something completely different to what you expected.
-- User interfaces are saved as JSON, so they can be version controlled.
+- User interfaces are saved as JSON, so they can be version controlled with the rest of the application.
 - Use your local code editor and get instant refreshes when you save your code. Alternatively, use the provided web-based editor.
+- You edit the UI while your app is running. No hitting "Preview" and seeing something completely different to what you expected.
 
 ### Fast
 - Event handling adds minimal overhead to your Python code (~1-2ms*).
