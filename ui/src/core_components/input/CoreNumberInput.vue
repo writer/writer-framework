@@ -2,12 +2,12 @@
 	<div class="CoreNumberInput" ref="rootEl">
 		<div class="main">
 			<div class="inputContainer">
-				<label>{{ fields.label }}</label>
+				<label>{{ fields.label.value }}</label>
 				<input
 					type="number"
 					v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change')"
 					:value="formValue"
-					:placeholder="fields.placeholder"
+					:placeholder="fields.placeholder.value"
 				/>
 			</div>
 		</div>

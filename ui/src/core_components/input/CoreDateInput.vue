@@ -2,7 +2,7 @@
 	<div class="CoreDateInput" ref="rootEl">
 		<div class="main">
 			<div class="inputContainer">
-				<label>{{ fields.label }}</label>
+				<label>{{ fields.label.value }}</label>
 				<input
 					type="date"
 					v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-date-change')"

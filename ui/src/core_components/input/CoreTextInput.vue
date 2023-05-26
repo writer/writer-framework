@@ -1,11 +1,11 @@
 <template>
 	<div class="CoreTextInput" ref="rootEl">
-		<label>{{ fields.label }}</label>
+		<label>{{ fields.label.value }}</label>
 		<input
 			type="text"
 			:value="formValue"
 			v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change')"
-			:placeholder="fields.placeholder"
+			:placeholder="fields.placeholder.value"
 		/>
 	</div>
 </template>

@@ -1,7 +1,7 @@
 <template>
 	<div class="CoreHeader">
 		<div class="rectangle">
-			<h1>{{ fields.text }}</h1>
+			<h1>{{ fields.text.value }}</h1>
 		</div>
 		<div class="container horizontal" data-streamsync-container>
 			<slot></slot>

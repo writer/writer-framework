@@ -160,8 +160,8 @@ class StateProxy:
 
     def __init__(self, raw_state: Dict = {}):
         self.state: Dict[str, Any] = {}
-        self.mutated: Set[str] = set()
         self.initial_assignment = True
+        self.mutated: Set[str] = set()
         self.ingest(raw_state)
 
     def __repr__(self) -> str:
@@ -204,6 +204,7 @@ class StateProxy:
         for key, value in self.state.items():
             if key.startswith("_"):
                 continue
+            escaped_key = key.replace(".", "\.")
 
             serialised_value = None
             if isinstance(value, StateProxy):
@@ -214,7 +215,7 @@ class StateProxy:
                 if child_mutations is None:
                     continue
                 for child_key, child_mutation in child_mutations.items():
-                    nested_key = f"{key}.{child_key}"
+                    nested_key = f"{escaped_key}.{child_key}"
                     serialised_mutations[nested_key] = child_mutation
             elif key in self.mutated:
                 serialised_value = None
@@ -223,7 +224,7 @@ class StateProxy:
                 except BaseException:
                     raise ValueError(
                         f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
-                serialised_mutations[key] = serialised_value
+                serialised_mutations[escaped_key] = serialised_value
 
         self.mutated = set()
         return serialised_mutations
@@ -654,6 +655,7 @@ class StreamsyncSession:
         self.headers = headers
         self.last_active_timestamp: int = int(time.time())
         new_state = StreamsyncState.get_new()
+        new_state.user_state.mutated = set()
         self.session_state = new_state
         self.event_handler = EventHandler(self)
 

@@ -10,7 +10,7 @@ import {
 export default {
 	core: Symbol() as InjectionKey<Core>,
 	builderManager: Symbol() as InjectionKey<BuilderManager>,
-	evaluatedFields: Symbol() as InjectionKey<ComputedRef<Record<string, any>>>,
+	evaluatedFields: Symbol() as InjectionKey<Record<string, ComputedRef<any>>>,
 	componentId: Symbol() as InjectionKey<Component["id"]>,
 	isBeingEdited: Symbol() as InjectionKey<Ref<boolean>>,
 	getChildrenVNodes: Symbol() as InjectionKey<

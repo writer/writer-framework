@@ -11,6 +11,7 @@ import {
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
+import { parseAccessor } from "./parsing";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -106,7 +107,12 @@ export function generateCore() {
 	function ingestMutations(mutations: Record<string, any>) {
 		if (!mutations) return;
 		Object.entries(mutations).forEach(([key, value]) => {
-			const accessor = key.split(".");
+			/*
+			Splits the key while respecting escaped dots.
+			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
+			*/ 
+
+			const accessor = parseAccessor(key);
 			let stateRef = userState.value;
 			for (let i = 0; i < accessor.length - 1; i++) {
 				let nextStateRef = stateRef?.[accessor[i]];

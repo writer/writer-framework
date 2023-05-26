@@ -1,13 +1,13 @@
 <template>
 	<div class="CoreDropdownInput" ref="rootEl">
-		<label class="mainLabel">{{ fields.label }}</label>
+		<label class="mainLabel">{{ fields.label.value }}</label>
 		<div class="selectContainer">
 			<select
 				:value="formValue"
 				v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-option-change')"
 			>
 				<option
-					v-for="(option, optionKey) in fields.options"
+					v-for="(option, optionKey) in fields.options.value"
 					:key="optionKey"
 					:value="optionKey"
 				>

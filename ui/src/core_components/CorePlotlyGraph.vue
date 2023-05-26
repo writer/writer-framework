@@ -50,16 +50,16 @@ const fields = inject(injectionKeys.evaluatedFields);
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
 
-	if (!fields.value?.spec || !chartTargetEl.value) return;
+	if (!fields.spec.value || !chartTargetEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
 
 	if (rootEl.value.clientHeight == 0) return;
 
-	Plotly.newPlot(chartTargetEl.value, fields.value.spec);
+	Plotly.newPlot(chartTargetEl.value, fields.spec.value);
 };
 
 watch(
-	() => fields.value?.spec,
+	() => fields.spec.value,
 	(spec) => {
 		if (!spec) return;
 		renderChart();

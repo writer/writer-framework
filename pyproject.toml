@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9.2"
 keywords = ["data apps", "gui", "ui"]
 license = { text = "Apache 2.0" }
-classifiers = ["Development Status :: 3 - Alpha"]
+classifiers = ["Development Status :: 4 - Beta"]
 dependencies = [
     "fastapi >= 0.89.1, < 1",
     "websockets >= 10.4, < 11",
@@ -45,6 +45,9 @@ build = [
     "httpx >= 0.18.2, < 1",
     "build >= 0.10.0, < 1"
 ]
+
+[project.urls]
+Home = "https://www.github.com/streamsync-cloud/streamsync"
 
 [project.scripts]
 streamsync = "streamsync.command_line:main"

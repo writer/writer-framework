@@ -1,9 +1,9 @@
 <template>
 	<div class="CoreText" :style="rootStyle">
-		<template v-if="fields.useMarkdown == 'no'">
-			<div class="plainText" :style="contentStyle">{{ fields.text }}</div>
+		<template v-if="fields.useMarkdown.value == 'no'">
+			<div class="plainText" :style="contentStyle">{{ fields.text.value }}</div>
 		</template>
-		<template v-else-if="fields.useMarkdown == 'yes'">
+		<template v-else-if="fields.useMarkdown.value == 'yes'">
 			<div
 				class="markdown"
 				:style="contentStyle"
@@ -93,12 +93,12 @@ const rootStyle = computed(() => {
 
 const contentStyle = computed(() => {
 	return {
-		"text-align": fields.value.alignment,
+		"text-align": fields.alignment.value,
 	};
 });
 
 const unsanitisedMarkdownHtml = computed(() => {
-	const unsanitisedHtml = marked.parse(fields.value.text).trim();
+	const unsanitisedHtml = marked.parse(fields.text.value).trim();
 	return unsanitisedHtml;
 });
 </script>

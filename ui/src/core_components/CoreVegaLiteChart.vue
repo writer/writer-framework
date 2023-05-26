@@ -66,13 +66,13 @@ const fields = inject(injectionKeys.evaluatedFields);
 
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
-	if (!fields.value?.spec || !chartTargetEl.value) return;
+	if (!fields.spec.value || !chartTargetEl.value) return;
 	const { default: embed } = await import("vega-embed");
-	await embed(chartTargetEl.value, fields.value.spec);
+	await embed(chartTargetEl.value, fields.spec.value);
 };
 
 watch(
-	() => fields.value?.spec,
+	() => fields.spec.value,
 	(spec) => {
 		if (!spec) return;
 		renderChart();

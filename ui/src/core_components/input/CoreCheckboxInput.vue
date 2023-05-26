@@ -1,10 +1,10 @@
 <template>
 	<div class="CoreCheckboxInput" ref="rootEl">
-		<label class="mainLabel">{{ fields.label }}</label>
+		<label class="mainLabel">{{ fields.label.value }}</label>
 		<div class="options">
 			<div
 				class="option"
-				v-for="(option, optionKey) in fields.options"
+				v-for="(option, optionKey) in fields.options.value"
 				:key="optionKey"
 			>
 				<input

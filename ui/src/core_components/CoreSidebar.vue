@@ -82,7 +82,7 @@ import injectionKeys from "../injectionKeys";
 import IconGen from "../renderer/IconGen.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const isCollapsed: Ref<boolean> = ref(fields.value?.startCollapsed == "yes");
+const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);

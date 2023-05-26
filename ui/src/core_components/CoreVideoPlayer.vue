@@ -1,11 +1,11 @@
 <template>
 	<div class="CoreVideoPlayer">
 		<video
-			:src="fields.src"
-			:controls="fields.controls === 'yes'"
-			:autoplay="fields.autoplay === 'yes'"
-			:loop="fields.loop === 'yes'"
-			:muted="fields.muted === 'yes'"
+			:src="fields.src.value"
+			:controls="fields.controls.value === 'yes'"
+			:autoplay="fields.autoplay.value === 'yes'"
+			:loop="fields.loop.value === 'yes'"
+			:muted="fields.muted.value === 'yes'"
 		></video>
 	</div>
 </template>

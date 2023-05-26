@@ -9,8 +9,8 @@
 		<div
 			class="main"
 			:class="{
-				compact: fields.pageMode == 'compact',
-				wide: fields.pageMode == 'wide',
+				compact: fields.pageMode.value == 'compact',
+				wide: fields.pageMode.value == 'wide',
 			}"
 			data-streamsync-container
 		>

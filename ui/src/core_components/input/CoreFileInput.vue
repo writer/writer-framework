@@ -2,7 +2,7 @@
 	<div class="CoreFileInput" ref="rootEl">
 		<div class="main">
 			<div class="inputContainer">
-				<label>{{ fields.label }}</label>
+				<label>{{ fields.label.value }}</label>
 				<input
 					type="file"
 					ref="fileEl"
@@ -83,7 +83,7 @@ const componentId = inject(injectionKeys.componentId);
 const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 
 const allowMultipleFilesFlag = computed(() => {
-	return fields.value.allowMultipleFiles == "yes" ? true : undefined;
+	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
 });
 
 const encodeFile = async (file: File) => {

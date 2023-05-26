@@ -64,8 +64,8 @@ const fields = inject(injectionKeys.evaluatedFields);
 const ss = inject(injectionKeys.core);
 const rootEl: Ref<HTMLElement> = ref(null);
 
-const intervalMs = computed(() => fields.value?.intervalMs);
-const isActive = computed(() => fields.value?.isActive == "yes");
+const intervalMs = computed(() => fields.intervalMs.value);
+const isActive = computed(() => fields.isActive.value == "yes");
 const isFailing = ref(false);
 const componentId = inject(injectionKeys.componentId);
 const isTickHandlerSet = computed(

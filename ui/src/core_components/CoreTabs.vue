@@ -80,9 +80,6 @@ instanceData.at(-1).value = { activeTab: undefined };
 	overflow-x: auto;
 }
 
-.tabSelector > * {
-}
-
 .childless > .tabSelector {
 	display: none;
 }

@@ -85,7 +85,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
 const severity = computed(() => {
-	const message: string = fields.value?.message;
+	const message: string = fields.message.value;
 	if (!message) return "neutral";
 	const firstChar = message.charAt(0);
 	if (firstChar == "+") {
@@ -99,7 +99,7 @@ const severity = computed(() => {
 });
 
 const messageWithoutPrefix = computed(() => {
-	const message: string = fields.value?.message;
+	const message: string = fields.message.value;
 	if (!message) return;
 	const firstChar = message.charAt(0);
 	if (firstChar == "+" || firstChar == "-" || firstChar == "!") {
@@ -109,12 +109,11 @@ const messageWithoutPrefix = computed(() => {
 });
 
 const rootStyle = computed(() => {
-	if (!fields.value) return;
 	const severityColors = {
-		error: fields.value.errorColor,
-		success: fields.value.successColor,
-		warning: fields.value.warningColor,
-		info: fields.value.infoColor,
+		error: fields.errorColor.value,
+		success: fields.successColor.value,
+		warning: fields.warningColor.value,
+		info: fields.infoColor.value,
 	};
 	return {
 		"--messageActiveSeverityColor": severityColors[severity.value],
