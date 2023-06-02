@@ -7,12 +7,14 @@ export default {
     socialLinks: [
       { icon: "github", link: "https://github.com/streamsync-cloud/streamsync" },
     ],
-    nav: [{ text: "Guide", link: "/introduction" }],
+    nav: [
+      { text: "Documentation", link: "/getting-started" },
+      { text: "Components", link: "/component-list" }
+    ],
     sidebar: [
       {
         text: "Guide",
         items: [
-          { text: "Introduction", link: "/introduction" },
           { text: "Getting started", link: "/getting-started" },
           { text: "Builder basics", link: "/builder-basics" },
           { text: "Application state", link: "/application-state" },
