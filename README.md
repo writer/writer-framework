@@ -1,8 +1,11 @@
 ## What is Streamsync?
 
-Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python. Check out a [live demo](https://hello.streamsync.cloud/) of an app and its [source code](https://github.com/streamsync-cloud/streamsync/blob/master/apps/hello/main.py).
+Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python. 
 
 ![Streamsync Builder screenshot](https://raw.githubusercontent.com/streamsync-cloud/streamsync/master/docs/docs/public/sc1.png "Streamsync Builder screenshot")
+
+- [Live demo](https://hello.streamsync.cloud/) of an app. [Source code](https://github.com/streamsync-cloud/streamsync/blob/master/apps/hello/main.py).
+- [1 minute introduction video](https://youtu.be/XBAPBy_zf8s) on YouTube
 
 It's an alternative to Plotly Dash, Streamlit and Gradio. Its focused on the creation of web applications for data analytics and machine learning.
 
@@ -10,10 +13,13 @@ It aims to be as simple as Streamlit, but faster, more flexible and with a clean
 
 ## Highlights
 
-### Simple
-Event handlers are defined as plain, easily-testable Python functions.
+### Reactive and state-driven
+
+Streamsync is **fully state-driven** and provides **separation of concerns** between user interface and business logic. 
 
 ```py
+import streamsync as ss
+
 def handle_increment(state):
     state["counter"] += 1
 
@@ -22,9 +28,7 @@ ss.init_state({
 })
 ```
 
-The event handler and state are linked to the UI using Streamsync Builder, the framework's visual editor.
-
-![Counter Increment example](docs/docs/public/introduction.counter.gif)
+The user interface is a template, which is defined visually. The template contains reactive references to state, e.g. `@{counter}`, and references to event handlers, e.g. when _Button_ is clicked, trigger `handle_increment`.
 
 ### Developer-friendly
 - It's all contained in a standard Python package, just one `pip install` away.
