@@ -10,6 +10,17 @@ layout: home
       <div class="secondaryTagline">An open-source framework for creating data apps.</div>
       </div>
       <video src="./images/home.streamsync1min.mp4" controls autoplay loop></video>
+      <div class="quickstart vp-doc">
+
+```sh
+# Install via pip (requires Python >= 3.9.2)
+pip install "streamsync[ds]"
+
+# Run local server for the demo app
+streamsync hello
+```
+
+</div>
       <div class="topActions">
         <div class="actions">
           <a class="buttonLink" href="getting-started.html">
@@ -168,8 +179,18 @@ html.dark .homeMain .topContainer_L2 {
   justify-content: center;
 }
 
+.homeMain .quickstart {
+  width: min(720px, 100vw);
+  padding: 24px;
+  border-radius: 8px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 24px;
+  overflow: hidden;
+}
+
 .homeMain .topActions {
-  margin-top: 72px;
+  margin-top: 24px;
   margin-bottom: 72px;
   width: 100%;
 }
