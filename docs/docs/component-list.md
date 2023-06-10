@@ -24,8 +24,7 @@ outline: [2, 2]
         "Input": "Components whose main objective is to allow the user to input data into the app.",
         "Other": "These components occupy a special role and are amongst the most powerful in the framework.",
         "Root": "These components are the top-level containers."
-    };
-     
+    };     
 </script>
 
 # Component list
@@ -40,7 +39,7 @@ This list is automatically generated from the framework's source code.
             <h3 :id="def.type">{{def.name}}</h3>
             <div class="imageContainer">
                 <div class="imageContainerInner">
-                    <img :src="`./images/components/${def.type}.png`" />
+                    <img :src="`/components/${def.type}.png`" />
                 </div>
             </div>
             <div class="descriptionContainer">
