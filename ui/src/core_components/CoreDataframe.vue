@@ -5,7 +5,7 @@
 		v-on:scroll="handleScroll"
 		ref="rootEl"
 	>
-		<div class="dfGrid" :style="gridStyle">
+		<div class="dfGrid" :style="gridStyle" v-if="rowCount > 0">
 			<div
 				v-if="isIndexShown"
 				data-streamsync-grid-col="0"
@@ -15,7 +15,7 @@
 				v-on:dblclick="recalculateColumnWidths"
 			></div>
 			<div
-				v-for="(columnName, columnPosition) in columnIndexes"
+				v-for="(columnName, columnPosition) in columnNames.filter(c => !dfIndex.includes(c))"
 				:data-streamsync-grid-col="
 					columnPosition + (isIndexShown ? 1 : 0)
 				"
@@ -27,22 +27,26 @@
 			>
 				{{ columnName }}
 			</div>
-
-			<template v-for="rowIndex in slicedRowIndexes" :key="rowIndex">
+			<template v-for="(row, rowIndex) in slicedData" :key="rowIndex">
 				<div v-if="isIndexShown" class="dfCell dfIndexCell">
-					{{ rowIndex }}
+					<template v-if="typeof dfIndex === 'undefined'">
+						{{ (rowIndex+rowOffset) }}
+					</template>
+					<template v-else>
+						{{ columnNames.filter(c => dfIndex.includes(c)).map(c => row[c]).join(", ") }}
+					</template>
 				</div>
 				<div
 					class="dfCell"
-					v-for="(columnName, columnPosition) in columnIndexes"
+					v-for="(columnName, columnPosition) in columnNames.filter(c => !dfIndex.includes(c))"
 					:key="columnName"
 				>
-					{{ dfData[columnName][rowIndex] }}
+					{{ row[columnName] }}
 				</div>
 			</template>
 		</div>
 
-		<!-- <div class="empty" v-else>Empty dataframe.</div> -->
+		<div class="empty" v-else>Empty dataframe.</div>
 		<div class="endpoint" :style="endpointStyle"></div>
 	</div>
 </template>
@@ -58,6 +62,7 @@ import {
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { nextTick } from "vue";
+import { ComputedRef } from "vue";
 
 const description = "A component to display Pandas DataFrames.";
 
@@ -78,8 +83,8 @@ export default {
 		fields: {
 			dataframe: {
 				name: "Data",
-				desc: "Must be a JSON object or a state reference to a Pandas dataframe.",
-				type: FieldType.Object,
+				desc: "Must be a state reference to a Pandas dataframe or PyArrow table. Alternatively, a URL for an Arrow IPC file.",
+				type: FieldType.Text,
 				default: defaultDataframe,
 			},
 			displayRowCount: {
@@ -131,6 +136,8 @@ export default {
 </script>
 <script setup lang="ts">
 import injectionKeys from "../injectionKeys";
+import * as aq from "arquero";
+import { tableFromIPC, Table } from 'apache-arrow';
 
 /**
  * Only a certain amount of rows is rendered at a time (MAX_ROWS_RENDERED),
@@ -141,50 +148,48 @@ const MIN_COLUMN_WIDTH_PX = 80;
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl: Ref<HTMLElement> = ref();
-
-const dfData = computed(() => fields.dataframe.value?.data);
+const dfData = ref(null);
+const dfIndex = ref([]);
 const isIndexShown = computed(() => fields.showIndex.value == "yes");
 const relativePosition: Ref<number> = ref(0);
+const columnWidths: Ref<number[]> = ref([]);
 
-const columnIndexes = computed(() => {
-	return Object.keys(dfData.value ?? {});
+const columnNames: ComputedRef<string[]> = computed(() => {
+	if (!dfData.value) {
+		return [];
+	}
+	return dfData.value?.columnNames();
 });
 
-const columnCount = computed(
-	() => columnIndexes.value.length + (isIndexShown.value ? 1 : 0),
+const columnCount = computed(() => {
+	const nonIndexColumns = columnNames.value.filter(c => !dfIndex.value.includes(c));
+	const count = (isIndexShown.value ? 1 : 0) + nonIndexColumns.length;
+	return count;
+});
+const rowCount = computed(() => dfData.value?.numRows() ?? 0);
+const displayRowCount = computed(() =>
+	Math.min(fields.displayRowCount.value, rowCount.value),
 );
-const rowCount = computed(() => rowIndexes.value.length);
-const displayRowCount = computed(() => Math.min(fields.displayRowCount.value, rowCount.value));
-const startRow = computed(() =>
+const rowOffset = computed(() =>
 	Math.min(
 		Math.floor(relativePosition.value * rowCount.value),
 		rowCount.value - displayRowCount.value,
 	),
 );
 
-const columnWidths: Ref<number[]> = ref([]);
-watch(columnCount, () => {
-	recalculateColumnWidths();
-});
-
 const isEmpty = computed(() => {
-	const e = !dfData.value || columnCount.value == 0;
+	const e = !dfData.value;
 	return e;
 });
 
-const rowIndexes = computed(() => {
-	const firstColumn = dfData.value[columnIndexes.value[0]];
-	const rowIndexes = Object.keys(firstColumn);
-	return rowIndexes;
-});
-
-const slicedRowIndexes = computed(() => {
-	const sliced = rowIndexes.value.slice(
-		startRow.value,
-		startRow.value + displayRowCount.value,
-	);
+const slicedData = computed(() => {
+	if (!dfData.value) return null;
+	const sliced = dfData.value.objects({
+		offset: rowOffset.value,
+		limit: displayRowCount.value,
+	});
 	return sliced;
-});
+})
 
 const rootStyle = computed(() => {
 	const fontStyle = fields.fontStyle.value;
@@ -204,6 +209,7 @@ const gridStyle = computed(() => {
 
 	if (columnWidths.value.length == 0) {
 		templateColumns = `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
+		console.log(templateColumns);
 	} else {
 		templateColumns = columnWidths.value
 			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px`)
@@ -217,8 +223,7 @@ const gridStyle = computed(() => {
 });
 
 const endpointStyle = computed(() => {
-	const rowCount = rowIndexes.value.length;
-	const totalCount = ROW_HEIGHT_PX * rowCount;
+	const totalCount = ROW_HEIGHT_PX * rowCount.value;
 	return {
 		top: `${totalCount}px`,
 	};
@@ -244,7 +249,43 @@ async function recalculateColumnWidths() {
 	});
 }
 
-onMounted(() => {
+function getIndexFromArrowTable(table: Table<any>) {
+	const pandasMetadataJSON = table.schema.metadata.get("pandas");
+	if (!pandasMetadataJSON) return;
+	const pandasMetadata = JSON.parse(pandasMetadataJSON);
+	return pandasMetadata.index_columns;
+}
+
+async function loadData () {
+	const url = fields.dataframe.value;
+
+	try {
+		const res = await fetch(url);
+		const blob = await res.blob();
+		const buffer = await blob.arrayBuffer();
+		const arrowTable = tableFromIPC(buffer);
+		dfIndex.value = getIndexFromArrowTable(arrowTable);
+		const aqTable = aq.fromArrow(arrowTable);
+		dfData.value = aqTable;
+		console.log("index", dfIndex.value);
+	} catch (e) {
+		console.error("Couldn't load dataframe from Arrow URL.", e);
+	}
+}
+
+watch(
+	fields.dataframe,
+	() => {
+		loadData();
+	}
+);
+
+watch(columnCount, () => {
+	recalculateColumnWidths();
+});
+
+onMounted(async () => {
+	await loadData();
 	new ResizeObserver(recalculateColumnWidths).observe(rootEl.value, {
 		box: "border-box",
 	});
