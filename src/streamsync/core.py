@@ -117,10 +117,9 @@ class StateSerialiser:
         if "numpy.ndarray" in v_mro:
             return self._serialise_list_recursively(v.tolist())
         if "pandas.core.frame.DataFrame" in v_mro:
-            return self._serialise_dict_recursively({
-                "data": v.to_dict(),
-                "metadata": {}
-            })
+            return self._serialise_pandas_dataframe(v)
+        if "pyarrow.lib.Table" in v_mro:
+            return self._serialise_pyarrow_table(v)
 
         if hasattr(v, "to_dict") and callable(v.to_dict):
             # Covers Altair charts, Plotly graphs
@@ -149,6 +148,24 @@ class StateSerialiser:
         iobytes.seek(0)
         plt.close(fig)
         return FileWrapper(iobytes, "image/png").get_as_dataurl()
+
+    def _serialise_pandas_dataframe(self, df):
+        import pyarrow as pa # type: ignore
+
+        pa_table = pa.Table.from_pandas(df, preserve_index=True)
+        return self._serialise_pyarrow_table(pa_table)
+
+    def _serialise_pyarrow_table(self, table):
+        import pyarrow as pa # type: ignore
+
+        sink = pa.BufferOutputStream()
+        batches = table.to_batches()
+        with pa.ipc.new_file(sink, table.schema) as writer:
+            for batch in batches:
+                writer.write_batch(batch)
+        buf = sink.getvalue()
+        bw = BytesWrapper(buf, "application/vnd.apache.arrow.file")
+        return self.serialise(bw)
 
 
 class StateProxy:
