@@ -663,14 +663,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Change visibility`, true);
 		ssbm.registerPreMutation(component);
 
-		console.log(JSON.stringify(component));
-
 		if (visible === true && typeof component.visible != "undefined") {
 			delete component.visible;
 		} else {
 			component.visible = visible;
 		}
-		console.log(JSON.stringify(component));
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
