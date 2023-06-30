@@ -91,6 +91,8 @@ class StateSerialiser:
             return self._serialise_dict_recursively(v.to_dict())
         if isinstance(v, (FileWrapper, BytesWrapper)):
             return self._serialise_ss_wrapper(v)
+        if isinstance(v, datetime.datetime):
+            return str(v)
         if isinstance(v, bytes):
             return self.serialise(BytesWrapper(v))
         if isinstance(v, dict):
