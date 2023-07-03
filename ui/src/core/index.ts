@@ -1,4 +1,4 @@
-import { ref, Ref, ssrContextKey } from "vue";
+import { ref, Ref } from "vue";
 import {
 	Component,
 	ComponentMap,
@@ -394,35 +394,6 @@ export function generateCore() {
 	}
 
 	/**
-	 * Check the visibility of a component.
-	 *
-	 * @param componentId The id of the component.
-	 * @param fullTree Whether to check the component and all its ancestors or just the component.
-	 * @returns Visibility status.
-	 */
-	function isComponentVisible(
-		componentId: Component["id"],
-		fullTree = false
-	): boolean {
-		const component = components.value[componentId];
-		if (!component) return false;
-
-		if (
-			fullTree &&
-			component.parentId &&
-			!isComponentVisible(component.parentId)
-		) {
-			return false;
-		}
-
-		if (typeof component.visible === "undefined") return true;
-		if (component.visible === true) return true;
-		if (component.visible === false) return false;
-		const evaluated = evaluateExpression(component.visible as string);
-		return !!evaluated;
-	}
-
-	/**
 	 * Gets registered Streamsync components.
 	 *
 	 * @param childrenOfId If specified, only include results that are children of a component with this id.
@@ -499,7 +470,6 @@ export function generateCore() {
 		addMailSubscription,
 		init,
 		evaluateExpression,
-		isComponentVisible,
 		forwardEvent,
 		getSavedCode,
 		getRunCode,

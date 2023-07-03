@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.4"
+        "streamsync_version": "0.1.8"
     },
     "components": {
         "root": {
@@ -118,7 +118,8 @@
                 "dataframe": "@{main_df}",
                 "dataframeBackgroundColor": "#f5fdff",
                 "dataframeHeaderRowBackgroundColor": "#d0e6eb",
-                "showIndex": ""
+                "showIndex": "",
+                "enableSearch": ""
             },
             "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "position": 4
@@ -2805,6 +2806,32 @@
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": -2,
+            "handlers": {},
+            "visible": true
+        },
+        "2e46c38b-6405-42ad-ad9c-d237a53a7d30": {
+            "id": "2e46c38b-6405-42ad-ad9c-d237a53a7d30",
+            "type": "dropdowninput",
+            "content": {
+                "label": "Input Label",
+                "options": "{\n  \"ar\": \"Argentina\",\n  \"uk\": \"United Kingdom\"\n}"
+            },
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "position": 9,
+            "handlers": {
+                "ss-option-change": "update_cities"
+            },
+            "visible": true
+        },
+        "20a4329c-4b14-4743-adaa-698ff0629aed": {
+            "id": "20a4329c-4b14-4743-adaa-698ff0629aed",
+            "type": "dropdowninput",
+            "content": {
+                "label": "Input Label",
+                "options": "@{cities}"
+            },
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "position": 10,
             "handlers": {},
             "visible": true
         }

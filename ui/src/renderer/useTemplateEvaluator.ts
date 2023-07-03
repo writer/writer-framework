@@ -1,5 +1,5 @@
 import { ComputedRef, computed } from "vue";
-import { Core, FieldType, InstancePath } from "../streamsyncTypes";
+import { Component, Core, FieldType, InstancePath } from "../streamsyncTypes";
 
 export function useTemplateEvaluator(ss: Core) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;
@@ -126,7 +126,33 @@ export function useTemplateEvaluator(ss: Core) {
 		}
 	}
 
+	/**
+	 * Check the visibility of a component. If an instance path is specified, context is evaluated.
+	 *
+	 * @param componentId The id of the component.
+	 * @param instancePath The specific instance of the component to be evaluated.
+	 * @returns Visibility status.
+	 */
+	function isComponentVisible(
+		componentId: Component["id"],
+		instancePath?: InstancePath
+	): boolean {
+		let contextData:Record<string, any>;
+		const component = ss.getComponentById(componentId);
+		if (!component) return;
+
+		if (typeof component.visible === "undefined") return true;
+		if (component.visible === true) return true;
+		if (component.visible === false) return false;
+		if (instancePath) {
+			contextData = getContextData(instancePath);
+		}
+		const evaluated = ss.evaluateExpression(component.visible as string, contextData);
+		return !!evaluated;
+	}
+
 	return {
 		getEvaluatedFields,
+		isComponentVisible
 	};
 }

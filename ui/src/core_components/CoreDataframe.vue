@@ -1,49 +1,93 @@
 <template>
-	<div
-		class="CoreDataframe"
-		:style="rootStyle"
-		v-on:scroll="handleScroll"
-		ref="rootEl"
-	>
-		<div class="dfGrid" :style="gridStyle">
-			<div
-				v-if="isIndexShown"
-				data-streamsync-grid-col="0"
-				class="dfCell dfIndexCell"
-				:style="gridHeadStyle"
-				title="Index"
-				v-on:dblclick="recalculateColumnWidths"
-			></div>
-			<div
-				v-for="(columnName, columnPosition) in columnIndexes"
-				:data-streamsync-grid-col="
-					columnPosition + (isIndexShown ? 1 : 0)
-				"
-				:key="columnName"
-				class="dfCell"
-				:style="gridHeadStyle"
-				:title="columnName"
-				v-on:dblclick="recalculateColumnWidths"
-			>
-				{{ columnName }}
+	<div class="CoreDataframe">
+		<div class="tools" ref="toolsEl">
+			<div class="search" v-if="fields.enableSearch.value === 'yes'">
+				<i class="ri-search-line"></i>
+				<input
+					type="text"
+					v-on:change="handleSearchChange"
+					placeholder="Search..."
+				/>
 			</div>
-
-			<template v-for="rowIndex in slicedRowIndexes" :key="rowIndex">
-				<div v-if="isIndexShown" class="dfCell dfIndexCell">
-					{{ rowIndex }}
+			<button class="download" v-on:click="download" v-if="fields.enableDownload.value === 'yes'">
+				<i class="ri-download-2-line"></i>
+			</button>
+		</div>
+		<div
+			class="gridContainer"
+			v-on:scroll="handleScroll"
+			ref="gridContainerEl"
+		>
+			<div
+				class="grid"
+				:style="gridStyle"
+				:class="{ scrolled: rowOffset > 0 }"
+			>
+				<div
+					v-if="isIndexShown"
+					data-streamsync-grid-col="0"
+					class="cell headerCell indexCell"
+					:style="gridHeadStyle"
+				>
+					<div class="name"></div>
+					<div class="widthAdjuster"></div>
 				</div>
 				<div
-					class="dfCell"
-					v-for="(columnName, columnPosition) in columnIndexes"
+					v-for="(columnName, columnPosition) in shownColumnNames"
+					:data-streamsync-grid-col="
+						columnPosition + (isIndexShown ? 1 : 0)
+					"
 					:key="columnName"
+					class="cell headerCell"
+					:style="gridHeadStyle"
+					v-on:click="handleSetOrder($event, columnName)"
 				>
-					{{ dfData[columnName][rowIndex] }}
+					<div class="name">
+						{{ columnName }}
+					</div>
+					<div
+						class="icon"
+						:style="{
+							visibility:
+								orderSetting?.columnName == columnName
+									? 'visible'
+									: 'hidden',
+						}"
+					>
+						<i
+							class="ri-arrow-down-line"
+							v-show="!orderSetting?.descending"
+						></i>
+						<i
+							class="ri-arrow-up-line"
+							v-show="orderSetting?.descending"
+						></i>
+					</div>
+					<div class="widthAdjuster"></div>
 				</div>
-			</template>
+				<template
+					v-for="(row, rowNumber) in slicedTable?.data"
+					:key="rowNumber"
+				>
+					<div v-if="isIndexShown" class="cell indexCell">
+						<template v-if="tableIndex.length == 0">
+							{{ slicedTable.indices[rowNumber] }}
+						</template>
+						<template v-else>
+							{{ indexColumnNames.map((c) => row[c]).join(", ") }}
+						</template>
+					</div>
+					<div
+						class="cell"
+						v-for="(columnName, columnPosition) in shownColumnNames"
+						:key="columnName"
+					>
+						{{ row[columnName] }}
+					</div>
+				</template>
+			</div>
+			<div class="endpoint" :style="endpointStyle"></div>
 		</div>
-
-		<!-- <div class="empty" v-else>Empty dataframe.</div> -->
-		<div class="endpoint" :style="endpointStyle"></div>
 	</div>
 </template>
 
@@ -58,17 +102,11 @@ import {
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { nextTick } from "vue";
+import { ComputedRef } from "vue";
+import { onUnmounted } from "vue";
 
 const description = "A component to display Pandas DataFrames.";
-
-const defaultDataframe = `
-{
-  "data": {
-    "col_a": {"a": 1, "b": 2, "c": 3},
-    "col_b": {"a": 4, "b": 5, "c": 6}
-  },
-  "metadata": {}
-}`.trim();
+const defaultDataframe = `data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==`;
 
 export default {
 	streamsync: {
@@ -78,9 +116,38 @@ export default {
 		fields: {
 			dataframe: {
 				name: "Data",
-				desc: "Must be a JSON object or a state reference to a Pandas dataframe.",
-				type: FieldType.Object,
+				desc: "Must be a state reference to a Pandas dataframe or PyArrow table. Alternatively, a URL for an Arrow IPC file.",
+				type: FieldType.Text,
 				default: defaultDataframe,
+			},
+			showIndex: {
+				name: "Show index",
+				desc: "Shows the dataframe's index. If an Arrow table is used, shows the zero-based integer index.",
+				type: FieldType.Text,
+				default: "yes",
+				options: {
+					yes: "yes",
+					no: "no",
+				},
+			},
+			enableSearch: {
+				name: "Enable search",
+				type: FieldType.Text,
+				default: "no",
+				options: {
+					yes: "yes",
+					no: "no",
+				},
+			},
+			enableDownload: {
+				name: "Enable download",
+				desc: "Allows the user to download the data as CSV.",
+				type: FieldType.Text,
+				default: "no",
+				options: {
+					yes: "yes",
+					no: "no",
+				},
 			},
 			displayRowCount: {
 				name: "Display row count",
@@ -116,21 +183,14 @@ export default {
 				},
 				default: "normal",
 			},
-			showIndex: {
-				name: "Show index",
-				type: FieldType.Text,
-				default: "yes",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
-			},
 		},
 	},
 };
 </script>
 <script setup lang="ts">
 import injectionKeys from "../injectionKeys";
+import * as aq from "arquero";
+import { tableFromIPC, Table } from "apache-arrow";
 
 /**
  * Only a certain amount of rows is rendered at a time (MAX_ROWS_RENDERED),
@@ -138,58 +198,70 @@ import injectionKeys from "../injectionKeys";
  */
 const ROW_HEIGHT_PX = 36; // Must match CSS
 const MIN_COLUMN_WIDTH_PX = 80;
+const MAX_COLUMN_AUTO_WIDTH_PX = 300;
+const UNNAMED_INDEX_COLUMN_PATTERN = /^__index_level_[0-9]+__$/;
+
+type OrderSetting = {
+	columnName: string;
+	descending: boolean;
+};
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref();
-
-const dfData = computed(() => fields.dataframe.value?.data);
+const toolsEl: Ref<HTMLElement> = ref();
+const gridContainerEl: Ref<HTMLElement> = ref();
+let baseTable: aq.internal.ColumnTable = null;
+const table: Ref<aq.internal.ColumnTable> = ref(null);
+const tableIndex = ref([]);
 const isIndexShown = computed(() => fields.showIndex.value == "yes");
+const orderSetting: Ref<OrderSetting> = ref(null);
 const relativePosition: Ref<number> = ref(0);
+const columnWidths: Ref<number[]> = ref([]);
+let columnBeingWidthAdjusted: number = null;
 
-const columnIndexes = computed(() => {
-	return Object.keys(dfData.value ?? {});
+const columnNames: ComputedRef<string[]> = computed(() => {
+	if (!table.value) {
+		return [];
+	}
+	return table.value?.columnNames();
+});
+const indexColumnNames = computed(() =>
+	columnNames.value.filter((c) => tableIndex.value.includes(c)),
+);
+const shownColumnNames = computed(() => {
+	const cols = columnNames.value.filter((c) => {
+		const isIndex = tableIndex.value.includes(c);
+		const isUnnamed = UNNAMED_INDEX_COLUMN_PATTERN.test(c);
+		return !(isIndex && isUnnamed);
+	});
+	return cols;
 });
 
 const columnCount = computed(
-	() => columnIndexes.value.length + (isIndexShown.value ? 1 : 0),
+	() => (isIndexShown.value ? 1 : 0) + shownColumnNames.value.length,
 );
-const rowCount = computed(() => rowIndexes.value.length);
-const displayRowCount = computed(() => Math.min(fields.displayRowCount.value, rowCount.value));
-const startRow = computed(() =>
-	Math.min(
-		Math.floor(relativePosition.value * rowCount.value),
-		rowCount.value - displayRowCount.value,
-	),
+const rowCount = computed(() => table.value?.numRows() ?? 0);
+const displayRowCount = computed(() =>
+	Math.min(fields.displayRowCount.value, rowCount.value),
 );
-
-const columnWidths: Ref<number[]> = ref([]);
-watch(columnCount, () => {
-	recalculateColumnWidths();
-});
-
-const isEmpty = computed(() => {
-	const e = !dfData.value || columnCount.value == 0;
-	return e;
-});
-
-const rowIndexes = computed(() => {
-	const firstColumn = dfData.value[columnIndexes.value[0]];
-	const rowIndexes = Object.keys(firstColumn);
-	return rowIndexes;
-});
-
-const slicedRowIndexes = computed(() => {
-	const sliced = rowIndexes.value.slice(
-		startRow.value,
-		startRow.value + displayRowCount.value,
+const rowOffset = computed(() => {
+	const maxOffset = rowCount.value - displayRowCount.value;
+	const newOffset = Math.min(
+		Math.floor(relativePosition.value * maxOffset),
+		maxOffset,
 	);
-	return sliced;
+	return newOffset;
 });
 
-const rootStyle = computed(() => {
-	const fontStyle = fields.fontStyle.value;
+const slicedTable = computed(() => {
+	if (!table.value) return null;
+	const data = table.value.objects({
+		offset: rowOffset.value,
+		limit: displayRowCount.value,
+	});
+	const indices = table.value.indices().slice(rowOffset.value, rowOffset.value + displayRowCount.value);  
 	return {
-		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
+		data,
+		indices
 	};
 });
 
@@ -200,6 +272,7 @@ const gridHeadStyle = computed(() => {
 });
 
 const gridStyle = computed(() => {
+	const fontStyle = fields.fontStyle.value;
 	let templateColumns: string;
 
 	if (columnWidths.value.length == 0) {
@@ -211,43 +284,191 @@ const gridStyle = computed(() => {
 	}
 
 	return {
+		"min-height": `${ROW_HEIGHT_PX * (1 + fields.displayRowCount.value)}px`,
+		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
 		"grid-template-columns": templateColumns,
 		"grid-template-rows": `repeat(${displayRowCount.value}, 36px)`,
 	};
 });
 
 const endpointStyle = computed(() => {
-	const rowCount = rowIndexes.value.length;
-	const totalCount = ROW_HEIGHT_PX * rowCount;
+	const totalHeight = ROW_HEIGHT_PX * rowCount.value;
 	return {
-		top: `${totalCount}px`,
+		top: `${totalHeight}px`,
 	};
 });
 
 function handleScroll(ev: Event) {
-	const scrollTop = rootEl.value.scrollTop;
+	const scrollTop = gridContainerEl.value.scrollTop;
 	relativePosition.value =
-		(scrollTop + ROW_HEIGHT_PX) / rootEl.value.scrollHeight;
+		scrollTop /
+		(gridContainerEl.value.scrollHeight -
+			gridContainerEl.value.clientHeight);
+}
+
+function resetScroll() {
+	gridContainerEl.value.scrollTop = 0;
 }
 
 async function recalculateColumnWidths() {
 	columnWidths.value = [];
 	await nextTick();
-	const columnHeadersEls = rootEl.value?.querySelectorAll(
+	const columnHeadersEls = gridContainerEl.value?.querySelectorAll(
 		"[data-streamsync-grid-col]",
 	);
 	columnHeadersEls?.forEach((headerEl) => {
 		const headerHTMLEl = headerEl as HTMLElement;
 		const columnPosition = headerHTMLEl.dataset.streamsyncGridCol;
-		const { width } = headerHTMLEl.getBoundingClientRect();
-		columnWidths.value[columnPosition] = width;
+		const { width: autoWidth } = headerHTMLEl.getBoundingClientRect();
+		const newWidth = Math.min(autoWidth, MAX_COLUMN_AUTO_WIDTH_PX);
+		columnWidths.value[columnPosition] = newWidth;
 	});
 }
 
-onMounted(() => {
-	new ResizeObserver(recalculateColumnWidths).observe(rootEl.value, {
+function handleSetOrder(ev: MouseEvent, columnName: string) {
+	const targetEl = ev.target as HTMLElement;
+	if (targetEl.classList.contains("widthAdjuster")) return;
+	const currentColumnName = orderSetting.value?.columnName;
+
+	if (currentColumnName !== columnName) {
+		orderSetting.value = {
+			columnName,
+			descending: false,
+		};
+		return;
+	}
+
+	const currentlyDescending = orderSetting.value?.descending;
+
+	if (currentlyDescending) {
+		orderSetting.value = null;
+		return;
+	}
+
+	orderSetting.value = {
+		columnName,
+		descending: !orderSetting.value.descending,
+	};
+}
+
+function getIndexFromArrowTable(table: Table<any>) {
+	const pandasMetadataJSON = table.schema.metadata.get("pandas");
+	if (!pandasMetadataJSON) return [];
+	const pandasMetadata = JSON.parse(pandasMetadataJSON);
+	return pandasMetadata.index_columns;
+}
+
+async function loadData() {
+	const url = fields.dataframe.value;
+
+	try {
+		const res = await fetch(url);
+		const blob = await res.blob();
+		const buffer = await blob.arrayBuffer();
+		const arrowTable = tableFromIPC(buffer);
+		tableIndex.value = getIndexFromArrowTable(arrowTable);
+		const aqTable = aq.fromArrow(arrowTable);
+		baseTable = aqTable;
+		table.value = baseTable;
+	} catch (e) {
+		console.error("Couldn't load dataframe from Arrow URL.", e);
+	}
+}
+
+function download() {
+	const csv = table.value.toCSV();
+	const el = document.createElement("a");
+	el.href = "data:text/plain;base64," + window.btoa(csv);
+	el.download = "data.csv";
+	el.click();
+}
+
+function applyOrder() {
+	if (orderSetting.value === null) {
+		table.value = table.value.unorder();
+		return;
+	}
+
+	let orderCriterion: any;
+
+	if (orderSetting.value.descending) {
+		orderCriterion = aq.desc(orderSetting.value.columnName);
+	} else {
+		orderCriterion = orderSetting.value.columnName;
+	}
+	table.value = table.value.orderby(orderCriterion);
+}
+
+async function handleSearchChange(ev: InputEvent) {
+	const searchText = (ev.target as HTMLInputElement).value;
+	if (!searchText) {
+		table.value = baseTable;
+	} else {
+		const pattern = new RegExp(searchText, "i");
+		const columnNames = baseTable.columnNames();
+		const filterS =
+			"(d, $) => " +
+			columnNames
+				.map((c) => `aq.op.match(d.${c}, $.pattern) !== null`)
+				.join(" || ");
+		table.value = baseTable.params({ pattern, filterS }).filter(filterS);
+	}
+	await nextTick();
+	resetScroll();
+}
+
+async function handleWidthAdjust(ev: MouseEvent) {
+	if (ev.buttons !== 1) {
+		columnBeingWidthAdjusted = null;
+		return;
+	}
+
+	const targetEl = ev.target as HTMLElement;
+	if (
+		columnBeingWidthAdjusted === null &&
+		targetEl.classList.contains("widthAdjuster")
+	) {
+		const adjustedColEl = targetEl.closest(".cell") as HTMLElement;
+		columnBeingWidthAdjusted = parseInt(
+			adjustedColEl.dataset.streamsyncGridCol,
+		);
+	} else if (columnBeingWidthAdjusted === null) {
+		return;
+	}
+
+	const colEl = gridContainerEl.value.querySelector(
+		`[data-streamsync-grid-col="${columnBeingWidthAdjusted}"]`,
+	);
+	const adjusterEl = colEl.querySelector(".widthAdjuster");
+	const { width: adjusterWidth } = adjusterEl.getBoundingClientRect();
+	const { left: colLeft } = colEl.getBoundingClientRect();
+	const mouseX = ev.clientX;
+	const newWidth = mouseX - colLeft + adjusterWidth / 2;
+	columnWidths.value[columnBeingWidthAdjusted] = newWidth;
+}
+
+watch(fields.dataframe, () => {
+	loadData();
+});
+
+watch(orderSetting, () => {
+	applyOrder();
+});
+
+watch(columnCount, () => {
+	recalculateColumnWidths();
+});
+
+onMounted(async () => {
+	await loadData();
+	new ResizeObserver(recalculateColumnWidths).observe(toolsEl.value, {
 		box: "border-box",
 	});
+	document.addEventListener("mousemove", handleWidthAdjust);
+});
+
+onUnmounted(() => {
+	document.removeEventListener("mousemove", handleWidthAdjust);
 });
 </script>
 
@@ -255,40 +476,103 @@ onMounted(() => {
 @import "../renderer/sharedStyles.css";
 
 .CoreDataframe {
-	background: var(--dataframeBackgroundColor);
 	font-size: 0.8rem;
-	width: fit-content;
-	max-width: 100%;
-	max-height: 90vh;
-	overflow: auto;
-	border: 1px solid var(--separatorColor);
 	width: 100%;
-	display: block;
-	position: relative;
 }
 
-.dfGrid {
+.tools {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	color: var(--primaryTextColor);
+	justify-content: right;
+}
+
+.tools:not(:empty) {
+	margin-bottom: 16px;
+}
+
+.tools .search {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border: 1px solid var(--separatorColor);
+	padding: 8px 8px 8px 12px;
+	border-radius: 8px;
+	color: var(--buttonTextColor);
+	background: var(--buttonColor);
+}
+
+.tools .search input {
+	border: 0;
+	color: var(--buttonTextColor);
+	background: var(--buttonColor);
+}
+
+.gridContainer {
+	background: var(--dataframeBackgroundColor);
+	position: relative;
+	overflow: auto;
+	border: 1px solid var(--separatorColor);
+	max-height: 90vh;
+}
+
+.grid {
+	margin-bottom: -1px;
 	position: sticky;
 	top: 0;
 	display: grid;
 }
-
-.dfCell {
-	padding: 8px;
+.cell {
 	height: 36px;
-	display: flex;
-	align-items: center;
+	padding: 8px;
 	overflow: hidden;
 	white-space: nowrap;
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--separatorColor);
+	display: flex;
+	align-items: center;
+	border-right: 1px solid var(--separatorColor);
 }
 
-.dfCell:not(.dfIndexCell) {
-	border-left: 1px solid var(--separatorColor);
+.cell.headerCell {
+	padding: 0;
+	cursor: pointer;
+	gap: 8px;
+	user-select: none;
 }
 
-.dfIndexCell {
+.grid.scrolled .cell.headerCell {
+	box-shadow: 0 4px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.cell .name {
+	padding: 8px;
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cell .icon {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	visibility: hidden;
+}
+
+.cell .widthAdjuster {
+	cursor: col-resize;
+	min-width: 16px;
+	flex: 0 0 16px;
+	height: 100%;
+	margin-right: -1px;
+}
+
+.cell:hover .widthAdjuster {
+	background-color: var(--separatorColor);
+}
+
+.indexCell {
 	color: var(--secondaryTextColor);
 }
 
