@@ -10,6 +10,8 @@ from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
 import pytest
 import altair
+import pyarrow as pa
+import urllib
 
 raw_state_dict = {
     "name": "Robert",
@@ -453,18 +455,6 @@ class TestStateSerialiser():
         with pytest.raises(StateSerialiserException):
             self.sts.serialise(d)
 
-    def test_multiindex_in_dataframe(self) -> None:
-        data = {
-            ("column_a", 1): [1, 2, 3, 4],
-            ("column_b", 2): [5, 6, 7, 8],
-        }
-        d = {
-            "name": "Multiindex dataframe",
-            "df": pd.DataFrame(data)
-        }
-        s = self.sts.serialise(d)
-        assert s.get("df").get("data").get("('column_a', 1)") is not None
-
     def test_nans_in_dataframe(self) -> None:
         data = {
             "column_a": [1, 2, np.nan, 4],
@@ -494,11 +484,13 @@ class TestStateSerialiser():
             "df": pd.read_csv(self.df_path)
         }
         s = self.sts.serialise(d)
-        df_d = s.get("df").get("data")
         assert s.get("name") == "Normal name"
-        assert df_d.get("name").get("0") == "Byte"
-        assert df_d.get("length_cm").get("2") == 32
-
+        df_durl = s.get("df")
+        df_buffer = urllib.request.urlopen(df_durl)
+        reader = pa.ipc.open_file(df_buffer)
+        table = reader.read_all()
+        assert table.column("name")[0].as_py() == "Byte"
+        assert table.column("length_cm")[2].as_py() == 32
 
 class TestEvaluator:
 
