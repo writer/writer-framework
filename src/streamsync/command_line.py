@@ -49,7 +49,7 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str]):
     if command in ("hello"):
         try:
             import pandas
-            import pyarrow
+            import pyarrow # type: ignore
             import plotly.express # type: ignore
         except ImportError:
             logging.error("Running streamsync hello requires pandas, pyarrow and plotly.express. Install them with:\npip install streamsync[ds]")
