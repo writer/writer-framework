@@ -24,9 +24,8 @@ export default {
 		}
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
-		const templateEvaluator = useTemplateEvaluator(ss);
-		
-		const evaluatedFields = templateEvaluator.getEvaluatedFields(instancePath);
+		const { getEvaluatedFields, isComponentVisible } = useTemplateEvaluator(ss);
+		const evaluatedFields = getEvaluatedFields(instancePath);
 
 		const children = computed(() => ss.getComponents(componentId, true));
 		const isBeingEdited = computed(
@@ -129,7 +128,7 @@ export default {
 		}, {deep: true});
 
 		const isChildless = computed(() => children.value.length == 0);
-		const isVisible = computed(() => ss.isComponentVisible(componentId));
+		const isVisible = computed(() => isComponentVisible(componentId, instancePath));
 
 		const getHandlerCallable = (handlerFunction: string) => {
 			const isForwardable = !handlerFunction.startsWith("$");

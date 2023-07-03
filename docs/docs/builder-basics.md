@@ -96,7 +96,7 @@ Whether the component should be displayed. There are three visibility options:
 
 - Yes. The component is displayed.
 - No. The component isn't displayed. Note that hidden components are still part of the HTML code, but aren't shown.
-- Custom. Whether the component is displayed or not depends on the value of a state element. For example if set to `my_var`, visibility will depend on the value of the `my_var` state element. Note that this field, similarly to Binding, should only contain the state element, e.g. `my_var` and not `@{my_var}`.
+- Custom. Whether the component is displayed or not depends on the value of a state or context element. For example if set to `my_var`, visibility will depend on the value of the `my_var` state element. Note that this field, similarly to Binding, should only contain the state element, e.g. `my_var` and not `@{my_var}`.
 
 ## Component shortcuts
 

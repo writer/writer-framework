@@ -21,6 +21,17 @@ def check_cookies(cookies):
         return False
     return True
 
+def update_cities(state, payload):
+    if payload == "ar":
+        state["cities"] = {
+            "ba": "Buenos Aires",
+            "cb": "Cordoba"
+        }
+    elif payload == "uk":
+        state["cities"] = {
+            "ln": "London",
+            "br": "Bristol"
+        }
 
 logging.info("VERIFIERS")
 logging.info(streamsync.core.session_manager.verifiers)
@@ -212,6 +223,7 @@ initial_state = ss.init_state({
         "ts": {"name": "TypeScript"},
         "py": {"name": "Python"}
     },
+    "cities": {},
     "articles": {
         "Banana": {
             "type": "fruit",

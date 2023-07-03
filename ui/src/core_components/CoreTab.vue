@@ -52,6 +52,7 @@ const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
+import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -85,7 +86,7 @@ const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-
+const {isComponentVisible} = useTemplateEvaluator(ss);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {
@@ -175,7 +176,7 @@ onBeforeMount(() => {
 	const tabContainerData = getTabContainerData();
 	const activeTab = tabContainerData.value?.activeTab;
 	if (activeTab) return;
-	if (!ss.isComponentVisible(componentId)) return;
+	if (!isComponentVisible(componentId, instancePath)) return;
 	tabContainerData.value = { activeTab: instancePath };
 });
 </script>

@@ -13,6 +13,7 @@
 import { FieldType } from "../streamsyncTypes";
 import * as sharedStyleFields from "../renderer/sharedStyleFields";
 import { nextTick } from "vue";
+import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
 
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
@@ -73,12 +74,13 @@ const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
+const {isComponentVisible} = useTemplateEvaluator(ss);
 
 const getFirstPageId = () => {
 	const pageComponents = ss.getComponents("root", true);
 	if (pageComponents.length == 0) return null;
 	const visiblePages = pageComponents.filter((c) =>
-		ss.isComponentVisible(c.id)
+		isComponentVisible(c.id)
 	);
 	if (visiblePages.length == 0) return null;
 	return visiblePages[0].id;

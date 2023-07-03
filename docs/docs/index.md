@@ -9,7 +9,8 @@ layout: home
       <div class="primaryTagline">No-code in the front, Python in the back.</div>
       <div class="secondaryTagline">An open-source framework for creating data apps.</div>
       </div>
-      <video src="./images/home.streamsync1min.mp4" controls autoplay loop></video>
+      <iframe width="840" height="472.5" src="https://www.youtube.com/embed/XBAPBy_zf8s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <!-- <video src="./images/home.streamsync1min.mp4" controls autoplay loop></video> -->
       <div class="quickstart vp-doc">
 
 ```sh

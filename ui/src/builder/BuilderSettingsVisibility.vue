@@ -45,8 +45,8 @@
 					placeholder="my_visibility_state_value"
 				/>
 				<div class="desc">
-					Reference a state element that will evaluate to true or
-					false. Reference the state element directly, i.e. use
+					Reference a state or context element that will evaluate to true or
+					false. Reference the element directly, i.e. use
 					"my_var" instead of "@{my_var}".
 				</div>
 			</div>

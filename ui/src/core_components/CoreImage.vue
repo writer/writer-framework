@@ -1,7 +1,7 @@
 <template>
 	<div class="CoreImage" :style="rootStyle">
 		<img
-			:src="src"
+			:src="fields.src.value"
 			:alt="fields.caption.value"
 			draggable="false"
 			:style="imgStyle"
@@ -18,7 +18,6 @@
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import { secondaryTextColor } from "../renderer/sharedStyleFields";
-import { watch } from "vue";
 
 const description = "A component to display images.";
 
@@ -95,7 +94,6 @@ import injectionKeys from "../injectionKeys";
 const ss = inject(injectionKeys.core);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
-let src = null;
 
 const rootStyle = computed(() => {
 	const component = ss.getComponentById(componentId);
@@ -105,14 +103,6 @@ const rootStyle = computed(() => {
 		cursor: isClickHandled ? "pointer" : "unset",
 	};
 });
-
-watch(
-	() => fields.src.value,
-	(newSrc) => {
-		src = newSrc;
-	},
-	{ immediate: true }
-);
 
 const imgStyle = computed(() => {
 	const maxWidth = fields.maxWidth.value;

@@ -36,7 +36,7 @@
 			<template v-if="Object.keys(component.handlers ?? {}).length > 0">
 				&nbsp;&middot;&nbsp;<i class="ri-flashlight-line ri-lg"></i>
 			</template>
-			<template v-if="!ss.isComponentVisible(component.id)">
+			<template v-if="!isComponentVisible(component.id)">
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
 			</template>
 
@@ -65,6 +65,7 @@ import { computed, inject, nextTick, Ref, ref, toRefs, watch } from "vue";
 import { Component } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { onMounted } from "vue";
+import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -73,6 +74,7 @@ const { createAndInsertComponent, isParentViable, moveComponent } =
 	useComponentActions(ss, ssbm);
 const { getComponentInfoFromDrag, removeInsertionCandidacy } =
 	useDragDropComponent(ss);
+const { isComponentVisible } = useTemplateEvaluator(ss);
 
 interface Props {
 	componentId: Component["id"];
