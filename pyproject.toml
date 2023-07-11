@@ -12,6 +12,7 @@ keywords = ["data apps", "gui", "ui"]
 license = { text = "Apache 2.0" }
 classifiers = ["Development Status :: 4 - Beta"]
 dependencies = [
+    "pydantic == 1.10.11",
     "fastapi >= 0.89.1, < 1",
     "websockets >= 10.4, < 11",
     "uvicorn >= 0.20.0, < 1",
@@ -28,6 +29,7 @@ ds = [
 ]
 test = [
     "pandas >= 1.5.3, < 2",
+    "pyarrow >= 12.0.0, < 13.0.0",
     "plotly-express >= 0.4.1, < 1",
     "pytest-asyncio >= 0.21.0, < 1",
     "pytest >= 7.0.0, < 8",
@@ -36,6 +38,7 @@ test = [
 ]
 build = [
     "pandas >= 1.5.3, < 2",
+    "pyarrow >= 12.0.0, < 13.0.0",
     "plotly-express >= 0.4.1, < 1",
     "build >= 0.7.0, < 1",
     "mypy >= 1.2.0, < 2",
@@ -44,7 +47,6 @@ build = [
     "pytest-asyncio >= 0.21.0, < 1",
     "altair >= 4.1.0, < 5",
     "httpx >= 0.18.2, < 1",
-    "build >= 0.10.0, < 1"
 ]
 
 [project.urls]
