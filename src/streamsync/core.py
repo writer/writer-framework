@@ -357,8 +357,27 @@ class StreamsyncState():
     def set_route_vars(self, route_vars: Dict[str, str]) -> None:
         self.add_mail("routeVarsChange", route_vars)
 
-# TODO Consider switching Component to use Pydantic
+    def import_stylesheet(self, stylesheet_key: str, path: str) -> None:
+        self.add_mail("importStylesheet", {
+            "stylesheetKey": stylesheet_key,
+            "path": path
+        })
 
+    def import_frontend_module(self, module_key: str, specifier: str) -> None:
+        self.add_mail("importModule", {
+            "moduleKey": module_key,
+            "specifier": specifier
+        })
+
+    def call_frontend_function(self, module_key: str, function_name: str, args: List) -> None:
+        self.add_mail("functionCall", {
+            "moduleKey": module_key,
+            "functionName": function_name,
+            "args": args
+        })
+
+
+# TODO Consider switching Component to use Pydantic
 
 class Component:
 
