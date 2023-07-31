@@ -17,6 +17,7 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
+cssClasses,
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -44,7 +45,6 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-
 			snapMode: {
 				name: "Snap mode",
 				type: FieldType.Text,
@@ -57,6 +57,7 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Use as much space as possible without altering the size of the container.",
 			},
+			cssClasses,
 		},
 		previewField: "title",
 	},

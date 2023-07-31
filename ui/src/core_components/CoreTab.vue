@@ -53,6 +53,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -71,6 +72,7 @@ export default {
 				init: "Tab Name",
 				type: FieldType.Text,
 			},
+			cssClasses,
 		},
 		previewField: "name",
 	},

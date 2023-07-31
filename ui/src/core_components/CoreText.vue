@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { primaryTextColor } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -62,6 +62,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			primaryTextColor,
+			cssClasses,
 		},
 		events: {
 			click: {

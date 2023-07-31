@@ -47,6 +47,7 @@ export default {
 				},
 			},
 			primaryTextColor,
+			cssClasses,
 		},
 		previewField: "text",
 	},
@@ -56,7 +57,7 @@ export default {
 import { inject } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { primaryTextColor } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 <style scoped>

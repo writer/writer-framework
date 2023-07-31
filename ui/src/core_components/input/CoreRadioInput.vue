@@ -2,8 +2,13 @@
 	<div class="CoreRadioInput" ref="rootEl">
 		<div class="main">
 			<div class="inputContainer">
-				<label class="mainLabel">{{ fields.label.value }}</label>
-				<div class="options">
+				<div class="mainLabel">{{ fields.label.value }}</div>
+				<div
+					class="options"
+					:class="{
+						horizontal: fields.orientation.value == 'horizontal',
+					}"
+				>
 					<div
 						class="option"
 						v-for="(option, optionKey) in fields.options.value"
@@ -33,7 +38,8 @@
 <script lang="ts">
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to choose a single value from a list of options using radio buttons.";
@@ -65,6 +71,18 @@ export default {
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
 			},
+			orientation: {
+				name: "Orientation",
+				type: FieldType.Text,
+				options: {
+					vertical: "Vertical",
+					horizontal: "Horizontal",
+				},
+				default: "vertical",
+				category: FieldCategory.Style,
+				desc: "Specify how to lay out the options.",
+			},
+			cssClasses
 		},
 		events: {
 			"ss-option-change": {
@@ -103,14 +121,22 @@ const flattenedInstancePath = computed(() => {
 	width: 100%;
 }
 
+.mainLabel:not(:empty) {
+	margin-bottom: 12px;
+}
+
 .options {
 	display: flex;
 	flex-direction: column;
-	margin-top: 4px;
+	gap: 8px;
+}
+
+.options.horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
 }
 
 .option {
-	margin-top: 8px;
 	display: flex;
 	align-items: center;
 	color: var(--primaryTextColor);

@@ -2,6 +2,7 @@
 import { h, inject } from "vue";
 import { FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const defaultStyle = {
 	padding: "16px",
@@ -48,6 +49,7 @@ export default {
 				type: FieldType.Object,
 				desc: "Set additional HTML attributes for the element using a JSON object or a dictionary via a state reference.",
 			},
+			cssClasses,
 		},
 	},
 	setup(props, { slots }) {

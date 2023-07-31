@@ -9,7 +9,11 @@
 					placeholder="Search..."
 				/>
 			</div>
-			<button class="download" v-on:click="download" v-if="fields.enableDownload.value === 'yes'">
+			<button
+				class="download"
+				v-on:click="download"
+				v-if="fields.enableDownload.value === 'yes'"
+			>
 				<i class="ri-download-2-line"></i>
 			</button>
 		</div>
@@ -95,6 +99,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import {
+	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
@@ -183,6 +188,7 @@ export default {
 				},
 				default: "normal",
 			},
+			cssClasses,
 		},
 	},
 };
@@ -258,10 +264,12 @@ const slicedTable = computed(() => {
 		offset: rowOffset.value,
 		limit: displayRowCount.value,
 	});
-	const indices = table.value.indices().slice(rowOffset.value, rowOffset.value + displayRowCount.value);  
+	const indices = table.value
+		.indices()
+		.slice(rowOffset.value, rowOffset.value + displayRowCount.value);
 	return {
 		data,
-		indices
+		indices,
 	};
 });
 

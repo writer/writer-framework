@@ -16,6 +16,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to enter numeric values.";
@@ -42,6 +43,7 @@ export default {
 				name: "Placeholder",
 				type: FieldType.Text,
 			},
+			cssClasses
 		},
 		events: {
 			"ss-number-change": {

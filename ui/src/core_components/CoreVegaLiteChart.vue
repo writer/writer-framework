@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { FieldType } from "../streamsyncTypes";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component that displays Vega-Lite/Altair charts.";
 
@@ -51,6 +52,7 @@ export default {
 				desc: "Vega-Lite chart specification. Pass a Vega Altair chart using state or paste a JSON specification.",
 				type: FieldType.Object,
 			},
+			cssClasses,
 		},
 	},
 };

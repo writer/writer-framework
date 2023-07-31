@@ -41,6 +41,7 @@ export default {
 				},
 			},
 			accentColor,
+			cssClasses,
 		},
 		events: {
 			"ss-tick": {
@@ -56,7 +57,7 @@ export default {
 import { computed, inject, nextTick, onMounted, Ref, ref, watch } from "vue";
 import { FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { accentColor } from "../renderer/sharedStyleFields";
+import { accentColor, cssClasses } from "../renderer/sharedStyleFields";
 
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;

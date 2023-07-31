@@ -30,6 +30,7 @@ import {
 	buttonColor,
 	buttonShadow,
 	buttonTextColor,
+	cssClasses,
 	separatorColor,
 } from "../renderer/sharedStyleFields";
 
@@ -68,6 +69,7 @@ export default {
 			buttonTextColor,
 			buttonShadow,
 			separatorColor,
+			cssClasses,
 		},
 		events: {
 			"ss-webcam": {

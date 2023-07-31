@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { FieldType } from "../streamsyncTypes";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
 
@@ -34,6 +35,7 @@ export default {
 				desc: "Plotly graph specification. Pass a Plotly graph using state or paste a JSON specification.",
 				type: FieldType.Object,
 			},
+			cssClasses,
 		},
 	},
 };

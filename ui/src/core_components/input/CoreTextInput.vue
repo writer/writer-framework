@@ -12,6 +12,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to enter single-line text values.";
@@ -38,6 +39,7 @@ export default {
 				name: "Placeholder",
 				type: FieldType.Text,
 			},
+			cssClasses
 		},
 		events: {
 			"ss-change": {
