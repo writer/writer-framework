@@ -19,7 +19,7 @@ from streamsync import VERSION
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 
 
-def get_asgi_app(user_app_path: str, serve_mode: ServeMode) -> FastAPI:
+def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool=False) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
@@ -28,7 +28,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode) -> FastAPI:
     asgi_app = FastAPI()
 
     def _check_origin_header(origin_header: Optional[str]) -> bool:
-        if serve_mode not in ("edit"):
+        if serve_mode not in ("edit") or enable_remote_edit is True:
             return True
         if origin_header is None:
             return False
@@ -72,7 +72,8 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode) -> FastAPI:
 
         origin_header = request.headers.get("origin")
         if not _check_origin_header(origin_header):
-            wrong_origin_message = "A session request with origin %s was rejected. For security reasons, only local origins are allowed in edit mode."
+            wrong_origin_message = "A session request with origin %s was rejected. For security reasons, only local origins are allowed in edit mode. "
+            wrong_origin_message += "To circumvent this protection, use the --enable-remote-edit flag if running via command line."
             logging.error(wrong_origin_message, origin_header)
             raise HTTPException(
                 status_code=403, detail="Incorrect origin. Only local origins are allowed.")
@@ -276,10 +277,10 @@ def print_init_message(run_name: str, port: int, host: str):
 {END_TOKEN}""")
 
 
-def serve(app_path: str, mode: ServeMode, port, host):
+def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
     """ Initialises the web server. """
 
-    asgi_app = get_asgi_app(app_path, mode)
+    asgi_app = get_asgi_app(app_path, mode, enable_remote_edit)
 
     run_name = "Builder" if mode == "edit" else "App"
     print_init_message(run_name, port, host)

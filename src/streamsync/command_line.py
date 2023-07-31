@@ -18,20 +18,23 @@ def main():
         "--port", help="The port on which to run the server.")
     parser.add_argument(
         "--host", help="The host on which to run the server. Use 0.0.0.0 to share in your local network.")
+    parser.add_argument(
+        "--enable-remote-edit", help="Set this flag to allow non-local requests in edit mode.", action='store_true')
 
     args = parser.parse_args()
     command = args.command
     default_port = 3006 if command in ("edit", "hello") else 3005
+    enable_remote_edit = args.enable_remote_edit
 
     port = int(args.port) if args.port else default_port
     absolute_app_path = _get_absolute_app_path(
         args.path) if args.path else None
     host = args.host if args.host else None
 
-    _perform_checks(command, absolute_app_path, host)
-    _route(command, absolute_app_path, port, host)
+    _perform_checks(command, absolute_app_path, host, enable_remote_edit)
+    _route(command, absolute_app_path, port, host, enable_remote_edit)
 
-def _perform_checks(command: str, absolute_app_path: str, host: Optional[str]):
+def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool]):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
 
     if command in ("run", "edit") and is_path_folder is False:
@@ -44,7 +47,9 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str]):
 
     if command in ("edit", "hello") and host is not None:
         logging.warning("Streamsync has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Streamsync Builder to the Internet. We recommend using a SSH tunnel instead.")
-        logging.warning("Streamsync Builder will only accept local requests (via HTTP origin header).")
+
+    if command in ("edit", "hello") and enable_remote_edit is True:
+        logging.warning("The remote edit flag is active. Streamsync Builder will accept non-local requests. Please make sure the host is protected to avoid drive-by attacks.")
 
     if command in ("hello"):
         try:
@@ -56,19 +61,19 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str]):
             sys.exit(1)
 
 
-def _route(command: str, absolute_app_path: str, port: int, host: Optional[str]):
+def _route(command: str, absolute_app_path: str, port: int, host: Optional[str], enable_remote_edit: Optional[bool]):
     if host is None:
         host = "127.0.0.1"
     if command in ("edit"):
         streamsync.serve.serve(
-            absolute_app_path, mode="edit", port=port, host=host)
+            absolute_app_path, mode="edit", port=port, host=host, enable_remote_edit=enable_remote_edit)
     if command in ("run"):
         streamsync.serve.serve(
             absolute_app_path, mode="run", port=port, host=host)
     elif command in ("hello"):
         create_app("hello", template_name="hello", overwrite=True)
         streamsync.serve.serve("hello", mode="edit",
-                               port=port, host=host)
+                               port=port, host=host, enable_remote_edit=enable_remote_edit)
     elif command in ("create"):
         create_app(absolute_app_path)
 
