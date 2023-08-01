@@ -101,10 +101,6 @@ class StateSerialiser:
             return self._serialise_list_recursively(v)
         if isinstance(v, (str, bool)):
             return v
-        if isinstance(v, (int, float)):
-            if math.isnan(v):
-                return None
-            return v
         if v is None:
             return v
 
@@ -114,8 +110,17 @@ class StateSerialiser:
         v_mro = [
             f"{x.__module__}.{x.__name__}" for x in inspect.getmro(type(v))]
 
+        if isinstance(v, (int, float)):
+            if "numpy.float64" in v_mro:
+                return float(v)
+            if math.isnan(v):
+                return None
+            return v
+
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
+        if "numpy.float64" in v_mro:
+            return float(v)
         if "numpy.ndarray" in v_mro:
             return self._serialise_list_recursively(v.tolist())
         if "pandas.core.frame.DataFrame" in v_mro:

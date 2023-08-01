@@ -108,7 +108,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             req_message_raw = await websocket.receive_json()
 
             try:
-                req_message = StreamsyncWebsocketIncoming.parse_obj(
+                req_message = StreamsyncWebsocketIncoming.model_validate(
                     req_message_raw)
             except ValidationError:
                 logging.error("Incorrect incoming request.")
@@ -128,7 +128,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             req_message_raw = await websocket.receive_json()
 
             try:
-                req_message = StreamsyncWebsocketIncoming.parse_obj(
+                req_message = StreamsyncWebsocketIncoming.model_validate(
                     req_message_raw)
             except ValidationError:
                 logging.error("Incorrect incoming request.")
@@ -156,7 +156,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                     ))
                 if apsr is not None and apsr.payload is not None:
                     res_payload = typing.cast(
-                        EventResponsePayload, apsr.payload).dict()
+                        EventResponsePayload, apsr.payload).model_dump()
             if serve_mode == "edit":
                 if req_message.type == "componentUpdate":
                     await app_runner.update_components(
@@ -174,7 +174,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 response.payload = res_payload
 
             try:
-                await websocket.send_json(response.dict())
+                await websocket.send_json(response.model_dump())
             except WebSocketDisconnect:
                 return
 
