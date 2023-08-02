@@ -5,9 +5,10 @@
 			:class="{
 				selected: isSelected,
 				childless: childless,
+				matching: isMatching
 			}"
-			v-on:click="selectComponent"
-			v-on:keydown.enter="selectComponent"
+			v-on:click="selfSelectComponent"
+			v-on:keydown.enter="selfSelectComponent"
 			v-on:dragover="handleDragOver"
 			v-on:dragstart="handleDragStart"
 			v-on:dragend="handleDragEnd"
@@ -52,6 +53,7 @@
 			>
 				<BuilderTreeBranch
 					:component-id="childComponent.id"
+					:matching-components="matchingComponents"
 				></BuilderTreeBranch>
 			</div>
 		</div>
@@ -70,7 +72,7 @@ import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const { createAndInsertComponent, isParentViable, moveComponent } =
+const { createAndInsertComponent, isParentViable, moveComponent, goToComponentParentPage } =
 	useComponentActions(ss, ssbm);
 const { getComponentInfoFromDrag, removeInsertionCandidacy } =
 	useDragDropComponent(ss);
@@ -78,9 +80,11 @@ const { isComponentVisible } = useTemplateEvaluator(ss);
 
 interface Props {
 	componentId: Component["id"];
+	matchingComponents?: Component[];
 }
+
 const props = defineProps<Props>();
-const { componentId } = toRefs(props);
+const { componentId, matchingComponents } = toRefs(props);
 const component = computed(() => {
 	return ss.getComponentById(componentId.value);
 });
@@ -104,6 +108,11 @@ const name = computed(() => {
 const childless = computed(() => {
 	if (childrenComponents.value.length == 0) return true;
 	if (!componentDefinition.value) return true; // Hide children of unknown component types
+	return false;
+});
+
+const isMatching = computed(() => {
+	if (matchingComponents.value?.some(c => c.id == componentId.value)) return true;
 	return false;
 });
 
@@ -143,20 +152,12 @@ const toggleChildrenVisible = () => {
 	childrenVisible.value = !childrenVisible.value;
 };
 
-const getContainingPageId = (componentId: Component["id"]): Component["id"] => {
-	const component = ss.getComponentById(componentId);
-	if (!component || component.type == "root") return null;
-	if (component.type == "page") return componentId;
-	return getContainingPageId(component.parentId);
-};
-
-const selectComponent = async function () {
-	if (!componentDefinition.value) return; // Unknown component, not rendered
-	isSelectedBySelf.value = true;
-	ss.setActivePageId(getContainingPageId(componentId.value));
+async function selfSelectComponent() {
+	goToComponentParentPage(componentId.value);
 	await nextTick();
 	ssbm.setSelection(componentId.value);
-};
+	isSelectedBySelf.value = true;
+}
 
 const selectedId = computed(() => ssbm.getSelectedId());
 const isSelected = computed(() => {
@@ -250,6 +251,10 @@ onMounted(() => {
 	color: rgba(0, 0, 0, 0.5);
 	display: flex;
 	align-items: center;
+}
+
+.main.matching {
+	background: var(--builderMatchingColor);
 }
 
 .main.childless {

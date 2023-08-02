@@ -306,6 +306,7 @@ onMounted(() => {
 	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
 	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
 	--builderSelectedColor: rgba(210, 234, 244, 0.8);
+	--builderMatchingColor: #f8dccc;
 	--builderIntenseSelectedColor: #0094d1;
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
 	--builderSubtleHighlightColorSolid: #f2f2f2;
