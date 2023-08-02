@@ -29,7 +29,7 @@ A Streamsync app is a folder with the following items.
 
 - `main.py`. The entry point for the app. You can import anything you need from here.
 - `ui.json`. Contains the UI component declarations. Maintained by Builder, the framework's visual editor.
-- `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images.
+- `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images and stylesheets.
 
 ## Start the editor
 
