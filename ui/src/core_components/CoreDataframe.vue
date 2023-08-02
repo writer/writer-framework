@@ -469,10 +469,11 @@ watch(columnCount, () => {
 
 onMounted(async () => {
 	await loadData();
+	document.addEventListener("mousemove", handleWidthAdjust);
+	if (!toolsEl.value) return;
 	new ResizeObserver(recalculateColumnWidths).observe(toolsEl.value, {
 		box: "border-box",
 	});
-	document.addEventListener("mousemove", handleWidthAdjust);
 });
 
 onUnmounted(() => {
