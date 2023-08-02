@@ -186,7 +186,7 @@ function handleHashChange() {
 }
 
 async function importStylesheet(stylesheetKey: string, path: string) {
-	const req = await fetch(path, { cache: "no-cache" });
+	const req = await fetch(path);
 	if (req.status > 399) {
 		console.warn(`Couldn't import stylesheet at "${path}".`);
 		return;
