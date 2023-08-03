@@ -14,7 +14,6 @@ import { FieldType } from "../streamsyncTypes";
 import * as sharedStyleFields from "../renderer/sharedStyleFields";
 import { nextTick } from "vue";
 import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
-import { ModuleReference } from "typescript";
 
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
@@ -71,7 +70,7 @@ export default {
 import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
 import injectionKeys from "../injectionKeys";
 
-const importedModules:Record<string, ModuleReference> = {};
+const importedModulesSpecifiers:Record<string, string> = {};
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
@@ -201,12 +200,14 @@ async function importStylesheet(stylesheetKey: string, path: string) {
 }
 
 async function importModule(moduleKey: string, specifier: string) {
-	const m = await import(/* @vite-ignore */specifier);
-	importedModules[moduleKey] = m;
+	importedModulesSpecifiers[moduleKey] = specifier;
+	await import(/* @vite-ignore */specifier);
 }
 
 async function handleFunctionCall(moduleKey: string, functionName: string, args: any[]) {
-	const m = importedModules[moduleKey];
+	const specifier = importedModulesSpecifiers[moduleKey];
+	const m = await import(/* @vite-ignore */specifier);
+
 	if (!m) {
 		console.warn(`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`);
 		return;
