@@ -749,6 +749,21 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		ss.sendComponentUpdate();
 	}
 
+	function getContainingPageId (componentId: Component["id"]): Component["id"] {
+		const component = ss.getComponentById(componentId);
+		if (!component || component.type == "root") return null;
+		if (component.type == "page") return componentId;
+		return getContainingPageId(component.parentId);
+	}
+
+	async function goToComponentParentPage(componentId: Component["id"]) {
+		const component = ss.getComponentById(componentId);
+		const componentDefinition = ss.getComponentDefinition(component.type)?.name;
+		if (!componentDefinition) return; // Unknown component, not rendered
+		ss.setActivePageId(getContainingPageId(componentId));		
+	};	
+	
+
 	return {
 		moveComponent,
 		moveComponentUp,
@@ -773,5 +788,6 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		isGoToParentAllowed,
 		getEnabledMoves,
 		goToParent,
+		goToComponentParentPage
 	};
 }

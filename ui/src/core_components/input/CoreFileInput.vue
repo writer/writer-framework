@@ -17,6 +17,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -56,6 +57,7 @@ export default {
 					no: "No",
 				},
 			},
+			cssClasses
 		},
 		events: {
 			"ss-file-change": {

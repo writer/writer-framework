@@ -19,6 +19,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.";
@@ -59,6 +60,7 @@ export default {
 				default: "1",
 				init: "1",
 			},
+			cssClasses
 		},
 		events: {
 			"ss-number-change": {

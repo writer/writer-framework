@@ -9,7 +9,11 @@
 					placeholder="Search..."
 				/>
 			</div>
-			<button class="download" v-on:click="download" v-if="fields.enableDownload.value === 'yes'">
+			<button
+				class="download"
+				v-on:click="download"
+				v-if="fields.enableDownload.value === 'yes'"
+			>
 				<i class="ri-download-2-line"></i>
 			</button>
 		</div>
@@ -21,7 +25,10 @@
 			<div
 				class="grid"
 				:style="gridStyle"
-				:class="{ scrolled: rowOffset > 0 }"
+				:class="{
+					scrolled: rowOffset > 0,
+					wrapText: fields.wrapText.value === 'yes',
+				}"
 			>
 				<div
 					v-if="isIndexShown"
@@ -95,6 +102,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import {
+	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
@@ -156,6 +164,17 @@ export default {
 				category: FieldCategory.Style,
 				default: "10",
 			},
+			wrapText: {
+				name: "Wrap text",
+				type: FieldType.Text,
+				category: FieldCategory.Style,
+				desc: "Not wrapping text allows for an uniform grid, but may be inconvenient if your data contains longer text fields.",
+				options: {
+					yes: "yes",
+					no: "no",
+				},
+				default: "no",
+			},
 			primaryTextColor,
 			secondaryTextColor,
 			separatorColor,
@@ -183,6 +202,7 @@ export default {
 				},
 				default: "normal",
 			},
+			cssClasses,
 		},
 	},
 };
@@ -244,7 +264,12 @@ const displayRowCount = computed(() =>
 	Math.min(fields.displayRowCount.value, rowCount.value),
 );
 const rowOffset = computed(() => {
-	const maxOffset = rowCount.value - displayRowCount.value;
+	let maxOffset: number;
+	if (fields.wrapText.value == "yes") {
+		maxOffset = rowCount.value - 1;
+	} else {
+		maxOffset = rowCount.value - displayRowCount.value;
+	}
 	const newOffset = Math.min(
 		Math.floor(relativePosition.value * maxOffset),
 		maxOffset,
@@ -258,10 +283,12 @@ const slicedTable = computed(() => {
 		offset: rowOffset.value,
 		limit: displayRowCount.value,
 	});
-	const indices = table.value.indices().slice(rowOffset.value, rowOffset.value + displayRowCount.value);  
+	const indices = table.value
+		.indices()
+		.slice(rowOffset.value, rowOffset.value + displayRowCount.value);
 	return {
 		data,
-		indices
+		indices,
 	};
 });
 
@@ -273,7 +300,7 @@ const gridHeadStyle = computed(() => {
 
 const gridStyle = computed(() => {
 	const fontStyle = fields.fontStyle.value;
-	let templateColumns: string;
+	let templateColumns: string, maxHeight: number;
 
 	if (columnWidths.value.length == 0) {
 		templateColumns = `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
@@ -283,11 +310,16 @@ const gridStyle = computed(() => {
 			.join(" ");
 	}
 
+	if (fields.wrapText.value == "yes") {
+		maxHeight = (displayRowCount.value + 1) * ROW_HEIGHT_PX;
+	}
+
 	return {
 		"min-height": `${ROW_HEIGHT_PX * (1 + fields.displayRowCount.value)}px`,
+		"max-height": maxHeight ? `${maxHeight}px` : undefined,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
 		"grid-template-columns": templateColumns,
-		"grid-template-rows": `repeat(${displayRowCount.value}, 36px)`,
+		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
 	};
 });
 
@@ -459,12 +491,17 @@ watch(columnCount, () => {
 	recalculateColumnWidths();
 });
 
+watch(fields.wrapText, () => {
+	recalculateColumnWidths();
+});
+
 onMounted(async () => {
 	await loadData();
+	document.addEventListener("mousemove", handleWidthAdjust);
+	if (!toolsEl.value) return;
 	new ResizeObserver(recalculateColumnWidths).observe(toolsEl.value, {
 		box: "border-box",
 	});
-	document.addEventListener("mousemove", handleWidthAdjust);
 });
 
 onUnmounted(() => {
@@ -523,16 +560,21 @@ onUnmounted(() => {
 	top: 0;
 	display: grid;
 }
+
 .cell {
-	height: 36px;
+	min-height: 36px;
 	padding: 8px;
 	overflow: hidden;
-	white-space: nowrap;
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
 	align-items: center;
 	border-right: 1px solid var(--separatorColor);
+	white-space: nowrap;
+}
+
+.grid.wrapText .cell {
+	white-space: normal;
 }
 
 .cell.headerCell {

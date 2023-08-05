@@ -29,7 +29,7 @@ A Streamsync app is a folder with the following items.
 
 - `main.py`. The entry point for the app. You can import anything you need from here.
 - `ui.json`. Contains the UI component declarations. Maintained by Builder, the framework's visual editor.
-- `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images.
+- `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images and stylesheets.
 
 ## Start the editor
 
@@ -44,11 +44,8 @@ streamsync edit testapp
 
 This command will provide you with a local URL which you can use to access Builder.
 
-::: warning Streamsync Builder shouldn't be directly exposed to the Internet.
-
-It's not safe and it won't work, as requests from non-local origins are rejected.
-
-If you need to access Builder remotely, we recommend setting up a SSH tunnel.
+::: warning It's not recommended to expose Streamsync Builder to the Internet.
+If you need to access Builder remotely, we recommend setting up a SSH tunnel. By default, requests from non-local origins are rejected, as a security measure to protect against drive-by attacks. If you need to disable this protection, use the flag `--enable-remote-edit`. 
 :::
 
 ## Run an app

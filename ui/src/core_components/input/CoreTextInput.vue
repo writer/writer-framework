@@ -2,7 +2,7 @@
 	<div class="CoreTextInput" ref="rootEl">
 		<label>{{ fields.label.value }}</label>
 		<input
-			type="text"
+			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
 			:value="formValue"
 			v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change')"
 			:placeholder="fields.placeholder.value"
@@ -11,7 +11,8 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to enter single-line text values.";
@@ -38,6 +39,17 @@ export default {
 				name: "Placeholder",
 				type: FieldType.Text,
 			},
+			passwordMode: {
+				name: "Password mode",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					no: "No",
+					yes: "Yes"
+				},
+				category: FieldCategory.Style,
+			},
+			cssClasses
 		},
 		events: {
 			"ss-change": {

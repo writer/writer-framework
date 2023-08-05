@@ -41,7 +41,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { separatorColor } from "../renderer/sharedStyleFields";
+import { cssClasses, separatorColor } from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -122,6 +122,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			separatorColor,
+			cssClasses
 		},
 	},
 	components: { IconGen },

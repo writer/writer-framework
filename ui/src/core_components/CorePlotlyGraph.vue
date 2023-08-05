@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { FieldType } from "../streamsyncTypes";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
 
@@ -34,6 +35,7 @@ export default {
 				desc: "Plotly graph specification. Pass a Plotly graph using state or paste a JSON specification.",
 				type: FieldType.Object,
 			},
+			cssClasses,
 		},
 	},
 };
@@ -49,12 +51,9 @@ const fields = inject(injectionKeys.evaluatedFields);
 
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
-
 	if (!fields.spec.value || !chartTargetEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
-
-	if (rootEl.value.clientHeight == 0) return;
-
+	if (!rootEl.value || rootEl.value.clientHeight == 0) return;
 	Plotly.newPlot(chartTargetEl.value, fields.spec.value);
 };
 
@@ -68,6 +67,7 @@ watch(
 
 onMounted(() => {
 	renderChart();
+	if (!rootEl.value) return;
 	new ResizeObserver(renderChart).observe(rootEl.value, {
 		box: "border-box",
 	});

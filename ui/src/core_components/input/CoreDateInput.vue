@@ -14,6 +14,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to select a date using a date picker interface.";
@@ -36,6 +37,7 @@ export default {
 				init: "Input Label",
 				type: FieldType.Text,
 			},
+			cssClasses
 		},
 		events: {
 			"ss-date-change": {

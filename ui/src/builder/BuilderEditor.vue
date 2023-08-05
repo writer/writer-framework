@@ -144,6 +144,7 @@ import {
 	watch,
 	nextTick,
 	computed,
+ComputedRef,
 } from "vue";
 import injectionKeys from "../injectionKeys";
 
@@ -158,6 +159,7 @@ let editor: monaco.editor.IStandaloneCodeEditor = null;
 const theme: Ref<string> = ref("vs-light");
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
 const isCodeSaved: Ref<boolean> = ref(ss.getSavedCode() === ss.getRunCode());
+const sessionTimestamp: ComputedRef<number> = computed(() => ss.getSessionTimestamp());
 
 type StatusMessage = {
 	ok: boolean | "processing";
@@ -218,6 +220,10 @@ watch(
 	}
 );
 
+watch(sessionTimestamp, () => {
+	enableEditor();
+});
+
 const disableEditor = () => {
 	editorDisabled.value = true;
 	editor.updateOptions({ readOnly: true });
@@ -242,9 +248,8 @@ const save = async () => {
 			ok: false,
 			message: `Code hasn't been saved. ${error}`,
 		};
-		return;
-	} finally {
 		enableEditor();
+		return;
 	}
 	statusMessage.value = null;
 	isCodeSaved.value = true;

@@ -184,12 +184,29 @@ export default {
 			return styleVars;
 		});
 
+		const fieldBasedCssClasses = computed(() => {
+			const CSS_CLASSES_FIELD_KEY = "cssClasses";
+			const fields = ss.getComponentDefinition(
+				component.value.type
+			)?.fields;
+			if (!fields) return;
+			if (!fields[CSS_CLASSES_FIELD_KEY] || !evaluatedFields[CSS_CLASSES_FIELD_KEY]) return;
+			const cssStr:string = evaluatedFields[CSS_CLASSES_FIELD_KEY].value;
+			const cssClassesArr = cssStr?.split(" ").map(s => s.trim());
+			const cssClasses = {};
+			cssClassesArr.forEach(key => {
+				cssClasses[key] = true;
+			});
+			return cssClasses;
+		});
+
 		const getRootElProps = function () {
 			const rootElProps = {
 				class: {
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,
+					...fieldBasedCssClasses.value
 				},
 				style: {
 					...fieldBasedStyleVars.value,

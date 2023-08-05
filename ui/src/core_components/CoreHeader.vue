@@ -28,6 +28,7 @@ export default {
 			},
 			accentColor,
 			emptinessColor,
+			cssClasses,
 		},
 		previewField: "text",
 	},
@@ -37,7 +38,7 @@ export default {
 import { inject } from "vue";
 import { FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { accentColor, emptinessColor } from "../renderer/sharedStyleFields";
+import { accentColor, cssClasses, emptinessColor } from "../renderer/sharedStyleFields";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>

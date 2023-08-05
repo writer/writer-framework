@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { separatorColor } from "../renderer/sharedStyleFields";
+import { cssClasses, separatorColor } from "../renderer/sharedStyleFields";
 
 const description =
 	"A visual component to create a separation between adjacent elements.";
@@ -24,6 +24,7 @@ export default {
 		category: "Layout",
 		fields: {
 			separatorColor,
+			cssClasses,
 		},
 	},
 };

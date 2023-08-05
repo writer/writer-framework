@@ -18,6 +18,7 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {
 	let sessionId: string = null;
+	let sessionTimestamp: Ref<number> = ref(null);
 	let mode: Ref<"run" | "edit"> = ref(null);
 	let savedCode: Ref<string> = ref(null);
 	let runCode: Ref<string> = ref(null);
@@ -83,6 +84,7 @@ export function generateCore() {
 		userState.value = initData.userState;
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
+		sessionTimestamp.value = new Date().getTime();
 
 		// Only returned for edit (Builder) mode
 
@@ -96,6 +98,10 @@ export function generateCore() {
 		const isFixApplied = auditAndFixComponents(initData.components);
 		if (!isFixApplied) return;
 		await sendComponentUpdate();
+	}
+
+	function getSessionTimestamp() {
+		return sessionTimestamp.value;
 	}
 
 	function sendKeepAliveMessage() {
@@ -488,6 +494,7 @@ export function generateCore() {
 		getComponentDefinition,
 		getSupportedComponentTypes,
 		getContainableTypes,
+		getSessionTimestamp,
 	};
 
 	return core;

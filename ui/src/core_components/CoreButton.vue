@@ -16,6 +16,7 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	separatorColor,
+	cssClasses
 } from "../renderer/sharedStyleFields";
 
 const clickHandlerStub = `
@@ -60,6 +61,7 @@ export default {
 			},
 			buttonShadow,
 			separatorColor,
+			cssClasses
 		},
 		previewField: "text",
 	},

@@ -26,7 +26,7 @@ function getAllowedSet(
 	componentId: Component["id"]
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
-	const supportedTypes = Object.keys(templateMap);
+	const supportedTypes = Object.keys(templateMap).filter(t => t !== "root");
 	const { allowedChildrenTypes } = templateMap[type].streamsync;
 	if (!allowedChildrenTypes) return new Set([]);
 

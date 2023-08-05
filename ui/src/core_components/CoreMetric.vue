@@ -60,6 +60,7 @@ export default {
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
+			cssClasses,
 		},
 		previewField: "name",
 	},
@@ -70,6 +71,7 @@ import { computed, inject } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import {
+cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
 } from "../renderer/sharedStyleFields";

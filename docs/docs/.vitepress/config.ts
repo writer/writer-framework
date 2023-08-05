@@ -5,11 +5,14 @@ export default {
   themeConfig: {
     logo: "/logo.svg",
     socialLinks: [
-      { icon: "github", link: "https://github.com/streamsync-cloud/streamsync" },
+      {
+        icon: "github",
+        link: "https://github.com/streamsync-cloud/streamsync",
+      },
     ],
     nav: [
       { text: "Documentation", link: "/getting-started" },
-      { text: "Components", link: "/component-list" }
+      { text: "Components", link: "/component-list" },
     ],
     sidebar: [
       {
@@ -29,6 +32,14 @@ export default {
           {
             text: "Backend-initiated actions",
             link: "/backend-initiated-actions",
+          },
+          {
+            text: "Stylesheets",
+            link: "/stylesheets",
+          },
+          {
+            text: "Frontend scripts",
+            link: "/frontend-scripts",
           },
           { text: "Page routes", link: "/page-routes" },
           { text: "Sessions", link: "/sessions" },

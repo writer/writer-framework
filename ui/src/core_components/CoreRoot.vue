@@ -70,6 +70,7 @@ export default {
 import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
 import injectionKeys from "../injectionKeys";
 
+const importedModulesSpecifiers:Record<string, string> = {};
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
@@ -183,6 +184,37 @@ function handleHashChange() {
 	ss.setActivePageFromKey(parsedHash.pageKey);
 }
 
+async function importStylesheet(stylesheetKey: string, path: string) {
+	const req = await fetch(path);
+	if (req.status > 399) {
+		console.warn(`Couldn't import stylesheet at "${path}".`);
+		return;
+	}
+	const existingEl = document.querySelector(`[data-streamsync-stylesheet-key="${stylesheetKey}"]`);
+	existingEl?.remove();
+	const el = document.createElement("style");
+	el.dataset.streamsyncStylesheetKey = stylesheetKey;
+	const cssText = await req.text();
+    el.textContent = cssText;
+    document.head.appendChild(el);
+}
+
+async function importModule(moduleKey: string, specifier: string) {
+	importedModulesSpecifiers[moduleKey] = specifier;
+	await import(/* @vite-ignore */specifier);
+}
+
+async function handleFunctionCall(moduleKey: string, functionName: string, args: any[]) {
+	const specifier = importedModulesSpecifiers[moduleKey];
+	const m = await import(/* @vite-ignore */specifier);
+
+	if (!m) {
+		console.warn(`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`);
+		return;
+	}
+	m[functionName](...args);
+}
+
 type FileDownloadMailItemPayload = {
 	data: string;
 	fileName: string;
@@ -212,6 +244,24 @@ function addMailSubscriptions() {
 		"routeVarsChange",
 		(routeVars: Record<string, string>) => {
 			changeRouteVarsInHash(routeVars);
+		}
+	);
+	ss.addMailSubscription(
+		"importStylesheet",
+		({stylesheetKey, path}:{stylesheetKey: string, path: string}) => {
+			importStylesheet(stylesheetKey, path);
+		}
+	);
+	ss.addMailSubscription(
+		"importModule",
+		({ moduleKey, specifier }:{moduleKey: string, specifier: string}) => {
+			importModule(moduleKey, specifier);
+		}
+	);
+	ss.addMailSubscription(
+		"functionCall",
+		({ moduleKey, functionName, args }:{moduleKey: string, functionName: string, args: any[]}) => {
+			handleFunctionCall(moduleKey, functionName, args);
 		}
 	);
 }

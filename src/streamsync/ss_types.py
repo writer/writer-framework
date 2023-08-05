@@ -1,6 +1,6 @@
-from typing import Any, Dict, List, Literal, Optional, Protocol, Tuple, TypedDict
+from typing import Any, Dict, List, Optional, Protocol, Tuple
 from pydantic import BaseModel
-
+from typing_extensions import TypedDict, Literal
 
 class StreamsyncFileItem(TypedDict):
     name: str
@@ -29,15 +29,15 @@ MessageType = Literal["sessionInit", "componentUpdate",
 
 
 class InitRequestBody(BaseModel):
-    proposedSessionId: Optional[str]
+    proposedSessionId: Optional[str] = None
 
 
 class InitResponseBody(BaseModel):
     mode: Literal["run", "edit"]
     sessionId: str
-    userState: Dict[str, Any]
-    mail: List[Any]
-    components: Dict[str, Any]
+    userState: Dict
+    mail: List
+    components: Dict
 
 
 class InitResponseBodyRun(InitResponseBody):
@@ -47,8 +47,8 @@ class InitResponseBodyRun(InitResponseBody):
 class InitResponseBodyEdit(InitResponseBody):
     mode: Literal["edit"]
     userFunctions: List[str]
-    savedCode: Optional[str]
-    runCode: Optional[str]
+    savedCode: Optional[str] = None
+    runCode: Optional[str] = None
 
 
 class StreamsyncWebsocketIncoming(BaseModel):
@@ -60,7 +60,7 @@ class StreamsyncWebsocketIncoming(BaseModel):
 class StreamsyncWebsocketOutgoing(BaseModel):
     messageType: str
     trackingId: int
-    payload: Optional[Dict[str, Any]]
+    payload: Optional[Dict[str, Any]] = None
 
 # AppProcessServer Requests
 
@@ -71,9 +71,9 @@ class AppProcessServerRequest(BaseModel):
 
 
 class InitSessionRequestPayload(BaseModel):
-    cookies: Optional[Dict[str, str]]
-    headers: Optional[Dict[str, str]]
-    proposedSessionId: Optional[str]
+    cookies: Optional[Dict[str, str]] = None
+    headers: Optional[Dict[str, str]] = None
+    proposedSessionId: Optional[str] = None
 
 
 class InitSessionRequest(AppProcessServerRequest):
@@ -93,7 +93,7 @@ class ComponentUpdateRequest(AppProcessServerRequest):
 class StreamsyncEvent(BaseModel):
     type: str
     instancePath: InstancePath
-    payload: Optional[Any]
+    payload: Optional[Any] = None
 
 
 class EventRequest(AppProcessServerRequest):
@@ -109,8 +109,8 @@ AppProcessServerRequestPacket = Tuple[int,
 
 class AppProcessServerResponse(BaseModel):
     status: Literal["ok", "error"]
-    status_message: Optional[str]
-    payload: Optional[Any]
+    status_message: Optional[str] = None
+    payload: Optional[Any] = None
 
 
 class InitSessionResponsePayload(BaseModel):
@@ -134,7 +134,7 @@ class EventResponsePayload(BaseModel):
 
 class EventResponse(AppProcessServerResponse):
     type: Literal["event"]
-    payload: Optional[EventResponsePayload]
+    payload: Optional[EventResponsePayload] = None
 
 
 AppProcessServerResponsePacket = Tuple[int,

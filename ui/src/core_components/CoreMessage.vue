@@ -71,6 +71,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			primaryTextColor,
+			cssClasses,
 		},
 		previewField: "name",
 	},
@@ -80,7 +81,7 @@ export default {
 import { computed, inject } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { primaryTextColor } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 

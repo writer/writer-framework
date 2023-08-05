@@ -22,6 +22,7 @@
 import { inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to select a single value from a list of options using a dropdown menu (also known as a select input).";
@@ -51,6 +52,7 @@ export default {
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
 			},
+			cssClasses
 		},
 		events: {
 			"ss-option-change": {

@@ -56,7 +56,7 @@ class TestAppRunner:
         )
         sres = await self.run_ar.dispatch_message(None, si)
         assert sres.status == "ok"
-        assert sres.payload.dict().get("sessionId") == self.proposed_session_id
+        assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
         er = EventRequest(type="event", payload=StreamsyncEvent(
             type="virus",
             instancePath=self.numberinput_instance_path,
@@ -81,7 +81,7 @@ class TestAppRunner:
         )
         sres = await self.run_ar.dispatch_message(None, si)
         assert sres.status == "ok"
-        assert sres.payload.dict().get("sessionId") == self.proposed_session_id
+        assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
         ev_req = EventRequest(type="event", payload=StreamsyncEvent(
             type="ss-number-change",
             instancePath=self.numberinput_instance_path,
@@ -145,7 +145,7 @@ class TestAppRunner:
             )
         )
         si_res = await self.edit_ar.dispatch_message(None, si)
-        mail = list(si_res.payload.dict().get("mail"))
+        mail = list(si_res.payload.model_dump().get("mail"))
 
         assert mail[0].get(
             "payload").get("message") == "188542\n"

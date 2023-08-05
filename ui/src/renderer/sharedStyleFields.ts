@@ -70,3 +70,10 @@ export const buttonShadow = {
 	category: FieldCategory.Style,
 	applyStyleVariable: true,
 };
+
+export const cssClasses = {
+	name: "Custom CSS classes",
+	type: FieldType.Text,
+	category: FieldCategory.Style,
+	desc: "CSS classes, separated by spaces. You can define classes in static/custom.css."
+};

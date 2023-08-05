@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.8"
+        "streamsync_version": "0.1.10"
     },
     "components": {
         "root": {
@@ -2147,7 +2147,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 3,
+            "position": 5,
             "handlers": {},
             "visible": true
         },
@@ -2159,7 +2159,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 43,
+            "position": 45,
             "handlers": {},
             "visible": true
         },
@@ -2171,7 +2171,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 4,
+            "position": 6,
             "handlers": {},
             "visible": true
         },
@@ -2183,7 +2183,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 5,
+            "position": 7,
             "handlers": {},
             "visible": true
         },
@@ -2195,7 +2195,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 6,
+            "position": 8,
             "handlers": {},
             "visible": true
         },
@@ -2207,7 +2207,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 7,
+            "position": 9,
             "handlers": {},
             "visible": true
         },
@@ -2219,7 +2219,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 8,
+            "position": 10,
             "handlers": {},
             "visible": true
         },
@@ -2231,7 +2231,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 9,
+            "position": 11,
             "handlers": {},
             "visible": true
         },
@@ -2243,7 +2243,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 10,
+            "position": 12,
             "handlers": {},
             "visible": true
         },
@@ -2254,7 +2254,7 @@
                 "text": "Header Text"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 11,
+            "position": 13,
             "handlers": {},
             "visible": true
         },
@@ -2266,7 +2266,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 12,
+            "position": 14,
             "handlers": {},
             "visible": true
         },
@@ -2278,7 +2278,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 13,
+            "position": 15,
             "handlers": {},
             "visible": true
         },
@@ -2290,7 +2290,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 14,
+            "position": 16,
             "handlers": {},
             "visible": true
         },
@@ -2302,7 +2302,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 15,
+            "position": 17,
             "handlers": {},
             "visible": true
         },
@@ -2314,7 +2314,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 16,
+            "position": 18,
             "handlers": {},
             "visible": true
         },
@@ -2326,7 +2326,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 17,
+            "position": 19,
             "handlers": {},
             "visible": true
         },
@@ -2338,7 +2338,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 18,
+            "position": 20,
             "handlers": {},
             "visible": true
         },
@@ -2350,7 +2350,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 19,
+            "position": 21,
             "handlers": {},
             "visible": true
         },
@@ -2362,7 +2362,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 20,
+            "position": 22,
             "handlers": {},
             "visible": true
         },
@@ -2374,7 +2374,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 21,
+            "position": 23,
             "handlers": {},
             "visible": true
         },
@@ -2386,7 +2386,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 22,
+            "position": 24,
             "handlers": {},
             "visible": true
         },
@@ -2398,7 +2398,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 23,
+            "position": 25,
             "handlers": {},
             "visible": true
         },
@@ -2410,7 +2410,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 24,
+            "position": 26,
             "handlers": {},
             "visible": true
         },
@@ -2422,7 +2422,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 25,
+            "position": 27,
             "handlers": {},
             "visible": true
         },
@@ -2434,7 +2434,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 26,
+            "position": 28,
             "handlers": {},
             "visible": true
         },
@@ -2446,7 +2446,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 27,
+            "position": 29,
             "handlers": {},
             "visible": true
         },
@@ -2458,7 +2458,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 28,
+            "position": 30,
             "handlers": {},
             "visible": true
         },
@@ -2470,7 +2470,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 29,
+            "position": 31,
             "handlers": {},
             "visible": true
         },
@@ -2482,7 +2482,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 30,
+            "position": 32,
             "handlers": {},
             "visible": true
         },
@@ -2494,7 +2494,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 31,
+            "position": 33,
             "handlers": {},
             "visible": true
         },
@@ -2506,7 +2506,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 33,
+            "position": 35,
             "handlers": {},
             "visible": true
         },
@@ -2518,7 +2518,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 34,
+            "position": 36,
             "handlers": {},
             "visible": true
         },
@@ -2530,7 +2530,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 35,
+            "position": 37,
             "handlers": {},
             "visible": true
         },
@@ -2542,7 +2542,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 36,
+            "position": 38,
             "handlers": {},
             "visible": true
         },
@@ -2566,7 +2566,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 37,
+            "position": 39,
             "handlers": {},
             "visible": true
         },
@@ -2577,7 +2577,7 @@
                 "text": "Header Text"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 39,
+            "position": 41,
             "handlers": {},
             "visible": true
         },
@@ -2589,7 +2589,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 40,
+            "position": 42,
             "handlers": {},
             "visible": true
         },
@@ -2601,7 +2601,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 41,
+            "position": 43,
             "handlers": {},
             "visible": true
         },
@@ -2613,7 +2613,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 42,
+            "position": 44,
             "handlers": {},
             "visible": true
         },
@@ -2625,7 +2625,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 44,
+            "position": 46,
             "handlers": {},
             "visible": true
         },
@@ -2637,7 +2637,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 45,
+            "position": 47,
             "handlers": {},
             "visible": true
         },
@@ -2649,7 +2649,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 46,
+            "position": 48,
             "handlers": {},
             "visible": true
         },
@@ -2661,7 +2661,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 47,
+            "position": 49,
             "handlers": {},
             "visible": true
         },
@@ -2673,7 +2673,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 48,
+            "position": 50,
             "handlers": {},
             "visible": true
         },
@@ -2685,7 +2685,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 49,
+            "position": 51,
             "handlers": {},
             "visible": true
         },
@@ -2697,7 +2697,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 50,
+            "position": 52,
             "handlers": {},
             "visible": true
         },
@@ -2706,7 +2706,7 @@
             "type": "videoplayer",
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 56,
+            "position": 58,
             "handlers": {},
             "visible": true
         },
@@ -2715,7 +2715,7 @@
             "type": "message",
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 51,
+            "position": 53,
             "handlers": {},
             "visible": true
         },
@@ -2724,7 +2724,7 @@
             "type": "vegalitechart",
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 52,
+            "position": 54,
             "handlers": {},
             "visible": true
         },
@@ -2735,7 +2735,7 @@
                 "caption": "Image Caption"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 53,
+            "position": 55,
             "handlers": {},
             "visible": true
         },
@@ -2744,7 +2744,7 @@
             "type": "dataframe",
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 54,
+            "position": 56,
             "handlers": {},
             "visible": true
         },
@@ -2755,7 +2755,7 @@
                 "note": "+Pass"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 55,
+            "position": 57,
             "handlers": {},
             "visible": true
         },
@@ -2764,7 +2764,7 @@
             "type": "tabs",
             "content": {},
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 57,
+            "position": 59,
             "handlers": {},
             "visible": true
         },
@@ -2784,7 +2784,7 @@
                 "text": "Header Text"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 32,
+            "position": 34,
             "handlers": {},
             "visible": true
         },
@@ -2796,7 +2796,7 @@
                 "snapMode": "no"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
-            "position": 38,
+            "position": 40,
             "handlers": {},
             "visible": true
         },
@@ -2833,6 +2833,42 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 10,
             "handlers": {},
+            "visible": true
+        },
+        "00f02bed-2113-4449-8af3-0f2c76a6bca4": {
+            "id": "00f02bed-2113-4449-8af3-0f2c76a6bca4",
+            "type": "checkboxinput",
+            "content": {
+                "label": "Input Label",
+                "orientation": "horizontal"
+            },
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "position": 4,
+            "handlers": {},
+            "visible": true
+        },
+        "2a413447-4d40-4ade-8cf0-639f292ff353": {
+            "id": "2a413447-4d40-4ade-8cf0-639f292ff353",
+            "type": "radioinput",
+            "content": {
+                "label": "Input Label",
+                "orientation": "horizontal"
+            },
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "position": 3,
+            "handlers": {},
+            "visible": true
+        },
+        "242a8268-10d1-4e2c-96bd-f17ffe9e9b28": {
+            "id": "242a8268-10d1-4e2c-96bd-f17ffe9e9b28",
+            "type": "textinput",
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "content": {
+                "label": "Input Label",
+                "passwordMode": "yes"
+            },
+            "handlers": {},
+            "position": 11,
             "visible": true
         }
     }

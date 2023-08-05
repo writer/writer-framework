@@ -1,7 +1,12 @@
 <template>
 	<div class="CoreCheckboxInput" ref="rootEl">
-		<label class="mainLabel">{{ fields.label.value }}</label>
-		<div class="options">
+		<div class="mainLabel">{{ fields.label.value }}</div>
+		<div
+			class="options"
+			:class="{
+				horizontal: fields.orientation.value == 'horizontal',
+			}"
+		>
 			<div
 				class="option"
 				v-for="(option, optionKey) in fields.options.value"
@@ -30,7 +35,8 @@
 <script lang="ts">
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const defaultOptions = { a: "Option A", b: "Option B" };
 
@@ -63,6 +69,18 @@ export default {
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
 			},
+			orientation: {
+				name: "Orientation",
+				type: FieldType.Text,
+				options: {
+					vertical: "Vertical",
+					horizontal: "Horizontal",
+				},
+				default: "vertical",
+				category: FieldCategory.Style,
+				desc: "Specify how to lay out the options.",
+			},
+			cssClasses
 		},
 		events: {
 			"ss-options-change": {
@@ -90,11 +108,11 @@ const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 function getCheckedKeys() {
 	if (!rootEl.value) return;
 	const checkboxEls = Array.from(
-		rootEl.value.querySelectorAll(`input[type="checkbox"]`)
+		rootEl.value.querySelectorAll(`input[type="checkbox"]`),
 	) as HTMLInputElement[];
 	const checkedValues = checkboxEls
 		.map((checkboxEl) =>
-			checkboxEl.checked ? checkboxEl.value : undefined
+			checkboxEl.checked ? checkboxEl.value : undefined,
 		)
 		.filter((el) => typeof el != "undefined");
 	return checkedValues;
@@ -114,14 +132,22 @@ const flattenedInstancePath = computed(() => {
 	width: 100%;
 }
 
+.mainLabel:not(:empty) {
+	margin-bottom: 12px;
+}
+
 .options {
 	display: flex;
 	flex-direction: column;
-	margin-top: 4px;
+	gap: 8px;
+}
+
+.options.horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
 }
 
 .option {
-	margin-top: 8px;
 	display: flex;
 	align-items: center;
 	color: var(--primaryTextColor);
