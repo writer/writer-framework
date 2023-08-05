@@ -92,14 +92,15 @@ function determineMatch(component: Component, query: string): boolean {
 		...Object.values(component.binding ?? {}),
 	];
 	for (let i = 0; i < fields.length; i++) {
-		const fieldValue = fields[i].toLocaleLowerCase();
-		if (fieldValue.includes(query)) return true;
+		const fieldValue = fields[i]?.toString().toLocaleLowerCase();
+		if (fieldValue?.includes(query)) return true;
 	}
 	return false;
 }
 
 async function selectMatch() {
 	const component = matchingComponents.value?.[matchIndex.value];
+	if (!component) return;
 	goToComponentParentPage(component.id);
 	await nextTick();
 	ssbm.setSelection(component.id);
