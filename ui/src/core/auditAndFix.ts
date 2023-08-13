@@ -28,7 +28,7 @@ export function auditAndFixComponents(components: ComponentMap): boolean {
 
 export function auditComponent(component: Component) {
 	const def = getComponentDefinition(component.type);
-	if (!def) {
+	if (!def || def.category == "Fallback") {
 		console.error(
 			`Component ${component.id} (${component.type}). Invalid component type.`
 		);

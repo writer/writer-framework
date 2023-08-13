@@ -38,6 +38,7 @@ class InitResponseBody(BaseModel):
     userState: Dict
     mail: List
     components: Dict
+    extensionPaths: List
 
 
 class InitResponseBodyRun(InitResponseBody):

@@ -7,11 +7,12 @@ import {
 } from "../streamsyncTypes";
 import {
 	getSupportedComponentTypes,
-	getComponentDefinition,
+	getComponentDefinition
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
+import { loadExtensions } from "./loadExtensions";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -77,6 +78,10 @@ export function generateCore() {
 
 		if (response.status > 400) {
 			throw "Connection rejected.";
+		}
+
+		if (initData.extensionPaths) {
+			await loadExtensions(initData.extensionPaths);
 		}
 
 		mode.value = initData.mode;
@@ -494,7 +499,7 @@ export function generateCore() {
 		getComponentDefinition,
 		getSupportedComponentTypes,
 		getContainableTypes,
-		getSessionTimestamp,
+		getSessionTimestamp
 	};
 
 	return core;

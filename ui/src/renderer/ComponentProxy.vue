@@ -1,15 +1,12 @@
 <script lang="ts">
 import { computed, h, inject, provide, ref, watch } from "vue";
-import templateMap from "../core/templateMap";
+import { getTemplate } from "../core/templateMap";
 import { Component, InstancePath, InstancePathItem } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import { useTemplateEvaluator } from "./useTemplateEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
-
-const fallbackRender = (type: string) => () =>
-	h("div", `Component type ${type} not supported.`);
 
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
@@ -18,10 +15,7 @@ export default {
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId: Component["id"] = props.componentId;
 		const component = computed(() => ss.getComponentById(componentId));
-		const template = templateMap[component.value.type];
-		if (!template) {
-			return fallbackRender(component.value.type);
-		}
+		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
 		const { getEvaluatedFields, isComponentVisible } = useTemplateEvaluator(ss);

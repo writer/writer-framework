@@ -1,6 +1,4 @@
 import asyncio
-import multiprocessing
-import threading
 from typing import Any, Dict, List, Optional, Union
 import typing
 from fastapi import FastAPI, Request, HTTPException
@@ -14,6 +12,7 @@ import uvicorn
 from streamsync.app_runner import AppRunner
 from urllib.parse import urlsplit
 import logging
+import pathlib
 from streamsync import VERSION
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
@@ -26,6 +25,14 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
     app_runner = AppRunner(user_app_path, serve_mode)
     app_runner.load()
     asgi_app = FastAPI()
+
+    def _get_extension_paths() -> List[str]:
+        extensions_path = pathlib.Path(user_app_path) / "extensions"
+        filtered_files = [f for f in extensions_path.rglob("*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
+        relative_paths = [f.relative_to(extensions_path).as_posix() for f in filtered_files]
+        return relative_paths
+
+    cached_extension_paths = _get_extension_paths()
 
     def _check_origin_header(origin_header: Optional[str]) -> bool:
         if serve_mode not in ("edit") or enable_remote_edit is True:
@@ -45,7 +52,8 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             sessionId=payload.sessionId,
             userState=payload.userState,
             mail=payload.mail,
-            components=payload.components
+            components=payload.components,
+            extensionPaths=cached_extension_paths
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -60,7 +68,8 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             components=payload.components,
             userFunctions=payload.userFunctions,
             savedCode=saved_code,
-            runCode=run_code
+            runCode=run_code,
+            extensionPaths=cached_extension_paths
         )
 
     @asgi_app.post("/api/init")
@@ -247,12 +256,16 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
     # Mount static paths
 
-    user_app_static_path = os.path.join(user_app_path, "static")
+    user_app_static_path = str(pathlib.Path(user_app_path) / "static")
     asgi_app.mount(
         "/static", StaticFiles(directory=user_app_static_path), name="user_static")
 
+    user_app_extensions_path = str(pathlib.Path(user_app_path) / "extensions")
+    asgi_app.mount(
+        "/extensions", StaticFiles(directory=user_app_extensions_path), name="extensions")
+
     server_path = os.path.dirname(__file__)
-    server_static_path = os.path.join(server_path, "static")
+    server_static_path = str(pathlib.Path(server_path) / "static")
     asgi_app.mount(
         "/", StaticFiles(directory=server_static_path, html=True), name="server_static")
 
