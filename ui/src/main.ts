@@ -53,7 +53,6 @@ async function load() {
 
 	const app = createApp(componentRenderer || builderApp);
 	app.use(VueDOMPurifyHTML);
-	app.config.unwrapInjectedRef = true;
 	app.provide(injectionKeys.core, ss);
 	app.provide(injectionKeys.builderManager, ssbm);
 	setCaptureTabsDirective(app);
