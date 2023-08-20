@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from streamsync.ss_types import (AppProcessServerResponse, ComponentUpdateRequestPayload, EventResponsePayload, InitRequestBody, InitResponseBodyEdit,
-                                 InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
+                                 InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StateEnquiryResponsePayload, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
 import os
 import uvicorn
 from streamsync.app_runner import AppRunner
@@ -143,49 +143,86 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 logging.error("Incorrect incoming request.")
                 return
 
-            response = StreamsyncWebsocketOutgoing(
-                messageType=f"{req_message.type}Response",
-                trackingId=req_message.trackingId,
-                payload=None
-            )
-
             is_session_ok = await app_runner.check_session(session_id)
             if not is_session_ok:
                 return
 
-            apsr: Optional[AppProcessServerResponse] = None
-            res_payload: Optional[Dict[str, Any]] = None
-
-            if req_message.type == "event":
-                apsr = await app_runner.handle_event(
+            try:
+                if req_message.type == "event":
+                    asyncio.create_task(_handle_incoming_event(websocket, session_id, req_message))                    
+                elif req_message.type == "keepAlive":
+                    asyncio.create_task(_handle_keep_alive_message(websocket, session_id, req_message))
+                elif req_message.type == "stateEnquiry":
+                    asyncio.create_task(_handle_state_enquiry_message(websocket, session_id, req_message))
+                elif serve_mode == "edit":
+                    asyncio.create_task(_handle_incoming_edit_message(websocket, session_id, req_message))
+            except WebSocketDisconnect as e:
+                return
+                
+    async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        res_payload: Optional[Dict[str, Any]] = None
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_event(
                     session_id, StreamsyncEvent(
                         type=req_message.payload["type"],
                         instancePath=req_message.payload["instancePath"],
                         payload=req_message.payload["payload"]
                     ))
-                if apsr is not None and apsr.payload is not None:
-                    res_payload = typing.cast(
-                        EventResponsePayload, apsr.payload).model_dump()
-            if serve_mode == "edit":
-                if req_message.type == "componentUpdate":
-                    await app_runner.update_components(
-                        session_id, ComponentUpdateRequestPayload(
-                            components=req_message.payload["components"]
-                        ))
-                elif req_message.type == "codeSaveRequest":
-                    app_runner.save_code(
-                        session_id, req_message.payload["code"])
-                elif req_message.type == "codeUpdate":
-                    app_runner.update_code(
-                        session_id, req_message.payload["code"])
+        if apsr is not None and apsr.payload is not None:
+            res_payload = typing.cast(
+                EventResponsePayload, apsr.payload).model_dump()
+        if res_payload is not None:
+            response.payload = res_payload
+        await websocket.send_json(response.model_dump())
 
-            if res_payload is not None:
-                response.payload = res_payload
+    async def _handle_incoming_edit_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        if req_message.type == "componentUpdate":
+            await app_runner.update_components(
+                session_id, ComponentUpdateRequestPayload(
+                    components=req_message.payload["components"]
+                ))
+        elif req_message.type == "codeSaveRequest":
+            app_runner.save_code(
+                session_id, req_message.payload["code"])
+        elif req_message.type == "codeUpdate":
+            app_runner.update_code(
+                session_id, req_message.payload["code"])
+        await websocket.send_json(response.model_dump())
 
-            try:
-                await websocket.send_json(response.model_dump())
-            except WebSocketDisconnect:
-                return
+    async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"keepAliveResponse",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_state_enquiry_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        res_payload: Optional[Dict[str, Any]] = None
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_state_enquiry(session_id)
+        if apsr is not None and apsr.payload is not None:
+            res_payload = typing.cast(
+                StateEnquiryResponsePayload, apsr.payload).model_dump()
+        if res_payload is not None:
+            response.payload = res_payload
+        await websocket.send_json(response.model_dump())
+
 
     async def _stream_outgoing_announcements(websocket: WebSocket):
 
