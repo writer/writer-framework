@@ -102,3 +102,5 @@ export type ComponentMap = Record<Component["id"], Component>;
  */
 
 export type MailItem = { type: string; payload: Record<string, string> };
+
+export type UserFunction = { name: string; args: string[]};
