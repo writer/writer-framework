@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
-import { Component, InstancePath, InstancePathItem } from "../streamsyncTypes";
+import { Component, InstancePath, InstancePathItem, UserFunction } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import { useTemplateEvaluator } from "./useTemplateEvaluator";
 import injectionKeys from "../injectionKeys";
@@ -25,6 +25,7 @@ export default {
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview"
 		);
+		const userFunctions: UserFunction[] = ss.getUserFunctions();
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -124,13 +125,23 @@ export default {
 		const isChildless = computed(() => children.value.length == 0);
 		const isVisible = computed(() => isComponentVisible(componentId, instancePath));
 
-		const getHandlerCallable = (handlerFunction: string) => {
-			const isForwardable = !handlerFunction.startsWith("$");
-			if (isForwardable) {
-				return (ev: Event) => ss.forwardEvent(ev, instancePath);
+		const getHandlerCallable = (handlerFunctionName: string, isBinding: boolean) => {
+			const isForwardable = !handlerFunctionName.startsWith("$");
+			if (isForwardable && !isBinding) {
+				return (ev: Event) => {
+
+					// Only include payload if there's a function waiting for it on the other side
+
+					let includePayload = false ;
+
+					if (userFunctions.some(uf => uf.name == handlerFunctionName && uf.args.includes("payload"))) {
+						includePayload = true;
+					}
+					ss.forwardEvent(ev, instancePath, includePayload);
+				}
 			}
-			if (handlerFunction.startsWith("$goToPage_")) {
-				const pageKey = handlerFunction.substring("$goToPage_".length);
+			if (handlerFunctionName.startsWith("$goToPage_")) {
+				const pageKey = handlerFunctionName.substring("$goToPage_".length);
 				return (ev: Event) => ss.setActivePageFromKey(pageKey);
 			}
 			return null;
@@ -139,28 +150,28 @@ export default {
 		const eventHandlerProps = computed(() => {
 			const props = {};
 
-			// Binding. Make sure there's a handler to catch the binding event.
-			// Might be overwritten by a handler
-
-			if (component.value.binding) {
-				const bindingEventType = component.value.binding.eventType;
-				const eventKey = `on${bindingEventType
-					.charAt(0)
-					.toUpperCase()}${bindingEventType.slice(1)}`;
-				props[eventKey] = (ev: Event) =>
-					ss.forwardEvent(ev, instancePath);
-			}
-
 			// Handle event handlers
 
-			Object.entries(component.value.handlers ?? {}).forEach(
-				([handlerEventType, handlerFunction]) => {
-					const eventKey = `on${handlerEventType
+			const handledEventTypes = Object.keys(component.value.handlers ?? {});
+			const boundEventTypes = component.value.binding ? [component.value.binding.eventType] : [];
+			const eventTypes = Array.from(new Set([...handledEventTypes, ...boundEventTypes]));
+
+			eventTypes.forEach(eventType => {
+				const eventKey = `on${eventType
 						.charAt(0)
-						.toUpperCase()}${handlerEventType.slice(1)}`;
-					props[eventKey] = getHandlerCallable(handlerFunction);
-				}
-			);
+						.toUpperCase()}${eventType.slice(1)}`;
+				const isBinding = eventType === component.value.binding?.eventType;
+				props[eventKey] = (ev: Event) => {
+					if (isBinding) {
+						ss.forwardEvent(ev, instancePath, true);
+					}
+					const handlerFunction = component.value.handlers?.[eventType]; 
+					if (handlerFunction) {
+						getHandlerCallable(handlerFunction, isBinding)?.(ev);
+					}
+				};
+			});
+
 			return props;
 		});
 
