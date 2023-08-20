@@ -191,7 +191,7 @@ class AppProcess(multiprocessing.Process):
 
         res_payload = StateEnquiryResponsePayload(
             mutations=mutations,
-            mail=mail+['perrin']
+            mail=mail
         )
 
         session.session_state.clear_mail()
