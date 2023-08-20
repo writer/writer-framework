@@ -4,10 +4,11 @@ import {
 	ComponentMap,
 	InstancePath,
 	MailItem,
+	UserFunction,
 } from "../streamsyncTypes";
 import {
 	getSupportedComponentTypes,
-	getComponentDefinition
+	getComponentDefinition,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -23,17 +24,20 @@ export function generateCore() {
 	let mode: Ref<"run" | "edit"> = ref(null);
 	let savedCode: Ref<string> = ref(null);
 	let runCode: Ref<string> = ref(null);
-	const isMessagePending: Ref<boolean> = ref(false);
 	const components: Ref<ComponentMap> = ref({});
-	const userFunctions: Ref<string[]> = ref([]);
+	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline"> = ref("idle");
 	let frontendMessageCounter = 0;
-	const frontendMessageMap: Map<number, { callback?: Function }> = new Map();
+	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(new Map());
 	let mailInbox: MailItem[] = [];
 	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	let activePageId: Ref<Component["id"]> = ref(null);
+
+	function getFrontendMessageMap() {
+		return frontendMessageMap.value;
+	}
 
 	/**
 	 * Whether Streamsync is running as builder or runner.
@@ -121,7 +125,7 @@ export function generateCore() {
 			/*
 			Splits the key while respecting escaped dots.
 			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
-			*/ 
+			*/
 
 			const accessor = parseAccessor(key);
 			let stateRef = userState.value;
@@ -139,11 +143,10 @@ export function generateCore() {
 	}
 
 	function clearFrontendMap() {
-		frontendMessageMap.forEach(({ callback }) => {
+		frontendMessageMap.value.forEach(({ callback }) => {
 			callback?.({ ok: false });
 		});
-		frontendMessageMap.clear();
-		isMessagePending.value = false;
+		frontendMessageMap.value.clear();
 	}
 
 	// Open and setup websocket
@@ -173,17 +176,14 @@ export function generateCore() {
 				webSocket.close();
 				initSession();
 				return;
-			} else if (message.messageType == "eventResponse") {
+			} else if (message.messageType == "eventResponse" || message.messageType == "stateEnquiryResponse") {
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
 			}
 
-			const mapItem = frontendMessageMap.get(message.trackingId);
+			const mapItem = frontendMessageMap.value.get(message.trackingId);
 			mapItem?.callback?.({ ok: true, payload: message.payload });
-			frontendMessageMap.delete(message.trackingId);
-			if (frontendMessageMap.size == 0) {
-				isMessagePending.value = false;
-			}
+			frontendMessageMap.value.delete(message.trackingId);
 		};
 
 		webSocket.onclose = async (ev: CloseEvent) => {
@@ -231,7 +231,7 @@ export function generateCore() {
 		mailInbox.push(...mail);
 		mailInbox = mailInbox.filter((item) => {
 			const relevantSubscriptions = mailSubscriptions.filter(
-				(ms) => ms.mailType == item.type
+				(ms) => ms.mailType == item.type,
 			);
 
 			if (relevantSubscriptions.length == 0) {
@@ -247,12 +247,30 @@ export function generateCore() {
 		collateMail();
 	}
 
-	async function forwardEvent(event: Event, instancePath: InstancePath) {
+	function getPayloadFromEvent(event: Event) {
 		let eventPayload = null;
-		let callback: Function;
 
 		if (event instanceof CustomEvent) {
 			eventPayload = event.detail?.payload ?? null;
+		} else {
+			const simplifiedEvent = {};
+			for (const i in event) {
+				const value = event[i];
+				if (typeof value === "function") continue;
+				if (value instanceof Object) continue;
+				simplifiedEvent[i] = value;
+			}
+			eventPayload = simplifiedEvent;
+		}
+
+		return eventPayload;
+	}
+
+	async function forwardEvent(event: Event, instancePath: InstancePath, includeEventPayload: boolean) {
+		const eventPayload = includeEventPayload ? getPayloadFromEvent(event) : null;
+		let callback: Function;
+
+		if (event instanceof CustomEvent) {
 			callback = event.detail?.callback;
 		}
 
@@ -285,7 +303,7 @@ export function generateCore() {
 			sendFrontendMessage(
 				"codeSaveRequest",
 				messageData,
-				messageCallback
+				messageCallback,
 			);
 		});
 	}
@@ -314,8 +332,24 @@ export function generateCore() {
 		});
 	}
 
+	async function sendStateEnquiry(callback: Function) {
+		sendFrontendMessage("stateEnquiry", {}, callback, true);
+	}
+
 	function getRunCode() {
 		return runCode.value;
+	}
+
+	function setupMessageFollowUp(trackingId: number) {
+		const INITIAL_FOLLOWUP_MS = 100;
+		const SUBSEQUENT_FOLLOWUPS_MS = 1000; 
+
+		const checkIfStateEnquiryRequired = () => {
+			const isPending = frontendMessageMap.value.has(trackingId);
+			if (!isPending) return;
+			sendStateEnquiry(() => setTimeout(checkIfStateEnquiryRequired, SUBSEQUENT_FOLLOWUPS_MS));
+		}
+		setTimeout(checkIfStateEnquiryRequired, INITIAL_FOLLOWUP_MS);
 	}
 
 	async function sendFrontendMessage(
@@ -327,10 +361,12 @@ export function generateCore() {
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {
-				frontendMessageMap.set(trackingId, {
-					callback,
+				frontendMessageMap.value.set(trackingId, {
+					callback
 				});
-				isMessagePending.value = true;
+			}
+			if (track) {
+				setupMessageFollowUp(trackingId);
 			}
 
 			let awaitedPayload: object;
@@ -355,7 +391,6 @@ export function generateCore() {
 	}
 
 	function deleteComponent(componentId: Component["id"]) {
-		// delete renderedComponents[componentId];
 		delete components.value[componentId];
 	}
 
@@ -413,7 +448,7 @@ export function generateCore() {
 	 */
 	function getComponents(
 		childrenOfId: Component["id"] = undefined,
-		sortedByPosition: boolean = false
+		sortedByPosition: boolean = false,
 	): Component[] {
 		let ca = Object.values(components.value);
 
@@ -458,7 +493,7 @@ export function generateCore() {
 
 	function evaluateExpression(
 		expr: string,
-		contextData?: Record<string, any>
+		contextData?: Record<string, any>,
 	) {
 		const splitKey = expr.split(".");
 		let contextRef = contextData;
@@ -475,7 +510,7 @@ export function generateCore() {
 	const core = {
 		webSocket,
 		syncHealth,
-		isMessagePending,
+		getFrontendMessageMap,
 		getMode,
 		getUserFunctions,
 		addMailSubscription,
@@ -499,7 +534,7 @@ export function generateCore() {
 		getComponentDefinition,
 		getSupportedComponentTypes,
 		getContainableTypes,
-		getSessionTimestamp
+		getSessionTimestamp,
 	};
 
 	return core;
