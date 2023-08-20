@@ -23,7 +23,7 @@ class Readable(Protocol):
 
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
-                      "event", "codeUpdate", "codeSave", "checkSession", "keepAlive"]
+                      "event", "codeUpdate", "codeSave", "checkSession", "keepAlive", "stateEnquiry"]
 
 # Web server models
 
@@ -47,7 +47,7 @@ class InitResponseBodyRun(InitResponseBody):
 
 class InitResponseBodyEdit(InitResponseBody):
     mode: Literal["edit"]
-    userFunctions: List[str]
+    userFunctions: List[Dict]
     savedCode: Optional[str] = None
     runCode: Optional[str] = None
 
@@ -68,7 +68,7 @@ class StreamsyncWebsocketOutgoing(BaseModel):
 
 class AppProcessServerRequest(BaseModel):
     type: MessageType
-    payload: Optional[Any]
+    payload: Optional[Any] = None
 
 
 class InitSessionRequestPayload(BaseModel):
@@ -102,6 +102,10 @@ class EventRequest(AppProcessServerRequest):
     payload: StreamsyncEvent
 
 
+class StateEnquiryRequest(AppProcessServerRequest):
+    type: Literal["stateEnquiry"]
+
+
 AppProcessServerRequestPacket = Tuple[int,
                                       Optional[str], AppProcessServerRequest]
 
@@ -118,7 +122,7 @@ class InitSessionResponsePayload(BaseModel):
     sessionId: str
     userState: Dict[str, Any]
     mail: List
-    userFunctions: List[str]
+    userFunctions: List[Dict]
     components: Dict
 
 
@@ -133,9 +137,19 @@ class EventResponsePayload(BaseModel):
     mail: List
 
 
+class StateEnquiryResponsePayload(BaseModel):
+    mutations: Dict[str, Any] = None
+    mail: List
+
+
 class EventResponse(AppProcessServerResponse):
     type: Literal["event"]
     payload: Optional[EventResponsePayload] = None
+
+
+class StateEnquiryResponse(AppProcessServerResponse):
+    type: Literal["stateEnquiry"]
+    payload: Optional[StateEnquiryResponsePayload]
 
 
 AppProcessServerResponsePacket = Tuple[int,
