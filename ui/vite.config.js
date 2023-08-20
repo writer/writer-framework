@@ -14,7 +14,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			"@": fileURLToPath(new URL("./src", import.meta.url))
 		},
 	},
 	server: {
@@ -27,6 +27,12 @@ export default defineConfig({
 				prependPath: true,
 			},
 			"/static": {
+				target: "http://127.0.0.1:5000",
+				changeOrigin: true,
+				secure: false,
+				prependPath: true,
+			},
+			"/extensions": {
 				target: "http://127.0.0.1:5000",
 				changeOrigin: true,
 				secure: false,
