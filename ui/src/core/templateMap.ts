@@ -75,7 +75,7 @@ const templateMap = {
 	videoplayer: CoreVideoPlayer,
 };
 
-function fallbackTemplate (type: string) {
+function fallbackTemplate(type: string) {
 	const message = `Component type "${type}" not supported. If it's a custom component, please ensure it's been loaded.`;
 	return {
 		streamsync: {
@@ -90,23 +90,23 @@ function fallbackTemplate (type: string) {
 					"div",
 					{
 						"data-streamsync-container": "",
-						"style": {
-							"color": "var(--primaryTextColor)"
-						}
+						style: {
+							color: "var(--primaryTextColor)",
+						},
 					},
-					[message, slots.default({})]
+					[message, slots.default({})],
 				);
 			};
 		},
-	}
-};
+	};
+}
 
 export function getTemplate(type: string) {
 	return templateMap[type] ?? fallbackTemplate(type);
 }
 
 export function getComponentDefinition(
-	type: string
+	type: string,
 ): StreamsyncComponentDefinition {
 	return getTemplate(type)?.streamsync;
 }
