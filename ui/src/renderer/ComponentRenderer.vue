@@ -52,7 +52,10 @@ const rootStyle = computed(() => {
 	};
 });
 
-const isMessagePending = computed(() => ss.isMessagePending.value);
+const isMessagePending = computed(() => {
+	const frontendMessageMap = ss.getFrontendMessageMap();
+	return frontendMessageMap.size > 0;
+});
 
 watch(
 	() => rootFields.appName?.value,
