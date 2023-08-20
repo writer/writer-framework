@@ -1,8 +1,8 @@
 <template>
-	<div class="CoreSection" :class="{ snapMode: fields.snapMode.value == 'yes' }">
+	<section class="CoreSection" :class="{ snapMode: fields.snapMode.value == 'yes' }">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
 		<div data-streamsync-container><slot></slot></div>
-	</div>
+	</section>
 </template>
 
 <script lang="ts">

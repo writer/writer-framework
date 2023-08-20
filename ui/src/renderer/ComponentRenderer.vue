@@ -1,5 +1,5 @@
 <template>
-	<div
+	<main
 		class="ComponentRenderer"
 		tabindex="-1"
 		:style="rootStyle"
@@ -16,7 +16,7 @@
 			></ComponentProxy>
 			<slot></slot>
 		</div>
-	</div>
+	</main>
 </template>
 
 <script setup lang="ts">
