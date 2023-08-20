@@ -80,11 +80,16 @@ const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreSelectInput {
-	width: 100%;
+	width: fit-content;
+	max-width: 100%;
 }
 
 label {
 	color: var(--primaryTextColor);
+}
+
+select {
+	max-width: 100%;
 }
 
 .selectContainer {
