@@ -1,16 +1,18 @@
 <template>
 	<div class="CoreFileInput" ref="rootEl">
-		<div class="main">
-			<div class="inputContainer">
-				<label>{{ fields.label.value }}</label>
-				<input
-					type="file"
-					ref="fileEl"
-					v-on:change="fileChange($event as InputEvent)"
-					:multiple="allowMultipleFilesFlag"
-				/>
-			</div>
-			<div class="message" v-if="message">{{ message }}</div>
+		<div class="inputContainer" v-if="!processingFiles">
+			<label>{{ fields.label.value }}</label>
+			<input
+				type="file"
+				ref="fileEl"
+				v-on:change="fileChange($event as InputEvent)"
+				:multiple="allowMultipleFilesFlag"
+			/>
+		</div>
+		<div class="status" v-if="message || processingFiles">
+			<LoadingSymbol class="loadingSymbol" v-if="processingFiles"></LoadingSymbol>
+			<span v-if="processingFiles">Processing {{ processingFiles.join(", ") }}...</span>
+			<span v-if="message">{{ message }}</span>
 		</div>
 	</div>
 </template>
@@ -38,39 +40,41 @@ def onchange_handler(state, payload):
             file_handle.write(file_data)`.trim();
 
 export default {
-	streamsync: {
-		name: "File Input",
-		description,
-		category: "Input",
-		fields: {
-			label: {
-				name: "Label",
-				init: "Input Label",
-				type: FieldType.Text,
-			},
-			allowMultipleFiles: {
-				name: "Allow multiple files",
-				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
-			},
-			cssClasses
-		},
-		events: {
-			"ss-file-change": {
-				desc: "Capture changes to this control.",
-				stub: onChangeHandlerStub,
-				bindable: true,
-			},
-		},
-	},
+    streamsync: {
+        name: "File Input",
+        description,
+        category: "Input",
+        fields: {
+            label: {
+                name: "Label",
+                init: "Input Label",
+                type: FieldType.Text,
+            },
+            allowMultipleFiles: {
+                name: "Allow multiple files",
+                default: "no",
+                type: FieldType.Text,
+                options: {
+                    yes: "Yes",
+                    no: "No",
+                },
+            },
+            cssClasses
+        },
+        events: {
+            "ss-file-change": {
+                desc: "Capture changes to this control.",
+                stub: onChangeHandlerStub,
+                bindable: true,
+            },
+        },
+    },
+    components: { LoadingSymbol }
 };
 </script>
 
 <script setup lang="ts">
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import { computed, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
@@ -81,6 +85,7 @@ const fileEl: Ref<HTMLInputElement> = ref(null);
 const message:Ref<string> = ref(null);
 const ss = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const processingFiles:Ref<string[]> = ref(null);
 
 const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 
@@ -123,10 +128,14 @@ const fileChange = async (ev: InputEvent) => {
 		return encodedFiles;
 	};
 
-
+	processingFiles.value = Array.from(el.files).map(file => file.name);
 	formValue.value = getValue();
 
-	handleInput(getValue(), "ss-file-change");
+	const customCallback = () => {
+		processingFiles.value = null;
+	};
+
+	handleInput(getValue(), "ss-file-change", customCallback);
 };
 
 watch(formValue, (newValue: string) => {
@@ -141,6 +150,9 @@ watch(formValue, (newValue: string) => {
 
 .CoreFileInput {
 	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
 }
 
 label {
@@ -155,7 +167,20 @@ input {
 	border: 1px solid var(--separatorColor);
 }
 
-.message {
-	margin-top: 8px;
+.status {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	min-height: 36px;
+}
+
+.status .loadingSymbol {
+	flex: 0 0 24px;
+}
+
+.status span {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
 </style>

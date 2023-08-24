@@ -7,9 +7,8 @@
 	>
 		<div class="messageBackground"></div>
 		<div class="message" v-if="messageWithoutPrefix">
-			<div class="loadingSymbol">
-				<div></div>
-			</div>
+			<LoadingSymbol class="loadingSymbol" v-if="severity == 'loading'">
+			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
 		<div class="empty" v-else>
@@ -38,59 +37,62 @@ else:
 `;
 
 export default {
-	streamsync: {
-		name: "Message",
-		description,
-		docs,
-		category: "Content",
-		fields: {
-			message: {
-				name: "Message",
-				type: FieldType.Text,
-				desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning, '%' for loading. No prefix for info. Leave empty to hide.",
-			},
-			successColor: {
-				name: "Success",
-				default: "#00B800",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			errorColor: {
-				name: "Error",
-				default: "#FB0000",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			warningColor: {
-				name: "Warning",
-				default: "#FB9600",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			infoColor: {
-				name: "Info",
-				default: "#00ADB8",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			loadingColor: {
-				name: "Loading",
-				default: "#00ADB8",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			primaryTextColor,
-			cssClasses,
-		},
-		previewField: "name",
-	},
+    streamsync: {
+        name: "Message",
+        description,
+        docs,
+        category: "Content",
+        fields: {
+            message: {
+                name: "Message",
+                type: FieldType.Text,
+                desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning, '%' for loading. No prefix for info. Leave empty to hide.",
+            },
+            successColor: {
+                name: "Success",
+                default: "#00B800",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            errorColor: {
+                name: "Error",
+                default: "#FB0000",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            warningColor: {
+                name: "Warning",
+                default: "#FB9600",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            infoColor: {
+                name: "Info",
+                default: "#00ADB8",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            loadingColor: {
+                name: "Loading",
+                default: "#00ADB8",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            primaryTextColor,
+            cssClasses,
+        },
+        previewField: "name",
+    },
+    components: { LoadingSymbol }
 };
 </script>
 <script setup lang="ts">
+import LoadingSymbol from "../renderer/LoadingSymbol.vue";
 import { computed, inject } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
@@ -167,39 +169,12 @@ const rootStyle = computed(() => {
 	gap: 16px;
 }
 
-@keyframes spin {
-	0% {
-		transform: rotate(0);
-	}
-	100% {
-		transform: rotate(359deg);
-	}
+.message span {
+	filter: brightness(0.7);
 }
 
 .loadingSymbol {
-	display: none;
-	border-radius: 50%;
-	margin-top: -8px;
-	margin-bottom: -8px;
-	height: 24px;
-	width: 24px;
-	background: var(--primaryTextColor);
-	background: linear-gradient(
-		90deg,
-		#f0f0f0 1%,
-		var(--messageActiveSeverityColor) 50%
-	);
-	animation: spin 1s linear infinite;
-	-webkit-mask: radial-gradient(12px, #0000 80%, #000);
-	mask: radial-gradient(12px, #0000 80%, #000);
-}
-
-.loading .loadingSymbol {
-	display: flex;
-}
-
-.message span {
-	filter: brightness(0.7);
+	margin: -8px 0 -8px 0;
 }
 
 .empty {
