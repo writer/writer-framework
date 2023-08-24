@@ -1,13 +1,11 @@
 <template>
-	<div class="CoreButton">
-		<button>
-			<i
-				v-if="fields.icon.value"
-				:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
-			></i>
-			{{ fields.text.value }}
-		</button>
-	</div>
+	<button class="CoreButton" :aria-disabled="isDisabled">
+		<i
+			v-if="fields.icon.value"
+			:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
+		></i>
+		{{ fields.text.value }}
+	</button>
 </template>
 
 <script lang="ts">
@@ -18,6 +16,7 @@ import {
 	separatorColor,
 	cssClasses
 } from "../renderer/sharedStyleFields";
+import { watch } from "vue";
 
 const clickHandlerStub = `
 def handle_button_click(state):
@@ -51,6 +50,16 @@ export default {
 				init: "Button Text",
 				type: FieldType.Text,
 			},
+			isDisabled: {
+				name: "Disabled",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+				desc: "Disables all event handlers."
+			},
 			buttonColor,
 			buttonTextColor,
 			icon: {
@@ -73,14 +82,33 @@ import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
+const isDisabled = inject(injectionKeys.isDisabled);
+
+watch(fields.isDisabled, (newFieldValue: string) => {
+	isDisabled.value = newFieldValue == "yes";
+}, {
+	immediate: true
+});
+
 </script>
 
 <style scoped>
 @import "../renderer/sharedStyles.css";
 
-button {
+.CoreButton {
+	width: fit-content;
+	max-width: 100%;
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
+
+.CoreButton.disabled {
+	border: 1px solid var(--separatorColor);
+	cursor: default;
+	opacity: 0.9;
+	filter: contrast(90%);
+}
+
 </style>

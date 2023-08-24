@@ -25,6 +25,7 @@ export default {
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview"
 		);
+		const isDisabled = ref(false);
 		const userFunctions: UserFunction[] = ss.getUserFunctions();
 
 		const getChildlessPlaceholderVNode = (): VNode => {
@@ -89,6 +90,7 @@ export default {
 		provide(injectionKeys.evaluatedFields, evaluatedFields);
 		provide(injectionKeys.componentId, componentId);
 		provide(injectionKeys.isBeingEdited, isBeingEdited);
+		provide(injectionKeys.isDisabled, isDisabled);
 		provide(injectionKeys.instancePath, instancePath);
 		provide(injectionKeys.instanceData, instanceData);
 		provide(injectionKeys.renderProxiedComponent, renderProxiedComponent);
@@ -211,6 +213,7 @@ export default {
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,
+					disabled: isDisabled.value,
 					...fieldBasedCssClasses.value
 				},
 				style: {
@@ -218,7 +221,7 @@ export default {
 					...(!isVisible.value ? { display: "none" } : {}),
 				},
 				...dataAttrs,
-				...eventHandlerProps.value,
+				...(!isDisabled.value ? eventHandlerProps.value : []),
 				draggable: isBeingEdited.value,
 			};
 			return rootElProps;
