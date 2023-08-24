@@ -29,7 +29,7 @@ export function useFormValueBroker(
 	 * @param emitEventType
 	 * @returns
 	 */
-	function handleInput(eventValue: any, emitEventType: string) {
+	function handleInput(eventValue: any, emitEventType: string, customCallback?: Function) {
 		formValue.value = eventValue;
 
 		const isHandlerSet = component.value.handlers?.[emitEventType];
@@ -52,12 +52,14 @@ export function useFormValueBroker(
 		isBusy.value = true;
 		const callback = () => {
 			isBusy.value = false;
-			if (!queuedEvent.value) return;
-			handleInput(
-				queuedEvent.value.eventValue,
-				queuedEvent.value.emitEventType
-			);
-			queuedEvent.value = null;
+			if (queuedEvent.value) {
+				handleInput(
+					queuedEvent.value.eventValue,
+					queuedEvent.value.emitEventType
+				);
+				queuedEvent.value = null;	
+			};
+			customCallback?.();
 		};
 
 		const event = new CustomEvent(emitEventType, {
