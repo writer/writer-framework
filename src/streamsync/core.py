@@ -521,6 +521,20 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
+    def _transform_keydown(self, ev) -> Dict:
+        payload = ev.payload
+        key = str(payload.get("key"))
+        ctrl_key = bool(payload.get("ctrlKey"))
+        shift_key = bool(payload.get("shiftKey"))
+        meta_key = bool(payload.get("metaKey"))
+        tf_payload = {
+            "key": key,
+            "ctrl_key": ctrl_key,
+            "shift_key": shift_key,
+            "meta_key": meta_key
+        }
+        return tf_payload
+
     def _transform_hashchange(self, ev) -> Dict:
         payload = ev.payload
         page_key = payload.get("pageKey")

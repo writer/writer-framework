@@ -1,5 +1,5 @@
 <template>
-	<div class="CorePage">
+	<div class="CorePage" ref="rootEl">
 		<div class="sidebarContainer">
 			<slot
 				:component-filter="(c: Component) => c.type == 'sidebar'"
@@ -24,6 +24,33 @@
 <script lang="ts">
 import { Component, FieldCategory, FieldType } from "../streamsyncTypes";
 import * as sharedStyleFields from "../renderer/sharedStyleFields";
+import { onMounted } from "vue";
+import { onUnmounted } from "vue";
+
+const ssKeydownStub = `
+def handle_keydown(state, payload):
+	# The payload is a dictionary containing the key code and modifier keys.
+	# For example,
+	# {
+	#	"key": "ArrowDown",
+	#	"ctrl_key": False,
+	#	"shift_key": False,
+	#	"meta_key": False
+	# }
+
+	key_activated = payload.get("key")
+	delta = 0
+	if key_activated == "ArrowLeft":
+		delta += -10
+	elif key_activated == "ArrowRight":
+		delta += 10
+
+	shift_key = payload.get("shift_key")
+	if shift_key:
+		delta *= 2 # Shift makes it go faster
+
+	state["position"] += delta
+`;
 
 const description =
 	"A container component representing a single page within the application.";
@@ -32,6 +59,12 @@ export default {
 	streamsync: {
 		name: "Page",
 		category: "Root",
+		events: {
+			"ss-keydown": {
+				desc: "Captures all key activity while this page is open.",
+				stub: ssKeydownStub
+			},
+		},
 		description,
 		allowedChildrenTypes: ["*"],
 		allowedParentTypes: ["root"],
@@ -58,10 +91,43 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import { Ref, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
+const rootEl:Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
+
+function handleKeydown (ev: KeyboardEvent) {
+	const payload = {
+		key: ev.key,
+		ctrlKey: ev.ctrlKey,
+		shiftKey: ev.shiftKey,
+		metaKey: ev.metaKey
+	};
+	const event = new CustomEvent("ss-keydown", {
+		detail: {
+			payload
+		},
+	});
+	rootEl.value.dispatchEvent(event);
+}
+
+function attachKeydownListener () {
+	document.addEventListener("keydown", handleKeydown);
+}
+
+function detachKeydownListener () {
+	document.removeEventListener("keydown", handleKeydown);
+}
+
+onMounted(() => {
+	attachKeydownListener();
+});
+
+onUnmounted(() => {
+	detachKeydownListener();
+});
+
 </script>
 
 <style scoped>
