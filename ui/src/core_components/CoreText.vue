@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldControl, FieldType } from "../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 import { getClick } from "../renderer/syntheticEvents";
 
@@ -39,7 +39,7 @@ export default {
 				default: "(No text)",
 				init: "Text",
 				type: FieldType.Text,
-				control: "textarea",
+				control: FieldControl.Textarea,
 			},
 			useMarkdown: {
 				name: "Use Markdown",

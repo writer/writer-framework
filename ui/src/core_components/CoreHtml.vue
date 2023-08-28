@@ -1,6 +1,6 @@
 <script lang="ts">
 import { h, inject } from "vue";
-import { FieldType } from "../streamsyncTypes";
+import { FieldControl, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { cssClasses } from "../renderer/sharedStyleFields";
 
@@ -55,7 +55,7 @@ export default {
 				name: "HTML inside",
 				default: null,
 				type: FieldType.Text,
-				control: "textarea",
+				control: FieldControl.Textarea,
 				desc: "Define custom HTML to be used inside the element. It will be wrapped in a div and rendered after children components.",
 			},
 			cssClasses,

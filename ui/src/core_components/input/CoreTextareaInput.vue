@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
@@ -39,7 +39,7 @@ export default {
 			placeholder: {
 				name: "Placeholder",
 				type: FieldType.Text,
-				control: "textarea",
+				control: FieldControl.Textarea,
 			},
 			rows: {
 				name: "Rows",

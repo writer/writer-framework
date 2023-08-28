@@ -42,7 +42,7 @@ export type InstancePath = InstancePathItem[];
 export type StreamsyncComponentDefinition = {
 	name: string;
 	description: string;
-	docs?: string;
+	docs?: string; 
 	category?: string;
 	allowedChildrenTypes?: (string | "*" | "inherit")[];
 	allowedParentTypes?: string[];
@@ -53,7 +53,7 @@ export type StreamsyncComponentDefinition = {
 			init?: string;
 			desc?: string;
 			default?: string;
-			control?: string;
+			control?: FieldControl;
 			options?: Record<string, string>;
 			type: FieldType;
 			category?: FieldCategory;
@@ -95,12 +95,19 @@ export const enum FieldCategory {
 	Style = "Style",
 }
 
+/**
+ * Used to specify the field control if it's different from the default for the FieldType.
+ */
+export const enum FieldControl {
+	Text = "Text",
+	Textarea = "Textarea",
+}
+
 export type ComponentMap = Record<Component["id"], Component>;
 
 /**
  * Unit of data for non-state-mutation communications between frontend and backend.
  */
-
 export type MailItem = { type: string; payload: Record<string, string> };
 
 export type UserFunction = { name: string; args: string[]};
