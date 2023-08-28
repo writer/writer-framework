@@ -64,7 +64,6 @@ export default {
 			},
 			options: {
 				name: "Options",
-				control: "object",
 				desc: "Key-value object with options. Must be a JSON string or a state reference to a dictionary.",
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
