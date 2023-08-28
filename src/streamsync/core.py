@@ -535,6 +535,18 @@ class EventDeserialiser:
         }
         return tf_payload
 
+    def _transform_click(self, ev) -> Dict:
+        payload = ev.payload
+        ctrl_key = bool(payload.get("ctrlKey"))
+        shift_key = bool(payload.get("shiftKey"))
+        meta_key = bool(payload.get("metaKey"))
+        tf_payload = {
+            "ctrl_key": ctrl_key,
+            "shift_key": shift_key,
+            "meta_key": meta_key
+        }
+        return tf_payload
+
     def _transform_hashchange(self, ev) -> Dict:
         payload = ev.payload
         page_key = payload.get("pageKey")
@@ -549,9 +561,15 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
+    def _transform_change_finish(self, ev) -> str:
+        return self._transform_change(ev)
+
     def _transform_number_change(self, ev) -> float:
         payload = float(ev.payload)
         return payload
+
+    def _transform_number_change_finish(self, ev) -> float:
+        return self._transform_number_change(ev)
 
     def _transform_webcam(self, ev) -> Any:
         return urllib.request.urlopen(ev.payload).read()
