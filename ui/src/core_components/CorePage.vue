@@ -26,6 +26,7 @@ import { Component, FieldCategory, FieldType } from "../streamsyncTypes";
 import * as sharedStyleFields from "../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { onUnmounted } from "vue";
+import { getKeydown } from "../renderer/syntheticEvents";
 
 const ssKeydownStub = `
 def handle_keydown(state, payload):
@@ -98,34 +99,16 @@ const rootEl:Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
 function handleKeydown (ev: KeyboardEvent) {
-	const payload = {
-		key: ev.key,
-		ctrlKey: ev.ctrlKey,
-		shiftKey: ev.shiftKey,
-		metaKey: ev.metaKey
-	};
-	const event = new CustomEvent("ss-keydown", {
-		detail: {
-			payload
-		},
-	});
-	rootEl.value.dispatchEvent(event);
-}
-
-function attachKeydownListener () {
-	document.addEventListener("keydown", handleKeydown);
-}
-
-function detachKeydownListener () {
-	document.removeEventListener("keydown", handleKeydown);
+	const ssEv = getKeydown(ev);
+	rootEl.value.dispatchEvent(ssEv);
 }
 
 onMounted(() => {
-	attachKeydownListener();
+	document.addEventListener("keydown", handleKeydown);
 });
 
 onUnmounted(() => {
-	detachKeydownListener();
+	document.removeEventListener("keydown", handleKeydown);
 });
 
 </script>

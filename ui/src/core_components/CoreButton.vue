@@ -1,5 +1,5 @@
 <template>
-	<button class="CoreButton" :aria-disabled="isDisabled">
+	<button class="CoreButton" :aria-disabled="isDisabled" ref="rootEl" v-on:click="handleClick">
 		<i
 			v-if="fields.icon.value"
 			:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
@@ -17,6 +17,7 @@ import {
 	cssClasses
 } from "../renderer/sharedStyleFields";
 import { watch } from "vue";
+import { getClick } from "../renderer/syntheticEvents";
 
 const clickHandlerStub = `
 def handle_button_click(state):
@@ -39,7 +40,7 @@ export default {
 		docs,
 		category: "Other",
 		events: {
-			click: {
+			"ss-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -77,12 +78,12 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import { Ref, inject, ref } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 
+const rootEl:Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
-
 const isDisabled = inject(injectionKeys.isDisabled);
 
 watch(fields.isDisabled, (newFieldValue: string) => {
@@ -90,6 +91,11 @@ watch(fields.isDisabled, (newFieldValue: string) => {
 }, {
 	immediate: true
 });
+
+function handleClick(ev: MouseEvent) {
+	const ssEv = getClick(ev);
+	rootEl.value.dispatchEvent(ssEv);
+}
 
 </script>
 

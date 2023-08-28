@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreText" :style="rootStyle">
+	<div class="CoreText" :style="rootStyle" ref="rootEl" v-on:click="handleClick">
 		<template v-if="fields.useMarkdown.value == 'no'">
 			<div class="plainText" :style="contentStyle">{{ fields.text.value }}</div>
 		</template>
@@ -16,6 +16,7 @@
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+import { getClick } from "../renderer/syntheticEvents";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -65,7 +66,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			click: {
+			"ss-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -76,9 +77,10 @@ export default {
 </script>
 <script setup lang="ts">
 import { marked } from "marked";
-import { computed, inject } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
+const rootEl:Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const ss = inject(injectionKeys.core);
@@ -102,6 +104,11 @@ const unsanitisedMarkdownHtml = computed(() => {
 	const unsanitisedHtml = marked.parse(fields.text.value).trim();
 	return unsanitisedHtml;
 });
+
+function handleClick(ev: MouseEvent) {
+	const ssEv = getClick(ev);
+	rootEl.value.dispatchEvent(ssEv);
+}
 </script>
 
 <style scoped>
