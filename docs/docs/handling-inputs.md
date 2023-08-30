@@ -38,9 +38,14 @@ def recalculate(state):
 
 ## Handling inputs safely
 
-Streamsync automatically sanitises the payloads it provides. For example, if a _Dropdown Input_ component lists options `high` and `low`, you're guaranteed you won't get a value like `"Robert'); DROP TABLE students;--"`. You'll get `"high"`, `"low"` or `None`.
+Streamsync automatically sanitises the payloads it provides for its built-in events, those that start with `ss-`.
 
-Nevertheless, inputs that use the generic `ss-change` event, such as _Text Input_, can contain any string. Therefore, as with any application, it's important to be familiar with the risks associated with handling user input, especially SQL injections.
+For example, if a _Dropdown Input_ component lists options `high` and `low`, you're guaranteed you won't get a value like `"Robert'); DROP TABLE students;--"` when handling `ss-option-change`. You'll get `"high"`, `"low"` or `None`.
+
+::: warning Inputs are sanitised, but you should still be careful
+
+As with any application, it's important to be familiar with the risks associated with handling user input, especially SQL injections. If you're using any custom HTML and mixing it with user generated content, make sure you understand XSS.
+:::
 
 ## Creating forms
 
