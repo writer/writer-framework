@@ -6,7 +6,8 @@
 		"build": "vite build",
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
-		"build_custom_components": "vite build --config vite.config.custom-components.js"
+		"custom.dev": "vite --config vite.config.custom.js",
+		"custom.build": "vite build --config vite.config.custom.js"
 	},
 	"dependencies": {
 		"@apache-arrow/ts": "^12.0.1",

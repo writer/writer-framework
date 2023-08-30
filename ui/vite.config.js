@@ -8,6 +8,9 @@ import monacoEditorPlugin from "vite-plugin-monaco-editor";
 export default defineConfig({
 	base: "./",
 	plugins: [vue(), monacoEditorPlugin({})],
+	define: {
+		"STREAMSYNC_LIVE_CCT": JSON.stringify("no")
+	},
 	build: {
 		outDir: "../src/streamsync/static",
 		emptyOutDir: true,
