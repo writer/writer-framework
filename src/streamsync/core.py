@@ -557,6 +557,10 @@ class EventDeserialiser:
         }
         return tf_payload
 
+    def _transform_page_open(self, ev) -> str:
+        payload = str(ev.payload)
+        return payload
+
     def _transform_change(self, ev) -> str:
         payload = str(ev.payload)
         return payload

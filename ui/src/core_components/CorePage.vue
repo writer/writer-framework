@@ -53,6 +53,12 @@ def handle_keydown(state, payload):
 	state["position"] += delta
 `;
 
+const ssPageOpenStub = `
+def handle_page_open(state, payload):
+	page_key = payload
+	state["message"] = f"The page {page_key} has been opened."
+`
+
 const description =
 	"A container component representing a single page within the application.";
 
@@ -64,6 +70,10 @@ export default {
 			"ss-keydown": {
 				desc: "Captures all key activity while this page is open.",
 				stub: ssKeydownStub
+			},
+			"ss-page-open": {
+				desc: "Emitted when the page is opened.",
+				stub: ssPageOpenStub
 			},
 		},
 		description,
@@ -103,8 +113,19 @@ function handleKeydown (ev: KeyboardEvent) {
 	rootEl.value.dispatchEvent(ssEv);
 }
 
-onMounted(() => {
+function emitPageOpenEvent () {
+	const payload = fields.key.value;
+	const event = new CustomEvent("ss-page-open", {
+		detail: {
+			payload,
+		},
+	});
+	rootEl.value.dispatchEvent(event);
+}
+
+onMounted(async () => {
 	document.addEventListener("keydown", handleKeydown);
+	emitPageOpenEvent();
 });
 
 onUnmounted(() => {
