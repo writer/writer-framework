@@ -28,6 +28,8 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
+        if not extensions_path.exists():
+            return []
         filtered_files = [f for f in extensions_path.rglob("*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
         relative_paths = [f.relative_to(extensions_path).as_posix() for f in filtered_files]
         return relative_paths
@@ -134,7 +136,10 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         """
 
         while True:
-            req_message_raw = await websocket.receive_json()
+            try:
+                req_message_raw = await websocket.receive_json()
+            except WebSocketDisconnect as e:
+                return
 
             try:
                 req_message = StreamsyncWebsocketIncoming.model_validate(
@@ -233,22 +238,23 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         from asyncio import sleep
         code_version = app_runner.get_run_code_version()
         while True:
-            await sleep(1)
-            current_code_version = app_runner.get_run_code_version()
-            if code_version == current_code_version:
-                continue
-            code_version = current_code_version
-
-            announcement = StreamsyncWebsocketOutgoing(
-                messageType="announcement",
-                trackingId=-1,
-                payload={
-                    "announce": "codeUpdate"
-                }
-            )
-
             try:
+                await sleep(0.5)
+                current_code_version = app_runner.get_run_code_version()
+                if code_version == current_code_version:
+                    continue
+                code_version = current_code_version
+
+                announcement = StreamsyncWebsocketOutgoing(
+                    messageType="announcement",
+                    trackingId=-1,
+                    payload={
+                        "announce": "codeUpdate"
+                    }
+                )
+
                 await websocket.send_json(announcement.dict())
+                return
             except (WebSocketDisconnect):
                 return
 
@@ -279,11 +285,10 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         task2 = asyncio.create_task(_stream_outgoing_announcements(websocket))
 
         try:
-            await asyncio.wait((task1, task2), return_when=asyncio.FIRST_COMPLETED)
-            task1.cancel()
-            task2.cancel()
+            await asyncio.wait((task1, task2), return_when=asyncio.ALL_COMPLETED)
         except asyncio.CancelledError:
             logging.warning("Cancelled")
+
 
     @asgi_app.on_event("shutdown")
     async def shutdown_event():
@@ -293,18 +298,20 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
     # Mount static paths
 
-    user_app_static_path = str(pathlib.Path(user_app_path) / "static")
-    asgi_app.mount(
-        "/static", StaticFiles(directory=user_app_static_path), name="user_static")
+    user_app_static_path = pathlib.Path(user_app_path) / "static"
+    if user_app_static_path.exists():
+        asgi_app.mount(
+            "/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
 
-    user_app_extensions_path = str(pathlib.Path(user_app_path) / "extensions")
-    asgi_app.mount(
-        "/extensions", StaticFiles(directory=user_app_extensions_path), name="extensions")
+    user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
+    if user_app_extensions_path.exists():
+        asgi_app.mount(
+            "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
     server_path = os.path.dirname(__file__)
-    server_static_path = str(pathlib.Path(server_path) / "static")
+    server_static_path = pathlib.Path(server_path) / "static"
     asgi_app.mount(
-        "/", StaticFiles(directory=server_static_path, html=True), name="server_static")
+        "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
 
     # Return
 
