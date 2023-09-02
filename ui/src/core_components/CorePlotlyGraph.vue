@@ -37,7 +37,7 @@ export default {
 			spec: {
 				name: "Graph specification",
 				default: JSON.stringify(defaultSpec, null, 2),
-				desc: "Plotly graph specification. Pass a Plotly graph using state or paste a JSON specification.",
+				desc: "Plotly graph specification. Pass it using state, e.g. @{fig}, or paste a JSON specification.",
 				type: FieldType.Object,
 			},
 			cssClasses,
@@ -89,11 +89,11 @@ function bindPlotlyEvents () {
 	// Plotly extends HTMLElement and adds an "on" property
 
 	// @ts-ignore
-	chartTargetEl.value.on("plotly-click", getPlotlyEventHandler("plotly_click"));
+	chartTargetEl.value.on("plotly_click", getPlotlyEventHandler("plotly-click"));
 	// @ts-ignore
-	chartTargetEl.value.on("plotly-selected", getPlotlyEventHandler("plotly_selected"));
+	chartTargetEl.value.on("plotly_selected", getPlotlyEventHandler("plotly-selected"));
 	// @ts-ignore
-	chartTargetEl.value.on("plotly-deselected", getPlotlyEventHandler("plotly_deselected"));
+	chartTargetEl.value.on("plotly_deselected", getPlotlyEventHandler("plotly-deselected"));
 }
 
 function extractKeyInfoFromPoint(point: any) {
