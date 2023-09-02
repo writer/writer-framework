@@ -1,6 +1,5 @@
 <template>
 	<div class="CorePlotlyGraph" ref="rootEl">
-		<div ref="chartTargetEl" class="target"></div>
 	</div>
 </template>
 
@@ -10,7 +9,9 @@ import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
 
-const docs = ``;
+const docs = `
+You can listen to events triggered by Plotly.js and add interactivity to your charts.
+For example, implement cross-filtering.`;
 
 const defaultSpec = {
 	data: [
@@ -37,25 +38,85 @@ export default {
 			},
 			cssClasses,
 		},
+		events: {
+			"plotly-click": {
+				desc: "Sends a list with the clicked points."
+			},
+			"plotly-selected": {
+				desc: "Sends a list with the selected points."
+			},
+			"plotly-deselected": {
+				desc: "Triggered when points are deselected."
+			}
+		}
 	},
 };
 </script>
 
 <script setup lang="ts">
-import { inject, onMounted, Ref, ref, watch, nextTick } from "vue";
+import { inject, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
-const chartTargetEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
-	if (!fields.spec.value || !chartTargetEl.value) return;
+	if (!fields.spec.value || !rootEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
 	if (!rootEl.value || rootEl.value.clientHeight == 0) return;
-	Plotly.newPlot(chartTargetEl.value, fields.spec.value);
+	Plotly.newPlot(rootEl.value, fields.spec.value);
+	bindPlotlyEvents();
 };
+
+function bindPlotlyEvents () {
+	// Plotly extends HTMLElement and adds an "on" property
+
+	// @ts-ignore
+	rootEl.value.on("plotly-click", getPlotlyEventHandler("plotly_click"));
+	// @ts-ignore
+	rootEl.value.on("plotly-selected", getPlotlyEventHandler("plotly_selected"));
+	// @ts-ignore
+	rootEl.value.on("plotly-deselected", getPlotlyEventHandler("plotly_deselected"));
+}
+
+function extractKeyInfoFromPoint(point: any) {
+	let jsonData: string;
+	try {
+		jsonData = JSON.stringify(point.data);
+	} catch {
+		jsonData = null;
+	}
+	return {
+		curveNumber: point.curveNumber,
+		pointNumber: point.pointNumber,
+		pointNumbers: point.pointNumbers,
+		x: point.x,
+		y: point.y,
+		z: point.z,
+		label: point.label,
+		lat: point.lat,
+		lon: point.lon,
+		xaxis: {
+			anchor: point.xaxis?.anchor
+		},
+		yaxis: {
+			anchor: point.yaxis?.anchor
+		},
+		data: jsonData
+	};
+}
+
+function getPlotlyEventHandler(eventType: string) {
+	return (plotlyEventData: any) => {
+		const event = new CustomEvent(eventType, {
+			detail: {
+				payload: plotlyEventData?.points?.map((p:any) => extractKeyInfoFromPoint(p))
+			},
+		});
+		rootEl.value.dispatchEvent(event);
+	};
+}
 
 watch(
 	() => fields.spec.value,
@@ -65,8 +126,8 @@ watch(
 	}
 );
 
-onMounted(() => {
-	renderChart();
+onMounted(async () => {
+	await renderChart();
 	if (!rootEl.value) return;
 	new ResizeObserver(renderChart).observe(rootEl.value, {
 		box: "border-box",
@@ -79,9 +140,6 @@ onMounted(() => {
 
 .CorePlotlyGraph {
 	min-height: 1px;
-}
-
-.target {
 	overflow: hidden;
 }
 </style>
