@@ -135,34 +135,48 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles incoming requests from client. 
         """
 
+        pending_tasks = set()
+
         while True:
             try:
                 req_message_raw = await websocket.receive_json()
             except WebSocketDisconnect as e:
-                return
+                break
 
             try:
                 req_message = StreamsyncWebsocketIncoming.model_validate(
                     req_message_raw)
             except ValidationError:
                 logging.error("Incorrect incoming request.")
-                return
+                break
 
             is_session_ok = await app_runner.check_session(session_id)
             if not is_session_ok:
-                return
+                break
 
             try:
+                new_task = None
                 if req_message.type == "event":
-                    asyncio.create_task(_handle_incoming_event(websocket, session_id, req_message))                    
+                    new_task = asyncio.create_task(_handle_incoming_event(websocket, session_id, req_message))                    
                 elif req_message.type == "keepAlive":
-                    asyncio.create_task(_handle_keep_alive_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(_handle_keep_alive_message(websocket, session_id, req_message))
                 elif req_message.type == "stateEnquiry":
-                    asyncio.create_task(_handle_state_enquiry_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(_handle_state_enquiry_message(websocket, session_id, req_message))
                 elif serve_mode == "edit":
-                    asyncio.create_task(_handle_incoming_edit_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(_handle_incoming_edit_message(websocket, session_id, req_message))
+                pending_tasks.add(new_task)
+                new_task.add_done_callback(pending_tasks.discard)
             except WebSocketDisconnect as e:
-                return
+                break
+
+        # Cancel pending tasks
+
+        for pending_task in pending_tasks.copy():
+            pending_task.cancel()
+            try:
+                await pending_task
+            except asyncio.CancelledError:
+                pass
                 
     async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
         response = StreamsyncWebsocketOutgoing(
