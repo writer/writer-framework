@@ -1,5 +1,9 @@
 <template>
-	<div class="CorePlotlyGraph" ref="rootEl">
+	<div
+		class="CorePlotlyGraph"
+		ref="rootEl"
+	>
+		<div ref="chartTargetEl" class="target"></div>
 	</div>
 </template>
 
@@ -40,44 +44,56 @@ export default {
 		},
 		events: {
 			"plotly-click": {
-				desc: "Sends a list with the clicked points."
+				desc: "Sends a list with the clicked points.",
 			},
 			"plotly-selected": {
-				desc: "Sends a list with the selected points."
+				desc: "Sends a list with the selected points.",
 			},
 			"plotly-deselected": {
-				desc: "Triggered when points are deselected."
-			}
-		}
+				desc: "Triggered when points are deselected.",
+			},
+		},
 	},
 };
 </script>
 
 <script setup lang="ts">
-import { inject, onMounted, Ref, ref, watch } from "vue";
+import { computed, inject, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
+const chartTargetEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
+const spec = computed(() => fields.spec.value);
 
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
-	if (!fields.spec.value || !rootEl.value) return;
+	if (!spec.value || !chartTargetEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
 	if (!rootEl.value || rootEl.value.clientHeight == 0) return;
-	Plotly.newPlot(rootEl.value, fields.spec.value);
+	Plotly.newPlot(chartTargetEl.value, spec.value);
 	bindPlotlyEvents();
+	if (spec.value?.layout?.autosize) {
+		applyAutosize();
+	}
 };
+
+function applyAutosize() {
+	const parentEl = rootEl.value.parentElement;
+	if (!parentEl?.clientHeight) return;
+	rootEl.value.style.height = "100%";
+	chartTargetEl.value.style.height = "100%";
+}
 
 function bindPlotlyEvents () {
 	// Plotly extends HTMLElement and adds an "on" property
 
 	// @ts-ignore
-	rootEl.value.on("plotly-click", getPlotlyEventHandler("plotly_click"));
+	chartTargetEl.value.on("plotly-click", getPlotlyEventHandler("plotly_click"));
 	// @ts-ignore
-	rootEl.value.on("plotly-selected", getPlotlyEventHandler("plotly_selected"));
+	chartTargetEl.value.on("plotly-selected", getPlotlyEventHandler("plotly_selected"));
 	// @ts-ignore
-	rootEl.value.on("plotly-deselected", getPlotlyEventHandler("plotly_deselected"));
+	chartTargetEl.value.on("plotly-deselected", getPlotlyEventHandler("plotly_deselected"));
 }
 
 function extractKeyInfoFromPoint(point: any) {
@@ -118,13 +134,10 @@ function getPlotlyEventHandler(eventType: string) {
 	};
 }
 
-watch(
-	() => fields.spec.value,
-	(spec) => {
-		if (!spec) return;
-		renderChart();
-	}
-);
+watch(spec, (newSpec) => {
+	if (!newSpec) return;
+	renderChart();
+});
 
 onMounted(async () => {
 	await renderChart();
@@ -140,6 +153,9 @@ onMounted(async () => {
 
 .CorePlotlyGraph {
 	min-height: 1px;
+}
+
+.target {
 	overflow: hidden;
 }
 </style>
