@@ -4,7 +4,7 @@ import typing
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from streamsync.ss_types import (AppProcessServerResponse, ComponentUpdateRequestPayload, EventResponsePayload, InitRequestBody, InitResponseBodyEdit,
                                  InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StateEnquiryResponsePayload, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
 import os
@@ -18,7 +18,7 @@ from streamsync import VERSION
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 
 
-def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool=False) -> FastAPI:
+def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool = False) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
@@ -30,8 +30,10 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         extensions_path = pathlib.Path(user_app_path) / "extensions"
         if not extensions_path.exists():
             return []
-        filtered_files = [f for f in extensions_path.rglob("*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
-        relative_paths = [f.relative_to(extensions_path).as_posix() for f in filtered_files]
+        filtered_files = [f for f in extensions_path.rglob(
+            "*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
+        relative_paths = [f.relative_to(
+            extensions_path).as_posix() for f in filtered_files]
         return relative_paths
 
     cached_extension_paths = _get_extension_paths()
@@ -157,13 +159,17 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             try:
                 new_task = None
                 if req_message.type == "event":
-                    new_task = asyncio.create_task(_handle_incoming_event(websocket, session_id, req_message))                    
+                    new_task = asyncio.create_task(
+                        _handle_incoming_event(websocket, session_id, req_message))
                 elif req_message.type == "keepAlive":
-                    new_task = asyncio.create_task(_handle_keep_alive_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(
+                        _handle_keep_alive_message(websocket, session_id, req_message))
                 elif req_message.type == "stateEnquiry":
-                    new_task = asyncio.create_task(_handle_state_enquiry_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(
+                        _handle_state_enquiry_message(websocket, session_id, req_message))
                 elif serve_mode == "edit":
-                    new_task = asyncio.create_task(_handle_incoming_edit_message(websocket, session_id, req_message))
+                    new_task = asyncio.create_task(
+                        _handle_incoming_edit_message(websocket, session_id, req_message))
                 pending_tasks.add(new_task)
                 new_task.add_done_callback(pending_tasks.discard)
             except WebSocketDisconnect as e:
@@ -177,7 +183,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 await pending_task
             except asyncio.CancelledError:
                 pass
-                
+
     async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
         response = StreamsyncWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
@@ -187,11 +193,11 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         res_payload: Optional[Dict[str, Any]] = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_event(
-                    session_id, StreamsyncEvent(
-                        type=req_message.payload["type"],
-                        instancePath=req_message.payload["instancePath"],
-                        payload=req_message.payload["payload"]
-                    ))
+            session_id, StreamsyncEvent(
+                type=req_message.payload["type"],
+                instancePath=req_message.payload["instancePath"],
+                payload=req_message.payload["payload"]
+            ))
         if apsr is not None and apsr.payload is not None:
             res_payload = typing.cast(
                 EventResponsePayload, apsr.payload).model_dump()
@@ -242,7 +248,6 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             response.payload = res_payload
         await websocket.send_json(response.model_dump())
 
-
     async def _stream_outgoing_announcements(websocket: WebSocket):
 
         """
@@ -251,26 +256,29 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
         from asyncio import sleep
         code_version = app_runner.get_run_code_version()
-        while True:
+        while websocket.application_state != WebSocketState.DISCONNECTED:
+            await sleep(0.5)
+            current_code_version = app_runner.get_run_code_version()
+            if code_version == current_code_version:
+                continue
+            code_version = current_code_version
+
+            announcement = StreamsyncWebsocketOutgoing(
+                messageType="announcement",
+                trackingId=-1,
+                payload={
+                    "announce": "codeUpdate"
+                }
+            )
+
+            if websocket.application_state == WebSocketState.DISCONNECTED:
+                break
+
             try:
-                await sleep(0.5)
-                current_code_version = app_runner.get_run_code_version()
-                if code_version == current_code_version:
-                    continue
-                code_version = current_code_version
-
-                announcement = StreamsyncWebsocketOutgoing(
-                    messageType="announcement",
-                    trackingId=-1,
-                    payload={
-                        "announce": "codeUpdate"
-                    }
-                )
-
                 await websocket.send_json(announcement.dict())
-                return
+                break
             except (WebSocketDisconnect):
-                return
+                break
 
     @asgi_app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
@@ -299,10 +307,13 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         task2 = asyncio.create_task(_stream_outgoing_announcements(websocket))
 
         try:
-            await asyncio.wait((task1, task2), return_when=asyncio.ALL_COMPLETED)
+            await asyncio.wait((task1, task2), return_when=asyncio.FIRST_COMPLETED)
+            task1.cancel()
+            task2.cancel()
+            await task1
+            await task2
         except asyncio.CancelledError:
             logging.warning("Cancelled")
-
 
     @asgi_app.on_event("shutdown")
     async def shutdown_event():
