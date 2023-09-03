@@ -49,7 +49,7 @@ export default {
 			"plotly-selected": {
 				desc: "Sends a list with the selected points.",
 			},
-			"plotly-deselected": {
+			"plotly-deselect": {
 				desc: "Triggered when points are deselected.",
 			},
 		},
@@ -93,7 +93,7 @@ function bindPlotlyEvents () {
 	// @ts-ignore
 	chartTargetEl.value.on("plotly_selected", getPlotlyEventHandler("plotly-selected"));
 	// @ts-ignore
-	chartTargetEl.value.on("plotly_deselected", getPlotlyEventHandler("plotly-deselected"));
+	chartTargetEl.value.on("plotly_deselect", getPlotlyEventHandler("plotly-deselect"));
 }
 
 function extractKeyInfoFromPoint(point: any) {
