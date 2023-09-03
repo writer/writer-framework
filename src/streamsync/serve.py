@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Set, Union
 import typing
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -137,7 +137,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles incoming requests from client. 
         """
 
-        pending_tasks = set()
+        pending_tasks: Set[asyncio.Task] = set()
 
         try:
             while True:
@@ -155,6 +155,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                     break
 
                 new_task = None
+
                 if req_message.type == "event":
                     new_task = asyncio.create_task(
                         _handle_incoming_event(websocket, session_id, req_message))
@@ -167,8 +168,10 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 elif serve_mode == "edit":
                     new_task = asyncio.create_task(
                         _handle_incoming_edit_message(websocket, session_id, req_message))
-                pending_tasks.add(new_task)
-                new_task.add_done_callback(pending_tasks.discard)
+                
+                if new_task:
+                    pending_tasks.add(new_task)
+                    new_task.add_done_callback(pending_tasks.discard)
         except WebSocketDisconnect:
             pass
         except asyncio.CancelledError:
