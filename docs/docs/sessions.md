@@ -30,7 +30,7 @@ import streamsync as ss
 
 @ss.session_verifier
 def check_headers(headers):
-    if headers.get("x-success") is not None:
+    if headers.get("x-success") is None:
         return False
     return True
 ```
