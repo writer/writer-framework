@@ -97,12 +97,6 @@ function bindPlotlyEvents () {
 }
 
 function extractKeyInfoFromPoint(point: any) {
-	let jsonData: string;
-	try {
-		jsonData = JSON.stringify(point.data);
-	} catch {
-		jsonData = null;
-	}
 	return {
 		curveNumber: point.curveNumber,
 		pointNumber: point.pointNumber,
@@ -119,7 +113,6 @@ function extractKeyInfoFromPoint(point: any) {
 		yaxis: {
 			anchor: point.yaxis?.anchor
 		},
-		data: jsonData
 	};
 }
 
