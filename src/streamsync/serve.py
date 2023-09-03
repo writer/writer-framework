@@ -57,6 +57,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             userState=payload.userState,
             mail=payload.mail,
             components=payload.components,
+            userFunctions=payload.userFunctions,
             extensionPaths=cached_extension_paths
         )
 
