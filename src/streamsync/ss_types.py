@@ -38,6 +38,7 @@ class InitResponseBody(BaseModel):
     userState: Dict
     mail: List
     components: Dict
+    userFunctions: List[Dict]
     extensionPaths: List
 
 
@@ -47,7 +48,6 @@ class InitResponseBodyRun(InitResponseBody):
 
 class InitResponseBodyEdit(InitResponseBody):
     mode: Literal["edit"]
-    userFunctions: List[Dict]
     savedCode: Optional[str] = None
     runCode: Optional[str] = None
 
