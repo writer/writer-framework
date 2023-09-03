@@ -65,9 +65,12 @@ export default {
       },
     ],
   },
-  // vite: defineConfig({
-  //   ssr: {
-  //     external: ["plotly.js-dist", "vega-embed"],
-  //   },
-  // }),
+  vite: {
+    build: {
+      target: "esnext",
+    },
+  	define: {
+		  STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
+    },
+  },
 };
