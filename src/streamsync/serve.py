@@ -139,24 +139,21 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
         pending_tasks = set()
 
-        while True:
-            try:
+        try:
+            while True:
                 req_message_raw = await websocket.receive_json()
-            except WebSocketDisconnect as e:
-                break
 
-            try:
-                req_message = StreamsyncWebsocketIncoming.model_validate(
-                    req_message_raw)
-            except ValidationError:
-                logging.error("Incorrect incoming request.")
-                break
+                try:
+                    req_message = StreamsyncWebsocketIncoming.model_validate(
+                        req_message_raw)
+                except ValidationError:
+                    logging.error("Incorrect incoming request.")
+                    break
 
-            is_session_ok = await app_runner.check_session(session_id)
-            if not is_session_ok:
-                break
+                is_session_ok = await app_runner.check_session(session_id)
+                if not is_session_ok:
+                    break
 
-            try:
                 new_task = None
                 if req_message.type == "event":
                     new_task = asyncio.create_task(
@@ -172,17 +169,20 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                         _handle_incoming_edit_message(websocket, session_id, req_message))
                 pending_tasks.add(new_task)
                 new_task.add_done_callback(pending_tasks.discard)
-            except WebSocketDisconnect as e:
-                break
+        except WebSocketDisconnect:
+            pass
+        except asyncio.CancelledError:
+            raise            
+        finally:
+            # Cancel pending tasks
 
-        # Cancel pending tasks
-
-        for pending_task in pending_tasks.copy():
-            pending_task.cancel()
-            try:
-                await pending_task
-            except asyncio.CancelledError:
-                pass
+            for pending_task in pending_tasks.copy():
+                pending_task.cancel()
+                try:
+                    await pending_task
+                except asyncio.CancelledError:
+                    pass
+            
 
     async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
         response = StreamsyncWebsocketOutgoing(
@@ -254,10 +254,9 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles outgoing communications to client (announcements).
         """
 
-        from asyncio import sleep
         code_version = app_runner.get_run_code_version()
-        while websocket.application_state != WebSocketState.DISCONNECTED:
-            await sleep(0.5)
+        while True:
+            await asyncio.sleep(0.5)
             current_code_version = app_runner.get_run_code_version()
             if code_version == current_code_version:
                 continue
@@ -308,12 +307,13 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
         try:
             await asyncio.wait((task1, task2), return_when=asyncio.FIRST_COMPLETED)
+            await asyncio.sleep(1)
             task1.cancel()
             task2.cancel()
             await task1
             await task2
         except asyncio.CancelledError:
-            logging.warning("Cancelled")
+            pass
 
     @asgi_app.on_event("shutdown")
     async def shutdown_event():
