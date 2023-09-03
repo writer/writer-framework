@@ -1,12 +1,12 @@
 <template>
 	<div class="CoreTabs">
-		<div
+		<nav
 			class="tabSelector horizontal"
 			data-streamsync-cage
 			data-streamsync-container
 		>
 			<slot :instance-number="0"></slot>
-		</div>
+		</nav>
 		<div class="container">
 			<slot :instance-number="1"></slot>
 		</div>

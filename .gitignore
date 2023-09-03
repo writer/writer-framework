@@ -9,6 +9,7 @@
 docs/docs/.vitepress/cache/
 docs/docs/.vitepress/temp/
 ui/dist/
+ui/custom_components_dist/
 build/
 dist/
 src/streamsync.egg-info/

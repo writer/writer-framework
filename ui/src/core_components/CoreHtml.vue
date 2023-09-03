@@ -1,6 +1,6 @@
 <script lang="ts">
 import { h, inject } from "vue";
-import { FieldType } from "../streamsyncTypes";
+import { FieldControl, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { cssClasses } from "../renderer/sharedStyleFields";
 
@@ -20,6 +20,8 @@ const docs = `
 You can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.
 
 All valid HTML tags are supported, including tags such as \`iframe\`, allowing you to embed external sites.
+
+Take into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.
 `;
 
 export default {
@@ -49,12 +51,23 @@ export default {
 				type: FieldType.Object,
 				desc: "Set additional HTML attributes for the element using a JSON object or a dictionary via a state reference.",
 			},
+			htmlInside: {
+				name: "HTML inside",
+				default: null,
+				type: FieldType.Text,
+				control: FieldControl.Textarea,
+				desc: "Define custom HTML to be used inside the element. It will be wrapped in a div and rendered after children components.",
+			},
 			cssClasses,
 		},
 	},
 	setup(props, { slots }) {
 		const fields = inject(injectionKeys.evaluatedFields);
 		return () => {
+			let insideHtmlNode = undefined;
+			if (fields.htmlInside.value) {
+				insideHtmlNode = h("div", { innerHTML: fields.htmlInside.value })
+			}
 			return h(
 				fields.element.value,
 				{
@@ -62,7 +75,7 @@ export default {
 					"data-streamsync-container": "",
 					style: fields.styles.value,
 				},
-				slots.default({})
+				[slots.default({}), insideHtmlNode]
 			);
 		};
 	},

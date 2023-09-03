@@ -33,6 +33,14 @@ export default {
             text: "Backend-initiated actions",
             link: "/backend-initiated-actions",
           },
+          { text: "Page routes", link: "/page-routes" },
+          { text: "Sessions", link: "/sessions" },
+          { text: "Custom server", link: "/custom-server" },
+        ],
+      },
+      {
+        text: "Extending it",
+        items: [
           {
             text: "Stylesheets",
             link: "/stylesheets",
@@ -41,9 +49,10 @@ export default {
             text: "Frontend scripts",
             link: "/frontend-scripts",
           },
-          { text: "Page routes", link: "/page-routes" },
-          { text: "Sessions", link: "/sessions" },
-          { text: "Custom server", link: "/custom-server" },
+          {
+            text: "Custom components",
+            link: "/custom-components",
+          },
         ],
       },
       {
@@ -56,9 +65,12 @@ export default {
       },
     ],
   },
-  // vite: defineConfig({
-  //   ssr: {
-  //     external: ["plotly.js-dist", "vega-embed"],
-  //   },
-  // }),
+  vite: {
+    build: {
+      target: "esnext",
+    },
+  	define: {
+		  STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
+    },
+  },
 };

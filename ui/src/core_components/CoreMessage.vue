@@ -7,6 +7,8 @@
 	>
 		<div class="messageBackground"></div>
 		<div class="message" v-if="messageWithoutPrefix">
+			<LoadingSymbol class="loadingSymbol" v-if="severity == 'loading'">
+			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
 		<div class="empty" v-else>
@@ -35,53 +37,62 @@ else:
 `;
 
 export default {
-	streamsync: {
-		name: "Message",
-		description,
-		docs,
-		category: "Content",
-		fields: {
-			message: {
-				name: "Message",
-				type: FieldType.Text,
-				desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning. No prefix for info. Leave empty to hide.",
-			},
-			successColor: {
-				name: "Success",
-				default: "#00B800",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			errorColor: {
-				name: "Error",
-				default: "#FB0000",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			warningColor: {
-				name: "Warning",
-				default: "#FB9600",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			infoColor: {
-				name: "Info",
-				default: "#00ADB8",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-			},
-			primaryTextColor,
-			cssClasses,
-		},
-		previewField: "name",
-	},
+    streamsync: {
+        name: "Message",
+        description,
+        docs,
+        category: "Content",
+        fields: {
+            message: {
+                name: "Message",
+                type: FieldType.Text,
+                desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning, '%' for loading. No prefix for info. Leave empty to hide.",
+            },
+            successColor: {
+                name: "Success",
+                default: "#00B800",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            errorColor: {
+                name: "Error",
+                default: "#FB0000",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            warningColor: {
+                name: "Warning",
+                default: "#FB9600",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            infoColor: {
+                name: "Info",
+                default: "#00ADB8",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            loadingColor: {
+                name: "Loading",
+                default: "#00ADB8",
+                type: FieldType.Color,
+                category: FieldCategory.Style,
+            },
+            primaryTextColor,
+            cssClasses,
+        },
+        previewField: "name",
+    },
+    components: { LoadingSymbol }
 };
 </script>
 <script setup lang="ts">
+import LoadingSymbol from "../renderer/LoadingSymbol.vue";
 import { computed, inject } from "vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
@@ -95,6 +106,8 @@ const severity = computed(() => {
 		return "error";
 	} else if (firstChar == "!") {
 		return "warning";
+	} else if (firstChar == "%") {
+		return "loading";
 	}
 	return "info";
 });
@@ -103,8 +116,13 @@ const messageWithoutPrefix = computed(() => {
 	const message: string = fields.message.value;
 	if (!message) return;
 	const firstChar = message.charAt(0);
-	if (firstChar == "+" || firstChar == "-" || firstChar == "!") {
-		return message.substring(1);
+	if (
+		firstChar == "+" ||
+		firstChar == "-" ||
+		firstChar == "!" ||
+		firstChar == "%"
+	) {
+		return message.substring(1).trim();
 	}
 	return message;
 });
@@ -115,6 +133,7 @@ const rootStyle = computed(() => {
 		success: fields.successColor.value,
 		warning: fields.warningColor.value,
 		info: fields.infoColor.value,
+		loading: fields.loadingColor.value,
 	};
 	return {
 		"--messageActiveSeverityColor": severityColors[severity.value],
@@ -139,15 +158,23 @@ const rootStyle = computed(() => {
 	height: 100%;
 	opacity: 0.2;
 	background-color: var(--messageActiveSeverityColor);
+	transition: 0.2s background-color ease-in-out;
 }
 
 .message {
 	border-left: 4px solid var(--messageActiveSeverityColor);
 	padding: 16px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
 }
 
 .message span {
 	filter: brightness(0.7);
+}
+
+.loadingSymbol {
+	margin: -8px 0 -8px 0;
 }
 
 .empty {

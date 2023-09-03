@@ -81,7 +81,7 @@ export function generateBuilderManager() {
 
 	const setSelection = (
 		componentId: Component["id"],
-		instancePath?: string
+		instancePath?: string,
 	) => {
 		if (componentId === null) {
 			state.value.selection = null;
@@ -90,7 +90,7 @@ export function generateBuilderManager() {
 		let resolvedInstancePath = instancePath;
 		if (typeof resolvedInstancePath == "undefined") {
 			const componentFirstElement: HTMLElement = document.querySelector(
-				`.ComponentRenderer [data-streamsync-id="${componentId}"]`
+				`.ComponentRenderer [data-streamsync-id="${componentId}"]`,
 			);
 			resolvedInstancePath =
 				componentFirstElement.dataset.streamsyncInstancePath;
@@ -133,7 +133,7 @@ export function generateBuilderManager() {
 	const openMutationTransaction = (
 		transactionId: string,
 		transactionDesc: string,
-		enableDebounce: boolean = false
+		enableDebounce: boolean = false,
 	) => {
 		if (activeMutationTransaction !== null) return;
 
@@ -256,11 +256,14 @@ export function generateBuilderManager() {
 		const { type, title, message, code } = logEntry;
 		const fingerprint = await hashLogEntry(logEntry);
 		const matchingEntry = state.value.logEntries.find(
-			(le) => le.fingerprint === fingerprint
+			(le) => le.fingerprint === fingerprint,
 		);
 		if (matchingEntry) {
 			matchingEntry.repeated++;
 			matchingEntry.timestampReceived = new Date();
+			state.value.logEntries.sort((a, b) =>
+				a.timestampReceived < b.timestampReceived ? 1 : -1,
+			);
 			return;
 		}
 

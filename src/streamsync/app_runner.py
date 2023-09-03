@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, List, Optional
 from pydantic import ValidationError
 from streamsync.core import StreamsyncSession
 from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
-                                 EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StreamsyncEvent)
+                                 EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StateEnquiryRequest, StateEnquiryResponsePayload, StreamsyncEvent)
 import watchdog.observers
 import watchdog.events
 from streamsync import VERSION
@@ -88,7 +88,7 @@ class AppProcess(multiprocessing.Process):
         globals()[module_name] = module
         return module
 
-    def _get_user_functions(self) -> List[str]:
+    def _get_user_functions(self) -> List[Dict]:
         """
         Returns functions exposed in the user code module, which are potential event handlers.
         """
@@ -96,11 +96,24 @@ class AppProcess(multiprocessing.Process):
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
         if streamsyncuserapp is None:
             raise ValueError("Couldn't find app module (streamsyncuserapp).")
-        all_user_functions = map(lambda x: x[0], inspect.getmembers(
+        all_fn_names = map(lambda x: x[0], inspect.getmembers(
             streamsyncuserapp, inspect.isfunction))
-        exposed_user_functions = list(
-            filter(lambda x: not x.startswith("_"), all_user_functions))
-        return exposed_user_functions
+        exposed_fn_names = list(
+            filter(lambda x: not x.startswith("_"), all_fn_names))
+        
+        fn_info = []
+
+        for fn_name in exposed_fn_names:
+            fn_callable = getattr(streamsyncuserapp, fn_name)
+            if not fn_callable:
+                continue
+            args = inspect.getfullargspec(fn_callable).args
+            fn_info.append({
+                "name": fn_name,
+                "args": args
+            }) 
+
+        return fn_info
 
     def _handle_session_init(self, payload: InitSessionRequestPayload) -> InitSessionResponsePayload:
         """
@@ -160,6 +173,30 @@ class AppProcess(multiprocessing.Process):
         session.session_state.clear_mail()
 
         return res_payload
+    
+    def _handle_state_enquiry(self, session: StreamsyncSession) -> StateEnquiryResponsePayload:
+        import traceback as tb
+
+        mutations = {}
+
+        try:
+            mutations = session.session_state.user_state.get_mutations_as_dict()
+        except BaseException:
+            session.session_state.add_log_entry("error",
+                                                "Serialisation Error",
+                                                f"An exception was raised during serialisation.",
+                                                tb.format_exc())
+
+        mail = session.session_state.mail
+
+        res_payload = StateEnquiryResponsePayload(
+            mutations=mutations,
+            mail=mail
+        )
+
+        session.session_state.clear_mail()
+
+        return res_payload
 
     def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
         import streamsync
@@ -202,6 +239,13 @@ class AppProcess(multiprocessing.Process):
                 status="ok",
                 status_message=None,
                 payload=self._handle_event(session, ev_req_payload)
+            )
+        
+        if type == "stateEnquiry":
+            return AppProcessServerResponse(
+                status="ok",
+                status_message=None,
+                payload=self._handle_state_enquiry(session)
             )
 
         if self.mode == "edit" and type == "componentUpdate":
@@ -559,6 +603,11 @@ class AppRunner:
         return await self.dispatch_message(session_id, EventRequest(
             type="event",
             payload=event
+        ))
+
+    async def handle_state_enquiry(self, session_id: str) -> AppProcessServerResponse:
+        return await self.dispatch_message(session_id, StateEnquiryRequest(
+            type="stateEnquiry"
         ))
 
     def save_code(self, session_id: str, saved_code: str) -> None:

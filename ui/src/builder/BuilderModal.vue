@@ -4,7 +4,7 @@
 			<div class="main">
 				<div class="titleContainer">
 					<i v-if="icon" :class="`ri-${icon}-line`" class="ri-lg"></i>
-					<h2>{{ title }}</h2>
+					<h2>{{ modalTitle }}</h2>
 					<button
 						:title="closeAction?.desc ?? 'Close'"
 						v-on:click="closeAction.fn"
@@ -37,13 +37,13 @@ export type ModalAction = {
 };
 
 const props = defineProps<{
-	title: string;
+	modalTitle: string;
 	icon?: string;
 	closeAction: ModalAction;
 	menuActions?: ModalAction[];
 }>();
 
-const { title, icon, closeAction, menuActions } = toRefs(props);
+const { modalTitle, icon, closeAction, menuActions } = toRefs(props);
 
 const handleKeydown = (ev: KeyboardEvent) => {
 	if (ev.key == "Escape") {

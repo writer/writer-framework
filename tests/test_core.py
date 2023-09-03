@@ -188,8 +188,17 @@ class TestEventDeserialiser:
         ev = StreamsyncEvent(
             type="not-a-known-event",
             instancePath=self.root_instance_path,
-            payload={"virus": "yes"}
+            payload={"has_payload": "yes"}
         )
+        assert ev.type == "not-a-known-event"
+
+    def test_unknown_native_with_payload(self) -> None:
+        ev = StreamsyncEvent(
+            type="ss-not-a-known-event",
+            instancePath=self.root_instance_path,
+            payload={"has_payload": "yes"}
+        )
+        assert ev.type == "ss-not-a-known-event"
         with pytest.raises(ValueError):
             self.ed.transform(ev)
 

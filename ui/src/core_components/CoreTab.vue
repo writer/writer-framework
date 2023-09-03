@@ -9,7 +9,7 @@
 				isTabActive)
 		"
 	>
-		<div
+		<button
 			class="bit"
 			:class="{ active: isTabActive }"
 			v-if="
@@ -17,9 +17,10 @@
 				TAB_BIT_INSTANCE_NUMBER
 			"
 			v-on:click="activateTab"
+			tabindex="0"
 		>
 			{{ fields.name.value }}
-		</div>
+		</button>
 		<div
 			class="container"
 			data-streamsync-container
@@ -186,17 +187,26 @@ onBeforeMount(() => {
 <style scoped>
 @import "../renderer/sharedStyles.css";
 
-.CoreTab .bit {
-	padding-top: 16px;
-	padding-bottom: 16px;
-	cursor: pointer;
+button.bit {
+	padding: 16px 0 16px 0;
+	border: none;
+	border-radius: 0;
+	margin: 0;
 }
-.CoreTab .container {
+
+.container {
 	padding: 16px;
 }
 
-.CoreTab .bit.active {
+button.bit:focus {
+	color: var(--primaryTextColor);
+	border-bottom: 1px solid var(--primaryTextColor);
+}
+
+button.bit.active, button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
 }
+
+
 </style>

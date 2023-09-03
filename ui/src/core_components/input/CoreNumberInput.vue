@@ -6,6 +6,7 @@
 				<input
 					type="number"
 					v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change')"
+					v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change-finish')"
 					:value="formValue"
 					:placeholder="fields.placeholder.value"
 				/>
@@ -47,9 +48,13 @@ export default {
 		},
 		events: {
 			"ss-number-change": {
-				desc: "Capture changes to this control.",
+				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+			},
+			"ss-number-change-finish": {
+				desc: "Capture changes once this control has lost focus.",
+				stub: onChangeHandlerStub
 			},
 		},
 	},

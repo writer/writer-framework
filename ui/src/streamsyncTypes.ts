@@ -40,36 +40,36 @@ export type InstancePath = InstancePathItem[];
  */
 
 export type StreamsyncComponentDefinition = {
-	name: string;
-	description: string;
-	docs?: string;
-	category?: string;
-	allowedChildrenTypes?: (string | "*" | "inherit")[];
-	allowedParentTypes?: string[];
+	name: string; // Display name for the component
+	description: string; // Short description
+	docs?: string; // Collapsible mini-docs
+	category?: string; // Category (Layout, Content, etc)
+	allowedChildrenTypes?: (string | "*" | "inherit")[]; // Which component types are allowed inside (if any)
+	allowedParentTypes?: string[]; // Which component types can contain this type of component
 	fields?: Record<
-		string,
+		string, // Id for the field
 		{
-			name: string;
-			init?: string;
-			desc?: string;
-			default?: string;
-			control?: string;
-			options?: Record<string, string>;
-			type: FieldType;
-			category?: FieldCategory;
-			applyStyleVariable?: boolean;
+			name: string; // Display name
+			init?: string; // Initial value
+			desc?: string; // Description
+			default?: string; // Value used if the field is empty, e.g. "(No text)"
+			control?: FieldControl; // Which control (text, textarea, etc) to use if not the default for the type
+			options?: Record<string, string>; // List of values to be provided as autocomplete options
+			type: FieldType; // Data type for the field
+			category?: FieldCategory; // Category (Layout, Content, etc) 
+			applyStyleVariable?: boolean; // Use the value of this field as a CSS variable
 		}
 	>;
 	events?: Record<
-		string,
+		string, // Event type
 		{
-			desc?: string;
-			stub?: string;
-			bindable?: boolean;
+			desc?: string; // Description
+			stub?: string; // Stub method for the event
+			bindable?: boolean; // Whether this event is used for value binding
 		}
 	>;
-	previewField?: string;
-	positionless?: boolean;
+	previewField?: string; // Which field to use for previewing in the Component Tree 
+	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
 };
 
 export type Core = ReturnType<typeof generateCore>;
@@ -95,10 +95,19 @@ export const enum FieldCategory {
 	Style = "Style",
 }
 
+/**
+ * Used to specify the field control if it's different from the default for the FieldType.
+ */
+export const enum FieldControl {
+	Text = "Text",
+	Textarea = "Textarea",
+}
+
 export type ComponentMap = Record<Component["id"], Component>;
 
 /**
  * Unit of data for non-state-mutation communications between frontend and backend.
  */
-
 export type MailItem = { type: string; payload: Record<string, string> };
+
+export type UserFunction = { name: string; args: string[]};

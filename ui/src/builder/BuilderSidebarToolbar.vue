@@ -27,6 +27,7 @@
 						v-on:dragstart="handleDragStart($event, type)"
 					>
 						{{ definition.name ?? type }}
+						<i v-if="type.startsWith('custom_')" class="ri-collage-line ri-lg" title="(Custom component template)"></i>
 					</div>
 				</div>
 			</template>
@@ -138,8 +139,10 @@ const handleDragEnd = (ev: DragEvent) => {
 .tool {
 	padding: 8px;
 	border-radius: 4px;
-	cursor: move;
 	cursor: grab;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .tool:hover {

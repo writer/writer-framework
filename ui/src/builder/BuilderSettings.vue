@@ -112,7 +112,6 @@ const generateUnsanitisedMarkdownHtml = () => {
 	font-size: 0.7rem;
 	background: var(--builderBackgroundColor);
 }
-
 .docs {
 	font-size: 0.75rem;
 	padding: 24px;

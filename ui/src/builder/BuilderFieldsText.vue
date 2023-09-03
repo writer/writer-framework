@@ -1,7 +1,7 @@
 <template>
 	<div class="BuilderFieldsText">
 		<template
-			v-if="!templateField.control || templateField.control == 'text'"
+			v-if="!templateField.control || templateField.control == FieldControl.Text"
 		>
 			<input
 				type="text"
@@ -34,7 +34,7 @@
 				</option>
 			</datalist>
 		</template>
-		<template v-else-if="templateField.control == 'textarea'">
+		<template v-else-if="templateField.control == FieldControl.Textarea">
 			<textarea
 				v-capture-tabs
 				class="content"
@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component, FieldControl } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 

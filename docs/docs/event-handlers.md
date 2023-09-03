@@ -98,7 +98,7 @@ def evaluate(state, payload):
     state["is_a_cat"] = result
 ```
 
-Take into account that globals are indeed global. If you need to store data that's only relevant to a particular user, use state.
+Take into account that globals apply to all users. If you need to store data that's only relevant to a particular user, use application state. 
 
 ## Standard output
 
@@ -115,14 +115,25 @@ def payload_inspector(state, payload):
 
 ## Execution flow
 
-Event handlers run in a thread pool and are non-blocking. Mutations are sent to the frontend after the function has finished executing.
+Event handlers run in a thread pool and are non-blocking. Each event is processed independently from each other.
+
+State mutations are sent to the frontend after the function has finished executing. The code below will accumulate all mutations and send to the frontend after the function returns.
+
+```py
+def handle_fast(state):
+    state["text"] = "Hello"
+    state["x"] += 3
+    state["y"] += 2
+```
+
+However, for long-running tasks, Streamsync will periodically check state and provide partial updates to the user.
 
 ```py
 def handle_slowly(state):
+    state["message"] = "Loading..."
     import time
-    state["counter"] += 1
     time.sleep(5)
-    print("Five seconds have passed")
+    state["message"] = "Completed"
 ```
 
-The code above will sleep for five seconds, but without blocking your program. After sleeping, it'll notify the frontend that the variable of `counter` has changed.
+The code above will set `message` to "Loading...", then to "Completed".  

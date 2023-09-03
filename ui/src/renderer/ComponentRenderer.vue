@@ -1,5 +1,5 @@
 <template>
-	<div
+	<main
 		class="ComponentRenderer"
 		tabindex="-1"
 		:style="rootStyle"
@@ -16,7 +16,7 @@
 			></ComponentProxy>
 			<slot></slot>
 		</div>
-	</div>
+	</main>
 </template>
 
 <script setup lang="ts">
@@ -52,7 +52,10 @@ const rootStyle = computed(() => {
 	};
 });
 
-const isMessagePending = computed(() => ss.isMessagePending.value);
+const isMessagePending = computed(() => {
+	const frontendMessageMap = ss.getFrontendMessageMap();
+	return frontendMessageMap.size > 0;
+});
 
 watch(
 	() => rootFields.appName?.value,

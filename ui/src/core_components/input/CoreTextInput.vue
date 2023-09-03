@@ -53,9 +53,13 @@ export default {
 		},
 		events: {
 			"ss-change": {
-				desc: "Capture changes to this control.",
+				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+			},
+			"ss-change-finish": {
+				desc: "Capture changes once this control has lost focus.",
+				stub: onChangeHandlerStub,
 			},
 		},
 	},

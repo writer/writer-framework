@@ -102,15 +102,17 @@ label {
 
 .inputArea {
 	display: flex;
+	gap: 8px;
 }
 
 input {
-	flex: 1 0 auto;
+	flex: 1 1 auto;
+	min-width: 0;
 	margin: 0;
 }
 
 .valueContainer {
-	margin-left: 8px;
+	min-width: 0;
 	flex: 0 0 auto;
 	text-align: right;
 }

@@ -13,6 +13,7 @@ export default {
 	evaluatedFields: Symbol() as InjectionKey<Record<string, ComputedRef<any>>>,
 	componentId: Symbol() as InjectionKey<Component["id"]>,
 	isBeingEdited: Symbol() as InjectionKey<Ref<boolean>>,
+	isDisabled: Symbol() as InjectionKey<Ref<boolean>>,
 	getChildrenVNodes: Symbol() as InjectionKey<
 		(instanceNumber?: InstancePathItem["instanceNumber"]) => VNode[]
 	>,

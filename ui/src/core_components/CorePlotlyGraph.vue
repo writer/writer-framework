@@ -1,5 +1,8 @@
 <template>
-	<div class="CorePlotlyGraph" ref="rootEl">
+	<div
+		class="CorePlotlyGraph"
+		ref="rootEl"
+	>
 		<div ref="chartTargetEl" class="target"></div>
 	</div>
 </template>
@@ -10,7 +13,9 @@ import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
 
-const docs = ``;
+const docs = `
+You can listen to events triggered by Plotly.js and add interactivity to your charts.
+For example, implement cross-filtering.`;
 
 const defaultSpec = {
 	data: [
@@ -32,41 +37,103 @@ export default {
 			spec: {
 				name: "Graph specification",
 				default: JSON.stringify(defaultSpec, null, 2),
-				desc: "Plotly graph specification. Pass a Plotly graph using state or paste a JSON specification.",
+				desc: "Plotly graph specification. Pass it using state, e.g. @{fig}, or paste a JSON specification.",
 				type: FieldType.Object,
 			},
 			cssClasses,
+		},
+		events: {
+			"plotly-click": {
+				desc: "Sends a list with the clicked points.",
+			},
+			"plotly-selected": {
+				desc: "Sends a list with the selected points.",
+			},
+			"plotly-deselect": {
+				desc: "Triggered when points are deselected.",
+			},
 		},
 	},
 };
 </script>
 
 <script setup lang="ts">
-import { inject, onMounted, Ref, ref, watch, nextTick } from "vue";
+import { computed, inject, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const chartTargetEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
+const spec = computed(() => fields.spec.value);
 
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
-	if (!fields.spec.value || !chartTargetEl.value) return;
+	if (!spec.value || !chartTargetEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
 	if (!rootEl.value || rootEl.value.clientHeight == 0) return;
-	Plotly.newPlot(chartTargetEl.value, fields.spec.value);
+	Plotly.newPlot(chartTargetEl.value, spec.value);
+	bindPlotlyEvents();
+	if (spec.value?.layout?.autosize) {
+		applyAutosize();
+	}
 };
 
-watch(
-	() => fields.spec.value,
-	(spec) => {
-		if (!spec) return;
-		renderChart();
-	}
-);
+function applyAutosize() {
+	const parentEl = rootEl.value.parentElement;
+	if (!parentEl?.clientHeight) return;
+	rootEl.value.style.height = "100%";
+	chartTargetEl.value.style.height = "100%";
+}
 
-onMounted(() => {
+function bindPlotlyEvents () {
+	// Plotly extends HTMLElement and adds an "on" property
+
+	// @ts-ignore
+	chartTargetEl.value.on("plotly_click", getPlotlyEventHandler("plotly-click"));
+	// @ts-ignore
+	chartTargetEl.value.on("plotly_selected", getPlotlyEventHandler("plotly-selected"));
+	// @ts-ignore
+	chartTargetEl.value.on("plotly_deselect", getPlotlyEventHandler("plotly-deselect"));
+}
+
+function extractKeyInfoFromPoint(point: any) {
+	return {
+		curveNumber: point.curveNumber,
+		pointNumber: point.pointNumber,
+		pointNumbers: point.pointNumbers,
+		x: point.x,
+		y: point.y,
+		z: point.z,
+		label: point.label,
+		lat: point.lat,
+		lon: point.lon,
+		xaxis: {
+			anchor: point.xaxis?.anchor
+		},
+		yaxis: {
+			anchor: point.yaxis?.anchor
+		},
+	};
+}
+
+function getPlotlyEventHandler(eventType: string) {
+	return (plotlyEventData: any) => {
+		const event = new CustomEvent(eventType, {
+			detail: {
+				payload: plotlyEventData?.points?.map((p:any) => extractKeyInfoFromPoint(p))
+			},
+		});
+		rootEl.value.dispatchEvent(event);
+	};
+}
+
+watch(spec, (newSpec) => {
+	if (!newSpec) return;
 	renderChart();
+});
+
+onMounted(async () => {
+	await renderChart();
 	if (!rootEl.value) return;
 	new ResizeObserver(renderChart).observe(rootEl.value, {
 		box: "border-box",

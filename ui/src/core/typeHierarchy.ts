@@ -1,15 +1,15 @@
 import { Component, ComponentMap } from "../streamsyncTypes";
-import templateMap from "./templateMap";
+import { getComponentDefinition, getSupportedComponentTypes } from "./templateMap";
 
 function getDisallowedSet(
 	components: ComponentMap,
 	componentId: Component["id"]
 ): Set<Component["type"]> {
 	const { type } = components[componentId];
-	const supportedTypes = Object.keys(templateMap);
+	const supportedTypes = getSupportedComponentTypes();
 	const typesAndDefs = supportedTypes.map((type) => ({
 		type,
-		definition: templateMap[type]?.streamsync,
+		definition: getComponentDefinition(type),
 	}));
 	const disallowedDefs = typesAndDefs.filter(
 		(tad) =>
@@ -26,8 +26,8 @@ function getAllowedSet(
 	componentId: Component["id"]
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
-	const supportedTypes = Object.keys(templateMap).filter(t => t !== "root");
-	const { allowedChildrenTypes } = templateMap[type].streamsync;
+	const supportedTypes = getSupportedComponentTypes().filter(t => t !== "root");
+	const { allowedChildrenTypes } = getComponentDefinition(type);
 	if (!allowedChildrenTypes) return new Set([]);
 
 	let allowed = new Set<string>(allowedChildrenTypes);

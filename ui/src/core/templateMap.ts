@@ -36,6 +36,7 @@ import CoreMessage from "../core_components/CoreMessage.vue";
 import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { h } from "vue";
 
 const templateMap = {
 	root: CoreRoot,
@@ -74,14 +75,62 @@ const templateMap = {
 	videoplayer: CoreVideoPlayer,
 };
 
+if (STREAMSYNC_LIVE_CCT === "yes") {
+
+	/*
+	Assigns the components in custom_components to the template map,
+	allowing for live updates when developing custom component templates. 
+	*/
+
+	const liveCCT:Record<string, any> = (await import("../custom_components")).default;
+	Object.entries(liveCCT).forEach(([componentType, template]) => {
+		templateMap[`custom_${componentType}`] = template;
+	});
+}
+
+
+function fallbackTemplate(type: string) {
+	const message = `Component type "${type}" not supported. If it's a custom component, please ensure it's been loaded.`;
+	return {
+		streamsync: {
+			name: "Fallback Component",
+			allowedChildrenTypes: ["*"],
+			description: message,
+			category: "Fallback",
+		},
+		setup(props, { slots }) {
+			return () => {
+				return h(
+					"div",
+					{
+						"data-streamsync-container": "",
+						style: {
+							color: "var(--primaryTextColor)",
+						},
+					},
+					[message, slots.default({})],
+				);
+			};
+		},
+	};
+}
+
+export function getTemplate(type: string) {
+	return templateMap[type] ?? fallbackTemplate(type);
+}
+
 export function getComponentDefinition(
-	type: string
+	type: string,
 ): StreamsyncComponentDefinition {
-	return templateMap[type]?.streamsync;
+	return getTemplate(type)?.streamsync;
 }
 
 export function getSupportedComponentTypes() {
 	return Object.keys(templateMap);
+}
+
+export function registerComponentTemplate(type: string, vueComponent: any) {
+	templateMap[type] = vueComponent;
 }
 
 export default templateMap;

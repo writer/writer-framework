@@ -1,15 +1,12 @@
 <script lang="ts">
 import { computed, h, inject, provide, ref, watch } from "vue";
-import templateMap from "../core/templateMap";
-import { Component, InstancePath, InstancePathItem } from "../streamsyncTypes";
+import { getTemplate } from "../core/templateMap";
+import { Component, InstancePath, InstancePathItem, UserFunction } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import { useTemplateEvaluator } from "./useTemplateEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
-
-const fallbackRender = (type: string) => () =>
-	h("div", `Component type ${type} not supported.`);
 
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
@@ -18,10 +15,7 @@ export default {
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId: Component["id"] = props.componentId;
 		const component = computed(() => ss.getComponentById(componentId));
-		const template = templateMap[component.value.type];
-		if (!template) {
-			return fallbackRender(component.value.type);
-		}
+		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
 		const { getEvaluatedFields, isComponentVisible } = useTemplateEvaluator(ss);
@@ -31,6 +25,8 @@ export default {
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview"
 		);
+		const isDisabled = ref(false);
+		const userFunctions: UserFunction[] = ss.getUserFunctions();
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -94,6 +90,7 @@ export default {
 		provide(injectionKeys.evaluatedFields, evaluatedFields);
 		provide(injectionKeys.componentId, componentId);
 		provide(injectionKeys.isBeingEdited, isBeingEdited);
+		provide(injectionKeys.isDisabled, isDisabled);
 		provide(injectionKeys.instancePath, instancePath);
 		provide(injectionKeys.instanceData, instanceData);
 		provide(injectionKeys.renderProxiedComponent, renderProxiedComponent);
@@ -130,13 +127,23 @@ export default {
 		const isChildless = computed(() => children.value.length == 0);
 		const isVisible = computed(() => isComponentVisible(componentId, instancePath));
 
-		const getHandlerCallable = (handlerFunction: string) => {
-			const isForwardable = !handlerFunction.startsWith("$");
-			if (isForwardable) {
-				return (ev: Event) => ss.forwardEvent(ev, instancePath);
+		const getHandlerCallable = (handlerFunctionName: string, isBinding: boolean) => {
+			const isForwardable = !handlerFunctionName.startsWith("$");
+			if (isForwardable && !isBinding) {
+				return (ev: Event) => {
+
+					// Only include payload if there's a function waiting for it on the other side
+
+					let includePayload = false ;
+
+					if (userFunctions.some(uf => uf.name == handlerFunctionName && uf.args.includes("payload"))) {
+						includePayload = true;
+					}
+					ss.forwardEvent(ev, instancePath, includePayload);
+				}
 			}
-			if (handlerFunction.startsWith("$goToPage_")) {
-				const pageKey = handlerFunction.substring("$goToPage_".length);
+			if (handlerFunctionName.startsWith("$goToPage_")) {
+				const pageKey = handlerFunctionName.substring("$goToPage_".length);
 				return (ev: Event) => ss.setActivePageFromKey(pageKey);
 			}
 			return null;
@@ -145,28 +152,28 @@ export default {
 		const eventHandlerProps = computed(() => {
 			const props = {};
 
-			// Binding. Make sure there's a handler to catch the binding event.
-			// Might be overwritten by a handler
-
-			if (component.value.binding) {
-				const bindingEventType = component.value.binding.eventType;
-				const eventKey = `on${bindingEventType
-					.charAt(0)
-					.toUpperCase()}${bindingEventType.slice(1)}`;
-				props[eventKey] = (ev: Event) =>
-					ss.forwardEvent(ev, instancePath);
-			}
-
 			// Handle event handlers
 
-			Object.entries(component.value.handlers ?? {}).forEach(
-				([handlerEventType, handlerFunction]) => {
-					const eventKey = `on${handlerEventType
+			const handledEventTypes = Object.keys(component.value.handlers ?? {});
+			const boundEventTypes = component.value.binding ? [component.value.binding.eventType] : [];
+			const eventTypes = Array.from(new Set([...handledEventTypes, ...boundEventTypes]));
+
+			eventTypes.forEach(eventType => {
+				const eventKey = `on${eventType
 						.charAt(0)
-						.toUpperCase()}${handlerEventType.slice(1)}`;
-					props[eventKey] = getHandlerCallable(handlerFunction);
-				}
-			);
+						.toUpperCase()}${eventType.slice(1)}`;
+				const isBinding = eventType === component.value.binding?.eventType;
+				props[eventKey] = (ev: Event) => {
+					if (isBinding) {
+						ss.forwardEvent(ev, instancePath, true);
+					}
+					const handlerFunction = component.value.handlers?.[eventType]; 
+					if (handlerFunction) {
+						getHandlerCallable(handlerFunction, isBinding)?.(ev);
+					}
+				};
+			});
+
 			return props;
 		});
 
@@ -206,6 +213,7 @@ export default {
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,
+					disabled: isDisabled.value,
 					...fieldBasedCssClasses.value
 				},
 				style: {
@@ -213,7 +221,7 @@ export default {
 					...(!isVisible.value ? { display: "none" } : {}),
 				},
 				...dataAttrs,
-				...eventHandlerProps.value,
+				...(!isDisabled.value ? eventHandlerProps.value : []),
 				draggable: isBeingEdited.value,
 			};
 			return rootElProps;

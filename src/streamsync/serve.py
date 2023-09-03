@@ -1,31 +1,42 @@
 import asyncio
-import multiprocessing
-import threading
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Set, Union
 import typing
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from streamsync.ss_types import (AppProcessServerResponse, ComponentUpdateRequestPayload, EventResponsePayload, InitRequestBody, InitResponseBodyEdit,
-                                 InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
+                                 InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StateEnquiryResponsePayload, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
 import os
 import uvicorn
 from streamsync.app_runner import AppRunner
 from urllib.parse import urlsplit
 import logging
+import pathlib
 from streamsync import VERSION
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 
 
-def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool=False) -> FastAPI:
+def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool = False) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
     app_runner = AppRunner(user_app_path, serve_mode)
     app_runner.load()
     asgi_app = FastAPI()
+
+    def _get_extension_paths() -> List[str]:
+        extensions_path = pathlib.Path(user_app_path) / "extensions"
+        if not extensions_path.exists():
+            return []
+        filtered_files = [f for f in extensions_path.rglob(
+            "*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
+        relative_paths = [f.relative_to(
+            extensions_path).as_posix() for f in filtered_files]
+        return relative_paths
+
+    cached_extension_paths = _get_extension_paths()
 
     def _check_origin_header(origin_header: Optional[str]) -> bool:
         if serve_mode not in ("edit") or enable_remote_edit is True:
@@ -45,7 +56,9 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             sessionId=payload.sessionId,
             userState=payload.userState,
             mail=payload.mail,
-            components=payload.components
+            components=payload.components,
+            userFunctions=payload.userFunctions,
+            extensionPaths=cached_extension_paths
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -60,7 +73,8 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
             components=payload.components,
             userFunctions=payload.userFunctions,
             savedCode=saved_code,
-            runCode=run_code
+            runCode=run_code,
+            extensionPaths=cached_extension_paths
         )
 
     @asgi_app.post("/api/init")
@@ -124,59 +138,119 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles incoming requests from client. 
         """
 
-        while True:
-            req_message_raw = await websocket.receive_json()
+        pending_tasks: Set[asyncio.Task] = set()
 
-            try:
-                req_message = StreamsyncWebsocketIncoming.model_validate(
-                    req_message_raw)
-            except ValidationError:
-                logging.error("Incorrect incoming request.")
-                return
+        try:
+            while True:
+                req_message_raw = await websocket.receive_json()
 
-            response = StreamsyncWebsocketOutgoing(
-                messageType=f"{req_message.type}Response",
-                trackingId=req_message.trackingId,
-                payload=None
-            )
+                try:
+                    req_message = StreamsyncWebsocketIncoming.model_validate(
+                        req_message_raw)
+                except ValidationError:
+                    logging.error("Incorrect incoming request.")
+                    break
 
-            is_session_ok = await app_runner.check_session(session_id)
-            if not is_session_ok:
-                return
+                is_session_ok = await app_runner.check_session(session_id)
+                if not is_session_ok:
+                    break
 
-            apsr: Optional[AppProcessServerResponse] = None
-            res_payload: Optional[Dict[str, Any]] = None
+                new_task = None
 
-            if req_message.type == "event":
-                apsr = await app_runner.handle_event(
-                    session_id, StreamsyncEvent(
-                        type=req_message.payload["type"],
-                        instancePath=req_message.payload["instancePath"],
-                        payload=req_message.payload["payload"]
-                    ))
-                if apsr is not None and apsr.payload is not None:
-                    res_payload = typing.cast(
-                        EventResponsePayload, apsr.payload).model_dump()
-            if serve_mode == "edit":
-                if req_message.type == "componentUpdate":
-                    await app_runner.update_components(
-                        session_id, ComponentUpdateRequestPayload(
-                            components=req_message.payload["components"]
-                        ))
-                elif req_message.type == "codeSaveRequest":
-                    app_runner.save_code(
-                        session_id, req_message.payload["code"])
-                elif req_message.type == "codeUpdate":
-                    app_runner.update_code(
-                        session_id, req_message.payload["code"])
+                if req_message.type == "event":
+                    new_task = asyncio.create_task(
+                        _handle_incoming_event(websocket, session_id, req_message))
+                elif req_message.type == "keepAlive":
+                    new_task = asyncio.create_task(
+                        _handle_keep_alive_message(websocket, session_id, req_message))
+                elif req_message.type == "stateEnquiry":
+                    new_task = asyncio.create_task(
+                        _handle_state_enquiry_message(websocket, session_id, req_message))
+                elif serve_mode == "edit":
+                    new_task = asyncio.create_task(
+                        _handle_incoming_edit_message(websocket, session_id, req_message))
+                
+                if new_task:
+                    pending_tasks.add(new_task)
+                    new_task.add_done_callback(pending_tasks.discard)
+        except WebSocketDisconnect:
+            pass
+        except asyncio.CancelledError:
+            raise            
+        finally:
+            # Cancel pending tasks
 
-            if res_payload is not None:
-                response.payload = res_payload
+            for pending_task in pending_tasks.copy():
+                pending_task.cancel()
+                try:
+                    await pending_task
+                except asyncio.CancelledError:
+                    pass
+            
 
-            try:
-                await websocket.send_json(response.model_dump())
-            except WebSocketDisconnect:
-                return
+    async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        res_payload: Optional[Dict[str, Any]] = None
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_event(
+            session_id, StreamsyncEvent(
+                type=req_message.payload["type"],
+                instancePath=req_message.payload["instancePath"],
+                payload=req_message.payload["payload"]
+            ))
+        if apsr is not None and apsr.payload is not None:
+            res_payload = typing.cast(
+                EventResponsePayload, apsr.payload).model_dump()
+        if res_payload is not None:
+            response.payload = res_payload
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_incoming_edit_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        if req_message.type == "componentUpdate":
+            await app_runner.update_components(
+                session_id, ComponentUpdateRequestPayload(
+                    components=req_message.payload["components"]
+                ))
+        elif req_message.type == "codeSaveRequest":
+            app_runner.save_code(
+                session_id, req_message.payload["code"])
+        elif req_message.type == "codeUpdate":
+            app_runner.update_code(
+                session_id, req_message.payload["code"])
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"keepAliveResponse",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_state_enquiry_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
+        response = StreamsyncWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        res_payload: Optional[Dict[str, Any]] = None
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_state_enquiry(session_id)
+        if apsr is not None and apsr.payload is not None:
+            res_payload = typing.cast(
+                StateEnquiryResponsePayload, apsr.payload).model_dump()
+        if res_payload is not None:
+            response.payload = res_payload
+        await websocket.send_json(response.model_dump())
 
     async def _stream_outgoing_announcements(websocket: WebSocket):
 
@@ -184,10 +258,9 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles outgoing communications to client (announcements).
         """
 
-        from asyncio import sleep
         code_version = app_runner.get_run_code_version()
         while True:
-            await sleep(1)
+            await asyncio.sleep(0.5)
             current_code_version = app_runner.get_run_code_version()
             if code_version == current_code_version:
                 continue
@@ -201,10 +274,14 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 }
             )
 
+            if websocket.application_state == WebSocketState.DISCONNECTED:
+                break
+
             try:
                 await websocket.send_json(announcement.dict())
+                break
             except (WebSocketDisconnect):
-                return
+                break
 
     @asgi_app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
@@ -234,10 +311,13 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
         try:
             await asyncio.wait((task1, task2), return_when=asyncio.FIRST_COMPLETED)
+            await asyncio.sleep(1)
             task1.cancel()
             task2.cancel()
+            await task1
+            await task2
         except asyncio.CancelledError:
-            logging.warning("Cancelled")
+            pass
 
     @asgi_app.on_event("shutdown")
     async def shutdown_event():
@@ -247,14 +327,20 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
 
     # Mount static paths
 
-    user_app_static_path = os.path.join(user_app_path, "static")
-    asgi_app.mount(
-        "/static", StaticFiles(directory=user_app_static_path), name="user_static")
+    user_app_static_path = pathlib.Path(user_app_path) / "static"
+    if user_app_static_path.exists():
+        asgi_app.mount(
+            "/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
+
+    user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
+    if user_app_extensions_path.exists():
+        asgi_app.mount(
+            "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
     server_path = os.path.dirname(__file__)
-    server_static_path = os.path.join(server_path, "static")
+    server_static_path = pathlib.Path(server_path) / "static"
     asgi_app.mount(
-        "/", StaticFiles(directory=server_static_path, html=True), name="server_static")
+        "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
 
     # Return
 

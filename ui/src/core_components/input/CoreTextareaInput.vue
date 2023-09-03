@@ -4,6 +4,7 @@
 		<textarea
 			:value="formValue"
 			v-on:input="($event) => handleInput(($event.target as HTMLTextAreaElement).value, 'ss-change')"
+			v-on:change="($event) => handleInput(($event.target as HTMLTextAreaElement).value, 'ss-change-finish')"
 			:placeholder="fields.placeholder.value"
 			:rows="fields.rows.value"
 		></textarea>
@@ -11,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
@@ -38,7 +39,7 @@ export default {
 			placeholder: {
 				name: "Placeholder",
 				type: FieldType.Text,
-				control: "textarea",
+				control: FieldControl.Textarea,
 			},
 			rows: {
 				name: "Rows",
@@ -50,9 +51,13 @@ export default {
 		},
 		events: {
 			"ss-change": {
-				desc: "Capture changes to this control.",
+				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+			},
+			"ss-change-finish": {
+				desc: "Capture changes once this control has lost focus.",
+				stub: onChangeHandlerStub,
 			},
 		},
 	},

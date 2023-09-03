@@ -47,7 +47,6 @@ export default {
 			},
 			options: {
 				name: "Options",
-				control: "object",
 				desc: "Key-value object with options. Must be a JSON string or a state reference to a dictionary.",
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
@@ -80,11 +79,16 @@ const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreSelectInput {
-	width: 100%;
+	width: fit-content;
+	max-width: 100%;
 }
 
 label {
 	color: var(--primaryTextColor);
+}
+
+select {
+	max-width: 100%;
 }
 
 .selectContainer {

@@ -91,7 +91,7 @@ class StateSerialiser:
             return self._serialise_dict_recursively(v.to_dict())
         if isinstance(v, (FileWrapper, BytesWrapper)):
             return self._serialise_ss_wrapper(v)
-        if isinstance(v, datetime.datetime):
+        if isinstance(v, (datetime.datetime, datetime.date)):
             return str(v)
         if isinstance(v, bytes):
             return self.serialise(BytesWrapper(v))
@@ -471,15 +471,15 @@ class EventDeserialiser:
         self.evaluator = Evaluator(session_state)
 
     def transform(self, ev: StreamsyncEvent) -> None:
-
         # Events without payloads are safe
         # This includes non-custom events such as click
+        # Events not natively provided by Streamsync aren't sanitised
 
-        if ev.payload is None:
+        if ev.payload is None or not ev.type.startswith("ss-"):
             return
 
         # Look for a method in this class that matches the event type
-        # As a security measure, all custom event types must be linked to a transformer function.
+        # As a security measure, all event types starting with "ss-" must be linked to a transformer function.
 
         custom_event_name = ev.type[3:]
         func_name = "_transform_" + custom_event_name.replace("-", "_")
@@ -521,6 +521,32 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
+    def _transform_keydown(self, ev) -> Dict:
+        payload = ev.payload
+        key = str(payload.get("key"))
+        ctrl_key = bool(payload.get("ctrlKey"))
+        shift_key = bool(payload.get("shiftKey"))
+        meta_key = bool(payload.get("metaKey"))
+        tf_payload = {
+            "key": key,
+            "ctrl_key": ctrl_key,
+            "shift_key": shift_key,
+            "meta_key": meta_key
+        }
+        return tf_payload
+
+    def _transform_click(self, ev) -> Dict:
+        payload = ev.payload
+        ctrl_key = bool(payload.get("ctrlKey"))
+        shift_key = bool(payload.get("shiftKey"))
+        meta_key = bool(payload.get("metaKey"))
+        tf_payload = {
+            "ctrl_key": ctrl_key,
+            "shift_key": shift_key,
+            "meta_key": meta_key
+        }
+        return tf_payload
+
     def _transform_hashchange(self, ev) -> Dict:
         payload = ev.payload
         page_key = payload.get("pageKey")
@@ -531,13 +557,23 @@ class EventDeserialiser:
         }
         return tf_payload
 
+    def _transform_page_open(self, ev) -> str:
+        payload = str(ev.payload)
+        return payload
+
     def _transform_change(self, ev) -> str:
         payload = str(ev.payload)
         return payload
 
+    def _transform_change_finish(self, ev) -> str:
+        return self._transform_change(ev)
+
     def _transform_number_change(self, ev) -> float:
         payload = float(ev.payload)
         return payload
+
+    def _transform_number_change_finish(self, ev) -> float:
+        return self._transform_number_change(ev)
 
     def _transform_webcam(self, ev) -> Any:
         return urllib.request.urlopen(ev.payload).read()
@@ -726,14 +762,14 @@ class SessionManager:
 
     def _verify_before_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None) -> bool:
         for verifier in self.verifiers:
-            arg_names = verifier.__code__.co_varnames
-            args = []
-            for arg_name in arg_names:
-                if arg_name == "cookies":
-                    args.append(cookies)
-                elif arg_name == "headers":
-                    args.append(headers)
-            verifier_result = verifier(*args)
+            args = inspect.getfullargspec(verifier).args
+            arg_values = []
+            for arg in args:
+                if arg == "cookies":
+                    arg_values.append(cookies)
+                elif arg == "headers":
+                    arg_values.append(headers)
+            verifier_result = verifier(*arg_values)
             if verifier_result is False:
                 return False
             elif verifier_result is True:
@@ -830,27 +866,27 @@ class EventHandler:
             raise ValueError(
                 "Invalid handler. The handler isn't a callable object.")
 
-        arg_names = callable_handler.__code__.co_varnames
-        args = []
-        for arg_name in arg_names:
-            if arg_name == "state":
-                args.append(self.session_state)
-            elif arg_name == "payload":
-                args.append(payload)
-            elif arg_name == "context":
+        args = inspect.getfullargspec(callable_handler).args
+        arg_values = []
+        for arg in args:
+            if arg == "state":
+                arg_values.append(self.session_state)
+            elif arg == "payload":
+                arg_values.append(payload)
+            elif arg == "context":
                 context = self.evaluator.get_context_data(instance_path)
-                args.append(context)
-            elif arg_name == "session":
+                arg_values.append(context)
+            elif arg == "session":
                 session_info = {
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
                     "headers": self.session.headers
                 }
-                args.append(session_info)
+                arg_values.append(session_info)
 
         result = None
         with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = callable_handler(*args)
+            result = callable_handler(*arg_values)
         captured_stdout = f.getvalue()
         if captured_stdout:
             self.session_state.add_log_entry(

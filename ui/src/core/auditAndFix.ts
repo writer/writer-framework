@@ -28,7 +28,7 @@ export function auditAndFixComponents(components: ComponentMap): boolean {
 
 export function auditComponent(component: Component) {
 	const def = getComponentDefinition(component.type);
-	if (!def) {
+	if (!def || def.category == "Fallback") {
 		console.error(
 			`Component ${component.id} (${component.type}). Invalid component type.`
 		);
@@ -36,7 +36,6 @@ export function auditComponent(component: Component) {
 	}
 
 	auditComponentFieldKeys(component, def);
-	auditComponentEventKeys(component, def);
 	auditComponentBinding(component, def);
 }
 
@@ -50,20 +49,6 @@ function auditComponentFieldKeys(
 		if (fieldKeys.includes(contentFieldKey)) return;
 		console.warn(
 			`Component ${component.id} (${component.type}). Field key "${contentFieldKey}" is defined in the component but not in the template.`
-		);
-	});
-}
-
-function auditComponentEventKeys(
-	component: Component,
-	def: StreamsyncComponentDefinition
-) {
-	const eventKeys = Object.keys(def.events ?? {});
-	if (!component.handlers) return;
-	Object.keys(component.handlers).forEach((handlerFieldKey) => {
-		if (eventKeys.includes(handlerFieldKey)) return;
-		console.warn(
-			`Component ${component.id} (${component.type}). A handler is defined for "${handlerFieldKey}" but the template doesn't define that event.`
 		);
 	});
 }

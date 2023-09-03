@@ -5,6 +5,7 @@
 				<label>{{ fields.label.value }}</label>
 				<input
 					type="date"
+					:value="formValue"
 					v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-date-change')"
 				/>
 			</div>
