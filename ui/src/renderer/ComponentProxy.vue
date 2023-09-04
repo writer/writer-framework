@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, h, inject, provide, ref, watch } from "vue";
+import { Ref, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
 import { Component, InstancePath, InstancePathItem, UserFunction } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
@@ -26,7 +26,7 @@ export default {
 			() => !!ssbm && ssbm.getMode() != "preview"
 		);
 		const isDisabled = ref(false);
-		const userFunctions: UserFunction[] = ss.getUserFunctions();
+		const userFunctions: Ref<UserFunction[]> = computed(() => ss.getUserFunctions());
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -136,7 +136,7 @@ export default {
 
 					let includePayload = false ;
 
-					if (userFunctions.some(uf => uf.name == handlerFunctionName && uf.args.includes("payload"))) {
+					if (userFunctions.value.some(uf => uf.name == handlerFunctionName && uf.args.includes("payload"))) {
 						includePayload = true;
 					}
 					ss.forwardEvent(ev, instancePath, includePayload);
