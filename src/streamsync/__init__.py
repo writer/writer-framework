@@ -2,7 +2,7 @@ from typing import Union, Optional, Dict, Any
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config
 from streamsync.core import initial_state, component_manager, session_manager, session_verifier
 
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 
 component_manager
 session_manager
