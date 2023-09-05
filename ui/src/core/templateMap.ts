@@ -29,6 +29,8 @@ import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
 import CoreRadioInput from "../core_components/input/CoreRadioInput.vue";
 import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
+import CoreSelectInput from "../core_components/input/CoreSelectInput.vue";
+import CoreMultiselectInput from "../core_components/input/CoreMultiselectInput.vue";
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreFileInput from "../core_components/input/CoreFileInput.vue";
 import CoreMetric from "../core_components/CoreMetric.vue";
@@ -66,6 +68,8 @@ const templateMap = {
 	radioinput: CoreRadioInput,
 	checkboxinput: CoreCheckboxInput,
 	dropdowninput: CoreDropdownInput,
+	selectinput: CoreSelectInput,
+	multiselectinput: CoreMultiselectInput,
 	fileinput: CoreFileInput,
 	webcamcapture: CoreWebcamCapture,
 	vegalitechart: CoreVegaLiteChart,
