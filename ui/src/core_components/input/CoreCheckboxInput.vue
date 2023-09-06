@@ -97,10 +97,10 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const instancePath = inject(injectionKeys.instancePath);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
 const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 
@@ -117,12 +117,6 @@ function getCheckedKeys() {
 	return checkedValues;
 }
 
-const flattenedInstancePath = computed(() => {
-	const flat = instancePath
-		.map((item) => `${item.componentId}:${item.instanceNumber}`)
-		.join(".");
-	return flat;
-});
 </script>
 
 <style scoped>
