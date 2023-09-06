@@ -25,7 +25,7 @@ import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
-	"A user input component that allows users to select a single value from a list of options using a dropdown menu (also known as a select input).";
+	"A user input component that allows users to select a single value from a list of options using a dropdown menu.";
 const defaultOptions = { a: "Option A", b: "Option B" };
 const onChangeHandlerStub = `
 def onchange_handler(state, payload):
