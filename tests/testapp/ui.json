@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.10"
+        "streamsync_version": "0.2.5"
     },
     "components": {
         "root": {
@@ -907,7 +907,7 @@
                 "stepSize": "1"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 3,
+            "position": 7,
             "handlers": {
                 "ss-number-change": "payload_inspector"
             },
@@ -924,7 +924,7 @@
                 "label": "Join date"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 4,
+            "position": 8,
             "handlers": {
                 "ss-date-change": "payload_inspector"
             },
@@ -941,7 +941,7 @@
                 "label": "Default radio"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 5,
+            "position": 9,
             "handlers": {
                 "ss-option-change": "payload_inspector"
             },
@@ -958,7 +958,7 @@
                 "label": "Default checkbox"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 7,
+            "position": 5,
             "handlers": {
                 "ss-options-change": "payload_inspector"
             },
@@ -975,7 +975,7 @@
                 "label": "Default dropdown"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 8,
+            "position": 10,
             "handlers": {
                 "ss-option-change": "payload_inspector"
             },
@@ -993,7 +993,7 @@
                 "allowMultipleFiles": "yes"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 9,
+            "position": 11,
             "handlers": {
                 "ss-file-change": "payload_inspector"
             },
@@ -1011,7 +1011,7 @@
                 "options": "{\n  \"en\": \"English\",\n  \"sp\": \"Spanish\",\n  \"pl\": \"Polish\"\n}"
             },
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
-            "position": 6,
+            "position": 3,
             "handlers": {
                 "ss-option-change": "payload_inspector"
             },
@@ -2862,14 +2862,45 @@
         "242a8268-10d1-4e2c-96bd-f17ffe9e9b28": {
             "id": "242a8268-10d1-4e2c-96bd-f17ffe9e9b28",
             "type": "textinput",
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "content": {
                 "label": "Input Label",
                 "passwordMode": "yes"
             },
-            "handlers": {},
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 11,
+            "handlers": {},
             "visible": true
+        },
+        "c9e4e0d9-771e-47c2-863a-55ce8a98bfa5": {
+            "id": "c9e4e0d9-771e-47c2-863a-55ce8a98bfa5",
+            "type": "multiselectinput",
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "content": {
+                "label": "Default checkbox mirrored in multiselect"
+            },
+            "handlers": {},
+            "position": 6,
+            "visible": true,
+            "binding": {
+                "eventType": "ss-options-change",
+                "stateRef": "b.default_checkbox"
+            }
+        },
+        "c1d1f478-3dbb-4009-94a0-9b92404348cd": {
+            "id": "c1d1f478-3dbb-4009-94a0-9b92404348cd",
+            "type": "selectinput",
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "content": {
+                "label": "Language",
+                "options": "{\n  \"en\": \"English\",\n  \"sp\": \"Spanish\",\n  \"pl\": \"Polish\"\n}"
+            },
+            "handlers": {},
+            "position": 4,
+            "visible": true,
+            "binding": {
+                "eventType": "ss-option-change",
+                "stateRef": "b.language"
+            }
         }
     }
 }
