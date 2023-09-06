@@ -4,21 +4,27 @@
 		ref="rootEl"
 		v-on:keydown="handleKeydown"
 		v-on:focus="handleFocus"
-		v-on:blur="handleBlur"
 		tabindex="0"
-		:class="{
-			single: mode == 'single',
-			multiple: mode == 'multiple',
-		}"
+		:data-mode="mode"
+		:data-list-position="listPosition"
+		role="listbox"
+		:id="baseId"
+		:aria-activedescendant="highlightedOffset ? `${baseId}-option-${highlightedOffset}` : undefined"
 	>
 		<div class="selectedOptions">
-			<div class="option" v-for="optionKey in selectedOptions">
-				<div class="desc">
+			<div class="placeholder" v-show="selectedOptions.length == 0">
+				<template v-if="mode == 'multiple' && maximumCount > 0">Select up to {{ maximumCount }} option{{maximumCount > 1 ? "s" : ""}}...</template>
+				<template v-else-if="mode == 'multiple'">Select options....</template>
+				<template v-else-if="mode == 'single'">Select an option...</template>
+			</div>
+			<div class="option" v-for="optionKey in selectedOptions" aria-selected="true">
+				<div class="desc" role="option">
 					{{ options?.[optionKey] }}
 				</div>
 				<div
 					class="remove"
 					v-on:click="removeItem(optionKey)"
+					aria-label="Remove"
 				>
 					<i class="ri-close-line"></i>
 				</div>
@@ -27,23 +33,27 @@
 				type="text"
 				v-model="activeText"
 				v-on:keydown="handleInputKeydown"
+				v-on:blur="handleBlur"
+				aria-autocomplete="none"
 				ref="inputEl"
 			/>
 		</div>
-		<div class="list">
+		<div class="list" ref="listEl" v-show="listPosition !== 'hidden'">
 			<div
 				class="option"
+				role="option"
 				:data-list-offset="offset"
 				v-for="(option, optionKey, offset) in listOptions"
 				v-on:mousemove="highlightItem(offset)"
 				v-on:click="selectOption(optionKey)"
 				:class="{ highlighted: highlightedOffset == offset }"
+				:id="`${baseId}-option-${offset}`"
 			>
 				{{ option }}
 			</div>
 			<div class="empty" v-if="Object.keys(listOptions).length == 0">
-				<template v-if="isMaximumCountReached"
-					>Only {{ maximumCount }} option{{
+				<template v-if="mode == 'multiple' && isMaximumCountReached"
+					>Up to {{ maximumCount }} option{{
 						maximumCount > 1 ? "s" : ""
 					}}
 					allowed.</template
@@ -51,39 +61,35 @@
 				<template v-else>No results</template>
 			</div>
 		</div>
-		<!-- <select
-			:value="formValue"
-			v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-option-change')"
-		>
-			<option
-				v-for="(option, optionKey) in fields.options.value"
-				:key="optionKey"
-				:value="optionKey"
-			>
-				{{ option }}
-			</option>
-		</select> -->
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, Ref, toRefs } from "vue";
+import { nextTick } from "vue";
 import { ref } from "vue";
 import { watch } from "vue";
 
+const emit = defineEmits(["change"]);
+
 const props = defineProps<{
+	baseId: string;
+	activeValue: any,
 	options: Record<string, string>;
 	maximumCount: number;
 	mode: "single" | "multiple";
 }>();
 
-const { options, maximumCount, mode } = toRefs(props);
+const { baseId, activeValue, options, maximumCount, mode } = toRefs(props);
 
+const LIST_MAX_HEIGHT_PX = 200;
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const inputEl: Ref<HTMLElement | null> = ref(null);
+const listEl: Ref<HTMLElement | null> = ref(null);
 const activeText: Ref<string> = ref("");
 const highlightedOffset: Ref<number | null> = ref(null);
 const selectedOptions: Ref<string[]> = ref([]);
+const listPosition:Ref<"top" | "bottom" | "hidden"> = ref("hidden");
 
 const listOptions = computed(() => {
 	if (mode.value == "multiple" && isMaximumCountReached.value) return {};
@@ -111,6 +117,15 @@ const isMaximumCountReached = computed(() => {
 	return true;
 });
 
+watch(activeValue, () => {
+	selectedOptions.value = [];
+
+	activeValue.value.forEach?.((av: string) => {
+		if (typeof options.value[av] === "undefined") return;
+		selectedOptions.value.push(av);
+	});
+}, {immediate: true});
+
 watch(listOptions, () => {
 	enforceHighlightBoundaries();
 });
@@ -137,9 +152,16 @@ watch(highlightedOffset, () => {
 
 function removeItem(optionKey: string) {
 	const index = selectedOptions.value.indexOf(optionKey);
-	if (index == -1) return;
-	selectedOptions.value.splice(index, 1);
-	highlightedOffset.value = null;
+	if (index !== -1) {
+		selectedOptions.value.splice(index, 1);
+		highlightedOffset.value = null;		
+	}
+	emit("change", selectedOptions.value);
+}
+
+function removeLastItem() {
+	selectedOptions.value.pop();
+	emit("change", selectedOptions.value);
 }
 
 function blurSelf() {
@@ -185,7 +207,7 @@ function handleKeydown(ev: KeyboardEvent) {
 
 function handleInputKeydown(ev: KeyboardEvent) {
 	if (ev.key == "Backspace" && !activeText.value) {
-		selectedOptions.value.pop();
+		removeLastItem();
 	}
 }
 
@@ -200,15 +222,23 @@ function selectOption(optionKey: string) {
 	if (selectedOptions.value.length == maximumCount.value) {
 		blurSelf();
 	}
+	emit("change", selectedOptions.value);
 }
 
 function handleBlur(ev: Event) {
-	const targetEl = ev.target as HTMLElement;
-	if (rootEl.value.contains(targetEl)) return;
+	listPosition.value = "hidden";
 	activeText.value = "";
 }
 
-function handleFocus() {
+async function handleFocus() {
+	const { bottom: rootBottom } = rootEl.value.getBoundingClientRect();
+	const bodyHeight = document.body.clientHeight;
+	if (LIST_MAX_HEIGHT_PX + rootBottom >= bodyHeight) {
+		listPosition.value = "top";
+	} else {
+		listPosition.value = "bottom";
+	}
+	await nextTick();
 	inputEl.value?.focus();
 }
 
@@ -220,17 +250,9 @@ function highlightItem(offset: number) {
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .BaseSelect {
-	width: fit-content;
-	max-width: 100%;
 	width: 100%;
 	position: relative;
-}
-
-label {
-	color: var(--primaryTextColor);
-}
-.selectContainer {
-	margin-top: 8px;
+	outline: none;
 }
 
 .selectedOptions {
@@ -241,35 +263,69 @@ label {
 	border: 1px solid var(--separatorColor);
 	width: 100%;
 	outline: none;
-	min-height: 36px;
+	min-height: 50px;
+	background: var(--containerBackgroundColor);
+}
+
+[data-mode]:not([data-list-position="hidden"]) .selectedOptions .placeholder {
+	display: none;
+}
+
+[data-mode][data-list-position="hidden"] .selectedOptions .placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-left: 8px;
+	color: var(--secondaryTextColor);
+}
+
+[data-list-position="bottom"] .selectedOptions {
+	border: 1px solid var(--primaryTextColor);
+	border-bottom: 1px solid var(--containerBackgroundColor);
+}
+
+[data-list-position="top"] .selectedOptions {
+	border: 1px solid var(--primaryTextColor);
+	border-top: 1px solid var(--containerBackgroundColor);
 }
 
 .selectedOptions .option {
 	background: var(--accentColor);
-	color: white;
+	color: var(--chipTextColor);
 	border-radius: 4px;
 	display: flex;
 	gap: 4px;
 	user-select: none;
 	align-items: center;
 	outline: none;
+	height: 32px;
 }
 
 .selectedOptions .option:focus {
 	border: 1px solid var(--primaryTextColor);
 }
 
-.selectedOptions .option .desc {
-	padding: 8px;
+[data-mode="single"]:not([data-list-position="hidden"]) .selectedOptions .option {
+	display: none;
 }
 
-.selectedOptions .option .remove {
-	padding: 8px;
+.selectedOptions .option .desc {
+	height: 100%;
+	padding: 0 8px 0 8px;
+	display: flex;
+	align-items: center;
+}
+
+[data-mode="multiple"] .selectedOptions .option .remove {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 8px 0 8px;
 	backdrop-filter: brightness(95%);
 	cursor: pointer;
 }
 
-.single .selectedOptions .option .remove {
+[data-mode="single"] .selectedOptions .option .remove {
 	display: none;
 }
 
@@ -280,21 +336,38 @@ label {
 	border-bottom: 1px solid var(--separatorColor);
 	transition: 0.2s ease-in-out border;
 	display: none;
+	color: var(--primaryTextColor);
+	background: var(--containerBackgroundColor);
+}
+
+[data-mode]:not([data-list-position="hidden"]) .selectedOptions input {
+	display: block;
 }
 
 .list {
-	display: none;
-	margin-top: -1px;
 	position: absolute;
 	z-index: 10;
 	background: var(--containerBackgroundColor);
 	width: 100%;
-	box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.2);
 	border: 1px solid var(--primaryTextColor);
 	border-top: none;
-	max-height: max(8rem, 20vh);
+	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
 	overflow-y: auto;
 	overflow-x: hidden;
+}
+
+[data-list-position="top"] .list {
+	box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.2);
+	bottom: 100%;
+	border: 1px solid var(--primaryTextColor);
+	border-bottom: none;
+}
+
+[data-list-position="bottom"] .list {
+	box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.2);
+	top: 100%;
+	border: 1px solid var(--primaryTextColor);
+	border-top: none;
 }
 
 .list .option {
@@ -302,10 +375,11 @@ label {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	color: var(--primaryTextColor);
 }
 
 .list .option.highlighted {
-	background: rgba(210, 234, 244, 0.8);
+	background: var(--selectedColor);
 	padding: 8px;
 }
 
@@ -313,26 +387,9 @@ label {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 4rem;
+	min-height: calc(v-bind("`${LIST_MAX_HEIGHT_PX}px`") / 2);
 	padding-bottom: 8px;
 	color: var(--secondaryTextColor);
 }
 
-.BaseSelect:focus-within .selectedOptions {
-	border: 1px solid var(--primaryTextColor);
-	border-bottom: none;
-	margin-bottom: 1px;
-}
-
-.BaseSelect:focus-within .list {
-	display: block;
-}
-
-.BaseSelect.single:focus-within .selectedOptions .option {
-	display: none;
-}
-
-.BaseSelect:focus-within .selectedOptions input {
-	display: block;
-}
 </style>
