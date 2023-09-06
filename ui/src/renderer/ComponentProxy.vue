@@ -87,6 +87,13 @@ export default {
 			);
 		};
 
+		const flattenInstancePath = (path: InstancePath) => {
+			return path
+				.map((ie) => `${ie.componentId}:${ie.instanceNumber}`)
+				.join(",");
+		};
+		const flattenedInstancePath = flattenInstancePath(instancePath);
+
 		provide(injectionKeys.evaluatedFields, evaluatedFields);
 		provide(injectionKeys.componentId, componentId);
 		provide(injectionKeys.isBeingEdited, isBeingEdited);
@@ -95,16 +102,11 @@ export default {
 		provide(injectionKeys.instanceData, instanceData);
 		provide(injectionKeys.renderProxiedComponent, renderProxiedComponent);
 		provide(injectionKeys.getChildrenVNodes, getChildrenVNodes);
-
-		const flattenInstancePath = (path: InstancePath) => {
-			return path
-				.map((ie) => `${ie.componentId}:${ie.instanceNumber}`)
-				.join(",");
-		};
+		provide(injectionKeys.flattenedInstancePath, flattenedInstancePath);
 
 		const dataAttrs = {
 			"data-streamsync-id": componentId,
-			"data-streamsync-instance-path": flattenInstancePath(instancePath),
+			"data-streamsync-instance-path": flattenedInstancePath,
 		};
 
 		/*

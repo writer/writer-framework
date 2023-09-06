@@ -5,7 +5,9 @@
 			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
 			:value="formValue"
 			v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change')"
+			v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change-finish')"
 			:placeholder="fields.placeholder.value"
+			aria-autocomplete="none"
 		/>
 	</div>
 </template>

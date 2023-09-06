@@ -192,6 +192,7 @@ button.bit {
 	border: none;
 	border-radius: 0;
 	margin: 0;
+	background: var(--containerBackgroundColor);
 }
 
 .container {

@@ -79,7 +79,7 @@ const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
 
 .CoreNumberInput {
 	max-width: 70ch;
-	min-width: 30ch;
+	width: 100%;
 }
 
 label {
