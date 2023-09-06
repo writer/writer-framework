@@ -15,7 +15,7 @@ import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import { accentColor, containerBackgroundColor, cssClasses, primaryTextColor, secondaryTextColor, selectedColor, separatorColor } from "../../renderer/sharedStyleFields";
 
 const description =
-	"A user input component that allows users to select a single value from a list of options with autocomplete.";
+	"A user input component that allows users to select a single value from a searchable list of options.";
 const defaultOptions = { a: "Option A", b: "Option B" };
 const onChangeHandlerStub = `
 def onchange_handler(state, payload):
