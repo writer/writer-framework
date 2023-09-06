@@ -3,26 +3,43 @@
 		class="BaseSelect"
 		ref="rootEl"
 		v-on:keydown="handleKeydown"
-		v-on:focus="handleFocus"
+		v-on:click="handleClick"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
 		role="listbox"
 		:id="baseId"
-		:aria-activedescendant="highlightedOffset ? `${baseId}-option-${highlightedOffset}` : undefined"
+		:aria-activedescendant="
+			highlightedOffset
+				? `${baseId}-option-${highlightedOffset}`
+				: undefined
+		"
 	>
 		<div class="selectedOptions">
 			<div class="placeholder" v-show="selectedOptions.length == 0">
-				<template v-if="mode == 'multiple' && maximumCount > 0">Select up to {{ maximumCount }} option{{maximumCount > 1 ? "s" : ""}}...</template>
-				<template v-else-if="mode == 'multiple'">Select options....</template>
-				<template v-else-if="mode == 'single'">Select an option...</template>
+				<template v-if="mode == 'multiple' && maximumCount > 0"
+					>Select up to {{ maximumCount }} option{{
+						maximumCount > 1 ? "s" : ""
+					}}...</template
+				>
+				<template v-else-if="mode == 'multiple'"
+					>Select options....</template
+				>
+				<template v-else-if="mode == 'single'"
+					>Select an option...</template
+				>
 			</div>
-			<div class="option" v-for="optionKey in selectedOptions" aria-selected="true">
+			<div
+				class="option"
+				v-for="optionKey in selectedOptions"
+				aria-selected="true"
+			>
 				<div class="desc" role="option">
 					{{ options?.[optionKey] }}
 				</div>
 				<div
 					class="remove"
+					data-prevent-list="true"
 					v-on:click="removeItem(optionKey)"
 					aria-label="Remove"
 				>
@@ -33,9 +50,10 @@
 				type="text"
 				v-model="activeText"
 				v-on:keydown="handleInputKeydown"
-				v-on:blur="handleBlur"
+				v-on:blur="handleInputBlur"
 				aria-autocomplete="none"
 				ref="inputEl"
+				tabindex="-1"
 			/>
 		</div>
 		<div class="list" ref="listEl" v-show="listPosition !== 'hidden'">
@@ -43,7 +61,9 @@
 				class="option"
 				role="option"
 				:data-list-offset="offset"
+				data-prevent-list="true"
 				v-for="(option, optionKey, offset) in listOptions"
+				:key="`${offset}-${optionKey}`"
 				v-on:mousemove="highlightItem(offset)"
 				v-on:click="selectOption(optionKey)"
 				:class="{ highlighted: highlightedOffset == offset }"
@@ -74,7 +94,7 @@ const emit = defineEmits(["change"]);
 
 const props = defineProps<{
 	baseId: string;
-	activeValue: any,
+	activeValue: any;
 	options: Record<string, string>;
 	maximumCount: number;
 	mode: "single" | "multiple";
@@ -89,7 +109,7 @@ const listEl: Ref<HTMLElement | null> = ref(null);
 const activeText: Ref<string> = ref("");
 const highlightedOffset: Ref<number | null> = ref(null);
 const selectedOptions: Ref<string[]> = ref([]);
-const listPosition:Ref<"top" | "bottom" | "hidden"> = ref("hidden");
+const listPosition: Ref<"top" | "bottom" | "hidden"> = ref("hidden");
 
 const listOptions = computed(() => {
 	if (mode.value == "multiple" && isMaximumCountReached.value) return {};
@@ -117,14 +137,18 @@ const isMaximumCountReached = computed(() => {
 	return true;
 });
 
-watch(activeValue, () => {
-	selectedOptions.value = [];
+watch(
+	activeValue,
+	() => {
+		selectedOptions.value = [];
 
-	activeValue.value.forEach?.((av: string) => {
-		if (typeof options.value[av] === "undefined") return;
-		selectedOptions.value.push(av);
-	});
-}, {immediate: true});
+		activeValue.value.forEach?.((av: string) => {
+			if (typeof options.value[av] === "undefined") return;
+			selectedOptions.value.push(av);
+		});
+	},
+	{ immediate: true },
+);
 
 watch(listOptions, () => {
 	enforceHighlightBoundaries();
@@ -154,7 +178,7 @@ function removeItem(optionKey: string) {
 	const index = selectedOptions.value.indexOf(optionKey);
 	if (index !== -1) {
 		selectedOptions.value.splice(index, 1);
-		highlightedOffset.value = null;		
+		highlightedOffset.value = null;
 	}
 	emit("change", selectedOptions.value);
 }
@@ -164,15 +188,23 @@ function removeLastItem() {
 	emit("change", selectedOptions.value);
 }
 
-function blurSelf() {
-	const el: HTMLElement = document.activeElement as HTMLElement;
-	el.blur();
+async function hideList() {
+	listPosition.value = "hidden";
+	activeText.value = "";
+	await nextTick();
+	rootEl.value.tabIndex = 0;
+	rootEl.value?.focus();
 }
 
 function handleKeydown(ev: KeyboardEvent) {
 	const key = ev.key;
 	if (key == "Escape") {
-		blurSelf();
+		ev.preventDefault();
+		hideList();
+		return;
+	}
+	if (key !== "Tab" && key !== "Shift" && listPosition.value == "hidden") {
+		showList();
 		return;
 	}
 	if (key == "Enter") {
@@ -206,7 +238,11 @@ function handleKeydown(ev: KeyboardEvent) {
 }
 
 function handleInputKeydown(ev: KeyboardEvent) {
-	if (ev.key == "Backspace" && !activeText.value) {
+	if (
+		mode.value == "multiple" &&
+		ev.key == "Backspace" &&
+		!activeText.value
+	) {
 		removeLastItem();
 	}
 }
@@ -215,22 +251,32 @@ function selectOption(optionKey: string) {
 	if (mode.value == "single") {
 		selectedOptions.value = [];
 	} else {
-		if (selectedOptions.value.includes(optionKey)) return;
+		if (selectedOptions.value.includes(optionKey)) {
+			return;
+		}
 	}
 	selectedOptions.value.push(optionKey);
+	emit("change", selectedOptions.value);
 	activeText.value = "";
 	if (selectedOptions.value.length == maximumCount.value) {
-		blurSelf();
+		hideList();
 	}
-	emit("change", selectedOptions.value);
 }
 
-function handleBlur(ev: Event) {
-	listPosition.value = "hidden";
-	activeText.value = "";
+function handleInputBlur(ev: Event) {
+	const relatedEl = ev.relatedTarget as HTMLElement;
+	if (rootEl.value.contains(relatedEl)) return;
+	hideList();
 }
 
-async function handleFocus() {
+function handleClick(ev: Event) {
+	const el = ev.target as HTMLElement;
+	if (el.dataset.preventList) return;
+	showList();
+}
+
+async function showList() {
+	if (listPosition.value !== "hidden") return;
 	const { bottom: rootBottom } = rootEl.value.getBoundingClientRect();
 	const bodyHeight = document.body.clientHeight;
 	if (LIST_MAX_HEIGHT_PX + rootBottom >= bodyHeight) {
@@ -239,6 +285,7 @@ async function handleFocus() {
 		listPosition.value = "bottom";
 	}
 	await nextTick();
+	rootEl.value.tabIndex = -1;
 	inputEl.value?.focus();
 }
 
@@ -279,6 +326,10 @@ function highlightItem(offset: number) {
 	color: var(--secondaryTextColor);
 }
 
+.BaseSelect:focus-within[data-list-position="hidden"] .selectedOptions {
+	border-color: var(--primaryTextColor);
+}
+
 [data-list-position="bottom"] .selectedOptions {
 	border: 1px solid var(--primaryTextColor);
 	border-bottom: 1px solid var(--containerBackgroundColor);
@@ -298,20 +349,22 @@ function highlightItem(offset: number) {
 	user-select: none;
 	align-items: center;
 	outline: none;
-	height: 32px;
+	min-height: 32px;
 }
 
 .selectedOptions .option:focus {
 	border: 1px solid var(--primaryTextColor);
 }
 
-[data-mode="single"]:not([data-list-position="hidden"]) .selectedOptions .option {
+[data-mode="single"]:not([data-list-position="hidden"])
+	.selectedOptions
+	.option {
 	display: none;
 }
 
 .selectedOptions .option .desc {
 	height: 100%;
-	padding: 0 8px 0 8px;
+	padding: 8px;
 	display: flex;
 	align-items: center;
 }
@@ -391,5 +444,4 @@ function highlightItem(offset: number) {
 	padding-bottom: 8px;
 	color: var(--secondaryTextColor);
 }
-
 </style>
