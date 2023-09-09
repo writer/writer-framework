@@ -4,6 +4,7 @@
 		ref="rootEl"
 		v-on:keydown="handleKeydown"
 		v-on:click="handleClick"
+		v-on:focusout="handleFocusOut"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
@@ -188,9 +189,10 @@ function removeLastItem() {
 	emit("change", selectedOptions.value);
 }
 
-async function hideList() {
+async function hideList(backToRoot=false) {
 	listPosition.value = "hidden";
 	activeText.value = "";
+	if (!backToRoot) return;
 	await nextTick();
 	rootEl.value.tabIndex = 0;
 	rootEl.value?.focus();
@@ -200,7 +202,7 @@ function handleKeydown(ev: KeyboardEvent) {
 	const key = ev.key;
 	if (key == "Escape") {
 		ev.preventDefault();
-		hideList();
+		hideList(true);
 		return;
 	}
 	if (key !== "Tab" && key !== "Shift" && listPosition.value == "hidden") {
@@ -259,14 +261,20 @@ function selectOption(optionKey: string) {
 	emit("change", selectedOptions.value);
 	activeText.value = "";
 	if (selectedOptions.value.length == maximumCount.value) {
-		hideList();
+		hideList(true);
 	}
+}
+
+function handleFocusOut(ev: Event) {
+	const relatedEl = ev.relatedTarget as HTMLElement;
+	if (rootEl.value.contains(relatedEl)) return;
+	hideList(false);
 }
 
 function handleInputBlur(ev: Event) {
 	const relatedEl = ev.relatedTarget as HTMLElement;
 	if (rootEl.value.contains(relatedEl)) return;
-	hideList();
+	hideList(true);
 }
 
 function handleClick(ev: Event) {
