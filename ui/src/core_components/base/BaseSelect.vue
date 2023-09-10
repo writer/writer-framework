@@ -34,12 +34,17 @@
 			</div>
 			<div
 				class="option"
+				:class="{ notFound: !options?.[optionKey] }"
 				v-for="optionKey in selectedOptions"
 				aria-selected="true"
 			>
-				<div class="desc" role="option">
-					{{ options?.[optionKey] }}
+				<div v-if="options?.[optionKey]" class="desc" role="option">
+					{{ options[optionKey] }}
 				</div>
+				<div v-else class="desc" role="option">
+					{{ optionKey }}
+				</div>
+
 				<div
 					class="remove"
 					data-prevent-list="true"
@@ -104,7 +109,8 @@ const props = defineProps<{
 	placeholder?: string;
 }>();
 
-const { baseId, activeValue, options, maximumCount, mode, placeholder } = toRefs(props);
+const { baseId, activeValue, options, maximumCount, mode, placeholder } =
+	toRefs(props);
 
 const LIST_MAX_HEIGHT_PX = 200;
 const rootEl: Ref<HTMLElement | null> = ref(null);
@@ -179,21 +185,27 @@ watch(highlightedOffset, () => {
 	el.scrollIntoView({ block: "nearest", inline: "nearest" });
 });
 
+function emitChangeEvent() {
+	const optionKeys = Object.keys(options.value);
+	const validSelectedOptions = selectedOptions.value.filter(o => optionKeys.includes(o));
+	emit("change", validSelectedOptions);
+}
+
 function removeItem(optionKey: string) {
 	const index = selectedOptions.value.indexOf(optionKey);
 	if (index !== -1) {
 		selectedOptions.value.splice(index, 1);
 		highlightedOffset.value = null;
 	}
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 }
 
 function removeLastItem() {
 	selectedOptions.value.pop();
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 }
 
-async function hideList(backToRoot=false) {
+async function hideList(backToRoot = false) {
 	listPosition.value = "hidden";
 	activeText.value = "";
 	if (!backToRoot) return;
@@ -262,7 +274,7 @@ async function selectOption(optionKey: string) {
 		}
 	}
 	selectedOptions.value.push(optionKey);
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 	activeText.value = "";
 	if (selectedOptions.value.length == maximumCount.value) {
 		hideList(true);
@@ -368,8 +380,9 @@ function highlightItem(offset: number) {
 	min-height: 32px;
 }
 
-.selectedOptions .option:focus {
-	border: 1px solid var(--primaryTextColor);
+.selectedOptions .option.notFound {
+	background: var(--separatorColor);
+	color: var(--containerBackgroundColor);
 }
 
 [data-mode="single"]:not([data-list-position="hidden"])
