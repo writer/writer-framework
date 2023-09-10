@@ -16,7 +16,7 @@ import pathlib
 from streamsync import VERSION
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
-
+logging.getLogger().setLevel(logging.INFO)
 
 def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool = False) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
@@ -49,6 +49,11 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         return False
 
     # Init
+
+    @asgi_app.on_event("startup")
+    async def startup_event():
+        loop = asyncio.get_running_loop()
+        app_runner.set_event_loop(loop)
 
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
@@ -258,30 +263,27 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         Handles outgoing communications to client (announcements).
         """
 
-        code_version = app_runner.get_run_code_version()
-        while True:
-            await asyncio.sleep(0.5)
-            current_code_version = app_runner.get_run_code_version()
-            if code_version == current_code_version:
-                continue
-            code_version = current_code_version
+        await app_runner.code_update_condition.acquire()
+        try:
+            await app_runner.code_update_condition.wait()
+        finally:
+            app_runner.code_update_condition.release()
 
-            announcement = StreamsyncWebsocketOutgoing(
-                messageType="announcement",
-                trackingId=-1,
-                payload={
-                    "announce": "codeUpdate"
-                }
-            )
+        announcement = StreamsyncWebsocketOutgoing(
+            messageType="announcement",
+            trackingId=-1,
+            payload={
+                "announce": "codeUpdate"
+            }
+        )
 
-            if websocket.application_state == WebSocketState.DISCONNECTED:
-                break
+        if websocket.application_state == WebSocketState.DISCONNECTED:
+            return
 
-            try:
-                await websocket.send_json(announcement.dict())
-                break
-            except (WebSocketDisconnect):
-                break
+        try:
+            await websocket.send_json(announcement.dict())
+        except (WebSocketDisconnect):
+            pass
 
     @asgi_app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
@@ -366,11 +368,10 @@ def print_init_message(run_name: str, port: int, host: str):
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
     """ Initialises the web server. """
 
-    asgi_app = get_asgi_app(app_path, mode, enable_remote_edit)
-
     run_name = "Builder" if mode == "edit" else "App"
     print_init_message(run_name, port, host)
 
+    asgi_app = get_asgi_app(app_path, mode, enable_remote_edit)
     log_level = "warning"
 
     uvicorn.run(asgi_app, host=host,

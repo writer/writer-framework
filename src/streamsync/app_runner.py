@@ -13,6 +13,8 @@ from types import ModuleType
 import json
 from typing import Any, Callable, Dict, List, Optional
 
+from watchdog.observers.polling import PollingObserver
+
 from pydantic import ValidationError
 from streamsync.core import StreamsyncSession
 from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
@@ -60,6 +62,7 @@ class AppProcess(multiprocessing.Process):
     def __init__(self,
                  client_conn: multiprocessing.connection.Connection,
                  server_conn: multiprocessing.connection.Connection,
+                 log_queue: multiprocessing.Queue,
                  app_path: str,
                  mode: str,
                  run_code: str,
@@ -73,6 +76,8 @@ class AppProcess(multiprocessing.Process):
         self.run_code = run_code
         self.components = components
         self.is_app_process_server_ready = is_app_process_server_ready
+        self.logger = logging.getLogger("app")
+
 
     def _load_module(self) -> ModuleType:
         """
@@ -285,6 +290,7 @@ class AppProcess(multiprocessing.Process):
         import streamsync
 
         streamsync.Config.mode = self.mode
+        streamsync.Config.logger = self.logger
 
         if self.mode == "edit":
             streamsync.Config.is_mail_enabled_for_log = True
@@ -458,6 +464,27 @@ class AppProcessListener(threading.Thread):
                 raise ValueError(
                     f"No response event found for message {message_id}.")
 
+class LogListener(threading.Thread):
+
+    """
+    Logs messages stored in the multiprocessing queue.
+    This allows log messages from the AppProcess to be safely managed.  
+    """
+
+    def __init__(self,
+                 log_queue: multiprocessing.Queue):
+        super().__init__(name="LogListenerThread")
+        self.log_queue = log_queue
+        self.logger = logging.getLogger("from_app")
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.StreamHandler())
+
+    def run(self) -> None:
+        while True:
+            message = self.log_queue.get()
+            if message is None:
+                break
+            self.logger.handle(message)            
 
 class AppRunner:
 
@@ -466,6 +493,9 @@ class AppRunner:
     Manages changes to the app.
     Allows for communication with the app via messages.
     """
+
+    UPDATE_CHECK_INTERVAL_SECONDS = 0.2
+    MAX_WAIT_NOTIFY_SECONDS = 10
 
     def __init__(self, app_path: str, mode: str):
         self.server_conn: Optional[multiprocessing.connection.Connection] = None
@@ -476,22 +506,34 @@ class AppRunner:
         self.components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
-        self.run_code_version: int = 0
-        self.observer: Any = None
+        self.code_update_condition: asyncio.Condition = asyncio.Condition()
+        self.observer: Optional[watchdog.observers.Observer] = None
         self.app_path: str = app_path
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
         self.response_packets: Dict[int, AppProcessServerResponsePacket] = {}
         self.message_counter = 0
+        self.log_queue = multiprocessing.Queue()
+        self.log_listener: Optional[LogListener] = None
+        self.loop:asyncio.BaseEventLoop = None
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
 
         self.mode = mode
+        self._set_logger()
+
+    def set_event_loop(self, loop):
+        self.loop = loop
+
+    def _set_logger(self):
+        logger = logging.getLogger("app")
+        logger.addHandler(logging.handlers.QueueHandler(self.log_queue))
+        self.log_listener = LogListener(self.log_queue)
+        self.log_listener.start()
 
     def _set_observer(self):
-        self.observer = watchdog.observers.Observer()
-        self.observer.schedule(
-            FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
+        self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
+        self.observer.schedule(FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
         self.observer.start()
 
     def load(self) -> None:
@@ -503,9 +545,6 @@ class AppRunner:
             self._set_observer()
 
         self._start_app_process()
-
-    def get_run_code_version(self) -> int:
-        return self.run_code_version
 
     async def dispatch_message(self, session_id: Optional[str], request: AppProcessServerRequest) -> AppProcessServerResponse:
 
@@ -543,8 +582,10 @@ class AppRunner:
 
     def _load_persisted_script(self) -> str:
         try:
+            contents = None
             with open(os.path.join(self.app_path, "main.py"), "r") as f:
-                return f.read()
+                contents = f.read()
+            return contents
         except FileNotFoundError:
             logging.error(
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
@@ -643,8 +684,11 @@ class AppRunner:
     def shut_down(self) -> None:
         logging.warning("AppRunner shutting down...")
         if self.observer is not None:
+            self.observer.unschedule_all()
             self.observer.stop()
             self.observer.join()
+        self.log_queue.put(None)
+        self.log_listener.join()
         self._clean_process()
 
     def _start_app_process(self) -> None:
@@ -658,6 +702,7 @@ class AppRunner:
         self.app_process = AppProcess(
             client_conn=self.client_conn,
             server_conn=self.server_conn,
+            log_queue=self.log_queue,
             app_path=self.app_path,
             mode=self.mode,
             run_code=self.run_code,
@@ -686,6 +731,14 @@ class AppRunner:
         self.run_code = run_code
         self._clean_process()
         self._start_app_process()
-
         self.is_app_process_server_ready.wait()
-        self.run_code_version += 1
+        
+        future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
+        future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
+
+    async def signal_code_update(self):
+        await self.code_update_condition.acquire()
+        try:
+            self.code_update_condition.notify_all()
+        finally:
+            self.code_update_condition.release()
