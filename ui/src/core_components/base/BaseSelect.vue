@@ -5,6 +5,7 @@
 		v-on:keydown="handleKeydown"
 		v-on:click="handleClick"
 		v-on:focusout="handleFocusOut"
+		v-on:focus="handleFocus"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
@@ -16,9 +17,10 @@
 				: undefined
 		"
 	>
-		<div class="selectedOptions">
+		<div class="selectedOptions" ref="selectedOptionsEl">
 			<div class="placeholder" v-show="selectedOptions.length == 0">
-				<template v-if="mode == 'multiple' && maximumCount > 0"
+				<template v-if="placeholder">{{ placeholder }}</template>
+				<template v-else-if="mode == 'multiple' && maximumCount > 0"
 					>Select up to {{ maximumCount }} option{{
 						maximumCount > 1 ? "s" : ""
 					}}...</template
@@ -99,13 +101,15 @@ const props = defineProps<{
 	options: Record<string, string>;
 	maximumCount: number;
 	mode: "single" | "multiple";
+	placeholder?: string;
 }>();
 
-const { baseId, activeValue, options, maximumCount, mode } = toRefs(props);
+const { baseId, activeValue, options, maximumCount, mode, placeholder } = toRefs(props);
 
 const LIST_MAX_HEIGHT_PX = 200;
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const inputEl: Ref<HTMLElement | null> = ref(null);
+const selectedOptionsEl: Ref<HTMLElement | null> = ref(null);
 const listEl: Ref<HTMLElement | null> = ref(null);
 const activeText: Ref<string> = ref("");
 const highlightedOffset: Ref<number | null> = ref(null);
@@ -249,7 +253,7 @@ function handleInputKeydown(ev: KeyboardEvent) {
 	}
 }
 
-function selectOption(optionKey: string) {
+async function selectOption(optionKey: string) {
 	if (mode.value == "single") {
 		selectedOptions.value = [];
 	} else {
@@ -263,6 +267,8 @@ function selectOption(optionKey: string) {
 	if (selectedOptions.value.length == maximumCount.value) {
 		hideList(true);
 	}
+	await nextTick();
+	selectedOptionsEl.value.scrollTop = selectedOptionsEl.value.scrollHeight;
 }
 
 function handleFocusOut(ev: Event) {
@@ -320,6 +326,8 @@ function highlightItem(offset: number) {
 	outline: none;
 	min-height: 50px;
 	background: var(--containerBackgroundColor);
+	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
+	overflow-y: auto;
 }
 
 [data-mode]:not([data-list-position="hidden"]) .selectedOptions .placeholder {
