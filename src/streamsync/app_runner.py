@@ -9,6 +9,7 @@ import inspect
 import os
 import sys
 import logging
+import logging.handlers
 from types import ModuleType
 import json
 from typing import Any, Callable, Dict, List, Optional
@@ -62,7 +63,6 @@ class AppProcess(multiprocessing.Process):
     def __init__(self,
                  client_conn: multiprocessing.connection.Connection,
                  server_conn: multiprocessing.connection.Connection,
-                 log_queue: multiprocessing.Queue,
                  app_path: str,
                  mode: str,
                  run_code: str,
@@ -702,7 +702,6 @@ class AppRunner:
         self.app_process = AppProcess(
             client_conn=self.client_conn,
             server_conn=self.server_conn,
-            log_queue=self.log_queue,
             app_path=self.app_path,
             mode=self.mode,
             run_code=self.run_code,
