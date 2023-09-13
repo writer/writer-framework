@@ -114,7 +114,7 @@ export function useTemplateEvaluator(ss: Core) {
 			}
 			return parsedValue;
 		} else if (fieldType == FieldType.Number) {
-			const floatDefaultValue = parseFloat(defaultValue);
+			const floatDefaultValue = defaultValue === null ? null : parseFloat(defaultValue);
 			if (isValueEmpty) return floatDefaultValue ?? null;
 			
 			const n = parseFloat(evaluated);
