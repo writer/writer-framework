@@ -152,9 +152,8 @@ class TestAppRunner:
     @pytest.mark.asyncio
     async def test_code_update(self) -> None:
         ar = AppRunner("./testapp", "edit")
-        loop = asyncio.get_running_loop()
+        ar.hook_to_running_event_loop()
         ar.load()
-        ar.set_event_loop(loop)
         wait_update_task = asyncio.create_task(self.wait_for_code_update(ar))
         loader_thread = threading.Thread(target=self.run_loader_thread, args=(ar,))
         loader_thread.start()
