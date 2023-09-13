@@ -1,6 +1,7 @@
 import multiprocessing
 import multiprocessing.synchronize
 import multiprocessing.connection
+import signal
 import threading
 import asyncio
 import concurrent.futures
@@ -528,7 +529,6 @@ class AppRunner:
         self.is_app_process_server_ready = multiprocessing.Event()
         self.is_app_process_server_failed = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
-        self.code_update_condition: asyncio.Condition = asyncio.Condition()
         self.observer: Optional[watchdog.observers.Observer] = None
         self.app_path: str = app_path
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
@@ -536,16 +536,14 @@ class AppRunner:
         self.message_counter = 0
         self.log_queue: multiprocessing.Queue = multiprocessing.Queue()
         self.log_listener: Optional[LogListener] = None
-        self.loop: Optional[asyncio.AbstractEventLoop] = None
+        self.loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        self.code_update_condition: Optional[asyncio.Condition] = asyncio.Condition()
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
 
         self.mode = mode
         self._set_logger()
-
-    def set_event_loop(self, loop):
-        self.loop = loop
 
     def _set_logger(self):
         logger = logging.getLogger("app")
@@ -559,6 +557,12 @@ class AppRunner:
         self.observer.start()
 
     def load(self) -> None:
+        def signal_handler(sig, frame):
+            self.shut_down()
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        
         self.saved_code = self._load_persisted_script()
         self.run_code = self.saved_code
         self.components = self._load_persisted_components()
@@ -705,7 +709,6 @@ class AppRunner:
         self.server_conn = None
 
     def shut_down(self) -> None:
-        logging.warning("AppRunner shutting down...")
         if self.observer is not None:
             self.observer.unschedule_all()
             self.observer.stop()
@@ -751,6 +754,13 @@ class AppRunner:
         self.update_code(None, self.saved_code)
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
+
+        """
+        Updates the running code and notifies the update.
+        In order to notify of the update, the event loop and asyncio.Condition need
+        to be aligned with the server's.
+        """
+
         if self.mode != "edit":
             raise PermissionError("Cannot update code in non-edit mode.")
         if not self.is_app_process_server_ready.is_set():
@@ -760,9 +770,8 @@ class AppRunner:
         self._start_app_process()
         self.is_app_process_server_ready.wait()
         
-        if self.loop is not None:
-            future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
-            future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
+        future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
+        future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
 
     async def signal_code_update(self):
         await self.code_update_condition.acquire()

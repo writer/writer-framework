@@ -1,5 +1,7 @@
 import asyncio
-from typing import Any, Dict, List, Optional, Set, Union
+from contextlib import asynccontextmanager
+import sys
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 import typing
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -18,13 +20,38 @@ from streamsync import VERSION
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
 
-def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: bool = False) -> FastAPI:
+
+def get_asgi_app(
+        user_app_path: str,
+        serve_mode: ServeMode,
+        enable_remote_edit: bool = False,
+        on_load: Callable = None,
+        on_shutdown: Callable = None) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
-    app_runner = AppRunner(user_app_path, serve_mode)
-    app_runner.load()
-    asgi_app = FastAPI()
+    app_runner: Optional[AppRunner] = None
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        nonlocal app_runner
+
+        app_runner = AppRunner(user_app_path, serve_mode)
+        app_runner.load()
+
+        if on_load is not None:
+            on_load()
+        
+        try:
+            yield
+        except asyncio.CancelledError:
+            pass
+        
+        app_runner.shut_down()
+        if on_shutdown is not None:
+            on_shutdown()
+
+    asgi_app = FastAPI(lifespan=lifespan)
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -49,11 +76,6 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         return False
 
     # Init
-
-    @asgi_app.on_event("startup")
-    async def startup_event():
-        loop = asyncio.get_running_loop()
-        app_runner.set_event_loop(loop)
 
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
@@ -174,14 +196,14 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                 elif serve_mode == "edit":
                     new_task = asyncio.create_task(
                         _handle_incoming_edit_message(websocket, session_id, req_message))
-                
+
                 if new_task:
                     pending_tasks.add(new_task)
                     new_task.add_done_callback(pending_tasks.discard)
         except WebSocketDisconnect:
             pass
         except asyncio.CancelledError:
-            raise            
+            raise
         finally:
             # Cancel pending tasks
 
@@ -191,7 +213,6 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
                     await pending_task
                 except asyncio.CancelledError:
                     pass
-            
 
     async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
         response = StreamsyncWebsocketOutgoing(
@@ -321,12 +342,6 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
         except asyncio.CancelledError:
             pass
 
-    @asgi_app.on_event("shutdown")
-    async def shutdown_event():
-        """ Shuts down the AppRunner when the server is shut down. """
-
-        app_runner.shut_down()
-
     # Mount static paths
 
     user_app_static_path = pathlib.Path(user_app_path) / "static"
@@ -349,7 +364,7 @@ def get_asgi_app(user_app_path: str, serve_mode: ServeMode, enable_remote_edit: 
     return asgi_app
 
 
-def print_init_message(run_name: str, port: int, host: str):
+def print_init_message():
     GREEN_TOKEN = "\033[92m"
     END_TOKEN = "\033[0m"
 
@@ -358,20 +373,28 @@ def print_init_message(run_name: str, port: int, host: str):
  ___| |_ ___ ___ ___ _____ ___ _ _ ___ ___ 
 |_ -|  _|  _| -_| .'|     |_ -| | |   |  _|
 |___|_| |_| |___|__,|_|_|_|___|_  |_|_|___|  v{VERSION}
-                              |___|
-
- {END_TOKEN}{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}
-    
+                              |___|    
 {END_TOKEN}""")
+
+
+def print_route_message(run_name: str, port: int, host: str):
+    GREEN_TOKEN = "\033[92m"
+    END_TOKEN = "\033[0m"
+
+    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}")
 
 
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
     """ Initialises the web server. """
 
-    run_name = "Builder" if mode == "edit" else "App"
-    print_init_message(run_name, port, host)
+    print_init_message()
 
-    asgi_app = get_asgi_app(app_path, mode, enable_remote_edit)
+    def on_load():
+        run_name = "Builder" if mode == "edit" else "App"
+        print_route_message(run_name, port, host)
+
+    asgi_app = get_asgi_app(
+        app_path, mode, enable_remote_edit, on_load)
     log_level = "warning"
 
     uvicorn.run(asgi_app, host=host,
