@@ -67,7 +67,8 @@ class AppProcess(multiprocessing.Process):
                  mode: str,
                  run_code: str,
                  components: Dict,
-                 is_app_process_server_ready: multiprocessing.synchronize.Event):
+                 is_app_process_server_ready: multiprocessing.synchronize.Event,
+                 is_app_process_server_failed: multiprocessing.synchronize.Event):
         super().__init__(name="AppProcess")
         self.client_conn = client_conn
         self.server_conn = server_conn
@@ -76,6 +77,7 @@ class AppProcess(multiprocessing.Process):
         self.run_code = run_code
         self.components = components
         self.is_app_process_server_ready = is_app_process_server_ready
+        self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
 
 
@@ -297,6 +299,12 @@ class AppProcess(multiprocessing.Process):
         elif self.mode == "run":
             streamsync.Config.is_mail_enabled_for_log = False
 
+    def _terminate_early(self) -> None:
+        self.is_app_process_server_failed.set()
+        self.is_app_process_server_ready.set()
+        with self.server_conn_lock:
+            self.server_conn.send(None)
+
     def _main(self) -> None:
         self._apply_configuration()
         import os
@@ -308,6 +316,8 @@ class AppProcess(multiprocessing.Process):
         import streamsync
         import traceback as tb
 
+        terminate_early = False
+
         try:
             self._execute_user_code()
         except BaseException:
@@ -315,12 +325,23 @@ class AppProcess(multiprocessing.Process):
 
             streamsync.initial_state.add_log_entry(
                 "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
+            
+            # Exit if in run mode
+            
+            if self.mode == "run":
+                terminate_early = True
 
         try:
             streamsync.component_manager.ingest(self.components)
         except BaseException:
             streamsync.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
+            if self.mode == "run":
+                terminate_early = True
+
+        if terminate_early:
+            self._terminate_early()
+            return
 
         self._run_app_process_server()
 
@@ -505,6 +526,7 @@ class AppRunner:
         self.run_code: Optional[str] = None
         self.components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
+        self.is_app_process_server_failed = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
         self.code_update_condition: asyncio.Condition = asyncio.Condition()
         self.observer: Optional[watchdog.observers.Observer] = None
@@ -589,7 +611,7 @@ class AppRunner:
         except FileNotFoundError:
             logging.error(
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
-            sys.exit(0)
+            sys.exit(1)
 
     def _load_persisted_components(self) -> Dict:
         file_payload: Dict = {}
@@ -602,7 +624,7 @@ class AppRunner:
         except FileNotFoundError:
             logging.error(
                 "Couldn't find ui.json in the path provided: %s.", self.app_path)
-            sys.exit(0)
+            sys.exit(1)
         components = file_payload.get("components")
         if components is None:
             raise ValueError("Components not found in file.")
@@ -665,6 +687,7 @@ class AppRunner:
         if self.client_conn is not None:
             self.client_conn.send(None)
         self.is_app_process_server_ready.clear()
+        self.is_app_process_server_failed.clear()
         if self.app_process is not None:
             self.app_process.join()
             self.app_process.close()
@@ -706,7 +729,8 @@ class AppRunner:
             mode=self.mode,
             run_code=self.run_code,
             components=self.components,
-            is_app_process_server_ready=self.is_app_process_server_ready)
+            is_app_process_server_ready=self.is_app_process_server_ready,
+            is_app_process_server_failed=self.is_app_process_server_failed)
         self.app_process.start()
         self.app_process_listener = AppProcessListener(
             self.client_conn,
@@ -715,6 +739,9 @@ class AppRunner:
             self.response_events)
         self.app_process_listener.start()
         self.is_app_process_server_ready.wait()
+        if self.mode == "run" and self.is_app_process_server_failed.is_set():
+            self.shut_down()
+            sys.exit(1)
 
     def reload_code_from_saved(self) -> None:
         if not self.is_app_process_server_ready.is_set():
