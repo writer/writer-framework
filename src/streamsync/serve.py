@@ -25,18 +25,17 @@ def get_asgi_app(
         user_app_path: str,
         serve_mode: ServeMode,
         enable_remote_edit: bool = False,
-        on_load: Callable = None,
-        on_shutdown: Callable = None) -> FastAPI:
+        on_load: Optional[Callable] = None,
+        on_shutdown: Optional[Callable] = None) -> FastAPI:
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
-    app_runner: Optional[AppRunner] = None
+    app_runner = AppRunner(user_app_path, serve_mode)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         nonlocal app_runner
 
-        app_runner = AppRunner(user_app_path, serve_mode)
         app_runner.hook_to_running_event_loop()
         app_runner.load()
 
@@ -284,6 +283,9 @@ def get_asgi_app(
         """
         Handles outgoing communications to client (announcements).
         """
+
+        if app_runner.code_update_condition is None:
+            raise ValueError("Code update condition not set.")
 
         await app_runner.code_update_condition.acquire()
         try:
