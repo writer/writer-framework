@@ -585,9 +585,8 @@ class EventDeserialiser:
         return self._transform_change(ev)
 
     def _transform_number_change(self, ev) -> Optional[float]:
-        payload = str(ev.payload)
         try:
-            return float(payload)
+            return float(ev.payload)
         except ValueError:
             return None
 
