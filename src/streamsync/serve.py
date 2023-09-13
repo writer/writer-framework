@@ -37,6 +37,7 @@ def get_asgi_app(
         nonlocal app_runner
 
         app_runner = AppRunner(user_app_path, serve_mode)
+        app_runner.hook_to_running_event_loop()
         app_runner.load()
 
         if on_load is not None:
