@@ -368,8 +368,6 @@ class AppProcess(multiprocessing.Process):
             self.server_conn.send(result)
 
     def _run_app_process_server(self) -> None:
-        import signal
-
         is_app_process_server_terminated = threading.Event()
         session_pruner = SessionPruner(
             is_app_process_server_terminated)
@@ -384,8 +382,12 @@ class AppProcess(multiprocessing.Process):
         def signal_handler(sig, frame):
             terminate_server()
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
+        try:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+        except ValueError:
+            # No need to handle signal as not main thread
+            pass
 
         with concurrent.futures.ThreadPoolExecutor(100) as thread_pool:
             self.is_app_process_server_ready.set()
@@ -536,14 +538,24 @@ class AppRunner:
         self.message_counter = 0
         self.log_queue: multiprocessing.Queue = multiprocessing.Queue()
         self.log_listener: Optional[LogListener] = None
-        self.loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
-        self.code_update_condition: Optional[asyncio.Condition] = asyncio.Condition()
+        self.code_update_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.code_update_condition: Optional[asyncio.Condition] = None
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
 
         self.mode = mode
         self._set_logger()
+
+    def hook_to_running_event_loop(self):
+
+        """
+        Sets the properties required to notify the web server of the code update. 
+        Should be performed from the event loop which will consume the notification.
+        """
+
+        self.code_update_loop = asyncio.get_running_loop()
+        self.code_update_condition = asyncio.Condition()
 
     def _set_logger(self):
         logger = logging.getLogger("app")
@@ -560,9 +572,13 @@ class AppRunner:
         def signal_handler(sig, frame):
             self.shut_down()
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-        
+        try:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+        except ValueError:
+            # No need to handle signal as not main thread
+            pass
+
         self.saved_code = self._load_persisted_script()
         self.run_code = self.saved_code
         self.components = self._load_persisted_components()
@@ -770,10 +786,11 @@ class AppRunner:
         self._start_app_process()
         self.is_app_process_server_ready.wait()
         
-        future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
-        future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
+        if self.code_update_loop is not None and self.code_update_condition is not None:
+            future = asyncio.run_coroutine_threadsafe(self.notify_of_code_update(), self.code_update_loop)
+            future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
 
-    async def signal_code_update(self):
+    async def notify_of_code_update(self):
         await self.code_update_condition.acquire()
         try:
             self.code_update_condition.notify_all()
