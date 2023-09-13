@@ -26,6 +26,13 @@ export function generateBuilderManager() {
 		>;
 	};
 
+	type LogEntryContents = {
+		type: string;
+		title: string;
+		message: string;
+		code?: string;
+	};
+
 	type LogEntry = {
 		type: string;
 		title: string;
@@ -237,24 +244,19 @@ export function generateBuilderManager() {
 		return state.value.mutationTransactionsSnapshot;
 	};
 
-	const handleLogEntry = async (logEntry: {
-		type: string;
-		title: string;
-		message: string;
-		code?: string;
-	}) => {
-		async function hashLogEntry(hashableLogEntry: typeof logEntry) {
-			const textEncoder = new TextEncoder();
-			const data = textEncoder.encode(JSON.stringify(hashableLogEntry));
-			const digest = await crypto.subtle.digest("SHA-256", data);
-			const arrayBuffer = new Uint8Array(digest);
-			return Array.from(arrayBuffer)
-				.map((b) => b.toString(16).padStart(2, "0"))
-				.join("");
+	async function hashLogEntryContents(logEntry: LogEntryContents) {
+		const strData = JSON.stringify(logEntry);
+		let hash = 5981;
+		for (var i = 0; i < strData.length; i++) {
+			hash = ((hash << 5) + hash) + strData.charCodeAt(i);
 		}
-
-		const { type, title, message, code } = logEntry;
-		const fingerprint = await hashLogEntry(logEntry);
+		const hashStr = hash.toString(16).padStart(2, "0");
+		return hashStr;
+	}
+	
+	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
+		const { type, title, message, code } = logEntryContents;
+		const fingerprint = await hashLogEntryContents(logEntryContents);
 		const matchingEntry = state.value.logEntries.find(
 			(le) => le.fingerprint === fingerprint,
 		);
