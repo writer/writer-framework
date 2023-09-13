@@ -534,9 +534,9 @@ class AppRunner:
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
         self.response_packets: Dict[int, AppProcessServerResponsePacket] = {}
         self.message_counter = 0
-        self.log_queue = multiprocessing.Queue()
+        self.log_queue: multiprocessing.Queue = multiprocessing.Queue()
         self.log_listener: Optional[LogListener] = None
-        self.loop:asyncio.BaseEventLoop = None
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
@@ -711,7 +711,8 @@ class AppRunner:
             self.observer.stop()
             self.observer.join()
         self.log_queue.put(None)
-        self.log_listener.join()
+        if self.log_listener is not None:
+            self.log_listener.join()
         self._clean_process()
 
     def _start_app_process(self) -> None:
@@ -759,8 +760,9 @@ class AppRunner:
         self._start_app_process()
         self.is_app_process_server_ready.wait()
         
-        future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
-        future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
+        if self.loop is not None:
+            future = asyncio.run_coroutine_threadsafe(self.signal_code_update(), self.loop)
+            future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
 
     async def signal_code_update(self):
         await self.code_update_condition.acquire()

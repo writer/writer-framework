@@ -21,7 +21,7 @@ class Config:
 
     is_mail_enabled_for_log: bool = False
     mode: str = "run"
-    logger: logging.Logger = None
+    logger: Optional[logging.Logger] = None
 
 
 class FileWrapper:
@@ -330,7 +330,7 @@ class StreamsyncState():
     def _log_entry_in_logger(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
         if not Config.logger:
             return
-        log_args = None
+        log_args: Tuple[str, ...] = ()
         if code:
             log_args = (title, message, code)
         else:
@@ -584,17 +584,14 @@ class EventDeserialiser:
     def _transform_change_finish(self, ev) -> str:
         return self._transform_change(ev)
 
-    def _transform_number_change(self, ev) -> float:
-        if ev.payload is None:
-            return None
+    def _transform_number_change(self, ev) -> Optional[float]:
         payload = str(ev.payload)
         try:
-            payload = float(payload)
+            return float(payload)
         except ValueError:
-            return
-        return payload
+            return None
 
-    def _transform_number_change_finish(self, ev) -> float:
+    def _transform_number_change_finish(self, ev) -> Optional[float]:
         return self._transform_number_change(ev)
 
     def _transform_webcam(self, ev) -> Any:
