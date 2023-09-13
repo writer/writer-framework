@@ -374,6 +374,8 @@ class AppProcess(multiprocessing.Process):
         session_pruner.start()
 
         def terminate_server():
+            if is_app_process_server_terminated.is_set():
+                return
             with self.server_conn_lock:
                 self.server_conn.send(None)
                 is_app_process_server_terminated.set()
@@ -401,6 +403,9 @@ class AppProcess(multiprocessing.Process):
                         terminate_server()
                         return
                     self._handle_app_process_server_packet(packet, thread_pool)
+                except InterruptedError:
+                    terminate_server()
+                    return
                 except BaseException as e:
                     logging.error(
                         f"Unexpected exception in AppProcess server.\n{repr(e)}")
@@ -571,6 +576,7 @@ class AppRunner:
     def load(self) -> None:
         def signal_handler(sig, frame):
             self.shut_down()
+            sys.exit(0)
 
         try:
             signal.signal(signal.SIGINT, signal_handler)
