@@ -57,7 +57,7 @@ export default {
 			valueStep: {
 				name: "Step",
 				type: FieldType.Number,
-				default: null
+				default: "1"
 			},
 			cssClasses
 		},
