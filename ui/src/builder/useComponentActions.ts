@@ -8,6 +8,21 @@ import {
 } from "../streamsyncTypes";
 
 export function useComponentActions(ss: Core, ssbm: BuilderManager) {
+
+	function generateNewComponentId() {
+		const radix = 36;
+		let newId = "";
+
+		const randomArr = new Uint16Array(16);
+		window.crypto.getRandomValues(randomArr);
+
+		randomArr.forEach(n => {
+			newId += (n % radix).toString(radix)
+		});
+
+		return newId;
+	}
+
 	/**
 	 * Moves a component up within its current container.
 	 * Mutates the component and its previous sibling.
@@ -114,7 +129,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		parentId: Component["id"],
 		position?: number
 	) {
-		const newId = crypto.randomUUID();
+		const newId = generateNewComponentId();
 		const definition = ss.getComponentDefinition(type);
 		const { fields } = definition;
 		const initContent = {};
@@ -423,7 +438,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			JSON.stringify(subtree)
 		);
 		deepCopiedSubtree.forEach((c) => {
-			const newId = crypto.randomUUID();
+			const newId = generateNewComponentId();
 			deepCopiedSubtree
 				.filter((nc) => nc.id !== c.id)
 				.map((nc) => {

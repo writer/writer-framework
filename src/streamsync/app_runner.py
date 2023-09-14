@@ -1,6 +1,7 @@
 import multiprocessing
 import multiprocessing.synchronize
 import multiprocessing.connection
+import signal
 import threading
 import asyncio
 import concurrent.futures
@@ -9,9 +10,12 @@ import inspect
 import os
 import sys
 import logging
+import logging.handlers
 from types import ModuleType
 import json
 from typing import Any, Callable, Dict, List, Optional
+
+from watchdog.observers.polling import PollingObserver
 
 from pydantic import ValidationError
 from streamsync.core import StreamsyncSession
@@ -64,7 +68,8 @@ class AppProcess(multiprocessing.Process):
                  mode: str,
                  run_code: str,
                  components: Dict,
-                 is_app_process_server_ready: multiprocessing.synchronize.Event):
+                 is_app_process_server_ready: multiprocessing.synchronize.Event,
+                 is_app_process_server_failed: multiprocessing.synchronize.Event):
         super().__init__(name="AppProcess")
         self.client_conn = client_conn
         self.server_conn = server_conn
@@ -73,6 +78,9 @@ class AppProcess(multiprocessing.Process):
         self.run_code = run_code
         self.components = components
         self.is_app_process_server_ready = is_app_process_server_ready
+        self.is_app_process_server_failed = is_app_process_server_failed 
+        self.logger = logging.getLogger("app")
+
 
     def _load_module(self) -> ModuleType:
         """
@@ -285,11 +293,18 @@ class AppProcess(multiprocessing.Process):
         import streamsync
 
         streamsync.Config.mode = self.mode
+        streamsync.Config.logger = self.logger
 
         if self.mode == "edit":
             streamsync.Config.is_mail_enabled_for_log = True
         elif self.mode == "run":
             streamsync.Config.is_mail_enabled_for_log = False
+
+    def _terminate_early(self) -> None:
+        self.is_app_process_server_failed.set()
+        self.is_app_process_server_ready.set()
+        with self.server_conn_lock:
+            self.server_conn.send(None)
 
     def _main(self) -> None:
         self._apply_configuration()
@@ -302,6 +317,8 @@ class AppProcess(multiprocessing.Process):
         import streamsync
         import traceback as tb
 
+        terminate_early = False
+
         try:
             self._execute_user_code()
         except BaseException:
@@ -309,12 +326,23 @@ class AppProcess(multiprocessing.Process):
 
             streamsync.initial_state.add_log_entry(
                 "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
+            
+            # Exit if in run mode
+            
+            if self.mode == "run":
+                terminate_early = True
 
         try:
             streamsync.component_manager.ingest(self.components)
         except BaseException:
             streamsync.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
+            if self.mode == "run":
+                terminate_early = True
+
+        if terminate_early:
+            self._terminate_early()
+            return
 
         self._run_app_process_server()
 
@@ -340,14 +368,14 @@ class AppProcess(multiprocessing.Process):
             self.server_conn.send(result)
 
     def _run_app_process_server(self) -> None:
-        import signal
-
         is_app_process_server_terminated = threading.Event()
         session_pruner = SessionPruner(
             is_app_process_server_terminated)
         session_pruner.start()
 
         def terminate_server():
+            if is_app_process_server_terminated.is_set():
+                return
             with self.server_conn_lock:
                 self.server_conn.send(None)
                 is_app_process_server_terminated.set()
@@ -356,8 +384,12 @@ class AppProcess(multiprocessing.Process):
         def signal_handler(sig, frame):
             terminate_server()
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
+        try:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+        except ValueError:
+            # No need to handle signal as not main thread
+            pass
 
         with concurrent.futures.ThreadPoolExecutor(100) as thread_pool:
             self.is_app_process_server_ready.set()
@@ -371,6 +403,9 @@ class AppProcess(multiprocessing.Process):
                         terminate_server()
                         return
                     self._handle_app_process_server_packet(packet, thread_pool)
+                except InterruptedError:
+                    terminate_server()
+                    return
                 except BaseException as e:
                     logging.error(
                         f"Unexpected exception in AppProcess server.\n{repr(e)}")
@@ -458,6 +493,27 @@ class AppProcessListener(threading.Thread):
                 raise ValueError(
                     f"No response event found for message {message_id}.")
 
+class LogListener(threading.Thread):
+
+    """
+    Logs messages stored in the multiprocessing queue.
+    This allows log messages from the AppProcess to be safely managed.  
+    """
+
+    def __init__(self,
+                 log_queue: multiprocessing.Queue):
+        super().__init__(name="LogListenerThread")
+        self.log_queue = log_queue
+        self.logger = logging.getLogger("from_app")
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.StreamHandler())
+
+    def run(self) -> None:
+        while True:
+            message = self.log_queue.get()
+            if message is None:
+                break
+            self.logger.handle(message)            
 
 class AppRunner:
 
@@ -467,6 +523,9 @@ class AppRunner:
     Allows for communication with the app via messages.
     """
 
+    UPDATE_CHECK_INTERVAL_SECONDS = 0.2
+    MAX_WAIT_NOTIFY_SECONDS = 10
+
     def __init__(self, app_path: str, mode: str):
         self.server_conn: Optional[multiprocessing.connection.Connection] = None
         self.client_conn: Optional[multiprocessing.connection.Connection] = None
@@ -475,26 +534,57 @@ class AppRunner:
         self.run_code: Optional[str] = None
         self.components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
+        self.is_app_process_server_failed = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
-        self.run_code_version: int = 0
-        self.observer: Any = None
+        self.observer: Optional[watchdog.observers.Observer] = None
         self.app_path: str = app_path
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
         self.response_packets: Dict[int, AppProcessServerResponsePacket] = {}
         self.message_counter = 0
+        self.log_queue: multiprocessing.Queue = multiprocessing.Queue()
+        self.log_listener: Optional[LogListener] = None
+        self.code_update_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.code_update_condition: Optional[asyncio.Condition] = None
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
 
         self.mode = mode
+        self._set_logger()
+
+    def hook_to_running_event_loop(self):
+
+        """
+        Sets the properties required to notify the web server of the code update. 
+        Should be performed from the event loop which will consume the notification.
+        """
+
+        self.code_update_loop = asyncio.get_running_loop()
+        self.code_update_condition = asyncio.Condition()
+
+    def _set_logger(self):
+        logger = logging.getLogger("app")
+        logger.addHandler(logging.handlers.QueueHandler(self.log_queue))
+        self.log_listener = LogListener(self.log_queue)
+        self.log_listener.start()
 
     def _set_observer(self):
-        self.observer = watchdog.observers.Observer()
-        self.observer.schedule(
-            FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
+        self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
+        self.observer.schedule(FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
         self.observer.start()
 
     def load(self) -> None:
+        def signal_handler(sig, frame):
+            self.shut_down()
+            sys.exit(0)
+
+        try:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+        except ValueError:
+            # No need to handle signal as not main thread
+            pass
+
         self.saved_code = self._load_persisted_script()
         self.run_code = self.saved_code
         self.components = self._load_persisted_components()
@@ -503,9 +593,6 @@ class AppRunner:
             self._set_observer()
 
         self._start_app_process()
-
-    def get_run_code_version(self) -> int:
-        return self.run_code_version
 
     async def dispatch_message(self, session_id: Optional[str], request: AppProcessServerRequest) -> AppProcessServerResponse:
 
@@ -543,12 +630,14 @@ class AppRunner:
 
     def _load_persisted_script(self) -> str:
         try:
+            contents = None
             with open(os.path.join(self.app_path, "main.py"), "r") as f:
-                return f.read()
+                contents = f.read()
+            return contents
         except FileNotFoundError:
             logging.error(
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
-            sys.exit(0)
+            sys.exit(1)
 
     def _load_persisted_components(self) -> Dict:
         file_payload: Dict = {}
@@ -561,7 +650,7 @@ class AppRunner:
         except FileNotFoundError:
             logging.error(
                 "Couldn't find ui.json in the path provided: %s.", self.app_path)
-            sys.exit(0)
+            sys.exit(1)
         components = file_payload.get("components")
         if components is None:
             raise ValueError("Components not found in file.")
@@ -624,6 +713,7 @@ class AppRunner:
         if self.client_conn is not None:
             self.client_conn.send(None)
         self.is_app_process_server_ready.clear()
+        self.is_app_process_server_failed.clear()
         if self.app_process is not None:
             self.app_process.join()
             self.app_process.close()
@@ -641,10 +731,13 @@ class AppRunner:
         self.server_conn = None
 
     def shut_down(self) -> None:
-        logging.warning("AppRunner shutting down...")
         if self.observer is not None:
+            self.observer.unschedule_all()
             self.observer.stop()
             self.observer.join()
+        self.log_queue.put(None)
+        if self.log_listener is not None:
+            self.log_listener.join()
         self._clean_process()
 
     def _start_app_process(self) -> None:
@@ -662,7 +755,8 @@ class AppRunner:
             mode=self.mode,
             run_code=self.run_code,
             components=self.components,
-            is_app_process_server_ready=self.is_app_process_server_ready)
+            is_app_process_server_ready=self.is_app_process_server_ready,
+            is_app_process_server_failed=self.is_app_process_server_failed)
         self.app_process.start()
         self.app_process_listener = AppProcessListener(
             self.client_conn,
@@ -671,6 +765,9 @@ class AppRunner:
             self.response_events)
         self.app_process_listener.start()
         self.is_app_process_server_ready.wait()
+        if self.mode == "run" and self.is_app_process_server_failed.is_set():
+            self.shut_down()
+            sys.exit(1)
 
     def reload_code_from_saved(self) -> None:
         if not self.is_app_process_server_ready.is_set():
@@ -679,6 +776,13 @@ class AppRunner:
         self.update_code(None, self.saved_code)
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
+
+        """
+        Updates the running code and notifies the update.
+        In order to notify of the update, the event loop and asyncio.Condition need
+        to be aligned with the server's.
+        """
+
         if self.mode != "edit":
             raise PermissionError("Cannot update code in non-edit mode.")
         if not self.is_app_process_server_ready.is_set():
@@ -686,6 +790,15 @@ class AppRunner:
         self.run_code = run_code
         self._clean_process()
         self._start_app_process()
-
         self.is_app_process_server_ready.wait()
-        self.run_code_version += 1
+        
+        if self.code_update_loop is not None and self.code_update_condition is not None:
+            future = asyncio.run_coroutine_threadsafe(self.notify_of_code_update(), self.code_update_loop)
+            future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)
+
+    async def notify_of_code_update(self):
+        await self.code_update_condition.acquire()
+        try:
+            self.code_update_condition.notify_all()
+        finally:
+            self.code_update_condition.release()

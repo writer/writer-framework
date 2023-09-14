@@ -4,6 +4,8 @@
 		ref="rootEl"
 		v-on:keydown="handleKeydown"
 		v-on:click="handleClick"
+		v-on:focusout="handleFocusOut"
+		v-on:focus="handleFocus"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
@@ -15,9 +17,10 @@
 				: undefined
 		"
 	>
-		<div class="selectedOptions">
+		<div class="selectedOptions" ref="selectedOptionsEl">
 			<div class="placeholder" v-show="selectedOptions.length == 0">
-				<template v-if="mode == 'multiple' && maximumCount > 0"
+				<template v-if="placeholder">{{ placeholder }}</template>
+				<template v-else-if="mode == 'multiple' && maximumCount > 0"
 					>Select up to {{ maximumCount }} option{{
 						maximumCount > 1 ? "s" : ""
 					}}...</template
@@ -31,12 +34,17 @@
 			</div>
 			<div
 				class="option"
+				:class="{ notFound: !options?.[optionKey] }"
 				v-for="optionKey in selectedOptions"
 				aria-selected="true"
 			>
-				<div class="desc" role="option">
-					{{ options?.[optionKey] }}
+				<div v-if="options?.[optionKey]" class="desc" role="option">
+					{{ options[optionKey] }}
 				</div>
+				<div v-else class="desc" role="option">
+					{{ optionKey }}
+				</div>
+
 				<div
 					class="remove"
 					data-prevent-list="true"
@@ -98,13 +106,16 @@ const props = defineProps<{
 	options: Record<string, string>;
 	maximumCount: number;
 	mode: "single" | "multiple";
+	placeholder?: string;
 }>();
 
-const { baseId, activeValue, options, maximumCount, mode } = toRefs(props);
+const { baseId, activeValue, options, maximumCount, mode, placeholder } =
+	toRefs(props);
 
 const LIST_MAX_HEIGHT_PX = 200;
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const inputEl: Ref<HTMLElement | null> = ref(null);
+const selectedOptionsEl: Ref<HTMLElement | null> = ref(null);
 const listEl: Ref<HTMLElement | null> = ref(null);
 const activeText: Ref<string> = ref("");
 const highlightedOffset: Ref<number | null> = ref(null);
@@ -174,23 +185,30 @@ watch(highlightedOffset, () => {
 	el.scrollIntoView({ block: "nearest", inline: "nearest" });
 });
 
+function emitChangeEvent() {
+	const optionKeys = Object.keys(options.value);
+	const validSelectedOptions = selectedOptions.value.filter(o => optionKeys.includes(o));
+	emit("change", validSelectedOptions);
+}
+
 function removeItem(optionKey: string) {
 	const index = selectedOptions.value.indexOf(optionKey);
 	if (index !== -1) {
 		selectedOptions.value.splice(index, 1);
 		highlightedOffset.value = null;
 	}
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 }
 
 function removeLastItem() {
 	selectedOptions.value.pop();
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 }
 
-async function hideList() {
+async function hideList(backToRoot = false) {
 	listPosition.value = "hidden";
 	activeText.value = "";
+	if (!backToRoot) return;
 	await nextTick();
 	rootEl.value.tabIndex = 0;
 	rootEl.value?.focus();
@@ -200,7 +218,7 @@ function handleKeydown(ev: KeyboardEvent) {
 	const key = ev.key;
 	if (key == "Escape") {
 		ev.preventDefault();
-		hideList();
+		hideList(true);
 		return;
 	}
 	if (key !== "Tab" && key !== "Shift" && listPosition.value == "hidden") {
@@ -247,7 +265,7 @@ function handleInputKeydown(ev: KeyboardEvent) {
 	}
 }
 
-function selectOption(optionKey: string) {
+async function selectOption(optionKey: string) {
 	if (mode.value == "single") {
 		selectedOptions.value = [];
 	} else {
@@ -256,17 +274,25 @@ function selectOption(optionKey: string) {
 		}
 	}
 	selectedOptions.value.push(optionKey);
-	emit("change", selectedOptions.value);
+	emitChangeEvent();
 	activeText.value = "";
 	if (selectedOptions.value.length == maximumCount.value) {
-		hideList();
+		hideList(true);
 	}
+	await nextTick();
+	selectedOptionsEl.value.scrollTop = selectedOptionsEl.value.scrollHeight;
+}
+
+function handleFocusOut(ev: Event) {
+	const relatedEl = ev.relatedTarget as HTMLElement;
+	if (rootEl.value.contains(relatedEl)) return;
+	hideList(false);
 }
 
 function handleInputBlur(ev: Event) {
 	const relatedEl = ev.relatedTarget as HTMLElement;
 	if (rootEl.value.contains(relatedEl)) return;
-	hideList();
+	hideList(true);
 }
 
 function handleClick(ev: Event) {
@@ -312,6 +338,8 @@ function highlightItem(offset: number) {
 	outline: none;
 	min-height: 50px;
 	background: var(--containerBackgroundColor);
+	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
+	overflow-y: auto;
 }
 
 [data-mode]:not([data-list-position="hidden"]) .selectedOptions .placeholder {
@@ -352,8 +380,9 @@ function highlightItem(offset: number) {
 	min-height: 32px;
 }
 
-.selectedOptions .option:focus {
-	border: 1px solid var(--primaryTextColor);
+.selectedOptions .option.notFound {
+	background: var(--separatorColor);
+	color: var(--containerBackgroundColor);
 }
 
 [data-mode="single"]:not([data-list-position="hidden"])

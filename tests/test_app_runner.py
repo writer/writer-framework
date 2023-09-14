@@ -1,13 +1,14 @@
 
+import logging
+import threading
+import time
 from streamsync.app_runner import AppRunner
 import pytest
 from streamsync.ss_types import EventRequest, InitSessionRequest, InitSessionRequestPayload, StreamsyncEvent
-
+import asyncio
 
 class TestAppRunner:
 
-    run_ar = AppRunner("./testapp", "run")
-    edit_ar = AppRunner("./testapp", "edit")
     numberinput_instance_path = [
         {"componentId": "root", "instanceNumber": 0},
         {"componentId": "7730df5b-8731-4123-bacc-898e7347b124", "instanceNumber": 0},
@@ -21,6 +22,7 @@ class TestAppRunner:
         with pytest.raises(SystemExit) as wrapped_e:
             ar.load()
         assert wrapped_e.type == SystemExit
+        ar.shut_down()
 
     def test_init_wrong_mode(self) -> None:
         with pytest.raises(ValueError):
@@ -28,6 +30,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     async def test_pre_session(self) -> None:
+        ar = AppRunner("./testapp", "run")
         er = EventRequest(
             type="event",
             payload=StreamsyncEvent(
@@ -38,14 +41,15 @@ class TestAppRunner:
                 }
             )
         )
-        self.run_ar.load()
-        r = await self.run_ar.dispatch_message(None,  er)
+        ar.load()
+        r = await ar.dispatch_message(None,  er)
         assert r.status == "error"
-        self.run_ar.shut_down()
+        ar.shut_down()
 
     @pytest.mark.asyncio
     async def test_valid_session_invalid_event(self) -> None:
-        self.run_ar.load()
+        ar = AppRunner("./testapp", "run")
+        ar.load()
         si = InitSessionRequest(
             type="sessionInit",
             payload=InitSessionRequestPayload(
@@ -54,7 +58,7 @@ class TestAppRunner:
                 proposedSessionId=self.proposed_session_id
             )
         )
-        sres = await self.run_ar.dispatch_message(None, si)
+        sres = await ar.dispatch_message(None, si)
         assert sres.status == "ok"
         assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
         er = EventRequest(type="event", payload=StreamsyncEvent(
@@ -64,13 +68,14 @@ class TestAppRunner:
                 "virus": "yes"
             }
         ))
-        rev = await self.run_ar.dispatch_message(None,  er)
+        rev = await ar.dispatch_message(None,  er)
         assert rev.status == "error"
-        self.run_ar.shut_down()
+        ar.shut_down()
 
     @pytest.mark.asyncio
     async def test_valid_event(self) -> None:
-        self.run_ar.load()
+        ar = AppRunner("./testapp", "run")
+        ar.load()
         si = InitSessionRequest(
             type="sessionInit",
             payload=InitSessionRequestPayload(
@@ -79,7 +84,7 @@ class TestAppRunner:
                 proposedSessionId=self.proposed_session_id
             )
         )
-        sres = await self.run_ar.dispatch_message(None, si)
+        sres = await ar.dispatch_message(None, si)
         assert sres.status == "ok"
         assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
         ev_req = EventRequest(type="event", payload=StreamsyncEvent(
@@ -87,18 +92,19 @@ class TestAppRunner:
             instancePath=self.numberinput_instance_path,
             payload="129673"
         ))
-        ev_res = await self.run_ar.dispatch_message(self.proposed_session_id, ev_req)
+        ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
         assert ev_res.status == "ok"
         assert ev_res.payload.result.get("ok") == True
         assert ev_res.payload.mutations.get(
             "inspected_payload") == "129673.0"
         assert ev_res.payload.mutations.get(
             "b.pet_count") == 129673
-        self.run_ar.shut_down()
+        ar.shut_down()
 
     @pytest.mark.asyncio
     async def test_bad_event_handler(self) -> None:
-        self.run_ar.load()
+        ar = AppRunner("./testapp", "run")
+        ar.load()
         si = InitSessionRequest(
             type="sessionInit",
             payload=InitSessionRequestPayload(
@@ -107,7 +113,7 @@ class TestAppRunner:
                 proposedSessionId=self.proposed_session_id
             )
         )
-        await self.run_ar.dispatch_message(None, si)
+        await ar.dispatch_message(None, si)
         bad_button_instance_path = [
             {"componentId": "root", "instanceNumber": 0},
             {"componentId": "28a2212b-bc58-4398-8a72-2554e5296490", "instanceNumber": 0},
@@ -118,23 +124,43 @@ class TestAppRunner:
             instancePath=bad_button_instance_path,
             payload={}
         ))
-        ev_res = await self.run_ar.dispatch_message(self.proposed_session_id, ev_req)
+        ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
         print(repr(ev_res))
         assert ev_res.status == "ok"
         assert ev_res.payload.result.get("ok") == False
-        self.run_ar.shut_down()
+        ar.shut_down()
 
     def test_run_code_edit(self) -> None:
+        ar = AppRunner("./testapp", "run")
         with pytest.raises(PermissionError):
-            self.run_ar.update_code(None, "exec(virus)")
+            ar.update_code(None, "exec(virus)")
         with pytest.raises(PermissionError):
-            self.run_ar.save_code(None, "exec(virus)")
+            ar.save_code(None, "exec(virus)")
+        ar.shut_down()
+
+    def run_loader_thread(self, app_runner: AppRunner) -> None:
+        app_runner.update_code(None, "print('188542')")
+
+    async def wait_for_code_update(self, app_runner: AppRunner) -> None:
+        await app_runner.code_update_condition.acquire()
+        try:
+            await app_runner.code_update_condition.wait()
+        finally:
+            app_runner.code_update_condition.release()
+        return True
 
     @pytest.mark.asyncio
     async def test_code_update(self) -> None:
-        self.edit_ar.load()
-        self.edit_ar.update_code(None, "print('188542')")
-        assert 1 == self.edit_ar.run_code_version
+        ar = AppRunner("./testapp", "edit")
+        ar.hook_to_running_event_loop()
+        ar.load()
+        wait_update_task = asyncio.create_task(self.wait_for_code_update(ar))
+        loader_thread = threading.Thread(target=self.run_loader_thread, args=(ar,))
+        loader_thread.start()
+        code_update_result = await wait_update_task
+        loader_thread.join()
+
+        assert code_update_result == True
 
         si = InitSessionRequest(
             type="sessionInit",
@@ -144,10 +170,10 @@ class TestAppRunner:
                 proposedSessionId=self.proposed_session_id
             )
         )
-        si_res = await self.edit_ar.dispatch_message(None, si)
+        si_res = await ar.dispatch_message(None, si)
         mail = list(si_res.payload.model_dump().get("mail"))
 
         assert mail[0].get(
             "payload").get("message") == "188542\n"
 
-        self.edit_ar.shut_down()
+        ar.shut_down()

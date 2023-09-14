@@ -1,17 +1,17 @@
 <template>
 	<div class="CoreNumberInput" ref="rootEl">
-		<div class="main">
-			<div class="inputContainer">
-				<label>{{ fields.label.value }}</label>
-				<input
-					type="number"
-					v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change')"
-					v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change-finish')"
-					:value="formValue"
-					:placeholder="fields.placeholder.value"
-				/>
-			</div>
-		</div>
+		<label>{{ fields.label.value }}</label>
+		<input
+			type="number"
+			ref="inputEl"
+			v-on:input="handleInputEvent"
+			v-on:change="handleChangeEvent"
+			:value="formValue"
+			:placeholder="fields.placeholder.value"
+			:min="fields.minValue.value !== null ? fields.minValue.value : undefined"
+			:max="fields.maxValue.value !== null ? fields.maxValue.value : undefined"
+			:step="fields.valueStep.value !== null ? fields.valueStep.value : undefined"
+		/>
 	</div>
 </template>
 
@@ -44,6 +44,21 @@ export default {
 				name: "Placeholder",
 				type: FieldType.Text,
 			},
+			minValue: {
+				name: "Minimum value",
+				type: FieldType.Number,
+				default: null
+			},
+			maxValue: {
+				name: "Max value",
+				type: FieldType.Number,
+				default: null
+			},
+			valueStep: {
+				name: "Step",
+				type: FieldType.Number,
+				default: "1"
+			},
 			cssClasses
 		},
 		events: {
@@ -68,10 +83,42 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl = ref(null);
+const inputEl = ref(null);
 const ss = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
 
 const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+
+function enforceLimitsAndReturnValue() {
+	if (inputEl.value.value == "") return null;
+
+	let v:number = parseFloat(inputEl.value.value);
+	
+	if (isNaN(v)) return v;
+	if (fields.minValue.value !== null && v < fields.minValue.value) {
+		v = fields.minValue.value;
+		inputEl.value.value = v;
+	}
+	if (fields.maxValue.value !== null && v > fields.maxValue.value) {
+		v = fields.maxValue.value;
+		inputEl.value.value = v;
+	}
+	return v;
+}
+
+function handleInputEvent() {
+	const v = enforceLimitsAndReturnValue();
+	if (isNaN(v)) return;
+	handleInput(v, 'ss-number-change');
+}
+
+function handleChangeEvent() {
+	const v = enforceLimitsAndReturnValue();
+	if (isNaN(v)) return;
+	handleInput(v, 'ss-number-change-finish');
+}
+
+
 </script>
 
 <style scoped>

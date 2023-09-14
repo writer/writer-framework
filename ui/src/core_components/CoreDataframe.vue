@@ -574,7 +574,7 @@ onUnmounted(() => {
 }
 
 .grid.wrapText .cell {
-	white-space: normal;
+	white-space: pre-wrap;
 }
 
 .cell.headerCell {

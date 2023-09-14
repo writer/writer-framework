@@ -21,6 +21,7 @@ class Config:
 
     is_mail_enabled_for_log: bool = False
     mode: str = "run"
+    logger: Optional[logging.Logger] = None
 
 
 class FileWrapper:
@@ -326,7 +327,22 @@ class StreamsyncState():
             "message": message,
         })
 
-    def add_log_entry(self, type: str, title: str, message: str, code: Optional[str] = None) -> None:
+    def _log_entry_in_logger(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
+        if not Config.logger:
+            return
+        log_args: Tuple[str, ...] = ()
+        if code:
+            log_args = (title, message, code)
+        else:
+            log_args = (title, message)
+        log_message = "From app log: " + ("\n%s" * len(log_args))
+        if type == "info":
+            Config.logger.info(f"\x1b[34;20m{log_message}\x1b[0m", *log_args)
+        elif type == "error":
+            Config.logger.error(f"\x1b[31;20m{log_message}\x1b[0m", *log_args)
+
+    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
+        self._log_entry_in_logger(type, title, message, code)
         if not Config.is_mail_enabled_for_log:
             return
         shortened_message = None
@@ -568,11 +584,13 @@ class EventDeserialiser:
     def _transform_change_finish(self, ev) -> str:
         return self._transform_change(ev)
 
-    def _transform_number_change(self, ev) -> float:
-        payload = float(ev.payload)
-        return payload
+    def _transform_number_change(self, ev) -> Optional[float]:
+        try:
+            return float(ev.payload)
+        except ValueError:
+            return None
 
-    def _transform_number_change_finish(self, ev) -> float:
+    def _transform_number_change_finish(self, ev) -> Optional[float]:
         return self._transform_number_change(ev)
 
     def _transform_webcam(self, ev) -> Any:

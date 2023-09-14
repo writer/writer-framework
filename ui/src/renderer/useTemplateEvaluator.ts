@@ -97,6 +97,10 @@ export function useTemplateEvaluator(ss: Core) {
 		const defaultValue = fields[fieldKey].default;
 		const evaluated = evaluateTemplate(contentValue, instancePath);
 		const fieldType = fields[fieldKey].type;
+		const isValueEmpty =
+		typeof evaluated == "undefined" ||
+		evaluated === null ||
+		evaluated === "";
 		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue) {
 			if (!evaluated) {
 				return JSON.parse(defaultValue) ?? null;
@@ -110,17 +114,16 @@ export function useTemplateEvaluator(ss: Core) {
 			}
 			return parsedValue;
 		} else if (fieldType == FieldType.Number) {
+			const floatDefaultValue = defaultValue === null ? null : parseFloat(defaultValue);
+			if (isValueEmpty) return floatDefaultValue ?? null;
+			
 			const n = parseFloat(evaluated);
 			if (typeof n === undefined || Number.isNaN(n))
-				return parseFloat(defaultValue ?? "0");
+				return floatDefaultValue ?? null;
 			return n;
 		} else if (fieldType == FieldType.IdKey) {
 			return contentValue;
 		} else {
-			const isValueEmpty =
-				typeof evaluated == "undefined" ||
-				evaluated === null ||
-				evaluated === "";
 			if (isValueEmpty) return defaultValue ?? "";
 			return evaluated;
 		}

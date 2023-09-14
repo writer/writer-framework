@@ -4,7 +4,7 @@
 			<label>{{ fields.label.value }}</label>
 		</div>
 		<BaseSelect :base-id="flattenedInstancePath" :active-value="formValue" :options="options" :maximum-count="maximumCount"
-			mode="multiple" v-on:change="handleChange"></BaseSelect>
+			mode="multiple" v-on:change="handleChange" :placeholder="fields.placeholder.value"></BaseSelect>
 	</div>
 </template>
 
@@ -40,6 +40,11 @@ export default {
 				desc: "Key-value object with options. Must be a JSON string or a state reference to a dictionary.",
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
+			},
+			placeholder: {
+				name: "Placeholder",
+				desc: "Text to show when no options are selected.",
+				type: FieldType.Text
 			},
 			maximumCount: {
 				name: "Maximum count",

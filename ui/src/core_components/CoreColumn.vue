@@ -115,9 +115,9 @@ export default {
 				type: FieldType.Text,
 				options: {
 					normal: "Normal",
-					left: "Left",
+					top: "Top",
 					center: "Center",
-					right: "Right",
+					bottom: "Bottom",
 				},
 				category: FieldCategory.Style,
 			},
