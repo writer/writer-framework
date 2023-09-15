@@ -156,7 +156,8 @@ const editorContainer: Ref<HTMLElement> = ref(null);
 const editorDisabled: Ref<boolean> = ref(false);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
-const theme: Ref<string> = ref("vs-light");
+const theme: Ref<string> = ref(localStorage.getItem("currentTheme") || "vs-light");
+
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
 const isCodeSaved: Ref<boolean> = ref(ss.getSavedCode() === ss.getRunCode());
 const sessionTimestamp: ComputedRef<number> = computed(() => ss.getSessionTimestamp());
@@ -291,6 +292,8 @@ const toggleTheme = () => {
 		theme.value = "vs-light";
 	}
 
+	localStorage.setItem("currentTheme", theme.value);
+	
 	editor.updateOptions({
 		theme: theme.value,
 	});
