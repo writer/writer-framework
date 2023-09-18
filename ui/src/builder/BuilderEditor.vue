@@ -140,6 +140,12 @@ function handleKeyDown(event) {
         event.preventDefault(); // Prevent the default save action
         save();  // Call your custom function
       }
+		   // Check if Ctrl (or Cmd for Mac) + J is pressed
+		  else if ((event.ctrlKey || event.metaKey) && event.key === "j") {
+		    event.preventDefault(); // Prevent the default action
+		    toggleLog(); // Call your custom function to hide the log section
+		  }
+
     }
 
 onMounted(() => {
