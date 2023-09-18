@@ -9,25 +9,34 @@
 				v-for="(categoryData, category) in categoriesData"
 				:key="category"
 			>
-				<div class="category" v-if="categoryData.isVisible !== false">
-					<div class="title">
+				<div class="category">
+					<div class="title" @click="categoryData.isVisible=!categoryData.isVisible">
+						<span>
 						<i :class="categoryData.icon ?? 'ri-question-line'"></i>
 						<h4>{{ category }}</h4>
+						</span>
+						
+							
+						<i class="ri-xl  drop_arrow " :class="categoryData.isVisible ? 'ri-arrow-drop-up-line ' : 'ri-arrow-drop-down-line ' " ></i>
+						
 					</div>
-					<div
-						v-for="(
-							definition, type
-						) in definitionsByDisplayCategory[category]"
-						:key="type"
-						class="tool button"
-						:title="definition.description"
-						draggable="true"
-						:data-component-type="type"
-						v-on:dragend="handleDragEnd($event)"
-						v-on:dragstart="handleDragStart($event, type)"
-					>
-						{{ definition.name ?? type }}
-						<i v-if="type.startsWith('custom_')" class="ri-collage-line ri-lg" title="(Custom component template)"></i>
+					
+					<div class="components" v-show="categoryData.isVisible" >
+						<div
+							v-for="(
+								definition, type
+							) in definitionsByDisplayCategory[category]"
+							:key="type"
+							class="tool button"
+							:title="definition.description"
+							draggable="true"
+							:data-component-type="type"
+							v-on:dragend="handleDragEnd($event)"
+							v-on:dragstart="handleDragStart($event, type)"
+						>
+							{{ definition.name ?? type }}
+							<i v-if="type.startsWith('custom_')" class="ri-collage-line ri-lg" title="(Custom component template)"></i>
+						</div>
 					</div>
 				</div>
 			</template>
@@ -36,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject , ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
 import { Component, StreamsyncComponentDefinition } from "../streamsyncTypes";
@@ -50,7 +59,7 @@ type CategoryData = {
 	icon?: string;
 };
 
-const categoriesData: Record<string, CategoryData> = {
+const categoriesData = ref({
 	Root: {
 		isVisible: false,
 	},
@@ -66,7 +75,7 @@ const categoriesData: Record<string, CategoryData> = {
 	Other: {
 		icon: "ri-flow-chart",
 	},
-};
+});
 
 const definitionsByDisplayCategory = computed(() => {
 	const types = ss.getSupportedComponentTypes();
@@ -77,7 +86,7 @@ const definitionsByDisplayCategory = computed(() => {
 
 	types.map((type) => {
 		const definition = ss.getComponentDefinition(type);
-		const isMatch = Object.keys(categoriesData).includes(
+		const isMatch = Object.keys(categoriesData.value).includes(
 			definition.category
 		);
 		let displayCategory: string;
@@ -128,10 +137,23 @@ const handleDragEnd = (ev: DragEvent) => {
 
 .category .title {
 	display: flex;
+	justify-content:space-between;
+	align-items: center;
+/*	padding: 12px 8px 12px 8px;*/
+	
+}
+.category .title:hover{
+	background: var(--builderSubtleHighlightColor);
+}
+.category .title span {
+	display: flex;
+	
 	align-items: center;
 	padding: 12px 8px 12px 8px;
 }
-
+.category .components div{
+	padding-left: 2rem;
+}
 .category .title i {
 	margin-right: 8px;
 }
@@ -148,4 +170,28 @@ const handleDragEnd = (ev: DragEvent) => {
 .tool:hover {
 	background: var(--builderSubtleHighlightColor);
 }
+
+
+
+.drop_arrow {
+	border-radius: 50%;
+/*	height: 24px;*/
+/*	width: 24px;*/
+aspect-ratio: 1 ;
+	min-width: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+/*	margin-right: 4px;*/
+/*	margin-left: -4px;*/
+
+}
+
+.drop_arrow:hover {
+	background: var(--builderSubtleSeparatorColor);
+}
+
+
+
 </style>
