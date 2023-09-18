@@ -1,65 +1,37 @@
 <template>
-	<div
-		class="BuilderEditor"
-		ref="builderEditor"
-		:class="{
-			dark: theme == 'vs-dark',
-			light: theme == 'vs-light',
-			activeLog: isLogActive,
-		}"
-	>
+	<div class="BuilderEditor" ref="builderEditor" :class="{
+		dark: theme == 'vs-dark',
+		light: theme == 'vs-light',
+		activeLog: isLogActive,
+	}">
 		<div class="editor">
 			<div class="windowBar">
 				<div class="icon"><i class="ri-code-line ri-lg"></i></div>
 				<div class="title">Code Editor</div>
-				<button
-					class="windowAction"
-					tabindex="0"
-					:title="(theme == 'vs-light' ? 'Dark' : 'Light') + ' theme'"
-					v-on:click="toggleTheme"
-				>
-					<i
-						class="ri-sun-line ri-lg"
-						v-show="theme == 'vs-dark'"
-					></i>
-					<i
-						class="ri-moon-line ri-lg"
-						v-show="theme == 'vs-light'"
-					></i>
+				<button class="windowAction" tabindex="0" :title="(theme == 'vs-light' ? 'Dark' : 'Light') + ' theme'"
+					v-on:click="toggleTheme">
+					<i class="ri-sun-line ri-lg" v-show="theme == 'vs-dark'"></i>
+					<i class="ri-moon-line ri-lg" v-show="theme == 'vs-light'"></i>
 				</button>
 			</div>
 			<div class="codeActions">
 				<button v-on:click="save" :disabled="editorDisabled">
 					<i class="ri-save-line"></i>{{ "Save and run" }}
-					<div
-						class="saveTick"
-						:class="{ saved: isCodeSaved }"
-						title="Code is saved"
-					>
+					<div class="saveTick" :class="{ saved: isCodeSaved }" title="Code is saved">
 						<i class="ri-check-line"></i>
 					</div>
 				</button>
-				<button
-					v-on:click="run"
-					:disabled="editorDisabled"
-					v-if="false"
-				>
+				<button v-on:click="run" :disabled="editorDisabled" v-if="false">
 					<i class="ri-play-line"></i>Run
 				</button>
 				<div class="statusMessage" v-if="statusMessage">
 					<div class="statusOk ok" v-if="statusMessage.ok === true">
 						<i class="ri-check-line"></i>
 					</div>
-					<div
-						class="statusOk notOk"
-						v-else-if="statusMessage.ok === false"
-					>
+					<div class="statusOk notOk" v-else-if="statusMessage.ok === false">
 						<i class="ri-error-warning-line"></i>
 					</div>
-					<div
-						class="statusOk processing"
-						v-else-if="statusMessage.ok === 'processing'"
-					>
+					<div class="statusOk processing" v-else-if="statusMessage.ok === 'processing'">
 						<i class="ri-loader-3-line"></i>
 					</div>
 					{{ statusMessage.message }}
@@ -73,48 +45,28 @@
 				<div class="title">
 					Log <span class="countLabel">{{ logEntries.length }}</span>
 				</div>
-				<button
-					class="windowAction"
-					tabindex="0"
-					title="Clear log"
-					v-on:click="ssbm.clearLogEntries"
-				>
+				<button class="windowAction" tabindex="0" title="Clear log" v-on:click="ssbm.clearLogEntries">
 					<i class="ri-delete-bin-line"></i>
 				</button>
-				<button
-					class="windowAction"
-					tabindex="0"
-					v-on:click="toggleLog"
-					:title="(isLogActive ? 'Hide' : 'Show') + ' log'"
-				>
-					<i
-						class="ri-arrow-drop-up-line ri-lg"
-						v-show="!isLogActive"
-					></i>
-					<i
-						class="ri-arrow-drop-down-line ri-lg"
-						v-show="isLogActive"
-					></i>
+				<button class="windowAction" tabindex="0" v-on:click="toggleLog"
+					:title="(isLogActive ? 'Hide' : 'Show') + ' log'">
+					<i class="ri-arrow-drop-up-line ri-lg" v-show="!isLogActive"></i>
+					<i class="ri-arrow-drop-down-line ri-lg" v-show="isLogActive"></i>
 				</button>
 			</div>
 			<div class="entryContainer" v-if="isLogActive">
 				<div class="entry" v-for="logEntry in logEntries">
 					<div class="icon" :class="logEntry.type">
-						<i
-							:class="logEntryTypeIcon[logEntry.type]"
-							class="ri-xl"
-						></i>
+						<i :class="logEntryTypeIcon[logEntry.type]" class="ri-xl"></i>
 					</div>
 					<div class="content">
 						<div class="header">
-							<span class="title"
-								>{{ logEntry.title
-								}}{{
-									logEntry.repeated > 0
-										? ` · Repeated ${logEntry.repeated} times`
-										: ""
-								}}</span
-							>
+							<span class="title">{{ logEntry.title
+							}}{{
+	logEntry.repeated > 0
+	? ` · Repeated ${logEntry.repeated} times`
+	: ""
+}}</span>
 							<span class="time">{{
 								logEntry.timestampReceived.toLocaleTimeString()
 							}}</span>
@@ -144,7 +96,7 @@ import {
 	watch,
 	nextTick,
 	computed,
-ComputedRef,
+	ComputedRef,
 } from "vue";
 import injectionKeys from "../injectionKeys";
 
@@ -182,7 +134,21 @@ const handleLogEntry = () => {
 	isLogActive.value = true;
 };
 
+function handleKeyDown(event) {
+      // Check if Ctrl (or Cmd for Mac) + S is pressed
+      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+        event.preventDefault(); // Prevent the default save action
+        save();  // Call your custom function
+      }
+    }
+
 onMounted(() => {
+
+
+	if (editorContainer.value) {
+        editorContainer.value.addEventListener("keydown", handleKeyDown);
+      }
+
 	// Subscribe to new log entries to open log section, but ignore content of log entry.
 
 	ss.addMailSubscription("logEntry", handleLogEntry);
@@ -256,26 +222,26 @@ const save = async () => {
 	isCodeSaved.value = true;
 };
 
-const run = async () => {
-	const editorCode = editor.getValue();
-	statusMessage.value = {
-		ok: "processing",
-		message: `Processing...`,
-	};
-	try {
-		disableEditor();
-		await ss.sendCodeUpdate(editorCode);
-	} catch (error) {
-		statusMessage.value = {
-			ok: false,
-			message: `Code hasn't run. ${error}`,
-		};
-		return;
-	} finally {
-		enableEditor();
-	}
-	statusMessage.value = { ok: true, message: "Code has been executed." };
-};
+// const run = async () => {
+// 	const editorCode = editor.getValue();
+// 	statusMessage.value = {
+// 		ok: "processing",
+// 		message: `Processing...`,
+// 	};
+// 	try {
+// 		disableEditor();
+// 		await ss.sendCodeUpdate(editorCode);
+// 	} catch (error) {
+// 		statusMessage.value = {
+// 			ok: false,
+// 			message: `Code hasn't run. ${error}`,
+// 		};
+// 		return;
+// 	} finally {
+// 		enableEditor();
+// 	}
+// 	statusMessage.value = { ok: true, message: "Code has been executed." };
+// };
 
 const toggleLog = () => {
 	isLogActive.value = !isLogActive.value;
@@ -293,7 +259,7 @@ const toggleTheme = () => {
 	}
 
 	localStorage.setItem("currentTheme", theme.value);
-	
+
 	editor.updateOptions({
 		theme: theme.value,
 	});
@@ -490,6 +456,7 @@ const updateDimensions = () => {
 	max-width: 100%;
 	margin-top: 16px;
 }
+
 .entry code {
 	margin: 0;
 	width: 100%;
