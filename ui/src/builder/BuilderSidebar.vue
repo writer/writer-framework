@@ -24,7 +24,7 @@ import BuilderSidebarTree from "./BuilderSidebarTree.vue";
 	height: 50%;
 	display: flex;
 	flex-direction: column;
-	overflow-y: auto;
+	overflow-y: scroll;
 }
 
 .tree {
