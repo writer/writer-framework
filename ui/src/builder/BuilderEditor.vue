@@ -15,14 +15,11 @@
 				</button>
 			</div>
 			<div class="codeActions">
-				<button v-on:click="save" :disabled="editorDisabled">
+				<button v-on:click="save" :disabled="editorDisabled" :title="`Save and run (${modifierKeyName}+s)`">
 					<i class="ri-save-line"></i>{{ "Save and run" }}
 					<div class="saveTick" :class="{ saved: isCodeSaved }" title="Code is saved">
 						<i class="ri-check-line"></i>
 					</div>
-				</button>
-				<button v-on:click="run" :disabled="editorDisabled" v-if="false">
-					<i class="ri-play-line"></i>Run
 				</button>
 				<div class="statusMessage" v-if="statusMessage">
 					<div class="statusOk ok" v-if="statusMessage.ok === true">
@@ -49,7 +46,7 @@
 					<i class="ri-delete-bin-line"></i>
 				</button>
 				<button class="windowAction" tabindex="0" v-on:click="toggleLog"
-					:title="(isLogActive ? 'Hide' : 'Show') + ' log'">
+					:title="(isLogActive ? 'Hide' : 'Show') + ` log (${modifierKeyName}+j)`">
 					<i class="ri-arrow-drop-up-line ri-lg" v-show="!isLogActive"></i>
 					<i class="ri-arrow-drop-down-line ri-lg" v-show="isLogActive"></i>
 				</button>
@@ -99,6 +96,7 @@ import {
 	ComputedRef,
 } from "vue";
 import injectionKeys from "../injectionKeys";
+import { isPlatformMac } from "../core/detectPlatform";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -107,6 +105,7 @@ const builderEditor: Ref<HTMLElement> = ref(null);
 const editorContainer: Ref<HTMLElement> = ref(null);
 const editorDisabled: Ref<boolean> = ref(false);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
+const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";
 
 const theme: Ref<string> = ref(localStorage.getItem("currentTheme") || "vs-light");
 
@@ -134,26 +133,24 @@ const handleLogEntry = () => {
 	isLogActive.value = true;
 };
 
-function handleKeyDown(event) {
-      // Check if Ctrl (or Cmd for Mac) + S is pressed
-      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
-        event.preventDefault(); // Prevent the default save action
-        save();  // Call your custom function
-      }
-		   // Check if Ctrl (or Cmd for Mac) + J is pressed
-		  else if ((event.ctrlKey || event.metaKey) && event.key === "j") {
-		    event.preventDefault(); // Prevent the default action
-		    toggleLog(); // Call your custom function to hide the log section
-		  }
+function handleKeydown(ev: KeyboardEvent) {
+	const isModifierKeyActive = isPlatformMac() ? ev.metaKey : ev.ctrlKey;
 
-    }
+	if (ev.key === "s" && isModifierKeyActive) {
+		ev.preventDefault();
+		save();
+		return;
+	}
+	
+	if (ev.key === "j" && isModifierKeyActive) {
+		ev.preventDefault();
+		toggleLog();
+		return;
+	}
+}
 
 onMounted(() => {
-
-
-	if (editorContainer.value) {
-        editorContainer.value.addEventListener("keydown", handleKeyDown);
-      }
+	document.addEventListener("keydown", handleKeydown);
 
 	// Subscribe to new log entries to open log section, but ignore content of log entry.
 
@@ -172,6 +169,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	document.removeEventListener("keydown", handleKeydown);
 	window.removeEventListener("resize", updateDimensions.bind(this));
 });
 
@@ -227,27 +225,6 @@ const save = async () => {
 	statusMessage.value = null;
 	isCodeSaved.value = true;
 };
-
-// const run = async () => {
-// 	const editorCode = editor.getValue();
-// 	statusMessage.value = {
-// 		ok: "processing",
-// 		message: `Processing...`,
-// 	};
-// 	try {
-// 		disableEditor();
-// 		await ss.sendCodeUpdate(editorCode);
-// 	} catch (error) {
-// 		statusMessage.value = {
-// 			ok: false,
-// 			message: `Code hasn't run. ${error}`,
-// 		};
-// 		return;
-// 	} finally {
-// 		enableEditor();
-// 	}
-// 	statusMessage.value = { ok: true, message: "Code has been executed." };
-// };
 
 const toggleLog = () => {
 	isLogActive.value = !isLogActive.value;
