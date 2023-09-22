@@ -4,30 +4,33 @@
 			<i class="ri-tools-line ri-xl"></i>
 			<h3>Toolkit</h3>
 		</div>
-		<div class="tools">
+		<div class="categories">
 			<template
 				v-for="(categoryData, category) in categoriesData"
 				:key="category"
 			>
-				<div class="category">
-					<div class="title" @click="categoryData.isVisible=!categoryData.isVisible">
-						<span>
+				<div class="category" v-if="categoryData.isVisible !== false">
+					<div class="title">
 						<i :class="categoryData.icon ?? 'ri-question-line'"></i>
 						<h4>{{ category }}</h4>
-						</span>
-						
-							
-						<i class="ri-xl  drop_arrow " :class="categoryData.isVisible ? 'ri-arrow-drop-up-line ' : 'ri-arrow-drop-down-line ' " ></i>
-						
+
+						<div class="drop-arrow" v-on:click="toggleCollapseCategory(category)">
+							<i class="ri-xl" :class="
+									categoryData.isCollapsed
+										? 'ri-arrow-drop-down-line'
+										: 'ri-arrow-drop-up-line'
+								"
+							></i>
+						</div>
 					</div>
-					
-					<div class="components" v-show="categoryData.isVisible" >
+
+					<div class="components" v-show="!categoryData.isCollapsed">
 						<div
 							v-for="(
 								definition, type
 							) in definitionsByDisplayCategory[category]"
 							:key="type"
-							class="tool button"
+							class="component button"
 							:title="definition.description"
 							draggable="true"
 							:data-component-type="type"
@@ -35,7 +38,11 @@
 							v-on:dragstart="handleDragStart($event, type)"
 						>
 							{{ definition.name ?? type }}
-							<i v-if="type.startsWith('custom_')" class="ri-collage-line ri-lg" title="(Custom component template)"></i>
+							<i
+								v-if="type.startsWith('custom_')"
+								class="ri-collage-line ri-lg"
+								title="(Custom component template)"
+							></i>
 						</div>
 					</div>
 				</div>
@@ -45,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject , ref } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
 import { Component, StreamsyncComponentDefinition } from "../streamsyncTypes";
@@ -56,26 +63,36 @@ const { removeInsertionCandidacy } = useDragDropComponent(ss);
 
 type CategoryData = {
 	isVisible?: boolean;
+	isCollapsed?: boolean;
 	icon?: string;
 };
 
-const categoriesData = ref({
+const categoriesData:Ref<Record<string, CategoryData>> = ref({
 	Root: {
 		isVisible: false,
 	},
 	Layout: {
 		icon: "ri-layout-line",
+		isCollapsed: false,
 	},
 	Content: {
 		icon: "ri-image-line",
+		isCollapsed: false,
 	},
 	Input: {
 		icon: "ri-keyboard-line",
+		isCollapsed: false,
 	},
 	Other: {
 		icon: "ri-flow-chart",
+		isCollapsed: false,
 	},
 });
+
+function toggleCollapseCategory(categoryId: string) {
+	const categoryData = categoriesData.value[categoryId]; 
+	categoryData.isCollapsed = !categoryData.isCollapsed; 
+}
 
 const definitionsByDisplayCategory = computed(() => {
 	const types = ss.getSupportedComponentTypes();
@@ -87,7 +104,7 @@ const definitionsByDisplayCategory = computed(() => {
 	types.map((type) => {
 		const definition = ss.getComponentDefinition(type);
 		const isMatch = Object.keys(categoriesData.value).includes(
-			definition.category
+			definition.category,
 		);
 		let displayCategory: string;
 		if (!isMatch) {
@@ -128,7 +145,7 @@ const handleDragEnd = (ev: DragEvent) => {
 	background: var(--builderBackgroundColor);
 }
 
-.tools {
+.categories {
 	padding: 0 12px 12px 12px;
 	flex: 1 1 auto;
 	display: flex;
@@ -137,28 +154,21 @@ const handleDragEnd = (ev: DragEvent) => {
 
 .category .title {
 	display: flex;
-	justify-content:space-between;
+	justify-content: space-between;
 	align-items: center;
-/*	padding: 12px 8px 12px 8px;*/
-	
-}
-.category .title:hover{
-	background: var(--builderSubtleHighlightColor);
-}
-.category .title span {
-	display: flex;
-	
-	align-items: center;
-	padding: 12px 8px 12px 8px;
-}
-.category .components div{
-	padding-left: 2rem;
-}
-.category .title i {
-	margin-right: 8px;
+	padding: 8px;
+	gap: 8px;
 }
 
-.tool {
+.category .title h4 {
+	flex: 1 0 auto;
+}
+
+.category .components {
+	padding: 4px 0 4px 0;
+}
+
+.component {
 	padding: 8px;
 	border-radius: 4px;
 	cursor: grab;
@@ -167,31 +177,21 @@ const handleDragEnd = (ev: DragEvent) => {
 	gap: 4px;
 }
 
-.tool:hover {
+.component:hover {
 	background: var(--builderSubtleHighlightColor);
 }
 
-
-
-.drop_arrow {
+.drop-arrow {
 	border-radius: 50%;
-/*	height: 24px;*/
-/*	width: 24px;*/
-aspect-ratio: 1 ;
 	min-width: 24px;
+	min-height: 24px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-/*	margin-right: 4px;*/
-/*	margin-left: -4px;*/
-
 }
 
-.drop_arrow:hover {
+.drop-arrow:hover {
 	background: var(--builderSubtleSeparatorColor);
 }
-
-
-
 </style>
