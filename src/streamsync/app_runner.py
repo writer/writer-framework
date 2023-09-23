@@ -281,8 +281,10 @@ class AppProcess(multiprocessing.Process):
         if streamsyncuserapp is None:
             raise ValueError("Couldn't find app module (streamsyncuserapp).")
 
+        code_path = os.path.join(self.app_path, "main.py")
         with redirect_stdout(io.StringIO()) as f:
-            exec(self.run_code, streamsyncuserapp.__dict__)
+            code = compile(self.run_code, code_path, "exec")
+            exec(code, streamsyncuserapp.__dict__)
         captured_stdout = f.getvalue()
 
         if captured_stdout:
