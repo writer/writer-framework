@@ -67,7 +67,7 @@ import { computed, inject, nextTick, Ref, ref, toRefs, watch } from "vue";
 import { Component } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 import { onMounted } from "vue";
-import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
+import { useEvaluator } from "../renderer/useEvaluator";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -76,7 +76,7 @@ const { createAndInsertComponent, isParentViable, moveComponent, goToComponentPa
 	useComponentActions(ss, ssbm);
 const { getComponentInfoFromDrag, removeInsertionCandidacy } =
 	useDragDropComponent(ss);
-const { isComponentVisible } = useTemplateEvaluator(ss);
+const { isComponentVisible } = useEvaluator(ss);
 
 interface Props {
 	componentId: Component["id"];

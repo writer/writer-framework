@@ -95,10 +95,10 @@ const options = computed(() => fields.options.value);
 const maximumCount: Ref<number> = computed(() => fields.maximumCount.value);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 function handleChange(selectedOptions: string[]) {
 	handleInput(selectedOptions, "ss-options-change");

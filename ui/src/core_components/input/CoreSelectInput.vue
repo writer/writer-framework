@@ -88,10 +88,10 @@ const fields = inject(injectionKeys.evaluatedFields);
 const options = computed(() => fields.options.value);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
+const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 function handleChange(selectedOptions: string[]) {
 	const selectedOption = selectedOptions?.[0] ?? null;

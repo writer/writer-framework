@@ -24,6 +24,7 @@ raw_state_dict = {
         "eyes": "green",
         "height": "very short"
     },
+    "best_feature": "eyes",
     "utfࠀ": 23,
     "counter": 4,
     "_private": 3,
@@ -545,26 +546,28 @@ class TestEvaluator:
             instance_path_2, "text") == "The id is js and the name is JavaScript"
 
     def test_set_state(self) -> None:
+        instance_path = [
+            {"componentId": "root", "instanceNumber": 0}
+        ]
         st = StreamsyncState(raw_state_dict)
         e = Evaluator(st)
-        e.set_state("name", "Roger")
-        e.set_state("features.height", "toddler height")
-        e.set_state("features.new_feature", "blue")
+        e.set_state("name", instance_path, "Roger")
+        e.set_state("dynamic_prop", instance_path, "height")
+        e.set_state("features[dynamic_prop]", instance_path, "toddler height")
+        e.set_state("features.new_feature", instance_path, "blue")
         assert st["name"] == "Roger"
         assert st["features"]["height"] == "toddler height"
         assert st["features"]["new_feature"] == "blue"
 
     def test_evaluate_expression(self) -> None:
+        instance_path = [
+            {"componentId": "root", "instanceNumber": 0}
+        ]
         st = StreamsyncState(raw_state_dict)
         e = Evaluator(st)
-        c = {
-            "myItemId": 3,
-            "myItem": {
-                "name": "Normal name"
-            }
-        }
-        assert e.evaluate_expression("features.eyes", c) == "green"
-        assert e.evaluate_expression("myItem.name", c) == "Normal name"
+        assert e.evaluate_expression("features.eyes", instance_path) == "green"
+        assert e.evaluate_expression("best_feature", instance_path) == "eyes"
+        assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
 
 
 class TestSessionManager:
