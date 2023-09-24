@@ -84,10 +84,10 @@ const rootEl: Ref<HTMLInputElement> = ref(null);
 const fileEl: Ref<HTMLInputElement> = ref(null);
 const message:Ref<string> = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 const processingFiles:Ref<string[]> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 const allowMultipleFilesFlag = computed(() => {
 	return fields.allowMultipleFiles.value == "yes" ? true : undefined;

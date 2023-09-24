@@ -57,13 +57,12 @@ def handle_click(state):
 
 ## Frontend core
 
-You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `evaluate_expression` to get values from state.
+You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `getUserState()` to get values from state.
 
 ```js
 export function alertHueRotationValue() {
-    const core = globalThis.core;
-    const hueRotation = core.evaluateExpression("hue_rotation");
-    alert(`Value of hue_rotation is ${hueRotation}`);
+    const state = globalThis.core.getUserState();
+    console.log("State is", state);
 }
 ```
 

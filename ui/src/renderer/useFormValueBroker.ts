@@ -1,5 +1,6 @@
 import { computed, Ref, ref, watch } from "vue";
-import { Component, Core } from "../streamsyncTypes";
+import { Core, InstancePath } from "../streamsyncTypes";
+import { useEvaluator } from "../renderer/useEvaluator";
 
 /**
  *
@@ -11,15 +12,27 @@ import { Component, Core } from "../streamsyncTypes";
  */
 export function useFormValueBroker(
 	ss: Core,
-	componentId: Component["id"],
-	emitterEl: Ref<HTMLElement>
+	instancePath: InstancePath,
+	emitterEl: Ref<HTMLElement>,
 ) {
 	const formValue: Ref<any> = ref();
 	const isBusy = ref(false);
 	const queuedEvent: Ref<{ eventValue: any; emitEventType: string }> =
 		ref(null);
 
+
+	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => ss.getComponentById(componentId));
+	const { evaluateExpression } = useEvaluator(ss);
+
+	function getBindingValue() {
+		const component = ss.getComponentById(componentId);
+		if (component?.binding?.stateRef) {
+			const value = evaluateExpression(component.binding.stateRef, instancePath);
+			return value;
+		}
+		return;
+	}
 
 	/**
 	 * Takes a value and emits a CustomEvent of the given type.
@@ -72,7 +85,7 @@ export function useFormValueBroker(
 	}
 
 	watch(
-		() => ss.getBindingValue(componentId),
+		() => getBindingValue(),
 		(value) => {
 			if (isBusy.value) return;
 			formValue.value = value;

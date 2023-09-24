@@ -1,8 +1,74 @@
 import { ComputedRef, computed } from "vue";
 import { Component, Core, FieldType, InstancePath } from "../streamsyncTypes";
 
-export function useTemplateEvaluator(ss: Core) {
+export function useEvaluator(ss: Core) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;
+
+	/**
+	 * Returns the expression as an array of static accessors.
+	 * For example, turns a.b.c into ["a", "b", "c"].
+	 *
+	 */
+	function parseExpression(
+		expr: string,
+		instancePath?: InstancePath
+	): string[] {
+		let accessors = [],
+			s = "";
+		let level = 0;
+
+		for (let i = 0; i < expr.length; i++) {
+			const c = expr.charAt(i);
+			if (c == ".") {
+				if (level == 0) {
+					accessors.push(s);
+					s = "";
+				} else {
+					s += c;
+				}
+			} else if (c == "[") {
+				if (level == 0) {
+					accessors.push(s);
+					s = "";
+				} else {
+					s += c;
+				}
+				level++;
+			} else if (c == "]") {
+				level--;
+				if (level == 0) {
+					s = evaluateExpression(s, instancePath)?.toString();
+				} else {
+					s += c;
+				}
+			} else {
+				s += c;
+			}
+		}
+
+		if (s) {
+			accessors.push(s);
+		}
+
+		return accessors;
+	}
+
+	function evaluateExpression(
+		expr: string,
+		instancePath?: InstancePath
+	) {
+		const contextData = instancePath ? getContextData(instancePath) : undefined;
+		let contextRef = contextData;
+		let stateRef = ss.getUserState();
+		let accessors = parseExpression(expr, instancePath);
+
+		for (let i = 0; i < accessors.length; i++) {
+			contextRef = contextRef?.[accessors[i]];
+			stateRef = stateRef?.[accessors[i]];
+		}
+
+		return contextRef ?? stateRef;
+	}
 
 	function getContextData(instancePath: InstancePath) {
 		const context = {};
@@ -47,8 +113,6 @@ export function useTemplateEvaluator(ss: Core) {
 	): string {
 		if (template === undefined || template === null) return "";
 
-		const contextData = getContextData(instancePath);
-
 		const evaluatedTemplate = template.replace(
 			templateRegex,
 			(match, captured) => {
@@ -57,7 +121,7 @@ export function useTemplateEvaluator(ss: Core) {
 				const expr = captured.trim();
 				if (!expr) return "";
 
-				const exprValue = ss.evaluateExpression(expr, contextData);
+				const exprValue = evaluateExpression(expr, instancePath);
 
 				if (typeof exprValue == "undefined") {
 					return "";
@@ -65,7 +129,7 @@ export function useTemplateEvaluator(ss: Core) {
 					return JSON.stringify(exprValue);
 				}
 
-				return exprValue;
+				return exprValue.toString();
 			}
 		);
 
@@ -140,22 +204,19 @@ export function useTemplateEvaluator(ss: Core) {
 		componentId: Component["id"],
 		instancePath?: InstancePath
 	): boolean {
-		let contextData:Record<string, any>;
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
 
 		if (typeof component.visible === "undefined") return true;
 		if (component.visible === true) return true;
 		if (component.visible === false) return false;
-		if (instancePath) {
-			contextData = getContextData(instancePath);
-		}
-		const evaluated = ss.evaluateExpression(component.visible as string, contextData);
+		const evaluated = evaluateExpression(component.visible as string, instancePath);
 		return !!evaluated;
 	}
 
 	return {
 		getEvaluatedFields,
-		isComponentVisible
+		isComponentVisible,
+		evaluateExpression
 	};
 }

@@ -14,6 +14,7 @@ import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
+import { evaluate } from "./evaluator";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -426,15 +427,6 @@ export function generateCore() {
 		return userFunctions.value;
 	}
 
-	function getBindingValue(componentId: Component["id"]) {
-		const component = getComponentById(componentId);
-		if (component?.binding?.stateRef) {
-			const value = evaluateExpression(component.binding.stateRef);
-			return value;
-		}
-		return;
-	}
-
 	function getComponentById(componentId: Component["id"]): Component {
 		return components.value[componentId];
 	}
@@ -491,20 +483,8 @@ export function generateCore() {
 		return typeHierarchy.getContainableTypes(components.value, componentId);
 	}
 
-	function evaluateExpression(
-		expr: string,
-		contextData?: Record<string, any>,
-	) {
-		const splitKey = expr.split(".");
-		let contextRef = contextData;
-		let stateRef = userState.value;
-
-		for (let i = 0; i < splitKey.length; i++) {
-			contextRef = contextRef?.[splitKey[i]];
-			stateRef = stateRef?.[splitKey[i]];
-		}
-
-		return contextRef ?? stateRef;
+	function getUserState() {
+		return userState.value;
 	}
 
 	const core = {
@@ -515,7 +495,6 @@ export function generateCore() {
 		getUserFunctions,
 		addMailSubscription,
 		init,
-		evaluateExpression,
 		forwardEvent,
 		getSavedCode,
 		getRunCode,
@@ -524,7 +503,6 @@ export function generateCore() {
 		sendComponentUpdate,
 		addComponent,
 		deleteComponent,
-		getBindingValue,
 		getComponentById,
 		getComponents,
 		setActivePageId,
@@ -535,6 +513,7 @@ export function generateCore() {
 		getSupportedComponentTypes,
 		getContainableTypes,
 		getSessionTimestamp,
+		getUserState,
 	};
 
 	return core;

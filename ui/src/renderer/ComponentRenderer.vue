@@ -25,10 +25,10 @@ import { Component, InstancePath } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
 import injectionKeys from "../injectionKeys";
-import { useTemplateEvaluator } from "./useTemplateEvaluator";
+import { useEvaluator } from "./useEvaluator";
 
 const ss = inject(injectionKeys.core);
-const templateEvaluator = useTemplateEvaluator(ss);
+const templateEvaluator = useEvaluator(ss);
 const pages: Component[] = ss.getComponents();
 
 if (pages.length == 0) {

@@ -199,6 +199,9 @@ class StateProxy:
         for key, raw_value in raw_state.items():
             self.__setitem__(key, raw_value)
 
+    def get(self, key) -> Any:
+        return self.state.get(key)
+
     def __getitem__(self, key) -> Any:
         return self.state.get(key)
 
@@ -639,13 +642,11 @@ class Evaluator:
         self.ss = session_state
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="") -> Any:
-        context_data = self.get_context_data(instance_path)
-
         def replacer(matched):
             if matched.string[0] == "\\":  # Escaped @, don't evaluate
                 return matched.string
             expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, context_data)
+            expr_value = self.evaluate_expression(expr, instance_path)
 
             serialised_value = None
             try:
@@ -704,30 +705,66 @@ class Evaluator:
 
         return context
 
-    def set_state(self, flat_state_ref: str, value: Any) -> None:
-        nested_key = flat_state_ref.split(".")
+    def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
+        accessors = self.parse_expression(expr, instance_path)
         state_ref: Any = self.ss.user_state
-        for key in nested_key[:-1]:
-            state_ref = state_ref[key]
+        for accessor in accessors[:-1]:
+            state_ref = state_ref[accessor]
 
         if not isinstance(state_ref, StateProxy):
             raise ValueError(
-                f"Incorrect state reference. Reference \"{flat_state_ref}\" isn't part of a StateProxy.")
+                f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy.")
 
-        state_ref[nested_key[-1]] = value
+        state_ref[accessors[-1]] = value
 
-    def evaluate_expression(self, expr: str, context_data: Dict[str, Any]) -> Any:
-        nested_key = expr.split(".")
+    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None) -> List[str]:
+
+        """ Returns a list of accessors from an expression. """
+
+        accessors: List[str] = []
+        s = ""
+        level = 0
+
+        for c in expr:
+            if c == ".":
+                if level == 0:
+                    accessors.append(s)
+                    s = ""
+                else:
+                    s += c
+            elif c == "[":
+                if level == 0:
+                    accessors.append(s)
+                    s = ""
+                else:
+                    s += c
+                level += 1
+            elif c == "]":
+                level -= 1
+                if level == 0:
+                    s = str(self.evaluate_expression(s, instance_path))
+                else:
+                    s += c
+            else:
+                s += c
+
+        if s:
+            accessors.append(s);
+
+        return accessors
+
+
+    def evaluate_expression(self, expr: str, instance_path: InstancePath) -> Any:
+        context_data = self.get_context_data(instance_path)
         context_ref: Any = context_data
         state_ref: Any = self.ss.user_state.state
-        for key in nested_key:
-            if isinstance(state_ref, StateProxy):
-                state_ref = state_ref[key]
-            elif isinstance(state_ref, dict):
-                state_ref = state_ref.get(key)
+        accessors: List[str] = self.parse_expression(expr, instance_path)
+        for accessor in accessors:
+            if isinstance(state_ref, (StateProxy, dict)):
+                state_ref = state_ref.get(accessor)
 
             if context_ref and isinstance(context_ref, dict):
-                context_ref = context_ref.get(key)
+                context_ref = context_ref.get(accessor)
 
         result = None
         if context_ref:
@@ -856,13 +893,13 @@ class EventHandler:
         self.deser = EventDeserialiser(self.session_state)
         self.evaluator = Evaluator(self.session_state)
 
-    def _handle_binding(self, event_type, target_component, payload) -> None:
+    def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
         if not target_component.binding:
             return
         binding = target_component.binding
         if binding["eventType"] != event_type:
             return
-        self.evaluator.set_state(binding["stateRef"], payload)
+        self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
@@ -932,7 +969,7 @@ class EventHandler:
             target_id = instance_path[-1]["componentId"]
             target_component = component_manager.components[target_id]
 
-            self._handle_binding(ev.type, target_component, ev.payload)
+            self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(
                 ev.type, target_component, instance_path, ev.payload)
         except BaseException:
