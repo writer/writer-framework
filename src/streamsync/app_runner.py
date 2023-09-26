@@ -532,7 +532,6 @@ class AppRunner:
         self.server_conn: Optional[multiprocessing.connection.Connection] = None
         self.client_conn: Optional[multiprocessing.connection.Connection] = None
         self.app_process: Optional[AppProcess] = None
-        self.saved_code: Optional[str] = None
         self.run_code: Optional[str] = None
         self.components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
@@ -587,8 +586,7 @@ class AppRunner:
             # No need to handle signal as not main thread
             pass
 
-        self.saved_code = self._load_persisted_script()
-        self.run_code = self.saved_code
+        self.run_code = self._load_persisted_script()
         self.components = self._load_persisted_components()
 
         if self.mode == "edit":
@@ -701,13 +699,12 @@ class AppRunner:
             type="stateEnquiry"
         ))
 
-    def save_code(self, session_id: str, saved_code: str) -> None:
+    def save_code(self, session_id: str, code: str) -> None:
         if self.mode != "edit":
             raise PermissionError("Cannot save code in non-edit mode.")
 
         with open(os.path.join(self.app_path, "main.py"), "w") as f:
-            f.write(saved_code)
-        self.saved_code = saved_code
+            f.write(code)
 
     def _clean_process(self) -> None:
         # Terminate the AppProcess server by sending an empty message
@@ -774,8 +771,7 @@ class AppRunner:
     def reload_code_from_saved(self) -> None:
         if not self.is_app_process_server_ready.is_set():
             return
-        self.saved_code = self._load_persisted_script()
-        self.update_code(None, self.saved_code)
+        self.update_code(None, self._load_persisted_script())
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
 

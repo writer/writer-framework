@@ -14,7 +14,6 @@ import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
-import { evaluate } from "./evaluator";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -23,7 +22,6 @@ export function generateCore() {
 	let sessionId: string = null;
 	let sessionTimestamp: Ref<number> = ref(null);
 	let mode: Ref<"run" | "edit"> = ref(null);
-	let savedCode: Ref<string> = ref(null);
 	let runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
@@ -99,7 +97,6 @@ export function generateCore() {
 		// Only returned for edit (Builder) mode
 
 		userFunctions.value = initData.userFunctions;
-		savedCode.value = initData.savedCode;
 		runCode.value = initData.runCode;
 
 		await startSync();
@@ -309,10 +306,6 @@ export function generateCore() {
 		});
 	}
 
-	function getSavedCode() {
-		return savedCode.value;
-	}
-
 	async function sendCodeUpdate(newCode: string): Promise<void> {
 		const messageData = {
 			code: newCode,
@@ -496,7 +489,6 @@ export function generateCore() {
 		addMailSubscription,
 		init,
 		forwardEvent,
-		getSavedCode,
 		getRunCode,
 		sendCodeSaveRequest,
 		sendCodeUpdate,

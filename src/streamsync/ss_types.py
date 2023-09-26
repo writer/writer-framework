@@ -48,7 +48,6 @@ class InitResponseBodyRun(InitResponseBody):
 
 class InitResponseBodyEdit(InitResponseBody):
     mode: Literal["edit"]
-    savedCode: Optional[str] = None
     runCode: Optional[str] = None
 
 

@@ -89,7 +89,6 @@ def get_asgi_app(
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
-        saved_code: Optional[str] = app_runner.saved_code
         run_code: Optional[str] = app_runner.run_code
 
         return InitResponseBodyEdit(
@@ -99,7 +98,6 @@ def get_asgi_app(
             mail=payload.mail,
             components=payload.components,
             userFunctions=payload.userFunctions,
-            savedCode=saved_code,
             runCode=run_code,
             extensionPaths=cached_extension_paths
         )

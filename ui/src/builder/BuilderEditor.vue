@@ -17,9 +17,6 @@
 			<div class="codeActions">
 				<button v-on:click="save" :disabled="editorDisabled" :title="`Save and run (${modifierKeyName}+s)`">
 					<i class="ri-save-line"></i>{{ "Save and run" }}
-					<div class="saveTick" :class="{ saved: isCodeSaved }" title="Code is saved">
-						<i class="ri-check-line"></i>
-					</div>
 				</button>
 				<div class="statusMessage" v-if="statusMessage">
 					<div class="statusOk ok" v-if="statusMessage.ok === true">
@@ -110,7 +107,6 @@ const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";
 const theme: Ref<string> = ref(localStorage.getItem("currentTheme") || "vs-light");
 
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
-const isCodeSaved: Ref<boolean> = ref(ss.getSavedCode() === ss.getRunCode());
 const sessionTimestamp: ComputedRef<number> = computed(() => ss.getSessionTimestamp());
 
 type StatusMessage = {
@@ -162,7 +158,6 @@ onMounted(() => {
 		theme: theme.value,
 	});
 	editor.getModel().onDidChangeContent(() => {
-		isCodeSaved.value = false;
 		statusMessage.value = null;
 	});
 	window.addEventListener("resize", updateDimensions.bind(this));
@@ -177,7 +172,6 @@ watch(
 	() => ss.getRunCode(),
 	(newRunCode) => {
 		editor.getModel().setValue(newRunCode);
-		isCodeSaved.value = ss.getSavedCode() === ss.getRunCode();
 	}
 );
 
@@ -223,7 +217,6 @@ const save = async () => {
 		return;
 	}
 	statusMessage.value = null;
-	isCodeSaved.value = true;
 };
 
 const toggleLog = () => {
