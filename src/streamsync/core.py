@@ -387,6 +387,21 @@ class StreamsyncState():
             "path": path
         })
 
+    def import_script(self, script_key: str, path: str) -> None:
+        """
+        imports the content of a script into the page
+
+        >>> initial_state = ss.init_state({
+        >>>     "counter": 1
+        >>> })
+        >>>
+        >>> initial_state.import_script("my_script", "/static/script.js")
+        """
+        self.add_mail("importScript", {
+            "scriptKey": script_key,
+            "path": path
+        })
+
     def import_frontend_module(self, module_key: str, specifier: str) -> None:
         self.add_mail("importModule", {
             "moduleKey": module_key,
