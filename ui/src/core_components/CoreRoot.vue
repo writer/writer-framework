@@ -267,7 +267,7 @@ function addMailSubscriptions() {
 			importStylesheet(stylesheetKey, path);
 		}
 	);
-  ss.addMailSubscription(
+	ss.addMailSubscription(
 		"importScript",
 		({scriptKey, path}:{scriptKey: string, path: string}) => {
 			importScript(scriptKey, path);
