@@ -47,6 +47,6 @@ def handle_add_to_list(state, context):
     state["order_list"] += [context["itemId"]]
 ```
 
-::: warning Binding to context isn't possible
-Although context can be consumed similarly to state, using the `@{my_element}` syntax, only state can be used for two-way binding. If writing data from context is needed, use an event handler like the one shown above.
+::: warning Binding directly to context isn't possible
+Use dynamic accessors when binding inside a _Repeater_. For example, `articles[itemId].colour`. This will bind to a different property of `articles` for every `itemId`.
 :::
