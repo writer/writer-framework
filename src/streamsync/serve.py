@@ -1,4 +1,5 @@
 import asyncio
+import mimetypes
 from contextlib import asynccontextmanager
 import sys
 from typing import Any, Callable, Dict, List, Optional, Set, Union
@@ -30,6 +31,7 @@ def get_asgi_app(
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
+    _fix_mimetype()
     app_runner = AppRunner(user_app_path, serve_mode)
 
     @asynccontextmanager
@@ -50,6 +52,7 @@ def get_asgi_app(
         app_runner.shut_down()
         if on_shutdown is not None:
             on_shutdown()
+
 
     asgi_app = FastAPI(lifespan=lifespan)
 
@@ -400,3 +403,15 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
 
     uvicorn.run(asgi_app, host=host,
                 port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
+
+def _fix_mimetype():
+    """
+    Mimetypes are not set correctly in some OS (Windows). This function overwrites mimetypes to fix it.
+    Fixes mimetypes for .js files. This is needed for the webserver to serve .js files correctly.
+
+    https://github.com/streamsync-cloud/streamsync/issues/108
+    """
+    js_mimetype = mimetypes.guess_type("myfile.js")[0]
+    if js_mimetype[0] != "application/javascript":
+        logging.info(f'Mimetypes is not set correctly for js file in OS. Overwriting with application/javascript')
+        mimetypes.add_type("application/javascript", ".js")
