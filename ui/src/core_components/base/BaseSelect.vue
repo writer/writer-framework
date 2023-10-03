@@ -5,7 +5,6 @@
 		v-on:keydown="handleKeydown"
 		v-on:click="handleClick"
 		v-on:focusout="handleFocusOut"
-		v-on:focus="handleFocus"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
@@ -210,8 +209,9 @@ async function hideList(backToRoot = false) {
 	activeText.value = "";
 	if (!backToRoot) return;
 	await nextTick();
+	if (!rootEl.value) return;
 	rootEl.value.tabIndex = 0;
-	rootEl.value?.focus();
+	rootEl.value.focus();
 }
 
 function handleKeydown(ev: KeyboardEvent) {
@@ -283,14 +283,16 @@ async function selectOption(optionKey: string) {
 	selectedOptionsEl.value.scrollTop = selectedOptionsEl.value.scrollHeight;
 }
 
-function handleFocusOut(ev: Event) {
+function handleFocusOut(ev: FocusEvent) {
 	const relatedEl = ev.relatedTarget as HTMLElement;
+	if (!rootEl.value) return;
 	if (rootEl.value.contains(relatedEl)) return;
 	hideList(false);
 }
 
-function handleInputBlur(ev: Event) {
+function handleInputBlur(ev: FocusEvent) {
 	const relatedEl = ev.relatedTarget as HTMLElement;
+	if (!rootEl.value) return;
 	if (rootEl.value.contains(relatedEl)) return;
 	hideList(true);
 }
