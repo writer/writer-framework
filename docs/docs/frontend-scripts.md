@@ -55,9 +55,9 @@ def handle_click(state):
     state.call_frontend_function("mymodule", "sendAlert", ["Bob"])
 ```
 
-## Import a javscript script
+## Import a JavaScript script
 
-Streamsync can also import legacy javascripts. These are imported via the report's `import_script` method. This method takes two arguments. The first, `script_key` is the identifier used to import the script. The second, `path` is the path to the javascript file. The specified path must be available to the frontend, so storing it in your application's `./static` folder is recommended.
+Streamsync can also import and run JavaScript scripts directly, for their side effects. These are imported via the report's `import_script` method. This method takes two arguments. The first, `script_key` is the identifier used to import the script. The second, `path` is the path to the file. The specified path must be available to the frontend, so storing it in your application's `./static` folder is recommended.
 
 ```py
 initial_state = ss.init_state({
@@ -68,9 +68,7 @@ initial_state.import_script("my_script", "/static/script.js")
 ```
 
 ::: warning
-Importing scripts is useful to import library that does not support ES6 module.
-
-If you write your own code, it is better to use ES6 modules.
+Importing scripts is useful to import libraries that don't support ES6 modules. When possible, use ES6 modules. The `import_script` syntax is only used for side effects; you'll only be able to call functions from the backend using modules that have been previously imported via `import_frontend_module`.  
 :::
 
 ## Frontend core
