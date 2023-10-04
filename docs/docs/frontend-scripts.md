@@ -67,7 +67,7 @@ initial_state = ss.init_state({
 initial_state.import_script("my_script", "/static/script.js")
 ```
 
-::: warning
+::: warning Prefer ES6 modules
 Importing scripts is useful to import libraries that don't support ES6 modules. When possible, use ES6 modules. The `import_script` syntax is only used for side effects; you'll only be able to call functions from the backend using modules that have been previously imported via `import_frontend_module`.  
 :::
 
