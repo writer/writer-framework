@@ -109,4 +109,4 @@ class TestServe:
 
             # Assert
             assert res.status_code == 200
-            assert res.headers["Content-Type"] == "application/javascript"
+            assert res.headers["Content-Type"].startswith("text/javascript")
