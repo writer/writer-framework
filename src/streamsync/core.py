@@ -769,8 +769,10 @@ class Evaluator:
         return accessors
 
 
-    def evaluate_expression(self, expr: str, instance_path: InstancePath) -> Any:
-        context_data = self.get_context_data(instance_path)
+    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath]) -> Any:
+        context_data = None
+        if instance_path:
+            context_data = self.get_context_data(instance_path)
         context_ref: Any = context_data
         state_ref: Any = self.ss.user_state.state
         accessors: List[str] = self.parse_expression(expr, instance_path)
