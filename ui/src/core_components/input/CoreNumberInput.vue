@@ -85,9 +85,9 @@ const fields = inject(injectionKeys.evaluatedFields);
 const rootEl = ref(null);
 const inputEl = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 function enforceLimitsAndReturnValue() {
 	if (inputEl.value.value == "") return null;

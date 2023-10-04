@@ -1,4 +1,6 @@
 import json
+import mimetypes
+
 import fastapi
 import streamsync.serve
 import fastapi.testclient
@@ -95,3 +97,16 @@ class TestServe:
                 "X-Success": "yes"
             })
             assert res.status_code == 200
+
+    def test_serve_javascript_file_with_a_valid_content_type(self) -> None:
+        # Arrange
+        mimetypes.add_type("text/plain", ".js")
+
+        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app("./testapp", "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            # Acts
+            res = client.get("/static/file.js")
+
+            # Assert
+            assert res.status_code == 200
+            assert res.headers["Content-Type"].startswith("text/javascript")

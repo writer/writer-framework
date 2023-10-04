@@ -49,8 +49,8 @@ def _get_main_df():
 
 
 def _get_highlighted_members():
-    sample_df = _get_main_df().sample(3)
-    sample = sample_df.to_dict("records")
+    sample_df = _get_main_df().sample(3).set_index("name", drop=False)
+    sample = sample_df.to_dict("index")
     return sample
 
 

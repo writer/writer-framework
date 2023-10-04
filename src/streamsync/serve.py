@@ -1,4 +1,5 @@
 import asyncio
+import mimetypes
 from contextlib import asynccontextmanager
 import sys
 from typing import Any, Callable, Dict, List, Optional, Set, Union
@@ -30,6 +31,7 @@ def get_asgi_app(
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
+    _fix_mimetype()
     app_runner = AppRunner(user_app_path, serve_mode)
 
     @asynccontextmanager
@@ -41,12 +43,12 @@ def get_asgi_app(
 
         if on_load is not None:
             on_load()
-        
+
         try:
             yield
         except asyncio.CancelledError:
             pass
-        
+
         app_runner.shut_down()
         if on_shutdown is not None:
             on_shutdown()
@@ -89,7 +91,6 @@ def get_asgi_app(
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
-        saved_code: Optional[str] = app_runner.saved_code
         run_code: Optional[str] = app_runner.run_code
 
         return InitResponseBodyEdit(
@@ -99,7 +100,6 @@ def get_asgi_app(
             mail=payload.mail,
             components=payload.components,
             userFunctions=payload.userFunctions,
-            savedCode=saved_code,
             runCode=run_code,
             extensionPaths=cached_extension_paths
         )
@@ -402,3 +402,12 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
 
     uvicorn.run(asgi_app, host=host,
                 port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
+
+
+def _fix_mimetype():
+    """
+    Fixes mimetypes for .js files. This is needed for the webserver to serve .js files correctly.
+    """
+    js_mimetype = mimetypes.guess_type("myfile.js")[0]
+    if js_mimetype[0] != "text/javascript":
+        mimetypes.add_type("text/javascript", ".js")

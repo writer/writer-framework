@@ -3,7 +3,7 @@ import { Ref, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
 import { Component, InstancePath, InstancePathItem, UserFunction } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
-import { useTemplateEvaluator } from "./useTemplateEvaluator";
+import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
@@ -18,7 +18,7 @@ export default {
 		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
-		const { getEvaluatedFields, isComponentVisible } = useTemplateEvaluator(ss);
+		const { getEvaluatedFields, isComponentVisible } = useEvaluator(ss);
 		const evaluatedFields = getEvaluatedFields(instancePath);
 
 		const children = computed(() => ss.getComponents(componentId, true));

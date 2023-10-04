@@ -99,19 +99,13 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const instancePath = inject(injectionKeys.instancePath);
+const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
-const flattenedInstancePath = computed(() => {
-	const flat = instancePath
-		.map((item) => `${item.componentId}:${item.instanceNumber}`)
-		.join(".");
-	return flat;
-});
 </script>
 
 <style scoped>

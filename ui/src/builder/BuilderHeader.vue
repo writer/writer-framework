@@ -8,12 +8,12 @@
 				preview: { desc: 'Preview', icon: 'ri-pages-line' },
 			}"
 			:fn="
-					(optionId:'ui' | 'code' | 'preview') => {
-						ssbm.setMode(optionId);
-						if (ssbm.getMode() != 'preview') return;
-						ssbm.setSelection(null);
-					}
-				"
+				(optionId: 'ui' | 'code' | 'preview') => {
+					ssbm.setMode(optionId);
+					if (ssbm.getMode() != 'preview') return;
+					ssbm.setSelection(null);
+				}
+			"
 		></BuilderSwitcher>
 		<div class="undoRedo">
 			<button
@@ -43,6 +43,19 @@
 				Redo
 			</button>
 		</div>
+		<div>
+			<button v-on:click="showStateExplorer">
+				<i class="ri-eye-line"></i>View state
+			</button>
+			<BuilderModal
+				v-if="isStateExplorerShown"
+				:close-action="customHandlerModalCloseAction"
+				icon="eye"
+				modal-title="State Explorer"
+			>
+				<BuilderStateExplorer></BuilderStateExplorer>
+			</BuilderModal>
+		</div>
 		<div class="gap"></div>
 		<div
 			class="syncHealth"
@@ -57,15 +70,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
+import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import injectionKeys from "../injectionKeys";
+import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
 const syncHealthIcon = ref(null);
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(ss, ssbm);
+const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
@@ -85,6 +101,17 @@ const syncHealthStatus = () => {
 		case "idle":
 			return "Sync not initialised.";
 	}
+};
+
+function showStateExplorer() {
+	isStateExplorerShown.value = true;
+}
+
+const customHandlerModalCloseAction: ModalAction = {
+	desc: "Close",
+	fn: () => {
+		isStateExplorerShown.value = false;
+	},
 };
 </script>
 
@@ -124,7 +151,9 @@ const syncHealthStatus = () => {
 	display: flex;
 	gap: 8px;
 	align-items: center;
-	transition: color, background-color 0.5s ease-in-out;
+	transition:
+		color,
+		background-color 0.5s ease-in-out;
 }
 
 .syncHealth.offline {

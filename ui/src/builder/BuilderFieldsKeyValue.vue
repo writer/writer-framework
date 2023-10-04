@@ -159,7 +159,8 @@ const removeAssistedEntry = (key: string) => {
 /**
  * Watcher for external mutations (like undo/redo).
  */
-watch(() => component.value.content[fieldKey.value], async (currentValue) => {
+watch(() => component.value?.content[fieldKey.value], async (currentValue) => {
+	if (!component.value) return;
 	let parsedValue: any;
 
 	try {

@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreDataframe">
+	<div class="CoreDataframe" ref="rootEl">
 		<div class="tools" ref="toolsEl">
 			<div class="search" v-if="fields.enableSearch.value === 'yes'">
 				<i class="ri-search-line"></i>
@@ -227,6 +227,7 @@ type OrderSetting = {
 };
 
 const fields = inject(injectionKeys.evaluatedFields);
+const rootEl: Ref<HTMLElement> = ref();
 const toolsEl: Ref<HTMLElement> = ref();
 const gridContainerEl: Ref<HTMLElement> = ref();
 let baseTable: aq.internal.ColumnTable = null;
@@ -456,6 +457,13 @@ async function handleWidthAdjust(ev: MouseEvent) {
 	}
 
 	const targetEl = ev.target as HTMLElement;
+
+	/*
+	Event handlers are document-level. Check that it's the right Dataframe being adjusted.
+	*/
+
+	if (!rootEl.value.contains(targetEl)) return;
+
 	if (
 		columnBeingWidthAdjusted === null &&
 		targetEl.classList.contains("widthAdjuster")

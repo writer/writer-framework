@@ -173,7 +173,6 @@ class TestAppRunner:
         si_res = await ar.dispatch_message(None, si)
         mail = list(si_res.payload.model_dump().get("mail"))
 
-        assert mail[0].get(
-            "payload").get("message") == "188542\n"
+        assert mail[0].get("payload").get("message") == "188542\n"
 
         ar.shut_down()

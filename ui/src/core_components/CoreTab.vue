@@ -53,7 +53,7 @@ const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
-import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
+import { useEvaluator } from "../renderer/useEvaluator";
 import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description =
@@ -89,7 +89,7 @@ const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const {isComponentVisible} = useTemplateEvaluator(ss);
+const {isComponentVisible} = useEvaluator(ss);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {

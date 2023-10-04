@@ -12,7 +12,7 @@ The following code imports a module during event handling.
 
 ```py
 def handle_click(state):
-    state.import_script("my_script", "/static/script.js")
+    state.import_frontend_module("my_script", "/static/mymodule.js")
 ```
 
 If you want the module to be imported during initialisation, use the initial state.
@@ -22,7 +22,7 @@ initial_state = ss.init_state({
     "counter": 1
 })
 
-initial_state.import_script("my_script", "/static/script.js")
+initial_state.import_frontend_module("my_script", "/static/mymodule.js")
 ```
 
 ::: tip Use versions to avoid caching
@@ -52,18 +52,33 @@ The following event handler triggers the frontend function defined in the sectio
 
 ```py
 def handle_click(state):
-    state.call_frontend_function("myscript", "sendAlert", ["Bob"])
+    state.call_frontend_function("mymodule", "sendAlert", ["Bob"])
 ```
+
+## Import a JavaScript script
+
+Streamsync can also import and run JavaScript scripts directly, for their side effects. These are imported via the report's `import_script` method. This method takes two arguments. The first, `script_key` is the identifier used to import the script. The second, `path` is the path to the file. The specified path must be available to the frontend, so storing it in your application's `./static` folder is recommended.
+
+```py
+initial_state = ss.init_state({
+    "counter": 1
+})
+
+initial_state.import_script("my_script", "/static/script.js")
+```
+
+::: warning Prefer ES6 modules
+Importing scripts is useful to import libraries that don't support ES6 modules. When possible, use ES6 modules. The `import_script` syntax is only used for side effects; you'll only be able to call functions from the backend using modules that have been previously imported via `import_frontend_module`.  
+:::
 
 ## Frontend core
 
-You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `evaluate_expression` to get values from state.
+You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `getUserState()` to get values from state.
 
 ```js
 export function alertHueRotationValue() {
-    const core = globalThis.core;
-    const hueRotation = core.evaluateExpression("hue_rotation");
-    alert(`Value of hue_rotation is ${hueRotation}`);
+    const state = globalThis.core.getUserState();
+    console.log("State is", state);
 }
 ```
 

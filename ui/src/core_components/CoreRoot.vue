@@ -13,7 +13,7 @@
 import { FieldType } from "../streamsyncTypes";
 import * as sharedStyleFields from "../renderer/sharedStyleFields";
 import { nextTick } from "vue";
-import { useTemplateEvaluator } from "../renderer/useTemplateEvaluator";
+import { useEvaluator } from "../renderer/useEvaluator";
 
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
@@ -75,7 +75,7 @@ const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
-const {isComponentVisible} = useTemplateEvaluator(ss);
+const {isComponentVisible} = useEvaluator(ss);
 
 const getFirstPageId = () => {
 	const pageComponents = ss.getComponents("root", true);
@@ -199,6 +199,21 @@ async function importStylesheet(stylesheetKey: string, path: string) {
     document.head.appendChild(el);
 }
 
+async function importScript(scriptKey: string, path: string) {
+	const req = await fetch(path);
+	if (req.status > 399) {
+		console.warn(`Couldn't import script at "${path}".`);
+		return;
+	}
+	const existingEl = document.querySelector(`[data-streamsync-script-key="${scriptKey}"]`);
+	existingEl?.remove();
+	const el = document.createElement("script");
+	el.dataset.streamsyncScriptKey = scriptKey;
+	const scriptText = await req.text();
+    el.textContent = scriptText;
+    document.head.appendChild(el);
+}
+
 async function importModule(moduleKey: string, specifier: string) {
 	importedModulesSpecifiers[moduleKey] = specifier;
 	await import(/* @vite-ignore */specifier);
@@ -250,6 +265,12 @@ function addMailSubscriptions() {
 		"importStylesheet",
 		({stylesheetKey, path}:{stylesheetKey: string, path: string}) => {
 			importStylesheet(stylesheetKey, path);
+		}
+	);
+	ss.addMailSubscription(
+		"importScript",
+		({scriptKey, path}:{scriptKey: string, path: string}) => {
+			importScript(scriptKey, path);
 		}
 	);
 	ss.addMailSubscription(

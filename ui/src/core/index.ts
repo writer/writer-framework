@@ -22,7 +22,6 @@ export function generateCore() {
 	let sessionId: string = null;
 	let sessionTimestamp: Ref<number> = ref(null);
 	let mode: Ref<"run" | "edit"> = ref(null);
-	let savedCode: Ref<string> = ref(null);
 	let runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
@@ -98,7 +97,6 @@ export function generateCore() {
 		// Only returned for edit (Builder) mode
 
 		userFunctions.value = initData.userFunctions;
-		savedCode.value = initData.savedCode;
 		runCode.value = initData.runCode;
 
 		await startSync();
@@ -308,10 +306,6 @@ export function generateCore() {
 		});
 	}
 
-	function getSavedCode() {
-		return savedCode.value;
-	}
-
 	async function sendCodeUpdate(newCode: string): Promise<void> {
 		const messageData = {
 			code: newCode,
@@ -426,15 +420,6 @@ export function generateCore() {
 		return userFunctions.value;
 	}
 
-	function getBindingValue(componentId: Component["id"]) {
-		const component = getComponentById(componentId);
-		if (component?.binding?.stateRef) {
-			const value = evaluateExpression(component.binding.stateRef);
-			return value;
-		}
-		return;
-	}
-
 	function getComponentById(componentId: Component["id"]): Component {
 		return components.value[componentId];
 	}
@@ -491,20 +476,8 @@ export function generateCore() {
 		return typeHierarchy.getContainableTypes(components.value, componentId);
 	}
 
-	function evaluateExpression(
-		expr: string,
-		contextData?: Record<string, any>,
-	) {
-		const splitKey = expr.split(".");
-		let contextRef = contextData;
-		let stateRef = userState.value;
-
-		for (let i = 0; i < splitKey.length; i++) {
-			contextRef = contextRef?.[splitKey[i]];
-			stateRef = stateRef?.[splitKey[i]];
-		}
-
-		return contextRef ?? stateRef;
+	function getUserState() {
+		return userState.value;
 	}
 
 	const core = {
@@ -515,16 +488,13 @@ export function generateCore() {
 		getUserFunctions,
 		addMailSubscription,
 		init,
-		evaluateExpression,
 		forwardEvent,
-		getSavedCode,
 		getRunCode,
 		sendCodeSaveRequest,
 		sendCodeUpdate,
 		sendComponentUpdate,
 		addComponent,
 		deleteComponent,
-		getBindingValue,
 		getComponentById,
 		getComponents,
 		setActivePageId,
@@ -535,6 +505,7 @@ export function generateCore() {
 		getSupportedComponentTypes,
 		getContainableTypes,
 		getSessionTimestamp,
+		getUserState,
 	};
 
 	return core;

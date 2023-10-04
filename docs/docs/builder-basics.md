@@ -70,9 +70,10 @@ Settings are divided into the following sections. Changes to settings can be und
 Divided into _General_ and _Style_ categories. Values can include
 
 - Literals, e.g. `monkey`
-- References to application state, e.g. `@{my_favourite_animal}`
-- A combination of both, e.g. `My favourite animal is @{my_favourite_animal}`
+- References to application state using the template syntax `@{}`, e.g. `@{my_favourite_animal}`.
+- A combination of both, e.g. `My favourite animal is @{my_favourite_animal}`.
 - Nested states can be accessed with `.` (dot), e.g. `@{building.height}`.
+- Nested elements can be dynamically accessed with `[]`, e.g. `@{building[dynamic_prop]}` will be equivalent to `@{building.height}` when `dynamic_prop` equals `height`.
 
 Properties are of different types, such as _Text_, _Color_ and _Number_. All property values are stored as text values, then casted when being evaluated.
 
@@ -84,7 +85,7 @@ Input components can be bound, in a two-way fashion, to a state element.
 
 For example, a _Slider Input_ component can be bound to `my_var`. If the value of the slider changes, so does the value of `my_var`. Similarly, if the value of `my_var` changes, the slider is moved automatically to reflect the change.
 
-To bind an input component, specify the state element. For example, `my_var` or `building.height`. Note that this field should only contain the state element, e.g. `my_var` and not `@{my_var}`.
+To bind an input component, specify the state element. For example, `my_var` or `building.height`. Note that this field should not contain the template syntax, e.g. `my_var` and not `@{my_var}`.
 
 ### Events
 

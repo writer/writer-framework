@@ -99,10 +99,10 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
-const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, componentId, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 function getCheckedKeys() {
 	if (!rootEl.value) return;
