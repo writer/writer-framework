@@ -18,6 +18,10 @@
 </template>
 
 <script lang="ts">
+import LoadingSymbol from "../renderer/LoadingSymbol.vue";
+import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { cssClasses, primaryTextColor, width } from "../renderer/sharedStyleFields";
+
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
 
@@ -37,61 +41,59 @@ else:
 `;
 
 export default {
-    streamsync: {
-        name: "Message",
-        description,
-        docs,
-        category: "Content",
-        fields: {
-            message: {
-                name: "Message",
-                type: FieldType.Text,
-                desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning, '%' for loading. No prefix for info. Leave empty to hide.",
-            },
-            successColor: {
-                name: "Success",
-                default: "#00B800",
-                type: FieldType.Color,
-                category: FieldCategory.Style,
-            },
-            errorColor: {
-                name: "Error",
-                default: "#FB0000",
-                type: FieldType.Color,
-                category: FieldCategory.Style,
-            },
-            warningColor: {
-                name: "Warning",
-                default: "#FB9600",
-                type: FieldType.Color,
-                category: FieldCategory.Style,
-            },
-            infoColor: {
-                name: "Info",
-                default: "#00ADB8",
-                type: FieldType.Color,
-                category: FieldCategory.Style,
-            },
-            loadingColor: {
-                name: "Loading",
-                default: "#00ADB8",
-                type: FieldType.Color,
-                category: FieldCategory.Style,
-            },
-            primaryTextColor,
-            cssClasses,
-        },
-        previewField: "name",
-    },
-    components: { LoadingSymbol }
+	streamsync: {
+		name: "Message",
+		description,
+		docs,
+		category: "Content",
+		fields: {
+			message: {
+				name: "Message",
+				type: FieldType.Text,
+				desc: "Prefix with '+' for a success message, with '-' for error, '!' for warning, '%' for loading. No prefix for info. Leave empty to hide.",
+			},
+			successColor: {
+				name: "Success",
+				default: "#00B800",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+			},
+			errorColor: {
+				name: "Error",
+				default: "#FB0000",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+			},
+			warningColor: {
+				name: "Warning",
+				default: "#FB9600",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+			},
+			infoColor: {
+				name: "Info",
+				default: "#00ADB8",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+			},
+			loadingColor: {
+				name: "Loading",
+				default: "#00ADB8",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+			},
+			primaryTextColor,
+			width,
+			cssClasses,
+		},
+		previewField: "name",
+	},
+	components: {LoadingSymbol}
 };
 </script>
 <script setup lang="ts">
-import LoadingSymbol from "../renderer/LoadingSymbol.vue";
 import { computed, inject } from "vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);

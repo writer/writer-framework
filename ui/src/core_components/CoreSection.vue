@@ -17,7 +17,8 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-cssClasses,
+	cssClasses,
+	width
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -57,6 +58,7 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Use as much space as possible without altering the size of the container.",
 			},
+			width,
 			cssClasses,
 		},
 		previewField: "title",

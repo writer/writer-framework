@@ -89,6 +89,7 @@ export const cssClasses = {
 export const width = {
 	name: "Width",
 	type: FieldType.Width,
+	default: "auto",
 	category: FieldCategory.Style,
 	desc: "You can configure the width of a component using CSS units, e.g. 100px, 50%, 10vw, etc."
 };

@@ -32,6 +32,7 @@ import {
 	buttonTextColor,
 	cssClasses,
 	separatorColor,
+	width
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -70,6 +71,7 @@ export default {
 			buttonShadow,
 			separatorColor,
 			cssClasses,
+			width,
 		},
 		events: {
 			"ss-webcam": {

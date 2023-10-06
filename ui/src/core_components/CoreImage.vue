@@ -17,7 +17,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, secondaryTextColor } from "../renderer/sharedStyleFields";
+import { cssClasses, secondaryTextColor, width } from "../renderer/sharedStyleFields";
 import { getClick } from "../renderer/syntheticEvents";
 
 const description = "A component to display images.";
@@ -77,6 +77,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			secondaryTextColor,
+			width,
 			cssClasses,
 		},
 		events: {

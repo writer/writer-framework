@@ -2,7 +2,7 @@
 import { h, inject } from "vue";
 import { FieldControl, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { cssClasses, width } from "../renderer/sharedStyleFields";
 
 const defaultStyle = {
 	padding: "16px",
@@ -58,6 +58,7 @@ export default {
 				control: FieldControl.Textarea,
 				desc: "Define custom HTML to be used inside the element. It will be wrapped in a div and rendered after children components.",
 			},
+      width,
 			cssClasses,
 		},
 	},
