@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldControl, FieldType } from "../streamsyncTypes";
-import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+import {cssClasses, primaryTextColor, width} from "../renderer/sharedStyleFields";
 import { getClick } from "../renderer/syntheticEvents";
 
 const clickHandlerStub = `
@@ -63,6 +63,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			primaryTextColor,
+      width,
 			cssClasses,
 		},
 		events: {
