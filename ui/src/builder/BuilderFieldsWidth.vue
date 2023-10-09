@@ -36,19 +36,19 @@
 
 		<div class="main" v-if="mode == 'pick' || mode == 'css'">
 			<div class="pickerContainer" v-if="mode == 'pick'">
-<!--				<input-->
-<!--					ref="pickerEl"-->
-<!--					type="color"-->
-<!--					:value="component.content[fieldKey]"-->
-<!--					v-on:input="handleInput"-->
-<!--				/>-->
+				<BuilderFieldsWidthSelect v-on:select="handleInputSelect" :value="subMode" />
+				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
+					<input type="text" :value="valuePickFixed" v-on:input="handleInputFixed" ref="fixedEl"	/>
+					<div>px</div>
+				</div>
+
 			</div>
 
 			<input
 				type="text"
 				ref="freehandInputEl"
 				:value="component.content[fieldKey]"
-				v-on:input="handleInput"
+				v-on:input="handleInputCss"
 				v-if="mode == 'css'"
 			/>
 		</div>
@@ -69,6 +69,7 @@ import {
 import { Component } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderFieldsWidthSelect from "./BuilderFieldsWidthSelect.vue";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -76,9 +77,23 @@ const { setContentValue } = useComponentActions(ss, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
+const fixedEl: Ref<HTMLInputElement> = ref(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
 
 type Mode = "pick" | "css" | "default";
+
+enum SubMode {
+	fixed = "fixed",
+	fit_content = "fit-content",
+	full = "full",
+}
+
+const subModes = [
+	{'key': SubMode.fixed, label: 'Fixed', match: (v) => v.endsWith('px'), default: () => '160px'},
+	{'key': SubMode.fit_content, label: 'Fit Content', match: (v) => v == 'fit-content', default: () => 'fit-content'},
+	{'key': SubMode.full, label: 'Full', match: (v) => v == '100%', default: () => '100%'},
+]
+
 
 const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	pick: pickerEl,
@@ -90,14 +105,52 @@ const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 }>();
+
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));
 
+const subMode = computed(() => {
+	const value = component.value.content[fieldKey.value]
+	for (const k in subModes) {
+		if (subModes[k].match(value)) {
+			return subModes[k].key
+		}
+	}
+
+	return null
+})
+
+const valueCss = computed(() => {
+	const value = component.value.content[fieldKey.value]
+	if (!value) {
+		return ''
+	} else {
+		return value
+	}
+})
+
+const valuePickFixed = computed(() => {
+	const value = component.value.content[fieldKey.value]
+	if (!value) {
+		return null
+	} else if (value.endsWith('px')) {
+		return value.substring(0, value.length - 2)
+	}
+
+	return null
+})
+
 const getInitialMode = (): Mode => {
-	const value = component.value.content[fieldKey.value];
-	if (!value) return "default";
-	const bWidthConfigure = false;
-	if (bWidthConfigure) return "pick";
+	if (!valueCss.value) {
+		return "default";
+	}
+
+	for (const k in subModes) {
+		if (subModes[k].match(valueCss.value)) {
+			return "pick"
+		}
+	}
+
 	return "css";
 };
 
@@ -119,12 +172,41 @@ const setMode = async (newMode: Mode) => {
 	autofocus();
 };
 
-const handleInput = (ev: Event) =>
+const handleInputSelect = (select: string) => {
+	for (const k in subModes) {
+		if (subModes[k].key == select) {
+			const value = subModes[k].default();
+			component.value.content[fieldKey.value] = value;
+			setContentValue(
+					component.value.id,
+					fieldKey.value,
+					value
+			);
+		}
+	}
+
+	if (select == SubMode.fixed) {
+		nextTick(() => {
+			fixedEl.value.focus();
+		});
+	}
+}
+
+const handleInputCss = (ev: Event) => {
+	setContentValue(
+			component.value.id,
+			fieldKey.value,
+			(ev.target as HTMLInputElement).value
+	)
+}
+
+const handleInputFixed = (ev: Event) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value
-	);
+		(ev.target as HTMLInputElement).value + 'px'
+	)
+}
 
 onMounted(() => {
 	rootEl.value.addEventListener("focus", autofocus);
@@ -146,5 +228,12 @@ onBeforeUnmount(() => {
 .main {
 	border-top: 1px solid var(--builderSeparatorColor);
 	padding: 12px;
+}
+
+.fixedContainer {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	padding: 8px;
 }
 </style>
