@@ -28,11 +28,9 @@
 				CONTENT_DISPLAYING_INSTANCE_NUMBER
 			"
 			v-show="isTabActive"
+			:style=containerWrapperStyle
 		>
-			<div class="container"
-				data-streamsync-container
-					 :style=containerStyle
-			>
+			<div data-streamsync-container class="container" :style=containerStyle>
 				<slot></slot>
 			</div>
 		</div>
@@ -57,7 +55,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import {contentWidth, cssClasses} from "../renderer/sharedStyleFields";
+import {contentWidth, halign, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -77,6 +75,7 @@ export default {
 				type: FieldType.Text,
 			},
 			contentWidth,
+			halign,
 			cssClasses,
 		},
 		previewField: "name",
@@ -135,6 +134,13 @@ const getMatchingTabInstancePath = () => {
 	];
 	return matchingInstancePath;
 };
+
+const containerWrapperStyle = computed(() => {
+	return {
+		display: "flex",
+		justifyContent: fields.halign.value,
+	};
+})
 
 const containerStyle = computed(() => {
 	return {
@@ -205,7 +211,7 @@ button.bit {
 	background: var(--containerBackgroundColor);
 }
 
-.container {
+.container-wrapper {
 	padding: 16px;
 }
 
@@ -217,6 +223,10 @@ button.bit:focus {
 button.bit.active, button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
+}
+
+.container {
+	width: 100%;
 }
 
 
