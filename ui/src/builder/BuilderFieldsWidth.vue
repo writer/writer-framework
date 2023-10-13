@@ -36,7 +36,7 @@
 
 		<div class="main" v-if="mode == 'pick' || mode == 'css'">
 			<div class="pickerContainer" v-if="mode == 'pick'">
-				<BuilderFieldsWidthSelect v-on:select="handleInputSelect" :value="subMode" />
+				<BuilderSelect :defaultValue=subMode :options=selectOptions @select="handleInputSelect"/>
 				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
 					<input type="text" :value="valuePickFixed" v-on:input="handleInputFixed" ref="fixedEl"	/>
 					<div>px</div>
@@ -69,7 +69,7 @@ import {
 import { Component } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
-import BuilderFieldsWidthSelect from "./BuilderFieldsWidthSelect.vue";
+import BuilderSelect from "./BuilderSelect.vue";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -88,10 +88,10 @@ enum SubMode {
 	full = "full",
 }
 
-const subModes = [
-	{'key': SubMode.fixed, label: 'Fixed', match: (v) => v.endsWith('px'), default: () => '160px'},
-	{'key': SubMode.fit_content, label: 'Fit Content', match: (v) => v == 'fit-content', default: () => 'fit-content'},
-	{'key': SubMode.full, label: 'Full', match: (v) => v == '100%', default: () => '100%'},
+const subModes: Array<{key: SubMode, label: string, match: (v: string) => boolean, default: string, icon?: string}> = [
+	{'key': SubMode.fixed, label: 'Fixed', match: (v) => v.endsWith('px'), default: '160px'},
+	{'key': SubMode.fit_content, label: 'Fit Content', match: (v) => v == 'fit-content', default: 'fit-content'},
+	{'key': SubMode.full, label: 'Full', match: (v) => v == '100%', default: '100%'},
 ]
 
 
@@ -109,10 +109,16 @@ const props = defineProps<{
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));
 
+const selectOptions = computed(() => {
+	return subModes.map((m) => {
+		return { value: m.key, label: m.label, icon: "ri-split-cells-horizontal" };
+	});
+});
+
 const subMode = computed(() => {
 	const value = component.value.content[fieldKey.value]
 	for (const k in subModes) {
-		if (subModes[k].match(value)) {
+		if (value && subModes[k].match(value)) {
 			return subModes[k].key
 		}
 	}
@@ -175,7 +181,7 @@ const setMode = async (newMode: Mode) => {
 const handleInputSelect = (select: string) => {
 	for (const k in subModes) {
 		if (subModes[k].key == select) {
-			const value = subModes[k].default();
+			const value = subModes[k].default;
 			component.value.content[fieldKey.value] = value;
 			setContentValue(
 					component.value.id,
