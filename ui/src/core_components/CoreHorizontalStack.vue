@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { FieldType } from "../streamsyncTypes";
-import { cssClasses, width } from "../renderer/sharedStyleFields";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.";
@@ -32,7 +32,6 @@ export default {
 					right: "Right",
 				},
 			},
-      width,
 			cssClasses,
 		},
 	},

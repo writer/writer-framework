@@ -25,7 +25,6 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
-	width,
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -47,7 +46,6 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-			// width,
 			cssClasses,
 		},
 	},

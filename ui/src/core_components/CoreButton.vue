@@ -16,7 +16,6 @@ import {
 	buttonShadow,
 	separatorColor,
 	cssClasses,
-  width
 } from "../renderer/sharedStyleFields";
 import { watch } from "vue";
 import { getClick } from "../renderer/syntheticEvents";
@@ -73,7 +72,6 @@ export default {
 			},
 			buttonShadow,
 			separatorColor,
-      width,
 			cssClasses
 		},
 		previewField: "text",

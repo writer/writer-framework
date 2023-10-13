@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, primaryTextColor, width } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 
 const description =
 	"A text component used to display headings or titles in different sizes and styles.";
@@ -50,7 +50,6 @@ export default {
 				},
 			},
 			primaryTextColor,
-			width,
 			cssClasses,
 		},
 		previewField: "text",

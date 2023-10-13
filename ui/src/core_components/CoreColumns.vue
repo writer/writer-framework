@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { cssClasses, width } from "../renderer/sharedStyleFields";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 export default {
 	streamsync: {
@@ -14,7 +14,6 @@ export default {
 		allowedChildrenTypes: ["column", "repeater", "separator"],
 		category: "Layout",
 		fields: {
-      width,
 			cssClasses
 		},
 	},

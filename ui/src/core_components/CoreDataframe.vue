@@ -106,7 +106,6 @@ import {
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
-	width
 } from "../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { watch } from "vue";
@@ -203,7 +202,6 @@ export default {
 				},
 				default: "normal",
 			},
-			width,
 			cssClasses,
 		},
 	},

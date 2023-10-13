@@ -20,7 +20,7 @@
 <script lang="ts">
 import LoadingSymbol from "../renderer/LoadingSymbol.vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, primaryTextColor, width } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
@@ -83,7 +83,6 @@ export default {
 				category: FieldCategory.Style,
 			},
 			primaryTextColor,
-			width,
 			cssClasses,
 		},
 		previewField: "name",

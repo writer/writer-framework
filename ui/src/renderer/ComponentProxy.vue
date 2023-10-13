@@ -209,17 +209,6 @@ export default {
 			return cssClasses;
 		});
 
-		const fieldBasedWidthStyle = computed(() => {
-			const CSS_CLASSES_FIELD_KEY = "width";
-			const fields = ss.getComponentDefinition(
-				component.value.type
-			)?.fields;
-			if (!fields) return;
-			if (!fields[CSS_CLASSES_FIELD_KEY] || !evaluatedFields[CSS_CLASSES_FIELD_KEY]) return;
-			const cssStr:string = evaluatedFields[CSS_CLASSES_FIELD_KEY].value;
-			return {width: cssStr};
-		});
-
 		const getRootElProps = function () {
 			const rootElProps = {
 				class: {
@@ -231,7 +220,6 @@ export default {
 				},
 				style: {
 					...fieldBasedStyleVars.value,
-					...fieldBasedWidthStyle.value,
 					...(!isVisible.value ? { display: "none" } : {}),
 				},
 				...dataAttrs,

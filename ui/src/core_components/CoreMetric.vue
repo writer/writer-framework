@@ -14,8 +14,7 @@ import { FieldCategory, FieldType } from "../streamsyncTypes";
 import {
 cssClasses,
 	primaryTextColor,
-	secondaryTextColor,
-	width
+	secondaryTextColor
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -68,7 +67,6 @@ export default {
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
-      width,
 			cssClasses,
 		},
 		previewField: "name",
