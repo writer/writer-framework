@@ -62,6 +62,12 @@ def handle_page_open(state, payload):
 const description =
 	"A container component representing a single page within the application.";
 
+let pageFields = Object.keys({...sharedStyleFields}).filter((k) => {
+	return !["contentWidth"].includes(k);
+}).map(
+	(k) => sharedStyleFields[k]
+)
+
 export default {
 	streamsync: {
 		name: "Page",
@@ -95,7 +101,7 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			...sharedStyleFields,
+			...pageFields,
 		},
 		previewField: "key",
 	},

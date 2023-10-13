@@ -91,6 +91,6 @@ export const contentWidth = {
 	type: FieldType.Width,
 	default: "100%",
 	category: FieldCategory.Style,
-	desc: "Configure contnet width using CSS units, e.g. 100px, 50%, 10vw, etc."
+	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc."
 };
 
