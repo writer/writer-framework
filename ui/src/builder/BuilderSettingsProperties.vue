@@ -87,7 +87,7 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Alignment"
+							v-if="fieldValue.type == FieldType.HAlign"
 						></BuilderFieldsHAlign>
 
 						<div class="desc" v-if="fieldValue.desc">

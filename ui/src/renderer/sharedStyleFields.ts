@@ -94,11 +94,11 @@ export const contentWidth = {
 	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc."
 };
 
-export const halign = {
+export const contentHAlign = {
 	name: "Content alignment",
-	type: FieldType.Alignment,
+	type: FieldType.HAlign,
 	default: "left",
 	category: FieldCategory.Style,
-	desc: "Configuration of the alignment of a component (map to justify-content in CSS)."
+	desc: "Configure content alignment"
 };
 

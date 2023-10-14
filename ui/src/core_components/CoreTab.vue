@@ -55,7 +55,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import {contentWidth, halign, cssClasses} from "../renderer/sharedStyleFields";
+import {contentWidth, contentHAlign, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -75,7 +75,7 @@ export default {
 				type: FieldType.Text,
 			},
 			contentWidth,
-			halign,
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "name",
@@ -85,6 +85,7 @@ export default {
 <script setup lang="ts">
 import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "../injectionKeys";
+import {contentHAlign} from "../renderer/sharedStyleFields";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
@@ -138,7 +139,7 @@ const getMatchingTabInstancePath = () => {
 const containerWrapperStyle = computed(() => {
 	return {
 		display: "flex",
-		justifyContent: fields.halign.value,
+		justifyContent: fields.contentHAlign.value,
 	};
 })
 
