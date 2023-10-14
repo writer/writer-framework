@@ -1,11 +1,9 @@
 <template>
 	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
-		<div class="container-wrapper" >
-			<div class="container" data-streamsync-container :style="containerStyle">
-				<slot></slot>
-			</div>
-		</div>
+		<BaseContainer :contentWidth=fields.contentWidth.value :contentHAlign=fields.contentHAlign.value>
+			<slot></slot>
+		</BaseContainer>
 	</section>
 </template>
 
@@ -21,7 +19,7 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-	cssClasses, contentWidth
+	cssClasses, contentWidth, contentHAlign
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -50,6 +48,7 @@ export default {
 			buttonTextColor,
 			buttonShadow,
 			contentWidth,
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "title",
@@ -59,14 +58,10 @@ export default {
 <script setup lang="ts">
 import {computed, inject} from "vue";
 import injectionKeys from "../injectionKeys";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
-const containerStyle = computed(() => {
-	return {
-		width: fields.contentWidth.value,
-	};
-});
 </script>
 
 <style scoped>

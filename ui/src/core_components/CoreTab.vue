@@ -21,19 +21,15 @@
 		>
 			{{ fields.name.value }}
 		</button>
-		<div
-			class="container-wrapper"
-			v-if="
-				tabContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER
-			"
-			v-show="isTabActive"
-			:style=containerWrapperStyle
-		>
-			<div data-streamsync-container class="container" :style=containerStyle>
-				<slot></slot>
-			</div>
-		</div>
+		<BaseContainer class="container" :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 v-if="
+											tabContainerDirectChildInstanceItem?.instanceNumber ==
+											CONTENT_DISPLAYING_INSTANCE_NUMBER
+										"
+										v-show="isTabActive">
+			<slot></slot>
+		</BaseContainer>
 	</div>
 </template>
 
@@ -86,6 +82,7 @@ export default {
 import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 import {contentHAlign} from "../renderer/sharedStyleFields";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
@@ -212,7 +209,7 @@ button.bit {
 	background: var(--containerBackgroundColor);
 }
 
-.container-wrapper {
+.container {
 	padding: 16px;
 }
 
