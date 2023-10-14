@@ -91,14 +91,16 @@ export const contentWidth = {
 	type: FieldType.Width,
 	default: "100%",
 	category: FieldCategory.Style,
-	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc."
+	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc.",
+	ignored_on_page: true
 };
 
 export const contentHAlign = {
-	name: "Content alignment",
+	name: "Content align",
 	type: FieldType.HAlign,
 	default: "left",
 	category: FieldCategory.Style,
-	desc: "Configure content alignment"
+	desc: "Configure content horizontal align",
+	ignored_on_page: true
 };
 

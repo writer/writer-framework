@@ -63,7 +63,12 @@ const description =
 	"A container component representing a single page within the application.";
 
 let pageFields = Object.keys({...sharedStyleFields}).filter((k) => {
-	return !["contentWidth"].includes(k);
+	const field = sharedStyleFields[k]
+	if (field.ignored_on_page === true) {
+		return false;
+	}
+
+	return true;
 }).map(
 	(k) => sharedStyleFields[k]
 )
