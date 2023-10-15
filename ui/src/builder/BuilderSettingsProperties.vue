@@ -83,6 +83,13 @@
 							v-if="fieldValue.type == FieldType.Width"
 						></BuilderFieldsWidth>
 
+						<BuilderFieldsHAlign
+							class="content"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+							v-if="fieldValue.type == FieldType.HAlign"
+						></BuilderFieldsHAlign>
+
 						<div class="desc" v-if="fieldValue.desc">
 							{{ fieldValue.desc }}
 						</div>
@@ -102,6 +109,7 @@ import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
+import BuilderFieldsHAlign from "./BuilderFieldsHAlign.vue";
 import injectionKeys from "../injectionKeys";
 
 const ss = inject(injectionKeys.core);

@@ -21,21 +21,15 @@
 		>
 			{{ fields.name.value }}
 		</button>
-		<div
-			class="container-wrapper"
-			v-if="
-				tabContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER
-			"
-			v-show="isTabActive"
-		>
-			<div class="container"
-				data-streamsync-container
-					 :style=containerStyle
-			>
-				<slot></slot>
-			</div>
-		</div>
+		<BaseContainer class="container" :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 v-if="
+											tabContainerDirectChildInstanceItem?.instanceNumber ==
+											CONTENT_DISPLAYING_INSTANCE_NUMBER
+										"
+										v-show="isTabActive">
+			<slot></slot>
+		</BaseContainer>
 	</div>
 </template>
 
@@ -57,7 +51,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import {contentWidth, cssClasses} from "../renderer/sharedStyleFields";
+import {contentWidth, contentHAlign, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -77,6 +71,7 @@ export default {
 				type: FieldType.Text,
 			},
 			contentWidth,
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "name",
@@ -86,6 +81,8 @@ export default {
 <script setup lang="ts">
 import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "../injectionKeys";
+import {contentHAlign} from "../renderer/sharedStyleFields";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
@@ -135,6 +132,13 @@ const getMatchingTabInstancePath = () => {
 	];
 	return matchingInstancePath;
 };
+
+const containerWrapperStyle = computed(() => {
+	return {
+		display: "flex",
+		justifyContent: fields.contentHAlign.value,
+	};
+})
 
 const containerStyle = computed(() => {
 	return {
@@ -217,6 +221,10 @@ button.bit:focus {
 button.bit.active, button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
+}
+
+.container {
+	width: 100%;
 }
 
 
