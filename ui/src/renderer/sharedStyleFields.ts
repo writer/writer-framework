@@ -86,3 +86,11 @@ export const cssClasses = {
 	desc: "CSS classes, separated by spaces. You can define classes in custom stylesheets."
 };
 
+export const contentWidth = {
+	name: "Content width",
+	type: FieldType.Width,
+	default: "100%",
+	category: FieldCategory.Style,
+	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc."
+};
+

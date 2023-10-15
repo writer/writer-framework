@@ -22,21 +22,24 @@
 			{{ fields.name.value }}
 		</button>
 		<div
-			class="container"
-			data-streamsync-container
+			class="container-wrapper"
 			v-if="
 				tabContainerDirectChildInstanceItem?.instanceNumber ==
 				CONTENT_DISPLAYING_INSTANCE_NUMBER
 			"
 			v-show="isTabActive"
 		>
-			<slot></slot>
+			<div class="container"
+				data-streamsync-container
+					 :style=containerStyle
+			>
+				<slot></slot>
+			</div>
 		</div>
 	</div>
 </template>
 
-<script lang="ts">
-/**
+<script lang="ts">/**
  * This component renders differently depending on the instance number of
  * the direct child of the relevant Tab Container.
  *
@@ -54,7 +57,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import {contentWidth, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -73,6 +76,7 @@ export default {
 				init: "Tab Name",
 				type: FieldType.Text,
 			},
+			contentWidth,
 			cssClasses,
 		},
 		previewField: "name",
@@ -131,6 +135,12 @@ const getMatchingTabInstancePath = () => {
 	];
 	return matchingInstancePath;
 };
+
+const containerStyle = computed(() => {
+	return {
+		width: fields.contentWidth.value,
+	};
+});
 
 const activateTab = () => {
 	const tabContainerData = getTabContainerData();

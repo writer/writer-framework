@@ -30,18 +30,23 @@
 			</div>
 		</div>
 		<div
-			class="container"
+			class="container-wrapper"
 			data-streamsync-container
-			:style="containerStyle"
+			:style="containerWrapperStyle"
 		>
-			<slot></slot>
+			<div class="container"
+					 data-streamsync-container
+					 :style=containerStyle
+			>
+				<slot></slot>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, separatorColor } from "../renderer/sharedStyleFields";
+import {contentWidth, cssClasses, separatorColor} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -122,6 +127,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			separatorColor,
+			contentWidth,
 			cssClasses
 		},
 	},
@@ -158,7 +164,7 @@ const rootStyle = computed(() => {
 	return style;
 });
 
-const containerStyle = computed(() => {
+const containerWrapperStyle = computed(() => {
 	const horizontalAlignMap = {
 		normal: "normal",
 		left: "start",
@@ -179,6 +185,12 @@ const containerStyle = computed(() => {
 	};
 	return style;
 });
+
+const containerStyle = computed(() => {
+	return {
+		width: fields.contentWidth.value,
+	};
+})
 
 const toggleCollapsed = () => {
 	isCollapsed.value = !isCollapsed.value;

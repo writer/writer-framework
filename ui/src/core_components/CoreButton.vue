@@ -9,12 +9,13 @@
 </template>
 
 <script lang="ts">
+import { FieldCategory, FieldType } from "../streamsyncTypes";
 import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
 	separatorColor,
-	cssClasses
+	cssClasses,
 } from "../renderer/sharedStyleFields";
 import { watch } from "vue";
 import { getClick } from "../renderer/syntheticEvents";
@@ -79,7 +80,6 @@ export default {
 </script>
 <script setup lang="ts">
 import { Ref, inject, ref } from "vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
 
 const rootEl:Ref<HTMLElement> = ref(null);
