@@ -1,11 +1,14 @@
 <template>
-	<BaseContainer :contentWidth=fields.contentWidth.value :contentHAlign=fields.contentHAlign.value :horizontal=true>
+	<BaseContainer :contentWidth=fields.contentWidth.value
+								 :contentHAlign=fields.contentHAlign.value
+								 :contentPadding=fields.contentPadding.value
+								 :horizontal=true>
 		<slot></slot>
 	</BaseContainer>
 </template>
 
 <script lang="ts">
-import {contentHAlign, contentWidth, cssClasses} from "../renderer/sharedStyleFields";
+import {contentHAlign, contentPadding, contentWidth, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.";
@@ -17,6 +20,7 @@ export default {
 		allowedChildrenTypes: ["*"],
 		category: "Layout",
 		fields: {
+			contentPadding,
 			contentWidth,
 			contentHAlign,
 			cssClasses,

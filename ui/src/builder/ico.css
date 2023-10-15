@@ -1,0 +1,34 @@
+.ico {
+	background-size: 12px 12px;
+	width: 12px;
+	height: 12px;
+	display: block;
+}
+
+.ico-padding-4-side {
+	background: url("../assets/padding-4-side.svg");
+}
+
+.ico-padding-x-side {
+	background: url("../assets/padding-x-side.svg");
+}
+
+.ico-padding-y-side {
+	background: url("../assets/padding-y-side.svg");
+}
+
+.ico-padding-left-side {
+	background: url("../assets/padding-left-side.svg");
+}
+
+.ico-padding-right-side {
+	background: url("../assets/padding-right-side.svg");
+}
+
+.ico-padding-top-side {
+	background: url("../assets/padding-top-side.svg");
+}
+
+.ico-padding-bottom-side {
+	background: url("../assets/padding-bottom-side.svg");
+}

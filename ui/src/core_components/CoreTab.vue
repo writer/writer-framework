@@ -21,8 +21,10 @@
 		>
 			{{ fields.name.value }}
 		</button>
-		<BaseContainer class="container" :contentWidth=fields.contentWidth.value
+		<BaseContainer class="container"
+									 :contentWidth=fields.contentWidth.value
 									 :contentHAlign=fields.contentHAlign.value
+									 :contentPadding=fields.contentPadding.value
 									 v-if="
 											tabContainerDirectChildInstanceItem?.instanceNumber ==
 											CONTENT_DISPLAYING_INSTANCE_NUMBER
@@ -51,7 +53,7 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import {contentWidth, contentHAlign, cssClasses} from "../renderer/sharedStyleFields";
+import {contentWidth, contentHAlign, cssClasses, contentPadding} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -70,6 +72,7 @@ export default {
 				init: "Tab Name",
 				type: FieldType.Text,
 			},
+			contentPadding,
 			contentWidth,
 			contentHAlign,
 			cssClasses,

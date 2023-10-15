@@ -1,7 +1,10 @@
 <template>
 	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
-		<BaseContainer :contentWidth=fields.contentWidth.value :contentHAlign=fields.contentHAlign.value>
+		<BaseContainer :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 :contentPadding=fields.contentPadding.value
+		>
 			<slot></slot>
 		</BaseContainer>
 	</section>
@@ -19,7 +22,7 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-	cssClasses, contentWidth, contentHAlign
+	cssClasses, contentWidth, contentHAlign, contentPadding
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -47,6 +50,7 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
+			contentPadding,
 			contentWidth,
 			contentHAlign,
 			cssClasses,

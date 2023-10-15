@@ -115,6 +115,8 @@ const select = (event) => {
 </script>
 
 <style scoped>
+@import "./ico.css";
+
 .selectWrapper {
     position: relative;
     user-select: none;

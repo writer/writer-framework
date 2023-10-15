@@ -14,6 +14,7 @@ import {computed} from "vue";
 const props = defineProps<{
 	contentWidth: string;
 	contentHAlign: string;
+	contentPadding: string;
 	horizontal?: boolean;
 }>();
 
@@ -22,12 +23,14 @@ const containerStyle = computed(() => {
 		return {
 			width: props.contentWidth,
 			justifyContent: props.contentHAlign,
+			padding: props.contentPadding,
 		};
 	}
 
 	return {
 		width: props.contentWidth,
 		alignItems: props.contentHAlign,
+		padding: props.contentPadding,
 	};
 });
 
