@@ -29,19 +29,19 @@
 				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
-		<div
-			class="container"
-			data-streamsync-container
-			:style="containerStyle"
+		<BaseContainer class="container"
+									 :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 :contentPadding=fields.contentPadding.value
 		>
 			<slot></slot>
-		</div>
+		</BaseContainer>
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, separatorColor } from "../renderer/sharedStyleFields";
+import {contentHAlign, contentPadding, contentWidth, cssClasses, separatorColor} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -97,18 +97,6 @@ export default {
 				},
 				desc: "Only applied when the column is collapsible.",
 			},
-			horizontalAlignment: {
-				name: "Horizontal alignment",
-				default: "normal",
-				type: FieldType.Text,
-				options: {
-					normal: "Normal",
-					left: "Left",
-					center: "Center",
-					right: "Right",
-				},
-				category: FieldCategory.Style,
-			},
 			verticalAlignment: {
 				name: "Vertical alignment",
 				default: "normal",
@@ -122,6 +110,9 @@ export default {
 				category: FieldCategory.Style,
 			},
 			separatorColor,
+			contentPadding,
+			contentWidth,
+			contentHAlign,
 			cssClasses
 		},
 	},
@@ -132,6 +123,7 @@ export default {
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 import IconGen from "../renderer/IconGen.vue";
+import BaseContainer from "./base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
@@ -158,27 +150,19 @@ const rootStyle = computed(() => {
 	return style;
 });
 
-const containerStyle = computed(() => {
-	const horizontalAlignMap = {
-		normal: "normal",
-		left: "start",
-		center: "center",
-		right: "end",
-	};
-	const verticalAlignMap = {
-		normal: "normal",
-		top: "start",
-		center: "center",
-		bottom: "end",
-	};
-	const alignItems = horizontalAlignMap[fields.horizontalAlignment.value];
-	const justifyContent = verticalAlignMap[fields.verticalAlignment.value];
-	const style = {
-		"align-items": alignItems,
-		"justify-content": justifyContent,
-	};
-	return style;
-});
+// const containerWrapperStyle = computed(() => {
+// 	const verticalAlignMap = {
+// 		normal: "normal",
+// 		top: "start",
+// 		center: "center",
+// 		bottom: "end",
+// 	};
+// 	const justifyContent = verticalAlignMap[fields.verticalAlignment.value];
+// 	const style = {
+// 		"justify-content": justifyContent,
+// 	};
+// 	return style;
+// });
 
 const toggleCollapsed = () => {
 	isCollapsed.value = !isCollapsed.value;

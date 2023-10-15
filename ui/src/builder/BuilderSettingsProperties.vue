@@ -76,6 +76,27 @@
 							v-if="fieldValue.type == FieldType.Object"
 						></BuilderFieldsObject>
 
+						<BuilderFieldsWidth
+							class="content"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+							v-if="fieldValue.type == FieldType.Width"
+						></BuilderFieldsWidth>
+
+						<BuilderFieldsHAlign
+							class="content"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+							v-if="fieldValue.type == FieldType.HAlign"
+						></BuilderFieldsHAlign>
+
+						<BuilderFieldsPadding
+							class="content"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+							v-if="fieldValue.type == FieldType.Padding"
+						></BuilderFieldsPadding>
+
 						<div class="desc" v-if="fieldValue.desc">
 							{{ fieldValue.desc }}
 						</div>
@@ -94,6 +115,9 @@ import BuilderFieldsColor from "./BuilderFieldsColor.vue";
 import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
+import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
+import BuilderFieldsHAlign from "./BuilderFieldsHAlign.vue";
+import BuilderFieldsPadding from "./BuilderFieldsPadding.vue";
 import injectionKeys from "../injectionKeys";
 
 const ss = inject(injectionKeys.core);

@@ -10,6 +10,13 @@
 </template>
 
 <script lang="ts">
+import { FieldCategory, FieldType } from "../streamsyncTypes";
+import {
+cssClasses,
+	primaryTextColor,
+	secondaryTextColor
+} from "../renderer/sharedStyleFields";
+
 const description =
 	"A component that prominently displays a metric value and associated information.";
 
@@ -68,13 +75,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-import {
-cssClasses,
-	primaryTextColor,
-	secondaryTextColor,
-} from "../renderer/sharedStyleFields";
 const fields = inject(injectionKeys.evaluatedFields);
 
 const sentiment = computed(() => {

@@ -1,16 +1,14 @@
 <template>
-	<div
-		class="CoreHorizontalStack horizontal"
-		data-streamsync-container
-		:class="[`justify-${fields.alignment.value}`]"
-	>
+	<BaseContainer :contentWidth=fields.contentWidth.value
+								 :contentHAlign=fields.contentHAlign.value
+								 :contentPadding=fields.contentPadding.value
+								 :horizontal=true>
 		<slot></slot>
-	</div>
+	</BaseContainer>
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import {contentHAlign, contentPadding, contentWidth, cssClasses} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.";
@@ -22,47 +20,25 @@ export default {
 		allowedChildrenTypes: ["*"],
 		category: "Layout",
 		fields: {
-			alignment: {
-				name: "Alignment",
-				default: "left",
-				type: FieldType.Text,
-				options: {
-					left: "Left",
-					center: "Center",
-					right: "Right",
-				},
-			},
+			contentPadding,
+			contentWidth,
+			contentHAlign,
 			cssClasses,
 		},
 	},
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import {computed, inject} from "vue";
 import injectionKeys from "../injectionKeys";
+import {contentWidth} from "../renderer/sharedStyleFields";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
 </script>
 
 <style scoped>
 @import "../renderer/sharedStyles.css";
-.CoreHorizontalStack {
-	flex-wrap: wrap;
-	flex-direction: row;
-	align-items: center;
-}
 
-.CoreHorizontalStack > .CoreHorizontalStack {
-	flex-grow: 1;
-}
-
-.justify-left {
-	justify-content: left;
-}
-.justify-center {
-	justify-content: center;
-}
-.justify-right {
-	justify-content: right;
-}
 </style>

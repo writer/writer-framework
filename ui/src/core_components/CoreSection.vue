@@ -1,7 +1,12 @@
 <template>
-	<section class="CoreSection" :class="{ snapMode: fields.snapMode.value == 'yes' }">
+	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
-		<div data-streamsync-container><slot></slot></div>
+		<BaseContainer :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 :contentPadding=fields.contentPadding.value
+		>
+			<slot></slot>
+		</BaseContainer>
 	</section>
 </template>
 
@@ -17,7 +22,7 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-cssClasses,
+	cssClasses, contentWidth, contentHAlign, contentPadding
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -45,18 +50,9 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-			snapMode: {
-				name: "Snap mode",
-				type: FieldType.Text,
-				options: {
-					no: "No",
-					yes: "Yes",
-				},
-				default: "no",
-				init: "no",
-				category: FieldCategory.Style,
-				desc: "Use as much space as possible without altering the size of the container.",
-			},
+			contentPadding,
+			contentWidth,
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "title",
@@ -64,10 +60,12 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import {computed, inject} from "vue";
 import injectionKeys from "../injectionKeys";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
 </script>
 
 <style scoped>
@@ -78,11 +76,6 @@ const fields = inject(injectionKeys.evaluatedFields);
 	border-radius: 8px;
 	box-shadow: var(--containerShadow);
 	background-color: var(--containerBackgroundColor);
-}
-
-.CoreSection.snapMode {
-	flex: 1 0 auto;
-	align-self: stretch;
 }
 
 h2 {
