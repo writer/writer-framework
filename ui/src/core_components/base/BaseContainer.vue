@@ -18,9 +18,16 @@ const props = defineProps<{
 }>();
 
 const containerStyle = computed(() => {
+	if (props.horizontal === true) {
+		return {
+			width: props.contentWidth,
+			justifyContent: props.contentHAlign,
+		};
+	}
+
 	return {
 		width: props.contentWidth,
-		justifyContent: props.contentHAlign,
+		alignItems: props.contentHAlign,
 	};
 });
 
