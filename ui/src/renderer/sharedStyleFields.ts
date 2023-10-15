@@ -100,7 +100,6 @@ export const contentHAlign = {
 	type: FieldType.HAlign,
 	default: "left",
 	category: FieldCategory.Style,
-	desc: "Configure content horizontal align",
 	ignored_on_page: true
 };
 
@@ -109,7 +108,6 @@ export const contentPadding = {
 	type: FieldType.Padding,
 	default: "0",
 	category: FieldCategory.Style,
-	desc: "Configure content padding",
 	ignored_on_page: true
 };
 

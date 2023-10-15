@@ -125,10 +125,10 @@ enum SubMode {
 	per_side = "Per side",
 }
 
-const subModes: Array<{key: SubMode, label: string, match: (v: string) => boolean, default: string, icon?: string}> = [
-	{'key': SubMode.all_sides, label: 'All sides', match: (v) => v.split(' ').length == 1 && v.endsWith('px'), default: '0px'},
-	{'key': SubMode.xy_sides, label: 'XY sides', match: (v) => v.split(' ').length == 2  && v.endsWith('px'), default: '0px 0px'},
-	{'key': SubMode.per_side, label: 'Per side', match: (v) => v.split(' ').length == 4  && v.endsWith('px'), default: '0px 0px 0px 0px'},
+const subModes: Array<{key: SubMode, label: string, match: (v: string) => boolean, default: () => string, icon?: string}> = [
+	{'key': SubMode.all_sides, label: 'All sides', match: (v) => v.split(' ').length == 1 && v.endsWith('px'), default: () => rawPadding.value ? rawPadding.value[0] : '0px'},
+	{'key': SubMode.xy_sides, label: 'XY sides', match: (v) => v.split(' ').length == 2  && v.endsWith('px'), default: () => rawPadding.value ? rawPadding.value[2] + ' ' + rawPadding.value[0]  : '0px 0px'},
+	{'key': SubMode.per_side, label: 'Per side', match: (v) => v.split(' ').length == 4  && v.endsWith('px'), default: () => rawPadding.value ? [rawPadding.value[3], rawPadding.value[1], rawPadding.value[2], rawPadding.value[0]].join(' ') : '0px 0px 0px 0px'},
 ]
 
 
@@ -243,7 +243,7 @@ const setMode = async (newMode: Mode) => {
 const handleInputSelect = (select: string) => {
 	for (const k in subModes) {
 		if (subModes[k].key == select) {
-			const value = subModes[k].default;
+			const value = subModes[k].default();
 			component.value.content[fieldKey.value] = value;
 			setContentValue(
 					component.value.id,
