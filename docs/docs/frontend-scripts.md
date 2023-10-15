@@ -71,6 +71,20 @@ initial_state.import_script("my_script", "/static/script.js")
 Importing scripts is useful to import libraries that don't support ES6 modules. When possible, use ES6 modules. The `import_script` syntax is only used for side effects; you'll only be able to call functions from the backend using modules that have been previously imported via `import_frontend_module`.  
 :::
 
+## Importing a script or stylesheet from a URL
+
+Streamsync can also import scripts and stylesheets from URLs. This is useful for importing libraries from CDNs. The `import_script` and `import_stylesheet` methods take a `url` argument, which is the URL to the script or stylesheet.
+
+```python
+initial_state = ss.init_state({
+    "my_app": {
+        "title": "My App"
+    },
+})
+
+initial_state.import_script("lodash", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js")
+```
+
 ## Frontend core
 
 You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `getUserState()` to get values from state.
