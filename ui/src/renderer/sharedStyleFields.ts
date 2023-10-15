@@ -104,3 +104,12 @@ export const contentHAlign = {
 	ignored_on_page: true
 };
 
+export const contentPadding = {
+	name: "Content padding",
+	type: FieldType.Padding,
+	default: "0",
+	category: FieldCategory.Style,
+	desc: "Configure content padding",
+	ignored_on_page: true
+};
+
