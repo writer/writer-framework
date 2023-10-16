@@ -4,6 +4,7 @@ import {
 	StreamsyncComponentDefinition,
 } from "../streamsyncTypes";
 import { getComponentDefinition } from "./templateMap";
+import {contentHAlign} from "../renderer/sharedStyleFields";
 
 /**
  * Audits integrity of ComponentMap. Applies automatic fixes if necessary.
@@ -34,6 +35,8 @@ export function auditComponent(component: Component) {
 		);
 		return;
 	}
+
+	fixComponentDeprecatedContent(component, def)
 
 	auditComponentFieldKeys(component, def);
 	auditComponentBinding(component, def);
@@ -120,3 +123,36 @@ function fixPositions(positionfulChildren: Component[]) {
 		component.position = index;
 	});
 }
+
+/**
+ * Corrects the mapping of deprecated properties following component changes.
+ *
+ * @param component
+ * @param def
+ */
+function fixComponentDeprecatedContent(component: Component, def: StreamsyncComponentDefinition) {
+	if (component.type == 'column') {
+		if ('horizontalAlignment' in component.content) {
+			const mapping = {
+				'left': 'start',
+				'center': 'center',
+				'right': 'end',
+			}
+
+			component.content['contentHAlign'] = mapping[component.content['horizontalAlignment']] || component.content['horizontalAlignment']
+			delete component.content['horizontalAlignment'];
+		}
+	} else if (component.type == 'horizontalstack') {
+		if ('alignment' in component.content) {
+			const mapping = {
+				'left': 'start',
+				'center': 'center',
+				'right': 'end',
+			}
+
+			component.content['contentHAlign'] = mapping[component.content['alignment']] || component.content['alignment'];
+			delete component.content['alignment'];
+		}
+	}
+}
+
