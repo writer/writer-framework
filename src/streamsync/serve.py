@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+from starlette.responses import FileResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from streamsync import VERSION
@@ -77,18 +78,6 @@ def get_asgi_app(
     """
     asgi_app.state.streamsync_app = True
 
-    def _get_extension_paths() -> List[str]:
-        extensions_path = pathlib.Path(user_app_path) / "extensions"
-        if not extensions_path.exists():
-            return []
-        filtered_files = [f for f in extensions_path.rglob(
-            "*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
-        relative_paths = [f.relative_to(
-            extensions_path).as_posix() for f in filtered_files]
-        return relative_paths
-
-    cached_extension_paths = _get_extension_paths()
-
     def _check_origin_header(origin_header: Optional[str]) -> bool:
         if serve_mode not in ("edit") or enable_remote_edit is True:
             return True
@@ -102,6 +91,8 @@ def get_asgi_app(
     # Init
 
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
+        extensions_assets_urls = app_runner.extension_manager.extensions_assets_urls()
+
         return InitResponseBodyRun(
             mode="run",
             sessionId=payload.sessionId,
@@ -109,11 +100,12 @@ def get_asgi_app(
             mail=payload.mail,
             components=payload.components,
             userFunctions=payload.userFunctions,
-            extensionPaths=cached_extension_paths
+            extensionPaths=extensions_assets_urls
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
+        extensions_assets_urls = app_runner.extension_manager.extensions_assets_urls()
 
         return InitResponseBodyEdit(
             mode="edit",
@@ -123,7 +115,7 @@ def get_asgi_app(
             components=payload.components,
             userFunctions=payload.userFunctions,
             runCode=run_code,
-            extensionPaths=cached_extension_paths
+            extensionPaths=extensions_assets_urls
         )
 
     @asgi_app.post("/api/init")
@@ -367,17 +359,22 @@ def get_asgi_app(
         except asyncio.CancelledError:
             pass
 
+
+    @asgi_app.get("/extensions/{extension_path:path}")
+    async def get_extension(extension_path: str):
+        asset_path = app_runner.extension_manager.extension_asset_from_url(extension_path)
+
+        if asset_path is None:
+            raise HTTPException(status_code=404)
+
+        return FileResponse(asset_path)
+
     # Mount static paths
 
     user_app_static_path = pathlib.Path(user_app_path) / "static"
     if user_app_static_path.exists():
         asgi_app.mount(
             "/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
-
-    user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
-    if user_app_extensions_path.exists():
-        asgi_app.mount(
-            "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
     server_path = os.path.dirname(__file__)
     server_static_path = pathlib.Path(server_path) / "static"
