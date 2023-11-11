@@ -31,7 +31,7 @@ import {
 	buttonShadow,
 	buttonTextColor,
 	cssClasses,
-	separatorColor
+	separatorColor,
 } from "../renderer/sharedStyleFields";
 
 const description =
