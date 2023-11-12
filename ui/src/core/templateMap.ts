@@ -40,6 +40,7 @@ import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
+import CorePagination from "../core_components/CorePagination.vue";
 
 
 const templateMap = {
@@ -53,6 +54,7 @@ const templateMap = {
 	heading: CoreHeading,
 	dataframe: CoreDataframe,
 	html: CoreHtml,
+	pagination: CorePagination,
 	repeater: CoreRepeater,
 	column: CoreColumn,
 	columns: CoreColumns,
