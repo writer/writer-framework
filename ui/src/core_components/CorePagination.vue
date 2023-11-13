@@ -3,7 +3,16 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldType } from "../streamsyncTypes";
+
+const pageChangeStub = `
+def handle_page_change(state):
+
+	# load only requested records from database
+	records = _load_records_from_db(start = state["page"] * state["pageSize"], limit = state["pageSize"])
+
+	# update a repeater
+	state["highlighted_members"] = {r.id: r for r in records}`;
 
 export default {
 	streamsync: {
@@ -31,9 +40,9 @@ export default {
 			},
 			pageSizeOptions: {
 				name: "Page Size Options",
-				init: "25,50,100",
+				init: "",
 				type: FieldType.Text,
-				desc: "A comma-separated list of page size options.",
+				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size.",
 			},
 			pageSizeShowAll: {
 				name: "Show All Option",
@@ -62,7 +71,12 @@ export default {
 				desc: "The URL parameter to use for the page number. If it's empty, the page is not saved on the url.",
 			},
 		},
-		events: {}
+		events: {
+			"page-changed": {
+				desc: "Fires when the user pick a page or change the page size.",
+				stub: pageChangeStub.trim()
+			}
+		}
 	}
 };
 </script>
