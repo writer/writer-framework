@@ -3,7 +3,7 @@
 		<div class="pagination-left">
 			<div class="pagination-pagesize" v-show="pagesizeEnabled">
 				<select class="pagesize-select" @change="onPageSizeChange">
-					<option v-for="o in pageSizeOptions" :value="o.value">{{ o.label }}</option>
+					<option v-for="o in pageSizeOptions" :value="o.value" :selected="o.value == fields.pageSize.value">{{ o.label }}</option>
 				</select>
 			</div>
 			<div class="pagination-description">
@@ -18,10 +18,10 @@
 					<div v-if="l == '...'" class="paginationpicker-block paginationpicker-neutral">
 						{{ l }}
 					</div>
-					<div v-if="l != '...' && l != pageValue" class="paginationpicker-block" @click="jumpTo(l)">
+					<div v-if="l != '...' && l != fields.page.value" class="paginationpicker-block" @click="jumpTo(l)">
 						{{ l }}
 					</div>
-					<div v-if="l == pageValue" class="paginationpicker-block paginationpicker-currentpage">
+					<div v-if="l == fields.page.value" class="paginationpicker-block paginationpicker-currentpage">
 						{{ l }}
 					</div>
 				</template>
@@ -29,7 +29,7 @@
 			</div>
 			<div class="pagination-jump" v-show="jumptoEnabled">
 				<label>Jump to</label>
-				<input type="text" :value="pageValue" @input="onJumpTo"/>
+				<input type="text" :value="fields.page.value" @input="onJumpTo"/>
 			</div>
 
 		</div>
@@ -87,7 +87,7 @@ export default {
 				name: "Page Size Options",
 				init: "",
 				type: FieldType.Text,
-				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size.",
+				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option."
 			},
 			pageSizeShowAll: {
 				name: "Show All Option",
@@ -110,11 +110,15 @@ export default {
 				desc: "Show an option to jump to a specific page.",
 			},
 			urlParam: {
-				name: "URL Param",
-				init: "",
+				name: "Url parameters",
+				init: "no",
 				type: FieldType.Text,
-				desc: "The URL parameter to use for the page number. If it's empty, the page is not saved on the url.",
-			},
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+				desc: "Set the page size and the page as URL parameters. Default, will be page and pageSize."
+			}
 		},
 		events: {
 			"page-changed": {
@@ -131,7 +135,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import {Ref, inject, ref, computed} from "vue";
+import {Ref, inject, ref, computed, watch, onUnmounted, onMounted} from "vue";
 import injectionKeys from "../injectionKeys";
 import {useFormValueBroker} from "../renderer/useFormValueBroker";
 
@@ -146,11 +150,11 @@ const pagesizeEnabled = computed(() => fields.pageSizeOptions.value !== "" || fi
 const jumptoEnabled = computed(() => fields.jumpTo.value === "yes");
 
 const firstItem = computed(() => {
-	return (pageValue.value - 1) * (fields.pageSize.value) + 1
+	return (fields.page.value - 1) * (fields.pageSize.value) + 1
 });
-const lastItem = computed(() => Math.min((pageValue.value) * fields.pageSize.value, fields.totalItems.value));
+const lastItem = computed(() => Math.min((fields.page.value) * fields.pageSize.value, fields.totalItems.value));
 const totalItem = computed(() => fields.totalItems.value);
-const totalPage = computed(() => Math.ceil(parseInt(fields.totalItems.value) / parseInt(fields.pageSize.value)) - 1);
+const totalPage = computed(() => Math.ceil(parseInt(fields.totalItems.value) / parseInt(fields.pageSize.value)));
 
 const pageSizeOptions = computed(() => {
 	let options = []
@@ -158,10 +162,9 @@ const pageSizeOptions = computed(() => {
 	for (const o in inputs) {
 		const n = parseInt(inputs[o], 10)
 		options.push({value: n, label:`${n} items`})
-
 	}
 	if (fields.pageSizeShowAll.value === "yes") {
-		options.push({value: -1, label: "All items"})
+		options.push({value: totalItem.value, label: "All items"})
 	}
 
 	return options;
@@ -169,10 +172,10 @@ const pageSizeOptions = computed(() => {
 
 const links = computed(() => {
 	const links = [];
-	const page = parseInt(pageValue.value);
+	const page = parseInt(fields.page.value);
 
-	if (totalPage.value < 3) {
-		for (let i = 0; i <= totalPage.value; i++) {
+	if (totalPage.value <= 3) {
+		for (let i = 0; i < totalPage.value; i++) {
 			links.push(i + 1);
 		}
 	} else if (page == 1 || page == 2) {
@@ -237,6 +240,59 @@ const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
 	handlePageSizeInput(pageSize, 'page-size-changed')
 };
+
+
+watch(fields.page, () => {
+	if (fields.urlParam.value.trim() === "yes") {
+		const searchURL = new URL(window.location);
+		searchURL.searchParams.set("page", fields.page.value)
+		window.history.replaceState({}, '', searchURL);
+	}
+});
+
+watch(fields.pageSize, () => {
+	if (fields.urlParam.value.trim() === "yes") {
+		const searchURL = new URL(window.location);
+		searchURL.searchParams.set("pageSize", fields.pageSize.value)
+		window.history.replaceState({}, '', searchURL);
+	}
+});
+
+onMounted(() => {
+	/**
+	 * On page load, get URL parameters and configure pagination.
+	 */
+	const searchURL = new URL(window.location);
+
+	if (searchURL.searchParams.has("pageSize")) {
+		const pageSize = searchURL.searchParams.get("pageSize");
+		handlePageSizeInput(parseInt(pageSize), 'page-size-changed', () => {
+			if (searchURL.searchParams.has("page")) {
+				const page = searchURL.searchParams.get("page");
+				jumpTo(parseInt(page));
+			}
+		})
+	} else {
+		if (searchURL.searchParams.has("page")) {
+			const page = searchURL.searchParams.get("page");
+			jumpTo(parseInt(page));
+		}
+	}
+})
+
+onUnmounted(() => {
+	/**
+	 * When changing pages, eliminates URL parameters that are not useful on the next page.
+	 */
+	const searchURL = new URL(window.location);
+	if (searchURL.searchParams.has("page")) {
+		searchURL.searchParams.delete("page");
+	}
+	if (searchURL.searchParams.has("pageSize")) {
+		searchURL.searchParams.delete("pageSize");
+	}
+	window.history.replaceState({}, '', searchURL);
+})
 
 </script>
 
