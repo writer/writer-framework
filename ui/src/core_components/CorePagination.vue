@@ -12,8 +12,7 @@
 		</div>
 		<div class="pagination-right">
 			<div class="pagination-picker">
-
-				<div class="paginationpicker-block ri-arrow-left-s-line"></div>
+				<div class="paginationpicker-block ri-arrow-left-s-line" :class="{'paginationpicker-disabled': pagePreviousDisabled}" @click="jumpTo(fields.page.value - 1)"></div>
 				<template v-for="l in links">
 					<div v-if="l == '...'" class="paginationpicker-block paginationpicker-neutral">
 						{{ l }}
@@ -25,7 +24,7 @@
 						{{ l }}
 					</div>
 				</template>
-				<div class="paginationpicker-block ri-arrow-right-s-line"></div>
+				<div class="paginationpicker-block ri-arrow-right-s-line" :class="{'paginationpicker-disabled': pageNextDisabled}" @click="jumpTo(fields.page.value + 1)"></div>
 			</div>
 			<div class="pagination-jump" v-show="jumptoEnabled">
 				<label>Jump to</label>
@@ -156,6 +155,7 @@ const lastItem = computed(() => Math.min((fields.page.value) * fields.pageSize.v
 const totalItem = computed(() => fields.totalItems.value);
 const totalPage = computed(() => Math.ceil(parseInt(fields.totalItems.value) / parseInt(fields.pageSize.value)));
 
+
 const pageSizeOptions = computed(() => {
 	let options = []
 	const inputs = fields.pageSizeOptions.value.split(",")
@@ -170,6 +170,9 @@ const pageSizeOptions = computed(() => {
 	return options;
 });
 
+/**
+ * Calculate the links to show in the pagination
+ */
 const links = computed(() => {
 	const links = [];
 	const page = parseInt(fields.page.value);
@@ -217,6 +220,22 @@ const links = computed(() => {
 	return links;
 })
 
+/**
+ * Disable the previous page button if the current page is the first page.
+ */
+const pagePreviousDisabled = computed(() => {
+	const previousPage = parseInt(fields.page.value) - 1;
+	return previousPage < 1;
+});
+
+/**
+ * Disable the next page button if the current page is the last page.
+ */
+const pageNextDisabled = computed(() => {
+	const nextPage = parseInt(fields.page.value) + 1;
+	return nextPage > totalPage.value;
+});
+
 
 const onJumpTo = (event) => {
 	if (event.target.value === "") {
@@ -235,6 +254,8 @@ const onJumpTo = (event) => {
 const jumpTo = (page: number) => {
 	handlePageInput(page, 'page-changed')
 }
+
+
 
 const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
@@ -357,6 +378,16 @@ onUnmounted(() => {
 	cursor: pointer;
 }
 
+.paginationpicker-currentpage {
+	background-color: var(--accentColor);
+	color: var(--emptinessColor);
+}
+
+.paginationpicker-disabled {
+	cursor: default;
+	pointer-events: none;
+}
+
 .paginationpicker-neutral {
 	cursor: default;
 }
@@ -369,10 +400,5 @@ onUnmounted(() => {
 
 .bold {
 	font-weight: bold;
-}
-
-.paginationpicker-currentpage {
-	background-color: var(--accentColor);
-	color: var(--emptinessColor);
 }
 </style>
