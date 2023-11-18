@@ -351,7 +351,7 @@
                 "name": "Timer"
             },
             "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 3
+            "position": 4
         },
         "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12": {
             "id": "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12",
@@ -909,6 +909,88 @@
             "position": 1,
             "handlers": {
                 "click": "handle_story_download"
+            },
+            "visible": true
+        },
+        "65y0txmxyzdiskun": {
+            "id": "65y0txmxyzdiskun",
+            "type": "pagination",
+            "content": {
+                "page": "4",
+                "pageSize": "25",
+                "totalItems": "100",
+                "pageSizeOptions": "",
+                "pageSizeShowAll": "no",
+                "jumpTo": "no",
+                "urlParam": "yopa"
+            },
+            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
+            "position": 2,
+            "handlers": {},
+            "visible": true
+        },
+        "e1ax8ctt8lrao0e4": {
+            "id": "e1ax8ctt8lrao0e4",
+            "type": "tab",
+            "content": {
+                "name": "Pagination"
+            },
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
+            "position": 3,
+            "handlers": {},
+            "visible": true
+        },
+        "j3jkho6tb97u0onr": {
+            "id": "j3jkho6tb97u0onr",
+            "type": "repeater",
+            "content": {
+                "keyVariable": "itemId",
+                "valueVariable": "item",
+                "repeaterObject": "@{paginated_members}"
+            },
+            "parentId": "e1ax8ctt8lrao0e4",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "4wzaubf275w17gac": {
+            "id": "4wzaubf275w17gac",
+            "type": "section",
+            "content": {
+                "title": "@{item.name} \u2b50\ufe0f"
+            },
+            "parentId": "j3jkho6tb97u0onr",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "19binb4yi70gesho": {
+            "id": "19binb4yi70gesho",
+            "type": "text",
+            "content": {
+                "text": "**Role:** @{item.role}\n",
+                "useMarkdown": "yes"
+            },
+            "parentId": "4wzaubf275w17gac",
+            "position": 0
+        },
+        "zfp1koasiuleygmz": {
+            "id": "zfp1koasiuleygmz",
+            "type": "pagination",
+            "content": {
+                "page": "@{paginated_members_page}",
+                "pageSize": "@{paginated_members_page_size}",
+                "totalItems": "@{paginated_members_total_items}",
+                "pageSizeOptions": "2,5",
+                "pageSizeShowAll": "no",
+                "jumpTo": "no",
+                "urlParam": "no"
+            },
+            "parentId": "e1ax8ctt8lrao0e4",
+            "position": 1,
+            "handlers": {
+                "page-changed": "handle_paginated_members_page_change",
+                "page-size-changed": "handle_paginated_members_page_size_change"
             },
             "visible": true
         }

@@ -177,7 +177,7 @@ const links = computed(() => {
 	const links = [];
 	const page = parseInt(fields.page.value);
 
-	if (totalPage.value <= 3) {
+	if (totalPage.value <= 7) {
 		for (let i = 0; i < totalPage.value; i++) {
 			links.push(i + 1);
 		}
@@ -186,22 +186,37 @@ const links = computed(() => {
 		links.push(2);
 		links.push(3);
 		links.push("...")
+		links.push(totalPage.value - 2)
+		links.push(totalPage.value - 1)
 		links.push(totalPage.value)
 	} else if (page == 3) {
 		links.push(1);
 		links.push(2);
 		links.push(3);
 		links.push(4);
-		links.push("...");
+		links.push("...")
+		// links.push(totalPage.value - 2)
+		links.push(totalPage.value - 1)
+		links.push(totalPage.value)
+	} else if (page == 4) {
+		links.push(1);
+		links.push(2);
+		links.push(3);
+		links.push(4);
+		links.push(5)
+		links.push("...")
 		links.push(totalPage.value)
 	} else if (page == totalPage.value || page == totalPage.value - 1) {
 		links.push(1);
+		links.push(2);
+		links.push(3);
 		links.push("...");
 		links.push(totalPage.value - 2)
 		links.push(totalPage.value - 1)
 		links.push(totalPage.value)
-	} else if (page == totalPage.value - 2) {
+	}else if (page == totalPage.value - 2) {
 		links.push(1);
+		links.push(2);
 		links.push("...");
 		links.push(totalPage.value - 3)
 		links.push(totalPage.value - 2)

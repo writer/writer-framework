@@ -20,7 +20,10 @@ def update(state, session):
     main_df = _get_main_df()
     main_df = main_df[main_df['length_cm'] >= state["filter"]["min_length"]]
     main_df = main_df[main_df['weight_g'] >= state["filter"]["min_weight"]]
-    state["main_df"] = main_df
+    state['main_df'] = main_df
+
+    paginated_members = _get_paginated_members(state['paginated_members_page'] - 1, state['paginated_members_page_size'])
+    state['paginated_members'] = paginated_members
     state["session"] = session
     _update_metrics(state)
     _update_role_chart(state)
@@ -31,6 +34,22 @@ def handle_story_download(state):
     data = ss.pack_file("assets/story.txt", "text/plain")
     file_name = "hacker_pigeons.txt"
     state.file_download(data, file_name)
+
+
+def handle_paginated_members_page_change(state, payload):
+    page = payload
+    maxpage = int(state["paginated_members_total_items"] / state["paginated_members_page_size"]) + 1
+    if page > maxpage:
+        state["paginated_members_page"] = maxpage - 2
+    else:
+        state["paginated_members_page"] = page
+
+    update(state, None)
+
+
+def handle_paginated_members_page_size_change(state, payload):
+    state['paginated_members_page_size'] = payload
+    update(state, None)
 
 
 # LOAD / GENERATE DATA
@@ -45,14 +64,17 @@ def _generate_random_df():
 
 def _get_main_df():
     main_df = pd.read_csv("assets/main_df.csv")
-    return main_df
-
+    return main_df.iloc[:10]
 
 def _get_highlighted_members():
     sample_df = _get_main_df().sample(3).set_index("name", drop=False)
     sample = sample_df.to_dict("index")
     return sample
 
+def _get_paginated_members(offset: int, limit: int):
+    paginated_df = _get_main_df()[offset:offset + limit].set_index("name", drop=False)
+    paginated = paginated_df.to_dict("index")
+    return paginated
 
 def _get_story_text():
     with open("assets/story.txt", "r") as f:
@@ -117,6 +139,10 @@ initial_state = ss.init_state({
     "highlighted_members": _get_highlighted_members(),
     "random_df": _generate_random_df(),
     "hue_rotation": 26,
+    "paginated_members": _get_paginated_members(0, 2),
+    "paginated_members_page": 1,
+    "paginated_members_total_items": len(_get_main_df()),
+    "paginated_members_page_size": 2,
     "story": {
         "text": _get_story_text(),  # For display
     },
