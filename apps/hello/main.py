@@ -64,7 +64,7 @@ def _generate_random_df():
 
 def _get_main_df():
     main_df = pd.read_csv("assets/main_df.csv")
-    return main_df.iloc[:10]
+    return main_df
 
 def _get_highlighted_members():
     sample_df = _get_main_df().sample(3).set_index("name", drop=False)
