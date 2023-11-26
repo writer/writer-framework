@@ -4,6 +4,7 @@ import CorePage from "../core_components/CorePage.vue";
 import CoreSidebar from "../core_components/CoreSidebar.vue";
 import CoreText from "../core_components/CoreText.vue";
 import CoreButton from "../core_components/CoreButton.vue";
+import CoreIcon from "../core_components/CoreIcon.vue";
 import CoreSection from "../core_components/CoreSection.vue";
 import CoreHeader from "../core_components/CoreHeader.vue";
 import CoreHeading from "../core_components/CoreHeading.vue";
@@ -40,6 +41,7 @@ import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
 
+
 const templateMap = {
 	root: CoreRoot,
 	page: CorePage,
@@ -59,6 +61,7 @@ const templateMap = {
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
+	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
 	textareainput: CoreTextareaInput,
