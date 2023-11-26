@@ -67,30 +67,32 @@ export default {
 			page: {
 				name: "Page",
 				init: "1",
+				default: "1",
 				type: FieldType.Number,
 				desc: "The current page number.",
 			},
 			pageSize: {
 				name: "Page Size",
-				init: "25",
+				default: "10",
 				type: FieldType.Number,
 				desc: "The number of items per page.",
 			},
 			totalItems: {
 				name: "Total Items",
-				init: "0",
+				default: "10",
 				type: FieldType.Number,
 				desc: "The total number of items",
 			},
 			pageSizeOptions: {
 				name: "Page Size Options",
 				init: "",
+				default: "",
 				type: FieldType.Text,
 				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option."
 			},
 			pageSizeShowAll: {
 				name: "Show All Option",
-				init: "no",
+				default: "no",
 				type: FieldType.Text,
 				options: {
 					yes: "Yes",
@@ -100,7 +102,7 @@ export default {
 			},
 			jumpTo: {
 				name: "Jump To",
-				init: "no",
+				default: "no",
 				type: FieldType.Text,
 				options: {
 					yes: "Yes",
@@ -108,16 +110,18 @@ export default {
 				},
 				desc: "Show an option to jump to a specific page.",
 			},
-			urlParam: {
-				name: "Url parameters",
-				init: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
-				desc: "Set the page size and the page as URL parameters. Default, will be page and pageSize."
-			}
+			// Disabled for now, I am waiting functions to manipulate Hash params from the URL
+			//
+			// urlParam: {
+			// 	name: "Url parameters",
+			// 	default: "no",
+			// 	type: FieldType.Text,
+			// 	options: {
+			// 		yes: "Yes",
+			// 		no: "No",
+			// 	},
+			// 	desc: "Set the page size and the page as URL parameters. Default, will be page and pageSize."
+			// }
 		},
 		events: {
 			"page-changed": {
@@ -279,55 +283,65 @@ const onPageSizeChange = (event) => {
 
 
 watch(fields.page, () => {
-	if (fields.urlParam.value.trim() === "yes") {
-		const searchURL = new URL(window.location);
-		searchURL.searchParams.set("page", fields.page.value)
-		window.history.replaceState({}, '', searchURL);
-	}
+	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
+
+	// if (fields.urlParam.value.trim() === "yes") {
+	// 	const searchURL = new URL(window.location);
+	// 	searchURL.searchParams.set("page", fields.page.value)
+	// 	window.history.replaceState({}, '', searchURL);
+	// }
 });
 
 watch(fields.pageSize, () => {
-	if (fields.urlParam.value.trim() === "yes") {
-		const searchURL = new URL(window.location);
-		searchURL.searchParams.set("pageSize", fields.pageSize.value)
-		window.history.replaceState({}, '', searchURL);
-	}
+	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
+
+	// if (fields.urlParam.value.trim() === "yes") {
+	// 	const searchURL = new URL(window.location);
+	// 	searchURL.searchParams.set("pageSize", fields.pageSize.value)
+	// 	window.history.replaceState({}, '', searchURL);
+	// }
 });
 
 onMounted(() => {
 	/**
 	 * On page load, get URL parameters and configure pagination.
 	 */
-	const searchURL = new URL(window.location);
 
-	if (searchURL.searchParams.has("pageSize")) {
-		const pageSize = searchURL.searchParams.get("pageSize");
-		handlePageSizeInput(parseInt(pageSize), 'page-size-changed', () => {
-			if (searchURL.searchParams.has("page")) {
-				const page = searchURL.searchParams.get("page");
-				jumpTo(parseInt(page));
-			}
-		})
-	} else {
-		if (searchURL.searchParams.has("page")) {
-			const page = searchURL.searchParams.get("page");
-			jumpTo(parseInt(page));
-		}
-	}
+	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
+
+	// const searchURL = new URL(window.location);
+	//
+	// if (searchURL.searchParams.has("pageSize")) {
+	// 	const pageSize = searchURL.searchParams.get("pageSize");
+	// 	handlePageSizeInput(parseInt(pageSize), 'page-size-changed', () => {
+	// 		if (searchURL.searchParams.has("page")) {
+	// 			const page = searchURL.searchParams.get("page");
+	// 			jumpTo(parseInt(page));
+	// 		}
+	// 	})
+	// } else {
+	// 	if (searchURL.searchParams.has("page")) {
+	// 		const page = searchURL.searchParams.get("page");
+	// 		jumpTo(parseInt(page));
+	// 	}
+	// }
 })
 
 onUnmounted(() => {
 	/**
 	 * When changing pages, eliminates URL parameters that are not useful on the next page.
 	 */
-	const searchURL = new URL(window.location);
-	if (searchURL.searchParams.has("page")) {
-		searchURL.searchParams.delete("page");
-	}
-	if (searchURL.searchParams.has("pageSize")) {
-		searchURL.searchParams.delete("pageSize");
-	}
-	window.history.replaceState({}, '', searchURL);
+
+	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
+
+	// const searchURL = new URL(window.location);
+	// if (searchURL.searchParams.has("page")) {
+	// 	searchURL.searchParams.delete("page");
+	// }
+	// if (searchURL.searchParams.has("pageSize")) {
+	// 	searchURL.searchParams.delete("pageSize");
+	// }
+	// window.history.replaceState({}, '', searchURL);
 })
 
 </script>
