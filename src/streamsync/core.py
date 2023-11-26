@@ -1319,7 +1319,6 @@ class EventHandler:
 
         return {"ok": ok, "result": result}
 
-
 class DictPropertyProxy:
     """
     A descriptor based recipe that makes it possible to write shorthands

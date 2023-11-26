@@ -9,11 +9,9 @@ import multiprocessing
 import multiprocessing.connection
 import multiprocessing.synchronize
 import os
-import pkgutil
 import signal
 import sys
 import threading
-from importlib.machinery import FileFinder
 from types import ModuleType
 from typing import Callable, Dict, List, Optional, cast
 
@@ -22,7 +20,7 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from streamsync import VERSION
-from streamsync.core import ExtensionManager, StreamsyncSession
+from streamsync.core import StreamsyncSession
 from streamsync.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -566,7 +564,6 @@ class AppRunner:
         self.log_listener: Optional[LogListener] = None
         self.code_update_loop: Optional[asyncio.AbstractEventLoop] = None
         self.code_update_condition: Optional[asyncio.Condition] = None
-        self.extension_manager: Optional[ExtensionManager] = None
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
@@ -609,7 +606,6 @@ class AppRunner:
 
         self.run_code = self._load_persisted_script()
         self.bmc_components = self._load_persisted_components()
-        self.extension_manager = self._load_extensions()
 
         if self.mode == "edit":
             self._set_observer()
@@ -649,19 +645,6 @@ class AppRunner:
             raise PermissionError("Message mismatch.")
 
         return response
-
-    def _load_extensions(self):
-        extension_manager = ExtensionManager()
-
-        # Go through all packages installed in python and extract those that start with streamsync_
-        modules = list(pkgutil.iter_modules())
-        modules_paths = []
-        for module in modules:
-            if isinstance(module.module_finder, FileFinder):
-                modules_paths.append(os.path.join(module.module_finder.path, module.name))
-
-        extension_manager.load_extensions(self.app_path, modules_paths)
-        return extension_manager
 
     def _load_persisted_script(self) -> str:
         try:
