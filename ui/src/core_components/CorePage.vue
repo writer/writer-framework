@@ -62,17 +62,6 @@ def handle_page_open(state, payload):
 const description =
 	"A container component representing a single page within the application.";
 
-let pageFields = Object.keys({...sharedStyleFields}).filter((k) => {
-	const field = sharedStyleFields[k]
-	if (field.ignored_on_page === true) {
-		return false;
-	}
-
-	return true;
-}).map(
-	(k) => sharedStyleFields[k]
-)
-
 export default {
 	streamsync: {
 		name: "Page",
@@ -106,7 +95,7 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			...pageFields,
+			...sharedStyleFields,
 		},
 		previewField: "key",
 	},

@@ -24,7 +24,7 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-	cssClasses,
+cssClasses,
 } from "../renderer/sharedStyleFields";
 
 const description =

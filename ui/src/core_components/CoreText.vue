@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldControl, FieldType } from "../streamsyncTypes";
-import {cssClasses, primaryTextColor} from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 import { getClick } from "../renderer/syntheticEvents";
 
 const clickHandlerStub = `

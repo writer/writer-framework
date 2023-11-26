@@ -8,8 +8,6 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { accentColor, cssClasses } from "../renderer/sharedStyleFields";
 const description =
 	"A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.";
 
@@ -57,8 +55,9 @@ export default {
 
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, Ref, ref, watch } from "vue";
+import { FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
-
+import { accentColor, cssClasses } from "../renderer/sharedStyleFields";
 
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;
