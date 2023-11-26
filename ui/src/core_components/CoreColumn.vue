@@ -29,7 +29,11 @@
 				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
-		<BaseContainer class="container" :contentWidth=fields.contentWidth.value :contentHAlign=fields.contentHAlign.value>
+		<BaseContainer class="container"
+									 :contentWidth=fields.contentWidth.value
+									 :contentHAlign=fields.contentHAlign.value
+									 :contentPadding=fields.contentPadding.value
+		>
 			<slot></slot>
 		</BaseContainer>
 	</div>
@@ -37,7 +41,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import {contentHAlign, contentWidth, cssClasses, separatorColor} from "../renderer/sharedStyleFields";
+import {contentHAlign, contentPadding, contentWidth, cssClasses, separatorColor} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -106,6 +110,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			separatorColor,
+			contentPadding,
 			contentWidth,
 			contentHAlign,
 			cssClasses
