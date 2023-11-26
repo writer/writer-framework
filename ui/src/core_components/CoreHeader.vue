@@ -10,9 +10,6 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { accentColor, cssClasses, emptinessColor } from "../renderer/sharedStyleFields";
-
 const description =
 	"A container component that typically contains the main navigation elements.";
 
@@ -39,7 +36,9 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
+import { FieldType } from "../streamsyncTypes";
 import injectionKeys from "../injectionKeys";
+import { accentColor, cssClasses, emptinessColor } from "../renderer/sharedStyleFields";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>

@@ -5,8 +5,6 @@
 </template>
 
 <script lang="ts">
-import { cssClasses } from "../renderer/sharedStyleFields";
-
 export default {
 	streamsync: {
 		name: "Column Container",
@@ -23,6 +21,7 @@ export default {
 <script setup lang="ts">
 import { inject } from "vue";
 import injectionKeys from "../injectionKeys";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const instanceData = inject(injectionKeys.instanceData);
 instanceData.at(-1).value = { minimumNonCollapsiblePosition: undefined };
