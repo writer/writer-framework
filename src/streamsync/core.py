@@ -120,6 +120,8 @@ class StateSerialiser:
 
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
+        if "plotly.graph_objs._figure.Figure" in v_mro:
+            return v.to_json()
         if "numpy.float64" in v_mro:
             return float(v)
         if "numpy.ndarray" in v_mro:
