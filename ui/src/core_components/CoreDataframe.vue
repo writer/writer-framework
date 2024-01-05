@@ -272,7 +272,7 @@ const rowOffset = computed(() => {
 		maxOffset = rowCount.value - displayRowCount.value;
 	}
 	const newOffset = Math.min(
-		Math.floor(relativePosition.value * maxOffset),
+		Math.ceil(relativePosition.value * maxOffset),
 		maxOffset,
 	);
 	return newOffset;
