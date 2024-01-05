@@ -10,6 +10,7 @@ import CoreHeader from "../core_components/CoreHeader.vue";
 import CoreHeading from "../core_components/CoreHeading.vue";
 import CoreDataframe from "../core_components/CoreDataframe.vue";
 import CoreHtml from "../core_components/CoreHtml.vue";
+import CorePagination from "../core_components/CorePagination.vue";
 import CoreRepeater from "../core_components/CoreRepeater.vue";
 import CoreColumn from "../core_components/CoreColumn.vue";
 import CoreColumns from "../core_components/CoreColumns.vue";
@@ -42,6 +43,7 @@ import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
 
 
+
 const templateMap = {
 	root: CoreRoot,
 	page: CorePage,
@@ -53,6 +55,7 @@ const templateMap = {
 	heading: CoreHeading,
 	dataframe: CoreDataframe,
 	html: CoreHtml,
+	pagination: CorePagination,
 	repeater: CoreRepeater,
 	column: CoreColumn,
 	columns: CoreColumns,
