@@ -8,6 +8,7 @@ from streamsync.core import (BytesWrapper, ComponentManager, Evaluator, EventDes
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
+import plotly.express as px
 import pytest
 import altair
 import pyarrow as pa
@@ -487,6 +488,26 @@ class TestStateSerialiser():
         with pytest.warns(UserWarning):
             with pytest.raises(ValueError):
                 self.sts.serialise(d)
+                
+    def test_plotly_should_be_serialize_to_json(self) -> None:
+        """
+        Test that plotly figure should be serialised to json string directly. Serializing the json directly allows you 
+        to display datasets that exceed 10,000 records. 
+        
+        With the default json serializer, a dataset like this blows up memory. Plotly is using internaly orjson as serializer.
+        """
+        # Arrange
+        df = px.data.iris()
+        fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species", symbol="species")
+        
+        # Acts
+        json_code = self.sts.serialise(fig)
+
+        # Assert
+        assert isinstance(json_code, str)
+        o = json.loads(json_code)
+        assert 'data' in o
+        assert 'layout' in o
 
     def test_pandas_df(self) -> None:
         d = {
