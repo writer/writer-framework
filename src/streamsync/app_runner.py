@@ -25,6 +25,8 @@ import watchdog.observers
 import watchdog.events
 from streamsync import VERSION
 
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+
 
 class MessageHandlingException(Exception):
     pass
