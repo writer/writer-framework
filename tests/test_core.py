@@ -14,6 +14,9 @@ import altair
 import pyarrow as pa
 import urllib
 
+from pathlib import Path
+from tests import test_app_dir
+
 raw_state_dict = {
     "name": "Robert",
     "age": 1,
@@ -34,7 +37,7 @@ raw_state_dict = {
 }
 
 sc = None
-with open("testapp/ui.json", "r") as f:
+with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
 
 ss.Config.is_mail_enabled_for_log = True
@@ -365,7 +368,7 @@ class TestEventDeserialiser:
 
 class TestFileWrapper():
 
-    file_path = "testapp/assets/myfile.csv"
+    file_path = str(test_app_dir / "assets/myfile.csv")
 
     def test_get_as_dataurl(self) -> None:
         fw = FileWrapper(self.file_path, "text/plain")
@@ -382,8 +385,8 @@ class TestBytesWrapper():
 class TestStateSerialiser():
 
     sts = StateSerialiser()
-    file_path = "testapp/assets/myfile.csv"
-    df_path = "testapp/assets/main_df.csv"
+    file_path = str(test_app_dir / "assets/myfile.csv")
+    df_path = str(test_app_dir / "assets/main_df.csv")
 
     def test_nested_dict(self) -> None:
         d = {

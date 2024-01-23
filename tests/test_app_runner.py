@@ -7,6 +7,8 @@ import pytest
 from streamsync.ss_types import EventRequest, InitSessionRequest, InitSessionRequestPayload, StreamsyncEvent
 import asyncio
 
+from tests import test_app_dir
+
 class TestAppRunner:
 
     numberinput_instance_path = [
@@ -26,11 +28,11 @@ class TestAppRunner:
 
     def test_init_wrong_mode(self) -> None:
         with pytest.raises(ValueError):
-            AppRunner("./testapp", "virus")
+            AppRunner(test_app_dir, "virus")
 
     @pytest.mark.asyncio
     async def test_pre_session(self) -> None:
-        ar = AppRunner("./testapp", "run")
+        ar = AppRunner(test_app_dir, "run")
         er = EventRequest(
             type="event",
             payload=StreamsyncEvent(
@@ -48,7 +50,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     async def test_valid_session_invalid_event(self) -> None:
-        ar = AppRunner("./testapp", "run")
+        ar = AppRunner(test_app_dir, "run")
         ar.load()
         si = InitSessionRequest(
             type="sessionInit",
@@ -74,7 +76,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     async def test_valid_event(self) -> None:
-        ar = AppRunner("./testapp", "run")
+        ar = AppRunner(test_app_dir, "run")
         ar.load()
         si = InitSessionRequest(
             type="sessionInit",
@@ -103,7 +105,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     async def test_bad_event_handler(self) -> None:
-        ar = AppRunner("./testapp", "run")
+        ar = AppRunner(test_app_dir, "run")
         ar.load()
         si = InitSessionRequest(
             type="sessionInit",
@@ -131,7 +133,7 @@ class TestAppRunner:
         ar.shut_down()
 
     def test_run_code_edit(self) -> None:
-        ar = AppRunner("./testapp", "run")
+        ar = AppRunner(test_app_dir, "run")
         with pytest.raises(PermissionError):
             ar.update_code(None, "exec(virus)")
         with pytest.raises(PermissionError):
@@ -151,7 +153,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     async def test_code_update(self) -> None:
-        ar = AppRunner("./testapp", "edit")
+        ar = AppRunner(test_app_dir, "edit")
         ar.hook_to_running_event_loop()
         ar.load()
         wait_update_task = asyncio.create_task(self.wait_for_code_update(ar))
