@@ -124,11 +124,11 @@ export default {
 			// }
 		},
 		events: {
-			"page-changed": {
+			"ss-change-page": {
 				desc: "Fires when the user pick a page",
 				stub: pageChangeStub.trim(),
 			},
-			"page-size-changed": {
+			"ss-change-page-size": {
 				desc: "Fires when the user change the page size.",
 				stub: onPageSizeChangeStub.trim()
 			}
@@ -267,18 +267,18 @@ const onJumpTo = (event) => {
 		page = totalPage.value;
 	}
 
-	handlePageInput(page, 'page-changed')
+	handlePageInput(page, 'ss-change-page')
 };
 
 const jumpTo = (page: number) => {
-	handlePageInput(page, 'page-changed')
+	handlePageInput(page, 'ss-change-page')
 }
 
 
 
 const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
-	handlePageSizeInput(pageSize, 'page-size-changed')
+	handlePageSizeInput(pageSize, 'ss-change-page-size')
 };
 
 

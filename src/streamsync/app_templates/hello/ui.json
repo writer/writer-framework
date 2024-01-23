@@ -912,23 +912,6 @@
             },
             "visible": true
         },
-        "65y0txmxyzdiskun": {
-            "id": "65y0txmxyzdiskun",
-            "type": "pagination",
-            "content": {
-                "page": "4",
-                "pageSize": "25",
-                "totalItems": "100",
-                "pageSizeOptions": "",
-                "pageSizeShowAll": "no",
-                "jumpTo": "no",
-                "urlParam": "yopa"
-            },
-            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
-            "position": 2,
-            "handlers": {},
-            "visible": true
-        },
         "e1ax8ctt8lrao0e4": {
             "id": "e1ax8ctt8lrao0e4",
             "type": "tab",
@@ -981,7 +964,7 @@
                 "page": "@{paginated_members_page}",
                 "pageSize": "@{paginated_members_page_size}",
                 "totalItems": "@{paginated_members_total_items}",
-                "pageSizeOptions": "2,5",
+                "pageSizeOptions": "1,2,5",
                 "pageSizeShowAll": "no",
                 "jumpTo": "no",
                 "urlParam": "no"
@@ -989,8 +972,8 @@
             "parentId": "e1ax8ctt8lrao0e4",
             "position": 1,
             "handlers": {
-                "page-changed": "handle_paginated_members_page_change",
-                "page-size-changed": "handle_paginated_members_page_size_change"
+                "ss-change-page": "handle_paginated_members_page_change",
+                "ss-change-page-size": "handle_paginated_members_page_size_change"
             },
             "visible": true
         }
