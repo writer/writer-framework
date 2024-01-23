@@ -972,8 +972,8 @@
             "parentId": "e1ax8ctt8lrao0e4",
             "position": 1,
             "handlers": {
-                "page-changed": "handle_paginated_members_page_change",
-                "page-size-changed": "handle_paginated_members_page_size_change"
+                "ss-change-page": "handle_paginated_members_page_change",
+                "ss-change-page-size": "handle_paginated_members_page_size_change"
             },
             "visible": true
         }

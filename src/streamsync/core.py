@@ -664,6 +664,19 @@ class EventDeserialiser:
 
         return payload
 
+    def _transform_change_page_size(self, ev) -> Optional[int]:
+        try:
+            return int(ev.payload)
+        except ValueError:
+            return None
+
+    def _transform_change_page(self, ev) -> Optional[int]:
+        try:
+            return int(ev.payload)
+        except ValueError:
+            return None
+
+
 
 class Evaluator:
 
