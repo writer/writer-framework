@@ -239,7 +239,7 @@ class StateProxy:
             serialised_value = None
             if isinstance(value, StateProxy):
                 if value.initial_assignment:
-                    serialised_mutations[key] = serialised_value
+                    serialised_mutations[escaped_key] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
                 if child_mutations is None:
