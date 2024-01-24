@@ -376,7 +376,7 @@ def get_asgi_app(
                 1. Run the 'npm run build' script in the 'ui' directory and then restart the app.
                 2. Alternatively, launch a UI instance by running 'npm run dev' in the 'ui' directory.
 
-                Please refer to the CONTRIBUTING.md for detailed instructions.x1b[0m"""
+                Please refer to the CONTRIBUTING.md for detailed instructions.\x1b[0m"""
             )
         )
 
