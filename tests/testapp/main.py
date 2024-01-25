@@ -217,7 +217,7 @@ initial_state = ss.init_state({
     "b": {
         "pet_count": 8
     },
-    "utfࠀ": 23,
+    "utfࠀ": "ثعلب كلب",
     "prog_languages": {
         "c": {"name": "C"},
         "ts": {"name": "TypeScript"},

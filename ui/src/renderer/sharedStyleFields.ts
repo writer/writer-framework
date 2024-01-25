@@ -92,22 +92,26 @@ export const contentWidth = {
 	default: "100%",
 	category: FieldCategory.Style,
 	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc.",
-	ignored_on_page: true
 };
 
 export const contentHAlign = {
-	name: "Content align",
+	name: "Content alignment (H)",
 	type: FieldType.HAlign,
-	default: "left",
+	default: "unset",
 	category: FieldCategory.Style,
-	ignored_on_page: true
+};
+
+export const contentVAlign = {
+	name: "Content alignment (V)",
+	type: FieldType.VAlign,
+	default: "unset",
+	category: FieldCategory.Style,
 };
 
 export const contentPadding = {
-	name: "Content padding",
+	name: "Padding",
 	type: FieldType.Padding,
 	default: "0",
 	category: FieldCategory.Style,
-	ignored_on_page: true
 };
 

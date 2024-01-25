@@ -1,9 +1,9 @@
 <template>
 	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
-		<BaseContainer :contentWidth=fields.contentWidth.value
-									 :contentHAlign=fields.contentHAlign.value
-									 :contentPadding=fields.contentPadding.value
+		<BaseContainer
+			:contentHAlign="fields.contentHAlign.value"
+			:contentPadding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldType } from "../streamsyncTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -22,7 +22,9 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-	cssClasses, contentWidth, contentHAlign, contentPadding
+	cssClasses,
+	contentHAlign,
+	contentPadding,
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -50,8 +52,10 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-			contentPadding,
-			contentWidth,
+			contentPadding: {
+				...contentPadding,
+				default: "16px"
+			},
 			contentHAlign,
 			cssClasses,
 		},
@@ -60,18 +64,17 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import {computed, inject} from "vue";
+import { inject } from "vue";
 import injectionKeys from "../injectionKeys";
 import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-
 </script>
 
 <style scoped>
 @import "../renderer/sharedStyles.css";
 .CoreSection {
-	padding: 16px;
+	overflow: hidden;
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	box-shadow: var(--containerShadow);
@@ -79,6 +82,6 @@ const fields = inject(injectionKeys.evaluatedFields);
 }
 
 h2 {
-	margin-bottom: 16px;
+	margin: 16px 16px 0 16px;
 }
 </style>

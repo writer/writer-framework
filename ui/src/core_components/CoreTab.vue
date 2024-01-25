@@ -21,21 +21,23 @@
 		>
 			{{ fields.name.value }}
 		</button>
-		<BaseContainer class="container"
-									 :contentWidth=fields.contentWidth.value
-									 :contentHAlign=fields.contentHAlign.value
-									 :contentPadding=fields.contentPadding.value
-									 v-if="
-											tabContainerDirectChildInstanceItem?.instanceNumber ==
-											CONTENT_DISPLAYING_INSTANCE_NUMBER
-										"
-										v-show="isTabActive">
+		<BaseContainer
+			class="container"
+			v-if="
+				tabContainerDirectChildInstanceItem?.instanceNumber ==
+				CONTENT_DISPLAYING_INSTANCE_NUMBER
+			"
+			v-show="isTabActive"
+			:contentHAlign="fields.contentHAlign.value"
+			:contentPadding="fields.contentPadding.value"
+		>
 			<slot></slot>
 		</BaseContainer>
 	</div>
 </template>
 
-<script lang="ts">/**
+<script lang="ts">
+/**
  * This component renders differently depending on the instance number of
  * the direct child of the relevant Tab Container.
  *
@@ -53,7 +55,11 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import {contentWidth, contentHAlign, cssClasses, contentPadding} from "../renderer/sharedStyleFields";
+import {
+	contentHAlign,
+	cssClasses,
+	contentPadding,
+} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -72,8 +78,10 @@ export default {
 				init: "Tab Name",
 				type: FieldType.Text,
 			},
-			contentPadding,
-			contentWidth,
+			contentPadding: {
+				...contentPadding,
+				default: "16px"
+			},
 			contentHAlign,
 			cssClasses,
 		},
@@ -84,7 +92,6 @@ export default {
 <script setup lang="ts">
 import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "../injectionKeys";
-import {contentHAlign} from "../renderer/sharedStyleFields";
 import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
@@ -93,7 +100,7 @@ const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const {isComponentVisible} = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(ss);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {
@@ -135,19 +142,6 @@ const getMatchingTabInstancePath = () => {
 	];
 	return matchingInstancePath;
 };
-
-const containerWrapperStyle = computed(() => {
-	return {
-		display: "flex",
-		justifyContent: fields.contentHAlign.value,
-	};
-})
-
-const containerStyle = computed(() => {
-	return {
-		width: fields.contentWidth.value,
-	};
-});
 
 const activateTab = () => {
 	const tabContainerData = getTabContainerData();
@@ -212,23 +206,15 @@ button.bit {
 	background: var(--containerBackgroundColor);
 }
 
-.container {
-	padding: 16px;
-}
-
 button.bit:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--primaryTextColor);
 }
 
-button.bit.active, button.bit.active:focus {
+button.bit.active,
+button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
 }
-
-.container {
-	width: 100%;
-}
-
 
 </style>
