@@ -92,6 +92,10 @@ class TestStateProxy:
         assert m.get("state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
         assert len(m) == 1
 
+        self.sp["new.state.with.dots"] = {"test": "test"}
+        m = self.sp.get_mutations_as_dict()
+        assert len(m) == 1
+
         d = self.sp.to_dict()
         assert d.get("age") == 2
         assert d.get("interests") == ["lamps", "cars", "dogs"]
