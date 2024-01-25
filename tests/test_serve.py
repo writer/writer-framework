@@ -6,12 +6,14 @@ import streamsync.serve
 import fastapi.testclient
 import pytest
 
+from tests import test_app_dir
+
 
 class TestServe:
 
     def test_valid(self) -> None:
         asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
-            "./testapp", "run")
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.post("/api/init", json={
                 "proposedSessionId": None
@@ -46,7 +48,7 @@ class TestServe:
 
     def test_bad_session(self) -> None:
         asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
-            "./testapp", "run")
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             with client.websocket_connect("/api/stream") as websocket:
                 websocket.send_json({
@@ -61,7 +63,7 @@ class TestServe:
 
     def test_session_verifier_header(self) -> None:
         asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
-            "./testapp", "run")
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.post("/api/init", json={
                 "proposedSessionId": None
@@ -73,7 +75,7 @@ class TestServe:
 
     def test_session_verifier_cookies(self) -> None:
         asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
-            "./testapp", "run")
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app, cookies={
             "fail_cookie": "yes"
         }) as client:
@@ -86,7 +88,7 @@ class TestServe:
 
     def test_session_verifier_pass(self) -> None:
         asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
-            "./testapp", "run")
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app, cookies={
             "another_cookie": "yes"
         }) as client:
@@ -102,7 +104,7 @@ class TestServe:
         # Arrange
         mimetypes.add_type("text/plain", ".js")
 
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app("./testapp", "run")
+        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             # Acts
             res = client.get("/static/file.js")

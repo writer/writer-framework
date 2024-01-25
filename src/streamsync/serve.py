@@ -2,6 +2,7 @@ import asyncio
 import mimetypes
 from contextlib import asynccontextmanager
 import sys
+import textwrap
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 import typing
 from fastapi import FastAPI, Request, HTTPException
@@ -41,7 +42,9 @@ def get_asgi_app(
         app_runner.hook_to_running_event_loop()
         app_runner.load()
 
-        if on_load is not None:
+        if on_load is not None \
+           and hasattr(app.state, 'is_server_static_mounted') \
+           and app.state.is_server_static_mounted:
             on_load()
 
         try:
@@ -359,8 +362,23 @@ def get_asgi_app(
 
     server_path = os.path.dirname(__file__)
     server_static_path = pathlib.Path(server_path) / "static"
-    asgi_app.mount(
-        "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
+    if server_static_path.exists():
+        asgi_app.mount(
+            "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
+        asgi_app.state.is_server_static_mounted = True
+    else:
+        logging.error(
+            textwrap.dedent(
+                """\
+                \x1b[31;20mError: Failed to acquire server static path. Streamsync may not be properly built.
+
+                To resolve this issue, try the following steps:
+                1. Run the 'npm run build' script in the 'ui' directory and then restart the app.
+                2. Alternatively, launch a UI instance by running 'npm run dev' in the 'ui' directory.
+
+                Please refer to the CONTRIBUTING.md for detailed instructions.\x1b[0m"""
+            )
+        )
 
     # Return
 

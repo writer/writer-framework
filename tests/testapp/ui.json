@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.2.5"
+        "streamsync_version": "0.3.0a1"
     },
     "components": {
         "root": {
@@ -64,8 +64,7 @@
             "id": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "type": "section",
             "content": {
-                "title": "",
-                "snapMode": ""
+                "title": ""
             },
             "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
             "position": 0
@@ -137,8 +136,7 @@
             "id": "7e625201-20c2-4b05-951c-d825de28b216",
             "type": "section",
             "content": {
-                "title": "Filter data",
-                "snapMode": "no"
+                "title": "Filter data"
             },
             "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
             "position": 0
@@ -185,8 +183,7 @@
             "id": "70d82458-a08f-4005-8f96-dc8d3ba92fad",
             "type": "section",
             "content": {
-                "title": "About this app",
-                "snapMode": "no"
+                "title": "About this app"
             },
             "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
             "position": 1
@@ -264,7 +261,7 @@
             "type": "column",
             "content": {
                 "width": "1",
-                "verticalAlignment": ""
+                "contentVAlign": ""
             },
             "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
             "position": 0
@@ -337,8 +334,7 @@
             "type": "section",
             "content": {
                 "title": "",
-                "containerBackgroundColor": "#ebfcff",
-                "snapMode": "no"
+                "containerBackgroundColor": "#ebfcff"
             },
             "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
             "position": 1
@@ -347,7 +343,7 @@
             "id": "919b0d26-ea9b-4364-b5af-865236b3fc3a",
             "type": "horizontalstack",
             "content": {
-                "alignment": "left"
+                "contentHAlign": "start"
             },
             "parentId": "ec5bc32e-1456-4abd-8d3e-97c640e32339",
             "position": 0
@@ -402,7 +398,7 @@
             "id": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "type": "horizontalstack",
             "content": {
-                "alignment": "left"
+                "contentHAlign": "start"
             },
             "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
             "position": 0
@@ -580,7 +576,6 @@
             "type": "section",
             "content": {
                 "title": "@{item.name}",
-                "snapMode": "no",
                 "containerBackgroundColor": "#eff4f6"
             },
             "parentId": "0dd29423-3867-478a-997e-eeaafb6b811e",
@@ -657,8 +652,8 @@
             "content": {
                 "width": "1",
                 "not-a-real-field": "not-a-real-value",
-                "verticalAlignment": "",
-                "horizontalAlignment": ""
+                "contentHAlign": "",
+                "contentVAlign": ""
             },
             "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
             "position": 0
@@ -1025,8 +1020,7 @@
             "id": "2ab19af7-1efa-4012-af35-f01c3d39a409",
             "type": "section",
             "content": {
-                "title": "Payload",
-                "snapMode": "no"
+                "title": "Payload"
             },
             "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "position": 3,
@@ -1079,8 +1073,7 @@
             "id": "3eb28922-ef5c-47de-88aa-d100c503a2f5",
             "type": "section",
             "content": {
-                "title": "Bindings",
-                "snapMode": "no"
+                "title": "Bindings"
             },
             "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "position": 5,
@@ -1338,8 +1331,7 @@
             "id": "ca8f9355-c26b-44a6-85c1-46d2182a576e",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "c55caf0b-39c1-4fe5-8756-7506b3e3a19a",
             "position": 0,
@@ -1361,8 +1353,7 @@
             "id": "ee91f05a-6cac-4cf0-96dd-090a7bf09bd6",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "d4d9fd0d-b347-42d9-9786-a9873cdd0912",
             "position": 0,
@@ -1404,8 +1395,7 @@
             "id": "04acdbfb-2e72-45b3-9fad-367cda5164b5",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "c937bbfd-a510-432c-8e58-c50eecd5c67a",
             "position": 0,
@@ -1458,8 +1448,7 @@
             "id": "c72a3364-03d9-4fb1-ac1f-13a1785e18c0",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "ad8bd11b-3f89-4839-b2d3-4c7f52c267bd",
             "position": 0,
@@ -1470,8 +1459,7 @@
             "id": "065e4f07-c707-4cc7-8cbe-143be5ab2486",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
             "position": 0,
@@ -1482,8 +1470,7 @@
             "id": "511bedb8-f856-451f-8ee4-a123d934b744",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "065e4f07-c707-4cc7-8cbe-143be5ab2486",
             "position": 0,
@@ -1494,8 +1481,7 @@
             "id": "5ab397b2-4283-44ab-ba9f-4cde3b422641",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
             "position": 1,
@@ -1506,7 +1492,7 @@
             "id": "ba15571d-4baa-4c65-b600-45af1c32ca75",
             "type": "horizontalstack",
             "content": {
-                "alignment": "left"
+                "contentHAlign": "start"
             },
             "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "position": 4,
@@ -1594,8 +1580,7 @@
             "id": "1b3c8d83-36c1-4c74-9dcd-110160c16081",
             "type": "section",
             "content": {
-                "title": "iframe",
-                "snapMode": "no"
+                "title": "iframe"
             },
             "parentId": "f2c445a4-9d3c-4c38-9fe3-cda02126d5d0",
             "position": 0,
@@ -1870,8 +1855,7 @@
             "id": "9f589947-0ea9-4a70-9d57-4ae52543be42",
             "type": "section",
             "content": {
-                "title": "",
-                "snapMode": "no"
+                "title": ""
             },
             "parentId": "d15b9cf1-7e79-4ee5-9f0d-7c38c6b6c070",
             "position": 0,
@@ -2098,8 +2082,7 @@
             "id": "575542f1-bb18-429c-9d6a-706edc7512be",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "position": 7,
@@ -2119,8 +2102,7 @@
             "id": "35f579dd-4205-413a-9c4f-1caf015a598a",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 1,
@@ -2131,8 +2113,7 @@
             "id": "4c65268c-b536-4671-8081-c69be3e84161",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 2,
@@ -2143,8 +2124,7 @@
             "id": "436ba1be-1194-4da9-9eb3-a10e9ec019f1",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 5,
@@ -2155,8 +2135,7 @@
             "id": "7a89f965-8c1d-473c-a565-947be62faa43",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 45,
@@ -2167,8 +2146,7 @@
             "id": "e2d3c1be-c43e-4b8a-84a8-90649da0b55e",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 6,
@@ -2179,8 +2157,7 @@
             "id": "ddbedb50-5fbe-43a3-b221-8f7d59c617da",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 7,
@@ -2191,8 +2168,7 @@
             "id": "21dda1e9-a972-4f74-972d-d13f5e2941de",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 8,
@@ -2203,8 +2179,7 @@
             "id": "6ee3de2e-7333-469f-9ced-1e08d9231117",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 9,
@@ -2215,8 +2190,7 @@
             "id": "f0659dad-aa37-457e-80fe-02b900f38694",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 10,
@@ -2227,8 +2201,7 @@
             "id": "380f8a0b-38f3-414a-ab9f-7034629f5e8e",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 11,
@@ -2239,8 +2212,7 @@
             "id": "e43471a7-2e58-437f-8daf-489b221b464a",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 12,
@@ -2262,8 +2234,7 @@
             "id": "71500567-d3db-4d67-89aa-86ea8fecc4ed",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 14,
@@ -2274,8 +2245,7 @@
             "id": "0e8d0885-954a-4b95-9cfd-0a8ed2ed8683",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 15,
@@ -2286,8 +2256,7 @@
             "id": "a039b488-a523-42bc-84d0-f9b3f5185052",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 16,
@@ -2298,8 +2267,7 @@
             "id": "8582c124-474c-4da5-80c5-16bca90f4d98",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 17,
@@ -2310,8 +2278,7 @@
             "id": "d88e0ff3-4acb-474c-b37c-9cd7ea51fd26",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 18,
@@ -2322,8 +2289,7 @@
             "id": "de7a750f-6c88-4fbb-8962-93714b6be485",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 19,
@@ -2334,8 +2300,7 @@
             "id": "110625bc-bad4-4b44-b20f-51339554d77b",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 20,
@@ -2346,8 +2311,7 @@
             "id": "eb568d28-e6de-4deb-978b-a10d6cb3c454",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 21,
@@ -2358,8 +2322,7 @@
             "id": "4a94898f-01b2-4424-8db9-9ed75e788611",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 22,
@@ -2370,8 +2333,7 @@
             "id": "f8136c45-f868-4858-928a-f007f9a7dfbe",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 23,
@@ -2382,8 +2344,7 @@
             "id": "1a8ca9b4-afc5-4055-9709-bd27cd7fd7aa",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 24,
@@ -2394,8 +2355,7 @@
             "id": "6a308e3d-c5a0-400e-9036-6183aecac714",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 25,
@@ -2406,8 +2366,7 @@
             "id": "a71a65fc-8710-40fb-8410-6c676072dab5",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 26,
@@ -2418,8 +2377,7 @@
             "id": "ff213e0d-4e33-494d-8765-6738010ea932",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 27,
@@ -2430,8 +2388,7 @@
             "id": "25f8e06e-5a86-4e5c-afbc-6191c4146bd8",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 28,
@@ -2442,8 +2399,7 @@
             "id": "48cb52fa-bb6a-43e7-aa7a-cbc0b30156b1",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 29,
@@ -2454,8 +2410,7 @@
             "id": "7d914a22-e7aa-4340-9b88-36423a5566a3",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 30,
@@ -2466,8 +2421,7 @@
             "id": "bcbae34f-72fd-40b3-8678-d4b986b47cd5",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 31,
@@ -2478,8 +2432,7 @@
             "id": "574ec17c-ed69-49a6-b991-29354b8a8a76",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 32,
@@ -2490,8 +2443,7 @@
             "id": "27a21b92-0ed0-4044-8eb4-69979a285e2a",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 33,
@@ -2502,8 +2454,7 @@
             "id": "c759135c-72ed-43b8-ab91-8bce748dcd58",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 35,
@@ -2514,8 +2465,7 @@
             "id": "210f45a4-c8da-48b2-a2ff-bca06ca7f8a3",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 36,
@@ -2526,8 +2476,7 @@
             "id": "0bdf78ac-2824-4116-8e14-af2c363c3b45",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 37,
@@ -2538,8 +2487,7 @@
             "id": "a4a6316d-5fb1-47e2-976b-97265533fc97",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 38,
@@ -2550,8 +2498,7 @@
             "id": "aa8ab024-25a5-4d33-82cf-f20146e9cf28",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "4c65268c-b536-4671-8081-c69be3e84161",
             "position": 0,
@@ -2562,8 +2509,7 @@
             "id": "1c5b7db1-f8fa-4c7b-9daf-db60045fd16e",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 39,
@@ -2585,8 +2531,7 @@
             "id": "857dc6fc-d6f7-4dd1-bbc3-6f0dea011d54",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 42,
@@ -2597,8 +2542,7 @@
             "id": "aac79665-3341-4784-a105-433baf45dde3",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 43,
@@ -2609,8 +2553,7 @@
             "id": "d0f010ac-2048-49f3-91ff-e17e145298ed",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 44,
@@ -2621,8 +2564,7 @@
             "id": "b3aa5f2f-d952-4021-a506-7a4515388580",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 46,
@@ -2633,8 +2575,7 @@
             "id": "d07b8382-dca7-4061-b0ca-22edd43e06b1",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 47,
@@ -2645,8 +2586,7 @@
             "id": "9005a1fc-c560-4ca4-9626-b660031c9c8e",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 48,
@@ -2657,8 +2597,7 @@
             "id": "440de4a5-b901-4626-a282-3aee83a007c5",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 49,
@@ -2669,8 +2608,7 @@
             "id": "2e8069dd-0017-42f3-a13b-44e19f132c4f",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 50,
@@ -2681,8 +2619,7 @@
             "id": "cab6894d-98e1-426f-876c-ca1c81bb7a30",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 51,
@@ -2693,8 +2630,7 @@
             "id": "8a937df7-c974-455e-b2bc-40445621ef40",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 52,
@@ -2792,8 +2728,7 @@
             "id": "1faaa29d-96d3-404a-b8f5-7d392cd55177",
             "type": "section",
             "content": {
-                "title": "Section Title",
-                "snapMode": "no"
+                "title": "Section Title"
             },
             "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "position": 40,
@@ -2874,33 +2809,33 @@
         "c9e4e0d9-771e-47c2-863a-55ce8a98bfa5": {
             "id": "c9e4e0d9-771e-47c2-863a-55ce8a98bfa5",
             "type": "multiselectinput",
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "content": {
                 "label": "Default checkbox mirrored in multiselect"
             },
-            "handlers": {},
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 6,
-            "visible": true,
+            "handlers": {},
             "binding": {
                 "eventType": "ss-options-change",
                 "stateRef": "b.default_checkbox"
-            }
+            },
+            "visible": true
         },
         "c1d1f478-3dbb-4009-94a0-9b92404348cd": {
             "id": "c1d1f478-3dbb-4009-94a0-9b92404348cd",
             "type": "selectinput",
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "content": {
                 "label": "Language",
                 "options": "{\n  \"en\": \"English\",\n  \"sp\": \"Spanish\",\n  \"pl\": \"Polish\"\n}"
             },
-            "handlers": {},
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 4,
-            "visible": true,
+            "handlers": {},
             "binding": {
                 "eventType": "ss-option-change",
                 "stateRef": "b.language"
-            }
+            },
+            "visible": true
         }
     }
 }

@@ -25,6 +25,8 @@ import watchdog.observers
 import watchdog.events
 from streamsync import VERSION
 
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+
 
 class MessageHandlingException(Exception):
     pass
@@ -631,7 +633,7 @@ class AppRunner:
     def _load_persisted_script(self) -> str:
         try:
             contents = None
-            with open(os.path.join(self.app_path, "main.py"), "r") as f:
+            with open(os.path.join(self.app_path, "main.py"), "r", encoding='utf-8') as f:
                 contents = f.read()
             return contents
         except FileNotFoundError:

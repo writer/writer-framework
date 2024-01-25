@@ -120,6 +120,8 @@ class StateSerialiser:
 
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
+        if "plotly.graph_objs._figure.Figure" in v_mro:
+            return v.to_json()
         if "numpy.float64" in v_mro:
             return float(v)
         if "numpy.ndarray" in v_mro:
@@ -229,7 +231,7 @@ class StateProxy:
     def get_mutations_as_dict(self) -> Dict[str, Any]:
         serialised_mutations: Dict[str, Union[Dict,
                                               List, str, bool, int, float, None]] = {}
-        for key, value in self.state.items():
+        for key, value in list(self.state.items()):
             if key.startswith("_"):
                 continue
             escaped_key = key.replace(".", "\.")
@@ -237,7 +239,7 @@ class StateProxy:
             serialised_value = None
             if isinstance(value, StateProxy):
                 if value.initial_assignment:
-                    serialised_mutations[key] = serialised_value
+                    serialised_mutations[escaped_key] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
                 if child_mutations is None:
@@ -330,19 +332,38 @@ class StreamsyncState():
             "message": message,
         })
 
-    def _log_entry_in_logger(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
+    def _log_entry_in_logger(self, type: Literal["debug", "info", "warning", "error", "critical"], title: str, message: str, code: Optional[str] = None) -> None:
         if not Config.logger:
             return
         log_args: Tuple[str, ...] = ()
+
         if code:
             log_args = (title, message, code)
         else:
             log_args = (title, message)
+
+        log_colors = {
+            "debug": "\x1b[36;20m",    # Cyan for debug
+            "info": "\x1b[34;20m",     # Blue for info
+            "warning": "\x1b[33;20m",  # Yellow for warning
+            "error": "\x1b[31;20m",    # Red for error
+            "critical": "\x1b[35;20m"  # Magenta for critical
+        }
+
+        log_methods = {
+            "debug": Config.logger.debug,
+            "info": Config.logger.info,
+            "warning": Config.logger.warning,
+            "error": Config.logger.error,
+            "critical": Config.logger.critical
+        }
+
         log_message = "From app log: " + ("\n%s" * len(log_args))
-        if type == "info":
-            Config.logger.info(f"\x1b[34;20m{log_message}\x1b[0m", *log_args)
-        elif type == "error":
-            Config.logger.error(f"\x1b[31;20m{log_message}\x1b[0m", *log_args)
+
+        color = log_colors.get(type, "\x1b[0m")  # Default to no color if type not found
+        log_method = log_methods.get(type, Config.logger.info)  # Default to info level if type not found
+
+        log_method(f"{color}{log_message}\x1b[0m", *log_args)
 
     def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
         self._log_entry_in_logger(type, title, message, code)
@@ -642,6 +663,19 @@ class EventDeserialiser:
                 "Date must be in YYYY-MM-DD format or another valid ISO 8601 format.")
 
         return payload
+
+    def _transform_change_page_size(self, ev) -> Optional[int]:
+        try:
+            return int(ev.payload)
+        except ValueError:
+            return None
+
+    def _transform_change_page(self, ev) -> Optional[int]:
+        try:
+            return int(ev.payload)
+        except ValueError:
+            return None
+
 
 
 class Evaluator:

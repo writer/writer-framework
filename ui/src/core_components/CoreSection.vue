@@ -1,12 +1,17 @@
 <template>
-	<section class="CoreSection" :class="{ snapMode: fields.snapMode.value == 'yes' }">
+	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
-		<div data-streamsync-container><slot></slot></div>
+		<BaseContainer
+			:contentHAlign="fields.contentHAlign.value"
+			:contentPadding="fields.contentPadding.value"
+		>
+			<slot></slot>
+		</BaseContainer>
 	</section>
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldType } from "../streamsyncTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -17,7 +22,9 @@ import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
-cssClasses,
+	cssClasses,
+	contentHAlign,
+	contentPadding,
 } from "../renderer/sharedStyleFields";
 
 const description =
@@ -45,18 +52,11 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-			snapMode: {
-				name: "Snap mode",
-				type: FieldType.Text,
-				options: {
-					no: "No",
-					yes: "Yes",
-				},
-				default: "no",
-				init: "no",
-				category: FieldCategory.Style,
-				desc: "Use as much space as possible without altering the size of the container.",
+			contentPadding: {
+				...contentPadding,
+				default: "16px"
 			},
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "title",
@@ -66,6 +66,7 @@ export default {
 <script setup lang="ts">
 import { inject } from "vue";
 import injectionKeys from "../injectionKeys";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
@@ -73,19 +74,14 @@ const fields = inject(injectionKeys.evaluatedFields);
 <style scoped>
 @import "../renderer/sharedStyles.css";
 .CoreSection {
-	padding: 16px;
+	overflow: hidden;
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	box-shadow: var(--containerShadow);
 	background-color: var(--containerBackgroundColor);
 }
 
-.CoreSection.snapMode {
-	flex: 1 0 auto;
-	align-self: stretch;
-}
-
 h2 {
-	margin-bottom: 16px;
+	margin: 16px 16px 0 16px;
 }
 </style>

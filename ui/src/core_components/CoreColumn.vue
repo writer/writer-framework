@@ -29,19 +29,26 @@
 				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
-		<div
+		<BaseContainer
 			class="container"
-			data-streamsync-container
-			:style="containerStyle"
+			:contentHAlign="fields.contentHAlign.value"
+			:contentVAlign="fields.contentVAlign.value"
+			:contentPadding="fields.contentPadding.value"
 		>
 			<slot></slot>
-		</div>
+		</BaseContainer>
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, separatorColor } from "../renderer/sharedStyleFields";
+import {
+	contentHAlign,
+	contentPadding,
+	contentVAlign,
+	cssClasses,
+	separatorColor,
+} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -97,32 +104,11 @@ export default {
 				},
 				desc: "Only applied when the column is collapsible.",
 			},
-			horizontalAlignment: {
-				name: "Horizontal alignment",
-				default: "normal",
-				type: FieldType.Text,
-				options: {
-					normal: "Normal",
-					left: "Left",
-					center: "Center",
-					right: "Right",
-				},
-				category: FieldCategory.Style,
-			},
-			verticalAlignment: {
-				name: "Vertical alignment",
-				default: "normal",
-				type: FieldType.Text,
-				options: {
-					normal: "Normal",
-					top: "Top",
-					center: "Center",
-					bottom: "Bottom",
-				},
-				category: FieldCategory.Style,
-			},
 			separatorColor,
-			cssClasses
+			contentPadding,
+			contentHAlign,
+			contentVAlign,
+			cssClasses,
 		},
 	},
 	components: { IconGen },
@@ -132,6 +118,7 @@ export default {
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 import IconGen from "../renderer/IconGen.vue";
+import BaseContainer from "./base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
@@ -140,8 +127,7 @@ const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 const isCollapsible = computed(() => fields.isCollapsible.value == "yes");
 const isCollapsed: Ref<boolean> = ref(
-	fields.isCollapsible.value == "yes" &&
-		fields.startCollapsed.value == "yes"
+	fields.isCollapsible.value == "yes" && fields.startCollapsed.value == "yes",
 );
 const isSticky = computed(() => fields.isSticky.value == "yes");
 
@@ -158,28 +144,6 @@ const rootStyle = computed(() => {
 	return style;
 });
 
-const containerStyle = computed(() => {
-	const horizontalAlignMap = {
-		normal: "normal",
-		left: "start",
-		center: "center",
-		right: "end",
-	};
-	const verticalAlignMap = {
-		normal: "normal",
-		top: "start",
-		center: "center",
-		bottom: "end",
-	};
-	const alignItems = horizontalAlignMap[fields.horizontalAlignment.value];
-	const justifyContent = verticalAlignMap[fields.verticalAlignment.value];
-	const style = {
-		"align-items": alignItems,
-		"justify-content": justifyContent,
-	};
-	return style;
-});
-
 const toggleCollapsed = () => {
 	isCollapsed.value = !isCollapsed.value;
 };
@@ -192,7 +156,8 @@ Those with a position higher than mnccp collapse to the right.
 
 const isCollapsibleToRight = computed(
 	() =>
-		position.value >= columnsData.value.value?.minimumNonCollapsiblePosition
+		position.value >=
+		columnsData.value.value?.minimumNonCollapsiblePosition,
 );
 
 const columnsData: ComputedRef<Ref> = computed(() => {
@@ -226,7 +191,7 @@ watch(
 			return;
 		newColumnsData.value.minimumNonCollapsiblePosition = position.value;
 	},
-	{ immediate: true, deep: true }
+	{ immediate: true, deep: true },
 );
 </script>
 
@@ -301,7 +266,7 @@ watch(
 .CoreColumn > .container {
 	flex: 1 0 0;
 	align-self: stretch;
-	width: 100%;
+	display: flex;
 }
 
 .CoreColumn.collapsible.collapsed > .container {

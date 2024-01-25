@@ -21,17 +21,18 @@
 		>
 			{{ fields.name.value }}
 		</button>
-		<div
+		<BaseContainer
 			class="container"
-			data-streamsync-container
 			v-if="
 				tabContainerDirectChildInstanceItem?.instanceNumber ==
 				CONTENT_DISPLAYING_INSTANCE_NUMBER
 			"
 			v-show="isTabActive"
+			:contentHAlign="fields.contentHAlign.value"
+			:contentPadding="fields.contentPadding.value"
 		>
 			<slot></slot>
-		</div>
+		</BaseContainer>
 	</div>
 </template>
 
@@ -54,7 +55,11 @@ const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
 import { Component, FieldType, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import {
+	contentHAlign,
+	cssClasses,
+	contentPadding,
+} from "../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -73,6 +78,11 @@ export default {
 				init: "Tab Name",
 				type: FieldType.Text,
 			},
+			contentPadding: {
+				...contentPadding,
+				default: "16px"
+			},
+			contentHAlign,
 			cssClasses,
 		},
 		previewField: "name",
@@ -82,6 +92,7 @@ export default {
 <script setup lang="ts">
 import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "../injectionKeys";
+import BaseContainer from "./base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
@@ -89,7 +100,7 @@ const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const {isComponentVisible} = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(ss);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {
@@ -195,19 +206,15 @@ button.bit {
 	background: var(--containerBackgroundColor);
 }
 
-.container {
-	padding: 16px;
-}
-
 button.bit:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--primaryTextColor);
 }
 
-button.bit.active, button.bit.active:focus {
+button.bit.active,
+button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
 }
-
 
 </style>

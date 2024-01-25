@@ -88,6 +88,10 @@ export const enum FieldType {
 	Number = "Number",
 	Object = "Object",
 	IdKey = "Identifying Key",
+	Width = "Width",
+	HAlign = "Align (H)",
+	VAlign = "Align (V)",
+	Padding = "Padding",
 }
 
 export const enum FieldCategory {

@@ -185,33 +185,23 @@ function handleHashChange() {
 }
 
 async function importStylesheet(stylesheetKey: string, path: string) {
-	const req = await fetch(path);
-	if (req.status > 399) {
-		console.warn(`Couldn't import stylesheet at "${path}".`);
-		return;
-	}
 	const existingEl = document.querySelector(`[data-streamsync-stylesheet-key="${stylesheetKey}"]`);
 	existingEl?.remove();
-	const el = document.createElement("style");
+	const el = document.createElement("link");
 	el.dataset.streamsyncStylesheetKey = stylesheetKey;
-	const cssText = await req.text();
-    el.textContent = cssText;
-    document.head.appendChild(el);
+  el.setAttribute('href', path)
+  el.setAttribute("rel", "stylesheet");
+  document.head.appendChild(el);
 }
 
 async function importScript(scriptKey: string, path: string) {
-	const req = await fetch(path);
-	if (req.status > 399) {
-		console.warn(`Couldn't import script at "${path}".`);
-		return;
-	}
 	const existingEl = document.querySelector(`[data-streamsync-script-key="${scriptKey}"]`);
 	existingEl?.remove();
 	const el = document.createElement("script");
 	el.dataset.streamsyncScriptKey = scriptKey;
-	const scriptText = await req.text();
-    el.textContent = scriptText;
-    document.head.appendChild(el);
+  el.src = path;
+  el.setAttribute("rel", "modulepreload");
+  document.head.appendChild(el);
 }
 
 async function importModule(moduleKey: string, specifier: string) {

@@ -4,11 +4,13 @@ import CorePage from "../core_components/CorePage.vue";
 import CoreSidebar from "../core_components/CoreSidebar.vue";
 import CoreText from "../core_components/CoreText.vue";
 import CoreButton from "../core_components/CoreButton.vue";
+import CoreIcon from "../core_components/CoreIcon.vue";
 import CoreSection from "../core_components/CoreSection.vue";
 import CoreHeader from "../core_components/CoreHeader.vue";
 import CoreHeading from "../core_components/CoreHeading.vue";
 import CoreDataframe from "../core_components/CoreDataframe.vue";
 import CoreHtml from "../core_components/CoreHtml.vue";
+import CorePagination from "../core_components/CorePagination.vue";
 import CoreRepeater from "../core_components/CoreRepeater.vue";
 import CoreColumn from "../core_components/CoreColumn.vue";
 import CoreColumns from "../core_components/CoreColumns.vue";
@@ -40,6 +42,8 @@ import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
 
+
+
 const templateMap = {
 	root: CoreRoot,
 	page: CorePage,
@@ -51,6 +55,7 @@ const templateMap = {
 	heading: CoreHeading,
 	dataframe: CoreDataframe,
 	html: CoreHtml,
+	pagination: CorePagination,
 	repeater: CoreRepeater,
 	column: CoreColumn,
 	columns: CoreColumns,
@@ -59,6 +64,7 @@ const templateMap = {
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
+	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
 	textareainput: CoreTextareaInput,

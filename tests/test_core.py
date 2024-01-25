@@ -8,10 +8,14 @@ from streamsync.core import (BytesWrapper, ComponentManager, Evaluator, EventDes
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
+import plotly.express as px
 import pytest
 import altair
 import pyarrow as pa
 import urllib
+
+from pathlib import Path
+from tests import test_app_dir
 
 raw_state_dict = {
     "name": "Robert",
@@ -33,7 +37,7 @@ raw_state_dict = {
 }
 
 sc = None
-with open("testapp/ui.json", "r") as f:
+with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
 
 ss.Config.is_mail_enabled_for_log = True
@@ -364,7 +368,7 @@ class TestEventDeserialiser:
 
 class TestFileWrapper():
 
-    file_path = "testapp/assets/myfile.csv"
+    file_path = str(test_app_dir / "assets/myfile.csv")
 
     def test_get_as_dataurl(self) -> None:
         fw = FileWrapper(self.file_path, "text/plain")
@@ -381,8 +385,8 @@ class TestBytesWrapper():
 class TestStateSerialiser():
 
     sts = StateSerialiser()
-    file_path = "testapp/assets/myfile.csv"
-    df_path = "testapp/assets/main_df.csv"
+    file_path = str(test_app_dir / "assets/myfile.csv")
+    df_path = str(test_app_dir / "assets/main_df.csv")
 
     def test_nested_dict(self) -> None:
         d = {
@@ -487,6 +491,26 @@ class TestStateSerialiser():
         with pytest.warns(UserWarning):
             with pytest.raises(ValueError):
                 self.sts.serialise(d)
+                
+    def test_plotly_should_be_serialize_to_json(self) -> None:
+        """
+        Test that plotly figure should be serialised to json string directly. Serializing the json directly allows you 
+        to display datasets that exceed 10,000 records. 
+        
+        With the default json serializer, a dataset like this blows up memory. Plotly is using internaly orjson as serializer.
+        """
+        # Arrange
+        df = px.data.iris()
+        fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species", symbol="species")
+        
+        # Acts
+        json_code = self.sts.serialise(fig)
+
+        # Assert
+        assert isinstance(json_code, str)
+        o = json.loads(json_code)
+        assert 'data' in o
+        assert 'layout' in o
 
     def test_pandas_df(self) -> None:
         d = {

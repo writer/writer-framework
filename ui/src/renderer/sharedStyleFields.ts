@@ -86,3 +86,32 @@ export const cssClasses = {
 	desc: "CSS classes, separated by spaces. You can define classes in custom stylesheets."
 };
 
+export const contentWidth = {
+	name: "Content width",
+	type: FieldType.Width,
+	default: "100%",
+	category: FieldCategory.Style,
+	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc.",
+};
+
+export const contentHAlign = {
+	name: "Content alignment (H)",
+	type: FieldType.HAlign,
+	default: "unset",
+	category: FieldCategory.Style,
+};
+
+export const contentVAlign = {
+	name: "Content alignment (V)",
+	type: FieldType.VAlign,
+	default: "unset",
+	category: FieldCategory.Style,
+};
+
+export const contentPadding = {
+	name: "Padding",
+	type: FieldType.Padding,
+	default: "0",
+	category: FieldCategory.Style,
+};
+

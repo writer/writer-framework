@@ -23,7 +23,20 @@
 
 <script lang="ts">
 import { Component, FieldCategory, FieldType } from "../streamsyncTypes";
-import * as sharedStyleFields from "../renderer/sharedStyleFields";
+import {
+	accentColor,
+	buttonColor,
+	buttonShadow,
+	buttonTextColor,
+	containerBackgroundColor,
+	containerShadow,
+	cssClasses,
+	emptinessColor,
+	primaryTextColor,
+	secondaryTextColor,
+	selectedColor,
+	separatorColor,
+} from "../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { onUnmounted } from "vue";
 import { getKeydown } from "../renderer/syntheticEvents";
@@ -57,7 +70,7 @@ const ssPageOpenStub = `
 def handle_page_open(state, payload):
 	page_key = payload
 	state["message"] = f"The page {page_key} has been opened."
-`
+`;
 
 const description =
 	"A container component representing a single page within the application.";
@@ -69,11 +82,11 @@ export default {
 		events: {
 			"ss-keydown": {
 				desc: "Captures all key activity while this page is open.",
-				stub: ssKeydownStub
+				stub: ssKeydownStub,
 			},
 			"ss-page-open": {
 				desc: "Emitted when the page is opened.",
-				stub: ssPageOpenStub
+				stub: ssPageOpenStub,
 			},
 		},
 		description,
@@ -95,7 +108,18 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			...sharedStyleFields,
+			accentColor,
+			primaryTextColor,
+			secondaryTextColor,
+			emptinessColor,
+			containerBackgroundColor,
+			containerShadow,
+			separatorColor,
+			buttonColor,
+			buttonTextColor,
+			buttonShadow,
+			selectedColor,
+			cssClasses,
 		},
 		previewField: "key",
 	},
@@ -105,15 +129,15 @@ export default {
 import { Ref, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
-const rootEl:Ref<HTMLElement> = ref(null);
+const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
-function handleKeydown (ev: KeyboardEvent) {
+function handleKeydown(ev: KeyboardEvent) {
 	const ssEv = getKeydown(ev);
 	rootEl.value.dispatchEvent(ssEv);
 }
 
-function emitPageOpenEvent () {
+function emitPageOpenEvent() {
 	const payload = fields.key.value;
 	const event = new CustomEvent("ss-page-open", {
 		detail: {
@@ -131,7 +155,6 @@ onMounted(async () => {
 onUnmounted(() => {
 	document.removeEventListener("keydown", handleKeydown);
 });
-
 </script>
 
 <style scoped>
