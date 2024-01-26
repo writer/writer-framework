@@ -966,8 +966,7 @@
                 "totalItems": "@{paginated_members_total_items}",
                 "pageSizeOptions": "1,2,5",
                 "pageSizeShowAll": "no",
-                "jumpTo": "no",
-                "urlParam": "no"
+                "jumpTo": "no"
             },
             "parentId": "e1ax8ctt8lrao0e4",
             "position": 1,

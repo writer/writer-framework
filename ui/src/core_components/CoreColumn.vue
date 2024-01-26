@@ -29,10 +29,11 @@
 				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
-		<BaseContainer class="container"
-									 :contentWidth=fields.contentWidth.value
-									 :contentHAlign=fields.contentHAlign.value
-									 :contentPadding=fields.contentPadding.value
+		<BaseContainer
+			class="container"
+			:contentHAlign="fields.contentHAlign.value"
+			:contentVAlign="fields.contentVAlign.value"
+			:contentPadding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -41,7 +42,13 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import {contentHAlign, contentPadding, contentWidth, cssClasses, separatorColor} from "../renderer/sharedStyleFields";
+import {
+	contentHAlign,
+	contentPadding,
+	contentVAlign,
+	cssClasses,
+	separatorColor,
+} from "../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -97,23 +104,11 @@ export default {
 				},
 				desc: "Only applied when the column is collapsible.",
 			},
-			verticalAlignment: {
-				name: "Vertical alignment",
-				default: "normal",
-				type: FieldType.Text,
-				options: {
-					normal: "Normal",
-					top: "Top",
-					center: "Center",
-					bottom: "Bottom",
-				},
-				category: FieldCategory.Style,
-			},
 			separatorColor,
 			contentPadding,
-			contentWidth,
 			contentHAlign,
-			cssClasses
+			contentVAlign,
+			cssClasses,
 		},
 	},
 	components: { IconGen },
@@ -132,8 +127,7 @@ const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 const isCollapsible = computed(() => fields.isCollapsible.value == "yes");
 const isCollapsed: Ref<boolean> = ref(
-	fields.isCollapsible.value == "yes" &&
-		fields.startCollapsed.value == "yes"
+	fields.isCollapsible.value == "yes" && fields.startCollapsed.value == "yes",
 );
 const isSticky = computed(() => fields.isSticky.value == "yes");
 
@@ -150,20 +144,6 @@ const rootStyle = computed(() => {
 	return style;
 });
 
-// const containerWrapperStyle = computed(() => {
-// 	const verticalAlignMap = {
-// 		normal: "normal",
-// 		top: "start",
-// 		center: "center",
-// 		bottom: "end",
-// 	};
-// 	const justifyContent = verticalAlignMap[fields.verticalAlignment.value];
-// 	const style = {
-// 		"justify-content": justifyContent,
-// 	};
-// 	return style;
-// });
-
 const toggleCollapsed = () => {
 	isCollapsed.value = !isCollapsed.value;
 };
@@ -176,7 +156,8 @@ Those with a position higher than mnccp collapse to the right.
 
 const isCollapsibleToRight = computed(
 	() =>
-		position.value >= columnsData.value.value?.minimumNonCollapsiblePosition
+		position.value >=
+		columnsData.value.value?.minimumNonCollapsiblePosition,
 );
 
 const columnsData: ComputedRef<Ref> = computed(() => {
@@ -210,7 +191,7 @@ watch(
 			return;
 		newColumnsData.value.minimumNonCollapsiblePosition = position.value;
 	},
-	{ immediate: true, deep: true }
+	{ immediate: true, deep: true },
 );
 </script>
 
@@ -285,7 +266,7 @@ watch(
 .CoreColumn > .container {
 	flex: 1 0 0;
 	align-self: stretch;
-	width: 100%;
+	display: flex;
 }
 
 .CoreColumn.collapsible.collapsed > .container {

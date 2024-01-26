@@ -1,42 +1,41 @@
 <template>
-	<div class="containerWrapper" :style="containerWrapperStyle">
-		<div class="container" :class="{horizontal: props.horizontal === true}" data-streamsync-container :style="containerStyle">
-			<slot></slot>
-		</div>
+	<div
+		class="BaseContainer"
+		:style="rootStyle"
+		:class="{ horizontal: props.isHorizontal }"
+		data-streamsync-container
+	>
+		<slot></slot>
 	</div>
-
 </template>
 
 <script setup lang="ts">
-
-import {computed} from "vue";
+import { computed } from "vue";
 
 const props = defineProps<{
-	contentWidth: string;
 	contentHAlign: string;
+	contentVAlign?: string;
 	contentPadding: string;
-	horizontal?: boolean;
+	isHorizontal?: boolean;
 }>();
 
-const containerStyle = computed(() => {
-	if (props.horizontal === true) {
+const rootStyle = computed(() => {
+	const baseStyle = {
+		padding: props.contentPadding,
+	};
+
+	if (props.isHorizontal) {
 		return {
-			width: props.contentWidth,
+			...baseStyle,
 			justifyContent: props.contentHAlign,
-			padding: props.contentPadding,
+			alignItems: props.contentVAlign,
 		};
 	}
 
 	return {
-		width: props.contentWidth,
+		...baseStyle,
 		alignItems: props.contentHAlign,
-		padding: props.contentPadding,
-	};
-});
-
-const containerWrapperStyle = computed(() => {
-	return {
-		justifyContent: props.contentHAlign,
+		justifyContent: props.contentVAlign,
 	};
 });
 </script>
@@ -44,11 +43,8 @@ const containerWrapperStyle = computed(() => {
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 
-.containerWrapper {
+.BaseContainer {
 	display: flex;
-}
-
-.container {
-	flex-wrap: wrap;
+	width: 100%;
 }
 </style>

@@ -83,12 +83,21 @@
 							v-if="fieldValue.type == FieldType.Width"
 						></BuilderFieldsWidth>
 
-						<BuilderFieldsHAlign
+						<BuilderFieldsAlign
 							class="content"
+							direction="horizontal"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
 							v-if="fieldValue.type == FieldType.HAlign"
-						></BuilderFieldsHAlign>
+						></BuilderFieldsAlign>
+
+						<BuilderFieldsAlign
+							class="content"
+							direction="vertical"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+							v-if="fieldValue.type == FieldType.VAlign"
+						></BuilderFieldsAlign>
 
 						<BuilderFieldsPadding
 							class="content"
@@ -116,7 +125,7 @@ import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
-import BuilderFieldsHAlign from "./BuilderFieldsHAlign.vue";
+import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsPadding from "./BuilderFieldsPadding.vue";
 import injectionKeys from "../injectionKeys";
 

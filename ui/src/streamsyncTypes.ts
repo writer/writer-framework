@@ -89,7 +89,8 @@ export const enum FieldType {
 	Object = "Object",
 	IdKey = "Identifying Key",
 	Width = "Width",
-	HAlign = "HAlign",
+	HAlign = "Align (H)",
+	VAlign = "Align (V)",
 	Padding = "Padding",
 }
 
