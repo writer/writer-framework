@@ -222,8 +222,20 @@ class StateProxy:
         self.state[key] = value
         self.apply(key)
 
+    def __delitem__(self, key: str) -> None:
+        if key in self.state:
+            del self.state[key]
+            self.apply(f"-{key}")  # Using "-" prefix to indicate deletion
+
+    def remove(self, key) -> None:
+        return self.__delitem__(key)
+
     def apply(self, key) -> None:
         self.mutated.add(key)
+
+    @staticmethod
+    def escape_key(key):
+        return key.replace(".", "\.")
 
     # TODO This method has side effect of clearing mutations
     # It should be renamed so it's not confused with a simple getter
@@ -231,10 +243,19 @@ class StateProxy:
     def get_mutations_as_dict(self) -> Dict[str, Any]:
         serialised_mutations: Dict[str, Union[Dict,
                                               List, str, bool, int, float, None]] = {}
+
+        # Handle deletions
+        deleted_keys = \
+            {self.escape_key(key)
+             for key in self.mutated
+             if key.startswith("-")}
+        for key in deleted_keys:
+            serialised_mutations[f"{key}"] = None
+
         for key, value in list(self.state.items()):
-            if key.startswith("_"):
+            if key.startswith("_") or key.startswith("-"):
                 continue
-            escaped_key = key.replace(".", "\.")
+            escaped_key = self.escape_key(key)
 
             serialised_value = None
             if isinstance(value, StateProxy):
@@ -314,6 +335,12 @@ class StreamsyncState():
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
         self.user_state.__setitem__(key, raw_value)
+
+    def __delitem__(self, key: str) -> Any:
+        return self.user_state.__delitem__(key)
+    
+    def remove(self, key: str) -> Any:
+        return self.__delitem__(key)
 
     def __contains__(self, key: str) -> bool:
         return self.user_state.__contains__(key)

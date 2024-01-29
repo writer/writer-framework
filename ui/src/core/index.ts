@@ -126,19 +126,38 @@ export function generateCore() {
 			*/
 
 			const accessor = parseAccessor(key);
+			let lastElementIndex = accessor.length - 1
 			let stateRef = userState.value;
-			for (let i = 0; i < accessor.length - 1; i++) {
+			
+			// Check if the accessor is meant for deletion.
+			const isDeletion = accessor[lastElementIndex].charAt(0) === '-';
+			
+			if (isDeletion) {
+				// Remove the prefix for processing.
+				accessor[lastElementIndex] = accessor[lastElementIndex].substring(1);
+			}
+			
+			for (let i = 0; i < lastElementIndex; i++) {
 				let nextStateRef = stateRef?.[accessor[i]];
 				if (typeof nextStateRef === "object" && nextStateRef !== null) {
 					stateRef = nextStateRef;
-				} else {
+				} else if (!isDeletion) {
+					// Only create new path elements if it's not a deletion operation.
 					stateRef[accessor[i]] = {};
 					stateRef = stateRef[accessor[i]];
 				}
 			}
-			stateRef[accessor.at(-1)] = value;
+	
+			if (isDeletion) {
+				// If it's a deletion operation, delete the property.
+				delete stateRef[accessor.at(-1)];
+			} else {
+				// Otherwise, set the value as usual.
+				stateRef[accessor.at(-1)] = value;
+			}
 		});
 	}
+	
 
 	function clearFrontendMap() {
 		frontendMessageMap.value.forEach(({ callback }) => {
