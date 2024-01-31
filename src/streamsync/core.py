@@ -258,7 +258,7 @@ class StateProxy:
             serialised_mutations[f"{key}"] = None
 
         for key, value in list(self.state.items()):
-            if key.startswith("_") or key.startswith("-"):
+            if key.startswith("_"):
                 continue
             escaped_key = self.escape_key(key)
 
