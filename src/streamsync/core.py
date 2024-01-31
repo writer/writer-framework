@@ -266,7 +266,7 @@ class StateProxy:
                 for child_key, child_mutation in child_mutations.items():
                     nested_key = carry_mutation_flag(escaped_key, child_key)
                     serialised_mutations[nested_key] = child_mutation
-            else:
+            elif f"+{key}" in self.mutated:
                 try:
                     serialised_value = state_serialiser.serialise(value)
                 except BaseException:
