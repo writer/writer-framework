@@ -131,8 +131,9 @@ export function generateCore() {
 			
 			// Check if the accessor is meant for deletion.
 			const isDeletion = accessor[lastElementIndex].charAt(0) === '-';
+			const isAddition = accessor[lastElementIndex].charAt(0) === '+';
 			
-			if (isDeletion) {
+			if (isDeletion || isAddition) {
 				// Remove the prefix for processing.
 				accessor[lastElementIndex] = accessor[lastElementIndex].substring(1);
 			}

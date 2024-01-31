@@ -216,11 +216,16 @@ class StateProxy:
 
         if isinstance(raw_value, dict):
             value = StateProxy(raw_value)
+        elif isinstance(raw_value, StateProxy):
+            # Children StateProxies need to be reinitialised
+            # during an assignment to parent StateProxy
+            # to ensure proper mutation tracking
+            value = StateProxy(raw_value.state)
         else:
             value = raw_value
 
         self.state[key] = value
-        self.apply(key)
+        self.apply(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
         if key in self.state:
@@ -260,7 +265,7 @@ class StateProxy:
             serialised_value = None
             if isinstance(value, StateProxy):
                 if value.initial_assignment:
-                    serialised_mutations[escaped_key] = serialised_value
+                    serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
                 if child_mutations is None:
@@ -268,14 +273,13 @@ class StateProxy:
                 for child_key, child_mutation in child_mutations.items():
                     nested_key = f"{escaped_key}.{child_key}"
                     serialised_mutations[nested_key] = child_mutation
-            elif key in self.mutated:
-                serialised_value = None
+            elif f"+{key}" in self.mutated:
                 try:
                     serialised_value = state_serialiser.serialise(value)
                 except BaseException:
                     raise ValueError(
                         f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
-                serialised_mutations[escaped_key] = serialised_value
+                serialised_mutations[f"+{escaped_key}"] = serialised_value
 
         self.mutated = set()
         return serialised_mutations
@@ -338,7 +342,7 @@ class StreamsyncState():
 
     def __delitem__(self, key: str) -> Any:
         return self.user_state.__delitem__(key)
-    
+
     def remove(self, key: str) -> Any:
         return self.__delitem__(key)
 
