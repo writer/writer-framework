@@ -124,19 +124,14 @@ export function generateCore() {
 			Splits the key while respecting escaped dots.
 			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
 			*/
-
-			const accessor = parseAccessor(key);
+			
+			const mutationFlag = key.charAt(0)
+			const accessor = parseAccessor(key.substring(1));
 			let lastElementIndex = accessor.length - 1
 			let stateRef = userState.value;
 			
 			// Check if the accessor is meant for deletion.
-			const isDeletion = accessor[lastElementIndex].charAt(0) === '-';
-			const isAddition = accessor[lastElementIndex].charAt(0) === '+';
-			
-			if (isDeletion || isAddition) {
-				// Remove the prefix for processing.
-				accessor[lastElementIndex] = accessor[lastElementIndex].substring(1);
-			}
+			const isDeletion = mutationFlag === '-';
 			
 			for (let i = 0; i < lastElementIndex; i++) {
 				let nextStateRef = stateRef?.[accessor[i]];

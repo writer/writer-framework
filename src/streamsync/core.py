@@ -242,27 +242,20 @@ class StateProxy:
     def escape_key(key):
         return key.replace(".", "\.")
 
-    # TODO This method has side effect of clearing mutations
-    # It should be renamed so it's not confused with a simple getter
-    # extract_mutations
     def get_mutations_as_dict(self) -> Dict[str, Any]:
-        serialised_mutations: Dict[str, Union[Dict,
-                                              List, str, bool, int, float, None]] = {}
+        serialised_mutations: Dict[str, Union[Dict, List, str, bool, int, float, None]] = {}
 
-        # Handle deletions
-        deleted_keys = \
-            {self.escape_key(key)
-             for key in self.mutated
-             if key.startswith("-")}
-        for key in deleted_keys:
-            serialised_mutations[f"{key}"] = None
+        def carry_mutation_flag(base_key, child_key):
+            child_mutation_flag, child_key = child_key[0], child_key[1:]
+            return f"{child_mutation_flag}{base_key}.{child_key}"
 
         for key, value in list(self.state.items()):
             if key.startswith("_"):
                 continue
+            
             escaped_key = self.escape_key(key)
-
             serialised_value = None
+
             if isinstance(value, StateProxy):
                 if value.initial_assignment:
                     serialised_mutations[f"+{escaped_key}"] = serialised_value
@@ -271,15 +264,22 @@ class StateProxy:
                 if child_mutations is None:
                     continue
                 for child_key, child_mutation in child_mutations.items():
-                    nested_key = f"{escaped_key}.{child_key}"
+                    nested_key = carry_mutation_flag(escaped_key, child_key)
                     serialised_mutations[nested_key] = child_mutation
-            elif f"+{key}" in self.mutated:
+            else:
                 try:
                     serialised_value = state_serialiser.serialise(value)
                 except BaseException:
                     raise ValueError(
                         f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
                 serialised_mutations[f"+{escaped_key}"] = serialised_value
+
+        deleted_keys = \
+            {self.escape_key(key)
+                for key in self.mutated
+                if key.startswith("-")}
+        for key in deleted_keys:
+            serialised_mutations[f"{key}"] = None
 
         self.mutated = set()
         return serialised_mutations
