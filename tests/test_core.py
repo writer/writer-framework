@@ -36,6 +36,12 @@ raw_state_dict = {
     "_private_unserialisable": np.array([[1+2j, 2, 3+3j]])
 }
 
+simple_dict = {"items": {
+        "Apple": {"name": "Apple", "type": "fruit"},
+        "Cucumber": {"name": "Cucumber", "type": "vegetable"},
+        "Lettuce": {"name": "Lettuce", "type": "vegetable"}
+    }}
+
 sc = None
 with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
@@ -48,6 +54,7 @@ ss.component_manager.ingest(sc)
 class TestStateProxy:
 
     sp = StateProxy(raw_state_dict)
+    sp_simple_dict = StateProxy(simple_dict)
 
     def test_read(self) -> None:
         d = self.sp.to_dict()
@@ -69,9 +76,27 @@ class TestStateProxy:
 
         self.sp.apply("age")
         m = self.sp.get_mutations_as_dict()
-        assert m.get("age") == 2
-        assert m.get("features.height") == "short"
-        assert m.get("state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
+        assert m.get("+age") == 2
+        assert m.get("+features.height") == "short"
+        assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
+
+        del self.sp["best_feature"]
+        m = self.sp.get_mutations_as_dict()
+        assert "-best_feature" in m
+
+    def test_dictionary_removal(self) -> None:
+        # Explicit removal test
+        del self.sp_simple_dict["items"]["Lettuce"]
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert "+items" in m
+        assert "-items.Lettuce" in m
+
+        # Non-explicit removal test
+        items = self.sp_simple_dict.state["items"].state
+        items = {k: v for k, v in items.items() if k != "Apple"}
+        self.sp_simple_dict["items"] = items
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert "+items.Cucumber" in m
 
     def test_private_members(self) -> None:
         d = self.sp.to_dict()
