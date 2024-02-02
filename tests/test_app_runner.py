@@ -98,9 +98,9 @@ class TestAppRunner:
         assert ev_res.status == "ok"
         assert ev_res.payload.result.get("ok") == True
         assert ev_res.payload.mutations.get(
-            "inspected_payload") == "129673.0"
+            "+inspected_payload") == "129673.0"
         assert ev_res.payload.mutations.get(
-            "b.pet_count") == 129673
+            "+b.pet_count") == 129673
         ar.shut_down()
 
     @pytest.mark.asyncio

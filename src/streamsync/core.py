@@ -218,45 +218,70 @@ class StateProxy:
 
         if isinstance(raw_value, dict):
             value = StateProxy(raw_value)
+        elif isinstance(raw_value, StateProxy):
+            # Children StateProxies need to be reinitialised
+            # during an assignment to parent StateProxy
+            # to ensure proper mutation tracking
+            value = StateProxy(raw_value.state)
         else:
             value = raw_value
 
         self.state[key] = value
-        self.apply(key)
+        self.apply(f"+{key}")
+
+    def __delitem__(self, key: str) -> None:
+        if key in self.state:
+            del self.state[key]
+            self.apply(f"-{key}")  # Using "-" prefix to indicate deletion
+
+    def remove(self, key) -> None:
+        return self.__delitem__(key)
 
     def apply(self, key) -> None:
         self.mutated.add(key)
 
-    # TODO This method has side effect of clearing mutations
-    # It should be renamed so it's not confused with a simple getter
-    # extract_mutations
+    @staticmethod
+    def escape_key(key):
+        return key.replace(".", "\.")
+
     def get_mutations_as_dict(self) -> Dict[str, Any]:
-        serialised_mutations: Dict[str, Union[Dict,
-                                              List, str, bool, int, float, None]] = {}
+        serialised_mutations: Dict[str, Union[Dict, List, str, bool, int, float, None]] = {}
+
+        def carry_mutation_flag(base_key, child_key):
+            child_mutation_flag, child_key = child_key[0], child_key[1:]
+            return f"{child_mutation_flag}{base_key}.{child_key}"
+
         for key, value in list(self.state.items()):
             if key.startswith("_"):
                 continue
-            escaped_key = key.replace(".", "\.")
-
+            
+            escaped_key = self.escape_key(key)
             serialised_value = None
+
             if isinstance(value, StateProxy):
                 if value.initial_assignment:
-                    serialised_mutations[escaped_key] = serialised_value
+                    serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
                 if child_mutations is None:
                     continue
                 for child_key, child_mutation in child_mutations.items():
-                    nested_key = f"{escaped_key}.{child_key}"
+                    nested_key = carry_mutation_flag(escaped_key, child_key)
                     serialised_mutations[nested_key] = child_mutation
-            elif key in self.mutated:
-                serialised_value = None
+            elif f"+{key}" in self.mutated:
                 try:
                     serialised_value = state_serialiser.serialise(value)
                 except BaseException:
                     raise ValueError(
                         f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
-                serialised_mutations[escaped_key] = serialised_value
+                serialised_mutations[f"+{escaped_key}"] = serialised_value
+
+        deleted_keys = \
+            {self.escape_key(key)
+                for key in self.mutated
+                if key.startswith("-")}
+        for key in deleted_keys:
+            serialised_mutations[f"{key}"] = None
 
         self.mutated = set()
         return serialised_mutations
@@ -316,6 +341,12 @@ class StreamsyncState():
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
         self.user_state.__setitem__(key, raw_value)
+
+    def __delitem__(self, key: str) -> Any:
+        return self.user_state.__delitem__(key)
+
+    def remove(self, key: str) -> Any:
+        return self.__delitem__(key)
 
     def __contains__(self, key: str) -> bool:
         return self.user_state.__contains__(key)

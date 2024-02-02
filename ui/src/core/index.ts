@@ -124,21 +124,36 @@ export function generateCore() {
 			Splits the key while respecting escaped dots.
 			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
 			*/
-
-			const accessor = parseAccessor(key);
+			
+			const mutationFlag = key.charAt(0)
+			const accessor = parseAccessor(key.substring(1));
+			let lastElementIndex = accessor.length - 1
 			let stateRef = userState.value;
-			for (let i = 0; i < accessor.length - 1; i++) {
+			
+			// Check if the accessor is meant for deletion.
+			const isDeletion = mutationFlag === '-';
+			
+			for (let i = 0; i < lastElementIndex; i++) {
 				let nextStateRef = stateRef?.[accessor[i]];
 				if (typeof nextStateRef === "object" && nextStateRef !== null) {
 					stateRef = nextStateRef;
-				} else {
+				} else if (!isDeletion) {
+					// Only create new path elements if it's not a deletion operation.
 					stateRef[accessor[i]] = {};
 					stateRef = stateRef[accessor[i]];
 				}
 			}
-			stateRef[accessor.at(-1)] = value;
+	
+			if (isDeletion) {
+				// If it's a deletion operation, delete the property.
+				delete stateRef[accessor.at(-1)];
+			} else {
+				// Otherwise, set the value as usual.
+				stateRef[accessor.at(-1)] = value;
+			}
 		});
 	}
+	
 
 	function clearFrontendMap() {
 		frontendMessageMap.value.forEach(({ callback }) => {
