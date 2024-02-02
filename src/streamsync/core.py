@@ -225,18 +225,21 @@ class StateProxy:
             value = raw_value
 
         self.state[key] = value
-        self.apply(f"+{key}")
+        self._apply_raw(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
         if key in self.state:
             del self.state[key]
-            self.apply(f"-{key}")  # Using "-" prefix to indicate deletion
+            self._apply_raw(f"-{key}")  # Using "-" prefix to indicate deletion
 
     def remove(self, key) -> None:
         return self.__delitem__(key)
 
-    def apply(self, key) -> None:
+    def _apply_raw(self, key) -> None:
         self.mutated.add(key)
+
+    def apply(self, key) -> None:
+        self._apply_raw(f"+{key}")
 
     @staticmethod
     def escape_key(key):
