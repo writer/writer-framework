@@ -160,7 +160,7 @@ class AppProcess(multiprocessing.Process):
     def _handle_event(self, session: StreamsyncSession, event: StreamsyncEvent) -> EventResponsePayload:
         import traceback as tb
 
-        result = session.event_handler.handle(event)
+        result = session.event_handler.handle(event, self.thread_pool)
 
         mutations = {}
 
@@ -395,7 +395,7 @@ class AppProcess(multiprocessing.Process):
             # No need to handle signal as not main thread
             pass
 
-        with concurrent.futures.ThreadPoolExecutor(100) as thread_pool:
+        with concurrent.futures.ThreadPoolExecutor(100) as self.thread_pool:
             self.is_app_process_server_ready.set()
             while True:  # Starts app message server
                 try:
@@ -406,7 +406,7 @@ class AppProcess(multiprocessing.Process):
                         # Send empty packet to client for it to close
                         terminate_server()
                         return
-                    self._handle_app_process_server_packet(packet, thread_pool)
+                    self._handle_app_process_server_packet(packet, self.thread_pool)
                 except InterruptedError:
                     terminate_server()
                     return

@@ -946,15 +946,6 @@ class EventHandler:
         self.deser = EventDeserialiser(self.session_state)
         self.evaluator = Evaluator(self.session_state)
 
-    def _get_event_loop(self) -> asyncio.AbstractEventLoop:
-        """Get the current thread's event loop, or create a new one if it doesn't exist"""
-        if not hasattr(self._thread_local, "loop"):
-            self._thread_local.loop = asyncio.new_event_loop()
-        return self._thread_local.loop
-
-    @property
-    def _event_loop(self):
-        return self._get_event_loop()
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
         if not target_component.binding:
@@ -975,7 +966,7 @@ class EventHandler:
         captured_stdout = f.getvalue()
         return result, captured_stdout
 
-    def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
+    def _call_handler_callable(self, event_type, target_component, instance_path, payload, thread_pool) -> Any:
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
         if streamsyncuserapp is None:
             raise ValueError("Couldn't find app module (streamsyncuserapp).")
@@ -1017,13 +1008,9 @@ class EventHandler:
 
         result = None
         if is_async_handler:
-            loop = self._event_loop
             async_handler = self._async_handler_executor(callable_handler, arg_values)
-            if loop is not None and loop.is_running():
-                future = asyncio.run_coroutine_threadsafe(async_handler, loop)
-                result, captured_stdout = future.result()
-            else:
-                result, captured_stdout = asyncio.run(async_handler)
+            thread_pool_future = thread_pool.submit(asyncio.create_task, async_handler)
+            result, captured_stdout = thread_pool_future.result()
         else:
             result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
 
@@ -1035,7 +1022,7 @@ class EventHandler:
             )
         return result
 
-    def handle(self, ev: StreamsyncEvent) -> StreamsyncEventResult:
+    def handle(self, ev: StreamsyncEvent, thread_pool) -> StreamsyncEventResult:
         ok = True
 
         try:
@@ -1055,7 +1042,7 @@ class EventHandler:
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(
-                ev.type, target_component, instance_path, ev.payload)
+                ev.type, target_component, instance_path, ev.payload, thread_pool)
         except BaseException:
             ok = False
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
