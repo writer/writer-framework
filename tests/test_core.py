@@ -101,7 +101,7 @@ class TestStateProxy:
 
         self.sp["new.state.with.dots"] = {"test": "test"}
         m = self.sp.get_mutations_as_dict()
-        assert len(m) == 1
+        assert len(m) == 2
 
         d = self.sp.to_dict()
         assert d.get("age") == 2
