@@ -1,17 +1,8 @@
-import { fileURLToPath, URL } from "url";
+import path from "path";
 
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
-
-/*
-injectionKeys is externalised so that it can be linked at runtime.
-Otherwise, new, independent instances of Symbol would be created, for which
-nothing would be provided.
-*/
-const injectionKeysPath = fileURLToPath(
-	new URL("src/injectionKeys.ts", import.meta.url),
-);
 
 export default defineConfig({
 	base: "./",
@@ -28,11 +19,11 @@ export default defineConfig({
 			fileName: "templates",
 		},
 		rollupOptions: {
-			external: ["vue", injectionKeysPath],
+			external: ["vue", "../injectionKeys"],
 			output: {
 				globals: {
 					vue: "vue",
-					[injectionKeysPath]: "injectionKeys",
+					[path.resolve("src/injectionKeys")]: "injectionKeys",
 				},
 			},
 		},
@@ -41,7 +32,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			"@": path.resolve("src"),
 		},
 	},
 	server: {
