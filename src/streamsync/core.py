@@ -1040,7 +1040,7 @@ class EventHandler:
         result = None
         if is_async_handler:
             async_handler = self._async_handler_executor(callable_handler, arg_values)
-            thread_pool_future = thread_pool.submit(asyncio.create_task, async_handler)
+            thread_pool_future = thread_pool.submit(asyncio.run, async_handler)
             result, captured_stdout = thread_pool_future.result()
         else:
             result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
