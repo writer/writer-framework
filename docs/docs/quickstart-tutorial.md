@@ -10,12 +10,12 @@ pip install "streamsync[ds]"
 Now, let's get started with creating our logistic regression visualization tool. We'll break down the process into the following steps:
 
 1. Setup Project
-2. Create UI
-3. Define State and Bind it with UI
-4. Implement Behavior in Python
+2. UI Creation
+3. App state and bindings
+4. Python implementation
 5. Troubleshooting
 
-So, without further ado,
+So, without further ado, let's jump into it.
 
 ## Project Setup
 
@@ -25,20 +25,22 @@ To create our project, we will use the following commands:
 streamsync create logistic_regression
 cd logistic_regression
 ```
-
-In this project, we will be using the scikit-learn package for logistic regression, so let's install it before we start. Create a file `requirements.txt` and add the following line:
+Commands will create basic template of app project with initial file structure. 
+In this project, we will be using the scikit-learn package for logistic regression, so let's install it before we start.
+Create a file `requirements.txt` and add the following line:
 
 ```
 scikit-learn==1.4.0
 ```
 
-It's always a good idea to install Python packages in a virtual environment to avoid cluttering your system.
+It's always a good idea to install Python packages within a virtual environment to prevent cluttering your system.
 
 ```bash
 python -m venv env
 . ./env/bin/activate
 ```
-
+After running those commands our terminal will be using virtual environment and all packages that we install will be vailable only here.
+If you close the terminal you will need to source activate script again.
 After that, we can install our requirements.
 
 ```bash
@@ -53,13 +55,24 @@ streamsync edit .
 
 This will run our StreamSync instance. Runtime logs can be observed in the terminal, and the app is available at http://localhost:3006.
 
+![newly created application](/images/quickstart/new_app.png)
+
 ## UI Creation
+
 
 By default, StreamSync creates a simple application with a counter. To keep things easy, let's remove the contents from columns to make space for our new application. If you're unsure where to click to select a specific component on the screen, you can always use the `Component Tree` on the bottom left of the screen. The app should look something like this when you finish.
 
-Our app is made up of 2 columns, one with controls for our plot and the second with the plot itself. Half of the screen is way too much for controls, and the plot will be really small this way. To change the proportions of the columns, change the value of `Width (factor)` in the left column to `0.5`. This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each column, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
+![empty app](/images/quickstart/empty_app.png)
 
-Now let's add the rest of the components that we need:
+This app will be made up of 2 columns, one with controls for our plot and the second with the plot itself. Half of the screen is way too much for controls, and the plot will be really small this way. To change the proportions of the columns, change the value of `Width (factor)` in the left column to `0.5`.
+
+![width controls](/images/quickstart/column_width.png)
+
+This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each column, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
+
+![placing elements](/images/quickstart/placing_elements.png)
+
+Now let's add the rest of the components:
 
 - To the right column, add a Plotly chart.
 - To the left:
@@ -68,23 +81,25 @@ Now let's add the rest of the components that we need:
     - Button.
 - To the free space in our header, let's place a `message` component.
 
+![ui boilerplate](/images/quickstart/ui_boilerplate.png)
+
 Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders' configuration values to the following values:
 
 ```
-    "Label": "Number of groups",
-    "Minimum value": "2",
-    "Maximum value": "10",
-    "Step size": "1"
+Label: "Number of groups",
+Minimum value: "2",
+Maximum value: "10",
+Step size: "1"
 
-    "Label": "Number of points",
-    "Minimum value": "50",
-    "Maximum value": "1000",
-    "Step size": "1"
+Label: "Number of points",
+Minimum value: "50",
+Maximum value: "1000",
+Step size: "1"
 
-    "Label": "Cluster deviation",
-    "Minimum value": "0",
-    "Maximum value": "10",
-    "Step size": "0.1"
+Label: "Cluster deviation",
+Minimum value: "0",
+Maximum value: "10",
+Step size: "0.1"
 ```
 
 Then for the dropdown, we will set:
@@ -95,7 +110,7 @@ Options: set JSON and below type:
 {"ovr": "One vs Rest", "multinomial": "Multinomial"}
 ```
 
-For the button, set just:
+And in the end lets rename the button.
 
 ```
 Label: 'Regenerate'
@@ -104,6 +119,8 @@ Label: 'Regenerate'
 ## App State and Bindings
 
 Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the `Code` button at the top of the screen.
+
+![code editor](/images/quickstart/code_editor.png)
 
 Let's remove all code from there and start with:
 
@@ -149,7 +166,7 @@ For Plotly:
 
 This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behavior implementation.
 
-## Python Implementation
+## Python implementation
 
 Let's create a function that will update our application based on inputs and call it immediately.
 
