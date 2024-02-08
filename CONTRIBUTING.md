@@ -24,8 +24,8 @@ Pull requests should be done on the `dev` branch. When the release is finalised,
 ## Setting up a development environment
 
 Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Streamsync, these are the suggested steps for setting up a development environment.
-- Install streamsync[test] or streamsync[build].
-- You can install the package in editable mode using `pip install -e .`, which will make it more convenient if you intend to tweak the backend.
+- You can install the package in editable mode using `poetry install --with build`, which will make it more convenient if you intend to tweak the backend.
+- Enable the virtual environment with `poetry shell`
 - Run streamsync in port 5000. For example, `streamsync edit hello --port 5000`.
 - Install dependencies and run `npm run dev` in `/ui`. This runs the frontend for Streamsync in development mode while proxying requests to port 5000.
 - A breakdown of the steps required for packaging can be found in `./build.sh`. Notably, it includes compiling the frontend and taking it from `/ui` and into the Python package.

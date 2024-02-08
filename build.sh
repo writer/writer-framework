@@ -12,12 +12,12 @@ cd ..
 # PYTEST
 
 cd ./tests
-pytest
+poetry run pytest
 cd ..
 
 # TYPE CHECKS (MYPY)
 
-mypy ./src/streamsync/*.py
+poetry run  mypy ./src/streamsync/*.py
 
 # APP PROVISIONING
 
@@ -28,4 +28,4 @@ cp -r ./apps/hello ./src/streamsync/app_templates
 # PYTHON PACKAGE BUILD
 
 rm -rf ./dist/*
-python -m build
+poetry build
