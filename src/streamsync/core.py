@@ -243,7 +243,7 @@ class StateProxy:
 
     @staticmethod
     def escape_key(key):
-        return key.replace(".", "\.")
+        return key.replace(".", "\\.")
 
     def get_mutations_as_dict(self) -> Dict[str, Any]:
         serialised_mutations: Dict[str, Union[Dict, List, str, bool, int, float, None]] = {}
@@ -1020,7 +1020,7 @@ class EventHandler:
                 session_info = {
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
-                    "headers": self.session.headers
+                    "headers": self.session.headers2
                 }
                 arg_values.append(session_info)
 
