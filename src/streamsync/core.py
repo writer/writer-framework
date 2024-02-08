@@ -243,7 +243,7 @@ class StateProxy:
 
     @staticmethod
     def escape_key(key):
-        return key.replace(".", "\\.")
+        return key.replace(".", r"\.")
 
     def get_mutations_as_dict(self) -> Dict[str, Any]:
         serialised_mutations: Dict[str, Union[Dict, List, str, bool, int, float, None]] = {}
