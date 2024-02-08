@@ -1020,7 +1020,7 @@ class EventHandler:
                 session_info = {
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
-                    "headers": self.session.headers2
+                    "headers": self.session.headers
                 }
                 arg_values.append(session_info)
 
