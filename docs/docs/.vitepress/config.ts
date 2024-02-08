@@ -56,6 +56,12 @@ export default {
         ],
       },
       {
+        text: "Tutorials",
+        items: [
+          { text: "Quickstart tutorial", link: "/quickstart-tutorial" },
+        ]
+      },
+      {
         text: "Reference",
         items: [
           { text: "Testing", link: "/testing" },

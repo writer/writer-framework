@@ -1,0 +1,358 @@
+# Tutorial - Simple App
+In this tutorial, we'll guide you through creating a logistic regression visualization tool using StreamSync. Logistic regression is a fundamental technique in machine learning for binary classification tasks, and visualizing its decision boundary can provide valuable insights into the model's behavior.
+
+First, make sure you have StreamSync installed. You can install it via pip:
+
+```bash
+pip install "streamsync[ds]"
+```
+
+Now, let's get started with creating our logistic regression visualization tool. We'll break down the process into the following steps:
+
+1. Setup Project
+2. Create UI
+3. Define State and Bind it with UI
+4. Implement Behavior in Python
+5. Troubleshooting
+
+So, without further ado,
+
+## Project Setup
+
+To create our project, we will use the following commands:
+
+```bash
+streamsync create logistic_regression
+cd logistic_regression
+```
+
+In this project, we will be using the scikit-learn package for logistic regression, so let's install it before we start. Create a file `requirements.txt` and add the following line:
+
+```
+scikit-learn==1.4.0
+```
+
+It's always a good idea to install Python packages in a virtual environment to avoid cluttering your system.
+
+```bash
+python -m venv env
+. ./env/bin/activate
+```
+
+After that, we can install our requirements.
+
+```bash
+pip install -r requirements.txt
+```
+
+Once this is done, we can finally run the StreamSync editor using the command:
+
+```bash
+streamsync edit .
+```
+
+This will run our StreamSync instance. Runtime logs can be observed in the terminal, and the app is available at http://localhost:3006.
+
+## UI Creation
+
+By default, StreamSync creates a simple application with a counter. To keep things easy, let's remove the contents from columns to make space for our new application. If you're unsure where to click to select a specific component on the screen, you can always use the `Component Tree` on the bottom left of the screen. The app should look something like this when you finish.
+
+Our app is made up of 2 columns, one with controls for our plot and the second with the plot itself. Half of the screen is way too much for controls, and the plot will be really small this way. To change the proportions of the columns, change the value of `Width (factor)` in the left column to `0.5`. This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each column, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
+
+Now let's add the rest of the components that we need:
+
+- To the right column, add a Plotly chart.
+- To the left:
+    - 3 x Slider input.
+    - Dropdown input.
+    - Button.
+- To the free space in our header, let's place a `message` component.
+
+Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders' configuration values to the following values:
+
+```
+    "Label": "Number of groups",
+    "Minimum value": "2",
+    "Maximum value": "10",
+    "Step size": "1"
+
+    "Label": "Number of points",
+    "Minimum value": "50",
+    "Maximum value": "1000",
+    "Step size": "1"
+
+    "Label": "Cluster deviation",
+    "Minimum value": "0",
+    "Maximum value": "10",
+    "Step size": "0.1"
+```
+
+Then for the dropdown, we will set:
+
+```
+Label: "Type"
+Options: set JSON and below type:
+{"ovr": "One vs Rest", "multinomial": "Multinomial"}
+```
+
+For the button, set just:
+
+```
+Label: 'Regenerate'
+```
+
+## App State and Bindings
+
+Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the `Code` button at the top of the screen.
+
+Let's remove all code from there and start with:
+
+```python
+import streamsync as ss
+
+initial_state = ss.init_state({
+    "my_app": {
+        "title": "Logistic regression visualizer"
+    },
+    "message": None,
+    "figure": None,
+    "multi_class": "ovr",
+    "number_of_groups": 2,
+    "number_of_points": 50,
+    "cluster_std": 2,
+})
+```
+
+For now, only the StreamSync import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualizer". This is because the Header has in its text property the value `@{my_app.title}`, which is template syntax that uses a value from the state.
+
+The rest of the values from the state are just initial values that we will use in all elements to enable communication between the frontend and backend. To do this for every component, we need to set bindings for them. For slider input, let's fill the bindings:
+
+- State element: `number_of_groups`
+- State element: `number_of_points`
+- State element: `cluster_std`
+
+For the dropdown:
+
+- State element: `multi_class`
+
+For the message:
+
+- Message: `@{message}`
+- Visibility: `custom`
+- Visibility value: `message`
+
+This way, the message component will show only if there is a message to display.
+
+For Plotly:
+
+- Graph specification: `@{figure}`
+
+This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behavior implementation.
+
+## Python Implementation
+
+Let's create a function that will update our application based on inputs and call it immediately.
+
+```python
+def update(state):
+   state["message"] = "Hello, world!"
+
+update(initial_state)
+```
+
+Now notice that our Message showed up, and it is displaying the message "Hello, World!". To have better access to state parameters and to make it clear on which parameters our function depends, we define them at the top of the function. Notice that some of them need to be mapped to appropriate types. The slider input returns float values by default, so here, as we will need integers, we cast values to int.
+
+```python
+def update(state):
+    cluster_std = state['cluster_std']
+    multi_class = state['multi_class']
+    number_of_points = int(state['number_of_points'])
+    number_of_groups = int(state['number_of_groups'])
+```
+
+In this example, we create a logistic regression, but the algorithm itself is not in the scope of this tutorial. So we will just use the basic function from the `scikit-learn` library.
+
+```python
+    X, y = make_blobs(n_samples=number_of_points, n_features=2, cluster_std=cluster_std, centers=groups)
+
+    clf = LogisticRegression(
+        solver="sag",
+
+ max_iter=1000, random_state=42, multi_class=multi_class
+    ).fit(X, y)
+    coef = clf.coef_
+    intercept = clf.intercept_
+    score = clf.score(X, y)
+```
+`make_blobs` will generate `number_of_points` points on a 2D space that have a cluster deviation set to `cluster_std` and the number of groups defined by `number_of_groups`. After that, we generate a LogisticRegression, and we take parameters we need. For better knowledge about the process, let's display the training score as a message.
+
+```python
+    state["message"] = "training score : %.3f (%s)" % (score, multi_class)
+```
+
+The algorithm will generate one or many lines depending on how many groups we have. To be able to draw those lines, let's create a helper function:
+
+```python
+def _line(x0, coef, intercept, c):
+    return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
+```
+
+This function is a helper function meant to be used on the backend. The underscore at the beginning of its name tells the system that this function is private, and the frontend won't know about its existence.
+
+To make the plot more readable, let's quickly define some colors for our plots:
+
+```python
+COLOR = {
+    0: '#3c64fa',
+    1: '#00eba8',
+    2: '#5a677c',
+    3: '#ff8866',
+    4: '#d4b2f7',
+    5: '#c3e6ff',
+    6: '#045758',
+    7: '#001435',
+    8: '#ec3d10',
+    9: '#38006a'
+}
+```
+
+Now, let's create a plot for our logistic regressions. For that, we will use Plotly graph_objects to have full control over what will be included in our plot.
+
+```python 
+    data = []
+    for i in range(groups):
+        data.append(
+            go.Scatter(
+                x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
+                marker=dict(color=COLOR[i], symbol='circle', size=10)
+            )
+        )
+
+    for i in range(1 if groups < 3 else groups):
+        data.append(go.Scatter(
+            x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
+            mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'
+        ))
+
+    layout = go.Layout(
+        width=700,height=700,
+        hovermode='closest', hoverdistance=1,
+        xaxis=dict(title='Feature 1', range=[-20,20], fixedrange=True,
+          constrain="domain", scaleanchor="y",scaleratio=1),
+        yaxis=dict(title='Feature 2', range=[-20,20], fixedrange=True,
+          constrain="domain"),
+        paper_bgcolor='#EEEEEE',
+        margin=dict(l=30, r=30, t=30, b=30),
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    state['figure'] = fig
+```
+
+After saving and running the code, we should get something like this:
+
+But as you could notice, when we change our slider values, nothing happens. It's because our function is currently called only once on app initialization and not after input changes. To change this behavior, let's set Event handler `ss-number-change` in all slider inputs to "update", which is the name of our function in the Python code. Notice that `_line` is not visible there because it's private to the backend. If we would change its name to `line`, then it would be visible on this list.
+
+Set also event handler for dropdown input `ss-option-change` and `ss-click` in the button, also to `update`.
+
+And done! You can have fun with your new application. Feel free to modify and play with other options.
+
+Final code for the application should look something like this:
+
+```python
+import streamsync as ss
+import plotly.express as px
+import plotly.graph_objects as go
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import make_blobs
+
+COLOR = {
+    0: '#3c64fa',
+    1: '#00eba8',
+    2: '#5a677c',
+    3: '#ff8866',
+    4: '#d4b2f7',
+    5: '#c3e6ff',
+    6: '#045758',
+    7: '#001435',
+    8: '#ec3d10',
+    9: '#38006a'
+}
+
+def line(x0, coef, intercept, c):
+    return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
+
+def update(state):
+    cluster_std = state['cluster_std']
+    multi_class = state['multi_class']
+    maxsize = int(state['number_of_points'])
+    groups = int(state['number_of_groups'])
+    X, y = make_blobs(n_samples=maxsize, n_features=2, cluster_std=cluster_std,  centers=groups)
+
+    clf = LogisticRegression(
+        solver="sag", max_iter=1000, random_state=42, multi_class=multi_class
+    ).fit(X, y)
+    state["training"] = "training score : %.3f (%s)" % (clf.score(X, y), multi_class);
+    coef = clf.coef_
+    intercept = clf.intercept_
+
+    data = []
+    for i in range(groups):
+        data.append(
+            go.Scatter(
+                x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
+                marker=dict(color=COLOR[i], symbol='circle', size=10)
+            )
+        )
+
+    for i in range(1 if groups < 3 else groups):
+        data.append(go.Scatter(
+            x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
+            mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'
+        ))
+
+    layout = go.Layout(
+        width=700,height=700,
+        hovermode='closest', hoverdistance=1,
+        xaxis=dict(title='Feature 1', range=[-20,20], fixedrange=True,
+          constrain="domain", scaleanchor="y",scaleratio=1),
+        yaxis=dict(title='Feature 2', range=[-20,20], fixedrange=True,
+          constrain="domain"),
+        paper_bgcolor='#EEEEEE',
+        margin=dict(l=30, r=30, t=30, b=30),
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    state['fig'] = fig
+
+
+initial_state = ss.init_state({
+    "multi_class_options": {"ovr": "One vs
+
+ Rest", "multinomial": "Multinomial"},
+    "multi_class": "ovr",
+    "number_of_groups": 2,
+    "number_of_points": 50,
+    "cluster_std": 2,
+})
+
+update(initial_state)
+```
+
+## Troubleshooting
+
+### Errors
+When your code has an error, you will be notified with a notification in the app, and also in the console, you can find useful logs.
+
+### Debugging
+To check some intermediate values in your Python code, you can just use `print()` function. All logs will be available in the terminal.
+
+
+## Conclusion
+Congratulations! You've successfully created a logistic regression visualization tool using StreamSync. You can further customize and enhance this tool to suit your specific needs.
+
+## Additional Resources
+- [Scikit-learn Documentation](https://scikit-learn.org/stable/)
+- [Plotly Documentation](https://plotly.com/python/)
+
+Feel free to explore these resources to deepen your understanding and expand your capabilities.
