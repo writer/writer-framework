@@ -65,16 +65,16 @@ This way, it will take just `1/3` of the screen. Proportions are calculated rela
 
 Now let's add the rest of the components:
 
-- To the right column, add a _Plotly chart_.
+- To the right column, add a _Plotly Graph_.
 - To the left:
-    - 3 x _Slider input_
-    - _Dropdown input_
+    - 3 x _Slider Input_
+    - _Dropdown Input_
     - _Button_.
-- To the free space in our header, let's place a _Message_ component.
+- To the free space in the header, let's place a _Message_ component.
 
 ![ui boilerplate](./images/quickstart/ui_boilerplate.png)
 
-Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders configuration values to the following values:
+Now we can configure components with some static settings. You can find all the configuration options in right sidebar. Sidebar will apear after selecting the component using mouse click. Starting with slider inputs, let's set all 3 sliders configuration values to the following values:
 
 |   Property        |   Value (Slider 1)    |   Value (Slider 2)    |   Value (Slider 3)    |
 | :-----------:     | :-------------------  | :-------------------  | :-------------------  |
@@ -88,7 +88,7 @@ Then for the dropdown, we will set:
 |   Property        |   Value               |
 | :-----------:     | :-------------------  |
 |   Label           |   Type                |
-|   Options         |   set `JSON` and below type:                   |
+|   Options         |   set `JSON` and paste:                   |
 |                |   `{"ovr": "One vs Rest", "multinomial": "Multinomial"}`  |
 
 
@@ -96,11 +96,11 @@ And in the end lets rename the button.
 
 |   Property        |   Value               |
 | :-----------:     | :-------------------  |
-|   Label           |   Regenerate          |
+|   Text            |   Regenerate          |
 
 ## App State and Bindings
 
-Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the 'Code' button at the top of the screen. However, if you prefer using your favourite editor, you can simply edit the `main.py` file, and the frontend will instantly refresh with every write to the file.
+It is time to create the application's initial state. Let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the 'Code' button at the top of the screen. However, if you prefer using your favourite editor, you can simply edit the `main.py` file, and the app will auto-refresh every time the file is changed.
 
 ![code editor](./images/quickstart/code_editor.png)
 
@@ -108,10 +108,13 @@ Let's remove all code from there and start with:
 
 ```python
 import streamsync as ss
+import plotly.graph_objects as go
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import make_blobs
 
 initial_state = ss.init_state({
     "my_app": {
-        "title": "Logistic regression visualizer"
+        "title": "Logistic Regression Visualiser"
     },
     "message": None,
     "figure": None,
@@ -121,21 +124,23 @@ initial_state = ss.init_state({
     "cluster_std": 2,
 })
 ```
-For now, only the Streamsync import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualiser". This is because the Header has in its text property the value `@{my_app.title}`, which is template syntax that uses a value from the state.
+For now, only the Streamsync import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualiser". This is because the Header has in its text property the value `@{my_app.title}`, which is a template syntax that uses a value from the state.
 
-The rest of the values from the state are just initial values that we will use in all elements to enable communication between the frontend and backend. To do this for every component, we need to set bindings for them. For _Slider input_, let's fill the bindings:
+The rest of the keys and values from the `initial_state` are names and initial values for components that will be used for communication between the app UI and the backend. Assigning those keys to components is called binding, and it is done by clicking on each component and filling property "State element" in the "Binding" menu. Let's use these bindings for our 3 _Slider Input_ components:
 
 |   Property        |   Value (Slider 1)    |   Value (Slider 2)    |   Value (Slider 3)    |
 | :-----------:     | :-------------------  | :-------------------  | :-------------------  |
 |   State element   |  `number_of_groups`   |   `number_of_points`  |   `cluster_std`       |
 
-For the _Dropdown input_:
+For the _Dropdown Input_:
 
 |   Property        |   Value               |
 | :-----------:     | :-------------------  | 
 |   State element   |  `multi_class`        | 
 
-For the _Message_:
+If you closely follow my steps, the massage component can be hidden behind the right bar. Use the `Component Tree` to click the element and open the `Properties` menu.
+
+_Message_ component doesen't have bindings but we still can use template syntax to use data from the state inside of a `Message`. Additionaly we are able to use this data to control the visibility of the component.
 
 |   Property            |   Value               |
 | :-----------:         | :-------------------  | 
@@ -145,13 +150,13 @@ For the _Message_:
 
 This way, the _Message_ component will show only if there is a message to display.
 
-For _Plotly graph_:
+For _Plotly Graph_ we use template syntax again:
 
 |   Property            |   Value               |
 | :-----------:         | :-------------------  | 
 | Graph specification   |   `@{figure}`         |
 
-This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behaviour implementation.
+Congratulations! You have just connected all components to the application state. Nothing is happening yet. Now, we are ready to make it alive. It's time for python!
 
 ## Python implementation
 
@@ -163,7 +168,7 @@ def update(state):
 
 update(initial_state)
 ```
-Now notice that _Message_ showed up, and it is displaying the message "Hello, World!". To have better access to state parameters and to make it clear on which parameters our function depends, we define them at the top of the function. Notice that some of them need to be mapped to appropriate types. The _Slider input_ returns float values by default, so here, as we will need integers, we cast values to int.
+Notice that _Message_ showed up, and it is now displaying the message "Hello, World!". To have better access to state parameters and to make it clear on which parameters our function depends, we define them at the top of the function. Notice that some of them need to be mapped to appropriate types. The _Slider Input_ returns float values by default, so here, as we will need integers, we cast values to int.
 
 ```python
 def update(state):
@@ -172,7 +177,7 @@ def update(state):
     number_of_points = int(state['number_of_points'])
     number_of_groups = int(state['number_of_groups'])
 ```
-In this example, we create a logistic regression, but the algorithm itself is not in the scope of this tutorial. So we will just use the basic function from the `scikit-learn` library.
+In this example, we create a logistic regression visualisation, but the algorithm itself is not in the scope of this tutorial. So we will just use the basic function from the `scikit-learn` library.
 
 ```python
     X, y = make_blobs(
