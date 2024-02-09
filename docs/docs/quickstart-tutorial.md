@@ -227,7 +227,7 @@ Now, let's create a plot for our logistic regressions. For that, we will use `pl
 
 ```python 
     data = []
-    for i in range(groups):
+    for i in range(number_of_groups):
         data.append(
             go.Scatter(
                 x=X[y == i][:, 0],
@@ -243,12 +243,12 @@ Now, let's create a plot for our logistic regressions. For that, we will use `pl
             )
         )
 
-    for i in range(1 if groups < 3 else groups):
+    for i in range(1 if number_of_groups < 3 else number_of_groups):
         data.append(go.Scatter(
             x=[-20, 20],
             y=[
-                line(-20, coef, intercept, i),
-                line(20, coef, intercept, i)
+                _line(-20, coef, intercept, i),
+                _line(20, coef, intercept, i)
             ],
             mode='lines', 
             line=dict(color=COLOR[i], width=2),
@@ -314,14 +314,14 @@ def _line(x0, coef, intercept, c):
 def update(state):
     cluster_std = state['cluster_std']
     multi_class = state['multi_class']
-    maxsize = int(state['number_of_points'])
-    groups = int(state['number_of_groups'])
+    number_of_points = int(state['number_of_points'])
+    number_of_groups = int(state['number_of_groups'])
 
     X, y = make_blobs(
         n_samples=number_of_points,
         n_features=2,
         cluster_std=cluster_std,
-        centers=groups
+        centers=number_of_groups
     )
 
     clf = LogisticRegression(
@@ -335,8 +335,10 @@ def update(state):
     intercept = clf.intercept_
     score = clf.score(X, y)
 
+    state["message"] = "training score : %.3f (%s)" % (score, multi_class)
+
     data = []
-    for i in range(groups):
+    for i in range(number_of_groups):
         data.append(
             go.Scatter(
                 x=X[y == i][:, 0],
@@ -352,7 +354,7 @@ def update(state):
             )
         )
 
-    for i in range(1 if groups < 3 else groups):
+    for i in range(1 if number_of_groups < 3 else number_of_groups):
         data.append(go.Scatter(
             x=[-20, 20],
             y=[

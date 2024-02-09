@@ -16,7 +16,7 @@ COLOR = {
     9: '#38006a'
 }
 
-def line(x0, coef, intercept, c):
+def _line(x0, coef, intercept, c):
         return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
 
 def update(state):
@@ -24,47 +24,86 @@ def update(state):
     multi_class = state['multi_class']
     number_of_points = int(state['number_of_points'])
     number_of_groups = int(state['number_of_groups'])
-    X, y = make_blobs(n_samples=number_of_points, n_features=2, cluster_std=cluster_std,  centers=number_of_groups)
+    X, y = make_blobs(
+        n_samples=number_of_points,
+        n_features=2,
+        cluster_std=cluster_std,
+        centers=number_of_groups
+    )
 
     clf = LogisticRegression(
-        solver="sag", max_iter=1000, random_state=42, multi_class=multi_class
+        solver="sag",
+        max_iter=1000,
+        random_state=42,
+        multi_class=multi_class
     ).fit(X, y)
-    state["training"] = "training score : %.3f (%s)" % (clf.score(X, y), multi_class);
+
     coef = clf.coef_
     intercept = clf.intercept_
+    score = clf.score(X, y)
+
+    state["message"] = "training score : %.3f (%s)" % (score, multi_class)
 
     data = []
     for i in range(number_of_groups):
         data.append(
             go.Scatter(
-                x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
-                marker=dict(color=COLOR[i], symbol='circle', size=10)
+                x=X[y == i][:, 0],
+                y=X[y==i][:, 1],
+                mode='markers',
+                name='Group '+str(i),
+                hoverinfo='none',
+                marker=dict(
+                    color=COLOR[i],
+                    symbol='circle',
+                    size=10
+                )
             )
         )
 
     for i in range(1 if number_of_groups < 3 else number_of_groups):
         data.append(go.Scatter(
-            x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
-            mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'
+            x=[-20, 20],
+            y=[
+                _line(-20, coef, intercept, i),
+                _line(20, coef, intercept, i)
+            ],
+            mode='lines', 
+            line=dict(color=COLOR[i], width=2),
+            name='Logistic Regression'
         ))
 
     layout = go.Layout(
         width=700,height=700,
         hovermode='closest', hoverdistance=1,
-        xaxis=dict(title='Feature 1', range=[-20,20], fixedrange=True,
-          constrain="domain", scaleanchor="y",scaleratio=1),
-        yaxis=dict(title='Feature 2', range=[-20,20], fixedrange=True,
-          constrain="domain"),
+        xaxis=dict(
+            title='Feature 1',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain",
+            scaleanchor="y",
+            scaleratio=1
+        ),
+        yaxis=dict(
+            title='Feature 2',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain"
+        ),
         paper_bgcolor='#EEEEEE',
         margin=dict(l=30, r=30, t=30, b=30),
     )
 
     fig = go.Figure(data=data, layout=layout)
-    state['fig'] = fig
+    state['figure'] = fig
 
 
 initial_state = ss.init_state({
-    "multi_class_options": {"ovr": "One vs Rest", "multinomial": "Multinomial"},
+    "my_app": {
+        "title": "Logistic regression visualizer"
+    },
+    "message": None,
+    "figure": None,
     "multi_class": "ovr",
     "number_of_groups": 2,
     "number_of_points": 50,

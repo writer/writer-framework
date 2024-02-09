@@ -25,7 +25,7 @@
             "id": "g7hhwdug524j0fql",
             "type": "header",
             "content": {
-                "text": "Logistic regression example"
+                "text": "@{my_app.title}"
             },
             "parentId": "e8e4m9mx50wfpdty",
             "position": 0,
@@ -87,7 +87,7 @@
             "id": "27wp270aghglmgx2",
             "type": "plotlygraph",
             "content": {
-                "spec": "@{fig}"
+                "spec": "@{figure}"
             },
             "parentId": "0vruexh3b8ajbuw9",
             "position": 0,
@@ -118,19 +118,19 @@
             "id": "v75sjhqjgpw0g0a7",
             "type": "message",
             "content": {
-                "message": "@{training}"
+                "message": "@{message}"
             },
             "parentId": "g7hhwdug524j0fql",
             "position": 0,
             "handlers": {},
-            "visible": "training"
+            "visible": "message"
         },
         "tnooah1ico3nylvu": {
             "id": "tnooah1ico3nylvu",
             "type": "dropdowninput",
             "content": {
                 "label": "Type",
-                "options": "@{multi_class_options}",
+                "options": "{\"ovr\": \"One vs Rest\", \"multinomial\": \"Multinomial\"}",
                 "cssClasses": ""
             },
             "parentId": "t3zfxwztd4cozu6v",
