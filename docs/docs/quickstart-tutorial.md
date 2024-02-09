@@ -47,21 +47,21 @@ streamsync edit .
 
 This will run our Streamsync instance. Runtime logs can be observed in the terminal, and the app is available at http://localhost:3006.
 
-![newly created application](/images/quickstart/new_app.png)
+![newly created application](./images/quickstart/new_app.png)
 
 ## UI Creation
 
 By default, Streamsync creates a simple application with a counter. To keep things easy, let's remove the contents from columns to make space for our new application. If you're unsure where to click to select a specific component on the screen, you can always use the `Component Tree` on the bottom left of the screen. The app should look something like this when you finish.
 
-![empty app](/images/quickstart/empty_app.png)
+![empty app](./images/quickstart/empty_app.png)
 
 This app will be made up of 2 columns, one with controls for our plot and the second with the plot itself. Half of the screen is way too much for controls, and the plot will be really small this way. To change the proportions of the columns, change the value of `Width (factor)` in the left column to `0.5`.
 
-![width controls](/images/quickstart/column_width.png)
+![width controls](./images/quickstart/column_width.png)
 
 This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each _Column_, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
 
-![placing elements](/images/quickstart/placing_elements.png)
+![placing elements](./images/quickstart/placing_elements.png)
 
 Now let's add the rest of the components:
 
@@ -72,7 +72,7 @@ Now let's add the rest of the components:
     - _Button_.
 - To the free space in our header, let's place a _Message_ component.
 
-![ui boilerplate](/images/quickstart/ui_boilerplate.png)
+![ui boilerplate](./images/quickstart/ui_boilerplate.png)
 
 Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders configuration values to the following values:
 
@@ -102,7 +102,7 @@ And in the end lets rename the button.
 
 Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the 'Code' button at the top of the screen. However, if you prefer using your favourite editor, you can simply edit the `main.py` file, and the frontend will instantly refresh with every write to the file.
 
-![code editor](/images/quickstart/code_editor.png)
+![code editor](./images/quickstart/code_editor.png)
 
 Let's remove all code from there and start with:
 
