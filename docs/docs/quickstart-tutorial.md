@@ -272,7 +272,7 @@ Now, let's create a plot for our logistic regressions. For that, we will use `pl
             fixedrange=True,
             constrain="domain"
         ),
-        paper_bgcolor='#EEEEEE',
+        paper_bgcolor='#FFFFFF',
         margin=dict(l=30, r=30, t=30, b=30),
     )
 

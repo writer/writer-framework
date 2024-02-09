@@ -36,8 +36,8 @@
             "id": "j8tmgh7pgdk1nzfb",
             "type": "columns",
             "content": {},
-            "parentId": "e8e4m9mx50wfpdty",
-            "position": 1,
+            "parentId": "7hlk8jwfhvz29rbc",
+            "position": 0,
             "handlers": {},
             "visible": true
         },
@@ -175,6 +175,17 @@
             "handlers": {
                 "ss-click": "update"
             },
+            "visible": true
+        },
+        "7hlk8jwfhvz29rbc": {
+            "id": "7hlk8jwfhvz29rbc",
+            "type": "section",
+            "content": {
+                "title": ""
+            },
+            "parentId": "e8e4m9mx50wfpdty",
+            "position": 1,
+            "handlers": {},
             "visible": true
         }
     }
