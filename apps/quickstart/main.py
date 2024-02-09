@@ -1,9 +1,7 @@
 import streamsync as ss
-import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import make_blobs
-from streamsync.core import StreamsyncState
 
 COLOR = {
     0: '#3c64fa',
@@ -24,9 +22,9 @@ def line(x0, coef, intercept, c):
 def update(state):
     cluster_std = state['cluster_std']
     multi_class = state['multi_class']
-    maxsize = int(state['number_of_points'])
-    groups = int(state['number_of_groups'])
-    X, y = make_blobs(n_samples=maxsize, n_features=2, cluster_std=cluster_std,  centers=groups)
+    number_of_points = int(state['number_of_points'])
+    number_of_groups = int(state['number_of_groups'])
+    X, y = make_blobs(n_samples=number_of_points, n_features=2, cluster_std=cluster_std,  centers=number_of_groups)
 
     clf = LogisticRegression(
         solver="sag", max_iter=1000, random_state=42, multi_class=multi_class
@@ -36,7 +34,7 @@ def update(state):
     intercept = clf.intercept_
 
     data = []
-    for i in range(groups):
+    for i in range(number_of_groups):
         data.append(
             go.Scatter(
                 x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
@@ -44,7 +42,7 @@ def update(state):
             )
         )
 
-    for i in range(1 if groups < 3 else groups):
+    for i in range(1 if number_of_groups < 3 else number_of_groups):
         data.append(go.Scatter(
             x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
             mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'

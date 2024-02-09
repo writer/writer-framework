@@ -1,13 +1,13 @@
 # Tutorial - Simple App
-In this tutorial, we'll guide you through creating a logistic regression visualization tool using StreamSync. Logistic regression is a fundamental technique in machine learning for binary classification tasks, and visualizing its decision boundary can provide valuable insights into the model's behavior.
+In this tutorial, we'll guide you through creating a logistic regression visualisation tool using Streamsync. Logistic regression is a fundamental technique in machine learning for binary classification tasks, and visualising its decision boundary can provide valuable insights into the model's behaviour.
 
-First, make sure you have StreamSync installed. You can install it via pip:
+First, make sure you have Streamsync installed. You can install it via pip:
 
 ```bash
 pip install "streamsync[ds]"
 ```
 
-Now, let's get started with creating our logistic regression visualization tool. We'll break down the process into the following steps:
+Now, let's get started with creating our logistic regression visualisation tool. We'll break down the process into the following steps:
 
 1. Setup Project
 2. UI Creation
@@ -25,7 +25,7 @@ To create our project, we will use the following commands:
 streamsync create logistic_regression
 cd logistic_regression
 ```
-Commands will create basic template of app project with initial file structure. 
+Commands will create basic template of app project with initial file structure.
 In this project, we will be using the scikit-learn package for logistic regression, so let's install it before we start.
 Create a file `requirements.txt` and add the following line:
 
@@ -33,34 +33,25 @@ Create a file `requirements.txt` and add the following line:
 scikit-learn==1.4.0
 ```
 
-It's always a good idea to install Python packages within a virtual environment to prevent cluttering your system.
-
-```bash
-python -m venv env
-. ./env/bin/activate
-```
-After running those commands our terminal will be using virtual environment and all packages that we install will be vailable only here.
-If you close the terminal you will need to source activate script again.
 After that, we can install our requirements.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Once this is done, we can finally run the StreamSync editor using the command:
+Once this is done, we can finally run the Streamsync editor using the command:
 
 ```bash
 streamsync edit .
 ```
 
-This will run our StreamSync instance. Runtime logs can be observed in the terminal, and the app is available at http://localhost:3006.
+This will run our Streamsync instance. Runtime logs can be observed in the terminal, and the app is available at http://localhost:3006.
 
 ![newly created application](/images/quickstart/new_app.png)
 
 ## UI Creation
 
-
-By default, StreamSync creates a simple application with a counter. To keep things easy, let's remove the contents from columns to make space for our new application. If you're unsure where to click to select a specific component on the screen, you can always use the `Component Tree` on the bottom left of the screen. The app should look something like this when you finish.
+By default, Streamsync creates a simple application with a counter. To keep things easy, let's remove the contents from columns to make space for our new application. If you're unsure where to click to select a specific component on the screen, you can always use the `Component Tree` on the bottom left of the screen. The app should look something like this when you finish.
 
 ![empty app](/images/quickstart/empty_app.png)
 
@@ -68,57 +59,48 @@ This app will be made up of 2 columns, one with controls for our plot and the se
 
 ![width controls](/images/quickstart/column_width.png)
 
-This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each column, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
+This way, it will take just `1/3` of the screen. Proportions are calculated relative to each other. Each _Column_, by default, has the value of this factor set to 1. So, when we set the left column to 0.5 and the right to 1, we will get a relation between column sizes of 1:2.
 
 ![placing elements](/images/quickstart/placing_elements.png)
 
 Now let's add the rest of the components:
 
-- To the right column, add a Plotly chart.
+- To the right column, add a _Plotly chart_.
 - To the left:
-    - 3 x Slider input.
-    - Dropdown input.
-    - Button.
-- To the free space in our header, let's place a `message` component.
+    - 3 x _Slider input_
+    - _Dropdown input_
+    - _Button_.
+- To the free space in our header, let's place a _Message_ component.
 
 ![ui boilerplate](/images/quickstart/ui_boilerplate.png)
 
-Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders' configuration values to the following values:
+Now we can configure components with some static settings. Starting with slider inputs, let's set all 3 sliders configuration values to the following values:
 
-```
-Label: "Number of groups",
-Minimum value: "2",
-Maximum value: "10",
-Step size: "1"
-
-Label: "Number of points",
-Minimum value: "50",
-Maximum value: "1000",
-Step size: "1"
-
-Label: "Cluster deviation",
-Minimum value: "0",
-Maximum value: "10",
-Step size: "0.1"
-```
+|   Property        |   Value (Slider 1)    |   Value (Slider 2)    |   Value (Slider 3)    |
+| :-----------:     | :-------------------  | :-------------------  | :-------------------  |
+|   Label           |   Number of groups    |   Number of points    |   Cluster deviation   |
+|   Minimum value   |   2                   |   50                  |   0                   |
+|   Maximum value   |   10                  |   1000                |   10                  |
+|   Step size       |   1                   |   1                   |   0.1                 |
 
 Then for the dropdown, we will set:
 
-```
-Label: "Type"
-Options: set JSON and below type:
-{"ovr": "One vs Rest", "multinomial": "Multinomial"}
-```
+|   Property        |   Value               |
+| :-----------:     | :-------------------  |
+|   Label           |   Type                |
+|   Options         |   set `JSON` and below type:                   |
+|                |   `{"ovr": "One vs Rest", "multinomial": "Multinomial"}`  |
+
 
 And in the end lets rename the button.
 
-```
-Label: 'Regenerate'
-```
+|   Property        |   Value               |
+| :-----------:     | :-------------------  |
+|   Label           |   Regenerate          |
 
 ## App State and Bindings
 
-Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the `Code` button at the top of the screen.
+Now, to create the application's initial state, let's open the code editor. In this tutorial, we will be using the built-in code editor, which can be found by clicking on the 'Code' button at the top of the screen. However, if you prefer using your favourite editor, you can simply edit the `main.py` file, and the frontend will instantly refresh with every write to the file.
 
 ![code editor](/images/quickstart/code_editor.png)
 
@@ -139,32 +121,31 @@ initial_state = ss.init_state({
     "cluster_std": 2,
 })
 ```
+For now, only the Streamsync import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualiser". This is because the Header has in its text property the value `@{my_app.title}`, which is template syntax that uses a value from the state.
 
-For now, only the StreamSync import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualizer". This is because the Header has in its text property the value `@{my_app.title}`, which is template syntax that uses a value from the state.
-
-The rest of the values from the state are just initial values that we will use in all elements to enable communication between the frontend and backend. To do this for every component, we need to set bindings for them. For slider input, let's fill the bindings:
+The rest of the values from the state are just initial values that we will use in all elements to enable communication between the frontend and backend. To do this for every component, we need to set bindings for them. For _Slider input_, let's fill the bindings:
 
 - State element: `number_of_groups`
 - State element: `number_of_points`
 - State element: `cluster_std`
 
-For the dropdown:
+For the _Dropdown input_:
 
 - State element: `multi_class`
 
-For the message:
+For the _Message_:
 
 - Message: `@{message}`
 - Visibility: `custom`
 - Visibility value: `message`
 
-This way, the message component will show only if there is a message to display.
+This way, the _Message_ component will show only if there is a message to display.
 
-For Plotly:
+For _Plotly graph_:
 
 - Graph specification: `@{figure}`
 
-This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behavior implementation.
+This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behaviour implementation.
 
 ## Python implementation
 
@@ -176,8 +157,7 @@ def update(state):
 
 update(initial_state)
 ```
-
-Now notice that our Message showed up, and it is displaying the message "Hello, World!". To have better access to state parameters and to make it clear on which parameters our function depends, we define them at the top of the function. Notice that some of them need to be mapped to appropriate types. The slider input returns float values by default, so here, as we will need integers, we cast values to int.
+Now notice that _Message_ showed up, and it is displaying the message "Hello, World!". To have better access to state parameters and to make it clear on which parameters our function depends, we define them at the top of the function. Notice that some of them need to be mapped to appropriate types. The _Slider input_ returns float values by default, so here, as we will need integers, we cast values to int.
 
 ```python
 def update(state):
@@ -186,7 +166,6 @@ def update(state):
     number_of_points = int(state['number_of_points'])
     number_of_groups = int(state['number_of_groups'])
 ```
-
 In this example, we create a logistic regression, but the algorithm itself is not in the scope of this tutorial. So we will just use the basic function from the `scikit-learn` library.
 
 ```python
@@ -213,10 +192,9 @@ The algorithm will generate one or many lines depending on how many groups we ha
 def _line(x0, coef, intercept, c):
     return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
 ```
+This function is a helper function meant to be used on the backend. The underscore at the beginning of its name tells Streamsync that this function is private, and the frontend won't know about its existence.
 
-This function is a helper function meant to be used on the backend. The underscore at the beginning of its name tells the system that this function is private, and the frontend won't know about its existence.
-
-To make the plot more readable, let's quickly define some colors for our plots:
+To make the plot more readable, let's quickly define some colours for our plots:
 
 ```python
 COLOR = {
@@ -232,8 +210,7 @@ COLOR = {
     9: '#38006a'
 }
 ```
-
-Now, let's create a plot for our logistic regressions. For that, we will use Plotly graph_objects to have full control over what will be included in our plot.
+Now, let's create a plot for our logistic regressions. For that, we will use `plotly.graph_objects` to have full control over what will be included in our plot.
 
 ```python 
     data = []
@@ -265,10 +242,9 @@ Now, let's create a plot for our logistic regressions. For that, we will use Plo
     fig = go.Figure(data=data, layout=layout)
     state['figure'] = fig
 ```
-
 After saving and running the code, we should get something like this:
 
-But as you could notice, when we change our slider values, nothing happens. It's because our function is currently called only once on app initialization and not after input changes. To change this behavior, let's set Event handler `ss-number-change` in all slider inputs to "update", which is the name of our function in the Python code. Notice that `_line` is not visible there because it's private to the backend. If we would change its name to `line`, then it would be visible on this list.
+But as you could notice, when we change our slider values, nothing happens. It's because our function is currently called only once on app initialisation and not after input changes. To change this behaviour, let's set the event handler for `ss-number-change` in all slider inputs to `update`, which is the name of our function in the Python code. Notice that `_line` is not visible there because it's private to the backend. If we would change its name to `line`, then it would be visible on this list.
 
 Set also event handler for dropdown input `ss-option-change` and `ss-click` in the button, also to `update`.
 
@@ -278,7 +254,6 @@ Final code for the application should look something like this:
 
 ```python
 import streamsync as ss
-import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import make_blobs
@@ -364,9 +339,8 @@ When your code has an error, you will be notified with a notification in the app
 ### Debugging
 To check some intermediate values in your Python code, you can just use `print()` function. All logs will be available in the terminal.
 
-
 ## Conclusion
-Congratulations! You've successfully created a logistic regression visualization tool using StreamSync. You can further customize and enhance this tool to suit your specific needs.
+Congratulations! You've successfully created a logistic regression visualisation tool using Streamsync. You can further customise and enhance this tool to suit your specific needs.
 
 ## Additional Resources
 - [Scikit-learn Documentation](https://scikit-learn.org/stable/)
