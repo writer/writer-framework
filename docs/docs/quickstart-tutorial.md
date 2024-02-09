@@ -1,4 +1,4 @@
-# Tutorial - Simple App
+# Quickstart tutorial - Logistic regression visualisation
 In this tutorial, we'll guide you through creating a logistic regression visualisation tool using Streamsync. Logistic regression is a fundamental technique in machine learning for binary classification tasks, and visualising its decision boundary can provide valuable insights into the model's behaviour.
 
 First, make sure you have Streamsync installed. You can install it via pip:
