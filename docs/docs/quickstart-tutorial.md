@@ -125,25 +125,31 @@ For now, only the Streamsync import is needed, but the rest will be used later o
 
 The rest of the values from the state are just initial values that we will use in all elements to enable communication between the frontend and backend. To do this for every component, we need to set bindings for them. For _Slider input_, let's fill the bindings:
 
-- State element: `number_of_groups`
-- State element: `number_of_points`
-- State element: `cluster_std`
+|   Property        |   Value (Slider 1)    |   Value (Slider 2)    |   Value (Slider 3)    |
+| :-----------:     | :-------------------  | :-------------------  | :-------------------  |
+|   State element   |  `number_of_groups`   |   `number_of_points`  |   `cluster_std`       |
 
 For the _Dropdown input_:
 
-- State element: `multi_class`
+|   Property        |   Value               |
+| :-----------:     | :-------------------  | 
+|   State element   |  `multi_class`        | 
 
 For the _Message_:
 
-- Message: `@{message}`
-- Visibility: `custom`
-- Visibility value: `message`
+|   Property            |   Value               |
+| :-----------:         | :-------------------  | 
+|   Message             |   `@{message}`        | 
+|   Visibility          |   `custom`            |
+|   Visibility value    |   `message`           |
 
 This way, the _Message_ component will show only if there is a message to display.
 
 For _Plotly graph_:
 
-- Graph specification: `@{figure}`
+|   Property            |   Value               |
+| :-----------:         | :-------------------  | 
+| Graph specification   |   `@{figure}`         |
 
 This way, all of the components are connected to the application state. But for now, nothing happens, so it's not so exciting. Let's get started with behaviour implementation.
 
@@ -169,13 +175,20 @@ def update(state):
 In this example, we create a logistic regression, but the algorithm itself is not in the scope of this tutorial. So we will just use the basic function from the `scikit-learn` library.
 
 ```python
-    X, y = make_blobs(n_samples=number_of_points, n_features=2, cluster_std=cluster_std, centers=groups)
+    X, y = make_blobs(
+        n_samples=number_of_points,
+        n_features=2,
+        cluster_std=cluster_std,
+        centers=groups
+    )
 
     clf = LogisticRegression(
         solver="sag",
-
- max_iter=1000, random_state=42, multi_class=multi_class
+        max_iter=1000,
+        random_state=42,
+        multi_class=multi_class
     ).fit(X, y)
+
     coef = clf.coef_
     intercept = clf.intercept_
     score = clf.score(X, y)
@@ -217,24 +230,48 @@ Now, let's create a plot for our logistic regressions. For that, we will use `pl
     for i in range(groups):
         data.append(
             go.Scatter(
-                x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
-                marker=dict(color=COLOR[i], symbol='circle', size=10)
+                x=X[y == i][:, 0],
+                y=X[y==i][:, 1],
+                mode='markers',
+                name='Group '+str(i),
+                hoverinfo='none',
+                marker=dict(
+                    color=COLOR[i],
+                    symbol='circle',
+                    size=10
+                )
             )
         )
 
     for i in range(1 if groups < 3 else groups):
         data.append(go.Scatter(
-            x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
-            mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'
+            x=[-20, 20],
+            y=[
+                line(-20, coef, intercept, i),
+                line(20, coef, intercept, i)
+            ],
+            mode='lines', 
+            line=dict(color=COLOR[i], width=2),
+            name='Logistic Regression'
         ))
 
     layout = go.Layout(
         width=700,height=700,
         hovermode='closest', hoverdistance=1,
-        xaxis=dict(title='Feature 1', range=[-20,20], fixedrange=True,
-          constrain="domain", scaleanchor="y",scaleratio=1),
-        yaxis=dict(title='Feature 2', range=[-20,20], fixedrange=True,
-          constrain="domain"),
+        xaxis=dict(
+            title='Feature 1',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain",
+            scaleanchor="y",
+            scaleratio=1
+        ),
+        yaxis=dict(
+            title='Feature 2',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain"
+        ),
         paper_bgcolor='#EEEEEE',
         margin=dict(l=30, r=30, t=30, b=30),
     )
@@ -271,7 +308,7 @@ COLOR = {
     9: '#38006a'
 }
 
-def line(x0, coef, intercept, c):
+def _line(x0, coef, intercept, c):
     return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
 
 def update(state):
@@ -279,49 +316,85 @@ def update(state):
     multi_class = state['multi_class']
     maxsize = int(state['number_of_points'])
     groups = int(state['number_of_groups'])
-    X, y = make_blobs(n_samples=maxsize, n_features=2, cluster_std=cluster_std,  centers=groups)
+
+    X, y = make_blobs(
+        n_samples=number_of_points,
+        n_features=2,
+        cluster_std=cluster_std,
+        centers=groups
+    )
 
     clf = LogisticRegression(
-        solver="sag", max_iter=1000, random_state=42, multi_class=multi_class
+        solver="sag",
+        max_iter=1000,
+        random_state=42,
+        multi_class=multi_class
     ).fit(X, y)
-    state["training"] = "training score : %.3f (%s)" % (clf.score(X, y), multi_class);
+
     coef = clf.coef_
     intercept = clf.intercept_
+    score = clf.score(X, y)
 
     data = []
     for i in range(groups):
         data.append(
             go.Scatter(
-                x=X[y == i][:, 0], y=X[y==i][:, 1], mode='markers', name='Group '+str(i), hoverinfo='none',
-                marker=dict(color=COLOR[i], symbol='circle', size=10)
+                x=X[y == i][:, 0],
+                y=X[y==i][:, 1],
+                mode='markers',
+                name='Group '+str(i),
+                hoverinfo='none',
+                marker=dict(
+                    color=COLOR[i],
+                    symbol='circle',
+                    size=10
+                )
             )
         )
 
     for i in range(1 if groups < 3 else groups):
         data.append(go.Scatter(
-            x=[-20, 20], y=[line(-20, coef, intercept, i), line(20, coef, intercept, i)],
-            mode='lines', line=dict(color=COLOR[i], width=2), name='Logistic Regression'
+            x=[-20, 20],
+            y=[
+                _line(-20, coef, intercept, i),
+                _line(20, coef, intercept, i)
+            ],
+            mode='lines', 
+            line=dict(color=COLOR[i], width=2),
+            name='Logistic Regression'
         ))
 
     layout = go.Layout(
         width=700,height=700,
         hovermode='closest', hoverdistance=1,
-        xaxis=dict(title='Feature 1', range=[-20,20], fixedrange=True,
-          constrain="domain", scaleanchor="y",scaleratio=1),
-        yaxis=dict(title='Feature 2', range=[-20,20], fixedrange=True,
-          constrain="domain"),
+        xaxis=dict(
+            title='Feature 1',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain",
+            scaleanchor="y",
+            scaleratio=1
+        ),
+        yaxis=dict(
+            title='Feature 2',
+            range=[-20,20],
+            fixedrange=True,
+            constrain="domain"
+        ),
         paper_bgcolor='#EEEEEE',
         margin=dict(l=30, r=30, t=30, b=30),
     )
 
     fig = go.Figure(data=data, layout=layout)
-    state['fig'] = fig
+    state['figure'] = fig
 
 
 initial_state = ss.init_state({
-    "multi_class_options": {"ovr": "One vs
-
- Rest", "multinomial": "Multinomial"},
+    "my_app": {
+        "title": "Logistic regression visualizer"
+    },
+    "message": None,
+    "figure": None,
     "multi_class": "ovr",
     "number_of_groups": 2,
     "number_of_points": 50,
