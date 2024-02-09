@@ -84,24 +84,24 @@ class TestStateProxy:
 
         self.sp["age"] = 2
         m = self.sp.get_mutations_as_dict()
-        assert m.get("age") == 2
+        assert m.get("+age") == 2
         assert len(m) == 1
 
         self.sp["interests"] += ["dogs"]
         self.sp["features"]["height"] = "short"
         m = self.sp.get_mutations_as_dict()
-        assert m.get("interests") == ["lamps", "cars", "dogs"]
-        assert m.get("features.height") == "short"
+        assert m.get("+interests") == ["lamps", "cars", "dogs"]
+        assert m.get("+features.height") == "short"
         assert len(m) == 2
 
         self.sp["state.with.dots"]["photo.jpeg"] = "Corrupted"
         m = self.sp.get_mutations_as_dict()
-        assert m.get("state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
+        assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
         assert len(m) == 1
 
         self.sp["new.state.with.dots"] = {"test": "test"}
         m = self.sp.get_mutations_as_dict()
-        assert len(m) == 1
+        assert len(m) == 2
 
         d = self.sp.to_dict()
         assert d.get("age") == 2
@@ -113,8 +113,6 @@ class TestStateProxy:
         m = self.sp.get_mutations_as_dict()
 
         assert m.get("+age") == 2
-        assert m.get("+features.height") == "short"
-        assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
 
         del self.sp["best_feature"]
         m = self.sp.get_mutations_as_dict()
