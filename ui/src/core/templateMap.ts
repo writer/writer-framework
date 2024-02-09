@@ -38,6 +38,7 @@ import CoreFileInput from "../core_components/input/CoreFileInput.vue";
 import CoreMetric from "../core_components/CoreMetric.vue";
 import CoreMessage from "../core_components/CoreMessage.vue";
 import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
+import CoreChat from "../core_components/CoreChat.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
@@ -83,6 +84,7 @@ const templateMap = {
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
+	chat: CoreChat
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {
