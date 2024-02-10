@@ -2,13 +2,13 @@
 
 [[package]]
 name = "alfred-cli"
-version = "2.2.6"
+version = "2.2.7"
 description = "Alfred is an extensible automation tool. It allows you to build your continuous integration scripts in python, and much more. You can replace any scripts using the best of both worlds, shell and python."
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "alfred_cli-2.2.6-py3-none-any.whl", hash = "sha256:afbfaff7ea2772c5716b4fcab921e518998bd78e919776eeb91379ffec9a5bb0"},
-    {file = "alfred_cli-2.2.6.tar.gz", hash = "sha256:b02453ebecce04b32bc52f1c2ea8db83919cf0fda95dcb476a4b7e2c7a6c450f"},
+    {file = "alfred_cli-2.2.7-py3-none-any.whl", hash = "sha256:35059a1525c792f77d1911d8d67df698f9d93bc2c06f28dc3deba125ce886228"},
+    {file = "alfred_cli-2.2.7.tar.gz", hash = "sha256:674aafa6fe5445e0e60ebad94b7c5a84be1e4fdd64fb2c51223c357734981050"},
 ]
 
 [package.dependencies]
@@ -1239,4 +1239,4 @@ ds = ["pandas", "plotly", "pyarrow"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "82329fe83a8558191025e96c7ca62911bec6da67fcfdbec518c98c8e44948cfa"
+content-hash = "eda7baf2623c0f476a9d2a5ae111af040aedab615fac92e438ba18b3312ad4d9"

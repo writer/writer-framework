@@ -48,7 +48,7 @@ pytest-asyncio = ">= 0.23.4, < 1"
 pytest = ">= 7.0.0, < 8"
 altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
-alfred-cli = "^2.2.6"
+alfred-cli = "^2.2.7"
 
 [tool.poetry.extras]
 ds = ["pandas", "pyarrow", "plotly"]
