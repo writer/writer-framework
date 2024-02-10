@@ -1,0 +1,13 @@
+[alfred]
+# name = "" # name of a subproject, use the name of the directory if not set
+# description = "" # inline documentation for a sub project
+# subprojects = []
+
+# [alfred.project]
+# command = [ "alfred/*.py" ]
+# python_path_project_root = true
+# python_path_extends = []
+# venv = "src/.."
+
+# more info about project manifest
+# into https://alfred-cli.readthedocs.io/en/latest/project.html#setting-up-a-project-with-alfred-toml
