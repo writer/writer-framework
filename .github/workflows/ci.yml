@@ -20,4 +20,13 @@ jobs:
       - name: update package manager & install python3 environment
         run: |
           sudo pip install poetry
-          poetry install
+          poetry install --with build
+
+      - name: install npm environment
+        run: |
+          cd ui
+          npm install
+
+      - name: run continuous integration pipeline
+        run: |
+          poetry run alfred ci
