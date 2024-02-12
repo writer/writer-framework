@@ -650,6 +650,14 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
+    def _transform_load(self, ev) -> Dict:
+        payload = ev.payload
+        url = payload.get("url")
+        tf_payload = {
+            "url": url,
+        }
+        return tf_payload
+
     def _transform_change(self, ev) -> str:
         payload = str(ev.payload)
         return payload
