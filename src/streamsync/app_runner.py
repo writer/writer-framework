@@ -539,7 +539,7 @@ class AppRunner:
         self.is_app_process_server_ready = multiprocessing.Event()
         self.is_app_process_server_failed = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
-        self.observer: Optional[watchdog.observers.Observer] = None
+        self.observer: Optional[PollingObserver] = None
         self.app_path: str = app_path
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
         self.response_packets: Dict[int, AppProcessServerResponsePacket] = {}
