@@ -24,6 +24,7 @@ poetry run  mypy ./src/streamsync/*.py
 rm -rf ./src/streamsync/app_templates/*
 cp -r ./apps/default ./src/streamsync/app_templates
 cp -r ./apps/hello ./src/streamsync/app_templates
+cp -r ./apps/quickstart ./src/streamsync/app_templates
 
 # PYTHON PACKAGE BUILD
 
