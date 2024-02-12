@@ -382,19 +382,6 @@ class TestEventDeserialiser:
             },
         }
 
-    def test_load(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-load",
-            instancePath=self.root_instance_path,
-            payload={
-                "url": "/myPage",
-            }
-        )
-        self.ed.transform(ev)
-        assert ev.payload == {
-            "url": "/myPage",
-        }
-
     def test_webcam(self) -> None:
         ev = StreamsyncEvent(
             type="ss-webcam",

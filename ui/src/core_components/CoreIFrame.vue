@@ -59,15 +59,7 @@ function handleClick(ev: MouseEvent) {
 	rootEl.value.dispatchEvent(ssEv);
 }
 function handleLoad(ev) {
-  console.log(ev.target.src);
-	const payload = {
-    url: ev.target.src,
-	};
-	const event = new CustomEvent("ss-load", {
-		detail: {
-			payload,
-		},
-	});
+	const event = new CustomEvent("ss-load");
 	rootEl.value.dispatchEvent(event);
 }
 </script>
