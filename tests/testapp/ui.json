@@ -2050,7 +2050,7 @@
                 "text": "Increment"
             },
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 8,
+            "position": 9,
             "handlers": {
                 "click": "increment"
             },
@@ -2752,7 +2752,7 @@
                 "options": "{\n  \"ar\": \"Argentina\",\n  \"uk\": \"United Kingdom\"\n}"
             },
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 9,
+            "position": 11,
             "handlers": {
                 "ss-option-change": "update_cities"
             },
@@ -2766,7 +2766,7 @@
                 "options": "@{cities}"
             },
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 10,
+            "position": 12,
             "handlers": {},
             "visible": true
         },
@@ -2802,7 +2802,7 @@
                 "passwordMode": "yes"
             },
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 11,
+            "position": 13,
             "handlers": {},
             "visible": true
         },
@@ -2835,6 +2835,30 @@
                 "eventType": "ss-option-change",
                 "stateRef": "b.language"
             },
+            "visible": true
+        },
+        "nyo5vc79sb031yz8": {
+            "id": "nyo5vc79sb031yz8",
+            "type": "button",
+            "content": {
+                "text": "Increment asynchronically"
+            },
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "position": 10,
+            "handlers": {
+                "ss-click": "test_async_handler"
+            },
+            "visible": true
+        },
+        "3apnnxxg7pubdeqp": {
+            "id": "3apnnxxg7pubdeqp",
+            "type": "text",
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "content": {
+                "text": "@{counter}"
+            },
+            "handlers": {},
+            "position": 8,
             "visible": true
         }
     }

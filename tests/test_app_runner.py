@@ -17,6 +17,15 @@ class TestAppRunner:
         {"componentId": "6010765e-9ac3-4570-84bf-913ae404e03a", "instanceNumber": 0},
         {"componentId": "c282ad31-2487-4296-a944-508c167c43be", "instanceNumber": 0}
     ]
+
+    async_handler_click_path = [
+        {"componentId": "root", "instanceNumber": 0},
+        {"componentId": "bb4d0e86-619e-4367-a180-be28ab6059f4", "instanceNumber": 0},
+        {"componentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5", "instanceNumber": 0},
+        {"componentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5", "instanceNumber": 0},
+        {"componentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76", "instanceNumber": 0},
+        {"componentId": "nyo5vc79sb031yz8", "instanceNumber": 0}
+    ]
     proposed_session_id = "c13a280fe17ec663047ec14de15cd93ad686fecf5f9a4dbf262d3a86de8cb577"
 
     def test_init_wrong_path(self) -> None:
@@ -101,6 +110,40 @@ class TestAppRunner:
             "+inspected_payload") == "129673.0"
         assert ev_res.payload.mutations.get(
             "+b.pet_count") == 129673
+        ar.shut_down()
+
+    @pytest.mark.asyncio
+    async def test_async_handler(self) -> None:
+        ar = AppRunner(test_app_dir, "run")
+        ar.load()
+        si = InitSessionRequest(
+            type="sessionInit",
+            payload=InitSessionRequestPayload(
+                cookies={},
+                headers={},
+                proposedSessionId=self.proposed_session_id
+            )
+        )
+        sres = await ar.dispatch_message(None, si)
+        assert sres.status == "ok"
+        assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
+
+        # Firing an event to bypass "initial" state mutations
+        ev_req = EventRequest(type="event", payload=StreamsyncEvent(
+            type="ss-number-change",
+            instancePath=self.numberinput_instance_path,
+            payload="129673"
+        ))
+        ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
+
+        ev_req = EventRequest(type="event", payload=StreamsyncEvent(
+            type="ss-click",
+            instancePath=self.async_handler_click_path
+        ))
+        ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
+        assert ev_res.status == "ok"
+        assert ev_res.payload.result.get("ok") == True
+        assert "+counter" in ev_res.payload.mutations
         ar.shut_down()
 
     @pytest.mark.asyncio
