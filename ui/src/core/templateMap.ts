@@ -65,7 +65,7 @@ const templateMap = {
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
-  iframe: CoreIFrame,
+	iframe: CoreIFrame,
 	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
