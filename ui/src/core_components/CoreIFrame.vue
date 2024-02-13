@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreIFrame" v-on:click="handleClick" ref="rootEl">
+	<div class="CoreIFrame" ref="rootEl">
 		<iframe
       @load="handleLoad" 
 			:src="fields.src.value"
@@ -27,12 +27,12 @@ export default {
 	streamsync: {
 		name: "IFrame",
 		description,
-		category: "Content",
+		category: "Embed",
 		fields: {
 			src: {
 				name: "Source",
 				default: '',
-				desc: "A valid URL. Alternatively, you can provide a state reference to a Matplotlib figure or a packed file.",
+				desc: "A valid URL",
 				type: FieldType.Text,
 			},
 			cssClasses,
@@ -54,10 +54,6 @@ import injectionKeys from "../injectionKeys";
 const rootEl:Ref<HTMLElement> = ref(null); 
 const fields = inject(injectionKeys.evaluatedFields);
 
-function handleClick(ev: MouseEvent) {
-	const ssEv = getClick(ev);
-	rootEl.value.dispatchEvent(ssEv);
-}
 function handleLoad(ev) {
 	const event = new CustomEvent("ss-load");
 	rootEl.value.dispatchEvent(event);
@@ -83,6 +79,11 @@ function handleLoad(ev) {
 }
 
 .CoreIFrame .mask {
+	pointer-events: none;
+}
+
+.buildMode .CoreIFrame .mask {
+	pointer-events: all;
   position: absolute;
   top: 0;
   left: 0;
@@ -93,6 +94,6 @@ function handleLoad(ev) {
 }
 
 .CoreIFrame.selected .mask {
-  display: none;
+	pointer-events: none;
 }
 </style>
