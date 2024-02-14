@@ -79,11 +79,11 @@ function handleLoad(ev) {
 }
 
 .CoreIFrame .mask {
-	pointer-events: none;
+  pointer-events: none;
 }
 
-.buildMode .CoreIFrame .mask {
-	pointer-events: all;
+.CoreIFrame.beingEdited .mask {
+  pointer-events: all;
   position: absolute;
   top: 0;
   left: 0;
@@ -94,6 +94,6 @@ function handleLoad(ev) {
 }
 
 .CoreIFrame.selected .mask {
-	pointer-events: none;
+  pointer-events: none;
 }
 </style>
