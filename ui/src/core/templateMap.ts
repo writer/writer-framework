@@ -19,6 +19,7 @@ import CoreSeparator from "../core_components/CoreSeparator.vue";
 import CoreTab from "../core_components/CoreTab.vue";
 import CoreTabs from "../core_components/CoreTabs.vue";
 import CoreImage from "../core_components/CoreImage.vue";
+import CorePDF from "../core_components/CorePDF.vue";
 import CoreTimer from "../core_components/CoreTimer.vue";
 import CoreWebcamCapture from "../core_components/CoreWebcamCapture.vue";
 import CoreVegaLiteChart from "../core_components/CoreVegaLiteChart.vue";
@@ -64,6 +65,7 @@ const templateMap = {
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
+	pdf: CorePDF,
 	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
