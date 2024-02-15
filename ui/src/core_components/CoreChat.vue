@@ -1,8 +1,19 @@
 <template>
 	<div class="CoreChat" ref="rootEl">
 		<div class="messageArea" ref="messageAreaEl">
-			<div class="message" :class="message.origin" v-for="message, messageId in messages" :key="messageId">
-				<div class="avatar">{{ message.origin == 'incoming' ? fields.incomingInitials.value : fields.outgoingInitials.value }}</div>
+			<div
+				class="message"
+				:class="message.origin"
+				v-for="(message, messageId) in messages"
+				:key="messageId"
+			>
+				<div class="avatar">
+					{{
+						message.origin == "incoming"
+							? fields.incomingInitials.value
+							: fields.outgoingInitials.value
+					}}
+				</div>
 				<div class="contents">
 					<template v-if="message.isLoading">
 						<LoadingSymbol></LoadingSymbol>
@@ -11,12 +22,24 @@
 						{{ message.content }}
 					</template>
 				</div>
-				<div class="time" v-if="message.date" :title="getFormattedDate(message.date, false)">{{ getFormattedDate(message.date, true) }}</div>
+				<div
+					class="time"
+					v-if="message.date"
+					:title="getFormattedDate(message.date, false)"
+				>
+					{{ getFormattedDate(message.date, true) }}
+				</div>
 			</div>
 		</div>
 		<div class="inputArea">
-			<textarea placeholder="Write something..." v-model="outgoingMessage" v-on:keydown.prevent.enter="handleMessageSent"></textarea>
-			<button v-on:click="handleMessageSent"><i class="ri-send-plane-line"></i></button>
+			<textarea
+				placeholder="Write something..."
+				v-model="outgoingMessage"
+				v-on:keydown.prevent.enter="handleMessageSent"
+			></textarea>
+			<button v-on:click="handleMessageSent">
+				<i class="ri-send-plane-line"></i>
+			</button>
 		</div>
 	</div>
 </template>
@@ -24,13 +47,33 @@
 <script lang="ts">
 import LoadingSymbol from "../renderer/LoadingSymbol.vue";
 import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { buttonColor, buttonTextColor, containerBackgroundColor, cssClasses, primaryTextColor, secondaryTextColor, separatorColor } from "../renderer/sharedStyleFields";
+import {
+	buttonColor,
+	buttonTextColor,
+	containerBackgroundColor,
+	cssClasses,
+	primaryTextColor,
+	secondaryTextColor,
+	separatorColor,
+} from "../renderer/sharedStyleFields";
 import { nextTick } from "vue";
 
-const description =
-	"A chat component to build human-to-AI interactions.";
+const description = "A chat component to build human-to-AI interactions.";
 
 const docs = `Chat
+`;
+
+const chatMessageStub = `
+def handle_message(payload):
+
+	# payload contains the message sent by the user
+	# To answer it, return a string
+
+    user_message = payload
+    if user_message == "Hello":
+        return "Hello, human."
+    else:
+        return "As a simple Python function, I'm not able to provide an answer. Please try using a large language model."
 `;
 
 export default {
@@ -43,39 +86,39 @@ export default {
 			incomingInitials: {
 				name: "Incoming initials",
 				default: "AI",
-				type: FieldType.Text
+				type: FieldType.Text,
 			},
 			outgoingInitials: {
 				name: "Outgoing initials",
 				default: "YOU",
-				type: FieldType.Text
+				type: FieldType.Text,
 			},
 			incomingColor: {
 				name: "Incoming",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			outgoingColor: {
 				name: "Outgoing",
 				default: "#F5F5F9",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			avatarBackgroundColor: {
 				name: "Avatar",
 				default: "#2C2D30",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			avatarTextColor: {
 				name: "Avatar text",
 				default: "#FFFFFF",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			containerBackgroundColor,
 			primaryTextColor,
@@ -87,7 +130,8 @@ export default {
 		},
 		events: {
 			"chat-message": {
-				desc: "Triggered when the user sends a message. Return a string to answer it."
+				desc: "Triggered when the user sends a message. Return a string to answer it.",
+				stub: chatMessageStub,
 			},
 		},
 		previewField: "name",
@@ -96,7 +140,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { Ref, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
 type Message = {
@@ -106,25 +150,25 @@ type Message = {
 	date?: Date;
 };
 
-const rootEl:Ref<HTMLElement> = ref(null);
-const messageAreaEl:Ref<HTMLElement> = ref(null);
+const rootEl: Ref<HTMLElement> = ref(null);
+const messageAreaEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
-const messages:Ref<Record<string, Message>> = ref({});
+const messages: Ref<Record<string, Message>> = ref({});
 let messageCounter = 0;
 
-const outgoingMessage:Ref<string> = ref("");
+const outgoingMessage: Ref<string> = ref("");
 
-function getFormattedDate(date: Date, isTimeOnly:boolean) {
+function getFormattedDate(date: Date, isTimeOnly: boolean) {
 	if (!date) return;
 
 	if (!isTimeOnly) {
 		return date.toLocaleString();
 	}
 
-	const options:Intl.DateTimeFormatOptions = {
-		hour: 'numeric',
-		minute: 'numeric',
-		hour12: true
+	const options: Intl.DateTimeFormatOptions = {
+		hour: "numeric",
+		minute: "numeric",
+		hour12: true,
 	};
 	return date.toLocaleTimeString(undefined, options);
 }
@@ -148,30 +192,29 @@ async function handleMessageSent() {
 	await addMessage({
 		origin: "outgoing",
 		content: outgoingMessage.value,
-		date: new Date()
+		date: new Date(),
 	});
 	outgoingMessage.value = "";
 	const outgoingMessageKey = await addMessage({
 		origin: "incoming",
 		content: "Loading...",
-		isLoading: true
+		isLoading: true,
 	});
 	const event = new CustomEvent("chat-message", {
 		detail: {
 			payload: outgoingMessage.value,
-			callback: ({payload}) => {
-				const content:string = payload.result?.result;
+			callback: ({ payload }) => {
+				const content: string = payload.result?.result;
 				replaceMessage(outgoingMessageKey, {
 					origin: "incoming",
 					content,
-					date: new Date()
+					date: new Date(),
 				});
-			}
+			},
 		},
 	});
 	rootEl.value.dispatchEvent(event);
 }
-
 </script>
 <style scoped>
 @import "../renderer/sharedStyles.css";
@@ -217,7 +260,7 @@ async function handleMessageSent() {
 }
 
 .message .contents {
-	line-height: 2.0;
+	line-height: 2;
 	padding: 12px 16px 12px 16px;
 	border-radius: 8px;
 	width: fit-content;
@@ -228,13 +271,15 @@ async function handleMessageSent() {
 
 .message .time {
 	color: var(--secondaryTextColor);
-	font-size: 0.70rem;
+	font-size: 0.7rem;
 	align-self: end;
 	text-wrap: nowrap;
 }
 
 .message.incoming .contents {
-	background: v-bind("fields.incomingColor.value ? fields.incomingColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'");
+	background: v-bind(
+		"fields.incomingColor.value ? fields.incomingColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'"
+	);
 }
 
 .message.outgoing .contents {
@@ -268,5 +313,4 @@ async function handleMessageSent() {
 	gap: 8px;
 	align-items: center;
 }
-
 </style>
