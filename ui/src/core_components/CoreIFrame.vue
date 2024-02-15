@@ -74,7 +74,6 @@ function handleLoad(ev) {
   height: 100%;
   display: block;
   margin: auto;
-  border-radius: 12px;
   border: 1px solid var(--separatorColor);
 }
 
