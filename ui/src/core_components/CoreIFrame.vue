@@ -10,9 +10,8 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, secondaryTextColor } from "../renderer/sharedStyleFields";
-import { getClick } from "../renderer/syntheticEvents";
+import { FieldType } from "../streamsyncTypes";
+import { cssClasses } from "../renderer/sharedStyleFields";
 
 const description = "A component to embed an external resource in an iframe.";
 
@@ -48,7 +47,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { Ref, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const rootEl:Ref<HTMLElement> = ref(null); 
@@ -89,10 +88,9 @@ function handleLoad(ev) {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0);
-  border-radius: 12px;
 }
 
-.CoreIFrame.selected .mask {
+.CoreIFrame.beingEdited.selected .mask {
   pointer-events: none;
 }
 </style>
