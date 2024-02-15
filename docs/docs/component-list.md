@@ -23,6 +23,7 @@ outline: [2, 2]
         "Content": "Components that present content and are meaningful by themselves. For example, charts, images or text.",
         "Input": "Components whose main objective is to allow the user to input data into the app.",
         "Other": "These components occupy a special role and are amongst the most powerful in the framework.",
+        "Embed": "Components that integrate external functionalities seamlessly.",
         "Root": "These components are the top-level containers."
     };     
 </script>

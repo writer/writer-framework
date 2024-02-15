@@ -1,0 +1,192 @@
+{
+    "metadata": {
+        "streamsync_version": "0.3.0"
+    },
+    "components": {
+        "root": {
+            "id": "root",
+            "type": "root",
+            "content": {
+                "appName": "Hello"
+            },
+            "parentId": null,
+            "position": 0
+        },
+        "e8e4m9mx50wfpdty": {
+            "id": "e8e4m9mx50wfpdty",
+            "type": "page",
+            "content": {},
+            "parentId": "root",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "g7hhwdug524j0fql": {
+            "id": "g7hhwdug524j0fql",
+            "type": "header",
+            "content": {
+                "text": "@{my_app.title}"
+            },
+            "parentId": "e8e4m9mx50wfpdty",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "j8tmgh7pgdk1nzfb": {
+            "id": "j8tmgh7pgdk1nzfb",
+            "type": "columns",
+            "content": {},
+            "parentId": "7hlk8jwfhvz29rbc",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "t3zfxwztd4cozu6v": {
+            "id": "t3zfxwztd4cozu6v",
+            "type": "column",
+            "content": {
+                "width": "0.5"
+            },
+            "parentId": "j8tmgh7pgdk1nzfb",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "0vruexh3b8ajbuw9": {
+            "id": "0vruexh3b8ajbuw9",
+            "type": "column",
+            "content": {
+                "width": "1"
+            },
+            "parentId": "j8tmgh7pgdk1nzfb",
+            "position": 1,
+            "handlers": {},
+            "visible": true
+        },
+        "yb81pneakk4w7esg": {
+            "id": "yb81pneakk4w7esg",
+            "type": "sliderinput",
+            "content": {
+                "label": "Number of groups",
+                "minValue": "2",
+                "maxValue": "10",
+                "stepSize": "1"
+            },
+            "parentId": "t3zfxwztd4cozu6v",
+            "position": 0,
+            "handlers": {
+                "ss-number-change": "update"
+            },
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "number_of_groups"
+            },
+            "visible": true
+        },
+        "27wp270aghglmgx2": {
+            "id": "27wp270aghglmgx2",
+            "type": "plotlygraph",
+            "content": {
+                "spec": "@{figure}"
+            },
+            "parentId": "0vruexh3b8ajbuw9",
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "b4ope7gynk5onxnq": {
+            "id": "b4ope7gynk5onxnq",
+            "type": "sliderinput",
+            "content": {
+                "label": "Number of points",
+                "minValue": "50",
+                "maxValue": "1000",
+                "stepSize": "1"
+            },
+            "parentId": "t3zfxwztd4cozu6v",
+            "position": 1,
+            "handlers": {
+                "ss-number-change": "update"
+            },
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "number_of_points"
+            },
+            "visible": true
+        },
+        "v75sjhqjgpw0g0a7": {
+            "id": "v75sjhqjgpw0g0a7",
+            "type": "message",
+            "content": {
+                "message": "@{message}"
+            },
+            "parentId": "g7hhwdug524j0fql",
+            "position": 0,
+            "handlers": {},
+            "visible": "message"
+        },
+        "tnooah1ico3nylvu": {
+            "id": "tnooah1ico3nylvu",
+            "type": "dropdowninput",
+            "content": {
+                "label": "Type",
+                "options": "{\"ovr\": \"One vs Rest\", \"multinomial\": \"Multinomial\"}",
+                "cssClasses": ""
+            },
+            "parentId": "t3zfxwztd4cozu6v",
+            "position": 3,
+            "handlers": {
+                "ss-option-change": "update"
+            },
+            "binding": {
+                "eventType": "ss-option-change",
+                "stateRef": "multi_class"
+            },
+            "visible": true
+        },
+        "yfyr3y9xdllskii4": {
+            "id": "yfyr3y9xdllskii4",
+            "type": "sliderinput",
+            "content": {
+                "label": "Cluster deviation",
+                "minValue": "0",
+                "maxValue": "10",
+                "stepSize": "0.1"
+            },
+            "parentId": "t3zfxwztd4cozu6v",
+            "position": 2,
+            "handlers": {
+                "ss-number-change": "update"
+            },
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "cluster_std"
+            },
+            "visible": true
+        },
+        "nfkazqjoivq5b4k9": {
+            "id": "nfkazqjoivq5b4k9",
+            "type": "button",
+            "content": {
+                "text": "Regenerate"
+            },
+            "parentId": "t3zfxwztd4cozu6v",
+            "position": 4,
+            "handlers": {
+                "ss-click": "update"
+            },
+            "visible": true
+        },
+        "7hlk8jwfhvz29rbc": {
+            "id": "7hlk8jwfhvz29rbc",
+            "type": "section",
+            "content": {
+                "title": ""
+            },
+            "parentId": "e8e4m9mx50wfpdty",
+            "position": 1,
+            "handlers": {},
+            "visible": true
+        }
+    }
+}

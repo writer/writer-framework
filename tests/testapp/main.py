@@ -6,6 +6,7 @@ import statistics
 import logging
 import streamsync.core
 import altair as alt
+import asyncio
 
 
 @ss.session_verifier
@@ -92,6 +93,11 @@ def handle_form_submit(state):
 
 def handle_add_to_list(state, context):
     state["order_list"] += [context["itemId"]]
+
+
+async def test_async_handler(state):
+    await asyncio.sleep(3)
+    state["counter"] += 1*my_var
 
 # Filters data and triggers updates.
 

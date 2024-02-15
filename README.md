@@ -1,5 +1,10 @@
 ## What is Streamsync?
 
+[![PyPi](https://img.shields.io/pypi/v/streamsync.svg?label=Version)](https://pypi.org/project/streamsync/)
+[![CI](https://github.com/streamsync-cloud/streamsync/actions/workflows/ci.yml/badge.svg)](https://github.com/streamsync-cloud/streamsync/actions/workflows/ci.yml) 
+[![Discord](https://img.shields.io/badge/discord-streamsync-sn677E3Pd3?logo=discord&logoColor=white)](https://discord.gg/sn677E3Pd3)
+[![License](https://img.shields.io/pypi/l/streamsync)](LICENSE)
+
 Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python. 
 
 ![Streamsync Builder screenshot](https://raw.githubusercontent.com/streamsync-cloud/streamsync/master/docs/docs/public/sc1.png "Streamsync Builder screenshot")
