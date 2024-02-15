@@ -1,6 +1,4 @@
-import {
-	StreamsyncComponentDefinition,
-} from "./streamsyncTypes";
+import { StreamsyncComponentDefinition } from "./streamsyncTypes";
 
 declare module "marked";
 declare module "vue" {

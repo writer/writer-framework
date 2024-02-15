@@ -1,7 +1,7 @@
 <template>
 	<div
-		class="BuilderComponentShortcuts"
 		v-if="shortcutsInfo"
+		class="BuilderComponentShortcuts"
 		:data-streamsync-id="componentId"
 	>
 		<div class="type">
@@ -14,7 +14,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isAddEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isAddEnabled
 						? (isAddMode = !isAddMode)
 						: undefined
@@ -28,7 +28,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isMoveUpEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isMoveUpEnabled
 						? moveComponentUp(componentId)
 						: undefined
@@ -42,7 +42,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isMoveDownEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isMoveDownEnabled
 						? moveComponentDown(componentId)
 						: undefined
@@ -57,7 +57,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isCutEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isCutEnabled
 						? cutComponent(componentId)
 						: undefined
@@ -71,7 +71,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isCopyEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isCopyEnabled
 						? copyComponent(componentId)
 						: undefined
@@ -85,7 +85,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isPasteEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isPasteEnabled
 						? pasteComponent(componentId)
 						: undefined
@@ -99,7 +99,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isGoToParentEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isGoToParentEnabled
 						? goToParent(componentId, instancePath)
 						: undefined
@@ -113,7 +113,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isDeleteEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isDeleteEnabled
 						? removeComponentSubtree(componentId)
 						: undefined
@@ -128,11 +128,12 @@
 					type="text"
 					list="validChildrenTypes"
 					placeholder="Component..."
-					v-on:change="addComponent"
+					@change="addComponent"
 				/>
 				<datalist id="validChildrenTypes">
 					<option
 						v-for="(definition, type) in validChildrenTypes"
+						:key="type"
 						:value="definition.name"
 					>
 						{{ definition.name }}
@@ -209,7 +210,7 @@ function addComponent(event: Event) {
 		([type, definition]) => {
 			if (definition.name == definitionName) return true;
 			return false;
-		}
+		},
 	);
 	if (matchingTypes.length == 0) return;
 	const type = matchingTypes[0][0];
@@ -221,7 +222,7 @@ function reprocessShorcutsInfo(): void {
 	const component = ss.getComponentById(componentId.value);
 	if (!component) return;
 	const { up: isMoveUpEnabled, down: isMoveDownEnabled } = getEnabledMoves(
-		componentId.value
+		componentId.value,
 	);
 	shortcutsInfo.value = {
 		isAddEnabled: ss.getContainableTypes(componentId.value).length > 0,
@@ -242,7 +243,7 @@ watch(
 		if (typeof newPosition == "undefined" || newPosition === null) return;
 		reprocessShorcutsInfo();
 	},
-	{ flush: "post" }
+	{ flush: "post" },
 );
 
 const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";

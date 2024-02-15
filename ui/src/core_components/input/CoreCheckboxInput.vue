@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreCheckboxInput" ref="rootEl">
+	<div ref="rootEl" class="CoreCheckboxInput">
 		<div class="mainLabel">{{ fields.label.value }}</div>
 		<div
 			class="options"
@@ -8,9 +8,9 @@
 			}"
 		>
 			<div
-				class="option"
 				v-for="(option, optionKey) in fields.options.value"
 				:key="optionKey"
+				class="option"
 			>
 				<input
 					type="checkbox"
@@ -19,11 +19,11 @@
 							? formValue.includes(optionKey)
 							: false
 					"
-					v-on:input="
+					:value="optionKey"
+					@input="
 						($event) =>
 							handleInput(getCheckedKeys(), 'ss-options-change')
 					"
-					:value="optionKey"
 				/><label :for="`${flattenedInstancePath}-option-${optionKey}`">
 					{{ option }}
 				</label>
@@ -79,7 +79,7 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Specify how to lay out the options.",
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-options-change": {
@@ -116,7 +116,6 @@ function getCheckedKeys() {
 		.filter((el) => typeof el != "undefined");
 	return checkedValues;
 }
-
 </script>
 
 <style scoped>

@@ -1,12 +1,18 @@
 <template>
-	<div class="CoreDateInput" ref="rootEl">
+	<div ref="rootEl" class="CoreDateInput">
 		<div class="main">
 			<div class="inputContainer">
 				<label>{{ fields.label.value }}</label>
 				<input
 					type="date"
 					:value="formValue"
-					v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-date-change')"
+					@change="
+						($event) =>
+							handleInput(
+								($event.target as HTMLInputElement).value,
+								'ss-date-change',
+							)
+					"
 				/>
 			</div>
 		</div>
@@ -38,7 +44,7 @@ export default {
 				init: "Input Label",
 				type: FieldType.Text,
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-date-change": {

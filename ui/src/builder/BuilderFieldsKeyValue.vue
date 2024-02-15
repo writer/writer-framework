@@ -1,12 +1,12 @@
 <template>
-	<div class="BuilderFieldsOptions" tabindex="-1" ref="rootEl">
+	<div ref="rootEl" class="BuilderFieldsOptions" tabindex="-1">
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
 					class="chip"
 					:class="{ active: mode == 'assisted' }"
 					tabindex="0"
-					v-on:click="setMode('assisted')"
+					@click="setMode('assisted')"
 				>
 					Static List
 				</button>
@@ -14,7 +14,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'freehand' }"
-					v-on:click="setMode('freehand')"
+					@click="setMode('freehand')"
 				>
 					JSON
 				</button>
@@ -25,12 +25,13 @@
 			<div class="staticList">
 				<div
 					v-for="(entryValue, entryKey) in assistedEntries"
+					:key="entryKey"
 					class="entry"
 				>
 					<div>{{ entryKey }} &middot; {{ entryValue }}</div>
 					<button
 						variant="subtle"
-						v-on:click="removeAssistedEntry(entryKey)"
+						@click="removeAssistedEntry(entryKey)"
 					>
 						<i class="ri-delete-bin-line"></i>
 					</button>
@@ -38,19 +39,19 @@
 			</div>
 			<div class="formAdd">
 				<input
-					type="text"
 					ref="assistedKeyEl"
 					v-model="formAdd.key"
+					type="text"
 					placeholder="Type a key..."
-					v-on:keydown.enter="addAssistedEntry"
+					@keydown.enter="addAssistedEntry"
 				/>
 				<input
-					type="text"
 					v-model="formAdd.value"
+					type="text"
 					placeholder="Type a value..."
-					v-on:keydown.enter="addAssistedEntry"
+					@keydown.enter="addAssistedEntry"
 				/>
-				<button v-on:click="addAssistedEntry">
+				<button @click="addAssistedEntry">
 					<i class="ri-add-line"></i>Add
 				</button>
 			</div>
@@ -66,7 +67,16 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, Ref, ref, toRefs, inject, computed, watch } from "vue";
+import {
+	nextTick,
+	onMounted,
+	Ref,
+	ref,
+	toRefs,
+	inject,
+	computed,
+	watch,
+} from "vue";
 import { Component } from "../streamsyncTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import { useComponentActions } from "./useComponentActions";
@@ -123,7 +133,7 @@ const handleSwitchToAssisted = () => {
 		component.value.content[fieldKey.value] = JSON.stringify(
 			assistedEntries.value,
 			null,
-			2
+			2,
 		);
 	}
 };
@@ -135,7 +145,7 @@ const addAssistedEntry = () => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		JSON.stringify(assistedEntries.value, null, 2)
+		JSON.stringify(assistedEntries.value, null, 2),
 	);
 	formAdd.value = { key: "", value: "" };
 	assistedKeyEl.value.focus();
@@ -152,24 +162,27 @@ const removeAssistedEntry = (key: string) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		JSON.stringify(assistedEntries.value, null, 2)
+		JSON.stringify(assistedEntries.value, null, 2),
 	);
 };
 
 /**
  * Watcher for external mutations (like undo/redo).
  */
-watch(() => component.value?.content[fieldKey.value], async (currentValue) => {
-	if (!component.value) return;
-	let parsedValue: any;
+watch(
+	() => component.value?.content[fieldKey.value],
+	async (currentValue) => {
+		if (!component.value) return;
+		let parsedValue: any;
 
-	try {
-		parsedValue = JSON.parse(currentValue);
-		assistedEntries.value = parsedValue;
-	} catch {
-		// If parsing fails, preserve the previous assistedEntries value
-	}
-});
+		try {
+			parsedValue = JSON.parse(currentValue);
+			assistedEntries.value = parsedValue;
+		} catch {
+			// If parsing fails, preserve the previous assistedEntries value
+		}
+	},
+);
 
 onMounted(async () => {
 	const currentValue = component.value.content[fieldKey.value];

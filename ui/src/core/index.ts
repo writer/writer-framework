@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, Ref } from "vue";
 import {
 	Component,
@@ -20,19 +22,21 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {
 	let sessionId: string = null;
-	let sessionTimestamp: Ref<number> = ref(null);
-	let mode: Ref<"run" | "edit"> = ref(null);
-	let runCode: Ref<string> = ref(null);
+	const sessionTimestamp: Ref<number> = ref(null);
+	const mode: Ref<"run" | "edit"> = ref(null);
+	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline"> = ref("idle");
 	let frontendMessageCounter = 0;
-	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(new Map());
+	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(
+		new Map(),
+	);
 	let mailInbox: MailItem[] = [];
 	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
-	let activePageId: Ref<Component["id"]> = ref(null);
+	const activePageId: Ref<Component["id"]> = ref(null);
 
 	function getFrontendMessageMap() {
 		return frontendMessageMap.value;
@@ -124,17 +128,17 @@ export function generateCore() {
 			Splits the key while respecting escaped dots.
 			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
 			*/
-			
-			const mutationFlag = key.charAt(0)
+
+			const mutationFlag = key.charAt(0);
 			const accessor = parseAccessor(key.substring(1));
-			let lastElementIndex = accessor.length - 1
+			const lastElementIndex = accessor.length - 1;
 			let stateRef = userState.value;
-			
+
 			// Check if the accessor is meant for deletion.
-			const isDeletion = mutationFlag === '-';
-			
+			const isDeletion = mutationFlag === "-";
+
 			for (let i = 0; i < lastElementIndex; i++) {
-				let nextStateRef = stateRef?.[accessor[i]];
+				const nextStateRef = stateRef?.[accessor[i]];
 				if (typeof nextStateRef === "object" && nextStateRef !== null) {
 					stateRef = nextStateRef;
 				} else if (!isDeletion) {
@@ -143,7 +147,7 @@ export function generateCore() {
 					stateRef = stateRef[accessor[i]];
 				}
 			}
-	
+
 			if (isDeletion) {
 				// If it's a deletion operation, delete the property.
 				delete stateRef[accessor.at(-1)];
@@ -153,7 +157,6 @@ export function generateCore() {
 			}
 		});
 	}
-	
 
 	function clearFrontendMap() {
 		frontendMessageMap.value.forEach(({ callback }) => {
@@ -189,7 +192,10 @@ export function generateCore() {
 				webSocket.close();
 				initSession();
 				return;
-			} else if (message.messageType == "eventResponse" || message.messageType == "stateEnquiryResponse") {
+			} else if (
+				message.messageType == "eventResponse" ||
+				message.messageType == "stateEnquiryResponse"
+			) {
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
 			}
@@ -279,8 +285,14 @@ export function generateCore() {
 		return eventPayload;
 	}
 
-	async function forwardEvent(event: Event, instancePath: InstancePath, includeEventPayload: boolean) {
-		const eventPayload = includeEventPayload ? getPayloadFromEvent(event) : null;
+	async function forwardEvent(
+		event: Event,
+		instancePath: InstancePath,
+		includeEventPayload: boolean,
+	) {
+		const eventPayload = includeEventPayload
+			? getPayloadFromEvent(event)
+			: null;
 		let callback: Function;
 
 		if (event instanceof CustomEvent) {
@@ -351,13 +363,18 @@ export function generateCore() {
 
 	function setupMessageFollowUp(trackingId: number) {
 		const INITIAL_FOLLOWUP_MS = 100;
-		const SUBSEQUENT_FOLLOWUPS_MS = 1000; 
+		const SUBSEQUENT_FOLLOWUPS_MS = 1000;
 
 		const checkIfStateEnquiryRequired = () => {
 			const isPending = frontendMessageMap.value.has(trackingId);
 			if (!isPending) return;
-			sendStateEnquiry(() => setTimeout(checkIfStateEnquiryRequired, SUBSEQUENT_FOLLOWUPS_MS));
-		}
+			sendStateEnquiry(() =>
+				setTimeout(
+					checkIfStateEnquiryRequired,
+					SUBSEQUENT_FOLLOWUPS_MS,
+				),
+			);
+		};
 		setTimeout(checkIfStateEnquiryRequired, INITIAL_FOLLOWUP_MS);
 	}
 
@@ -365,13 +382,13 @@ export function generateCore() {
 		type: string,
 		payload: object | (() => Promise<object>),
 		callback?: Function,
-		track = false
+		track = false,
 	) {
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {
 				frontendMessageMap.value.set(trackingId, {
-					callback
+					callback,
 				});
 			}
 			if (track) {

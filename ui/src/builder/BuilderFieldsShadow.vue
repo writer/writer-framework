@@ -1,12 +1,12 @@
 <template>
-	<div class="BuilderFieldsShadow" tabindex="-1" ref="rootEl">
+	<div ref="rootEl" class="BuilderFieldsShadow" tabindex="-1">
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
-					v-on:click="
+					@click="
 						() => {
 							setMode('default');
 							setContentValue(component.id, fieldKey, undefined);
@@ -19,7 +19,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
-					v-on:click="setMode('css')"
+					@click="setMode('css')"
 				>
 					CSS
 				</button>
@@ -27,77 +27,77 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
-					v-on:click="setMode('pick')"
+					@click="setMode('pick')"
 				>
 					Pick
 				</button>
 			</div>
 		</div>
 
-		<div class="main" v-if="mode == 'pick' || mode == 'css'">
-			<div class="pickerContainer" v-if="mode == 'pick'">
+		<div v-if="mode == 'pick' || mode == 'css'" class="main">
+			<div v-if="mode == 'pick'" class="pickerContainer">
 				<div class="param">
 					<div class="header">
 						<div class="name">Offset X</div>
-						<div class="value" v-show="parsedValue?.offsetX">
+						<div v-show="parsedValue?.offsetX" class="value">
 							{{ parsedValue?.offsetX }}px
 						</div>
 					</div>
 					<input
+						ref="paramOffsetXEl"
 						type="range"
 						min="0"
 						max="32"
 						:value="parsedValue?.offsetX"
-						v-on:input="handleInput"
-						ref="paramOffsetXEl"
+						@input="handleInput"
 					/>
 				</div>
 				<div class="param">
 					<div class="header">
 						<div class="name">Offset Y</div>
-						<div class="value" v-show="parsedValue?.offsetY">
+						<div v-show="parsedValue?.offsetY" class="value">
 							{{ parsedValue?.offsetY }}px
 						</div>
 					</div>
 					<input
+						ref="paramOffsetYEl"
 						type="range"
 						min="0"
 						max="32"
 						:value="parsedValue?.offsetY"
-						v-on:input="handleInput"
-						ref="paramOffsetYEl"
+						@input="handleInput"
 					/>
 				</div>
 				<div class="param">
 					<div class="header">
 						<div class="name">Blur radius</div>
-						<div class="value" v-show="parsedValue?.blurRadius">
+						<div v-show="parsedValue?.blurRadius" class="value">
 							{{ parsedValue?.blurRadius }}px
 						</div>
 					</div>
 					<input
+						ref="paramBlurRadiusEl"
 						type="range"
 						min="0"
 						max="32"
 						:value="parsedValue?.blurRadius"
-						v-on:input="handleInput"
-						ref="paramBlurRadiusEl"
+						@input="handleInput"
 					/>
 				</div>
 				<div class="param">
 					<div class="header">
 						<div class="name">Spread radius</div>
-						<div class="value" v-show="parsedValue?.spreadRadius">
+						<div v-show="parsedValue?.spreadRadius" class="value">
 							{{ parsedValue?.spreadRadius }}px
 						</div>
 					</div>
 					<input
+						ref="paramSpreadRadiusEl"
 						type="range"
 						min="-16"
 						max="32"
 						:value="parsedValue?.spreadRadius"
-						v-on:input="handleInput"
-						ref="paramSpreadRadiusEl"
+						@input="handleInput"
 					/>
 				</div>
 				<div class="param">
@@ -108,17 +108,17 @@
 						ref="paramColorEl"
 						type="color"
 						:value="parsedValue?.color"
-						v-on:input="handleInput"
+						@input="handleInput"
 					/>
 				</div>
 			</div>
 
 			<input
-				type="text"
-				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
-				v-on:input="handleCSSInput"
 				v-if="mode == 'css'"
+				ref="freehandInputEl"
+				type="text"
+				:value="component.content[fieldKey]"
+				@input="handleCSSInput"
 			/>
 		</div>
 	</div>
@@ -167,7 +167,7 @@ const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));
 
 const boxShadowRegex =
-	/^(?<offsetX>[0-9]+)px (?<offsetY>[0-9]+)px (?<blurRadius>[0-9]+)px (?<spreadRadius>[0-9\-]+)px (?<color>#[A-Fa-f0-9]{6})$/;
+	/^(?<offsetX>[0-9]+)px (?<offsetY>[0-9]+)px (?<blurRadius>[0-9]+)px (?<spreadRadius>[0-9-]+)px (?<color>#[A-Fa-f0-9]{6})$/;
 
 const getInitialMode = (): Mode => {
 	const value = component.value.content[fieldKey.value];
@@ -209,7 +209,7 @@ const handleCSSInput = (ev: Event) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value
+		(ev.target as HTMLInputElement).value,
 	);
 };
 

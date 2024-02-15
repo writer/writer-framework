@@ -56,7 +56,7 @@ export type StreamsyncComponentDefinition = {
 			control?: FieldControl; // Which control (text, textarea, etc) to use if not the default for the type
 			options?: Record<string, string>; // List of values to be provided as autocomplete options
 			type: FieldType; // Data type for the field
-			category?: FieldCategory; // Category (Layout, Content, etc) 
+			category?: FieldCategory; // Category (Layout, Content, etc)
 			applyStyleVariable?: boolean; // Use the value of this field as a CSS variable
 		}
 	>;
@@ -68,7 +68,7 @@ export type StreamsyncComponentDefinition = {
 			bindable?: boolean; // Whether this event is used for value binding
 		}
 	>;
-	previewField?: string; // Which field to use for previewing in the Component Tree 
+	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
 };
 
@@ -114,4 +114,4 @@ export type ComponentMap = Record<Component["id"], Component>;
  */
 export type MailItem = { type: string; payload: Record<string, string> };
 
-export type UserFunction = { name: string; args: string[]};
+export type UserFunction = { name: string; args: string[] };

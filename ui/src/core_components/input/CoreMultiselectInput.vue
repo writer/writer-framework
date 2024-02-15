@@ -1,10 +1,20 @@
 <template>
-	<div class="CoreMultiselectInput" ref="rootEl">
-		<div class="labelContainer" v-if="fields.label.value || fields.label.value === 0">
+	<div ref="rootEl" class="CoreMultiselectInput">
+		<div
+			v-if="fields.label.value || fields.label.value === 0"
+			class="labelContainer"
+		>
 			<label>{{ fields.label.value }}</label>
 		</div>
-		<BaseSelect :base-id="flattenedInstancePath" :active-value="formValue" :options="options" :maximum-count="maximumCount"
-			mode="multiple" v-on:change="handleChange" :placeholder="fields.placeholder.value"></BaseSelect>
+		<BaseSelect
+			:base-id="flattenedInstancePath"
+			:active-value="formValue"
+			:options="options"
+			:maximum-count="maximumCount"
+			mode="multiple"
+			:placeholder="fields.placeholder.value"
+			@change="handleChange"
+		></BaseSelect>
 	</div>
 </template>
 
@@ -12,7 +22,15 @@
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { accentColor, containerBackgroundColor, cssClasses, primaryTextColor, secondaryTextColor, selectedColor, separatorColor } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	containerBackgroundColor,
+	cssClasses,
+	primaryTextColor,
+	secondaryTextColor,
+	selectedColor,
+	separatorColor,
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to select multiple values from a searchable list of options.";
@@ -44,17 +62,17 @@ export default {
 			placeholder: {
 				name: "Placeholder",
 				desc: "Text to show when no options are selected.",
-				type: FieldType.Text
+				type: FieldType.Text,
 			},
 			maximumCount: {
 				name: "Maximum count",
 				desc: "The maximum allowable number of selected options. Set to zero for unlimited.",
 				type: FieldType.Number,
-				default: "0"
+				default: "0",
 			},
 			accentColor: {
 				...accentColor,
-				desc: "The colour of the chips created for each selected option."
+				desc: "The colour of the chips created for each selected option.",
 			},
 			chipTextColor: {
 				name: "Chip text",
@@ -62,11 +80,11 @@ export default {
 				default: "#ffffff",
 				desc: "The colour of the text in the chips.",
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			selectedColor: {
 				...selectedColor,
-				desc: "The colour of the highlighted item in the list."
+				desc: "The colour of the highlighted item in the list.",
 			},
 			primaryTextColor,
 			secondaryTextColor,
@@ -103,7 +121,6 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 function handleChange(selectedOptions: string[]) {
 	handleInput(selectedOptions, "ss-options-change");
 }
-
 </script>
 
 <style scoped>

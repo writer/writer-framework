@@ -1,16 +1,28 @@
 <template>
-	<div class="CoreNumberInput" ref="rootEl">
+	<div ref="rootEl" class="CoreNumberInput">
 		<label>{{ fields.label.value }}</label>
 		<input
-			type="number"
 			ref="inputEl"
-			v-on:input="handleInputEvent"
-			v-on:change="handleChangeEvent"
+			type="number"
 			:value="formValue"
 			:placeholder="fields.placeholder.value"
-			:min="fields.minValue.value !== null ? fields.minValue.value : undefined"
-			:max="fields.maxValue.value !== null ? fields.maxValue.value : undefined"
-			:step="fields.valueStep.value !== null ? fields.valueStep.value : undefined"
+			:min="
+				fields.minValue.value !== null
+					? fields.minValue.value
+					: undefined
+			"
+			:max="
+				fields.maxValue.value !== null
+					? fields.maxValue.value
+					: undefined
+			"
+			:step="
+				fields.valueStep.value !== null
+					? fields.valueStep.value
+					: undefined
+			"
+			@input="handleInputEvent"
+			@change="handleChangeEvent"
 		/>
 	</div>
 </template>
@@ -47,19 +59,19 @@ export default {
 			minValue: {
 				name: "Minimum value",
 				type: FieldType.Number,
-				default: null
+				default: null,
 			},
 			maxValue: {
 				name: "Max value",
 				type: FieldType.Number,
-				default: null
+				default: null,
 			},
 			valueStep: {
 				name: "Step",
 				type: FieldType.Number,
-				default: "1"
+				default: "1",
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-number-change": {
@@ -69,7 +81,7 @@ export default {
 			},
 			"ss-number-change-finish": {
 				desc: "Capture changes once this control has lost focus.",
-				stub: onChangeHandlerStub
+				stub: onChangeHandlerStub,
 			},
 		},
 	},
@@ -92,8 +104,8 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 function enforceLimitsAndReturnValue() {
 	if (inputEl.value.value == "") return null;
 
-	let v:number = parseFloat(inputEl.value.value);
-	
+	let v: number = parseFloat(inputEl.value.value);
+
 	if (isNaN(v)) return v;
 	if (fields.minValue.value !== null && v < fields.minValue.value) {
 		v = fields.minValue.value;
@@ -109,16 +121,14 @@ function enforceLimitsAndReturnValue() {
 function handleInputEvent() {
 	const v = enforceLimitsAndReturnValue();
 	if (isNaN(v)) return;
-	handleInput(v, 'ss-number-change');
+	handleInput(v, "ss-number-change");
 }
 
 function handleChangeEvent() {
 	const v = enforceLimitsAndReturnValue();
 	if (isNaN(v)) return;
-	handleInput(v, 'ss-number-change-finish');
+	handleInput(v, "ss-number-change-finish");
 }
-
-
 </script>
 
 <style scoped>

@@ -1,8 +1,5 @@
 <template>
-	<div
-		class="CorePlotlyGraph"
-		ref="rootEl"
-	>
+	<div ref="rootEl" class="CorePlotlyGraph">
 		<div ref="chartTargetEl" class="target"></div>
 	</div>
 </template>
@@ -85,15 +82,21 @@ function applyAutosize() {
 	chartTargetEl.value.style.height = "100%";
 }
 
-function bindPlotlyEvents () {
+function bindPlotlyEvents() {
 	// Plotly extends HTMLElement and adds an "on" property
 
-	// @ts-ignore
-	chartTargetEl.value.on("plotly_click", getPlotlyEventHandler("plotly-click"));
-	// @ts-ignore
-	chartTargetEl.value.on("plotly_selected", getPlotlyEventHandler("plotly-selected"));
-	// @ts-ignore
-	chartTargetEl.value.on("plotly_deselect", getPlotlyEventHandler("plotly-deselect"));
+	chartTargetEl.value.on(
+		"plotly_click",
+		getPlotlyEventHandler("plotly-click"),
+	);
+	chartTargetEl.value.on(
+		"plotly_selected",
+		getPlotlyEventHandler("plotly-selected"),
+	);
+	chartTargetEl.value.on(
+		"plotly_deselect",
+		getPlotlyEventHandler("plotly-deselect"),
+	);
 }
 
 function extractKeyInfoFromPoint(point: any) {
@@ -108,10 +111,10 @@ function extractKeyInfoFromPoint(point: any) {
 		lat: point.lat,
 		lon: point.lon,
 		xaxis: {
-			anchor: point.xaxis?.anchor
+			anchor: point.xaxis?.anchor,
 		},
 		yaxis: {
-			anchor: point.yaxis?.anchor
+			anchor: point.yaxis?.anchor,
 		},
 	};
 }
@@ -120,7 +123,9 @@ function getPlotlyEventHandler(eventType: string) {
 	return (plotlyEventData: any) => {
 		const event = new CustomEvent(eventType, {
 			detail: {
-				payload: plotlyEventData?.points?.map((p:any) => extractKeyInfoFromPoint(p))
+				payload: plotlyEventData?.points?.map((p: any) =>
+					extractKeyInfoFromPoint(p),
+				),
 			},
 		});
 		rootEl.value.dispatchEvent(event);

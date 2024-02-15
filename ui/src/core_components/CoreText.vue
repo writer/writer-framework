@@ -1,13 +1,15 @@
 <template>
-	<div class="CoreText" :style="rootStyle" ref="rootEl" v-on:click="handleClick">
+	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
 		<template v-if="fields.useMarkdown.value == 'no'">
-			<div class="plainText" :style="contentStyle">{{ fields.text.value }}</div>
+			<div class="plainText" :style="contentStyle">
+				{{ fields.text.value }}
+			</div>
 		</template>
 		<template v-else-if="fields.useMarkdown.value == 'yes'">
 			<div
+				v-dompurify-html="unsanitisedMarkdownHtml"
 				class="markdown"
 				:style="contentStyle"
-				v-dompurify-html="unsanitisedMarkdownHtml"
 			></div>
 		</template>
 	</div>
@@ -15,7 +17,7 @@
 
 <script lang="ts">
 import { FieldCategory, FieldControl, FieldType } from "../streamsyncTypes";
-import {cssClasses, primaryTextColor} from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
 import { getClick } from "../renderer/syntheticEvents";
 
 const clickHandlerStub = `
@@ -80,7 +82,7 @@ import { marked } from "marked";
 import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
-const rootEl:Ref<HTMLElement> = ref(null);
+const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const ss = inject(injectionKeys.core);

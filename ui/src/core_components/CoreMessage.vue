@@ -1,17 +1,17 @@
 <template>
 	<div
+		v-if="messageWithoutPrefix || isBeingEdited"
 		class="CoreMessage"
 		:style="rootStyle"
 		:class="severity"
-		v-if="messageWithoutPrefix || isBeingEdited"
 	>
 		<div class="messageBackground"></div>
-		<div class="message" v-if="messageWithoutPrefix">
-			<LoadingSymbol class="loadingSymbol" v-if="severity == 'loading'">
+		<div v-if="messageWithoutPrefix" class="message">
+			<LoadingSymbol v-if="severity == 'loading'" class="loadingSymbol">
 			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
-		<div class="empty" v-else>
+		<div v-else class="empty">
 			<h2>Blank Message</h2>
 		</div>
 	</div>
@@ -87,7 +87,7 @@ export default {
 		},
 		previewField: "name",
 	},
-	components: {LoadingSymbol}
+	components: { LoadingSymbol },
 };
 </script>
 <script setup lang="ts">

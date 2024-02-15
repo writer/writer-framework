@@ -1,13 +1,25 @@
 <template>
-	<div class="CoreTextInput" ref="rootEl">
+	<div ref="rootEl" class="CoreTextInput">
 		<label>{{ fields.label.value }}</label>
 		<input
 			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
 			:value="formValue"
-			v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change')"
-			v-on:change="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-change-finish')"
 			:placeholder="fields.placeholder.value"
 			aria-autocomplete="none"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-change',
+					)
+			"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-change-finish',
+					)
+			"
 		/>
 	</div>
 </template>
@@ -47,11 +59,11 @@ export default {
 				type: FieldType.Text,
 				options: {
 					no: "No",
-					yes: "Yes"
+					yes: "Yes",
 				},
 				category: FieldCategory.Style,
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-change": {

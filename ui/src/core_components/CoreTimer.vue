@@ -1,8 +1,8 @@
 <template>
 	<div
+		ref="rootEl"
 		class="CoreTimer"
 		:class="{ failing: isFailing }"
-		ref="rootEl"
 		:style="rootStyle"
 	></div>
 </template>
@@ -59,7 +59,6 @@ export default {
 import { computed, inject, nextTick, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 
-
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;
 const fields = inject(injectionKeys.evaluatedFields);
@@ -71,13 +70,13 @@ const isActive = computed(() => fields.isActive.value == "yes");
 const isFailing = ref(false);
 const componentId = inject(injectionKeys.componentId);
 const isTickHandlerSet = computed(
-	() => !!ss.getComponentById(componentId)?.handlers?.["ss-tick"]
+	() => !!ss.getComponentById(componentId)?.handlers?.["ss-tick"],
 );
 
 const rootStyle = computed(() => {
 	const animationDurationMs = Math.max(
 		intervalMs.value,
-		MIN_ANIMATION_DURATION_MS
+		MIN_ANIMATION_DURATION_MS,
 	);
 	return {
 		"animation-duration": `${animationDurationMs}ms`,

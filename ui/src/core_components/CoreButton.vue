@@ -1,5 +1,10 @@
 <template>
-	<button class="CoreButton" :aria-disabled="isDisabled" ref="rootEl" v-on:click="handleClick">
+	<button
+		ref="rootEl"
+		class="CoreButton"
+		:aria-disabled="isDisabled"
+		@click="handleClick"
+	>
 		<i
 			v-if="fields.icon.value"
 			:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
@@ -60,7 +65,7 @@ export default {
 					yes: "Yes",
 					no: "No",
 				},
-				desc: "Disables all event handlers."
+				desc: "Disables all event handlers.",
 			},
 			buttonColor,
 			buttonTextColor,
@@ -72,7 +77,7 @@ export default {
 			},
 			buttonShadow,
 			separatorColor,
-			cssClasses
+			cssClasses,
 		},
 		previewField: "text",
 	},
@@ -82,21 +87,24 @@ export default {
 import { Ref, inject, ref } from "vue";
 import injectionKeys from "../injectionKeys";
 
-const rootEl:Ref<HTMLElement> = ref(null);
+const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const isDisabled = inject(injectionKeys.isDisabled);
 
-watch(fields.isDisabled, (newFieldValue: string) => {
-	isDisabled.value = newFieldValue == "yes";
-}, {
-	immediate: true
-});
+watch(
+	fields.isDisabled,
+	(newFieldValue: string) => {
+		isDisabled.value = newFieldValue == "yes";
+	},
+	{
+		immediate: true,
+	},
+);
 
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
 }
-
 </script>
 
 <style scoped>
@@ -116,5 +124,4 @@ function handleClick(ev: MouseEvent) {
 	opacity: 0.9;
 	filter: contrast(90%);
 }
-
 </style>

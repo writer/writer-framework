@@ -18,33 +18,33 @@
 		<div class="undoRedo">
 			<button
 				class="undo"
-				v-on:click="undo()"
 				:title="
 					undoRedoSnapshot.isUndoAvailable
 						? `Undo ${undoRedoSnapshot.undoDesc}`
 						: 'Nothing to undo'
 				"
 				:disabled="!undoRedoSnapshot.isUndoAvailable"
+				@click="undo()"
 			>
 				<i class="ri-arrow-go-back-line"></i>
 				Undo
 			</button>
 			<button
 				class="redo"
-				v-on:click="redo()"
 				:title="
 					undoRedoSnapshot.isRedoAvailable
 						? `Redo ${undoRedoSnapshot.redoDesc}`
 						: 'Nothing to redo'
 				"
 				:disabled="!undoRedoSnapshot.isRedoAvailable"
+				@click="redo()"
 			>
 				<i class="ri-arrow-go-forward-line"></i>
 				Redo
 			</button>
 		</div>
 		<div>
-			<button v-on:click="showStateExplorer">
+			<button @click="showStateExplorer">
 				<i class="ri-eye-line"></i>View state
 			</button>
 			<BuilderModal
@@ -59,11 +59,11 @@
 		<div class="gap"></div>
 		<div
 			class="syncHealth"
-			v-on:click="animate"
 			:class="ss.syncHealth.value"
 			:title="syncHealthStatus()"
+			@click="animate"
 		>
-			<i class="ri-refresh-line ri-lg icon" ref="syncHealthIcon"></i
+			<i ref="syncHealthIcon" class="ri-refresh-line ri-lg icon"></i
 			><span v-if="ss.syncHealth.value == 'offline'">Offline</span>
 		</div>
 	</div>

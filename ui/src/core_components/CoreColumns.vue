@@ -14,7 +14,7 @@ export default {
 		allowedChildrenTypes: ["column", "repeater", "separator"],
 		category: "Layout",
 		fields: {
-			cssClasses
+			cssClasses,
 		},
 	},
 };

@@ -76,14 +76,14 @@ export const selectedColor = {
 	type: FieldType.Color,
 	default: "rgba(210, 234, 244, 0.8)",
 	category: FieldCategory.Style,
-	applyStyleVariable: true
+	applyStyleVariable: true,
 };
 
 export const cssClasses = {
 	name: "Custom CSS classes",
 	type: FieldType.Text,
 	category: FieldCategory.Style,
-	desc: "CSS classes, separated by spaces. You can define classes in custom stylesheets."
+	desc: "CSS classes, separated by spaces. You can define classes in custom stylesheets.",
 };
 
 export const contentWidth = {
@@ -114,4 +114,3 @@ export const contentPadding = {
 	default: "0",
 	category: FieldCategory.Style,
 };
-

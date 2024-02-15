@@ -1,27 +1,23 @@
 <template>
-	<div class="CoreDataframe" ref="rootEl">
-		<div class="tools" ref="toolsEl">
-			<div class="search" v-if="fields.enableSearch.value === 'yes'">
+	<div ref="rootEl" class="CoreDataframe">
+		<div ref="toolsEl" class="tools">
+			<div v-if="fields.enableSearch.value === 'yes'" class="search">
 				<i class="ri-search-line"></i>
 				<input
 					type="text"
-					v-on:change="handleSearchChange"
 					placeholder="Search..."
+					@change="handleSearchChange"
 				/>
 			</div>
 			<button
-				class="download"
-				v-on:click="download"
 				v-if="fields.enableDownload.value === 'yes'"
+				class="download"
+				@click="download"
 			>
 				<i class="ri-download-2-line"></i>
 			</button>
 		</div>
-		<div
-			class="gridContainer"
-			v-on:scroll="handleScroll"
-			ref="gridContainerEl"
-		>
+		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">
 			<div
 				class="grid"
 				:style="gridStyle"
@@ -41,13 +37,13 @@
 				</div>
 				<div
 					v-for="(columnName, columnPosition) in shownColumnNames"
+					:key="columnName"
 					:data-streamsync-grid-col="
 						columnPosition + (isIndexShown ? 1 : 0)
 					"
-					:key="columnName"
 					class="cell headerCell"
 					:style="gridHeadStyle"
-					v-on:click="handleSetOrder($event, columnName)"
+					@click="handleSetOrder($event, columnName)"
 				>
 					<div class="name">
 						{{ columnName }}
@@ -62,12 +58,12 @@
 						}"
 					>
 						<i
-							class="ri-arrow-down-line"
 							v-show="!orderSetting?.descending"
+							class="ri-arrow-down-line"
 						></i>
 						<i
-							class="ri-arrow-up-line"
 							v-show="orderSetting?.descending"
+							class="ri-arrow-up-line"
 						></i>
 					</div>
 					<div class="widthAdjuster"></div>
@@ -85,9 +81,9 @@
 						</template>
 					</div>
 					<div
-						class="cell"
-						v-for="(columnName, columnPosition) in shownColumnNames"
+						v-for="columnName in shownColumnNames"
 						:key="columnName"
+						class="cell"
 					>
 						{{ row[columnName] }}
 					</div>
