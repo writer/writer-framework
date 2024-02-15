@@ -216,6 +216,7 @@ export default {
 					childless: isChildless.value,
 					selected: isSelected.value,
 					disabled: isDisabled.value,
+					beingEdited: isBeingEdited.value,
 					...fieldBasedCssClasses.value
 				},
 				style: {
