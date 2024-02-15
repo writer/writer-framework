@@ -1,0 +1,299 @@
+<template>
+	<div
+		class="CoreStep"
+		v-show="
+			stepContainerDirectChildInstanceItem?.instanceNumber ==
+				STEP_BIT_INSTANCE_NUMBER ||
+			(stepContainerDirectChildInstanceItem?.instanceNumber ==
+				CONTENT_DISPLAYING_INSTANCE_NUMBER &&
+				isStepActive)
+		"
+	>
+		<button
+			class="bit"
+			:class="{ active: isStepActive, available: fields.isAvailable.value == 'yes' }"
+			v-if="
+				stepContainerDirectChildInstanceItem?.instanceNumber ==
+				STEP_BIT_INSTANCE_NUMBER
+			"
+			v-on:click="activateStep"
+			stepindex="0"
+		>
+			<div class="indicator">
+				<div class="linker left"></div>
+				<div
+					class="status"
+					:class="{
+						completed: fields.isCompleted.value == 'yes',
+					}"
+				>
+					<i class="ri-check-line" v-if="fields.isCompleted.value == 'yes'"></i>
+				</div>
+				<div class="linker right"></div>
+			</div>
+			<div class="label">{{ fields.name.value }}</div>
+		</button>
+		<BaseContainer
+			class="container"
+			v-if="
+				stepContainerDirectChildInstanceItem?.instanceNumber ==
+				CONTENT_DISPLAYING_INSTANCE_NUMBER
+			"
+			v-show="isStepActive"
+			:contentHAlign="fields.contentHAlign.value"
+			:contentPadding="fields.contentPadding.value"
+		>
+			<slot></slot>
+		</BaseContainer>
+	</div>
+</template>
+
+<script lang="ts">
+/**
+ * This component follows a logic similar to the one seen in Tab and Tab Container.
+ * Most of the complexity arises from allowing Repeater components between the Step Container (parent) and the Step (child).
+ */
+
+const STEP_BIT_INSTANCE_NUMBER = 0;
+const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
+
+import { Component, FieldType, InstancePath } from "../streamsyncTypes";
+import { useEvaluator } from "../renderer/useEvaluator";
+import {
+	contentHAlign,
+	cssClasses,
+	contentPadding,
+} from "../renderer/sharedStyleFields";
+
+const description =
+	"A container component that displays its child components as a step inside a Step Container.";
+
+export default {
+	streamsync: {
+		name: "Step",
+		description,
+		allowedParentTypes: ["steps", "repeater"],
+		allowedChildrenTypes: ["*"],
+		category: "Layout",
+		fields: {
+			name: {
+				name: "Name",
+				default: "(No name)",
+				init: "Step name",
+				type: FieldType.Text,
+			},
+			contentPadding: {
+				...contentPadding,
+				default: "16px",
+			},
+			isAvailable: {
+				name: "Available",
+				default: "yes",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
+			isCompleted: {
+				name: "Completed",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
+			contentHAlign,
+			cssClasses,
+		},
+		previewField: "name",
+	},
+};
+</script>
+<script setup lang="ts">
+import { computed, inject, onBeforeMount, watch } from "vue";
+import injectionKeys from "../injectionKeys";
+import BaseContainer from "./base/BaseContainer.vue";
+
+const fields = inject(injectionKeys.evaluatedFields);
+const instancePath = inject(injectionKeys.instancePath);
+const instanceData = inject(injectionKeys.instanceData);
+const ss = inject(injectionKeys.core);
+const ssbm = inject(injectionKeys.builderManager);
+const componentId = inject(injectionKeys.componentId);
+const { isComponentVisible } = useEvaluator(ss);
+const selectedId = computed(() => ssbm?.getSelectedId());
+
+const getDirectChildInstanceNegativeIndex = () => {
+	for (let i = -2; i > -1 * instancePath.length; i--) {
+		const item = instancePath.at(i);
+		const { type } = ss.getComponentById(item.componentId);
+		if (type !== "steps") continue;
+		return i + 1;
+	}
+	return;
+};
+
+const stepContainerDirectChildInstanceItem = computed(() => {
+	const i = getDirectChildInstanceNegativeIndex();
+	return instancePath.at(i);
+});
+
+const getStepContainerData = () => {
+	for (let i = -1; i > -1 * instancePath.length; i--) {
+		const item = instancePath.at(i);
+		const { type } = ss.getComponentById(item.componentId);
+		if (type !== "steps") continue;
+		return instanceData.at(i);
+	}
+	return;
+};
+
+const getMatchingStepInstancePath = () => {
+	const i = getDirectChildInstanceNegativeIndex();
+	const itemsBefore = instancePath.slice(0, i);
+	const itemsAfter = i + 1 < 0 ? instancePath.slice(i + 1) : [];
+	const matchingInstancePath = [
+		...itemsBefore,
+		{
+			componentId: instancePath.at(i).componentId,
+			instanceNumber: CONTENT_DISPLAYING_INSTANCE_NUMBER,
+		},
+		...itemsAfter,
+	];
+	return matchingInstancePath;
+};
+
+const activateStep = () => {
+	const stepContainerData = getStepContainerData();
+	stepContainerData.value = {
+		activeStep: getMatchingStepInstancePath(),
+	};
+};
+
+const checkIfStepIsParent = (childId: Component["id"]): boolean => {
+	const child = ss.getComponentById(childId);
+	if (!child || child.type == "root") return false;
+	if (child.parentId == componentId) return true;
+	return checkIfStepIsParent(child.parentId);
+};
+
+watch(selectedId, (newSelectedId) => {
+	if (!newSelectedId) return;
+	if (!checkIfStepIsParent(newSelectedId)) return;
+	activateStep();
+});
+
+const isStepActive = computed(() => {
+	let contentDisplayingInstancePath: InstancePath;
+	if (
+		stepContainerDirectChildInstanceItem?.value.instanceNumber ==
+		STEP_BIT_INSTANCE_NUMBER
+	) {
+		contentDisplayingInstancePath = getMatchingStepInstancePath();
+	} else {
+		contentDisplayingInstancePath = instancePath;
+	}
+	const stepContainerData = getStepContainerData();
+	const activeStep = stepContainerData.value?.activeStep;
+	return (
+		JSON.stringify(activeStep) ==
+		JSON.stringify(contentDisplayingInstancePath)
+	);
+});
+
+onBeforeMount(() => {
+	if (
+		stepContainerDirectChildInstanceItem?.value.instanceNumber ==
+		STEP_BIT_INSTANCE_NUMBER
+	)
+		return;
+	const stepContainerData = getStepContainerData();
+	const activeStep = stepContainerData.value?.activeStep;
+	if (activeStep) return;
+	if (!isComponentVisible(componentId, instancePath)) return;
+	stepContainerData.value = { activeStep: instancePath };
+});
+
+</script>
+
+<style scoped>
+@import "../renderer/sharedStyles.css";
+
+.CoreStep:first-child .linker.left, div:not(.CoreStep):first-child + .CoreStep .linker.left {
+	background: transparent;
+}
+
+.CoreStep:last-child .linker.right, .CoreStep:nth-child(n)  {
+	background: transparent;
+}
+
+button.bit {
+	padding: 16px 0 16px 0;
+	border: none;
+	border-radius: 0;
+	margin: 0;
+	background: var(--containerBackgroundColor);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+button.bit:focus {
+	color: var(--primaryTextColor);
+}
+
+button.bit.active,
+button.bit.active:focus {
+	color: var(--primaryTextColor);
+}
+
+
+.indicator {
+	width: 100%;
+	display: flex;
+	gap: 8px;
+	flex-direction: row;
+	align-items: center;
+}
+
+.indicator .status {
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 18px;
+	width: 18px;
+	border-radius: 50%;
+	background: var(--separatorColor);
+	border: 2px solid var(--separatorColor);
+	outline: 4px solid var(--separatorColor);
+	margin: 2px;
+}
+
+.active .indicator .status {
+	border: 2px solid var(--separatorColor);
+	background: var(--accentColor);
+	color: white;
+}
+
+.bit:not(.active) .indicator .status {
+	border: 1px solid transparent;
+}
+
+.bit:not(.active).available .indicator .status {
+	border: 1px solid var(--primaryTextColor);
+	color: var(--primaryTextColor);
+}
+
+.linker {
+	height: 1px;
+	background: var(--separatorColor);
+	flex: 1 0 auto;
+}
+
+.label {
+	padding: 12px 16px 0 16px;
+}
+</style>
