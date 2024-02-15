@@ -137,3 +137,25 @@ def handle_slowly(state):
 ```
 
 The code above will set `message` to "Loading...", then to "Completed".  
+
+## Asynchronous Event Handlers
+
+Streamsync supports asynchronous event handlers, allowing for non-blocking I/O operations directly within event handlers. This is particularly useful for tasks such as fetching data from a database, making HTTP requests, or performing any other I/O bound operation that can benefit from asynchronous execution.
+
+### Defining an Asynchronous Handler
+
+An asynchronous event handler is defined with the standard `async` keyword syntax.
+
+```py
+# An asynchronous event handler for performing an I/O bound operation
+async def handle_async_click(state):
+    data = await fetch_data()
+    state["data"] = data
+```
+
+In the example above, `fetch_data()` is an asynchronous function that retrieves data, potentially from a remote source. The `await` keyword is used to wait for the operation to complete without blocking the main thread, allowing other tasks to run concurrently.
+
+### Awaitable Objects
+
+You can use any awaitable object within an async event handler. This includes the output of any function defined with `async def`, or objects with an `__await__` method. This makes it easy to integrate with asynchronous libraries and frameworks.
+

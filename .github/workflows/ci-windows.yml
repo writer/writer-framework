@@ -1,0 +1,37 @@
+name: ci-windows
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: update package manager & install python3 environment
+        run: |
+          pip install poetry
+          poetry install --with build
+
+      - name: install npm environment
+        run: |
+          cd ui
+          npm install
+
+      - name: run continuous integration pipeline
+        run: |
+          poetry run alfred ci

@@ -13,7 +13,7 @@ import logging
 import logging.handlers
 from types import ModuleType
 import json
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from watchdog.observers.polling import PollingObserver
 
@@ -748,7 +748,10 @@ class AppRunner:
             raise ValueError(
                 "Cannot start app process. Components haven't been set.")
         self.is_app_process_server_ready.clear()
-        self.client_conn, self.server_conn = multiprocessing.Pipe(duplex=True)
+        client_conn, server_conn = multiprocessing.Pipe(duplex=True)
+        self.client_conn = cast(multiprocessing.connection.Connection, client_conn) # for mypy type checking on windows
+        self.server_conn = cast(multiprocessing.connection.Connection, server_conn) # for mypy type checking on windows
+
         self.app_process = AppProcess(
             client_conn=self.client_conn,
             server_conn=self.server_conn,

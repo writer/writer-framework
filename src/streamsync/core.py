@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import copy
 import datetime
@@ -5,6 +6,7 @@ import inspect
 import logging
 import secrets
 import sys
+import threading
 import time
 import traceback
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union
@@ -978,6 +980,7 @@ class EventHandler:
         self.deser = EventDeserialiser(self.session_state)
         self.evaluator = Evaluator(self.session_state)
 
+
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
         if not target_component.binding:
             return
@@ -985,6 +988,22 @@ class EventHandler:
         if binding["eventType"] != event_type:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
+
+    def _async_handler_executor(self, callable_handler, arg_values):
+        async_callable = self._async_handler_executor_internal(callable_handler, arg_values)
+        return asyncio.run(async_callable)
+
+    async def _async_handler_executor_internal(self, callable_handler, arg_values):
+        with contextlib.redirect_stdout(io.StringIO()) as f:
+            result = await callable_handler(*arg_values)
+        captured_stdout = f.getvalue()
+        return result, captured_stdout
+
+    def _sync_handler_executor(self, callable_handler, arg_values):
+        with contextlib.redirect_stdout(io.StringIO()) as f:
+            result = callable_handler(*arg_values)
+        captured_stdout = f.getvalue()
+        return result, captured_stdout
 
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
@@ -1001,8 +1020,10 @@ class EventHandler:
             raise ValueError(
                 f"""Invalid handler. Couldn't find the handler "{ handler }".""")
         callable_handler = getattr(streamsyncuserapp, handler)
+        is_async_handler = inspect.iscoroutinefunction(callable_handler)
 
-        if not callable(callable_handler):
+        if (not callable(callable_handler)
+           and not is_async_handler):
             raise ValueError(
                 "Invalid handler. The handler isn't a callable object.")
 
@@ -1025,9 +1046,11 @@ class EventHandler:
                 arg_values.append(session_info)
 
         result = None
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = callable_handler(*arg_values)
-        captured_stdout = f.getvalue()
+        if is_async_handler:
+            result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
+        else:
+            result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
+
         if captured_stdout:
             self.session_state.add_log_entry(
                 "info",
