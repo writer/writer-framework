@@ -1,6 +1,6 @@
 <template>
 	<div class="CorePDF">
-		<object class="pdf" :data="fields.source.value" type="application/pdf" width="100%" height="100%">
+		<object class="pdf" :data="fields.source.value" type="application/pdf">
 			<p>
 				You don't have a PDF plugin, but you can
 				<a :href="fields.source.value">download the PDF file. </a>
@@ -24,9 +24,9 @@ export default {
 		category: "Embed",
 		fields: {
 			source: {
-				name: "Pdf source",
+				name: "PDF source",
 				type: FieldType.Text,
-				desc: "Either URL or Base64",
+				desc: "A valid URL. Alternatively, you can provide a state reference to a packed PDF file.",
 			},
 			cssClasses,
 		},
