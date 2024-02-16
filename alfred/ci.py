@@ -4,8 +4,8 @@ import alfred
 
 
 @alfred.command("ci", help="continuous integration pipeline")
-@alfred.option('--front', help="run for frontend only", is_flag=True, default=False)
-@alfred.option('--back', help="run for backend only", is_flag=True, default=False)
+@alfred.option('--front', '-f', help="run for frontend only", is_flag=True, default=False)
+@alfred.option('--back', '-b', help="run for backend only", is_flag=True, default=False)
 def ci(front, back):
     if back or (not front and not back):
         alfred.invoke_command("ci.mypy")
