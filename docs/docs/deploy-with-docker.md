@@ -17,14 +17,14 @@ A Dockerfile is a file with instructions that tell Docker how to build your imag
 You can use the following as-is, or as a starting point. It should be saved in your app's folder, together with `requirements.txt`, `main.py` and `ui.json`.
 
 ```docker
-FROM python:3-slim AS compile-image
+FROM python:3.10-slim AS compile-image
 RUN apt-get update -y && mkdir /app && python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 COPY . /app
 WORKDIR /app
 RUN pip3 install streamsync && pip3 install -r requirements.txt
 
-FROM python:3-slim AS run-image
+FROM python:3.10-slim AS run-image
 RUN apt-get update -y && mkdir /app
 COPY --from=compile-image /app /app
 ENV PATH="/app/venv/bin:$PATH"
