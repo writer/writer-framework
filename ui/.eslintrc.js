@@ -5,7 +5,7 @@ module.exports = {
 		"@typescript-eslint/no-unused-vars": "warn",
 		"@typescript-eslint/no-explicit-any": "warn",
 		"@typescript-eslint/ban-types": "warn",
-		"prettier/prettier": [2, { useTabs: true }],
+		"prettier/prettier": [2, { useTabs: true, endOfLine: "auto" }],
 	},
 	parser: "vue-eslint-parser",
 	parserOptions: {
