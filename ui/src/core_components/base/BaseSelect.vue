@@ -1,10 +1,10 @@
 <template>
 	<div
+		:id="baseId"
 		ref="rootEl"
 		class="BaseSelect"
 		tabindex="0"
 		:data-mode="mode"
-		:id="baseId"
 		:data-list-position="listPosition"
 		role="listbox"
 		:aria-activedescendant="

@@ -1,6 +1,7 @@
 <template>
 	<div class="BuilderTreeBranch">
 		<div
+			ref="rootEl"
 			class="main"
 			:class="{
 				selected: isSelected,
@@ -12,7 +13,6 @@
 			tabindex="0"
 			draggable="true"
 			@click="selfSelectComponent"
-			ref="rootEl"
 			@keydown.enter="selfSelectComponent"
 			@dragover="handleDragOver"
 			@dragstart="handleDragStart"

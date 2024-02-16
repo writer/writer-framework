@@ -7,6 +7,7 @@ import alfred
 def ci():
     alfred.invoke_command("ci.mypy")
     alfred.invoke_command("ci.pytest")
+    alfred.invoke_command("npm.lint")
     alfred.invoke_command("npm.build")
 
 
