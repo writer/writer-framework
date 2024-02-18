@@ -42,11 +42,10 @@ import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 import CoreChat from "../core_components/CoreChat.vue";
 import CoreStep from "../core_components/CoreStep.vue";
 import CoreSteps from "../core_components/CoreSteps.vue";
+import CoreRating from "../core_components/input/CoreRatingInput.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
-
-
 
 const templateMap = {
 	root: CoreRoot,
@@ -90,7 +89,8 @@ const templateMap = {
 	videoplayer: CoreVideoPlayer,
 	chat: CoreChat,
 	step: CoreStep,
-	steps: CoreSteps
+	steps: CoreSteps,
+	ratinginput: CoreRating
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {
