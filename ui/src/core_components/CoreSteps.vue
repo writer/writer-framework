@@ -54,9 +54,24 @@ export default {
 <script setup lang="ts">
 import { inject } from "vue";
 import injectionKeys from "../injectionKeys";
+import { InstancePath } from "../streamsyncTypes";
+
+export type StepsData = {
+	activeStep: InstancePath;
+	steps: {
+		instancePath: InstancePath,
+		isCompleted: string
+	}[];
+};
 
 const instanceData = inject(injectionKeys.instanceData);
-instanceData.at(-1).value = { activeStep: undefined };
+
+const stepsData:StepsData = {
+	activeStep: undefined,
+	steps: []
+};
+
+instanceData.at(-1).value = stepsData;
 </script>
 
 <style scoped>
