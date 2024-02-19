@@ -125,32 +125,28 @@ const buildMarkers = async () => {
 	if (!fields.markers.value) return;
 	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
 	clearMarkers();
-	try {
-		const markersData = fields.markers.value as ({ lat: number; lng: number; name: string; }[])
-		markersData.forEach((markerData) => {
-			const marker = new AdvancedMarkerElement({
-				position: {
-					lat: markerData.lat,
-					lng: markerData.lng,
-				},
-				map,
-				title: markerData.name,
-			});
-
-			markers.push(marker);
-
-			marker.addListener('click', () => {
-				const event = new CustomEvent("gmap-marker-click", {
-					detail: {
-						payload: markerData,
-					},
-				});
-				rootEl.value.dispatchEvent(event);
-			});
+	const markersData = fields.markers.value as ({ lat: number; lng: number; name: string; }[])
+	markersData.forEach((markerData) => {
+		const marker = new AdvancedMarkerElement({
+			position: {
+				lat: markerData.lat,
+				lng: markerData.lng,
+			},
+			map,
+			title: markerData.name,
 		});
-	} catch (e) {
-		console.log(e);
-	}
+
+		markers.push(marker);
+
+		marker.addListener('click', () => {
+			const event = new CustomEvent("gmap-marker-click", {
+				detail: {
+					payload: markerData,
+				},
+			});
+			rootEl.value.dispatchEvent(event);
+		});
+	});
 };
 
 const clearMarkers = () => {
@@ -214,7 +210,6 @@ watch(fields.mapId, initMap);
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0);
 }
 
 .CoreGoogleMaps.beingEdited.selected .mask {

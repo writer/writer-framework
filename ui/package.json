@@ -36,6 +36,6 @@
 		"prettier": "^3.0.1",
 		"vite": "^4.4.9",
 		"vite-plugin-monaco-editor": "^1.1.0",
-		"volar-service-vetur": "latest"
+		"volar-service-vetur": "*"
 	}
 }
