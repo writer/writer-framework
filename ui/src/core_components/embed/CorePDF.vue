@@ -1,8 +1,8 @@
 <template>
 	<div class="CorePDF">
-		<object class="pdf" :data="fields.source.value" type="application/pdf">
+		<object class="pdf" :data="fields.source.value" :key="fields.source.value" type="application/pdf">
 			<p>
-				You don't have a PDF plugin, but you can
+				You're not authorised to embed in the browser or you don't have PDF plugin
 				<a :href="fields.source.value">download the PDF file. </a>
 			</p>
 		</object>
@@ -48,6 +48,10 @@ const fields = inject(injectionKeys.evaluatedFields);
   height: 80vh;
 }
 
+.CorePDF.beingEdited:not(.selected) object {
+	pointer-events: none;
+}
+
 .CorePDF .pdf {
   width: 100%;
   height: 100%;
@@ -61,7 +65,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 }
 
 .CorePDF.beingEdited .mask {
-  pointer-events: all;
+  pointer-events: auto;
   position: absolute;
   top: 0;
   left: 0;

@@ -68,6 +68,10 @@ function handleLoad() {
   height: 80vh;
 }
 
+.CoreIFrame.beingEdited:not(.selected) iframe {
+    pointer-events: none;
+}
+
 .CoreIFrame  iframe {
   width: 100%;
   height: 100%;
@@ -81,7 +85,7 @@ function handleLoad() {
 }
 
 .CoreIFrame.beingEdited .mask {
-  pointer-events: all;
+  pointer-events: auto;
   position: absolute;
   top: 0;
   left: 0;
