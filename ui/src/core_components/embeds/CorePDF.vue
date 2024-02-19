@@ -11,8 +11,8 @@
 </template>
 
 <script lang='ts'>
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A component to embed a PDF document.";
@@ -36,12 +36,12 @@ export default {
 
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 .CorePDF {
   position: relative;
   width: 100%;
