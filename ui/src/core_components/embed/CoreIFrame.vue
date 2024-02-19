@@ -6,8 +6,8 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component to embed an external resource in an iframe.";
 
@@ -44,19 +44,19 @@ export default {
 
 <script setup lang="ts">
 import { Ref, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
-function handleLoad(ev) {
+function handleLoad() {
 	const event = new CustomEvent("ss-load");
 	rootEl.value.dispatchEvent(event);
 }
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreIFrame {
 	position: relative;
@@ -64,12 +64,16 @@ function handleLoad(ev) {
 	height: 80vh;
 }
 
-.CoreIFrame iframe {
-	width: 100%;
-	height: 100%;
-	display: block;
-	margin: auto;
-	border: 1px solid var(--separatorColor);
+.CoreIFrame.beingEdited:not(.selected) iframe {
+    pointer-events: none;
+}
+
+.CoreIFrame  iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  margin: auto;
+  border: 1px solid var(--separatorColor);
 }
 
 .CoreIFrame .mask {
@@ -77,13 +81,13 @@ function handleLoad(ev) {
 }
 
 .CoreIFrame.beingEdited .mask {
-	pointer-events: all;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0);
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0);
 }
 
 .CoreIFrame.beingEdited.selected .mask {

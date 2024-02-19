@@ -12,6 +12,7 @@
 	},
 	"dependencies": {
 		"@apache-arrow/ts": "^12.0.1",
+		"@googlemaps/js-api-loader": "1.16.3",
 		"@monaco-editor/loader": "^1.3.3",
 		"arquero": "^5.2.0",
 		"marked": "^7.0.2",
@@ -27,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@rushstack/eslint-patch": "^1.2.0",
+		"@types/google.maps": "3.55.3",
 		"@types/marked": "^5.0.1",
 		"@typescript-eslint/eslint-plugin": "7.0.1",
 		"@vitejs/plugin-vue": "^4.2.1",
@@ -38,6 +40,6 @@
 		"prettier": "3.2.5",
 		"vite": "^4.4.9",
 		"vite-plugin-monaco-editor": "^1.1.0",
-		"volar-service-vetur": "latest"
+		"volar-service-vetur": "*"
 	}
 }
