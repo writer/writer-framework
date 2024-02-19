@@ -747,49 +747,52 @@ class Evaluator:
             return str(serialised_value)
 
         session = session_manager.get_session(self.session_id)
-        component_id = instance_path[-1]["componentId"]
-        component = session.component_manager.components[component_id]
-        field_value = component.content.get(field_key) or default_field_value
-        replaced = self.template_regex.sub(replacer, field_value)
+        if session:
+            component_id = instance_path[-1]["componentId"]
+            component = session.component_manager.components[component_id]
+            field_value = component.content.get(field_key) or default_field_value
+            replaced = self.template_regex.sub(replacer, field_value)
 
-        if as_json:
-            return json.loads(replaced)
-        else:
-            return replaced
+            if as_json:
+                return json.loads(replaced)
+            else:
+                return replaced
+        return None
 
     def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
         context: Dict[str, Any] = {}
         session = session_manager.get_session(self.session_id)
-        for i in range(len(instance_path)):
-            path_item = instance_path[i]
-            component_id = path_item["componentId"]
-            component = session.component_manager.components[component_id]
-            if component.type != "repeater":
-                continue
-            if i + 1 >= len(instance_path):
-                continue
-            repeater_instance_path = instance_path[0:i+1]
-            next_instance_path = instance_path[0:i+2]
-            instance_number = next_instance_path[-1]["instanceNumber"]
-            repeater_object = self.evaluate_field(
-                repeater_instance_path, "repeaterObject", True, """{ "a": { "desc": "Option A" }, "b": { "desc": "Option B" } }""")
-            key_variable = self.evaluate_field(
-                repeater_instance_path, "keyVariable", False, "itemId")
-            value_variable = self.evaluate_field(
-                repeater_instance_path, "valueVariable", False, "item")
+        if session:
+            for i in range(len(instance_path)):
+                path_item = instance_path[i]
+                component_id = path_item["componentId"]
+                component = session.component_manager.components[component_id]
+                if component.type != "repeater":
+                    continue
+                if i + 1 >= len(instance_path):
+                    continue
+                repeater_instance_path = instance_path[0:i+1]
+                next_instance_path = instance_path[0:i+2]
+                instance_number = next_instance_path[-1]["instanceNumber"]
+                repeater_object = self.evaluate_field(
+                    repeater_instance_path, "repeaterObject", True, """{ "a": { "desc": "Option A" }, "b": { "desc": "Option B" } }""")
+                key_variable = self.evaluate_field(
+                    repeater_instance_path, "keyVariable", False, "itemId")
+                value_variable = self.evaluate_field(
+                    repeater_instance_path, "valueVariable", False, "item")
 
-            repeater_items: List[Tuple[Any, Any]] = []
-            if isinstance(repeater_object, dict):
-                repeater_items = list(repeater_object.items())
-            elif isinstance(repeater_object, list):
-                repeater_items = [(k, v)
-                                  for (k, v) in enumerate(repeater_object)]
-            else:
-                raise ValueError(
-                    "Cannot produce context. Repeater object must evaluate to a dictionary.")
+                repeater_items: List[Tuple[Any, Any]] = []
+                if isinstance(repeater_object, dict):
+                    repeater_items = list(repeater_object.items())
+                elif isinstance(repeater_object, list):
+                    repeater_items = [(k, v)
+                                    for (k, v) in enumerate(repeater_object)]
+                else:
+                    raise ValueError(
+                        "Cannot produce context. Repeater object must evaluate to a dictionary.")
 
-            context[key_variable] = repeater_items[instance_number][0]
-            context[value_variable] = repeater_items[instance_number][1]
+                context[key_variable] = repeater_items[instance_number][0]
+                context[value_variable] = repeater_items[instance_number][1]
 
         return context
 
