@@ -368,6 +368,7 @@ def get_asgi_app(
 
     server_path = os.path.dirname(__file__)
     server_static_path = pathlib.Path(server_path) / "static"
+
     if server_static_path.exists():
         asgi_app.mount(
             "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")

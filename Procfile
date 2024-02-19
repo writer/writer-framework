@@ -1,1 +1,1 @@
-web: streamsync --port $PORT --host 0.0.0.0 --enable-remote-edit edit apps/hello
+web: python apps/reviewapp.py
