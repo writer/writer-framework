@@ -10,7 +10,7 @@ import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 
-const description = "A component to embed an external resource in an iframe.";
+const description = "A component to embed a Google Map. It can be used to display a map with markers.";
 
 const markersDefaultData = [
 	{lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker"}
