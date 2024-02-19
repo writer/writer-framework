@@ -16,9 +16,9 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, secondaryTextColor } from "../renderer/sharedStyleFields";
-import { getClick } from "../renderer/syntheticEvents";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses, secondaryTextColor } from "../../renderer/sharedStyleFields";
+import { getClick } from "../../renderer/syntheticEvents";
 
 const description = "A component to display images.";
 
@@ -92,7 +92,7 @@ export default {
 
 <script setup lang="ts">
 import { Ref, computed, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl:Ref<HTMLElement> = ref(null); 
 const ss = inject(injectionKeys.core);
@@ -125,7 +125,7 @@ function handleClick(ev: MouseEvent) {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreImage {
 	width: fit-content;

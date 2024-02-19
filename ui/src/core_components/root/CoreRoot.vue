@@ -10,10 +10,10 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import * as sharedStyleFields from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import * as sharedStyleFields from "../../renderer/sharedStyleFields";
 import { nextTick } from "vue";
-import { useEvaluator } from "../renderer/useEvaluator";
+import { useEvaluator } from "../../renderer/useEvaluator";
 
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
@@ -68,7 +68,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const importedModulesSpecifiers:Record<string, string> = {};
 const ss = inject(injectionKeys.core);
@@ -287,7 +287,7 @@ onBeforeMount(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreRoot {
 	background: var(--emptinessColor);

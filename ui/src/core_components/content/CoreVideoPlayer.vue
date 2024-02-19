@@ -11,8 +11,8 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A video player component that can play various video formats.";
@@ -91,7 +91,7 @@ export default {
 
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, h, inject } from "vue";
-import { FieldType } from "../streamsyncTypes";
-import injectionKeys from "../injectionKeys";
+import { FieldType } from "../../streamsyncTypes";
+import injectionKeys from "../../injectionKeys";
 
 const description =
 	"A container component that repeats its child components based on a dictionary.";

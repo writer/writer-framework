@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Vega-Lite/Altair charts.";
 
@@ -60,7 +60,7 @@ export default {
 
 <script setup lang="ts">
 import { inject, onMounted, Ref, ref, watch } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const chartTargetEl: Ref<HTMLElement> = ref(null);
@@ -90,7 +90,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreVegaLiteChart {
 	min-height: 1px;

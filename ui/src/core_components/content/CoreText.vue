@@ -14,9 +14,9 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldControl, FieldType } from "../streamsyncTypes";
-import {cssClasses, primaryTextColor} from "../renderer/sharedStyleFields";
-import { getClick } from "../renderer/syntheticEvents";
+import { FieldCategory, FieldControl, FieldType } from "../../streamsyncTypes";
+import {cssClasses, primaryTextColor} from "../../renderer/sharedStyleFields";
+import { getClick } from "../../renderer/syntheticEvents";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -78,7 +78,7 @@ export default {
 <script setup lang="ts">
 import { marked } from "marked";
 import { Ref, computed, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl:Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
@@ -112,7 +112,7 @@ function handleClick(ev: MouseEvent) {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreText {
 	color: var(--primaryTextColor);

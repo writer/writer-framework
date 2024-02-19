@@ -9,8 +9,8 @@
 </template>
 
 <script lang="ts">
-import {FieldCategory, FieldType} from "../streamsyncTypes";
-import {cssClasses} from "../renderer/sharedStyleFields";
+import {FieldCategory, FieldType} from "../../streamsyncTypes";
+import {cssClasses} from "../../renderer/sharedStyleFields";
 
 const docs = `
 Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
@@ -51,14 +51,14 @@ export default {
 
 <script setup lang="ts">
 import {inject} from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .icon {
 	display: flex;

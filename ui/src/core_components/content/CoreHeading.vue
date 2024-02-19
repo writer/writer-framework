@@ -8,8 +8,8 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A text component used to display headings or titles in different sizes and styles.";
@@ -58,11 +58,11 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreHeading {
 	color: var(--primaryTextColor);

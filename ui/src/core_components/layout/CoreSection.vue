@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
+import { FieldType } from "../../streamsyncTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -25,7 +25,7 @@ import {
 	cssClasses,
 	contentHAlign,
 	contentPadding,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that divides the layout into sections, with an optional title.";
@@ -65,14 +65,14 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
-import BaseContainer from "./base/BaseContainer.vue";
+import injectionKeys from "../../injectionKeys";
+import BaseContainer from "../base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 .CoreSection {
 	overflow: hidden;
 	border: 1px solid var(--separatorColor);

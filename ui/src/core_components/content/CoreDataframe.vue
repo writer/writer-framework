@@ -100,13 +100,13 @@
 
 <script lang="ts">
 import { Ref, computed, inject, ref } from "vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { nextTick } from "vue";
@@ -208,7 +208,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 import * as aq from "arquero";
 import { tableFromIPC, Table } from "apache-arrow";
 
@@ -518,7 +518,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreDataframe {
 	font-size: 0.8rem;

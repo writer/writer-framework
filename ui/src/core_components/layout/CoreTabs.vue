@@ -25,7 +25,7 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component for organising and displaying Tab components in a tabbed interface.";
@@ -53,14 +53,14 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const instanceData = inject(injectionKeys.instanceData);
 instanceData.at(-1).value = { activeTab: undefined };
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreTabs {
 	width: 100%;
