@@ -204,7 +204,7 @@ watch(fields.mapId, initMap);
 }
 
 .CoreGoogleMaps.beingEdited .mask {
-  pointer-events: all;
+  pointer-events: auto;
   position: absolute;
   top: 0;
   left: 0;

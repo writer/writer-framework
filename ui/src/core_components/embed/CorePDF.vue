@@ -1,8 +1,8 @@
 <template>
 	<div class="CorePDF">
-		<object class="pdf" :data="fields.source.value" type="application/pdf">
+		<object class="pdf" :data="fields.source.value" :key="fields.source.value" type="application/pdf">
 			<p>
-				You don't have a PDF plugin, but you can
+				You're not authorised to embed in the browser or you don't have PDF plugin
 				<a :href="fields.source.value">download the PDF file. </a>
 			</p>
 		</object>
@@ -11,8 +11,8 @@
 </template>
 
 <script lang='ts'>
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A component to embed a PDF document.";
@@ -36,16 +36,20 @@ export default {
 
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 .CorePDF {
   position: relative;
   width: 100%;
   height: 80vh;
+}
+
+.CorePDF.beingEdited:not(.selected) object {
+	pointer-events: none;
 }
 
 .CorePDF .pdf {
@@ -61,7 +65,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 }
 
 .CorePDF.beingEdited .mask {
-  pointer-events: all;
+  pointer-events: auto;
   position: absolute;
   top: 0;
   left: 0;
