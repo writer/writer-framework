@@ -65,15 +65,15 @@ function handleLoad() {
 }
 
 .CoreIFrame.beingEdited:not(.selected) iframe {
-    pointer-events: none;
+	pointer-events: none;
 }
 
-.CoreIFrame  iframe {
-  width: 100%;
-  height: 100%;
-  display: block;
-  margin: auto;
-  border: 1px solid var(--separatorColor);
+.CoreIFrame iframe {
+	width: 100%;
+	height: 100%;
+	display: block;
+	margin: auto;
+	border: 1px solid var(--separatorColor);
 }
 
 .CoreIFrame .mask {
@@ -81,13 +81,13 @@ function handleLoad() {
 }
 
 .CoreIFrame.beingEdited .mask {
-  pointer-events: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0);
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0);
 }
 
 .CoreIFrame.beingEdited.selected .mask {
