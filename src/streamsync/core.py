@@ -885,7 +885,7 @@ class StreamsyncSession:
         self.component_manager = ComponentManager()
         if components:
             try:
-                self.component_manager.ingest(self.components)
+                self.component_manager.ingest(components)
             except BaseException:
                 self.session_state.add_log_entry(
                     "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
