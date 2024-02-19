@@ -16,6 +16,7 @@ import io
 import re
 import json
 import math
+import traceback as tb
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
 
 
@@ -558,8 +559,8 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: StreamsyncState):
-        self.evaluator = Evaluator(session_state)
+    def __init__(self, session_id: str, session_state: StreamsyncState):
+        self.evaluator = Evaluator(session_id, session_state)
 
     def transform(self, ev: StreamsyncEvent) -> None:
         # Events without payloads are safe
@@ -723,7 +724,8 @@ class Evaluator:
 
     template_regex = re.compile(r"[\\]?@{([\w\s.]*)}")
 
-    def __init__(self, session_state: StreamsyncState):
+    def __init__(self, session_id: str, session_state: StreamsyncState):
+        self.session_id = session_id
         self.ss = session_state
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="") -> Any:
@@ -744,8 +746,9 @@ class Evaluator:
                 return json.dumps(serialised_value)
             return str(serialised_value)
 
+        session = session_manager.get_session(self.session_id)
         component_id = instance_path[-1]["componentId"]
-        component = component_manager.components[component_id]
+        component = session.component_manager.components[component_id]
         field_value = component.content.get(field_key) or default_field_value
         replaced = self.template_regex.sub(replacer, field_value)
 
@@ -756,11 +759,11 @@ class Evaluator:
 
     def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
         context: Dict[str, Any] = {}
-
+        session = session_manager.get_session(self.session_id)
         for i in range(len(instance_path)):
             path_item = instance_path[i]
             component_id = path_item["componentId"]
-            component = component_manager.components[component_id]
+            component = session.component_manager.components[component_id]
             if component.type != "repeater":
                 continue
             if i + 1 >= len(instance_path):
@@ -870,7 +873,7 @@ class StreamsyncSession:
     Represents a session.
     """
 
-    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
+    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]], components: Optional[Dict[str, Any]]) -> None:
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
@@ -879,6 +882,13 @@ class StreamsyncSession:
         new_state.user_state.mutated = set()
         self.session_state = new_state
         self.event_handler = EventHandler(self)
+        self.component_manager = ComponentManager()
+        if components:
+            try:
+                self.component_manager.ingest(self.components)
+            except BaseException:
+                self.session_state.add_log_entry(
+                    "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
@@ -928,7 +938,7 @@ class SessionManager:
             return True
         return False
 
-    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[StreamsyncSession]:
+    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None, components: Optional[Dict[str, Any]] = None) -> Optional[StreamsyncSession]:
         if not self._check_proposed_session_id(proposed_session_id):
             return None
         if not self._verify_before_new_session(cookies, headers):
@@ -939,7 +949,7 @@ class SessionManager:
         else:
             new_id = proposed_session_id
         new_session = StreamsyncSession(
-            new_id, cookies, headers)
+            new_id, cookies, headers, components)
         self.sessions[new_id] = new_session
         return new_session
 
@@ -977,8 +987,8 @@ class EventHandler:
     def __init__(self, session: StreamsyncSession) -> None:
         self.session = session
         self.session_state = session.session_state
-        self.deser = EventDeserialiser(self.session_state)
-        self.evaluator = Evaluator(self.session_state)
+        self.deser = EventDeserialiser(self.session.session_id, self.session_state)
+        self.evaluator = Evaluator(self.session.session_id, self.session_state)
 
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
@@ -1075,7 +1085,7 @@ class EventHandler:
         try:
             instance_path = ev.instancePath
             target_id = instance_path[-1]["componentId"]
-            target_component = component_manager.components[target_id]
+            target_component = self.session.component_manager.components[target_id]
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(
@@ -1091,7 +1101,6 @@ class EventHandler:
 
 
 state_serialiser = StateSerialiser()
-component_manager = ComponentManager()
 initial_state = StreamsyncState()
 session_manager = SessionManager()
 

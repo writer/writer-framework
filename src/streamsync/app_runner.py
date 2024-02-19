@@ -18,7 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, cast
 from watchdog.observers.polling import PollingObserver
 
 from pydantic import ValidationError
-from streamsync.core import StreamsyncSession
+from streamsync.core import ComponentManager, StreamsyncSession
 from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
                                  EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StateEnquiryRequest, StateEnquiryResponsePayload, StreamsyncEvent)
 import watchdog.observers
@@ -134,7 +134,7 @@ class AppProcess(multiprocessing.Process):
         import traceback as tb
 
         session = streamsync.session_manager.get_new_session(
-            payload.cookies, payload.headers, payload.proposedSessionId)
+            payload.cookies, payload.headers, payload.proposedSessionId, self.components)
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
@@ -149,7 +149,7 @@ class AppProcess(multiprocessing.Process):
             userState=user_state,
             sessionId=session.session_id,
             mail=session.session_state.mail,
-            components=streamsync.component_manager.to_dict(),
+            components=session.component_manager.to_dict(),
             userFunctions=self._get_user_functions()
         )
 
@@ -208,10 +208,6 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
 
-    def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
-        import streamsync
-        streamsync.component_manager.ingest(payload.components)
-
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
         Handles messages from the main process to the app's isolated process.
@@ -261,7 +257,7 @@ class AppProcess(multiprocessing.Process):
         if self.mode == "edit" and type == "componentUpdate":
             cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
                 request.payload)
-            self._handle_component_update(cu_req_payload)
+            session.component_manager.ingest(cu_req_payload.components)
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
@@ -336,14 +332,14 @@ class AppProcess(multiprocessing.Process):
             if self.mode == "run":
                 terminate_early = True
 
-        try:
-            streamsync.component_manager.ingest(self.components)
-        except BaseException:
-            streamsync.initial_state.add_log_entry(
-                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
-            if self.mode == "run":
-                terminate_early = True
-
+    #    try:
+    #        streamsync.component_manager.ingest(self.components)
+    #    except BaseException:
+    #        streamsync.initial_state.add_log_entry(
+    #            "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
+    #        if self.mode == "run":
+    #            terminate_early = True
+    
         if terminate_early:
             self._terminate_early()
             return

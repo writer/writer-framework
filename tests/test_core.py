@@ -48,7 +48,8 @@ with open(test_app_dir / "ui.json", "r") as f:
 
 ss.Config.is_mail_enabled_for_log = True
 ss.init_state(raw_state_dict)
-ss.component_manager.ingest(sc)
+session = ss.session_manager.get_new_session()
+session.component_manager.ingest(sc)
 
 
 class TestStateProxy:
@@ -237,7 +238,7 @@ class TestEventDeserialiser:
 
     root_instance_path = [{"componentId": "root", "instanceNumber": 0}]
     session_state = StreamsyncState(raw_state_dict)
-    ed = EventDeserialiser(session_state)
+    ed = EventDeserialiser(session.session_id, session_state)
 
     def test_unknown_no_payload(self) -> None:
         ev = StreamsyncEvent(
@@ -598,7 +599,7 @@ class TestEvaluator:
         st = StreamsyncState({
             "counter": 8
         })
-        e = Evaluator(st)
+        e = Evaluator(session.session_id, st)
         evaluated = e.evaluate_field(instance_path, "text")
         assert evaluated == "The counter is 8"
 
@@ -622,7 +623,7 @@ class TestEvaluator:
                 "ts": "TypeScript"
             }
         })
-        e = Evaluator(st)
+        e = Evaluator(session.session_id, st)
         assert e.evaluate_field(
             instance_path_0, "text") == "The id is c and the name is C"
         assert e.evaluate_field(
@@ -633,7 +634,7 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(st)
+        e = Evaluator(session.session_id, st)
         e.set_state("name", instance_path, "Roger")
         e.set_state("dynamic_prop", instance_path, "height")
         e.set_state("features[dynamic_prop]", instance_path, "toddler height")
@@ -647,7 +648,7 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(st)
+        e = Evaluator(session.session_id, st)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
