@@ -21,6 +21,7 @@ import CoreTabs from "../core_components/CoreTabs.vue";
 import CoreImage from "../core_components/CoreImage.vue";
 import CorePDF from "../core_components/CorePDF.vue";
 import CoreIFrame from "../core_components/CoreIFrame.vue";
+import CoreGoogleMaps from "../core_components/embeds/CoreGoogleMaps.vue";
 import CoreTimer from "../core_components/CoreTimer.vue";
 import CoreWebcamCapture from "../core_components/CoreWebcamCapture.vue";
 import CoreVegaLiteChart from "../core_components/CoreVegaLiteChart.vue";
@@ -68,6 +69,7 @@ const templateMap = {
 	image: CoreImage,
 	pdf: CorePDF,
 	iframe: CoreIFrame,
+	googlemaps: CoreGoogleMaps,
 	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
