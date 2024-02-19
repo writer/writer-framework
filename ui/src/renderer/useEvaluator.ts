@@ -11,7 +11,7 @@ export function useEvaluator(ss: Core) {
 	 */
 	function parseExpression(
 		expr: string,
-		instancePath?: InstancePath
+		instancePath?: InstancePath,
 	): string[] {
 		let accessors = [],
 			s = "";
@@ -53,14 +53,13 @@ export function useEvaluator(ss: Core) {
 		return accessors;
 	}
 
-	function evaluateExpression(
-		expr: string,
-		instancePath?: InstancePath
-	) {
-		const contextData = instancePath ? getContextData(instancePath) : undefined;
+	function evaluateExpression(expr: string, instancePath?: InstancePath) {
+		const contextData = instancePath
+			? getContextData(instancePath)
+			: undefined;
 		let contextRef = contextData;
 		let stateRef = ss.getUserState();
-		let accessors = parseExpression(expr, instancePath);
+		const accessors = parseExpression(expr, instancePath);
 
 		for (let i = 0; i < accessors.length; i++) {
 			contextRef = contextRef?.[accessors[i]];
@@ -85,7 +84,7 @@ export function useEvaluator(ss: Core) {
 
 			const repeaterObject = evaluateField(
 				repeaterInstancePath,
-				"repeaterObject"
+				"repeaterObject",
 			);
 
 			if (!repeaterObject) continue;
@@ -93,11 +92,11 @@ export function useEvaluator(ss: Core) {
 			const repeaterEntries = Object.entries(repeaterObject);
 			const keyVariable = evaluateField(
 				repeaterInstancePath,
-				"keyVariable"
+				"keyVariable",
 			);
 			const valueVariable = evaluateField(
 				repeaterInstancePath,
-				"valueVariable"
+				"valueVariable",
 			);
 
 			context[keyVariable] = repeaterEntries[instanceNumber]?.[0];
@@ -109,7 +108,7 @@ export function useEvaluator(ss: Core) {
 
 	function evaluateTemplate(
 		template: string,
-		instancePath: InstancePath
+		instancePath: InstancePath,
 	): string {
 		if (template === undefined || template === null) return "";
 
@@ -130,14 +129,14 @@ export function useEvaluator(ss: Core) {
 				}
 
 				return exprValue.toString();
-			}
+			},
 		);
 
 		return evaluatedTemplate;
 	}
 
 	function getEvaluatedFields(
-		instancePath: InstancePath
+		instancePath: InstancePath,
 	): Record<string, ComputedRef<any>> {
 		const { componentId } = instancePath.at(-1);
 		const component = ss.getComponentById(componentId);
@@ -146,7 +145,9 @@ export function useEvaluator(ss: Core) {
 		const { fields } = ss.getComponentDefinition(component.type);
 		if (!fields) return;
 		Object.keys(fields).forEach((fieldKey) => {
-			evaluatedFields[fieldKey] = computed(() => evaluateField(instancePath, fieldKey));
+			evaluatedFields[fieldKey] = computed(() =>
+				evaluateField(instancePath, fieldKey),
+			);
 		});
 
 		return evaluatedFields;
@@ -162,9 +163,9 @@ export function useEvaluator(ss: Core) {
 		const evaluated = evaluateTemplate(contentValue, instancePath);
 		const fieldType = fields[fieldKey].type;
 		const isValueEmpty =
-		typeof evaluated == "undefined" ||
-		evaluated === null ||
-		evaluated === "";
+			typeof evaluated == "undefined" ||
+			evaluated === null ||
+			evaluated === "";
 		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue) {
 			if (!evaluated) {
 				return JSON.parse(defaultValue) ?? null;
@@ -178,9 +179,10 @@ export function useEvaluator(ss: Core) {
 			}
 			return parsedValue;
 		} else if (fieldType == FieldType.Number) {
-			const floatDefaultValue = defaultValue === null ? null : parseFloat(defaultValue);
+			const floatDefaultValue =
+				defaultValue === null ? null : parseFloat(defaultValue);
 			if (isValueEmpty) return floatDefaultValue ?? null;
-			
+
 			const n = parseFloat(evaluated);
 			if (typeof n === undefined || Number.isNaN(n))
 				return floatDefaultValue ?? null;
@@ -202,7 +204,7 @@ export function useEvaluator(ss: Core) {
 	 */
 	function isComponentVisible(
 		componentId: Component["id"],
-		instancePath?: InstancePath
+		instancePath?: InstancePath,
 	): boolean {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -210,13 +212,16 @@ export function useEvaluator(ss: Core) {
 		if (typeof component.visible === "undefined") return true;
 		if (component.visible === true) return true;
 		if (component.visible === false) return false;
-		const evaluated = evaluateExpression(component.visible as string, instancePath);
+		const evaluated = evaluateExpression(
+			component.visible as string,
+			instancePath,
+		);
 		return !!evaluated;
 	}
 
 	return {
 		getEvaluatedFields,
 		isComponentVisible,
-		evaluateExpression
+		evaluateExpression,
 	};
 }

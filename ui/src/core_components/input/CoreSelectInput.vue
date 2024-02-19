@@ -1,10 +1,20 @@
 <template>
-	<div class="CoreSelectInput" ref="rootEl">
-		<div class="labelContainer" v-if="fields.label.value || fields.label.value === 0">
+	<div ref="rootEl" class="CoreSelectInput">
+		<div
+			v-if="fields.label.value || fields.label.value === 0"
+			class="labelContainer"
+		>
 			<label>{{ fields.label.value }}</label>
 		</div>
-		<BaseSelect :base-id="flattenedInstancePath" :active-value="formValue ? [formValue] : []" :options="options"
-			:maximum-count="1" mode="single" v-on:change="handleChange" :placeholder="fields.placeholder.value"></BaseSelect>
+		<BaseSelect
+			:base-id="flattenedInstancePath"
+			:active-value="formValue ? [formValue] : []"
+			:options="options"
+			:maximum-count="1"
+			mode="single"
+			:placeholder="fields.placeholder.value"
+			@change="handleChange"
+		></BaseSelect>
 	</div>
 </template>
 
@@ -12,7 +22,15 @@
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { accentColor, containerBackgroundColor, cssClasses, primaryTextColor, secondaryTextColor, selectedColor, separatorColor } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	containerBackgroundColor,
+	cssClasses,
+	primaryTextColor,
+	secondaryTextColor,
+	selectedColor,
+	separatorColor,
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to select a single value from a searchable list of options.";
@@ -44,13 +62,13 @@ export default {
 			placeholder: {
 				name: "Placeholder",
 				desc: "Text to show when no options are selected.",
-				type: FieldType.Text
+				type: FieldType.Text,
 			},
 			maximumCount: {
 				name: "Maximum count",
 				desc: "The maximum allowable number of selected options. Set to zero for unlimited.",
 				type: FieldType.Number,
-				default: "0"
+				default: "0",
 			},
 			accentColor,
 			chipTextColor: {
@@ -59,7 +77,7 @@ export default {
 				default: "#ffffff",
 				desc: "The color of the text in the chips.",
 				category: FieldCategory.Style,
-				applyStyleVariable: true
+				applyStyleVariable: true,
 			},
 			selectedColor,
 			primaryTextColor,
@@ -97,7 +115,6 @@ function handleChange(selectedOptions: string[]) {
 	const selectedOption = selectedOptions?.[0] ?? null;
 	handleInput(selectedOption, "ss-option-change");
 }
-
 </script>
 
 <style scoped>

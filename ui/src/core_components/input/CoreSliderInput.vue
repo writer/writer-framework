@@ -1,14 +1,20 @@
 <template>
-	<div class="CoreSliderInput" ref="rootEl">
+	<div ref="rootEl" class="CoreSliderInput">
 		<label>{{ fields.label.value }}</label>
 		<div class="inputArea">
 			<input
 				type="range"
 				:value="formValue"
-				v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-number-change')"
 				:min="fields.minValue.value"
 				:max="fields.maxValue.value"
 				:step="fields.stepSize.value"
+				@input="
+					($event) =>
+						handleInput(
+							($event.target as HTMLInputElement).value,
+							'ss-number-change',
+						)
+				"
 			/>
 			<div class="valueContainer">
 				<h3>{{ formValue }}</h3>
@@ -60,7 +66,7 @@ export default {
 				default: "1",
 				init: "1",
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-number-change": {

@@ -1,7 +1,12 @@
 <script lang="ts">
 import { Ref, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
-import { Component, InstancePath, InstancePathItem, UserFunction } from "../streamsyncTypes";
+import {
+	Component,
+	InstancePath,
+	InstancePathItem,
+	UserFunction,
+} from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
@@ -23,10 +28,12 @@ export default {
 
 		const children = computed(() => ss.getComponents(componentId, true));
 		const isBeingEdited = computed(
-			() => !!ssbm && ssbm.getMode() != "preview"
+			() => !!ssbm && ssbm.getMode() != "preview",
 		);
 		const isDisabled = ref(false);
-		const userFunctions: Ref<UserFunction[]> = computed(() => ss.getUserFunctions());
+		const userFunctions: Ref<UserFunction[]> = computed(() =>
+			ss.getUserFunctions(),
+		);
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -37,7 +44,7 @@ export default {
 
 		const renderProxiedComponent = (
 			componentId: Component["id"],
-			instanceNumber: InstancePathItem["instanceNumber"] = 0
+			instanceNumber: InstancePathItem["instanceNumber"] = 0,
 		) => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -57,7 +64,7 @@ export default {
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
 			componentFilter: (c: Component) => boolean = () => true,
-			positionlessSlot: boolean = false
+			positionlessSlot: boolean = false,
 		): VNode[] => {
 			const renderInsertionSlot = (position: number) => {
 				return h("div", {
@@ -72,7 +79,7 @@ export default {
 				.map((childComponent, childIndex) => {
 					const childVNode = renderProxiedComponent(
 						childComponent.id,
-						instanceNumber
+						instanceNumber,
 					);
 					return [
 						childVNode,
@@ -83,7 +90,7 @@ export default {
 				});
 
 			return [...(showSlots ? [renderInsertionSlot(0)] : [])].concat(
-				childrenVNodes.flat()
+				childrenVNodes.flat(),
 			);
 		};
 
@@ -120,32 +127,48 @@ export default {
 			() => ssbm?.getSelectedId() == componentId,
 			(isNowSelected) => {
 				isSelected.value = isNowSelected;
-			}
+			},
 		);
-		watch(() => evaluatedFields, () => {
-			isSelected.value = false;
-		}, {deep: true});
+		watch(
+			() => evaluatedFields,
+			() => {
+				isSelected.value = false;
+			},
+			{ deep: true },
+		);
 
 		const isChildless = computed(() => children.value.length == 0);
-		const isVisible = computed(() => isComponentVisible(componentId, instancePath));
+		const isVisible = computed(() =>
+			isComponentVisible(componentId, instancePath),
+		);
 
-		const getHandlerCallable = (handlerFunctionName: string, isBinding: boolean) => {
+		const getHandlerCallable = (
+			handlerFunctionName: string,
+			isBinding: boolean,
+		) => {
 			const isForwardable = !handlerFunctionName.startsWith("$");
 			if (isForwardable && !isBinding) {
 				return (ev: Event) => {
-
 					// Only include payload if there's a function waiting for it on the other side
 
-					let includePayload = false ;
+					let includePayload = false;
 
-					if (userFunctions.value.some(uf => uf.name == handlerFunctionName && uf.args.includes("payload"))) {
+					if (
+						userFunctions.value.some(
+							(uf) =>
+								uf.name == handlerFunctionName &&
+								uf.args.includes("payload"),
+						)
+					) {
 						includePayload = true;
 					}
 					ss.forwardEvent(ev, instancePath, includePayload);
-				}
+				};
 			}
 			if (handlerFunctionName.startsWith("$goToPage_")) {
-				const pageKey = handlerFunctionName.substring("$goToPage_".length);
+				const pageKey = handlerFunctionName.substring(
+					"$goToPage_".length,
+				);
 				return (ev: Event) => ss.setActivePageFromKey(pageKey);
 			}
 			return null;
@@ -156,20 +179,28 @@ export default {
 
 			// Handle event handlers
 
-			const handledEventTypes = Object.keys(component.value.handlers ?? {});
-			const boundEventTypes = component.value.binding ? [component.value.binding.eventType] : [];
-			const eventTypes = Array.from(new Set([...handledEventTypes, ...boundEventTypes]));
+			const handledEventTypes = Object.keys(
+				component.value.handlers ?? {},
+			);
+			const boundEventTypes = component.value.binding
+				? [component.value.binding.eventType]
+				: [];
+			const eventTypes = Array.from(
+				new Set([...handledEventTypes, ...boundEventTypes]),
+			);
 
-			eventTypes.forEach(eventType => {
+			eventTypes.forEach((eventType) => {
 				const eventKey = `on${eventType
-						.charAt(0)
-						.toUpperCase()}${eventType.slice(1)}`;
-				const isBinding = eventType === component.value.binding?.eventType;
+					.charAt(0)
+					.toUpperCase()}${eventType.slice(1)}`;
+				const isBinding =
+					eventType === component.value.binding?.eventType;
 				props[eventKey] = (ev: Event) => {
 					if (isBinding) {
 						ss.forwardEvent(ev, instancePath, true);
 					}
-					const handlerFunction = component.value.handlers?.[eventType]; 
+					const handlerFunction =
+						component.value.handlers?.[eventType];
 					if (handlerFunction) {
 						getHandlerCallable(handlerFunction, isBinding)?.(ev);
 					}
@@ -181,7 +212,7 @@ export default {
 
 		const fieldBasedStyleVars = computed(() => {
 			const fields = ss.getComponentDefinition(
-				component.value.type
+				component.value.type,
 			)?.fields;
 			if (!fields) return;
 			const styleVars = {};
@@ -196,14 +227,18 @@ export default {
 		const fieldBasedCssClasses = computed(() => {
 			const CSS_CLASSES_FIELD_KEY = "cssClasses";
 			const fields = ss.getComponentDefinition(
-				component.value.type
+				component.value.type,
 			)?.fields;
 			if (!fields) return;
-			if (!fields[CSS_CLASSES_FIELD_KEY] || !evaluatedFields[CSS_CLASSES_FIELD_KEY]) return;
-			const cssStr:string = evaluatedFields[CSS_CLASSES_FIELD_KEY].value;
-			const cssClassesArr = cssStr?.split(" ").map(s => s.trim());
+			if (
+				!fields[CSS_CLASSES_FIELD_KEY] ||
+				!evaluatedFields[CSS_CLASSES_FIELD_KEY]
+			)
+				return;
+			const cssStr: string = evaluatedFields[CSS_CLASSES_FIELD_KEY].value;
+			const cssClassesArr = cssStr?.split(" ").map((s) => s.trim());
 			const cssClasses = {};
-			cssClassesArr.forEach(key => {
+			cssClassesArr.forEach((key) => {
 				cssClasses[key] = true;
 			});
 			return cssClasses;
@@ -217,7 +252,7 @@ export default {
 					selected: isSelected.value,
 					disabled: isDisabled.value,
 					beingEdited: isBeingEdited.value,
-					...fieldBasedCssClasses.value
+					...fieldBasedCssClasses.value,
 				},
 				style: {
 					...fieldBasedStyleVars.value,
@@ -250,7 +285,7 @@ export default {
 				const vnodes = getChildrenVNodes(
 					instanceNumber,
 					componentFilter,
-					positionlessSlot
+					positionlessSlot,
 				);
 				return vnodes;
 			};

@@ -1,9 +1,9 @@
 <template>
 	<BaseContainer
 		class="CoreHorizontalStack"
-		:contentHAlign="fields.contentHAlign.value"
-		contentVAlign="center"
-		:contentPadding="fields.contentPadding.value"
+		:content-h-align="fields.contentHAlign.value"
+		content-v-align="center"
+		:content-padding="fields.contentPadding.value"
 		:is-horizontal="true"
 	>
 		<slot></slot>

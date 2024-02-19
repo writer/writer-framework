@@ -1,5 +1,5 @@
 <template>
-	<div class="CorePage" ref="rootEl">
+	<div ref="rootEl" class="CorePage">
 		<div class="sidebarContainer">
 			<slot
 				:component-filter="(c: Component) => c.type == 'sidebar'"

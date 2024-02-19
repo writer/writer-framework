@@ -4,7 +4,7 @@
 			<div class="title">
 				<h2>Empty {{ definition.name }}</h2>
 			</div>
-			<div class="message" v-if="message">
+			<div v-if="message" class="message">
 				{{ message }}
 			</div>
 		</div>
@@ -25,12 +25,12 @@ const props = defineProps<Props>();
 const { componentId } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));
 const definition = computed(() =>
-	ss.getComponentDefinition(component.value.type)
+	ss.getComponentDefinition(component.value.type),
 );
 
 const typesToMessage = (
 	types: Component["type"][],
-	lastJoiner: "or" | "and"
+	lastJoiner: "or" | "and",
 ) => {
 	const definitions = types.map((type) => ss.getComponentDefinition(type));
 	const names = definitions.map((def) => def?.name);

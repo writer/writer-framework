@@ -62,7 +62,7 @@ watch(
 	(appName: string) => {
 		updateTitle(appName);
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 function updateTitle(appName: string) {

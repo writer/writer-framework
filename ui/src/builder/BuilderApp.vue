@@ -2,7 +2,7 @@
 	<div class="BuilderApp" tabindex="-1">
 		<div class="mainGrid">
 			<BuilderHeader class="builderHeader"></BuilderHeader>
-			<div class="sidebar" v-if="builderMode !== 'preview'">
+			<div v-if="builderMode !== 'preview'" class="sidebar">
 				<BuilderSidebar></BuilderSidebar>
 			</div>
 			<div
@@ -20,11 +20,11 @@
 								ssbm.isSelectionActive() &&
 								!ssbm.isSettingsBarCollapsed(),
 						}"
-						v-on:dragover="handleRendererDragover"
-						v-on:dragstart="handleRendererDragStart"
-						v-on:dragend="handleRendererDragEnd"
-						v-on:drop="handleRendererDrop"
-						v-on:click.capture="handleRendererClick"
+						@dragover="handleRendererDragover"
+						@dragstart="handleRendererDragStart"
+						@dragend="handleRendererDragEnd"
+						@drop="handleRendererDrop"
+						@click.capture="handleRendererClick"
 					>
 					</ComponentRenderer>
 				</div>
@@ -34,9 +34,9 @@
 						<div
 							v-if="ssbm.isSelectionActive()"
 							class="settingsHiderTab"
-							v-on:click="
+							@click="
 								ssbm.setSettingsBarCollapsed(
-									!ssbm.isSettingsBarCollapsed()
+									!ssbm.isSettingsBarCollapsed(),
 								)
 							"
 						>
@@ -50,17 +50,17 @@
 							></i>
 						</div>
 						<div
+							v-if="ssbm.isSelectionActive()"
+							:key="selectedId ?? 'noneSelected'"
 							class="settingsBar"
 							:class="{
 								collapsed: ssbm.isSettingsBarCollapsed(),
 							}"
-							:key="selectedId ?? 'noneSelected'"
-							v-if="ssbm.isSelectionActive()"
 						>
 							<BuilderSettings></BuilderSettings>
 						</div>
 
-						<div class="codeBar" v-show="builderMode == 'code'">
+						<div v-show="builderMode == 'code'" class="codeBar">
 							<BuilderEditor></BuilderEditor>
 						</div>
 					</div>
@@ -71,14 +71,14 @@
 
 		<template v-if="builderMode !== 'preview'">
 			<BuilderInstanceTracker
-				class="shortcutsTracker"
 				v-if="ssbm.isSelectionActive()"
 				:key="selectedInstancePath"
+				class="shortcutsTracker"
 				:instance-path="selectedInstancePath"
 				:vertical-offset-pixels="-48"
 				data-streamsync-cage
-				v-on:dragstart="handleRendererDragStart"
-				v-on:dragend="handleRendererDragEnd"
+				@dragstart="handleRendererDragStart"
+				@dragend="handleRendererDragEnd"
 			>
 				<BuilderComponentShortcuts
 					draggable="true"
@@ -88,24 +88,24 @@
 			</BuilderInstanceTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
+					:key="candidateInstancePath"
 					class="insertionOverlayTracker"
 					:is-off-bounds-allowed="true"
-					:key="candidateInstancePath"
 					:instance-path="candidateInstancePath"
 					:match-size="true"
 				>
 					<BuilderInsertionOverlay></BuilderInsertionOverlay>
 				</BuilderInstanceTracker>
 				<BuilderInstanceTracker
-					class="insertionLabelTracker"
 					:key="candidateInstancePath"
+					class="insertionLabelTracker"
 					:instance-path="candidateInstancePath"
 					:vertical-offset-pixels="-48"
 				>
 					<BuilderInsertionLabel>
 						{{
 							ss.getComponentDefinition(
-								ss.getComponentById(candidateId).type
+								ss.getComponentById(candidateId).type,
 							).name
 						}}
 					</BuilderInsertionLabel>
@@ -252,7 +252,7 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]"
+		"[data-streamsync-id]",
 	);
 	if (!targetEl) return;
 	const targetId = targetEl.dataset.streamsyncId;
@@ -267,7 +267,7 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]"
+		"[data-streamsync-id]",
 	);
 
 	const componentId = targetEl.dataset.streamsyncId;
@@ -275,7 +275,7 @@ const handleRendererDragStart = (ev: DragEvent) => {
 
 	ev.dataTransfer.setData(
 		`application/json;streamsync=${type},${componentId}`,
-		"{}"
+		"{}",
 	);
 };
 

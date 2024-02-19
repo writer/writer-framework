@@ -1,12 +1,24 @@
 <template>
-	<div class="CoreTextareaInput" ref="rootEl">
+	<div ref="rootEl" class="CoreTextareaInput">
 		<label>{{ fields.label.value }}</label>
 		<textarea
 			:value="formValue"
-			v-on:input="($event) => handleInput(($event.target as HTMLTextAreaElement).value, 'ss-change')"
-			v-on:change="($event) => handleInput(($event.target as HTMLTextAreaElement).value, 'ss-change-finish')"
 			:placeholder="fields.placeholder.value"
 			:rows="fields.rows.value"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLTextAreaElement).value,
+						'ss-change',
+					)
+			"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLTextAreaElement).value,
+						'ss-change-finish',
+					)
+			"
 		></textarea>
 	</div>
 </template>
@@ -47,7 +59,7 @@ export default {
 				init: "5",
 				default: "5",
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-change": {

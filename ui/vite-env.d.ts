@@ -1,1 +1,1 @@
-declare const STREAMSYNC_LIVE_CCT: string
+declare const STREAMSYNC_LIVE_CCT: string;

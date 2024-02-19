@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreVegaLiteChart" ref="rootEl">
+	<div ref="rootEl" class="CoreVegaLiteChart">
 		<div ref="chartTargetEl" class="target"></div>
 	</div>
 </template>
@@ -78,7 +78,7 @@ watch(
 	(spec) => {
 		if (!spec) return;
 		renderChart();
-	}
+	},
 );
 
 onMounted(() => {
@@ -99,5 +99,4 @@ onMounted(() => {
 .target {
 	overflow: hidden;
 }
-
 </style>

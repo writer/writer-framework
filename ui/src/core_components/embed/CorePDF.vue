@@ -1,8 +1,14 @@
 <template>
 	<div class="CorePDF">
-		<object class="pdf" :data="fields.source.value" :key="fields.source.value" type="application/pdf">
+		<object
+			:key="fields.source.value"
+			class="pdf"
+			:data="fields.source.value"
+			type="application/pdf"
+		>
 			<p>
-				You're not authorised to embed in the browser or you don't have PDF plugin
+				You're not authorised to embed in the browser or you don't have
+				PDF plugin
 				<a :href="fields.source.value">download the PDF file. </a>
 			</p>
 		</object>
@@ -10,12 +16,11 @@
 	</div>
 </template>
 
-<script lang='ts'>
+<script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
-const description =
-	"A component to embed a PDF document.";
+const description = "A component to embed a PDF document.";
 
 export default {
 	streamsync: {
@@ -43,9 +48,9 @@ const fields = inject(injectionKeys.evaluatedFields);
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CorePDF {
-  position: relative;
-  width: 100%;
-  height: 80vh;
+	position: relative;
+	width: 100%;
+	height: 80vh;
 }
 
 .CorePDF.beingEdited:not(.selected) object {
@@ -53,29 +58,28 @@ const fields = inject(injectionKeys.evaluatedFields);
 }
 
 .CorePDF .pdf {
-  width: 100%;
-  height: 100%;
-  display: block;
-  margin: auto;
-  border: 1px solid var(--separatorColor);
+	width: 100%;
+	height: 100%;
+	display: block;
+	margin: auto;
+	border: 1px solid var(--separatorColor);
 }
 
 .CorePDF .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 
 .CorePDF.beingEdited .mask {
-  pointer-events: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0);
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0);
 }
 
 .CorePDF.beingEdited.selected .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 </style>
-

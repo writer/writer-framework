@@ -2,8 +2,8 @@
 	<section class="CoreSection">
 		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
 		<BaseContainer
-			:contentHAlign="fields.contentHAlign.value"
-			:contentPadding="fields.contentPadding.value"
+			:content-h-align="fields.contentHAlign.value"
+			:content-padding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -54,7 +54,7 @@ export default {
 			buttonShadow,
 			contentPadding: {
 				...contentPadding,
-				default: "16px"
+				default: "16px",
 			},
 			contentHAlign,
 			cssClasses,

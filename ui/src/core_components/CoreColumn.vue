@@ -9,14 +9,14 @@
 			collapsed: isCollapsed,
 		}"
 	>
-		<div class="header" v-if="fields.title.value || isCollapsible">
-			<div class="titleContainer" v-if="!isCollapsed">
+		<div v-if="fields.title.value || isCollapsible" class="header">
+			<div v-if="!isCollapsed" class="titleContainer">
 				<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
 			</div>
 			<div
-				class="collapser"
-				v-on:click="toggleCollapsed"
 				v-if="isCollapsible"
+				class="collapser"
+				@click="toggleCollapsed"
 			>
 				<IconGen
 					class="collapserArrow"
@@ -24,16 +24,16 @@
 				></IconGen>
 			</div>
 		</div>
-		<div class="collapsedTitle" v-if="isCollapsed && fields.title.value">
+		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
 			<div class="transformed">
 				<div class="content">{{ fields.title.value }}</div>
 			</div>
 		</div>
 		<BaseContainer
 			class="container"
-			:contentHAlign="fields.contentHAlign.value"
-			:contentVAlign="fields.contentVAlign.value"
-			:contentPadding="fields.contentPadding.value"
+			:content-h-align="fields.contentHAlign.value"
+			:content-v-align="fields.contentVAlign.value"
+			:content-padding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -168,6 +168,7 @@ const columnsData: ComputedRef<Ref> = computed(() => {
 		const columnsData = instanceData.at(i);
 		return columnsData;
 	}
+	return null;
 });
 
 const position = computed(() => ss.getComponentById(componentId)?.position);

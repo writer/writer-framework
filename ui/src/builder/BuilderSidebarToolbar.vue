@@ -9,13 +9,18 @@
 				v-for="(categoryData, category) in categoriesData"
 				:key="category"
 			>
-				<div class="category" v-if="categoryData.isVisible !== false">
+				<div v-if="categoryData.isVisible !== false" class="category">
 					<div class="title">
 						<i :class="categoryData.icon ?? 'ri-question-line'"></i>
 						<h4>{{ category }}</h4>
 
-						<div class="drop-arrow" v-on:click="toggleCollapseCategory(category)">
-							<i class="ri-xl" :class="
+						<div
+							class="drop-arrow"
+							@click="toggleCollapseCategory(category)"
+						>
+							<i
+								class="ri-xl"
+								:class="
 									categoryData.isCollapsed
 										? 'ri-arrow-drop-down-line'
 										: 'ri-arrow-drop-up-line'
@@ -24,7 +29,7 @@
 						</div>
 					</div>
 
-					<div class="components" v-show="!categoryData.isCollapsed">
+					<div v-show="!categoryData.isCollapsed" class="components">
 						<div
 							v-for="(
 								definition, type
@@ -34,8 +39,8 @@
 							:title="definition.description"
 							draggable="true"
 							:data-component-type="type"
-							v-on:dragend="handleDragEnd($event)"
-							v-on:dragstart="handleDragStart($event, type)"
+							@dragend="handleDragEnd($event)"
+							@dragstart="handleDragStart($event, type)"
 						>
 							{{ definition.name ?? type }}
 							<i
@@ -67,7 +72,7 @@ type CategoryData = {
 	icon?: string;
 };
 
-const categoriesData:Ref<Record<string, CategoryData>> = ref({
+const categoriesData: Ref<Record<string, CategoryData>> = ref({
 	Root: {
 		isVisible: false,
 	},
@@ -94,8 +99,8 @@ const categoriesData:Ref<Record<string, CategoryData>> = ref({
 });
 
 function toggleCollapseCategory(categoryId: string) {
-	const categoryData = categoriesData.value[categoryId]; 
-	categoryData.isCollapsed = !categoryData.isCollapsed; 
+	const categoryData = categoriesData.value[categoryId];
+	categoryData.isCollapsed = !categoryData.isCollapsed;
 }
 
 const definitionsByDisplayCategory = computed(() => {

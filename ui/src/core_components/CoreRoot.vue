@@ -1,6 +1,6 @@
 <template>
-	<div class="CoreRoot" data-streamsync-container ref="rootEl">
-		<template v-for="vnode in getChildrenVNodes()">
+	<div ref="rootEl" class="CoreRoot" data-streamsync-container>
+		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
 			<component
 				:is="vnode"
 				v-if="vnode.key === `${activePageId}:0`"
@@ -70,24 +70,22 @@ export default {
 import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
 import injectionKeys from "../injectionKeys";
 
-const importedModulesSpecifiers:Record<string, string> = {};
+const importedModulesSpecifiers: Record<string, string> = {};
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
-const {isComponentVisible} = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(ss);
 
 const getFirstPageId = () => {
 	const pageComponents = ss.getComponents("root", true);
 	if (pageComponents.length == 0) return null;
-	const visiblePages = pageComponents.filter((c) =>
-		isComponentVisible(c.id)
-	);
+	const visiblePages = pageComponents.filter((c) => isComponentVisible(c.id));
 	if (visiblePages.length == 0) return null;
 	return visiblePages[0].id;
 };
 
-const hashRegex = /^((?<pageKey>[^\/]*))?(\/(?<routeVars>.*))?$/;
+const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
 const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
 const activePageId = computed(() => ss.getActivePageId() ?? getFirstPageId());
 
@@ -150,7 +148,7 @@ function setHash(parsedHash: ParsedHash) {
 
 				if (value === null) return null;
 				return `${encodeURIComponent(key)}=${encodeURIComponent(
-					value
+					value,
 				)}`;
 			})
 			.filter((segment) => segment)
@@ -185,36 +183,46 @@ function handleHashChange() {
 }
 
 async function importStylesheet(stylesheetKey: string, path: string) {
-	const existingEl = document.querySelector(`[data-streamsync-stylesheet-key="${stylesheetKey}"]`);
+	const existingEl = document.querySelector(
+		`[data-streamsync-stylesheet-key="${stylesheetKey}"]`,
+	);
 	existingEl?.remove();
 	const el = document.createElement("link");
 	el.dataset.streamsyncStylesheetKey = stylesheetKey;
-  el.setAttribute('href', path)
-  el.setAttribute("rel", "stylesheet");
-  document.head.appendChild(el);
+	el.setAttribute("href", path);
+	el.setAttribute("rel", "stylesheet");
+	document.head.appendChild(el);
 }
 
 async function importScript(scriptKey: string, path: string) {
-	const existingEl = document.querySelector(`[data-streamsync-script-key="${scriptKey}"]`);
+	const existingEl = document.querySelector(
+		`[data-streamsync-script-key="${scriptKey}"]`,
+	);
 	existingEl?.remove();
 	const el = document.createElement("script");
 	el.dataset.streamsyncScriptKey = scriptKey;
-  el.src = path;
-  el.setAttribute("rel", "modulepreload");
-  document.head.appendChild(el);
+	el.src = path;
+	el.setAttribute("rel", "modulepreload");
+	document.head.appendChild(el);
 }
 
 async function importModule(moduleKey: string, specifier: string) {
 	importedModulesSpecifiers[moduleKey] = specifier;
-	await import(/* @vite-ignore */specifier);
+	await import(/* @vite-ignore */ specifier);
 }
 
-async function handleFunctionCall(moduleKey: string, functionName: string, args: any[]) {
+async function handleFunctionCall(
+	moduleKey: string,
+	functionName: string,
+	args: any[],
+) {
 	const specifier = importedModulesSpecifiers[moduleKey];
-	const m = await import(/* @vite-ignore */specifier);
+	const m = await import(/* @vite-ignore */ specifier);
 
 	if (!m) {
-		console.warn(`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`);
+		console.warn(
+			`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`,
+		);
 		return;
 	}
 	m[functionName](...args);
@@ -233,7 +241,7 @@ function addMailSubscriptions() {
 			el.href = mailItem.data;
 			el.download = mailItem.fileName;
 			el.click();
-		}
+		},
 	);
 	ss.addMailSubscription("openUrl", (url: string) => {
 		const el = document.createElement("a");
@@ -249,31 +257,45 @@ function addMailSubscriptions() {
 		"routeVarsChange",
 		(routeVars: Record<string, string>) => {
 			changeRouteVarsInHash(routeVars);
-		}
+		},
 	);
 	ss.addMailSubscription(
 		"importStylesheet",
-		({stylesheetKey, path}:{stylesheetKey: string, path: string}) => {
+		({ stylesheetKey, path }: { stylesheetKey: string; path: string }) => {
 			importStylesheet(stylesheetKey, path);
-		}
+		},
 	);
 	ss.addMailSubscription(
 		"importScript",
-		({scriptKey, path}:{scriptKey: string, path: string}) => {
+		({ scriptKey, path }: { scriptKey: string; path: string }) => {
 			importScript(scriptKey, path);
-		}
+		},
 	);
 	ss.addMailSubscription(
 		"importModule",
-		({ moduleKey, specifier }:{moduleKey: string, specifier: string}) => {
+		({
+			moduleKey,
+			specifier,
+		}: {
+			moduleKey: string;
+			specifier: string;
+		}) => {
 			importModule(moduleKey, specifier);
-		}
+		},
 	);
 	ss.addMailSubscription(
 		"functionCall",
-		({ moduleKey, functionName, args }:{moduleKey: string, functionName: string, args: any[]}) => {
+		({
+			moduleKey,
+			functionName,
+			args,
+		}: {
+			moduleKey: string;
+			functionName: string;
+			args: any[];
+		}) => {
 			handleFunctionCall(moduleKey, functionName, args);
-		}
+		},
 	);
 }
 
