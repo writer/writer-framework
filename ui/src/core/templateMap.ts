@@ -42,6 +42,8 @@ import CoreMetric from "../core_components/CoreMetric.vue";
 import CoreMessage from "../core_components/CoreMessage.vue";
 import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
 
+import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
+
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
 
@@ -68,6 +70,7 @@ const templateMap = {
 	pdf: CorePDF,
 	iframe: CoreIFrame,
 	googlemaps: CoreGoogleMaps,
+	mapbox: CoreMapbox,
 	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,

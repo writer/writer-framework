@@ -1,0 +1,207 @@
+<template>
+	<div ref="rootEl" class="CoreMapbox">
+		<div ref="mapEl" class="map" />
+		<div class="mask" />
+	</div>
+</template>
+
+<script lang="ts">
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
+import * as mapboxgl from "mapbox-gl";
+
+const markersDefaultData = [
+	{ lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker" },
+];
+
+export default {
+	streamsync: {
+		name: "Mapbox",
+		description:
+			"A component to embed a Mapbox map. It can be used to display a map with markers.",
+		docs: "For this component you need Mapbox access token: https://www.mapbox.com/api-documentation/#access-tokens-and-token-scopes",
+		category: "Embed",
+		fields: {
+			accessToken: {
+				name: "Access Token",
+				default: "",
+				desc: "Access token from Mapbox",
+				type: FieldType.Text,
+			},
+			mapStyle: {
+				name: "Map style",
+				default: "mapbox://styles/mapbox/standard",
+				type: FieldType.Text,
+				desc: "Map style URL",
+			},
+			zoom: {
+				name: "Zoom",
+				default: "8",
+				type: FieldType.Number,
+			},
+			lat: {
+				name: "Latitude",
+				default: "37.79322359164316",
+				type: FieldType.Number,
+			},
+			lng: {
+				name: "Longitude",
+				default: "-122.39999318828129",
+				type: FieldType.Number,
+			},
+			markers: {
+				name: "Markers",
+				default: JSON.stringify(markersDefaultData, null, 2),
+				desc: "",
+				type: FieldType.Object,
+			},
+			cssClasses,
+		},
+		events: {
+			"mapbox-marker-click": {
+				desc: "Capture single clicks on markers.",
+			},
+			"mapbox-click": {
+				desc: "Capture single click on map.",
+			},
+		},
+	},
+};
+</script>
+
+<script setup lang="ts">
+import "mapbox-gl/dist/mapbox-gl.css";
+import { inject, ref, watch, computed } from "vue";
+import injectionKeys from "../../injectionKeys";
+const fields = inject(injectionKeys.evaluatedFields);
+const rootEl = ref(null);
+const mapEl = ref(null);
+const center = computed<mapboxgl.LngLatLike>(() => [
+	fields.lng.value,
+	fields.lat.value,
+]);
+let map = null;
+let markers: mapboxgl.Marker[] = [];
+
+const initMap = async () => {
+	if (!mapEl.value) return;
+	if (!fields.accessToken.value) return;
+	const mapboxgl = await import("mapbox-gl");
+	try {
+		// This line is according to docs but it doesn't work
+		mapboxgl.accessToken = fields.accessToken.value;
+		// Following works
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		if ((mapboxgl as any).default) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(mapboxgl as any).default.accessToken = fields.accessToken.value;
+		}
+		map = new mapboxgl.Map({
+			container: mapEl.value,
+			style: fields.mapStyle.value,
+			center: center.value,
+			zoom: fields.zoom.value,
+		});
+		map.on("click", (e) => {
+			const event = new CustomEvent("mapbox-click", {
+				detail: {
+					payload: {
+						lat: e.lngLat.lat,
+						lng: e.lngLat.lng,
+					},
+				},
+			});
+			rootEl.value.dispatchEvent(event);
+		});
+		map.addControl(new mapboxgl.NavigationControl());
+		if (fields.markers.value) {
+			map.on("load", renderMarkers);
+		}
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+const renderMarkers = async () => {
+	if (!map) return;
+	const mapboxgl = await import("mapbox-gl");
+	markers.forEach((marker) => marker.remove());
+	markers = [];
+	fields.markers.value.forEach(
+		(markerData: { lat: number; lng: number; name: string }) => {
+			const marker = new mapboxgl.Marker()
+				.setLngLat([markerData.lng, markerData.lat])
+				.addTo(map)
+				.setPopup(new mapboxgl.Popup().setText(markerData.name));
+			markers.push(marker);
+			marker.getElement().addEventListener("click", (e) => {
+				const event = new CustomEvent("gmap-click", {
+					detail: {
+						payload: markerData,
+					},
+				});
+				rootEl.value.dispatchEvent(event);
+				e.stopPropagation();
+			});
+		},
+	);
+};
+
+watch(fields.markers, async () => {
+	if (map) {
+		await renderMarkers();
+	}
+});
+watch(fields.mapStyle, () => {
+	if (map) {
+		map.setStyle(fields.mapStyle.value);
+	}
+});
+watch(center, () => {
+	if (map) {
+		map.setCenter(center.value);
+	}
+});
+watch(fields.zoom, () => {
+	if (map) {
+		map.setZoom(fields.zoom.value);
+	}
+});
+watch(fields.accessToken, initMap);
+watch(mapEl, initMap);
+</script>
+
+<style>
+.mapboxgl-marker {
+	cursor: pointer;
+}
+</style>
+
+<style scoped>
+.CoreMapbox {
+	position: relative;
+	width: 100%;
+	height: 80vh;
+}
+
+.CoreMapbox .map {
+	width: 100%;
+	height: 100%;
+}
+.CoreMapbox .mask {
+	pointer-events: none;
+}
+
+.CoreMapbox.beingEdited .mask {
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.CoreMapbox.beingEdited.selected .mask {
+	pointer-events: none;
+}
+</style>
