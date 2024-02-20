@@ -7,7 +7,7 @@
 		}"
 	>
 		<div class="collapserContainer">
-			<div class="collapser" v-on:click="toggleCollapsed">
+			<div class="collapser" @click="toggleCollapsed">
 				<IconGen
 					class="collapserArrow"
 					icon-key="collapseArrow"

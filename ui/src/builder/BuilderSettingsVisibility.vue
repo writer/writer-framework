@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderSettingsVisibility" v-if="ssbm.isSelectionActive()">
+	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsVisibility">
 		<div class="sectionTitle">
 			<i class="ri-eye-line ri-xl"></i>
 			<h3>Visibility</h3>
@@ -13,40 +13,46 @@
 							typeof component.visible == 'undefined' ||
 							component.visible === true,
 					}"
-					v-on:click="() => setVisibleValue(component.id, true)"
+					@click="() => setVisibleValue(component.id, true)"
 				>
 					Yes
 				</div>
 				<div
 					class="chip"
 					:class="{ active: component.visible === false }"
-					v-on:click="() => setVisibleValue(component.id, false)"
+					@click="() => setVisibleValue(component.id, false)"
 				>
 					No
 				</div>
 				<div
 					class="chip"
 					:class="{ active: typeof component.visible === 'string' }"
-					v-on:click="() => setVisibleValue(component.id, '')"
+					@click="() => setVisibleValue(component.id, '')"
 				>
 					Custom
 				</div>
 			</div>
 			<div
-				class="fieldWrapper"
 				v-if="typeof component.visible === 'string'"
+				class="fieldWrapper"
 			>
 				<span class="name">Visibility value</span>
 				<input
 					:value="component.visible"
-					v-on:input="(ev:Event) => setVisibleValue(component.id, (ev.target as HTMLInputElement).value)"
 					type="text"
 					class="content"
 					placeholder="my_visibility_state_value"
+					@input="
+						(ev: Event) =>
+							setVisibleValue(
+								component.id,
+								(ev.target as HTMLInputElement).value,
+							)
+					"
 				/>
 				<div class="desc">
-					Reference a state or context element that will evaluate to true or
-					false. Reference the element directly, i.e. use
+					Reference a state or context element that will evaluate to
+					true or false. Reference the element directly, i.e. use
 					"my_var" instead of "@{my_var}".
 				</div>
 			</div>

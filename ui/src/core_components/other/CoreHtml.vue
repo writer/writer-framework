@@ -66,7 +66,9 @@ export default {
 		return () => {
 			let insideHtmlNode = undefined;
 			if (fields.htmlInside.value) {
-				insideHtmlNode = h("div", { innerHTML: fields.htmlInside.value })
+				insideHtmlNode = h("div", {
+					innerHTML: fields.htmlInside.value,
+				});
 			}
 			return h(
 				fields.element.value,
@@ -75,7 +77,7 @@ export default {
 					"data-streamsync-container": "",
 					style: fields.styles.value,
 				},
-				[slots.default({}), insideHtmlNode]
+				[slots.default({}), insideHtmlNode],
 			);
 		};
 	},

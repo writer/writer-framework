@@ -1,11 +1,7 @@
 <template>
-	<div class="CoreIFrame" ref="rootEl">
-		<iframe
-      @load="handleLoad" 
-			:src="fields.src.value"
-			draggable="false"
-		/>
-    <div class="mask" />
+	<div ref="rootEl" class="CoreIFrame">
+		<iframe :src="fields.src.value" draggable="false" @load="handleLoad" />
+		<div class="mask" />
 	</div>
 </template>
 
@@ -30,7 +26,7 @@ export default {
 		fields: {
 			src: {
 				name: "Source",
-				default: '',
+				default: "",
 				desc: "A valid URL",
 				type: FieldType.Text,
 			},
@@ -50,7 +46,7 @@ export default {
 import { Ref, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
-const rootEl:Ref<HTMLElement> = ref(null); 
+const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
 function handleLoad() {
@@ -63,38 +59,38 @@ function handleLoad() {
 @import "../../renderer/sharedStyles.css";
 
 .CoreIFrame {
-  position: relative;
-  width: 100%;
-  height: 80vh;
+	position: relative;
+	width: 100%;
+	height: 80vh;
 }
 
 .CoreIFrame.beingEdited:not(.selected) iframe {
-    pointer-events: none;
+	pointer-events: none;
 }
 
-.CoreIFrame  iframe {
-  width: 100%;
-  height: 100%;
-  display: block;
-  margin: auto;
-  border: 1px solid var(--separatorColor);
+.CoreIFrame iframe {
+	width: 100%;
+	height: 100%;
+	display: block;
+	margin: auto;
+	border: 1px solid var(--separatorColor);
 }
 
 .CoreIFrame .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 
 .CoreIFrame.beingEdited .mask {
-  pointer-events: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0);
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0);
 }
 
 .CoreIFrame.beingEdited.selected .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 </style>

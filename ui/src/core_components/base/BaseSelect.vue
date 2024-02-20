@@ -1,23 +1,23 @@
 <template>
 	<div
-		class="BaseSelect"
+		:id="baseId"
 		ref="rootEl"
-		v-on:keydown="handleKeydown"
-		v-on:click="handleClick"
-		v-on:focusout="handleFocusOut"
+		class="BaseSelect"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
 		role="listbox"
-		:id="baseId"
 		:aria-activedescendant="
 			highlightedOffset
 				? `${baseId}-option-${highlightedOffset}`
 				: undefined
 		"
+		@keydown="handleKeydown"
+		@click="handleClick"
+		@focusout="handleFocusOut"
 	>
-		<div class="selectedOptions" ref="selectedOptionsEl">
-			<div class="placeholder" v-show="selectedOptions.length == 0">
+		<div ref="selectedOptionsEl" class="selectedOptions">
+			<div v-show="selectedOptions.length == 0" class="placeholder">
 				<template v-if="placeholder">{{ placeholder }}</template>
 				<template v-else-if="mode == 'multiple' && maximumCount > 0"
 					>Select up to {{ maximumCount }} option{{
@@ -32,9 +32,10 @@
 				>
 			</div>
 			<div
+				v-for="optionKey in selectedOptions"
+				:key="optionKey"
 				class="option"
 				:class="{ notFound: !options?.[optionKey] }"
-				v-for="optionKey in selectedOptions"
 				aria-selected="true"
 			>
 				<div v-if="options?.[optionKey]" class="desc" role="option">
@@ -47,38 +48,38 @@
 				<div
 					class="remove"
 					data-prevent-list="true"
-					v-on:click="removeItem(optionKey)"
 					aria-label="Remove"
+					@click="removeItem(optionKey)"
 				>
 					<i class="ri-close-line"></i>
 				</div>
 			</div>
 			<input
-				type="text"
-				v-model="activeText"
-				v-on:keydown="handleInputKeydown"
-				v-on:blur="handleInputBlur"
-				aria-autocomplete="none"
 				ref="inputEl"
+				v-model="activeText"
+				type="text"
+				aria-autocomplete="none"
 				tabindex="-1"
+				@keydown="handleInputKeydown"
+				@blur="handleInputBlur"
 			/>
 		</div>
-		<div class="list" ref="listEl" v-show="listPosition !== 'hidden'">
+		<div v-show="listPosition !== 'hidden'" ref="listEl" class="list">
 			<div
+				v-for="(option, optionKey, offset) in listOptions"
+				:id="`${baseId}-option-${offset}`"
+				:key="`${offset}-${optionKey}`"
 				class="option"
 				role="option"
 				:data-list-offset="offset"
 				data-prevent-list="true"
-				v-for="(option, optionKey, offset) in listOptions"
-				:key="`${offset}-${optionKey}`"
-				v-on:mousemove="highlightItem(offset)"
-				v-on:click="selectOption(optionKey)"
 				:class="{ highlighted: highlightedOffset == offset }"
-				:id="`${baseId}-option-${offset}`"
+				@mousemove="highlightItem(offset)"
+				@click="selectOption(optionKey)"
 			>
 				{{ option }}
 			</div>
-			<div class="empty" v-if="Object.keys(listOptions).length == 0">
+			<div v-if="Object.keys(listOptions).length == 0" class="empty">
 				<template v-if="mode == 'multiple' && isMaximumCountReached"
 					>Up to {{ maximumCount }} option{{
 						maximumCount > 1 ? "s" : ""
@@ -186,7 +187,9 @@ watch(highlightedOffset, () => {
 
 function emitChangeEvent() {
 	const optionKeys = Object.keys(options.value);
-	const validSelectedOptions = selectedOptions.value.filter(o => optionKeys.includes(o));
+	const validSelectedOptions = selectedOptions.value.filter((o) =>
+		optionKeys.includes(o),
+	);
 	emit("change", validSelectedOptions);
 }
 

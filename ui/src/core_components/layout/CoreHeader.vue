@@ -11,7 +11,11 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { accentColor, cssClasses, emptinessColor } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	cssClasses,
+	emptinessColor,
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that typically contains the main navigation elements.";

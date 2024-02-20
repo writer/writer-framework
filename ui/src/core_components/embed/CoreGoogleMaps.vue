@@ -1,19 +1,20 @@
 <template>
-	<div class="CoreGoogleMaps" ref="rootEl">
-		<div class="map" ref="mapEl" />
-    <div class="mask" />
+	<div ref="rootEl" class="CoreGoogleMaps">
+		<div ref="mapEl" class="map" />
+		<div class="mask" />
 	</div>
 </template>
 
 <script lang="ts">
+/* global google */
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
-
-const description = "A component to embed a Google Map. It can be used to display a map with markers.";
+const description =
+	"A component to embed a Google Map. It can be used to display a map with markers.";
 
 const markersDefaultData = [
-	{lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker"}
+	{ lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker" },
 ];
 
 export default {
@@ -24,19 +25,19 @@ export default {
 		fields: {
 			apiKey: {
 				name: "API Key",
-				default: '',
+				default: "",
 				desc: "API Key from Google Cloud Console",
 				type: FieldType.Text,
 			},
 			mapId: {
 				name: "Map ID",
-				default: '',
+				default: "",
 				desc: "ID of map from Google Cloud Console, needed for markers",
 				type: FieldType.Text,
 			},
 			mapType: {
 				name: "Map type",
-				default: 'roadmap',
+				default: "roadmap",
 				type: FieldType.Text,
 				desc: "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'",
 			},
@@ -78,21 +79,23 @@ export default {
 <script setup lang="ts">
 import { Ref, inject, ref, onMounted, watch, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
-import { Loader } from "@googlemaps/js-api-loader"
+import { Loader } from "@googlemaps/js-api-loader";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const mapEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
-let map : google.maps.Map | null = null;
+let map: google.maps.Map | null = null;
 let markers = [];
 
-const center = computed<{ lat: number; lng: number; }>(() => ({ lat: fields.lat.value, lng: fields.lng.value }));;
-const mapType = computed(() => (
-	['roadmap', 'satellite', 'hybrid', 'terrain'].includes(fields.mapType.value) 
-		? fields.mapType.value 
-		: 'roadmap'
-));
-
+const center = computed<{ lat: number; lng: number }>(() => ({
+	lat: fields.lat.value,
+	lng: fields.lng.value,
+}));
+const mapType = computed(() =>
+	["roadmap", "satellite", "hybrid", "terrain"].includes(fields.mapType.value)
+		? fields.mapType.value
+		: "roadmap",
+);
 
 const initMap = async () => {
 	clearMarkers();
@@ -108,7 +111,7 @@ const initMap = async () => {
 		mapId: fields.mapId.value,
 	});
 
-	map.addListener('click', (e: any) => {
+	map.addListener("click", (e: any) => {
 		const event = new CustomEvent("gmap-click", {
 			detail: {
 				payload: e.latLng.toJSON(),
@@ -118,14 +121,20 @@ const initMap = async () => {
 	});
 
 	buildMarkers();
-}
+};
 
 const buildMarkers = async () => {
 	if (!fields.mapId.value) return;
 	if (!fields.markers.value) return;
-	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+	const { AdvancedMarkerElement } = (await google.maps.importLibrary(
+		"marker",
+	)) as google.maps.MarkerLibrary;
 	clearMarkers();
-	const markersData = fields.markers.value as ({ lat: number; lng: number; name: string; }[])
+	const markersData = fields.markers.value as {
+		lat: number;
+		lng: number;
+		name: string;
+	}[];
 	markersData.forEach((markerData) => {
 		const marker = new AdvancedMarkerElement({
 			position: {
@@ -138,7 +147,7 @@ const buildMarkers = async () => {
 
 		markers.push(marker);
 
-		marker.addListener('click', () => {
+		marker.addListener("click", () => {
 			const event = new CustomEvent("gmap-marker-click", {
 				detail: {
 					payload: markerData,
@@ -178,8 +187,6 @@ watch(mapType, async (newVal) => {
 watch(fields.markers, buildMarkers);
 watch(fields.apiKey, initMap);
 watch(fields.mapId, initMap);
-
-
 </script>
 
 <style scoped>
@@ -191,28 +198,28 @@ watch(fields.mapId, initMap);
 	height: 80vh;
 }
 
-.CoreGoogleMaps .map{
-  width: 100%;
-  height: 100%;
-  display: block;
-  margin: auto;
-  border: 1px solid var(--separatorColor);
+.CoreGoogleMaps .map {
+	width: 100%;
+	height: 100%;
+	display: block;
+	margin: auto;
+	border: 1px solid var(--separatorColor);
 }
 
 .CoreGoogleMaps .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 
 .CoreGoogleMaps.beingEdited .mask {
-  pointer-events: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }
 
 .CoreGoogleMaps.beingEdited.selected .mask {
-  pointer-events: none;
+	pointer-events: none;
 }
 </style>

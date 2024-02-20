@@ -1,7 +1,7 @@
 <template>
 	<div
-		class="BuilderSettingsProperties"
 		v-if="ssbm.isSelectionActive() && fields"
+		class="BuilderSettingsProperties"
 	>
 		<div class="sectionTitle">
 			<i class="ri-equalizer-line ri-xl"></i>
@@ -10,12 +10,12 @@
 		<div>
 			<div
 				v-for="propertyCategory in fieldCategories"
-				class="propertyCategory"
 				:key="propertyCategory"
+				class="propertyCategory"
 			>
 				<div
-					class="title"
 					v-if="fieldsByCategory[propertyCategory].length > 0"
+					class="title"
 				>
 					<h4>{{ propertyCategory }}</h4>
 				</div>
@@ -31,82 +31,82 @@
 							}}<span class="type"> : {{ fieldValue.type }}</span>
 						</div>
 						<BuilderFieldsColor
+							v-if="fieldValue.type == FieldType.Color"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Color"
 						></BuilderFieldsColor>
 
 						<BuilderFieldsShadow
+							v-if="fieldValue.type == FieldType.Shadow"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Shadow"
 						></BuilderFieldsShadow>
 
 						<BuilderFieldsKeyValue
+							v-if="fieldValue.type == FieldType.KeyValue"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.KeyValue"
 						></BuilderFieldsKeyValue>
 
 						<BuilderFieldsText
-							:field-key="fieldKey"
-							:component-id="selectedComponent.id"
 							v-if="fieldValue.type == FieldType.Text"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
 						></BuilderFieldsText>
 
 						<BuilderFieldsText
-							:field-key="fieldKey"
-							:component-id="selectedComponent.id"
 							v-if="fieldValue.type == FieldType.Number"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
 						></BuilderFieldsText>
 
 						<BuilderFieldsText
+							v-if="fieldValue.type == FieldType.IdKey"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.IdKey"
 						></BuilderFieldsText>
 
 						<BuilderFieldsObject
+							v-if="fieldValue.type == FieldType.Object"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Object"
 						></BuilderFieldsObject>
 
 						<BuilderFieldsWidth
+							v-if="fieldValue.type == FieldType.Width"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Width"
 						></BuilderFieldsWidth>
 
 						<BuilderFieldsAlign
+							v-if="fieldValue.type == FieldType.HAlign"
 							class="content"
 							direction="horizontal"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.HAlign"
 						></BuilderFieldsAlign>
 
 						<BuilderFieldsAlign
+							v-if="fieldValue.type == FieldType.VAlign"
 							class="content"
 							direction="vertical"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.VAlign"
 						></BuilderFieldsAlign>
 
 						<BuilderFieldsPadding
+							v-if="fieldValue.type == FieldType.Padding"
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							v-if="fieldValue.type == FieldType.Padding"
 						></BuilderFieldsPadding>
 
-						<div class="desc" v-if="fieldValue.desc">
+						<div v-if="fieldValue.desc" class="desc">
 							{{ fieldValue.desc }}
 						</div>
 					</div>
@@ -150,10 +150,10 @@ const fieldsByCategory = computed(() => {
 		[FieldCategory.General]: entries.filter(
 			([_, fieldValue]) =>
 				!fieldValue.category ||
-				fieldValue.category == FieldCategory.General
+				fieldValue.category == FieldCategory.General,
 		),
 		[FieldCategory.Style]: entries.filter(
-			([_, fieldValue]) => fieldValue.category == FieldCategory.Style
+			([_, fieldValue]) => fieldValue.category == FieldCategory.Style,
 		),
 	};
 	return result;

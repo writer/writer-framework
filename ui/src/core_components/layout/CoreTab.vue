@@ -1,6 +1,5 @@
 <template>
 	<div
-		class="CoreTab"
 		v-show="
 			tabContainerDirectChildInstanceItem?.instanceNumber ==
 				TAB_BIT_INSTANCE_NUMBER ||
@@ -8,28 +7,29 @@
 				CONTENT_DISPLAYING_INSTANCE_NUMBER &&
 				isTabActive)
 		"
+		class="CoreTab"
 	>
 		<button
-			class="bit"
-			:class="{ active: isTabActive }"
 			v-if="
 				tabContainerDirectChildInstanceItem?.instanceNumber ==
 				TAB_BIT_INSTANCE_NUMBER
 			"
-			v-on:click="activateTab"
+			class="bit"
+			:class="{ active: isTabActive }"
 			tabindex="0"
+			@click="activateTab"
 		>
 			{{ fields.name.value }}
 		</button>
 		<BaseContainer
-			class="container"
 			v-if="
 				tabContainerDirectChildInstanceItem?.instanceNumber ==
 				CONTENT_DISPLAYING_INSTANCE_NUMBER
 			"
 			v-show="isTabActive"
-			:contentHAlign="fields.contentHAlign.value"
-			:contentPadding="fields.contentPadding.value"
+			class="container"
+			:content-h-align="fields.contentHAlign.value"
+			:content-padding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -80,7 +80,7 @@ export default {
 			},
 			contentPadding: {
 				...contentPadding,
-				default: "16px"
+				default: "16px",
 			},
 			contentHAlign,
 			cssClasses,
@@ -216,5 +216,4 @@ button.bit.active:focus {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--accentColor);
 }
-
 </style>

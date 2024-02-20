@@ -1,10 +1,16 @@
 <template>
-	<div class="CoreDropdownInput" ref="rootEl">
+	<div ref="rootEl" class="CoreDropdownInput">
 		<label class="mainLabel">{{ fields.label.value }}</label>
 		<div class="selectContainer">
 			<select
 				:value="formValue"
-				v-on:input="($event) => handleInput(($event.target as HTMLInputElement).value, 'ss-option-change')"
+				@input="
+					($event) =>
+						handleInput(
+							($event.target as HTMLInputElement).value,
+							'ss-option-change',
+						)
+				"
 			>
 				<option
 					v-for="(option, optionKey) in fields.options.value"
@@ -51,7 +57,7 @@ export default {
 				type: FieldType.KeyValue,
 				default: JSON.stringify(defaultOptions, null, 2),
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-option-change": {

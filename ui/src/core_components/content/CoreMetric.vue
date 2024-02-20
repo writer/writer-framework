@@ -1,20 +1,20 @@
 <template>
 	<div class="CoreMetric" :style="rootStyle">
-		<div class="name" v-if="fields.name.value">{{ fields.name.value }}</div>
-		<div class="description" v-if="fields.description.value">
+		<div v-if="fields.name.value" class="name">{{ fields.name.value }}</div>
+		<div v-if="fields.description.value" class="description">
 			{{ fields.description.value }}
 		</div>
 		<div class="value">{{ fields.metricValue.value }}</div>
-		<div class="note" v-if="noteWithoutPrefix">{{ noteWithoutPrefix }}</div>
+		<div v-if="noteWithoutPrefix" class="note">{{ noteWithoutPrefix }}</div>
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
-cssClasses,
+	cssClasses,
 	primaryTextColor,
-	secondaryTextColor
+	secondaryTextColor,
 } from "../../renderer/sharedStyleFields";
 
 const description =

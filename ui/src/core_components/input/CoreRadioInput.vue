@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreRadioInput" ref="rootEl">
+	<div ref="rootEl" class="CoreRadioInput">
 		<div class="main">
 			<div class="inputContainer">
 				<div class="mainLabel">{{ fields.label.value }}</div>
@@ -10,20 +10,20 @@
 					}"
 				>
 					<div
-						class="option"
 						v-for="(option, optionKey) in fields.options.value"
 						:key="optionKey"
+						class="option"
 					>
 						<input
+							:id="`${flattenedInstancePath}-option-${optionKey}`"
 							type="radio"
 							:checked="formValue === optionKey"
-							v-on:input="
+							:value="optionKey"
+							:name="`${flattenedInstancePath}-options`"
+							@input="
 								($event) =>
 									handleInput(optionKey, 'ss-option-change')
 							"
-							:value="optionKey"
-							:id="`${flattenedInstancePath}-option-${optionKey}`"
-							:name="`${flattenedInstancePath}-options`"
 						/><label
 							:for="`${flattenedInstancePath}-option-${optionKey}`"
 							>{{ option }}</label
@@ -81,7 +81,7 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Specify how to lay out the options.",
 			},
-			cssClasses
+			cssClasses,
 		},
 		events: {
 			"ss-option-change": {
@@ -105,7 +105,6 @@ const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
-
 </script>
 
 <style scoped>

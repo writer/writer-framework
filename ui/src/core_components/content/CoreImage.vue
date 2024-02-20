@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreImage" :style="rootStyle" v-on:click="handleClick" ref="rootEl">
+	<div ref="rootEl" class="CoreImage" :style="rootStyle" @click="handleClick">
 		<img
 			:src="fields.src.value"
 			:alt="fields.caption.value"
@@ -17,7 +17,10 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { cssClasses, secondaryTextColor } from "../../renderer/sharedStyleFields";
+import {
+	cssClasses,
+	secondaryTextColor,
+} from "../../renderer/sharedStyleFields";
 import { getClick } from "../../renderer/syntheticEvents";
 
 const description = "A component to display images.";
@@ -94,7 +97,7 @@ export default {
 import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
-const rootEl:Ref<HTMLElement> = ref(null); 
+const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
@@ -121,7 +124,6 @@ function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
 }
-
 </script>
 
 <style scoped>

@@ -1,36 +1,68 @@
 <template>
-	<div class="pagination" ref="rootEl">
+	<div ref="rootEl" class="pagination">
 		<div class="pagination-left">
-			<div class="pagination-pagesize" v-show="pagesizeEnabled">
+			<div v-show="pagesizeEnabled" class="pagination-pagesize">
 				<select class="pagesize-select" @change="onPageSizeChange">
-					<option v-for="o in pageSizeOptions" :value="o.value" :selected="o.value == fields.pageSize.value">{{ o.label }}</option>
+					<option
+						v-for="o in pageSizeOptions"
+						:key="o.value"
+						:value="o.value"
+						:selected="o.value == fields.pageSize.value"
+					>
+						{{ o.label }}
+					</option>
 				</select>
 			</div>
 			<div class="pagination-description">
-				Showing <span class="bold">{{ firstItem }}</span> to <span class="bold">{{ lastItem }}</span> of <span class="bold">{{ totalItem }}</span> results
+				Showing <span class="bold">{{ firstItem }}</span> to
+				<span class="bold">{{ lastItem }}</span> of
+				<span class="bold">{{ totalItem }}</span> results
 			</div>
 		</div>
 		<div class="pagination-right">
 			<div class="pagination-picker">
-				<div class="paginationpicker-block ri-arrow-left-s-line" :class="{'paginationpicker-disabled': pagePreviousDisabled}" @click="jumpTo(fields.page.value - 1)"></div>
-				<template v-for="l in links">
-					<div v-if="l == '...'" class="paginationpicker-block paginationpicker-neutral">
+				<div
+					class="paginationpicker-block ri-arrow-left-s-line"
+					:class="{
+						'paginationpicker-disabled': pagePreviousDisabled,
+					}"
+					@click="jumpTo(fields.page.value - 1)"
+				></div>
+				<template v-for="(l, index) in links" :key="index">
+					<div
+						v-if="l == '...'"
+						class="paginationpicker-block paginationpicker-neutral"
+					>
 						{{ l }}
 					</div>
-					<div v-if="l != '...' && l != fields.page.value" class="paginationpicker-block" @click="jumpTo(l)">
+					<div
+						v-if="l != '...' && l != fields.page.value"
+						class="paginationpicker-block"
+						@click="jumpTo(l)"
+					>
 						{{ l }}
 					</div>
-					<div v-if="l == fields.page.value" class="paginationpicker-block paginationpicker-currentpage">
+					<div
+						v-if="l == fields.page.value"
+						class="paginationpicker-block paginationpicker-currentpage"
+					>
 						{{ l }}
 					</div>
 				</template>
-				<div class="paginationpicker-block ri-arrow-right-s-line" :class="{'paginationpicker-disabled': pageNextDisabled}" @click="jumpTo(fields.page.value + 1)"></div>
+				<div
+					class="paginationpicker-block ri-arrow-right-s-line"
+					:class="{ 'paginationpicker-disabled': pageNextDisabled }"
+					@click="jumpTo(fields.page.value + 1)"
+				></div>
 			</div>
-			<div class="pagination-jump" v-show="jumptoEnabled">
+			<div v-show="jumptoEnabled" class="pagination-jump">
 				<label>Jump to</label>
-				<input type="text" :value="fields.page.value" @input="onJumpTo"/>
+				<input
+					type="text"
+					:value="fields.page.value"
+					@input="onJumpTo"
+				/>
 			</div>
-
 		</div>
 	</div>
 </template>
@@ -48,7 +80,6 @@ def handle_page_change(state, payload):
     state["highlighted_members"] = {r.id: r for r in records}
 `;
 
-
 const onPageSizeChangeStub = `
 def handle_page_size_change(state, payload):
     state['pageSize'] = payload
@@ -56,7 +87,7 @@ def handle_page_size_change(state, payload):
     records = _load_records_from_db(start = state["page"] * state["pageSize"], limit = state["pageSize"])
     # update a repeater
     state["highlighted_members"] = {r.id: r for r in records}
-`
+`;
 
 export default {
 	streamsync: {
@@ -88,7 +119,7 @@ export default {
 				init: "",
 				default: "",
 				type: FieldType.Text,
-				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option."
+				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option.",
 			},
 			pageSizeShowAll: {
 				name: "Show All Option",
@@ -130,45 +161,59 @@ export default {
 			},
 			"ss-change-page-size": {
 				desc: "Fires when the user change the page size.",
-				stub: onPageSizeChangeStub.trim()
-			}
-		}
-	}
+				stub: onPageSizeChangeStub.trim(),
+			},
+		},
+	},
 };
 </script>
 
 <script setup lang="ts">
-import {Ref, inject, ref, computed, watch, onUnmounted, onMounted} from "vue";
+import { Ref, inject, ref, computed, watch, onUnmounted, onMounted } from "vue";
 import injectionKeys from "../../injectionKeys";
-import {useFormValueBroker} from "../../renderer/useFormValueBroker";
+import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const ss = inject(injectionKeys.core);
 const rootEl = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 
-const {formValue: pageValue, handleInput: handlePageInput } = useFormValueBroker(ss, instancePath, rootEl);
-const {formValue: pageSizeValue, handleInput: handlePageSizeInput } = useFormValueBroker(ss, instancePath, rootEl);
-const pagesizeEnabled = computed(() => fields.pageSizeOptions.value !== "" || fields.pageSizeShowAll.value === "yes");
+const { formValue: pageValue, handleInput: handlePageInput } =
+	useFormValueBroker(ss, instancePath, rootEl);
+const { formValue: pageSizeValue, handleInput: handlePageSizeInput } =
+	useFormValueBroker(ss, instancePath, rootEl);
+const pagesizeEnabled = computed(
+	() =>
+		fields.pageSizeOptions.value !== "" ||
+		fields.pageSizeShowAll.value === "yes",
+);
 const jumptoEnabled = computed(() => fields.jumpTo.value === "yes");
 
 const firstItem = computed(() => {
-	return (fields.page.value - 1) * (fields.pageSize.value) + 1
+	return (fields.page.value - 1) * fields.pageSize.value + 1;
 });
-const lastItem = computed(() => Math.min((fields.page.value) * fields.pageSize.value, fields.totalItems.value));
+const lastItem = computed(() =>
+	Math.min(
+		fields.page.value * fields.pageSize.value,
+		fields.totalItems.value,
+	),
+);
 const totalItem = computed(() => fields.totalItems.value);
-const totalPage = computed(() => Math.ceil(parseInt(fields.totalItems.value) / parseInt(fields.pageSize.value)));
-
+const totalPage = computed(() =>
+	Math.ceil(
+		parseInt(fields.totalItems.value) / parseInt(fields.pageSize.value),
+	),
+);
 
 const pageSizeOptions = computed(() => {
-	let options = []
-	const inputs = fields.pageSizeOptions.value.split(",")
+	let options = [];
+	const inputs = fields.pageSizeOptions.value.split(",");
 	for (const o in inputs) {
-		const n = parseInt(inputs[o], 10)
-		options.push({value: n, label:`${n} items`})
+		const n = parseInt(inputs[o], 10);
+		options.push({ value: n, label: `${n} items` });
 	}
 	if (fields.pageSizeShowAll.value === "yes") {
-		options.push({value: totalItem.value, label: "All items"})
+		options.push({ value: totalItem.value, label: "All items" });
 	}
 
 	return options;
@@ -189,55 +234,55 @@ const links = computed(() => {
 		links.push(1);
 		links.push(2);
 		links.push(3);
-		links.push("...")
-		links.push(totalPage.value - 2)
-		links.push(totalPage.value - 1)
-		links.push(totalPage.value)
+		links.push("...");
+		links.push(totalPage.value - 2);
+		links.push(totalPage.value - 1);
+		links.push(totalPage.value);
 	} else if (page == 3) {
 		links.push(1);
 		links.push(2);
 		links.push(3);
 		links.push(4);
-		links.push("...")
+		links.push("...");
 		// links.push(totalPage.value - 2)
-		links.push(totalPage.value - 1)
-		links.push(totalPage.value)
+		links.push(totalPage.value - 1);
+		links.push(totalPage.value);
 	} else if (page == 4) {
 		links.push(1);
 		links.push(2);
 		links.push(3);
 		links.push(4);
-		links.push(5)
-		links.push("...")
-		links.push(totalPage.value)
+		links.push(5);
+		links.push("...");
+		links.push(totalPage.value);
 	} else if (page == totalPage.value || page == totalPage.value - 1) {
 		links.push(1);
 		links.push(2);
 		links.push(3);
 		links.push("...");
-		links.push(totalPage.value - 2)
-		links.push(totalPage.value - 1)
-		links.push(totalPage.value)
-	}else if (page == totalPage.value - 2) {
+		links.push(totalPage.value - 2);
+		links.push(totalPage.value - 1);
+		links.push(totalPage.value);
+	} else if (page == totalPage.value - 2) {
 		links.push(1);
 		links.push(2);
 		links.push("...");
-		links.push(totalPage.value - 3)
-		links.push(totalPage.value - 2)
-		links.push(totalPage.value - 1)
-		links.push(totalPage.value)
+		links.push(totalPage.value - 3);
+		links.push(totalPage.value - 2);
+		links.push(totalPage.value - 1);
+		links.push(totalPage.value);
 	} else {
-		links.push(1)
-		links.push("...")
+		links.push(1);
+		links.push("...");
 		links.push(page - 1);
 		links.push(page);
 		links.push(page + 1);
 		links.push("...");
-		links.push(totalPage.value)
+		links.push(totalPage.value);
 	}
 
 	return links;
-})
+});
 
 /**
  * Disable the previous page button if the current page is the first page.
@@ -255,36 +300,30 @@ const pageNextDisabled = computed(() => {
 	return nextPage > totalPage.value;
 });
 
-
 const onJumpTo = (event) => {
 	if (event.target.value === "") {
 		return;
 	}
-
 
 	let page = parseInt(event.target.value);
 	if (page > totalPage.value) {
 		page = totalPage.value;
 	}
 
-	handlePageInput(page, 'ss-change-page')
+	handlePageInput(page, "ss-change-page");
 };
 
 const jumpTo = (page: number) => {
-	handlePageInput(page, 'ss-change-page')
-}
-
-
+	handlePageInput(page, "ss-change-page");
+};
 
 const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
-	handlePageSizeInput(pageSize, 'ss-change-page-size')
+	handlePageSizeInput(pageSize, "ss-change-page-size");
 };
-
 
 watch(fields.page, () => {
 	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-
 	// if (fields.urlParam.value.trim() === "yes") {
 	// 	const searchURL = new URL(window.location);
 	// 	searchURL.searchParams.set("page", fields.page.value)
@@ -294,7 +333,6 @@ watch(fields.page, () => {
 
 watch(fields.pageSize, () => {
 	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-
 	// if (fields.urlParam.value.trim() === "yes") {
 	// 	const searchURL = new URL(window.location);
 	// 	searchURL.searchParams.set("pageSize", fields.pageSize.value)
@@ -306,9 +344,7 @@ onMounted(() => {
 	/**
 	 * On page load, get URL parameters and configure pagination.
 	 */
-
 	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-
 	// const searchURL = new URL(window.location);
 	//
 	// if (searchURL.searchParams.has("pageSize")) {
@@ -325,15 +361,13 @@ onMounted(() => {
 	// 		jumpTo(parseInt(page));
 	// 	}
 	// }
-})
+});
 
 onUnmounted(() => {
 	/**
 	 * When changing pages, eliminates URL parameters that are not useful on the next page.
 	 */
-
 	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-
 	// const searchURL = new URL(window.location);
 	// if (searchURL.searchParams.has("page")) {
 	// 	searchURL.searchParams.delete("page");
@@ -342,8 +376,7 @@ onUnmounted(() => {
 	// 	searchURL.searchParams.delete("pageSize");
 	// }
 	// window.history.replaceState({}, '', searchURL);
-})
-
+});
 </script>
 
 <style scoped>

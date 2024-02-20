@@ -45,7 +45,7 @@ export default {
 		const componentId = inject(injectionKeys.componentId);
 		const fields = inject(injectionKeys.evaluatedFields);
 		const renderProxiedComponent = inject(
-			injectionKeys.renderProxiedComponent
+			injectionKeys.renderProxiedComponent,
 		);
 
 		const children = computed(() => ss.getComponents(componentId, true));
@@ -55,11 +55,11 @@ export default {
 			}
 
 			const repeatedChildrenVNodes = Object.values(
-				fields.repeaterObject.value
+				fields.repeaterObject.value,
 			).map((item, itemIndex) =>
 				children.value.map((childComponent) =>
-					renderProxiedComponent(childComponent.id, itemIndex)
-				)
+					renderProxiedComponent(childComponent.id, itemIndex),
+				),
 			);
 			return repeatedChildrenVNodes;
 		};
@@ -74,7 +74,7 @@ export default {
 				children.value.length == 0 ||
 					Object.keys(fields.repeaterObject.value).length == 0
 					? slots.default({})
-					: getRepeatedChildrenVNodes()
+					: getRepeatedChildrenVNodes(),
 			);
 		};
 	},

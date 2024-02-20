@@ -1,14 +1,14 @@
 <template>
-	<div class="CoreWebcamCapture" ref="rootEl">
-		<div class="main" v-show="isActive">
-			<video autoplay="true" ref="videoEl"></video>
+	<div ref="rootEl" class="CoreWebcamCapture">
+		<div v-show="isActive" class="main">
+			<video ref="videoEl" autoplay="true"></video>
 		</div>
 		<div class="actions">
-			<button v-if="refreshRate == 0" v-on:click="sendFrame">
+			<button v-if="refreshRate == 0" @click="sendFrame">
 				Capture image
 			</button>
 
-			<button v-on:click="toggleActive">
+			<button @click="toggleActive">
 				{{ isActive ? "Stop capture" : "Start webcam capture" }}
 			</button>
 			<select v-if="videoDevices?.length > 1" v-model="preferredDeviceId">
@@ -31,7 +31,7 @@ import {
 	buttonShadow,
 	buttonTextColor,
 	cssClasses,
-	separatorColor
+	separatorColor,
 } from "../../renderer/sharedStyleFields";
 
 const description =
@@ -197,7 +197,7 @@ const startCapture = async (): Promise<void> => {
 			.catch((error) => {
 				console.error(
 					"An error occurred when trying to use the webcam.",
-					error
+					error,
 				);
 				reject();
 			});
