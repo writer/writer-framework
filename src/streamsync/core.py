@@ -16,7 +16,6 @@ import io
 import re
 import json
 import math
-import traceback as tb
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
 
 
@@ -513,7 +512,7 @@ class ComponentTree:
         root_component = Component("root", "root", {})
         self.attach(root_component)
 
-    def get_component(self, component_id: str) -> Component:
+    def get_component(self, component_id: str) -> Optional[Component]:
         return self.components.get(component_id)
 
     def get_descendents(self, parent_id: str) -> List[Component]:
@@ -559,7 +558,7 @@ class SessionComponentTree(ComponentTree):
         super().__init__()
         self.base_component_tree = base_component_tree
 
-    def get_component(self, component_id: str) -> Component:
+    def get_component(self, component_id: str) -> Optional[Component]:
         base_component = self.base_component_tree.get_component(component_id)
         if base_component:
             return base_component

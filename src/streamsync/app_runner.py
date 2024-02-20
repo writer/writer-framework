@@ -18,7 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, cast
 from watchdog.observers.polling import PollingObserver
 
 from pydantic import ValidationError
-from streamsync.core import ComponentTree, StreamsyncSession
+from streamsync.core import StreamsyncSession
 from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
                                  EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StateEnquiryRequest, StateEnquiryResponsePayload, StreamsyncEvent)
 import watchdog.observers
@@ -261,7 +261,7 @@ class AppProcess(multiprocessing.Process):
         if self.mode == "edit" and type == "componentUpdate":
             cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
                 request.payload)
-            session.component_manager.ingest(cu_req_payload.components)
+            self._handle_component_update(cu_req_payload)
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
