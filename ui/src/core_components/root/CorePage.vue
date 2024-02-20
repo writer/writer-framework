@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { Component, FieldCategory, FieldType } from "../streamsyncTypes";
+import { Component, FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	accentColor,
 	buttonColor,
@@ -36,10 +36,10 @@ import {
 	secondaryTextColor,
 	selectedColor,
 	separatorColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { onUnmounted } from "vue";
-import { getKeydown } from "../renderer/syntheticEvents";
+import { getKeydown } from "../../renderer/syntheticEvents";
 
 const ssKeydownStub = `
 def handle_keydown(state, payload):
@@ -127,7 +127,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { Ref, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
@@ -158,7 +158,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CorePage {
 	display: flex;

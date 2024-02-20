@@ -41,14 +41,14 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	contentHAlign,
 	contentPadding,
 	contentVAlign,
 	cssClasses,
 	separatorColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -116,9 +116,9 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
-import injectionKeys from "../injectionKeys";
-import IconGen from "../renderer/IconGen.vue";
-import BaseContainer from "./base/BaseContainer.vue";
+import injectionKeys from "../../injectionKeys";
+import IconGen from "../../renderer/IconGen.vue";
+import BaseContainer from "../base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
 const ss = inject(injectionKeys.core);
@@ -197,7 +197,7 @@ watch(
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreColumn {
 	min-width: 0;

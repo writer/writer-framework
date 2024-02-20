@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
+import { FieldType } from "../../streamsyncTypes";
 import {
 	accentColor,
 	cssClasses,
 	emptinessColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that typically contains the main navigation elements.";
@@ -43,13 +43,13 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreHeader {
 	display: flex;

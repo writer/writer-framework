@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldType } from "../../streamsyncTypes";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
 
@@ -56,7 +56,7 @@ export default {
 
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref, watch } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const chartTargetEl: Ref<HTMLElement> = ref(null);
@@ -147,7 +147,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CorePlotlyGraph {
 	min-height: 1px;

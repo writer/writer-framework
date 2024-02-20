@@ -53,13 +53,13 @@
 const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "../streamsyncTypes";
-import { useEvaluator } from "../renderer/useEvaluator";
+import { Component, FieldType, InstancePath } from "../../streamsyncTypes";
+import { useEvaluator } from "../../renderer/useEvaluator";
 import {
 	contentHAlign,
 	cssClasses,
 	contentPadding,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
@@ -91,8 +91,8 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject, onBeforeMount, watch } from "vue";
-import injectionKeys from "../injectionKeys";
-import BaseContainer from "./base/BaseContainer.vue";
+import injectionKeys from "../../injectionKeys";
+import BaseContainer from "../base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
@@ -196,7 +196,7 @@ onBeforeMount(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 button.bit {
 	padding: 16px 0 16px 0;
