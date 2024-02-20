@@ -3,7 +3,7 @@ import math
 from typing import Dict
 
 import numpy as np
-from streamsync.core import (BytesWrapper, ComponentManager, Evaluator, EventDeserialiser,
+from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
                              FileWrapper, SessionManager, StateProxy, StateSerialiser, StateSerialiserException, StreamsyncState)
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
@@ -49,7 +49,7 @@ with open(test_app_dir / "ui.json", "r") as f:
 ss.Config.is_mail_enabled_for_log = True
 ss.init_state(raw_state_dict)
 session = ss.session_manager.get_new_session()
-session.component_manager.ingest(sc)
+session.session_component_tree.ingest(sc)
 
 
 class TestStateProxy:
@@ -216,18 +216,18 @@ class TestState:
         json.dumps(cloned.mail)
 
 
-class TestComponentManager:
+class TestComponentTree:
 
-    cm = ComponentManager()
+    ct = ComponentTree()
 
     def test_ingest(self) -> None:
-        self.cm.ingest(sc)
-        d = self.cm.to_dict()
+        self.ct.ingest(sc)
+        d = self.ct.to_dict()
         assert d.get(
             "84378aea-b64c-49a3-9539-f854532279ee").get("type") == "header"
 
     def test_descendents(self) -> None:
-        desc = self.cm.get_descendents("root")
+        desc = self.ct.get_descendents("root")
         desc_ids = list(map(lambda x: x.id, desc))
         assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
         assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
@@ -238,7 +238,8 @@ class TestEventDeserialiser:
 
     root_instance_path = [{"componentId": "root", "instanceNumber": 0}]
     session_state = StreamsyncState(raw_state_dict)
-    ed = EventDeserialiser(session.session_id, session_state)
+    component_tree = session.session_component_tree
+    ed = EventDeserialiser(session_state, component_tree)
 
     def test_unknown_no_payload(self) -> None:
         ev = StreamsyncEvent(
@@ -599,7 +600,8 @@ class TestEvaluator:
         st = StreamsyncState({
             "counter": 8
         })
-        e = Evaluator(session.session_id, st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         evaluated = e.evaluate_field(instance_path, "text")
         assert evaluated == "The counter is 8"
 
@@ -623,7 +625,8 @@ class TestEvaluator:
                 "ts": "TypeScript"
             }
         })
-        e = Evaluator(session.session_id, st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         assert e.evaluate_field(
             instance_path_0, "text") == "The id is c and the name is C"
         assert e.evaluate_field(
@@ -634,7 +637,8 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(session.session_id, st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         e.set_state("name", instance_path, "Roger")
         e.set_state("dynamic_prop", instance_path, "height")
         e.set_state("features[dynamic_prop]", instance_path, "toddler height")
@@ -648,7 +652,8 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(session.session_id, st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"

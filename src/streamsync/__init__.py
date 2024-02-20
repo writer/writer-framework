@@ -1,10 +1,11 @@
 import importlib.metadata
 from typing import Union, Optional, Dict, Any
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config
-from streamsync.core import initial_state, session_manager, session_verifier
+from streamsync.core import initial_state, base_component_tree, session_manager, session_verifier
 
 VERSION = importlib.metadata.version("streamsync")
 
+base_component_tree
 session_manager
 Config
 session_verifier
