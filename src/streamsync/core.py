@@ -769,13 +769,16 @@ class Evaluator:
 
         component_id = instance_path[-1]["componentId"]
         component = self.ct.get_component(component_id)
-        field_value = component.content.get(field_key) or default_field_value
-        replaced = self.template_regex.sub(replacer, field_value)
+        if component:
+            field_value = component.content.get(field_key) or default_field_value
+            replaced = self.template_regex.sub(replacer, field_value)
 
-        if as_json:
-            return json.loads(replaced)
+            if as_json:
+                return json.loads(replaced)
+            else:
+                return replaced
         else:
-            return replaced
+            raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
 
     def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
         context: Dict[str, Any] = {}
@@ -783,6 +786,8 @@ class Evaluator:
             path_item = instance_path[i]
             component_id = path_item["componentId"]
             component = self.ct.get_component(component_id)
+            if not component:
+                continue
             if component.type != "repeater":
                 continue
             if i + 1 >= len(instance_path):
