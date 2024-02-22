@@ -580,14 +580,15 @@ class SessionComponentTree(ComponentTree):
         self.base_component_tree = base_component_tree
 
     def get_component(self, component_id: str) -> Optional[Component]:
-        session_component = self.components.get(component_id, False)
+        session_component_present = component_id in self.components
+        session_component = self.components.get(component_id)
 
-        if not session_component:
-            if session_component is not None:
-                # Component is removed if set to None
-                return self.base_component_tree.get_component(component_id)
+        if session_component_present:
+            return session_component
+                
+        return self.base_component_tree.get_component(component_id)
 
-        return session_component
+        
 
     def to_dict(self) -> Dict:
         active_components = {
