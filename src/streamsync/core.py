@@ -571,7 +571,7 @@ class ComponentTree:
         for id, component in self.components.items():
             active_components[id] = component.to_dict()
         return active_components
-    
+
 
 class SessionComponentTree(ComponentTree):
 
@@ -580,10 +580,14 @@ class SessionComponentTree(ComponentTree):
         self.base_component_tree = base_component_tree
 
     def get_component(self, component_id: str) -> Optional[Component]:
-        base_component = self.base_component_tree.get_component(component_id)
-        if base_component:
-            return base_component
-        return self.components.get(component_id)
+        session_component = self.components.get(component_id, False)
+
+        if not session_component:
+            if session_component is not None:
+                # Component is removed if set to None
+                return self.base_component_tree.get_component(component_id)
+
+        return session_component
 
     def to_dict(self) -> Dict:
         active_components = {
