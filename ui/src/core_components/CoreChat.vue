@@ -15,11 +15,20 @@
 					}}
 				</div>
 				<div class="contents">
-					<template v-if="message.isLoading">
-						<LoadingSymbol></LoadingSymbol>
-					</template>
+					<div class="loadingContainer" v-if="message.isLoading">
+						<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
+					</div>
 					<template v-else>
-						{{ message.content }}
+						<div class="text">
+							{{ message.text }}
+						</div>
+						<div class="actions" v-if="message.actions">
+							<div class="action" v-for="action, actionIndex in message.actions" :key="actionIndex" v-on:click="handleActionClick(action)">
+								<div class="subheading" v-if="action.subheading">{{ action.subheading }}</div>
+								<h3 class="name">{{ action.name }}</h3>
+								<div class="desc" v-if="action.desc">{{ action.desc }}</div>
+							</div>
+						</div>
 					</template>
 				</div>
 				<div
@@ -133,6 +142,9 @@ export default {
 				desc: "Triggered when the user sends a message. Return a string to answer it.",
 				stub: chatMessageStub,
 			},
+			"chat-action-click": {
+				desc: "Handle clicks on actions.",
+			},
 		},
 		previewField: "name",
 	},
@@ -145,9 +157,15 @@ import injectionKeys from "../injectionKeys";
 
 type Message = {
 	origin: "incoming" | "outgoing";
-	content: string;
+	text: string;
 	isLoading?: boolean;
 	date?: Date;
+	actions?: {
+		subheading?: string;
+		name: string;
+		desc?: string;
+		data?: string;
+	}[]
 };
 
 const rootEl: Ref<HTMLElement> = ref(null);
@@ -191,26 +209,53 @@ async function replaceMessage(messageKey: string, message: Message) {
 async function handleMessageSent() {
 	await addMessage({
 		origin: "outgoing",
-		content: outgoingMessage.value,
+		text: outgoingMessage.value,
 		date: new Date(),
 	});
-	outgoingMessage.value = "";
 	const outgoingMessageKey = await addMessage({
 		origin: "incoming",
-		content: "Loading...",
+		text: "Loading...",
 		isLoading: true,
 	});
 	const event = new CustomEvent("chat-message", {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
-				const content: string = payload.result?.result;
+				const contents = payload.result?.result;
 				replaceMessage(outgoingMessageKey, {
 					origin: "incoming",
-					content,
+					text: contents?.text,
+					actions: contents?.actions,
 					date: new Date(),
 				});
 			},
+		},
+	});
+	rootEl.value.dispatchEvent(event);
+	outgoingMessage.value = "";
+}
+
+function handleActionClick(action: Message["actions"][number]) {
+	const {subheading, name, desc, data} = action;
+	const event = new CustomEvent("chat-action-click", {
+		detail: {
+			payload: {
+				subheading,
+				name,
+				desc,
+				data
+			}
+			// callback: ({ payload }) => {
+			// 	const text: string = payload.result?.result;
+			// 	replaceMessage(outgoingMessageKey, {
+			// 		origin: "incoming",
+			// 		text,
+			// 		actions: [
+			// 			{subheading: "WEBSITE", name: "Google", desc: "Leading search engine."},{subheading: "WEBSITE", name: "ChatGPT", desc: "AI chatbot, great for everyday use."}
+			// 		],
+			// 		date: new Date(),
+			// 	});
+			// },
 		},
 	});
 	rootEl.value.dispatchEvent(event);
@@ -260,8 +305,6 @@ async function handleMessageSent() {
 }
 
 .message .contents {
-	line-height: 2;
-	padding: 12px 16px 12px 16px;
 	border-radius: 8px;
 	width: fit-content;
 	flex: 0 1 auto;
@@ -284,6 +327,45 @@ async function handleMessageSent() {
 
 .message.outgoing .contents {
 	background: var(--outgoingColor);
+}
+
+.contents .loadingContainer {
+	padding: 16px;
+}
+
+.contents .text {
+	line-height: 2;
+	padding: 12px 16px 12px 16px;
+}
+
+.contents .actions {
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.02);
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.contents .actions .action {
+	padding: 12px;
+	border-radius: 4px;
+	background: var(--containerBackgroundColor);
+	overflow: hidden;
+	line-height: normal;
+	display: flex;
+	gap: 4px;
+	flex-direction: column;
+	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+}
+
+.action .subheading {
+	color: var(--secondaryTextColor);
+	font-size: 0.7rem;
+}
+
+.action .desc {
+	font-size: 0.7rem;
 }
 
 .inputArea {
