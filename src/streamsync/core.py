@@ -477,9 +477,10 @@ class StreamsyncState():
 
 class Component:
 
-    def __init__(self, id: str, type: str, content: Dict[str, str] = {}):
+    def __init__(self, id: str, type: str, content: Dict[str, str] = {}, flag: Optional[str] = None):
         self.id = id
         self.type = type
+        self.flag = flag
         self.content = content
         self.position: int = 0
         self.parentId: Optional[str] = None
@@ -487,13 +488,31 @@ class Component:
         self.visible: Optional[bool] = None
         self.binding: Optional[Dict] = None
 
+    @classmethod
+    def from_dict(cls, c_dict: Dict) -> 'Component':
+        # Create a new Component instance with basic properties.
+        component = cls(
+            id=c_dict["id"],
+            type=c_dict["type"],
+            content=c_dict.get("content", {}),
+            flag=c_dict.get("flag")
+        )
+        # Set optional properties if they exist in the dictionary.
+        component.parentId = c_dict.get("parentId")
+        component.position = c_dict.get("position", 0)
+        component.handlers = c_dict.get("handlers")
+        component.visible = c_dict.get("visible")
+        component.binding = c_dict.get("binding")
+        
+        return component
+
     def to_dict(self) -> Dict:
         c_dict = {
             "id": self.id,
             "type": self.type,
             "content": self.content,
             "parentId": self.parentId,
-            "position": self.position,
+            "position": self.position
         }
         if self.handlers is not None:
             c_dict["handlers"] = self.handlers
@@ -501,6 +520,8 @@ class Component:
             c_dict["binding"] = self.binding
         if self.visible is not None:
             c_dict["visible"] = self.visible
+        if self.flag is not None:
+            c_dict["flag"] = self.flag
         return c_dict
 
 
@@ -565,8 +586,12 @@ class SessionComponentTree(ComponentTree):
         return self.components.get(component_id)
 
     def to_dict(self) -> Dict:
-        active_components = {}
-        for id, component in {**self.components, **self.base_component_tree.components}.items():
+        active_components = {
+            k: v.to_dict()
+            for k, v in self.base_component_tree.components.items()
+            }
+        for id, component in {**self.components}.items():
+            # Overriding base tree components with session-specific ones
             active_components[id] = component.to_dict()
         return active_components
 

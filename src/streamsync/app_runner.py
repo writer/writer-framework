@@ -177,6 +177,7 @@ class AppProcess(multiprocessing.Process):
         res_payload = EventResponsePayload(
             result=result,
             mutations=mutations,
+            components=session.session_component_tree.to_dict(),
             mail=mail
         )
 

@@ -158,6 +158,11 @@ export function generateCore() {
 		});
 	}
 
+	function updateComponents(newComponents: Record<string, any>) {
+		if (!newComponents) return;
+		components.value = newComponents
+	}
+
 	function clearFrontendMap() {
 		frontendMessageMap.value.forEach(({ callback }) => {
 			callback?.({ ok: false });
@@ -198,6 +203,7 @@ export function generateCore() {
 			) {
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
+				updateComponents(message.payload?.components);
 			}
 
 			const mapItem = frontendMessageMap.value.get(message.trackingId);
@@ -429,8 +435,20 @@ export function generateCore() {
 	 * @returns
 	 */
 	async function sendComponentUpdate(): Promise<void> {
+		/*
+ 		Only send components created by the frontend (static), to avoid re-feeding the backend
+ 		those components created by the backend.
+ 		*/
+
+ 		const staticComponents = {};
+
+ 		Object.entries(components.value).forEach(([componentId, component]) => {
+ 			if (component.flag === 'cmc') return;
+ 			staticComponents[componentId] = component;
+ 		});
+
 		const payload = {
-			components: components.value,
+			components: staticComponents,
 		};
 
 		return new Promise((resolve, reject) => {
