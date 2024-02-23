@@ -8,10 +8,10 @@
 				<i class="ri-arrow-down-s-line" />
 			</button>
 			<span :key="page">{{ page }} / {{ pages }}</span>
-			<button @click="incrementScale">
+			<button :disabled="loading" @click="incrementScale">
 				<i class="ri-zoom-in-line" />
 			</button>
-			<button @click="decrementScale">
+			<button :disabled="loading" @click="decrementScale">
 				<i class="ri-zoom-out-line" />
 			</button>
 			<span>{{ Math.round(scale * 100) }}%</span>
@@ -35,7 +35,7 @@
 					text-layer
 					:highlight-text="highlightText"
 					:highlight-options="highlightOptions"
-					@highlight="onHighlight"
+					@highlight="(e) => onHighlight(e)"
 					@loaded="onLoaded"
 				/>
 			</div>
@@ -98,11 +98,6 @@ export default {
 			primaryTextColor,
 			cssClasses,
 		},
-		events: {
-			"pdf-load": {
-				desc: "",
-			},
-		},
 	},
 };
 </script>
@@ -136,25 +131,59 @@ const matches = ref<MatchType[]>([]);
 const currentMatch = ref(0);
 const rootEl = ref(null);
 const viewerEl = ref(null);
+const loading = ref(false);
+
+const pagesLoaded = ref(0);
+const highlightsList = ref([]);
+
+const reload = () => {
+	loading.value = true;
+	pagesLoaded.value = 0;
+	highlightsList.value = [];
+	matches.value = [];
+};
 
 const onHighlight = (value) => {
-	matches.value = [
-		...matches.value,
-		...value.matches.map((m: MatchType, idx: number) => ({
-			page: value.page,
-			str: m.str,
-			index: idx,
-		})),
-	];
-	// sort by page and index
-	matches.value.sort((a, b) => {
-		if (a.page === b.page) {
-			return a.index - b.index;
-		}
+	highlightsList.value = [...highlightsList.value, value].sort((a, b) => {
 		return a.page - b.page;
 	});
-	if (currentMatch.value > 0) {
+};
+
+const onLoaded = (e) => {
+	pagesLoaded.value++;
+};
+
+const buildMatches = () => {
+	matches.value = highlightsList.value
+		.reduce(
+			(acc, item) => [
+				...acc,
+				...item.matches.map((m: MatchType, idx: number) => ({
+					page: item.page,
+					str: m.str,
+					index: idx,
+				})),
+			],
+			[],
+		)
+		.sort((a, b) => {
+			if (a.page === b.page) {
+				return a.index - b.index;
+			}
+			return a.page - b.page;
+		});
+};
+
+const renderingComplete = () => {
+	buildMatches();
+	if (fields.page.value) {
+		gotoPage(fields.page.value);
+	}
+	if (currentMatch.value) {
 		gotoHighlight(currentMatch.value);
+	}
+	if (fields.selectedMatch.value) {
+		currentMatch.value = fields.selectedMatch.value;
 	}
 };
 
@@ -205,15 +234,6 @@ const gotoPage = (page: number) => {
 	viewerEl.value.scrollTop = calcScrollPosition(pageEl, viewerEl.value);
 };
 
-const onLoaded = () => {
-	if (fields.page.value) {
-		gotoPage(fields.page.value);
-	}
-	if (fields.selectedMatch.value) {
-		currentMatch.value = fields.selectedMatch.value;
-	}
-};
-
 const incrementMatchIdx = () => {
 	if (currentMatch.value < matches.value.length) {
 		currentMatch.value = currentMatch.value + 1;
@@ -238,15 +258,26 @@ const decrementScale = () => {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
 };
 
+watch([highlightsList, pagesLoaded], () => {
+	if (
+		(!highlightText.value || highlightsList.value.length === pages.value) &&
+		pagesLoaded.value === pages.value
+	) {
+		renderingComplete();
+		loading.value = false;
+	}
+});
+
 watch(scale, () => {
-	matches.value = [];
+	reload();
 });
 
 watch(fields.source, () => {
-	matches.value = [];
+	reload();
 });
 
 watch(fields.highlights, () => {
+	highlightsList.value = [];
 	matches.value = [];
 });
 
