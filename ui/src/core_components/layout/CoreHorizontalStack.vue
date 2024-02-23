@@ -15,7 +15,7 @@ import {
 	contentHAlign,
 	contentPadding,
 	cssClasses,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.";
@@ -39,14 +39,14 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
-import BaseContainer from "./base/BaseContainer.vue";
+import injectionKeys from "../../injectionKeys";
+import BaseContainer from "../base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreHorizontalStack {
 	width: 100%;

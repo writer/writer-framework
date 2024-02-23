@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { Component, FieldCategory, FieldType } from "../streamsyncTypes";
+import { Component, FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -33,7 +33,7 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that organises its children in a sidebar. Its parent must be a Page component.";
@@ -80,8 +80,8 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref, watch } from "vue";
-import injectionKeys from "../injectionKeys";
-import IconGen from "../renderer/IconGen.vue";
+import injectionKeys from "../../injectionKeys";
+import IconGen from "../../renderer/IconGen.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
@@ -124,7 +124,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreSidebar {
 	overflow: auto;

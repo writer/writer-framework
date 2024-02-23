@@ -18,9 +18,9 @@
 </template>
 
 <script lang="ts">
-import LoadingSymbol from "../renderer/LoadingSymbol.vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
-import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
@@ -92,7 +92,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
@@ -142,7 +142,7 @@ const rootStyle = computed(() => {
 });
 </script>
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreMessage {
 	color: var(--primaryTextColor);

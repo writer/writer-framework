@@ -14,16 +14,16 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	buttonColor,
 	buttonTextColor,
 	buttonShadow,
 	separatorColor,
 	cssClasses,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 import { watch } from "vue";
-import { getClick } from "../renderer/syntheticEvents";
+import { getClick } from "../../renderer/syntheticEvents";
 
 const clickHandlerStub = `
 def handle_button_click(state):
@@ -85,7 +85,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { Ref, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
@@ -108,7 +108,7 @@ function handleClick(ev: MouseEvent) {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreButton {
 	width: fit-content;

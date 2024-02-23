@@ -68,7 +68,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
+import { FieldType } from "../../streamsyncTypes";
 
 const pageChangeStub = `
 def handle_page_change(state, payload):
@@ -170,8 +170,8 @@ export default {
 
 <script setup lang="ts">
 import { Ref, inject, ref, computed, watch, onUnmounted, onMounted } from "vue";
-import injectionKeys from "../injectionKeys";
-import { useFormValueBroker } from "../renderer/useFormValueBroker";
+import injectionKeys from "../../injectionKeys";
+import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const ss = inject(injectionKeys.core);

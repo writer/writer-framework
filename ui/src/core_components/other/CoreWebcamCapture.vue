@@ -25,14 +25,14 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../streamsyncTypes";
+import { FieldType } from "../../streamsyncTypes";
 import {
 	buttonColor,
 	buttonShadow,
 	buttonTextColor,
 	cssClasses,
 	separatorColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to capture images using their webcam.";
@@ -91,7 +91,7 @@ import {
 	ref,
 	watch,
 } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const isActive = ref(false);
 const rootEl: Ref<HTMLElement> = ref(null);
@@ -218,7 +218,7 @@ const stopCapture = () => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreWebcamCapture {
 	width: 100%;

@@ -1,6 +1,13 @@
 name: ci-windows
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches:
+      - 'master'
+      - 'dev'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   build:

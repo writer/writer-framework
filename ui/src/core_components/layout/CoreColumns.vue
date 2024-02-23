@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 export default {
 	streamsync: {
@@ -22,14 +22,14 @@ export default {
 
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const instanceData = inject(injectionKeys.instanceData);
 instanceData.at(-1).value = { minimumNonCollapsiblePosition: undefined };
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreColumns {
 	width: 100%;

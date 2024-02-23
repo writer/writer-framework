@@ -1,8 +1,8 @@
 <script lang="ts">
 import { h, inject } from "vue";
-import { FieldControl, FieldType } from "../streamsyncTypes";
-import injectionKeys from "../injectionKeys";
-import { cssClasses } from "../renderer/sharedStyleFields";
+import { FieldControl, FieldType } from "../../streamsyncTypes";
+import injectionKeys from "../../injectionKeys";
+import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const defaultStyle = {
 	padding: "16px",
