@@ -220,6 +220,7 @@ async function handleFunctionCall(
 	const m = await import(/* @vite-ignore */ specifier);
 
 	if (!m) {
+		// eslint-disable-next-line no-console
 		console.warn(
 			`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`,
 		);

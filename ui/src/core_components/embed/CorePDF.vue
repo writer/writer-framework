@@ -1,26 +1,27 @@
 <template>
 	<div ref="rootEl" class="CorePDF">
-		<div class="controls">
-			<i class="ri-arrow-up-s-line" @click="() => gotoPage(page - 1)"></i>
-			<i
-				class="ri-arrow-down-s-line"
-				@click="() => gotoPage(page + 1)"
-			></i>
+		<div v-if="fields.controls.value === 'yes'" class="controls">
+			<button @click="() => gotoPage(page - 1)">
+				<i class="ri-arrow-up-s-line" />
+			</button>
+			<button @click="() => gotoPage(page + 1)">
+				<i class="ri-arrow-down-s-line" />
+			</button>
 			<span :key="page">{{ page }} / {{ pages }}</span>
-			<i class="ri-zoom-in-line" @click="incrementScale"></i>
-			<i class="ri-zoom-out-line" @click="decrementScale"></i>
+			<button @click="incrementScale">
+				<i class="ri-zoom-in-line" />
+			</button>
+			<button @click="decrementScale">
+				<i class="ri-zoom-out-line" />
+			</button>
 			<span>{{ Math.round(scale * 100) }}%</span>
 			<span class="separator" />
-			<i
-				v-if="matches.length"
-				class="ri-arrow-up-s-line"
-				@click="decrementMatchIdx"
-			></i>
-			<i
-				v-if="matches.length"
-				class="ri-arrow-down-s-line"
-				@click="incrementMatchIdx"
-			></i>
+			<button v-if="matches.length" @click="decrementMatchIdx">
+				<i class="ri-arrow-up-s-line" />
+			</button>
+			<button v-if="matches.length" @click="incrementMatchIdx">
+				<i class="ri-arrow-down-s-line" />
+			</button>
 			<span v-if="matches.length"
 				>Matches {{ currentMatch }} / {{ matches.length }}</span
 			>
@@ -45,7 +46,12 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import {
+	cssClasses,
+	separatorColor,
+	primaryTextColor,
+	containerBackgroundColor,
+} from "../../renderer/sharedStyleFields";
 
 const description = "A component to embed a PDF document.";
 
@@ -77,6 +83,19 @@ export default {
 				type: FieldType.Number,
 				desc: "The page to be displayed.",
 			},
+			controls: {
+				name: "Controls",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+				desc: "Show controls to navigate the PDF.",
+				default: "yes",
+			},
+			containerBackgroundColor,
+			separatorColor,
+			primaryTextColor,
 			cssClasses,
 		},
 		events: {
@@ -170,7 +189,6 @@ const gotoHighlight = (matchIdx: number) => {
 		return;
 	}
 	const match = matches.value[matchIdx - 1];
-	console.log(match);
 	const matchEls = rootEl.value.querySelectorAll(
 		`div[page='${match.page}'] span.highlight`,
 	);
@@ -220,6 +238,10 @@ const decrementScale = () => {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
 };
 
+watch(scale, () => {
+	matches.value = [];
+});
+
 watch(fields.source, () => {
 	matches.value = [];
 });
@@ -250,6 +272,7 @@ watch(fields.page, () => {
 	flex-direction: column;
 	width: 100%;
 	height: 80vh;
+	color: var(--primaryTextColor);
 }
 
 .CorePDF .controls {
@@ -269,19 +292,29 @@ watch(fields.page, () => {
 	padding: 0 10px;
 }
 
-.CorePDF .controls i {
-	display: block;
+.CorePDF .controls button {
+	display: flex;
 	height: 40px;
 	width: 40px;
 	line-height: 40px;
 	text-align: center;
 	border-radius: 4px;
 	flex: 0 0 40px;
+	border: none;
+	cursor: pointer;
+	background: none;
+	align-items: center;
+	justify-content: center;
+}
+.CorePDF .controls button i {
+	line-height: 40px;
+	text-align: center;
+	vertical-align: middle;
+	color: var(--primaryTextColor);
 }
 
-.CorePDF .controls i:hover {
-	cursor: pointer;
-	background: var(--builderSubtleSeparatorColor);
+.CorePDF .controls button:hover {
+	border: 1px solid black;
 }
 
 .CorePDF .controls > .separator {
@@ -292,29 +325,21 @@ watch(fields.page, () => {
 	flex: 1;
 	overflow: auto;
 	position: relative;
-	background-color: var(--separatorColor);
+	background-color: var(--containerBackgroundColor);
 }
 
 .CorePDF .viewer .page {
-	border-bottom: 3px solid var(--separatorColor);
+	margin-bottom: 3px;
 	overflow: hidden;
+}
+
+.CorePDF .viewer .page:last-child {
+	margin-bottom: 0;
 }
 
 .CorePDF .viewer .page > div {
 	width: fit-content;
 	margin: 0 auto;
-}
-
-.CorePDF.beingEdited:not(.selected) object {
-	pointer-events: none;
-}
-
-.CorePDF .pdf {
-	width: 100%;
-	height: 100%;
-	display: block;
-	margin: auto;
-	border: 1px solid var(--separatorColor);
 }
 
 .CorePDF .mask {
