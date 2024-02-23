@@ -1,8 +1,7 @@
 <template>
-	<div ref="rootEl" class="CoreIFrame">
+	<ComponentBase ref="rootEl" class="CoreIFrame">
 		<iframe :src="fields.src.value" draggable="false" @load="handleLoad" />
-		<div class="mask" />
-	</div>
+	</ComponentBase>
 </template>
 
 <script lang="ts">
@@ -46,6 +45,8 @@ export default {
 import { Ref, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
+import ComponentBase from "../../renderer/ComponentBase.vue";
+
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -74,23 +75,5 @@ function handleLoad() {
 	display: block;
 	margin: auto;
 	border: 1px solid var(--separatorColor);
-}
-
-.CoreIFrame .mask {
-	pointer-events: none;
-}
-
-.CoreIFrame.beingEdited .mask {
-	pointer-events: auto;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0);
-}
-
-.CoreIFrame.beingEdited.selected .mask {
-	pointer-events: none;
 }
 </style>
