@@ -8,7 +8,6 @@
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
-import * as mapboxgl from "mapbox-gl";
 
 const markersDefaultData = [
 	{ lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker" },
@@ -51,9 +50,19 @@ export default {
 			},
 			markers: {
 				name: "Markers",
-				default: JSON.stringify(markersDefaultData, null, 2),
+				init: JSON.stringify(markersDefaultData, null, 2),
 				desc: "",
 				type: FieldType.Object,
+			},
+			controls: {
+				name: "Controls visible",
+				default: "yes",
+				type: FieldType.Text,
+				options: {
+					no: "No",
+					yes: "Yes",
+				},
+				desc: "Show map controls",
 			},
 			cssClasses,
 		},
@@ -73,6 +82,7 @@ export default {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { inject, ref, watch, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
+import type * as mapboxgl from "mapbox-gl";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl = ref(null);
 const mapEl = ref(null);
@@ -82,12 +92,14 @@ const center = computed<mapboxgl.LngLatLike>(() => [
 ]);
 let map = null;
 let markers: mapboxgl.Marker[] = [];
+let controls: mapboxgl.NavigationControl | null = null;
 
 const initMap = async () => {
 	if (!mapEl.value) return;
 	if (!fields.accessToken.value) return;
 	const mapboxgl = await import("mapbox-gl");
 	try {
+		// https://github.com/mapbox/mapbox-gl-js/issues/13091
 		// This line is according to docs but it doesn't work
 		mapboxgl.accessToken = fields.accessToken.value;
 		// Following works
@@ -113,7 +125,10 @@ const initMap = async () => {
 			});
 			rootEl.value.dispatchEvent(event);
 		});
-		map.addControl(new mapboxgl.NavigationControl());
+		controls = new mapboxgl.NavigationControl();
+		if (fields.controls.value === "yes") {
+			map.addControl(controls);
+		}
 		if (fields.markers.value) {
 			map.on("load", renderMarkers);
 		}
@@ -135,7 +150,7 @@ const renderMarkers = async () => {
 				.setPopup(new mapboxgl.Popup().setText(markerData.name));
 			markers.push(marker);
 			marker.getElement().addEventListener("click", (e) => {
-				const event = new CustomEvent("gmap-click", {
+				const event = new CustomEvent("mapbox-marker-click", {
 					detail: {
 						payload: markerData,
 					},
@@ -146,6 +161,16 @@ const renderMarkers = async () => {
 		},
 	);
 };
+
+watch(fields.controls, () => {
+	if (map) {
+		if (fields.controls.value === "yes") {
+			map.addControl(controls);
+		} else {
+			map.removeControl(controls);
+		}
+	}
+});
 
 watch(fields.markers, async () => {
 	if (map) {
@@ -167,15 +192,8 @@ watch(fields.zoom, () => {
 		map.setZoom(fields.zoom.value);
 	}
 });
-watch(fields.accessToken, initMap);
-watch(mapEl, initMap);
+watch([mapEl, fields.accessToken], initMap);
 </script>
-
-<style>
-.mapboxgl-marker {
-	cursor: pointer;
-}
-</style>
 
 <style scoped>
 .CoreMapbox {
@@ -183,7 +201,9 @@ watch(mapEl, initMap);
 	width: 100%;
 	height: 80vh;
 }
-
+.CoreMapbox :deep(.mapboxgl-marker) {
+	cursor: pointer;
+}
 .CoreMapbox .map {
 	width: 100%;
 	height: 100%;
