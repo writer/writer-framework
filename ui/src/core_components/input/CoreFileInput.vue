@@ -1,17 +1,22 @@
 <template>
-	<div class="CoreFileInput" ref="rootEl">
-		<div class="inputContainer" v-if="!processingFiles">
+	<div ref="rootEl" class="CoreFileInput">
+		<div v-if="!processingFiles" class="inputContainer">
 			<label>{{ fields.label.value }}</label>
 			<input
-				type="file"
 				ref="fileEl"
-				v-on:change="fileChange($event as InputEvent)"
+				type="file"
 				:multiple="allowMultipleFilesFlag"
+				@change="fileChange($event as InputEvent)"
 			/>
 		</div>
-		<div class="status" v-if="message || processingFiles">
-			<LoadingSymbol class="loadingSymbol" v-if="processingFiles"></LoadingSymbol>
-			<span v-if="processingFiles">Processing {{ processingFiles.join(", ") }}...</span>
+		<div v-if="message || processingFiles" class="status">
+			<LoadingSymbol
+				v-if="processingFiles"
+				class="loadingSymbol"
+			></LoadingSymbol>
+			<span v-if="processingFiles"
+				>Processing {{ processingFiles.join(", ") }}...</span
+			>
 			<span v-if="message">{{ message }}</span>
 		</div>
 	</div>
@@ -40,36 +45,36 @@ def onchange_handler(state, payload):
             file_handle.write(file_data)`.trim();
 
 export default {
-    streamsync: {
-        name: "File Input",
-        description,
-        category: "Input",
-        fields: {
-            label: {
-                name: "Label",
-                init: "Input Label",
-                type: FieldType.Text,
-            },
-            allowMultipleFiles: {
-                name: "Allow multiple files",
-                default: "no",
-                type: FieldType.Text,
-                options: {
-                    yes: "Yes",
-                    no: "No",
-                },
-            },
-            cssClasses
-        },
-        events: {
-            "ss-file-change": {
-                desc: "Capture changes to this control.",
-                stub: onChangeHandlerStub,
-                bindable: true,
-            },
-        },
-    },
-    components: { LoadingSymbol }
+	streamsync: {
+		name: "File Input",
+		description,
+		category: "Input",
+		fields: {
+			label: {
+				name: "Label",
+				init: "Input Label",
+				type: FieldType.Text,
+			},
+			allowMultipleFiles: {
+				name: "Allow multiple files",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
+			cssClasses,
+		},
+		events: {
+			"ss-file-change": {
+				desc: "Capture changes to this control.",
+				stub: onChangeHandlerStub,
+				bindable: true,
+			},
+		},
+	},
+	components: { LoadingSymbol },
 };
 </script>
 
@@ -82,10 +87,10 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl: Ref<HTMLInputElement> = ref(null);
 const fileEl: Ref<HTMLInputElement> = ref(null);
-const message:Ref<string> = ref(null);
+const message: Ref<string> = ref(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const processingFiles:Ref<string[]> = ref(null);
+const processingFiles: Ref<string[]> = ref(null);
 
 const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
@@ -119,16 +124,16 @@ const fileChange = async (ev: InputEvent) => {
 					data: await encodeFile(f),
 				};
 				return fileItem;
-			})
+			}),
 		);
 		if (accumSize > MAX_FILE_SIZE) {
-			message.value = `Files are too big. Total size limit is ${ Math.floor((MAX_FILE_SIZE/Math.pow(1024, 2))) }mb.`; 
+			message.value = `Files are too big. Total size limit is ${Math.floor(MAX_FILE_SIZE / Math.pow(1024, 2))}mb.`;
 			return [];
 		}
 		return encodedFiles;
 	};
 
-	processingFiles.value = Array.from(el.files).map(file => file.name);
+	processingFiles.value = Array.from(el.files).map((file) => file.name);
 	formValue.value = getValue();
 
 	const customCallback = () => {

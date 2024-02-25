@@ -1,12 +1,12 @@
 <template>
-	<div class="BuilderFieldsWidth" tabindex="-1" ref="rootEl">
+	<div ref="rootEl" class="BuilderFieldsWidth" tabindex="-1">
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
-					v-on:click="
+					@click="
 						() => {
 							setMode('default');
 							setContentValue(component.id, fieldKey, undefined);
@@ -19,7 +19,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
-					v-on:click="setMode('css')"
+					@click="setMode('css')"
 				>
 					CSS
 				</button>
@@ -27,29 +27,37 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
-					v-on:click="setMode('pick')"
+					@click="setMode('pick')"
 				>
 					Pick
 				</button>
 			</div>
 		</div>
 
-		<div class="main" v-if="mode == 'pick' || mode == 'css'">
-			<div class="pickerContainer" v-if="mode == 'pick'">
-				<BuilderSelect :defaultValue=subMode :options=selectOptions @select="handleInputSelect"/>
+		<div v-if="mode == 'pick' || mode == 'css'" class="main">
+			<div v-if="mode == 'pick'" class="pickerContainer">
+				<BuilderSelect
+					:default-value="subMode"
+					:options="selectOptions"
+					@select="handleInputSelect"
+				/>
 				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
-					<input type="text" :value="valuePickFixed" v-on:input="handleInputFixed" ref="fixedEl"	/>
+					<input
+						ref="fixedEl"
+						type="text"
+						:value="valuePickFixed"
+						@input="handleInputFixed"
+					/>
 					<div>px</div>
 				</div>
-
 			</div>
 
 			<input
-				type="text"
-				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
-				v-on:input="handleInputCss"
 				v-if="mode == 'css'"
+				ref="freehandInputEl"
+				type="text"
+				:value="component.content[fieldKey]"
+				@input="handleInputCss"
 			/>
 		</div>
 	</div>
@@ -88,12 +96,32 @@ enum SubMode {
 	full = "full",
 }
 
-const subModes: Array<{key: SubMode, label: string, match: (v: string) => boolean, default: string, icon?: string}> = [
-	{'key': SubMode.fixed, label: 'Fixed', match: (v) => v.endsWith('px'), default: '160px'},
-	{'key': SubMode.fit_content, label: 'Fit Content', match: (v) => v == 'fit-content', default: 'fit-content'},
-	{'key': SubMode.full, label: 'Full', match: (v) => v == '100%', default: '100%'},
-]
-
+const subModes: Array<{
+	key: SubMode;
+	label: string;
+	match: (v: string) => boolean;
+	default: string;
+	icon?: string;
+}> = [
+	{
+		key: SubMode.fixed,
+		label: "Fixed",
+		match: (v) => v.endsWith("px"),
+		default: "160px",
+	},
+	{
+		key: SubMode.fit_content,
+		label: "Fit Content",
+		match: (v) => v == "fit-content",
+		default: "fit-content",
+	},
+	{
+		key: SubMode.full,
+		label: "Full",
+		match: (v) => v == "100%",
+		default: "100%",
+	},
+];
 
 const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	pick: pickerEl,
@@ -111,40 +139,44 @@ const component = computed(() => ss.getComponentById(componentId.value));
 
 const selectOptions = computed(() => {
 	return subModes.map((m) => {
-		return { value: m.key, label: m.label, icon: "ri-split-cells-horizontal" };
+		return {
+			value: m.key,
+			label: m.label,
+			icon: "ri-split-cells-horizontal",
+		};
 	});
 });
 
 const subMode = computed(() => {
-	const value = component.value.content[fieldKey.value]
+	const value = component.value.content[fieldKey.value];
 	for (const k in subModes) {
 		if (value && subModes[k].match(value)) {
-			return subModes[k].key
+			return subModes[k].key;
 		}
 	}
 
-	return null
-})
+	return null;
+});
 
 const valueCss = computed(() => {
-	const value = component.value.content[fieldKey.value]
+	const value = component.value.content[fieldKey.value];
 	if (!value) {
-		return ''
+		return "";
 	} else {
-		return value
+		return value;
 	}
-})
+});
 
 const valuePickFixed = computed(() => {
-	const value = component.value.content[fieldKey.value]
+	const value = component.value.content[fieldKey.value];
 	if (!value) {
-		return null
-	} else if (value.endsWith('px')) {
-		return value.substring(0, value.length - 2)
+		return null;
+	} else if (value.endsWith("px")) {
+		return value.substring(0, value.length - 2);
 	}
 
-	return null
-})
+	return null;
+});
 
 const getInitialMode = (): Mode => {
 	if (!valueCss.value) {
@@ -153,7 +185,7 @@ const getInitialMode = (): Mode => {
 
 	for (const k in subModes) {
 		if (subModes[k].match(valueCss.value)) {
-			return "pick"
+			return "pick";
 		}
 	}
 
@@ -183,11 +215,7 @@ const handleInputSelect = (select: string) => {
 		if (subModes[k].key == select) {
 			const value = subModes[k].default;
 			component.value.content[fieldKey.value] = value;
-			setContentValue(
-					component.value.id,
-					fieldKey.value,
-					value
-			);
+			setContentValue(component.value.id, fieldKey.value, value);
 		}
 	}
 
@@ -196,23 +224,23 @@ const handleInputSelect = (select: string) => {
 			fixedEl.value.focus();
 		});
 	}
-}
+};
 
 const handleInputCss = (ev: Event) => {
 	setContentValue(
-			component.value.id,
-			fieldKey.value,
-			(ev.target as HTMLInputElement).value
-	)
-}
+		component.value.id,
+		fieldKey.value,
+		(ev.target as HTMLInputElement).value,
+	);
+};
 
 const handleInputFixed = (ev: Event) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value + 'px'
-	)
-}
+		(ev.target as HTMLInputElement).value + "px",
+	);
+};
 
 onMounted(() => {
 	rootEl.value.addEventListener("focus", autofocus);

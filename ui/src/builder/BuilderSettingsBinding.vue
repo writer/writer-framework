@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderSettingsBinding" v-if="ssbm.isSelectionActive()">
+	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
 		<div class="sectionTitle">
 			<i class="ri-links-line ri-xl"></i>
 			<h3>Binding</h3>
@@ -9,10 +9,16 @@
 				<span class="name">State element</span>
 				<input
 					:value="component.binding?.stateRef"
-					v-on:input="(ev:Event) => setBinding(component.id, (ev.target as HTMLInputElement).value)"
 					type="text"
 					class="content"
 					placeholder="my_var"
+					@input="
+						(ev: Event) =>
+							setBinding(
+								component.id,
+								(ev.target as HTMLInputElement).value,
+							)
+					"
 				/>
 				<div class="desc">
 					Links this component to a state element, in a two-way

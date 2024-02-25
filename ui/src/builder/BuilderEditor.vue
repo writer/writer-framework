@@ -1,31 +1,55 @@
 <template>
-	<div class="BuilderEditor" ref="builderEditor" :class="{
-		dark: theme == 'vs-dark',
-		light: theme == 'vs-light',
-		activeLog: isLogActive,
-	}">
+	<div
+		ref="builderEditor"
+		class="BuilderEditor"
+		:class="{
+			dark: theme == 'vs-dark',
+			light: theme == 'vs-light',
+			activeLog: isLogActive,
+		}"
+	>
 		<div class="editor">
 			<div class="windowBar">
 				<div class="icon"><i class="ri-code-line ri-lg"></i></div>
 				<div class="title">Code Editor</div>
-				<button class="windowAction" tabindex="0" :title="(theme == 'vs-light' ? 'Dark' : 'Light') + ' theme'"
-					v-on:click="toggleTheme">
-					<i class="ri-sun-line ri-lg" v-show="theme == 'vs-dark'"></i>
-					<i class="ri-moon-line ri-lg" v-show="theme == 'vs-light'"></i>
+				<button
+					class="windowAction"
+					tabindex="0"
+					:title="(theme == 'vs-light' ? 'Dark' : 'Light') + ' theme'"
+					@click="toggleTheme"
+				>
+					<i
+						v-show="theme == 'vs-dark'"
+						class="ri-sun-line ri-lg"
+					></i>
+					<i
+						v-show="theme == 'vs-light'"
+						class="ri-moon-line ri-lg"
+					></i>
 				</button>
 			</div>
 			<div class="codeActions">
-				<button v-on:click="save" :disabled="editorDisabled" :title="`Save and run (${modifierKeyName}+s)`">
+				<button
+					:disabled="editorDisabled"
+					:title="`Save and run (${modifierKeyName}+s)`"
+					@click="save"
+				>
 					<i class="ri-save-line"></i>{{ "Save and run" }}
 				</button>
-				<div class="statusMessage" v-if="statusMessage">
-					<div class="statusOk ok" v-if="statusMessage.ok === true">
+				<div v-if="statusMessage" class="statusMessage">
+					<div v-if="statusMessage.ok === true" class="statusOk ok">
 						<i class="ri-check-line"></i>
 					</div>
-					<div class="statusOk notOk" v-else-if="statusMessage.ok === false">
+					<div
+						v-else-if="statusMessage.ok === false"
+						class="statusOk notOk"
+					>
 						<i class="ri-error-warning-line"></i>
 					</div>
-					<div class="statusOk processing" v-else-if="statusMessage.ok === 'processing'">
+					<div
+						v-else-if="statusMessage.ok === 'processing'"
+						class="statusOk processing"
+					>
 						<i class="ri-loader-3-line"></i>
 					</div>
 					{{ statusMessage.message }}
@@ -39,35 +63,62 @@
 				<div class="title">
 					Log <span class="countLabel">{{ logEntries.length }}</span>
 				</div>
-				<button class="windowAction" tabindex="0" title="Clear log" v-on:click="ssbm.clearLogEntries">
+				<button
+					class="windowAction"
+					tabindex="0"
+					title="Clear log"
+					@click="ssbm.clearLogEntries"
+				>
 					<i class="ri-delete-bin-line"></i>
 				</button>
-				<button class="windowAction" tabindex="0" v-on:click="toggleLog"
-					:title="(isLogActive ? 'Hide' : 'Show') + ` log (${modifierKeyName}+j)`">
-					<i class="ri-arrow-drop-up-line ri-lg" v-show="!isLogActive"></i>
-					<i class="ri-arrow-drop-down-line ri-lg" v-show="isLogActive"></i>
+				<button
+					class="windowAction"
+					tabindex="0"
+					:title="
+						(isLogActive ? 'Hide' : 'Show') +
+						` log (${modifierKeyName}+j)`
+					"
+					@click="toggleLog"
+				>
+					<i
+						v-show="!isLogActive"
+						class="ri-arrow-drop-up-line ri-lg"
+					></i>
+					<i
+						v-show="isLogActive"
+						class="ri-arrow-drop-down-line ri-lg"
+					></i>
 				</button>
 			</div>
-			<div class="entryContainer" v-if="isLogActive">
-				<div class="entry" v-for="logEntry in logEntries">
+			<div v-if="isLogActive" class="entryContainer">
+				<div
+					v-for="(logEntry, index) in logEntries"
+					:key="index"
+					class="entry"
+				>
 					<div class="icon" :class="logEntry.type">
-						<i :class="logEntryTypeIcon[logEntry.type]" class="ri-xl"></i>
+						<i
+							:class="logEntryTypeIcon[logEntry.type]"
+							class="ri-xl"
+						></i>
 					</div>
 					<div class="content">
 						<div class="header">
-							<span class="title">{{ logEntry.title
-							}}{{
-	logEntry.repeated > 0
-	? ` · Repeated ${logEntry.repeated} times`
-	: ""
-}}</span>
+							<span class="title"
+								>{{ logEntry.title
+								}}{{
+									logEntry.repeated > 0
+										? ` · Repeated ${logEntry.repeated} times`
+										: ""
+								}}</span
+							>
 							<span class="time">{{
 								logEntry.timestampReceived.toLocaleTimeString()
 							}}</span>
 						</div>
 						<div class="message">
 							{{ logEntry.message }}
-							<div class="codeContainer" v-if="logEntry.code">
+							<div v-if="logEntry.code" class="codeContainer">
 								<code>{{ logEntry.code }}</code>
 							</div>
 						</div>
@@ -104,10 +155,14 @@ const editorDisabled: Ref<boolean> = ref(false);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";
 
-const theme: Ref<string> = ref(localStorage.getItem("currentTheme") || "vs-light");
+const theme: Ref<string> = ref(
+	localStorage.getItem("currentTheme") || "vs-light",
+);
 
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
-const sessionTimestamp: ComputedRef<number> = computed(() => ss.getSessionTimestamp());
+const sessionTimestamp: ComputedRef<number> = computed(() =>
+	ss.getSessionTimestamp(),
+);
 
 type StatusMessage = {
 	ok: boolean | "processing";
@@ -137,7 +192,7 @@ function handleKeydown(ev: KeyboardEvent) {
 		save();
 		return;
 	}
-	
+
 	if (ev.key === "j" && isModifierKeyActive) {
 		ev.preventDefault();
 		toggleLog();
@@ -172,7 +227,7 @@ watch(
 	() => ss.getRunCode(),
 	(newRunCode) => {
 		editor.getModel().setValue(newRunCode);
-	}
+	},
 );
 
 watch(
@@ -182,7 +237,7 @@ watch(
 		nextTick(() => {
 			editor.layout();
 		});
-	}
+	},
 );
 
 watch(sessionTimestamp, () => {

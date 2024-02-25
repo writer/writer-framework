@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderFieldsAlign" tabindex="-1" ref="rootEl">
+	<div ref="rootEl" class="BuilderFieldsAlign" tabindex="-1">
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
@@ -34,21 +34,21 @@
 			</div>
 		</div>
 
-		<div class="main" v-if="mode == 'pick' || mode == 'css'">
-			<div class="pickerContainer" v-if="mode == 'pick'">
+		<div v-if="mode == 'pick' || mode == 'css'" class="main">
+			<div v-if="mode == 'pick'" class="pickerContainer">
 				<BuilderSelect
-					:defaultValue="subMode"
+					:default-value="subMode"
 					:options="selectOptions"
 					@select="handleInputSelect"
 				/>
 			</div>
 
 			<input
-				type="text"
+				v-if="mode == 'css'"
 				ref="freehandInputEl"
+				type="text"
 				:value="component.content[fieldKey]"
 				@input="handleInputCss"
-				v-if="mode == 'css'"
 			/>
 		</div>
 	</div>
@@ -85,8 +85,11 @@ enum SubMode {
 	hleft = "start",
 	hcenter = "center",
 	hright = "end",
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	vtop = "start",
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	vcenter = "center",
+	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 	vbottom = "end",
 }
 
@@ -164,6 +167,7 @@ const component = computed(() => ss.getComponentById(componentId.value));
 const subModes: ComputedRef<SubModes> = computed(() => {
 	if (direction.value == "vertical") return verticalSubmodes;
 	if (direction.value == "horizontal") return horizontalSubmodes;
+	return verticalSubmodes;
 });
 
 const selectOptions = computed(() => {

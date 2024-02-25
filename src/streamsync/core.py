@@ -504,13 +504,16 @@ class Component:
         return c_dict
 
 
-class ComponentManager:
+class ComponentTree:
 
     def __init__(self) -> None:
         self.counter: int = 0
         self.components: Dict[str, Component] = {}
         root_component = Component("root", "root", {})
         self.attach(root_component)
+
+    def get_component(self, component_id: str) -> Optional[Component]:
+        return self.components.get(component_id)
 
     def get_descendents(self, parent_id: str) -> List[Component]:
         children = list(filter(lambda c: c.parentId == parent_id,
@@ -547,6 +550,25 @@ class ComponentManager:
         for id, component in self.components.items():
             active_components[id] = component.to_dict()
         return active_components
+    
+
+class SessionComponentTree(ComponentTree):
+
+    def __init__(self, base_component_tree: ComponentTree):
+        super().__init__()
+        self.base_component_tree = base_component_tree
+
+    def get_component(self, component_id: str) -> Optional[Component]:
+        base_component = self.base_component_tree.get_component(component_id)
+        if base_component:
+            return base_component
+        return self.components.get(component_id)
+
+    def to_dict(self) -> Dict:
+        active_components = {}
+        for id, component in {**self.components, **self.base_component_tree.components}.items():
+            active_components[id] = component.to_dict()
+        return active_components
 
 
 class EventDeserialiser:
@@ -558,8 +580,8 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: StreamsyncState):
-        self.evaluator = Evaluator(session_state)
+    def __init__(self, session_state: StreamsyncState, session_component_tree: SessionComponentTree):
+        self.evaluator = Evaluator(session_state, session_component_tree)
 
     def transform(self, ev: StreamsyncEvent) -> None:
         # Events without payloads are safe
@@ -723,8 +745,9 @@ class Evaluator:
 
     template_regex = re.compile(r"[\\]?@{([\w\s.]*)}")
 
-    def __init__(self, session_state: StreamsyncState):
+    def __init__(self, session_state: StreamsyncState, session_component_tree: ComponentTree):
         self.ss = session_state
+        self.ct = session_component_tree
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="") -> Any:
         def replacer(matched):
@@ -745,22 +768,26 @@ class Evaluator:
             return str(serialised_value)
 
         component_id = instance_path[-1]["componentId"]
-        component = component_manager.components[component_id]
-        field_value = component.content.get(field_key) or default_field_value
-        replaced = self.template_regex.sub(replacer, field_value)
+        component = self.ct.get_component(component_id)
+        if component:
+            field_value = component.content.get(field_key) or default_field_value
+            replaced = self.template_regex.sub(replacer, field_value)
 
-        if as_json:
-            return json.loads(replaced)
+            if as_json:
+                return json.loads(replaced)
+            else:
+                return replaced
         else:
-            return replaced
+            raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
 
     def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
         context: Dict[str, Any] = {}
-
         for i in range(len(instance_path)):
             path_item = instance_path[i]
             component_id = path_item["componentId"]
-            component = component_manager.components[component_id]
+            component = self.ct.get_component(component_id)
+            if not component:
+                continue
             if component.type != "repeater":
                 continue
             if i + 1 >= len(instance_path):
@@ -780,7 +807,7 @@ class Evaluator:
                 repeater_items = list(repeater_object.items())
             elif isinstance(repeater_object, list):
                 repeater_items = [(k, v)
-                                  for (k, v) in enumerate(repeater_object)]
+                                for (k, v) in enumerate(repeater_object)]
             else:
                 raise ValueError(
                     "Cannot produce context. Repeater object must evaluate to a dictionary.")
@@ -878,6 +905,7 @@ class StreamsyncSession:
         new_state = StreamsyncState.get_new()
         new_state.user_state.mutated = set()
         self.session_state = new_state
+        self.session_component_tree = SessionComponentTree(base_component_tree)
         self.event_handler = EventHandler(self)
 
     def update_last_active_timestamp(self) -> None:
@@ -977,8 +1005,9 @@ class EventHandler:
     def __init__(self, session: StreamsyncSession) -> None:
         self.session = session
         self.session_state = session.session_state
-        self.deser = EventDeserialiser(self.session_state)
-        self.evaluator = Evaluator(self.session_state)
+        self.session_component_tree = session.session_component_tree
+        self.deser = EventDeserialiser(self.session_state, self.session_component_tree)
+        self.evaluator = Evaluator(self.session_state, self.session_component_tree)
 
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
@@ -1075,7 +1104,7 @@ class EventHandler:
         try:
             instance_path = ev.instancePath
             target_id = instance_path[-1]["componentId"]
-            target_component = component_manager.components[target_id]
+            target_component = self.session_component_tree.get_component(target_id)
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(
@@ -1091,8 +1120,8 @@ class EventHandler:
 
 
 state_serialiser = StateSerialiser()
-component_manager = ComponentManager()
 initial_state = StreamsyncState()
+base_component_tree = ComponentTree()
 session_manager = SessionManager()
 
 

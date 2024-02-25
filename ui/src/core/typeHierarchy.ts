@@ -1,9 +1,12 @@
 import { Component, ComponentMap } from "../streamsyncTypes";
-import { getComponentDefinition, getSupportedComponentTypes } from "./templateMap";
+import {
+	getComponentDefinition,
+	getSupportedComponentTypes,
+} from "./templateMap";
 
 function getDisallowedSet(
 	components: ComponentMap,
-	componentId: Component["id"]
+	componentId: Component["id"],
 ): Set<Component["type"]> {
 	const { type } = components[componentId];
 	const supportedTypes = getSupportedComponentTypes();
@@ -14,7 +17,7 @@ function getDisallowedSet(
 	const disallowedDefs = typesAndDefs.filter(
 		(tad) =>
 			tad.definition.allowedParentTypes &&
-			!tad.definition.allowedParentTypes.includes(type)
+			!tad.definition.allowedParentTypes.includes(type),
 	);
 	const disallowed = new Set(disallowedDefs.map((tad) => tad.type));
 
@@ -23,10 +26,12 @@ function getDisallowedSet(
 
 function getAllowedSet(
 	components: ComponentMap,
-	componentId: Component["id"]
+	componentId: Component["id"],
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
-	const supportedTypes = getSupportedComponentTypes().filter(t => t !== "root");
+	const supportedTypes = getSupportedComponentTypes().filter(
+		(t) => t !== "root",
+	);
 	const { allowedChildrenTypes } = getComponentDefinition(type);
 	if (!allowedChildrenTypes) return new Set([]);
 
@@ -44,7 +49,7 @@ function getAllowedSet(
 
 export function getContainableTypes(
 	components: ComponentMap,
-	componentId: Component["id"]
+	componentId: Component["id"],
 ): Component["type"][] {
 	const allowed = Array.from(getAllowedSet(components, componentId));
 	const disallowed = Array.from(getDisallowedSet(components, componentId));

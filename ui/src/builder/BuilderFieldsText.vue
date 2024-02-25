@@ -1,13 +1,15 @@
 <template>
 	<div class="BuilderFieldsText">
 		<template
-			v-if="!templateField.control || templateField.control == FieldControl.Text"
+			v-if="
+				!templateField.control ||
+				templateField.control == FieldControl.Text
+			"
 		>
 			<input
 				type="text"
 				:value="component.content[fieldKey]"
 				class="content"
-				v-on:input="handleInput"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
@@ -17,13 +19,15 @@
 						? `list-${componentId}-${fieldKey}`
 						: undefined
 				"
+				@input="handleInput"
 			/>
 			<datalist
-				:id="`list-${componentId}-${fieldKey}`"
 				v-if="templateField.options"
+				:id="`list-${componentId}-${fieldKey}`"
 			>
 				<option
 					v-for="(option, optionKey) in templateField.options"
+					:key="optionKey"
 					:value="optionKey"
 				>
 					<template
@@ -39,11 +43,11 @@
 				v-capture-tabs
 				class="content"
 				:value="component.content[fieldKey]"
-				v-on:input="handleInput"
 				:placeholder="templateField?.default"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
+				@input="handleInput"
 			>
 			</textarea>
 		</template>
@@ -76,7 +80,7 @@ const handleInput = (ev: Event) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value
+		(ev.target as HTMLInputElement).value,
 	);
 };
 </script>

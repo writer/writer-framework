@@ -20,7 +20,6 @@ export function useFormValueBroker(
 	const queuedEvent: Ref<{ eventValue: any; emitEventType: string }> =
 		ref(null);
 
-
 	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => ss.getComponentById(componentId));
 	const { evaluateExpression } = useEvaluator(ss);
@@ -28,7 +27,10 @@ export function useFormValueBroker(
 	function getBindingValue() {
 		const component = ss.getComponentById(componentId);
 		if (component?.binding?.stateRef) {
-			const value = evaluateExpression(component.binding.stateRef, instancePath);
+			const value = evaluateExpression(
+				component.binding.stateRef,
+				instancePath,
+			);
 			return value;
 		}
 		return;
@@ -42,7 +44,11 @@ export function useFormValueBroker(
 	 * @param emitEventType
 	 * @returns
 	 */
-	function handleInput(eventValue: any, emitEventType: string, customCallback?: Function) {
+	function handleInput(
+		eventValue: any,
+		emitEventType: string,
+		customCallback?: Function,
+	) {
 		formValue.value = eventValue;
 
 		const isHandlerSet = component.value.handlers?.[emitEventType];
@@ -68,10 +74,10 @@ export function useFormValueBroker(
 			if (queuedEvent.value) {
 				handleInput(
 					queuedEvent.value.eventValue,
-					queuedEvent.value.emitEventType
+					queuedEvent.value.emitEventType,
 				);
-				queuedEvent.value = null;	
-			};
+				queuedEvent.value = null;
+			}
 			customCallback?.();
 		};
 
@@ -90,7 +96,7 @@ export function useFormValueBroker(
 			if (isBusy.value) return;
 			formValue.value = value;
 		},
-		{ immediate: true }
+		{ immediate: true },
 	);
 
 	watch(
@@ -100,7 +106,7 @@ export function useFormValueBroker(
 				formValue.value = "";
 			}
 		},
-		{ immediate: true }
+		{ immediate: true },
 	);
 
 	return {

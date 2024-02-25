@@ -1,13 +1,14 @@
+<!-- eslint-disable @typescript-eslint/ban-types -->
 <template>
 	<Teleport to="#modal">
-		<div class="BuilderModal" v-on:keydown="handleKeydown" tabindex="-1">
+		<div class="BuilderModal" tabindex="-1" @keydown="handleKeydown">
 			<div class="main">
 				<div class="titleContainer">
 					<i v-if="icon" :class="`ri-${icon}-line`" class="ri-lg"></i>
 					<h2>{{ modalTitle }}</h2>
 					<button
 						:title="closeAction?.desc ?? 'Close'"
-						v-on:click="closeAction.fn"
+						@click="closeAction.fn"
 					>
 						<i class="ri-close-line ri-lg"></i>
 					</button>
@@ -15,10 +16,11 @@
 				<div class="slotContainer">
 					<slot></slot>
 				</div>
-				<div class="actionContainer" v-if="menuActions?.length > 0">
+				<div v-if="menuActions?.length > 0" class="actionContainer">
 					<button
-						v-for="action in menuActions"
-						v-on:click="action.fn"
+						v-for="(action, index) in menuActions"
+						:key="index"
+						@click="action.fn"
 					>
 						{{ action.desc }}
 					</button>

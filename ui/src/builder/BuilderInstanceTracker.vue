@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderInstanceTracker" :style="rootStyle" ref="rootEl">
+	<div ref="rootEl" class="BuilderInstanceTracker" :style="rootStyle">
 		<slot></slot>
 	</div>
 </template>
@@ -49,7 +49,7 @@ const trackElement = (el: HTMLElement) => {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
 		trackerX = Math.min(
 			rendererX + rendererWidth - contentsWidth,
-			trackerX
+			trackerX,
 		); // Right boundary
 		trackerY = Math.max(MIN_TOP_PX, trackerY); // Top boundary
 		trackerY = Math.min(bodyHeight - contentsHeight, trackerY); // Bottom boundary
@@ -65,7 +65,7 @@ const trackElement = (el: HTMLElement) => {
 
 const triggerTrack = () => {
 	let el: HTMLElement = document.querySelector(
-		`.ComponentRenderer [data-streamsync-instance-path="${instancePath.value}"]`
+		`.ComponentRenderer [data-streamsync-instance-path="${instancePath.value}"]`,
 	);
 	scheduleNextTrigger();
 	if (!el) return;

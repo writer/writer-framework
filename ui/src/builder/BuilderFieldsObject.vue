@@ -1,14 +1,17 @@
 <template>
 	<textarea
-		class="BuilderFieldsObject"
 		v-capture-tabs
+		class="BuilderFieldsObject"
 		variant="code"
 		:value="component.content[fieldKey]"
-		v-on:input="(ev:Event) => formatAndSetContentValue((ev.target as HTMLInputElement).value)"
 		autocorrect="off"
 		autocomplete="off"
 		spellcheck="false"
 		:placeholder="templateField.default"
+		@input="
+			(ev: Event) =>
+				formatAndSetContentValue((ev.target as HTMLInputElement).value)
+		"
 	></textarea>
 </template>
 

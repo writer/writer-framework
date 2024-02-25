@@ -1,24 +1,24 @@
 <template>
 	<div
-		class="RendererNotifications"
 		v-show="notifications.length > 0"
-		v-on:click="toggle"
+		class="RendererNotifications"
+		@click="toggle"
 	>
-		<div class="balloon" ref="balloon" title="Toggle notifications">
+		<div ref="balloon" class="balloon" title="Toggle notifications">
 			<i class="ri-notification-2-line ri-xl"></i>
 			<div class="counter">{{ notifications.length }}</div>
 		</div>
 		<div class="balloonFlash"></div>
-		<div class="main" v-show="isActive">
+		<div v-show="isActive" class="main">
 			<div class="clearContainer">
-				<button v-on:click="clearAll">
+				<button @click="clearAll">
 					<i class="ri-close-line"></i> Clear all
 				</button>
 			</div>
 			<div
-				class="notification"
 				v-for="(notification, notificationId) in notifications"
 				:key="notificationId"
+				class="notification"
 			>
 				<div class="icon" :class="notification.type">
 					<i class="ri-error-warning-fill ri-xl"></i>

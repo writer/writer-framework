@@ -1,12 +1,12 @@
 <template>
-	<div class="BuilderFieldsColor" tabindex="-1" ref="rootEl">
+	<div ref="rootEl" class="BuilderFieldsColor" tabindex="-1">
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
-					v-on:click="
+					@click="
 						() => {
 							setMode('default');
 							setContentValue(component.id, fieldKey, undefined);
@@ -19,7 +19,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
-					v-on:click="setMode('css')"
+					@click="setMode('css')"
 				>
 					CSS
 				</button>
@@ -27,29 +27,29 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
-					v-on:click="setMode('pick')"
+					@click="setMode('pick')"
 				>
 					Pick
 				</button>
 			</div>
 		</div>
 
-		<div class="main" v-if="mode == 'pick' || mode == 'css'">
-			<div class="pickerContainer" v-if="mode == 'pick'">
+		<div v-if="mode == 'pick' || mode == 'css'" class="main">
+			<div v-if="mode == 'pick'" class="pickerContainer">
 				<input
 					ref="pickerEl"
 					type="color"
 					:value="component.content[fieldKey]"
-					v-on:input="handleInput"
+					@input="handleInput"
 				/>
 			</div>
 
 			<input
-				type="text"
-				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
-				v-on:input="handleInput"
 				v-if="mode == 'css'"
+				ref="freehandInputEl"
+				type="text"
+				:value="component.content[fieldKey]"
+				@input="handleInput"
 			/>
 		</div>
 	</div>
@@ -124,7 +124,7 @@ const handleInput = (ev: Event) =>
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value
+		(ev.target as HTMLInputElement).value,
 	);
 
 onMounted(() => {

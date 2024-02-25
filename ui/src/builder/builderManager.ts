@@ -247,13 +247,13 @@ export function generateBuilderManager() {
 	async function hashLogEntryContents(logEntry: LogEntryContents) {
 		const strData = JSON.stringify(logEntry);
 		let hash = 5981;
-		for (var i = 0; i < strData.length; i++) {
-			hash = ((hash << 5) + hash) + strData.charCodeAt(i);
+		for (let i = 0; i < strData.length; i++) {
+			hash = (hash << 5) + hash + strData.charCodeAt(i);
 		}
 		const hashStr = hash.toString(16).padStart(2, "0");
 		return hashStr;
 	}
-	
+
 	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
 		const { type, title, message, code } = logEntryContents;
 		const fingerprint = await hashLogEntryContents(logEntryContents);
