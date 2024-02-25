@@ -46,9 +46,9 @@ import CoreGoogleMaps from "../core_components/embed/CoreGoogleMaps.vue";
 // root
 import CorePage from "../core_components/root/CorePage.vue";
 import CoreRoot from "../core_components/root/CoreRoot.vue";
-import CoreChat from "../core_components/CoreChat.vue";
-import CoreStep from "../core_components/CoreStep.vue";
-import CoreSteps from "../core_components/CoreSteps.vue";
+import CoreChat from "../core_components/content/CoreChat.vue";
+import CoreStep from "../core_components/layout/CoreStep.vue";
+import CoreSteps from "../core_components/layout/CoreSteps.vue";
 import CoreRating from "../core_components/input/CoreRatingInput.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
