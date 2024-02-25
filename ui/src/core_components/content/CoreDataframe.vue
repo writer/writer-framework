@@ -400,6 +400,7 @@ async function loadData() {
 		baseTable = aqTable;
 		table.value = baseTable;
 	} catch (e) {
+		// eslint-disable-next-line no-console
 		console.error("Couldn't load dataframe from Arrow URL.", e);
 	}
 }
