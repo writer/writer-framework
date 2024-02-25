@@ -64,13 +64,13 @@
 const STEP_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "../streamsyncTypes";
-import { useEvaluator } from "../renderer/useEvaluator";
+import { Component, FieldType, InstancePath } from "../../streamsyncTypes";
+import { useEvaluator } from "../../renderer/useEvaluator";
 import {
 	contentHAlign,
 	cssClasses,
 	contentPadding,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 import { onBeforeUnmount } from "vue";
 
 const description =
@@ -113,8 +113,8 @@ export default {
 </script>
 <script setup lang="ts">
 import { Ref, computed, inject, onBeforeMount, watch } from "vue";
-import injectionKeys from "../injectionKeys";
-import BaseContainer from "./base/BaseContainer.vue";
+import injectionKeys from "../../injectionKeys";
+import BaseContainer from "./../base/BaseContainer.vue";
 import { type StepsData } from "./CoreSteps.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 button.bit {
 	padding: 16px 0 0 0;

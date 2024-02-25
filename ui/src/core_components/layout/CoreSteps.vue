@@ -25,7 +25,7 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component for displaying Step components, allowing you to implement a stepped workflow.";
@@ -53,8 +53,8 @@ export default {
 </script>
 <script setup lang="ts">
 import { inject } from "vue";
-import injectionKeys from "../injectionKeys";
-import { InstancePath } from "../streamsyncTypes";
+import injectionKeys from "../../injectionKeys";
+import { InstancePath } from "../../streamsyncTypes";
 
 export type StepsData = {
 	activeStep: InstancePath;
@@ -75,7 +75,7 @@ instanceData.at(-1).value = stepsData;
 </script>
 
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreSteps {
 	width: 100%;

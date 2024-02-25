@@ -54,8 +54,8 @@
 </template>
 
 <script lang="ts">
-import LoadingSymbol from "../renderer/LoadingSymbol.vue";
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	buttonColor,
 	buttonTextColor,
@@ -64,7 +64,7 @@ import {
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
-} from "../renderer/sharedStyleFields";
+} from "../../renderer/sharedStyleFields";
 import { nextTick } from "vue";
 
 const description = "A chat component to build human-to-AI interactions.";
@@ -153,7 +153,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { Ref, inject, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 type Message = {
 	origin: "incoming" | "outgoing";
@@ -262,7 +262,7 @@ function handleActionClick(action: Message["actions"][number]) {
 }
 </script>
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "../../renderer/sharedStyles.css";
 
 .CoreChat {
 	display: flex;
