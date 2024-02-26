@@ -133,6 +133,7 @@ const initMap = async () => {
 			map.on("load", renderMarkers);
 		}
 	} catch (error) {
+		// eslint-disable-next-line no-console
 		console.error(error);
 	}
 };
