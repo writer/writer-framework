@@ -103,8 +103,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref, watch, computed } from "vue";
-import { VuePDF, usePDF } from "@tato30/vue-pdf";
+import { inject, ref, watch, computed, onMounted } from "vue";
 import injectionKeys from "../../injectionKeys";
 import "@tato30/vue-pdf/style.css";
 
@@ -112,7 +111,7 @@ type MatchType = { str: string; page: number; index: number };
 
 const fields = inject(injectionKeys.evaluatedFields);
 
-const { pdf, pages } = usePDF(fields.source);
+let pdf, pages, VuePDF;
 
 const highlightText = computed(() => {
 	return fields.highlights.value
@@ -135,6 +134,14 @@ const loading = ref(false);
 
 const pagesLoaded = ref(0);
 const highlightsList = ref([]);
+
+onMounted(async () => {
+	const VuePDFLib = await import("@tato30/vue-pdf");
+	VuePDF = VuePDFLib.VuePDF;
+	const usePDF = VuePDFLib.usePDF;
+	({ pdf, pages } = usePDF(fields.source));
+	reload();
+});
 
 const reload = () => {
 	loading.value = true;
@@ -257,6 +264,8 @@ const incrementScale = () => {
 const decrementScale = () => {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
 };
+
+
 
 watch([highlightsList, pagesLoaded], () => {
 	if (
