@@ -225,6 +225,7 @@ const gotoHighlight = (matchIdx: number) => {
 		return;
 	}
 	const match = matches.value[matchIdx - 1];
+	if (!match) return;
 	const matchEls = rootEl.value.querySelectorAll(
 		`div[page='${match.page}'] span.highlight`,
 	);
