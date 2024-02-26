@@ -265,8 +265,6 @@ const decrementScale = () => {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
 };
 
-
-
 watch([highlightsList, pagesLoaded], () => {
 	if (
 		(!highlightText.value || highlightsList.value.length === pages.value) &&
