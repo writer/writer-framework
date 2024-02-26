@@ -32,6 +32,7 @@ const templateEvaluator = useEvaluator(ss);
 const pages: Component[] = ss.getComponents();
 
 if (pages.length == 0) {
+	// eslint-disable-next-line no-console
 	console.error("No pages found.");
 }
 

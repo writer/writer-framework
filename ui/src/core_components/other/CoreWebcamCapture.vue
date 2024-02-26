@@ -169,6 +169,7 @@ const startCapture = async (): Promise<void> => {
 	videoEl.value.style.display = "";
 	return new Promise((resolve, reject) => {
 		if (!navigator.mediaDevices.getUserMedia) {
+			// eslint-disable-next-line no-console
 			console.error("This browser doesn't support webcam connection.");
 			reject();
 		}
@@ -195,6 +196,7 @@ const startCapture = async (): Promise<void> => {
 				resolve();
 			})
 			.catch((error) => {
+				// eslint-disable-next-line no-console
 				console.error(
 					"An error occurred when trying to use the webcam.",
 					error,
