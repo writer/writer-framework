@@ -71,6 +71,7 @@ export default {
       },
     ],
   },
+  ignoreDeadLinks: 'localhostLinks',
   vite: {
     build: {
       target: "esnext",
