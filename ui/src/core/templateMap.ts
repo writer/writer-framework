@@ -10,6 +10,7 @@ import CorePlotlyGraph from "../core_components/content/CorePlotlyGraph.vue";
 import CoreText from "../core_components/content/CoreText.vue";
 import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
+import CoreLink from "../core_components/content/CoreLink.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -67,6 +68,7 @@ const templateMap = {
 	columns: CoreColumns,
 	tab: CoreTab,
 	tabs: CoreTabs,
+	link: CoreLink,
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,

@@ -54,7 +54,7 @@ export type StreamsyncComponentDefinition = {
 			desc?: string; // Description
 			default?: string; // Value used if the field is empty, e.g. "(No text)"
 			control?: FieldControl; // Which control (text, textarea, etc) to use if not the default for the type
-			options?: Record<string, string>; // List of values to be provided as autocomplete options
+			options?: Record<string, string> | (() => Record<string, string>); // List of values to be provided as autocomplete options
 			type: FieldType; // Data type for the field
 			category?: FieldCategory; // Category (Layout, Content, etc)
 			applyStyleVariable?: boolean; // Use the value of this field as a CSS variable
