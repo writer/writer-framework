@@ -90,7 +90,7 @@ const center = computed<mapboxgl.LngLatLike>(() => [
 	fields.lng.value,
 	fields.lat.value,
 ]);
-let map = null;
+const map = ref(null);
 let markers: mapboxgl.Marker[] = [];
 let controls: mapboxgl.NavigationControl | null = null;
 
@@ -108,13 +108,13 @@ const initMap = async () => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(mapboxgl as any).default.accessToken = fields.accessToken.value;
 		}
-		map = new mapboxgl.Map({
+		map.value = new mapboxgl.Map({
 			container: mapEl.value,
 			style: fields.mapStyle.value,
 			center: center.value,
 			zoom: fields.zoom.value,
 		});
-		map.on("click", (e) => {
+		map.value.on("click", (e) => {
 			const event = new CustomEvent("mapbox-click", {
 				detail: {
 					payload: {
@@ -127,10 +127,10 @@ const initMap = async () => {
 		});
 		controls = new mapboxgl.NavigationControl();
 		if (fields.controls.value === "yes") {
-			map.addControl(controls);
+			map.value.addControl(controls);
 		}
 		if (fields.markers.value) {
-			map.on("load", renderMarkers);
+			map.value.on("load", renderMarkers);
 		}
 	} catch (error) {
 		// eslint-disable-next-line no-console
@@ -139,15 +139,15 @@ const initMap = async () => {
 };
 
 const renderMarkers = async () => {
-	if (!map) return;
+	if (!map.value) return;
 	const mapboxgl = await import("mapbox-gl");
 	markers.forEach((marker) => marker.remove());
 	markers = [];
-	fields.markers.value.forEach(
+	fields.markers?.value?.forEach(
 		(markerData: { lat: number; lng: number; name: string }) => {
 			const marker = new mapboxgl.Marker()
 				.setLngLat([markerData.lng, markerData.lat])
-				.addTo(map)
+				.addTo(map.value)
 				.setPopup(new mapboxgl.Popup().setText(markerData.name));
 			markers.push(marker);
 			marker.getElement().addEventListener("click", (e) => {
@@ -164,36 +164,38 @@ const renderMarkers = async () => {
 };
 
 watch(fields.controls, () => {
-	if (map) {
+	if (map.value) {
 		if (fields.controls.value === "yes") {
-			map.addControl(controls);
+			map.value.addControl(controls);
 		} else {
-			map.removeControl(controls);
+			map.value.removeControl(controls);
 		}
 	}
 });
 
 watch(fields.markers, async () => {
-	if (map) {
+	if (map.value) {
 		await renderMarkers();
 	}
 });
 watch(fields.mapStyle, () => {
-	if (map) {
-		map.setStyle(fields.mapStyle.value);
+	if (map.value) {
+		map.value.setStyle(fields.mapStyle.value);
 	}
 });
 watch(center, () => {
-	if (map) {
-		map.setCenter(center.value);
+	if (map.value && center.value?.lat && center.value?.lng) {
+		map.value.setCenter(center.value);
 	}
 });
 watch(fields.zoom, () => {
-	if (map) {
-		map.setZoom(fields.zoom.value);
+	if (map.value && fields.zoom.value) {
+		map.value.setZoom(fields.zoom.value);
 	}
 });
-watch([mapEl, fields.accessToken], initMap);
+watch([mapEl, fields.accessToken], () => {
+	initMap();
+});
 </script>
 
 <style scoped>
