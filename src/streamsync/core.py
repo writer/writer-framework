@@ -484,7 +484,7 @@ class Component(BaseModel):
     position: int = 0
     parentId: Optional[str] = None
     handlers: Optional[Dict[str, str]] = None
-    visible: Optional[bool] = None
+    visible: Optional[bool | str] = None
     binding: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
