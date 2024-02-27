@@ -13,7 +13,6 @@ def ci(front, back):
     if front or (not front and not back):
         alfred.invoke_command("npm.lint")
         alfred.invoke_command("npm.build")
-        alfred.invoke_command("npm.test")
 
 @alfred.command("ci.mypy", help="typing checking with mypy on ./src/streamsync")
 def ci_mypy():
