@@ -1988,7 +1988,7 @@
                 "eventType": "ss-change",
                 "stateRef": "name"
             },
-            "visible": ""
+            "visible": false
         },
         "6e912116-4cc5-4840-96b9-84106bee795d": {
             "id": "6e912116-4cc5-4840-96b9-84106bee795d",

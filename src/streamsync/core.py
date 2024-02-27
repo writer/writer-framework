@@ -17,6 +17,7 @@ import re
 import json
 import math
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
+from pydantic import BaseModel, Field
 
 
 class Config:
@@ -475,54 +476,22 @@ class StreamsyncState():
 
 # TODO Consider switching Component to use Pydantic
 
-class Component:
-
-    def __init__(self, id: str, type: str, content: Dict[str, str] = {}, flag: Optional[str] = None):
-        self.id = id
-        self.type = type
-        self.flag = flag
-        self.content = content
-        self.position: int = 0
-        self.parentId: Optional[str] = None
-        self.handlers: Optional[Dict[str, str]] = None
-        self.visible: Optional[bool] = None
-        self.binding: Optional[Dict] = None
-
-    @classmethod
-    def from_dict(cls, c_dict: Dict) -> 'Component':
-        # Create a new Component instance with basic properties.
-        component = cls(
-            id=c_dict["id"],
-            type=c_dict["type"],
-            content=c_dict.get("content", {}),
-            flag=c_dict.get("flag")
-        )
-        # Set optional properties if they exist in the dictionary.
-        component.parentId = c_dict.get("parentId")
-        component.position = c_dict.get("position", 0)
-        component.handlers = c_dict.get("handlers")
-        component.visible = c_dict.get("visible")
-        component.binding = c_dict.get("binding")
-        
-        return component
+class Component(BaseModel):
+    id: str
+    type: str
+    content: Dict[str, str] = Field(default_factory=dict)
+    flag: Optional[str] = None
+    position: int = 0
+    parentId: Optional[str] = None
+    handlers: Optional[Dict[str, str]] = None
+    visible: Optional[bool] = None
+    binding: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
-        c_dict = {
-            "id": self.id,
-            "type": self.type,
-            "content": self.content,
-            "parentId": self.parentId,
-            "position": self.position
-        }
-        if self.handlers is not None:
-            c_dict["handlers"] = self.handlers
-        if self.binding is not None:
-            c_dict["binding"] = self.binding
-        if self.visible is not None:
-            c_dict["visible"] = self.visible
-        if self.flag is not None:
-            c_dict["flag"] = self.flag
-        return c_dict
+        """
+        Wrapper for model_dump to ensure backward compatibility.
+        """
+        return self.model_dump(exclude_none=True)
 
 
 class ComponentTree:
@@ -530,7 +499,9 @@ class ComponentTree:
     def __init__(self) -> None:
         self.counter: int = 0
         self.components: Dict[str, Component] = {}
-        root_component = Component("root", "root", {})
+        root_component = Component(
+            id="root", type="root", content={}
+        )
         self.attach(root_component)
 
     def get_component(self, component_id: str) -> Optional[Component]:
@@ -557,13 +528,7 @@ class ComponentTree:
                 continue
             self.components.pop(component_id)
         for component_id, sc in serialised_components.items():
-            component = Component(
-                component_id, sc["type"], sc["content"])
-            component.parentId = sc.get("parentId")
-            component.handlers = sc.get("handlers")
-            component.position = sc.get("position")
-            component.visible = sc.get("visible")
-            component.binding = sc.get("binding")
+            component = Component(**sc)
             self.components[component_id] = component
 
     def to_dict(self) -> Dict:
@@ -580,12 +545,15 @@ class SessionComponentTree(ComponentTree):
         self.base_component_tree = base_component_tree
 
     def get_component(self, component_id: str) -> Optional[Component]:
+        # Check if session component tree contains requested key
         session_component_present = component_id in self.components
-        session_component = self.components.get(component_id)
 
         if session_component_present:
+            # If present, return session component (even if it's None)
+            session_component = self.components.get(component_id)
             return session_component
 
+        # Otherwise, try to obtain the base tree component
         return self.base_component_tree.get_component(component_id)
 
     def to_dict(self) -> Dict:
