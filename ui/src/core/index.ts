@@ -158,7 +158,7 @@ export function generateCore() {
 		});
 	}
 
-	function updateComponents(newComponents: Record<string, any>) {
+	function ingestComponents(newComponents: Record<string, any>) {
 		if (!newComponents) return;
 		components.value = newComponents
 	}
@@ -203,7 +203,7 @@ export function generateCore() {
 			) {
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
-				updateComponents(message.payload?.components);
+				ingestComponents(message.payload?.components);
 			}
 
 			const mapItem = frontendMessageMap.value.get(message.trackingId);
@@ -436,19 +436,20 @@ export function generateCore() {
 	 */
 	async function sendComponentUpdate(): Promise<void> {
 		/*
- 		Only send components created by the frontend (static), to avoid re-feeding the backend
- 		those components created by the backend.
+ 		Ensure that the backend receives only components 
+		created by the frontend (Builder-managed components, BMC), 
+		and not the components it generated (Code-managed components, CMC).
  		*/
 
- 		const staticComponents = {};
+ 		const builderManagedComponents = {};
 
  		Object.entries(components.value).forEach(([componentId, component]) => {
  			if (component.flag === 'cmc') return;
- 			staticComponents[componentId] = component;
+ 			builderManagedComponents[componentId] = component;
  		});
 
 		const payload = {
-			components: staticComponents,
+			components: builderManagedComponents,
 		};
 
 		return new Promise((resolve, reject) => {

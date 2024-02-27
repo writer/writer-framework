@@ -585,19 +585,19 @@ class SessionComponentTree(ComponentTree):
 
         if session_component_present:
             return session_component
-                
-        return self.base_component_tree.get_component(component_id)
 
-        
+        return self.base_component_tree.get_component(component_id)
 
     def to_dict(self) -> Dict:
         active_components = {
-            k: v.to_dict()
-            for k, v in self.base_component_tree.components.items()
-            }
-        for id, component in {**self.components}.items():
+            # Collecting serialized base tree components
+            component_id: base_component.to_dict()
+            for component_id, base_component
+            in self.base_component_tree.components.items()
+        }
+        for component_id, session_component in self.components.items():
             # Overriding base tree components with session-specific ones
-            active_components[id] = component.to_dict()
+            active_components[component_id] = session_component.to_dict()
         return active_components
 
 
