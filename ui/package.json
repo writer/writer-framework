@@ -7,6 +7,8 @@
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../.gitignore",
 		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../.gitignore",
+		"test": "playwright test --project=chromium --reporter=list",
+		"test:ci": "playwright test --reporter=list",
 		"custom.dev": "vite --config vite.config.custom.js",
 		"custom.build": "vite build --config vite.config.custom.js"
 	},
@@ -29,6 +31,7 @@
 		"vue-dompurify-html": "^4.1.4"
 	},
 	"devDependencies": {
+    "@playwright/test": "1.41.2",
 		"@rushstack/eslint-patch": "^1.2.0",
 		"@types/google.maps": "3.55.3",
 		"@types/mapbox-gl": "2.7.21",

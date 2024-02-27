@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderFieldsText">
+	<div class="BuilderFieldsText" :data-key="props.fieldKey">
 		<template
 			v-if="
 				!templateField.control ||

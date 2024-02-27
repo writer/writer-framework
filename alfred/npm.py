@@ -6,6 +6,11 @@ def npm_lint():
     os.chdir("ui")
     alfred.run("npm run lint:ci")
 
+@alfred.command("npm.test", help="run ui tests")
+def npm_test():
+    os.chdir("ui")
+    alfred.run("npm run test:ci")
+
 @alfred.command("npm.build", help="build ui code")
 def npm_build():
     os.chdir("ui")
