@@ -78,7 +78,6 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { marked } from "marked";
 import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
@@ -102,7 +101,8 @@ const contentStyle = computed(() => {
 	};
 });
 
-const unsanitisedMarkdownHtml = computed(() => {
+const unsanitisedMarkdownHtml = computed(async () => {
+	const marked = await import("marked");
 	const unsanitisedHtml = marked.parse(fields.text.value).trim();
 	return unsanitisedHtml;
 });
