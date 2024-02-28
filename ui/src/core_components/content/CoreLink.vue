@@ -24,7 +24,7 @@ export default {
 				name: "URL",
 				type: FieldType.Text,
 				default: "https://streamsync.cloud",
-				desc: "A valid URL.",
+				desc: "Specify a URL or choose a page. Keep in mind that you can only link to pages for which a key has been specified.",
 				options: (ss: Core) => {
 					return Object.fromEntries(
 						ss
