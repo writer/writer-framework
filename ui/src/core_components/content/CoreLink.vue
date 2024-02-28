@@ -31,7 +31,7 @@ export default {
 							.getComponents("root", true)
 							.map((page) => page.content.key)
 							.filter((key) => Boolean(key))
-							.map((key) => [`#${key}`, key]),
+							.map((key) => [`#${key}`, `Page with key: ${key}`]),
 					);
 				},
 			},
