@@ -1,17 +1,15 @@
 <template>
 	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
-		<template v-if="fields.useMarkdown.value == 'no'">
-			<div class="plainText" :style="contentStyle">
-				{{ fields.text.value }}
-			</div>
-		</template>
-		<template v-else-if="fields.useMarkdown.value == 'yes'">
-			<div
-				v-dompurify-html="unsanitisedMarkdownHtml"
-				class="markdown"
-				:style="contentStyle"
-			></div>
-		</template>
+		<div
+			v-dompurify-html="marked.parse(fields.text.value).trim()"
+			class="markdown"
+			:style="contentStyle"
+			v-if="fields.useMarkdown.value == 'yes' && isMarkedLoaded"
+		>
+		</div>
+		<div class="plainText" :style="contentStyle" v-else>
+			{{ fields.text.value }}
+		</div>
 	</div>
 </template>
 
@@ -78,13 +76,15 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { Ref, computed, inject, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const ss = inject(injectionKeys.core);
+let marked;
+const isMarkedLoaded = ref(false);
 
 const rootStyle = computed(() => {
 	const component = ss.getComponentById(componentId);
@@ -101,16 +101,23 @@ const contentStyle = computed(() => {
 	};
 });
 
-const unsanitisedMarkdownHtml = computed(async () => {
-	const marked = await import("marked");
-	const unsanitisedHtml = marked.parse(fields.text.value).trim();
-	return unsanitisedHtml;
-});
-
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
 }
+
+watch(fields.useMarkdown, async (newUseMarkdown) => {
+	if (newUseMarkdown !== "yes") return;
+	marked = await import ("marked");
+
+	/**
+	 * It can take a few seconds to load marked after the user changes the field to "yes".
+	 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
+	 */
+
+	isMarkedLoaded.value = true;
+}, {immediate: true});
+
 </script>
 
 <style scoped>
