@@ -80,7 +80,7 @@ const options = computed(() => {
 	const field = templateField.value;
 	if (field.options) {
 		return typeof field.options === "function"
-			? field.options()
+			? field.options(ss, componentId.value)
 			: field.options;
 	}
 	return [];

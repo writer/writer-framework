@@ -11,11 +11,9 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType, Core } from "../../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import injectionKeys from "../../injectionKeys";
-let options = [];
-
 export default {
 	streamsync: {
 		name: "Link",
@@ -26,7 +24,15 @@ export default {
 				name: "URL",
 				type: FieldType.Text,
 				desc: "A valid URL.",
-				options: () => Object.fromEntries(options.value),
+				options: (ss: Core) => {
+					return Object.fromEntries(
+						ss
+							.getComponents("root", true)
+							.map((page) => page.content.key)
+							.filter((key) => Boolean(key))
+							.map((key) => [`#${key}`, key]),
+					);
+				},
 			},
 			target: {
 				name: "Target",
@@ -60,16 +66,7 @@ export default {
 
 <script setup lang="ts">
 import { inject, computed } from "vue";
-const ss = inject(injectionKeys.core);
 const fields = inject(injectionKeys.evaluatedFields);
-
-options = computed(() => {
-	return ss
-		.getComponents("root", true)
-		.map((page) => page.content.key)
-		.filter((key) => Boolean(key))
-		.map((key) => [`#${key}`, key]);
-});
 
 const displayText = computed(() => {
 	return fields.text.value || fields.url.value || "Link";
