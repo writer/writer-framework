@@ -46,15 +46,15 @@ const components = [
 
 const loadPreset = async (preset) => {
 	await fetch(`http://localhost:7358/${preset}`);
-}
+};
 
 components.forEach(({ type, locator }) => {
 	test.describe(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
 
-		test.beforeAll(async() => {
-			await loadPreset('base');
+		test.beforeAll(async () => {
+			await loadPreset("base");
 		});
 
 		test.beforeEach(async ({ page }) => {
@@ -68,14 +68,18 @@ components.forEach(({ type, locator }) => {
 		});
 
 		test("remove", async ({ page }) => {
-			await page.locator(COMPONENT_LOCATOR).click({timeout: 1000});
+			await page.locator(COMPONENT_LOCATOR).click({ timeout: 1000 });
 			await page
 				.locator(
 					'.BuilderComponentShortcuts .actionButton[data-action="delete"]',
 				)
-				.click({timeout: 1000});
-			await expect(page.locator(COMPONENT_LOCATOR)).not.toBeVisible({timeout: 1000});
-			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0, {timeout: 1000});
+				.click({ timeout: 1000 });
+			await expect(page.locator(COMPONENT_LOCATOR)).not.toBeVisible({
+				timeout: 1000,
+			});
+			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0, {
+				timeout: 1000,
+			});
 		});
 	});
 });

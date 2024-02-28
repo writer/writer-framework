@@ -2,14 +2,14 @@ import { test, expect } from "@playwright/test";
 
 const loadPreset = async (preset) => {
 	await fetch(`http://localhost:7358/${preset}`);
-}
+};
 
 test.describe("image", () => {
 	const TYPE = "image";
 	const COMPONENT_LOCATOR = `div.CoreImage.component`;
 
-	test.beforeAll(async() => {
-		await loadPreset('base');
+	test.beforeAll(async () => {
+		await loadPreset("base");
 	});
 
 	test.beforeEach(async ({ page }) => {
