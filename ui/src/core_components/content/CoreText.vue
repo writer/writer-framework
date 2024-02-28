@@ -115,6 +115,7 @@ function handleClick(ev: MouseEvent) {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/markdownStyles.css";
 
 .CoreText {
 	color: var(--primaryTextColor);
@@ -133,67 +134,4 @@ function handleClick(ev: MouseEvent) {
 	width: 100%;
 }
 
-/*
-Markdown styling
-*/
-
-.markdown:deep() h1,
-.markdown:deep() h2,
-.markdown:deep() h3,
-.markdown:deep() h4 {
-	font-weight: 300;
-	margin: 0;
-	color: var(--primaryTextColor);
-}
-
-.markdown:deep() h1 {
-	font-size: 1.3rem;
-}
-
-.markdown:deep() h2 {
-	font-size: 1rem;
-}
-
-.markdown:deep() h3 {
-	font-size: 0.9rem;
-}
-
-.markdown:deep() h4 {
-	text-transform: uppercase;
-	font-weight: bold;
-	font-size: 0.65rem;
-	letter-spacing: 0.2ch;
-}
-
-.markdown:deep() ul,
-.markdown:deep() ol {
-	padding: 0;
-	padding-inline-start: 0;
-	margin-block-start: 0;
-}
-
-.markdown:deep() li {
-	margin: 0 0 0 32px;
-}
-
-.markdown:deep() hr {
-	border: none;
-	border-top: 1px solid var(--separatorColor);
-}
-
-.markdown:deep() pre {
-	background-color: var(--separatorColor);
-	font-family: monospace;
-	padding: 8px;
-}
-
-.markdown:deep() code {
-	background-color: var(--separatorColor);
-	font-family: monospace;
-	padding: 2px;
-}
-
-.markdown:deep() pre > code {
-	background-color: unset;
-}
 </style>
