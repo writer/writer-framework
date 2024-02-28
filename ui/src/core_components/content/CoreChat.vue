@@ -20,7 +20,16 @@
 					</div>
 					<template v-else>
 						<div class="text">
-							{{ message.contents.text }}
+							<div
+								v-if="message.origin == 'incoming' && fields.useMarkdown.value == 'yes' && isMarkedLoaded"
+								v-dompurify-html="
+									marked.parse(message.contents.text).trim()
+								"
+								class="markdown"
+							></div>
+							<template v-else>
+								{{ message.contents.text }}
+							</template>
 						</div>
 						<div class="actions" v-if="message.contents.actions">
 							<button
@@ -79,6 +88,7 @@ import {
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
 import { nextTick } from "vue";
+import { watch } from "vue";
 
 const description = "A chat component to build human-to-AI interactions.";
 
@@ -147,6 +157,16 @@ export default {
 				default: "YOU",
 				type: FieldType.Text,
 			},
+			useMarkdown: {
+				name: "Use Markdown",
+				desc: "It'll only be applied to incoming messages. The output will be sanitised; unsafe elements will be removed.",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
 			incomingColor: {
 				name: "Incoming",
 				type: FieldType.Color,
@@ -189,7 +209,7 @@ export default {
 			},
 			"chat-action-click": {
 				desc: "Handle clicks on actions.",
-				stub: chatActionClickStub
+				stub: chatActionClickStub,
 			},
 		},
 		previewField: "name",
@@ -221,6 +241,11 @@ const messageAreaEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
 let messageCounter = 0;
+let marked;
+
+// The following ref is used to recreate the parts that use marked when it's dynamically imported.
+
+const isMarkedLoaded = ref(false);
 
 const outgoingMessage: Ref<string> = ref("");
 
@@ -289,7 +314,7 @@ async function handleMessageSent() {
 
 /**
  * Allows strings to be sent from the backend as a substitute of Message["contents"].
- * 
+ *
  * @param callbackResult
  */
 function getNormalisedCallbackResult(
@@ -321,9 +346,23 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	});
 	rootEl.value.dispatchEvent(event);
 }
+
+watch(fields.useMarkdown, async (newUseMarkdown) => {
+	if (newUseMarkdown !== "yes") return;
+	marked = await import ("marked");
+
+	/**
+	 * It can take a few seconds to load marked after the user changes the field to "yes".
+	 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
+	 */
+
+	isMarkedLoaded.value = true;
+}, {immediate: true});
+
 </script>
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/markdownStyles.css";
 
 .CoreChat {
 	display: flex;
