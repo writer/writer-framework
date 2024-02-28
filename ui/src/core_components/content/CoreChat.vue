@@ -20,14 +20,27 @@
 					</div>
 					<template v-else>
 						<div class="text">
-							{{ message.text }}
+							{{ message.contents.text }}
 						</div>
-						<div class="actions" v-if="message.actions">
-							<div class="action" v-for="action, actionIndex in message.actions" :key="actionIndex" v-on:click="handleActionClick(action)">
-								<div class="subheading" v-if="action.subheading">{{ action.subheading }}</div>
+						<div class="actions" v-if="message.contents.actions">
+							<button
+								class="action"
+								v-for="(action, actionIndex) in message.contents
+									.actions"
+								:key="actionIndex"
+								v-on:click="handleActionClick(action)"
+							>
+								<div
+									class="subheading"
+									v-if="action.subheading"
+								>
+									{{ action.subheading }}
+								</div>
 								<h3 class="name">{{ action.name }}</h3>
-								<div class="desc" v-if="action.desc">{{ action.desc }}</div>
-							</div>
+								<div class="desc" v-if="action.desc">
+									{{ action.desc }}
+								</div>
+							</button>
 						</div>
 					</template>
 				</div>
@@ -69,21 +82,53 @@ import { nextTick } from "vue";
 
 const description = "A chat component to build human-to-AI interactions.";
 
-const docs = `Chat
-`;
+const docs = `
+Connect it to an LLM by handling the \`ss-chat-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
+
+You can add \`actions\` to your response, which are buttons that trigger the \`ss-chat-action-click\`.
+
+See the stubs for more details.`.trim();
 
 const chatMessageStub = `
-def handle_message(payload):
+def handle_message_simple(payload):
+    query = payload
 
-	# payload contains the message sent by the user
-	# To answer it, return a string
+    if query == "Hello":
 
-    user_message = payload
-    if user_message == "Hello":
+		# You can simply return a string
+
         return "Hello, human."
+    elif query == "Surprise me":
+
+		# Or you can return a dict with actions, which are buttons
+		# added to the conversation
+
+        return {
+            "text": "I can help you with that.",
+            "actions": [{
+            	"subheading": "Resource",
+            	"name": "Surprise",
+            	"desc": "Click to be surprised",
+            	"data": "change_title" 
+        	}]
+        }
     else:
-        return "As a simple Python function, I'm not able to provide an answer. Please try using a large language model."
-`;
+        return "I don't know"
+`.trim();
+
+const chatActionClickStub = `
+def handle_action_simple(payload, state):
+    
+    # payload contains the "data" property of the action 
+    
+    if payload == "change_title":
+        state["app_title"] = "Surprise!"
+        state["app_background_color"] = "red"
+    
+    # A message can be added to the chat
+    
+    return "Hope you're surprised."
+`.trim();
 
 export default {
 	streamsync: {
@@ -139,11 +184,12 @@ export default {
 		},
 		events: {
 			"chat-message": {
-				desc: "Triggered when the user sends a message. Return a string to answer it.",
+				desc: "Triggered when the user sends a message.",
 				stub: chatMessageStub,
 			},
 			"chat-action-click": {
 				desc: "Handle clicks on actions.",
+				stub: chatActionClickStub
 			},
 		},
 		previewField: "name",
@@ -157,15 +203,17 @@ import injectionKeys from "../../injectionKeys";
 
 type Message = {
 	origin: "incoming" | "outgoing";
-	text: string;
 	isLoading?: boolean;
 	date?: Date;
-	actions?: {
-		subheading?: string;
-		name: string;
-		desc?: string;
-		data?: string;
-	}[]
+	contents: {
+		text: string;
+		actions?: {
+			subheading?: string;
+			name: string;
+			desc?: string;
+			data?: string;
+		}[];
+	};
 };
 
 const rootEl: Ref<HTMLElement> = ref(null);
@@ -209,23 +257,27 @@ async function replaceMessage(messageKey: string, message: Message) {
 async function handleMessageSent() {
 	await addMessage({
 		origin: "outgoing",
-		text: outgoingMessage.value,
+		contents: {
+			text: outgoingMessage.value,
+		},
 		date: new Date(),
 	});
 	const outgoingMessageKey = await addMessage({
 		origin: "incoming",
-		text: "Loading...",
+		contents: {
+			text: "Loading...",
+		},
 		isLoading: true,
 	});
 	const event = new CustomEvent("chat-message", {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
-				const contents = payload.result?.result;
+				const callbackResult = payload.result?.result;
+				if (!callbackResult) return;
 				replaceMessage(outgoingMessageKey, {
 					origin: "incoming",
-					text: contents?.text,
-					actions: contents?.actions,
+					contents: getNormalisedCallbackResult(callbackResult),
 					date: new Date(),
 				});
 			},
@@ -235,27 +287,36 @@ async function handleMessageSent() {
 	outgoingMessage.value = "";
 }
 
-function handleActionClick(action: Message["actions"][number]) {
-	const {subheading, name, desc, data} = action;
+/**
+ * Allows strings to be sent from the backend as a substitute of Message["contents"].
+ * 
+ * @param callbackResult
+ */
+function getNormalisedCallbackResult(
+	callbackResult: string | Message["contents"],
+): Message["contents"] {
+	if (typeof callbackResult == "string") {
+		return {
+			text: callbackResult,
+		};
+	}
+	return callbackResult;
+}
+
+function handleActionClick(action: Message["contents"]["actions"][number]) {
+	const { data } = action;
 	const event = new CustomEvent("chat-action-click", {
 		detail: {
-			payload: {
-				subheading,
-				name,
-				desc,
-				data
-			}
-			// callback: ({ payload }) => {
-			// 	const text: string = payload.result?.result;
-			// 	replaceMessage(outgoingMessageKey, {
-			// 		origin: "incoming",
-			// 		text,
-			// 		actions: [
-			// 			{subheading: "WEBSITE", name: "Google", desc: "Leading search engine."},{subheading: "WEBSITE", name: "ChatGPT", desc: "AI chatbot, great for everyday use."}
-			// 		],
-			// 		date: new Date(),
-			// 	});
-			// },
+			payload: data,
+			callback: ({ payload }) => {
+				const callbackResult = payload.result?.result;
+				if (!callbackResult) return;
+				addMessage({
+					origin: "incoming",
+					contents: getNormalisedCallbackResult(callbackResult),
+					date: new Date(),
+				});
+			},
 		},
 	});
 	rootEl.value.dispatchEvent(event);
@@ -357,6 +418,7 @@ function handleActionClick(action: Message["actions"][number]) {
 	flex-direction: column;
 	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
 	cursor: pointer;
+	border: 0;
 }
 
 .action .subheading {
