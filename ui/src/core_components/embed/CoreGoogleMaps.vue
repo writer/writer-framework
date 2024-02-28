@@ -37,8 +37,14 @@ export default {
 			},
 			mapType: {
 				name: "Map type",
-				default: "roadmap",
 				type: FieldType.Text,
+				default: "roadmap",
+				options: {
+					roadmap: "Roadmap",
+					satellite: "Satellite",
+					hybrid: "Hybrid",
+					terrain: "Terrain",
+				},
 				desc: "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'",
 			},
 			zoom: {

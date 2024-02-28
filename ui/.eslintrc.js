@@ -6,6 +6,7 @@ module.exports = {
 		"@typescript-eslint/no-explicit-any": "warn",
 		"@typescript-eslint/ban-types": "warn",
 		"prettier/prettier": [2, { useTabs: true, endOfLine: "auto" }],
+		"no-console": "error",
 	},
 	parser: "vue-eslint-parser",
 	parserOptions: {
