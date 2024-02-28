@@ -23,6 +23,7 @@ export default {
 			url: {
 				name: "URL",
 				type: FieldType.Text,
+				default: "https://streamsync.cloud",
 				desc: "A valid URL.",
 				options: (ss: Core) => {
 					return Object.fromEntries(
@@ -69,7 +70,7 @@ import { inject, computed } from "vue";
 const fields = inject(injectionKeys.evaluatedFields);
 
 const displayText = computed(() => {
-	return fields.text.value || fields.url.value || "Link";
+	return fields.text.value || fields.url.value;
 });
 </script>
 
