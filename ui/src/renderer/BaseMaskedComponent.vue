@@ -1,16 +1,19 @@
 <template>
-	<div class="ComponentBase">
+	<div class="BaseMaskedComponent">
 		<slot />
 		<div class="mask" />
 	</div>
 </template>
 
 <style scoped>
-.ComponentBase .mask {
+.BaseMaskedComponent {
+	position: relative;
+}
+.BaseMaskedComponent .mask {
 	pointer-events: none;
 }
 
-.ComponentBase.beingEdited .mask {
+.BaseMaskedComponent.beingEdited .mask {
 	pointer-events: auto;
 	position: absolute;
 	top: 0;
@@ -19,7 +22,7 @@
 	height: 100%;
 }
 
-.ComponentBase.beingEdited.selected .mask {
+.BaseMaskedComponent.beingEdited.selected .mask {
 	pointer-events: none;
 }
 </style>

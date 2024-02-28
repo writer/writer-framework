@@ -1,7 +1,8 @@
 <template>
-	<ComponentBase ref="rootEl" class="CoreIFrame">
+	<!-- Masking is necessary because iframes can intercept events, and we want the components to become interactive after selection. -->
+	<BaseMaskedComponent ref="rootEl" class="CoreIFrame">
 		<iframe :src="fields.src.value" draggable="false" @load="handleLoad" />
-	</ComponentBase>
+	</BaseMaskedComponent>
 </template>
 
 <script lang="ts">
@@ -45,7 +46,7 @@ export default {
 import { Ref, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
-import ComponentBase from "../../renderer/ComponentBase.vue";
+import BaseMaskedComponent from "../../renderer/BaseMaskedComponent.vue";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
@@ -60,7 +61,6 @@ function handleLoad() {
 @import "../../renderer/sharedStyles.css";
 
 .CoreIFrame {
-	position: relative;
 	width: 100%;
 	height: 80vh;
 }

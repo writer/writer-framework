@@ -1,8 +1,8 @@
 <template>
-	<div ref="rootEl" class="CoreGoogleMaps">
+	<!-- Masking is necessary because map can intercept events, and we want the components to become interactive after selection. -->
+	<BaseMaskedComponent ref="rootEl" class="CoreGoogleMaps">
 		<div ref="mapEl" class="map" />
-		<div class="mask" />
-	</div>
+	</BaseMaskedComponent>
 </template>
 
 <script lang="ts">
@@ -86,6 +86,7 @@ export default {
 import { Ref, inject, ref, onMounted, watch, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { Loader } from "@googlemaps/js-api-loader";
+import BaseMaskedComponent from "../../renderer/BaseMaskedComponent.vue";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const mapEl: Ref<HTMLElement> = ref(null);
@@ -199,7 +200,6 @@ watch(fields.mapId, initMap);
 @import "../../renderer/sharedStyles.css";
 
 .CoreGoogleMaps {
-	position: relative;
 	width: 100%;
 	height: 80vh;
 }
@@ -210,22 +210,5 @@ watch(fields.mapId, initMap);
 	display: block;
 	margin: auto;
 	border: 1px solid var(--separatorColor);
-}
-
-.CoreGoogleMaps .mask {
-	pointer-events: none;
-}
-
-.CoreGoogleMaps.beingEdited .mask {
-	pointer-events: auto;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-}
-
-.CoreGoogleMaps.beingEdited.selected .mask {
-	pointer-events: none;
 }
 </style>

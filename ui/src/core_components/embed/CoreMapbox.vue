@@ -1,8 +1,8 @@
 <template>
-	<div ref="rootEl" class="CoreMapbox">
+	<!-- Masking is necessary because map can intercept events, and we want the components to become interactive after selection. -->
+	<BaseMaskedComponent ref="rootEl" class="CoreMapbox">
 		<div ref="mapEl" class="map" />
-		<div class="mask" />
-	</div>
+	</BaseMaskedComponent>
 </template>
 
 <script lang="ts">
@@ -83,6 +83,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { inject, ref, watch, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
 import type * as mapboxgl from "mapbox-gl";
+import BaseMaskedComponent from "../../renderer/BaseMaskedComponent.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl = ref(null);
 const mapEl = ref(null);
@@ -200,7 +201,6 @@ watch([mapEl, fields.accessToken], () => {
 
 <style scoped>
 .CoreMapbox {
-	position: relative;
 	width: 100%;
 	height: 80vh;
 }
@@ -210,21 +210,5 @@ watch([mapEl, fields.accessToken], () => {
 .CoreMapbox .map {
 	width: 100%;
 	height: 100%;
-}
-.CoreMapbox .mask {
-	pointer-events: none;
-}
-
-.CoreMapbox.beingEdited .mask {
-	pointer-events: auto;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-}
-
-.CoreMapbox.beingEdited.selected .mask {
-	pointer-events: none;
 }
 </style>

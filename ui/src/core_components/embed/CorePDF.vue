@@ -40,7 +40,6 @@
 				/>
 			</div>
 		</div>
-		<div class="mask" />
 	</div>
 </template>
 
@@ -379,23 +378,5 @@ watch(fields.page, () => {
 .CorePDF .viewer .page > div {
 	width: fit-content;
 	margin: 0 auto;
-}
-
-.CorePDF .mask {
-	pointer-events: none;
-}
-
-.CorePDF.beingEdited .mask {
-	pointer-events: auto;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0);
-}
-
-.CorePDF.beingEdited.selected .mask {
-	pointer-events: none;
 }
 </style>

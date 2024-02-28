@@ -1,5 +1,6 @@
 <template>
-	<div class="CoreVideoPlayer">
+	<!-- Video player is intercepting events on Firefox, so we need to mask it. -->
+	<BaseMaskedComponent class="CoreVideoPlayer">
 		<video
 			:src="fields.src.value"
 			:controls="fields.controls.value === 'yes'"
@@ -7,7 +8,7 @@
 			:loop="fields.loop.value === 'yes'"
 			:muted="fields.muted.value === 'yes'"
 		></video>
-	</div>
+	</BaseMaskedComponent>
 </template>
 
 <script lang="ts">
@@ -92,6 +93,7 @@ export default {
 <script setup lang="ts">
 import { inject } from "vue";
 import injectionKeys from "../../injectionKeys";
+import BaseMaskedComponent from "../../renderer/BaseMaskedComponent.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 </script>
