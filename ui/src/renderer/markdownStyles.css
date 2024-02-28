@@ -57,3 +57,12 @@
 .markdown:deep() pre > code {
 	background-color: unset;
 }
+
+.markdown:deep() table {
+	border-collapse: collapse;
+}
+
+.markdown:deep() td {
+    padding: 4px;
+	border: 1px solid var(--separatorColor);
+}
