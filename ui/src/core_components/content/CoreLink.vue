@@ -78,7 +78,4 @@ const displayText = computed(() => {
 .CoreLink a {
 	color: var(--primaryTextColor);
 }
-.CoreLink.beingEdited:not(.selected) a {
-	pointer-events: none;
-}
 </style>
