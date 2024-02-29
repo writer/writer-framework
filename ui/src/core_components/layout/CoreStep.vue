@@ -1,6 +1,5 @@
 <template>
 	<div
-		class="CoreStep"
 		v-show="
 			stepContainerDirectChildInstanceItem?.instanceNumber ==
 				STEP_BIT_INSTANCE_NUMBER ||
@@ -8,20 +7,21 @@
 				CONTENT_DISPLAYING_INSTANCE_NUMBER &&
 				isStepActive)
 		"
+		class="CoreStep"
 	>
 		<button
+			v-if="
+				stepContainerDirectChildInstanceItem?.instanceNumber ==
+				STEP_BIT_INSTANCE_NUMBER
+			"
 			class="bit"
 			:disabled="!isBeingEdited"
 			:class="{
 				active: isStepActive,
 				completed: fields.isCompleted.value == 'yes',
 			}"
-			v-if="
-				stepContainerDirectChildInstanceItem?.instanceNumber ==
-				STEP_BIT_INSTANCE_NUMBER
-			"
-			@click="activateStep"
 			stepindex="0"
+			@click="activateStep"
 		>
 			<div class="indicator">
 				<div class="linker left"></div>
@@ -32,8 +32,8 @@
 					}"
 				>
 					<i
-						class="ri-check-line"
 						v-if="fields.isCompleted.value == 'yes'"
+						class="ri-check-line"
 					></i>
 				</div>
 				<div class="linker right"></div>
@@ -41,14 +41,14 @@
 			<div class="label">{{ fields.name.value }}</div>
 		</button>
 		<BaseContainer
-			class="container"
 			v-if="
 				stepContainerDirectChildInstanceItem?.instanceNumber ==
 				CONTENT_DISPLAYING_INSTANCE_NUMBER
 			"
 			v-show="isStepActive"
-			:contentHAlign="fields.contentHAlign.value"
-			:contentPadding="fields.contentPadding.value"
+			class="container"
+			:content-h-align="fields.contentHAlign.value"
+			:content-padding="fields.contentPadding.value"
 		>
 			<slot></slot>
 		</BaseContainer>

@@ -50,7 +50,7 @@
 									{{ action.subheading }}
 								</div>
 								<h3 class="name">{{ action.name }}</h3>
-								<div class="desc" v-if="action.desc">
+								<div v-if="action.desc" class="desc">
 									{{ action.desc }}
 								</div>
 							</button>
