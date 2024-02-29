@@ -73,8 +73,7 @@ export default {
 				bindable: true,
 			},
 		},
-	},
-	components: { LoadingSymbol },
+	}
 };
 </script>
 

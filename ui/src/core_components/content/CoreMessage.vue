@@ -86,8 +86,7 @@ export default {
 			cssClasses,
 		},
 		previewField: "name",
-	},
-	components: { LoadingSymbol },
+	}
 };
 </script>
 <script setup lang="ts">
