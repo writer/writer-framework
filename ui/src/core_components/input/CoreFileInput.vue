@@ -73,7 +73,7 @@ export default {
 				bindable: true,
 			},
 		},
-	}
+	},
 };
 </script>
 
