@@ -6,6 +6,11 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, Ref, ref, toRefs } from "vue";
 
+import { inject } from "vue";
+import injectionKeys from "../injectionKeys";
+
+const ssbm = inject(injectionKeys.builderManager);
+
 const REFRESH_INTERVAL_MS = 200;
 
 interface Props {
@@ -45,10 +50,14 @@ const trackElement = (el: HTMLElement) => {
 	let trackerX = elX;
 	let trackerY = elY + yAdjustment;
 
+	let settingsWidth = ssbm.isSettingsBarCollapsed()
+		? 0
+		: document.getElementsByClassName("BuilderSettings")[0].clientWidth;
+
 	if (!isOffBoundsAllowed.value) {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
 		trackerX = Math.min(
-			rendererX + rendererWidth - contentsWidth,
+			rendererX + rendererWidth - contentsWidth - settingsWidth,
 			trackerX,
 		); // Right boundary
 		trackerY = Math.max(MIN_TOP_PX, trackerY); // Top boundary
