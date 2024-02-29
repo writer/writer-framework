@@ -133,9 +133,7 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 function getRawRatingFromEvent(event: MouseEvent) {
 	const evX = event.offsetX;
-	const unitEls = unitsEl.value.querySelectorAll(
-		".unit",
-	);
+	const unitEls = unitsEl.value.querySelectorAll(".unit");
 	let n = 0;
 	unitEls.forEach((unitEl) => {
 		const unitHtmlEl = unitEl as HTMLElement;
