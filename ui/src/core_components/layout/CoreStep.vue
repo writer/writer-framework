@@ -14,7 +14,7 @@
 			:disabled="!isBeingEdited"
 			:class="{
 				active: isStepActive,
-				completed: fields.isCompleted.value == 'yes'
+				completed: fields.isCompleted.value == 'yes',
 			}"
 			v-if="
 				stepContainerDirectChildInstanceItem?.instanceNumber ==
@@ -128,7 +128,7 @@ const componentId = inject(injectionKeys.componentId);
 const { isComponentVisible } = useEvaluator(ss);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
-const stepContainerData:Ref<StepsData> = getStepContainerData();
+const stepContainerData: Ref<StepsData> = getStepContainerData();
 
 /**
  * Returns the InstanceData for the parent Step Container.
@@ -162,7 +162,7 @@ function getDirectChildInstanceNegativeIndex() {
 }
 
 /**
- * Returns the InstancePath of the main instance (content-displaying) of this Step component.   
+ * Returns the InstancePath of the main instance (content-displaying) of this Step component.
  */
 function getMatchingStepInstancePath() {
 	const i = getDirectChildInstanceNegativeIndex();
@@ -197,7 +197,11 @@ function activateNextStep() {
 		(step) =>
 			JSON.stringify(step.instancePath) == JSON.stringify(instancePath),
 	);
-	if (currentStepIndex == -1 || currentStepIndex+1 > stepContainerData.value.steps.length) return;
+	if (
+		currentStepIndex == -1 ||
+		currentStepIndex + 1 > stepContainerData.value.steps.length
+	)
+		return;
 	const subsequentSteps = stepContainerData.value.steps.slice(
 		currentStepIndex + 1,
 	);
@@ -271,7 +275,7 @@ watch([isStepActive, fields.isCompleted], () => {
 	if (fields.isCompleted.value == "yes") {
 		activateNextStep();
 	}
-})
+});
 
 onBeforeMount(() => {
 	if (
@@ -280,7 +284,7 @@ onBeforeMount(() => {
 	)
 		return;
 
-	// Register steps in the Step Container 
+	// Register steps in the Step Container
 
 	if (
 		typeof stepContainerData.value.steps.find(

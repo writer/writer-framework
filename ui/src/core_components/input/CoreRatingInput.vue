@@ -24,8 +24,7 @@
 						}%`,
 					}"
 				></div>
-				<div v-if="feedbackRating !== null" class="filler light">
-				</div>
+				<div v-if="feedbackRating !== null" class="filler light"></div>
 				<div class="face" v-if="fields.feedback.value == 'faces'">
 					<svg viewBox="0 0 100 100">
 						<circle class="eye left" cx="35" cy="38" r="6"></circle>
@@ -48,7 +47,11 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { accentColor, cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	cssClasses,
+	primaryTextColor,
+} from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to provide a rating.";
@@ -169,10 +172,15 @@ function handleMouseout() {
 }
 
 function getMouthPath(n: number) {
-	const nn = Math.max(Math.min(n, normalisedMaxValue.value), normalisedMinValue.value);
+	const nn = Math.max(
+		Math.min(n, normalisedMaxValue.value),
+		normalisedMinValue.value,
+	);
 	const MIN_POINT = 45;
 	const MAX_POINT = 95;
-	const level = (nn - normalisedMinValue.value) / (normalisedMaxValue.value - normalisedMinValue.value);
+	const level =
+		(nn - normalisedMinValue.value) /
+		(normalisedMaxValue.value - normalisedMinValue.value);
 
 	const mouthOffsetY = level * -10;
 	const mouthY = 70 + mouthOffsetY;
@@ -184,9 +192,8 @@ function getMouthPath(n: number) {
 
 function handleClick(event: MouseEvent) {
 	const n = getRatingFromEvent(event);
-	handleInput(n, 'ss-number-change');
+	handleInput(n, "ss-number-change");
 }
-
 
 const normalisedMinValue = computed(() => {
 	const MIN_VALUE_LOWER_LIMIT = 0;
@@ -224,7 +231,6 @@ const feedbackRating = computed(() => {
 	if (isNaN(formN)) return null;
 	return formN;
 });
-
 </script>
 
 <style scoped>

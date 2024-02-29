@@ -5,8 +5,7 @@
 			class="markdown"
 			:style="contentStyle"
 			v-if="fields.useMarkdown.value == 'yes' && isMarkedLoaded"
-		>
-		</div>
+		></div>
 		<div class="plainText" :style="contentStyle" v-else>
 			{{ fields.text.value }}
 		</div>
@@ -106,18 +105,21 @@ function handleClick(ev: MouseEvent) {
 	rootEl.value.dispatchEvent(ssEv);
 }
 
-watch(fields.useMarkdown, async (newUseMarkdown) => {
-	if (newUseMarkdown !== "yes") return;
-	marked = await import ("marked");
+watch(
+	fields.useMarkdown,
+	async (newUseMarkdown) => {
+		if (newUseMarkdown !== "yes") return;
+		marked = await import("marked");
 
-	/**
-	 * It can take a few seconds to load marked after the user changes the field to "yes".
-	 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
-	 */
+		/**
+		 * It can take a few seconds to load marked after the user changes the field to "yes".
+		 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
+		 */
 
-	isMarkedLoaded.value = true;
-}, {immediate: true});
-
+		isMarkedLoaded.value = true;
+	},
+	{ immediate: true },
+);
 </script>
 
 <style scoped>
@@ -140,5 +142,4 @@ watch(fields.useMarkdown, async (newUseMarkdown) => {
 .CoreText img {
 	width: 100%;
 }
-
 </style>

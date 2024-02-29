@@ -21,7 +21,11 @@
 					<template v-else>
 						<div class="text">
 							<div
-								v-if="message.origin == 'incoming' && fields.useMarkdown.value == 'yes' && isMarkedLoaded"
+								v-if="
+									message.origin == 'incoming' &&
+									fields.useMarkdown.value == 'yes' &&
+									isMarkedLoaded
+								"
 								v-dompurify-html="
 									marked.parse(message.contents.text).trim()
 								"
@@ -211,7 +215,7 @@ export default {
 				desc: "Handle clicks on actions.",
 				stub: chatActionClickStub,
 			},
-		}
+		},
 	},
 	components: { LoadingSymbol },
 };
@@ -346,18 +350,21 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	rootEl.value.dispatchEvent(event);
 }
 
-watch(fields.useMarkdown, async (newUseMarkdown) => {
-	if (newUseMarkdown !== "yes") return;
-	marked = await import ("marked");
+watch(
+	fields.useMarkdown,
+	async (newUseMarkdown) => {
+		if (newUseMarkdown !== "yes") return;
+		marked = await import("marked");
 
-	/**
-	 * It can take a few seconds to load marked after the user changes the field to "yes".
-	 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
-	 */
+		/**
+		 * It can take a few seconds to load marked after the user changes the field to "yes".
+		 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
+		 */
 
-	isMarkedLoaded.value = true;
-}, {immediate: true});
-
+		isMarkedLoaded.value = true;
+	},
+	{ immediate: true },
+);
 </script>
 <style scoped>
 @import "../../renderer/sharedStyles.css";

@@ -59,16 +59,16 @@ import { InstancePath } from "../../streamsyncTypes";
 export type StepsData = {
 	activeStep: InstancePath;
 	steps: {
-		instancePath: InstancePath,
-		isCompleted: string
+		instancePath: InstancePath;
+		isCompleted: string;
 	}[];
 };
 
 const instanceData = inject(injectionKeys.instanceData);
 
-const stepsData:StepsData = {
+const stepsData: StepsData = {
 	activeStep: undefined,
-	steps: []
+	steps: [],
 };
 
 instanceData.at(-1).value = stepsData;
