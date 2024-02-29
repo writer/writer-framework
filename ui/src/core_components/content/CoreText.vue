@@ -1,11 +1,11 @@
 <template>
 	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
-		<div
-			v-if="fields.useMarkdown.value == 'yes' && isMarkedLoaded"
-			v-dompurify-html="marked.parse(fields.text.value).trim()"
+		<BaseMarkdown
+			v-if="fields.useMarkdown.value == 'yes'"
+			:raw-text="fields.text.value"
 			:style="contentStyle"
-			class="markdown"
-		></div>
+		>
+		</BaseMarkdown>
 		<div v-else class="plainText" :style="contentStyle">
 			{{ fields.text.value }}
 		</div>
@@ -16,6 +16,7 @@
 import { FieldCategory, FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import { getClick } from "../../renderer/syntheticEvents";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -75,15 +76,13 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref, watch } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const ss = inject(injectionKeys.core);
-let marked;
-const isMarkedLoaded = ref(false);
 
 const rootStyle = computed(() => {
 	const component = ss.getComponentById(componentId);
@@ -104,27 +103,10 @@ function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
 }
-
-watch(
-	fields.useMarkdown,
-	async (newUseMarkdown) => {
-		if (newUseMarkdown !== "yes") return;
-		marked = await import("marked");
-
-		/**
-		 * It can take a few seconds to load marked after the user changes the field to "yes".
-		 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
-		 */
-
-		isMarkedLoaded.value = true;
-	},
-	{ immediate: true },
-);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-@import "../../renderer/markdownStyles.css";
 
 .CoreText {
 	color: var(--primaryTextColor);

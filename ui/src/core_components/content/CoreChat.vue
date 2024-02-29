@@ -1,68 +1,72 @@
 <template>
 	<div ref="rootEl" class="CoreChat">
 		<div ref="messageAreaEl" class="messageArea">
-			<div
-				v-for="(message, messageId) in messages"
-				:key="messageId"
-				class="message"
-				:class="message.origin"
-			>
-				<div class="avatar">
-					{{
-						message.origin == "incoming"
-							? fields.incomingInitials.value
-							: fields.outgoingInitials.value
-					}}
-				</div>
-				<div class="contents">
-					<div v-if="message.isLoading" class="loadingContainer">
-						<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
-					</div>
-					<template v-else>
-						<div class="text">
-							<div
-								v-if="
-									message.origin == 'incoming' &&
-									fields.useMarkdown.value == 'yes' &&
-									isMarkedLoaded
-								"
-								v-dompurify-html="
-									marked.parse(message.contents.text).trim()
-								"
-								class="markdown"
-							></div>
-							<template v-else>
-								{{ message.contents.text }}
-							</template>
-						</div>
-						<div v-if="message.contents.actions" class="actions">
-							<button
-								v-for="(action, actionIndex) in message.contents
-									.actions"
-								:key="actionIndex"
-								class="action"
-								@click="handleActionClick(action)"
-							>
-								<div
-									v-if="action.subheading"
-									class="subheading"
-								>
-									{{ action.subheading }}
-								</div>
-								<h3 class="name">{{ action.name }}</h3>
-								<div v-if="action.desc" class="desc">
-									{{ action.desc }}
-								</div>
-							</button>
-						</div>
-					</template>
-				</div>
+			<div ref="messagesEl" class="messages">
 				<div
-					v-if="message.date"
-					class="time"
-					:title="getFormattedDate(message.date, false)"
+					v-for="(message, messageId) in messages"
+					:key="messageId"
+					class="message"
+					:class="message.origin"
 				>
-					{{ getFormattedDate(message.date, true) }}
+					<div class="avatar">
+						{{
+							message.origin == "incoming"
+								? fields.incomingInitials.value
+								: fields.outgoingInitials.value
+						}}
+					</div>
+					<div class="contents">
+						<div v-if="message.isLoading" class="loadingContainer">
+							<LoadingSymbol
+								class="loadingSymbol"
+							></LoadingSymbol>
+						</div>
+						<template v-else>
+							<div class="text">
+								<BaseMarkdown
+									v-if="
+										message.origin == 'incoming' &&
+										fields.useMarkdown.value == 'yes'
+									"
+									:raw-text="message.contents.text"
+								>
+								</BaseMarkdown>
+								<template v-else>
+									{{ message.contents.text }}
+								</template>
+							</div>
+							<div
+								v-if="message.contents.actions"
+								class="actions"
+							>
+								<button
+									v-for="(action, actionIndex) in message
+										.contents.actions"
+									:key="actionIndex"
+									class="action"
+									@click="handleActionClick(action)"
+								>
+									<div
+										v-if="action.subheading"
+										class="subheading"
+									>
+										{{ action.subheading }}
+									</div>
+									<h3 class="name">{{ action.name }}</h3>
+									<div v-if="action.desc" class="desc">
+										{{ action.desc }}
+									</div>
+								</button>
+							</div>
+						</template>
+					</div>
+					<div
+						v-if="message.date"
+						class="time"
+						:title="getFormattedDate(message.date, false)"
+					>
+						{{ getFormattedDate(message.date, true) }}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -81,6 +85,7 @@
 
 <script lang="ts">
 import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
 	buttonColor,
@@ -91,8 +96,8 @@ import {
 	secondaryTextColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
-import { nextTick } from "vue";
-import { watch } from "vue";
+import { onMounted } from "vue";
+import { onBeforeUnmount } from "vue";
 
 const description = "A chat component to build human-to-AI interactions.";
 
@@ -217,7 +222,6 @@ export default {
 			},
 		},
 	},
-	components: { LoadingSymbol },
 };
 </script>
 <script setup lang="ts">
@@ -241,14 +245,11 @@ type Message = {
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const messageAreaEl: Ref<HTMLElement> = ref(null);
+const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
 let messageCounter = 0;
-let marked;
-
-// The following ref is used to recreate the parts that use marked when it's dynamically imported.
-
-const isMarkedLoaded = ref(false);
+let resizeObserver: ResizeObserver;
 
 const outgoingMessage: Ref<string> = ref("");
 
@@ -267,30 +268,26 @@ function getFormattedDate(date: Date, isTimeOnly: boolean) {
 	return date.toLocaleTimeString(undefined, options);
 }
 
-async function addMessage(message: Message) {
+function addMessage(message: Message) {
 	messageCounter += 1;
 	const messageKey = `msg${messageCounter}`;
 	messages.value[messageKey] = message;
-	await nextTick();
-	messageAreaEl.value.scrollTo(0, messageAreaEl.value.scrollHeight);
 	return messageKey;
 }
 
-async function replaceMessage(messageKey: string, message: Message) {
+function replaceMessage(messageKey: string, message: Message) {
 	messages.value[messageKey] = message;
-	await nextTick();
-	messageAreaEl.value.scrollTo(0, messageAreaEl.value.scrollHeight);
 }
 
-async function handleMessageSent() {
-	await addMessage({
+function handleMessageSent() {
+	addMessage({
 		origin: "outgoing",
 		contents: {
 			text: outgoingMessage.value,
 		},
 		date: new Date(),
 	});
-	const outgoingMessageKey = await addMessage({
+	const outgoingMessageKey = addMessage({
 		origin: "incoming",
 		contents: {
 			text: "Loading...",
@@ -350,25 +347,39 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	rootEl.value.dispatchEvent(event);
 }
 
-watch(
-	fields.useMarkdown,
-	async (newUseMarkdown) => {
-		if (newUseMarkdown !== "yes") return;
-		marked = await import("marked");
+function scrollToBottom() {
+	messageAreaEl.value.scrollTo({
+		top: messageAreaEl.value.scrollHeight,
+		left: 0,
+	});
+}
 
-		/**
-		 * It can take a few seconds to load marked after the user changes the field to "yes".
-		 * So isMarkedLoaded is used to trigger the regeneration of the div that contains the markdown code.
-		 */
+onMounted(() => {
+	/**
+	 * A ResizeObserver allows the component to scroll to the bottom when a
+	 * new message is added or grows in size. For example, after markdown rendering is finished.
+	 *
+	 * CSS overflow-anchor wasn't used due to problematic support in Safari.
+	 */
 
-		isMarkedLoaded.value = true;
-	},
-	{ immediate: true },
-);
+	resizeObserver = new ResizeObserver(() => {
+		scrollToBottom();
+	});
+
+	/**
+	 * ResizeObserver only watches the client height, not the scroll height.
+	 * So it's the element inside that needs to be watched to detect changes.
+	 */
+
+	resizeObserver.observe(messagesEl.value);
+});
+
+onBeforeUnmount(() => {
+	resizeObserver.unobserve(messagesEl.value);
+});
 </script>
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-@import "../../renderer/markdownStyles.css";
 
 .CoreChat {
 	display: flex;
@@ -381,13 +392,16 @@ watch(
 }
 
 .messageArea {
+	overflow-y: auto;
+	overflow-x: hidden;
+	flex: 0 0 80%;
+}
+
+.messages {
 	padding: 16px;
 	display: flex;
 	gap: 16px;
 	flex-direction: column;
-	overflow-y: auto;
-	overflow-x: hidden;
-	flex: 0 0 80%;
 }
 
 .message {
