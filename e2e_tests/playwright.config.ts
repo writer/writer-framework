@@ -30,7 +30,7 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: "cd ../ui_test_app && npm i && npm run dev",
+		command: "npm run dev",
 		url: "http://localhost:7357",
 		reuseExistingServer: true,
 	},

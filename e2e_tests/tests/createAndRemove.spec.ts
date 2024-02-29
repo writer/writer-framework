@@ -8,11 +8,9 @@ const createAndRemove = [
 	{ type: "columns", locator: `div.CoreColumns.component` },
 ];
 
-const components = [
-	//{ type: "sidebar", locator: `div.CoreSidebar.component` },
+const fullCheck = [
 	{ type: "button", locator: `button.CoreButton.component` },
 	{ type: "text", locator: `div.CoreText.component` },
-	//{ type: "section", locator: `div.CoreSection.component` },
 	{ type: "header", locator: `div.CoreHeader.component` },
 	{ type: "heading", locator: `div.CoreHeading.component` },
 	{ type: "dataframe", locator: `div.CoreDataframe.component` },
@@ -20,7 +18,6 @@ const components = [
 	{ type: "pagination", locator: `div.pagination.component` },
 	{ type: "repeater", locator: `div.CoreRepeater.component` },
 	//{ type: "column", locator: `div.CoreColumn.component` },
-	//{ type: "columns", locator: `div.CoreColumns.component` },
 	//{ type: "tab", locator: `div.CoreTab.component` },
 	{ type: "tabs", locator: `div.CoreTabs.component` },
 	{ type: "horizontalstack", locator: `div.CoreHorizontalStack.component` },
@@ -89,7 +86,7 @@ createAndRemove.forEach(({ type, locator }) => {
 	});
 });
 
-components.forEach(({ type, locator }) => {
+fullCheck.forEach(({ type, locator }) => {
 	test.describe(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
