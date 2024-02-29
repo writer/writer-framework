@@ -1,11 +1,11 @@
 <template>
-	<div class="CoreChat" ref="rootEl">
-		<div class="messageArea" ref="messageAreaEl">
+	<div ref="rootEl" class="CoreChat">
+		<div ref="messageAreaEl" class="messageArea">
 			<div
-				class="message"
-				:class="message.origin"
 				v-for="(message, messageId) in messages"
 				:key="messageId"
+				class="message"
+				:class="message.origin"
 			>
 				<div class="avatar">
 					{{
@@ -15,7 +15,7 @@
 					}}
 				</div>
 				<div class="contents">
-					<div class="loadingContainer" v-if="message.isLoading">
+					<div v-if="message.isLoading" class="loadingContainer">
 						<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
 					</div>
 					<template v-else>
@@ -35,17 +35,17 @@
 								{{ message.contents.text }}
 							</template>
 						</div>
-						<div class="actions" v-if="message.contents.actions">
+						<div v-if="message.contents.actions" class="actions">
 							<button
-								class="action"
 								v-for="(action, actionIndex) in message.contents
 									.actions"
 								:key="actionIndex"
-								v-on:click="handleActionClick(action)"
+								class="action"
+								@click="handleActionClick(action)"
 							>
 								<div
-									class="subheading"
 									v-if="action.subheading"
+									class="subheading"
 								>
 									{{ action.subheading }}
 								</div>
@@ -58,8 +58,8 @@
 					</template>
 				</div>
 				<div
-					class="time"
 					v-if="message.date"
+					class="time"
 					:title="getFormattedDate(message.date, false)"
 				>
 					{{ getFormattedDate(message.date, true) }}
@@ -68,11 +68,11 @@
 		</div>
 		<div class="inputArea">
 			<textarea
-				placeholder="Write something..."
 				v-model="outgoingMessage"
-				v-on:keydown.prevent.enter="handleMessageSent"
+				placeholder="Write something..."
+				@keydown.prevent.enter="handleMessageSent"
 			></textarea>
-			<button v-on:click="handleMessageSent">
+			<button @click="handleMessageSent">
 				<i class="ri-send-plane-line"></i>
 			</button>
 		</div>

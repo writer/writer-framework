@@ -1,12 +1,12 @@
 <template>
 	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
 		<div
-			v-dompurify-html="marked.parse(fields.text.value).trim()"
-			class="markdown"
-			:style="contentStyle"
 			v-if="fields.useMarkdown.value == 'yes' && isMarkedLoaded"
+			v-dompurify-html="marked.parse(fields.text.value).trim()"
+			:style="contentStyle"
+			class="markdown"
 		></div>
-		<div class="plainText" :style="contentStyle" v-else>
+		<div v-else class="plainText" :style="contentStyle">
 			{{ fields.text.value }}
 		</div>
 	</div>
