@@ -86,7 +86,7 @@ export default {
 			cssClasses,
 		},
 		previewField: "name",
-	}
+	},
 };
 </script>
 <script setup lang="ts">
@@ -181,6 +181,7 @@ const rootStyle = computed(() => {
 	padding: 16px;
 	background-color: var(--separatorColor);
 }
+
 .empty > h2 {
 	text-align: center;
 	color: var(--primaryTextColor);
