@@ -9,7 +9,7 @@ test.describe("button", () => {
 	const COMPONENT_LOCATOR = `button.CoreButton.component`;
 
 	test.beforeAll(async () => {
-		await loadPreset("base");
+		await loadPreset("section");
 	});
 
 	test.beforeEach(async ({ page }) => {

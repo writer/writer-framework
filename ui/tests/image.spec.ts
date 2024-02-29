@@ -9,7 +9,7 @@ test.describe("image", () => {
 	const COMPONENT_LOCATOR = `div.CoreImage.component`;
 
 	test.beforeAll(async () => {
-		await loadPreset("base");
+		await loadPreset("section");
 	});
 
 	test.beforeEach(async ({ page }) => {

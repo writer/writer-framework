@@ -72,7 +72,7 @@ class Streamsync {
 const ss = new Streamsync();
 (async () => {
 	await fs.mkdir("runtime", { recursive: true });
-	await ss.loadPreset("base");
+	await ss.loadPreset("empty_page");
 })();
 const app = express();
 
