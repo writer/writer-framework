@@ -45,7 +45,9 @@ const trackElement = (el: HTMLElement) => {
 	let trackerX = elX;
 	let trackerY = elY + yAdjustment;
 
-	let settingsWidth = document.getElementsByClassName("BuilderSettings")[0].clientWidth;
+	let settingsWidth =
+		document.getElementsByClassName("BuilderSettings")?.[0]?.clientWidth ||
+		0;
 
 	if (!isOffBoundsAllowed.value) {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
