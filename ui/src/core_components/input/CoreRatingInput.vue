@@ -1,19 +1,19 @@
 <template>
-	<div class="CoreRatingInput" ref="rootEl">
+	<div ref="rootEl" class="CoreRatingInput">
 		<label>{{ fields.label.value }}</label>
 		<div
+			ref="unitsEl"
 			class="units"
 			:class="{ valueSet: feedbackRating !== null }"
 			@click="handleClick"
 			@mousemove="handleMousemove"
 			@mouseout="handleMouseout"
-			ref="unitsEl"
 		>
 			<div
-				class="unit"
-				:class="fields.feedback.value"
 				v-for="n in [...Array(normalisedMaxValue).keys()]"
 				:key="n"
+				class="unit"
+				:class="fields.feedback.value"
 			>
 				<div
 					class="filler"
@@ -26,7 +26,7 @@
 					}"
 				></div>
 				<div v-if="feedbackRating !== null" class="filler light"></div>
-				<div class="face" v-if="fields.feedback.value == 'faces'">
+				<div v-if="fields.feedback.value == 'faces'" class="face">
 					<svg viewBox="0 0 100 100">
 						<circle class="eye left" cx="35" cy="38" r="6"></circle>
 						<circle
@@ -286,7 +286,7 @@ label {
 
 .unit.hearts {
 	clip-path: path(
-		"M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.43-6.381 12-11.147 12-15.808 0-6.792-8.875-8.306-12-2.944z"
+		"M2.54139 14.2987C0.97724 12.7905 0 10.646 0 8.26667C0 3.70111 3.5983 0 8.03704 0C10.4025 0 12.5293 1.05112 14 2.72404C15.4707 1.05112 17.5975 0 19.963 0C24.4017 0 28 3.70111 28 8.26667C28 10.6181 27.0455 12.7402 25.5133 14.2455L14.0815 28L2.54139 14.2987Z"
 	);
 }
 
