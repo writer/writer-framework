@@ -203,16 +203,15 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"chat-message": {
+			"ss-chat-message": {
 				desc: "Triggered when the user sends a message.",
 				stub: chatMessageStub,
 			},
-			"chat-action-click": {
+			"ss-chat-action-click": {
 				desc: "Handle clicks on actions.",
 				stub: chatActionClickStub,
 			},
-		},
-		previewField: "name",
+		}
 	},
 	components: { LoadingSymbol },
 };
@@ -294,7 +293,7 @@ async function handleMessageSent() {
 		},
 		isLoading: true,
 	});
-	const event = new CustomEvent("chat-message", {
+	const event = new CustomEvent("ss-chat-message", {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
@@ -330,7 +329,7 @@ function getNormalisedCallbackResult(
 
 function handleActionClick(action: Message["contents"]["actions"][number]) {
 	const { data } = action;
-	const event = new CustomEvent("chat-action-click", {
+	const event = new CustomEvent("ss-chat-action-click", {
 		detail: {
 			payload: data,
 			callback: ({ payload }) => {
