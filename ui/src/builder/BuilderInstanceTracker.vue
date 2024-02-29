@@ -65,7 +65,7 @@ const trackElement = (el: HTMLElement) => {
 	if (settingsLeft < rendererX + rendererWidth) {
 		const trackerEnd = trackerX + contentsWidth;
 		const rendererEnd = rendererX + rendererWidth;
-		const distanceToRight = Math.max( rendererEnd - trackerEnd, 0)
+		const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
 		correction = Math.max(settingsWidth - distanceToRight, 0);
 	}
 
