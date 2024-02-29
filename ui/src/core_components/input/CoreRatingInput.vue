@@ -13,6 +13,7 @@
 				class="unit"
 				:class="fields.feedback.value"
 				v-for="n in [...Array(normalisedMaxValue).keys()]"
+				:key="n"
 			>
 				<div
 					class="filler"
@@ -134,13 +135,14 @@ function getRawRatingFromEvent(event: MouseEvent) {
 	const evX = event.offsetX;
 	const unitEls = unitsEl.value.querySelectorAll(
 		".unit",
-	) as NodeListOf<HTMLElement>;
+	);
 	let n = 0;
 	unitEls.forEach((unitEl) => {
-		if (evX > unitEl.offsetLeft + unitEl.offsetWidth) {
+		const unitHtmlEl = unitEl as HTMLElement;
+		if (evX > unitHtmlEl.offsetLeft + unitHtmlEl.offsetWidth) {
 			n++;
-		} else if (evX > unitEl.offsetLeft) {
-			n += (evX - unitEl.offsetLeft) / unitEl.offsetWidth;
+		} else if (evX > unitHtmlEl.offsetLeft) {
+			n += (evX - unitHtmlEl.offsetLeft) / unitHtmlEl.offsetWidth;
 		}
 	});
 	return n;

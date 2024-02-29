@@ -20,7 +20,7 @@
 				stepContainerDirectChildInstanceItem?.instanceNumber ==
 				STEP_BIT_INSTANCE_NUMBER
 			"
-			v-on:click="activateStep"
+			@click="activateStep"
 			stepindex="0"
 		>
 			<div class="indicator">
