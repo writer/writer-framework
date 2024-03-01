@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="pagination">
+	<div ref="rootEl" class="CorePagination">
 		<div class="pagination-left">
 			<div v-show="pagesizeEnabled" class="pagination-pagesize">
 				<select class="pagesize-select" @change="onPageSizeChange">
@@ -93,7 +93,7 @@ export default {
 	streamsync: {
 		name: "Pagination",
 		category: "Other",
-		description: "paginates records from a repeater or dataframe",
+		description: "A component that can help you paginate records, for example from a Repeater or DataFrame",
 		fields: {
 			page: {
 				name: "Page",
@@ -169,7 +169,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Ref, inject, ref, computed, watch, onUnmounted, onMounted } from "vue";
+import { inject, ref, computed, watch, onUnmounted, onMounted } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
@@ -380,7 +380,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.pagination {
+.CorePagination {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
