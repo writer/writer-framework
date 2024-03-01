@@ -131,41 +131,37 @@ const selectedId = computed(() => ssbm?.getSelectedId());
 const stepContainerData: Ref<StepsData> = getStepContainerData();
 
 /**
- * Returns the InstanceData for the parent Step Container.
+ * Gets the negative index in the instancePath for the steps (Step Container) component
+ * that governs this step.
+ *
+ * In line with Array.at(), -1 is the last element, -2 the previous in the chain.
  */
-function getStepContainerData(): Ref<StepsData> {
+function getStepContainerNegativeIndex(): number {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
 		const component = ss.getComponentById(item.componentId);
 		if (!component) return;
 		const type = component.type;
 		if (type !== "steps") continue;
-		return instanceData.at(i);
+		return i;
 	}
 	return;
 }
 
 /**
- * Returns the distance between this Step instance and the child of the parent Container, starting from the former.
- * The direct child isn't necessarily a Step, it can be a Repeater.
+ * Returns the InstanceData for the parent Step Container.
  */
-function getDirectChildInstanceNegativeIndex() {
-	for (let i = -2; i > -1 * instancePath.length; i--) {
-		const item = instancePath.at(i);
-		const component = ss.getComponentById(item.componentId);
-		if (!component) return;
-		const type = component?.type;
-		if (type !== "steps") continue;
-		return i + 1;
-	}
-	return;
+function getStepContainerData(): Ref<StepsData> {
+	const negativeIndex = getStepContainerNegativeIndex();
+	if (typeof negativeIndex == "undefined") return;
+	return instanceData.at(negativeIndex);
 }
 
 /**
  * Returns the InstancePath of the main instance (content-displaying) of this Step component.
  */
 function getMatchingStepInstancePath() {
-	const i = getDirectChildInstanceNegativeIndex();
+	const i = getStepContainerNegativeIndex() + 1; // Gets negative index for direct child of Step Container
 	const itemsBefore = instancePath.slice(0, i);
 	const itemsAfter = i + 1 < 0 ? instancePath.slice(i + 1) : [];
 	const matchingInstancePath = [
@@ -232,7 +228,7 @@ function activateDefaultStep() {
 }
 
 const stepContainerDirectChildInstanceItem = computed(() => {
-	const i = getDirectChildInstanceNegativeIndex();
+	const i = getStepContainerNegativeIndex() + 1;
 	return instancePath.at(i);
 });
 
