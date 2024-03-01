@@ -10,6 +10,7 @@ import CorePlotlyGraph from "../core_components/content/CorePlotlyGraph.vue";
 import CoreText from "../core_components/content/CoreText.vue";
 import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
+import CoreChat from "../core_components/content/CoreChat.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -22,6 +23,7 @@ import CoreSelectInput from "../core_components/input/CoreSelectInput.vue";
 import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreTextInput from "../core_components/input/CoreTextInput.vue";
 import CoreTextareaInput from "../core_components/input/CoreTextareaInput.vue";
+import CoreRating from "../core_components/input/CoreRatingInput.vue";
 // layout
 import CoreColumn from "../core_components/layout/CoreColumn.vue";
 import CoreColumns from "../core_components/layout/CoreColumns.vue";
@@ -32,6 +34,8 @@ import CoreSeparator from "../core_components/layout/CoreSeparator.vue";
 import CoreSidebar from "../core_components/layout/CoreSidebar.vue";
 import CoreTab from "../core_components/layout/CoreTab.vue";
 import CoreTabs from "../core_components/layout/CoreTabs.vue";
+import CoreStep from "../core_components/layout/CoreStep.vue";
+import CoreSteps from "../core_components/layout/CoreSteps.vue";
 // other
 import CoreButton from "../core_components/other/CoreButton.vue";
 import CoreHtml from "../core_components/other/CoreHtml.vue";
@@ -95,6 +99,10 @@ const templateMap = {
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
+	chat: CoreChat,
+	step: CoreStep,
+	steps: CoreSteps,
+	ratinginput: CoreRating
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {
