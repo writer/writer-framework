@@ -1,0 +1,13 @@
+{
+  "name": "Streamsync",
+  "version": "1.0.0",
+  "description": "",
+	"workspaces": [
+		"ui",
+		"e2e_tests"
+	],
+  "scripts": {
+    "build": "npm run -w streamsync-ui build",
+		"test": "npm run -w streamsync-e2e test"
+  }
+}
