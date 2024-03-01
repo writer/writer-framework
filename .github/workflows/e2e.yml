@@ -1,0 +1,26 @@
+name: E2E Tests
+on:
+  push:
+    branches: [ dev, master]
+  pull_request: 
+    branches: [ dev, master]
+
+jobs:
+  playwright:
+    name: 'Playwright Tests'
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.42.0-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        working-directory: e2e_tests
+        run: npm ci
+      - name: Run your tests
+        working-directory: e2e_tests
+        run: npm run test:ci
+        env:
+          HOME: /root
