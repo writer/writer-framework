@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.setTimeout(50000);
+test.setTimeout(5000);
 
 const createAndRemove = [
 	{ type: "sidebar", locator: `div.CoreSidebar.component` },
