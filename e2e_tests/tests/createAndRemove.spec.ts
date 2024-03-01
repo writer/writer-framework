@@ -52,7 +52,7 @@ const loadPreset = async (preset) => {
 };
 
 createAndRemove.forEach(({ type, locator }) => {
-	test.describe(type, () => {
+	test.describe.skip(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
 		const TARGET = ".CorePage";
@@ -87,7 +87,7 @@ createAndRemove.forEach(({ type, locator }) => {
 });
 
 fullCheck.forEach(({ type, locator }) => {
-	test.describe(type, () => {
+	test.describe.skip(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
 		const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";

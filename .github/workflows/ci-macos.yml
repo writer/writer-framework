@@ -37,9 +37,9 @@ jobs:
       - name: install npm environment
         run: |
           cd ui
-          npm install
+          npm ci 
           cd ../e2e_tests
-          npm install
+          npm ci
           npx playwright install --with-deps
 
       - name: run continuous integration pipeline

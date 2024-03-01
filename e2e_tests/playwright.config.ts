@@ -33,5 +33,6 @@ export default defineConfig({
 		command: "npm run dev",
 		url: "http://localhost:7357",
 		reuseExistingServer: true,
+		stdout: 'pipe',
 	},
 });

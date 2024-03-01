@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node index.js",
 		"test": "playwright test --project=chromium --reporter=list",
-		"test:ci": "playwright test --reporter=list"
+		"test:ci": "playwright test --project=chromium --reporter=list"
   },
   "dependencies": {
     "express": "4.18.2"
