@@ -9,7 +9,7 @@ layout: home
       <div class="primaryTagline">No-code in the front, Python in the back.</div>
       <div class="secondaryTagline">An open-source framework for creating data apps.</div>
       </div>
-      <iframe width="840" height="472.5" src="https://www.youtube.com/embed/XBAPBy_zf8s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <iframe class="shortVideo" src="https://www.youtube.com/embed/XBAPBy_zf8s" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
       <!-- <video src="./images/home.streamsync1min.mp4" controls autoplay loop></video> -->
       <div class="quickstart vp-doc">
 
@@ -173,6 +173,7 @@ html.dark .homeMain .topContainer_L2 {
 .homeMain .actions {
   color: white;
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-left: 16px;
   margin-right: 16px;
@@ -181,7 +182,8 @@ html.dark .homeMain .topContainer_L2 {
 }
 
 .homeMain .quickstart {
-  width: min(720px, 100vw);
+  width: 720px;
+  max-width: 90vw;
   padding: 24px;
   border-radius: 8px;
   margin-left: auto;
@@ -285,6 +287,12 @@ html.dark .homeMain .topContainer_L2 {
 
 .homeMain .bottomActions h1 {
   margin-bottom: 24px;
+}
+
+.homeMain .shortVideo {
+  width: 840px;
+  max-width: 90vw;
+  aspect-ratio: 16 / 9;
 }
 
 </style>
