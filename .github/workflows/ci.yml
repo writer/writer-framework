@@ -33,6 +33,9 @@ jobs:
         run: |
           cd ui
           npm install
+          cd ../e2e_tests
+          npm install
+          npx playwright install --with-deps
 
       - name: run continuous integration pipeline
         run: |
