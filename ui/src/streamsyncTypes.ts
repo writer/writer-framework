@@ -12,6 +12,7 @@ export type Component = {
 	type: string;
 	position: number;
 	content: Record<string, string>;
+	flag?: string;
 	handlers?: Record<string, string>;
 	visible?: boolean | string;
 	binding?: {
