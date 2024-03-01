@@ -35,13 +35,7 @@ jobs:
           poetry install --with build
 
       - name: install npm environment
-        run: |
-          cd ui
-          npm ci 
-          cd ../e2e_tests
-          npm ci 
-          npx playwright install --with-deps
+        run: npm ci 
 
       - name: run continuous integration pipeline
-        run: |
-          poetry run alfred ci
+        run: poetry run alfred ci
