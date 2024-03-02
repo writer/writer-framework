@@ -93,7 +93,8 @@ export default {
 	streamsync: {
 		name: "Pagination",
 		category: "Other",
-		description: "A component that can help you paginate records, for example from a Repeater or DataFrame",
+		description:
+			"A component that can help you paginate records, for example from a Repeater or a DataFrame.",
 		fields: {
 			page: {
 				name: "Page",
