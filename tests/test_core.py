@@ -3,8 +3,10 @@ import math
 from typing import Dict
 
 import numpy as np
-from streamsync.core import (BytesWrapper, Evaluator, EventDeserialiser,
-                             FileWrapper, SessionManager, StateProxy, StateSerialiser, StateSerialiserException, StreamsyncState)
+from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
+                             FileWrapper, SessionManager, State, StateSerialiser, StateSerialiserException,
+                             StreamsyncState)
+
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
@@ -55,8 +57,8 @@ session.session_component_tree.ingest(sc)
 
 class TestStateProxy:
 
-    sp = StateProxy(raw_state_dict)
-    sp_simple_dict = StateProxy(simple_dict)
+    sp = State(raw_state_dict)._state_proxy
+    sp_simple_dict = State(simple_dict)._state_proxy
 
     @classmethod
     def count_initial_mutations(cls, d, count=0):
@@ -101,10 +103,6 @@ class TestStateProxy:
         assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
         assert len(m) == 1
 
-        self.sp["new.state.with.dots"] = {"test": "test"}
-        m = self.sp.get_mutations_as_dict()
-        assert len(m) == 2
-
         d = self.sp.to_dict()
         assert d.get("age") == 2
         assert d.get("interests") == ["lamps", "cars", "dogs"]
@@ -127,12 +125,6 @@ class TestStateProxy:
         assert "+items" in m
         assert "-items.Lettuce" in m
 
-        # Non-explicit removal test
-        items = self.sp_simple_dict.state["items"].state
-        items = {k: v for k, v in items.items() if k != "Apple"}
-        self.sp_simple_dict["items"] = items
-        m = self.sp_simple_dict.get_mutations_as_dict()
-        assert "+items.Cucumber" in m
 
     def test_private_members(self) -> None:
         d = self.sp.to_dict()
@@ -141,6 +133,102 @@ class TestStateProxy:
 
 
 class TestState:
+
+    def test_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        """
+        Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
+        triggers mutations to update the interface
+
+        >>> _state = streamsync.init_state({'app': {}})
+        >>> _state["app"] = {"hello": "world"}
+        """
+        _state = State()
+
+        # When
+        _state["new.state.with.dots"] = {"test": "test"}
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            r"+new\.state\.with\.dots": None,
+            r"+new\.state\.with\.dots.test": "test"
+        }
+
+    def test_set_dictionary_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        class SimpleSchema(State):
+            app: dict
+
+        _state = SimpleSchema()
+
+        # When
+        _state["app"] = {"hello": "world"}
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            r"+app": {"hello": "world"},
+        }
+
+    def test_replace_dictionary_content_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        """
+        Tests that replacing a dictionary content in a State without schema trigger mutations on all the children.
+
+        >>> _state = State({'items': {}})
+        >>> _state["items"] = {k: v for k, v in _state["items"].items() if k != "Apple"}
+        """
+
+        _state = State({"items": {
+            "Apple": {"name": "Apple", "type": "fruit"},
+            "Cucumber": {"name": "Cucumber", "type": "vegetable"},
+            "Lettuce": {"name": "Lettuce", "type": "vegetable"}
+        }})
+
+        # When
+        items = _state['items']
+        items = {k: v for k, v in items.items() if k != "Apple"}
+        _state["items"] = items
+
+        # Then
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
+
+    def test_changing_a_value_in_substate_is_accessible_and_mutations_are_present(self):
+        """
+        Tests that the change of values in a child state is readable whatever the access mode and
+        that mutations are triggered
+
+        >>> _state = ComplexSchema({'app': {'title': ''}})
+        >>> _state.app.title = 'world'
+        """
+        class AppState(State):
+            title: str
+
+        class ComplexSchema(State):
+            app: AppState
+
+        _state = ComplexSchema({'app': {'title': ''}})
+
+        # When
+        _state.app.title = 'world'
+
+        # Then
+        assert _state.app.title == 'world'
+        assert _state['app']['title'] == 'world'
+        assert _state.app['title'] == 'world'
+        assert _state['app'].title == 'world'
+        assert _state._state_proxy.get_mutations_as_dict() == {
+            '+app': None,
+            '+app.title': 'world',
+        }
+
+
+class TestStreamsyncState:
 
     # Initialised manually
 
