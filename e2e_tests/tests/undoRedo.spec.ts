@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.setTimeout(5000);
 
 const loadPreset = async (preset) => {
-	await fetch(`http://localhost:7358/${preset}`);
+	await fetch(`http://127.0.0.1:7358/${preset}`);
 };
 
 test.describe('undo and redo', () => {
@@ -12,8 +12,9 @@ test.describe('undo and redo', () => {
 	const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";
 	const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
 
-	test.beforeAll(async () => {
-		await loadPreset("2columns");
+	test.beforeAll(async ({request}) => {
+		const response = await request.get(`/preset/2columns`);
+		expect(response.ok()).toBeTruthy();
 	});
 
 	test.beforeEach(async ({ page }) => {

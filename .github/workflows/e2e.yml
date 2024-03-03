@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11.8"
 
       - name: Use Node.js 18
         uses: actions/setup-node@v4
@@ -38,11 +38,4 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run E2E tests
-        run: poetry run npm run test
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: e2e_tests/playwright-report/
-          retention-days: 2
+        run: poetry run alfred ci --e2e

@@ -1,10 +1,6 @@
 
 import { test, expect } from "@playwright/test";
 
-const loadPreset = async (preset) => {
-	await fetch(`http://localhost:7358/${preset}`);
-};
-
 const setTextField = async (page, text) => {
 	await page.locator('div.CoreText.component').click();
 	await page
@@ -27,8 +23,9 @@ const execute = async (page) => {
 }
 
 test.describe("state", () => {
-	test.beforeAll(async () => {
-		await loadPreset("state");
+	test.beforeAll(async ({request}) => {
+		const response = await request.get(`/preset/state`);
+		expect(response.ok()).toBeTruthy();
 	});
 
 	test.beforeEach(async ({ page }) => {
