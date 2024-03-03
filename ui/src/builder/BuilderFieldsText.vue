@@ -26,7 +26,7 @@
 				:id="`list-${componentId}-${fieldKey}`"
 			>
 				<option
-					v-for="(option, optionKey) in templateField.options"
+					v-for="(option, optionKey) in options"
 					:key="optionKey"
 					:value="optionKey"
 				>
@@ -74,6 +74,16 @@ const templateField = computed(() => {
 	const { type } = component.value;
 	const definition = ss.getComponentDefinition(type);
 	return definition.fields[fieldKey.value];
+});
+
+const options = computed(() => {
+	const field = templateField.value;
+	if (field.options) {
+		return typeof field.options === "function"
+			? field.options(ss, componentId.value)
+			: field.options;
+	}
+	return [];
 });
 
 const handleInput = (ev: Event) => {
