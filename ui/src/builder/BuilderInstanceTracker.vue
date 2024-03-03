@@ -36,6 +36,11 @@ const trackElement = (el: HTMLElement) => {
 	const { clientHeight: bodyHeight } = document.body;
 	const { clientWidth: rendererWidth } = rendererEl;
 	const { left: rendererX } = rendererEl.getBoundingClientRect();
+	const settingsEl = document.querySelector(".BuilderSettings");
+	const { clientWidth: settingsWidth } = settingsEl || { clientWidth: 0 };
+	const { left: settingsLeft } = settingsEl?.getBoundingClientRect() || {
+		left: Infinity,
+	};
 	let { clientHeight: contentsHeight, clientWidth: contentsWidth } =
 		matchSize?.value ? el : rootEl.value;
 	let yAdjustment = verticalOffsetPixels?.value
@@ -49,11 +54,22 @@ const trackElement = (el: HTMLElement) => {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
 		trackerX = Math.min(
 			rendererX + rendererWidth - contentsWidth,
+
 			trackerX,
 		); // Right boundary
 		trackerY = Math.max(MIN_TOP_PX, trackerY); // Top boundary
 		trackerY = Math.min(bodyHeight - contentsHeight, trackerY); // Bottom boundary
 	}
+
+	let correction = 0;
+	if (settingsLeft < rendererX + rendererWidth) {
+		const trackerEnd = trackerX + contentsWidth;
+		const rendererEnd = rendererX + rendererWidth;
+		const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
+		correction = Math.max(settingsWidth - distanceToRight, 0);
+	}
+
+	trackerX -= correction;
 
 	rootStyle.value = {
 		top: `${trackerY}px`,
