@@ -53,7 +53,7 @@ import {
 	containerBackgroundColor,
 } from "../../renderer/sharedStyleFields";
 
-const description = "A component to embed a PDF document.";
+const description = "A component to embed PDF documents.";
 
 export default {
 	streamsync: {
@@ -136,6 +136,7 @@ const pagesLoaded = ref(0);
 const highlightsList = ref([]);
 
 onMounted(async () => {
+	if (import.meta.env.SSR) return;
 	const VuePDFLib = await import("@tato30/vue-pdf");
 	VuePDF = VuePDFLib.VuePDF;
 	const usePDF = VuePDFLib.usePDF;

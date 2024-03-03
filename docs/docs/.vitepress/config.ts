@@ -9,6 +9,10 @@ export default {
         icon: "github",
         link: "https://github.com/streamsync-cloud/streamsync",
       },
+      {
+        icon: "discord",
+        link: "https://discord.gg/sn677E3Pd3",
+      },
     ],
     nav: [
       { text: "Documentation", link: "/getting-started" },
