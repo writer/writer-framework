@@ -4,8 +4,8 @@
 			<div v-show="pagesizeEnabled" class="pagination-pagesize">
 				<select class="pagesize-select" @change="onPageSizeChange">
 					<option
-						v-for="o in pageSizeOptions"
-						:key="o.value"
+						v-for="(o, key) in pageSizeOptions"
+						:key="key"
 						:value="o.value"
 						:selected="o.value == fields.pageSize.value"
 					>

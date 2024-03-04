@@ -6,7 +6,7 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: 1,
-	reporter: "html",
+	reporter: "list",
 	use: {
 		baseURL: "http://127.0.0.1:7357",
 		trace: "on-first-retry",
@@ -30,7 +30,7 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: "npm run dev",
+		command: "npm start",
 		url: "http://127.0.0.1:7357",
 		reuseExistingServer: true,
 		stdout: 'pipe',

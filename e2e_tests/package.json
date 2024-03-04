@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "start": "node index.js",
     "test": "playwright test --project=chromium --reporter=list",
-    "test:ci": "playwright test --project=chromium"
+    "test:ci": "playwright test --project=chromium",
+    "test:ui": "playwright test --project=chromium --ui"
   },
   "dependencies": {
     "express": "4.18.2",

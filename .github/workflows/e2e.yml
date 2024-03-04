@@ -6,7 +6,7 @@ on:
     branches: [ dev, master]
 
 jobs:
-  build:
+  e2e:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,10 +39,3 @@ jobs:
 
       - name: Run E2E tests
         run: poetry run alfred ci --e2e
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: e2e_tests/playwright-report/
-          retention-days: 2

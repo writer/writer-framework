@@ -2,10 +2,6 @@ import { test, expect } from "@playwright/test";
 
 test.setTimeout(5000);
 
-const loadPreset = async (preset) => {
-	await fetch(`http://127.0.0.1:7358/${preset}`);
-};
-
 test.describe('undo and redo', () => {
 	const TYPE = 'button';
 	const COMPONENT_LOCATOR = 'button.CoreButton.component';

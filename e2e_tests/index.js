@@ -1,7 +1,7 @@
 const express = require("express");
 const fs = require("node:fs").promises;
 const { spawn } = require("node:child_process");
-const httpProxy = require('http-proxy');
+const httpProxy = require("http-proxy");
 
 class Streamsync {
 	constructor() {
@@ -11,15 +11,18 @@ class Streamsync {
 	}
 
 	async start() {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			const ss = spawn(
 				"streamsync",
-				["edit", "./runtime", "--port", this.port],
-				{
-					stdio: "pipe",
-				}
+				["edit", "./runtime", "--port", this.port]
 			);
 			this.process = ss;
+			const startupTimeout = setTimeout(() => {
+				// eslint-disable-next-line no-console
+				console.error("Streamsync startup timeout");
+				ss.kill();
+				reject();
+			}, 5000);
 
 			ss.stdout.on("data", (data) => {
 				// eslint-disable-next-line no-console
@@ -28,6 +31,7 @@ class Streamsync {
 				);
 				if (data.includes("Builder is available at")) {
 					this.initialized = true;
+					clearTimeout(startupTimeout);
 					resolve(ss);
 				}
 			});
@@ -45,7 +49,7 @@ class Streamsync {
 				// eslint-disable-next-line no-console
 				console.log(`[${ss.pid}] child process error`, err);
 			});
-			ss.on("exit", (code, arg) => {
+			ss.on("exit", (code) => {
 				// eslint-disable-next-line no-console
 				this.process = null;
 				console.log(
@@ -86,7 +90,6 @@ class Streamsync {
 const ss = new Streamsync();
 (async () => {
 	await fs.mkdir("runtime", { recursive: true });
-	await ss.loadPreset("empty_page");
 })();
 
 var proxy = httpProxy.createProxyServer();
@@ -99,6 +102,7 @@ proxy.on('error', function (e) {
 const app = express();
 
 app.get("/preset/:preset", async (req, res) => {
+	console.log("Loading preset", req.params.preset);
 	const preset = req.params.preset;
 	await ss.loadPreset(preset);
 	res.send("UI updated");

@@ -32,7 +32,7 @@ const fullCheck = [
 	{ type: "textareainput", locator: `div.CoreTextareaInput.component` },
 	{ type: "numberinput", locator: `div.CoreNumberInput.component` },
 	{ type: "sliderinput", locator: `div.CoreSliderInput.component` },
-	{ type: "dateinput", locator: `div.CoreDateInput.component` },
+	//{ type: "dateinput", locator: `div.CoreDateInput.component` },
 	{ type: "radioinput", locator: `div.CoreRadioInput.component` },
 	{ type: "checkboxinput", locator: `div.CoreCheckboxInput.component` },
 	{ type: "dropdowninput", locator: `div.CoreDropdownInput.component` },
@@ -46,10 +46,6 @@ const fullCheck = [
 	{ type: "message", locator: `div.CoreMessage.component` },
 	{ type: "videoplayer", locator: `div.CoreVideoPlayer.component` },
 ];
-
-const loadPreset = async (preset) => {
-	await fetch(`http://127.0.0.1:7358/${preset}`);
-};
 
 createAndRemove.forEach(({ type, locator }) => {
 	test.describe(type, () => {

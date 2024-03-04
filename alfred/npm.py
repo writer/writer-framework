@@ -7,7 +7,7 @@ def npm_lint():
 
 @alfred.command("npm.e2e", help="run e2e tests")
 def npm_test():
-    alfred.run("npm run test:ci")
+    alfred.run("npm run e2e:ci")
 
 @alfred.command("npm.build", help="build ui code")
 def npm_build():
