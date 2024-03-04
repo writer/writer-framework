@@ -8,6 +8,9 @@
 	],
   "scripts": {
     "build": "npm run -w streamsync-ui build",
-		"test": "npm run -w streamsync-e2e test"
+		"custom.build": "npm run -w streamsync-ui custom.build",
+		"test": "npm run -w streamsync-e2e test",
+		"lint": "npm run -w streamsync-ui lint",
+		"lint:ci": "npm run -w streamsync-ui lint:ci"
   }
 }
