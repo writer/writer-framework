@@ -258,6 +258,7 @@ function handleRendererClick(ev: PointerEvent): void {
 	const targetId = targetEl.dataset.streamsyncId;
 	const targetInstancePath = targetEl.dataset.streamsyncInstancePath;
 	if (targetId !== ssbm.getSelectedId()) {
+		ev.preventDefault();
 		ev.stopPropagation();
 		ssbm.setSelection(targetId, targetInstancePath);
 	}

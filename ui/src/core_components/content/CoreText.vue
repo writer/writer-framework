@@ -1,17 +1,14 @@
 <template>
 	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
-		<template v-if="fields.useMarkdown.value == 'no'">
-			<div class="plainText" :style="contentStyle">
-				{{ fields.text.value }}
-			</div>
-		</template>
-		<template v-else-if="fields.useMarkdown.value == 'yes'">
-			<div
-				v-dompurify-html="unsanitisedMarkdownHtml"
-				class="markdown"
-				:style="contentStyle"
-			></div>
-		</template>
+		<BaseMarkdown
+			v-if="fields.useMarkdown.value == 'yes'"
+			:raw-text="fields.text.value"
+			:style="contentStyle"
+		>
+		</BaseMarkdown>
+		<div v-else class="plainText" :style="contentStyle">
+			{{ fields.text.value }}
+		</div>
 	</div>
 </template>
 
@@ -19,6 +16,7 @@
 import { FieldCategory, FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import { getClick } from "../../renderer/syntheticEvents";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -78,7 +76,6 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { marked } from "marked";
 import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
@@ -100,11 +97,6 @@ const contentStyle = computed(() => {
 	return {
 		"text-align": fields.alignment.value,
 	};
-});
-
-const unsanitisedMarkdownHtml = computed(() => {
-	const unsanitisedHtml = marked.parse(fields.text.value).trim();
-	return unsanitisedHtml;
 });
 
 function handleClick(ev: MouseEvent) {
@@ -131,69 +123,5 @@ function handleClick(ev: MouseEvent) {
 
 .CoreText img {
 	width: 100%;
-}
-
-/*
-Markdown styling
-*/
-
-.markdown:deep() h1,
-.markdown:deep() h2,
-.markdown:deep() h3,
-.markdown:deep() h4 {
-	font-weight: 300;
-	margin: 0;
-	color: var(--primaryTextColor);
-}
-
-.markdown:deep() h1 {
-	font-size: 1.3rem;
-}
-
-.markdown:deep() h2 {
-	font-size: 1rem;
-}
-
-.markdown:deep() h3 {
-	font-size: 0.9rem;
-}
-
-.markdown:deep() h4 {
-	text-transform: uppercase;
-	font-weight: bold;
-	font-size: 0.65rem;
-	letter-spacing: 0.2ch;
-}
-
-.markdown:deep() ul,
-.markdown:deep() ol {
-	padding: 0;
-	padding-inline-start: 0;
-	margin-block-start: 0;
-}
-
-.markdown:deep() li {
-	margin: 0 0 0 32px;
-}
-
-.markdown:deep() hr {
-	border: none;
-	border-top: 1px solid var(--separatorColor);
-}
-
-.markdown:deep() pre {
-	background-color: var(--separatorColor);
-	font-family: monospace;
-	padding: 8px;
-}
-
-.markdown:deep() code {
-	background-color: var(--separatorColor);
-	font-family: monospace;
-	padding: 2px;
-}
-
-.markdown:deep() pre > code {
-	background-color: unset;
 }
 </style>

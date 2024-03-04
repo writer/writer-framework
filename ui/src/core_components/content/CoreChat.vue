@@ -1,0 +1,519 @@
+<template>
+	<div ref="rootEl" class="CoreChat">
+		<div ref="messageAreaEl" class="messageArea">
+			<div ref="messagesEl" class="messages">
+				<div
+					v-for="(message, messageId) in messages"
+					:key="messageId"
+					class="message"
+					:class="message.origin"
+				>
+					<div class="avatar">
+						{{
+							message.origin == "incoming"
+								? fields.incomingInitials.value
+								: fields.outgoingInitials.value
+						}}
+					</div>
+					<div class="contents">
+						<div v-if="message.isLoading" class="loadingContainer">
+							<LoadingSymbol
+								class="loadingSymbol"
+							></LoadingSymbol>
+						</div>
+						<template v-else>
+							<div class="text">
+								<BaseMarkdown
+									v-if="
+										message.origin == 'incoming' &&
+										fields.useMarkdown.value == 'yes'
+									"
+									:raw-text="message.contents.text"
+								>
+								</BaseMarkdown>
+								<template v-else>
+									{{ message.contents.text }}
+								</template>
+							</div>
+							<div
+								v-if="message.contents.actions"
+								class="actions"
+							>
+								<button
+									v-for="(action, actionIndex) in message
+										.contents.actions"
+									:key="actionIndex"
+									class="action"
+									@click="handleActionClick(action)"
+								>
+									<div
+										v-if="action.subheading"
+										class="subheading"
+									>
+										{{ action.subheading }}
+									</div>
+									<h3 class="name">{{ action.name }}</h3>
+									<div v-if="action.desc" class="desc">
+										{{ action.desc }}
+									</div>
+								</button>
+							</div>
+						</template>
+					</div>
+					<div
+						v-if="message.date"
+						class="time"
+						:title="getFormattedDate(message.date, false)"
+					>
+						{{ getFormattedDate(message.date, true) }}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="inputArea">
+			<textarea
+				v-model="outgoingMessage"
+				placeholder="Write something..."
+				@keydown.prevent.enter="handleMessageSent"
+			></textarea>
+			<button @click="handleMessageSent">
+				<i class="ri-send-plane-line"></i>
+			</button>
+		</div>
+	</div>
+</template>
+
+<script lang="ts">
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import {
+	buttonColor,
+	buttonTextColor,
+	containerBackgroundColor,
+	cssClasses,
+	primaryTextColor,
+	secondaryTextColor,
+	separatorColor,
+} from "../../renderer/sharedStyleFields";
+import { onMounted } from "vue";
+import { onBeforeUnmount } from "vue";
+
+const description = "A chat component to build human-to-AI interactions.";
+
+const docs = `
+Connect it to an LLM by handling the \`ss-chat-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
+
+You can add \`actions\` to your response, which are buttons that trigger the \`ss-chat-action-click\`.
+
+See the stubs for more details.`.trim();
+
+const chatMessageStub = `
+def handle_message_simple(payload):
+    query = payload
+
+    if query == "Hello":
+
+		# You can simply return a string
+
+        return "Hello, human."
+    elif query == "Surprise me":
+
+		# Or you can return a dict with actions, which are buttons
+		# added to the conversation
+
+        return {
+            "text": "I can help you with that.",
+            "actions": [{
+            	"subheading": "Resource",
+            	"name": "Surprise",
+            	"desc": "Click to be surprised",
+            	"data": "change_title" 
+        	}]
+        }
+    else:
+        return "I don't know"
+`.trim();
+
+const chatActionClickStub = `
+def handle_action_simple(payload, state):
+    
+    # payload contains the "data" property of the action 
+    
+    if payload == "change_title":
+        state["app_title"] = "Surprise!"
+        state["app_background_color"] = "red"
+    
+    # A message can be added to the chat
+    
+    return "Hope you're surprised."
+`.trim();
+
+export default {
+	streamsync: {
+		name: "Chat",
+		description,
+		docs,
+		category: "Content",
+		fields: {
+			incomingInitials: {
+				name: "Incoming initials",
+				default: "AI",
+				type: FieldType.Text,
+			},
+			outgoingInitials: {
+				name: "Outgoing initials",
+				default: "YOU",
+				type: FieldType.Text,
+			},
+			useMarkdown: {
+				name: "Use Markdown",
+				desc: "It'll only be applied to incoming messages. The output will be sanitised; unsafe elements will be removed.",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
+			},
+			incomingColor: {
+				name: "Incoming",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+				applyStyleVariable: true,
+			},
+			outgoingColor: {
+				name: "Outgoing",
+				default: "#F5F5F9",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+				applyStyleVariable: true,
+			},
+			avatarBackgroundColor: {
+				name: "Avatar",
+				default: "#2C2D30",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+				applyStyleVariable: true,
+			},
+			avatarTextColor: {
+				name: "Avatar text",
+				default: "#FFFFFF",
+				type: FieldType.Color,
+				category: FieldCategory.Style,
+				applyStyleVariable: true,
+			},
+			containerBackgroundColor,
+			primaryTextColor,
+			secondaryTextColor,
+			separatorColor,
+			buttonColor,
+			buttonTextColor,
+			cssClasses,
+		},
+		events: {
+			"ss-chat-message": {
+				desc: "Triggered when the user sends a message.",
+				stub: chatMessageStub,
+			},
+			"ss-chat-action-click": {
+				desc: "Handle clicks on actions.",
+				stub: chatActionClickStub,
+			},
+		},
+	},
+};
+</script>
+<script setup lang="ts">
+import { Ref, inject, ref } from "vue";
+import injectionKeys from "../../injectionKeys";
+
+type Message = {
+	origin: "incoming" | "outgoing";
+	isLoading?: boolean;
+	date?: Date;
+	contents: {
+		text: string;
+		actions?: {
+			subheading?: string;
+			name: string;
+			desc?: string;
+			data?: string;
+		}[];
+	};
+};
+
+const rootEl: Ref<HTMLElement> = ref(null);
+const messageAreaEl: Ref<HTMLElement> = ref(null);
+const messagesEl: Ref<HTMLElement> = ref(null);
+const fields = inject(injectionKeys.evaluatedFields);
+const messages: Ref<Record<string, Message>> = ref({});
+let messageCounter = 0;
+let resizeObserver: ResizeObserver;
+
+const outgoingMessage: Ref<string> = ref("");
+
+function getFormattedDate(date: Date, isTimeOnly: boolean) {
+	if (!date) return;
+
+	if (!isTimeOnly) {
+		return date.toLocaleString();
+	}
+
+	const options: Intl.DateTimeFormatOptions = {
+		hour: "numeric",
+		minute: "numeric",
+		hour12: true,
+	};
+	return date.toLocaleTimeString(undefined, options);
+}
+
+function addMessage(message: Message) {
+	messageCounter += 1;
+	const messageKey = `msg${messageCounter}`;
+	messages.value[messageKey] = message;
+	return messageKey;
+}
+
+function replaceMessage(messageKey: string, message: Message) {
+	messages.value[messageKey] = message;
+}
+
+function handleMessageSent() {
+	addMessage({
+		origin: "outgoing",
+		contents: {
+			text: outgoingMessage.value,
+		},
+		date: new Date(),
+	});
+	const outgoingMessageKey = addMessage({
+		origin: "incoming",
+		contents: {
+			text: "Loading...",
+		},
+		isLoading: true,
+	});
+	const event = new CustomEvent("ss-chat-message", {
+		detail: {
+			payload: outgoingMessage.value,
+			callback: ({ payload }) => {
+				const callbackResult = payload.result?.result;
+				if (!callbackResult) return;
+				replaceMessage(outgoingMessageKey, {
+					origin: "incoming",
+					contents: getNormalisedCallbackResult(callbackResult),
+					date: new Date(),
+				});
+			},
+		},
+	});
+	rootEl.value.dispatchEvent(event);
+	outgoingMessage.value = "";
+}
+
+/**
+ * Allows strings to be sent from the backend as a substitute of Message["contents"].
+ *
+ * @param callbackResult
+ */
+function getNormalisedCallbackResult(
+	callbackResult: string | Message["contents"],
+): Message["contents"] {
+	if (typeof callbackResult == "string") {
+		return {
+			text: callbackResult,
+		};
+	}
+	return callbackResult;
+}
+
+function handleActionClick(action: Message["contents"]["actions"][number]) {
+	const { data } = action;
+	const event = new CustomEvent("ss-chat-action-click", {
+		detail: {
+			payload: data,
+			callback: ({ payload }) => {
+				const callbackResult = payload.result?.result;
+				if (!callbackResult) return;
+				addMessage({
+					origin: "incoming",
+					contents: getNormalisedCallbackResult(callbackResult),
+					date: new Date(),
+				});
+			},
+		},
+	});
+	rootEl.value.dispatchEvent(event);
+}
+
+function scrollToBottom() {
+	messageAreaEl.value.scrollTo({
+		top: messageAreaEl.value.scrollHeight,
+		left: 0,
+	});
+}
+
+onMounted(() => {
+	/**
+	 * A ResizeObserver allows the component to scroll to the bottom when a
+	 * new message is added or grows in size. For example, after markdown rendering is finished.
+	 *
+	 * CSS overflow-anchor wasn't used due to problematic support in Safari.
+	 */
+
+	resizeObserver = new ResizeObserver(() => {
+		scrollToBottom();
+	});
+
+	/**
+	 * ResizeObserver only watches the client height, not the scroll height.
+	 * So it's the element inside that needs to be watched to detect changes.
+	 */
+
+	resizeObserver.observe(messagesEl.value);
+});
+
+onBeforeUnmount(() => {
+	resizeObserver.unobserve(messagesEl.value);
+});
+</script>
+<style scoped>
+@import "../../renderer/sharedStyles.css";
+
+.CoreChat {
+	display: flex;
+	flex-direction: column;
+	height: 80vh;
+	border-radius: 8px;
+	overflow: hidden;
+	background: var(--containerBackgroundColor);
+	border: 1px solid var(--separatorColor);
+}
+
+.messageArea {
+	overflow-y: auto;
+	overflow-x: hidden;
+	flex: 0 0 80%;
+}
+
+.messages {
+	padding: 16px;
+	display: flex;
+	gap: 16px;
+	flex-direction: column;
+}
+
+.message {
+	display: flex;
+	gap: 8px;
+}
+
+.message .avatar {
+	border-radius: 50%;
+	background: var(--avatarBackgroundColor);
+	color: var(--avatarTextColor);
+	height: 36px;
+	width: 36px;
+	flex: 0 0 36px;
+	display: flex;
+	font-weight: bold;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	text-transform: uppercase;
+}
+
+.message .contents {
+	border-radius: 8px;
+	width: fit-content;
+	flex: 0 1 auto;
+	color: var(--primaryTextColor);
+	white-space: pre-wrap;
+}
+
+.message .time {
+	color: var(--secondaryTextColor);
+	font-size: 0.7rem;
+	align-self: end;
+	text-wrap: nowrap;
+}
+
+.message.incoming .contents {
+	background: v-bind(
+		"fields.incomingColor.value ? fields.incomingColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'"
+	);
+}
+
+.message.outgoing .contents {
+	background: var(--outgoingColor);
+}
+
+.contents .loadingContainer {
+	padding: 16px;
+}
+
+.contents .text {
+	line-height: 2;
+	padding: 12px 16px 12px 16px;
+}
+
+.contents .actions {
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.02);
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.contents .actions .action {
+	padding: 12px;
+	border-radius: 4px;
+	background: var(--containerBackgroundColor);
+	overflow: hidden;
+	line-height: normal;
+	display: flex;
+	gap: 4px;
+	flex-direction: column;
+	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+	border: 0;
+}
+
+.action .subheading {
+	color: var(--secondaryTextColor);
+	font-size: 0.7rem;
+}
+
+.action .desc {
+	font-size: 0.7rem;
+}
+
+.inputArea {
+	border-top: 1px solid var(--separatorColor);
+	flex: 1 1 auto;
+	text-align: right;
+	display: flex;
+	align-items: top;
+}
+
+.inputArea textarea {
+	border: none;
+	width: 100%;
+	height: 100%;
+	padding: 16px;
+	resize: none;
+	background: transparent;
+	color: var(--primaryTextColor);
+	font-size: 0.8rem;
+}
+
+.inputArea button {
+	margin: 16px;
+	height: fit-content;
+	flex: 0 0 auto;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+</style>

@@ -8,10 +8,8 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "vitepress": "^1.0.0-alpha.36",
-    "vue": "^3.2.45"
+    "vitepress": "^1.0.0-rc.44",
+    "vue": "^3.4.21"
   }
 }

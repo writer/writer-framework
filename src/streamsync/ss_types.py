@@ -134,6 +134,7 @@ class EventResponsePayload(BaseModel):
     result: Any
     mutations: Dict[str, Any]
     mail: List
+    components: Dict
 
 
 class StateEnquiryResponsePayload(BaseModel):
