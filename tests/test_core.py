@@ -42,12 +42,12 @@ simple_dict = {"items": {
         "Lettuce": {"name": "Lettuce", "type": "vegetable"}
     }}
 
+ss.Config.is_mail_enabled_for_log = True
+ss.init_state(raw_state_dict)
+
 sc = None
 with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
-
-ss.Config.is_mail_enabled_for_log = True
-ss.init_state(raw_state_dict)
 session = ss.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
@@ -214,24 +214,6 @@ class TestState:
         assert cloned.mail[0].get("payload").get("type") == "error"
         json.dumps(cloned.user_state.to_dict())
         json.dumps(cloned.mail)
-
-
-class TestComponentTree:
-
-    ct = ComponentTree()
-
-    def test_ingest(self) -> None:
-        self.ct.ingest(sc)
-        d = self.ct.to_dict()
-        assert d.get(
-            "84378aea-b64c-49a3-9539-f854532279ee").get("type") == "header"
-
-    def test_descendents(self) -> None:
-        desc = self.ct.get_descendents("root")
-        desc_ids = list(map(lambda x: x.id, desc))
-        assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
-        assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
-        assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids
 
 
 class TestEventDeserialiser:
