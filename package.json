@@ -12,6 +12,7 @@
 		"test": "npm run -w streamsync-e2e test",
 		"test:ci": "npm run -w streamsync-e2e test:ci",
 		"lint": "npm run -w streamsync-ui lint",
-		"lint:ci": "npm run -w streamsync-ui lint:ci"
+		"lint:ci": "npm run -w streamsync-ui lint:ci",
+		"dev": "npm run -w streamsync-ui dev"
   }
 }
