@@ -7,8 +7,6 @@
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../.gitignore",
 		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../.gitignore",
-		"test": "playwright test --project=chromium --reporter=list",
-		"test:ci": "playwright test --reporter=list",
 		"custom.dev": "vite --config vite.config.custom.js",
 		"custom.build": "vite build --config vite.config.custom.js"
 	},

@@ -76,10 +76,6 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 	width: fit-content;
 }
 
-.CoreDateInput.beingEdited:not(.selected) input {
-	pointer-events: none;
-}
-
 label {
 	display: block;
 	margin-bottom: 8px;
