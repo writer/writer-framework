@@ -16,6 +16,9 @@
 		"e2e": "npm run -w streamsync-e2e test",
 		"e2e:ui": "npm run -w streamsync-e2e test:ui",
 		"e2e:ci": "npm run -w streamsync-e2e test:ci",
+		"e2e:firefox:ci": "npm run -w streamsync-e2e test:firefox:ci",
+		"e2e:chromium:ci": "npm run -w streamsync-e2e test:chromium:ci",
+		"e2e:webkit:ci": "npm run -w streamsync-e2e test:webkit:ci",
 		"lint": "npm run -w streamsync-ui lint",
 		"lint:ci": "npm run -w streamsync-ui lint:ci",
 		"dev": "npm run -w streamsync-ui dev"
