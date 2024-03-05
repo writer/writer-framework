@@ -109,7 +109,7 @@
 			</div>
 			<div
 				class="actionButton delete"
-				data-action="delete"
+				data-automation-action="delete"
 				title="Delete (Del)"
 				:class="{
 					enabled: shortcutsInfo?.isDeleteEnabled,

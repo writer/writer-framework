@@ -54,7 +54,7 @@ test.describe('undo and redo', () => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator(
-				'.BuilderComponentShortcuts .actionButton[data-action="delete"]',
+				'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
 			)
 			.click();
 		await page.locator("button.undo").click();

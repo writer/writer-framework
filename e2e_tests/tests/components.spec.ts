@@ -77,7 +77,7 @@ createAndRemove.forEach(({ type, locator }) => {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(
-					'.BuilderComponentShortcuts .actionButton[data-action="delete"]',
+					'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
 				)
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0);
@@ -123,7 +123,7 @@ fullCheck.forEach(({ type, locator }) => {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(
-					'.BuilderComponentShortcuts .actionButton[data-action="delete"]',
+					'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
 				)
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).not.toBeVisible();
