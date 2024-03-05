@@ -85,7 +85,6 @@ export default {
 <script setup lang="ts">
 import { Ref, inject, ref, onMounted, watch, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
-import { Loader } from "@googlemaps/js-api-loader";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const mapEl: Ref<HTMLElement> = ref(null);
@@ -105,6 +104,7 @@ const mapType = computed(() =>
 
 const initMap = async () => {
 	clearMarkers();
+	const { Loader } = await import("@googlemaps/js-api-loader");
 	const loader = new Loader({
 		apiKey: fields.apiKey.value,
 		version: "weekly",
