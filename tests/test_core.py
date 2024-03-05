@@ -1,5 +1,6 @@
 import json
 import math
+import unittest
 from typing import Dict
 
 import numpy as np
@@ -55,10 +56,11 @@ session = ss.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
 
-class TestStateProxy:
+class TestStateProxy(unittest.TestCase):
 
-    sp = State(raw_state_dict)._state_proxy
-    sp_simple_dict = State(simple_dict)._state_proxy
+    def setUp(self):
+        self.sp = State(raw_state_dict)._state_proxy
+        self.sp_simple_dict = State(simple_dict)._state_proxy
 
     @classmethod
     def count_initial_mutations(cls, d, count=0):
@@ -109,14 +111,58 @@ class TestStateProxy:
         assert d.get("features").get("height") == "short"
         assert d.get("state.with.dots").get("photo.jpeg") == "Corrupted"
 
-        self.sp.apply_mutation_marker("age")
-        m = self.sp.get_mutations_as_dict()
-
-        assert m.get("+age") == 2
 
         del self.sp["best_feature"]
         m = self.sp.get_mutations_as_dict()
         assert "-best_feature" in m
+
+    def test_apply_mutation_marker(self) -> None:
+        self.sp.get_mutations_as_dict()
+        self.sp_simple_dict.get_mutations_as_dict()
+
+        # Apply the mutation to a specific key
+        self.sp.apply_mutation_marker("age")
+        m = self.sp.get_mutations_as_dict()
+        assert m == {
+            '+age': 1
+        }
+
+        # Apply the mutation to the state as a whole
+        self.sp.apply_mutation_marker()
+        m = self.sp.get_mutations_as_dict()
+        assert m == {
+            '+age': 1,
+            '+best_feature': 'eyes',
+            '+counter': 4,
+            '+features': None,
+            '+interests': ['lamps', 'cars'],
+            '+name': 'Robert',
+            '+state\\.with\\.dots': None,
+            '+utfࠀ': 23
+        }
+
+        self.sp_simple_dict.apply_mutation_marker()
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert m == {
+            '+items': None
+        }
+
+        # Apply the mutation to the state as a whole and on all its children
+        self.sp_simple_dict.apply_mutation_marker(recursive=True)
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Apple': None,
+            '+items.Apple.name': 'Apple',
+            '+items.Apple.type': 'fruit',
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
+
 
     def test_dictionary_removal(self) -> None:
         # Explicit removal test
@@ -139,8 +185,8 @@ class TestState:
         Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
         triggers mutations to update the interface
 
-        >>> _state = streamsync.init_state({'app': {}})
-        >>> _state["app"] = {"hello": "world"}
+        #>>> _state = streamsync.init_state({'app': {}})
+        #>>> _state["app"] = {"hello": "world"}
         """
         _state = State()
 
@@ -173,8 +219,8 @@ class TestState:
 
         This processing must work after initialization and after recovering the mutations the first time.
 
-        >>> _state = State({'items': {}})
-        >>> _state["items"] = {k: v for k, v in _state["items"].items() if k != "Apple"}
+        #>>> _state = State({'items': {}})
+        #>>> _state["items"] = {k: v for k, v in _state["items"].items() if k != "Apple"}
         """
         _state = State({"items": {
             "Apple": {"name": "Apple", "type": "fruit"},
@@ -218,8 +264,8 @@ class TestState:
         Tests that the change of values in a child state is readable whatever the access mode and
         that mutations are triggered
 
-        >>> _state = ComplexSchema({'app': {'title': ''}})
-        >>> _state.app.title = 'world'
+        #>>> _state = ComplexSchema({'app': {'title': ''}})
+        #>>> _state.app.title = 'world'
         """
         class AppState(State):
             title: str
