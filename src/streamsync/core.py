@@ -749,7 +749,7 @@ class Evaluator:
     It allows for the sanitisation of frontend inputs.
     """
 
-    template_regex = re.compile(r"[\\]?@{([\w\s.]*)}")
+    template_regex = re.compile(r"[\\]?@{([\w\s.\[\]]*)}")
 
     def __init__(self, session_state: StreamsyncState, session_component_tree: ComponentTree):
         self.ss = session_state
