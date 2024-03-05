@@ -238,8 +238,28 @@ class StateProxy:
     def _apply_raw(self, key) -> None:
         self.mutated.add(key)
 
-    def apply(self, key) -> None:
-        self._apply_raw(f"+{key}")
+    def apply_mutation_marker(self, key: Optional[str] = None, recursive: bool = False) -> None:
+        """
+        Adds the mutation marker to a state. The mutation marker is used to track changes in the state.
+
+        >>> self.apply_mutation_marker()
+
+        Add the mutation marker on a specific field
+
+        >>> self.apply_mutation_marker("field")
+
+        Add the mutation marker to a state and all of its children
+
+        >>> self.apply_mutation_marker(recursive=True)
+        """
+        keys = [key] if key is not None else self.state.keys()
+
+        for k in keys:
+            self._apply_raw(f"+{k}")
+            if recursive is True:
+                value = self.state[k]
+                if isinstance(value, StateProxy):
+                    value.apply_mutation_marker(recursive=True)
 
     @staticmethod
     def escape_key(key):
@@ -260,7 +280,7 @@ class StateProxy:
             serialised_value = None
 
             if isinstance(value, StateProxy):
-                if value.initial_assignment:
+                if f"+{key}" in self.mutated:
                     serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
@@ -437,6 +457,9 @@ class State(metaclass=StateMeta):
             state.ingest(value)
             self._state_proxy[key] = state._state_proxy
         else:
+            if isinstance(value, StateProxy):
+                value.apply_mutation_marker(recursive=True)
+
             self._state_proxy[key] = value
 
 

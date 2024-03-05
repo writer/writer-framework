@@ -109,7 +109,7 @@ class TestStateProxy:
         assert d.get("features").get("height") == "short"
         assert d.get("state.with.dots").get("photo.jpeg") == "Corrupted"
 
-        self.sp.apply("age")
+        self.sp.apply_mutation_marker("age")
         m = self.sp.get_mutations_as_dict()
 
         assert m.get("+age") == 2
@@ -171,15 +171,30 @@ class TestState:
         """
         Tests that replacing a dictionary content in a State without schema trigger mutations on all the children.
 
+        This processing must work after initialization and after recovering the mutations the first time.
+
         >>> _state = State({'items': {}})
         >>> _state["items"] = {k: v for k, v in _state["items"].items() if k != "Apple"}
         """
-
         _state = State({"items": {
             "Apple": {"name": "Apple", "type": "fruit"},
             "Cucumber": {"name": "Cucumber", "type": "vegetable"},
             "Lettuce": {"name": "Lettuce", "type": "vegetable"}
         }})
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Apple': None,
+            '+items.Apple.name': "Apple",
+            '+items.Apple.type': "fruit",
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
 
         # When
         items = _state['items']
