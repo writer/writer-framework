@@ -1,4 +1,4 @@
-name: E2E Tests
+name: ci-e2e
 on:
   push:
     branches: [ dev, master]
@@ -6,7 +6,7 @@ on:
     branches: [ dev, master]
 
 jobs:
-  e2e:
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
