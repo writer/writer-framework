@@ -408,7 +408,7 @@ def print_route_message(run_name: str, port: int, host: str):
     GREEN_TOKEN = "\033[92m"
     END_TOKEN = "\033[0m"
 
-    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}")
+    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
 
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):

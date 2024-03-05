@@ -7,6 +7,7 @@
 			:loop="fields.loop.value === 'yes'"
 			:muted="fields.muted.value === 'yes'"
 		></video>
+		<div class="mask" />
 	</div>
 </template>
 
@@ -98,10 +99,29 @@ const fields = inject(injectionKeys.evaluatedFields);
 
 <style scoped>
 .CoreVideoPlayer {
+	position: relative;
 	width: 100%;
 }
 
 video {
 	width: 100%;
+}
+
+.mask {
+	pointer-events: none;
+}
+
+.beingEdited .mask {
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.beingEdited.selected .mask {
+	pointer-events: none;
 }
 </style>

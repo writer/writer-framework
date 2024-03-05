@@ -74,6 +74,7 @@ export default {
 				fields.element.value,
 				{
 					...fields.attrs.value,
+					class: "CoreHTML",
 					"data-streamsync-container": "",
 					style: fields.styles.value,
 				},
