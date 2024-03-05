@@ -9,11 +9,11 @@ current_parent_container: ContextVar[Union['Component', None]] = \
 # This variable is thread safe and context safe
 
 
-class Component(BaseModel):
-    @staticmethod
-    def generate_component_id():
-        return str(uuid.uuid4())
+def generate_component_id():
+    return str(uuid.uuid4())
 
+
+class Component(BaseModel):
     id: str = Field(default_factory=generate_component_id)
     type: str
     content: Dict[str, str] = Field(default_factory=dict)
