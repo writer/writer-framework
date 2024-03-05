@@ -17,7 +17,7 @@ test.describe('undo and redo', () => {
 		await page.goto("/");
 	});
 
-	test("create", async ({ page }) => {
+	test("create, drag and drop, property change and remove", async ({ page }) => {
 		await page
 			.locator(`div.component.button[data-component-type="${TYPE}"]`)
 			.dragTo(page.locator(COLUMN1));
@@ -25,9 +25,7 @@ test.describe('undo and redo', () => {
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0)
 		await page.locator("button.redo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(1)
-	});
 
-	test("drag and drop", async ({ page }) => {
 		await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
 		await page.locator("button.undo").click();
 		await expect(
@@ -43,9 +41,7 @@ test.describe('undo and redo', () => {
 		await expect(
 			page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
 		).toHaveCount(1);
-	});
 
-	test("property change", async ({ page }) => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator('.BuilderFieldsText[data-key="text"] input')
@@ -54,10 +50,7 @@ test.describe('undo and redo', () => {
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
 		await page.locator("button.redo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('cool text')
-	});
 
-
-	test("remove", async ({ page }) => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator(

@@ -8,10 +8,14 @@ class Streamsync {
 		this.process = null;
 		this.initialized = false;
 		this.port = 7358;
+		this.busy = false;
 	}
 
 	async start() {
 		return new Promise((resolve, reject) => {
+			if (this.process !== null) {
+				this.process.kill();
+			}
 			const ss = spawn(
 				"streamsync",
 				["edit", "./runtime", "--port", this.port]
@@ -73,17 +77,31 @@ class Streamsync {
 	}
 
 	async restart() {
-		await this.stop();
-		this.port += 1;
-		await this.start();
+		this.busy = true;
+		try {
+			await this.stop();
+			this.port += 1;
+			await this.start();
+		} catch (e) {
+			throw e;
+		} finally {
+			this.busy = false;
+		}
 	}
 
 	async loadPreset(preset) {
-		await this.stop();
-		this.port += 1;
-		await fs.copyFile(`./presets/${preset}/ui.json`, "./runtime/ui.json");
-		await fs.copyFile(`./presets/${preset}/main.py`, "./runtime/main.py");
-		await this.start();
+		this.busy = true;
+		try {
+			await this.stop();
+			this.port += 1;
+			await fs.copyFile(`./presets/${preset}/ui.json`, "./runtime/ui.json");
+			await fs.copyFile(`./presets/${preset}/main.py`, "./runtime/main.py");
+			await this.start();
+		} catch (e) {
+			throw e;
+		} finally {
+			this.busy = false;
+		}
 	}
 }
 
@@ -102,6 +120,10 @@ proxy.on('error', function (e) {
 const app = express();
 
 app.get("/preset/:preset", async (req, res) => {
+	if(ss.busy) {
+		res.status(429).send("Server is busy");
+		return;
+	}
 	console.log("Loading preset", req.params.preset);
 	const preset = req.params.preset;
 	await ss.loadPreset(preset);

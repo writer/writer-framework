@@ -66,16 +66,14 @@ createAndRemove.forEach(({ type, locator }) => {
 			await page.goto("/");
 		});
 
-		test("create", async ({ page }) => {
+		test("create and remove", async ({ page }) => {
 			await page
 				.locator(`div.component.button[data-component-type="${TYPE}"]`)
 				.dragTo(page.locator(TARGET));
 			await expect(
 				page.locator(TARGET + " " + COMPONENT_LOCATOR),
 			).toHaveCount(1);
-		});
 
-		test("remove", async ({ page }) => {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(
@@ -103,7 +101,7 @@ fullCheck.forEach(({ type, locator }) => {
 			await page.goto("/");
 		});
 
-		test("create", async ({ page }) => {
+		test("create, drag and drop and remove", async ({ page }) => {
 			await page
 				.locator(`div.component.button[data-component-type="${TYPE}"]`)
 				.dragTo(page.locator(COLUMN1));
@@ -113,9 +111,7 @@ fullCheck.forEach(({ type, locator }) => {
 			await expect(
 				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
 			).toHaveCount(0);
-		});
 
-		test("drag and drop", async ({ page }) => {
 			await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
 			await expect(
 				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
@@ -123,9 +119,7 @@ fullCheck.forEach(({ type, locator }) => {
 			await expect(
 				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
 			).toHaveCount(1);
-		});
 
-		test("remove", async ({ page }) => {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(

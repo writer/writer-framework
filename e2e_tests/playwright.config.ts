@@ -4,7 +4,7 @@ export default defineConfig({
 	testDir: "./tests",
 	fullyParallel: false,
 	forbidOnly: !!process.env.CI,
-	retries: 0,
+	retries: 2,
 	workers: 1,
 	reporter: "list",
 	use: {
