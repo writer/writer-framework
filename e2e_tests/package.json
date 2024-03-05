@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "playwright test --project=chromium --reporter=list",
-    "test:ci": "playwright test --project=chromium",
+    "test:ci": "playwright test",
     "test:ui": "playwright test --project=chromium --ui"
   },
   "dependencies": {

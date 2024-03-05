@@ -4,10 +4,11 @@
   "description": "",
 	"workspaces": [
 		"ui",
-		"e2e_tests"
+		"e2e_tests",
+		"docs"
 	],
   "scripts": {
-    "build": "npm run -w streamsync-ui build",
+    "build": "npm run -ws build",
 		"custom.build": "npm run -w streamsync-ui custom.build",
 		"e2e": "npm run -w streamsync-e2e test",
 		"e2e:ui": "npm run -w streamsync-e2e test:ui",
