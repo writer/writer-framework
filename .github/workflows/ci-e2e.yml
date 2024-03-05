@@ -37,6 +37,7 @@ jobs:
 
       - name: Install E2E browsers
         working-directory: e2e_tests 
-        run: npx playwright install --with-deps
+        run: npx playwright install ${{ matrix.browser }} --with-deps
+
       - name: Run E2E tests
         run: poetry run alfred ci --e2e=${{ matrix.browser }}
