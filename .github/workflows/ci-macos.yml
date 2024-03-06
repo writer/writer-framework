@@ -35,9 +35,7 @@ jobs:
           cache: npm
 
       - name: update package manager & install python3 environment
-        run: |
-          sudo pip install poetry
-          poetry install --with build
+        run: poetry install --with build
 
       - name: install npm environment
         run: npm ci 
