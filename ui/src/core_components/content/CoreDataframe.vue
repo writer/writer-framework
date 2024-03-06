@@ -205,8 +205,8 @@ export default {
 </script>
 <script setup lang="ts">
 import injectionKeys from "../../injectionKeys";
-import * as aq from "arquero";
-import { tableFromIPC, Table } from "apache-arrow";
+import type * as aq from "arquero";
+import type { Table } from "apache-arrow";
 
 /**
  * Only a certain amount of rows is rendered at a time (MAX_ROWS_RENDERED),
@@ -388,6 +388,8 @@ function getIndexFromArrowTable(table: Table<any>) {
 }
 
 async function loadData() {
+	const aq = await import("arquero");
+	const { tableFromIPC } = await import("apache-arrow");
 	const url = fields.dataframe.value;
 
 	try {
@@ -413,7 +415,8 @@ function download() {
 	el.click();
 }
 
-function applyOrder() {
+async function applyOrder() {
+	const aq = await import("arquero");
 	if (orderSetting.value === null) {
 		table.value = table.value.unorder();
 		return;
@@ -488,8 +491,8 @@ watch(fields.dataframe, () => {
 	loadData();
 });
 
-watch(orderSetting, () => {
-	applyOrder();
+watch(orderSetting, async () => {
+	await applyOrder();
 });
 
 watch(columnCount, () => {
