@@ -56,7 +56,11 @@ export function useDragDropComponent(ss: Core) {
 		if (!dragInfo) return;
 		const { draggedType, draggedId } = dragInfo;
 		const dropTargetId = getIdFromElement(ev.target as HTMLElement);
-		const parentId = findSuitableParent(dropTargetId, draggedType);
+		const parentId = findSuitableParent(
+			dropTargetId,
+			draggedId,
+			draggedType,
+		);
 		if (!parentId) return;
 		const dropData = {
 			draggedType,
@@ -70,18 +74,26 @@ export function useDragDropComponent(ss: Core) {
 
 	function findSuitableParent(
 		targetId: Component["id"],
+		draggedId: Component["id"],
 		insertedType: Component["type"],
 	): Component["id"] {
 		const targetComponent = ss.getComponentById(targetId);
 		if (!targetComponent) return;
 		const containableTypes = ss.getContainableTypes(targetId);
 
-		if (containableTypes.includes(insertedType)) {
+		if (
+			!ss.isChildOf(draggedId, targetId) &&
+			containableTypes.includes(insertedType)
+		) {
 			return targetId;
 		}
 
 		if (!targetComponent.parentId) return null;
-		return findSuitableParent(targetComponent.parentId, insertedType);
+		return findSuitableParent(
+			targetComponent.parentId,
+			draggedId,
+			insertedType,
+		);
 	}
 
 	function assignInsertionCandidacy(ev: DragEvent) {
@@ -99,7 +111,11 @@ export function useDragDropComponent(ss: Core) {
 		const { draggedType, draggedId } = dragInfo;
 		const targetEl = ev.target as HTMLElement;
 		const dropTargetId = getIdFromElement(targetEl);
-		const parentId = findSuitableParent(dropTargetId, draggedType);
+		const parentId = findSuitableParent(
+			dropTargetId,
+			draggedId,
+			draggedType,
+		);
 		if (!parentId || parentId == draggedId) return;
 		const parentComponentEl: HTMLElement = targetEl.closest(
 			`[data-streamsync-id="${parentId}"]`,
