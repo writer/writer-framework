@@ -90,6 +90,7 @@
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
 					class="insertionOverlayTracker"
+					:ignore-settings-sidebar="true"
 					:is-off-bounds-allowed="true"
 					:instance-path="candidateInstancePath"
 					:match-size="true"
@@ -99,6 +100,7 @@
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
 					class="insertionLabelTracker"
+					:ignore-settings-sidebar="true"
 					:instance-path="candidateInstancePath"
 					:vertical-offset-pixels="-48"
 				>

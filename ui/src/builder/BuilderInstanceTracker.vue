@@ -13,6 +13,7 @@ interface Props {
 	matchSize?: boolean;
 	verticalOffsetPixels?: number;
 	isOffBoundsAllowed?: boolean;
+	ignoreSettingsSidebar?: boolean;
 }
 const props = defineProps<Props>();
 const { instancePath, matchSize, verticalOffsetPixels, isOffBoundsAllowed } =
@@ -37,7 +38,10 @@ const trackElement = (el: HTMLElement) => {
 	const { clientWidth: rendererWidth } = rendererEl;
 	const { left: rendererX } = rendererEl.getBoundingClientRect();
 	const settingsEl = document.querySelector(".BuilderSettings");
+	const hiderTabEl = document.querySelector(".settingsHiderTab");
+	const hiderWidth = hiderTabEl?.clientWidth || 0;
 	const { clientWidth: settingsWidth } = settingsEl || { clientWidth: 0 };
+	const fullSettingsWidth = settingsWidth + hiderWidth;
 	const { left: settingsLeft } = settingsEl?.getBoundingClientRect() || {
 		left: Infinity,
 	};
@@ -60,15 +64,17 @@ const trackElement = (el: HTMLElement) => {
 		trackerY = Math.min(bodyHeight - contentsHeight, trackerY); // Bottom boundary
 	}
 
-	let correction = 0;
-	if (settingsLeft < rendererX + rendererWidth) {
-		const trackerEnd = trackerX + contentsWidth;
-		const rendererEnd = rendererX + rendererWidth;
-		const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
-		correction = Math.max(settingsWidth - distanceToRight, 0);
-	}
+	if (!props.ignoreSettingsSidebar) {
+		let correction = 0;
+		if (settingsLeft < rendererX + rendererWidth) {
+			const trackerEnd = trackerX + contentsWidth;
+			const rendererEnd = rendererX + rendererWidth;
+			const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
+			correction = Math.max(fullSettingsWidth - distanceToRight, 0);
+		}
 
-	trackerX -= correction;
+		trackerX -= correction;
+	}
 
 	rootStyle.value = {
 		top: `${trackerY}px`,
