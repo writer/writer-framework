@@ -16,7 +16,7 @@ import re
 import json
 import math
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from streamsync.ui_utils import ComponentTree, SessionComponentTree
+from streamsync.core_ui import ComponentTree, SessionComponentTree
 
 
 class Config:

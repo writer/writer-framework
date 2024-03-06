@@ -1,4 +1,4 @@
-from streamsync.ui_utils import ComponentTree, UIError
+from streamsync.core_ui import ComponentTree, UIError
 from streamsync.ui import StreamsyncUIManager
 import streamsync as ss
 

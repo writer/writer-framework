@@ -1,6 +1,6 @@
 from typing import Optional
 from streamsync.ui_manager import StreamsyncUI
-from streamsync.ui_utils import Component
+from streamsync.core_ui import Component
 
 
 class StreamsyncUIManager(StreamsyncUI):

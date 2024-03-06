@@ -4,8 +4,8 @@ import uuid
 
 from pydantic import BaseModel, Field
 
-current_parent_container: ContextVar[Union['Component', None]] = \
-    ContextVar('current_parent_container')
+current_parent_container: ContextVar[Union["Component", None]] = \
+    ContextVar("current_parent_container")
 # This variable is thread safe and context safe
 
 
@@ -30,7 +30,7 @@ class Component(BaseModel):
         """
         return self.model_dump(exclude_none=True)
 
-    def __enter__(self) -> 'Component':
+    def __enter__(self) -> "Component":
         self._token = current_parent_container.set(self)
         return self
 
@@ -70,7 +70,7 @@ class ComponentTree:
     def attach(self, component: Component, override=False) -> None:
         self.counter += 1
         if (component.id in self.components) and (override is False):
-            raise RuntimeWarning(f'Component with ID {component.id} already exists')
+            raise RuntimeWarning(f"Component with ID {component.id} already exists")
         self.components[component.id] = component
 
     def ingest(self, serialised_components: Dict[str, Any]) -> None:

@@ -1,8 +1,8 @@
 from typing import Union
 
 from streamsync.core import StreamsyncSession, session_manager
-from streamsync.ui_utils import (Component, SessionComponentTree, UIError,
-                                 current_parent_container)
+from streamsync.core_ui import (Component, SessionComponentTree, UIError,
+                                current_parent_container)
 
 
 class StreamsyncUI:
@@ -16,11 +16,11 @@ class StreamsyncUI:
     def __init__(self, session_id: str):
         self.session: Union[StreamsyncSession, None] = session_manager.get_session(session_id)
         if self.session is None:
-            raise RuntimeError('Invalid session passed to the UI manager')
+            raise RuntimeError("Invalid session passed to the UI manager")
         # Initialize the component tree with the session
         self.component_tree: SessionComponentTree = \
             self.session.session_component_tree
-        self.root_component = self.component_tree.get_component('root')
+        self.root_component = self.component_tree.get_component("root")
         if not self.root_component:
             raise RuntimeError(f"Failed to acquire root component in session {session_id}")
 
@@ -43,17 +43,17 @@ class StreamsyncUI:
         # Example context manager for finding components
         component = self.component_tree.get_component(component_id)
         if component is None:
-            raise RuntimeError(f'Component {component_id} not found')
+            raise RuntimeError(f"Component {component_id} not found")
         return component
 
     def _create_component(self, component_type: str, **kwargs) -> Component:
         parent_container = current_parent_container.get(None)
-        if 'parentId' in kwargs:
-            parent_id = kwargs.pop('parentId')
+        if "parentId" in kwargs:
+            parent_id = kwargs.pop("parentId")
         else:
-            parent_id = 'root' if not parent_container else parent_container.id
+            parent_id = "root" if not parent_container else parent_container.id
         component = Component(
-            type=component_type, parentId=parent_id, flag='cmc', **kwargs
+            type=component_type, parentId=parent_id, flag="cmc", **kwargs
             )
         self.component_tree.attach(component, attach_to_bottom=True)
         return component
