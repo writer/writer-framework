@@ -16,11 +16,11 @@ class StreamsyncUIManager(StreamsyncUI):
     # Hardcoded classes for proof-of-concept purposes
 
     def ColumnContainer(self, **kwargs) -> Component:
-        component_context = self.create_container('columns', **kwargs)
+        component_context = self.create_container_component('columns', **kwargs)
         return component_context
 
     def Column(self, **kwargs) -> Component:
-        component_context = self.create_container('column', **kwargs)
+        component_context = self.create_container_component('column', **kwargs)
         return component_context
 
     def Text(self, text: Optional[str] = None, **kwargs) -> Component:

@@ -1,8 +1,8 @@
 from typing import Union
 
-from streamsync.core import StreamsyncSession, session_manager
-from streamsync.core_ui import (Component, SessionComponentTree, UIError,
-                                current_parent_container)
+from streamsync.core import base_component_tree
+from streamsync.core_ui import (Component, SessionComponentTree,
+                                UIError, current_parent_container)
 
 
 class StreamsyncUI:
@@ -13,16 +13,15 @@ class StreamsyncUI:
     and organize UI components based on a structured component tree.
     """
 
-    def __init__(self, session_id: str):
-        self.session: Union[StreamsyncSession, None] = session_manager.get_session(session_id)
-        if self.session is None:
-            raise RuntimeError("Invalid session passed to the UI manager")
-        # Initialize the component tree with the session
-        self.component_tree: SessionComponentTree = \
-            self.session.session_component_tree
-        self.root_component = self.component_tree.get_component("root")
-        if not self.root_component:
-            raise RuntimeError(f"Failed to acquire root component in session {session_id}")
+    def __init__(self, component_tree: Union[SessionComponentTree, None] = None):
+        self.component_tree = component_tree or base_component_tree
+        self.root_component = self.component_tree.get_component('root')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        ...
 
     @staticmethod
     def assert_in_container():
@@ -32,10 +31,8 @@ class StreamsyncUI:
 
     @property
     def root(self) -> Component:
-        if not self.session:
-            raise RuntimeError("No session object on UI manager")
         if not self.root_component:
-            raise RuntimeError(f"Failed to acquire root component in session {self.session.session_id}")
+            raise RuntimeError("Failed to acquire root component")
         return self.root_component
 
     def find(self, component_id: str) \
@@ -52,13 +49,31 @@ class StreamsyncUI:
             parent_id = kwargs.pop("parentId")
         else:
             parent_id = "root" if not parent_container else parent_container.id
+
+        is_positionless = kwargs.pop("positionless", False)
+
         component = Component(
-            type=component_type, parentId=parent_id, flag="cmc", **kwargs
+            type=component_type,
+            parentId=parent_id,
+            flag="cmc",
+            **kwargs
             )
-        self.component_tree.attach(component, attach_to_bottom=True)
+
+        component.position = \
+            self.component_tree.determine_position(
+                component.id,
+                parent_id,
+                is_positionless=is_positionless
+                )
+        # We're determining the position separately
+        # due to that we need to know whether ID of the component
+        # is present within base component tree
+        # or a session-specific one
+
+        self.component_tree.attach(component)
         return component
 
-    def create_container(self, component_type: str, **kwargs) \
+    def create_container_component(self, component_type: str, **kwargs) \
             -> Component:
         container = self._create_component(component_type, **kwargs)
         return container

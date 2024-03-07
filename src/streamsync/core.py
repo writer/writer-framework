@@ -985,7 +985,7 @@ class EventHandler:
                 arg_values.append(session_info)
             elif arg == "ui":
                 from streamsync.ui import StreamsyncUIManager
-                ui_manager = StreamsyncUIManager(self.session.session_id)
+                ui_manager = StreamsyncUIManager(self.session.session_component_tree)
                 arg_values.append(ui_manager)
 
         result = None

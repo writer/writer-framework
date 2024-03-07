@@ -67,6 +67,17 @@ class ComponentTree:
 
         return desc
 
+    def determine_position(self, _: str, parent_id: str, is_positionless: bool = False):
+        if is_positionless:
+            return -2
+
+        children = self.get_direct_descendents(parent_id)
+        if len(children) > 0:
+            position = max([0, max([child.position for child in children]) + 1])
+            return position
+        else:
+            return 0
+
     def attach(self, component: Component, override=False) -> None:
         self.counter += 1
         if (component.id in self.components) and (override is False):
@@ -97,6 +108,16 @@ class SessionComponentTree(ComponentTree):
         super().__init__()
         self.base_component_tree = base_component_tree
 
+    def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
+        session_component_present = component_id in self.components
+        if session_component_present:
+            # If present, use ComponentTree method
+            # for determining position directly from this class
+            return super().determine_position(component_id, parent_id, is_positionless)
+        else:
+            # Otherwise, invoke it on base component tree
+            return self.base_component_tree.determine_position(component_id, parent_id, is_positionless)
+
     def get_component(self, component_id: str) -> Optional[Component]:
         # Check if session component tree contains requested key
         session_component_present = component_id in self.components
@@ -108,21 +129,6 @@ class SessionComponentTree(ComponentTree):
 
         # Otherwise, try to obtain the base tree component
         return self.base_component_tree.get_component(component_id)
-
-    def attach(
-            self,
-            component: Component,
-            override=False,
-            attach_to_bottom=False) -> None:
-        if attach_to_bottom is True and component.position == 0:
-            if component.parentId is not None:
-                tree = self \
-                        if component.parentId in self.components \
-                        else self.base_component_tree
-                parent_length = \
-                    tree.get_direct_descendents_length(component.parentId)
-                component.position = parent_length + 1
-        super().attach(component, override=override)
 
     def to_dict(self) -> Dict:
         active_components = {
