@@ -177,6 +177,14 @@ class TestStateProxy(unittest.TestCase):
         assert d.get("_private") is None
         assert d.get("_private_unserialisable") is None
 
+    def test_to_raw_state(self) -> None:
+        """
+        Test that `to_raw_state` returns the state in its original format
+        """
+        assert self.sp.to_raw_state() == raw_state_dict
+        assert self.sp_simple_dict.to_raw_state() == simple_dict
+
+
 
 class TestState:
 
@@ -287,6 +295,27 @@ class TestState:
             '+app': None,
             '+app.title': 'world',
         }
+
+    def test_remove_then_replace_nested_dictionary_should_trigger_mutation(self):
+        """
+        Tests that deleting a key from a substate, then replacing it, triggers the expected mutations
+        """
+        # Assign
+        _state = State({"nested": {"a": 1, "b": 2, "c": {"d": 3, "e": 4}}})
+        m = _state._state_proxy.get_mutations_as_dict()
+
+        # Acts
+        del _state["nested"]["c"]["e"]
+        _state['nested']['c'] = _state['nested']['c']
+
+        # Assert
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+nested.c': None,
+            '+nested.c.d': 3,
+            '-nested.c.e': None
+        }
+        assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
 
 
 class TestStreamsyncState:

@@ -59,7 +59,7 @@ def init_ui() -> StreamsyncUIManager:
     return StreamsyncUIManager()
 
 
-def init_state(state_dict: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, StreamsyncState]:
+def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, StreamsyncState]:
     """
     Sets the initial state, which will be used as the starting point for
     every session.
@@ -80,6 +80,5 @@ def init_state(state_dict: Dict[str, Any], schema: Optional[Type[S]] = None) -> 
     if not issubclass(concrete_schema, StreamsyncState):
         raise ValueError("Root schema must inherit from StreamsyncState")
 
-    _initial_state: S = new_initial_state(concrete_schema)
-    _initial_state.ingest(state_dict)
+    _initial_state: S = new_initial_state(concrete_schema, raw_state)
     return _initial_state

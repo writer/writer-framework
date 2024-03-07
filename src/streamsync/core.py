@@ -8,7 +8,8 @@ import secrets
 import sys
 import time
 import traceback
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, TypeVar, Type, Sequence, cast
+from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, TypeVar, Type, Sequence, cast, \
+    Generator
 import urllib.request
 import base64
 import io
@@ -321,6 +322,24 @@ class StateProxy:
             serialised[key] = serialised_value
         return serialised
 
+    def to_raw_state(self):
+        """
+        Converts a StateProxy and its children into a python dictionary.
+
+        >>> state = State({'a': 1, 'c': {'a': 1, 'b': 3}})
+        >>> _raw_state = state._state_proxy.to_raw_state()
+        >>> {'a': 1, 'c': {'a': 1, 'b': 3}}
+
+        :return: a python dictionary that represents the raw state
+        """
+        raw_state = {}
+        for key, value in self.state.items():
+            if isinstance(value, StateProxy):
+                value = value.to_raw_state()
+            raw_state[key] = value
+
+        return raw_state
+
 
 def get_annotations(instance) -> Dict[str, Any]:
     """
@@ -399,9 +418,16 @@ class State(metaclass=StateMeta):
     def ingest(self, raw_state: Dict[str, Any]) -> None:
         """
         hydrates a state from raw data by applying a schema when it is provided.
+        The existing content in the state is erased.
+
+
+        >>> state = StreamsyncState({'message': "hello world"})
+        >>> state.ingest({'a': 1, 'b': 2})
+        >>> {'a': 1, 'b': 2}
         """
         self._state_proxy.state = {}
         for key, value in raw_state.items():
+            assert not isinstance(value, StateProxy), f"state proxy datatype is not expected in ingest operation, {locals()}"
             self._set_state_item(key, value)
 
     def to_dict(self) -> dict:
@@ -415,18 +441,37 @@ class State(metaclass=StateMeta):
         """
         return self._state_proxy.to_dict()
 
+
+    def to_raw_state(self) -> dict:
+        """
+        Converts a StateProxy and its children into a python dictionary that can be used to recreate the
+        state from scratch.
+
+        >>> state = StreamsyncState({'a': 1, 'c': {'a': 1, 'b': 3}})
+        >>> raw_state = state.to_raw_state()
+        >>> "{'a': 1, 'c': {'a': 1, 'b': 3}}"
+
+        :return: a python dictionary that represents the raw state
+        """
+        return self._state_proxy.to_raw_state()
+
     def __repr__(self) -> str:
         return self._state_proxy.__repr__()
 
     def __getitem__(self, key: str) -> Any:
-        annotations = get_annotations(self)
-        expected_type = annotations.get(key)
-        if expected_type is not None and inspect.isclass(expected_type) and issubclass(expected_type, State):
-            return getattr(self, key)
-        else:
-            return self._state_proxy.__getitem__(key)
+
+        # Essential to support operation like
+        # state['item']['a'] = state['item']['b']
+        if hasattr(self, key):
+            value = getattr(self, key)
+            if isinstance(value, State):
+                return value
+
+        return self._state_proxy.__getitem__(key)
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
+        assert not isinstance(raw_value, StateProxy), f"state proxy datatype is not expected, {locals()}"
+
         self._set_state_item(key, raw_value)
 
     def __delitem__(self, key: str) -> Any:
@@ -435,11 +480,25 @@ class State(metaclass=StateMeta):
     def remove(self, key: str) -> Any:
         return self.__delitem__(key)
 
+    def items(self) -> Generator[Tuple[str, Any], None, None]:
+        for k, v in self._state_proxy.items():
+            if isinstance(v, StateProxy):
+                # We don't want to expose StateProxy to the user, so
+                # we replace it with relative State
+                yield k, getattr(self, k)
+            else:
+                yield k, v
+
     def __contains__(self, key: str) -> bool:
         return self._state_proxy.__contains__(key)
 
     def _set_state_item(self, key: str, value: Any):
         """
+        """
+
+        """
+        At this level, the values that arrive are either States which encapsulate a StateProxy, or another datatype. 
+        If there is a StateProxy, it is a fault in the code.
         """
         annotations = get_annotations(self)
         expected_type = annotations.get(key, None)
@@ -457,10 +516,11 @@ class State(metaclass=StateMeta):
             state.ingest(value)
             self._state_proxy[key] = state._state_proxy
         else:
-            if isinstance(value, StateProxy):
-                value.apply_mutation_marker(recursive=True)
-
-            self._state_proxy[key] = value
+            if isinstance(value, State):
+                value._state_proxy.apply_mutation_marker(recursive=True)
+                self._state_proxy[key] = value._state_proxy
+            else:
+                self._state_proxy[key] = value
 
 
 class StreamsyncState(State):
@@ -495,11 +555,11 @@ class StreamsyncState(State):
         >>> class AppSchema(StreamsyncState):
         >>>     counter: int
         >>>
-        >>> root_state = AppSchema()
+        >>> root_state = AppSchema({'counter': 1})
         >>> clone_state = root_state.get_clone() # instance of AppSchema
         """
         try:
-            cloned_user_state = copy.deepcopy(self.user_state.state)
+            cloned_user_state = copy.deepcopy(self.user_state.to_raw_state())
             cloned_mail = copy.deepcopy(self.mail)
         except BaseException:
             substitute_state = StreamsyncState()
@@ -1251,7 +1311,7 @@ class DictPropertyProxy:
 
 S = TypeVar("S", bound=StreamsyncState)
 
-def new_initial_state(klass: Type[S]) -> S:
+def new_initial_state(klass: Type[S], raw_state: dict) -> S:
     """
     Initializes the initial state of the application and makes it globally accessible.
 
@@ -1260,10 +1320,13 @@ def new_initial_state(klass: Type[S]) -> S:
     >>> class MyState(StreamsyncState):
     >>>     pass
     >>>
-    >>> initial_state = new_initial_state(MyState)
+    >>> initial_state = new_initial_state(MyState, {})
     """
     global initial_state
-    initial_state = klass()
+    if raw_state is None:
+        raw_state = {}
+
+    initial_state = klass(raw_state)
 
     return initial_state
 
