@@ -44,6 +44,7 @@ class StreamsyncUI:
         return component
 
     def _create_component(self, component_type: str, **kwargs) -> Component:
+        content = {key: value for key, value in kwargs.items() if key not in Component.model_fields}
         parent_container = current_parent_container.get(None)
         if "parentId" in kwargs:
             parent_id = kwargs.pop("parentId")
@@ -57,6 +58,7 @@ class StreamsyncUI:
             type=component_type,
             parentId=parent_id,
             flag="cmc",
+            content=content,
             **kwargs
             )
 
