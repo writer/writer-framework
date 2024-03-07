@@ -69,7 +69,7 @@ class TestUIManager:
             with ui.root:
                 passed = False
                 try:
-                    ui.create_component('text', content={'text': 'Inside container'})
+                    ui.create_component('text', text='Inside container')
                     passed = True
                 except Exception:
                     passed = False
@@ -78,7 +78,7 @@ class TestUIManager:
             # Now, attempt to create a component outside of any container context, which should raise an error
             raised = False
             try:
-                ui.create_component('text', content={'text': 'Outside container'})
+                ui.create_component('text', text='Outside container')
             except UIError:
                 raised = True
             assert raised, "Creating a component outside of a container context should raise an UIError"
