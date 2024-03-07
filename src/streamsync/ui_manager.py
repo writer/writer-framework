@@ -50,6 +50,7 @@ class StreamsyncUI:
         else:
             parent_id = "root" if not parent_container else parent_container.id
 
+        position = kwargs.pop("position", 0)
         is_positionless = kwargs.pop("positionless", False)
 
         component = Component(
@@ -59,16 +60,16 @@ class StreamsyncUI:
             **kwargs
             )
 
-        component.position = \
-            self.component_tree.determine_position(
-                component.id,
-                parent_id,
-                is_positionless=is_positionless
-                )
         # We're determining the position separately
         # due to that we need to know whether ID of the component
         # is present within base component tree
         # or a session-specific one
+        component.position = \
+            position or self.component_tree.determine_position(
+                component.id,
+                parent_id,
+                is_positionless=is_positionless
+                )
 
         self.component_tree.attach(component)
         return component
