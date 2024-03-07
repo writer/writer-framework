@@ -70,15 +70,44 @@
 				</div>
 			</div>
 		</div>
+		<div class="filesArea">
+			<template v-if="false">
+				<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
+
+				Uploading...
+			</template>
+			<div class="list">
+				<div v-for="file, fileIndex in files" :key="fileIndex" class="file">
+					<div>
+						<div class="name" :title="file.name">{{ file.name }}</div>
+						<div class="size">{{ (file.size / 1024 / 1024).toPrecision(2) }}mb</div>
+					</div>
+					<button variant="subtle" v-on:click="handleRemoveFile(fileIndex)">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+			</div>
+
+			<div class="uploadButtons">
+				<button class="uploadButton">
+					<i class="ri-upload-line"></i>Upload
+				</button>
+			</div>
+		</div>
 		<div class="inputArea">
 			<textarea
 				v-model="outgoingMessage"
 				placeholder="Write something..."
 				@keydown.prevent.enter="handleMessageSent"
 			></textarea>
-			<button @click="handleMessageSent">
-				<i class="ri-send-plane-line"></i>
-			</button>
+			<div class="inputButtons">
+				<button @click="handleMessageSent">
+					<i class="ri-send-plane-line"></i>
+				</button>
+				<button @click="handleAttachFile">
+					<i class="ri-attachment-line"></i>
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -98,6 +127,7 @@ import {
 } from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { onBeforeUnmount } from "vue";
+import { shallowRef } from "vue";
 
 const description = "A chat component to build human-to-AI interactions.";
 
@@ -176,6 +206,16 @@ export default {
 					no: "No",
 				},
 			},
+			enableFileUpload: {
+				name: "Enable file upload",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					single: "Single file",
+					multiple: "Multiple files",
+					no: "No",
+				},
+			},
 			incomingColor: {
 				name: "Incoming",
 				type: FieldType.Color,
@@ -248,6 +288,7 @@ const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
+const files: Ref<File[]> = ref([]);
 let messageCounter = 0;
 let resizeObserver: ResizeObserver;
 
@@ -347,6 +388,27 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	rootEl.value.dispatchEvent(event);
 }
 
+function handleAttachFile() {
+	const el: HTMLInputElement = document.createElement("input");
+	el.type = "file";
+	if (fields.enableFileUpload.value == "multiple") {
+		el.multiple = true;
+	}
+	el.addEventListener("change", () => {
+		const newList = files.value;
+		Array.from(el.files).forEach((file) => {
+			newList.push(file);
+		});
+		files.value = newList;
+		alert("200mb");
+	});
+	el.dispatchEvent(new MouseEvent("click"));
+}
+
+function handleRemoveFile(index: number) {
+	files.value.splice(index, 1);
+}
+
 function scrollToBottom() {
 	messageAreaEl.value.scrollTo({
 		top: messageAreaEl.value.scrollHeight,
@@ -382,8 +444,9 @@ onBeforeUnmount(() => {
 @import "../../renderer/sharedStyles.css";
 
 .CoreChat {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 100%;
+	grid-template-rows: 8fr fit-content(20%) 20%;
 	height: 80vh;
 	border-radius: 8px;
 	overflow: hidden;
@@ -394,7 +457,9 @@ onBeforeUnmount(() => {
 .messageArea {
 	overflow-y: auto;
 	overflow-x: hidden;
-	flex: 0 0 80%;
+	border-bottom: 1px solid var(--separatorColor);
+	grid-column: 1;
+	grid-row: 1;
 }
 
 .messages {
@@ -489,9 +554,77 @@ onBeforeUnmount(() => {
 	font-size: 0.7rem;
 }
 
-.inputArea {
-	border-top: 1px solid var(--separatorColor);
+.filesArea {
+	grid-column: 1;
+	grid-row: 2;
+	border-bottom: 1px solid var(--separatorColor);
+	overflow: hidden;
+	display: grid;
+	grid-template-columns: auto fit-content(50%);
+	grid-template-rows: 100%;
+}
+
+.filesArea .list {
+	grid-column: 1;
+	grid-row: 1;
+	padding: 16px;
 	flex: 1 1 auto;
+	overflow-y: auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.file {
+	background: var(--separatorColor);
+	border-radius: 8px;
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	padding: 8px;
+	font-size: 0.7rem;
+}
+
+.file .name {
+	min-width: 5ch;
+	max-width: 20ch;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.file .size {
+	margin-top: 4px;
+	color: var(--secondaryTextColor);
+}
+
+.file button {
+	border-radius: 8px;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	background: unset;
+}
+
+.filesArea .uploadButtons {
+	grid-column: 2;
+	grid-row: 1;
+	flex: 1 1 auto;
+	padding: 16px;
+}
+
+.filesArea .uploadButton {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-left: auto;
+	margin-right: 0;
+}
+
+.inputArea {
+	grid-column: 1;
+	grid-row: 3;
 	text-align: right;
 	display: flex;
 	align-items: top;
@@ -508,8 +641,14 @@ onBeforeUnmount(() => {
 	font-size: 0.8rem;
 }
 
+.inputArea .inputButtons {
+	display: flex;
+	padding: 16px;
+	flex-direction: column;
+	gap: 8px;
+}
+
 .inputArea button {
-	margin: 16px;
 	height: fit-content;
 	flex: 0 0 auto;
 	display: flex;
