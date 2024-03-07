@@ -1,4 +1,5 @@
-from typing import TypedDict, Unpack
+from typing import TypedDict
+from typing_extensions import Unpack
 from typing import Optional
 from streamsync.ui_manager import StreamsyncUI
 from streamsync.core_ui import Component
