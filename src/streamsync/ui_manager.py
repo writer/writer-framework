@@ -50,7 +50,7 @@ class StreamsyncUI:
         else:
             parent_id = "root" if not parent_container else parent_container.id
 
-        position = kwargs.pop("position")
+        position = kwargs.pop("position", None)
         is_positionless = kwargs.pop("positionless", False)
 
         component = Component(
