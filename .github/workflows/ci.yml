@@ -30,10 +30,7 @@ jobs:
           poetry install --with build
 
       - name: install npm environment
-        run: |
-          cd ui
-          npm install
+        run: npm ci 
 
       - name: run continuous integration pipeline
-        run: |
-          poetry run alfred ci
+        run: poetry run alfred ci

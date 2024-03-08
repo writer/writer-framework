@@ -1,6 +1,7 @@
 <template>
 	<div ref="rootEl" class="CorePlotlyGraph">
 		<div ref="chartTargetEl" class="target"></div>
+		<div class="mask" />
 	</div>
 </template>
 
@@ -150,10 +151,29 @@ onMounted(async () => {
 @import "../../renderer/sharedStyles.css";
 
 .CorePlotlyGraph {
+	position: relative;
 	min-height: 1px;
 }
 
 .target {
 	overflow: hidden;
+}
+
+.mask {
+	pointer-events: none;
+}
+
+.beingEdited .mask {
+	pointer-events: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.beingEdited.selected .mask {
+	pointer-events: none;
 }
 </style>

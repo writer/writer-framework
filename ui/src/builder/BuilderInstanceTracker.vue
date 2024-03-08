@@ -54,7 +54,6 @@ const trackElement = (el: HTMLElement) => {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
 		trackerX = Math.min(
 			rendererX + rendererWidth - contentsWidth,
-
 			trackerX,
 		); // Right boundary
 		trackerY = Math.max(MIN_TOP_PX, trackerY); // Top boundary

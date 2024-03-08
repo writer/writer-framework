@@ -475,6 +475,15 @@ export function generateCore() {
 		return components.value[componentId];
 	}
 
+	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
+		let child = components.value[childId];
+		do {
+			if (child.parentId == parentId) return true;
+			child = components.value[child.parentId];
+		} while(child);
+		return false;
+	}
+
 	/**
 	 * Gets registered Streamsync components.
 	 *
@@ -557,6 +566,7 @@ export function generateCore() {
 		getContainableTypes,
 		getSessionTimestamp,
 		getUserState,
+		isChildOf,
 	};
 
 	return core;
