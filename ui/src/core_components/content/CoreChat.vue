@@ -70,44 +70,59 @@
 				</div>
 			</div>
 		</div>
-		<div class="filesArea">
-			<template v-if="false">
-				<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
+		<template v-if="files.length > 0">
+			<div class="filesArea">
+				<template v-if="false">
+					<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
 
-				Uploading...
-			</template>
-			<div class="list">
-				<div v-for="file, fileIndex in files" :key="fileIndex" class="file">
-					<div>
-						<div class="name" :title="file.name">{{ file.name }}</div>
-						<div class="size">{{ (file.size / 1024 / 1024).toPrecision(2) }}mb</div>
+					Uploading...
+				</template>
+				<div class="list">
+					<div
+						v-for="(file, fileIndex) in files"
+						:key="fileIndex"
+						class="file"
+					>
+						<div>
+							<div class="name" :title="file.name">
+								{{ file.name }}
+							</div>
+							<div class="size">
+								{{ (file.size / 1024 / 1024).toFixed(2) }}mb
+							</div>
+						</div>
+						<button
+							variant="subtle"
+							v-on:click="handleRemoveFile(fileIndex)"
+						>
+							<i class="ri-close-line"></i>
+						</button>
 					</div>
-					<button variant="subtle" v-on:click="handleRemoveFile(fileIndex)">
-						<i class="ri-close-line"></i>
-					</button>
 				</div>
 			</div>
-
-			<div class="uploadButtons">
-				<button class="uploadButton">
+			<div class="filesButtons">
+				<button class="uploadButton" v-if="!isUploadSizeExceeded">
 					<i class="ri-upload-line"></i>Upload
 				</button>
+				<div class="sizeExceededMessage" v-if="isUploadSizeExceeded">
+					<i class="ri-file-warning-line"></i> Size limit of 200mb exceeded.
+				</div>
 			</div>
-		</div>
+		</template>
 		<div class="inputArea">
 			<textarea
 				v-model="outgoingMessage"
-				placeholder="Write something..."
+				:placeholder="fields.placeholder.value"
 				@keydown.prevent.enter="handleMessageSent"
 			></textarea>
-			<div class="inputButtons">
-				<button @click="handleMessageSent">
-					<i class="ri-send-plane-line"></i>
-				</button>
-				<button @click="handleAttachFile">
-					<i class="ri-attachment-line"></i>
-				</button>
-			</div>
+		</div>
+		<div class="inputButtons">
+			<button @click="handleMessageSent">
+				<i class="ri-send-plane-line"></i>
+			</button>
+			<button @click="handleAttachFile">
+				<i class="ri-attachment-line"></i>
+			</button>
 		</div>
 	</div>
 </template>
@@ -125,9 +140,8 @@ import {
 	secondaryTextColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
-import { onMounted } from "vue";
-import { onBeforeUnmount } from "vue";
-import { shallowRef } from "vue";
+
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chat component to build human-to-AI interactions.";
 
@@ -216,6 +230,11 @@ export default {
 					no: "No",
 				},
 			},
+			placeholder: {
+				name: "Placeholder",
+				default: "Write something...",
+				type: FieldType.Text,
+			},
 			incomingColor: {
 				name: "Incoming",
 				type: FieldType.Color,
@@ -265,7 +284,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, inject, ref } from "vue";
+import { type Ref, onMounted, onBeforeUnmount, shallowRef, inject, ref, computed } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 type Message = {
@@ -288,11 +307,19 @@ const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
-const files: Ref<File[]> = ref([]);
+const files: Ref<File[]> = shallowRef([]);
 let messageCounter = 0;
 let resizeObserver: ResizeObserver;
 
 const outgoingMessage: Ref<string> = ref("");
+
+const isUploadSizeExceeded = computed(() => {
+	let filesSize = 0;
+	Array.from(files.value).forEach((file) => {
+		filesSize += file.size;
+	});
+	return filesSize >= MAX_FILE_SIZE;
+});
 
 function getFormattedDate(date: Date, isTimeOnly: boolean) {
 	if (!date) return;
@@ -395,7 +422,7 @@ function handleAttachFile() {
 		el.multiple = true;
 	}
 	el.addEventListener("change", () => {
-		const newList = files.value;
+		const newList = [...files.value];
 		Array.from(el.files).forEach((file) => {
 			newList.push(file);
 		});
@@ -406,7 +433,8 @@ function handleAttachFile() {
 }
 
 function handleRemoveFile(index: number) {
-	files.value.splice(index, 1);
+	const newList = files.value.toSpliced(index, 1);
+	files.value = newList;
 }
 
 function scrollToBottom() {
@@ -445,8 +473,8 @@ onBeforeUnmount(() => {
 
 .CoreChat {
 	display: grid;
-	grid-template-columns: 100%;
-	grid-template-rows: 8fr fit-content(20%) 20%;
+	grid-template-columns: 1fr fit-content(20%);
+	grid-template-rows: 1fr fit-content(20%) 20%;
 	height: 80vh;
 	border-radius: 8px;
 	overflow: hidden;
@@ -458,7 +486,7 @@ onBeforeUnmount(() => {
 	overflow-y: auto;
 	overflow-x: hidden;
 	border-bottom: 1px solid var(--separatorColor);
-	grid-column: 1;
+	grid-column: 1 / 3;
 	grid-row: 1;
 }
 
@@ -558,18 +586,12 @@ onBeforeUnmount(() => {
 	grid-column: 1;
 	grid-row: 2;
 	border-bottom: 1px solid var(--separatorColor);
-	overflow: hidden;
-	display: grid;
-	grid-template-columns: auto fit-content(50%);
-	grid-template-rows: 100%;
+	overflow-y: auto;
 }
 
 .filesArea .list {
-	grid-column: 1;
-	grid-row: 1;
 	padding: 16px;
 	flex: 1 1 auto;
-	overflow-y: auto;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -607,19 +629,20 @@ onBeforeUnmount(() => {
 	background: unset;
 }
 
-.filesArea .uploadButtons {
+.filesButtons {
 	grid-column: 2;
-	grid-row: 1;
-	flex: 1 1 auto;
+	grid-row: 2;
 	padding: 16px;
+	border-bottom: 1px solid var(--separatorColor);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
-.filesArea .uploadButton {
+.filesButtons .uploadButton {
 	display: flex;
 	gap: 8px;
 	align-items: center;
-	margin-left: auto;
-	margin-right: 0;
 }
 
 .inputArea {
@@ -641,14 +664,17 @@ onBeforeUnmount(() => {
 	font-size: 0.8rem;
 }
 
-.inputArea .inputButtons {
+.inputButtons {
+	grid-column: 2;
+	grid-row: 3;
 	display: flex;
 	padding: 16px;
 	flex-direction: column;
 	gap: 8px;
+	align-items: flex-end;
 }
 
-.inputArea button {
+.inputButtons button {
 	height: fit-content;
 	flex: 0 0 auto;
 	display: flex;
