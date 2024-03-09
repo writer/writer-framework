@@ -77,7 +77,7 @@
 
 					Uploading...
 				</template>
-				<div class="list" v-if="!isUploadingFiles">
+				<div v-if="!isUploadingFiles" class="list">
 					<div
 						v-for="(file, fileIndex) in files"
 						:key="fileIndex"
@@ -93,7 +93,7 @@
 						</div>
 						<button
 							variant="subtle"
-							v-on:click="handleRemoveFile(fileIndex)"
+							@click="handleRemoveFile(fileIndex)"
 						>
 							<i class="ri-close-line"></i>
 						</button>
@@ -101,11 +101,16 @@
 				</div>
 			</div>
 			<div class="filesButtons">
-				<button v-if="!isUploadSizeExceeded && !isUploadingFiles" class="uploadButton" @click="handleUploadFiles">
+				<button
+					v-if="!isUploadSizeExceeded && !isUploadingFiles"
+					class="uploadButton"
+					@click="handleUploadFiles"
+				>
 					<i class="ri-upload-line"></i>Upload
 				</button>
-				<div class="sizeExceededMessage" v-if="isUploadSizeExceeded">
-					<i class="ri-file-warning-line"></i> Size limit of {{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
+				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
+					<i class="ri-file-warning-line"></i> Size limit of
+					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
 				</div>
 			</div>
 		</template>
@@ -117,10 +122,14 @@
 			></textarea>
 		</div>
 		<div class="inputButtons">
-			<button @click="handleMessageSent" title="Send message">
+			<button title="Send message" @click="handleMessageSent">
 				<i class="ri-send-plane-line"></i>
 			</button>
-			<button v-if="fields.enableFileUpload.value != 'no'" @click="handleAttachFiles" title="Attach files">
+			<button
+				v-if="fields.enableFileUpload.value != 'no'"
+				title="Attach files"
+				@click="handleAttachFiles"
+			>
 				<i class="ri-attachment-line"></i>
 			</button>
 		</div>
@@ -296,14 +305,22 @@ export default {
 			},
 			"ss-file-change": {
 				desc: "Triggered when files are uploaded",
-				stub: fileChangeStub
-			}
+				stub: fileChangeStub,
+			},
 		},
 	},
 };
 </script>
 <script setup lang="ts">
-import { type Ref, onMounted, onBeforeUnmount, shallowRef, inject, ref, computed } from "vue";
+import {
+	type Ref,
+	onMounted,
+	onBeforeUnmount,
+	shallowRef,
+	inject,
+	ref,
+	computed,
+} from "vue";
 import injectionKeys from "../../injectionKeys";
 
 type Message = {
@@ -442,7 +459,6 @@ function handleAttachFiles() {
 		el.multiple = true;
 	}
 	el.addEventListener("change", () => {
-
 		// A new list is created to allow shallowRef to detect the change
 
 		let newList: File[];
@@ -531,7 +547,7 @@ async function handleUploadFiles() {
 	});
 
 	rootEl.value.dispatchEvent(event);
-};
+}
 onMounted(() => {
 	/**
 	 * A ResizeObserver allows the component to scroll to the bottom when a
