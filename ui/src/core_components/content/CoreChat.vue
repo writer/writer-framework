@@ -72,12 +72,12 @@
 		</div>
 		<template v-if="files.length > 0">
 			<div class="filesArea">
-				<template v-if="false">
+				<template v-if="isUploadingFiles">
 					<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
 
 					Uploading...
 				</template>
-				<div class="list">
+				<div class="list" v-if="!isUploadingFiles">
 					<div
 						v-for="(file, fileIndex) in files"
 						:key="fileIndex"
@@ -88,7 +88,7 @@
 								{{ file.name }}
 							</div>
 							<div class="size">
-								{{ (file.size / 1024 / 1024).toFixed(2) }}mb
+								{{ prettyBytes(file.size) }}
 							</div>
 						</div>
 						<button
@@ -101,11 +101,11 @@
 				</div>
 			</div>
 			<div class="filesButtons">
-				<button class="uploadButton" v-if="!isUploadSizeExceeded">
+				<button v-if="!isUploadSizeExceeded && !isUploadingFiles" class="uploadButton" @click="handleUploadFiles">
 					<i class="ri-upload-line"></i>Upload
 				</button>
 				<div class="sizeExceededMessage" v-if="isUploadSizeExceeded">
-					<i class="ri-file-warning-line"></i> Size limit of 200mb exceeded.
+					<i class="ri-file-warning-line"></i> Size limit of {{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
 				</div>
 			</div>
 		</template>
@@ -117,10 +117,10 @@
 			></textarea>
 		</div>
 		<div class="inputButtons">
-			<button @click="handleMessageSent">
+			<button @click="handleMessageSent" title="Send message">
 				<i class="ri-send-plane-line"></i>
 			</button>
-			<button @click="handleAttachFile">
+			<button v-if="fields.enableFileUpload.value != 'no'" @click="handleAttachFiles" title="Attach files">
 				<i class="ri-attachment-line"></i>
 			</button>
 		</div>
@@ -140,6 +140,7 @@ import {
 	secondaryTextColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
+import prettyBytes from "pretty-bytes";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -192,6 +193,20 @@ def handle_action_simple(payload, state):
     
     return "Hope you're surprised."
 `.trim();
+
+const fileChangeStub = `
+def handle_file_upload(state, payload):
+
+	# An array of dictionaries is provided in the payload
+	# The dictionaries have the properties name, type and data
+    # The data property is a file-like object
+
+    uploaded_files = payload
+    for i, uploaded_file in enumerate(uploaded_files):
+		name = uploaded_file.get("name")
+        file_data = uploaded_file.get("data")
+        with open(f"{name}-{i}.jpeg", "wb") as file_handle:
+            file_handle.write(file_data)`.trim();
 
 export default {
 	streamsync: {
@@ -279,6 +294,10 @@ export default {
 				desc: "Handle clicks on actions.",
 				stub: chatActionClickStub,
 			},
+			"ss-file-change": {
+				desc: "Triggered when files are uploaded",
+				stub: fileChangeStub
+			}
 		},
 	},
 };
@@ -308,6 +327,7 @@ const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
 const files: Ref<File[]> = shallowRef([]);
+const isUploadingFiles = ref(false);
 let messageCounter = 0;
 let resizeObserver: ResizeObserver;
 
@@ -366,7 +386,7 @@ function handleMessageSent() {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
-				const callbackResult = payload.result?.result;
+				const callbackResult = payload?.result?.result;
 				if (!callbackResult) return;
 				replaceMessage(outgoingMessageKey, {
 					origin: "incoming",
@@ -402,7 +422,7 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 		detail: {
 			payload: data,
 			callback: ({ payload }) => {
-				const callbackResult = payload.result?.result;
+				const callbackResult = payload?.result?.result;
 				if (!callbackResult) return;
 				addMessage({
 					origin: "incoming",
@@ -415,19 +435,26 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	rootEl.value.dispatchEvent(event);
 }
 
-function handleAttachFile() {
+function handleAttachFiles() {
 	const el: HTMLInputElement = document.createElement("input");
 	el.type = "file";
 	if (fields.enableFileUpload.value == "multiple") {
 		el.multiple = true;
 	}
 	el.addEventListener("change", () => {
-		const newList = [...files.value];
+
+		// A new list is created to allow shallowRef to detect the change
+
+		let newList: File[];
+		if (fields.enableFileUpload.value == "multiple") {
+			newList = [...files.value];
+		} else {
+			newList = [];
+		}
 		Array.from(el.files).forEach((file) => {
 			newList.push(file);
 		});
 		files.value = newList;
-		alert("200mb");
 	});
 	el.dispatchEvent(new MouseEvent("click"));
 }
@@ -444,6 +471,67 @@ function scrollToBottom() {
 	});
 }
 
+const encodeFile = async (file: File) => {
+	var reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	return new Promise((resolve, reject) => {
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error);
+	});
+};
+
+async function handleUploadFiles() {
+	if (files.value.length == 0) return;
+	if (isUploadingFiles.value) return;
+
+	isUploadingFiles.value = true;
+
+	const getPayload = async () => {
+		let accumSize = 0;
+		const encodedFiles = Promise.all(
+			Array.from(files.value).map(async (f) => {
+				accumSize += f.size;
+				const fileItem = {
+					name: f.name,
+					type: f.type,
+					data: await encodeFile(f),
+				};
+				return fileItem;
+			}),
+		);
+		if (accumSize > MAX_FILE_SIZE) {
+			alert("Size limit exceeded.");
+			return;
+		}
+		return encodedFiles;
+	};
+
+	const payload = await getPayload();
+	if (!payload) {
+		isUploadingFiles.value = false;
+		return;
+	}
+
+	const event = new CustomEvent("ss-file-change", {
+		detail: {
+			payload,
+			callback: ({ payload }) => {
+				isUploadingFiles.value = false;
+				files.value = [];
+				const callbackResult = payload?.result?.result;
+				if (!callbackResult) return;
+				addMessage({
+					origin: "incoming",
+					contents: getNormalisedCallbackResult(callbackResult),
+					date: new Date(),
+				});
+			},
+		},
+	});
+
+	rootEl.value.dispatchEvent(event);
+};
 onMounted(() => {
 	/**
 	 * A ResizeObserver allows the component to scroll to the bottom when a
