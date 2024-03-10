@@ -12,6 +12,7 @@ import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue"
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
 import CoreLink from "../core_components/content/CoreLink.vue";
 import CoreChat from "../core_components/content/CoreChat.vue";
+import CoreTags from "../core_components/content/CoreTags.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -104,7 +105,8 @@ const templateMap = {
 	chat: CoreChat,
 	step: CoreStep,
 	steps: CoreSteps,
-	ratinginput: CoreRating
+	ratinginput: CoreRating,
+	tags: CoreTags
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {

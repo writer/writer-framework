@@ -607,6 +607,17 @@ class EventDeserialiser:
         else:
             ev.payload = tf_payload
 
+    def _transform_tag_click(self, ev: StreamsyncEvent) -> Optional[str]:
+        payload = ev.payload
+        instance_path = ev.instancePath
+        options = self.evaluator.evaluate_field(
+            instance_path, "tags", True, "{ }")
+        if not isinstance(options, dict):
+            raise ValueError("Invalid value for tags")
+        if payload not in options.keys():
+            raise ValueError("Unauthorised option")
+        return payload
+
     def _transform_option_change(self, ev: StreamsyncEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
