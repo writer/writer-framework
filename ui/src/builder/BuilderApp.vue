@@ -74,6 +74,7 @@
 				v-if="ssbm.isSelectionActive()"
 				:key="selectedInstancePath"
 				class="shortcutsTracker"
+				:prevent-settings-bar-overlap="true"
 				:instance-path="selectedInstancePath"
 				:vertical-offset-pixels="-48"
 				data-streamsync-cage
