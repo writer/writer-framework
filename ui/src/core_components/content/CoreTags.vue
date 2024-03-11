@@ -1,21 +1,26 @@
 <template>
 	<div ref="rootEl" class="CoreTags">
-		<div v-for="tagDesc, tagId in fields.tags.value" :key="tagId" class="tag" :style="{ 'background': generateColor(tagId) }" @click="() => handleTagClick(tagId)">
+		<div
+			v-for="(tagDesc, tagId) in fields.tags.value"
+			:key="tagId"
+			class="tag"
+			:style="{ background: generateColor(tagId) }"
+			@click="() => handleTagClick(tagId)"
+		>
 			{{ tagDesc }}
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldControl, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const clickHandlerStub = `
 def handle_tag_click(state, payload):
 	state["selected_tag_id"] = payload`;
 
-const description =
-	"A component to display coloured tag pills.";
+const description = "A component to display coloured tag pills.";
 
 export default {
 	streamsync: {
@@ -34,28 +39,28 @@ export default {
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
 				default: "#29cf00",
-				category: FieldCategory.Style
+				category: FieldCategory.Style,
 			},
 			seed: {
 				name: "Seed value",
 				desc: "Choose a different value to reshuffle colours.",
 				type: FieldType.Number,
 				default: "1",
-				category: FieldCategory.Style
+				category: FieldCategory.Style,
 			},
 			rotateHue: {
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
 				type: FieldType.Text,
 				options: {
-					"yes": "yes",
-					"no": "no"
+					yes: "yes",
+					no: "no",
 				},
-				default: "yes"
+				default: "yes",
 			},
 			primaryTextColor: {
 				...primaryTextColor,
-				default: "#ffffff"
+				default: "#ffffff",
 			},
 			cssClasses,
 		},
@@ -88,17 +93,20 @@ const isClickable = computed(() => {
 function generateColor(s: string) {
 	if (fields.rotateHue.value == "no") {
 		return fields.referenceColor.value;
-	};
+	}
 	const baseColor = chroma(fields.referenceColor.value);
-	let genColor = baseColor.set("hcl.h", `+${ calculateColorStep(s) * (360/COLOR_STEPS) }`);
+	let genColor = baseColor.set(
+		"hcl.h",
+		`+${calculateColorStep(s) * (360 / COLOR_STEPS)}`,
+	);
 	return genColor.css();
 }
 
 function calculateColorStep(s: string) {
-    let hash = fields.seed.value * 52673 & 0xFFFFFFFF;
-    for (let i = 0; i < s.length; i++) {
-        hash = (i+1) * s.charCodeAt(i) ^ hash & 0xFFFFFFFF;
-    }
+	let hash = (fields.seed.value * 52673) & 0xffffffff;
+	for (let i = 0; i < s.length; i++) {
+		hash = ((i + 1) * s.charCodeAt(i)) ^ (hash & 0xffffffff);
+	}
 	const step = Math.abs(hash) % COLOR_STEPS;
 	return step;
 }
@@ -111,7 +119,6 @@ function handleTagClick(tagId: string) {
 	});
 	rootEl.value.dispatchEvent(event);
 }
-
 </script>
 
 <style scoped>
@@ -133,5 +140,4 @@ function handleTagClick(tagId: string) {
 	gap: 4px;
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
 }
-
 </style>

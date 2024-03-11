@@ -104,7 +104,8 @@ const componentId = inject(injectionKeys.componentId);
 
 const rootStyle = computed(() => {
 	const component = ss.getComponentById(componentId);
-	const isClickHandled = typeof component.handlers?.["ss-click"] !== "undefined";
+	const isClickHandled =
+		typeof component.handlers?.["ss-click"] !== "undefined";
 
 	return {
 		cursor: isClickHandled ? "pointer" : "unset",
