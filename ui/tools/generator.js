@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require("fs").promises;
 const { createServer } = require("vite");
 
@@ -10,6 +11,7 @@ async function loadComponents() {
 	});
 
 	const { data } = await vite.ssrLoadModule("./tools/getComponents.ts");
+	// eslint-disable-next-line no-console
 	console.log("Writing components JSON to", process.argv[3]);
 	await fs.writeFile(process.argv[3], JSON.stringify(data, null, 2));
 	await vite.close();
@@ -34,7 +36,7 @@ function generateTypes(data) {
 
 ${component.nameTrim}Props = TypedDict('${component.nameTrim}Props', {`;
 		type += Object.entries(component.fields)
-			.map(([key, field]) => {
+			.map(([key]) => {
 				return `
     "${key}": str`;
 			})
@@ -46,7 +48,7 @@ ${component.nameTrim}Props = TypedDict('${component.nameTrim}Props', {`;
 
 ${component.nameTrim}EventHandlers = TypedDict('${component.nameTrim}EventHandlers', {`;
 		type += Object.entries(component.events || {})
-			.map(([key, field]) => {
+			.map(([key]) => {
 				return `
     "${key}": Union[str, Callable]`;
 			})
@@ -77,7 +79,7 @@ class StreamsyncUIManager(StreamsyncUI):
 
 function generateComponentDefaults(component) {
 	return Object.entries(component.fields)
-		.filter(([key, field]) => typeof field.default !== "undefined")
+		.filter(([, field]) => typeof field.default !== "undefined")
 		.map(([key, field]) => {
 			const defaultValue = ("" + (field?.default || ""))
 				?.replaceAll('"', '\\"')
@@ -125,6 +127,7 @@ ${generateComponentDefaults(component)}
 }
 
 loadComponents().then((data) => {
+	// eslint-disable-next-line no-console
 	console.log("Writing ui.py to", process.argv[2]);
 	return fs.writeFile(
 		process.argv[2],
