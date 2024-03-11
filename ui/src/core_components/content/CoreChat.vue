@@ -70,14 +70,67 @@
 				</div>
 			</div>
 		</div>
+		<template v-if="files.length > 0">
+			<div class="filesArea">
+				<template v-if="isUploadingFiles">
+					<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
+
+					Uploading...
+				</template>
+				<div v-if="!isUploadingFiles" class="list">
+					<div
+						v-for="(file, fileIndex) in files"
+						:key="fileIndex"
+						class="file"
+					>
+						<div>
+							<div class="name" :title="file.name">
+								{{ file.name }}
+							</div>
+							<div class="size">
+								{{ prettyBytes(file.size) }}
+							</div>
+						</div>
+						<button
+							variant="subtle"
+							@click="handleRemoveFile(fileIndex)"
+						>
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="filesButtons">
+				<button
+					v-if="!isUploadSizeExceeded && !isUploadingFiles"
+					class="uploadButton"
+					@click="handleUploadFiles"
+				>
+					<i class="ri-upload-line"></i>Upload
+				</button>
+				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
+					<i class="ri-file-warning-line"></i> Size limit of
+					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
+				</div>
+			</div>
+		</template>
 		<div class="inputArea">
 			<textarea
 				v-model="outgoingMessage"
-				placeholder="Write something..."
+				:placeholder="fields.placeholder.value"
 				@keydown.prevent.enter="handleMessageSent"
 			></textarea>
-			<button @click="handleMessageSent">
+		</div>
+		<div class="inputButtons">
+			<button title="Send message" @click="handleMessageSent">
 				<i class="ri-send-plane-line"></i>
+			</button>
+			<button
+				v-if="fields.enableFileUpload.value != 'no'"
+				title="Attach files"
+				@click="handleAttachFiles"
+			>
+				<i class="ri-attachment-line"></i>
 			</button>
 		</div>
 	</div>
@@ -96,8 +149,9 @@ import {
 	secondaryTextColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
-import { onMounted } from "vue";
-import { onBeforeUnmount } from "vue";
+import prettyBytes from "pretty-bytes";
+
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chat component to build human-to-AI interactions.";
 
@@ -149,6 +203,20 @@ def handle_action_simple(payload, state):
     return "Hope you're surprised."
 `.trim();
 
+const fileChangeStub = `
+def handle_file_upload(state, payload):
+
+	# An array of dictionaries is provided in the payload
+	# The dictionaries have the properties name, type and data
+    # The data property is a file-like object
+
+    uploaded_files = payload
+    for i, uploaded_file in enumerate(uploaded_files):
+		name = uploaded_file.get("name")
+        file_data = uploaded_file.get("data")
+        with open(f"{name}-{i}.jpeg", "wb") as file_handle:
+            file_handle.write(file_data)`.trim();
+
 export default {
 	streamsync: {
 		name: "Chat",
@@ -175,6 +243,21 @@ export default {
 					yes: "Yes",
 					no: "No",
 				},
+			},
+			enableFileUpload: {
+				name: "Enable file upload",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					single: "Single file",
+					multiple: "Multiple files",
+					no: "No",
+				},
+			},
+			placeholder: {
+				name: "Placeholder",
+				default: "Write something...",
+				type: FieldType.Text,
 			},
 			incomingColor: {
 				name: "Incoming",
@@ -220,12 +303,24 @@ export default {
 				desc: "Handle clicks on actions.",
 				stub: chatActionClickStub,
 			},
+			"ss-file-change": {
+				desc: "Triggered when files are uploaded",
+				stub: fileChangeStub,
+			},
 		},
 	},
 };
 </script>
 <script setup lang="ts">
-import { Ref, inject, ref } from "vue";
+import {
+	type Ref,
+	onMounted,
+	onBeforeUnmount,
+	shallowRef,
+	inject,
+	ref,
+	computed,
+} from "vue";
 import injectionKeys from "../../injectionKeys";
 
 type Message = {
@@ -248,10 +343,20 @@ const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const messages: Ref<Record<string, Message>> = ref({});
+const files: Ref<File[]> = shallowRef([]);
+const isUploadingFiles = ref(false);
 let messageCounter = 0;
 let resizeObserver: ResizeObserver;
 
 const outgoingMessage: Ref<string> = ref("");
+
+const isUploadSizeExceeded = computed(() => {
+	let filesSize = 0;
+	Array.from(files.value).forEach((file) => {
+		filesSize += file.size;
+	});
+	return filesSize >= MAX_FILE_SIZE;
+});
 
 function getFormattedDate(date: Date, isTimeOnly: boolean) {
 	if (!date) return;
@@ -298,7 +403,7 @@ function handleMessageSent() {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
-				const callbackResult = payload.result?.result;
+				const callbackResult = payload?.result?.result;
 				if (!callbackResult) return;
 				replaceMessage(outgoingMessageKey, {
 					origin: "incoming",
@@ -334,7 +439,7 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 		detail: {
 			payload: data,
 			callback: ({ payload }) => {
-				const callbackResult = payload.result?.result;
+				const callbackResult = payload?.result?.result;
 				if (!callbackResult) return;
 				addMessage({
 					origin: "incoming",
@@ -347,6 +452,34 @@ function handleActionClick(action: Message["contents"]["actions"][number]) {
 	rootEl.value.dispatchEvent(event);
 }
 
+function handleAttachFiles() {
+	const el: HTMLInputElement = document.createElement("input");
+	el.type = "file";
+	if (fields.enableFileUpload.value == "multiple") {
+		el.multiple = true;
+	}
+	el.addEventListener("change", () => {
+		// A new list is created to allow shallowRef to detect the change
+
+		let newList: File[];
+		if (fields.enableFileUpload.value == "multiple") {
+			newList = [...files.value];
+		} else {
+			newList = [];
+		}
+		Array.from(el.files).forEach((file) => {
+			newList.push(file);
+		});
+		files.value = newList;
+	});
+	el.dispatchEvent(new MouseEvent("click"));
+}
+
+function handleRemoveFile(index: number) {
+	const newList = files.value.toSpliced(index, 1);
+	files.value = newList;
+}
+
 function scrollToBottom() {
 	messageAreaEl.value.scrollTo({
 		top: messageAreaEl.value.scrollHeight,
@@ -354,6 +487,67 @@ function scrollToBottom() {
 	});
 }
 
+const encodeFile = async (file: File) => {
+	var reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	return new Promise((resolve, reject) => {
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error);
+	});
+};
+
+async function handleUploadFiles() {
+	if (files.value.length == 0) return;
+	if (isUploadingFiles.value) return;
+
+	isUploadingFiles.value = true;
+
+	const getPayload = async () => {
+		let accumSize = 0;
+		const encodedFiles = Promise.all(
+			Array.from(files.value).map(async (f) => {
+				accumSize += f.size;
+				const fileItem = {
+					name: f.name,
+					type: f.type,
+					data: await encodeFile(f),
+				};
+				return fileItem;
+			}),
+		);
+		if (accumSize > MAX_FILE_SIZE) {
+			alert("Size limit exceeded.");
+			return;
+		}
+		return encodedFiles;
+	};
+
+	const payload = await getPayload();
+	if (!payload) {
+		isUploadingFiles.value = false;
+		return;
+	}
+
+	const event = new CustomEvent("ss-file-change", {
+		detail: {
+			payload,
+			callback: ({ payload }) => {
+				isUploadingFiles.value = false;
+				files.value = [];
+				const callbackResult = payload?.result?.result;
+				if (!callbackResult) return;
+				addMessage({
+					origin: "incoming",
+					contents: getNormalisedCallbackResult(callbackResult),
+					date: new Date(),
+				});
+			},
+		},
+	});
+
+	rootEl.value.dispatchEvent(event);
+}
 onMounted(() => {
 	/**
 	 * A ResizeObserver allows the component to scroll to the bottom when a
@@ -382,8 +576,9 @@ onBeforeUnmount(() => {
 @import "../../renderer/sharedStyles.css";
 
 .CoreChat {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr fit-content(20%);
+	grid-template-rows: 1fr fit-content(20%) 20%;
 	height: 80vh;
 	border-radius: 8px;
 	overflow: hidden;
@@ -394,7 +589,9 @@ onBeforeUnmount(() => {
 .messageArea {
 	overflow-y: auto;
 	overflow-x: hidden;
-	flex: 0 0 80%;
+	border-bottom: 1px solid var(--separatorColor);
+	grid-column: 1 / 3;
+	grid-row: 1;
 }
 
 .messages {
@@ -489,9 +686,72 @@ onBeforeUnmount(() => {
 	font-size: 0.7rem;
 }
 
-.inputArea {
-	border-top: 1px solid var(--separatorColor);
+.filesArea {
+	grid-column: 1;
+	grid-row: 2;
+	border-bottom: 1px solid var(--separatorColor);
+	overflow-y: auto;
+}
+
+.filesArea .list {
+	padding: 16px;
 	flex: 1 1 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.file {
+	background: var(--separatorColor);
+	border-radius: 8px;
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	padding: 8px;
+	font-size: 0.7rem;
+}
+
+.file .name {
+	min-width: 5ch;
+	max-width: 20ch;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.file .size {
+	margin-top: 4px;
+	color: var(--secondaryTextColor);
+}
+
+.file button {
+	border-radius: 8px;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	background: unset;
+}
+
+.filesButtons {
+	grid-column: 2;
+	grid-row: 2;
+	padding: 16px;
+	border-bottom: 1px solid var(--separatorColor);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.filesButtons .uploadButton {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.inputArea {
+	grid-column: 1;
+	grid-row: 3;
 	text-align: right;
 	display: flex;
 	align-items: top;
@@ -508,8 +768,17 @@ onBeforeUnmount(() => {
 	font-size: 0.8rem;
 }
 
-.inputArea button {
-	margin: 16px;
+.inputButtons {
+	grid-column: 2;
+	grid-row: 3;
+	display: flex;
+	padding: 16px;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-end;
+}
+
+.inputButtons button {
 	height: fit-content;
 	flex: 0 0 auto;
 	display: flex;
