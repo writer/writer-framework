@@ -40,13 +40,14 @@ class Component(BaseModel):
 
 class ComponentTree:
 
-    def __init__(self) -> None:
+    def __init__(self, attach_root=True) -> None:
         self.counter: int = 0
         self.components: Dict[str, Component] = {}
-        root_component = Component(
-            id="root", type="root", content={}
-        )
-        self.attach(root_component)
+        if attach_root:
+            root_component = Component(
+                id="root", type="root", content={}
+            )
+            self.attach(root_component)
 
     def get_component(self, component_id: str) -> Optional[Component]:
         return self.components.get(component_id)
@@ -105,9 +106,8 @@ class ComponentTree:
 class SessionComponentTree(ComponentTree):
 
     def __init__(self, base_component_tree: ComponentTree):
-        super().__init__()
+        super().__init__(attach_root=False)
         self.base_component_tree = base_component_tree
-        self.root_modified = False
 
     def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
         session_component_present = component_id in self.components
@@ -126,10 +126,7 @@ class SessionComponentTree(ComponentTree):
         if session_component_present:
             # If present, return session component (even if it's None)
             session_component = self.components.get(component_id)
-
-            # Prevent overriding root
-            if not (component_id == "root" and self.root_modified is False):
-                return session_component
+            return session_component
 
         # Otherwise, try to obtain the base tree component
         return self.base_component_tree.get_component(component_id)
@@ -142,9 +139,6 @@ class SessionComponentTree(ComponentTree):
             in self.base_component_tree.components.items()
         }
         for component_id, session_component in self.components.items():
-            if component_id == "root" and self.root_modified is False:
-                continue
-
             # Overriding base tree components with session-specific ones
             active_components[component_id] = session_component.to_dict()
         return active_components
