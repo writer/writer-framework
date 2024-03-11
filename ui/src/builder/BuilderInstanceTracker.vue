@@ -13,11 +13,16 @@ interface Props {
 	matchSize?: boolean;
 	verticalOffsetPixels?: number;
 	isOffBoundsAllowed?: boolean;
-	ignoreSettingsSidebar?: boolean;
+	preventSettingsBarOverlap?: boolean;
 }
 const props = defineProps<Props>();
-const { instancePath, matchSize, verticalOffsetPixels, isOffBoundsAllowed } =
-	toRefs(props);
+const {
+	instancePath,
+	matchSize,
+	verticalOffsetPixels,
+	isOffBoundsAllowed,
+	preventSettingsBarOverlap,
+} = toRefs(props);
 
 type RootStyle = {
 	top: string;
@@ -64,7 +69,7 @@ const trackElement = (el: HTMLElement) => {
 		trackerY = Math.min(bodyHeight - contentsHeight, trackerY); // Bottom boundary
 	}
 
-	if (!props.ignoreSettingsSidebar) {
+	if (preventSettingsBarOverlap.value) {
 		let correction = 0;
 		if (settingsLeft < rendererX + rendererWidth) {
 			const trackerEnd = trackerX + contentsWidth;

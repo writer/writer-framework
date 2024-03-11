@@ -74,6 +74,7 @@
 				v-if="ssbm.isSelectionActive()"
 				:key="selectedInstancePath"
 				class="shortcutsTracker"
+				:prevent-settings-bar-overlap="true"
 				:instance-path="selectedInstancePath"
 				:vertical-offset-pixels="-48"
 				data-streamsync-cage
@@ -90,7 +91,6 @@
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
 					class="insertionOverlayTracker"
-					:ignore-settings-sidebar="true"
 					:is-off-bounds-allowed="true"
 					:instance-path="candidateInstancePath"
 					:match-size="true"
@@ -100,7 +100,6 @@
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
 					class="insertionLabelTracker"
-					:ignore-settings-sidebar="true"
 					:instance-path="candidateInstancePath"
 					:vertical-offset-pixels="-48"
 				>
