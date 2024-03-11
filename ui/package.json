@@ -26,7 +26,8 @@
     "vega-lite": "^5.7.1",
     "vue": "^3.2.47",
     "@tato30/vue-pdf": "1.9.4",
-    "vue-dompurify-html": "^4.1.4"
+    "vue-dompurify-html": "^4.1.4",
+		"pretty-bytes": "^6.1.1"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
