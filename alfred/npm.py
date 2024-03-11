@@ -12,8 +12,8 @@ def npm_test(browser):
 
 @alfred.command("npm.build", help="build ui code")
 def npm_build():
-    alfred.run("npm run build")
+    alfred.run("npm run build:ci")
 
 @alfred.command("npm.build_custom_components", help="build custom components")
 def ui_build_custom():
-    alfred.run("npm run custom.build")
+    alfred.run("npm run custom.build:ci")

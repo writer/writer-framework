@@ -4,23 +4,28 @@
   "description": "",
   "workspaces": [
     "ui",
-    "e2e_tests",
+    "e2e",
     "docs"
   ],
   "scripts": {
-    "docs:build": "npm run -w streamsync-docs docs:build",
+    "build": "npm run --if-present -ws build",
+    "e2e": "npm run -w streamsync-e2e e2e",
+    "e2e:ui": "npm run -w streamsync-e2e e2e:ui",
+    "lint": "npm run --if-present -ws lint",
+    "test": "npm run --if-present -ws test",
+		"cli:test": "pytest tests -o log_cli=true ",
+    "cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
+    "ui:dev": "npm run -w streamsync-ui ui:dev",
+    "ui:preview": "npm run -w streamsync-ui ui:preview",
     "docs:dev": "npm run -w streamsync-docs docs:dev",
     "docs:preview": "npm run -w streamsync-docs docs:preview",
-    "build": "npm run -w streamsync-ui build",
-    "custom.build": "npm run -w streamsync-ui custom.build",
-    "e2e": "npm run -w streamsync-e2e test",
-    "e2e:ui": "npm run -w streamsync-e2e test:ui",
-    "e2e:ci": "npm run -w streamsync-e2e test:ci",
-    "e2e:firefox:ci": "npm run -w streamsync-e2e test:firefox:ci",
-    "e2e:chromium:ci": "npm run -w streamsync-e2e test:chromium:ci",
-    "e2e:webkit:ci": "npm run -w streamsync-e2e test:webkit:ci",
-    "lint": "npm run -w streamsync-ui lint",
-    "lint:ci": "npm run -w streamsync-ui lint:ci",
-    "dev": "npm run -w streamsync-ui dev"
+
+    "test:ci": "npm run --if-present -ws test",
+    "build:ci": "npm run --if-present -ws build",
+    "lint:ci": "npm run --if-present -ws lint:ci",
+    "e2e:firefox:ci": "npm run -w streamsync-e2e e2e:firefox",
+    "e2e:chromium:ci": "npm run -w streamsync-e2e e2e:chromium",
+    "e2e:webkit:ci": "npm run -w streamsync-e2e e2e:webkit",
+    "custom.build:ci": "npm run -w streamsync-ui custom.build"
   }
 }
