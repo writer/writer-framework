@@ -266,6 +266,7 @@ label {
 }
 
 .unit.stars {
+	box-shadow: 0 0 8px 4px rgba(0, 0, 0, 0.2) inset;
 	clip-path: polygon(
 		50% 0%,
 		61% 35%,
@@ -281,10 +282,12 @@ label {
 }
 
 .unit.faces {
+	box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2) inset;
 	clip-path: circle(50%);
 }
 
 .unit.hearts {
+	box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2) inset;
 	clip-path: path(
 		"M2.54139 14.2987C0.97724 12.7905 0 10.646 0 8.26667C0 3.70111 3.5983 0 8.03704 0C10.4025 0 12.5293 1.05112 14 2.72404C15.4707 1.05112 17.5975 0 19.963 0C24.4017 0 28 3.70111 28 8.26667C28 10.6181 27.0455 12.7402 25.5133 14.2455L14.0815 28L2.54139 14.2987Z"
 	);
@@ -297,6 +300,7 @@ label {
 	width: 28px;
 	height: 28px;
 	background: var(--accentColor);
+	box-shadow: none;
 }
 
 .unit .filler.light {
