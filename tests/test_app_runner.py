@@ -196,7 +196,7 @@ class TestAppRunner:
                 ar.update_code(None, "exec(virus)")
             with pytest.raises(PermissionError):
                 ar.save_code(None, "exec(virus)")
-    
+
     def run_loader_thread(self, app_runner: AppRunner) -> None:
         app_runner.update_code(None, "print('188542')")
 
