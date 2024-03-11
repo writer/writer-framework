@@ -3,11 +3,11 @@
 		<div
 			class="switch"
 			:class="{ on: toggleValue }"
-			@click="handleToggle"
 			tabindex="0"
 			role="switch"
-			@keydown.enter.space="handleToggle"
 			:aria-checked="toggleValue"
+			@click="handleToggle"
+			@keydown.enter.space="handleToggle"
 		>
 			<div class="toggle"></div>
 		</div>
@@ -18,9 +18,9 @@
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../streamsyncTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -72,8 +72,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 const toggleValue = ref(false);
 
 function handleToggle() {
