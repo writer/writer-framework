@@ -671,18 +671,13 @@ class AppRunner:
         return await self.dispatch_message(None, InitSessionRequest(
             type="sessionInit",
             payload=payload
-        ))
-
-    def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
-        import streamsync
-        streamsync.base_component_tree.ingest(payload.components)
+        ))    
 
     async def update_components(self, session_id: str, payload: ComponentUpdateRequestPayload) -> AppProcessServerResponse:
         if self.mode != "edit":
             raise PermissionError(
                 "Cannot update components in non-update mode.")
         self.bmc_components = payload.components
-        self._handle_component_update(payload)
         file_contents = {
             "metadata": {
                 "streamsync_version": VERSION
