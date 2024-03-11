@@ -3,14 +3,27 @@ const fs = require("node:fs").promises;
 const { spawn } = require("node:child_process");
 const httpProxy = require("http-proxy");
 
-class Streamsync {
-  constructor() {
+function* port(port) {
+  while (true) {
+    yield port++;
+  }
+}
+
+function* id() {
+	let id = 1;
+	while (true) {
+		yield id++;
+	}
+}
+
+class StreamsyncProcess {
+	constructor(path, port) {
+		this.path = path;
     this.process = null;
     this.initialized = false;
-    this.port = 7358;
+    this.port = port;
     this.busy = false;
-  }
-
+	}
   async start() {
     return new Promise((resolve, reject) => {
       if (this.process !== null) {
@@ -18,7 +31,7 @@ class Streamsync {
       }
       const ss = spawn(
         "streamsync",
-        ["edit", "./runtime", "--port", this.port]
+        ["edit", this.path, "--port", this.port]
       );
       this.process = ss;
       const startupTimeout = setTimeout(() => {
@@ -63,10 +76,19 @@ class Streamsync {
     });
   }
 
+	get pid() {
+		return this.process.pid;
+	}
+
   async stop() {
     return new Promise((resolve) => {
       if (this.process) {
+        const timeout = setTimeout(() => {
+					console.warn("Killing process", this.process.pid);
+          this.process.kill("SIGKILL");
+        }, 15000);
         this.process.once("exit", () => {
+					clearTimeout(timeout);
           resolve();
         });
         this.process.kill("SIGTERM");
@@ -75,38 +97,40 @@ class Streamsync {
       }
     });
   }
-
-  async restart() {
-    this.busy = true;
-    try {
-      await this.stop();
-      this.port += 1;
-      await this.start();
-    } catch (e) {
-      throw e;
-    } finally {
-      this.busy = false;
-    }
-  }
-
-  async loadPreset(preset) {
-    this.busy = true;
-    try {
-      await this.stop();
-      this.port += 1;
-      await fs.copyFile(`./presets/${preset}/ui.json`, "./runtime/ui.json");
-      await fs.copyFile(`./presets/${preset}/main.py`, "./runtime/main.py");
-      await this.start();
-    } catch (e) {
-      throw e;
-    } finally {
-      this.busy = false;
-    }
-  }
 }
 
-const ss = new Streamsync();
+class StreamsyncProcessPool {
+	constructor() {
+		this.genPort = port(7358);
+		this.genId = id();
+		this.processes = {};
+	}
+
+	async start(preset) {
+		const id = this.genId.next().value;
+		await fs.mkdir(`./runtime/${id}`);
+		await fs.copyFile(`./presets/${preset}/ui.json`, `./runtime/${id}/ui.json`);
+		await fs.copyFile(`./presets/${preset}/main.py`, `./runtime/${id}/main.py`);
+		const process = new StreamsyncProcess(`./runtime/${id}`, this.genPort.next().value);
+		await process.start();
+		this.processes[id] = process;
+		return id;
+	}
+
+	async stop(id) {
+		const process = this.processes[id];
+		if(process) {
+			await process.stop();
+			delete this.processes[id];
+		}
+		await fs.rm(`./runtime/${id}`, { recursive: true });
+	}
+
+}
+
+const sspp = new StreamsyncProcessPool();
 (async () => {
+	await fs.rm(`./runtime`, { recursive: true, force: true });
   await fs.mkdir("runtime", { recursive: true });
 })();
 
@@ -119,24 +143,41 @@ proxy.on('error', function (e) {
 
 const app = express();
 
-app.get("/preset/:preset", async (req, res) => {
-  if(ss.busy) {
-    res.status(429).send("Server is busy");
-    return;
-  }
-  console.log("Loading preset", req.params.preset);
-  const preset = req.params.preset;
-  await ss.loadPreset(preset);
-  res.send("UI updated");
+app.post("/preset/:preset", async (req, res) => {
+	try {
+		console.log("Loading preset", req.params.preset);
+		const id = await sspp.start(req.params.preset);
+		res.json({url: `/${id}/`})
+	} catch (e) {
+		console.error(e);
+		res.status(500).send(e);
+	}
 });
 
-app.use((req, res) => {
-  if(ss.initialized === false) {
-    res.send("Server not initialized yet");
-    return;
-  }
-  proxy.web(req, res, {target: 'http://127.0.0.1:'+ ss.port});
-})
+app.delete("/:id/", async (req, res) => {
+	try {
+		await sspp.stop(req.params.id);
+		res.send("Server cleanup");
+	} catch (e) {
+		console.error(e);
+		res.status(500).send(e);
+	}
+});
+
+app.use('/:id/', (req, res) => {
+	try {
+		const process = sspp.processes[req.params.id];
+		if(!process || process.initialized === false) {
+			res.send("Server not initialized yet");
+			return;
+		}
+		proxy.web(req, res, {target: 'http://127.0.0.1:'+ process.port});
+	} catch (e) {
+		console.error(e);
+		res.status(500).send(e);
+	}
+});
+
 
 const server = app.listen(7357, () => {
   // eslint-disable-next-line no-console
@@ -144,5 +185,13 @@ const server = app.listen(7357, () => {
 });
 
 server.on('upgrade', (req, socket, head) => {
-  proxy.ws(req, socket, head, {target: 'ws://127.0.0.1:'+ss.port, ws: true});
+	try{
+		const id = req.url.split("/")[1];
+		const ss = sspp.processes[id];
+		req.url = req.url.replace(`/${id}/`, '/');
+		proxy.ws(req, socket, head, {target: 'ws://127.0.0.1:'+ss.port, ws: true});
+	} catch (e) {
+		console.error(e);
+	}
 });
+

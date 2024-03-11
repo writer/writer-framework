@@ -3,14 +3,20 @@ import { test, expect } from "@playwright/test";
 test.describe("button", () => {
 	const TYPE = "button";
 	const COMPONENT_LOCATOR = `button.CoreButton.component`;
+	let url: string;
 
 	test.beforeAll(async ({request}) => {
-		const response = await request.get(`/preset/section`);
+		const response = await request.post(`/preset/section`);
 		expect(response.ok()).toBeTruthy();
+		({url} = await response.json());
+	});
+
+	test.afterAll(async ({request}) => {
+		await request.delete(url);
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto("/");
+		await page.goto(url);
 		test.setTimeout(5000);
 	});
 
