@@ -16,7 +16,7 @@ def generate_component_id():
 class Component(BaseModel):
     id: str = Field(default_factory=generate_component_id)
     type: str
-    content: Dict[str, str] = Field(default_factory=dict)
+    content: Dict[str, Any] = Field(default_factory=dict)
     flag: Optional[str] = None
     position: int = 0
     parentId: Optional[str] = None
@@ -108,6 +108,11 @@ class SessionComponentTree(ComponentTree):
         super().__init__()
         self.base_component_tree = base_component_tree
 
+        # Overriding session-specific root with None
+        # to ensure providing base tree root
+        # if it wasn't modified for this tree
+        self.components["root"] = None
+
     def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
         session_component_present = component_id in self.components
         if session_component_present:
@@ -125,7 +130,10 @@ class SessionComponentTree(ComponentTree):
         if session_component_present:
             # If present, return session component (even if it's None)
             session_component = self.components.get(component_id)
-            return session_component
+
+            # Prevent overriding root
+            if not (component_id == "root" and session_component is None):
+                return session_component
 
         # Otherwise, try to obtain the base tree component
         return self.base_component_tree.get_component(component_id)
@@ -138,6 +146,9 @@ class SessionComponentTree(ComponentTree):
             in self.base_component_tree.components.items()
         }
         for component_id, session_component in self.components.items():
+            if component_id == "root" and session_component is None:
+                continue
+
             # Overriding base tree components with session-specific ones
             active_components[component_id] = session_component.to_dict()
         return active_components
