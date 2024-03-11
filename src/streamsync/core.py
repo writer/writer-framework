@@ -632,6 +632,10 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
+    def _transform_toggle(self, ev: StreamsyncEvent) -> bool:
+        payload = bool(ev.payload)
+        return payload
+
     def _transform_keydown(self, ev) -> Dict:
         payload = ev.payload
         key = str(payload.get("key"))
