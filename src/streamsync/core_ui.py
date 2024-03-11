@@ -34,7 +34,7 @@ class Component(BaseModel):
         self._token = current_parent_container.set(self)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *_):
         current_parent_container.reset(self._token)
 
 

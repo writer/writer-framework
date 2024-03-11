@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 from streamsync.core import base_component_tree
 from streamsync.core_ui import (Component, SessionComponentTree,
@@ -43,22 +43,53 @@ class StreamsyncUI:
             raise RuntimeError(f"Component {component_id} not found")
         return component
 
-    def _create_component(self, component_type: str, **kwargs) -> Component:
-        content = {key: value for key, value in kwargs.items() if key not in Component.model_fields}
+    def _prepare_handlers(self, raw_handlers: Optional[dict]):
+        handlers = {}
+        if raw_handlers is not None:
+            for event, handler in raw_handlers.items():
+                if callable(handler):
+                    handlers[event] = handler.__name__
+                else:
+                    handlers[event] = handler
+        return handlers
+
+    def _prepare_binding(self, raw_binding):
+        # TODO
+        return raw_binding
+
+    def _create_component(
+            self,
+            component_type: str,
+            **kwargs) -> Component:
         parent_container = current_parent_container.get(None)
+        if kwargs.get("id", False) is None:
+            kwargs.pop("id")
+
+        if kwargs.get("position", False) is None:
+            kwargs.pop("position")
+
+        if kwargs.get("parentId", False) is None:
+            kwargs.pop("parentId")
+
         if "parentId" in kwargs:
             parent_id = kwargs.pop("parentId")
         else:
             parent_id = "root" if not parent_container else parent_container.id
 
-        position = kwargs.pop("position", None)
-        is_positionless = kwargs.pop("positionless", False)
+        position: Optional[int] = kwargs.pop("position", None)
+        is_positionless: bool = kwargs.pop("positionless", False)
+        raw_handlers: dict = kwargs.pop("handlers", {})
+        raw_binding: dict = kwargs.pop("binding", {})
+
+        handlers = self._prepare_handlers(raw_handlers) or None
+        binding = self._prepare_binding(raw_binding) or None
 
         component = Component(
             type=component_type,
             parentId=parent_id,
             flag="cmc",
-            content=content,
+            handlers=handlers,
+            binding=binding,
             **kwargs
             )
 

@@ -116,9 +116,9 @@ class TestUIManager:
         with use_ui_manager() as ui:
             with ui.Column(id="test_column") as column:
                 text_content = "Hello World"
-                text_component = ui.Text(text=text_content, id="test_text")
+                text_component = ui.Text({"text": text_content}, id="test_text")
             assert text_component.type == 'text'
-            assert text_component.content == {'text': text_content}
+            assert text_component.content.get("text") == text_content
             assert text_component.id == "test_text"
             assert text_component.parentId == column.id
             assert text_component in ui.component_tree.components.values()
