@@ -17,6 +17,7 @@ src/streamsync.egg-info/
 *.DS_Store
 src/streamsync/static
 cli/src/streamsync/static
+src/streamsync/app_templates
 playground/
 *.mp4
 .turbo
