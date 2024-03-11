@@ -8,7 +8,7 @@ def npm_lint():
 @alfred.command("npm.e2e", help="run e2e tests")
 @alfred.option('--browser', '-b', help="run e2e tests on specified browser", default='chromium')
 def npm_test(browser):
-    alfred.run("npm run e2e:"+browser+":ci")
+    alfred.run("CI=true npm run e2e:"+browser+":ci")
 
 @alfred.command("npm.build", help="build ui code")
 def npm_build():
