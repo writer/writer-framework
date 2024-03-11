@@ -107,11 +107,7 @@ class SessionComponentTree(ComponentTree):
     def __init__(self, base_component_tree: ComponentTree):
         super().__init__()
         self.base_component_tree = base_component_tree
-
-        # Overriding session-specific root with None
-        # to ensure providing base tree root
-        # if it wasn't modified for this tree
-        self.components["root"] = None
+        self.root_modified = False
 
     def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
         session_component_present = component_id in self.components
@@ -132,7 +128,7 @@ class SessionComponentTree(ComponentTree):
             session_component = self.components.get(component_id)
 
             # Prevent overriding root
-            if not (component_id == "root" and session_component is None):
+            if not (component_id == "root" and self.root_modified is False):
                 return session_component
 
         # Otherwise, try to obtain the base tree component
@@ -146,7 +142,7 @@ class SessionComponentTree(ComponentTree):
             in self.base_component_tree.components.items()
         }
         for component_id, session_component in self.components.items():
-            if component_id == "root" and session_component is None:
+            if component_id == "root" and self.root_modified is False:
                 continue
 
             # Overriding base tree components with session-specific ones
