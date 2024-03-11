@@ -3,6 +3,7 @@ import shutil
 
 import alfred
 
+
 @alfred.command("build", help="build apps package for pypi")
 @alfred.option("--ignore-ci", is_flag=True, help="ignore continuous integration pipeline")
 def build(ignore_ci: bool = False):

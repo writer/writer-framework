@@ -13,7 +13,7 @@
     "e2e:ui": "npm run -w streamsync-e2e e2e:ui",
     "lint": "npm run --if-present -ws lint",
     "test": "npm run --if-present -ws test",
-		"cli:test": "pytest tests -o log_cli=true ",
+    "cli:test": "pytest tests -o log_cli=true ",
     "cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
     "ui:dev": "npm run -w streamsync-ui ui:dev",
     "ui:preview": "npm run -w streamsync-ui ui:preview",

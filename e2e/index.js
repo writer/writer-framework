@@ -66,14 +66,14 @@ class Streamsync {
   async stop() {
     return new Promise((resolve) => {
       if (this.process) {
-				const timeout = setTimeout(() => {
-					this.process.kill("SIGKILL");
-				}, 5000);
+        const timeout = setTimeout(() => {
+          this.process.kill("SIGKILL");
+        }, 5000);
         this.process.once("exit", () => {
-					clearTimeout(timeout);
+          clearTimeout(timeout);
           resolve();
         });
-				this.process.kill("SIGTERM");
+        this.process.kill("SIGTERM");
       } else {
         resolve();
       }
