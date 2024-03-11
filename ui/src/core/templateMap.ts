@@ -26,6 +26,7 @@ import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreTextInput from "../core_components/input/CoreTextInput.vue";
 import CoreTextareaInput from "../core_components/input/CoreTextareaInput.vue";
 import CoreRating from "../core_components/input/CoreRatingInput.vue";
+import CoreSwitchInput from "../core_components/input/CoreSwitchInput.vue";
 // layout
 import CoreColumn from "../core_components/layout/CoreColumn.vue";
 import CoreColumns from "../core_components/layout/CoreColumns.vue";
@@ -106,7 +107,8 @@ const templateMap = {
 	step: CoreStep,
 	steps: CoreSteps,
 	ratinginput: CoreRating,
-	tags: CoreTags
+	tags: CoreTags,
+	switchinput: CoreSwitchInput,
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {

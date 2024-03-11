@@ -3,21 +3,8 @@ outline: [2, 2]
 ---
 
 <script setup>
-    import { generateCore } from "../../ui/src/core"
-    const ss = generateCore();
-    const types = ss.getSupportedComponentTypes();
-    const defs = types.map(type => {
-        const def = ss.getComponentDefinition(type);
-        return {
-            type,
-            name: def.name,
-            docs: def.docs,
-            description: def.description,
-            fields: def.fields,
-            events: def.events,
-            category: def.category
-        }
-    });
+    import defs from "streamsync-ui/components.json";
+
     const categories = {
         "Layout": "Components to organise the app's layout. Not meaningful by themselves; their objective is to enhance how other components are presented.",
         "Content": "Components that present content and are meaningful by themselves. For example, charts, images or text.",

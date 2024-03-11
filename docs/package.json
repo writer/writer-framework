@@ -9,6 +9,7 @@
     "preview": "vitepress preview docs"
   },
   "dependencies": {
+		"streamsync-ui": "*",
     "vitepress": "^1.0.0-rc.44",
     "vue": "^3.4.21"
   }
