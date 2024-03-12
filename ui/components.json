@@ -2393,6 +2393,21 @@
           "no": "No"
         }
       },
+      "enableFileUpload": {
+        "name": "Enable file upload",
+        "default": "no",
+        "type": "Text",
+        "options": {
+          "single": "Single file",
+          "multiple": "Multiple files",
+          "no": "No"
+        }
+      },
+      "placeholder": {
+        "name": "Placeholder",
+        "default": "Write something...",
+        "type": "Text"
+      },
       "incomingColor": {
         "name": "Incoming",
         "type": "Color",
@@ -2471,6 +2486,10 @@
       "ss-chat-action-click": {
         "desc": "Handle clicks on actions.",
         "stub": "def handle_action_simple(payload, state):\n    \n    # payload contains the \"data\" property of the action \n    \n    if payload == \"change_title\":\n        state[\"app_title\"] = \"Surprise!\"\n        state[\"app_background_color\"] = \"red\"\n    \n    # A message can be added to the chat\n    \n    return \"Hope you're surprised.\""
+      },
+      "ss-file-change": {
+        "desc": "Triggered when files are uploaded",
+        "stub": "def handle_file_upload(state, payload):\n\n\t# An array of dictionaries is provided in the payload\n\t# The dictionaries have the properties name, type and data\n    # The data property is a file-like object\n\n    uploaded_files = payload\n    for i, uploaded_file in enumerate(uploaded_files):\n\t\tname = uploaded_file.get(\"name\")\n        file_data = uploaded_file.get(\"data\")\n        with open(f\"{name}-{i}.jpeg\", \"wb\") as file_handle:\n            file_handle.write(file_data)"
       }
     }
   },
@@ -2657,6 +2676,108 @@
     "events": {
       "ss-number-change": {
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"rating\" to the new value\n\n\tstate[\"rating\"] = payload",
+        "bindable": true
+      }
+    }
+  },
+  {
+    "type": "tags",
+    "name": "Tags",
+    "description": "A component to display coloured tag pills.",
+    "category": "Content",
+    "fields": {
+      "tags": {
+        "name": "Tags",
+        "desc": "Key-value object with tags. Must be a JSON string or a state reference to a dictionary.",
+        "type": "Key-Value",
+        "default": "{}"
+      },
+      "referenceColor": {
+        "name": "Reference",
+        "desc": "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
+        "type": "Color",
+        "default": "#29cf00",
+        "category": "Style"
+      },
+      "seed": {
+        "name": "Seed value",
+        "desc": "Choose a different value to reshuffle colours.",
+        "type": "Number",
+        "default": "1",
+        "category": "Style"
+      },
+      "rotateHue": {
+        "name": "Rotate hue",
+        "desc": "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
+        "type": "Text",
+        "options": {
+          "yes": "yes",
+          "no": "no"
+        },
+        "default": "yes"
+      },
+      "primaryTextColor": {
+        "name": "Primary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true,
+        "default": "#ffffff"
+      },
+      "cssClasses": {
+        "name": "Custom CSS classes",
+        "type": "Text",
+        "category": "Style",
+        "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
+      }
+    },
+    "events": {
+      "ss-tag-click": {
+        "desc": "Triggered when a tag is clicked.",
+        "stub": "def handle_tag_click(state, payload):\n\tstate[\"selected_tag_id\"] = payload"
+      }
+    },
+    "previewField": "text"
+  },
+  {
+    "type": "switchinput",
+    "name": "Switch Input",
+    "description": "A user input component with a simple on/off status.",
+    "category": "Input",
+    "fields": {
+      "label": {
+        "name": "Label",
+        "init": "Input Label",
+        "type": "Text"
+      },
+      "accentColor": {
+        "name": "Accent",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "primaryTextColor": {
+        "name": "Primary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "separatorColor": {
+        "name": "Separator",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "cssClasses": {
+        "name": "Custom CSS classes",
+        "type": "Text",
+        "category": "Style",
+        "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
+      }
+    },
+    "events": {
+      "ss-toggle": {
+        "desc": "Sent when the switch is toggled.",
+        "stub": "def handle_toggle(state, payload):\n\n\t# The payload will be a bool \n\n\tstate[\"its_on\"] = payload",
         "bindable": true
       }
     }
