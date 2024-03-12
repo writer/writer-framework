@@ -1,6 +1,6 @@
 <template>
 	<div ref="rootEl" class="CoreRatingInput">
-		<label>{{ fields.label.value }}</label>
+		<label v-if="fields.label.value">{{ fields.label.value }}</label>
 		<div
 			ref="unitsEl"
 			class="units"

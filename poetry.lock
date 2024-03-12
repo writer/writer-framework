@@ -593,6 +593,44 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "polars"
+version = "0.20.15"
+description = "Blazingly fast DataFrame library"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "polars-0.20.15-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:d528acc0b0900cb8363f065cbf65325571eeb4b245e4b68679beae75287451c9"},
+    {file = "polars-0.20.15-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:3adc68bd1400c651da826e66ad735c07dafd5f1811f369f394f8d8fb71f1178b"},
+    {file = "polars-0.20.15-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:be613e4640a607040e3361622a254f88ac99bd92b212d6f580a3f4b74b6617ed"},
+    {file = "polars-0.20.15-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:a1936ec8de4262ce68dd5c4f43b74c996184a36012bdd0ff9454c33132bd4d28"},
+    {file = "polars-0.20.15-cp38-abi3-win_amd64.whl", hash = "sha256:00b5687d1fdcb09f7c2babdf88f63b3238284bf9f6cddd2ea60aea07b711172e"},
+    {file = "polars-0.20.15.tar.gz", hash = "sha256:88ad0c3e1f92185b86041d68783f9862ec21adc92a33001818697644dd0794ee"},
+]
+
+[package.extras]
+adbc = ["adbc-driver-manager", "adbc-driver-sqlite"]
+all = ["polars[adbc,cloudpickle,connectorx,deltalake,fastexcel,fsspec,gevent,numpy,pandas,plot,pyarrow,pydantic,pyiceberg,sqlalchemy,timezone,xlsx2csv,xlsxwriter]"]
+cloudpickle = ["cloudpickle"]
+connectorx = ["connectorx (>=0.3.2)"]
+deltalake = ["deltalake (>=0.14.0)"]
+fastexcel = ["fastexcel (>=0.9)"]
+fsspec = ["fsspec"]
+gevent = ["gevent"]
+matplotlib = ["matplotlib"]
+numpy = ["numpy (>=1.16.0)"]
+openpyxl = ["openpyxl (>=3.0.0)"]
+pandas = ["pandas", "pyarrow (>=7.0.0)"]
+plot = ["hvplot (>=0.9.1)"]
+pyarrow = ["pyarrow (>=7.0.0)"]
+pydantic = ["pydantic"]
+pyiceberg = ["pyiceberg (>=0.5.0)"]
+pyxlsb = ["pyxlsb (>=1.0)"]
+sqlalchemy = ["pandas", "sqlalchemy"]
+timezone = ["backports-zoneinfo", "tzdata"]
+xlsx2csv = ["xlsx2csv (>=0.8.0)"]
+xlsxwriter = ["xlsxwriter"]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.43"
 description = "Library for building powerful interactive command lines in Python"
@@ -1239,4 +1277,4 @@ ds = ["pandas", "plotly", "pyarrow"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "eda7baf2623c0f476a9d2a5ae111af040aedab615fac92e438ba18b3312ad4d9"
+content-hash = "3ee0c6e3149c0d591bde37604587808d6a0c38c85060488dcbc29655553ea6a1"
