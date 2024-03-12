@@ -13,7 +13,7 @@ const getPyType = (type) => {
 		default:
 			return "str";
 	}
-}
+};
 
 async function loadComponents() {
 	const vite = await createServer({
