@@ -139,7 +139,7 @@ DataFrameProps = TypedDict('DataFrameProps', {
     "showIndex": str,
     "enableSearch": str,
     "enableDownload": str,
-    "displayRowCount": str,
+    "displayRowCount": Union[float, str],
     "wrapText": str,
     "primaryTextColor": str,
     "secondaryTextColor": str,
@@ -155,8 +155,8 @@ DataFrameEventHandlers = TypedDict('DataFrameEventHandlers', {
 
 HTMLElementProps = TypedDict('HTMLElementProps', {
     "element": str,
-    "styles": str,
-    "attrs": str,
+    "styles": Union[Dict, str],
+    "attrs": Union[Dict, str],
     "htmlInside": str,
     "cssClasses": str
 }, total=False)
@@ -165,9 +165,9 @@ HTMLElementEventHandlers = TypedDict('HTMLElementEventHandlers', {
 }, total=False)
 
 PaginationProps = TypedDict('PaginationProps', {
-    "page": str,
-    "pageSize": str,
-    "totalItems": str,
+    "page": Union[float, str],
+    "pageSize": Union[float, str],
+    "totalItems": Union[float, str],
     "pageSizeOptions": str,
     "pageSizeShowAll": str,
     "jumpTo": str
@@ -179,7 +179,7 @@ PaginationEventHandlers = TypedDict('PaginationEventHandlers', {
 }, total=False)
 
 RepeaterProps = TypedDict('RepeaterProps', {
-    "repeaterObject": str,
+    "repeaterObject": Union[Dict, str],
     "keyVariable": str,
     "valueVariable": str
 }, total=False)
@@ -189,7 +189,7 @@ RepeaterEventHandlers = TypedDict('RepeaterEventHandlers', {
 
 ColumnProps = TypedDict('ColumnProps', {
     "title": str,
-    "width": str,
+    "width": Union[float, str],
     "isSticky": str,
     "isCollapsible": str,
     "startCollapsed": str,
@@ -268,8 +268,8 @@ SeparatorEventHandlers = TypedDict('SeparatorEventHandlers', {
 ImageProps = TypedDict('ImageProps', {
     "src": str,
     "caption": str,
-    "maxWidth": str,
-    "maxHeight": str,
+    "maxWidth": Union[float, str],
+    "maxHeight": Union[float, str],
     "secondaryTextColor": str,
     "cssClasses": str
 }, total=False)
@@ -280,9 +280,9 @@ ImageEventHandlers = TypedDict('ImageEventHandlers', {
 
 PDFProps = TypedDict('PDFProps', {
     "source": str,
-    "highlights": str,
-    "selectedMatch": str,
-    "page": str,
+    "highlights": Union[Dict, str],
+    "selectedMatch": Union[float, str],
+    "page": Union[float, str],
     "controls": str,
     "containerBackgroundColor": str,
     "separatorColor": str,
@@ -306,10 +306,10 @@ GoogleMapsProps = TypedDict('GoogleMapsProps', {
     "apiKey": str,
     "mapId": str,
     "mapType": str,
-    "zoom": str,
-    "lat": str,
-    "lng": str,
-    "markers": str,
+    "zoom": Union[float, str],
+    "lat": Union[float, str],
+    "lng": Union[float, str],
+    "markers": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -321,10 +321,10 @@ GoogleMapsEventHandlers = TypedDict('GoogleMapsEventHandlers', {
 MapboxProps = TypedDict('MapboxProps', {
     "accessToken": str,
     "mapStyle": str,
-    "zoom": str,
-    "lat": str,
-    "lng": str,
-    "markers": str,
+    "zoom": Union[float, str],
+    "lat": Union[float, str],
+    "lng": Union[float, str],
+    "markers": Union[Dict, str],
     "controls": str,
     "cssClasses": str
 }, total=False)
@@ -336,7 +336,7 @@ MapboxEventHandlers = TypedDict('MapboxEventHandlers', {
 
 IconProps = TypedDict('IconProps', {
     "icon": str,
-    "size": str,
+    "size": Union[float, str],
     "color": str,
     "cssClasses": str
 }, total=False)
@@ -345,7 +345,7 @@ IconEventHandlers = TypedDict('IconEventHandlers', {
 }, total=False)
 
 TimerProps = TypedDict('TimerProps', {
-    "intervalMs": str,
+    "intervalMs": Union[float, str],
     "isActive": str,
     "accentColor": str,
     "cssClasses": str
@@ -370,7 +370,7 @@ TextInputEventHandlers = TypedDict('TextInputEventHandlers', {
 TextareaInputProps = TypedDict('TextareaInputProps', {
     "label": str,
     "placeholder": str,
-    "rows": str,
+    "rows": Union[float, str],
     "cssClasses": str
 }, total=False)
 
@@ -382,9 +382,9 @@ TextareaInputEventHandlers = TypedDict('TextareaInputEventHandlers', {
 NumberInputProps = TypedDict('NumberInputProps', {
     "label": str,
     "placeholder": str,
-    "minValue": str,
-    "maxValue": str,
-    "valueStep": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "valueStep": Union[float, str],
     "cssClasses": str
 }, total=False)
 
@@ -395,9 +395,9 @@ NumberInputEventHandlers = TypedDict('NumberInputEventHandlers', {
 
 SliderInputProps = TypedDict('SliderInputProps', {
     "label": str,
-    "minValue": str,
-    "maxValue": str,
-    "stepSize": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "stepSize": Union[float, str],
     "cssClasses": str
 }, total=False)
 
@@ -416,7 +416,7 @@ DateInputEventHandlers = TypedDict('DateInputEventHandlers', {
 
 RadioInputProps = TypedDict('RadioInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "orientation": str,
     "cssClasses": str
 }, total=False)
@@ -427,7 +427,7 @@ RadioInputEventHandlers = TypedDict('RadioInputEventHandlers', {
 
 CheckboxInputProps = TypedDict('CheckboxInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "orientation": str,
     "cssClasses": str
 }, total=False)
@@ -438,7 +438,7 @@ CheckboxInputEventHandlers = TypedDict('CheckboxInputEventHandlers', {
 
 DropdownInputProps = TypedDict('DropdownInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -448,9 +448,9 @@ DropdownInputEventHandlers = TypedDict('DropdownInputEventHandlers', {
 
 SelectInputProps = TypedDict('SelectInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "placeholder": str,
-    "maximumCount": str,
+    "maximumCount": Union[float, str],
     "accentColor": str,
     "chipTextColor": str,
     "selectedColor": str,
@@ -467,9 +467,9 @@ SelectInputEventHandlers = TypedDict('SelectInputEventHandlers', {
 
 MultiselectInputProps = TypedDict('MultiselectInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "placeholder": str,
-    "maximumCount": str,
+    "maximumCount": Union[float, str],
     "accentColor": str,
     "chipTextColor": str,
     "selectedColor": str,
@@ -495,7 +495,7 @@ FileInputEventHandlers = TypedDict('FileInputEventHandlers', {
 }, total=False)
 
 WebcamCaptureProps = TypedDict('WebcamCaptureProps', {
-    "refreshRate": str,
+    "refreshRate": Union[float, str],
     "buttonColor": str,
     "buttonTextColor": str,
     "buttonShadow": str,
@@ -508,7 +508,7 @@ WebcamCaptureEventHandlers = TypedDict('WebcamCaptureEventHandlers', {
 }, total=False)
 
 VegaLiteChartProps = TypedDict('VegaLiteChartProps', {
-    "spec": str,
+    "spec": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -516,7 +516,7 @@ VegaLiteChartEventHandlers = TypedDict('VegaLiteChartEventHandlers', {
 }, total=False)
 
 PlotlyGraphProps = TypedDict('PlotlyGraphProps', {
-    "spec": str,
+    "spec": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -572,6 +572,8 @@ ChatProps = TypedDict('ChatProps', {
     "incomingInitials": str,
     "outgoingInitials": str,
     "useMarkdown": str,
+    "enableFileUpload": str,
+    "placeholder": str,
     "incomingColor": str,
     "outgoingColor": str,
     "avatarBackgroundColor": str,
@@ -587,7 +589,8 @@ ChatProps = TypedDict('ChatProps', {
 
 ChatEventHandlers = TypedDict('ChatEventHandlers', {
     "ss-chat-message": Union[str, Callable],
-    "ss-chat-action-click": Union[str, Callable]
+    "ss-chat-action-click": Union[str, Callable],
+    "ss-file-change": Union[str, Callable]
 }, total=False)
 
 StepProps = TypedDict('StepProps', {
@@ -620,9 +623,9 @@ StepContainerEventHandlers = TypedDict('StepContainerEventHandlers', {
 RatingInputProps = TypedDict('RatingInputProps', {
     "label": str,
     "feedback": str,
-    "minValue": str,
-    "maxValue": str,
-    "valueStep": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "valueStep": Union[float, str],
     "accentColor": str,
     "primaryTextColor": str,
     "cssClasses": str
@@ -630,6 +633,31 @@ RatingInputProps = TypedDict('RatingInputProps', {
 
 RatingInputEventHandlers = TypedDict('RatingInputEventHandlers', {
     "ss-number-change": Union[str, Callable]
+}, total=False)
+
+TagsProps = TypedDict('TagsProps', {
+    "tags": Union[Dict, str],
+    "referenceColor": str,
+    "seed": Union[float, str],
+    "rotateHue": str,
+    "primaryTextColor": str,
+    "cssClasses": str
+}, total=False)
+
+TagsEventHandlers = TypedDict('TagsEventHandlers', {
+    "ss-tag-click": Union[str, Callable]
+}, total=False)
+
+SwitchInputProps = TypedDict('SwitchInputProps', {
+    "label": str,
+    "accentColor": str,
+    "primaryTextColor": str,
+    "separatorColor": str,
+    "cssClasses": str
+}, total=False)
+
+SwitchInputEventHandlers = TypedDict('SwitchInputEventHandlers', {
+    "ss-toggle": Union[str, Callable]
 }, total=False)
 
 class StreamsyncUIManager(StreamsyncUI):
@@ -1946,6 +1974,8 @@ class StreamsyncUIManager(StreamsyncUI):
             "incomingInitials": "AI",
             "outgoingInitials": "YOU",
             "useMarkdown": "no",
+            "enableFileUpload": "no",
+            "placeholder": "Write something...",
             "outgoingColor": "#F5F5F9",
             "avatarBackgroundColor": "#2C2D30",
             "avatarTextColor": "#FFFFFF",
@@ -2043,6 +2073,66 @@ class StreamsyncUIManager(StreamsyncUI):
         content = defaultContent | content
         component = self.create_component(
             'ratinginput',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible,
+            binding=binding)
+        return component
+    
+    def Tags(self, 
+            content: TagsProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[TagsEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None,
+            binding: Optional[Dict] = None,
+            ) -> Component:
+        """
+        A component to display coloured tag pills.
+        """
+        defaultContent: TagsProps = {
+            "tags": "{}",
+            "referenceColor": "#29cf00",
+            "seed": "1",
+            "rotateHue": "yes",
+            "primaryTextColor": "#ffffff",
+        }
+        content = defaultContent | content
+        component = self.create_component(
+            'tags',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible,
+            binding=binding)
+        return component
+    
+    def SwitchInput(self, 
+            content: SwitchInputProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[SwitchInputEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None,
+            binding: Optional[Dict] = None,
+            ) -> Component:
+        """
+        A user input component with a simple on/off status.
+        """
+        defaultContent: SwitchInputProps = {
+
+        }
+        content = defaultContent | content
+        component = self.create_component(
+            'switchinput',
             content=content,
             id=id,
             position=position,

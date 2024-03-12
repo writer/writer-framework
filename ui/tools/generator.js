@@ -2,6 +2,19 @@
 const fs = require("fs").promises;
 const { createServer } = require("vite");
 
+const getPyType = (type) => {
+	switch (type) {
+		case "Number":
+			return "Union[float, str]";
+		case "Object":
+			return "Union[Dict, str]";
+		case "Key-Value":
+			return "Union[Dict, str]";
+		default:
+			return "str";
+	}
+}
+
 async function loadComponents() {
 	const vite = await createServer({
 		server: {
@@ -36,9 +49,9 @@ function generateTypes(data) {
 
 ${component.nameTrim}Props = TypedDict('${component.nameTrim}Props', {`;
 		type += Object.entries(component.fields)
-			.map(([key]) => {
+			.map(([key, field]) => {
 				return `
-    "${key}": str`;
+    "${key}": ${getPyType(field.type)}`;
 			})
 			.join(",");
 		type += `
