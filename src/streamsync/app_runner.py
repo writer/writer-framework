@@ -395,7 +395,7 @@ class AppProcess(multiprocessing.Process):
             # No need to handle signal as not main thread
             pass
 
-        with concurrent.futures.ThreadPoolExecutor(1) as thread_pool:
+        with concurrent.futures.ThreadPoolExecutor(100) as thread_pool:
             self.is_app_process_server_ready.set()
             while True:  # Starts app message server
                 try:
