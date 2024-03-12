@@ -44,6 +44,7 @@ export default {
 		const ss = inject(injectionKeys.core);
 		const componentId = inject(injectionKeys.componentId);
 		const fields = inject(injectionKeys.evaluatedFields);
+		const isBeingEdited = inject(injectionKeys.isBeingEdited);
 		const renderProxiedComponent = inject(
 			injectionKeys.renderProxiedComponent,
 		);
@@ -65,16 +66,26 @@ export default {
 		};
 
 		return () => {
+			let repeater_children = {};
+			if (
+				children.value.length != 0 &&
+				fields.repeaterObject.value != null &&
+				Object.keys(fields.repeaterObject.value).length != 0
+			) {
+				repeater_children = getRepeatedChildrenVNodes();
+			} else if (isBeingEdited.value === true) {
+				repeater_children = slots.default({});
+			} else {
+				repeater_children = {};
+			}
+
 			return h(
 				"div",
 				{
 					class: "CoreRepeater",
 					"data-streamsync-container": "",
 				},
-				children.value.length == 0 ||
-					Object.keys(fields.repeaterObject.value).length == 0
-					? slots.default({})
-					: getRepeatedChildrenVNodes(),
+				repeater_children,
 			);
 		};
 	},
