@@ -120,6 +120,9 @@ class StateSerialiser:
                 return None
             return v
 
+        if hasattr(v, "__dataframe__"):
+            return self._serialize_dataframe(v)
+
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
         if "plotly.graph_objs._figure.Figure" in v_mro:
@@ -128,8 +131,6 @@ class StateSerialiser:
             return float(v)
         if "numpy.ndarray" in v_mro:
             return self._serialise_list_recursively(v.tolist())
-        if "pandas.core.frame.DataFrame" in v_mro:
-            return self._serialise_pandas_dataframe(v)
         if "pyarrow.lib.Table" in v_mro:
             return self._serialise_pyarrow_table(v)
 
@@ -161,11 +162,17 @@ class StateSerialiser:
         plt.close(fig)
         return FileWrapper(iobytes, "image/png").get_as_dataurl()
 
-    def _serialise_pandas_dataframe(self, df):
-        import pyarrow as pa # type: ignore
+    def _serialize_dataframe(self, df) -> str:
+        """
+        Serialize a dataframe with pyarrow a dataframe that implements
+        the Dataframe Interchange Protocol i.e. the __dataframe__() method
 
-        pa_table = pa.Table.from_pandas(df, preserve_index=True)
-        return self._serialise_pyarrow_table(pa_table)
+        :param df: dataframe that implements Dataframe Interchange Protocol (__dataframe__ method)
+        :return: a arrow file as a dataurl (application/vnd.apache.arrow.file)
+        """
+        import pyarrow.interchange # type: ignore
+        table = pyarrow.interchange.from_dataframe(df)
+        return self._serialise_pyarrow_table(table)
 
     def _serialise_pyarrow_table(self, table):
         import pyarrow as pa # type: ignore
