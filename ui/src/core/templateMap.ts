@@ -46,6 +46,7 @@ import CorePagination from "../core_components/other/CorePagination.vue";
 import CoreRepeater from "../core_components/other/CoreRepeater.vue";
 import CoreTimer from "../core_components/other/CoreTimer.vue";
 import CoreWebcamCapture from "../core_components/other/CoreWebcamCapture.vue";
+import CoreReusable from "../core_components/other/CoreReusable.vue";
 // embed
 import CorePDF from "../core_components/embed/CorePDF.vue";
 import CoreIFrame from "../core_components/embed/CoreIFrame.vue";
@@ -109,6 +110,7 @@ const templateMap = {
 	ratinginput: CoreRating,
 	tags: CoreTags,
 	switchinput: CoreSwitchInput,
+	reusable: CoreReusable,
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {
