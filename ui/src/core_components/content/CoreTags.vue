@@ -68,6 +68,7 @@ export default {
 					no: "no",
 				},
 				default: "yes",
+				category: FieldCategory.Style,
 			},
 			primaryTextColor: {
 				...primaryTextColor,
