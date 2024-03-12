@@ -76,6 +76,10 @@ class StreamsyncUI:
         else:
             parent_id = "root" if not parent_container else parent_container.id
 
+        # Converting all passed content values to strings
+        raw_content = kwargs.pop("content", {})
+        content = {key: str(value) for key, value in raw_content.items()}
+
         position: Optional[int] = kwargs.pop("position", None)
         is_positionless: bool = kwargs.pop("positionless", False)
         raw_handlers: dict = kwargs.pop("handlers", {})
@@ -88,6 +92,7 @@ class StreamsyncUI:
             type=component_type,
             parentId=parent_id,
             flag="cmc",
+            content=content,
             handlers=handlers,
             binding=binding,
             **kwargs
