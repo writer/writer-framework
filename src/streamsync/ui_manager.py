@@ -1,8 +1,9 @@
+from json import dumps as json_dumps
 from typing import Optional, Union
 
 from streamsync.core import base_component_tree
-from streamsync.core_ui import (Component, SessionComponentTree,
-                                UIError, current_parent_container)
+from streamsync.core_ui import (Component, SessionComponentTree, UIError,
+                                current_parent_container)
 
 
 class StreamsyncUI:
@@ -57,6 +58,11 @@ class StreamsyncUI:
         # TODO
         return raw_binding
 
+    def _prepare_value(self, value):
+        if isinstance(value, dict):
+            return json_dumps(value)
+        return str(value)
+
     def _create_component(
             self,
             component_type: str,
@@ -76,6 +82,10 @@ class StreamsyncUI:
         else:
             parent_id = "root" if not parent_container else parent_container.id
 
+        # Converting all passed content values to strings
+        raw_content = kwargs.pop("content", {})
+        content = {key: self._prepare_value(value) for key, value in raw_content.items()}
+
         position: Optional[int] = kwargs.pop("position", None)
         is_positionless: bool = kwargs.pop("positionless", False)
         raw_handlers: dict = kwargs.pop("handlers", {})
@@ -88,6 +98,7 @@ class StreamsyncUI:
             type=component_type,
             parentId=parent_id,
             flag="cmc",
+            content=content,
             handlers=handlers,
             binding=binding,
             **kwargs
