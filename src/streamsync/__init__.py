@@ -1,6 +1,7 @@
 import importlib.metadata
 from typing import Union, Optional, Dict, Any
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config
+from streamsync.ui import StreamsyncUIManager
 from streamsync.core import initial_state, base_component_tree, session_manager, session_verifier
 
 VERSION = importlib.metadata.version("streamsync")
@@ -38,3 +39,10 @@ def init_state(state_dict: Dict[str, Any]):
     initial_state.user_state.state = {}
     initial_state.user_state.ingest(state_dict)
     return initial_state
+
+
+def init_ui():
+    """
+    Wrapper for initializing the UI manager.
+    """
+    return StreamsyncUIManager()
