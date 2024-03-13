@@ -68,8 +68,26 @@ ${component.nameTrim}EventHandlers = TypedDict('${component.nameTrim}EventHandle
 			.join(",");
 		type += `
 }, total=False)`;
+
+		const bindable = Object.entries(component.events || {}).filter(
+			([, ev]) => ev.bindable,
+		);
+		if (!bindable?.length) return type;
+
+		type += `
+
+${component.nameTrim}Bindings = TypedDict('${component.nameTrim}Bindings', {`;
+		type += bindable
+			.map(([key]) => {
+				return `
+    "${key}": str`;
+			})
+			.join(",");
+		type += `
+}, total=False)`;
 		return type;
 	});
+
 	return types.join("");
 }
 
@@ -106,6 +124,15 @@ function generateComponentDefaults(component) {
 
 function generateMethods(data) {
 	const methods = data.map((component) => {
+		const isBindable = Boolean(
+			Object.entries(component.events || {}).find(
+				([, ev]) => ev.bindable,
+			),
+		);
+		const bindParam = ` 
+            binding: Optional[${component.nameTrim}Bindings] = None,`;
+		const bindPass = `,
+            binding=binding`;
 		return `
     def ${component.nameTrim}(self, 
             content: ${component.nameTrim}Props = {},
@@ -114,8 +141,7 @@ function generateMethods(data) {
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[${component.nameTrim}EventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None,${isBindable ? bindParam : ""}
             ) -> Component:
         """
         ${component.description}
@@ -131,8 +157,7 @@ ${generateComponentDefaults(component)}
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible${isBindable ? bindPass : ""})
         return component
     `;
 	});
