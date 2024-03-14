@@ -54,9 +54,14 @@ class StreamsyncUI:
                     handlers[event] = handler
         return handlers
 
-    def _prepare_binding(self, raw_binding):
-        # TODO
-        return raw_binding
+    def _prepare_binding(self, raw_binding: Optional[dict]):
+        if raw_binding is not None and len(raw_binding) == 1:
+            binding = {
+                "eventType": list(raw_binding.keys())[0],
+                "stateRef": list(raw_binding.values())[0]
+            }
+            return binding
+        raise RuntimeError('Improper binding configuration')
 
     def _prepare_value(self, value):
         if isinstance(value, dict):
@@ -78,12 +83,12 @@ class StreamsyncUI:
             kwargs.pop("parentId")
 
         if "parentId" in kwargs:
-            parent_id = kwargs.pop("parentId")
+            parent_id: str = kwargs.pop("parentId")
         else:
-            parent_id = "root" if not parent_container else parent_container.id
+            parent_id: str = "root" if not parent_container else parent_container.id
 
         # Converting all passed content values to strings
-        raw_content = kwargs.pop("content", {})
+        raw_content: dict = kwargs.pop("content", {})
         content = {key: self._prepare_value(value) for key, value in raw_content.items()}
 
         position: Optional[int] = kwargs.pop("position", None)
