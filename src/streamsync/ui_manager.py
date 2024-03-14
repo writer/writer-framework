@@ -62,7 +62,8 @@ class StreamsyncUI:
                     "stateRef": list(raw_binding.values())[0]
                 }
                 return binding
-            raise RuntimeError('Improper binding configuration')
+            elif len(raw_binding) != 0:
+                raise RuntimeError('Improper binding configuration')
 
     def _prepare_value(self, value):
         if isinstance(value, dict):
