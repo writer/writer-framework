@@ -86,7 +86,7 @@ class StreamsyncUI:
         if "parentId" in kwargs:
             parent_id: str = kwargs.pop("parentId")
         else:
-            parent_id: str = "root" if not parent_container else parent_container.id
+            parent_id = "root" if not parent_container else parent_container.id
 
         # Converting all passed content values to strings
         raw_content: dict = kwargs.pop("content", {})
