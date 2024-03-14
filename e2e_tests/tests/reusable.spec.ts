@@ -1,67 +1,67 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 test.describe("Reusable component", () => {
 	const TYPE = "reusable";
 	const COMPONENT_LOCATOR = `div.CoreReuse.component`;
 
-	const fillSettingsField = async (page, key, value) => {
+	const fillSettingsField = async (page: Page, key: string, value: string) => {
 		await page
 			.locator(`.BuilderFieldsText[data-key="${key}"] input, .BuilderFieldsText[data-key="${key}"] textarea`)
 			.fill(value);
 	}
 
-	const dragNewComponent = async (page, type, where = ".CoreSection") => {
+	const dragNewComponent = async (page: Page, type: string, where = ".CoreSection") => {
 			await page
 				.locator(`div.component.button[data-component-type="${type}"]`)
 				.dragTo(page.locator(where));
 	}
 
-	const getSelectedComponentId = async (page) => {
+	const getSelectedComponentId = async (page: Page): Promise<string> => {
 		return await page.locator('.BuilderSettings .copyText').innerText();
 	}
 
-	const setReuseTarget = async (page, id) => {
+	const setReuseTarget = async (page: Page, id: string) => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await fillSettingsField(page, "proxyId", id);
 	};
 
-	const createReuseable = async (page, where = '.CoreSection') => {
+	const createReuseable = async (page: Page, where = '.CoreSection'): Promise<string> => {
 		await dragNewComponent(page, TYPE, where);
 		await page.locator(COMPONENT_LOCATOR).click();
 		return await getSelectedComponentId(page);
 	};
 
-	const createText = async (page, where = ".CoreSection") => {
+	const createText = async (page: Page, where = ".CoreSection"): Promise<string> => {
 		await dragNewComponent(page, "text", where);
 		await page.locator('.CoreText.component').click();
 		await fillSettingsField(page, "text", "Hello, World!");
 		return await getSelectedComponentId(page);
 	};
 
-	const createSidebar = async (page) => {
+	const createSidebar = async (page: Page) => {
 		dragNewComponent(page, "sidebar", ".CorePage");
 		await page.locator('.CoreSidebar.component').click();
 		return await getSelectedComponentId(page);
 	};
 
-	const removeComponent = async (page, locator) => {
+	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
-		await page.locator(locator).click();
+		await page.locator(selector).click();
 		await page
 			.locator(
 				'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
 			)
 			.click();
-		await expect(page.locator(locator)).not.toBeVisible();
-		await expect(page.locator(locator)).toHaveCount(0);
+		await expect(page.locator(selector)).not.toBeVisible();
+		await expect(page.locator(selector)).toHaveCount(0);
 	};
 
-	const moveFromTo = async (page, locator, from, to) => {
-		await expect(page.locator(from + " " + locator)).toHaveCount(1);
-		await expect(page.locator(to + " " + locator)).toHaveCount(0);
-		await page.locator(locator).dragTo(page.locator(to));
-		await expect(page.locator(from + " " + locator)).toHaveCount(0);
-		await expect(page.locator(to + " " + locator)).toHaveCount(1);
+	const moveFromTo = async (page: Page, selector: string, from: string, to: string) => {
+		await expect(page.locator(from + " " + selector)).toHaveCount(1);
+		await expect(page.locator(to + " " + selector)).toHaveCount(0);
+		await page.locator(selector).dragTo(page.locator(to));
+		await expect(page.locator(from + " " + selector)).toHaveCount(0);
+		await expect(page.locator(to + " " + selector)).toHaveCount(1);
 	}
 
 	test.describe("basic", () => {
@@ -175,7 +175,6 @@ test.describe("Reusable component", () => {
 
 
 	test.describe('dragging', () => {
-		const TYPE = 'reusable';
 		const COMPONENT_LOCATOR = 'div.CoreReuse.component';
 		const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";
 		const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
