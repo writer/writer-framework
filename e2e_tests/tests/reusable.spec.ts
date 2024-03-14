@@ -56,6 +56,14 @@ test.describe("Reusable component", () => {
 		await expect(page.locator(locator)).toHaveCount(0);
 	};
 
+	const moveFromTo = async (page, locator, from, to) => {
+		await expect(page.locator(from + " " + locator)).toHaveCount(1);
+		await expect(page.locator(to + " " + locator)).toHaveCount(0);
+		await page.locator(locator).dragTo(page.locator(to));
+		await expect(page.locator(from + " " + locator)).toHaveCount(0);
+		await expect(page.locator(to + " " + locator)).toHaveCount(1);
+	}
+
 	test.describe("basic", () => {
 		let url: string;
 		test.beforeAll(async ({request}) => {
@@ -189,20 +197,7 @@ test.describe("Reusable component", () => {
 
 		test("create, drag and drop and remove", async ({ page }) => {
 			await createReuseable(page, COLUMN1);
-			await expect(
-				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(1);
-			await expect(
-				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(0);
-
-			await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
-			await expect(
-				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(0);
-			await expect(
-				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(1);
+			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
 		});
 
@@ -210,21 +205,9 @@ test.describe("Reusable component", () => {
 			const id = await createText(page, '.CorePage');
 			await createReuseable(page, COLUMN1);
 			await setReuseTarget(page, id);
-			await expect(
-				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(1);
-			await expect(
-				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(0);
-
-			await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
-			await expect(
-				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(0);
-			await expect(
-				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
-			).toHaveCount(1);
+			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
+			await removeComponent(page, '.CoreText');
 		});
 	});
 });
