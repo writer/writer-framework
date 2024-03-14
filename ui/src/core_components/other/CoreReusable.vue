@@ -39,8 +39,12 @@ const parentType = ss.getComponentById(parentId).type;
 const proxyDefinition = ss.getComponentDefinitionById(fields.proxyId);
 const parentDef = ss.getComponentDefinitionById(parentId);
 
-function renderError(message: string) {
-	vnode.value = h("div", isBeingEdited.value ? message : "");
+function renderError(message: string, cls: string) {
+	vnode.value = h(
+		"div",
+		{ class: ["CoreReuse", cls] },
+		isBeingEdited.value ? message : "",
+	);
 }
 
 function isAllowedChildType(type) {
@@ -51,28 +55,37 @@ function isAllowedChildType(type) {
 }
 
 function isAllowedParentType(type) {
-	return proxyDefinition.value.allowedParentTypes?.includes(type);
+	return (
+		!proxyDefinition.value.allowedParentTypes ||
+		proxyDefinition.value.allowedParentTypes?.includes(type)
+	);
 }
 
 function render() {
 	if (!fields.proxyId.value) {
-		return renderError("No component selected to reuse");
+		return renderError("No component selected to reuse", "empty");
 	}
 	if (componentId === fields.proxyId.value || !proxyDefinition.value) {
 		return renderError(
 			"The id specified for reuse doesn't match any component.",
+			"invalid-value",
 		);
 	}
 
 	if (!isAllowedChildType(proxyType) || !isAllowedParentType(parentType)) {
-		return renderError(`The component cannot be reused here.`);
+		return renderError(
+			`The component cannot be reused here.`,
+			"invalid-context",
+		);
 	}
 
 	ss.setComponentDefinitionById(componentId, {
 		slot: proxyDefinition.value.slot || "default",
 		positionless: proxyDefinition.value.positionless || false,
 	});
-	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0);
+	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0, {
+		class: ["CoreReuse"],
+	});
 	vnode.value = reusedNode;
 }
 
