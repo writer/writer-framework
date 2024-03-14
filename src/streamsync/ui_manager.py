@@ -55,13 +55,14 @@ class StreamsyncUI:
         return handlers
 
     def _prepare_binding(self, raw_binding: Optional[dict]):
-        if raw_binding is not None and len(raw_binding) == 1:
-            binding = {
-                "eventType": list(raw_binding.keys())[0],
-                "stateRef": list(raw_binding.values())[0]
-            }
-            return binding
-        raise RuntimeError('Improper binding configuration')
+        if raw_binding is not None:
+            if len(raw_binding) == 1:
+                binding = {
+                    "eventType": list(raw_binding.keys())[0],
+                    "stateRef": list(raw_binding.values())[0]
+                }
+                return binding
+            raise RuntimeError('Improper binding configuration')
 
     def _prepare_value(self, value):
         if isinstance(value, dict):
