@@ -20,6 +20,11 @@ export default {
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId: Component["id"] = props.componentId;
 		const component = computed(() => ss.getComponentById(componentId));
+		const componentDefinition = ss.getComponentDefinitionById(componentId);
+		const allowedSlots = computed(() => [
+			...(componentDefinition.value.allowedSlots || []),
+			"default",
+		]);
 		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
@@ -61,6 +66,12 @@ export default {
 			return vnode;
 		};
 
+		const getValidSlot = (childId: Component["id"]): string => {
+			const childDef = ss.getComponentDefinitionById(childId);
+			const slot = childDef.value.slot ?? "default";
+			return allowedSlots.value.includes(slot) ? slot : "default";
+		};
+
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
 			slotName: string = "default",
@@ -76,10 +87,10 @@ export default {
 			const showSlots = isBeingEdited.value && !positionlessSlot;
 
 			const childrenVNodes = children.value
-				.filter((c) => {
-					const def = ss.getComponentDefinitionById(c.id);
-					return (def.value?.slot ?? "default") == slotName;
-				})
+				.map((c) => ({ ...c, slot: getValidSlot(c.id) }))
+				.filter(
+					(c: Component & { slot: string }) => c.slot === slotName,
+				)
 				.filter((c) => componentFilter(c))
 				.map((childComponent, childIndex) => {
 					const childVNode = renderProxiedComponent(

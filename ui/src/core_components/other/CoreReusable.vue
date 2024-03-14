@@ -48,8 +48,8 @@ function render() {
 		return;
 	}
 	ss.setComponentDefinitionById(componentId, {
-		slot: def.value.slot,
-		positionless: def.value.positionless,
+		slot: def.value.slot || "default",
+		positionless: def.value.positionless || false,
 	});
 	const reusedNode = renderProxiedComponent(fields.parentId.value, 0);
 	vnode.value = reusedNode;
