@@ -1,7 +1,5 @@
 <template>
-	<div class="CoreReuse">
-		<component :is="vnode" />
-	</div>
+	<component :is="vnode" />
 </template>
 
 <script lang="ts">
@@ -16,7 +14,7 @@ export default {
 			"Those components are used to reuse other components. " +
 			"Reused components share the same state and are updated together.",
 		category: "Other",
-		allowedChildrenTypes: ["inherit"],
+		allowedChildrenTypes: [],
 		fields: {
 			parentId: {
 				name: "Component id",
@@ -29,26 +27,33 @@ export default {
 </script>
 <script setup lang="ts">
 const fields = inject(injectionKeys.evaluatedFields);
+const ss = inject(injectionKeys.core);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
-const vnode = ref(h("div", "No component selected"));
+const isBeingEdited = inject(injectionKeys.isBeingEdited);
+const componentId = inject(injectionKeys.componentId);
+const vnode = ref(h("div", ""));
+const def = ss.getComponentDefinitionById(fields.parentId);
+
+function renderError(message: string) {
+	vnode.value = h("div", isBeingEdited.value ? message : "");
+}
 
 function render() {
 	if (!fields.parentId.value) {
-		vnode.value = h("div", "No component selected");
+		renderError("No component selected to reuse");
 		return;
 	}
+	if (componentId === fields.parentId.value || !def.value) {
+		renderError("The id specified for reuse doesn't match any component.");
+		return;
+	}
+	ss.setComponentDefinitionById(componentId, {
+		slot: def.value.slot,
+		positionless: def.value.positionless,
+	});
 	const reusedNode = renderProxiedComponent(fields.parentId.value, 0);
 	vnode.value = reusedNode;
 }
 
-watch([fields.parentId], render);
-render();
+watch([fields.parentId, def], render, { immediate: true });
 </script>
-
-<style scoped>
-.CoreReuse {
-	width: fit-content;
-	height: fit-content;
-	position: relative;
-}
-</style>

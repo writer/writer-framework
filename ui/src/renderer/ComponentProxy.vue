@@ -63,6 +63,7 @@ export default {
 
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
+			slotName: string = "default",
 			componentFilter: (c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
@@ -75,7 +76,11 @@ export default {
 			const showSlots = isBeingEdited.value && !positionlessSlot;
 
 			const childrenVNodes = children.value
-				.filter(componentFilter)
+				.filter((c) => {
+					const def = ss.getComponentDefinitionById(c.id);
+					return (def.value?.slot ?? "default") == slotName;
+				})
+				.filter((c) => componentFilter(c))
 				.map((childComponent, childIndex) => {
 					const childVNode = renderProxiedComponent(
 						childComponent.id,
@@ -272,10 +277,12 @@ export default {
 
 			const defaultSlotFn = ({
 				instanceNumber = 0,
+				slotName = "default",
 				componentFilter = () => true,
 				positionlessSlot = false,
 			}: {
 				instanceNumber: number;
+				slotName: string;
 				componentFilter: (c: Component) => boolean;
 				positionlessSlot: boolean;
 			}) => {
@@ -284,6 +291,7 @@ export default {
 				}
 				const vnodes = getChildrenVNodes(
 					instanceNumber,
+					slotName,
 					componentFilter,
 					positionlessSlot,
 				);
