@@ -164,4 +164,67 @@ test.describe("Reusable component", () => {
 			await expect(page.locator('.CoreReuse.component')).toHaveClass(/invalid-value/);
 		});
 	});
+
+
+	test.describe('dragging', () => {
+		const TYPE = 'reusable';
+		const COMPONENT_LOCATOR = 'div.CoreReuse.component';
+		const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";
+		const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
+		let url: string;
+
+		test.beforeAll(async ({request}) => {
+			const response = await request.post(`/preset/2columns`);
+			expect(response.ok()).toBeTruthy();
+			({url} = await response.json());
+		});
+
+		test.afterAll(async ({request}) => {
+			await request.delete(url);
+		});
+
+		test.beforeEach(async ({ page }) => {
+			await page.goto(url);
+		});
+
+		test("create, drag and drop and remove", async ({ page }) => {
+			await createReuseable(page, COLUMN1);
+			await expect(
+				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(1);
+			await expect(
+				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(0);
+
+			await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
+			await expect(
+				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(0);
+			await expect(
+				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(1);
+			await removeComponent(page, COMPONENT_LOCATOR);
+		});
+
+		test("drag and drop after initialization", async ({ page }) => {
+			const id = await createText(page, '.CorePage');
+			await createReuseable(page, COLUMN1);
+			await setReuseTarget(page, id);
+			await expect(
+				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(1);
+			await expect(
+				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(0);
+
+			await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
+			await expect(
+				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(0);
+			await expect(
+				page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
+			).toHaveCount(1);
+			await removeComponent(page, COMPONENT_LOCATOR);
+		});
+	});
 });
