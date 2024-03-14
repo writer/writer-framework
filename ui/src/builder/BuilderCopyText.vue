@@ -29,8 +29,8 @@ const copyText = (e) => {
 
 .tooltip .tooltiptext {
 	visibility: hidden;
-	background-color: var(--builderBackgroundColor);
-	color: #fff;
+	background-color: var(--builderActionOngoingColor);
+	color: var(--builderBackgroundColor);
 	text-align: center;
 	border-radius: 16px;
 	padding: 4px 12px;
@@ -52,7 +52,8 @@ const copyText = (e) => {
 	margin-left: -5px;
 	border-width: 5px;
 	border-style: solid;
-	border-color: var(--builderActionOngoingColor);
+	border-color: var(--builderActionOngoingColor) transparent transparent
+		transparent;
 }
 
 .tooltip:hover .tooltiptext {
