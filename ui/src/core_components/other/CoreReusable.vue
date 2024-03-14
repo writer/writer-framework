@@ -16,7 +16,7 @@ export default {
 		category: "Other",
 		allowedChildrenTypes: [],
 		fields: {
-			parentId: {
+			proxyId: {
 				name: "Component id",
 				type: FieldType.Text,
 				desc: "The id of the component to reuse.",
@@ -27,33 +27,54 @@ export default {
 </script>
 <script setup lang="ts">
 const fields = inject(injectionKeys.evaluatedFields);
+const instancePath = inject(injectionKeys.instancePath);
+const parentId = instancePath.at(-2).componentId;
 const ss = inject(injectionKeys.core);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const vnode = ref(h("div", ""));
-const def = ss.getComponentDefinitionById(fields.parentId);
+const proxyType = ss.getComponentById(parentId).type;
+const parentType = ss.getComponentById(parentId).type;
+const proxyDefinition = ss.getComponentDefinitionById(fields.proxyId);
+const parentDef = ss.getComponentDefinitionById(parentId);
 
 function renderError(message: string) {
 	vnode.value = h("div", isBeingEdited.value ? message : "");
 }
 
+function isAllowedChildType(type) {
+	return (
+		parentDef.value.allowedChildrenTypes?.includes(type) ||
+		parentDef.value.allowedChildrenTypes?.includes("*")
+	);
+}
+
+function isAllowedParentType(type) {
+	return proxyDefinition.value.allowedParentTypes?.includes(type);
+}
+
 function render() {
-	if (!fields.parentId.value) {
-		renderError("No component selected to reuse");
-		return;
+	if (!fields.proxyId.value) {
+		return renderError("No component selected to reuse");
 	}
-	if (componentId === fields.parentId.value || !def.value) {
-		renderError("The id specified for reuse doesn't match any component.");
-		return;
+	if (componentId === fields.proxyId.value || !proxyDefinition.value) {
+		return renderError(
+			"The id specified for reuse doesn't match any component.",
+		);
 	}
+
+	if (!isAllowedChildType(proxyType) || !isAllowedParentType(parentType)) {
+		return renderError(`The component cannot be reused here.`);
+	}
+
 	ss.setComponentDefinitionById(componentId, {
-		slot: def.value.slot || "default",
-		positionless: def.value.positionless || false,
+		slot: proxyDefinition.value.slot || "default",
+		positionless: proxyDefinition.value.positionless || false,
 	});
-	const reusedNode = renderProxiedComponent(fields.parentId.value, 0);
+	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0);
 	vnode.value = reusedNode;
 }
 
-watch([fields.parentId, def], render, { immediate: true });
+watch([fields.proxyId, proxyDefinition], render, { immediate: true });
 </script>
