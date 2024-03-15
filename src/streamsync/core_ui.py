@@ -161,9 +161,11 @@ class SessionComponentTree(ComponentTree):
 
     def delete_component(self, component_id: str):
         if component_id in self.components:
+            self.updated = True
             del self.components[component_id]
             return
         if component_id in self.base_component_tree.components:
+            self.updated = True
             self.removed_base_components.append(component_id)
             return
         raise RuntimeError(f"Component with ID {component_id} not found")
