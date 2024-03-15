@@ -184,9 +184,6 @@ const buildMatches = () => {
 
 const renderingComplete = () => {
 	buildMatches();
-	if (fields.page.value) {
-		gotoPage(fields.page.value);
-	}
 	if (currentMatch.value) {
 		gotoHighlight(currentMatch.value);
 	}
@@ -266,6 +263,14 @@ const incrementScale = () => {
 const decrementScale = () => {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
 };
+
+watch(pagesLoaded, () => {
+	if (pagesLoaded.value === pages.value) {
+		if (fields.page.value) {
+			gotoPage(fields.page.value);
+		}
+	}
+});
 
 watch([highlightsList, pagesLoaded], () => {
 	if (

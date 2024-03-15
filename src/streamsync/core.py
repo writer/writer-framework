@@ -6,7 +6,6 @@ import inspect
 import logging
 import secrets
 import sys
-import threading
 import time
 import traceback
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union
@@ -17,7 +16,7 @@ import re
 import json
 import math
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from pydantic import BaseModel, Field
+from streamsync.core_ui import ComponentTree, SessionComponentTree
 
 
 class Config:
@@ -121,6 +120,9 @@ class StateSerialiser:
                 return None
             return v
 
+        if hasattr(v, "__dataframe__"):
+            return self._serialize_dataframe(v)
+
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
         if "plotly.graph_objs._figure.Figure" in v_mro:
@@ -129,8 +131,6 @@ class StateSerialiser:
             return float(v)
         if "numpy.ndarray" in v_mro:
             return self._serialise_list_recursively(v.tolist())
-        if "pandas.core.frame.DataFrame" in v_mro:
-            return self._serialise_pandas_dataframe(v)
         if "pyarrow.lib.Table" in v_mro:
             return self._serialise_pyarrow_table(v)
 
@@ -162,11 +162,17 @@ class StateSerialiser:
         plt.close(fig)
         return FileWrapper(iobytes, "image/png").get_as_dataurl()
 
-    def _serialise_pandas_dataframe(self, df):
-        import pyarrow as pa # type: ignore
+    def _serialize_dataframe(self, df) -> str:
+        """
+        Serialize a dataframe with pyarrow a dataframe that implements
+        the Dataframe Interchange Protocol i.e. the __dataframe__() method
 
-        pa_table = pa.Table.from_pandas(df, preserve_index=True)
-        return self._serialise_pyarrow_table(pa_table)
+        :param df: dataframe that implements Dataframe Interchange Protocol (__dataframe__ method)
+        :return: a arrow file as a dataurl (application/vnd.apache.arrow.file)
+        """
+        import pyarrow.interchange # type: ignore
+        table = pyarrow.interchange.from_dataframe(df)
+        return self._serialise_pyarrow_table(table)
 
     def _serialise_pyarrow_table(self, table):
         import pyarrow as pa # type: ignore
@@ -474,101 +480,6 @@ class StreamsyncState():
         })
 
 
-# TODO Consider switching Component to use Pydantic
-
-class Component(BaseModel):
-    id: str
-    type: str
-    content: Dict[str, str] = Field(default_factory=dict)
-    flag: Optional[str] = None
-    position: int = 0
-    parentId: Optional[str] = None
-    handlers: Optional[Dict[str, str]] = None
-    visible: Optional[Union[bool, str]] = None
-    binding: Optional[Dict] = None
-
-    def to_dict(self) -> Dict:
-        """
-        Wrapper for model_dump to ensure backward compatibility.
-        """
-        return self.model_dump(exclude_none=True)
-
-
-class ComponentTree:
-
-    def __init__(self) -> None:
-        self.counter: int = 0
-        self.components: Dict[str, Component] = {}
-        root_component = Component(
-            id="root", type="root", content={}
-        )
-        self.attach(root_component)
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        return self.components.get(component_id)
-
-    def get_descendents(self, parent_id: str) -> List[Component]:
-        children = list(filter(lambda c: c.parentId == parent_id,
-                               self.components.values()))
-        desc = children.copy()
-        for child in children:
-            desc += self.get_descendents(child.id)
-
-        return desc
-
-    def attach(self, component: Component) -> None:
-        self.counter += 1
-        self.components[component.id] = component
-
-    def ingest(self, serialised_components: Dict[str, Any]) -> None:
-        removed_ids = self.components.keys() - serialised_components.keys()
-
-        for component_id in removed_ids:
-            if component_id == "root":
-                continue
-            self.components.pop(component_id)
-        for component_id, sc in serialised_components.items():
-            component = Component(**sc)
-            self.components[component_id] = component
-
-    def to_dict(self) -> Dict:
-        active_components = {}
-        for id, component in self.components.items():
-            active_components[id] = component.to_dict()
-        return active_components
-
-
-class SessionComponentTree(ComponentTree):
-
-    def __init__(self, base_component_tree: ComponentTree):
-        super().__init__()
-        self.base_component_tree = base_component_tree
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        # Check if session component tree contains requested key
-        session_component_present = component_id in self.components
-
-        if session_component_present:
-            # If present, return session component (even if it's None)
-            session_component = self.components.get(component_id)
-            return session_component
-
-        # Otherwise, try to obtain the base tree component
-        return self.base_component_tree.get_component(component_id)
-
-    def to_dict(self) -> Dict:
-        active_components = {
-            # Collecting serialized base tree components
-            component_id: base_component.to_dict()
-            for component_id, base_component
-            in self.base_component_tree.components.items()
-        }
-        for component_id, session_component in self.components.items():
-            # Overriding base tree components with session-specific ones
-            active_components[component_id] = session_component.to_dict()
-        return active_components
-
-
 class EventDeserialiser:
 
     """Applies transformations to the payload of an incoming event, depending on its type.
@@ -607,6 +518,17 @@ class EventDeserialiser:
         else:
             ev.payload = tf_payload
 
+    def _transform_tag_click(self, ev: StreamsyncEvent) -> Optional[str]:
+        payload = ev.payload
+        instance_path = ev.instancePath
+        options = self.evaluator.evaluate_field(
+            instance_path, "tags", True, "{ }")
+        if not isinstance(options, dict):
+            raise ValueError("Invalid value for tags")
+        if payload not in options.keys():
+            raise ValueError("Unauthorised option")
+        return payload
+
     def _transform_option_change(self, ev: StreamsyncEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
@@ -630,6 +552,10 @@ class EventDeserialiser:
                 "Invalid multiple options payload. Expected a list.")
         if not all(item in options.keys() for item in payload):
             raise ValueError("Unauthorised option")
+        return payload
+
+    def _transform_toggle(self, ev: StreamsyncEvent) -> bool:
+        payload = bool(ev.payload)
         return payload
 
     def _transform_keydown(self, ev) -> Dict:
@@ -1078,6 +1004,10 @@ class EventHandler:
                     "headers": self.session.headers
                 }
                 arg_values.append(session_info)
+            elif arg == "ui":
+                from streamsync.ui import StreamsyncUIManager
+                ui_manager = StreamsyncUIManager(self.session.session_component_tree)
+                arg_values.append(ui_manager)
 
         result = None
         if is_async_handler:

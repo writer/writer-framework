@@ -12,6 +12,8 @@ import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue"
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
 import CoreLink from "../core_components/content/CoreLink.vue";
 import CoreChat from "../core_components/content/CoreChat.vue";
+import CoreTags from "../core_components/content/CoreTags.vue";
+import CoreAvatar from "../core_components/content/CoreAvatar.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -25,6 +27,7 @@ import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreTextInput from "../core_components/input/CoreTextInput.vue";
 import CoreTextareaInput from "../core_components/input/CoreTextareaInput.vue";
 import CoreRating from "../core_components/input/CoreRatingInput.vue";
+import CoreSwitchInput from "../core_components/input/CoreSwitchInput.vue";
 // layout
 import CoreColumn from "../core_components/layout/CoreColumn.vue";
 import CoreColumns from "../core_components/layout/CoreColumns.vue";
@@ -104,7 +107,10 @@ const templateMap = {
 	chat: CoreChat,
 	step: CoreStep,
 	steps: CoreSteps,
-	ratinginput: CoreRating
+	ratinginput: CoreRating,
+	tags: CoreTags,
+	switchinput: CoreSwitchInput,
+	avatar: CoreAvatar,
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {

@@ -3,11 +3,12 @@ import math
 from typing import Dict
 
 import numpy as np
-from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
+from streamsync.core import (BytesWrapper, Evaluator, EventDeserialiser,
                              FileWrapper, SessionManager, StateProxy, StateSerialiser, StateSerialiserException, StreamsyncState)
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
+import polars as pl
 import plotly.express as px
 import pytest
 import altair
@@ -42,12 +43,12 @@ simple_dict = {"items": {
         "Lettuce": {"name": "Lettuce", "type": "vegetable"}
     }}
 
+ss.Config.is_mail_enabled_for_log = True
+ss.init_state(raw_state_dict)
+
 sc = None
 with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
-
-ss.Config.is_mail_enabled_for_log = True
-ss.init_state(raw_state_dict)
 session = ss.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
@@ -214,24 +215,6 @@ class TestState:
         assert cloned.mail[0].get("payload").get("type") == "error"
         json.dumps(cloned.user_state.to_dict())
         json.dumps(cloned.mail)
-
-
-class TestComponentTree:
-
-    ct = ComponentTree()
-
-    def test_ingest(self) -> None:
-        self.ct.ingest(sc)
-        d = self.ct.to_dict()
-        assert d.get(
-            "84378aea-b64c-49a3-9539-f854532279ee").get("type") == "header"
-
-    def test_descendents(self) -> None:
-        desc = self.ct.get_descendents("root")
-        desc_ids = list(map(lambda x: x.id, desc))
-        assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
-        assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
-        assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids
 
 
 class TestEventDeserialiser:
@@ -577,6 +560,20 @@ class TestStateSerialiser():
         d = {
             "name": "Normal name",
             "df": pd.read_csv(self.df_path)
+        }
+        s = self.sts.serialise(d)
+        assert s.get("name") == "Normal name"
+        df_durl = s.get("df")
+        df_buffer = urllib.request.urlopen(df_durl)
+        reader = pa.ipc.open_file(df_buffer)
+        table = reader.read_all()
+        assert table.column("name")[0].as_py() == "Byte"
+        assert table.column("length_cm")[2].as_py() == 32
+
+    def test_polars_df(self) -> None:
+        d = {
+            "name": "Normal name",
+            "df": pl.read_csv(self.df_path)
         }
         s = self.sts.serialise(d)
         assert s.get("name") == "Normal name"

@@ -1,20 +1,24 @@
 import { test, expect } from "@playwright/test";
 
-test.setTimeout(5000);
-
 test.describe('undo and redo', () => {
 	const TYPE = 'button';
 	const COMPONENT_LOCATOR = 'button.CoreButton.component';
 	const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";
 	const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
+	let url: string;
 
 	test.beforeAll(async ({request}) => {
-		const response = await request.get(`/preset/2columns`);
+		const response = await request.post(`/preset/2columns`);
 		expect(response.ok()).toBeTruthy();
+		({url} = await response.json());
+	});
+
+	test.afterAll(async ({request}) => {
+		await request.delete(url);
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto("/");
+		await page.goto(url);
 	});
 
 	test("create, drag and drop, property change and remove", async ({ page }) => {

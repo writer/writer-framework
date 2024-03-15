@@ -1,13 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-test.setTimeout(5000);
-
-const createAndRemove = [
-	{ type: "sidebar", locator: `div.CoreSidebar.component` },
-	{ type: "section", locator: `section.CoreSection.component` },
-	{ type: "columns", locator: `div.CoreColumns.component` },
-];
-
 const fullCheck = [
 	{ type: "button", locator: `button.CoreButton.component` },
 	{ type: "text", locator: `div.CoreText.component` },
@@ -28,9 +20,9 @@ const fullCheck = [
 	{ type: "googlemaps", locator: `div.CoreGoogleMaps.component` },
 	{ type: "icon", locator: `div.icon.component` },
 	{ type: "timer", locator: `div.CoreTimer.component` },
-	{ type: "textinput", locator: `div.CoreTextInput.component` },
+	{ type: "textinput", locator: `div.CoreTextInput.component label` },
 	{ type: "textareainput", locator: `div.CoreTextareaInput.component` },
-	{ type: "numberinput", locator: `div.CoreNumberInput.component` },
+	{ type: "numberinput", locator: `div.CoreNumberInput.component label` },
 	{ type: "sliderinput", locator: `div.CoreSliderInput.component label` },
 	{ type: "dateinput", locator: `div.CoreDateInput.component label` },
 	{ type: "radioinput", locator: `div.CoreRadioInput.component` },
@@ -51,54 +43,26 @@ const fullCheck = [
 	{ type: "ratinginput", locator: `div.CoreRatingInput.component` },
 ];
 
-createAndRemove.forEach(({ type, locator }) => {
-	test.describe(type, () => {
-		const TYPE = type;
-		const COMPONENT_LOCATOR = locator;
-		const TARGET = ".CorePage";
-
-		test.beforeAll(async ({request}) => {
-			const response = await request.get(`/preset/empty_page`);
-			expect(response.ok()).toBeTruthy();
-		});
-
-		test.beforeEach(async ({ page }) => {
-			await page.goto("/");
-		});
-
-		test("create and remove", async ({ page }) => {
-			await page
-				.locator(`div.component.button[data-component-type="${TYPE}"]`)
-				.dragTo(page.locator(TARGET));
-			await expect(
-				page.locator(TARGET + " " + COMPONENT_LOCATOR),
-			).toHaveCount(1);
-
-			await page.locator(COMPONENT_LOCATOR).click();
-			await page
-				.locator(
-					'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
-				)
-				.click();
-			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0);
-		});
-	});
-});
-
 fullCheck.forEach(({ type, locator }) => {
 	test.describe(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
 		const COLUMN1 = ".CoreColumns .CoreColumn:nth-child(1 of .CoreColumn)";
 		const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
+		let url: string;
 
 		test.beforeAll(async ({request}) => {
-			const response = await request.get(`/preset/2columns`);
+			const response = await request.post(`/preset/2columns`);
 			expect(response.ok()).toBeTruthy();
+			({url} = await response.json());
+		});
+
+		test.afterAll(async ({request}) => {
+			await request.delete(url);
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto("/");
+			await page.goto(url);
 		});
 
 		test("create, drag and drop and remove", async ({ page }) => {

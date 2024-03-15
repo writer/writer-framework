@@ -50,6 +50,7 @@ pytest = ">= 7.0.0, < 8"
 altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
 alfred-cli = "^2.2.7"
+polars = "^0.20.15"
 
 [tool.poetry.extras]
 ds = ["pandas", "pyarrow", "plotly"]
