@@ -109,6 +109,25 @@ class SessionComponentTree(ComponentTree):
         super().__init__(attach_root=False)
         self.base_component_tree = base_component_tree
         self.updated = False
+        self.removed_base_components = list()
+
+    def get_descendents(self, parent_id: str) -> List[Component]:
+        if parent_id in self.components:
+            return super().get_descendents(parent_id)
+        else:
+            return self.base_component_tree.get_descendents(parent_id)
+
+    def get_direct_descendents(self, parent_id: str) -> List[Component]:
+        if parent_id in self.components:
+            return super().get_direct_descendents(parent_id)
+        else:
+            return self.base_component_tree.get_descendents(parent_id)
+
+    def clear_children(self, parent_id: str):
+        children = self.get_descendents(parent_id)
+
+        for child in children:
+            self.delete_component(child.id)
 
     def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
         session_component_present = component_id in self.components
@@ -140,12 +159,22 @@ class SessionComponentTree(ComponentTree):
         self.updated = True
         return super().ingest(serialised_components)
 
+    def delete_component(self, component_id: str):
+        if component_id in self.components:
+            del self.components[component_id]
+            return
+        if component_id in self.base_component_tree.components:
+            self.removed_base_components.append(component_id)
+            return
+        raise RuntimeError(f"Component with ID {component_id} not found")
+
     def to_dict(self) -> Dict:
         active_components = {
             # Collecting serialized base tree components
             component_id: base_component.to_dict()
             for component_id, base_component
             in self.base_component_tree.components.items()
+            if component_id not in self.removed_base_components
         }
         for component_id, session_component in self.components.items():
             # Overriding base tree components with session-specific ones

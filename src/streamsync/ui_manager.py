@@ -61,6 +61,40 @@ class StreamsyncUI:
             raise RuntimeError(f"Component {component_id} not found")
         return component
 
+    def refresh_with(self, component_id: str):
+        """
+        Clears the existing children of a container component and sets it up to
+        accept new components. This method is designed to refresh the specified
+        container with new content specified in the subsequent block.
+
+        :param component_id: The unique identifier of the container component
+                             to be refreshed.
+        :type component_id: str
+
+        .. note:: Upon invocation, this method clears all children of the
+        specified container component to prepare for new content. If no new
+        components are added within the context block, the container will
+        simply be emptied.
+
+        **Example**:
+        >>> with ui.refresh_with(id="my-container"):
+        >>>     ui.Text({"text": "New content"}, id="new-content-1")
+        >>>     ui.Button({"text": "Click me"}, id="new-button-1")
+
+        This method can also be used to clear existing children without adding
+        new components:
+        >>> with ui.refresh_with(id="my-container"):
+        >>>     pass
+        """
+        component = self.find(component_id)
+        if not component:
+            raise RuntimeError(f"Component {component_id} not found")
+
+        # Clear the children of the specified component.
+        self.component_tree.clear_children(component_id)
+
+        return component
+
     def _prepare_handlers(self, raw_handlers: Optional[dict]):
         handlers = {}
         if raw_handlers is not None:
