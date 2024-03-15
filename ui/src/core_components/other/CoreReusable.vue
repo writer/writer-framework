@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { h, inject, watch, ref } from "vue";
+import { h, inject, watch, ref, nextTick } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 export default {
@@ -30,6 +30,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const parentId = instancePath.at(-2).componentId;
 const ss = inject(injectionKeys.core);
+const ssbm = inject(injectionKeys.builderManager);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
@@ -40,6 +41,11 @@ const proxyDefinition = ss.getComponentDefinitionById(fields.proxyId);
 const parentDef = ss.getComponentDefinitionById(parentId);
 
 function renderError(message: string, cls: string) {
+	ss.setComponentDefinitionById(componentId, {
+		slot: "default",
+		positionless: false,
+		actions: [],
+	});
 	vnode.value = h(
 		"div",
 		{ class: ["CoreReuse", cls] },
@@ -82,9 +88,26 @@ function render() {
 	ss.setComponentDefinitionById(componentId, {
 		slot: proxyDefinition.value.slot || "default",
 		positionless: proxyDefinition.value.positionless || false,
+		actions: {
+			redirect: {
+				name: "Goto reused component",
+				icon: "arrow-right",
+				handler: async () => {
+					ss.setActivePageId(
+						ss.getComponentPageId(fields.proxyId.value),
+					);
+					await nextTick();
+					ssbm.setSelection(
+						fields.proxyId.value,
+						ss.getInstancePath(componentId),
+					);
+				},
+			},
+		},
 	});
 	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0, {
-		class: ["CoreReuse"],
+		class: ["CoreReuse", "streamsync-ignore"],
+		renderOnly: true,
 	});
 	vnode.value = reusedNode;
 }

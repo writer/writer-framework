@@ -38,6 +38,7 @@
 		</div>
 
 		<div class="sections">
+			<BuilderSettingsActions></BuilderSettingsActions>
 			<BuilderSettingsProperties></BuilderSettingsProperties>
 			<BuilderSettingsBinding v-if="isBindable"></BuilderSettingsBinding>
 			<BuilderSettingsHandlers></BuilderSettingsHandlers>
@@ -58,6 +59,7 @@ import injectionKeys from "../injectionKeys";
 
 import BuilderSettingsHandlers from "./BuilderSettingsHandlers.vue";
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
+import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "./BuilderCopyText.vue";
@@ -67,12 +69,7 @@ const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
-
-const componentDefinition = computed(() => {
-	const { type } = component.value;
-	const definition = ss.getComponentDefinition(type);
-	return definition;
-});
+const componentDefinition = ss.getComponentDefinitionById(component.value.id);
 
 const closeSettings = () => {
 	ssbm.setSelection(null);

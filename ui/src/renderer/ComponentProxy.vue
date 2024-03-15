@@ -14,7 +14,7 @@ import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 
 export default {
-	props: ["componentId", "instancePath", "instanceData"],
+	props: ["componentId", "instancePath", "instanceData", "renderOnly"],
 	setup(props) {
 		const ss = inject(injectionKeys.core);
 		const ssbm = inject(injectionKeys.builderManager);
@@ -64,6 +64,7 @@ export default {
 				],
 				instanceData: [...instanceData, ref(null)],
 				...ext,
+				renderOnly: props.renderOnly || ext.renderOnly,
 			});
 			return vnode;
 		};
@@ -278,7 +279,7 @@ export default {
 				},
 				...dataAttrs,
 				...(!isDisabled.value ? eventHandlerProps.value : []),
-				draggable: isBeingEdited.value,
+				draggable: !props.renderOnly && isBeingEdited.value,
 			};
 			return rootElProps;
 		};

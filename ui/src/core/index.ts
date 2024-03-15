@@ -24,8 +24,9 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
-	const componentDefinitionOverrides: Ref<Partial<StreamsyncComponentDefinition>> =
-		ref({});
+	const componentDefinitionOverrides: Ref<
+		Partial<StreamsyncComponentDefinition>
+	> = ref({});
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
@@ -567,6 +568,26 @@ export function generateCore() {
 		return (componentDefinitionOverrides.value[componentId] = patch);
 	}
 
+	function getInstancePath(componentId: Component["id"]): InstancePath {
+		const path = [];
+		let currentId = componentId;
+		while (currentId) {
+			const component = components.value[currentId];
+			path.unshift({ componentId: component.id, instanceNumber: 0 });
+			currentId = component.parentId;
+		}
+		return path;
+	}
+	function getComponentPageId(componentId: Component["id"]): Component["id"] {
+		let currentId = componentId;
+		while (currentId) {
+			const component = components.value[currentId];
+			if (component.type == "page") return component.id;
+			currentId = component.parentId;
+		}
+		return null;
+	}
+
 	const core = {
 		webSocket,
 		syncHealth,
@@ -596,6 +617,8 @@ export function generateCore() {
 		isChildOf,
 		getComponentDefinitionById,
 		setComponentDefinitionById,
+		getInstancePath,
+		getComponentPageId,
 	};
 
 	return core;
