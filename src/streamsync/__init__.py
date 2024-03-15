@@ -1,5 +1,5 @@
 import importlib.metadata
-from typing import Union, Optional, Dict, Any
+from typing import Union, Optional, Dict, Any, Generator, ContextManager
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config
 from streamsync.ui import StreamsyncUIManager
 from streamsync.core import initial_state, base_component_tree, session_manager, session_verifier
@@ -41,8 +41,22 @@ def init_state(state_dict: Dict[str, Any]):
     return initial_state
 
 
-def init_ui():
+def init_ui() -> StreamsyncUIManager:
     """
-    Wrapper for initializing the UI manager.
+    Initializes and returns an instance of StreamsyncUIManager. This manager provides 
+    methods to dynamically create and manage UI components in a Streamsync application.
+
+    The returned StreamsyncUIManager allows for the creation of application-wide, 
+    code-managed components during startup, ensuring that the set of components 
+    is initially accessible by all sessions.
+
+    Returns:
+        StreamsyncUIManager: An instance that serves as a bridge for programmatically 
+        interacting with the frontend, facilitating dynamic UI component management.
+
+    Example:
+    >>> with ss.init_ui() as ui:
+    >>>     with ui.Page({"key": "hello"}):
+    >>>         ui.Text({"text": "Hello pigeons"})
     """
     return StreamsyncUIManager()
