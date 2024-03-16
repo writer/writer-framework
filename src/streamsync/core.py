@@ -17,7 +17,7 @@ import re
 import json
 import math
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from streamsync.core_ui import ComponentTree, SessionComponentTree
+from streamsync.core_ui import ComponentTree, SessionComponentTree, use_component_tree
 
 
 class Config:
@@ -1216,14 +1216,15 @@ class EventHandler:
                 arg_values.append(session_info)
             elif arg == "ui":
                 from streamsync.ui import StreamsyncUIManager
-                ui_manager = StreamsyncUIManager(self.session.session_component_tree)
+                ui_manager = StreamsyncUIManager()
                 arg_values.append(ui_manager)
 
         result = None
-        if is_async_handler:
-            result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
-        else:
-            result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
+        with use_component_tree(self.session.session_component_tree):
+            if is_async_handler:
+                result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
+            else:
+                result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
 
         if captured_stdout:
             self.session_state.add_log_entry(

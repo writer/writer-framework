@@ -737,10 +737,11 @@ class StreamsyncUIManager(StreamsyncUI):
     frontend, allowing methods to adapt to changes in the UI components without
     manual updates.
     """
-
+    
     # Hardcoded classes for proof-of-concept purposes
   
-    def Root(self, 
+    @staticmethod
+    def Root(
             content: RootProps = {},
             *,
             id: Optional[str] = None,
@@ -752,7 +753,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         The root component of the application, which serves as the starting point of the component hierarchy.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'root',
             content=content,
             id=id,
@@ -762,7 +763,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Page(self, 
+    @staticmethod
+    def Page(
             content: PageProps = {},
             *,
             id: Optional[str] = None,
@@ -774,7 +776,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component representing a single page within the application.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'page',
             content=content,
             id=id,
@@ -784,7 +786,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Sidebar(self, 
+    @staticmethod
+    def Sidebar(
             content: SidebarProps = {},
             *,
             id: Optional[str] = None,
@@ -796,7 +799,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that organises its children in a sidebar. Its parent must be a Page component.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'sidebar',
             content=content,
             id=id,
@@ -806,7 +809,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Button(self, 
+    @staticmethod
+    def Button(
             content: ButtonProps = {},
             *,
             id: Optional[str] = None,
@@ -818,7 +822,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A standalone button component that can be linked to a click event handler.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'button',
             content=content,
             id=id,
@@ -828,7 +832,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Text(self, 
+    @staticmethod
+    def Text(
             content: TextProps = {},
             *,
             id: Optional[str] = None,
@@ -840,7 +845,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display plain text or formatted text using Markdown syntax.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'text',
             content=content,
             id=id,
@@ -850,7 +855,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Section(self, 
+    @staticmethod
+    def Section(
             content: SectionProps = {},
             *,
             id: Optional[str] = None,
@@ -862,7 +868,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that divides the layout into sections, with an optional title.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'section',
             content=content,
             id=id,
@@ -872,7 +878,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Header(self, 
+    @staticmethod
+    def Header(
             content: HeaderProps = {},
             *,
             id: Optional[str] = None,
@@ -884,7 +891,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that typically contains the main navigation elements.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'header',
             content=content,
             id=id,
@@ -894,7 +901,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Heading(self, 
+    @staticmethod
+    def Heading(
             content: HeadingProps = {},
             *,
             id: Optional[str] = None,
@@ -906,7 +914,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A text component used to display headings or titles in different sizes and styles.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'heading',
             content=content,
             id=id,
@@ -916,7 +924,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def DataFrame(self, 
+    @staticmethod
+    def DataFrame(
             content: DataFrameProps = {},
             *,
             id: Optional[str] = None,
@@ -928,7 +937,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display Pandas DataFrames.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'dataframe',
             content=content,
             id=id,
@@ -938,7 +947,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def HTMLElement(self, 
+    @staticmethod
+    def HTMLElement(
             content: HTMLElementProps = {},
             *,
             id: Optional[str] = None,
@@ -950,7 +960,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A generic component that creates customisable HTML elements, which can serve as containers for other components.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'html',
             content=content,
             id=id,
@@ -960,7 +970,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Pagination(self, 
+    @staticmethod
+    def Pagination(
             content: PaginationProps = {},
             *,
             id: Optional[str] = None,
@@ -972,7 +983,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that can help you paginate records, for example from a Repeater or a DataFrame.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'pagination',
             content=content,
             id=id,
@@ -982,7 +993,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Repeater(self, 
+    @staticmethod
+    def Repeater(
             content: RepeaterProps = {},
             *,
             id: Optional[str] = None,
@@ -994,7 +1006,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that repeats its child components based on a dictionary.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'repeater',
             content=content,
             id=id,
@@ -1004,7 +1016,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Column(self, 
+    @staticmethod
+    def Column(
             content: ColumnProps = {},
             *,
             id: Optional[str] = None,
@@ -1016,7 +1029,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A layout component that organises its child components in columns. Must be inside a Column Container component.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'column',
             content=content,
             id=id,
@@ -1026,7 +1039,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def ColumnContainer(self, 
+    @staticmethod
+    def ColumnContainer(
             content: ColumnContainerProps = {},
             *,
             id: Optional[str] = None,
@@ -1038,7 +1052,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         Serves as container for Column components
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'columns',
             content=content,
             id=id,
@@ -1048,7 +1062,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Tab(self, 
+    @staticmethod
+    def Tab(
             content: TabProps = {},
             *,
             id: Optional[str] = None,
@@ -1060,7 +1075,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that displays its child components as a tab inside a Tab Container.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'tab',
             content=content,
             id=id,
@@ -1070,7 +1085,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def TabContainer(self, 
+    @staticmethod
+    def TabContainer(
             content: TabContainerProps = {},
             *,
             id: Optional[str] = None,
@@ -1082,7 +1098,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component for organising and displaying Tab components in a tabbed interface.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'tabs',
             content=content,
             id=id,
@@ -1092,7 +1108,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Link(self, 
+    @staticmethod
+    def Link(
             content: LinkProps = {},
             *,
             id: Optional[str] = None,
@@ -1104,7 +1121,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to create a hyperlink.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'link',
             content=content,
             id=id,
@@ -1114,7 +1131,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def HorizontalStack(self, 
+    @staticmethod
+    def HorizontalStack(
             content: HorizontalStackProps = {},
             *,
             id: Optional[str] = None,
@@ -1126,7 +1144,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'horizontalstack',
             content=content,
             id=id,
@@ -1136,7 +1154,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Separator(self, 
+    @staticmethod
+    def Separator(
             content: SeparatorProps = {},
             *,
             id: Optional[str] = None,
@@ -1148,7 +1167,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A visual component to create a separation between adjacent elements.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'separator',
             content=content,
             id=id,
@@ -1158,7 +1177,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Image(self, 
+    @staticmethod
+    def Image(
             content: ImageProps = {},
             *,
             id: Optional[str] = None,
@@ -1170,7 +1190,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display images.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'image',
             content=content,
             id=id,
@@ -1180,7 +1200,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def PDF(self, 
+    @staticmethod
+    def PDF(
             content: PDFProps = {},
             *,
             id: Optional[str] = None,
@@ -1192,7 +1213,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed PDF documents.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'pdf',
             content=content,
             id=id,
@@ -1202,7 +1223,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def IFrame(self, 
+    @staticmethod
+    def IFrame(
             content: IFrameProps = {},
             *,
             id: Optional[str] = None,
@@ -1214,7 +1236,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed an external resource in an iframe.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'iframe',
             content=content,
             id=id,
@@ -1224,7 +1246,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def GoogleMaps(self, 
+    @staticmethod
+    def GoogleMaps(
             content: GoogleMapsProps = {},
             *,
             id: Optional[str] = None,
@@ -1236,7 +1259,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed a Google Map. It can be used to display a map with markers.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'googlemaps',
             content=content,
             id=id,
@@ -1246,7 +1269,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Mapbox(self, 
+    @staticmethod
+    def Mapbox(
             content: MapboxProps = {},
             *,
             id: Optional[str] = None,
@@ -1258,7 +1282,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed a Mapbox map. It can be used to display a map with markers.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'mapbox',
             content=content,
             id=id,
@@ -1268,7 +1292,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Icon(self, 
+    @staticmethod
+    def Icon(
             content: IconProps = {},
             *,
             id: Optional[str] = None,
@@ -1280,7 +1305,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display an icon
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'icon',
             content=content,
             id=id,
@@ -1290,7 +1315,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Timer(self, 
+    @staticmethod
+    def Timer(
             content: TimerProps = {},
             *,
             id: Optional[str] = None,
@@ -1302,7 +1328,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'timer',
             content=content,
             id=id,
@@ -1312,7 +1338,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def TextInput(self, 
+    @staticmethod
+    def TextInput(
             content: TextInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1325,7 +1352,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter single-line text values.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'textinput',
             content=content,
             id=id,
@@ -1336,7 +1363,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def TextareaInput(self, 
+    @staticmethod
+    def TextareaInput(
             content: TextareaInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1349,7 +1377,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter multi-line text values.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'textareainput',
             content=content,
             id=id,
@@ -1360,7 +1388,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def NumberInput(self, 
+    @staticmethod
+    def NumberInput(
             content: NumberInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1373,7 +1402,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter numeric values.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'numberinput',
             content=content,
             id=id,
@@ -1384,7 +1413,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def SliderInput(self, 
+    @staticmethod
+    def SliderInput(
             content: SliderInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1397,7 +1427,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'sliderinput',
             content=content,
             id=id,
@@ -1408,7 +1438,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def DateInput(self, 
+    @staticmethod
+    def DateInput(
             content: DateInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1421,7 +1452,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a date using a date picker interface.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'dateinput',
             content=content,
             id=id,
@@ -1432,7 +1463,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def RadioInput(self, 
+    @staticmethod
+    def RadioInput(
             content: RadioInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1445,7 +1477,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to choose a single value from a list of options using radio buttons.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'radioinput',
             content=content,
             id=id,
@@ -1456,7 +1488,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def CheckboxInput(self, 
+    @staticmethod
+    def CheckboxInput(
             content: CheckboxInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1469,7 +1502,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to choose multiple values from a list of options using checkboxes.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'checkboxinput',
             content=content,
             id=id,
@@ -1480,7 +1513,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def DropdownInput(self, 
+    @staticmethod
+    def DropdownInput(
             content: DropdownInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1493,7 +1527,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a single value from a list of options using a dropdown menu.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'dropdowninput',
             content=content,
             id=id,
@@ -1504,7 +1538,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def SelectInput(self, 
+    @staticmethod
+    def SelectInput(
             content: SelectInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1517,7 +1552,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a single value from a searchable list of options.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'selectinput',
             content=content,
             id=id,
@@ -1528,7 +1563,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def MultiselectInput(self, 
+    @staticmethod
+    def MultiselectInput(
             content: MultiselectInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1541,7 +1577,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select multiple values from a searchable list of options.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'multiselectinput',
             content=content,
             id=id,
@@ -1552,7 +1588,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def FileInput(self, 
+    @staticmethod
+    def FileInput(
             content: FileInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1565,7 +1602,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to upload files.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'fileinput',
             content=content,
             id=id,
@@ -1576,7 +1613,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def WebcamCapture(self, 
+    @staticmethod
+    def WebcamCapture(
             content: WebcamCaptureProps = {},
             *,
             id: Optional[str] = None,
@@ -1588,7 +1626,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to capture images using their webcam.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'webcamcapture',
             content=content,
             id=id,
@@ -1598,7 +1636,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def VegaLiteChart(self, 
+    @staticmethod
+    def VegaLiteChart(
             content: VegaLiteChartProps = {},
             *,
             id: Optional[str] = None,
@@ -1610,7 +1649,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays Vega-Lite/Altair charts.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'vegalitechart',
             content=content,
             id=id,
@@ -1620,7 +1659,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def PlotlyGraph(self, 
+    @staticmethod
+    def PlotlyGraph(
             content: PlotlyGraphProps = {},
             *,
             id: Optional[str] = None,
@@ -1632,7 +1672,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays Plotly graphs.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'plotlygraph',
             content=content,
             id=id,
@@ -1642,7 +1682,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Metric(self, 
+    @staticmethod
+    def Metric(
             content: MetricProps = {},
             *,
             id: Optional[str] = None,
@@ -1654,7 +1695,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that prominently displays a metric value and associated information.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'metric',
             content=content,
             id=id,
@@ -1664,7 +1705,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Message(self, 
+    @staticmethod
+    def Message(
             content: MessageProps = {},
             *,
             id: Optional[str] = None,
@@ -1676,7 +1718,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays a message in various styles, including success, error, warning, and informational.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'message',
             content=content,
             id=id,
@@ -1686,7 +1728,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def VideoPlayer(self, 
+    @staticmethod
+    def VideoPlayer(
             content: VideoPlayerProps = {},
             *,
             id: Optional[str] = None,
@@ -1698,7 +1741,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A video player component that can play various video formats.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'videoplayer',
             content=content,
             id=id,
@@ -1708,7 +1751,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Chat(self, 
+    @staticmethod
+    def Chat(
             content: ChatProps = {},
             *,
             id: Optional[str] = None,
@@ -1720,7 +1764,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A chat component to build human-to-AI interactions.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'chat',
             content=content,
             id=id,
@@ -1730,7 +1774,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def Step(self, 
+    @staticmethod
+    def Step(
             content: StepProps = {},
             *,
             id: Optional[str] = None,
@@ -1742,7 +1787,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that displays its child components as a step inside a Step Container.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'step',
             content=content,
             id=id,
@@ -1752,7 +1797,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def StepContainer(self, 
+    @staticmethod
+    def StepContainer(
             content: StepContainerProps = {},
             *,
             id: Optional[str] = None,
@@ -1764,7 +1810,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component for displaying Step components, allowing you to implement a stepped workflow.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'steps',
             content=content,
             id=id,
@@ -1774,7 +1820,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def RatingInput(self, 
+    @staticmethod
+    def RatingInput(
             content: RatingInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1787,7 +1834,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to provide a rating.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'ratinginput',
             content=content,
             id=id,
@@ -1798,7 +1845,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def Tags(self, 
+    @staticmethod
+    def Tags(
             content: TagsProps = {},
             *,
             id: Optional[str] = None,
@@ -1810,7 +1858,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display coloured tag pills.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'tags',
             content=content,
             id=id,
@@ -1820,7 +1868,8 @@ class StreamsyncUIManager(StreamsyncUI):
             visible=visible)
         return component
     
-    def SwitchInput(self, 
+    @staticmethod
+    def SwitchInput(
             content: SwitchInputProps = {},
             *,
             id: Optional[str] = None,
@@ -1833,7 +1882,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component with a simple on/off status.
         """
-        component = self.create_component(
+        component = StreamsyncUI.create_component(
             'switchinput',
             content=content,
             id=id,
@@ -1844,7 +1893,8 @@ class StreamsyncUIManager(StreamsyncUI):
             binding=binding)
         return component
     
-    def Avatar(self, 
+    @staticmethod
+    def Avatar(
             content: AvatarProps = {},
             *,
             id: Optional[str] = None,
@@ -1856,7 +1906,7 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display user avatars.
         """
-        component = self.create_container_component(
+        component = StreamsyncUI.create_container_component(
             'avatar',
             content=content,
             id=id,
