@@ -344,14 +344,6 @@ class AppProcess(multiprocessing.Process):
             if self.mode == "run":
                 terminate_early = True
 
-        try:
-            streamsync.base_component_tree.ingest(self.bmc_components)
-        except BaseException:
-            streamsync.core.initial_state.add_log_entry(
-                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
-            if self.mode == "run":
-                terminate_early = True
-
         if terminate_early:
             self._terminate_early()
             return

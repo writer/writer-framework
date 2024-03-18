@@ -191,7 +191,7 @@ def current_component_tree() -> ComponentTree:
     """
     tree = _current_component_tree.get()
     if tree is None:
-        from streamsync.core import base_component_tree
-        return base_component_tree
+        import streamsync.core
+        return streamsync.core.base_component_tree
 
     return tree
