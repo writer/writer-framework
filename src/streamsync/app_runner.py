@@ -290,7 +290,7 @@ class AppProcess(multiprocessing.Process):
         captured_stdout = f.getvalue()
 
         if captured_stdout:
-            streamsync.initial_state.add_log_entry(
+            streamsync.core.initial_state.add_log_entry(
                 "info", "Stdout message during initialisation", captured_stdout)
 
     def _apply_configuration(self) -> None:
@@ -326,7 +326,7 @@ class AppProcess(multiprocessing.Process):
         try:
             streamsync.base_component_tree.ingest(self.bmc_components)
         except BaseException:
-            streamsync.initial_state.add_log_entry(
+            streamsync.core.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
             if self.mode == "run":
                 terminate_early = True
@@ -336,11 +336,19 @@ class AppProcess(multiprocessing.Process):
         except BaseException:
             # Initialisation errors will be sent to all sessions via mail during session initialisation
 
-            streamsync.initial_state.add_log_entry(
+            streamsync.core.initial_state.add_log_entry(
                 "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
             
             # Exit if in run mode
             
+            if self.mode == "run":
+                terminate_early = True
+
+        try:
+            streamsync.base_component_tree.ingest(self.bmc_components)
+        except BaseException:
+            streamsync.core.initial_state.add_log_entry(
+                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
             if self.mode == "run":
                 terminate_early = True
 
