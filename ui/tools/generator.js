@@ -108,20 +108,6 @@ class StreamsyncUIManager(StreamsyncUI):
   `;
 }
 
-function generateComponentDefaults(component) {
-	return Object.entries(component.fields)
-		.filter(([, field]) => typeof field.default !== "undefined")
-		.map(([key, field]) => {
-			const defaultValue = ("" + (field?.default || ""))
-				?.replaceAll('"', '\\"')
-				?.replaceAll("\n", "\\n");
-			return `            "${key}": "${defaultValue}",`;
-		})
-		.join("\n");
-
-	//`  content = { defaultContent, content }`
-}
-
 function generateMethods(data) {
 	const methods = data.map((component) => {
 		const isBindable = Boolean(
@@ -146,10 +132,6 @@ function generateMethods(data) {
         """
         ${component.description}
         """
-        defaultContent: ${component.nameTrim}Props = {
-${generateComponentDefaults(component)}
-        }
-        content = defaultContent | content
         component = self.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
             '${component.type}',
             content=content,
