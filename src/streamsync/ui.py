@@ -752,14 +752,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         The root component of the application, which serves as the starting point of the component hierarchy.
         """
-        defaultContent: RootProps = {
-            "selectedColor": "rgba(210, 234, 244, 0.8)",
-            "contentWidth": "100%",
-            "contentHAlign": "unset",
-            "contentVAlign": "unset",
-            "contentPadding": "0",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'root',
             content=content,
@@ -782,11 +774,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component representing a single page within the application.
         """
-        defaultContent: PageProps = {
-            "pageMode": "compact",
-            "selectedColor": "rgba(210, 234, 244, 0.8)",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'page',
             content=content,
@@ -809,11 +796,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that organises its children in a sidebar. Its parent must be a Page component.
         """
-        defaultContent: SidebarProps = {
-            "startCollapsed": "no",
-            "sidebarBackgroundColor": "rgba(255, 255, 255, 0.3)",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'sidebar',
             content=content,
@@ -836,10 +818,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A standalone button component that can be linked to a click event handler.
         """
-        defaultContent: ButtonProps = {
-            "isDisabled": "no",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'button',
             content=content,
@@ -862,12 +840,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display plain text or formatted text using Markdown syntax.
         """
-        defaultContent: TextProps = {
-            "text": "(No text)",
-            "useMarkdown": "no",
-            "alignment": "left",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'text',
             content=content,
@@ -890,11 +862,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that divides the layout into sections, with an optional title.
         """
-        defaultContent: SectionProps = {
-            "contentPadding": "16px",
-            "contentHAlign": "unset",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'section',
             content=content,
@@ -917,10 +884,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that typically contains the main navigation elements.
         """
-        defaultContent: HeaderProps = {
-            "text": "(No text)",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'header',
             content=content,
@@ -943,12 +906,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A text component used to display headings or titles in different sizes and styles.
         """
-        defaultContent: HeadingProps = {
-            "text": "(No text)",
-            "headingType": "h2",
-            "alignment": "left",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'heading',
             content=content,
@@ -971,18 +928,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display Pandas DataFrames.
         """
-        defaultContent: DataFrameProps = {
-            "dataframe": "data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==",
-            "showIndex": "yes",
-            "enableSearch": "no",
-            "enableDownload": "no",
-            "displayRowCount": "10",
-            "wrapText": "no",
-            "dataframeBackgroundColor": "#ffffff",
-            "dataframeHeaderRowBackgroundColor": "#f0f0f0",
-            "fontStyle": "normal",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'dataframe',
             content=content,
@@ -1005,13 +950,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A generic component that creates customisable HTML elements, which can serve as containers for other components.
         """
-        defaultContent: HTMLElementProps = {
-            "element": "div",
-            "styles": "",
-            "attrs": "",
-            "htmlInside": "",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'html',
             content=content,
@@ -1034,15 +972,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that can help you paginate records, for example from a Repeater or a DataFrame.
         """
-        defaultContent: PaginationProps = {
-            "page": "1",
-            "pageSize": "10",
-            "totalItems": "10",
-            "pageSizeOptions": "",
-            "pageSizeShowAll": "no",
-            "jumpTo": "no",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'pagination',
             content=content,
@@ -1065,12 +994,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that repeats its child components based on a dictionary.
         """
-        defaultContent: RepeaterProps = {
-            "repeaterObject": "{\n  \"a\": {\n    \"desc\": \"Option A\"\n  },\n  \"b\": {\n    \"desc\": \"Option B\"\n  }\n}",
-            "keyVariable": "itemId",
-            "valueVariable": "item",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'repeater',
             content=content,
@@ -1093,16 +1016,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A layout component that organises its child components in columns. Must be inside a Column Container component.
         """
-        defaultContent: ColumnProps = {
-            "width": "1",
-            "isSticky": "no",
-            "isCollapsible": "no",
-            "startCollapsed": "no",
-            "contentPadding": "0",
-            "contentHAlign": "unset",
-            "contentVAlign": "unset",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'column',
             content=content,
@@ -1125,10 +1038,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         Serves as container for Column components
         """
-        defaultContent: ColumnContainerProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'columns',
             content=content,
@@ -1151,12 +1060,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that displays its child components as a tab inside a Tab Container.
         """
-        defaultContent: TabProps = {
-            "name": "(No name)",
-            "contentPadding": "16px",
-            "contentHAlign": "unset",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'tab',
             content=content,
@@ -1179,10 +1082,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component for organising and displaying Tab components in a tabbed interface.
         """
-        defaultContent: TabContainerProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'tabs',
             content=content,
@@ -1205,12 +1104,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to create a hyperlink.
         """
-        defaultContent: LinkProps = {
-            "url": "https://streamsync.cloud",
-            "target": "_self",
-            "text": "",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'link',
             content=content,
@@ -1233,11 +1126,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.
         """
-        defaultContent: HorizontalStackProps = {
-            "contentPadding": "0",
-            "contentHAlign": "unset",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'horizontalstack',
             content=content,
@@ -1260,10 +1148,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A visual component to create a separation between adjacent elements.
         """
-        defaultContent: SeparatorProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_component(
             'separator',
             content=content,
@@ -1286,12 +1170,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display images.
         """
-        defaultContent: ImageProps = {
-            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjMwIiBoZWlnaHQ9IjIzMCIgdmlld0JveD0iMCAwIDIzMCAyMzAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMzAiIGhlaWdodD0iMjMwIiBmaWxsPSIjREFEQURBIi8+CjxyZWN0IHg9Ijg2LjA0MzkiIHk9Ijc4IiB3aWR0aD0iNzEuMjkzNyIgaGVpZ2h0PSIzNC42NDY3IiByeD0iMTcuMzIzMyIgZmlsbD0id2hpdGUiIHN0cm9rZT0id2hpdGUiLz4KPHJlY3QgeD0iNzIuNSIgeT0iMTEzLjY5MyIgd2lkdGg9IjcwLjI5MzciIGhlaWdodD0iMzYuODA3MyIgcng9IjE3LjUiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIi8+Cjwvc3ZnPgo=",
-            "maxWidth": "-1",
-            "maxHeight": "-1",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'image',
             content=content,
@@ -1314,12 +1192,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed PDF documents.
         """
-        defaultContent: PDFProps = {
-            "highlights": "[]",
-            "selectedMatch": "",
-            "controls": "yes",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'pdf',
             content=content,
@@ -1342,10 +1214,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed an external resource in an iframe.
         """
-        defaultContent: IFrameProps = {
-            "src": "",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'iframe',
             content=content,
@@ -1368,16 +1236,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed a Google Map. It can be used to display a map with markers.
         """
-        defaultContent: GoogleMapsProps = {
-            "apiKey": "",
-            "mapId": "",
-            "mapType": "roadmap",
-            "zoom": "8",
-            "lat": "37.79322359164316",
-            "lng": "-122.39999318828129",
-            "markers": "[{\"lat\":37.79322359164316,\"lng\":-122.39999318828129,\"name\":\"Marker\"}]",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'googlemaps',
             content=content,
@@ -1400,15 +1258,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to embed a Mapbox map. It can be used to display a map with markers.
         """
-        defaultContent: MapboxProps = {
-            "accessToken": "",
-            "mapStyle": "mapbox://styles/mapbox/standard",
-            "zoom": "8",
-            "lat": "37.79322359164316",
-            "lng": "-122.39999318828129",
-            "controls": "yes",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'mapbox',
             content=content,
@@ -1431,11 +1280,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display an icon
         """
-        defaultContent: IconProps = {
-            "icon": "square-line",
-            "size": "14",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'icon',
             content=content,
@@ -1458,11 +1302,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.
         """
-        defaultContent: TimerProps = {
-            "intervalMs": "200",
-            "isActive": "yes",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'timer',
             content=content,
@@ -1486,10 +1325,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter single-line text values.
         """
-        defaultContent: TextInputProps = {
-            "passwordMode": "no",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'textinput',
             content=content,
@@ -1514,10 +1349,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter multi-line text values.
         """
-        defaultContent: TextareaInputProps = {
-            "rows": "5",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'textareainput',
             content=content,
@@ -1542,12 +1373,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to enter numeric values.
         """
-        defaultContent: NumberInputProps = {
-            "minValue": "",
-            "maxValue": "",
-            "valueStep": "1",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'numberinput',
             content=content,
@@ -1572,12 +1397,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.
         """
-        defaultContent: SliderInputProps = {
-            "minValue": "0",
-            "maxValue": "100",
-            "stepSize": "1",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'sliderinput',
             content=content,
@@ -1602,10 +1421,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a date using a date picker interface.
         """
-        defaultContent: DateInputProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_component(
             'dateinput',
             content=content,
@@ -1630,11 +1445,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to choose a single value from a list of options using radio buttons.
         """
-        defaultContent: RadioInputProps = {
-            "options": "{\n  \"a\": \"Option A\",\n  \"b\": \"Option B\"\n}",
-            "orientation": "vertical",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'radioinput',
             content=content,
@@ -1659,11 +1469,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to choose multiple values from a list of options using checkboxes.
         """
-        defaultContent: CheckboxInputProps = {
-            "options": "{\n  \"a\": \"Option A\",\n  \"b\": \"Option B\"\n}",
-            "orientation": "vertical",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'checkboxinput',
             content=content,
@@ -1688,10 +1493,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a single value from a list of options using a dropdown menu.
         """
-        defaultContent: DropdownInputProps = {
-            "options": "{\n  \"a\": \"Option A\",\n  \"b\": \"Option B\"\n}",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'dropdowninput',
             content=content,
@@ -1716,13 +1517,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select a single value from a searchable list of options.
         """
-        defaultContent: SelectInputProps = {
-            "options": "{\n  \"a\": \"Option A\",\n  \"b\": \"Option B\"\n}",
-            "maximumCount": "0",
-            "chipTextColor": "#ffffff",
-            "selectedColor": "rgba(210, 234, 244, 0.8)",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'selectinput',
             content=content,
@@ -1747,13 +1541,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to select multiple values from a searchable list of options.
         """
-        defaultContent: MultiselectInputProps = {
-            "options": "{\n  \"a\": \"Option A\",\n  \"b\": \"Option B\"\n}",
-            "maximumCount": "0",
-            "chipTextColor": "#ffffff",
-            "selectedColor": "rgba(210, 234, 244, 0.8)",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'multiselectinput',
             content=content,
@@ -1778,10 +1565,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to upload files.
         """
-        defaultContent: FileInputProps = {
-            "allowMultipleFiles": "no",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'fileinput',
             content=content,
@@ -1805,10 +1588,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to capture images using their webcam.
         """
-        defaultContent: WebcamCaptureProps = {
-            "refreshRate": "200",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'webcamcapture',
             content=content,
@@ -1831,10 +1610,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays Vega-Lite/Altair charts.
         """
-        defaultContent: VegaLiteChartProps = {
-            "spec": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"description\": \"A component that displays Vega-Lite/Altair charts.\",\n  \"data\": {\n    \"values\": [\n      {\n        \"a\": \"A\",\n        \"b\": 100\n      },\n      {\n        \"a\": \"B\",\n        \"b\": 200\n      },\n      {\n        \"a\": \"C\",\n        \"b\": 150\n      },\n      {\n        \"a\": \"D\",\n        \"b\": 300\n      }\n    ]\n  },\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"a\",\n      \"type\": \"nominal\"\n    },\n    \"y\": {\n      \"field\": \"b\",\n      \"type\": \"quantitative\"\n    }\n  }\n}",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'vegalitechart',
             content=content,
@@ -1857,10 +1632,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays Plotly graphs.
         """
-        defaultContent: PlotlyGraphProps = {
-            "spec": "{\n  \"data\": [\n    {\n      \"x\": [\n        \"a\",\n        \"b\",\n        \"c\"\n      ],\n      \"y\": [\n        22,\n        25,\n        29\n      ],\n      \"type\": \"bar\"\n    }\n  ]\n}",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'plotlygraph',
             content=content,
@@ -1883,14 +1654,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that prominently displays a metric value and associated information.
         """
-        defaultContent: MetricProps = {
-            "name": "Metric",
-            "metricValue": "0",
-            "positiveColor": "#00B800",
-            "neutralColor": "var(--secondaryTextColor)",
-            "negativeColor": "#FB0000",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'metric',
             content=content,
@@ -1913,14 +1676,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component that displays a message in various styles, including success, error, warning, and informational.
         """
-        defaultContent: MessageProps = {
-            "successColor": "#00B800",
-            "errorColor": "#FB0000",
-            "warningColor": "#FB9600",
-            "infoColor": "#00ADB8",
-            "loadingColor": "#00ADB8",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'message',
             content=content,
@@ -1943,14 +1698,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A video player component that can play various video formats.
         """
-        defaultContent: VideoPlayerProps = {
-            "src": "",
-            "controls": "yes",
-            "autoplay": "no",
-            "loop": "no",
-            "muted": "no",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'videoplayer',
             content=content,
@@ -1973,17 +1720,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A chat component to build human-to-AI interactions.
         """
-        defaultContent: ChatProps = {
-            "incomingInitials": "AI",
-            "outgoingInitials": "YOU",
-            "useMarkdown": "no",
-            "enableFileUpload": "no",
-            "placeholder": "Write something...",
-            "outgoingColor": "#F5F5F9",
-            "avatarBackgroundColor": "#2C2D30",
-            "avatarTextColor": "#FFFFFF",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'chat',
             content=content,
@@ -2006,13 +1742,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component that displays its child components as a step inside a Step Container.
         """
-        defaultContent: StepProps = {
-            "name": "(No name)",
-            "contentPadding": "16px",
-            "isCompleted": "no",
-            "contentHAlign": "unset",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'step',
             content=content,
@@ -2035,10 +1764,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A container component for displaying Step components, allowing you to implement a stepped workflow.
         """
-        defaultContent: StepContainerProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'steps',
             content=content,
@@ -2062,13 +1787,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component that allows users to provide a rating.
         """
-        defaultContent: RatingInputProps = {
-            "feedback": "stars",
-            "minValue": "1",
-            "maxValue": "5",
-            "valueStep": "1",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'ratinginput',
             content=content,
@@ -2092,14 +1810,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display coloured tag pills.
         """
-        defaultContent: TagsProps = {
-            "tags": "{}",
-            "referenceColor": "#29cf00",
-            "seed": "1",
-            "rotateHue": "yes",
-            "primaryTextColor": "#ffffff",
-        }
-        content = defaultContent | content
         component = self.create_component(
             'tags',
             content=content,
@@ -2123,10 +1833,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A user input component with a simple on/off status.
         """
-        defaultContent: SwitchInputProps = {
-
-        }
-        content = defaultContent | content
         component = self.create_component(
             'switchinput',
             content=content,
@@ -2150,11 +1856,6 @@ class StreamsyncUIManager(StreamsyncUI):
         """
         A component to display user avatars.
         """
-        defaultContent: AvatarProps = {
-            "size": "medium",
-            "orientation": "horizontal",
-        }
-        content = defaultContent | content
         component = self.create_container_component(
             'avatar',
             content=content,
