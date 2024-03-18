@@ -1,9 +1,23 @@
 # Modifying app UI through backend
 
-Streamsync facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). CMCs, unlike BMCs, are dynamically created via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
+Streamsync facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). 
+
+CMCs, unlike BMCs, are dynamically created and modified via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
 
 ::: warning Experimental feature
 This Streamsync feature is still evolving. You may encounter unexpected behavior. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
+:::
+
+::: tip To summarize
+**CMC** – Code-Managed Component 
+- created via **application backend**;
+- **cannot be edited** in builder;
+- is **not saved** to `ui.json`.
+
+**BMC** – Builder-Managed Component 
+- created via **builder**; 
+- **can be edited** in builder;
+- is **saved** to `ui.json`.
 :::
 
 ## UI manager
@@ -20,6 +34,7 @@ import streamsync as ss
 with ss.init_ui() as ui:
     with ui.Page(id="my-page"):
         ui.Header({"text": "Hello World!"})
+        ui.ColumnContainer(id="column-container")
 ```
 
 ### Making session-specific updates
@@ -27,9 +42,12 @@ with ss.init_ui() as ui:
 For dynamic, session-specific UI updates, the `ui` parameter is used within handler functions. This approach allows for real-time modifications tailored to individual user sessions:
 
 ```python
-def add_hello_world(ui, state):
-    with ui.find("my-page"):
-        ui.Text({"text": f"And welcome {state["username"]}!"})
+def display_user_data(ui, state):
+    with ui.find("column-container"):
+        with ui.Column():
+            ui.Text({"text": f"And welcome {state["username"]}!"})
+        with ui.Column():
+            ui.Text({"text": f"Your data: {state["user_data"]}"})
 ```
 
 ## UI manager methods
@@ -44,24 +62,51 @@ with ui.find("column-container"):
 ```
 If the component couldn't be found, the method raises a `RuntimeError`.
 
+### `refresh_with` method
+
+You can use the `ui.refresh_with(component_id: str)` method to replace children of an existing component (referenced by its ID):
+```python
+with ui.refresh_with("my-page"):
+    # Previously existing children are cleared
+    ui.Header({"text": "Hello New World!"})
+    with ui.ColumnContainer():
+        with ui.Column():
+            ui.Text({"text": "Nobody here for now..."})
+```
+This applies both to [BMCs and CMCs](#modifying-app-ui-through-backend). In case of BMCs, original components are kept intact, and `ui.json` are still not modified.
+
+This method also allows to clear children of a component:
+```python
+with ui.refresh_with("my-page"):
+    # Empties the page
+    pass
+```
+
+As well as for `find` method, failing to find a component by the passed ID raises a `RuntimeError`.
+
 ### Component methods
 
-UI manager contains methods linked to each frontend component. In previous examples we've seen the `ui.Text` method used for creating [Text components](https://www.streamsync.cloud/component-list.html#text). 
+UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).
 
-This method accept `content: dict` as first argument, which enables you to modify the field properties of the component, through corresponding keys:
+This method expects `content: dict` as first argument, which enables you to modify the field properties of the component, through corresponding keys:
 ```python
 ui.Text(
     {
-        "text": "Hello World!",  # The text content of the component
-        "useMarkdown": "no",  # Will not use Markdown
-        "alignment": "left",  # Text is aligned to the left
-        "primaryTextColor": "#000000",  # The text color is black
-        "cssClasses": "my-text hello-world"  # Apply 'my-text' and 'hello-world' CSS classes
+        "text": "Hello World!",  
+        # The text content of the component
+        "useMarkdown": "no",  
+        # Will not use Markdown
+        "alignment": "left",  
+        # Text is aligned to the left
+        "primaryTextColor": "#000000",  
+        # The text color is black
+        "cssClasses": "my-text hello-world"  
+        # Apply 'my-text' and 'hello-world' CSS classes
     }
 )
 ```
 
-In a similar way, every other component method also accepts `content` as its first argument:
+In a similar way, every other component method also expects `content` as its first argument:
 ```python
 ui.VideoPlayer(
     {
@@ -74,13 +119,40 @@ ui.VideoPlayer(
 )
 ```
 
-In addition to `content`, which is specific to the component type, you can also modify the base properties of the component itself, which are:
-- **`id: str`**: A unique identifier used for accessing the component after it was created.
+In addition to `content`, a set of fields which is specific to the component type, you can also modify the base properties of the component itself, which are:
+- **`id: str`**: A unique identifier used for accessing the component after it was created.  
     *Providing an identifier that is already taken would result in `RuntimeWarning` and the existing component being overwritten with a newly created one.*
-- **`position: int`**: Determines the display order of the component in relation to its siblings.
-- **`parentId: str`**: Determines the parent [container](#container-components) for the component.
-- **`visible: bool`**: Determines the visibility of the component.
-- **`handlers: dict[str, callable]`**: Can be used to attach handlers to the events of the component:
+    ```python
+    ui.Text(
+        {"text": "Hello World!"}, 
+        id="hello-world-text"
+        )
+    ```
+    *If no ID is provided with a component, a UUID is automatically generated for it.*
+- **`position: int`**: Determines the display order of the component in relation to its siblings.  
+    Position `0` means that the component is the first child of its parent.  
+    Position `-2` is used for components – such as [sidebars](https://www.streamsync.cloud/component-list.html#sidebar) – that have a specific reserved position not related to their siblings.  
+    ```python
+    ui.Text(
+        {"text": "Hello Parent, I'm your first child!"}, 
+        position=0
+        )
+    ```
+    *Position is calculated automatically for each component, and you should be careful when you override it with predefined value, as this might lead to unexpected results.*
+- **`parentId: str`**: Determines the parent [container](#container-components) for the component. By default, components recognize the container in the context of which they were defined as their parent. This allows for linking components to their parents outside of context, or for overriding a parent within a context.
+    ```python
+    ui.Text(
+        {"text": "Hello Parent, I'm your child too!"}, 
+        parentId="dear-parent"
+        )
+    ```
+- **`visible: bool`**: Determines the visibility of the component, `True` by default.
+    ```python
+    ui.Text({"text": "I'm visible!"}, visible=True)
+
+    ui.Text({"text": "And I'm not!"}, visible=False)
+    ```
+- **`handlers: dict[str, callable]`**: Attaches [event handlers](https://www.streamsync.cloud/event-handlers.html) to the component. Each dictionary key represents an event, and its value is the corresponding handler.:
     ```python
     def increment(state):
         state["counter"] += 1
@@ -89,13 +161,18 @@ In addition to `content`, which is specific to the component type, you can also 
 
     ...
     
-    ui.Button({"text": "My Counter: @{counter}"}, handlers={"ss-click": increment})
-    # You have two options for adding a function to the `handlers` dictionary: 
-    # directly pass the function itself, or use the function's name as a string. 
+    ui.Button(
+        {"text": "My Counter: @{counter}"}, 
+        handlers={"ss-click": increment}
+        )
+    # You have two options for adding a function 
+    # to the `handlers` dictionary: 
+    # directly pass the function itself, 
+    # or use the function's name as a string. 
     # Both approaches yield the same outcome.
     ```
-    *A component can be associated with multiple handlers through applicable events.*
-- **`binding: dict[str, str]`**: Can be used to [bind](https://www.streamsync.cloud/builder-basics.html#binding) the component to a state element:
+    *A component can be linked to multiple event handlers.*
+- **`binding: dict[str, str]`**: Links the component to a state variable via [binding](https://www.streamsync.cloud/builder-basics.html#binding). The dictionary key is the bindable event, and the value is the state variable's name:
     ```python
     initial_state = ss.init_state({
         "header_text": "Default Text"
@@ -108,13 +185,17 @@ In addition to `content`, which is specific to the component type, you can also 
         {"label": "Bound Text"}, 
         binding={"ss-change": "header_text"}
         )
+    # This input will display "Default Text"
+    # Changing the text in this input will modify the `header_text` variable
 
     ui.SliderInput(
         {"minValue": 0, "maxValue": 300, "stepSize": 1}, 
         binding={"ss-number-change": "counter"}
         )
+    # This slider will have 0 as a default value
+    # Sliding it will modify the `counter` variable
     ```
-    *Note that, unlike handlers, a component can only be associated with a single variable through a bindable event. If the passed `binding` dictionary contains more than one pair of event name as key and variable name as value, it'll raise a `RuntimeError`.*
+    *Unlike handlers, a component can be linked to just one variable via a bindable event. If the `binding` dictionary includes multiple event-variable pairs, a `RuntimeError` will be triggered.*
 
 ### Container components
 
@@ -148,9 +229,26 @@ with ui.Column(id="cmc-column-1"):
 
 ...
 
-with ui.find(id="cmc-column-1"): # retrieves the Column component created before
-    # The following component is going to be appended to the retrieved Column
+# Retrieves the Column component created before
+with ui.find(id="cmc-column-1"): 
+    # The following component is going to be appended 
+    # to the retrieved Column
     ui.Text({"text": 'Hello World again!'}, id="hello-world-2")
 ```
 
-This will result in a Column component having two children Text components.
+This will result in a Column component having two children Text components. To replace or clear the children, use [`refresh_with` method](#refresh_with-method):
+
+```python
+with ui.Column(id="cmc-column-1"):
+    ui.Text({"text": 'Hello World!'}, id="hello-world-1")
+
+...
+
+with ui.refresh_with(id="cmc-column-1"):
+    # The following component is going to replace 
+    # previously existing children of the retrieved Column
+    ui.Text(
+        {"text": 'To Hello World, or not to Hello World?'}, 
+        id="hello-world-new"
+        )
+```
