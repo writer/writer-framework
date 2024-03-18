@@ -8,6 +8,7 @@ from streamsync.core import (BytesWrapper, Evaluator, EventDeserialiser,
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
+import polars as pl
 import plotly.express as px
 import pytest
 import altair
@@ -559,6 +560,20 @@ class TestStateSerialiser():
         d = {
             "name": "Normal name",
             "df": pd.read_csv(self.df_path)
+        }
+        s = self.sts.serialise(d)
+        assert s.get("name") == "Normal name"
+        df_durl = s.get("df")
+        df_buffer = urllib.request.urlopen(df_durl)
+        reader = pa.ipc.open_file(df_buffer)
+        table = reader.read_all()
+        assert table.column("name")[0].as_py() == "Byte"
+        assert table.column("length_cm")[2].as_py() == 32
+
+    def test_polars_df(self) -> None:
+        d = {
+            "name": "Normal name",
+            "df": pl.read_csv(self.df_path)
         }
         s = self.sts.serialise(d)
         assert s.get("name") == "Normal name"

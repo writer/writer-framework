@@ -139,7 +139,7 @@ DataFrameProps = TypedDict('DataFrameProps', {
     "showIndex": str,
     "enableSearch": str,
     "enableDownload": str,
-    "displayRowCount": str,
+    "displayRowCount": Union[float, str],
     "wrapText": str,
     "primaryTextColor": str,
     "secondaryTextColor": str,
@@ -155,8 +155,8 @@ DataFrameEventHandlers = TypedDict('DataFrameEventHandlers', {
 
 HTMLElementProps = TypedDict('HTMLElementProps', {
     "element": str,
-    "styles": str,
-    "attrs": str,
+    "styles": Union[Dict, str],
+    "attrs": Union[Dict, str],
     "htmlInside": str,
     "cssClasses": str
 }, total=False)
@@ -165,9 +165,9 @@ HTMLElementEventHandlers = TypedDict('HTMLElementEventHandlers', {
 }, total=False)
 
 PaginationProps = TypedDict('PaginationProps', {
-    "page": str,
-    "pageSize": str,
-    "totalItems": str,
+    "page": Union[float, str],
+    "pageSize": Union[float, str],
+    "totalItems": Union[float, str],
     "pageSizeOptions": str,
     "pageSizeShowAll": str,
     "jumpTo": str
@@ -179,7 +179,7 @@ PaginationEventHandlers = TypedDict('PaginationEventHandlers', {
 }, total=False)
 
 RepeaterProps = TypedDict('RepeaterProps', {
-    "repeaterObject": str,
+    "repeaterObject": Union[Dict, str],
     "keyVariable": str,
     "valueVariable": str
 }, total=False)
@@ -189,7 +189,7 @@ RepeaterEventHandlers = TypedDict('RepeaterEventHandlers', {
 
 ColumnProps = TypedDict('ColumnProps', {
     "title": str,
-    "width": str,
+    "width": Union[float, str],
     "isSticky": str,
     "isCollapsible": str,
     "startCollapsed": str,
@@ -268,8 +268,8 @@ SeparatorEventHandlers = TypedDict('SeparatorEventHandlers', {
 ImageProps = TypedDict('ImageProps', {
     "src": str,
     "caption": str,
-    "maxWidth": str,
-    "maxHeight": str,
+    "maxWidth": Union[float, str],
+    "maxHeight": Union[float, str],
     "secondaryTextColor": str,
     "cssClasses": str
 }, total=False)
@@ -280,9 +280,9 @@ ImageEventHandlers = TypedDict('ImageEventHandlers', {
 
 PDFProps = TypedDict('PDFProps', {
     "source": str,
-    "highlights": str,
-    "selectedMatch": str,
-    "page": str,
+    "highlights": Union[Dict, str],
+    "selectedMatch": Union[float, str],
+    "page": Union[float, str],
     "controls": str,
     "containerBackgroundColor": str,
     "separatorColor": str,
@@ -306,10 +306,10 @@ GoogleMapsProps = TypedDict('GoogleMapsProps', {
     "apiKey": str,
     "mapId": str,
     "mapType": str,
-    "zoom": str,
-    "lat": str,
-    "lng": str,
-    "markers": str,
+    "zoom": Union[float, str],
+    "lat": Union[float, str],
+    "lng": Union[float, str],
+    "markers": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -321,10 +321,10 @@ GoogleMapsEventHandlers = TypedDict('GoogleMapsEventHandlers', {
 MapboxProps = TypedDict('MapboxProps', {
     "accessToken": str,
     "mapStyle": str,
-    "zoom": str,
-    "lat": str,
-    "lng": str,
-    "markers": str,
+    "zoom": Union[float, str],
+    "lat": Union[float, str],
+    "lng": Union[float, str],
+    "markers": Union[Dict, str],
     "controls": str,
     "cssClasses": str
 }, total=False)
@@ -336,7 +336,7 @@ MapboxEventHandlers = TypedDict('MapboxEventHandlers', {
 
 IconProps = TypedDict('IconProps', {
     "icon": str,
-    "size": str,
+    "size": Union[float, str],
     "color": str,
     "cssClasses": str
 }, total=False)
@@ -345,7 +345,7 @@ IconEventHandlers = TypedDict('IconEventHandlers', {
 }, total=False)
 
 TimerProps = TypedDict('TimerProps', {
-    "intervalMs": str,
+    "intervalMs": Union[float, str],
     "isActive": str,
     "accentColor": str,
     "cssClasses": str
@@ -367,10 +367,14 @@ TextInputEventHandlers = TypedDict('TextInputEventHandlers', {
     "ss-change-finish": Union[str, Callable]
 }, total=False)
 
+TextInputBindings = TypedDict('TextInputBindings', {
+    "ss-change": str
+}, total=False)
+
 TextareaInputProps = TypedDict('TextareaInputProps', {
     "label": str,
     "placeholder": str,
-    "rows": str,
+    "rows": Union[float, str],
     "cssClasses": str
 }, total=False)
 
@@ -379,12 +383,16 @@ TextareaInputEventHandlers = TypedDict('TextareaInputEventHandlers', {
     "ss-change-finish": Union[str, Callable]
 }, total=False)
 
+TextareaInputBindings = TypedDict('TextareaInputBindings', {
+    "ss-change": str
+}, total=False)
+
 NumberInputProps = TypedDict('NumberInputProps', {
     "label": str,
     "placeholder": str,
-    "minValue": str,
-    "maxValue": str,
-    "valueStep": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "valueStep": Union[float, str],
     "cssClasses": str
 }, total=False)
 
@@ -393,16 +401,24 @@ NumberInputEventHandlers = TypedDict('NumberInputEventHandlers', {
     "ss-number-change-finish": Union[str, Callable]
 }, total=False)
 
+NumberInputBindings = TypedDict('NumberInputBindings', {
+    "ss-number-change": str
+}, total=False)
+
 SliderInputProps = TypedDict('SliderInputProps', {
     "label": str,
-    "minValue": str,
-    "maxValue": str,
-    "stepSize": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "stepSize": Union[float, str],
     "cssClasses": str
 }, total=False)
 
 SliderInputEventHandlers = TypedDict('SliderInputEventHandlers', {
     "ss-number-change": Union[str, Callable]
+}, total=False)
+
+SliderInputBindings = TypedDict('SliderInputBindings', {
+    "ss-number-change": str
 }, total=False)
 
 DateInputProps = TypedDict('DateInputProps', {
@@ -414,9 +430,13 @@ DateInputEventHandlers = TypedDict('DateInputEventHandlers', {
     "ss-date-change": Union[str, Callable]
 }, total=False)
 
+DateInputBindings = TypedDict('DateInputBindings', {
+    "ss-date-change": str
+}, total=False)
+
 RadioInputProps = TypedDict('RadioInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "orientation": str,
     "cssClasses": str
 }, total=False)
@@ -425,9 +445,13 @@ RadioInputEventHandlers = TypedDict('RadioInputEventHandlers', {
     "ss-option-change": Union[str, Callable]
 }, total=False)
 
+RadioInputBindings = TypedDict('RadioInputBindings', {
+    "ss-option-change": str
+}, total=False)
+
 CheckboxInputProps = TypedDict('CheckboxInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "orientation": str,
     "cssClasses": str
 }, total=False)
@@ -436,9 +460,13 @@ CheckboxInputEventHandlers = TypedDict('CheckboxInputEventHandlers', {
     "ss-options-change": Union[str, Callable]
 }, total=False)
 
+CheckboxInputBindings = TypedDict('CheckboxInputBindings', {
+    "ss-options-change": str
+}, total=False)
+
 DropdownInputProps = TypedDict('DropdownInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -446,11 +474,15 @@ DropdownInputEventHandlers = TypedDict('DropdownInputEventHandlers', {
     "ss-option-change": Union[str, Callable]
 }, total=False)
 
+DropdownInputBindings = TypedDict('DropdownInputBindings', {
+    "ss-option-change": str
+}, total=False)
+
 SelectInputProps = TypedDict('SelectInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "placeholder": str,
-    "maximumCount": str,
+    "maximumCount": Union[float, str],
     "accentColor": str,
     "chipTextColor": str,
     "selectedColor": str,
@@ -465,11 +497,15 @@ SelectInputEventHandlers = TypedDict('SelectInputEventHandlers', {
     "ss-option-change": Union[str, Callable]
 }, total=False)
 
+SelectInputBindings = TypedDict('SelectInputBindings', {
+    "ss-option-change": str
+}, total=False)
+
 MultiselectInputProps = TypedDict('MultiselectInputProps', {
     "label": str,
-    "options": str,
+    "options": Union[Dict, str],
     "placeholder": str,
-    "maximumCount": str,
+    "maximumCount": Union[float, str],
     "accentColor": str,
     "chipTextColor": str,
     "selectedColor": str,
@@ -484,6 +520,10 @@ MultiselectInputEventHandlers = TypedDict('MultiselectInputEventHandlers', {
     "ss-options-change": Union[str, Callable]
 }, total=False)
 
+MultiselectInputBindings = TypedDict('MultiselectInputBindings', {
+    "ss-options-change": str
+}, total=False)
+
 FileInputProps = TypedDict('FileInputProps', {
     "label": str,
     "allowMultipleFiles": str,
@@ -494,8 +534,12 @@ FileInputEventHandlers = TypedDict('FileInputEventHandlers', {
     "ss-file-change": Union[str, Callable]
 }, total=False)
 
+FileInputBindings = TypedDict('FileInputBindings', {
+    "ss-file-change": str
+}, total=False)
+
 WebcamCaptureProps = TypedDict('WebcamCaptureProps', {
-    "refreshRate": str,
+    "refreshRate": Union[float, str],
     "buttonColor": str,
     "buttonTextColor": str,
     "buttonShadow": str,
@@ -508,7 +552,7 @@ WebcamCaptureEventHandlers = TypedDict('WebcamCaptureEventHandlers', {
 }, total=False)
 
 VegaLiteChartProps = TypedDict('VegaLiteChartProps', {
-    "spec": str,
+    "spec": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -516,7 +560,7 @@ VegaLiteChartEventHandlers = TypedDict('VegaLiteChartEventHandlers', {
 }, total=False)
 
 PlotlyGraphProps = TypedDict('PlotlyGraphProps', {
-    "spec": str,
+    "spec": Union[Dict, str],
     "cssClasses": str
 }, total=False)
 
@@ -572,6 +616,8 @@ ChatProps = TypedDict('ChatProps', {
     "incomingInitials": str,
     "outgoingInitials": str,
     "useMarkdown": str,
+    "enableFileUpload": str,
+    "placeholder": str,
     "incomingColor": str,
     "outgoingColor": str,
     "avatarBackgroundColor": str,
@@ -587,7 +633,8 @@ ChatProps = TypedDict('ChatProps', {
 
 ChatEventHandlers = TypedDict('ChatEventHandlers', {
     "ss-chat-message": Union[str, Callable],
-    "ss-chat-action-click": Union[str, Callable]
+    "ss-chat-action-click": Union[str, Callable],
+    "ss-file-change": Union[str, Callable]
 }, total=False)
 
 StepProps = TypedDict('StepProps', {
@@ -620,9 +667,9 @@ StepContainerEventHandlers = TypedDict('StepContainerEventHandlers', {
 RatingInputProps = TypedDict('RatingInputProps', {
     "label": str,
     "feedback": str,
-    "minValue": str,
-    "maxValue": str,
-    "valueStep": str,
+    "minValue": Union[float, str],
+    "maxValue": Union[float, str],
+    "valueStep": Union[float, str],
     "accentColor": str,
     "primaryTextColor": str,
     "cssClasses": str
@@ -630,6 +677,55 @@ RatingInputProps = TypedDict('RatingInputProps', {
 
 RatingInputEventHandlers = TypedDict('RatingInputEventHandlers', {
     "ss-number-change": Union[str, Callable]
+}, total=False)
+
+RatingInputBindings = TypedDict('RatingInputBindings', {
+    "ss-number-change": str
+}, total=False)
+
+TagsProps = TypedDict('TagsProps', {
+    "tags": Union[Dict, str],
+    "referenceColor": str,
+    "seed": Union[float, str],
+    "rotateHue": str,
+    "primaryTextColor": str,
+    "cssClasses": str
+}, total=False)
+
+TagsEventHandlers = TypedDict('TagsEventHandlers', {
+    "ss-tag-click": Union[str, Callable]
+}, total=False)
+
+SwitchInputProps = TypedDict('SwitchInputProps', {
+    "label": str,
+    "accentColor": str,
+    "primaryTextColor": str,
+    "separatorColor": str,
+    "cssClasses": str
+}, total=False)
+
+SwitchInputEventHandlers = TypedDict('SwitchInputEventHandlers', {
+    "ss-toggle": Union[str, Callable]
+}, total=False)
+
+SwitchInputBindings = TypedDict('SwitchInputBindings', {
+    "ss-toggle": str
+}, total=False)
+
+AvatarProps = TypedDict('AvatarProps', {
+    "name": str,
+    "imageSrc": str,
+    "caption": str,
+    "size": str,
+    "orientation": str,
+    "primaryTextColor": str,
+    "secondaryTextColor": str,
+    "separatorColor": str,
+    "cssClasses": str
+}, total=False)
+
+AvatarEventHandlers = TypedDict('AvatarEventHandlers', {
+    "ss-click": Union[str, Callable]
 }, total=False)
 
 class StreamsyncUIManager(StreamsyncUI):
@@ -652,7 +748,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[RootEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         The root component of the application, which serves as the starting point of the component hierarchy.
@@ -672,8 +767,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Page(self, 
@@ -684,7 +778,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[PageEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component representing a single page within the application.
@@ -701,8 +794,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Sidebar(self, 
@@ -713,7 +805,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[SidebarEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that organises its children in a sidebar. Its parent must be a Page component.
@@ -730,8 +821,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Button(self, 
@@ -742,7 +832,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[ButtonEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A standalone button component that can be linked to a click event handler.
@@ -758,8 +847,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Text(self, 
@@ -770,7 +858,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[TextEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to display plain text or formatted text using Markdown syntax.
@@ -788,8 +875,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Section(self, 
@@ -800,7 +886,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[SectionEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that divides the layout into sections, with an optional title.
@@ -817,8 +902,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Header(self, 
@@ -829,7 +913,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[HeaderEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that typically contains the main navigation elements.
@@ -845,8 +928,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Heading(self, 
@@ -857,7 +939,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[HeadingEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A text component used to display headings or titles in different sizes and styles.
@@ -875,8 +956,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def DataFrame(self, 
@@ -887,7 +967,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[DataFrameEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to display Pandas DataFrames.
@@ -911,8 +990,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def HTMLElement(self, 
@@ -923,7 +1001,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[HTMLElementEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A generic component that creates customisable HTML elements, which can serve as containers for other components.
@@ -942,8 +1019,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Pagination(self, 
@@ -954,7 +1030,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[PaginationEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that can help you paginate records, for example from a Repeater or a DataFrame.
@@ -975,8 +1050,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Repeater(self, 
@@ -987,7 +1061,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[RepeaterEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that repeats its child components based on a dictionary.
@@ -1005,8 +1078,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Column(self, 
@@ -1017,7 +1089,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[ColumnEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A layout component that organises its child components in columns. Must be inside a Column Container component.
@@ -1039,8 +1110,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def ColumnContainer(self, 
@@ -1051,7 +1121,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[ColumnContainerEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         Serves as container for Column components
@@ -1067,8 +1136,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Tab(self, 
@@ -1079,7 +1147,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[TabEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that displays its child components as a tab inside a Tab Container.
@@ -1097,8 +1164,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def TabContainer(self, 
@@ -1109,7 +1175,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[TabContainerEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component for organising and displaying Tab components in a tabbed interface.
@@ -1125,8 +1190,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Link(self, 
@@ -1137,7 +1201,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[LinkEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to create a hyperlink.
@@ -1155,8 +1218,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def HorizontalStack(self, 
@@ -1167,7 +1229,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[HorizontalStackEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.
@@ -1184,8 +1245,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Separator(self, 
@@ -1196,7 +1256,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[SeparatorEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A visual component to create a separation between adjacent elements.
@@ -1212,8 +1271,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Image(self, 
@@ -1224,7 +1282,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[ImageEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to display images.
@@ -1242,8 +1299,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def PDF(self, 
@@ -1254,7 +1310,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[PDFEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to embed PDF documents.
@@ -1272,8 +1327,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def IFrame(self, 
@@ -1284,7 +1338,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[IFrameEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to embed an external resource in an iframe.
@@ -1300,8 +1353,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def GoogleMaps(self, 
@@ -1312,7 +1364,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[GoogleMapsEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to embed a Google Map. It can be used to display a map with markers.
@@ -1334,8 +1385,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Mapbox(self, 
@@ -1346,7 +1396,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[MapboxEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to embed a Mapbox map. It can be used to display a map with markers.
@@ -1367,8 +1416,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Icon(self, 
@@ -1379,7 +1427,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[IconEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component to display an icon
@@ -1396,8 +1443,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Timer(self, 
@@ -1408,7 +1454,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[TimerEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.
@@ -1425,8 +1470,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def TextInput(self, 
@@ -1436,8 +1480,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[TextInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[TextInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to enter single-line text values.
@@ -1464,8 +1508,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[TextareaInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[TextareaInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to enter multi-line text values.
@@ -1492,8 +1536,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[NumberInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[NumberInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to enter numeric values.
@@ -1522,8 +1566,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[SliderInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[SliderInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.
@@ -1552,8 +1596,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[DateInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[DateInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to select a date using a date picker interface.
@@ -1580,8 +1624,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[RadioInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[RadioInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to choose a single value from a list of options using radio buttons.
@@ -1609,8 +1653,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[CheckboxInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[CheckboxInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to choose multiple values from a list of options using checkboxes.
@@ -1638,8 +1682,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[DropdownInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[DropdownInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to select a single value from a list of options using a dropdown menu.
@@ -1666,8 +1710,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[SelectInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[SelectInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to select a single value from a searchable list of options.
@@ -1697,8 +1741,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[MultiselectInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[MultiselectInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to select multiple values from a searchable list of options.
@@ -1728,8 +1772,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[FileInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[FileInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to upload files.
@@ -1757,7 +1801,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[WebcamCaptureEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A user input component that allows users to capture images using their webcam.
@@ -1773,8 +1816,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def VegaLiteChart(self, 
@@ -1785,7 +1827,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[VegaLiteChartEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that displays Vega-Lite/Altair charts.
@@ -1801,8 +1842,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def PlotlyGraph(self, 
@@ -1813,7 +1853,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[PlotlyGraphEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that displays Plotly graphs.
@@ -1829,8 +1868,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Metric(self, 
@@ -1841,7 +1879,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[MetricEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that prominently displays a metric value and associated information.
@@ -1861,8 +1898,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Message(self, 
@@ -1873,7 +1909,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[MessageEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A component that displays a message in various styles, including success, error, warning, and informational.
@@ -1893,8 +1928,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def VideoPlayer(self, 
@@ -1905,7 +1939,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[VideoPlayerEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A video player component that can play various video formats.
@@ -1925,8 +1958,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Chat(self, 
@@ -1937,7 +1969,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[ChatEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A chat component to build human-to-AI interactions.
@@ -1946,6 +1977,8 @@ class StreamsyncUIManager(StreamsyncUI):
             "incomingInitials": "AI",
             "outgoingInitials": "YOU",
             "useMarkdown": "no",
+            "enableFileUpload": "no",
+            "placeholder": "Write something...",
             "outgoingColor": "#F5F5F9",
             "avatarBackgroundColor": "#2C2D30",
             "avatarTextColor": "#FFFFFF",
@@ -1958,8 +1991,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def Step(self, 
@@ -1970,7 +2002,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[StepEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component that displays its child components as a step inside a Step Container.
@@ -1989,8 +2020,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def StepContainer(self, 
@@ -2001,7 +2031,6 @@ class StreamsyncUIManager(StreamsyncUI):
             parentId: Optional[str] = None,
             handlers: Optional[StepContainerEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
             ) -> Component:
         """
         A container component for displaying Step components, allowing you to implement a stepped workflow.
@@ -2017,8 +2046,7 @@ class StreamsyncUIManager(StreamsyncUI):
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible)
         return component
     
     def RatingInput(self, 
@@ -2028,8 +2056,8 @@ class StreamsyncUIManager(StreamsyncUI):
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[RatingInputEventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[RatingInputBindings] = None,
             ) -> Component:
         """
         A user input component that allows users to provide a rating.
@@ -2050,5 +2078,90 @@ class StreamsyncUIManager(StreamsyncUI):
             handlers=handlers,
             visible=visible,
             binding=binding)
+        return component
+    
+    def Tags(self, 
+            content: TagsProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[TagsEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None,
+            ) -> Component:
+        """
+        A component to display coloured tag pills.
+        """
+        defaultContent: TagsProps = {
+            "tags": "{}",
+            "referenceColor": "#29cf00",
+            "seed": "1",
+            "rotateHue": "yes",
+            "primaryTextColor": "#ffffff",
+        }
+        content = defaultContent | content
+        component = self.create_component(
+            'tags',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible)
+        return component
+    
+    def SwitchInput(self, 
+            content: SwitchInputProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[SwitchInputEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None, 
+            binding: Optional[SwitchInputBindings] = None,
+            ) -> Component:
+        """
+        A user input component with a simple on/off status.
+        """
+        defaultContent: SwitchInputProps = {
+
+        }
+        content = defaultContent | content
+        component = self.create_component(
+            'switchinput',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible,
+            binding=binding)
+        return component
+    
+    def Avatar(self, 
+            content: AvatarProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[AvatarEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None,
+            ) -> Component:
+        """
+        A component to display user avatars.
+        """
+        defaultContent: AvatarProps = {
+            "size": "medium",
+            "orientation": "horizontal",
+        }
+        content = defaultContent | content
+        component = self.create_container_component(
+            'avatar',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible)
         return component
     
