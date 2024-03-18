@@ -1,11 +1,13 @@
+import contextlib
 from contextvars import ContextVar
 from typing import Any, Dict, List, Optional, Union
 import uuid
 
 from pydantic import BaseModel, Field
 
-current_parent_container: ContextVar[Union["Component", None]] = \
-    ContextVar("current_parent_container")
+
+current_parent_container: ContextVar[Union["Component", None]] = ContextVar("current_parent_container")
+_current_component_tree: ContextVar[Union["ComponentTree", None]] = ContextVar("current_component_tree", default=None)
 # This variable is thread safe and context safe
 
 
@@ -161,3 +163,35 @@ class SessionComponentTree(ComponentTree):
 
 class UIError(Exception):
     ...
+
+@contextlib.contextmanager
+def use_component_tree(component_tree: ComponentTree):
+    """
+    Declares the component tree that will be manipulated during a context.
+
+    The declared tree can be retrieved with the `current_component_tree` method.
+
+    >>> with use_component_tree(component_tree):
+    >>>     ui_manager = StreamsyncUIManager()
+    >>>     ui_manager.create_component("text", text="Hello, world!")
+
+    :param component_tree:
+    """
+    token = _current_component_tree.set(component_tree)
+    yield
+    _current_component_tree.reset(token)
+
+
+def current_component_tree() -> ComponentTree:
+    """
+    Retrieves the component tree of the current context or the base
+    one if no context has been declared.
+
+    :return:
+    """
+    tree = _current_component_tree.get()
+    if tree is None:
+        from streamsync.core import base_component_tree
+        return base_component_tree
+
+    return tree

@@ -103,7 +103,7 @@ class StreamsyncUIManager(StreamsyncUI):
     frontend, allowing methods to adapt to changes in the UI components without
     manual updates.
     """
-
+    
     # Hardcoded classes for proof-of-concept purposes
   `;
 }
@@ -120,7 +120,8 @@ function generateMethods(data) {
 		const bindPass = `,
             binding=binding`;
 		return `
-    def ${component.nameTrim}(self, 
+    @staticmethod
+    def ${component.nameTrim}(
             content: ${component.nameTrim}Props = {},
             *,
             id: Optional[str] = None,
@@ -132,7 +133,7 @@ function generateMethods(data) {
         """
         ${component.description}
         """
-        component = self.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
+        component = StreamsyncUI.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
             '${component.type}',
             content=content,
             id=id,
