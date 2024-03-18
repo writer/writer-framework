@@ -108,6 +108,7 @@ class SessionComponentTree(ComponentTree):
     def __init__(self, base_component_tree: ComponentTree):
         super().__init__(attach_root=False)
         self.base_component_tree = base_component_tree
+        self.updated = False
 
     def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
         session_component_present = component_id in self.components
@@ -131,6 +132,14 @@ class SessionComponentTree(ComponentTree):
         # Otherwise, try to obtain the base tree component
         return self.base_component_tree.get_component(component_id)
 
+    def attach(self, component: Component, override=False) -> None:
+        self.updated = True
+        return super().attach(component, override)
+
+    def ingest(self, serialised_components: Dict[str, Any]) -> None:
+        self.updated = True
+        return super().ingest(serialised_components)
+
     def to_dict(self) -> Dict:
         active_components = {
             # Collecting serialized base tree components
@@ -142,6 +151,12 @@ class SessionComponentTree(ComponentTree):
             # Overriding base tree components with session-specific ones
             active_components[component_id] = session_component.to_dict()
         return active_components
+
+    def fetch_updates(self):
+        if self.updated:
+            self.updated = False
+            return self.to_dict()
+        return
 
 
 class UIError(Exception):

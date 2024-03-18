@@ -169,7 +169,7 @@ class AppProcess(multiprocessing.Process):
         except BaseException:
             session.session_state.add_log_entry("error",
                                                 "Serialisation Error",
-                                                f"An exception was raised during serialisation.",
+                                                "An exception was raised during serialisation.",
                                                 tb.format_exc())
 
         mail = session.session_state.mail
@@ -177,10 +177,9 @@ class AppProcess(multiprocessing.Process):
         res_payload = EventResponsePayload(
             result=result,
             mutations=mutations,
-            components=session.session_component_tree.to_dict(),
+            components=session.session_component_tree.fetch_updates(),
             mail=mail
         )
-
         session.session_state.clear_mail()
 
         return res_payload
