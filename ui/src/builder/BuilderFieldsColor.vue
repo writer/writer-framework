@@ -5,6 +5,7 @@
 				<button
 					class="chip"
 					tabindex="0"
+					:disabled="props.disabled"
 					:class="{ active: mode == 'default' }"
 					@click="
 						() => {
@@ -18,6 +19,7 @@
 				<button
 					class="chip"
 					tabindex="0"
+					:disabled="props.disabled"
 					:class="{ active: mode == 'css' }"
 					@click="setMode('css')"
 				>
@@ -26,6 +28,7 @@
 				<button
 					class="chip"
 					:class="{ active: mode == 'pick' }"
+					:disabled="props.disabled"
 					tabindex="0"
 					@click="setMode('pick')"
 				>
@@ -39,6 +42,7 @@
 				<input
 					ref="pickerEl"
 					type="color"
+					:disabled="props.disabled"
 					:value="component.content[fieldKey]"
 					@input="handleInput"
 				/>
@@ -48,6 +52,7 @@
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
 				type="text"
+				:disabled="props.disabled"
 				:value="component.content[fieldKey]"
 				@input="handleInput"
 			/>
@@ -89,6 +94,7 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
+	disabled?: boolean;
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));

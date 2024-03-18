@@ -20,14 +20,14 @@
 				<div
 					class="chip"
 					:class="{ active: component.visible === false }"
-					@click="() => setVisibleValue(component.id, false)"
+					@click="() => setVisibleValueIfActive(component.id, false)"
 				>
 					No
 				</div>
 				<div
 					class="chip"
 					:class="{ active: typeof component.visible === 'string' }"
-					@click="() => setVisibleValue(component.id, '')"
+					@click="() => setVisibleValueIfActive(component.id, '')"
 				>
 					Custom
 				</div>
@@ -42,9 +42,10 @@
 					type="text"
 					class="content"
 					placeholder="my_visibility_state_value"
+					:disabled="readonly"
 					@input="
 						(ev: Event) =>
-							setVisibleValue(
+							setVisibleValueIfActive(
 								component.id,
 								(ev.target as HTMLInputElement).value,
 							)
@@ -67,7 +68,14 @@ import injectionKeys from "../injectionKeys";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+const readonly = inject(injectionKeys.settingsReadonly);
 const { setVisibleValue } = useComponentActions(ss, ssbm);
+
+const setVisibleValueIfActive = (id: string, value: boolean | string) => {
+	if (!readonly) {
+		setVisibleValue(id, value);
+	}
+};
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
 </script>

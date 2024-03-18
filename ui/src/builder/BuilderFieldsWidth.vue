@@ -6,6 +6,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
+					:disabled="props.disabled"
 					@click="
 						() => {
 							setMode('default');
@@ -19,6 +20,7 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
+					:disabled="props.disabled"
 					@click="setMode('css')"
 				>
 					CSS
@@ -27,6 +29,7 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
+					:disabled="props.disabled"
 					@click="setMode('pick')"
 				>
 					Pick
@@ -39,6 +42,7 @@
 				<BuilderSelect
 					:default-value="subMode"
 					:options="selectOptions"
+					:disabled="props.disabled"
 					@select="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
@@ -46,6 +50,7 @@
 						ref="fixedEl"
 						type="text"
 						:value="valuePickFixed"
+						:disabled="props.disabled"
 						@input="handleInputFixed"
 					/>
 					<div>px</div>
@@ -57,6 +62,7 @@
 				ref="freehandInputEl"
 				type="text"
 				:value="component.content[fieldKey]"
+				:disabled="props.disabled"
 				@input="handleInputCss"
 			/>
 		</div>
@@ -132,6 +138,7 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
+	disabled?: boolean;
 }>();
 
 const { componentId, fieldKey } = toRefs(props);

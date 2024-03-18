@@ -317,6 +317,8 @@ onMounted(() => {
 	--builderSettingsWidth: max(265px, 27vh);
 	--builderActionOngoingColor: rgba(0, 0, 0, 0.7);
 	--builderTopBarHeight: 48px;
+	--builderWarningTextColor: white;
+	--builderWarningColor: #ff3d00;
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
 	font-family: "Inter";

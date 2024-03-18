@@ -37,6 +37,14 @@
 			></div>
 		</div>
 
+		<div v-if="readonly" class="warning">
+			<i class="ri-error-warning-line ri-xl"></i>
+			<span>
+				This component is instantiated in code. All settings in this
+				panel are read-only and cannot be edited.
+			</span>
+		</div>
+
 		<div class="sections">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
 			<BuilderSettingsBinding v-if="isBindable"></BuilderSettingsBinding>
@@ -53,7 +61,7 @@
 
 <script setup lang="ts">
 import { marked } from "marked";
-import { inject, computed, ref, watch } from "vue";
+import { inject, computed, ref, watch, provide } from "vue";
 import injectionKeys from "../injectionKeys";
 
 import BuilderSettingsHandlers from "./BuilderSettingsHandlers.vue";
@@ -66,6 +74,8 @@ const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const readonly = computed(() => component.value.flag === "cmc");
+provide(injectionKeys.settingsReadonly, readonly);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;
@@ -137,6 +147,21 @@ const generateUnsanitisedMarkdownHtml = () => {
 	color: var(--builderSecondaryTextColor);
 	border-top: 1px solid var(--builderSeparatorColor);
 	padding: 24px;
+}
+
+.warning {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 20px 20px 0 20px;
+	padding: 4px;
+	background: var(--builderWarningColor);
+	color: var(--builderWarningTextColor);
+	border-radius: 4px;
+}
+
+.warning i {
+	color: var(--builderWarningTextColor);
 }
 
 /*

@@ -8,6 +8,7 @@
 		autocomplete="off"
 		spellcheck="false"
 		:placeholder="templateField.default"
+		:disabled="props.disabled"
 		@input="
 			(ev: Event) =>
 				formatAndSetContentValue((ev.target as HTMLInputElement).value)
@@ -28,6 +29,7 @@ const { setContentValue } = useComponentActions(ss, ssbm);
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
+	disabled?: boolean;
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));

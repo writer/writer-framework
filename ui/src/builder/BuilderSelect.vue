@@ -57,6 +57,7 @@ const props = defineProps<{
 	options?: Array<{ value: string; label: string; icon?: string }>;
 	defaultValue?: string;
 	defaultIcon?: string;
+	disabled?: boolean;
 }>();
 
 let currentValue = ref(props.defaultValue);
@@ -95,10 +96,12 @@ let compOptions = computed(() => {
 });
 
 const open = () => {
+	if (props.disabled) return;
 	selectEl.value.classList.toggle("open");
 };
 
 const select = (event) => {
+	if (props.disabled) return;
 	const value = event.currentTarget.getAttribute("data-value");
 	currentValue.value = value;
 	emit("select", value);
