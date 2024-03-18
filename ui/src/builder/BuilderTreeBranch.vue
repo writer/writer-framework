@@ -11,7 +11,7 @@
 			:title="summaryText"
 			:data-branch-component-id="componentId"
 			tabindex="0"
-			draggable="true"
+			:draggable="!cmc && component?.type !== 'root'"
 			@click="selfSelectComponent"
 			@keydown.enter="selfSelectComponent"
 			@dragover="handleDragOver"
@@ -39,6 +39,9 @@
 			</template>
 			<template v-if="!isComponentVisible(component.id)">
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
+			</template>
+			<template v-if="cmc">
+				&nbsp;&middot;&nbsp;<i class="ri-file-code-line ri-lg"></i>
 			</template>
 
 			<span v-if="previewText" class="preview">
@@ -72,13 +75,9 @@ import { useEvaluator } from "../renderer/useEvaluator";
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const {
-	createAndInsertComponent,
-	isParentViable,
-	moveComponent,
-	goToComponentParentPage,
-} = useComponentActions(ss, ssbm);
-const { getComponentInfoFromDrag, removeInsertionCandidacy } =
+const { createAndInsertComponent, moveComponent, goToComponentParentPage } =
+	useComponentActions(ss, ssbm);
+const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(ss);
 const { isComponentVisible } = useEvaluator(ss);
 
@@ -99,6 +98,8 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const componentDefinition = computed(() =>
 	ss.getComponentDefinition(component.value.type),
 );
+
+const cmc = computed(() => component.value?.flag === "cmc");
 
 const name = computed(() => {
 	const name =
@@ -217,8 +218,8 @@ const handleDragEnd = (ev: DragEvent) => {
 const handleDragOver = (ev: DragEvent) => {
 	const dragInfo = getComponentInfoFromDrag(ev);
 	if (!dragInfo) return;
-	const { draggedType: childType } = dragInfo;
-	if (!isParentViable(childType, componentId.value)) return;
+	const { draggedType, draggedId } = dragInfo;
+	if (!isParentSuitable(componentId.value, draggedId, draggedType)) return;
 	ev.preventDefault();
 };
 

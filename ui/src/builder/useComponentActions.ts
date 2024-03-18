@@ -249,19 +249,6 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		ss.sendComponentUpdate();
 	}
 
-	/**
-	 * Whether a component can be parent of components of a certain type.
-	 *
-	 * @param childType Component type
-	 * @param parentId Id of the hypothetical parent component
-	 */
-	function isParentViable(
-		childType: string,
-		parentId: Component["id"],
-	): boolean {
-		const containableTypes = ss.getContainableTypes(parentId);
-		return containableTypes.includes(childType);
-	}
 
 	/**
 	 * Whether a target component is the root
@@ -790,7 +777,6 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		pasteComponent,
 		createAndInsertComponent,
 		removeComponentSubtree,
-		isParentViable,
 		isPasteAllowed,
 		undo,
 		redo,
