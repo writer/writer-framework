@@ -11,16 +11,24 @@ import alfred
 @alfred.option('--front', '-f', help="run for frontend only", is_flag=True, default=False)
 @alfred.option('--back', '-b', help="run for backend only", is_flag=True, default=False)
 @alfred.option('--e2e', '-e', help="run for end-to-end only", default=None)
-def ci(front, back, e2e):
-    if back or (not front and not back and not e2e):
+@alfred.option('--docs', '-e', help="run for documentation only", default=False)
+def ci(front, back, e2e, docs):
+    no_options = not front and not back and not e2e and not docs
+    if back or no_options:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.pytest")
-    if front or (not front and not back and not e2e):
+
+    if front or no_options:
         alfred.invoke_command("npm.lint")
         alfred.invoke_command("npm.build")
         alfred.invoke_command("ci.codegen.ui.binding")
+
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
+
+    if docs or no_options:
+        alfred.invoke_command("docs.build")
+
 
 @alfred.command("ci.mypy", help="typing checking with mypy on ./src/streamsync")
 def ci_mypy():
