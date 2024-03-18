@@ -38,7 +38,25 @@ class StreamsyncUI:
 
     def find(self, component_id: str) \
             -> Component:
-        # Example context manager for finding components
+        """
+        Retrieves a component by its ID from the current session's component tree.
+
+        This method searches for a component with the given ID within the
+        application's UI structure. If the component is found, it is returned
+        for further manipulation or inspection.
+
+        :param component_id: The unique identifier of the component to find.
+        :type component_id: str
+        :return: The found component with the specified ID.
+        :rtype: Component
+        :raises RuntimeError: If no component with the specified ID is found
+        in the current session's component tree.
+
+        **Example**::
+
+        >>> my_component = ui.find("my-component-id")
+        >>> print(my_component.properties)
+        """
         component = self.component_tree.get_component(component_id)
         if component is None:
             raise RuntimeError(f"Component {component_id} not found")
