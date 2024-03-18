@@ -2714,7 +2714,8 @@
           "yes": "yes",
           "no": "no"
         },
-        "default": "yes"
+        "default": "yes",
+        "category": "Style"
       },
       "primaryTextColor": {
         "name": "Primary text",
@@ -2781,5 +2782,81 @@
         "bindable": true
       }
     }
+  },
+  {
+    "type": "avatar",
+    "name": "Avatar",
+    "description": "A component to display user avatars.",
+    "category": "Content",
+    "allowedChildrenTypes": [
+      "*"
+    ],
+    "fields": {
+      "name": {
+        "name": "Name",
+        "type": "Text"
+      },
+      "imageSrc": {
+        "name": "Image source",
+        "desc": "A valid URL. Alternatively, you can provide a state reference to a packed file.",
+        "type": "Text"
+      },
+      "caption": {
+        "name": "Caption",
+        "desc": "Add an optional caption under the name, such as the person's job title.",
+        "type": "Text"
+      },
+      "size": {
+        "name": "Size",
+        "type": "Text",
+        "options": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large"
+        },
+        "default": "medium",
+        "category": "Style"
+      },
+      "orientation": {
+        "name": "Orientation",
+        "type": "Text",
+        "options": {
+          "horizontal": "Horizontal",
+          "vertical": "Vertical"
+        },
+        "default": "horizontal"
+      },
+      "primaryTextColor": {
+        "name": "Primary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "secondaryTextColor": {
+        "name": "Secondary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "separatorColor": {
+        "name": "Separator",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "cssClasses": {
+        "name": "Custom CSS classes",
+        "type": "Text",
+        "category": "Style",
+        "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
+      }
+    },
+    "events": {
+      "ss-click": {
+        "desc": "Triggered when the avatar is clicked.",
+        "stub": "def handle_avatar_click():\n\tprint(\"The avatar was clicked\")"
+      }
+    },
+    "previewField": "text"
   }
 ]
