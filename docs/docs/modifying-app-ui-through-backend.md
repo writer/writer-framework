@@ -5,7 +5,7 @@ Streamsync facilitates backend-initiated user interface modifications. These cha
 CMCs, unlike BMCs, are dynamically created and modified via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
 
 ::: warning Experimental feature
-This Streamsync feature is still evolving. You may encounter unexpected behavior. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
+This Streamsync feature is still evolving. You may encounter unexpected behaviour. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
 :::
 
 ::: tip To summarize
@@ -66,7 +66,7 @@ If the component couldn't be found, the method raises a `RuntimeError`.
 
 UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).
 
-This method expects `content: dict` as first argument, which enables you to modify the field properties of the component, through corresponding keys:
+This method expects `content: dict` as first argument, which enables you to set the field properties of the component, through corresponding keys:
 ```python
 ui.Text(
     {
@@ -124,11 +124,13 @@ In addition to `content`, a set of fields which is specific to the component typ
         parentId="dear-parent"
         )
     ```
-- **`visible: bool`**: Determines the visibility of the component, `True` by default.
+- **`visible: bool | str`**: Determines the visibility of the component, `True` by default.
     ```python
     ui.Text({"text": "I'm visible!"}, visible=True)
 
     ui.Text({"text": "And I'm not!"}, visible=False)
+
+    ui.Text({"text": "My visibility depends on the @{my_var}!"}, visible="my_var")
     ```
 - **`handlers: dict[str, callable]`**: Attaches [event handlers](https://www.streamsync.cloud/event-handlers.html) to the component. Each dictionary key represents an event, and its value is the corresponding handler.:
     ```python
