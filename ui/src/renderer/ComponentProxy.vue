@@ -86,13 +86,14 @@ export default {
 
 			const slotComponents = children.value.filter(componentFilter);
 
-			const cmcVNodes = slotComponents
-				.filter((c) => c.flag === "cmc")
+			const bmcVNodes = slotComponents
+				.filter((c) => c.flag !== "cmc")
 				.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, instanceNumber),
 				);
-			const bmcVNodes = slotComponents
-				.filter((c) => c.flag !== "cmc")
+
+			const cmcVNodes = slotComponents
+				.filter((c) => c.flag === "cmc")
 				.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, instanceNumber),
 				);
