@@ -106,7 +106,10 @@ In addition to `content`, a set of fields which is specific to the component typ
         id="hello-world-text"
         )
     ```
-    *If no ID is provided with a component, a UUID is automatically generated for it.*
+    *If no ID is provided with a component, a UUID is automatically generated for it.*  
+    ::: note Make sure to provide an `id` if you intend to `find` the component later  
+    As the `find` method relies on `id` of the component, retrieval might get tricky if its `id` was generated randomly.
+    :::
 - **`position: int`**: Determines the display order of the component in relation to its siblings.  
     Position `0` means that the component is the first child of its parent.  
     Position `-2` is used for components – such as [sidebars](https://www.streamsync.cloud/component-list.html#sidebar) – that have a specific reserved position not related to their siblings.  
