@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { marked } from "marked";
-import { inject, computed, ref, watch, provide } from "vue";
+import { inject, computed, ref, watch } from "vue";
 import injectionKeys from "../injectionKeys";
 
 import BuilderSettingsHandlers from "./BuilderSettingsHandlers.vue";
@@ -75,7 +75,6 @@ const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
 const readonly = computed(() => component.value.flag === "cmc");
-//provide(injectionKeys.settingsReadonly, readonly);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;
