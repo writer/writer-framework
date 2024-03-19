@@ -152,16 +152,12 @@ const generateUnsanitisedMarkdownHtml = () => {
 .warning {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	margin: 20px 20px 0 20px;
-	padding: 4px;
 	background: var(--builderWarningColor);
 	color: var(--builderWarningTextColor);
 	border-radius: 4px;
-}
-
-.warning i {
-	color: var(--builderWarningTextColor);
+	gap: 12px;
+	margin: 12px 12px 0;
+	padding: 12px;
 }
 
 /*
