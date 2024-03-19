@@ -44,6 +44,7 @@ class ComponentTree:
 
     def __init__(self, attach_root=True) -> None:
         self.counter: int = 0
+        self.page_counter: int = 0
         self.components: Dict[str, Component] = {}
         if attach_root:
             root_component = Component(
@@ -83,6 +84,8 @@ class ComponentTree:
 
     def attach(self, component: Component, override=False) -> None:
         self.counter += 1
+        if component.type == "page":
+            self.page_counter += 1
         if (component.id in self.components) and (override is False):
             raise RuntimeWarning(f"Component with ID {component.id} already exists")
         self.components[component.id] = component
@@ -100,6 +103,8 @@ class ComponentTree:
             self.components.pop(component_id)
         for component_id, sc in serialised_components.items():
             component = Component(**sc)
+            if component.type == "page" and component_id not in self.components:
+                self.page_counter += 1
             self.components[component_id] = component
 
     def to_dict(self) -> Dict:
@@ -115,6 +120,7 @@ class SessionComponentTree(ComponentTree):
         super().__init__(attach_root=False)
         self.base_component_tree = base_component_tree
         self.updated = False
+        self.page_counter = self.base_component_tree.page_counter
 
     def determine_position(self, parent_id: str, is_positionless: bool = False):
         session_component_present = parent_id in self.components
