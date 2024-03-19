@@ -88,7 +88,11 @@ class ComponentTree:
         self.components[component.id] = component
 
     def ingest(self, serialised_components: Dict[str, Any]) -> None:
-        removed_ids = self.components.keys() - serialised_components.keys()
+        removed_ids = [
+            key for key, value in self.components.items()
+            if key not in serialised_components.keys()
+            and value.flag != "cmc"
+        ]
 
         for component_id in removed_ids:
             if component_id == "root":
