@@ -510,6 +510,8 @@ export function generateCore() {
 	 * Gets children of a specific Streamsync component.
 	 *
 	 * @param parentId The parent id.
+	 * @param includeBMC Whether to include Builder-managed components
+	 * @param includeCMC Whether to include code-managed components
 	 * @returns An array of components.
 	 */
 	function getComponentChildren(
@@ -525,7 +527,11 @@ export function generateCore() {
 			const isBMC = !isCMC;
 			return (includeBMC && isBMC) || (includeCMC && isCMC);
 		});
-		ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+		ca = ca.sort((a, b) => {
+			if (a.isCodeManaged && !b.isCodeManaged) return 1;
+			if (!a.isCodeManaged && b.isCodeManaged) return -1;
+			return a.position > b.position ? 1 : -1;
+		});
 
 		return ca;
 	}
