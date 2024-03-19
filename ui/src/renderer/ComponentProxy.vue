@@ -53,7 +53,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-		) => {
+		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
 				key: `${componentId}:${instanceNumber}`,
@@ -74,32 +74,40 @@ export default {
 			componentFilter: (c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
-			const renderInsertionSlot = (position: number) => {
-				return h("div", {
-					"data-streamsync-slot-of-id": componentId,
-					"data-streamsync-position": position,
-				});
+			const renderInsertionSlot = (position: number): VNode[] => {
+				if (!isBeingEdited.value || positionlessSlot) return [];
+				return [
+					h("div", {
+						"data-streamsync-slot-of-id": componentId,
+						"data-streamsync-position": position,
+					}),
+				];
 			};
-			const showSlots = isBeingEdited.value && !positionlessSlot;
 
-			const childrenVNodes = children.value
-				.filter(componentFilter)
-				.map((childComponent, childIndex) => {
-					const childVNode = renderProxiedComponent(
-						childComponent.id,
-						instanceNumber,
-					);
-					return [
-						childVNode,
-						...(showSlots
-							? [renderInsertionSlot(childIndex + 1)]
-							: []),
-					];
-				});
+			const slotComponents = children.value.filter(componentFilter);
 
-			return [...(showSlots ? [renderInsertionSlot(0)] : [])].concat(
-				childrenVNodes.flat(),
-			);
+			const bmcVNodes = slotComponents
+				.filter((c) => c.flag !== "cmc")
+				.map((childComponent) =>
+					renderProxiedComponent(childComponent.id, instanceNumber),
+				);
+
+			const cmcVNodes = slotComponents
+				.filter((c) => c.flag === "cmc")
+				.map((childComponent) =>
+					renderProxiedComponent(childComponent.id, instanceNumber),
+				);
+
+			return [
+				...renderInsertionSlot(0),
+				...bmcVNodes
+					.map((vnode: VNode, idx): VNode[] => [
+						vnode,
+						renderInsertionSlot(idx + 1),
+					])
+					.flat(),
+				...cmcVNodes,
+			];
 		};
 
 		const flattenInstancePath = (path: InstancePath) => {
