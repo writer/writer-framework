@@ -190,7 +190,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		).positionless;
 		if (positionless) return;
 		const siblings = ss
-			.getComponents(component.parentId)
+			.getComponentChildren(component.parentId, true, false)
 			.filter((c) => c.id !== componentId);
 		const higherSiblings = siblings.filter(
 			(siblingComponent) =>
@@ -261,7 +261,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function isDraggingAllowed(targetId: Component["id"]): boolean {
 		const component = ss.getComponentById(targetId);
-		return !isRoot(targetId) && component?.flag !== "cmc";
+		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
 	/**
@@ -270,7 +270,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function isAddAllowed(targetId: Component["id"]): boolean {
 		const component = ss.getComponentById(targetId);
 		return (
-			component?.flag !== "cmc" &&
+			!component?.isCodeManaged &&
 			ss.getContainableTypes(targetId).length > 0
 		);
 	}
@@ -287,7 +287,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function isCutAllowed(targetId: Component["id"]): boolean {
 		const component = ss.getComponentById(targetId);
-		return !isRoot(targetId) && component?.flag !== "cmc";
+		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
 	/**
@@ -295,7 +295,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function isDeleteAllowed(targetId: Component["id"]): boolean {
 		const component = ss.getComponentById(targetId);
-		return !isRoot(targetId) && component?.flag !== "cmc";
+		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
 	/**
@@ -374,7 +374,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function isPasteAllowed(targetId: Component["id"]): boolean {
 		const component = ss.getComponentById(targetId);
-		if (!component || component.flag === "cmc") return false;
+		if (!component || component.isCodeManaged) return false;
 		const clipboard = ssbm.getClipboard();
 		if (clipboard === null) return false;
 		const { jsonSubtree } = clipboard;
@@ -395,20 +395,19 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getEnabledMoves(targetId: Component["id"]) {
 		const getPositionableChildrenCount = (parentId: Component["id"]) => {
-			const children = ss.getComponents(parentId);
+			const children = ss.getComponentChildren(parentId, true, false);
 			const positionableChildren = children.filter((c) => {
-				const component = ss.getComponentById(c.id);
 				const positionless = ss.getComponentDefinition(
 					c.type,
 				)?.positionless;
-				if (positionless || component.flag === "cmc") return false;
+				if (positionless) return false;
 				return true;
 			});
 			return positionableChildren.length;
 		};
 
 		const component = ss.getComponentById(targetId);
-		if (!component || component.flag === "cmc") {
+		if (!component || component.isCodeManaged) {
 			return { up: false, down: false };
 		}
 		const definition = ss.getComponentDefinition(component.type);
@@ -449,7 +448,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			JSON.stringify(subtree),
 		);
 		deepCopiedSubtree.forEach((c) => {
-			delete c.flag;
+			delete c.isCodeManaged;
 			const newId = generateNewComponentId();
 			deepCopiedSubtree
 				.filter((nc) => nc.id !== c.id)
@@ -572,11 +571,15 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			return -2;
 		}
 
-		const children = ss.getComponents(targetParentId);
+		const positionfulChildren = ss
+			.getComponentChildren(targetParentId, true, false)
+			.filter((c) => c.position !== -2);
 
-		if (children.length > 0) {
+		if (positionfulChildren.length > 0) {
 			const position = Math.max(
-				Math.max(...children.map((c: Component) => c.position)) + 1,
+				Math.max(
+					...positionfulChildren.map((c: Component) => c.position),
+				) + 1,
 				0,
 			);
 			return position;
