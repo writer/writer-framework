@@ -397,10 +397,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		const getPositionableChildrenCount = (parentId: Component["id"]) => {
 			const children = ss.getComponents(parentId);
 			const positionableChildren = children.filter((c) => {
+				const component = ss.getComponentById(c.id);
 				const positionless = ss.getComponentDefinition(
 					c.type,
 				)?.positionless;
-				if (positionless) return false;
+				if (positionless || component.flag === "cmc") return false;
 				return true;
 			});
 			return positionableChildren.length;

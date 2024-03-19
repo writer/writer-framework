@@ -50,7 +50,21 @@
 		</div>
 		<div v-if="childrenVisible && !childless" class="children">
 			<div
-				v-for="childComponent in childrenComponents"
+				v-for="childComponent in childrenComponents.filter(
+					(c) => c.flag !== 'cmc',
+				)"
+				:key="childComponent.id"
+				class="child"
+			>
+				<BuilderTreeBranch
+					:component-id="childComponent.id"
+					:matching-components="matchingComponents"
+				></BuilderTreeBranch>
+			</div>
+			<div
+				v-for="childComponent in childrenComponents.filter(
+					(c) => c.flag === 'cmc',
+				)"
 				:key="childComponent.id"
 				class="child"
 			>
