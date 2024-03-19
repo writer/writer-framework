@@ -139,9 +139,15 @@ const generateUnsanitisedMarkdownHtml = () => {
 .sections {
 	background: var(--builderBackgroundColor);
 }
+
+.sections[inert] {
+	opacity: 0.7;
+}
+
 .sections > *:not(:first-child) {
 	border-top: 1px solid var(--builderSeparatorColor);
 }
+
 .debug {
 	color: var(--builderSecondaryTextColor);
 	border-top: 1px solid var(--builderSeparatorColor);
