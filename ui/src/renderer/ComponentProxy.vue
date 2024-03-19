@@ -30,6 +30,14 @@ export default {
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
 		);
+		const cmc = computed(() => component.value?.flag === "cmc");
+		const isDraggable = computed(
+			() =>
+				isBeingEdited.value &&
+				!cmc.value &&
+				component.value.type !== "root",
+		);
+
 		const isDisabled = ref(false);
 		const userFunctions: Ref<UserFunction[]> = computed(() =>
 			ss.getUserFunctions(),
@@ -260,7 +268,7 @@ export default {
 				},
 				...dataAttrs,
 				...(!isDisabled.value ? eventHandlerProps.value : []),
-				draggable: isBeingEdited.value,
+				draggable: isDraggable.value,
 			};
 			return rootElProps;
 		};

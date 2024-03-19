@@ -72,19 +72,29 @@ export function useDragDropComponent(ss: Core) {
 		return dropData;
 	}
 
+	function isParentSuitable(
+		targetId: Component["id"],
+		draggedId: Component["id"],
+		draggedType: Component["type"],
+	): boolean {
+		const targetComponent = ss.getComponentById(targetId);
+		if (!targetComponent) return false;
+		const containableTypes = ss.getContainableTypes(targetId);
+		return (
+			targetComponent?.flag !== "cmc" &&
+			!ss.isChildOf(draggedId, targetId) &&
+			containableTypes.includes(draggedType)
+		);
+	}
+
 	function findSuitableParent(
 		targetId: Component["id"],
 		draggedId: Component["id"],
-		insertedType: Component["type"],
+		draggedType: Component["type"],
 	): Component["id"] {
 		const targetComponent = ss.getComponentById(targetId);
 		if (!targetComponent) return;
-		const containableTypes = ss.getContainableTypes(targetId);
-
-		if (
-			!ss.isChildOf(draggedId, targetId) &&
-			containableTypes.includes(insertedType)
-		) {
+		if (isParentSuitable(targetId, draggedId, draggedType)) {
 			return targetId;
 		}
 
@@ -92,7 +102,7 @@ export function useDragDropComponent(ss: Core) {
 		return findSuitableParent(
 			targetComponent.parentId,
 			draggedId,
-			insertedType,
+			draggedType,
 		);
 	}
 
@@ -278,6 +288,7 @@ export function useDragDropComponent(ss: Core) {
 	return {
 		candidateId,
 		candidateInstancePath,
+		isParentSuitable,
 		isCandidacyConfirmed,
 		getComponentInfoFromDrag,
 		dropComponent,
