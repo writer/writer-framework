@@ -78,6 +78,7 @@ export function useDragDropComponent(ss: Core) {
 		draggedType: Component["type"],
 	): boolean {
 		const targetComponent = ss.getComponentById(targetId);
+		if (!targetComponent) return false;
 		const containableTypes = ss.getContainableTypes(targetId);
 		return (
 			targetComponent?.flag !== "cmc" &&
@@ -93,7 +94,7 @@ export function useDragDropComponent(ss: Core) {
 	): Component["id"] {
 		const targetComponent = ss.getComponentById(targetId);
 		if (!targetComponent) return;
-		if (isParentSuitable(draggedId, draggedType, targetId)) {
+		if (isParentSuitable(targetId, draggedId, draggedType)) {
 			return targetId;
 		}
 

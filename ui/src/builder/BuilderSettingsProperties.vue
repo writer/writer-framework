@@ -35,7 +35,6 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsColor>
 
 						<BuilderFieldsShadow
@@ -43,7 +42,6 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsShadow>
 
 						<BuilderFieldsKeyValue
@@ -51,28 +49,24 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsKeyValue>
 
 						<BuilderFieldsText
 							v-if="fieldValue.type == FieldType.Text"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsText>
 
 						<BuilderFieldsText
 							v-if="fieldValue.type == FieldType.Number"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsText>
 
 						<BuilderFieldsText
 							v-if="fieldValue.type == FieldType.IdKey"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsText>
 
 						<BuilderFieldsObject
@@ -80,7 +74,6 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsObject>
 
 						<BuilderFieldsWidth
@@ -88,7 +81,6 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsWidth>
 
 						<BuilderFieldsAlign
@@ -97,7 +89,6 @@
 							direction="horizontal"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsAlign>
 
 						<BuilderFieldsAlign
@@ -106,7 +97,6 @@
 							direction="vertical"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsAlign>
 
 						<BuilderFieldsPadding
@@ -114,7 +104,6 @@
 							class="content"
 							:field-key="fieldKey"
 							:component-id="selectedComponent.id"
-							:disabled="readonly"
 						></BuilderFieldsPadding>
 
 						<div v-if="fieldValue.desc" class="desc">
@@ -142,7 +131,6 @@ import injectionKeys from "../injectionKeys";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const readonly = inject(injectionKeys.settingsReadonly);
 
 const selectedComponent = computed(() => {
 	return ss.getComponentById(ssbm.getSelectedId());

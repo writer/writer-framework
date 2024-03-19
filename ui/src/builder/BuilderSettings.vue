@@ -45,7 +45,7 @@
 			</span>
 		</div>
 
-		<div class="sections">
+		<div class="sections" :inert="readonly">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
 			<BuilderSettingsBinding v-if="isBindable"></BuilderSettingsBinding>
 			<BuilderSettingsHandlers></BuilderSettingsHandlers>
@@ -75,7 +75,7 @@ const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
 const readonly = computed(() => component.value.flag === "cmc");
-provide(injectionKeys.settingsReadonly, readonly);
+//provide(injectionKeys.settingsReadonly, readonly);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;

@@ -26,5 +26,4 @@ export default {
 	instancePath: Symbol() as InjectionKey<InstancePath>,
 	flattenedInstancePath: Symbol() as InjectionKey<string>,
 	instanceData: Symbol() as InjectionKey<Ref[]>,
-	settingsReadonly: Symbol() as InjectionKey<ComputedRef<boolean>>,
 };

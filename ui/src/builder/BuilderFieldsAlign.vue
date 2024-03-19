@@ -6,7 +6,6 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
-					:disabled="props.disabled"
 					@click="
 						() => {
 							setMode('default');
@@ -20,7 +19,6 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
-					:disabled="props.disabled"
 					@click="setMode('css')"
 				>
 					CSS
@@ -29,7 +27,6 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
-					:disabled="props.disabled"
 					@click="setMode('pick')"
 				>
 					Pick
@@ -42,7 +39,6 @@
 				<BuilderSelect
 					:default-value="subMode"
 					:options="selectOptions"
-					:disabled="props.disabled"
 					@select="handleInputSelect"
 				/>
 			</div>
@@ -51,7 +47,6 @@
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
 				type="text"
-				:disabled="props.disabled"
 				:value="component.content[fieldKey]"
 				@input="handleInputCss"
 			/>
@@ -164,7 +159,6 @@ const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 	direction: "horizontal" | "vertical";
-	disabled?: boolean;
 }>();
 
 const { componentId, fieldKey, direction } = toRefs(props);

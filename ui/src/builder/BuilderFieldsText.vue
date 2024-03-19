@@ -14,7 +14,6 @@
 				autocomplete="off"
 				spellcheck="false"
 				:placeholder="templateField?.default"
-				:disabled="props.disabled"
 				:list="
 					templateField.options
 						? `list-${componentId}-${fieldKey}`
@@ -48,7 +47,6 @@
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
-				:disabled="props.disabled"
 				@input="handleInput"
 			>
 			</textarea>
@@ -69,7 +67,6 @@ const { setContentValue } = useComponentActions(ss, ssbm);
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
-	disabled?: boolean;
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));

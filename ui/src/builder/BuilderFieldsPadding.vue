@@ -6,7 +6,6 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'default' }"
-					:disabled="props.disabled"
 					@click="
 						() => {
 							setMode('default');
@@ -20,7 +19,6 @@
 					class="chip"
 					tabindex="0"
 					:class="{ active: mode == 'css' }"
-					:disabled="props.disabled"
 					@click="setMode('css')"
 				>
 					CSS
@@ -29,7 +27,6 @@
 					class="chip"
 					:class="{ active: mode == 'pick' }"
 					tabindex="0"
-					:disabled="props.disabled"
 					@click="setMode('pick')"
 				>
 					Pick
@@ -42,7 +39,6 @@
 				<BuilderSelect
 					:default-value="subMode"
 					:options="selectOptions"
-					:disabled="props.disabled"
 					@select="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.all_sides" class="row">
@@ -51,7 +47,6 @@
 						ref="fixedEl"
 						type="text"
 						:value="valuePadding[0]"
-						:disabled="props.disabled"
 						@input="handleInputs($event, subMode)"
 					/>
 					<div>px</div>
@@ -63,7 +58,6 @@
 							ref="fixedEl"
 							type="text"
 							:value="valuePadding[0]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'x')"
 						/>
 						<div>px</div>
@@ -73,7 +67,6 @@
 						<input
 							type="text"
 							:value="valuePadding[2]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'y')"
 						/>
 						<div>px</div>
@@ -86,7 +79,6 @@
 							ref="fixedEl"
 							type="text"
 							:value="valuePadding[0]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'left')"
 						/>
 						<div>px</div>
@@ -96,7 +88,6 @@
 						<input
 							type="text"
 							:value="valuePadding[1]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'right')"
 						/>
 						<div>px</div>
@@ -106,7 +97,6 @@
 						<input
 							type="text"
 							:value="valuePadding[2]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'top')"
 						/>
 						<div>px</div>
@@ -116,7 +106,6 @@
 						<input
 							type="text"
 							:value="valuePadding[3]"
-							:disabled="props.disabled"
 							@input="handleInputs($event, subMode, 'bottom')"
 						/>
 						<div>px</div>
@@ -129,7 +118,6 @@
 				ref="freehandInputEl"
 				type="text"
 				:value="component.content[fieldKey]"
-				:disabled="props.disabled"
 				@input="handleInputCss"
 			/>
 		</div>
@@ -218,7 +206,6 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
-	disabled?: boolean;
 }>();
 
 const { componentId, fieldKey } = toRefs(props);

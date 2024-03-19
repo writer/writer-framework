@@ -12,7 +12,6 @@
 					type="text"
 					class="content"
 					placeholder="my_var"
-					:disabled="readonly"
 					@input="
 						(ev: Event) =>
 							setBinding(
@@ -38,7 +37,6 @@ import injectionKeys from "../injectionKeys";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const readonly = inject(injectionKeys.settingsReadonly);
 const { setBinding } = useComponentActions(ss, ssbm);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));

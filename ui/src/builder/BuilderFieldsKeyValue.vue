@@ -5,7 +5,6 @@
 				<button
 					class="chip"
 					:class="{ active: mode == 'assisted' }"
-					:disabled="props.disabled"
 					tabindex="0"
 					@click="setMode('assisted')"
 				>
@@ -14,7 +13,6 @@
 				<button
 					class="chip"
 					tabindex="0"
-					:disabled="props.disabled"
 					:class="{ active: mode == 'freehand' }"
 					@click="setMode('freehand')"
 				>
@@ -33,7 +31,6 @@
 					<div>{{ entryKey }} &middot; {{ entryValue }}</div>
 					<button
 						variant="subtle"
-						:disabled="props.disabled"
 						@click="removeAssistedEntry(entryKey)"
 					>
 						<i class="ri-delete-bin-line"></i>
@@ -45,14 +42,12 @@
 					ref="assistedKeyEl"
 					v-model="formAdd.key"
 					type="text"
-					:disabled="props.disabled"
 					placeholder="Type a key..."
 					@keydown.enter="addAssistedEntry"
 				/>
 				<input
 					v-model="formAdd.value"
 					type="text"
-					:disabled="props.disabled"
 					placeholder="Type a value..."
 					@keydown.enter="addAssistedEntry"
 				/>
@@ -94,7 +89,6 @@ const { setContentValue } = useComponentActions(ss, ssbm);
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
-	disabled?: boolean;
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));

@@ -16,7 +16,6 @@
 						<select
 							class="content"
 							:value="component.handlers?.[eventType]"
-							:disabled="readonly"
 							@input="handleHandlerChange($event, eventType)"
 						>
 							<option
@@ -55,7 +54,6 @@
 							v-if="getStubCode(eventType)"
 							variant="subtle"
 							title="Show event handler stub"
-							:disable="readonly"
 							@click="showStub(eventType)"
 						>
 							<i class="ri-question-line ri-lg"></i>
@@ -87,7 +85,6 @@
 		</BuilderModal>
 		<div class="customHandler">
 			<button
-				v-if="!readonly"
 				title="Add a custom event handler"
 				@click="showCustomHandlerModal"
 			>
@@ -170,7 +167,6 @@ import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const readonly = inject(injectionKeys.settingsReadonly);
 
 const { setHandlerValue } = useComponentActions(ss, ssbm);
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
