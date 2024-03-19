@@ -807,11 +807,11 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
-    def _transform_chat_message(self, ev) -> str:
+    def _transform_chatbot_message(self, ev) -> str:
         payload = str(ev.payload)
         return payload
 
-    def _transform_chat_action_click(self, ev) -> str:
+    def _transform_chatbot_action_click(self, ev) -> str:
         payload = str(ev.payload)
         return payload
 
