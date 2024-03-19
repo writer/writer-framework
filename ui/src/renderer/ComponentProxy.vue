@@ -81,7 +81,7 @@ export default {
 						"data-streamsync-slot-of-id": componentId,
 						"data-streamsync-position": position,
 					}),
-				] as VNode[];
+				];
 			};
 
 			const slotComponents = children.value.filter(componentFilter);
@@ -101,8 +101,8 @@ export default {
 			return [
 				...renderInsertionSlot(0),
 				...bmcVNodes
-					.map((v: VNode, idx): VNode[] => [
-						v,
+					.map((vnode: VNode, idx): VNode[] => [
+						vnode,
 						renderInsertionSlot(idx + 1),
 					])
 					.flat(),
