@@ -70,7 +70,7 @@ class ComponentTree:
 
         return desc
 
-    def determine_position(self, _: str, parent_id: str, is_positionless: bool = False):
+    def determine_position(self, parent_id: str, is_positionless: bool = False):
         if is_positionless:
             return -2
 
@@ -116,15 +116,15 @@ class SessionComponentTree(ComponentTree):
         self.base_component_tree = base_component_tree
         self.updated = False
 
-    def determine_position(self, component_id: str, parent_id: str, is_positionless: bool = False):
-        session_component_present = component_id in self.components
+    def determine_position(self, parent_id: str, is_positionless: bool = False):
+        session_component_present = parent_id in self.components
         if session_component_present:
             # If present, use ComponentTree method
             # for determining position directly from this class
-            return super().determine_position(component_id, parent_id, is_positionless)
+            return super().determine_position(parent_id, is_positionless)
         else:
             # Otherwise, invoke it on base component tree
-            return self.base_component_tree.determine_position(component_id, parent_id, is_positionless)
+            return self.base_component_tree.determine_position(parent_id, is_positionless)
 
     def get_component(self, component_id: str) -> Optional[Component]:
         # Check if session component tree contains requested key
@@ -167,6 +167,7 @@ class SessionComponentTree(ComponentTree):
 
 class UIError(Exception):
     ...
+
 
 @contextlib.contextmanager
 def use_component_tree(component_tree: ComponentTree):

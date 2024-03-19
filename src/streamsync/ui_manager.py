@@ -97,6 +97,7 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
                 handlers[event] = handler
     return handlers
 
+
 def _prepare_binding(raw_binding):
     if raw_binding is not None:
         if len(raw_binding) == 1:
@@ -155,13 +156,12 @@ def _create_component(component_tree: ComponentTree,  component_type: str, **kwa
         )
 
     # We're determining the position separately
-    # due to that we need to know whether ID of the component
+    # due to that we need to know whether parent of the component
     # is present within base component tree
     # or a session-specific one
     component.position = \
         position if position is not None else \
         component_tree.determine_position(
-            component.id,
             parent_id,
             is_positionless=is_positionless
             )
