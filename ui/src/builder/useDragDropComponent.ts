@@ -81,7 +81,7 @@ export function useDragDropComponent(ss: Core) {
 		if (!targetComponent) return false;
 		const containableTypes = ss.getContainableTypes(targetId);
 		return (
-			targetComponent?.flag !== "cmc" &&
+			!targetComponent?.isCodeManaged &&
 			!ss.isChildOf(draggedId, targetId) &&
 			containableTypes.includes(draggedType)
 		);

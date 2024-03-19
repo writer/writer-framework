@@ -30,11 +30,10 @@ export default {
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
 		);
-		const cmc = computed(() => component.value?.flag === "cmc");
 		const isDraggable = computed(
 			() =>
 				isBeingEdited.value &&
-				!cmc.value &&
+				!component.value.isCodeManaged &&
 				component.value.type !== "root",
 		);
 
@@ -87,13 +86,13 @@ export default {
 			const slotComponents = children.value.filter(componentFilter);
 
 			const bmcVNodes = slotComponents
-				.filter((c) => c.flag !== "cmc")
+				.filter((c) => !c.isCodeManaged)
 				.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, instanceNumber),
 				);
 
 			const cmcVNodes = slotComponents
-				.filter((c) => c.flag === "cmc")
+				.filter((c) => c.isCodeManaged)
 				.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, instanceNumber),
 				);

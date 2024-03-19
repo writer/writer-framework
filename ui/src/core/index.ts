@@ -160,7 +160,7 @@ export function generateCore() {
 
 	function ingestComponents(newComponents: Record<string, any>) {
 		if (!newComponents) return;
-		components.value = newComponents
+		components.value = newComponents;
 	}
 
 	function clearFrontendMap() {
@@ -441,12 +441,12 @@ export function generateCore() {
 		and not the components it generated (Code-managed components, CMC).
  		*/
 
- 		const builderManagedComponents = {};
+		const builderManagedComponents = {};
 
- 		Object.entries(components.value).forEach(([componentId, component]) => {
- 			if (component.flag === 'cmc') return;
- 			builderManagedComponents[componentId] = component;
- 		});
+		Object.entries(components.value).forEach(([componentId, component]) => {
+			if (component.isCodeManaged) return;
+			builderManagedComponents[componentId] = component;
+		});
 
 		const payload = {
 			components: builderManagedComponents,
@@ -480,7 +480,7 @@ export function generateCore() {
 		do {
 			if (child.parentId == parentId) return true;
 			child = components.value[child.parentId];
-		} while(child);
+		} while (child);
 		return false;
 	}
 
@@ -503,6 +503,30 @@ export function generateCore() {
 		if (sortedByPosition) {
 			ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
 		}
+		return ca;
+	}
+
+	/**
+	 * Gets children of a specific Streamsync component.
+	 *
+	 * @param parentId The parent id.
+	 * @returns An array of components.
+	 */
+	function getComponentChildren(
+		parentId: Component["id"],
+		includeBMC: boolean = true,
+		includeCMC: boolean = true,
+	): Component[] {
+		let ca = Object.values(components.value);
+
+		ca = ca.filter((c) => c.parentId == parentId);
+		ca = ca.filter((c) => {
+			const isCMC = c.isCodeManaged;
+			const isBMC = !isCMC;
+			return (includeBMC && isBMC) || (includeCMC && isCMC);
+		});
+		ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+
 		return ca;
 	}
 
@@ -567,6 +591,7 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
+		getComponentChildren,
 	};
 
 	return core;

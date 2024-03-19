@@ -19,7 +19,7 @@ class Component(BaseModel):
     id: str = Field(default_factory=generate_component_id)
     type: str
     content: Dict[str, Any] = Field(default_factory=dict)
-    flag: Optional[str] = None
+    isCodeManaged: Optional[bool] = False
     position: int = 0
     parentId: Optional[str] = None
     handlers: Optional[Dict[str, str]] = None
@@ -91,7 +91,7 @@ class ComponentTree:
         removed_ids = [
             key for key, value in self.components.items()
             if key not in serialised_components.keys()
-            and value.flag != "cmc"
+            and value.isCodeManaged is False
         ]
 
         for component_id in removed_ids:
