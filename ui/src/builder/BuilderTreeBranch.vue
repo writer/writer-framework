@@ -11,7 +11,7 @@
 			:title="summaryText"
 			:data-branch-component-id="componentId"
 			tabindex="0"
-			:draggable="!cmc && component?.type !== 'root'"
+			:draggable="isDraggingAllowed(componentId)"
 			@click="selfSelectComponent"
 			@keydown.enter="selfSelectComponent"
 			@dragover="handleDragOver"
@@ -75,8 +75,12 @@ import { useEvaluator } from "../renderer/useEvaluator";
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const { createAndInsertComponent, moveComponent, goToComponentParentPage } =
-	useComponentActions(ss, ssbm);
+const {
+	createAndInsertComponent,
+	moveComponent,
+	goToComponentParentPage,
+	isDraggingAllowed,
+} = useComponentActions(ss, ssbm);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(ss);
 const { isComponentVisible } = useEvaluator(ss);

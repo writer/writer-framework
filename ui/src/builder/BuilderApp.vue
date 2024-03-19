@@ -82,7 +82,6 @@
 				@dragend="handleRendererDragEnd"
 			>
 				<BuilderComponentShortcuts
-					draggable="true"
 					:component-id="selectedId"
 					:instance-path="selectedInstancePath"
 				></BuilderComponentShortcuts>

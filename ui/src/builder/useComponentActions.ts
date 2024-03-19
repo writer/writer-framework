@@ -249,12 +249,30 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		ss.sendComponentUpdate();
 	}
 
-
 	/**
 	 * Whether a target component is the root
 	 */
 	function isRoot(targetId: Component["id"]): boolean {
 		return targetId == "root";
+	}
+
+	/**
+	 * Whether a component can be dragged.
+	 */
+	function isDraggingAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && component?.flag !== "cmc";
+	}
+
+	/**
+	 * Whether a component can be added to the target component.
+	 */
+	function isAddAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		return (
+			component?.flag !== "cmc" &&
+			ss.getContainableTypes(targetId).length > 0
+		);
 	}
 
 	/**
@@ -268,14 +286,16 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be cut and placed in the clipboard.
 	 */
 	function isCutAllowed(targetId: Component["id"]): boolean {
-		return !isRoot(targetId);
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && component?.flag !== "cmc";
 	}
 
 	/**
 	 * Whether a component can be deleted.
 	 */
 	function isDeleteAllowed(targetId: Component["id"]): boolean {
-		return !isRoot(targetId);
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && component?.flag !== "cmc";
 	}
 
 	/**
@@ -353,6 +373,8 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * pasted to the target component.
 	 */
 	function isPasteAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		if (!component || component.flag === "cmc") return false;
 		const clipboard = ssbm.getClipboard();
 		if (clipboard === null) return false;
 		const { jsonSubtree } = clipboard;
@@ -385,7 +407,9 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		};
 
 		const component = ss.getComponentById(targetId);
-		if (!component) return { up: false, down: false };
+		if (!component || component.flag === "cmc") {
+			return { up: false, down: false };
+		}
 		const definition = ss.getComponentDefinition(component.type);
 		if (definition.positionless) return { up: false, down: false };
 		const positionableSiblingCount = component.parentId
@@ -424,6 +448,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			JSON.stringify(subtree),
 		);
 		deepCopiedSubtree.forEach((c) => {
+			delete c.flag;
 			const newId = generateNewComponentId();
 			deepCopiedSubtree
 				.filter((nc) => nc.id !== c.id)
@@ -785,10 +810,12 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		setBinding,
 		getUndoRedoSnapshot,
 		setHandlerValue,
+		isAddAllowed,
 		isCopyAllowed,
 		isCutAllowed,
 		isDeleteAllowed,
 		isGoToParentAllowed,
+		isDraggingAllowed,
 		getEnabledMoves,
 		goToParent,
 		goToComponentParentPage,
