@@ -81,7 +81,7 @@ const isSearchActive: Ref<boolean> = ref(false);
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
 const rootComponents = computed(() => {
-	return ss.getComponents(null, true);
+	return ss.getComponents(null, { sortedByPosition: true });
 });
 
 async function toggleSearch() {

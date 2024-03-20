@@ -28,7 +28,7 @@ export default {
 				options: (ss: Core) => {
 					return Object.fromEntries(
 						ss
-							.getComponents("root", true)
+							.getComponents("root", { sortedByPosition: true })
 							.map((page) => page.content.key)
 							.filter((key) => Boolean(key))
 							.map((key) => [`#${key}`, `Page with key: ${key}`]),

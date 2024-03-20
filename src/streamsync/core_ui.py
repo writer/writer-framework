@@ -19,7 +19,7 @@ class Component(BaseModel):
     id: str = Field(default_factory=generate_component_id)
     type: str
     content: Dict[str, Any] = Field(default_factory=dict)
-    flag: Optional[str] = None
+    isCodeManaged: Optional[bool] = False
     position: int = 0
     parentId: Optional[str] = None
     handlers: Optional[Dict[str, str]] = None
@@ -59,9 +59,6 @@ class ComponentTree:
                                self.components.values()))
         return children
 
-    def get_direct_descendents_length(self, parent_id):
-        return len(self.get_direct_descendents(parent_id))
-
     def get_descendents(self, parent_id: str) -> List[Component]:
         children = self.get_direct_descendents(parent_id)
         desc = children.copy()
@@ -75,8 +72,9 @@ class ComponentTree:
             return -2
 
         children = self.get_direct_descendents(parent_id)
-        if len(children) > 0:
-            position = max([0, max([child.position for child in children]) + 1])
+        cmc_children = list(filter(lambda c: c.isCodeManaged is True, children))
+        if len(cmc_children) > 0:
+            position = max([0, max([child.position for child in cmc_children]) + 1])
             return position
         else:
             return 0
@@ -91,7 +89,7 @@ class ComponentTree:
         removed_ids = [
             key for key, value in self.components.items()
             if key not in serialised_components.keys()
-            and value.flag != "cmc"
+            and value.isCodeManaged is False
         ]
 
         for component_id in removed_ids:

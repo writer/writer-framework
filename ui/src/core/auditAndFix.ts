@@ -97,7 +97,10 @@ function auditAndFixPositions(
 	}
 
 	const positionfulChildren = Object.values(components).filter(
-		(c) => c.parentId === component.id && c.position !== -2,
+		(c) =>
+			c.parentId === component.id &&
+			c.position !== -2 &&
+			!c.isCodeManaged,
 	);
 	let positionSum = 0;
 	positionfulChildren.forEach((c) => {

@@ -160,7 +160,7 @@ export function generateCore() {
 
 	function ingestComponents(newComponents: Record<string, any>) {
 		if (!newComponents) return;
-		components.value = newComponents
+		components.value = newComponents;
 	}
 
 	function clearFrontendMap() {
@@ -441,12 +441,12 @@ export function generateCore() {
 		and not the components it generated (Code-managed components, CMC).
  		*/
 
- 		const builderManagedComponents = {};
+		const builderManagedComponents = {};
 
- 		Object.entries(components.value).forEach(([componentId, component]) => {
- 			if (component.flag === 'cmc') return;
- 			builderManagedComponents[componentId] = component;
- 		});
+		Object.entries(components.value).forEach(([componentId, component]) => {
+			if (component.isCodeManaged) return;
+			builderManagedComponents[componentId] = component;
+		});
 
 		const payload = {
 			components: builderManagedComponents,
@@ -480,29 +480,71 @@ export function generateCore() {
 		do {
 			if (child.parentId == parentId) return true;
 			child = components.value[child.parentId];
-		} while(child);
+		} while (child);
 		return false;
 	}
 
 	/**
-	 * Gets registered Streamsync components.
+	 * 
 	 *
-	 * @param childrenOfId If specified, only include results that are children of a component with this id.
+	 * @param childrenOfId 
 	 * @param sortedByPosition Whether to sort the components by position or return in random order.
 	 * @returns An array of components.
 	 */
+	// function getComponents(
+	// 	childrenOfId: Component["id"] = undefined,
+	// 	sortedByPosition: boolean = false,
+	// ): Component[] {
+	// 	let ca = Object.values(components.value);
+
+	// 	if (typeof childrenOfId != "undefined") {
+	// 		ca = ca.filter((c) => c.parentId == childrenOfId);
+	// 	}
+	// 	if (sortedByPosition) {
+	// 		ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+	// 	}
+	// 	return ca;
+	// }
+
+	/**
+	 * Gets registered Streamsync components.
+	 *
+	 * @param parentId If specified, only include results that are children of a component with this id.
+	 * @param param1 Whether to include Builder-managed components and code-managed components, and whether to sort.
+	 * @returns An array of components.
+	 */
 	function getComponents(
-		childrenOfId: Component["id"] = undefined,
-		sortedByPosition: boolean = false,
+		parentId?: Component["id"],
+		{
+			includeBMC = true,
+			includeCMC = true,
+			sortedByPosition = false,
+		}: {
+			includeBMC?: boolean;
+			includeCMC?: boolean;
+			sortedByPosition?: boolean;
+		} = {},
 	): Component[] {
 		let ca = Object.values(components.value);
 
-		if (typeof childrenOfId != "undefined") {
-			ca = ca.filter((c) => c.parentId == childrenOfId);
+		if (typeof parentId !== "undefined") {
+			ca = ca.filter((c) => c.parentId == parentId);
 		}
+
+		ca = ca.filter((c) => {
+			const isCMC = c.isCodeManaged;
+			const isBMC = !isCMC;
+			return (includeBMC && isBMC) || (includeCMC && isCMC);
+		});
+
 		if (sortedByPosition) {
-			ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+			ca = ca.sort((a, b) => {
+				if (a.isCodeManaged && !b.isCodeManaged) return 1;
+				if (!a.isCodeManaged && b.isCodeManaged) return -1;
+				return a.position > b.position ? 1 : -1;
+			});
 		}
+
 		return ca;
 	}
 

@@ -40,7 +40,7 @@
 			<template v-if="!isComponentVisible(component.id)">
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
 			</template>
-			<template v-if="cmc">
+			<template v-if="component.isCodeManaged">
 				&nbsp;&middot;&nbsp;<i class="ri-file-code-line ri-lg"></i>
 			</template>
 
@@ -51,7 +51,7 @@
 		<div v-if="childrenVisible && !childless" class="children">
 			<div
 				v-for="childComponent in childrenComponents.filter(
-					(c) => c.flag !== 'cmc',
+					(c) => !c.isCodeManaged,
 				)"
 				:key="childComponent.id"
 				class="child"
@@ -63,7 +63,7 @@
 			</div>
 			<div
 				v-for="childComponent in childrenComponents.filter(
-					(c) => c.flag === 'cmc',
+					(c) => c.isCodeManaged,
 				)"
 				:key="childComponent.id"
 				class="child"
@@ -117,8 +117,6 @@ const componentDefinition = computed(() =>
 	ss.getComponentDefinition(component.value.type),
 );
 
-const cmc = computed(() => component.value?.flag === "cmc");
-
 const name = computed(() => {
 	const name =
 		componentDefinition.value?.name ?? `Unknown (${component.value.type})`;
@@ -167,7 +165,7 @@ const summaryText = computed(() => {
 });
 
 const childrenComponents = computed(() => {
-	return ss.getComponents(componentId.value, true);
+	return ss.getComponents(componentId.value, { sortedByPosition: true });
 });
 
 const childrenVisible = ref(true);
