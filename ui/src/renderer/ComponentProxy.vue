@@ -26,7 +26,9 @@ export default {
 		const { getEvaluatedFields, isComponentVisible } = useEvaluator(ss);
 		const evaluatedFields = getEvaluatedFields(instancePath);
 
-		const children = computed(() => ss.getComponents(componentId, true));
+		const children = computed(() =>
+			ss.getComponents(componentId, { sortedByPosition: true }),
+		);
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
 		);

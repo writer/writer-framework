@@ -165,7 +165,7 @@ const summaryText = computed(() => {
 });
 
 const childrenComponents = computed(() => {
-	return ss.getComponents(componentId.value, true);
+	return ss.getComponents(componentId.value, { sortedByPosition: true });
 });
 
 const childrenVisible = ref(true);

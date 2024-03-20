@@ -485,53 +485,65 @@ export function generateCore() {
 	}
 
 	/**
-	 * Gets registered Streamsync components.
+	 * 
 	 *
-	 * @param childrenOfId If specified, only include results that are children of a component with this id.
+	 * @param childrenOfId 
 	 * @param sortedByPosition Whether to sort the components by position or return in random order.
 	 * @returns An array of components.
 	 */
-	function getComponents(
-		childrenOfId: Component["id"] = undefined,
-		sortedByPosition: boolean = false,
-	): Component[] {
-		let ca = Object.values(components.value);
+	// function getComponents(
+	// 	childrenOfId: Component["id"] = undefined,
+	// 	sortedByPosition: boolean = false,
+	// ): Component[] {
+	// 	let ca = Object.values(components.value);
 
-		if (typeof childrenOfId != "undefined") {
-			ca = ca.filter((c) => c.parentId == childrenOfId);
-		}
-		if (sortedByPosition) {
-			ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
-		}
-		return ca;
-	}
+	// 	if (typeof childrenOfId != "undefined") {
+	// 		ca = ca.filter((c) => c.parentId == childrenOfId);
+	// 	}
+	// 	if (sortedByPosition) {
+	// 		ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+	// 	}
+	// 	return ca;
+	// }
 
 	/**
-	 * Gets children of a specific Streamsync component.
+	 * Gets registered Streamsync components.
 	 *
-	 * @param parentId The parent id.
-	 * @param includeBMC Whether to include Builder-managed components
-	 * @param includeCMC Whether to include code-managed components
+	 * @param parentId If specified, only include results that are children of a component with this id.
+	 * @param param1 Whether to include Builder-managed components and code-managed components, and whether to sort.
 	 * @returns An array of components.
 	 */
-	function getComponentChildren(
-		parentId: Component["id"],
-		includeBMC: boolean = true,
-		includeCMC: boolean = true,
+	function getComponents(
+		parentId?: Component["id"],
+		{
+			includeBMC = true,
+			includeCMC = true,
+			sortedByPosition = false,
+		}: {
+			includeBMC?: boolean;
+			includeCMC?: boolean;
+			sortedByPosition?: boolean;
+		} = {},
 	): Component[] {
 		let ca = Object.values(components.value);
 
-		ca = ca.filter((c) => c.parentId == parentId);
+		if (typeof parentId !== "undefined") {
+			ca = ca.filter((c) => c.parentId == parentId);
+		}
+
 		ca = ca.filter((c) => {
 			const isCMC = c.isCodeManaged;
 			const isBMC = !isCMC;
 			return (includeBMC && isBMC) || (includeCMC && isCMC);
 		});
-		ca = ca.sort((a, b) => {
-			if (a.isCodeManaged && !b.isCodeManaged) return 1;
-			if (!a.isCodeManaged && b.isCodeManaged) return -1;
-			return a.position > b.position ? 1 : -1;
-		});
+
+		if (sortedByPosition) {
+			ca = ca.sort((a, b) => {
+				if (a.isCodeManaged && !b.isCodeManaged) return 1;
+				if (!a.isCodeManaged && b.isCodeManaged) return -1;
+				return a.position > b.position ? 1 : -1;
+			});
+		}
 
 		return ca;
 	}
@@ -597,7 +609,6 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
-		getComponentChildren,
 	};
 
 	return core;
