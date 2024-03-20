@@ -104,7 +104,6 @@ watch(activePageId, (newPageId) => {
 		const rendererEl = document.querySelector(".ComponentRenderer");
 		rendererEl.parentElement.scrollTo(0, 0);
 	});
-	// if (!pageKey) return;
 	changePageInHash(pageKey);
 });
 
