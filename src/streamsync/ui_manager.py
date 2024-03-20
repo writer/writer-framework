@@ -74,7 +74,6 @@ class StreamsyncUI:
         component_tree = current_component_tree()
         container = _create_component(component_tree, component_type, **kwargs)
         component_tree.attach(container)
-
         return container
 
     @staticmethod
@@ -136,6 +135,15 @@ def _create_component(component_tree: ComponentTree,  component_type: str, **kwa
     # Converting all passed content values to strings
     raw_content: dict = kwargs.pop("content", {})
     content = {key: _prepare_value(value) for key, value in raw_content.items()}
+
+    # A pre-defined ID is required for page components
+    # to prevent page focus loss on app reload
+    if component_type == "page" and "id" not in kwargs:
+        identifier = f"cmc-page-{component_tree.page_counter + 1}"
+        if "key" not in content:
+            content["key"] = identifier
+        if "id" not in kwargs:
+            kwargs["id"] = identifier
 
     position: Optional[int] = kwargs.pop("position", None)
     is_positionless: bool = kwargs.pop("positionless", False)
