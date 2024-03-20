@@ -77,6 +77,7 @@ export default {
 					vertical: "Vertical",
 				},
 				default: "horizontal",
+				category: FieldCategory.Style,
 			},
 			primaryTextColor,
 			secondaryTextColor,
