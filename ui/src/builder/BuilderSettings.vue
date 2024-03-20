@@ -74,7 +74,7 @@ const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
-const readonly = computed(() => component.value.flag === "cmc");
+const readonly = computed(() => component.value.isCodeManaged);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;

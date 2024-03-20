@@ -148,7 +148,7 @@ def _create_component(component_tree: ComponentTree,  component_type: str, **kwa
     component = Component(
         type=component_type,
         parentId=parent_id,
-        flag="cmc",
+        isCodeManaged=True,
         content=content,
         handlers=handlers,
         binding=binding,

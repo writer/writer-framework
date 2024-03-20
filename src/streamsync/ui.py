@@ -612,7 +612,7 @@ VideoPlayerProps = TypedDict('VideoPlayerProps', {
 VideoPlayerEventHandlers = TypedDict('VideoPlayerEventHandlers', {
 }, total=False)
 
-ChatProps = TypedDict('ChatProps', {
+ChatbotProps = TypedDict('ChatbotProps', {
     "incomingInitials": str,
     "outgoingInitials": str,
     "useMarkdown": str,
@@ -631,9 +631,9 @@ ChatProps = TypedDict('ChatProps', {
     "cssClasses": str
 }, total=False)
 
-ChatEventHandlers = TypedDict('ChatEventHandlers', {
-    "ss-chat-message": Union[str, Callable],
-    "ss-chat-action-click": Union[str, Callable],
+ChatbotEventHandlers = TypedDict('ChatbotEventHandlers', {
+    "ss-chatbot-message": Union[str, Callable],
+    "ss-chatbot-action-click": Union[str, Callable],
     "ss-file-change": Union[str, Callable]
 }, total=False)
 
@@ -1752,20 +1752,20 @@ class StreamsyncUIManager(StreamsyncUI):
         return component
     
     @staticmethod
-    def Chat(
-            content: ChatProps = {},
+    def Chatbot(
+            content: ChatbotProps = {},
             *,
             id: Optional[str] = None,
             position: Optional[int] = None,
             parentId: Optional[str] = None,
-            handlers: Optional[ChatEventHandlers] = None,
+            handlers: Optional[ChatbotEventHandlers] = None,
             visible: Optional[Union[bool, str]] = None,
             ) -> Component:
         """
-        A chat component to build human-to-AI interactions.
+        A chatbot component to build human-to-AI interactions.
         """
         component = StreamsyncUI.create_component(
-            'chat',
+            'chatbot',
             content=content,
             id=id,
             position=position,
