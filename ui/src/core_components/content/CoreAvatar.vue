@@ -164,6 +164,7 @@ function handleClick(ev: MouseEvent) {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	color: var(--primaryTextColor);
 }
 
 .vertical .info {
