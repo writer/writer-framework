@@ -35,7 +35,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		if (!parent) return;
 
 		const previousSibling = ss
-			.getComponents(parent.id)
+			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position == position - 1)[0];
 
 		// MUTATIONS
@@ -67,7 +67,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		if (position == -2) return; // Positionless
 
 		const positionfulSiblings = ss
-			.getComponents(parent.id)
+			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position !== -2);
 		if (position >= positionfulSiblings.length - 1) {
 			return;
@@ -190,7 +190,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		).positionless;
 		if (positionless) return;
 		const siblings = ss
-			.getComponentChildren(component.parentId, true, false)
+			.getComponents(component.parentId, {
+				includeBMC: true,
+				includeCMC: false,
+			})
 			.filter((c) => c.id !== componentId);
 		const higherSiblings = siblings.filter(
 			(siblingComponent) =>
@@ -395,7 +398,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getEnabledMoves(targetId: Component["id"]) {
 		const getPositionableChildrenCount = (parentId: Component["id"]) => {
-			const children = ss.getComponentChildren(parentId, true, false);
+			const children = ss.getComponents(parentId, {
+				includeBMC: true,
+				includeCMC: false,
+			});
 			const positionableChildren = children.filter((c) => {
 				const positionless = ss.getComponentDefinition(
 					c.type,
@@ -572,7 +578,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		}
 
 		const positionfulChildren = ss
-			.getComponentChildren(targetParentId, true, false)
+			.getComponents(targetParentId, {
+				includeBMC: true,
+				includeCMC: false,
+			})
 			.filter((c) => c.position !== -2);
 
 		if (positionfulChildren.length > 0) {
