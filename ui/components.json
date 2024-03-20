@@ -1319,6 +1319,12 @@
         "desc": "A valid URL",
         "type": "Text"
       },
+      "separatorColor": {
+        "name": "Separator",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
       "cssClasses": {
         "name": "Custom CSS classes",
         "type": "Text",
@@ -1342,13 +1348,13 @@
       "apiKey": {
         "name": "API Key",
         "default": "",
-        "desc": "API Key from Google Cloud Console",
+        "desc": "API Key from Google Cloud Console.",
         "type": "Text"
       },
       "mapId": {
         "name": "Map ID",
         "default": "",
-        "desc": "ID of map from Google Cloud Console, needed for markers",
+        "desc": "ID of map from Google Cloud Console, needed for markers.",
         "type": "Text"
       },
       "mapType": {
@@ -1361,7 +1367,7 @@
           "hybrid": "Hybrid",
           "terrain": "Terrain"
         },
-        "desc": "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'"
+        "desc": "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'."
       },
       "zoom": {
         "name": "Zoom",
@@ -2520,7 +2526,7 @@
       },
       "isCompleted": {
         "name": "Completed",
-        "desc": "Use a state element to mark this step as complete.",
+        "desc": "Use a state reference to dynamically mark this step as complete.",
         "default": "no",
         "type": "Text",
         "options": {
@@ -2824,7 +2830,8 @@
           "horizontal": "Horizontal",
           "vertical": "Vertical"
         },
-        "default": "horizontal"
+        "default": "horizontal",
+        "category": "Style"
       },
       "primaryTextColor": {
         "name": "Primary text",

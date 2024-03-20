@@ -96,7 +96,7 @@ export default {
 			},
 			isCompleted: {
 				name: "Completed",
-				desc: "Use a state element to mark this step as complete.",
+				desc: "Use a state reference to dynamically mark this step as complete.",
 				default: "no",
 				type: FieldType.Text,
 				options: {
@@ -322,6 +322,8 @@ button.bit {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	background: var(--containerBackgroundColor);
+	color: var(--secondaryTextColor);
 }
 
 button.bit:disabled {
