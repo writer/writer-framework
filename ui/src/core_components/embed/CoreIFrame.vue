@@ -1,13 +1,21 @@
 <template>
 	<div ref="rootEl" class="CoreIFrame">
-		<iframe :src="fields.src.value" draggable="false" @load="handleLoad" />
+		<div v-if="!fields.src.value" class="noURLProvided">
+			<h2>No URL provided.</h2>
+		</div>
+		<iframe
+			v-else
+			:src="fields.src.value"
+			draggable="false"
+			@load="handleLoad"
+		/>
 		<div class="mask" />
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import { cssClasses, separatorColor } from "../../renderer/sharedStyleFields";
 
 const description = "A component to embed an external resource in an iframe.";
 
@@ -30,6 +38,7 @@ export default {
 				desc: "A valid URL",
 				type: FieldType.Text,
 			},
+			separatorColor,
 			cssClasses,
 		},
 		events: {
@@ -62,6 +71,15 @@ function handleLoad() {
 	position: relative;
 	width: 100%;
 	height: 80vh;
+	border: 1px solid var(--separatorColor);
+}
+
+.noURLProvided {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .CoreIFrame.beingEdited:not(.selected) iframe {
@@ -73,7 +91,8 @@ function handleLoad() {
 	height: 100%;
 	display: block;
 	margin: auto;
-	border: 1px solid var(--separatorColor);
+	border: none;
+	background: white;
 }
 
 .CoreIFrame .mask {
