@@ -78,7 +78,11 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const { isComponentVisible } = useEvaluator(ss);
 
 const getFirstPageId = () => {
-	const pageComponents = ss.getComponentChildren("root", true, true);
+	const pageComponents = ss.getComponents("root", {
+		includeBMC: true,
+		includeCMC: true,
+		sortedByPosition: true,
+	});
 	if (pageComponents.length == 0) return null;
 	const visiblePages = pageComponents.filter((c) => isComponentVisible(c.id));
 	if (visiblePages.length == 0) return null;
