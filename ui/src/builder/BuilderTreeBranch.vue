@@ -41,7 +41,7 @@
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
 			</template>
 			<template v-if="component.isCodeManaged">
-				&nbsp;&middot;&nbsp;<i class="ri-file-code-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="ri-terminal-box-line ri-lg"></i>
 			</template>
 
 			<span v-if="previewText" class="preview">
