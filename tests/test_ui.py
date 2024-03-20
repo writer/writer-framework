@@ -1,5 +1,5 @@
 import contextlib
-from streamsync.core_ui import ComponentTree, UIError
+from streamsync.core_ui import ComponentTree, UIError, use_component_tree
 from streamsync.ui import StreamsyncUIManager
 import streamsync as ss
 
@@ -22,7 +22,8 @@ def use_new_ss_session():
 @contextlib.contextmanager
 def use_ui_manager():
     with use_new_ss_session() as session:
-        yield StreamsyncUIManager(session.session_component_tree)
+        with use_component_tree(session.session_component_tree):
+            yield StreamsyncUIManager()
 
 
 class TestComponentTree:

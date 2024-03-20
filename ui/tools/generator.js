@@ -2,6 +2,19 @@
 const fs = require("fs").promises;
 const { createServer } = require("vite");
 
+const getPyType = (type) => {
+	switch (type) {
+		case "Number":
+			return "Union[float, str]";
+		case "Object":
+			return "Union[Dict, str]";
+		case "Key-Value":
+			return "Union[Dict, str]";
+		default:
+			return "str";
+	}
+};
+
 async function loadComponents() {
 	const vite = await createServer({
 		server: {
@@ -36,9 +49,9 @@ function generateTypes(data) {
 
 ${component.nameTrim}Props = TypedDict('${component.nameTrim}Props', {`;
 		type += Object.entries(component.fields)
-			.map(([key]) => {
+			.map(([key, field]) => {
 				return `
-    "${key}": str`;
+    "${key}": ${getPyType(field.type)}`;
 			})
 			.join(",");
 		type += `
@@ -55,8 +68,26 @@ ${component.nameTrim}EventHandlers = TypedDict('${component.nameTrim}EventHandle
 			.join(",");
 		type += `
 }, total=False)`;
+
+		const bindable = Object.entries(component.events || {}).filter(
+			([, ev]) => ev.bindable,
+		);
+		if (!bindable?.length) return type;
+
+		type += `
+
+${component.nameTrim}Bindings = TypedDict('${component.nameTrim}Bindings', {`;
+		type += bindable
+			.map(([key]) => {
+				return `
+    "${key}": str`;
+			})
+			.join(",");
+		type += `
+}, total=False)`;
 		return type;
 	});
+
 	return types.join("");
 }
 
@@ -72,54 +103,44 @@ class StreamsyncUIManager(StreamsyncUI):
     frontend, allowing methods to adapt to changes in the UI components without
     manual updates.
     """
-
+    
     # Hardcoded classes for proof-of-concept purposes
   `;
 }
 
-function generateComponentDefaults(component) {
-	return Object.entries(component.fields)
-		.filter(([, field]) => typeof field.default !== "undefined")
-		.map(([key, field]) => {
-			const defaultValue = ("" + (field?.default || ""))
-				?.replaceAll('"', '\\"')
-				?.replaceAll("\n", "\\n");
-			return `            "${key}": "${defaultValue}",`;
-		})
-		.join("\n");
-
-	//`  content = { defaultContent, content }`
-}
-
 function generateMethods(data) {
 	const methods = data.map((component) => {
+		const isBindable = Boolean(
+			Object.entries(component.events || {}).find(
+				([, ev]) => ev.bindable,
+			),
+		);
+		const bindParam = ` 
+            binding: Optional[${component.nameTrim}Bindings] = None,`;
+		const bindPass = `,
+            binding=binding`;
 		return `
-    def ${component.nameTrim}(self, 
+    @staticmethod
+    def ${component.nameTrim}(
             content: ${component.nameTrim}Props = {},
             *,
             id: Optional[str] = None,
             position: Optional[int] = None,
             parentId: Optional[str] = None,
             handlers: Optional[${component.nameTrim}EventHandlers] = None,
-            visible: Optional[Union[bool, str]] = None,
-            binding: Optional[Dict] = None,
+            visible: Optional[Union[bool, str]] = None,${isBindable ? bindParam : ""}
             ) -> Component:
         """
         ${component.description}
         """
-        defaultContent: ${component.nameTrim}Props = {
-${generateComponentDefaults(component)}
-        }
-        content = defaultContent | content
-        component = self.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
+        component = StreamsyncUI.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
             '${component.type}',
             content=content,
             id=id,
             position=position,
             parentId=parentId,
             handlers=handlers,
-            visible=visible,
-            binding=binding)
+            visible=visible${isBindable ? bindPass : ""})
         return component
     `;
 	});

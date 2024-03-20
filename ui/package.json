@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"scripts": {
 		"dev": "vite",
-		"code:gen": "node tools/generator.js ../src/streamsync/ui.py ./components.json",
+		"codegen.binding.ui": "node tools/generator.js ../src/streamsync/ui.py ./components.json",
 		"build": "vite build",
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../.gitignore",

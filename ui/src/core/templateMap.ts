@@ -11,7 +11,7 @@ import CoreText from "../core_components/content/CoreText.vue";
 import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
 import CoreLink from "../core_components/content/CoreLink.vue";
-import CoreChat from "../core_components/content/CoreChat.vue";
+import CoreChatbot from "../core_components/content/CoreChatbot.vue";
 import CoreTags from "../core_components/content/CoreTags.vue";
 import CoreAvatar from "../core_components/content/CoreAvatar.vue";
 // input
@@ -104,7 +104,7 @@ const templateMap = {
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
-	chat: CoreChat,
+	chatbot: CoreChatbot,
 	step: CoreStep,
 	steps: CoreSteps,
 	ratinginput: CoreRating,

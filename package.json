@@ -22,6 +22,7 @@
     "e2e:webkit:ci": "npm run -w streamsync-e2e test:webkit:ci",
     "lint": "npm run -w streamsync-ui lint",
     "lint:ci": "npm run -w streamsync-ui lint:ci",
-    "dev": "npm run -w streamsync-ui dev"
+    "dev": "npm run -w streamsync-ui dev",
+	"codegen.binding.ui": "npm run -w streamsync-ui codegen.binding.ui"
   }
 }

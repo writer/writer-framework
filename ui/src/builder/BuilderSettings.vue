@@ -37,7 +37,15 @@
 			></div>
 		</div>
 
-		<div class="sections">
+		<div v-if="readonly" class="warning">
+			<i class="ri-error-warning-line ri-xl"></i>
+			<span>
+				This component is instantiated in code. All settings in this
+				panel are read-only and cannot be edited.
+			</span>
+		</div>
+
+		<div class="sections" :inert="readonly">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
 			<BuilderSettingsBinding v-if="isBindable"></BuilderSettingsBinding>
 			<BuilderSettingsHandlers></BuilderSettingsHandlers>
@@ -66,6 +74,7 @@ const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const readonly = computed(() => component.value.isCodeManaged);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;
@@ -130,13 +139,30 @@ const generateUnsanitisedMarkdownHtml = () => {
 .sections {
 	background: var(--builderBackgroundColor);
 }
+
+.sections[inert] {
+	opacity: 0.7;
+}
+
 .sections > *:not(:first-child) {
 	border-top: 1px solid var(--builderSeparatorColor);
 }
+
 .debug {
 	color: var(--builderSecondaryTextColor);
 	border-top: 1px solid var(--builderSeparatorColor);
 	padding: 24px;
+}
+
+.warning {
+	display: flex;
+	align-items: center;
+	background: var(--builderWarningColor);
+	color: var(--builderWarningTextColor);
+	border-radius: 4px;
+	gap: 12px;
+	margin: 12px 12px 0;
+	padding: 12px;
 }
 
 /*

@@ -40,6 +40,7 @@ export default {
           { text: "Page routes", link: "/page-routes" },
           { text: "Sessions", link: "/sessions" },
           { text: "Custom server", link: "/custom-server" },
+          { text: "State schema", link: "/state-schema" },
         ],
       },
       {
