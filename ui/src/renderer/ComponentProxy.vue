@@ -12,6 +12,7 @@ import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
+import RenderError from "./RenderError.vue";
 
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
@@ -310,11 +311,25 @@ export default {
 			const vnodeProps = {
 				...getRootElProps(),
 			};
-			const renderedComponent = h(template, vnodeProps, {
-				default: defaultSlotFn,
-			});
 
-			return renderedComponent;
+			const parentId = instancePath.at(-2)?.componentId;
+			const allowedTypes = !parentId
+				? ["root"]
+				: ss.getContainableTypes(parentId);
+			if (allowedTypes.includes(component.value.type)) {
+				return h(template, vnodeProps, {
+					default: defaultSlotFn,
+				});
+			} else {
+				if (!isBeingEdited.value) return h("div");
+				return [
+					h(RenderError, {
+						...vnodeProps,
+						componentType: component.value.type,
+						message: `This component cannot be added here`,
+					}),
+				];
+			}
 		};
 	},
 };
