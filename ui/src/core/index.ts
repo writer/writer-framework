@@ -485,28 +485,6 @@ export function generateCore() {
 	}
 
 	/**
-	 * 
-	 *
-	 * @param childrenOfId 
-	 * @param sortedByPosition Whether to sort the components by position or return in random order.
-	 * @returns An array of components.
-	 */
-	// function getComponents(
-	// 	childrenOfId: Component["id"] = undefined,
-	// 	sortedByPosition: boolean = false,
-	// ): Component[] {
-	// 	let ca = Object.values(components.value);
-
-	// 	if (typeof childrenOfId != "undefined") {
-	// 		ca = ca.filter((c) => c.parentId == childrenOfId);
-	// 	}
-	// 	if (sortedByPosition) {
-	// 		ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
-	// 	}
-	// 	return ca;
-	// }
-
-	/**
 	 * Gets registered Streamsync components.
 	 *
 	 * @param parentId If specified, only include results that are children of a component with this id.
