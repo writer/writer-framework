@@ -23,6 +23,9 @@ classifiers = [
 packages = [
     { include = "streamsync", from = "src" }
 ]
+include = [
+	"src/streamsync/static/**/*"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9.2, <4.0"
