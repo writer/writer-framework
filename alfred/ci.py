@@ -17,6 +17,7 @@ def ci(front, back, e2e):
         alfred.invoke_command("ci.pytest")
     if front or (not front and not back and not e2e):
         alfred.invoke_command("npm.lint")
+        alfred.invoke_command("npm.test")
         alfred.invoke_command("npm.build")
         alfred.invoke_command("ci.codegen.ui.binding")
     if e2e:
