@@ -11,14 +11,12 @@ import { getComponentDefinition } from "./templateMap";
  *
  * @param components
  */
+
 export function auditAndFixComponents(components: ComponentMap): boolean {
+	console.log("Auditing and fixing components...");
 	let isFixApplied = false;
-	Object.entries(components).forEach(([componentId, component]) => {
-		if (componentId !== "root" && !components[component.parentId]) {
-			console.warn(
-				`Component ${component.id} (${component.type}). Orphan component.`,
-			);
-		}
+	auditOrphanComponents(components);
+	Object.entries(components).forEach(([, component]) => {
 		isFixApplied =
 			isFixApplied || auditAndFixPositions(component, components);
 		auditComponent(component);
@@ -39,6 +37,33 @@ export function auditComponent(component: Component) {
 
 	auditComponentFieldKeys(component, def);
 	auditComponentBinding(component, def);
+}
+
+function traverseComponentTree(
+	parentId: Component["id"],
+	components: ComponentMap,
+	visited: Record<string, boolean> = {},
+) {
+	visited[parentId] = true;
+	Object.entries(components)
+		.filter(([, component]) => component.parentId === parentId)
+		.forEach(([componentId]) =>
+			traverseComponentTree(componentId, components, visited),
+		);
+}
+
+function auditOrphanComponents(components: ComponentMap) {
+	const visited = Object.fromEntries(
+		Object.entries(components).map(([componentId]) => [componentId, false]),
+	);
+	traverseComponentTree("root", components, visited);
+	Object.entries(visited).forEach(([componentId, isVisited]) => {
+		if (!isVisited) {
+			console.warn(
+				`Component ${componentId} (${components[componentId].type}). Orphan component.`,
+			);
+		}
+	});
 }
 
 function auditComponentFieldKeys(
