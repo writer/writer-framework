@@ -121,6 +121,8 @@ class StateSerialiser:
                 return None
             return v
 
+        if "pandas.core.frame.DataFrame" in v_mro:
+            return self._serialise_pandas_dataframe(v)
         if hasattr(v, "__dataframe__"):
             return self._serialize_dataframe(v)
 
@@ -174,6 +176,11 @@ class StateSerialiser:
         import pyarrow.interchange # type: ignore
         table = pyarrow.interchange.from_dataframe(df)
         return self._serialise_pyarrow_table(table)
+
+    def _serialise_pandas_dataframe(self, df):
+        import pyarrow as pa # type: ignore
+        pa_table = pa.Table.from_pandas(df, preserve_index=True)
+        return self._serialise_pyarrow_table(pa_table)
 
     def _serialise_pyarrow_table(self, table):
         import pyarrow as pa # type: ignore
