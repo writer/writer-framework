@@ -91,6 +91,35 @@ ${component.nameTrim}Bindings = TypedDict('${component.nameTrim}Bindings', {`;
 	return types.join("");
 }
 
+function generateAllowedParentTypes(data) {
+	const allowedParent = data.map((component) => {
+		return `        "${component.type}": [${
+			component.allowedParentTypes
+				?.map((type) => `'${type}'`)
+				?.join(", ") || ""
+		}],
+`;
+	});
+	return `
+    parent_types_map = {
+${allowedParent.join("")}    }
+	`;
+}
+function generateAllowedChildrenTypes(data) {
+	const allowedChildren = data.map((component) => {
+		return `        "${component.type}": [${
+			component.allowedChildrenTypes
+				?.map((type) => `'${type}'`)
+				?.join(", ") || ""
+		}],
+`;
+	});
+	return `
+    children_types_map = {
+${allowedChildren.join("")}    }
+	`;
+}
+
 function generateClass() {
 	return `
 
@@ -103,8 +132,6 @@ class StreamsyncUIManager(StreamsyncUI):
     frontend, allowing methods to adapt to changes in the UI components without
     manual updates.
     """
-    
-    # Hardcoded classes for proof-of-concept purposes
   `;
 }
 
@@ -155,6 +182,8 @@ loadComponents().then((data) => {
 		generateImports() +
 			generateTypes(data) +
 			generateClass() +
+			generateAllowedChildrenTypes(data) +
+			generateAllowedParentTypes(data) +
 			generateMethods(data),
 	);
 });
