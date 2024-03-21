@@ -1,13 +1,17 @@
 import json
 import math
+import unittest
 from typing import Dict
 
 import numpy as np
-from streamsync.core import (BytesWrapper, ComponentManager, Evaluator, EventDeserialiser,
-                             FileWrapper, SessionManager, StateProxy, StateSerialiser, StateSerialiserException, StreamsyncState)
+from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
+                             FileWrapper, SessionManager, State, StateSerialiser, StateSerialiserException,
+                             StreamsyncState)
+
 import streamsync as ss
 from streamsync.ss_types import StreamsyncEvent
 import pandas as pd
+import polars as pl
 import plotly.express as px
 import pytest
 import altair
@@ -36,18 +40,41 @@ raw_state_dict = {
     "_private_unserialisable": np.array([[1+2j, 2, 3+3j]])
 }
 
-sc = None
-with open(test_app_dir / "ui.json", "r") as f:
-    sc = json.load(f).get("components")
+simple_dict = {"items": {
+        "Apple": {"name": "Apple", "type": "fruit"},
+        "Cucumber": {"name": "Cucumber", "type": "vegetable"},
+        "Lettuce": {"name": "Lettuce", "type": "vegetable"}
+    }}
 
 ss.Config.is_mail_enabled_for_log = True
 ss.init_state(raw_state_dict)
-ss.component_manager.ingest(sc)
+
+sc = None
+with open(test_app_dir / "ui.json", "r") as f:
+    sc = json.load(f).get("components")
+session = ss.session_manager.get_new_session()
+session.session_component_tree.ingest(sc)
 
 
-class TestStateProxy:
+class TestStateProxy(unittest.TestCase):
 
-    sp = StateProxy(raw_state_dict)
+    def setUp(self):
+        self.sp = State(raw_state_dict)._state_proxy
+        self.sp_simple_dict = State(simple_dict)._state_proxy
+
+    @classmethod
+    def count_initial_mutations(cls, d, count=0):
+        """
+        Counts the number of mutations that will be performed for a given dictionary
+        when it is converted into a StateProxy.
+        """
+        for key, value in d.items():
+            if not key.startswith('_'):
+                count += 1  # Increment for each key-value pair
+                if isinstance(value, dict):
+                    count = TestStateProxy.count_initial_mutations(value, count)
+                    # Recurse for nested dictionaries
+        return count
 
     def test_read(self) -> None:
         d = self.sp.to_dict()
@@ -57,29 +84,241 @@ class TestStateProxy:
         assert d.get("utfࠀ") == 23
 
     def test_mutations(self) -> None:
+        m = self.sp.get_mutations_as_dict()
+        assert len(m) == TestStateProxy.count_initial_mutations(self.sp.to_dict())
+        # Mutated after initialization from raw_state_dict
+
         self.sp["age"] = 2
-        self.sp["interests"].append("dogs")
+        m = self.sp.get_mutations_as_dict()
+        assert m.get("+age") == 2
+        assert len(m) == 1
+
+        self.sp["interests"] += ["dogs"]
         self.sp["features"]["height"] = "short"
+        m = self.sp.get_mutations_as_dict()
+        assert m.get("+interests") == ["lamps", "cars", "dogs"]
+        assert m.get("+features.height") == "short"
+        assert len(m) == 2
+
         self.sp["state.with.dots"]["photo.jpeg"] = "Corrupted"
+        m = self.sp.get_mutations_as_dict()
+        assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
+        assert len(m) == 1
+
         d = self.sp.to_dict()
         assert d.get("age") == 2
         assert d.get("interests") == ["lamps", "cars", "dogs"]
         assert d.get("features").get("height") == "short"
         assert d.get("state.with.dots").get("photo.jpeg") == "Corrupted"
 
-        self.sp.apply("age")
+
+        del self.sp["best_feature"]
         m = self.sp.get_mutations_as_dict()
-        assert m.get("age") == 2
-        assert m.get("features.height") == "short"
-        assert m.get("state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
+        assert "-best_feature" in m
+
+    def test_apply_mutation_marker(self) -> None:
+        self.sp.get_mutations_as_dict()
+        self.sp_simple_dict.get_mutations_as_dict()
+
+        # Apply the mutation to a specific key
+        self.sp.apply_mutation_marker("age")
+        m = self.sp.get_mutations_as_dict()
+        assert m == {
+            '+age': 1
+        }
+
+        # Apply the mutation to the state as a whole
+        self.sp.apply_mutation_marker()
+        m = self.sp.get_mutations_as_dict()
+        assert m == {
+            '+age': 1,
+            '+best_feature': 'eyes',
+            '+counter': 4,
+            '+features': None,
+            '+interests': ['lamps', 'cars'],
+            '+name': 'Robert',
+            '+state\\.with\\.dots': None,
+            '+utfࠀ': 23
+        }
+
+        self.sp_simple_dict.apply_mutation_marker()
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert m == {
+            '+items': None
+        }
+
+        # Apply the mutation to the state as a whole and on all its children
+        self.sp_simple_dict.apply_mutation_marker(recursive=True)
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Apple': None,
+            '+items.Apple.name': 'Apple',
+            '+items.Apple.type': 'fruit',
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
+
+
+    def test_dictionary_removal(self) -> None:
+        # Explicit removal test
+        del self.sp_simple_dict["items"]["Lettuce"]
+        m = self.sp_simple_dict.get_mutations_as_dict()
+        assert "+items" in m
+        assert "-items.Lettuce" in m
+
 
     def test_private_members(self) -> None:
         d = self.sp.to_dict()
         assert d.get("_private") is None
         assert d.get("_private_unserialisable") is None
 
+    def test_to_raw_state(self) -> None:
+        """
+        Test that `to_raw_state` returns the state in its original format
+        """
+        assert self.sp.to_raw_state() == raw_state_dict
+        assert self.sp_simple_dict.to_raw_state() == simple_dict
+
+
 
 class TestState:
+
+    def test_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        """
+        Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
+        triggers mutations to update the interface
+
+        #>>> _state = streamsync.init_state({'app': {}})
+        #>>> _state["app"] = {"hello": "world"}
+        """
+        _state = State()
+
+        # When
+        _state["new.state.with.dots"] = {"test": "test"}
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            r"+new\.state\.with\.dots": None,
+            r"+new\.state\.with\.dots.test": "test"
+        }
+
+    def test_set_dictionary_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        class SimpleSchema(State):
+            app: dict
+
+        _state = SimpleSchema()
+
+        # When
+        _state["app"] = {"hello": "world"}
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            r"+app": {"hello": "world"},
+        }
+
+    def test_replace_dictionary_content_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+        """
+        Tests that replacing a dictionary content in a State without schema trigger mutations on all the children.
+
+        This processing must work after initialization and after recovering the mutations the first time.
+
+        #>>> _state = State({'items': {}})
+        #>>> _state["items"] = {k: v for k, v in _state["items"].items() if k != "Apple"}
+        """
+        _state = State({"items": {
+            "Apple": {"name": "Apple", "type": "fruit"},
+            "Cucumber": {"name": "Cucumber", "type": "vegetable"},
+            "Lettuce": {"name": "Lettuce", "type": "vegetable"}
+        }})
+
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Apple': None,
+            '+items.Apple.name': "Apple",
+            '+items.Apple.type': "fruit",
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
+
+        # When
+        items = _state['items']
+        items = {k: v for k, v in items.items() if k != "Apple"}
+        _state["items"] = items
+
+        # Then
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+items': None,
+            '+items.Cucumber': None,
+            '+items.Cucumber.name': 'Cucumber',
+            '+items.Cucumber.type': 'vegetable',
+            '+items.Lettuce': None,
+            '+items.Lettuce.name': 'Lettuce',
+            '+items.Lettuce.type': 'vegetable'
+        }
+
+    def test_changing_a_value_in_substate_is_accessible_and_mutations_are_present(self):
+        """
+        Tests that the change of values in a child state is readable whatever the access mode and
+        that mutations are triggered
+
+        #>>> _state = ComplexSchema({'app': {'title': ''}})
+        #>>> _state.app.title = 'world'
+        """
+        class AppState(State):
+            title: str
+
+        class ComplexSchema(State):
+            app: AppState
+
+        _state = ComplexSchema({'app': {'title': ''}})
+
+        # When
+        _state.app.title = 'world'
+
+        # Then
+        assert _state.app.title == 'world'
+        assert _state['app']['title'] == 'world'
+        assert _state.app['title'] == 'world'
+        assert _state['app'].title == 'world'
+        assert _state._state_proxy.get_mutations_as_dict() == {
+            '+app': None,
+            '+app.title': 'world',
+        }
+
+    def test_remove_then_replace_nested_dictionary_should_trigger_mutation(self):
+        """
+        Tests that deleting a key from a substate, then replacing it, triggers the expected mutations
+        """
+        # Assign
+        _state = State({"nested": {"a": 1, "b": 2, "c": {"d": 3, "e": 4}}})
+        m = _state._state_proxy.get_mutations_as_dict()
+
+        # Acts
+        del _state["nested"]["c"]["e"]
+        _state['nested']['c'] = _state['nested']['c']
+
+        # Assert
+        m = _state._state_proxy.get_mutations_as_dict()
+        assert m == {
+            '+nested.c': None,
+            '+nested.c.d': 3,
+            '-nested.c.e': None
+        }
+        assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
+
+
+class TestStreamsyncState:
 
     # Initialised manually
 
@@ -156,29 +395,12 @@ class TestState:
         json.dumps(cloned.mail)
 
 
-class TestComponentManager:
-
-    cm = ComponentManager()
-
-    def test_ingest(self) -> None:
-        self.cm.ingest(sc)
-        d = self.cm.to_dict()
-        assert d.get(
-            "84378aea-b64c-49a3-9539-f854532279ee").get("type") == "header"
-
-    def test_descendents(self) -> None:
-        desc = self.cm.get_descendents("root")
-        desc_ids = list(map(lambda x: x.id, desc))
-        assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
-        assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
-        assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids
-
-
 class TestEventDeserialiser:
 
     root_instance_path = [{"componentId": "root", "instanceNumber": 0}]
     session_state = StreamsyncState(raw_state_dict)
-    ed = EventDeserialiser(session_state)
+    component_tree = session.session_component_tree
+    ed = EventDeserialiser(session_state, component_tree)
 
     def test_unknown_no_payload(self) -> None:
         ev = StreamsyncEvent(
@@ -526,6 +748,20 @@ class TestStateSerialiser():
         assert table.column("name")[0].as_py() == "Byte"
         assert table.column("length_cm")[2].as_py() == 32
 
+    def test_polars_df(self) -> None:
+        d = {
+            "name": "Normal name",
+            "df": pl.read_csv(self.df_path)
+        }
+        s = self.sts.serialise(d)
+        assert s.get("name") == "Normal name"
+        df_durl = s.get("df")
+        df_buffer = urllib.request.urlopen(df_durl)
+        reader = pa.ipc.open_file(df_buffer)
+        table = reader.read_all()
+        assert table.column("name")[0].as_py() == "Byte"
+        assert table.column("length_cm")[2].as_py() == 32
+
 class TestEvaluator:
 
     def test_evaluate_field_simple(self) -> None:
@@ -539,7 +775,8 @@ class TestEvaluator:
         st = StreamsyncState({
             "counter": 8
         })
-        e = Evaluator(st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         evaluated = e.evaluate_field(instance_path, "text")
         assert evaluated == "The counter is 8"
 
@@ -563,7 +800,8 @@ class TestEvaluator:
                 "ts": "TypeScript"
             }
         })
-        e = Evaluator(st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         assert e.evaluate_field(
             instance_path_0, "text") == "The id is c and the name is C"
         assert e.evaluate_field(
@@ -574,7 +812,8 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         e.set_state("name", instance_path, "Roger")
         e.set_state("dynamic_prop", instance_path, "height")
         e.set_state("features[dynamic_prop]", instance_path, "toddler height")
@@ -588,7 +827,8 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         st = StreamsyncState(raw_state_dict)
-        e = Evaluator(st)
+        ct = session.session_component_tree
+        e = Evaluator(st, ct)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"

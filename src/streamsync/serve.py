@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import mimetypes
 from contextlib import asynccontextmanager
 import sys
@@ -8,6 +9,7 @@ import typing
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+from fastapi.routing import Mount
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from streamsync.ss_types import (AppProcessServerResponse, ComponentUpdateRequestPayload, EventResponsePayload, InitRequestBody, InitResponseBodyEdit,
                                  InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StateEnquiryResponsePayload, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
@@ -21,7 +23,6 @@ from streamsync import VERSION
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
-
 
 def get_asgi_app(
         user_app_path: str,
@@ -57,6 +58,11 @@ def get_asgi_app(
             on_shutdown()
 
     asgi_app = FastAPI(lifespan=lifespan)
+    """
+    Reuse the same pattern to give variable to FastAPI application
+    than `asgi_app.state.is_server_static_mounted` already use in streamsync.
+    """
+    asgi_app.state.streamsync_app = True
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -402,7 +408,7 @@ def print_route_message(run_name: str, port: int, host: str):
     GREEN_TOKEN = "\033[92m"
     END_TOKEN = "\033[0m"
 
-    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}")
+    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
 
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
@@ -421,6 +427,60 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
     uvicorn.run(asgi_app, host=host,
                 port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    This feature supports launching multiple streamsync applications simultaneously.
+
+    >>> import uvicorn
+    >>> import streamsync.serve
+    >>> from fastapi import FastAPI, Response
+    >>>
+    >>> root_asgi_app = FastAPI(lifespan=streamsync.serve.lifespan)
+    >>>
+    >>> sub_asgi_app_1 = streamsync.serve.get_asgi_app("../app1", "run")
+    >>> sub_asgi_app_2 = streamsync.serve.get_asgi_app("../app2", "run")
+    >>>
+    >>> uvicorn.run(root_asgi_app, ws_max_size=streamsync.serve.MAX_WEBSOCKET_MESSAGE_SIZE)
+
+    Streamsync uses lifespan to start an application server (app_runner) per
+    application.
+    """
+    streamsync_lifespans = []
+    for route in app.routes:
+        if isinstance(route, Mount) and isinstance(route.app, FastAPI):
+            if hasattr(route.app.state, "streamsync_app"):
+                ctx = route.app.router.lifespan_context
+                streamsync_lifespans.append(ctx)
+
+    async with _lifespan_invoke(streamsync_lifespans, app):
+        yield
+
+
+@asynccontextmanager
+async def _lifespan_invoke(context: list, app: FastAPI):
+    """
+    Helper to run multiple lifespans in cascade.
+
+    Running
+
+    >>> _lifespan_invoke([app1.router.lifespan_context, app2.router.lifespan_context], app)
+
+    is equivalent to
+
+    >>> @asynccontextmanager
+    >>> async def lifespan_context(app: FastAPI):
+    >>>   async with app1.router.lifespan_context(app):
+    >>>     async with app2.router.lifespan_context(app):
+    >>>       yield
+    """
+    ctx = context.pop(0)
+    async with ctx(app):
+        if len(context) > 0:
+            async with _lifespan_invoke(context, app):
+                yield
+        else:
+            yield
 
 def _fix_mimetype():
     """

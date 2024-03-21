@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, Ref } from "vue";
 import {
 	Component,
@@ -20,19 +22,21 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {
 	let sessionId: string = null;
-	let sessionTimestamp: Ref<number> = ref(null);
-	let mode: Ref<"run" | "edit"> = ref(null);
-	let runCode: Ref<string> = ref(null);
+	const sessionTimestamp: Ref<number> = ref(null);
+	const mode: Ref<"run" | "edit"> = ref(null);
+	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline"> = ref("idle");
 	let frontendMessageCounter = 0;
-	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(new Map());
+	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(
+		new Map(),
+	);
 	let mailInbox: MailItem[] = [];
 	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
-	let activePageId: Ref<Component["id"]> = ref(null);
+	const activePageId: Ref<Component["id"]> = ref(null);
 
 	function getFrontendMessageMap() {
 		return frontendMessageMap.value;
@@ -125,19 +129,38 @@ export function generateCore() {
 			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
 			*/
 
-			const accessor = parseAccessor(key);
+			const mutationFlag = key.charAt(0);
+			const accessor = parseAccessor(key.substring(1));
+			const lastElementIndex = accessor.length - 1;
 			let stateRef = userState.value;
-			for (let i = 0; i < accessor.length - 1; i++) {
-				let nextStateRef = stateRef?.[accessor[i]];
+
+			// Check if the accessor is meant for deletion.
+			const isDeletion = mutationFlag === "-";
+
+			for (let i = 0; i < lastElementIndex; i++) {
+				const nextStateRef = stateRef?.[accessor[i]];
 				if (typeof nextStateRef === "object" && nextStateRef !== null) {
 					stateRef = nextStateRef;
-				} else {
+				} else if (!isDeletion) {
+					// Only create new path elements if it's not a deletion operation.
 					stateRef[accessor[i]] = {};
 					stateRef = stateRef[accessor[i]];
 				}
 			}
-			stateRef[accessor.at(-1)] = value;
+
+			if (isDeletion) {
+				// If it's a deletion operation, delete the property.
+				delete stateRef[accessor.at(-1)];
+			} else {
+				// Otherwise, set the value as usual.
+				stateRef[accessor.at(-1)] = value;
+			}
 		});
+	}
+
+	function ingestComponents(newComponents: Record<string, any>) {
+		if (!newComponents) return;
+		components.value = newComponents;
 	}
 
 	function clearFrontendMap() {
@@ -174,9 +197,13 @@ export function generateCore() {
 				webSocket.close();
 				initSession();
 				return;
-			} else if (message.messageType == "eventResponse" || message.messageType == "stateEnquiryResponse") {
+			} else if (
+				message.messageType == "eventResponse" ||
+				message.messageType == "stateEnquiryResponse"
+			) {
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
+				ingestComponents(message.payload?.components);
 			}
 
 			const mapItem = frontendMessageMap.value.get(message.trackingId);
@@ -264,8 +291,14 @@ export function generateCore() {
 		return eventPayload;
 	}
 
-	async function forwardEvent(event: Event, instancePath: InstancePath, includeEventPayload: boolean) {
-		const eventPayload = includeEventPayload ? getPayloadFromEvent(event) : null;
+	async function forwardEvent(
+		event: Event,
+		instancePath: InstancePath,
+		includeEventPayload: boolean,
+	) {
+		const eventPayload = includeEventPayload
+			? getPayloadFromEvent(event)
+			: null;
 		let callback: Function;
 
 		if (event instanceof CustomEvent) {
@@ -336,13 +369,18 @@ export function generateCore() {
 
 	function setupMessageFollowUp(trackingId: number) {
 		const INITIAL_FOLLOWUP_MS = 100;
-		const SUBSEQUENT_FOLLOWUPS_MS = 1000; 
+		const SUBSEQUENT_FOLLOWUPS_MS = 1000;
 
 		const checkIfStateEnquiryRequired = () => {
 			const isPending = frontendMessageMap.value.has(trackingId);
 			if (!isPending) return;
-			sendStateEnquiry(() => setTimeout(checkIfStateEnquiryRequired, SUBSEQUENT_FOLLOWUPS_MS));
-		}
+			sendStateEnquiry(() =>
+				setTimeout(
+					checkIfStateEnquiryRequired,
+					SUBSEQUENT_FOLLOWUPS_MS,
+				),
+			);
+		};
 		setTimeout(checkIfStateEnquiryRequired, INITIAL_FOLLOWUP_MS);
 	}
 
@@ -350,13 +388,13 @@ export function generateCore() {
 		type: string,
 		payload: object | (() => Promise<object>),
 		callback?: Function,
-		track = false
+		track = false,
 	) {
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {
 				frontendMessageMap.value.set(trackingId, {
-					callback
+					callback,
 				});
 			}
 			if (track) {
@@ -397,8 +435,21 @@ export function generateCore() {
 	 * @returns
 	 */
 	async function sendComponentUpdate(): Promise<void> {
+		/*
+ 		Ensure that the backend receives only components 
+		created by the frontend (Builder-managed components, BMC), 
+		and not the components it generated (Code-managed components, CMC).
+ 		*/
+
+		const builderManagedComponents = {};
+
+		Object.entries(components.value).forEach(([componentId, component]) => {
+			if (component.isCodeManaged) return;
+			builderManagedComponents[componentId] = component;
+		});
+
 		const payload = {
-			components: components.value,
+			components: builderManagedComponents,
 		};
 
 		return new Promise((resolve, reject) => {
@@ -424,25 +475,54 @@ export function generateCore() {
 		return components.value[componentId];
 	}
 
+	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
+		let child = components.value[childId];
+		do {
+			if (child.parentId == parentId) return true;
+			child = components.value[child.parentId];
+		} while (child);
+		return false;
+	}
+
 	/**
 	 * Gets registered Streamsync components.
 	 *
-	 * @param childrenOfId If specified, only include results that are children of a component with this id.
-	 * @param sortedByPosition Whether to sort the components by position or return in random order.
+	 * @param parentId If specified, only include results that are children of a component with this id.
+	 * @param param1 Whether to include Builder-managed components and code-managed components, and whether to sort.
 	 * @returns An array of components.
 	 */
 	function getComponents(
-		childrenOfId: Component["id"] = undefined,
-		sortedByPosition: boolean = false,
+		parentId?: Component["id"],
+		{
+			includeBMC = true,
+			includeCMC = true,
+			sortedByPosition = false,
+		}: {
+			includeBMC?: boolean;
+			includeCMC?: boolean;
+			sortedByPosition?: boolean;
+		} = {},
 	): Component[] {
 		let ca = Object.values(components.value);
 
-		if (typeof childrenOfId != "undefined") {
-			ca = ca.filter((c) => c.parentId == childrenOfId);
+		if (typeof parentId !== "undefined") {
+			ca = ca.filter((c) => c.parentId == parentId);
 		}
+
+		ca = ca.filter((c) => {
+			const isCMC = c.isCodeManaged;
+			const isBMC = !isCMC;
+			return (includeBMC && isBMC) || (includeCMC && isCMC);
+		});
+
 		if (sortedByPosition) {
-			ca = ca.sort((a, b) => (a.position > b.position ? 1 : -1));
+			ca = ca.sort((a, b) => {
+				if (a.isCodeManaged && !b.isCodeManaged) return 1;
+				if (!a.isCodeManaged && b.isCodeManaged) return -1;
+				return a.position > b.position ? 1 : -1;
+			});
 		}
+
 		return ca;
 	}
 
@@ -506,6 +586,7 @@ export function generateCore() {
 		getContainableTypes,
 		getSessionTimestamp,
 		getUserState,
+		isChildOf,
 	};
 
 	return core;

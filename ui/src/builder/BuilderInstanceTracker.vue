@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderInstanceTracker" :style="rootStyle" ref="rootEl">
+	<div ref="rootEl" class="BuilderInstanceTracker" :style="rootStyle">
 		<slot></slot>
 	</div>
 </template>
@@ -13,10 +13,16 @@ interface Props {
 	matchSize?: boolean;
 	verticalOffsetPixels?: number;
 	isOffBoundsAllowed?: boolean;
+	preventSettingsBarOverlap?: boolean;
 }
 const props = defineProps<Props>();
-const { instancePath, matchSize, verticalOffsetPixels, isOffBoundsAllowed } =
-	toRefs(props);
+const {
+	instancePath,
+	matchSize,
+	verticalOffsetPixels,
+	isOffBoundsAllowed,
+	preventSettingsBarOverlap,
+} = toRefs(props);
 
 type RootStyle = {
 	top: string;
@@ -36,6 +42,14 @@ const trackElement = (el: HTMLElement) => {
 	const { clientHeight: bodyHeight } = document.body;
 	const { clientWidth: rendererWidth } = rendererEl;
 	const { left: rendererX } = rendererEl.getBoundingClientRect();
+	const settingsEl = document.querySelector(".BuilderSettings");
+	const hiderTabEl = document.querySelector(".settingsHiderTab");
+	const hiderWidth = hiderTabEl?.clientWidth || 0;
+	const { clientWidth: settingsWidth } = settingsEl || { clientWidth: 0 };
+	const fullSettingsWidth = settingsWidth + hiderWidth;
+	const { left: settingsLeft } = settingsEl?.getBoundingClientRect() || {
+		left: Infinity,
+	};
 	let { clientHeight: contentsHeight, clientWidth: contentsWidth } =
 		matchSize?.value ? el : rootEl.value;
 	let yAdjustment = verticalOffsetPixels?.value
@@ -49,10 +63,22 @@ const trackElement = (el: HTMLElement) => {
 		trackerX = Math.max(rendererX, trackerX); // Left boundary
 		trackerX = Math.min(
 			rendererX + rendererWidth - contentsWidth,
-			trackerX
+			trackerX,
 		); // Right boundary
 		trackerY = Math.max(MIN_TOP_PX, trackerY); // Top boundary
 		trackerY = Math.min(bodyHeight - contentsHeight, trackerY); // Bottom boundary
+	}
+
+	if (preventSettingsBarOverlap.value) {
+		let correction = 0;
+		if (settingsLeft < rendererX + rendererWidth) {
+			const trackerEnd = trackerX + contentsWidth;
+			const rendererEnd = rendererX + rendererWidth;
+			const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
+			correction = Math.max(fullSettingsWidth - distanceToRight, 0);
+		}
+
+		trackerX -= correction;
 	}
 
 	rootStyle.value = {
@@ -65,7 +91,7 @@ const trackElement = (el: HTMLElement) => {
 
 const triggerTrack = () => {
 	let el: HTMLElement = document.querySelector(
-		`.ComponentRenderer [data-streamsync-instance-path="${instancePath.value}"]`
+		`.ComponentRenderer [data-streamsync-instance-path="${instancePath.value}"]`,
 	);
 	scheduleNextTrigger();
 	if (!el) return;

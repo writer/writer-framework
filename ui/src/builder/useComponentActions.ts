@@ -8,7 +8,6 @@ import {
 } from "../streamsyncTypes";
 
 export function useComponentActions(ss: Core, ssbm: BuilderManager) {
-
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -16,8 +15,8 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		const randomArr = new Uint16Array(16);
 		window.crypto.getRandomValues(randomArr);
 
-		randomArr.forEach(n => {
-			newId += (n % radix).toString(radix)
+		randomArr.forEach((n) => {
+			newId += (n % radix).toString(radix);
 		});
 
 		return newId;
@@ -36,7 +35,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		if (!parent) return;
 
 		const previousSibling = ss
-			.getComponents(parent.id)
+			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position == position - 1)[0];
 
 		// MUTATIONS
@@ -68,14 +67,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		if (position == -2) return; // Positionless
 
 		const positionfulSiblings = ss
-			.getComponents(parent.id)
+			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position !== -2);
 		if (position >= positionfulSiblings.length - 1) {
 			return;
 		}
 
 		const nextSibling = positionfulSiblings.filter(
-			(c) => c.position == position + 1
+			(c) => c.position == position + 1,
 		)[0];
 
 		const transactionId = `move-down-${componentId}`;
@@ -101,7 +100,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function moveComponent(
 		componentId: Component["id"],
 		newParentId: Component["id"],
-		newPosition?: number
+		newPosition?: number,
 	) {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -127,7 +126,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function createComponent(
 		type: string,
 		parentId: Component["id"],
-		position?: number
+		position?: number,
 	) {
 		const newId = generateNewComponentId();
 		const definition = ss.getComponentDefinition(type);
@@ -161,7 +160,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function createAndInsertComponent(
 		type: string,
 		parentId: Component["id"],
-		position?: number
+		position?: number,
 	): Component["id"] {
 		const component = createComponent(type, parentId, position);
 		const transactionId = `create-${component.id}`;
@@ -183,19 +182,22 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function repositionHigherSiblings(
 		componentId: Component["id"],
-		delta: number
+		delta: number,
 	) {
 		const component = ss.getComponentById(componentId);
 		const positionless = ss.getComponentDefinition(
-			component.type
+			component.type,
 		).positionless;
 		if (positionless) return;
 		const siblings = ss
-			.getComponents(component.parentId)
+			.getComponents(component.parentId, {
+				includeBMC: true,
+				includeCMC: false,
+			})
 			.filter((c) => c.id !== componentId);
 		const higherSiblings = siblings.filter(
 			(siblingComponent) =>
-				siblingComponent.position >= component.position
+				siblingComponent.position >= component.position,
 		);
 		higherSiblings.map((c) => {
 			ssbm.registerPreMutation(c);
@@ -212,7 +214,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * @returns Subtree
 	 */
 	function getFlatComponentSubtree(
-		componentId: Component["id"]
+		componentId: Component["id"],
 	): Component[] {
 		const component = ss.getComponentById(componentId);
 		const subtree: Component[] = [];
@@ -251,24 +253,29 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	}
 
 	/**
-	 * Whether a component can be parent of components of a certain type.
-	 *
-	 * @param childType Component type
-	 * @param parentId Id of the hypothetical parent component
-	 */
-	function isParentViable(
-		childType: string,
-		parentId: Component["id"]
-	): boolean {
-		const containableTypes = ss.getContainableTypes(parentId);
-		return containableTypes.includes(childType);
-	}
-
-	/**
 	 * Whether a target component is the root
 	 */
 	function isRoot(targetId: Component["id"]): boolean {
 		return targetId == "root";
+	}
+
+	/**
+	 * Whether a component can be dragged.
+	 */
+	function isDraggingAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && !component?.isCodeManaged;
+	}
+
+	/**
+	 * Whether a component can be added to the target component.
+	 */
+	function isAddAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		return (
+			!component?.isCodeManaged &&
+			ss.getContainableTypes(targetId).length > 0
+		);
 	}
 
 	/**
@@ -282,14 +289,16 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be cut and placed in the clipboard.
 	 */
 	function isCutAllowed(targetId: Component["id"]): boolean {
-		return !isRoot(targetId);
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
 	/**
 	 * Whether a component can be deleted.
 	 */
 	function isDeleteAllowed(targetId: Component["id"]): boolean {
-		return !isRoot(targetId);
+		const component = ss.getComponentById(targetId);
+		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
 	/**
@@ -307,7 +316,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function goToParent(
 		targetId: Component["id"],
-		targetInstancePath?: string
+		targetInstancePath?: string,
 	) {
 		const targetComponent = ss.getComponentById(targetId);
 		if (!targetComponent) return;
@@ -354,7 +363,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			.map((component) => {
 				const containableTypes = getContainableTypes(
 					componentMap,
-					component.parentId
+					component.parentId,
 				);
 				return containableTypes.includes(component.type);
 			})
@@ -367,6 +376,8 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * pasted to the target component.
 	 */
 	function isPasteAllowed(targetId: Component["id"]): boolean {
+		const component = ss.getComponentById(targetId);
+		if (!component || component.isCodeManaged) return false;
 		const clipboard = ssbm.getClipboard();
 		if (clipboard === null) return false;
 		const { jsonSubtree } = clipboard;
@@ -387,10 +398,13 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getEnabledMoves(targetId: Component["id"]) {
 		const getPositionableChildrenCount = (parentId: Component["id"]) => {
-			const children = ss.getComponents(parentId);
+			const children = ss.getComponents(parentId, {
+				includeBMC: true,
+				includeCMC: false,
+			});
 			const positionableChildren = children.filter((c) => {
 				const positionless = ss.getComponentDefinition(
-					c.type
+					c.type,
 				)?.positionless;
 				if (positionless) return false;
 				return true;
@@ -399,7 +413,9 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		};
 
 		const component = ss.getComponentById(targetId);
-		if (!component) return { up: false, down: false };
+		if (!component || component.isCodeManaged) {
+			return { up: false, down: false };
+		}
 		const definition = ss.getComponentDefinition(component.type);
 		if (definition.positionless) return { up: false, down: false };
 		const positionableSiblingCount = component.parentId
@@ -435,9 +451,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getNewSubtreeWithRegeneratedIds(subtree: Component[]) {
 		const deepCopiedSubtree: Component[] = JSON.parse(
-			JSON.stringify(subtree)
+			JSON.stringify(subtree),
 		);
 		deepCopiedSubtree.forEach((c) => {
+			delete c.isCodeManaged;
 			const newId = generateNewComponentId();
 			deepCopiedSubtree
 				.filter((nc) => nc.id !== c.id)
@@ -491,7 +508,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function pasteCutComponent(
 		targetParentId: Component["id"],
-		subtree: Component[]
+		subtree: Component[],
 	) {
 		// MUTATION
 
@@ -500,7 +517,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		rootComponent.parentId = targetParentId;
 		rootComponent.position = getNextInsertionPosition(
 			targetParentId,
-			rootComponent.type
+			rootComponent.type,
 		);
 
 		const transactionId = `paste-cut-${targetParentId}`;
@@ -518,14 +535,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function pasteCopyComponent(
 		targetParentId: Component["id"],
-		subtree: Component[]
+		subtree: Component[],
 	) {
 		// Regenerate clipboard for future pastes
 
 		ssbm.setClipboard({
 			operation: ClipboardOperation.Copy,
 			jsonSubtree: JSON.stringify(
-				getNewSubtreeWithRegeneratedIds(subtree)
+				getNewSubtreeWithRegeneratedIds(subtree),
 			),
 		});
 
@@ -535,7 +552,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		rootComponent.parentId = targetParentId;
 		rootComponent.position = getNextInsertionPosition(
 			targetParentId,
-			rootComponent.type
+			rootComponent.type,
 		);
 
 		const transactionId = `paste-copy-${targetParentId}`;
@@ -553,19 +570,26 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getNextInsertionPosition(
 		targetParentId: Component["id"],
-		childType: Component["type"]
+		childType: Component["type"],
 	) {
 		const positionless = ss.getComponentDefinition(childType).positionless;
 		if (positionless) {
 			return -2;
 		}
 
-		const children = ss.getComponents(targetParentId);
+		const positionfulChildren = ss
+			.getComponents(targetParentId, {
+				includeBMC: true,
+				includeCMC: false,
+			})
+			.filter((c) => c.position !== -2);
 
-		if (children.length > 0) {
+		if (positionfulChildren.length > 0) {
 			const position = Math.max(
-				Math.max(...children.map((c: Component) => c.position)) + 1,
-				0
+				Math.max(
+					...positionfulChildren.map((c: Component) => c.position),
+				) + 1,
+				0,
 			);
 			return position;
 		} else {
@@ -611,7 +635,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 					ss.addComponent(JSON.parse(mutation.jsonPre));
 					return;
 				}
-			}
+			},
 		);
 		ss.sendComponentUpdate();
 	}
@@ -639,7 +663,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 					ss.deleteComponent(mutationId);
 					return;
 				}
-			}
+			},
 		);
 		ss.sendComponentUpdate();
 	}
@@ -650,7 +674,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function setContentValue(
 		componentId: Component["id"],
 		fieldKey: string,
-		value: string
+		value: string,
 	) {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -670,7 +694,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function setVisibleValue(
 		componentId: Component["id"],
-		visible: Component["visible"]
+		visible: Component["visible"],
 	) {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -695,7 +719,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function setBinding(
 		componentId: Component["id"],
 		stateRef: Component["binding"]["stateRef"],
-		targetEventType?: Component["binding"]["eventType"]
+		targetEventType?: Component["binding"]["eventType"],
 	) {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -706,10 +730,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		} else {
 			const definition = ss.getComponentDefinition(component.type);
 			const events = Object.entries(definition.events).filter(
-				([eventType, event]) => event.bindable
+				([eventType, event]) => event.bindable,
 			);
 			const bindableEventTypes = events.map(
-				([eventType, event]) => eventType
+				([eventType, event]) => eventType,
 			);
 			eventType = bindableEventTypes?.[0];
 		}
@@ -739,7 +763,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function setHandlerValue(
 		componentId: Component["id"],
 		eventType: string,
-		userFunction: string
+		userFunction: string,
 	) {
 		const component = ss.getComponentById(componentId);
 		if (!component) return;
@@ -764,7 +788,9 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		ss.sendComponentUpdate();
 	}
 
-	function getContainingPageId (componentId: Component["id"]): Component["id"] {
+	function getContainingPageId(
+		componentId: Component["id"],
+	): Component["id"] {
 		const component = ss.getComponentById(componentId);
 		if (!component || component.type == "root") return null;
 		if (component.type == "page") return componentId;
@@ -773,11 +799,12 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 
 	async function goToComponentParentPage(componentId: Component["id"]) {
 		const component = ss.getComponentById(componentId);
-		const componentDefinition = ss.getComponentDefinition(component.type)?.name;
+		const componentDefinition = ss.getComponentDefinition(
+			component.type,
+		)?.name;
 		if (!componentDefinition) return; // Unknown component, not rendered
-		ss.setActivePageId(getContainingPageId(componentId));		
-	};	
-	
+		ss.setActivePageId(getContainingPageId(componentId));
+	}
 
 	return {
 		moveComponent,
@@ -788,7 +815,6 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		pasteComponent,
 		createAndInsertComponent,
 		removeComponentSubtree,
-		isParentViable,
 		isPasteAllowed,
 		undo,
 		redo,
@@ -797,12 +823,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		setBinding,
 		getUndoRedoSnapshot,
 		setHandlerValue,
+		isAddAllowed,
 		isCopyAllowed,
 		isCutAllowed,
 		isDeleteAllowed,
 		isGoToParentAllowed,
+		isDraggingAllowed,
 		getEnabledMoves,
 		goToParent,
-		goToComponentParentPage
+		goToComponentParentPage,
 	};
 }

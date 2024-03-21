@@ -39,7 +39,7 @@ import uvicorn
 import streamsync.serve
 from fastapi import FastAPI, Response
 
-root_asgi_app = FastAPI()
+root_asgi_app = FastAPI(lifespan=streamsync.serve.lifespan)
 sub_asgi_app_1 = streamsync.serve.get_asgi_app("../app1", "run")
 sub_asgi_app_2 = streamsync.serve.get_asgi_app("../app2", "run")
 

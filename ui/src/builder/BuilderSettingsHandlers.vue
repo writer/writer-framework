@@ -1,14 +1,14 @@
 <template>
-	<div class="BuilderSettingsHandlers" v-if="ssbm.isSelectionActive()">
+	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsHandlers">
 		<div class="sectionTitle">
 			<i class="ri-flashlight-line ri-xl"></i>
 			<h3>Events</h3>
 		</div>
 		<div class="list">
 			<div
-				class="fieldWrapper"
 				v-for="(eventInfo, eventType) in recognisedEvents"
 				:key="eventType"
+				class="fieldWrapper"
 			>
 				<div class="columns">
 					<div class="fieldWrapperMain">
@@ -16,26 +16,26 @@
 						<select
 							class="content"
 							:value="component.handlers?.[eventType]"
-							v-on:input="handleHandlerChange($event, eventType)"
+							@input="handleHandlerChange($event, eventType)"
 						>
 							<option
+								key="No handler"
 								value=""
 								:selected="!component.handlers?.[eventType]"
-								key="No handler"
 							>
 								(No handler)
 							</option>
 							<option
+								v-for="userFunction in userFunctions"
 								:key="userFunction.name"
 								:value="userFunction.name"
-								v-for="userFunction in userFunctions"
 							>
 								{{ userFunction.name }}
 							</option>
 							<option
+								v-for="pageKey in pageKeys"
 								:key="`$goToPage_${pageKey}`"
 								:value="`$goToPage_${pageKey}`"
-								v-for="pageKey in pageKeys"
 							>
 								Go to page "{{ pageKey }}"
 							</option>
@@ -52,15 +52,15 @@
 					<div class="fieldActions">
 						<button
 							v-if="getStubCode(eventType)"
-							v-on:click="showStub(eventType)"
 							variant="subtle"
 							title="Show event handler stub"
+							@click="showStub(eventType)"
 						>
 							<i class="ri-question-line ri-lg"></i>
 						</button>
 					</div>
 				</div>
-				<div class="desc" v-if="eventInfo?.desc">
+				<div v-if="eventInfo?.desc" class="desc">
 					{{ eventInfo.desc }}
 				</div>
 			</div>
@@ -78,15 +78,15 @@
 			<div class="codeContainer">
 				<code v-dompurify-html="stubModal.highlightedCodeHtml"> </code>
 			</div>
-			<button v-on:click="copyToClipboard(stubModal.code)">
+			<button @click="copyToClipboard(stubModal.code)">
 				<i class="ri-file-copy-line ri-lg"></i>
 				Copy code to clipboard
 			</button>
 		</BuilderModal>
 		<div class="customHandler">
 			<button
-				v-on:click="showCustomHandlerModal"
 				title="Add a custom event handler"
+				@click="showCustomHandlerModal"
 			>
 				<i class="ri-add-line ri-lg"></i>Add custom handler
 			</button>
@@ -101,14 +101,15 @@
 						<div class="fieldWrapperMain">
 							<span class="name">Event type</span>
 							<input
+								v-model="customHandlerModal.eventType"
 								class="content"
 								type="text"
-								v-model="customHandlerModal.eventType"
 								list="commonEventTypes"
 							/>
 							<datalist id="commonEventTypes">
 								<option
 									v-for="commonEventType in commonEventTypes"
+									:key="commonEventType"
 									:value="commonEventType"
 								>
 									{{ commonEventType }}
@@ -122,20 +123,20 @@
 							<span class="name">Handler function</span>
 						</div>
 						<select
-							class="content"
 							v-model="customHandlerModal.handlerFunctionName"
+							class="content"
 						>
 							<option
+								v-for="userFunction in userFunctions"
 								:key="userFunction.name"
 								:value="userFunction.name"
-								v-for="userFunction in userFunctions"
 							>
 								{{ userFunction.name }}
 							</option>
 							<option
+								v-for="pageKey in pageKeys"
 								:key="`$goToPage_${pageKey}`"
 								:value="`$goToPage_${pageKey}`"
-								v-for="pageKey in pageKeys"
 							>
 								Go to page "{{ pageKey }}"
 							</option>
@@ -146,7 +147,7 @@
 					</div>
 				</div>
 
-				<button v-on:click="addCustomEventHandler()">
+				<button @click="addCustomEventHandler()">
 					<i class="ri-add-line ri-lg"></i>
 					Add
 				</button>
@@ -170,19 +171,20 @@ const ssbm = inject(injectionKeys.builderManager);
 const { setHandlerValue } = useComponentActions(ss, ssbm);
 const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
 
-const recognisedEvents:ComputedRef<StreamsyncComponentDefinition['events']> = computed(() => {
-	const { type } = component.value;
-	const { events: supportedEvents } = ss.getComponentDefinition(type);
+const recognisedEvents: ComputedRef<StreamsyncComponentDefinition["events"]> =
+	computed(() => {
+		const { type } = component.value;
+		const { events: supportedEvents } = ss.getComponentDefinition(type);
 
-	const recEvents = { ...supportedEvents };
+		const recEvents = { ...supportedEvents };
 
-	Object.keys({ ...component.value.handlers }).forEach((eventType) => {
-		if (recEvents[eventType]) return;
-		recEvents[eventType] = { desc: "Custom event" };
+		Object.keys({ ...component.value.handlers }).forEach((eventType) => {
+			if (recEvents[eventType]) return;
+			recEvents[eventType] = { desc: "Custom event" };
+		});
+
+		return recEvents;
 	});
-
-	return recEvents;
-});
 
 const userFunctions = computed(() => ss.getUserFunctions());
 const pageKeys = computed(() => ss.getPageKeys());

@@ -9,7 +9,7 @@ export default defineConfig({
 	base: "./",
 	plugins: [vue(), monacoEditorPlugin({})],
 	define: {
-		"STREAMSYNC_LIVE_CCT": JSON.stringify("no")
+		STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
 	},
 	build: {
 		outDir: "../src/streamsync/static",
@@ -17,7 +17,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url))
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
 		},
 	},
 	server: {

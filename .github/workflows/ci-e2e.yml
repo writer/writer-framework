@@ -1,0 +1,46 @@
+name: ci-e2e
+on:
+  push:
+    branches: [ dev, master]
+  pull_request: 
+    branches: [ dev, master]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [ "chromium", "firefox", "webkit" ]
+    steps: 
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.8"
+          cache: 'poetry'
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: install python3 environment
+        run: poetry install --with build
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build UI
+        run: npm run build
+
+      - name: Install E2E browsers
+        working-directory: e2e_tests
+        run: npx playwright install ${{ matrix.browser }} --with-deps
+
+      - name: Run E2E tests
+        run: poetry run alfred ci --e2e=${{ matrix.browser }}

@@ -46,7 +46,7 @@ export function useDragDropComponent(ss: Core) {
 
 		const cageEl = el.closest("[data-streamsync-cage]");
 		const startEl = cageEl ?? el;
-		let targetEl: HTMLElement = startEl.closest("[data-streamsync-id]");
+		const targetEl: HTMLElement = startEl.closest("[data-streamsync-id]");
 		if (!targetEl) return;
 		return targetEl.dataset.streamsyncId;
 	}
@@ -56,7 +56,11 @@ export function useDragDropComponent(ss: Core) {
 		if (!dragInfo) return;
 		const { draggedType, draggedId } = dragInfo;
 		const dropTargetId = getIdFromElement(ev.target as HTMLElement);
-		const parentId = findSuitableParent(dropTargetId, draggedType);
+		const parentId = findSuitableParent(
+			dropTargetId,
+			draggedId,
+			draggedType,
+		);
 		if (!parentId) return;
 		const dropData = {
 			draggedType,
@@ -68,20 +72,38 @@ export function useDragDropComponent(ss: Core) {
 		return dropData;
 	}
 
+	function isParentSuitable(
+		targetId: Component["id"],
+		draggedId: Component["id"],
+		draggedType: Component["type"],
+	): boolean {
+		const targetComponent = ss.getComponentById(targetId);
+		if (!targetComponent) return false;
+		const containableTypes = ss.getContainableTypes(targetId);
+		return (
+			!targetComponent?.isCodeManaged &&
+			!ss.isChildOf(draggedId, targetId) &&
+			containableTypes.includes(draggedType)
+		);
+	}
+
 	function findSuitableParent(
 		targetId: Component["id"],
-		insertedType: Component["type"]
+		draggedId: Component["id"],
+		draggedType: Component["type"],
 	): Component["id"] {
 		const targetComponent = ss.getComponentById(targetId);
 		if (!targetComponent) return;
-		const containableTypes = ss.getContainableTypes(targetId);
-
-		if (containableTypes.includes(insertedType)) {
+		if (isParentSuitable(targetId, draggedId, draggedType)) {
 			return targetId;
 		}
 
 		if (!targetComponent.parentId) return null;
-		return findSuitableParent(targetComponent.parentId, insertedType);
+		return findSuitableParent(
+			targetComponent.parentId,
+			draggedId,
+			draggedType,
+		);
 	}
 
 	function assignInsertionCandidacy(ev: DragEvent) {
@@ -99,10 +121,14 @@ export function useDragDropComponent(ss: Core) {
 		const { draggedType, draggedId } = dragInfo;
 		const targetEl = ev.target as HTMLElement;
 		const dropTargetId = getIdFromElement(targetEl);
-		const parentId = findSuitableParent(dropTargetId, draggedType);
+		const parentId = findSuitableParent(
+			dropTargetId,
+			draggedId,
+			draggedType,
+		);
 		if (!parentId || parentId == draggedId) return;
 		const parentComponentEl: HTMLElement = targetEl.closest(
-			`[data-streamsync-id="${parentId}"]`
+			`[data-streamsync-id="${parentId}"]`,
 		);
 		const parentComponentInstancePath =
 			parentComponentEl.dataset.streamsyncInstancePath;
@@ -132,7 +158,7 @@ export function useDragDropComponent(ss: Core) {
 		// If the user goes too far off the candidate, reject candidacy
 
 		const candidateEl: HTMLElement = document.querySelector(
-			`[data-streamsync-instance-path="${candidateInstancePath.value}"]`
+			`[data-streamsync-instance-path="${candidateInstancePath.value}"]`,
 		);
 		if (
 			getDistanceFromElement(ev.clientX, ev.clientY, candidateEl) >
@@ -145,7 +171,7 @@ export function useDragDropComponent(ss: Core) {
 		// Find nearest slot and its position
 
 		const slotEls = getSlotElementsOfCrackedContainer(
-			candidateInstancePath.value
+			candidateInstancePath.value,
 		);
 		if (slotEls.length == 0) return;
 
@@ -183,7 +209,7 @@ export function useDragDropComponent(ss: Core) {
 	function getSlotElementsOfCrackedContainer(instancePath: string) {
 		const el = getContainerInInstancePath(instancePath);
 		const slotEls: HTMLElement[] = Array.from(
-			el.querySelectorAll(`[data-streamsync-position]`)
+			el.querySelectorAll(`[data-streamsync-position]`),
 		);
 		return slotEls;
 	}
@@ -191,7 +217,7 @@ export function useDragDropComponent(ss: Core) {
 	function getNearestSlot(x: number, y: number, slotEls: HTMLElement[]) {
 		// Calculate distance from nearest vertex and sort
 
-		let slotsElsWithDistance = slotEls
+		const slotsElsWithDistance = slotEls
 			.map((el: HTMLElement) => {
 				return { el, distance: getDistanceFromElement(x, y, el) };
 			})
@@ -222,14 +248,14 @@ export function useDragDropComponent(ss: Core) {
 	}
 
 	function getContainerInInstancePath(instancePath: string): HTMLElement {
-		let rootEl: HTMLElement = document.querySelector(
-			`[data-streamsync-instance-path="${instancePath}"]`
+		const rootEl: HTMLElement = document.querySelector(
+			`[data-streamsync-instance-path="${instancePath}"]`,
 		);
 		if (rootEl.hasAttribute("data-streamsync-container")) {
 			return rootEl;
 		}
 		const containers = rootEl.querySelectorAll(
-			`[data-streamsync-container]`
+			`[data-streamsync-container]`,
 		);
 		for (let i = 0; i < containers.length; i++) {
 			const container = containers[i];
@@ -238,7 +264,7 @@ export function useDragDropComponent(ss: Core) {
 			// the container belongs to the component in question -not to a child.
 
 			const closestRootEl = container.closest(
-				"[data-streamsync-instance-path]"
+				"[data-streamsync-instance-path]",
 			);
 			if (closestRootEl == rootEl) {
 				return container as HTMLElement;
@@ -262,6 +288,7 @@ export function useDragDropComponent(ss: Core) {
 	return {
 		candidateId,
 		candidateInstancePath,
+		isParentSuitable,
 		isCandidacyConfirmed,
 		getComponentInfoFromDrag,
 		dropComponent,

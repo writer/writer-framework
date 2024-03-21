@@ -1,39 +1,52 @@
 <template>
 	<div class="BuilderSidebarTree">
-		<div class="sectionTitle" v-if="!isSearchActive">
+		<div v-if="!isSearchActive" class="sectionTitle">
 			<i class="ri-node-tree ri-xl"></i>
 			<h3>Component Tree</h3>
 			<i
-				v-on:click="toggleSearch"
 				class="ri-search-line ri-xl searchIcon"
 				title="Search"
+				@click="toggleSearch"
 			></i>
 		</div>
-		<div class="sectionTitle" v-if="isSearchActive">
-			<input type="text" placeholder="Search..." v-model="searchQuery" ref="searchInput" />
+		<div v-if="isSearchActive" class="sectionTitle">
+			<input
+				ref="searchInput"
+				v-model="searchQuery"
+				type="text"
+				placeholder="Search..."
+			/>
 			<i
-				v-on:click="goToPreviousMatch"
 				class="ri-arrow-left-s-line ri-xl searchIcon"
 				:class="{ disabled: !matchAvailable }"
-				:title="matchAvailable ? `Go to match ${previousMatchIndex+1} of ${matchingComponents.length}` : `Previous match`"
+				:title="
+					matchAvailable
+						? `Go to match ${previousMatchIndex + 1} of ${matchingComponents.length}`
+						: `Previous match`
+				"
+				@click="goToPreviousMatch"
 			></i>
 			<i
-				v-on:click="goToNextMatch"
 				class="ri-arrow-right-s-line ri-xl searchIcon"
 				:class="{ disabled: !matchAvailable }"
-				:title="matchAvailable ? `Go to match ${nextMatchIndex+1} of ${matchingComponents.length}` : `Next match`"
-				></i>
+				:title="
+					matchAvailable
+						? `Go to match ${nextMatchIndex + 1} of ${matchingComponents.length}`
+						: `Next match`
+				"
+				@click="goToNextMatch"
+			></i>
 			<i
-				v-on:click="toggleSearch"
 				class="ri-close-line ri-xl searchIcon"
 				title="Close"
+				@click="toggleSearch"
 			></i>
 		</div>
-		<div class="components" ref="componentTree">
+		<div ref="componentTree" class="components">
 			<div
-				class="selector"
 				v-for="component in rootComponents"
 				:key="component.id"
+				class="selector"
 			>
 				<BuilderTreeBranch
 					:component-id="component.id"
@@ -42,7 +55,7 @@
 			</div>
 		</div>
 		<div class="addPage">
-			<button v-on:click="addPage">
+			<button @click="addPage">
 				<i class="ri-add-line"></i>Add Page
 			</button>
 		</div>
@@ -63,12 +76,12 @@ const ssbm = inject(injectionKeys.builderManager);
 const { createAndInsertComponent, goToComponentParentPage } =
 	useComponentActions(ss, ssbm);
 
-const searchInput:Ref<HTMLInputElement> = ref(null);
+const searchInput: Ref<HTMLInputElement> = ref(null);
 const isSearchActive: Ref<boolean> = ref(false);
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
 const rootComponents = computed(() => {
-	return ss.getComponents(null, true);
+	return ss.getComponents(null, { sortedByPosition: true });
 });
 
 async function toggleSearch() {
@@ -108,7 +121,7 @@ async function selectMatch() {
 
 const previousMatchIndex = computed(() => {
 	if (!matchAvailable.value) return -1;
-	let i = matchIndex.value-1;
+	let i = matchIndex.value - 1;
 	if (i < 0) {
 		i = matchingComponents.value.length - 1;
 	}
@@ -117,7 +130,7 @@ const previousMatchIndex = computed(() => {
 
 const nextMatchIndex = computed(() => {
 	if (!matchAvailable.value) return -1;
-	let i = matchIndex.value+1;
+	let i = matchIndex.value + 1;
 	if (i > matchingComponents.value.length - 1) {
 		i = 0;
 	}
@@ -125,7 +138,7 @@ const nextMatchIndex = computed(() => {
 });
 
 function goToPreviousMatch() {
-	matchIndex.value = previousMatchIndex.value;	
+	matchIndex.value = previousMatchIndex.value;
 	selectMatch();
 }
 
@@ -147,8 +160,8 @@ watch(matchingComponents, () => {
 	matchIndex.value = -1;
 });
 
-const matchAvailable: ComputedRef<boolean> = computed(() => 
-	matchingComponents.value?.length > 0
+const matchAvailable: ComputedRef<boolean> = computed(
+	() => matchingComponents.value?.length > 0,
 );
 
 async function addPage() {

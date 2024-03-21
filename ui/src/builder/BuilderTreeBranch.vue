@@ -1,36 +1,36 @@
 <template>
 	<div class="BuilderTreeBranch">
 		<div
+			ref="rootEl"
 			class="main"
 			:class="{
 				selected: isSelected,
 				childless: childless,
-				matching: isMatching
+				matching: isMatching,
 			}"
-			v-on:click="selfSelectComponent"
-			v-on:keydown.enter="selfSelectComponent"
-			v-on:dragover="handleDragOver"
-			v-on:dragstart="handleDragStart"
-			v-on:dragend="handleDragEnd"
-			v-on:drop="handleDrop"
 			:title="summaryText"
 			:data-branch-component-id="componentId"
 			tabindex="0"
-			draggable="true"
-			ref="rootEl"
+			:draggable="isDraggingAllowed(componentId)"
+			@click="selfSelectComponent"
+			@keydown.enter="selfSelectComponent"
+			@dragover="handleDragOver"
+			@dragstart="handleDragStart"
+			@dragend="handleDragEnd"
+			@drop="handleDrop"
 		>
 			<div
 				v-if="!childless"
 				class="toggleChildren"
-				v-on:click="toggleChildrenVisible"
+				@click="toggleChildrenVisible"
 			>
 				<i
-					class="ri-arrow-drop-up-line ri-lg"
 					v-if="childrenVisible"
+					class="ri-arrow-drop-up-line ri-lg"
 				></i>
 				<i
-					class="ri-arrow-drop-down-line ri-lg"
 					v-if="!childrenVisible"
+					class="ri-arrow-drop-down-line ri-lg"
 				></i>
 			</div>
 			<span class="type">{{ name }}</span>
@@ -40,16 +40,33 @@
 			<template v-if="!isComponentVisible(component.id)">
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
 			</template>
+			<template v-if="component.isCodeManaged">
+				&nbsp;&middot;&nbsp;<i class="ri-terminal-box-line ri-lg"></i>
+			</template>
 
-			<span class="preview" v-if="previewText">
+			<span v-if="previewText" class="preview">
 				&nbsp;&middot;&nbsp;{{ previewText }}</span
 			>
 		</div>
-		<div class="children" v-if="childrenVisible && !childless">
+		<div v-if="childrenVisible && !childless" class="children">
 			<div
-				class="child"
-				v-for="childComponent in childrenComponents"
+				v-for="childComponent in childrenComponents.filter(
+					(c) => !c.isCodeManaged,
+				)"
 				:key="childComponent.id"
+				class="child"
+			>
+				<BuilderTreeBranch
+					:component-id="childComponent.id"
+					:matching-components="matchingComponents"
+				></BuilderTreeBranch>
+			</div>
+			<div
+				v-for="childComponent in childrenComponents.filter(
+					(c) => c.isCodeManaged,
+				)"
+				:key="childComponent.id"
+				class="child"
 			>
 				<BuilderTreeBranch
 					:component-id="childComponent.id"
@@ -72,9 +89,13 @@ import { useEvaluator } from "../renderer/useEvaluator";
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const { createAndInsertComponent, isParentViable, moveComponent, goToComponentParentPage } =
-	useComponentActions(ss, ssbm);
-const { getComponentInfoFromDrag, removeInsertionCandidacy } =
+const {
+	createAndInsertComponent,
+	moveComponent,
+	goToComponentParentPage,
+	isDraggingAllowed,
+} = useComponentActions(ss, ssbm);
+const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(ss);
 const { isComponentVisible } = useEvaluator(ss);
 
@@ -93,7 +114,7 @@ const isSelectedBySelf = ref(false);
 const rootEl: Ref<HTMLElement> = ref(null);
 
 const componentDefinition = computed(() =>
-	ss.getComponentDefinition(component.value.type)
+	ss.getComponentDefinition(component.value.type),
 );
 
 const name = computed(() => {
@@ -112,7 +133,8 @@ const childless = computed(() => {
 });
 
 const isMatching = computed(() => {
-	if (matchingComponents.value?.some(c => c.id == componentId.value)) return true;
+	if (matchingComponents.value?.some((c) => c.id == componentId.value))
+		return true;
 	return false;
 });
 
@@ -143,7 +165,7 @@ const summaryText = computed(() => {
 });
 
 const childrenComponents = computed(() => {
-	return ss.getComponents(componentId.value, true);
+	return ss.getComponents(componentId.value, { sortedByPosition: true });
 });
 
 const childrenVisible = ref(true);
@@ -201,7 +223,7 @@ const handleDragStart = (ev: DragEvent) => {
 	ssbm.setSelection(null);
 	ev.dataTransfer.setData(
 		`application/json;streamsync=${component.value.type},${component.value.id}`,
-		"{}"
+		"{}",
 	);
 };
 
@@ -212,8 +234,8 @@ const handleDragEnd = (ev: DragEvent) => {
 const handleDragOver = (ev: DragEvent) => {
 	const dragInfo = getComponentInfoFromDrag(ev);
 	if (!dragInfo) return;
-	const { draggedType: childType } = dragInfo;
-	if (!isParentViable(childType, componentId.value)) return;
+	const { draggedType, draggedId } = dragInfo;
+	if (!isParentSuitable(componentId.value, draggedId, draggedType)) return;
 	ev.preventDefault();
 };
 

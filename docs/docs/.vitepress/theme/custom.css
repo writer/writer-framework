@@ -7,3 +7,8 @@ main img {
   border-radius: 8px;
   min-width: 100%;
 }
+
+.VPHome .vp-doc.container {
+  padding: 0;
+  max-width: 100%;
+}

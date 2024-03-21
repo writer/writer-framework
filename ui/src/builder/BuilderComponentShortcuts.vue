@@ -1,7 +1,8 @@
 <template>
 	<div
-		class="BuilderComponentShortcuts"
 		v-if="shortcutsInfo"
+		:draggable="shortcutsInfo?.isDraggable"
+		class="BuilderComponentShortcuts"
 		:data-streamsync-id="componentId"
 	>
 		<div class="type">
@@ -14,7 +15,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isAddEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isAddEnabled
 						? (isAddMode = !isAddMode)
 						: undefined
@@ -28,7 +29,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isMoveUpEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isMoveUpEnabled
 						? moveComponentUp(componentId)
 						: undefined
@@ -42,7 +43,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isMoveDownEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isMoveDownEnabled
 						? moveComponentDown(componentId)
 						: undefined
@@ -57,7 +58,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isCutEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isCutEnabled
 						? cutComponent(componentId)
 						: undefined
@@ -71,7 +72,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isCopyEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isCopyEnabled
 						? copyComponent(componentId)
 						: undefined
@@ -85,7 +86,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isPasteEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isPasteEnabled
 						? pasteComponent(componentId)
 						: undefined
@@ -99,7 +100,7 @@
 				:class="{
 					enabled: shortcutsInfo?.isGoToParentEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isGoToParentEnabled
 						? goToParent(componentId, instancePath)
 						: undefined
@@ -109,11 +110,12 @@
 			</div>
 			<div
 				class="actionButton delete"
+				data-automation-action="delete"
 				title="Delete (Del)"
 				:class="{
 					enabled: shortcutsInfo?.isDeleteEnabled,
 				}"
-				v-on:click="
+				@click="
 					shortcutsInfo?.isDeleteEnabled
 						? removeComponentSubtree(componentId)
 						: undefined
@@ -128,11 +130,12 @@
 					type="text"
 					list="validChildrenTypes"
 					placeholder="Component..."
-					v-on:change="addComponent"
+					@change="addComponent"
 				/>
 				<datalist id="validChildrenTypes">
 					<option
 						v-for="(definition, type) in validChildrenTypes"
+						:key="type"
 						:value="definition.name"
 					>
 						{{ definition.name }}
@@ -160,11 +163,13 @@ const {
 	cutComponent,
 	pasteComponent,
 	copyComponent,
+	isAddAllowed,
 	isCopyAllowed,
 	isCutAllowed,
 	isGoToParentAllowed,
 	isPasteAllowed,
 	isDeleteAllowed,
+	isDraggingAllowed,
 	getEnabledMoves,
 	removeComponentSubtree,
 	goToParent,
@@ -189,6 +194,7 @@ const shortcutsInfo: Ref<{
 	isPasteEnabled: boolean;
 	isGoToParentEnabled: boolean;
 	isDeleteEnabled: boolean;
+	isDraggable: boolean;
 }> = ref(null);
 
 const validChildrenTypes = computed(() => {
@@ -209,7 +215,7 @@ function addComponent(event: Event) {
 		([type, definition]) => {
 			if (definition.name == definitionName) return true;
 			return false;
-		}
+		},
 	);
 	if (matchingTypes.length == 0) return;
 	const type = matchingTypes[0][0];
@@ -221,10 +227,10 @@ function reprocessShorcutsInfo(): void {
 	const component = ss.getComponentById(componentId.value);
 	if (!component) return;
 	const { up: isMoveUpEnabled, down: isMoveDownEnabled } = getEnabledMoves(
-		componentId.value
+		componentId.value,
 	);
 	shortcutsInfo.value = {
-		isAddEnabled: ss.getContainableTypes(componentId.value).length > 0,
+		isAddEnabled: isAddAllowed(componentId.value),
 		componentTypeName: ss.getComponentDefinition(component.type)?.name,
 		isMoveUpEnabled,
 		isMoveDownEnabled,
@@ -233,6 +239,7 @@ function reprocessShorcutsInfo(): void {
 		isPasteEnabled: isPasteAllowed(componentId.value),
 		isGoToParentEnabled: isGoToParentAllowed(componentId.value),
 		isDeleteEnabled: isDeleteAllowed(componentId.value),
+		isDraggable: isDraggingAllowed(componentId.value),
 	};
 }
 
@@ -242,7 +249,7 @@ watch(
 		if (typeof newPosition == "undefined" || newPosition === null) return;
 		reprocessShorcutsInfo();
 	},
-	{ flush: "post" }
+	{ flush: "post" },
 );
 
 const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";
@@ -270,7 +277,14 @@ onMounted(() => {
 	padding-right: 16px;
 	height: 36px;
 	background: var(--builderSelectedColor);
+}
+
+[draggable="true"] .type {
 	cursor: grab;
+}
+
+[draggable="true"] .type:active {
+	cursor: grabbing;
 }
 
 .actionButton {

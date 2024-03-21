@@ -9,6 +9,10 @@ export default {
         icon: "github",
         link: "https://github.com/streamsync-cloud/streamsync",
       },
+      {
+        icon: "discord",
+        link: "https://discord.gg/sn677E3Pd3",
+      },
     ],
     nav: [
       { text: "Documentation", link: "/getting-started" },
@@ -36,6 +40,7 @@ export default {
           { text: "Page routes", link: "/page-routes" },
           { text: "Sessions", link: "/sessions" },
           { text: "Custom server", link: "/custom-server" },
+          { text: "State schema", link: "/state-schema" },
         ],
       },
       {
@@ -56,6 +61,12 @@ export default {
         ],
       },
       {
+        text: "Tutorials",
+        items: [
+          { text: "Quickstart tutorial", link: "/quickstart-tutorial" },
+        ]
+      },
+      {
         text: "Reference",
         items: [
           { text: "Testing", link: "/testing" },
@@ -65,6 +76,7 @@ export default {
       },
     ],
   },
+  ignoreDeadLinks: 'localhostLinks',
   vite: {
     build: {
       target: "esnext",

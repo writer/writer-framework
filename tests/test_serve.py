@@ -1,12 +1,13 @@
-import json
 import mimetypes
 
 import fastapi
+from fastapi import FastAPI
+
 import streamsync.serve
 import fastapi.testclient
 import pytest
 
-from tests import test_app_dir
+from tests import test_app_dir, test_multiapp_dir
 
 
 class TestServe:
@@ -112,3 +113,37 @@ class TestServe:
             # Assert
             assert res.status_code == 200
             assert res.headers["Content-Type"].startswith("text/javascript")
+
+    def test_multiapp_should_run_the_lifespan_of_all_streamsync_app(self):
+        """
+        This test check that multiple streamsync applications embedded
+        in FastAPI start completely and answer websocket request.
+        """
+        asgi_app: fastapi.FastAPI = FastAPI(lifespan=streamsync.serve.lifespan)
+        asgi_app.mount("/app1", streamsync.serve.get_asgi_app(test_multiapp_dir / 'app1', "run"))
+        asgi_app.mount("/app2", streamsync.serve.get_asgi_app(test_multiapp_dir / 'app2', "run"))
+
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            # test websocket connection on app1
+            with client.websocket_connect("/app1/api/stream") as websocket:
+                websocket.send_json({
+                    "type": "streamInit",
+                    "trackingId": 0,
+                    "payload": {
+                        "sessionId": "bad_session"
+                    }
+                })
+                with pytest.raises(fastapi.WebSocketDisconnect):
+                    websocket.receive_json()
+
+            # test websocket connection on app2
+            with client.websocket_connect("/app2/api/stream") as websocket:
+                websocket.send_json({
+                    "type": "streamInit",
+                    "trackingId": 0,
+                    "payload": {
+                        "sessionId": "bad_session"
+                    }
+                })
+                with pytest.raises(fastapi.WebSocketDisconnect):
+                    websocket.receive_json()

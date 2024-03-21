@@ -1,25 +1,22 @@
 <template>
 	<div class="BuilderSwitcher">
-		<div
-			v-on:click="selectOption('ui')"
-			:class="{ active: activeId == 'ui' }"
-		>
+		<div :class="{ active: activeId == 'ui' }" @click="selectOption('ui')">
 			<i class="ri-brush-line"></i>
 			User Interface
 		</div>
 		<div
-			v-on:click="selectOption('code')"
 			:class="{ active: activeId == 'code' }"
+			@click="selectOption('code')"
 		>
 			<i class="ri-code-line"></i>
 			Code
-			<span class="countLabel" v-show="logEntryCount > 0">{{
+			<span v-show="logEntryCount > 0" class="countLabel">{{
 				logEntryCount
 			}}</span>
 		</div>
 		<div
-			v-on:click="selectOption('preview')"
 			:class="{ active: activeId == 'preview' }"
+			@click="selectOption('preview')"
 		>
 			<i class="ri-pages-line"></i>
 			Preview

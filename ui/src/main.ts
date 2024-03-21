@@ -20,7 +20,7 @@ function setCaptureTabsDirective(app: App<Element>) {
 					"  ",
 					el.selectionStart,
 					el.selectionStart,
-					"end"
+					"end",
 				);
 			});
 		},
@@ -32,7 +32,6 @@ const ss = generateCore();
 globalThis.vue = vue;
 globalThis.injectionKeys = injectionKeys;
 globalThis.core = ss;
-
 
 async function load() {
 	await ss.init();
@@ -46,8 +45,7 @@ async function load() {
 	console.log(`Mounting app in mode ${mode}...`);
 
 	const { default: componentRenderer } =
-		mode === "run" &&
-		(await import("./renderer/ComponentRenderer.vue"));
+		mode === "run" && (await import("./renderer/ComponentRenderer.vue"));
 	const { default: builderApp } =
 		mode === "edit" && (await import("./builder/BuilderApp.vue"));
 
@@ -61,10 +59,11 @@ async function load() {
 }
 
 console.log("Initialising Streamsync core...");
-load().then(async () => {
-	console.log("Core initialised.")
-})
-.catch((reason) => {
-	console.error("Core initialisation failed.", reason);
-	document.write(reason);
-});
+load()
+	.then(async () => {
+		console.log("Core initialised.");
+	})
+	.catch((reason) => {
+		console.error("Core initialisation failed.", reason);
+		document.write(reason);
+	});

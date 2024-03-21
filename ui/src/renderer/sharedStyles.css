@@ -133,6 +133,7 @@ button:hover {
 [data-streamsync-container].crackedContainer.horizontal
 	> [data-streamsync-slot-of-id] {
 	animation: appearHorizontal 0.2s forwards;
+	align-self:center;
 	display: block;
 }
 

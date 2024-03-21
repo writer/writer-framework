@@ -13,7 +13,7 @@ import logging
 import logging.handlers
 from types import ModuleType
 import json
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from watchdog.observers.polling import PollingObserver
 
@@ -69,7 +69,7 @@ class AppProcess(multiprocessing.Process):
                  app_path: str,
                  mode: str,
                  run_code: str,
-                 components: Dict,
+                 bmc_components: Dict,
                  is_app_process_server_ready: multiprocessing.synchronize.Event,
                  is_app_process_server_failed: multiprocessing.synchronize.Event):
         super().__init__(name="AppProcess")
@@ -78,7 +78,7 @@ class AppProcess(multiprocessing.Process):
         self.app_path = app_path
         self.mode = mode
         self.run_code = run_code
-        self.components = components
+        self.bmc_components = bmc_components
         self.is_app_process_server_ready = is_app_process_server_ready
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
@@ -149,7 +149,7 @@ class AppProcess(multiprocessing.Process):
             userState=user_state,
             sessionId=session.session_id,
             mail=session.session_state.mail,
-            components=streamsync.component_manager.to_dict(),
+            components=session.session_component_tree.to_dict(),
             userFunctions=self._get_user_functions()
         )
 
@@ -169,7 +169,7 @@ class AppProcess(multiprocessing.Process):
         except BaseException:
             session.session_state.add_log_entry("error",
                                                 "Serialisation Error",
-                                                f"An exception was raised during serialisation.",
+                                                "An exception was raised during serialisation.",
                                                 tb.format_exc())
 
         mail = session.session_state.mail
@@ -177,9 +177,9 @@ class AppProcess(multiprocessing.Process):
         res_payload = EventResponsePayload(
             result=result,
             mutations=mutations,
+            components=session.session_component_tree.fetch_updates(),
             mail=mail
         )
-
         session.session_state.clear_mail()
 
         return res_payload
@@ -207,10 +207,10 @@ class AppProcess(multiprocessing.Process):
         session.session_state.clear_mail()
 
         return res_payload
-
+    
     def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
         import streamsync
-        streamsync.component_manager.ingest(payload.components)
+        streamsync.base_component_tree.ingest(payload.components)
 
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
@@ -290,7 +290,7 @@ class AppProcess(multiprocessing.Process):
         captured_stdout = f.getvalue()
 
         if captured_stdout:
-            streamsync.initial_state.add_log_entry(
+            streamsync.core.initial_state.add_log_entry(
                 "info", "Stdout message during initialisation", captured_stdout)
 
     def _apply_configuration(self) -> None:
@@ -324,23 +324,23 @@ class AppProcess(multiprocessing.Process):
         terminate_early = False
 
         try:
-            self._execute_user_code()
+            streamsync.base_component_tree.ingest(self.bmc_components)
         except BaseException:
-            # Initialisation errors will be sent to all sessions via mail during session initialisation
-
-            streamsync.initial_state.add_log_entry(
-                "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
-            
-            # Exit if in run mode
-            
+            streamsync.core.initial_state.add_log_entry(
+                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
             if self.mode == "run":
                 terminate_early = True
 
         try:
-            streamsync.component_manager.ingest(self.components)
+            self._execute_user_code()
         except BaseException:
-            streamsync.initial_state.add_log_entry(
-                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
+            # Initialisation errors will be sent to all sessions via mail during session initialisation
+
+            streamsync.core.initial_state.add_log_entry(
+                "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
+            
+            # Exit if in run mode
+            
             if self.mode == "run":
                 terminate_early = True
 
@@ -535,11 +535,11 @@ class AppRunner:
         self.client_conn: Optional[multiprocessing.connection.Connection] = None
         self.app_process: Optional[AppProcess] = None
         self.run_code: Optional[str] = None
-        self.components: Optional[Dict] = None
+        self.bmc_components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
         self.is_app_process_server_failed = multiprocessing.Event()
         self.app_process_listener: Optional[AppProcessListener] = None
-        self.observer: Optional[watchdog.observers.Observer] = None
+        self.observer: Optional[PollingObserver] = None
         self.app_path: str = app_path
         self.response_events: Dict[int, ThreadSafeAsyncEvent] = {}
         self.response_packets: Dict[int, AppProcessServerResponsePacket] = {}
@@ -589,7 +589,7 @@ class AppRunner:
             pass
 
         self.run_code = self._load_persisted_script()
-        self.components = self._load_persisted_components()
+        self.bmc_components = self._load_persisted_components()
 
         if self.mode == "edit":
             self._set_observer()
@@ -670,13 +670,13 @@ class AppRunner:
         return await self.dispatch_message(None, InitSessionRequest(
             type="sessionInit",
             payload=payload
-        ))
+        ))    
 
     async def update_components(self, session_id: str, payload: ComponentUpdateRequestPayload) -> AppProcessServerResponse:
         if self.mode != "edit":
             raise PermissionError(
                 "Cannot update components in non-update mode.")
-        self.components = payload.components
+        self.bmc_components = payload.components
         file_contents = {
             "metadata": {
                 "streamsync_version": VERSION
@@ -744,18 +744,21 @@ class AppRunner:
     def _start_app_process(self) -> None:
         if self.run_code is None:
             raise ValueError("Cannot start app process. Code hasn't been set.")
-        if self.components is None:
+        if self.bmc_components is None:
             raise ValueError(
                 "Cannot start app process. Components haven't been set.")
         self.is_app_process_server_ready.clear()
-        self.client_conn, self.server_conn = multiprocessing.Pipe(duplex=True)
+        client_conn, server_conn = multiprocessing.Pipe(duplex=True)
+        self.client_conn = cast(multiprocessing.connection.Connection, client_conn) # for mypy type checking on windows
+        self.server_conn = cast(multiprocessing.connection.Connection, server_conn) # for mypy type checking on windows
+
         self.app_process = AppProcess(
             client_conn=self.client_conn,
             server_conn=self.server_conn,
             app_path=self.app_path,
             mode=self.mode,
             run_code=self.run_code,
-            components=self.components,
+            bmc_components=self.bmc_components,
             is_app_process_server_ready=self.is_app_process_server_ready,
             is_app_process_server_failed=self.is_app_process_server_failed)
         self.app_process.start()

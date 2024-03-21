@@ -1,17 +1,22 @@
 import { generateCore } from "./core";
 import { generateBuilderManager } from "./builder/builderManager";
 
+export type Core = ReturnType<typeof generateCore>;
+
+type ComponentId = string;
+
 /**
  * Basic building block of applications.
  * Multiple instances of a single component can exists. For example, via Repeater.
  */
 
 export type Component = {
-	id: string;
+	id: ComponentId;
 	parentId: string;
 	type: string;
 	position: number;
 	content: Record<string, string>;
+	isCodeManaged?: boolean;
 	handlers?: Record<string, string>;
 	visible?: boolean | string;
 	binding?: {
@@ -54,9 +59,14 @@ export type StreamsyncComponentDefinition = {
 			desc?: string; // Description
 			default?: string; // Value used if the field is empty, e.g. "(No text)"
 			control?: FieldControl; // Which control (text, textarea, etc) to use if not the default for the type
-			options?: Record<string, string>; // List of values to be provided as autocomplete options
+			options?:
+				| Record<string, string>
+				| ((
+						ss?: Core,
+						componentId?: ComponentId,
+				  ) => Record<string, string>); // List of values to be provided as autocomplete options
 			type: FieldType; // Data type for the field
-			category?: FieldCategory; // Category (Layout, Content, etc) 
+			category?: FieldCategory; // Category (Layout, Content, etc)
 			applyStyleVariable?: boolean; // Use the value of this field as a CSS variable
 		}
 	>;
@@ -68,11 +78,10 @@ export type StreamsyncComponentDefinition = {
 			bindable?: boolean; // Whether this event is used for value binding
 		}
 	>;
-	previewField?: string; // Which field to use for previewing in the Component Tree 
+	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
 };
 
-export type Core = ReturnType<typeof generateCore>;
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
 
 export const enum ClipboardOperation {
@@ -114,4 +123,4 @@ export type ComponentMap = Record<Component["id"], Component>;
  */
 export type MailItem = { type: string; payload: Record<string, string> };
 
-export type UserFunction = { name: string; args: string[]};
+export type UserFunction = { name: string; args: string[] };

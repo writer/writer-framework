@@ -1,48 +1,64 @@
 // Maps Streamsync component types to renderable Vue components
-
-import CorePage from "../core_components/CorePage.vue";
-import CoreSidebar from "../core_components/CoreSidebar.vue";
-import CoreText from "../core_components/CoreText.vue";
-import CoreButton from "../core_components/CoreButton.vue";
-import CoreIcon from "../core_components/CoreIcon.vue";
-import CoreSection from "../core_components/CoreSection.vue";
-import CoreHeader from "../core_components/CoreHeader.vue";
-import CoreHeading from "../core_components/CoreHeading.vue";
-import CoreDataframe from "../core_components/CoreDataframe.vue";
-import CoreHtml from "../core_components/CoreHtml.vue";
-import CorePagination from "../core_components/CorePagination.vue";
-import CoreRepeater from "../core_components/CoreRepeater.vue";
-import CoreColumn from "../core_components/CoreColumn.vue";
-import CoreColumns from "../core_components/CoreColumns.vue";
-import CoreHorizontalStack from "../core_components/CoreHorizontalStack.vue";
-import CoreSeparator from "../core_components/CoreSeparator.vue";
-import CoreTab from "../core_components/CoreTab.vue";
-import CoreTabs from "../core_components/CoreTabs.vue";
-import CoreImage from "../core_components/CoreImage.vue";
-import CoreTimer from "../core_components/CoreTimer.vue";
-import CoreWebcamCapture from "../core_components/CoreWebcamCapture.vue";
-import CoreVegaLiteChart from "../core_components/CoreVegaLiteChart.vue";
-import CorePlotlyGraph from "../core_components/CorePlotlyGraph.vue";
-import CoreRoot from "../core_components/CoreRoot.vue";
+// content
+import CoreDataframe from "../core_components/content/CoreDataframe.vue";
+import CoreHeading from "../core_components/content/CoreHeading.vue";
+import CoreIcon from "../core_components/content/CoreIcon.vue";
+import CoreImage from "../core_components/content/CoreImage.vue";
+import CoreMessage from "../core_components/content/CoreMessage.vue";
+import CoreMetric from "../core_components/content/CoreMetric.vue";
+import CorePlotlyGraph from "../core_components/content/CorePlotlyGraph.vue";
+import CoreText from "../core_components/content/CoreText.vue";
+import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue";
+import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
+import CoreLink from "../core_components/content/CoreLink.vue";
+import CoreChatbot from "../core_components/content/CoreChatbot.vue";
+import CoreTags from "../core_components/content/CoreTags.vue";
+import CoreAvatar from "../core_components/content/CoreAvatar.vue";
+// input
+import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
+import CoreDateInput from "../core_components/input/CoreDateInput.vue";
+import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
+import CoreFileInput from "../core_components/input/CoreFileInput.vue";
+import CoreMultiselectInput from "../core_components/input/CoreMultiselectInput.vue";
+import CoreNumberInput from "../core_components/input/CoreNumberInput.vue";
+import CoreRadioInput from "../core_components/input/CoreRadioInput.vue";
+import CoreSelectInput from "../core_components/input/CoreSelectInput.vue";
+import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreTextInput from "../core_components/input/CoreTextInput.vue";
 import CoreTextareaInput from "../core_components/input/CoreTextareaInput.vue";
-import CoreNumberInput from "../core_components/input/CoreNumberInput.vue";
-import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
-import CoreDateInput from "../core_components/input/CoreDateInput.vue";
-import CoreRadioInput from "../core_components/input/CoreRadioInput.vue";
-import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
-import CoreSelectInput from "../core_components/input/CoreSelectInput.vue";
-import CoreMultiselectInput from "../core_components/input/CoreMultiselectInput.vue";
-import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
-import CoreFileInput from "../core_components/input/CoreFileInput.vue";
-import CoreMetric from "../core_components/CoreMetric.vue";
-import CoreMessage from "../core_components/CoreMessage.vue";
-import CoreVideoPlayer from "../core_components/CoreVideoPlayer.vue";
+import CoreRating from "../core_components/input/CoreRatingInput.vue";
+import CoreSwitchInput from "../core_components/input/CoreSwitchInput.vue";
+// layout
+import CoreColumn from "../core_components/layout/CoreColumn.vue";
+import CoreColumns from "../core_components/layout/CoreColumns.vue";
+import CoreHeader from "../core_components/layout/CoreHeader.vue";
+import CoreHorizontalStack from "../core_components/layout/CoreHorizontalStack.vue";
+import CoreSection from "../core_components/layout/CoreSection.vue";
+import CoreSeparator from "../core_components/layout/CoreSeparator.vue";
+import CoreSidebar from "../core_components/layout/CoreSidebar.vue";
+import CoreTab from "../core_components/layout/CoreTab.vue";
+import CoreTabs from "../core_components/layout/CoreTabs.vue";
+import CoreStep from "../core_components/layout/CoreStep.vue";
+import CoreSteps from "../core_components/layout/CoreSteps.vue";
+// other
+import CoreButton from "../core_components/other/CoreButton.vue";
+import CoreHtml from "../core_components/other/CoreHtml.vue";
+import CorePagination from "../core_components/other/CorePagination.vue";
+import CoreRepeater from "../core_components/other/CoreRepeater.vue";
+import CoreTimer from "../core_components/other/CoreTimer.vue";
+import CoreWebcamCapture from "../core_components/other/CoreWebcamCapture.vue";
+// embed
+import CorePDF from "../core_components/embed/CorePDF.vue";
+import CoreIFrame from "../core_components/embed/CoreIFrame.vue";
+import CoreGoogleMaps from "../core_components/embed/CoreGoogleMaps.vue";
+// root
+import CorePage from "../core_components/root/CorePage.vue";
+import CoreRoot from "../core_components/root/CoreRoot.vue";
+
+import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
 
 import { StreamsyncComponentDefinition } from "../streamsyncTypes";
 import { h } from "vue";
-
-
 
 const templateMap = {
 	root: CoreRoot,
@@ -61,9 +77,14 @@ const templateMap = {
 	columns: CoreColumns,
 	tab: CoreTab,
 	tabs: CoreTabs,
+	link: CoreLink,
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
+	pdf: CorePDF,
+	iframe: CoreIFrame,
+	googlemaps: CoreGoogleMaps,
+	mapbox: CoreMapbox,
 	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
@@ -83,21 +104,27 @@ const templateMap = {
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
+	chatbot: CoreChatbot,
+	step: CoreStep,
+	steps: CoreSteps,
+	ratinginput: CoreRating,
+	tags: CoreTags,
+	switchinput: CoreSwitchInput,
+	avatar: CoreAvatar,
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {
-
 	/*
 	Assigns the components in custom_components to the template map,
 	allowing for live updates when developing custom component templates. 
 	*/
 
-	const liveCCT:Record<string, any> = (await import("../custom_components")).default;
+	const liveCCT: Record<string, any> = (await import("../custom_components"))
+		.default;
 	Object.entries(liveCCT).forEach(([componentType, template]) => {
 		templateMap[`custom_${componentType}`] = template;
 	});
 }
-
 
 function fallbackTemplate(type: string) {
 	const message = `Component type "${type}" not supported. If it's a custom component, please ensure it's been loaded.`;
