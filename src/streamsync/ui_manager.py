@@ -139,7 +139,7 @@ def _check_parent_child_relations(
     valid_children_types_for_parent = \
         StreamsyncUIManager.children_types_map.get(parent.type)
 
-    if "inherit" in valid_children_types_for_parent:
+    while "inherit" in valid_children_types_for_parent:
         # Switch to grandparent allowed types in case of "inherit" instruction
         grandparent = component_tree.get_component(parent.parentId)
         valid_children_types_for_parent = \
