@@ -11,9 +11,7 @@ import { getComponentDefinition } from "./templateMap";
  *
  * @param components
  */
-
 export function auditAndFixComponents(components: ComponentMap): boolean {
-	console.log("Auditing and fixing components...");
 	let isFixApplied = false;
 	auditOrphanComponents(components);
 	Object.entries(components).forEach(([, component]) => {
