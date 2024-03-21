@@ -127,6 +127,9 @@ def _check_parent_child_relations(
     # but importing it directly causes a circular import
     from streamsync.ui import StreamsyncUIManager
 
+    if component_type == "root":
+        raise UIError("Root component cannot be a child component.")
+
     parent = component_tree.get_component(parent_id)
     if not parent:
         raise RuntimeError(
@@ -148,11 +151,15 @@ def _check_parent_child_relations(
             "in allowed types map."
             )
 
-    is_component_a_valid_child = \
-        component_type in valid_children_types_for_parent \
-        and parent.type in valid_parent_types_for_component
+    is_component_eligible = \
+        (component_type in valid_children_types_for_parent
+         or '*' in valid_children_types_for_parent)
 
-    return is_component_a_valid_child
+    is_parent_eligible = \
+        (parent.type in valid_parent_types_for_component
+         or '*' in valid_parent_types_for_component)
+
+    return is_component_eligible and is_parent_eligible
 
 
 def _create_component(
