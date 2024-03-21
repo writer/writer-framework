@@ -2,7 +2,7 @@ from json import dumps as json_dumps
 from typing import Optional
 
 from streamsync.core_ui import (Component, UIError,
-                                current_parent_container, current_component_tree, ComponentTree)
+                                current_parent_container, current_component_tree, ComponentTree, SessionComponentTree)
 
 
 class StreamsyncUI:
@@ -73,7 +73,10 @@ class StreamsyncUI:
     def create_container_component(component_type: str, **kwargs) -> Component:
         component_tree = current_component_tree()
         container = _create_component(component_tree, component_type, **kwargs)
-        component_tree.attach(container)
+        if isinstance(component_tree, SessionComponentTree):
+            component_tree.attach(container)
+        else:
+            component_tree.attach_to_cmc_pool(container)
         return container
 
     @staticmethod
@@ -81,7 +84,10 @@ class StreamsyncUI:
         StreamsyncUI.assert_in_container()
         component_tree = current_component_tree()
         component = _create_component(component_tree, component_type, **kwargs)
-        component_tree.attach(component)
+        if isinstance(component_tree, SessionComponentTree):
+            component_tree.attach(component)
+        else:
+            component_tree.attach_to_cmc_pool(component)
 
         return component
 
