@@ -283,6 +283,22 @@ export default {
 			return rootElProps;
 		};
 
+		const isParentSuitable = () => {
+			const allowedTypes = !component.value.parentId
+				? ["root"]
+				: ss.getContainableTypes(component.value.parentId);
+			return allowedTypes.includes(component.value.type);
+		}
+
+		const renderErrorVNode = (vnodeProps, message): VNode => {
+			if (!isBeingEdited.value) return h("div");
+			return h(RenderError, {
+				...vnodeProps,
+				componentType: component.value.type,
+				message,
+			});
+		}
+
 		return () => {
 			const childlessPlaceholder = isBeingEdited.value
 				? getChildlessPlaceholderVNode()
@@ -312,24 +328,13 @@ export default {
 				...getRootElProps(),
 			};
 
-			const parentId = instancePath.at(-2)?.componentId;
-			const allowedTypes = !parentId
-				? ["root"]
-				: ss.getContainableTypes(parentId);
-			if (allowedTypes.includes(component.value.type)) {
-				return h(template, vnodeProps, {
-					default: defaultSlotFn,
-				});
-			} else {
-				if (!isBeingEdited.value) return h("div");
-				return [
-					h(RenderError, {
-						...vnodeProps,
-						componentType: component.value.type,
-						message: `This component cannot be added here`,
-					}),
-				];
+			if (!isParentSuitable()) {
+				return renderErrorVNode(vnodeProps, "Parent is not suitable for this component");
 			}
+
+			return h(template, vnodeProps, {
+				default: defaultSlotFn,
+			});
 		};
 	},
 };
