@@ -288,7 +288,7 @@ export default {
 				? ["root"]
 				: ss.getContainableTypes(component.value.parentId);
 			return allowedTypes.includes(component.value.type);
-		}
+		};
 
 		const renderErrorVNode = (vnodeProps, message): VNode => {
 			if (!isBeingEdited.value) return h("div");
@@ -297,7 +297,7 @@ export default {
 				componentType: component.value.type,
 				message,
 			});
-		}
+		};
 
 		return () => {
 			const childlessPlaceholder = isBeingEdited.value
@@ -329,7 +329,10 @@ export default {
 			};
 
 			if (!isParentSuitable()) {
-				return renderErrorVNode(vnodeProps, "Parent is not suitable for this component");
+				return renderErrorVNode(
+					vnodeProps,
+					"Parent is not suitable for this component",
+				);
 			}
 
 			return h(template, vnodeProps, {
