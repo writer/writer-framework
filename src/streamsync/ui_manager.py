@@ -1,5 +1,5 @@
 from json import dumps as json_dumps
-from typing import Optional
+from typing import Dict, List, Optional
 
 from streamsync.core_ui import (Component, UIError,
                                 current_parent_container, current_component_tree, ComponentTree)
@@ -12,6 +12,9 @@ class StreamsyncUI:
     This class offers context managers and methods to dynamically create, find,
     and organize UI components based on a structured component tree.
     """
+    parent_types_map: Dict[str, List[str]]
+    children_types_map: Dict[str, List[str]]
+
     def __enter__(self):
         return self
 
@@ -78,7 +81,6 @@ class StreamsyncUI:
 
     @staticmethod
     def create_component(component_type: str, **kwargs) -> Component:
-        StreamsyncUI.assert_in_container()
         component_tree = current_component_tree()
         component = _create_component(component_tree, component_type, **kwargs)
         component_tree.attach(component)
@@ -115,9 +117,50 @@ def _prepare_value(value):
     return str(value)
 
 
-def _create_component(component_tree: ComponentTree,  component_type: str, **kwargs) -> Component:
+def _check_parent_child_relations(
+        component_tree: ComponentTree,
+        parent_id: str,
+        component_type: str
+):
+    # Import required inside a function:
+    # StreamsyncUIManager class stores actual type maps,
+    # but importing it directly causes a circular import
+    from streamsync.ui import StreamsyncUIManager
 
-    parent_container = current_parent_container.get(None)
+    parent = component_tree.get_component(parent_id)
+    if not parent:
+        raise RuntimeError(
+            f"Improper parent_id provided: {parent_id} is missing in tree"
+            )
+
+    valid_children_types_for_parent = \
+        StreamsyncUIManager.children_types_map.get(parent.type)
+    valid_parent_types_for_component = \
+        StreamsyncUIManager.parent_types_map.get(component_type)
+
+    if not valid_children_types_for_parent \
+       or not valid_parent_types_for_component:
+        type_to_blame = (f"Parent type '{parent.type}'"
+                         if not valid_children_types_for_parent
+                         else f"Child type '{component_type}'")
+        raise RuntimeError(
+            f"Misconfigured types: {type_to_blame} is not present " +
+            "in allowed types map."
+            )
+
+    is_component_a_valid_child = \
+        component_type in valid_children_types_for_parent \
+        and parent.type in valid_parent_types_for_component
+
+    return is_component_a_valid_child
+
+
+def _create_component(
+        component_tree: ComponentTree,
+        component_type: str,
+        **kwargs
+        ) -> Component:
+
     if kwargs.get("id", False) is None:
         kwargs.pop("id")
 
@@ -130,7 +173,15 @@ def _create_component(component_tree: ComponentTree,  component_type: str, **kwa
     if "parentId" in kwargs:
         parent_id: str = kwargs.pop("parentId")
     else:
+        parent_container = current_parent_container.get(None)
         parent_id = "root" if not parent_container else parent_container.id
+
+    is_component_a_valid_child = \
+        _check_parent_child_relations(component_tree, parent_id, component_type)
+
+    if not is_component_a_valid_child:
+        raise UIError(f"Component type '{component_type}'" +
+                      f"cannot be a child for component '{parent_id}'")
 
     # Converting all passed content values to strings
     raw_content: dict = kwargs.pop("content", {})
