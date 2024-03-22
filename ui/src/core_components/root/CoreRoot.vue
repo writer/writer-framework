@@ -78,7 +78,11 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const { isComponentVisible } = useEvaluator(ss);
 
 const getFirstPageId = () => {
-	const pageComponents = ss.getComponents("root", true);
+	const pageComponents = ss.getComponents("root", {
+		includeBMC: true,
+		includeCMC: true,
+		sortedByPosition: true,
+	});
 	if (pageComponents.length == 0) return null;
 	const visiblePages = pageComponents.filter((c) => isComponentVisible(c.id));
 	if (visiblePages.length == 0) return null;
@@ -100,7 +104,6 @@ watch(activePageId, (newPageId) => {
 		const rendererEl = document.querySelector(".ComponentRenderer");
 		rendererEl.parentElement.scrollTo(0, 0);
 	});
-	if (!pageKey) return;
 	changePageInHash(pageKey);
 });
 
@@ -116,11 +119,12 @@ function getParsedHash(): ParsedHash {
 	let routeVars: Record<string, string> = {};
 
 	if (!hashMatchGroups) return { pageKey, routeVars };
+
 	pageKey = hashMatchGroups?.pageKey
 		? decodeURIComponent(hashMatchGroups.pageKey)
 		: undefined;
-	const routeVarsSegments = hashMatchGroups.routeVars?.split("&") ?? [];
 
+	const routeVarsSegments = hashMatchGroups.routeVars?.split("&") ?? [];
 	routeVarsSegments.forEach((routeVarSegment) => {
 		const matchGroups = routeVarSegment.match(routeVarRegex)?.groups;
 		if (!matchGroups) return;

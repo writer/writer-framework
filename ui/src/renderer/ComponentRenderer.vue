@@ -29,18 +29,17 @@ import { useEvaluator } from "./useEvaluator";
 
 const ss = inject(injectionKeys.core);
 const templateEvaluator = useEvaluator(ss);
-const pages: Component[] = ss.getComponents();
+const rootComponent: Component = ss.getComponentById("root");
 
-if (pages.length == 0) {
+if (!rootComponent) {
 	// eslint-disable-next-line no-console
-	console.error("No pages found.");
+	console.error("No root component found.");
 }
 
 const rootInstancePath: InstancePath = [
 	{ componentId: "root", instanceNumber: 0 },
 ];
 const rootInstanceData = [ref(null)];
-const rootComponent: Ref<Component> = ref(pages[0]);
 const rootFields = templateEvaluator.getEvaluatedFields(rootInstancePath);
 const rootStyle = computed(() => {
 	return {

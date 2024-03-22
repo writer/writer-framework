@@ -1319,6 +1319,12 @@
         "desc": "A valid URL",
         "type": "Text"
       },
+      "separatorColor": {
+        "name": "Separator",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
       "cssClasses": {
         "name": "Custom CSS classes",
         "type": "Text",
@@ -1342,13 +1348,13 @@
       "apiKey": {
         "name": "API Key",
         "default": "",
-        "desc": "API Key from Google Cloud Console",
+        "desc": "API Key from Google Cloud Console.",
         "type": "Text"
       },
       "mapId": {
         "name": "Map ID",
         "default": "",
-        "desc": "ID of map from Google Cloud Console, needed for markers",
+        "desc": "ID of map from Google Cloud Console, needed for markers.",
         "type": "Text"
       },
       "mapType": {
@@ -1361,7 +1367,7 @@
           "hybrid": "Hybrid",
           "terrain": "Terrain"
         },
-        "desc": "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'"
+        "desc": "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'."
       },
       "zoom": {
         "name": "Zoom",
@@ -2367,10 +2373,10 @@
     }
   },
   {
-    "type": "chat",
-    "name": "Chat",
-    "description": "A chat component to build human-to-AI interactions.",
-    "docs": "Connect it to an LLM by handling the `ss-chat-message` event, which is triggered every time the user sends a message. When the response is ready, return it.\n\nYou can add `actions` to your response, which are buttons that trigger the `ss-chat-action-click`.\n\nSee the stubs for more details.",
+    "type": "chatbot",
+    "name": "Chatbot",
+    "description": "A chatbot component to build human-to-AI interactions.",
+    "docs": "Connect it to an LLM by handling the `ss-chatbot-message` event, which is triggered every time the user sends a message. When the response is ready, return it.\n\nYou can add `actions` to your response, which are buttons that trigger the `ss-chatbot-action-click`.\n\nSee the stubs for more details.",
     "category": "Content",
     "fields": {
       "incomingInitials": {
@@ -2479,11 +2485,11 @@
       }
     },
     "events": {
-      "ss-chat-message": {
+      "ss-chatbot-message": {
         "desc": "Triggered when the user sends a message.",
         "stub": "def handle_message_simple(payload):\n    query = payload\n\n    if query == \"Hello\":\n\n\t\t# You can simply return a string\n\n        return \"Hello, human.\"\n    elif query == \"Surprise me\":\n\n\t\t# Or you can return a dict with actions, which are buttons\n\t\t# added to the conversation\n\n        return {\n            \"text\": \"I can help you with that.\",\n            \"actions\": [{\n            \t\"subheading\": \"Resource\",\n            \t\"name\": \"Surprise\",\n            \t\"desc\": \"Click to be surprised\",\n            \t\"data\": \"change_title\" \n        \t}]\n        }\n    else:\n        return \"I don't know\""
       },
-      "ss-chat-action-click": {
+      "ss-chatbot-action-click": {
         "desc": "Handle clicks on actions.",
         "stub": "def handle_action_simple(payload, state):\n    \n    # payload contains the \"data\" property of the action \n    \n    if payload == \"change_title\":\n        state[\"app_title\"] = \"Surprise!\"\n        state[\"app_background_color\"] = \"red\"\n    \n    # A message can be added to the chat\n    \n    return \"Hope you're surprised.\""
       },
@@ -2520,7 +2526,7 @@
       },
       "isCompleted": {
         "name": "Completed",
-        "desc": "Use a state element to mark this step as complete.",
+        "desc": "Use a state reference to dynamically mark this step as complete.",
         "default": "no",
         "type": "Text",
         "options": {
@@ -2714,7 +2720,8 @@
           "yes": "yes",
           "no": "no"
         },
-        "default": "yes"
+        "default": "yes",
+        "category": "Style"
       },
       "primaryTextColor": {
         "name": "Primary text",
@@ -2781,5 +2788,82 @@
         "bindable": true
       }
     }
+  },
+  {
+    "type": "avatar",
+    "name": "Avatar",
+    "description": "A component to display user avatars.",
+    "category": "Content",
+    "allowedChildrenTypes": [
+      "*"
+    ],
+    "fields": {
+      "name": {
+        "name": "Name",
+        "type": "Text"
+      },
+      "imageSrc": {
+        "name": "Image source",
+        "desc": "A valid URL. Alternatively, you can provide a state reference to a packed file.",
+        "type": "Text"
+      },
+      "caption": {
+        "name": "Caption",
+        "desc": "Add an optional caption under the name, such as the person's job title.",
+        "type": "Text"
+      },
+      "size": {
+        "name": "Size",
+        "type": "Text",
+        "options": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large"
+        },
+        "default": "medium",
+        "category": "Style"
+      },
+      "orientation": {
+        "name": "Orientation",
+        "type": "Text",
+        "options": {
+          "horizontal": "Horizontal",
+          "vertical": "Vertical"
+        },
+        "default": "horizontal",
+        "category": "Style"
+      },
+      "primaryTextColor": {
+        "name": "Primary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "secondaryTextColor": {
+        "name": "Secondary text",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "separatorColor": {
+        "name": "Separator",
+        "type": "Color",
+        "category": "Style",
+        "applyStyleVariable": true
+      },
+      "cssClasses": {
+        "name": "Custom CSS classes",
+        "type": "Text",
+        "category": "Style",
+        "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
+      }
+    },
+    "events": {
+      "ss-click": {
+        "desc": "Triggered when the avatar is clicked.",
+        "stub": "def handle_avatar_click():\n\tprint(\"The avatar was clicked\")"
+      }
+    },
+    "previewField": "text"
   }
 ]

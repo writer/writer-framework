@@ -12,6 +12,7 @@ import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
+import RenderError from "./RenderError.vue";
 
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
@@ -26,10 +27,19 @@ export default {
 		const { getEvaluatedFields, isComponentVisible } = useEvaluator(ss);
 		const evaluatedFields = getEvaluatedFields(instancePath);
 
-		const children = computed(() => ss.getComponents(componentId, true));
+		const children = computed(() =>
+			ss.getComponents(componentId, { sortedByPosition: true }),
+		);
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
 		);
+		const isDraggable = computed(
+			() =>
+				isBeingEdited.value &&
+				!component.value.isCodeManaged &&
+				component.value.type !== "root",
+		);
+
 		const isDisabled = ref(false);
 		const userFunctions: Ref<UserFunction[]> = computed(() =>
 			ss.getUserFunctions(),
@@ -45,7 +55,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-		) => {
+		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
 				key: `${componentId}:${instanceNumber}`,
@@ -66,32 +76,40 @@ export default {
 			componentFilter: (c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
-			const renderInsertionSlot = (position: number) => {
-				return h("div", {
-					"data-streamsync-slot-of-id": componentId,
-					"data-streamsync-position": position,
-				});
+			const renderInsertionSlot = (position: number): VNode[] => {
+				if (!isBeingEdited.value || positionlessSlot) return [];
+				return [
+					h("div", {
+						"data-streamsync-slot-of-id": componentId,
+						"data-streamsync-position": position,
+					}),
+				];
 			};
-			const showSlots = isBeingEdited.value && !positionlessSlot;
 
-			const childrenVNodes = children.value
-				.filter(componentFilter)
-				.map((childComponent, childIndex) => {
-					const childVNode = renderProxiedComponent(
-						childComponent.id,
-						instanceNumber,
-					);
-					return [
-						childVNode,
-						...(showSlots
-							? [renderInsertionSlot(childIndex + 1)]
-							: []),
-					];
-				});
+			const slotComponents = children.value.filter(componentFilter);
 
-			return [...(showSlots ? [renderInsertionSlot(0)] : [])].concat(
-				childrenVNodes.flat(),
-			);
+			const bmcVNodes = slotComponents
+				.filter((c) => !c.isCodeManaged)
+				.map((childComponent) =>
+					renderProxiedComponent(childComponent.id, instanceNumber),
+				);
+
+			const cmcVNodes = slotComponents
+				.filter((c) => c.isCodeManaged)
+				.map((childComponent) =>
+					renderProxiedComponent(childComponent.id, instanceNumber),
+				);
+
+			return [
+				...renderInsertionSlot(0),
+				...bmcVNodes
+					.map((vnode: VNode, idx): VNode[] => [
+						vnode,
+						renderInsertionSlot(idx + 1),
+					])
+					.flat(),
+				...cmcVNodes,
+			];
 		};
 
 		const flattenInstancePath = (path: InstancePath) => {
@@ -260,9 +278,25 @@ export default {
 				},
 				...dataAttrs,
 				...(!isDisabled.value ? eventHandlerProps.value : []),
-				draggable: isBeingEdited.value,
+				draggable: isDraggable.value,
 			};
 			return rootElProps;
+		};
+
+		const isParentSuitable = () => {
+			const allowedTypes = !component.value.parentId
+				? ["root"]
+				: ss.getContainableTypes(component.value.parentId);
+			return allowedTypes.includes(component.value.type);
+		};
+
+		const renderErrorVNode = (vnodeProps, message): VNode => {
+			if (!isBeingEdited.value) return h("div");
+			return h(RenderError, {
+				...vnodeProps,
+				componentType: component.value.type,
+				message,
+			});
 		};
 
 		return () => {
@@ -293,11 +327,17 @@ export default {
 			const vnodeProps = {
 				...getRootElProps(),
 			};
-			const renderedComponent = h(template, vnodeProps, {
+
+			if (!isParentSuitable()) {
+				return renderErrorVNode(
+					vnodeProps,
+					"Parent is not suitable for this component",
+				);
+			}
+
+			return h(template, vnodeProps, {
 				default: defaultSlotFn,
 			});
-
-			return renderedComponent;
 		};
 	},
 };

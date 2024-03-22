@@ -16,7 +16,7 @@ export type Component = {
 	type: string;
 	position: number;
 	content: Record<string, string>;
-	flag?: string;
+	isCodeManaged?: boolean;
 	handlers?: Record<string, string>;
 	visible?: boolean | string;
 	binding?: {

@@ -1,6 +1,10 @@
 <template>
 	<div ref="rootEl" class="CoreMapbox">
-		<div ref="mapEl" class="map" />
+		<div v-if="!fields.accessToken.value" class="noAccessTokenProvided">
+			<h2>MapBox cannot be initialised.</h2>
+			<h3>An access token hasn't been provided.</h3>
+		</div>
+		<div v-else ref="mapEl" class="map" />
 		<div class="mask" />
 	</div>
 </template>
@@ -199,14 +203,28 @@ watch([mapEl, fields.accessToken], () => {
 </script>
 
 <style scoped>
+@import "../../renderer/sharedStyles.css";
+
 .CoreMapbox {
 	position: relative;
 	width: 100%;
 	height: 80vh;
+	background: var(--separatorColor);
 }
 .CoreMapbox :deep(.mapboxgl-marker) {
 	cursor: pointer;
 }
+
+.noAccessTokenProvided {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	flex-direction: column;
+}
+
 .CoreMapbox .map {
 	width: 100%;
 	height: 100%;
