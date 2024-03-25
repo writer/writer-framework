@@ -72,7 +72,7 @@ export default {
         items: [
           { text: "Testing", link: "/testing" },
           { text: "Deploy with Docker", link: "/deploy-with-docker" },
-          { text: "Component list", link: "/component-list" },
+          { text: "Component list", link: "/component-list", activeMatch: '/components/' },
         ],
       },
     ],
@@ -83,7 +83,7 @@ export default {
       target: "esnext",
     },
   	define: {
-		  STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
+	  STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
     },
   },
 };

@@ -10,11 +10,15 @@
 		"test": "jest"
 	},
 	"dependencies": {
+		"highlight.js": "^11.9.0",
+		"monaco-editor": "^0.47.0",
 		"streamsync-ui": "*",
+		"vite-plugin-monaco-editor": "^1.1.0",
 		"vitepress": "^1.0.0-rc.44",
 		"vue": "^3.4.21"
 	},
 	"devDependencies": {
-		"jest": "29.7.0"
+		"jest": "29.7.0",
+		"shiki": "^1.2.0"
 	}
 }

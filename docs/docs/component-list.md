@@ -24,34 +24,14 @@ This list is automatically generated from the framework's source code.
     {{ categoryDesc}}
     <div class="boxContainer">
         <div v-for="def in defs.filter(d => d.category == categoryKey)" class="box">
-            <h3 :id="def.type">{{def.name}}</h3>
-            <div class="imageContainer">
-                <div class="imageContainerInner">
-                    <img :src="`/components/${def.type}.png`" />
-                </div>
-            </div>
-            <div class="descriptionContainer">
-                {{def.description}}
-                <details v-if="def.fields">
-                    <summary>Fields</summary>
-                    <ul>
-                        <li v-for="[fieldId, field] in Object.entries(def.fields)">
-                            {{ field.name }}
-                            <span class="secondaryText">: {{ field.type }}</span>
-                            <span v-if="field.options" class="secondaryText"> &middot; {{ Object.values(field.options ?? {}).join(" / ") }}</span>
-                            <template v-if="field.desc"> &middot; {{ field.desc }}</template>
-                        </li>
-                    </ul>
-                </details>
-                <details v-if="def.events">
-                    <summary>Events</summary>
-                    <ul>
-                        <li v-for="[eventId, event] in Object.entries(def.events)">
-                            <code>{{ eventId }}</code> <template v-if="event.desc">&middot; {{ event.desc }}</template>
-                        </li>
-                    </ul>
-                </details>
-            </div>
+			<a :href="`/components/${def.type}.html`" class="componentLink">
+				<h3 :id="def.type">{{def.name}}</h3>
+				<div class="imageContainer">
+					<div class="imageContainerInner">
+						<img :src="`/components/${def.type}.png`" />
+					</div>
+				</div>
+			</a>
         </div>
     </div>
 </div>
@@ -109,6 +89,14 @@ This list is automatically generated from the framework's source code.
 
 .componentCategory .box .descriptionContainer {
     padding: 16px;
+}
+
+.componentLink h3 {
+	color: var(--vp-c-text-1);
+}
+
+.vp-doc a {
+	text-decoration: none;
 }
 
 </style>

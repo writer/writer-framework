@@ -20,12 +20,9 @@ async function generate() {
 		// eslint-disable-next-line prettier/prettier
 		const componentPath = path.resolve(docComponentsDirectory, `${component.type}.md`);
 		const page = fs.readFileSync(componentPageTemplate, "utf8");
-		let renderTemplate = new Function(
-			"component",
-			"return `" + page + "`;",
-		);
+		const renderedPage = page.replace("@{component_name}", component.name);
 
-		fs.writeFileSync(componentPath, renderTemplate(component));
+		fs.writeFileSync(componentPath, renderedPage);
 	});
 }
 
