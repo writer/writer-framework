@@ -37,7 +37,7 @@
 			></div>
 		</div>
 
-		<div v-if="readonly" class="warning">
+		<div v-if="readonly" class="warning cmc-warning">
 			<i class="ri-error-warning-line ri-xl"></i>
 			<span>
 				This component is instantiated in code. All settings in this
