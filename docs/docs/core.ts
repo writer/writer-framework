@@ -1,5 +1,6 @@
 import hljs from 'highlight.js/lib/core';
 import python from 'highlight.js/lib/languages/python';
+import components from "streamsync-ui/components.codegen.json";
 
 // @ts-ignore
 hljs.registerLanguage('python', python);
@@ -42,6 +43,15 @@ export function categoryDescription(name: string) {
 }
 
 /**
+ * List the components of a category
+ *
+ * @param category
+ */
+export function componentsByCategory(category: string) {
+	return components.filter((component) => component.category === category);
+}
+
+/**
  * List of categories and their descriptions (internal)
  */
 const categoriesList = {
@@ -52,3 +62,5 @@ const categoriesList = {
 	"Embed": "Components that integrate external functionalities seamlessly.",
 	"Root": "These components are the top-level containers."
 };
+
+

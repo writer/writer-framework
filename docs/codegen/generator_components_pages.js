@@ -1,14 +1,21 @@
+/**
+ * Generates one documentation page per component from sources in docs
+ * components
+ */
+
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { loadComponents } = require("./core");
+const components = require("streamsync-ui/components.codegen.json");
 const path = require("path");
 const fs = require("fs");
 
-const componentPageTemplate = path.resolve(__dirname, "component_page.tpl.md");
-const docDirectory = path.resolve(__dirname, "..", "..", "docs", "docs");
+const docDirectory = path.resolve(__dirname, "..", "docs");
 const docComponentsDirectory = path.resolve(docDirectory, "components");
+const componentPageTemplate = path.resolve(
+	docComponentsDirectory,
+	"component_page.tpl.md",
+);
 
 async function generate() {
-	const components = await loadComponents();
 	// eslint-disable-next-line no-console
 	console.log("generate doc components pages into", docComponentsDirectory);
 

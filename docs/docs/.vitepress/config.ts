@@ -1,8 +1,31 @@
-import defs from "streamsync-ui/components.json";
-import { categories } from "../core";
+import {categories, componentsByCategory} from "../core";
 
-function componentsByCategory(category) {
-	return defs.filter((component) => component.category === category);
+/**
+ * Build the content of the sidebar which provides access to the components
+ */
+function componentsSidebar() {
+	const sidebarHeader = [
+		{
+			text: 'Components',
+			items: [
+				{text: "Component list", link: "/components/component-list"},
+			]
+		}
+	]
+
+	const sidebarComponentList = categories().map((category) => {
+		return {
+			text: category,
+			items: componentsByCategory(category).map((component) => {
+				return {
+					text: component.name,
+					link: `/components/${component.type}`,
+				};
+			}),
+		};
+	});
+
+	return sidebarHeader.concat(sidebarComponentList)
 }
 
 export default {
@@ -26,24 +49,7 @@ export default {
 			{text: "Components", link: "/components/component-list"},
 		],
 		sidebar: {
-			'/components/': [
-				{
-					text: 'Components',
-					items: [
-						{text: "Component list", link: "/components/component-list"},
-					]
-				}
-			].concat(categories().map((category) => {
-				return {
-					text: category,
-					items: componentsByCategory(category).map((component) => {
-						return {
-							text: component.name,
-							link: `/components/${component.type}`,
-						};
-					}),
-				};
-			})),
+			'/components/': componentsSidebar(),
 			'/': [
 				{
 					text: "Guide",

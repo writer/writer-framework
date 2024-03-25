@@ -1,4 +1,4 @@
-import defs from "streamsync-ui/components.json";
+import defs from "streamsync-ui/components.codegen.json";
 import { highlightCode } from "./core";
 
 export default {
