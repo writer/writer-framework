@@ -21,3 +21,34 @@ export function highlightCode(code: string, language = 'python') {
 	value = value.replace(/\t/g, "  ")
 	return value
 }
+
+/**
+ * Get the list of categories
+ */
+export function categories() {
+	const categoriesAll = Object.entries(categoriesList).map(([name, description]) => {
+		return name;
+	});
+
+	return categoriesAll;
+}
+
+/**
+ * Get the description of a category
+ * @param name Name of the category
+ */
+export function categoryDescription(name: string) {
+	return categoriesList[name];
+}
+
+/**
+ * List of categories and their descriptions (internal)
+ */
+const categoriesList = {
+	"Layout": "Components to organise the app's layout. Not meaningful by themselves; their objective is to enhance how other components are presented.",
+	"Content": "Components that present content and are meaningful by themselves. For example, charts, images or text.",
+	"Input": "Components whose main objective is to allow the user to input data into the app.",
+	"Other": "These components occupy a special role and are amongst the most powerful in the framework.",
+	"Embed": "Components that integrate external functionalities seamlessly.",
+	"Root": "These components are the top-level containers."
+};

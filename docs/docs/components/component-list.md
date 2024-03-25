@@ -4,24 +4,16 @@ outline: [2, 2]
 
 <script setup>
     import defs from "streamsync-ui/components.json";
-
-    const categories = {
-        "Layout": "Components to organise the app's layout. Not meaningful by themselves; their objective is to enhance how other components are presented.",
-        "Content": "Components that present content and are meaningful by themselves. For example, charts, images or text.",
-        "Input": "Components whose main objective is to allow the user to input data into the app.",
-        "Other": "These components occupy a special role and are amongst the most powerful in the framework.",
-        "Embed": "Components that integrate external functionalities seamlessly.",
-        "Root": "These components are the top-level containers."
-    };     
+	import { categories, categoryDescription } from "../core";  
 </script>
 
 # Component list
 
 This list is automatically generated from the framework's source code.
 
-<div v-for="categoryDesc, categoryKey in categories" class="componentCategory">
+<div v-for="categoryKey in categories()" class="componentCategory">
     <h2 :id="categoryKey">{{categoryKey}}</h2>
-    {{ categoryDesc}}
+    {{ categoryDescription(categoryKey) }}
     <div class="boxContainer">
         <div v-for="def in defs.filter(d => d.category == categoryKey)" class="box">
 			<a :href="`/components/${def.type}.html`" class="componentLink">
