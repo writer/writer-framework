@@ -5,6 +5,8 @@ const { createServer } = require("vite");
 
 /**
  * Loads the definition of streamsync components.
+ *
+ * @returns {Promise<import("./getComponents").Component[]>} The components.
  */
 async function loadComponents() {
 	const vite = await createServer({
