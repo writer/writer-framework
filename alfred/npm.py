@@ -20,9 +20,9 @@ def npm_build():
     alfred.run("npm run build")
 
 @alfred.command("npm.build_custom_components", help="build custom components")
-def ui_build_custom():
+def npm_build_custom_components():
     alfred.run("npm run custom.build")
 
-@alfred.command("npm.codegen.binding.ui", help="generate binding for low code ui")
-def ui_build_custom():
-    alfred.run("npm run codegen.binding.ui")
+@alfred.command("npm.codegen", help="generate code for different usecase (low code ui, documentation, ...)")
+def npm_codegen():
+    alfred.run("npm run codegen")
