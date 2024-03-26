@@ -33,6 +33,6 @@ export default defineConfig({
 		command: "npm start",
 		url: "http://127.0.0.1:7357",
 		reuseExistingServer: true,
-		stdout: 'pipe',
+		//stdout: 'pipe',
 	},
 });
