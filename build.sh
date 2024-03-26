@@ -6,7 +6,7 @@ set -e
 # UI BUILD
 
 cd ./ui
-npm run build:ci
+npm run build
 cd ..
 
 # PYTEST

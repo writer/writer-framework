@@ -19,7 +19,6 @@
 		"ui:dev": "npm run -w streamsync-ui dev",
 		"ui:build": "npm run -w streamsync-ui build",
 		"ui:preview": "npm run -w streamsync-ui preview",
-		"ui:test": "npm run -w streamsync-ui test",
 		"ui:custom.build": "npm run -w streamsync-ui custom.build",
 		"ui:lint": "npm run -w streamsync-ui lint",
 		"ui:lint:ci": "npm run -w streamsync-ui lint:ci",
@@ -32,9 +31,9 @@
 		"e2e": "npm run -w streamsync-e2e e2e",
 		"e2e:ui": "npm run -w streamsync-e2e e2e:ui",
 		"e2e:ci": "npm run -w streamsync-e2e e2e:ci",
-		"e2e:firefox:ci": "npm run -w streamsync-e2e e2e:firefox",
-		"e2e:chromium:ci": "npm run -w streamsync-e2e e2e:chromium",
-		"e2e:webkit:ci": "npm run -w streamsync-e2e e2e:webkit",
+		"e2e:firefox": "npm run -w streamsync-e2e e2e:firefox",
+		"e2e:chromium": "npm run -w streamsync-e2e e2e:chromium",
+		"e2e:webkit": "npm run -w streamsync-e2e e2e:webkit",
 
 		"codegen.binding.ui": "npm run -w streamsync-ui codegen.binding.ui"
 	}
