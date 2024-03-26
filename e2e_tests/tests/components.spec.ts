@@ -1,6 +1,19 @@
 import { test, expect } from "@playwright/test";
 import components from "streamsync-ui/components.json";
 
+type Component = {
+	type: string;
+	allowedParentTypes?: string[];
+};
+
+type ComponentTestData = {
+	type: string;
+	test: string;
+	locator: string;
+	ignore?: boolean;
+	allowedParentTypes?: string[];
+};
+
 const mapComponents = {
 	root: {ignore: true},
 	page: {ignore: true},
@@ -10,14 +23,14 @@ const mapComponents = {
 	section: {test: 'basic'},
 	columns: {test: 'basic'},
 	sidebar: {test: 'basic'},
+	fileinput: {locator: '.component.ss-type-fileinput label'},
 	dateinput: {locator: '.component.ss-type-dateinput label'},
 	sliderinput: {locator: '.component.ss-type-sliderinput label'},
 	numberinput: {locator: '.component.ss-type-numberinput label'},
 	textinput: {locator: '.component.ss-type-textinput label'},
 }
 
-function findTest(component) {
-	if(component.test) return component.test;
+function findTest(component: Component) {
 	if(!component.allowedParentTypes || component.allowedParentTypes?.includes('column')) {
 		return 'full';
 	}
@@ -28,7 +41,7 @@ function findTest(component) {
 }
 
 const tests = components
-	.map(component => ({
+	.map((component: Component): ComponentTestData => ({
 		...component, 
 		test: findTest(component),
 		locator: '.component.ss-type-' + component.type,
@@ -36,8 +49,8 @@ const tests = components
 	}))
 
 tests
-	.filter(component => !component.ignore)
-	.forEach((component) => {
+	.filter((component: ComponentTestData) => !component.ignore)
+	.forEach((component: ComponentTestData) => {
 		switch(component.test) {
 			case 'basic':
 				basicTest(component);
@@ -50,7 +63,7 @@ tests
 		}
 	});
 
-function failTest({type}) {
+function failTest({type}: ComponentTestData) {
 	test.describe(type, () => {
 		test("tests are not implemented", async () => {
 			expect(true).toBeFalsy();
@@ -59,7 +72,7 @@ function failTest({type}) {
 }
 
 
-function fullTest({type, locator}) {
+function fullTest({type, locator}: ComponentTestData) {
 	test.describe(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
@@ -112,7 +125,7 @@ function fullTest({type, locator}) {
 	});
 }
 
-function basicTest({type, locator}) {
+function basicTest({type, locator}: ComponentTestData) {
 	test.describe(type, () => {
 		const TYPE = type;
 		const COMPONENT_LOCATOR = locator;
