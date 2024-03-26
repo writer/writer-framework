@@ -1,31 +1,40 @@
 {
-  "name": "Streamsync",
-  "version": "1.0.0",
-  "description": "",
-  "workspaces": [
-    "ui",
-    "e2e",
-    "docs"
-  ],
-  "scripts": {
-    "build": "npm run --if-present -ws build",
-    "e2e": "npm run -w streamsync-e2e e2e",
-    "e2e:ui": "npm run -w streamsync-e2e e2e:ui",
-    "lint": "npm run --if-present -ws lint",
-    "test": "npm run --if-present -ws test",
-    "cli:test": "pytest tests -o log_cli=true ",
-    "cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
-    "ui:dev": "npm run -w streamsync-ui ui:dev",
-    "ui:preview": "npm run -w streamsync-ui ui:preview",
-    "docs:dev": "npm run -w streamsync-docs docs:dev",
-    "docs:preview": "npm run -w streamsync-docs docs:preview",
+	"name": "Streamsync",
+	"version": "1.0.0",
+	"description": "",
+	"workspaces": [
+		"ui",
+		"e2e",
+		"docs"
+	],
+	"scripts": {
+		"cli:test": "pytest tests -o log_cli=true ",
+		"cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
 
-    "test:ci": "npm run --if-present -ws test",
-    "build:ci": "npm run --if-present -ws build",
-    "lint:ci": "npm run --if-present -ws lint:ci",
-    "e2e:firefox:ci": "npm run -w streamsync-e2e e2e:firefox",
-    "e2e:chromium:ci": "npm run -w streamsync-e2e e2e:chromium",
-    "e2e:webkit:ci": "npm run -w streamsync-e2e e2e:webkit",
-    "custom.build:ci": "npm run -w streamsync-ui custom.build"
-  }
+		"ui:dev": "npm run -w streamsync-ui dev",
+		"ui:preview": "npm run -w streamsync-ui preview",
+
+		"docs:dev": "npm run -w streamsync-docs dev",
+		"docs:preview": "npm run -w streamsync-docs preview",
+
+		"build": "npm run --if-present -ws build",
+		"build:ci": "npm run -w streamsync-ui build",
+		"custom.build:ci": "npm run -w streamsync-ui custom.build",
+
+		"test": "npm run --if-present -ws test",
+		"test": "npm run -w streamsync-docs test",
+
+		"e2e": "npm run -w streamsync-e2e e2e",
+		"e2e:ui": "npm run -w streamsync-e2e e2e:ui",
+		"e2e:ci": "npm run -w streamsync-e2e e2e:ci",
+		"e2e:firefox:ci": "npm run -w streamsync-e2e e2e:firefox",
+		"e2e:chromium:ci": "npm run -w streamsync-e2e e2e:chromium",
+		"e2e:webkit:ci": "npm run -w streamsync-e2e e2e:webkit",
+
+		"lint": "npm run -w streamsync-ui lint",
+		"lint:ci": "npm run -w streamsync-ui lint:ci",
+
+		"dev": "npm run -w streamsync-ui dev",
+		"codegen.binding.ui": "npm run -w streamsync-ui codegen.binding.ui"
+	}
 }

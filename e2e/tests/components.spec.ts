@@ -37,7 +37,7 @@ const fullCheck = [
 	{ type: "metric", locator: `div.CoreMetric.component` },
 	{ type: "message", locator: `div.CoreMessage.component` },
 	{ type: "videoplayer", locator: `div.CoreVideoPlayer.component` },
-	{ type: "chat", locator: `div.CoreChat.component` },
+	{ type: "chatbot", locator: `div.CoreChatbot.component` },
 	// { type: "step", locator: `div.CoreStep.component` },
 	{ type: "steps", locator: `div.CoreSteps.component` },
 	{ type: "ratinginput", locator: `div.CoreRatingInput.component` },

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "streamsync"
-version = "0.3.0"
+version = "0.4.0rc3"
 description = "Streamsync helps you create performant data apps, via Python code and its built-in visual UI editor."
 authors = ["Ramiro Medina <ramiro.a.medina@gmail.com>"]
 license = "Apache 2.0"
@@ -22,6 +22,9 @@ classifiers = [
 ]
 packages = [
     { include = "streamsync", from = "src" }
+]
+include = [
+	"src/streamsync/static/**/*"
 ]
 
 [tool.poetry.dependencies]
@@ -50,6 +53,7 @@ pytest = ">= 7.0.0, < 8"
 altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
 alfred-cli = "^2.2.7"
+polars = "^0.20.15"
 
 [tool.poetry.extras]
 ds = ["pandas", "pyarrow", "plotly"]

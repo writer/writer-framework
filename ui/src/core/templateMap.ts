@@ -11,8 +11,9 @@ import CoreText from "../core_components/content/CoreText.vue";
 import CoreVegaLiteChart from "../core_components/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../core_components/content/CoreVideoPlayer.vue";
 import CoreLink from "../core_components/content/CoreLink.vue";
-import CoreChat from "../core_components/content/CoreChat.vue";
+import CoreChatbot from "../core_components/content/CoreChatbot.vue";
 import CoreTags from "../core_components/content/CoreTags.vue";
+import CoreAvatar from "../core_components/content/CoreAvatar.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -103,12 +104,13 @@ const templateMap = {
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
-	chat: CoreChat,
+	chatbot: CoreChatbot,
 	step: CoreStep,
 	steps: CoreSteps,
 	ratinginput: CoreRating,
 	tags: CoreTags,
 	switchinput: CoreSwitchInput,
+	avatar: CoreAvatar,
 };
 
 if (STREAMSYNC_LIVE_CCT === "yes") {

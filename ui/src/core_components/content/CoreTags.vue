@@ -1,13 +1,24 @@
 <template>
-	<div ref="rootEl" class="CoreTags">
-		<div
-			v-for="(tagDesc, tagId) in fields.tags.value"
-			:key="tagId"
-			class="tag"
-			:style="{ background: generateColor(tagId) }"
-			@click="() => handleTagClick(tagId)"
-		>
-			{{ tagDesc }}
+	<div
+		v-if="
+			isBeingEdited || Object.entries(fields.tags.value ?? []).length > 0
+		"
+		ref="rootEl"
+		class="CoreTags"
+	>
+		<template v-if="Object.entries(fields.tags.value ?? []).length > 0">
+			<div
+				v-for="(tagDesc, tagId) in fields.tags.value"
+				:key="tagId"
+				class="tag"
+				:style="{ background: generateColor(tagId) }"
+				@click="() => handleTagClick(tagId)"
+			>
+				{{ tagDesc }}
+			</div>
+		</template>
+		<div v-else class="tag empty">
+			<span>Empty Tags</span>
 		</div>
 	</div>
 </template>
@@ -57,6 +68,7 @@ export default {
 					no: "no",
 				},
 				default: "yes",
+				category: FieldCategory.Style,
 			},
 			primaryTextColor: {
 				...primaryTextColor,
@@ -84,6 +96,7 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const ss = inject(injectionKeys.core);
+const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
 const isClickable = computed(() => {
 	const component = ss.getComponentById(componentId);
@@ -128,9 +141,11 @@ function handleTagClick(tagId: string) {
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
+	align-items: center;
 }
 
 .tag {
+	height: fit-content;
 	padding: 4px 8px 4px 8px;
 	border-radius: 16px;
 	font-size: 0.65rem;
@@ -139,5 +154,14 @@ function handleTagClick(tagId: string) {
 	align-items: center;
 	gap: 4px;
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
+}
+
+.tag.empty {
+	background-color: var(--separatorColor);
+	color: var(--primaryTextColor);
+}
+
+.tag.empty span {
+	opacity: 0.8;
 }
 </style>
