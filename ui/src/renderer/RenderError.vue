@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
 import { Component } from "../streamsyncTypes";
 
 interface Props {
