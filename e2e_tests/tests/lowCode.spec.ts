@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import components from "streamsync-ui/components.json";
+import components from "streamsync-ui/components.codegen.json";
 
 const setInstruction = async (page, instruction) => {
 	await page.locator('div.TestInput textarea').click();
