@@ -12,7 +12,7 @@ const docDirectory = path.resolve(__dirname, "..", "docs");
 const docComponentsDirectory = path.resolve(docDirectory, "components");
 const componentPageTemplate = path.resolve(
 	docComponentsDirectory,
-	"component_page.tpl.md",
+	"component_page.md.tpl",
 );
 
 async function generate() {

@@ -4,7 +4,8 @@ outline: [2, 2]
 
 <script setup>
     import defs from "streamsync-ui/components.codegen.json";
-	import { categories, categoryDescription } from "../core";  
+	import { categories, categoryDescription } from "../core";
+	import { withBase } from 'vitepress'
 </script>
 
 # Component list
@@ -16,11 +17,11 @@ This list is automatically generated from the framework's source code.
     {{ categoryDescription(categoryKey) }}
     <div class="boxContainer">
         <div v-for="def in defs.filter(d => d.category == categoryKey)" class="box">
-			<a :href="`/components/${def.type}.html`" class="componentLink">
+			<a :href="withBase(`/components/${def.type}.html`)" class="componentLink">
 				<h3 :id="def.type">{{def.name}}</h3>
 				<div class="imageContainer">
 					<div class="imageContainerInner">
-						<img :src="`/components/${def.type}.png`" />
+						<img :src="withBase(`/components/${def.type}.png`)" />
 					</div>
 				</div>
 			</a>

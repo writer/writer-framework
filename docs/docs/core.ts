@@ -52,6 +52,77 @@ export function componentsByCategory(category: string) {
 }
 
 /**
+ * Generates the code for an event handler
+ */
+export function generateEventHandler() {
+	let code = `def handle_event(state, payload, context, ui):
+  pass
+`
+	return highlightCode(code)
+}
+
+/**
+ * Generates an example of component usage in Low Code
+ *
+ * @param component_name Name of a component
+ * @returns Example code
+ * 
+ * @example
+ * <pre v-html="generateLowCodeUsage("Button")"></pre>
+ */
+export function generateLowCodeUsage(component_name: string) : string {
+	const component = components.find(c => c.name === component_name);
+	
+	let contents = "content={\n"
+	for (let fieldKey in component.fields) {
+		const properties = component.fields[fieldKey]
+		contents += `        "${fieldKey}": ${getDefaultValue(fieldKey, properties['type'])}, # ${getPyType(properties['type'])}\n`
+	}
+	contents += "    }"
+
+	let handlers = ""
+	if (component.events && Object.keys(component.events).length > 0) {
+		handlers += "\n,\n    handlers={\n"
+		for (let event in component.events) {
+			handlers += `        "${event}": handle_event,\n`
+		}
+		handlers += "    }"
+	}
+
+	// @ts-ignore
+	let code = `ui.${component.name.replaceAll(/\s/g, "")}(${contents.trim()}${handlers.trim()}
+)`
+	return highlightCode(code, 'python')
+}
+
+function getDefaultValue(key, type) {
+	switch (type) {
+		case "Number":
+			return '0.0';
+		case "Object":
+			return "{}";
+		case "Key-Value":
+			return "{}";
+		default:
+			return '""';
+	}
+}
+
+const getPyType = (type) => {
+	switch (type) {
+		case "Number":
+			return "Union[float, str]";
+		case "Object":
+			return "Union[Dict, str]";
+		case "Key-Value":
+			return "Union[Dict, str]";
+		default:
+			return "str";
+	}
+};
+
+
+/**
  * List of categories and their descriptions (internal)
  */
 const categoriesList = {
