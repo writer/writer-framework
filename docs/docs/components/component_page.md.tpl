@@ -1,6 +1,6 @@
 <script setup>
 	import { data as components } from "../components.data.ts";
-	import { generateLowCodeUsage, generateEventHandler } from "../core";
+	import { generateLowCodeUsage, generateEventHandler, values } from "../core";
 	const component = components.find(c => c.name === "@{component_name}");
 	import { withBase } from 'vitepress'
 </script>
@@ -20,13 +20,17 @@
 			<td>Name</td>
 			<td>Type</td>
 			<td>Description</td>
-			<td>Default</td>
+			<td>Options</td>
 		</thead>
 		<tr v-for="field in component.fields">
 			<td>{{ field.name }}</td>
 			<td>{{ field.type }}</td>
 			<td>{{ field.desc }}</td>
-			<td>{{ field.default }}</td>
+			<td>
+                <ul>
+                    <li v-for="option in values(field.options)">{{ option }}</li>
+                </ul>
+			</td>
 		</tr>
 	</table>
 </div>
@@ -42,8 +46,8 @@
 		<tr v-for="[event, eventInfo] in Object.entries(component.events)">
 			<td>{{ event }}</td>
 			<td>{{ eventInfo.desc }}</td>
-			<td>
-				<pre v-html="eventInfo.code"></pre>
+			<td class="language-py">
+				<pre><code class="codeblock" v-html="eventInfo.code"></code></pre>
 			</td>
 		</tr>
 	</table>
@@ -53,18 +57,18 @@
 
 This component can be used in python
 
-<div class="language-py vp-adaptive-theme codeblock">
+<div class="language-py vp-adaptive-theme">
 	<button title="Copy Code" class="copy"></button>
 	<span class="lang">python</span>
-	<pre v-html="generateLowCodeUsage(component.name)"></pre>
+	<pre><code class="codeblock" v-html="generateLowCodeUsage(component.name)"></code></pre>
 </div>
 
 <div v-if="component.events">
 	<div>The function <code>handle_event</code> should be implemented in your code to handle events.</div>
-	<div class="language-py vp-adaptive-theme codeblock">
+	<div class="language-py vp-adaptive-theme">
 		<button title="Copy Code" class="copy"></button>
 		<span class="lang">python</span>
-		<pre v-html="generateEventHandler()"></pre>
+		<pre><code class="codeblock" v-html="generateEventHandler()"></code></pre>
 	</div>
 </div>
 
@@ -94,7 +98,7 @@ This component can be used in python
 }
 
 .codeblock {
-	padding: 20px;
-	background-color: var(--vp-code-bg);
+	padding: 8px;
+	font-size: 14px !important;
 }
 </style>

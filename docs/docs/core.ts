@@ -5,12 +5,6 @@ import components from "streamsync-ui/components.codegen.json";
 // @ts-ignore
 hljs.registerLanguage('python', python);
 
-/**
- * Highlight source
- *
- * @param code Source to highlight
- * @param language Language of the source
- */
 export function highlightCode(code: string, language = 'python') {
 	if (!code) return "";
 
@@ -24,7 +18,7 @@ export function highlightCode(code: string, language = 'python') {
 }
 
 /**
- * Get the list of categories
+ * List the different categories of components
  */
 export function categories() {
 	const categoriesAll = Object.entries(categoriesList).map(([name, description]) => {
@@ -93,6 +87,14 @@ export function generateLowCodeUsage(component_name: string) : string {
 	let code = `ui.${component.name.replaceAll(/\s/g, "")}(${contents.trim()}${handlers.trim()}
 )`
 	return highlightCode(code, 'python')
+}
+
+export function values(obj: object) {
+	if (!obj) return [];
+
+	return Object.keys(obj).map((key) => {
+		return obj[key]
+	})
 }
 
 function getDefaultValue(key, type) {
