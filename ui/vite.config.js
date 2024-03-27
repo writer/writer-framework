@@ -15,11 +15,11 @@ const streamsyncComponentsDocs = () => {
 		transform(code, id) {
 			if (/vue&type=docs/.test(id)) {
 				const docs = code
-					.replace(/'/g, "\\'")
-					.replace(/\n/g, "\\n")
+					.replaceAll(/'/g, "\\'")
+					.replaceAll(/\n/g, "\\n")
 					.trim()
-					.replace(/^(\\n|\\t|[ \s])*/g, "")
-					.replace(/(\\n|\\t|[ \s])*$/g, "");
+					.replace(/^(\\n|\\t|[ \s])*/, "")
+					.replace(/(\\n|\\t|[ \s])*$/, "");
 				return `export default Comp => {
 					if(!Comp.streamsync) return;
 					Comp.streamsync.docs = '${docs}';
