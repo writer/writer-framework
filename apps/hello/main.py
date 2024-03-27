@@ -5,7 +5,6 @@ import plotly.express as px
 import statistics
 
 from streamsync.core import StreamsyncState
-from streamsync.ui import StreamsyncUIManager
 
 # EVENT HANDLERS
 
@@ -80,14 +79,14 @@ def _get_story_text():
     with open("assets/story.txt", "r") as f:
         return f.read()
 
-def chat_handler(payload, state):
+def handle_chat_message(payload, state):
     if payload == "pdf":
         return {
             "text": "In this demo you can find only this PDF file.",
             "actions": [{
                 "subheading": "Resource",
                 "name": "Neon Feathers",
-                "desc": "Click to be open",
+                "desc": "Click to open",
                 "data": "open_pdf" 
             }]
         }
@@ -97,7 +96,7 @@ def chat_handler(payload, state):
             "actions": [{
                 "subheading": "Resource",
                 "name": "Streamsync",
-                "desc": "Click to be open",
+                "desc": "Click to open",
                 "data": "open_web" 
             }]
         }
@@ -106,11 +105,11 @@ def chat_handler(payload, state):
         state["chat_bot"]["pdf"]["highlights"] = ["FeatherByte", "SynthoCorp"];
         return "I have highlighted some interesting parts of the story."
     elif payload == "help":
-        return "You can type `pdf` or `web` to see what this components can do."
+        return "You can type `pdf` or `web` to see what these components can do."
     else:
-        return "I don't understand that command. Type 'help' to see what is possible"
+        return "I don't understand that command. Type 'help' to see what is possible."
 
-def _show(name, resource, state):
+def _show_chatbot_resource(name, resource, state):
     if name == "pdf":
         state["chat_bot"]['pdf']['source'] = resource
         state["chat_bot"]["show_pdf"] = True
@@ -120,31 +119,31 @@ def _show(name, resource, state):
         state["chat_bot"]["show_pdf"] = False
         state["chat_bot"]["show_web"] = True
 
-def chat_action_handler(payload, state):
+def handle_chat_action(payload, state):
     if payload == "open_pdf":
-        _show("pdf", "static/neon_feathers.pdf", state)
+        _show_chatbot_resource("pdf", "static/neon_feathers.pdf", state)
         return "I hope you will enjoy the story. Now you can type `highlight` to see what I can show you."
     if payload == "open_web":
-        _show("web", "https://streamsync.cloud/", state)
+        _show_chatbot_resource("web", "https://streamsync.cloud/", state)
         return {
             "text": "This is Streamsync documentation. You can find more information about Streamsync here.",
             "actions": [{
                 "subheading": "Resource",
                 "name": "Components",
-                "desc": "Click to be open",
+                "desc": "Click to open",
                 "data": "open_web_components" 
             }, {
                 "subheading": "Tutorial",
                 "name": "Quick start",
-                "desc": "Click to be open",
+                "desc": "Click to open",
                 "data": "open_web_tutorial" 
             }]
         }
     if payload == "open_web_components":
-        _show("web", "https://streamsync.cloud/component-list.html", state)
+        _show_chatbot_resource("web", "https://streamsync.cloud/component-list.html", state)
         return "You can find all components here."
     if payload == "open_web_tutorial":
-        _show("web", "https://www.streamsync.cloud/component-list.html", state)
+        _show_chatbot_resource("web", "https://www.streamsync.cloud/component-list.html", state)
         return "You can find quick start tutorial here."
 
     return "I don't understand that command. Type 'help' to see what is possible"

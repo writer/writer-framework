@@ -1130,8 +1130,8 @@
             "position": 0,
             "parentId": "erfftfpxdjinum0p",
             "handlers": {
-                "ss-chatbot-message": "chat_handler",
-                "ss-chatbot-action-click": "chat_action_handler"
+                "ss-chatbot-message": "handle_chat_message",
+                "ss-chatbot-action-click": "handle_chat_action"
             },
             "visible": true
         },
@@ -1187,27 +1187,29 @@
         "pwkjgwhmw5i58oh2": {
             "id": "pwkjgwhmw5i58oh2",
             "type": "button",
-            "parentId": "us54ingwa99l1vbb",
             "content": {
                 "text": "Check out our chat component!",
                 "buttonColor": "#34b9da",
                 "buttonTextColor": "#ffffff"
             },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "us54ingwa99l1vbb",
             "handlers": {
                 "ss-click": "$goToPage_chat"
             },
-            "position": 0,
             "visible": true
         },
         "us54ingwa99l1vbb": {
             "id": "us54ingwa99l1vbb",
             "type": "section",
-            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
             "content": {
                 "title": "Interested in building AI agents?"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
+            "handlers": {},
             "visible": true
         }
     }
