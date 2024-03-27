@@ -228,7 +228,6 @@ initial_state = ss.init_state({
         "web": {
             "url": "",
         },
-        "message": ""
     }
 })
 
