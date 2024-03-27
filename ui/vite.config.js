@@ -20,6 +20,7 @@ const streamsyncComponentsDocs = () => {
 					.trim()
 					.replace(/^(\\n|\\t|[ \s])*/, "")
 					.replace(/(\\n|\\t|[ \s])*$/, "");
+				// eslint-disable-next-line no-console
 				console.log(`export default Comp => {
 					if(!Comp.streamsync) return;
 					Comp.streamsync.docs = '${docs}';
