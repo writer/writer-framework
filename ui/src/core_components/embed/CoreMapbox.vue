@@ -63,8 +63,8 @@ export default {
 				default: "yes",
 				type: FieldType.Text,
 				options: {
-					no: "No",
 					yes: "Yes",
+					no: "No",
 				},
 				desc: "Show map controls",
 			},
