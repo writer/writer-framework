@@ -48,7 +48,9 @@ export default {
 			injectionKeys.renderProxiedComponent,
 		);
 
-		const children = computed(() => ss.getComponents(componentId, true));
+		const children = computed(() =>
+			ss.getComponents(componentId, { sortedByPosition: true }),
+		);
 		const getRepeatedChildrenVNodes = () => {
 			if (typeof fields.repeaterObject.value !== "object") {
 				return [];

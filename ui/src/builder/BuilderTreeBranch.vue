@@ -11,7 +11,7 @@
 			:title="summaryText"
 			:data-branch-component-id="componentId"
 			tabindex="0"
-			draggable="true"
+			:draggable="isDraggingAllowed(componentId)"
 			@click="selfSelectComponent"
 			@keydown.enter="selfSelectComponent"
 			@dragover="handleDragOver"
@@ -40,6 +40,9 @@
 			<template v-if="!isComponentVisible(component.id)">
 				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
 			</template>
+			<template v-if="component.isCodeManaged">
+				&nbsp;&middot;&nbsp;<i class="ri-terminal-box-line ri-lg"></i>
+			</template>
 
 			<span v-if="previewText" class="preview">
 				&nbsp;&middot;&nbsp;{{ previewText }}</span
@@ -47,7 +50,21 @@
 		</div>
 		<div v-if="childrenVisible && !childless" class="children">
 			<div
-				v-for="childComponent in childrenComponents"
+				v-for="childComponent in childrenComponents.filter(
+					(c) => !c.isCodeManaged,
+				)"
+				:key="childComponent.id"
+				class="child"
+			>
+				<BuilderTreeBranch
+					:component-id="childComponent.id"
+					:matching-components="matchingComponents"
+				></BuilderTreeBranch>
+			</div>
+			<div
+				v-for="childComponent in childrenComponents.filter(
+					(c) => c.isCodeManaged,
+				)"
 				:key="childComponent.id"
 				class="child"
 			>
@@ -74,11 +91,11 @@ const ssbm = inject(injectionKeys.builderManager);
 
 const {
 	createAndInsertComponent,
-	isParentViable,
 	moveComponent,
 	goToComponentParentPage,
+	isDraggingAllowed,
 } = useComponentActions(ss, ssbm);
-const { getComponentInfoFromDrag, removeInsertionCandidacy } =
+const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(ss);
 const { isComponentVisible } = useEvaluator(ss);
 
@@ -148,7 +165,7 @@ const summaryText = computed(() => {
 });
 
 const childrenComponents = computed(() => {
-	return ss.getComponents(componentId.value, true);
+	return ss.getComponents(componentId.value, { sortedByPosition: true });
 });
 
 const childrenVisible = ref(true);
@@ -217,8 +234,8 @@ const handleDragEnd = (ev: DragEvent) => {
 const handleDragOver = (ev: DragEvent) => {
 	const dragInfo = getComponentInfoFromDrag(ev);
 	if (!dragInfo) return;
-	const { draggedType: childType } = dragInfo;
-	if (!isParentViable(childType, componentId.value)) return;
+	const { draggedType, draggedId } = dragInfo;
+	if (!isParentSuitable(componentId.value, draggedId, draggedType)) return;
 	ev.preventDefault();
 };
 

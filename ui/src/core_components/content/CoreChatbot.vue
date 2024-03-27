@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="CoreChat">
+	<div ref="rootEl" class="CoreChatbot">
 		<div ref="messageAreaEl" class="messageArea">
 			<div ref="messagesEl" class="messages">
 				<div
@@ -153,16 +153,16 @@ import prettyBytes from "pretty-bytes";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
-const description = "A chat component to build human-to-AI interactions.";
+const description = "A chatbot component to build human-to-AI interactions.";
 
 const docs = `
-Connect it to an LLM by handling the \`ss-chat-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
+Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
 
-You can add \`actions\` to your response, which are buttons that trigger the \`ss-chat-action-click\`.
+You can add \`actions\` to your response, which are buttons that trigger the \`ss-chatbot-action-click\`.
 
 See the stubs for more details.`.trim();
 
-const chatMessageStub = `
+const chatbotMessageStub = `
 def handle_message_simple(payload):
     query = payload
 
@@ -189,7 +189,7 @@ def handle_message_simple(payload):
         return "I don't know"
 `.trim();
 
-const chatActionClickStub = `
+const chatbotActionClickStub = `
 def handle_action_simple(payload, state):
     
     # payload contains the "data" property of the action 
@@ -219,7 +219,7 @@ def handle_file_upload(state, payload):
 
 export default {
 	streamsync: {
-		name: "Chat",
+		name: "Chatbot",
 		description,
 		docs,
 		category: "Content",
@@ -295,13 +295,13 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-chat-message": {
+			"ss-chatbot-message": {
 				desc: "Triggered when the user sends a message.",
-				stub: chatMessageStub,
+				stub: chatbotMessageStub,
 			},
-			"ss-chat-action-click": {
+			"ss-chatbot-action-click": {
 				desc: "Handle clicks on actions.",
-				stub: chatActionClickStub,
+				stub: chatbotActionClickStub,
 			},
 			"ss-file-change": {
 				desc: "Triggered when files are uploaded",
@@ -399,7 +399,7 @@ function handleMessageSent() {
 		},
 		isLoading: true,
 	});
-	const event = new CustomEvent("ss-chat-message", {
+	const event = new CustomEvent("ss-chatbot-message", {
 		detail: {
 			payload: outgoingMessage.value,
 			callback: ({ payload }) => {
@@ -435,7 +435,7 @@ function getNormalisedCallbackResult(
 
 function handleActionClick(action: Message["contents"]["actions"][number]) {
 	const { data } = action;
-	const event = new CustomEvent("ss-chat-action-click", {
+	const event = new CustomEvent("ss-chatbot-action-click", {
 		detail: {
 			payload: data,
 			callback: ({ payload }) => {
@@ -575,7 +575,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 
-.CoreChat {
+.CoreChatbot {
 	display: grid;
 	grid-template-columns: 1fr fit-content(20%);
 	grid-template-rows: 1fr fit-content(20%) 20%;

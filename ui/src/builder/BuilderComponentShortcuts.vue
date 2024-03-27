@@ -1,6 +1,7 @@
 <template>
 	<div
 		v-if="shortcutsInfo"
+		:draggable="shortcutsInfo?.isDraggable"
 		class="BuilderComponentShortcuts"
 		:data-streamsync-id="componentId"
 	>
@@ -162,11 +163,13 @@ const {
 	cutComponent,
 	pasteComponent,
 	copyComponent,
+	isAddAllowed,
 	isCopyAllowed,
 	isCutAllowed,
 	isGoToParentAllowed,
 	isPasteAllowed,
 	isDeleteAllowed,
+	isDraggingAllowed,
 	getEnabledMoves,
 	removeComponentSubtree,
 	goToParent,
@@ -191,6 +194,7 @@ const shortcutsInfo: Ref<{
 	isPasteEnabled: boolean;
 	isGoToParentEnabled: boolean;
 	isDeleteEnabled: boolean;
+	isDraggable: boolean;
 }> = ref(null);
 
 const validChildrenTypes = computed(() => {
@@ -226,7 +230,7 @@ function reprocessShorcutsInfo(): void {
 		componentId.value,
 	);
 	shortcutsInfo.value = {
-		isAddEnabled: ss.getContainableTypes(componentId.value).length > 0,
+		isAddEnabled: isAddAllowed(componentId.value),
 		componentTypeName: ss.getComponentDefinition(component.type)?.name,
 		isMoveUpEnabled,
 		isMoveDownEnabled,
@@ -235,6 +239,7 @@ function reprocessShorcutsInfo(): void {
 		isPasteEnabled: isPasteAllowed(componentId.value),
 		isGoToParentEnabled: isGoToParentAllowed(componentId.value),
 		isDeleteEnabled: isDeleteAllowed(componentId.value),
+		isDraggable: isDraggingAllowed(componentId.value),
 	};
 }
 
@@ -272,7 +277,14 @@ onMounted(() => {
 	padding-right: 16px;
 	height: 36px;
 	background: var(--builderSelectedColor);
+}
+
+[draggable="true"] .type {
 	cursor: grab;
+}
+
+[draggable="true"] .type:active {
+	cursor: grabbing;
 }
 
 .actionButton {

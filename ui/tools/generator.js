@@ -103,23 +103,9 @@ class StreamsyncUIManager(StreamsyncUI):
     frontend, allowing methods to adapt to changes in the UI components without
     manual updates.
     """
-
+    
     # Hardcoded classes for proof-of-concept purposes
   `;
-}
-
-function generateComponentDefaults(component) {
-	return Object.entries(component.fields)
-		.filter(([, field]) => typeof field.default !== "undefined")
-		.map(([key, field]) => {
-			const defaultValue = ("" + (field?.default || ""))
-				?.replaceAll('"', '\\"')
-				?.replaceAll("\n", "\\n");
-			return `            "${key}": "${defaultValue}",`;
-		})
-		.join("\n");
-
-	//`  content = { defaultContent, content }`
 }
 
 function generateMethods(data) {
@@ -134,7 +120,8 @@ function generateMethods(data) {
 		const bindPass = `,
             binding=binding`;
 		return `
-    def ${component.nameTrim}(self, 
+    @staticmethod
+    def ${component.nameTrim}(
             content: ${component.nameTrim}Props = {},
             *,
             id: Optional[str] = None,
@@ -146,11 +133,7 @@ function generateMethods(data) {
         """
         ${component.description}
         """
-        defaultContent: ${component.nameTrim}Props = {
-${generateComponentDefaults(component)}
-        }
-        content = defaultContent | content
-        component = self.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
+        component = StreamsyncUI.${component.allowedChildrenTypes?.length ? "create_container_component" : "create_component"}(
             '${component.type}',
             content=content,
             id=id,
