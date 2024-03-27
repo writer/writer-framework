@@ -1123,7 +1123,9 @@
         "9eae3xsw5ky8r2o1": {
             "id": "9eae3xsw5ky8r2o1",
             "type": "chatbot",
-            "content": {},
+            "content": {
+                "useMarkdown": "yes"
+            },
             "isCodeManaged": false,
             "position": 0,
             "parentId": "erfftfpxdjinum0p",
@@ -1132,22 +1134,6 @@
                 "ss-chatbot-action-click": "chat_action_handler"
             },
             "visible": true
-        },
-        "h6s4tjbq1yvpw6r5": {
-            "id": "h6s4tjbq1yvpw6r5",
-            "type": "textinput",
-            "content": {
-                "label": "Mapbox API key"
-            },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "kwht2ei8f1osbwf3",
-            "handlers": {},
-            "visible": true,
-            "binding": {
-                "eventType": "ss-change",
-                "stateRef": "chat_bot.mapbox_api_key"
-            }
         },
         "gv9hkazc34el3hmp": {
             "id": "gv9hkazc34el3hmp",
@@ -1159,22 +1145,6 @@
             "isCodeManaged": false,
             "position": 0,
             "parentId": "j6nr9ctckqgpiel4",
-            "handlers": {},
-            "visible": true
-        },
-        "io990j3g2lnbsgjj": {
-            "id": "io990j3g2lnbsgjj",
-            "type": "mapbox",
-            "content": {
-                "accessToken": "@{chat_bot.mapbox_api_key}",
-                "zoom": "@{chat_bot.map.zoom}",
-                "lat": "@{chat_bot.map.lat}",
-                "lng": "@{chat_bot.map.lng}",
-                "markers": "@{chat_bot.map.markers}"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "0cjplxgx5rxb1b67",
             "handlers": {},
             "visible": true
         },
@@ -1214,54 +1184,30 @@
             "handlers": {},
             "visible": "chat_bot.show_pdf"
         },
-        "0cjplxgx5rxb1b67": {
-            "id": "0cjplxgx5rxb1b67",
-            "type": "section",
+        "pwkjgwhmw5i58oh2": {
+            "id": "pwkjgwhmw5i58oh2",
+            "type": "button",
+            "parentId": "us54ingwa99l1vbb",
             "content": {
-                "title": "Map"
+                "text": "Check out our chat component!",
+                "buttonColor": "#34b9da",
+                "buttonTextColor": "#ffffff"
             },
-            "isCodeManaged": false,
-            "position": 2,
-            "parentId": "urnb1gwv1k5you33",
-            "handlers": {},
-            "visible": "chat_bot.show_map"
-        },
-        "kwht2ei8f1osbwf3": {
-            "id": "kwht2ei8f1osbwf3",
-            "type": "section",
-            "content": {
-                "title": "Configuration"
+            "handlers": {
+                "ss-click": "$goToPage_chat"
             },
-            "isCodeManaged": false,
-            "position": 3,
-            "parentId": "urnb1gwv1k5you33",
-            "handlers": {},
-            "visible": "chat_bot.show_config"
-        },
-        "ukrsca9gw8d9r3az": {
-            "id": "ukrsca9gw8d9r3az",
-            "type": "message",
-            "content": {
-                "message": "@{chat_bot.message}"
-            },
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "kwht2ei8f1osbwf3",
-            "handlers": {},
             "visible": true
         },
-        "acvuk5hwftmgx87a": {
-            "id": "acvuk5hwftmgx87a",
-            "type": "button",
+        "us54ingwa99l1vbb": {
+            "id": "us54ingwa99l1vbb",
+            "type": "section",
+            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
             "content": {
-                "text": "Save"
+                "title": "Interested in building AI agents?"
             },
-            "isCodeManaged": false,
-            "position": 2,
-            "parentId": "kwht2ei8f1osbwf3",
-            "handlers": {
-                "ss-click": "chat_bot_configured"
-            },
+            "handlers": {},
+            "position": 1,
             "visible": true
         }
     }
