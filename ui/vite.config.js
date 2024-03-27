@@ -20,6 +20,10 @@ const streamsyncComponentsDocs = () => {
 					.trim()
 					.replace(/^(\\n|\\t|[ \s])*/, "")
 					.replace(/(\\n|\\t|[ \s])*$/, "");
+				console.log(`export default Comp => {
+					if(!Comp.streamsync) return;
+					Comp.streamsync.docs = '${docs}';
+				}`);
 				return `export default Comp => {
 					if(!Comp.streamsync) return;
 					Comp.streamsync.docs = '${docs}';
