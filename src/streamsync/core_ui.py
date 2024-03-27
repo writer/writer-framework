@@ -166,9 +166,13 @@ class DependentComponentTree(ComponentTree):
             try:
                 self.delete_component(child.id)
             except UIError:
+                continue
+                # TODO reintroduce as a warning
+                """
                 raise UIError("Failed to clear children of component " +
                               f"with ID '{component_id}': {child.id} " +
                               "is a builder-managed component.")
+                """
 
     def get_direct_descendents(self, parent_id: str) -> List[Component]:
         base_children = self.base_component_tree.get_direct_descendents(parent_id)
