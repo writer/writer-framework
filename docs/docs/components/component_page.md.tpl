@@ -1,8 +1,8 @@
 <script setup>
-	import { data as components } from "../components.data.ts";
-	import { generateLowCodeUsage, generateEventHandler, values } from "../core";
-	const component = components.find(c => c.name === "@{component_name}");
+	import { componentByName, generateLowCodeUsage, generateEventHandler, highlightCode, values } from "../core";
 	import { withBase } from 'vitepress'
+
+	const component = componentByName("@{component_name}");
 </script>
 
 <h1>{{ component.name }}</h1>
@@ -47,7 +47,7 @@
 			<td>{{ event }}</td>
 			<td>{{ eventInfo.desc }}</td>
 			<td class="language-py">
-				<pre><code class="codeblock" v-html="eventInfo.code"></code></pre>
+				<pre><code class="codeblock" v-html="highlightCode(eventInfo.stub)"></code></pre>
 			</td>
 		</tr>
 	</table>

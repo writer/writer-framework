@@ -7,6 +7,4 @@ async function generate() {
 	await generatorUiComponentJson.generate();
 }
 
-if (require.main === module) {
-	generate();
-}
+generate();

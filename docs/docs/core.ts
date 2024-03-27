@@ -17,9 +17,6 @@ export function highlightCode(code: string, language = 'python') {
 	return value
 }
 
-/**
- * List the different categories of components
- */
 export function categories() {
 	const categoriesAll = Object.entries(categoriesList).map(([name, description]) => {
 		return name;
@@ -28,25 +25,24 @@ export function categories() {
 	return categoriesAll;
 }
 
-/**
- * Get the description of a category
- * @param name Name of the category
- */
+
 export function categoryDescription(name: string) {
 	return categoriesList[name];
 }
 
-/**
- * List the components of a category
- *
- * @param category
- */
+export function componentByName(name: string) {
+	return components.find((component) => component.name === name);
+}
+
+
 export function componentsByCategory(category: string) {
 	return components.filter((component) => component.category === category);
 }
 
 /**
- * Generates the code for an event handler
+ *
+ * @example
+ * <pre><code v-html="generateEventHandler()"></code></pre>
  */
 export function generateEventHandler() {
 	let code = `def handle_event(state, payload, context, ui):
@@ -62,7 +58,7 @@ export function generateEventHandler() {
  * @returns Example code
  * 
  * @example
- * <pre v-html="generateLowCodeUsage("Button")"></pre>
+ * <pre><code v-html="generateLowCodeUsage("Button")"></code></pre>
  */
 export function generateLowCodeUsage(component_name: string) : string {
 	const component = components.find(c => c.name === component_name);
