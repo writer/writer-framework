@@ -1,7 +1,7 @@
 # State schema
 
-Schema declaration on the [Application state](./application-state) allows Streamsync to handle complex serialization 
-scenario and empower your IDE and toolchains to provide autocomplete and type checking.
+Schema declarations on the [Application state](./application-state) allows Streamsync to handle complex serialisation 
+scenarios, while also allowing your IDE and toolchains to provide autocomplete and type checking.
 
 ## Schema declaration
 
@@ -21,11 +21,11 @@ def increment(state: AppSchema):
     state.counter += 1
 ```
 
-Access to an attribute by its key is always possible.
+Accessing an attribute by its key is always possible.
 
 ```python
 def increment(state: AppSchema):
-    state['counter'] += 1
+    state["counter"] += 1
 ```
 
 Attributes missing from the schema remain accessible by their key.
@@ -62,10 +62,10 @@ initial_state = ss.init_state({
 
 ## Multi-level dictionary
 
-Some components like Vega require specifying a graph in the form of a multi-level dictionary.
+Some components like _Vega Lite Chart_ require specifying a graph in the form of a multi-level dictionary.
 
-A schema allows you to specify to streamsync that an attribute which contains a dictionary 
-must be treated as a dictionary and not as a group of state.
+A schema allows you to specify that an attribute which contains a dictionary 
+must be treated as a dictionary, rather than as a group of state.
 
 ```python
 class AppSchema(ss.StreamsyncState):
@@ -74,7 +74,7 @@ class AppSchema(ss.StreamsyncState):
 # Without schema, this handler is execute only once
 def handle_vega_graph(state: AppSchema):
     graph = state.vega_graph
-    graph['data']['values'][0]['b'] += 1000
+    graph["data"]["values"][0]["b"] += 1000
     state.vega_graph = graph
     
 initial_state = ss.init_state({
