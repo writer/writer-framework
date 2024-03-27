@@ -146,7 +146,7 @@ def handle_chat_action(payload, state):
         _show_chatbot_resource("web", "https://www.streamsync.cloud/component-list.html", state)
         return "You can find quick start tutorial here."
 
-    return "I don't understand that command. Type 'help' to see what is possible"
+    return "I don't understand that command. Type 'help' to see what is possible."
 
 # UPDATES
 
