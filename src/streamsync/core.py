@@ -17,7 +17,7 @@ import re
 import json
 import math
 from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from streamsync.core_ui import ComponentTree, SessionComponentTree, use_component_tree
+from streamsync.core_ui import ComponentTree, DependentComponentTree, SessionComponentTree, use_component_tree
 
 
 class Config:
@@ -1046,7 +1046,7 @@ class StreamsyncSession:
         new_state = StreamsyncState.get_new()
         new_state.user_state.mutated = set()
         self.session_state = new_state
-        self.session_component_tree = SessionComponentTree(base_component_tree)
+        self.session_component_tree = SessionComponentTree(base_component_tree, base_cmc_tree)
         self.event_handler = EventHandler(self)
 
     def update_last_active_timestamp(self) -> None:
@@ -1349,4 +1349,5 @@ def session_verifier(func: Callable) -> Callable:
 state_serialiser = StateSerialiser()
 initial_state = StreamsyncState()
 base_component_tree = ComponentTree()
+base_cmc_tree = DependentComponentTree(base_component_tree)
 session_manager = SessionManager()
