@@ -77,7 +77,7 @@ This component can be used in python
 
 <h2>Reference</h2>
 
-* [Learn more about building Streamsync UI using low code](../modifying-app-ui-through-backend)
+* [Learn more about building Backend-driven UI](../backend-driven-ui)
 * <a :href="`https://github.com/streamsync-cloud/streamsync/blob/dev/${component.source_link}`" target="_blank" >Explore the source on GitHub</a>
 
 
