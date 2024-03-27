@@ -88,12 +88,12 @@ const categoriesData: Ref<Record<string, CategoryData>> = ref({
 		icon: "ri-keyboard-line",
 		isCollapsed: false,
 	},
-	Other: {
-		icon: "ri-flow-chart",
-		isCollapsed: false,
-	},
 	Embed: {
 		icon: "ri-code-s-slash-line",
+		isCollapsed: false,
+	},
+	Other: {
+		icon: "ri-flow-chart",
 		isCollapsed: false,
 	},
 });

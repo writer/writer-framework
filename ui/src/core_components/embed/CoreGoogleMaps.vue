@@ -1,6 +1,10 @@
 <template>
 	<div ref="rootEl" class="CoreGoogleMaps">
-		<div ref="mapEl" class="map" />
+		<div v-if="!fields.apiKey.value" class="noAPIKeyProvided">
+			<h2>Google Maps cannot be initialised.</h2>
+			<h3>An API key hasn't been provided.</h3>
+		</div>
+		<div v-else ref="mapEl" class="map" />
 		<div class="mask" />
 	</div>
 </template>
@@ -26,13 +30,13 @@ export default {
 			apiKey: {
 				name: "API Key",
 				default: "",
-				desc: "API Key from Google Cloud Console",
+				desc: "API Key from Google Cloud Console.",
 				type: FieldType.Text,
 			},
 			mapId: {
 				name: "Map ID",
 				default: "",
-				desc: "ID of map from Google Cloud Console, needed for markers",
+				desc: "ID of map from Google Cloud Console, needed for markers.",
 				type: FieldType.Text,
 			},
 			mapType: {
@@ -45,7 +49,7 @@ export default {
 					hybrid: "Hybrid",
 					terrain: "Terrain",
 				},
-				desc: "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'",
+				desc: "One of 'roadmap', 'satellite', 'hybrid' or 'terrain'.",
 			},
 			zoom: {
 				name: "Zoom",
@@ -202,6 +206,17 @@ watch(fields.mapId, initMap);
 	position: relative;
 	width: 100%;
 	height: 80vh;
+	background: var(--separatorColor);
+}
+
+.noAPIKeyProvided {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	flex-direction: column;
 }
 
 .CoreGoogleMaps .map {
@@ -209,7 +224,6 @@ watch(fields.mapId, initMap);
 	height: 100%;
 	display: block;
 	margin: auto;
-	border: 1px solid var(--separatorColor);
 }
 
 .CoreGoogleMaps .mask {

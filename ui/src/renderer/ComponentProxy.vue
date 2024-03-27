@@ -12,6 +12,7 @@ import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
 import { VNode } from "vue";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
+import RenderError from "./RenderError.vue";
 
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
@@ -264,6 +265,7 @@ export default {
 		const getRootElProps = function () {
 			const rootElProps = {
 				class: {
+					[`ss-type-${component.value.type}`]: true,
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,
@@ -280,6 +282,22 @@ export default {
 				draggable: isDraggable.value,
 			};
 			return rootElProps;
+		};
+
+		const isParentSuitable = () => {
+			const allowedTypes = !component.value.parentId
+				? ["root"]
+				: ss.getContainableTypes(component.value.parentId);
+			return allowedTypes.includes(component.value.type);
+		};
+
+		const renderErrorVNode = (vnodeProps, message): VNode => {
+			if (!isBeingEdited.value) return h("div");
+			return h(RenderError, {
+				...vnodeProps,
+				componentType: component.value.type,
+				message,
+			});
 		};
 
 		return () => {
@@ -310,11 +328,17 @@ export default {
 			const vnodeProps = {
 				...getRootElProps(),
 			};
-			const renderedComponent = h(template, vnodeProps, {
+
+			if (!isParentSuitable()) {
+				return renderErrorVNode(
+					vnodeProps,
+					"Parent is not suitable for this component",
+				);
+			}
+
+			return h(template, vnodeProps, {
 				default: defaultSlotFn,
 			});
-
-			return renderedComponent;
 		};
 	},
 };

@@ -295,6 +295,7 @@ PDFEventHandlers = TypedDict('PDFEventHandlers', {
 
 IFrameProps = TypedDict('IFrameProps', {
     "src": str,
+    "separatorColor": str,
     "cssClasses": str
 }, total=False)
 

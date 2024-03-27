@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsColor" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsColor"
+		tabindex="-1"
+		:data-key="fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button

@@ -168,7 +168,7 @@ export function useEvaluator(ss: Core) {
 			evaluated === "";
 		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue) {
 			if (!evaluated) {
-				return JSON.parse(defaultValue) ?? null;
+				return JSON.parse(defaultValue ?? null);
 			}
 			if (typeof evaluated !== "string") return evaluated;
 			let parsedValue: any;
