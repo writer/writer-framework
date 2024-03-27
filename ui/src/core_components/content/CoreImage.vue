@@ -1,3 +1,17 @@
+<docs lang="md">
+Use your app's static folder to serve images directly. For example, \`static/my_image.png\`.
+
+Alternatively, pass a Matplotlib figure via state.
+
+\`state["my_fig"] = fig\` and then setting the _Image_ source to \`@{fig}\` 
+
+You can also use packed files or bytes:
+
+\`state["img_b"] = ss.pack_bytes(img_bytes, "image/png")\`
+
+\`state["img_f"] = ss.pack_file(img_file, "image/png")\`
+</docs>
+
 <template>
 	<div ref="rootEl" class="CoreImage" :style="rootStyle" @click="handleClick">
 		<img
@@ -25,21 +39,6 @@ import { getClick } from "../../renderer/syntheticEvents";
 
 const description = "A component to display images.";
 
-const docs = `
-Use your app's static folder to serve images directly. For example, \`static/my_image.png\`.
-
-Alternatively, pass a Matplotlib figure via state.
-
-\`state["my_fig"] = fig\` and then setting the _Image_ source to \`@{fig}\` 
-
-You can also use packed files or bytes:
-
-\`state["img_b"] = ss.pack_bytes(img_bytes, "image/png")\`
-
-\`state["img_f"] = ss.pack_file(img_file, "image/png")\`
-
-`;
-
 const clickHandlerStub = `
 def click_handler(state):
 
@@ -51,7 +50,6 @@ export default {
 	streamsync: {
 		name: "Image",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			src: {

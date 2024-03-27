@@ -1,3 +1,7 @@
+<docs lang="md"> 
+	Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
+</docs>
+
 <template>
 	<div class="icon">
 		<i
@@ -15,15 +19,10 @@
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
-const docs = `
-Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
-`;
-
 export default {
 	streamsync: {
 		name: "Icon",
 		description: "A component to display an icon",
-		docs,
 		category: "Content",
 		fields: {
 			icon: {

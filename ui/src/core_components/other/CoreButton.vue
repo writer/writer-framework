@@ -1,3 +1,7 @@
+<docs lang="md">
+	Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`) and it to your _Button_.
+</docs>
+
 <template>
 	<button
 		ref="rootEl"
@@ -35,15 +39,10 @@ def handle_button_click(state):
 const description =
 	"A standalone button component that can be linked to a click event handler.";
 
-const docs = `
-Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`) and it to your _Button_.
-`;
-
 export default {
 	streamsync: {
 		name: "Button",
 		description,
-		docs,
 		category: "Other",
 		events: {
 			"ss-click": {
