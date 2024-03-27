@@ -1,5 +1,5 @@
 <script setup>
-	import { componentByName, generateLowCodeUsage, generateEventHandler, highlightCode, values } from "../core";
+	import { componentByName, generateLowCodeUsage, generateEventHandler, highlightCode, values, markdownToHtml } from "../core";
 	import { withBase } from 'vitepress'
 
 	const component = componentByName("@{component_name}");
@@ -12,6 +12,8 @@
 <div class="imageContainer">
 	<img :src="withBase(`/components/${component.type}.png`)">
 </div>
+
+<div v-html="`${ markdownToHtml(component.docs) }`"></div>
 
 <div v-if="component.fields">
 	<h2>Fields</h2>

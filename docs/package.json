@@ -8,10 +8,11 @@
 		"build": "npm run codegen; vitepress build docs",
 		"preview": "npm run codegen; vitepress preview docs",
 		"test": "jest",
-	    "codegen": "node codegen/generator_components_pages.js"
+		"codegen": "node codegen/generator_components_pages.js"
 	},
 	"dependencies": {
 		"highlight.js": "^11.9.0",
+		"marked": "^12.0.1",
 		"monaco-editor": "^0.47.0",
 		"streamsync-ui": "*",
 		"vite-plugin-monaco-editor": "^1.1.0",

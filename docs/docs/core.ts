@@ -1,5 +1,6 @@
 import hljs from 'highlight.js/lib/core';
 import python from 'highlight.js/lib/languages/python';
+import { marked } from 'marked';
 import components from "streamsync-ui/components.codegen.json";
 
 // @ts-ignore
@@ -15,6 +16,12 @@ export function highlightCode(code: string, language = 'python') {
 
 	value = value.replace(/\t/g, "  ")
 	return value
+}
+
+export function markdownToHtml(markdown: string) {
+	if (!markdown) return "";
+
+	return marked.parse(markdown);
 }
 
 export function categories() {
