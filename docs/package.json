@@ -1,16 +1,20 @@
 {
-  "name": "streamsync-docs",
-  "version": "0.2.4",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "vitepress dev docs",
-    "build": "vitepress build docs",
-    "preview": "vitepress preview docs"
-  },
-  "dependencies": {
+	"name": "streamsync-docs",
+	"version": "0.2.4",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"dev": "vitepress dev docs",
+		"build": "vitepress build docs",
+		"preview": "vitepress preview docs",
+		"test": "jest"
+	},
+	"dependencies": {
 		"streamsync-ui": "*",
-    "vitepress": "^1.0.0-rc.44",
-    "vue": "^3.4.21"
-  }
+		"vitepress": "^1.0.0-rc.44",
+		"vue": "^3.4.21"
+	},
+	"devDependencies": {
+		"jest": "29.7.0"
+	}
 }
