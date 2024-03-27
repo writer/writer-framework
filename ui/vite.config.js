@@ -17,14 +17,10 @@ const streamsyncComponentsDocs = () => {
 				const docs = code
 					.replaceAll(/'/g, "\\'")
 					.replaceAll(/\n/g, "\\n")
+					.replaceAll(/\r/g, "\\r")
 					.trim()
 					.replace(/^(\\n|\\t|[ \s])*/, "")
 					.replace(/(\\n|\\t|[ \s])*$/, "");
-				// eslint-disable-next-line no-console
-				console.log(`export default Comp => {
-					if(!Comp.streamsync) return;
-					Comp.streamsync.docs = '${docs}';
-				}`);
 				return `export default Comp => {
 					if(!Comp.streamsync) return;
 					Comp.streamsync.docs = '${docs}';
