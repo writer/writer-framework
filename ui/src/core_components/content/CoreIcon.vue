@@ -1,5 +1,5 @@
-<docs lang="md"> 
-	Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
+<docs lang="md">
+    Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
 </docs>
 
 <template>

@@ -3,7 +3,7 @@ Use your app's static folder to serve images directly. For example, \`static/my_
 
 Alternatively, pass a Matplotlib figure via state.
 
-\`state["my_fig"] = fig\` and then setting the _Image_ source to \`@{fig}\` 
+\`state["my_fig"] = fig\` and then setting the _Image_ source to \`@{fig}\`
 
 You can also use packed files or bytes:
 

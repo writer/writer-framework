@@ -1,5 +1,5 @@
 <docs lang="md">
-	Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`) and it to your _Button_.
+    Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`) and it to your _Button_.
 </docs>
 
 <template>
