@@ -73,7 +73,7 @@ export function generateLowCodeUsage(component_name: string) : string {
 	let contents = "content={\n"
 	for (let fieldKey in component.fields) {
 		const properties = component.fields[fieldKey]
-		contents += `        "${fieldKey}": ${getDefaultValue(fieldKey, properties['type'])}, # ${getPyType(properties['type'])}\n`
+		contents += `        "${fieldKey}": ${renderDefaultValue(properties)}, # ${renderPyType(properties['type'])} ${renderPyOptions(properties['options'])}\n`
 	}
 	contents += "    }"
 
@@ -100,7 +100,8 @@ export function values(obj: object) {
 	})
 }
 
-function getDefaultValue(key, type) {
+function renderDefaultValue(properties: object) {
+	const type = properties['type'];
 	switch (type) {
 		case "Number":
 			return '0.0';
@@ -109,11 +110,15 @@ function getDefaultValue(key, type) {
 		case "Key-Value":
 			return "{}";
 		default:
+			if (properties['options'] && properties['default']) {
+				return `"${ properties['default'] }"`;
+			}
+
 			return '""';
 	}
 }
 
-const getPyType = (type) => {
+const renderPyType = (type) => {
 	switch (type) {
 		case "Number":
 			return "Union[float, str]";
@@ -124,6 +129,12 @@ const getPyType = (type) => {
 		default:
 			return "str";
 	}
+};
+
+const renderPyOptions = (options) => {
+	if (!options) return "";
+
+	return "[" + Object.keys(options).join(", ") + "]"
 };
 
 
