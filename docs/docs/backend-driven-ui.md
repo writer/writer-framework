@@ -1,4 +1,4 @@
-# Modifying app UI through backend
+# Backend-driven UI
 
 Streamsync facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). 
 
@@ -8,7 +8,7 @@ CMCs, unlike BMCs, are dynamically created and modified via backend code, and ca
 This Streamsync feature is still evolving. You may encounter unexpected behaviour. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
 :::
 
-::: tip To summarize
+::: tip To summarise
 **CMC** – Code-Managed Component 
 - created via **application backend**;
 - **cannot be edited** in builder;
@@ -120,7 +120,7 @@ In addition to `content`, a set of fields which is specific to the component typ
         )
     ```
     *Position is calculated automatically for each component, and you should be careful when you override it with predefined value, as this might lead to unexpected results.*
-- **`parentId: str`**: Determines the parent [container](#container-components) for the component. By default, components recognize the container in the context of which they were defined as their parent. This allows for linking components to their parents outside of context, or for overriding a parent within a context.
+- **`parentId: str`**: Determines the parent [container](#container-components) for the component. By default, components recognise the container in the context of which they were defined as their parent. This allows for linking components to their parents outside of context, or for overriding a parent within a context.
     ```python
     ui.Text(
         {"text": "Hello Parent, I'm your child too!"}, 

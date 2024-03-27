@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "streamsync"
-version = "0.4.0rc3"
+version = "0.4.0rc4"
 description = "Streamsync helps you create performant data apps, via Python code and its built-in visual UI editor."
 authors = ["Ramiro Medina <ramiro.a.medina@gmail.com>"]
 license = "Apache 2.0"

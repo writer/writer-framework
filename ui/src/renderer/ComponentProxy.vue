@@ -265,6 +265,7 @@ export default {
 		const getRootElProps = function () {
 			const rootElProps = {
 				class: {
+					[`ss-type-${component.value.type}`]: true,
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,

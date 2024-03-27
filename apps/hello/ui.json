@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.2.8"
+        "streamsync_version": "0.4.0rc3"
     },
     "components": {
         "root": {
@@ -9,7 +9,7 @@
             "content": {
                 "appName": "Hello"
             },
-            "parentId": null,
+            "isCodeManaged": false,
             "position": 0
         },
         "bb4d0e86-619e-4367-a180-be28ab6059f4": {
@@ -19,8 +19,9 @@
                 "pageMode": "",
                 "key": "main"
             },
-            "parentId": "root",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "root"
         },
         "84378aea-b64c-49a3-9539-f854532279ee": {
             "id": "84378aea-b64c-49a3-9539-f854532279ee",
@@ -29,15 +30,17 @@
                 "text": "Hacker Pigeons",
                 "emptinessColor": "#ffffff"
             },
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5": {
             "id": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
             "type": "columns",
             "content": {},
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5": {
             "id": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
@@ -48,8 +51,9 @@
                 "title": "",
                 "isSticky": "yes"
             },
-            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5"
         },
         "0569937e-c72c-4fb9-820e-2ae56e17bcc0": {
             "id": "0569937e-c72c-4fb9-820e-2ae56e17bcc0",
@@ -57,18 +61,19 @@
             "content": {
                 "width": "1.61"
             },
-            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5"
         },
         "9c30af6d-4ee5-4782-9169-0f361d67fa76": {
             "id": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "type": "section",
             "content": {
-                "title": "",
-                "snapMode": ""
+                "title": ""
             },
-            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5"
         },
         "7fdd1d02-53de-4466-bd3c-4822cbc2694f": {
             "id": "7fdd1d02-53de-4466-bd3c-4822cbc2694f",
@@ -77,15 +82,17 @@
                 "src": "static/pigeon1.jpg",
                 "caption": ""
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "ee919cd6-8153-4f34-8c6a-bfc1153df360": {
             "id": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
             "type": "tabs",
             "content": {},
-            "parentId": "0569937e-c72c-4fb9-820e-2ae56e17bcc0",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "0569937e-c72c-4fb9-820e-2ae56e17bcc0"
         },
         "c6392876-7cfd-4680-8725-b04f43ff294f": {
             "id": "c6392876-7cfd-4680-8725-b04f43ff294f",
@@ -93,8 +100,9 @@
             "content": {
                 "name": "Data and Charts"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "da00a61f-0ee2-434e-acd6-228d32eae5c6": {
             "id": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
@@ -102,15 +110,17 @@
             "content": {
                 "name": "Repeater"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "d0298b1c-7c64-4b58-a018-db97dd49675b": {
             "id": "d0298b1c-7c64-4b58-a018-db97dd49675b",
             "type": "separator",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "f1d6bc8e-a780-4ae5-8b7c-082fe8a6867d": {
             "id": "f1d6bc8e-a780-4ae5-8b7c-082fe8a6867d",
@@ -121,8 +131,9 @@
                 "dataframeHeaderRowBackgroundColor": "#d0e6eb",
                 "showIndex": ""
             },
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "fbad9feb-5c88-4425-bb17-0d138286a875": {
             "id": "fbad9feb-5c88-4425-bb17-0d138286a875",
@@ -130,18 +141,19 @@
             "content": {
                 "startCollapsed": "yes"
             },
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": -2
+            "isCodeManaged": false,
+            "position": -2,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "7e625201-20c2-4b05-951c-d825de28b216": {
             "id": "7e625201-20c2-4b05-951c-d825de28b216",
             "type": "section",
             "content": {
-                "title": "Filter data",
-                "snapMode": "no"
+                "title": "Filter data"
             },
-            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875"
         },
         "385247e5-5c89-4352-a598-b8da81146a5a": {
             "id": "385247e5-5c89-4352-a598-b8da81146a5a",
@@ -152,8 +164,9 @@
                 "maxValue": "600",
                 "stepSize": "1"
             },
-            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
                 "ss-number-change": "update"
             },
@@ -171,8 +184,9 @@
                 "maxValue": "35",
                 "stepSize": "1"
             },
-            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
                 "ss-number-change": "update"
             },
@@ -185,11 +199,11 @@
             "id": "70d82458-a08f-4005-8f96-dc8d3ba92fad",
             "type": "section",
             "content": {
-                "title": "About this app",
-                "snapMode": "no"
+                "title": "About this app"
             },
-            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875"
         },
         "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0": {
             "id": "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0",
@@ -197,8 +211,9 @@
             "content": {
                 "text": "This app is meant to serve as a lighthearted introduction to Streamsync. It's not a comprehensive demonstration of its capabilities."
             },
-            "parentId": "70d82458-a08f-4005-8f96-dc8d3ba92fad",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "70d82458-a08f-4005-8f96-dc8d3ba92fad"
         },
         "7b710d37-1c68-4d06-a65a-e6596ccc826a": {
             "id": "7b710d37-1c68-4d06-a65a-e6596ccc826a",
@@ -206,15 +221,17 @@
             "content": {
                 "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges."
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "b9cb10e5-1ead-448b-afcc-909e23afb72a": {
             "id": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
             "type": "columns",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "31c1b0d5-bfb6-4304-82bd-1687d492f0a2": {
             "id": "31c1b0d5-bfb6-4304-82bd-1687d492f0a2",
@@ -224,15 +241,17 @@
                 "alignment": "right",
                 "primaryTextColor": "#2fa0c6"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "804e15bf-11a7-463d-8082-f46ea3acac1b": {
             "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
             "type": "separator",
             "content": {},
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "3cc9c5e9-6c77-401d-ab82-7805d9df760c": {
             "id": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
@@ -240,27 +259,30 @@
             "content": {
                 "name": "Layout"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff": {
             "id": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
             "type": "columns",
             "content": {},
-            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c"
         },
         "25dda22d-1b18-4584-aa99-aaae9f3b8edf": {
             "id": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
             "type": "column",
             "content": {
                 "width": "1",
-                "verticalAlignment": "",
                 "isCollapsible": "yes",
-                "title": "Markdown"
+                "title": "Markdown",
+                "contentVAlign": ""
             },
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "b1ee642e-f2e7-453b-a6ef-3d96eea37140": {
             "id": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
@@ -272,8 +294,9 @@
                 "startCollapsed": "",
                 "contentHAlign": "center"
             },
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b": {
             "id": "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b",
@@ -282,8 +305,9 @@
                 "text": "\n## Role Distribution\n\nThe Hacker Pigeons _dataframe_ consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe **role distribution** among the hacker pigeons can be analysed to understand the composition of the secret society and the proportions of various roles.",
                 "useMarkdown": "yes"
             },
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "71766c0c-e1e5-4675-9dd0-3aa2627773a0": {
             "id": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
@@ -291,8 +315,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"margin\": \"24px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"max-width\": \"90%\",\n  \"border-radius\": \"8px\",\n  \"transform\": \"rotate(-3deg)\",\n  \"box-shadow\": \"0 4px 16px -8px black\"\n}"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "c73602a6-453d-4ccf-b8e3-b1774ab4ff17": {
             "id": "c73602a6-453d-4ccf-b8e3-b1774ab4ff17",
@@ -300,15 +325,17 @@
             "content": {
                 "text": "Use the HTML Element component when you need additional control."
             },
-            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0"
         },
         "573f095f-94a7-43e4-a94e-b2f69439a164": {
             "id": "573f095f-94a7-43e4-a94e-b2f69439a164",
             "type": "separator",
             "content": {},
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "feedc43f-a7cf-499b-962e-8170f1032b69": {
             "id": "feedc43f-a7cf-499b-962e-8170f1032b69",
@@ -316,15 +343,17 @@
             "content": {
                 "text": "You can use Markdown, as shown below."
             },
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "1ee57415-557d-4529-be99-36f4d91fdf69": {
             "id": "1ee57415-557d-4529-be99-36f4d91fdf69",
             "type": "separator",
             "content": {},
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "a36b75bc-58e6-48ba-bdef-0824e6b21e8d": {
             "id": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
@@ -332,8 +361,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"margin\": \"24px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"max-width\": \"90%\",\n  \"border-radius\": \"8px\",\n  \"transform\": \"rotate(3deg)\",\n  \"box-shadow\": \"0 4px 16px -8px black\"\n}"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "5da5e007-d60a-4313-9d21-885deae7b37d": {
             "id": "5da5e007-d60a-4313-9d21-885deae7b37d",
@@ -341,8 +371,9 @@
             "content": {
                 "text": "You can put other Streamsync components inside HTML Elements."
             },
-            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d"
         },
         "85120b55-69c6-4b50-853a-bbbf73ff8121": {
             "id": "85120b55-69c6-4b50-853a-bbbf73ff8121",
@@ -350,8 +381,9 @@
             "content": {
                 "name": "Timer"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12": {
             "id": "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12",
@@ -360,8 +392,9 @@
                 "dataframe": "@{random_df}",
                 "fontStyle": "monospace"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d": {
             "id": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
@@ -369,8 +402,9 @@
             "content": {
                 "contentHAlign": "start"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "50a05488-d6fe-47bf-b681-36870d04f5d7": {
             "id": "50a05488-d6fe-47bf-b681-36870d04f5d7",
@@ -379,8 +413,9 @@
                 "intervalMs": "1000",
                 "isActive": ""
             },
-            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "handlers": {
                 "ss-tick": "handle_timer_tick"
             }
@@ -391,8 +426,9 @@
             "content": {
                 "text": "Refreshing automatically using a timer."
             },
-            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d"
         },
         "fdf38e46-c01e-4a93-94d5-e187f9e4c823": {
             "id": "fdf38e46-c01e-4a93-94d5-e187f9e4c823",
@@ -402,8 +438,9 @@
                 "useMarkdown": "yes",
                 "primaryTextColor": "#8a8a8a"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "c921816d-6d45-4ce3-9c18-2c78ff850e0e": {
             "id": "c921816d-6d45-4ce3-9c18-2c78ff850e0e",
@@ -413,8 +450,9 @@
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(80deg + @{hue_rotation}deg))\"\n}",
                 "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
             },
-            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0"
         },
         "c684f61e-0c79-4cb1-af9f-46c9cab5dfea": {
             "id": "c684f61e-0c79-4cb1-af9f-46c9cab5dfea",
@@ -424,8 +462,9 @@
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(140deg + @{hue_rotation}deg))\"\n}",
                 "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
             },
-            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d"
         },
         "ee82e035-cfb2-4d00-95ce-ccbb9eb2dbb9": {
             "id": "ee82e035-cfb2-4d00-95ce-ccbb9eb2dbb9",
@@ -436,8 +475,9 @@
                 "maxValue": "360",
                 "stepSize": "1"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
             "binding": {
                 "eventType": "ss-number-change",
                 "stateRef": "hue_rotation"
@@ -450,8 +490,9 @@
                 "text": "As shown above, you can use _HTML Element_ components together with state references.",
                 "useMarkdown": "yes"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "6a490318-239e-4fe9-a56b-f0f33d628c87": {
             "id": "6a490318-239e-4fe9-a56b-f0f33d628c87",
@@ -459,15 +500,17 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "888b1eb9-609c-4205-bbda-262999d197ff": {
             "id": "888b1eb9-609c-4205-bbda-262999d197ff",
             "type": "separator",
             "content": {},
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "de70a15a-2ff6-42d2-ab12-c7fc9c3ed4e1": {
             "id": "de70a15a-2ff6-42d2-ab12-c7fc9c3ed4e1",
@@ -477,15 +520,17 @@
                 "headingType": "h1",
                 "alignment": "center"
             },
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "2f4969e2-e248-43ed-9e63-222fc35250e2": {
             "id": "2f4969e2-e248-43ed-9e63-222fc35250e2",
             "type": "columns",
             "content": {},
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "f46cd60d-f01e-4390-a161-4353006b72a1": {
             "id": "f46cd60d-f01e-4390-a161-4353006b72a1",
@@ -495,8 +540,9 @@
                 "keyVariable": "itemId",
                 "valueVariable": "item"
             },
-            "parentId": "2f4969e2-e248-43ed-9e63-222fc35250e2",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "2f4969e2-e248-43ed-9e63-222fc35250e2"
         },
         "0dd29423-3867-478a-997e-eeaafb6b811e": {
             "id": "0dd29423-3867-478a-997e-eeaafb6b811e",
@@ -504,21 +550,22 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "f46cd60d-f01e-4390-a161-4353006b72a1",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "f46cd60d-f01e-4390-a161-4353006b72a1"
         },
         "2d326b15-da90-496e-86e8-7fdd4bcbe822": {
             "id": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "type": "section",
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f",
-                "snapMode": "no",
                 "containerBackgroundColor": "#40687d",
                 "primaryTextColor": "#ffffff",
                 "containerShadow": "0px 4px 11px -6px #000000"
             },
-            "parentId": "0dd29423-3867-478a-997e-eeaafb6b811e",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "0dd29423-3867-478a-997e-eeaafb6b811e"
         },
         "7ea0d29a-5dca-4b6c-a067-322ccaee5032": {
             "id": "7ea0d29a-5dca-4b6c-a067-322ccaee5032",
@@ -527,8 +574,9 @@
                 "text": "You can use a _Repeater_ component to repeat components, based on a dictionary.",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "cd611ce2-f594-4b55-9932-d48e657b2e31": {
             "id": "cd611ce2-f594-4b55-9932-d48e657b2e31",
@@ -537,15 +585,17 @@
                 "text": "**Role:** @{item.role}\n",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "9d6ee245-b8f7-4391-9934-89598b7fa9f8": {
             "id": "9d6ee245-b8f7-4391-9934-89598b7fa9f8",
             "type": "separator",
             "content": {},
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "01c33c6e-3788-4b5d-b7aa-2addaa7b503f": {
             "id": "01c33c6e-3788-4b5d-b7aa-2addaa7b503f",
@@ -554,8 +604,9 @@
                 "text": "The following Hacker Pigeons have made an impressive contribution this month.\nLet's come together to recognise and celebrate this success.",
                 "alignment": "center"
             },
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "e0e2391e-7bab-4c68-ad92-841942cb12fb": {
             "id": "e0e2391e-7bab-4c68-ad92-841942cb12fb",
@@ -564,15 +615,17 @@
                 "text": "The ability @{item.name} demonstrated in @{item.specialty} has earned them this recognition.",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "4ef4655b-45ca-495c-9f8d-fa1d7ae3565e": {
             "id": "4ef4655b-45ca-495c-9f8d-fa1d7ae3565e",
             "type": "separator",
             "content": {},
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "f67c98aa-3a7b-4f40-ac1f-0dd4aa06e22d": {
             "id": "f67c98aa-3a7b-4f40-ac1f-0dd4aa06e22d",
@@ -580,8 +633,9 @@
             "content": {
                 "spec": "@{scatter_chart}"
             },
-            "parentId": "6a490318-239e-4fe9-a56b-f0f33d628c87",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6a490318-239e-4fe9-a56b-f0f33d628c87",
             "handlers": {},
             "visible": true
         },
@@ -590,11 +644,12 @@
             "type": "column",
             "content": {
                 "width": "1",
-                "verticalAlignment": "",
-                "contentHAlign": ""
+                "contentHAlign": "",
+                "contentVAlign": ""
             },
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "70bd9ea8-baa9-4e1d-bce5-deee6a3c5440": {
             "id": "70bd9ea8-baa9-4e1d-bce5-deee6a3c5440",
@@ -602,8 +657,9 @@
             "content": {
                 "spec": "@{role_chart}"
             },
-            "parentId": "6d895924-e808-44aa-a119-f4e2d7f394f3",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6d895924-e808-44aa-a119-f4e2d7f394f3",
             "handlers": {}
         },
         "8c8dd54f-af2c-4d6d-9603-dfea11cf326b": {
@@ -615,8 +671,9 @@
                 "note": "@{metrics.average_weight_note}",
                 "description": ""
             },
-            "parentId": "feb9ca67-6670-483d-a895-22b031426a13",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "feb9ca67-6670-483d-a895-22b031426a13",
             "handlers": {},
             "visible": true
         },
@@ -624,8 +681,9 @@
             "id": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "type": "columns",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
             "visible": true
         },
@@ -635,8 +693,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -646,8 +705,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -657,8 +717,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -668,8 +729,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -682,8 +744,9 @@
                 "note": "@{metrics.average_length_note}",
                 "description": ""
             },
-            "parentId": "3b325899-e560-40ea-ba54-9c55967af1e3",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "3b325899-e560-40ea-ba54-9c55967af1e3",
             "handlers": {},
             "visible": true
         },
@@ -696,8 +759,9 @@
                 "note": "@{metrics.average_bmi_note}",
                 "description": ""
             },
-            "parentId": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
             "handlers": {},
             "visible": true
         },
@@ -710,8 +774,9 @@
                 "description": "",
                 "note": "@{metrics.diversity_note}"
             },
-            "parentId": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
             "handlers": {},
             "visible": true
         },
@@ -719,8 +784,9 @@
             "id": "4cca0893-5ad7-4152-b805-5c87babc4dee",
             "type": "separator",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
             "visible": true
         },
@@ -736,8 +802,9 @@
                 "primaryTextColor": "#ffffff",
                 "separatorColor": "rgba(0, 0, 0, 0.2)"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -747,8 +814,9 @@
             "content": {
                 "text": "Hacker Pigeons"
             },
-            "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
             "handlers": {},
             "visible": true
         },
@@ -756,11 +824,11 @@
             "id": "771dc336-69b2-400e-9ea3-e881e2332c9d",
             "type": "section",
             "content": {
-                "title": "The story",
-                "snapMode": "no"
+                "title": "The story"
             },
-            "parentId": "dfaae7f9-db20-4f70-a376-919bdc7b6010",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "dfaae7f9-db20-4f70-a376-919bdc7b6010",
             "handlers": {},
             "visible": true
         },
@@ -770,8 +838,9 @@
             "content": {
                 "text": "@{story.text}"
             },
-            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d"
         },
         "90fbfa9d-3178-4fc2-b445-c31e1acfa6a7": {
             "id": "90fbfa9d-3178-4fc2-b445-c31e1acfa6a7",
@@ -780,8 +849,9 @@
                 "text": "Go back to the main page",
                 "icon": "arrow-go-back"
             },
-            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
             "handlers": {
                 "click": "$goToPage_main"
             },
@@ -791,8 +861,9 @@
             "id": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
             "type": "columns",
             "content": {},
-            "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
             "handlers": {},
             "visible": true
         },
@@ -802,8 +873,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
             "handlers": {},
             "visible": true
         },
@@ -813,8 +885,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
             "handlers": {},
             "visible": true
         },
@@ -823,11 +896,11 @@
             "type": "section",
             "content": {
                 "title": "",
-                "snapMode": "",
                 "containerBackgroundColor": "#383838"
             },
-            "parentId": "7402263c-cb8b-412d-b170-e6dc6ffcb706",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "7402263c-cb8b-412d-b170-e6dc6ffcb706"
         },
         "42ab5c3d-21fc-4e88-befd-33e52fd15e8b": {
             "id": "42ab5c3d-21fc-4e88-befd-33e52fd15e8b",
@@ -836,8 +909,9 @@
                 "src": "static/pigeon1.jpg",
                 "caption": ""
             },
-            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c"
         },
         "9bb8a686-7013-4af7-a89e-d89c7754120d": {
             "id": "9bb8a686-7013-4af7-a89e-d89c7754120d",
@@ -845,8 +919,9 @@
             "content": {
                 "contentHAlign": "start"
             },
-            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
             "handlers": {},
             "visible": true
         },
@@ -860,8 +935,9 @@
                 "buttonColor": "#34b9da",
                 "buttonTextColor": "#ffffff"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "$goToPage_story"
             },
@@ -875,15 +951,17 @@
                 "alignment": "",
                 "primaryTextColor": "#ffb3fc"
             },
-            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c"
         },
         "1272b52c-d97c-4c20-ba6b-19abe1ec0abc": {
             "id": "1272b52c-d97c-4c20-ba6b-19abe1ec0abc",
             "type": "separator",
             "content": {},
-            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
             "handlers": {},
             "visible": true
         },
@@ -893,8 +971,9 @@
             "content": {
                 "text": "It's easy to switch between pages and it can be done from the frontend (via Streamsync Builder) and from the backend (via Python)."
             },
-            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
             "handlers": {},
             "visible": true
         },
@@ -905,8 +984,9 @@
                 "text": "Download this story",
                 "icon": "file-download"
             },
-            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "9bb8a686-7013-4af7-a89e-d89c7754120d",
             "handlers": {
                 "click": "handle_story_download"
             },
@@ -918,8 +998,9 @@
             "content": {
                 "name": "Pagination"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
             "handlers": {},
             "visible": true
         },
@@ -931,8 +1012,9 @@
                 "valueVariable": "item",
                 "repeaterObject": "@{paginated_members}"
             },
-            "parentId": "e1ax8ctt8lrao0e4",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "e1ax8ctt8lrao0e4",
             "handlers": {},
             "visible": true
         },
@@ -942,8 +1024,9 @@
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f"
             },
-            "parentId": "j3jkho6tb97u0onr",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "j3jkho6tb97u0onr",
             "handlers": {},
             "visible": true
         },
@@ -954,8 +1037,9 @@
                 "text": "**Role:** @{item.role}\n",
                 "useMarkdown": "yes"
             },
-            "parentId": "4wzaubf275w17gac",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "4wzaubf275w17gac"
         },
         "zfp1koasiuleygmz": {
             "id": "zfp1koasiuleygmz",
@@ -966,14 +1050,166 @@
                 "totalItems": "@{paginated_members_total_items}",
                 "pageSizeOptions": "1,2,5",
                 "pageSizeShowAll": "no",
-                "jumpTo": "no"
+                "jumpTo": "no",
+                "urlParam": "no"
             },
-            "parentId": "e1ax8ctt8lrao0e4",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "e1ax8ctt8lrao0e4",
             "handlers": {
                 "ss-change-page": "handle_paginated_members_page_change",
                 "ss-change-page-size": "handle_paginated_members_page_size_change"
             },
+            "visible": true
+        },
+        "k43pdntm5kbc2b07": {
+            "id": "k43pdntm5kbc2b07",
+            "type": "page",
+            "content": {
+                "key": "chat"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "root",
+            "handlers": {},
+            "visible": true
+        },
+        "x2sfld99y54kyw9f": {
+            "id": "x2sfld99y54kyw9f",
+            "type": "header",
+            "content": {
+                "text": "ChatBot"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "k43pdntm5kbc2b07",
+            "handlers": {},
+            "visible": true
+        },
+        "n9tpz1b2dxzkl88c": {
+            "id": "n9tpz1b2dxzkl88c",
+            "type": "columns",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "k43pdntm5kbc2b07",
+            "handlers": {},
+            "visible": true
+        },
+        "erfftfpxdjinum0p": {
+            "id": "erfftfpxdjinum0p",
+            "type": "column",
+            "content": {
+                "width": "1"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "n9tpz1b2dxzkl88c",
+            "handlers": {},
+            "visible": true
+        },
+        "urnb1gwv1k5you33": {
+            "id": "urnb1gwv1k5you33",
+            "type": "column",
+            "content": {
+                "width": "2"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "n9tpz1b2dxzkl88c",
+            "handlers": {},
+            "visible": true
+        },
+        "9eae3xsw5ky8r2o1": {
+            "id": "9eae3xsw5ky8r2o1",
+            "type": "chatbot",
+            "content": {
+                "useMarkdown": "yes"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "erfftfpxdjinum0p",
+            "handlers": {
+                "ss-chatbot-message": "handle_chat_message",
+                "ss-chatbot-action-click": "handle_chat_action"
+            },
+            "visible": true
+        },
+        "gv9hkazc34el3hmp": {
+            "id": "gv9hkazc34el3hmp",
+            "type": "pdf",
+            "content": {
+                "source": "@{chat_bot.pdf.source}",
+                "highlights": "@{chat_bot.pdf.highlights}"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "j6nr9ctckqgpiel4",
+            "handlers": {},
+            "visible": true
+        },
+        "kozlv3tcuxqc9koc": {
+            "id": "kozlv3tcuxqc9koc",
+            "type": "iframe",
+            "content": {
+                "src": "@{chat_bot.web.url}"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "rd66bd5buksqw0ip",
+            "handlers": {},
+            "visible": true
+        },
+        "rd66bd5buksqw0ip": {
+            "id": "rd66bd5buksqw0ip",
+            "type": "section",
+            "content": {
+                "title": "Web"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "urnb1gwv1k5you33",
+            "handlers": {},
+            "visible": "chat_bot.show_web"
+        },
+        "j6nr9ctckqgpiel4": {
+            "id": "j6nr9ctckqgpiel4",
+            "type": "section",
+            "content": {
+                "title": "PDF"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "urnb1gwv1k5you33",
+            "handlers": {},
+            "visible": "chat_bot.show_pdf"
+        },
+        "pwkjgwhmw5i58oh2": {
+            "id": "pwkjgwhmw5i58oh2",
+            "type": "button",
+            "content": {
+                "text": "Check out our chat component!",
+                "buttonColor": "#34b9da",
+                "buttonTextColor": "#ffffff"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "us54ingwa99l1vbb",
+            "handlers": {
+                "ss-click": "$goToPage_chat"
+            },
+            "visible": true
+        },
+        "us54ingwa99l1vbb": {
+            "id": "us54ingwa99l1vbb",
+            "type": "section",
+            "content": {
+                "title": "Interested in building AI agents?"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
+            "handlers": {},
             "visible": true
         }
     }
