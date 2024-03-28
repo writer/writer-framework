@@ -119,8 +119,7 @@
         "stub": "def handle_hashchange(state, payload):\n\t# The payload is a dictionary with the page key and all the route variables in the URL hash.\n\t# For example, if the current URL is\n\t# http://localhost:3000/#main/animal=duck&colour=yellow\n\t# you will get the following dictionary\n\t# {\n\t#\t\"page_key\": \"main\",\n\t#\t\"route_vars\": {\n\t#\t\t\"animal\": \"duck\",\n\t#\t\t\"colour\": \"yellow\"\n\t#\t}\n\t# }\n\n\tpage_key = payload.get(\"page_key\")\n\troute_vars = payload.get(\"route_vars\")\n\n\tif not route_vars:\n\t\treturn\n\n\tif route_vars.get(\"animal\") == \"duck\":\n\t\tstate[\"message\"] = \"You've navigated to the Duck zone.\"\n\telse:\n\t\tstate[\"message\"] = \"You're not in the Duck zone."
       }
     },
-    "fileRef": "/src/core_components/root/CoreRoot.vue",
-    "source_link": "ui/src/core_components/root/CoreRoot.vue"
+    "fileRef": "src/core_components/root/CoreRoot.vue"
   },
   {
     "type": "page",
@@ -235,8 +234,7 @@
       }
     },
     "previewField": "key",
-    "fileRef": "/src/core_components/root/CorePage.vue",
-    "source_link": "ui/src/core_components/root/CorePage.vue"
+    "fileRef": "src/core_components/root/CorePage.vue"
   },
   {
     "type": "sidebar",
@@ -329,8 +327,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreSidebar.vue",
-    "source_link": "ui/src/core_components/layout/CoreSidebar.vue"
+    "fileRef": "src/core_components/layout/CoreSidebar.vue"
   },
   {
     "type": "button",
@@ -398,8 +395,7 @@
     },
     "previewField": "text",
     "docs": "Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`) and it to your _Button_.",
-    "fileRef": "/src/core_components/other/CoreButton.vue",
-    "source_link": "ui/src/core_components/other/CoreButton.vue"
+    "fileRef": "src/core_components/other/CoreButton.vue"
   },
   {
     "type": "text",
@@ -455,8 +451,7 @@
       }
     },
     "previewField": "text",
-    "fileRef": "/src/core_components/content/CoreText.vue",
-    "source_link": "ui/src/core_components/content/CoreText.vue"
+    "fileRef": "src/core_components/content/CoreText.vue"
   },
   {
     "type": "section",
@@ -547,8 +542,7 @@
       }
     },
     "previewField": "title",
-    "fileRef": "/src/core_components/layout/CoreSection.vue",
-    "source_link": "ui/src/core_components/layout/CoreSection.vue"
+    "fileRef": "src/core_components/layout/CoreSection.vue"
   },
   {
     "type": "header",
@@ -586,8 +580,7 @@
       }
     },
     "previewField": "text",
-    "fileRef": "/src/core_components/layout/CoreHeader.vue",
-    "source_link": "ui/src/core_components/layout/CoreHeader.vue"
+    "fileRef": "src/core_components/layout/CoreHeader.vue"
   },
   {
     "type": "heading",
@@ -638,8 +631,7 @@
       }
     },
     "previewField": "text",
-    "fileRef": "/src/core_components/content/CoreHeading.vue",
-    "source_link": "ui/src/core_components/content/CoreHeading.vue"
+    "fileRef": "src/core_components/content/CoreHeading.vue"
   },
   {
     "type": "dataframe",
@@ -749,8 +741,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/content/CoreDataframe.vue",
-    "source_link": "ui/src/core_components/content/CoreDataframe.vue"
+    "fileRef": "src/core_components/content/CoreDataframe.vue"
   },
   {
     "type": "html",
@@ -795,8 +786,7 @@
       }
     },
     "docs": "You can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.\n\nAll valid HTML tags are supported, including tags such as `iframe`, allowing you to embed external sites.\n\nTake into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.",
-    "fileRef": "/src/core_components/other/CoreHtml.vue",
-    "source_link": "ui/src/core_components/other/CoreHtml.vue"
+    "fileRef": "src/core_components/other/CoreHtml.vue"
   },
   {
     "type": "pagination",
@@ -861,8 +851,7 @@
         "stub": "def handle_page_size_change(state, payload):\n    state['pageSize'] = payload\n\n    records = _load_records_from_db(start = state[\"page\"] * state[\"pageSize\"], limit = state[\"pageSize\"])\n    # update a repeater\n    state[\"highlighted_members\"] = {r.id: r for r in records}"
       }
     },
-    "fileRef": "/src/core_components/other/CorePagination.vue",
-    "source_link": "ui/src/core_components/other/CorePagination.vue"
+    "fileRef": "src/core_components/other/CorePagination.vue"
   },
   {
     "type": "repeater",
@@ -894,8 +883,7 @@
         "desc": "Set the name of the variable that will store the value of the current repeater object entry."
       }
     },
-    "fileRef": "/src/core_components/other/CoreRepeater.vue",
-    "source_link": "ui/src/core_components/other/CoreRepeater.vue"
+    "fileRef": "src/core_components/other/CoreRepeater.vue"
   },
   {
     "type": "column",
@@ -984,8 +972,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreColumn.vue",
-    "source_link": "ui/src/core_components/layout/CoreColumn.vue"
+    "fileRef": "src/core_components/layout/CoreColumn.vue"
   },
   {
     "type": "columns",
@@ -1005,8 +992,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreColumns.vue",
-    "source_link": "ui/src/core_components/layout/CoreColumns.vue"
+    "fileRef": "src/core_components/layout/CoreColumns.vue"
   },
   {
     "type": "tab",
@@ -1047,8 +1033,7 @@
       }
     },
     "previewField": "name",
-    "fileRef": "/src/core_components/layout/CoreTab.vue",
-    "source_link": "ui/src/core_components/layout/CoreTab.vue"
+    "fileRef": "src/core_components/layout/CoreTab.vue"
   },
   {
     "type": "tabs",
@@ -1121,8 +1106,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreTabs.vue",
-    "source_link": "ui/src/core_components/layout/CoreTabs.vue"
+    "fileRef": "src/core_components/layout/CoreTabs.vue"
   },
   {
     "type": "link",
@@ -1172,8 +1156,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/content/CoreLink.vue",
-    "source_link": "ui/src/core_components/content/CoreLink.vue"
+    "fileRef": "src/core_components/content/CoreLink.vue"
   },
   {
     "type": "horizontalstack",
@@ -1203,8 +1186,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreHorizontalStack.vue",
-    "source_link": "ui/src/core_components/layout/CoreHorizontalstack.vue"
+    "fileRef": "src/core_components/layout/CoreHorizontalStack.vue"
   },
   {
     "type": "separator",
@@ -1226,8 +1208,7 @@
       }
     },
     "docs": "_Separator_ components are used to separate layout elements. They can be used in most containers, including _Column Container_ to separate columns.\n\nIf the container flows horizontally (like a _Horizontal Stack_ or a _Column Container_) the _Separator_ will be a vertical line. Otherwise, it'll be a horizontal line.",
-    "fileRef": "/src/core_components/layout/CoreSeparator.vue",
-    "source_link": "ui/src/core_components/layout/CoreSeparator.vue"
+    "fileRef": "src/core_components/layout/CoreSeparator.vue"
   },
   {
     "type": "image",
@@ -1280,8 +1261,7 @@
     },
     "previewField": "caption",
     "docs": "Use your app's static folder to serve images directly. For example, `static/my_image.png`.\n\nAlternatively, pass a Matplotlib figure via state.\n\n`state[\"my_fig\"] = fig` and then setting the _Image_ source to `@{fig}`\n\nYou can also use packed files or bytes:\n\n`state[\"img_b\"] = ss.pack_bytes(img_bytes, \"image/png\")`\n\n`state[\"img_f\"] = ss.pack_file(img_file, \"image/png\")`",
-    "fileRef": "/src/core_components/content/CoreImage.vue",
-    "source_link": "ui/src/core_components/content/CoreImage.vue"
+    "fileRef": "src/core_components/content/CoreImage.vue"
   },
   {
     "type": "pdf",
@@ -1346,8 +1326,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/embed/CorePDF.vue",
-    "source_link": "ui/src/core_components/embed/CorePdf.vue"
+    "fileRef": "src/core_components/embed/CorePDF.vue"
   },
   {
     "type": "iframe",
@@ -1380,8 +1359,7 @@
         "stub": "def load_handler(state):\n\n\t# Sets status message when resource is loaded\n\n\tstate[\"status\"] = \"Page loaded\""
       }
     },
-    "fileRef": "/src/core_components/embed/CoreIFrame.vue",
-    "source_link": "ui/src/core_components/embed/CoreIframe.vue"
+    "fileRef": "src/core_components/embed/CoreIFrame.vue"
   },
   {
     "type": "googlemaps",
@@ -1449,8 +1427,7 @@
         "desc": "Capture single click on map."
       }
     },
-    "fileRef": "/src/core_components/embed/CoreGoogleMaps.vue",
-    "source_link": "ui/src/core_components/embed/CoreGooglemaps.vue"
+    "fileRef": "src/core_components/embed/CoreGoogleMaps.vue"
   },
   {
     "type": "mapbox",
@@ -1517,8 +1494,7 @@
         "desc": "Capture single click on map."
       }
     },
-    "fileRef": "/src/core_components/embed/CoreMapbox.vue",
-    "source_link": "ui/src/core_components/embed/CoreMapbox.vue"
+    "fileRef": "src/core_components/embed/CoreMapbox.vue"
   },
   {
     "type": "icon",
@@ -1554,8 +1530,7 @@
     },
     "previewField": "icon",
     "docs": "Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`)",
-    "fileRef": "/src/core_components/content/CoreIcon.vue",
-    "source_link": "ui/src/core_components/content/CoreIcon.vue"
+    "fileRef": "src/core_components/content/CoreIcon.vue"
   },
   {
     "type": "timer",
@@ -1598,8 +1573,7 @@
         "stub": "def handle_timer_tick(state):\n\n\t# Increment counter when the timer ticks\n\n\tstate[\"counter\"] += 1"
       }
     },
-    "fileRef": "/src/core_components/other/CoreTimer.vue",
-    "source_link": "ui/src/core_components/other/CoreTimer.vue"
+    "fileRef": "src/core_components/other/CoreTimer.vue"
   },
   {
     "type": "textinput",
@@ -1644,8 +1618,7 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
     },
-    "fileRef": "/src/core_components/input/CoreTextInput.vue",
-    "source_link": "ui/src/core_components/input/CoreTextinput.vue"
+    "fileRef": "src/core_components/input/CoreTextInput.vue"
   },
   {
     "type": "textareainput",
@@ -1687,8 +1660,7 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
     },
-    "fileRef": "/src/core_components/input/CoreTextareaInput.vue",
-    "source_link": "ui/src/core_components/input/CoreTextareainput.vue"
+    "fileRef": "src/core_components/input/CoreTextareaInput.vue"
   },
   {
     "type": "numberinput",
@@ -1738,8 +1710,7 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
     },
-    "fileRef": "/src/core_components/input/CoreNumberInput.vue",
-    "source_link": "ui/src/core_components/input/CoreNumberinput.vue"
+    "fileRef": "src/core_components/input/CoreNumberInput.vue"
   },
   {
     "type": "sliderinput",
@@ -1784,8 +1755,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreSliderInput.vue",
-    "source_link": "ui/src/core_components/input/CoreSliderinput.vue"
+    "fileRef": "src/core_components/input/CoreSliderInput.vue"
   },
   {
     "type": "dateinput",
@@ -1812,8 +1782,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreDateInput.vue",
-    "source_link": "ui/src/core_components/input/CoreDateinput.vue"
+    "fileRef": "src/core_components/input/CoreDateInput.vue"
   },
   {
     "type": "radioinput",
@@ -1857,8 +1826,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreRadioInput.vue",
-    "source_link": "ui/src/core_components/input/CoreRadioinput.vue"
+    "fileRef": "src/core_components/input/CoreRadioInput.vue"
   },
   {
     "type": "checkboxinput",
@@ -1902,8 +1870,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreCheckboxInput.vue",
-    "source_link": "ui/src/core_components/input/CoreCheckboxinput.vue"
+    "fileRef": "src/core_components/input/CoreCheckboxInput.vue"
   },
   {
     "type": "dropdowninput",
@@ -1936,8 +1903,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreDropdownInput.vue",
-    "source_link": "ui/src/core_components/input/CoreDropdowninput.vue"
+    "fileRef": "src/core_components/input/CoreDropdownInput.vue"
   },
   {
     "type": "selectinput",
@@ -2026,8 +1992,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreSelectInput.vue",
-    "source_link": "ui/src/core_components/input/CoreSelectinput.vue"
+    "fileRef": "src/core_components/input/CoreSelectInput.vue"
   },
   {
     "type": "multiselectinput",
@@ -2118,8 +2083,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreMultiselectInput.vue",
-    "source_link": "ui/src/core_components/input/CoreMultiselectinput.vue"
+    "fileRef": "src/core_components/input/CoreMultiselectInput.vue"
   },
   {
     "type": "fileinput",
@@ -2155,8 +2119,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreFileInput.vue",
-    "source_link": "ui/src/core_components/input/CoreFileinput.vue"
+    "fileRef": "src/core_components/input/CoreFileInput.vue"
   },
   {
     "type": "webcamcapture",
@@ -2208,8 +2171,7 @@
         "stub": "def webcam_handler(payload):\n\n\t# This handler will save the captured images based on timestamp\n\n\timport time\n\ttimestamp = time.time()\n\n\t# The payload is a file-like object which contains the captured image\n\t# in PNG format\n\n\timage_file = payload\n\twith open(f\"capture-{timestamp}.png\", \"wb\") as file_handle:\n\t\tfile_handle.write(image_file)"
       }
     },
-    "fileRef": "/src/core_components/other/CoreWebcamCapture.vue",
-    "source_link": "ui/src/core_components/other/CoreWebcamcapture.vue"
+    "fileRef": "src/core_components/other/CoreWebcamCapture.vue"
   },
   {
     "type": "vegalitechart",
@@ -2231,8 +2193,7 @@
       }
     },
     "docs": "Generate a chart using Altair and pass it via state; it'll be converted to Vega-Lite specification.\n\n`state[\"my_chart\"] = chart`\n\nAfterwards, you can reference the chart in the specification using the syntax `@{my_chart}`.\n\nAlternatively, you can work with Vega-Lite directly.",
-    "fileRef": "/src/core_components/content/CoreVegaLiteChart.vue",
-    "source_link": "ui/src/core_components/content/CoreVegalitechart.vue"
+    "fileRef": "src/core_components/content/CoreVegaLiteChart.vue"
   },
   {
     "type": "plotlygraph",
@@ -2265,8 +2226,7 @@
       }
     },
     "docs": "You can listen to events triggered by Plotly.js and add interactivity to your charts.\nFor example, implement cross-filtering.",
-    "fileRef": "/src/core_components/content/CorePlotlyGraph.vue",
-    "source_link": "ui/src/core_components/content/CorePlotlygraph.vue"
+    "fileRef": "src/core_components/content/CorePlotlyGraph.vue"
   },
   {
     "type": "metric",
@@ -2333,8 +2293,7 @@
       }
     },
     "previewField": "name",
-    "fileRef": "/src/core_components/content/CoreMetric.vue",
-    "source_link": "ui/src/core_components/content/CoreMetric.vue"
+    "fileRef": "src/core_components/content/CoreMetric.vue"
   },
   {
     "type": "message",
@@ -2392,8 +2351,7 @@
     },
     "previewField": "name",
     "docs": "When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.\n    Then, assign a message when the operation is completed.\n\n    ```python\n    state[\"msg\"] = \"\"\n\n    if is_ok:\n    \tstate[\"msg\"] = \"+It worked!\"\n    else:\n    \tstate[\"msg\"] = \"-It failed\"\n    ```",
-    "fileRef": "/src/core_components/content/CoreMessage.vue",
-    "source_link": "ui/src/core_components/content/CoreMessage.vue"
+    "fileRef": "src/core_components/content/CoreMessage.vue"
   },
   {
     "type": "videoplayer",
@@ -2455,8 +2413,7 @@
       }
     },
     "docs": "Use your app's static folder to serve videos directly. For example, `static/my_video.mp4`.\n\nAlternatively, you can pack bytes or files in state:\n\n`state[\"vid_b\"] = ss.pack_bytes(vid_bytes, \"video/mp4\")`\n\n`state[\"vid_f\"] = ss.pack_file(vid_file, \"video/mp4\")`\n\nAfterwards, you can reference the video using the syntax `@{vid_f}`.",
-    "fileRef": "/src/core_components/content/CoreVideoPlayer.vue",
-    "source_link": "ui/src/core_components/content/CoreVideoplayer.vue"
+    "fileRef": "src/core_components/content/CoreVideoPlayer.vue"
   },
   {
     "type": "chatbot",
@@ -2584,8 +2541,7 @@
       }
     },
     "docs": "Connect it to an LLM by handling the `ss-chatbot-message` event, which is triggered every time the user sends a message. When the response is ready, return it.\n\nYou can add `actions` to your response, which are buttons that trigger the `ss-chatbot-action-click`.\n\nSee the stubs for more details.",
-    "fileRef": "/src/core_components/content/CoreChatbot.vue",
-    "source_link": "ui/src/core_components/content/CoreChatbot.vue"
+    "fileRef": "src/core_components/content/CoreChatbot.vue"
   },
   {
     "type": "step",
@@ -2636,8 +2592,7 @@
       }
     },
     "previewField": "name",
-    "fileRef": "/src/core_components/layout/CoreStep.vue",
-    "source_link": "ui/src/core_components/layout/CoreStep.vue"
+    "fileRef": "src/core_components/layout/CoreStep.vue"
   },
   {
     "type": "steps",
@@ -2710,8 +2665,7 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "fileRef": "/src/core_components/layout/CoreSteps.vue",
-    "source_link": "ui/src/core_components/layout/CoreSteps.vue"
+    "fileRef": "src/core_components/layout/CoreSteps.vue"
   },
   {
     "type": "ratinginput",
@@ -2777,8 +2731,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreRatingInput.vue",
-    "source_link": "ui/src/core_components/input/CoreRatinginput.vue"
+    "fileRef": "src/core_components/input/CoreRatingInput.vue"
   },
   {
     "type": "tags",
@@ -2838,8 +2791,7 @@
       }
     },
     "previewField": "text",
-    "fileRef": "/src/core_components/content/CoreTags.vue",
-    "source_link": "ui/src/core_components/content/CoreTags.vue"
+    "fileRef": "src/core_components/content/CoreTags.vue"
   },
   {
     "type": "switchinput",
@@ -2884,8 +2836,7 @@
         "bindable": true
       }
     },
-    "fileRef": "/src/core_components/input/CoreSwitchInput.vue",
-    "source_link": "ui/src/core_components/input/CoreSwitchinput.vue"
+    "fileRef": "src/core_components/input/CoreSwitchInput.vue"
   },
   {
     "type": "avatar",
@@ -2963,7 +2914,6 @@
       }
     },
     "previewField": "text",
-    "fileRef": "/src/core_components/content/CoreAvatar.vue",
-    "source_link": "ui/src/core_components/content/CoreAvatar.vue"
+    "fileRef": "src/core_components/content/CoreAvatar.vue"
   }
 ]
