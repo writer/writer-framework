@@ -8,8 +8,8 @@
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../.gitignore",
 		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../.gitignore",
-		"custom.dev": "vite --config vite.config.custom.js",
-		"custom.build": "vite build --config vite.config.custom.js"
+		"custom.dev": "vite --config vite.config.custom.ts",
+		"custom.build": "vite build --config vite.config.custom.ts"
 	},
 	"dependencies": {
 		"@apache-arrow/ts": "^15.0.2",
