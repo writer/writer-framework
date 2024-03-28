@@ -23,6 +23,6 @@
     "lint": "npm run -w streamsync-ui lint",
     "lint:ci": "npm run -w streamsync-ui lint:ci",
     "dev": "npm run -w streamsync-ui dev",
-	"codegen.binding.ui": "npm run -w streamsync-ui codegen.binding.ui"
+	"codegen": "npm run -w streamsync-ui codegen"
   }
 }
