@@ -3,8 +3,8 @@
 	"version": "1.0.0",
 	"description": "",
 	"workspaces": [
-		"ui",
-		"e2e",
+		"src/ui",
+		"tests/e2e",
 		"docs"
 	],
 	"scripts": {
