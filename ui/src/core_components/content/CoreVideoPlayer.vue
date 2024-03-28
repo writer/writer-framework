@@ -1,3 +1,15 @@
+<docs lang="md">
+Use your app's static folder to serve videos directly. For example, \`static/my_video.mp4\`.
+
+Alternatively, you can pack bytes or files in state:
+
+\`state["vid_b"] = ss.pack_bytes(vid_bytes, "video/mp4")\`
+
+\`state["vid_f"] = ss.pack_file(vid_file, "video/mp4")\`
+
+Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
+</docs>
+
 <template>
 	<div class="CoreVideoPlayer">
 		<video
@@ -18,24 +30,10 @@ import { cssClasses } from "../../renderer/sharedStyleFields";
 const description =
 	"A video player component that can play various video formats.";
 
-const docs = `
-    Use your app's static folder to serve videos directly. For example, \`static/my_video.mp4\`.
-
-Alternatively, you can pack bytes or files in state:
-
-\`state["vid_b"] = ss.pack_bytes(vid_bytes, "video/mp4")\`
-
-\`state["vid_f"] = ss.pack_file(vid_file, "video/mp4")\`
-
-Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
-
-`;
-
 export default {
 	streamsync: {
 		name: "Video Player",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			src: {

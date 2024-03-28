@@ -1,3 +1,10 @@
+<docs lang="md">
+Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
+
+You can add \`actions\` to your response, which are buttons that trigger the \`ss-chatbot-action-click\`.
+
+See the stubs for more details.
+</docs>
 <template>
 	<div ref="rootEl" class="CoreChatbot">
 		<div ref="messageAreaEl" class="messageArea">
@@ -155,13 +162,6 @@ const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
-const docs = `
-Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
-
-You can add \`actions\` to your response, which are buttons that trigger the \`ss-chatbot-action-click\`.
-
-See the stubs for more details.`.trim();
-
 const chatbotMessageStub = `
 def handle_message_simple(payload):
     query = payload
@@ -221,7 +221,6 @@ export default {
 	streamsync: {
 		name: "Chatbot",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			incomingInitials: {
