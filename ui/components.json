@@ -118,7 +118,8 @@
         "desc": "Capture changes to the URL hash, including page key and route vars.",
         "stub": "def handle_hashchange(state, payload):\n\t# The payload is a dictionary with the page key and all the route variables in the URL hash.\n\t# For example, if the current URL is\n\t# http://localhost:3000/#main/animal=duck&colour=yellow\n\t# you will get the following dictionary\n\t# {\n\t#\t\"page_key\": \"main\",\n\t#\t\"route_vars\": {\n\t#\t\t\"animal\": \"duck\",\n\t#\t\t\"colour\": \"yellow\"\n\t#\t}\n\t# }\n\n\tpage_key = payload.get(\"page_key\")\n\troute_vars = payload.get(\"route_vars\")\n\n\tif not route_vars:\n\t\treturn\n\n\tif route_vars.get(\"animal\") == \"duck\":\n\t\tstate[\"message\"] = \"You've navigated to the Duck zone.\"\n\telse:\n\t\tstate[\"message\"] = \"You're not in the Duck zone."
       }
-    }
+    },
+    "fileRef": "/src/core_components/root/CoreRoot.vue"
   },
   {
     "type": "page",
@@ -232,7 +233,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "key"
+    "previewField": "key",
+    "fileRef": "/src/core_components/root/CorePage.vue"
   },
   {
     "type": "sidebar",
@@ -324,13 +326,13 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreSidebar.vue"
   },
   {
     "type": "button",
     "name": "Button",
     "description": "A standalone button component that can be linked to a click event handler.",
-    "docs": "\nStreamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`) and it to your _Button_.\n",
     "category": "Other",
     "events": {
       "ss-click": {
@@ -391,7 +393,9 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "docs": "Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`) and it to your _Button_.",
+    "fileRef": "/src/core_components/other/CoreButton.vue"
   },
   {
     "type": "text",
@@ -446,7 +450,8 @@
         "stub": "def click_handler(state):\n\n\t# Increment counter when the text is clicked\n\n\tstate[\"counter\"] += 1"
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "fileRef": "/src/core_components/content/CoreText.vue"
   },
   {
     "type": "section",
@@ -536,7 +541,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "title"
+    "previewField": "title",
+    "fileRef": "/src/core_components/layout/CoreSection.vue"
   },
   {
     "type": "header",
@@ -573,7 +579,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "fileRef": "/src/core_components/layout/CoreHeader.vue"
   },
   {
     "type": "heading",
@@ -623,7 +630,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "fileRef": "/src/core_components/content/CoreHeading.vue"
   },
   {
     "type": "dataframe",
@@ -732,13 +740,13 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/content/CoreDataframe.vue"
   },
   {
     "type": "html",
     "name": "HTML Element",
     "description": "A generic component that creates customisable HTML elements, which can serve as containers for other components.",
-    "docs": "\nYou can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.\n\nAll valid HTML tags are supported, including tags such as `iframe`, allowing you to embed external sites.\n\nTake into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.\n",
     "category": "Other",
     "allowedChildrenTypes": [
       "*"
@@ -776,7 +784,9 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "docs": "You can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.\n\nAll valid HTML tags are supported, including tags such as `iframe`, allowing you to embed external sites.\n\nTake into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.",
+    "fileRef": "/src/core_components/other/CoreHtml.vue"
   },
   {
     "type": "pagination",
@@ -840,7 +850,8 @@
         "desc": "Fires when the user change the page size.",
         "stub": "def handle_page_size_change(state, payload):\n    state['pageSize'] = payload\n\n    records = _load_records_from_db(start = state[\"page\"] * state[\"pageSize\"], limit = state[\"pageSize\"])\n    # update a repeater\n    state[\"highlighted_members\"] = {r.id: r for r in records}"
       }
-    }
+    },
+    "fileRef": "/src/core_components/other/CorePagination.vue"
   },
   {
     "type": "repeater",
@@ -871,7 +882,8 @@
         "type": "Text",
         "desc": "Set the name of the variable that will store the value of the current repeater object entry."
       }
-    }
+    },
+    "fileRef": "/src/core_components/other/CoreRepeater.vue"
   },
   {
     "type": "column",
@@ -959,7 +971,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreColumn.vue"
   },
   {
     "type": "columns",
@@ -978,7 +991,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreColumns.vue"
   },
   {
     "type": "tab",
@@ -1018,7 +1032,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "name"
+    "previewField": "name",
+    "fileRef": "/src/core_components/layout/CoreTab.vue"
   },
   {
     "type": "tabs",
@@ -1090,7 +1105,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreTabs.vue"
   },
   {
     "type": "link",
@@ -1139,7 +1155,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/content/CoreLink.vue"
   },
   {
     "type": "horizontalstack",
@@ -1168,13 +1185,13 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreHorizontalStack.vue"
   },
   {
     "type": "separator",
     "name": "Separator",
     "description": "A visual component to create a separation between adjacent elements.",
-    "docs": "\n_Separator_ components are used to separate layout elements. They can be used in most containers, including _Column Container_ to separate columns.\n\nIf the container flows horizontally (like a _Horizontal Stack_ or a _Column Container_) the _Separator_ will be a vertical line. Otherwise, it'll be a horizontal line. \n",
     "category": "Layout",
     "fields": {
       "separatorColor": {
@@ -1189,13 +1206,14 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "docs": "_Separator_ components are used to separate layout elements. They can be used in most containers, including _Column Container_ to separate columns.\n\nIf the container flows horizontally (like a _Horizontal Stack_ or a _Column Container_) the _Separator_ will be a vertical line. Otherwise, it'll be a horizontal line.",
+    "fileRef": "/src/core_components/layout/CoreSeparator.vue"
   },
   {
     "type": "image",
     "name": "Image",
     "description": "A component to display images.",
-    "docs": "\nUse your app's static folder to serve images directly. For example, `static/my_image.png`.\n\nAlternatively, pass a Matplotlib figure via state.\n\n`state[\"my_fig\"] = fig` and then setting the _Image_ source to `@{fig}` \n\nYou can also use packed files or bytes:\n\n`state[\"img_b\"] = ss.pack_bytes(img_bytes, \"image/png\")`\n\n`state[\"img_f\"] = ss.pack_file(img_file, \"image/png\")`\n\n",
     "category": "Content",
     "fields": {
       "src": {
@@ -1241,7 +1259,9 @@
         "stub": "def click_handler(state):\n\n\t# Increment counter when the image is clicked\n\n\tstate[\"counter\"] += 1"
       }
     },
-    "previewField": "caption"
+    "previewField": "caption",
+    "docs": "Use your app's static folder to serve images directly. For example, `static/my_image.png`.\n\nAlternatively, pass a Matplotlib figure via state.\n\n`state[\"my_fig\"] = fig` and then setting the _Image_ source to `@{fig}` \n\nYou can also use packed files or bytes:\n\n`state[\"img_b\"] = ss.pack_bytes(img_bytes, \"image/png\")`\n\n`state[\"img_f\"] = ss.pack_file(img_file, \"image/png\")`",
+    "fileRef": "/src/core_components/content/CoreImage.vue"
   },
   {
     "type": "pdf",
@@ -1305,7 +1325,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/embed/CorePDF.vue"
   },
   {
     "type": "iframe",
@@ -1337,7 +1358,8 @@
         "desc": "Fires when the resource has successfully loaded.",
         "stub": "def load_handler(state):\n\n\t# Sets status message when resource is loaded\n\n\tstate[\"status\"] = \"Page loaded\""
       }
-    }
+    },
+    "fileRef": "/src/core_components/embed/CoreIFrame.vue"
   },
   {
     "type": "googlemaps",
@@ -1404,7 +1426,8 @@
       "gmap-click": {
         "desc": "Capture single click on map."
       }
-    }
+    },
+    "fileRef": "/src/core_components/embed/CoreGoogleMaps.vue"
   },
   {
     "type": "mapbox",
@@ -1470,13 +1493,13 @@
       "mapbox-click": {
         "desc": "Capture single click on map."
       }
-    }
+    },
+    "fileRef": "/src/core_components/embed/CoreMapbox.vue"
   },
   {
     "type": "icon",
     "name": "Icon",
     "description": "A component to display an icon",
-    "docs": "\nStreamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`)\n",
     "category": "Content",
     "fields": {
       "icon": {
@@ -1505,7 +1528,9 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "icon"
+    "previewField": "icon",
+    "docs": "Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as `arrow-up`)",
+    "fileRef": "/src/core_components/content/CoreIcon.vue"
   },
   {
     "type": "timer",
@@ -1547,7 +1572,8 @@
         "desc": "Emitted when the timer ticks.",
         "stub": "def handle_timer_tick(state):\n\n\t# Increment counter when the timer ticks\n\n\tstate[\"counter\"] += 1"
       }
-    }
+    },
+    "fileRef": "/src/core_components/other/CoreTimer.vue"
   },
   {
     "type": "textinput",
@@ -1591,7 +1617,8 @@
         "desc": "Capture changes once this control has lost focus.",
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreTextInput.vue"
   },
   {
     "type": "textareainput",
@@ -1632,7 +1659,8 @@
         "desc": "Capture changes once this control has lost focus.",
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreTextareaInput.vue"
   },
   {
     "type": "numberinput",
@@ -1681,7 +1709,8 @@
         "desc": "Capture changes once this control has lost focus.",
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload"
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreNumberInput.vue"
   },
   {
     "type": "sliderinput",
@@ -1725,7 +1754,8 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_val\" to the new value\n\n\tstate[\"new_val\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreSliderInput.vue"
   },
   {
     "type": "dateinput",
@@ -1751,7 +1781,8 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"new_date\" to the new value, provided as a YYYY-MM-DD string.\n\n\tstate[\"new_date\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreDateInput.vue"
   },
   {
     "type": "radioinput",
@@ -1794,7 +1825,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# Set the state variable \"selected\" to the selected radio option\n\n\tstate[\"selected\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreRadioInput.vue"
   },
   {
     "type": "checkboxinput",
@@ -1837,7 +1869,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# Set the state variable \"selected\" to the selected options.\n\t# The payload will be a list, as multiple options are allowed.\n\n\tstate[\"selected\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreCheckboxInput.vue"
   },
   {
     "type": "dropdowninput",
@@ -1869,7 +1902,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# Set the state variable \"selected\" to the selected option\n\n\tstate[\"selected\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreDropdownInput.vue"
   },
   {
     "type": "selectinput",
@@ -1957,7 +1991,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# Set the state variable \"selected\" to the selected option\n\n\tstate[\"selected\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreSelectInput.vue"
   },
   {
     "type": "multiselectinput",
@@ -2047,7 +2082,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# Set the state variable \"selected\" to the selected option\n\n\tstate[\"selected\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreMultiselectInput.vue"
   },
   {
     "type": "fileinput",
@@ -2082,7 +2118,8 @@
         "stub": "def onchange_handler(state, payload):\n\n\t# An array of dictionaries is provided in the payload\n\t# The dictionaries have the properties name, type and data\n    # The data property is a file-like object\n\n    uploaded_files = payload\n    for i, uploaded_file in enumerate(uploaded_files):\n\t\tname = uploaded_file.get(\"name\")\n        file_data = uploaded_file.get(\"data\")\n        with open(f\"{name}-{i}.jpeg\", \"wb\") as file_handle:\n            file_handle.write(file_data)",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreFileInput.vue"
   },
   {
     "type": "webcamcapture",
@@ -2133,13 +2170,13 @@
         "desc": "Sent when a frame is captured. Its payload contains the captured frame in PNG format.",
         "stub": "def webcam_handler(payload):\n\n\t# This handler will save the captured images based on timestamp\n\n\timport time\n\ttimestamp = time.time()\n\n\t# The payload is a file-like object which contains the captured image\n\t# in PNG format\n\n\timage_file = payload\n\twith open(f\"capture-{timestamp}.png\", \"wb\") as file_handle:\n\t\tfile_handle.write(image_file)"
       }
-    }
+    },
+    "fileRef": "/src/core_components/other/CoreWebcamCapture.vue"
   },
   {
     "type": "vegalitechart",
     "name": "Vega Lite Chart",
     "description": "A component that displays Vega-Lite/Altair charts.",
-    "docs": "\n\nGenerate a chart using Altair and pass it via state; it'll be converted to Vega-Lite specification.\n\n`state[\"my_chart\"] = chart`\n\nAfterwards, you can reference the chart in the specification using the syntax `@{my_chart}`.\n\nAlternatively, you can work with Vega-Lite directly.\n",
     "category": "Content",
     "fields": {
       "spec": {
@@ -2154,13 +2191,14 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "docs": "Generate a chart using Altair and pass it via state; it'll be converted to Vega-Lite specification.\n\n`state[\"my_chart\"] = chart`\n\nAfterwards, you can reference the chart in the specification using the syntax `@{my_chart}`.\n\nAlternatively, you can work with Vega-Lite directly.",
+    "fileRef": "/src/core_components/content/CoreVegaLiteChart.vue"
   },
   {
     "type": "plotlygraph",
     "name": "Plotly Graph",
     "description": "A component that displays Plotly graphs.",
-    "docs": "\nYou can listen to events triggered by Plotly.js and add interactivity to your charts.\nFor example, implement cross-filtering.",
     "category": "Content",
     "fields": {
       "spec": {
@@ -2186,7 +2224,9 @@
       "plotly-deselect": {
         "desc": "Triggered when points are deselected."
       }
-    }
+    },
+    "docs": "You can listen to events triggered by Plotly.js and add interactivity to your charts.\nFor example, implement cross-filtering.",
+    "fileRef": "/src/core_components/content/CorePlotlyGraph.vue"
   },
   {
     "type": "metric",
@@ -2252,13 +2292,13 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "name"
+    "previewField": "name",
+    "fileRef": "/src/core_components/content/CoreMetric.vue"
   },
   {
     "type": "message",
     "name": "Message",
     "description": "A component that displays a message in various styles, including success, error, warning, and informational.",
-    "docs": "\nWhen working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.\nThen, assign a message when the operation is completed.\n\n```\nstate[\"msg\"] = \"\"\n\nif is_ok:\n\tstate[\"msg\"] = \"+It worked!\"\nelse:\n\tstate[\"msg\"] = \"-It failed\"\n```\n\n",
     "category": "Content",
     "fields": {
       "message": {
@@ -2309,13 +2349,14 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "name"
+    "previewField": "name",
+    "docs": "When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.\n    Then, assign a message when the operation is completed.\n\n    ```\n    state[\"msg\"] = \"\"\n\n    if is_ok:\n    \tstate[\"msg\"] = \"+It worked!\"\n    else:\n    \tstate[\"msg\"] = \"-It failed\"\n    ```",
+    "fileRef": "/src/core_components/content/CoreMessage.vue"
   },
   {
     "type": "videoplayer",
     "name": "Video Player",
     "description": "A video player component that can play various video formats.",
-    "docs": "\n    Use your app's static folder to serve videos directly. For example, `static/my_video.mp4`.\n\nAlternatively, you can pack bytes or files in state:\n\n`state[\"vid_b\"] = ss.pack_bytes(vid_bytes, \"video/mp4\")`\n\n`state[\"vid_f\"] = ss.pack_file(vid_file, \"video/mp4\")`\n\nAfterwards, you can reference the video using the syntax `@{vid_f}`.\n\n",
     "category": "Content",
     "fields": {
       "src": {
@@ -2370,13 +2411,14 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "docs": "Use your app's static folder to serve videos directly. For example, `static/my_video.mp4`.\n\nAlternatively, you can pack bytes or files in state:\n\n`state[\"vid_b\"] = ss.pack_bytes(vid_bytes, \"video/mp4\")`\n\n`state[\"vid_f\"] = ss.pack_file(vid_file, \"video/mp4\")`\n\nAfterwards, you can reference the video using the syntax `@{vid_f}`.",
+    "fileRef": "/src/core_components/content/CoreVideoPlayer.vue"
   },
   {
     "type": "chatbot",
     "name": "Chatbot",
     "description": "A chatbot component to build human-to-AI interactions.",
-    "docs": "Connect it to an LLM by handling the `ss-chatbot-message` event, which is triggered every time the user sends a message. When the response is ready, return it.\n\nYou can add `actions` to your response, which are buttons that trigger the `ss-chatbot-action-click`.\n\nSee the stubs for more details.",
     "category": "Content",
     "fields": {
       "incomingInitials": {
@@ -2497,7 +2539,9 @@
         "desc": "Triggered when files are uploaded",
         "stub": "def handle_file_upload(state, payload):\n\n\t# An array of dictionaries is provided in the payload\n\t# The dictionaries have the properties name, type and data\n    # The data property is a file-like object\n\n    uploaded_files = payload\n    for i, uploaded_file in enumerate(uploaded_files):\n\t\tname = uploaded_file.get(\"name\")\n        file_data = uploaded_file.get(\"data\")\n        with open(f\"{name}-{i}.jpeg\", \"wb\") as file_handle:\n            file_handle.write(file_data)"
       }
-    }
+    },
+    "docs": "Connect it to an LLM by handling the `ss-chatbot-message` event, which is triggered every time the user sends a message. When the response is ready, return it.\n\nYou can add `actions` to your response, which are buttons that trigger the `ss-chatbot-action-click`.\n\nSee the stubs for more details.",
+    "fileRef": "/src/core_components/content/CoreChatbot.vue"
   },
   {
     "type": "step",
@@ -2547,7 +2591,8 @@
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
     },
-    "previewField": "name"
+    "previewField": "name",
+    "fileRef": "/src/core_components/layout/CoreStep.vue"
   },
   {
     "type": "steps",
@@ -2619,7 +2664,8 @@
         "category": "Style",
         "desc": "CSS classes, separated by spaces. You can define classes in custom stylesheets."
       }
-    }
+    },
+    "fileRef": "/src/core_components/layout/CoreSteps.vue"
   },
   {
     "type": "ratinginput",
@@ -2684,7 +2730,8 @@
         "stub": "\ndef onchange_handler(state, payload):\n\n\t# Set the state variable \"rating\" to the new value\n\n\tstate[\"rating\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreRatingInput.vue"
   },
   {
     "type": "tags",
@@ -2743,7 +2790,8 @@
         "stub": "def handle_tag_click(state, payload):\n\tstate[\"selected_tag_id\"] = payload"
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "fileRef": "/src/core_components/content/CoreTags.vue"
   },
   {
     "type": "switchinput",
@@ -2787,7 +2835,8 @@
         "stub": "def handle_toggle(state, payload):\n\n\t# The payload will be a bool \n\n\tstate[\"its_on\"] = payload",
         "bindable": true
       }
-    }
+    },
+    "fileRef": "/src/core_components/input/CoreSwitchInput.vue"
   },
   {
     "type": "avatar",
@@ -2864,6 +2913,7 @@
         "stub": "def handle_avatar_click():\n\tprint(\"The avatar was clicked\")"
       }
     },
-    "previewField": "text"
+    "previewField": "text",
+    "fileRef": "/src/core_components/content/CoreAvatar.vue"
   }
 ]

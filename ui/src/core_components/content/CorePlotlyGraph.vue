@@ -1,3 +1,7 @@
+<docs lang="md">
+You can listen to events triggered by Plotly.js and add interactivity to your charts.
+For example, implement cross-filtering.
+</docs>
 <template>
 	<div ref="rootEl" class="CorePlotlyGraph">
 		<div ref="chartTargetEl" class="target"></div>
@@ -10,10 +14,6 @@ import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
-
-const docs = `
-You can listen to events triggered by Plotly.js and add interactivity to your charts.
-For example, implement cross-filtering.`;
 
 const defaultSpec = {
 	data: [
@@ -29,7 +29,6 @@ export default {
 	streamsync: {
 		name: "Plotly Graph",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			spec: {

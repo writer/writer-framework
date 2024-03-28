@@ -1,38 +1,24 @@
-import path from "path";
-
-import { defineConfig } from "vite";
+import { fileURLToPath, URL } from "url";
+import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
+import streamsyncPlugin from "./viteStreamsyncPlugin";
 
+// https://vitejs.dev/config/
 export default defineConfig({
 	base: "./",
-	plugins: [vue(), { ...monacoEditorPlugin({}), apply: "serve" }],
+	plugins: [vue(), monacoEditorPlugin({}), streamsyncPlugin()],
+	includeStreamsyncComponentPath: false,
 	define: {
-		STREAMSYNC_LIVE_CCT: JSON.stringify("yes"),
+		STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
 	},
-	publicDir: false,
 	build: {
-		lib: {
-			entry: ["./src/custom_components"],
-			formats: ["umd"],
-			name: "StreamsyncCustomComponentTemplates",
-			fileName: "templates",
-		},
-		rollupOptions: {
-			external: ["vue", "../injectionKeys"],
-			output: {
-				globals: {
-					vue: "vue",
-					[path.resolve("src/injectionKeys")]: "injectionKeys",
-				},
-			},
-		},
-		outDir: "custom_components_dist",
+		outDir: "../src/streamsync/static",
 		emptyOutDir: true,
 	},
 	resolve: {
 		alias: {
-			"@": path.resolve("src"),
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
 		},
 	},
 	server: {
@@ -58,4 +44,4 @@ export default defineConfig({
 			},
 		},
 	},
-});
+} as UserConfig);
