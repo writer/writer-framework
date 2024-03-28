@@ -1,3 +1,8 @@
+<docs lang="md">
+This documentation will show in the collapsible mini-docs feature embedded in Builder.
+You _can_ use **markdown**.
+</docs>
+
 <template>
 	<div
 		ref="rootEl"
@@ -28,9 +33,6 @@ Define the Streamsync-specific information for the template.
 Consult the type StreamsyncComponentDefinition for an overview of all fields.
 */
 
-const docs = `This documentation will show in the collapsible mini-docs feature embedded in Builder.
-You _can_ use **markdown**.`;
-
 const flagMessageHandlerStub = `
 def handle_flag(state, payload):
 	state["flagged_message_id"] = payload`;
@@ -42,7 +44,6 @@ def handle_pin(state, payload):
 const streamsync: StreamsyncComponentDefinition = {
 	name: "Bubble Message (Advanced)",
 	description: "Shows a message in the shape of a speech bubble.",
-	docs,
 	category: "Content",
 
 	// Fields will be editable via Streamsync Builder

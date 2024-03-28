@@ -1,3 +1,17 @@
+<docs lang="md">
+    When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.
+    Then, assign a message when the operation is completed.
+
+    \`\`\`
+    state["msg"] = ""
+
+    if is_ok:
+    	state["msg"] = "+It worked!"
+    else:
+    	state["msg"] = "-It failed"
+    \`\`\`
+</docs>
+
 <template>
 	<div
 		v-if="messageWithoutPrefix || isBeingEdited"
@@ -25,26 +39,10 @@ import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
 
-const docs = `
-When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.
-Then, assign a message when the operation is completed.
-
-\`\`\`
-state["msg"] = ""
-
-if is_ok:
-	state["msg"] = "+It worked!"
-else:
-	state["msg"] = "-It failed"
-\`\`\`
-
-`;
-
 export default {
 	streamsync: {
 		name: "Message",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			message: {

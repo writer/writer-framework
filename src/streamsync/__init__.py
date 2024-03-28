@@ -2,7 +2,7 @@ import importlib.metadata
 from typing import Union, Optional, Dict, Any, Type, TypeVar, cast
 
 from streamsync.core import (BytesWrapper, Config, FileWrapper, Readable,
-                             base_component_tree, initial_state,
+                             base_component_tree, base_cmc_tree, initial_state,
                              session_manager, session_verifier)
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config, StreamsyncState
 from streamsync.core import new_initial_state, base_component_tree, session_manager, session_verifier
@@ -11,6 +11,7 @@ from streamsync.ui import StreamsyncUIManager
 VERSION = importlib.metadata.version("streamsync")
 
 base_component_tree
+base_cmc_tree
 session_manager
 Config
 session_verifier

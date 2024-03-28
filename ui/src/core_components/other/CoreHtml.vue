@@ -1,3 +1,10 @@
+<docs lang="md">
+You can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.
+
+All valid HTML tags are supported, including tags such as \`iframe\`, allowing you to embed external sites.
+
+Take into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.
+</docs>
 <script lang="ts">
 import { h, inject } from "vue";
 import { FieldControl, FieldType } from "../../streamsyncTypes";
@@ -16,19 +23,10 @@ const defaultStyle = {
 const description =
 	"A generic component that creates customisable HTML elements, which can serve as containers for other components.";
 
-const docs = `
-You can configure the element type, styles, and attributes to fit your design requirements. You can link them to state for advanced use cases, such as custom animations.
-
-All valid HTML tags are supported, including tags such as \`iframe\`, allowing you to embed external sites.
-
-Take into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.
-`;
-
 export default {
 	streamsync: {
 		name: "HTML Element",
 		description,
-		docs,
 		category: "Other",
 		allowedChildrenTypes: ["*"],
 		fields: {

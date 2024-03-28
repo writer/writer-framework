@@ -1,3 +1,13 @@
+<docs lang="md">
+Generate a chart using Altair and pass it via state; it'll be converted to Vega-Lite specification.
+
+\`state["my_chart"] = chart\`
+
+Afterwards, you can reference the chart in the specification using the syntax \`@{my_chart}\`.
+
+Alternatively, you can work with Vega-Lite directly.
+</docs>
+
 <template>
 	<div ref="rootEl" class="CoreVegaLiteChart">
 		<div ref="chartTargetEl" class="target"></div>
@@ -9,17 +19,6 @@ import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Vega-Lite/Altair charts.";
-
-const docs = `
-
-Generate a chart using Altair and pass it via state; it'll be converted to Vega-Lite specification.
-
-\`state["my_chart"] = chart\`
-
-Afterwards, you can reference the chart in the specification using the syntax \`@{my_chart}\`.
-
-Alternatively, you can work with Vega-Lite directly.
-`;
 
 const defaultSpec = {
 	$schema: "https://vega.github.io/schema/vega-lite/v5.json",
@@ -43,7 +42,6 @@ export default {
 	streamsync: {
 		name: "Vega Lite Chart",
 		description,
-		docs,
 		category: "Content",
 		fields: {
 			spec: {

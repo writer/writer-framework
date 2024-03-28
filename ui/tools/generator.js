@@ -17,6 +17,7 @@ const getPyType = (type) => {
 
 async function loadComponents() {
 	const vite = await createServer({
+		includeStreamsyncComponentPath: true,
 		server: {
 			middlewareMode: true,
 		},
