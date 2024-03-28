@@ -191,6 +191,9 @@ const pagesizeEnabled = computed(
 const jumptoEnabled = computed(() => fields.jumpTo.value === "yes");
 
 const firstItem = computed(() => {
+	if (fields.totalItems.value == 0) {
+		return 0;
+	}
 	return (fields.page.value - 1) * fields.pageSize.value + 1;
 });
 const lastItem = computed(() =>
