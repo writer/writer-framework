@@ -5,7 +5,7 @@ const path = require("path");
 const core = require("./core");
 
 // eslint-disable-next-line prettier/prettier
-const pythonUiPath = path.resolve(__dirname, "..", "..", "src", "streamsync", "ui.py");
+const pythonUiPath = path.resolve(__dirname, "..", "..", "streamsync", "ui.py");
 
 const getPyType = (type) => {
 	switch (type) {

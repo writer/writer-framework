@@ -3,11 +3,11 @@
 	"version": "0.0.0",
 	"scripts": {
 		"dev": "vite",
-		"codegen": "node tools/generator.js",
 		"build": "vite build",
 		"preview": "vite preview --port 5050",
-		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../.gitignore",
-		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../.gitignore",
+		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../../.gitignore",
+		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../../.gitignore",
+		"codegen": "node tools/generator.js",
 		"custom.dev": "vite --config vite.config.custom.ts",
 		"custom.build": "vite build --config vite.config.custom.ts"
 	},
