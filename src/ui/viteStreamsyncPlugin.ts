@@ -28,7 +28,7 @@ export default (): Plugin => {
 			}
 			if (/\.vue$/.test(id)) {
 				if (config.includeStreamsyncComponentPath === false) return;
-				const fileRef = id.replace(__dirname, "");
+				const fileRef = id.replace(`${__dirname}/`, "");
 				return `${code}
 					if(_sfc_main.streamsync) _sfc_main.streamsync.fileRef = '${fileRef}';
 				`;

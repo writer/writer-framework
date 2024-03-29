@@ -1,5 +1,5 @@
 const fs = require('fs');
-const components = require('streamsync-ui/components.json');
+const components = require('streamsync-ui/components.codegen.json');
 
 describe('Components docs', () => {
 	for (const component of components) {

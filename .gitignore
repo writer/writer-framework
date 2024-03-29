@@ -16,7 +16,8 @@ src/streamsync.egg-info/
 *:Zone.Identifier
 *.DS_Store
 src/streamsync/static
-src/streamsync/app_templates
+src/streamsync/app_templates/*
+!src/streamsync/app_templates/.gitkeep
 playground/
 *.mp4
 .turbo

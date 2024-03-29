@@ -8,13 +8,15 @@
 		"docs"
 	],
 	"scripts": {
-		"build": "npm run --if-present -ws build",
+		"build": "npm run --if-present -ws build && npm run apps:build && npm run cli:build",
 		"test": "npm run --if-present -ws test",
 		"lint": "npm run --if-present -ws lint",
 		"dev": "npm run -w streamsync-ui dev",
+		"custom.dev": "npm run -w streamsync-ui dev",
 
 		"cli:test": "pytest tests -o log_cli=true ",
 		"cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
+		"cli:build": "npm run codegen",
 
 		"ui:dev": "npm run -w streamsync-ui dev",
 		"ui:build": "npm run -w streamsync-ui build",
@@ -35,6 +37,8 @@
 		"e2e:chromium": "npm run -w streamsync-e2e e2e:chromium",
 		"e2e:webkit": "npm run -w streamsync-e2e e2e:webkit",
 
-		"codegen.binding.ui": "npm run -w streamsync-ui codegen.binding.ui"
+		"apps:build": "cp -R ./apps/hello ./src/streamsync/app_templates/ && cp -R ./apps/default ./src/streamsync/app_templates/",
+
+		"codegen": "npm run -w streamsync-ui codegen"
 	}
 }

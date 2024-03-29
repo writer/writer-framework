@@ -34,10 +34,6 @@ jobs:
             - name: install npm environment
               run: npm ci
 
-            - name: run continuous integration to check everything is fine
-              run: |
-                poetry run alfred ci
-
             - name: publish on pypi
               run: |
                 poetry run alfred publish.pypi

@@ -219,7 +219,8 @@
             "id": "7b710d37-1c68-4d06-a65a-e6596ccc826a",
             "type": "text",
             "content": {
-                "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges."
+                "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges.",
+                "alignment": "center"
             },
             "isCodeManaged": false,
             "position": 3,

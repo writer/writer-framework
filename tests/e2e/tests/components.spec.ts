@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import components from "streamsync-ui/components.json";
+import components from "streamsync-ui/components.codegen.json";
 
 type Component = {
 	type: string;

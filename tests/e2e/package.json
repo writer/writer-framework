@@ -13,7 +13,6 @@
     "e2e:ui": "playwright test --project=chromium --ui"
   },
   "dependencies": {
-    "streamsync-cli": "*",
     "streamsync-ui": "*",
     "express": "4.18.2",
     "http-proxy": "1.18.1"

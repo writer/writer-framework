@@ -58,8 +58,8 @@ export default {
 				default: "no",
 				type: FieldType.Text,
 				options: {
-					no: "No",
 					yes: "Yes",
+					no: "No",
 				},
 				category: FieldCategory.Style,
 			},
