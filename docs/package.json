@@ -1,16 +1,25 @@
 {
-  "name": "streamsync-docs",
-  "version": "0.2.4",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "vitepress dev docs",
-    "build": "vitepress build docs",
-    "preview": "vitepress preview docs"
-  },
-  "dependencies": {
+	"name": "streamsync-docs",
+	"version": "0.2.4",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"dev": "npm run codegen; vitepress dev docs",
+		"build": "npm run codegen; vitepress build docs",
+		"preview": "npm run codegen; vitepress preview docs",
+		"test": "jest",
+		"codegen": "node codegen/generator_components_pages.js"
+	},
+	"dependencies": {
+		"highlight.js": "^11.9.0",
+		"marked": "^12.0.1",
+		"monaco-editor": "^0.47.0",
 		"streamsync-ui": "*",
-    "vitepress": "^1.0.0-rc.44",
-    "vue": "^3.4.21"
-  }
+		"vite-plugin-monaco-editor": "^1.1.0",
+		"vitepress": "^1.0.0-rc.44",
+		"vue": "^3.4.21"
+	},
+	"devDependencies": {
+		"jest": "29.7.0"
+	}
 }
