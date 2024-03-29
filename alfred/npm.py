@@ -7,7 +7,7 @@ def npm_lint():
 
 @alfred.command("npm.test", help="test against documentation")
 def npm_test():
-    alfred.run("npm docs:test")
+    alfred.run("npm run docs:test")
 
 @alfred.command("npm.e2e", help="run e2e tests")
 @alfred.option('--browser', '-b', help="run e2e tests on specified browser", default='chromium')
