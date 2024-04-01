@@ -159,3 +159,23 @@ In the example above, `fetch_data()` is an asynchronous function that retrieves 
 
 You can use any awaitable object within an async event handler. This includes the output of any function defined with `async def`, or objects with an `__await__` method. This makes it easy to integrate with asynchronous libraries and frameworks.
 
+## Context
+
+The `context` argument provides additional information about the event. For example, if the event 
+was triggered by a _Button_, the `context` will include target field that contains the id of the button.
+
+```py
+def handle_click(state, context: dict):
+	last_source_of_click = context['target']
+	state["last_source_of_click"] = last_source_of_click
+```
+
+The repeater components have additional fields in the context, such as defined in `keyVariable` and `valueVariable`.
+
+```py
+def handle_repeater_click(state, context: dict):
+	key = context['keyVariable']
+	state['repeater_content'][key]['last_action'] = 'Clicked' 
+```
+
+more information in [repeater chapter](repeater.md)
