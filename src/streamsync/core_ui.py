@@ -117,6 +117,26 @@ class ComponentTree:
             active_components[id] = component.to_dict()
         return active_components
 
+    def get_parent(self, component_id: str) -> List[str]:
+        """
+        Returns the list of parents, from the first to the highest level (root normally)
+
+        :param component_id:
+        :return:
+        """
+        components = self.components.values()
+        parents = []
+        current_node: Optional[str] = component_id
+        while current_node is not None:
+            for component in components:
+                if component.id == current_node:
+                    if component.parentId is not None:
+                        parents.append(component.parentId)
+
+                    current_node = component.parentId
+
+        return parents
+
 
 class DependentComponentTree(ComponentTree):
 
@@ -183,6 +203,7 @@ class DependentComponentTree(ComponentTree):
             # Overriding base tree components with ones that belong to dependent tree
             active_components[component_id] = own_component.to_dict()
         return active_components
+
 
 
 class SessionComponentTree(DependentComponentTree):
