@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Protocol, Tuple
+
 from pydantic import BaseModel
-from typing_extensions import TypedDict, Literal
+from typing_extensions import Literal, TypedDict
+
 
 class StreamsyncFileItem(TypedDict):
     name: str

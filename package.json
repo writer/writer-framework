@@ -15,7 +15,7 @@
 		"custom.dev": "npm run -w streamsync-ui dev",
 
 		"cli:test": "pytest tests -o log_cli=true ",
-		"cli:lint": "mypy ./src/streamsync --exclude app_templates/*",
+		"cli:lint": "mypy ./src/streamsync --exclude app_templates/* && ruff check",
 		"cli:build": "npm run codegen",
 
 		"ui:dev": "npm run -w streamsync-ui dev",

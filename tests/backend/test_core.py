@@ -1,24 +1,30 @@
 import json
 import math
 import unittest
+import urllib
 from typing import Dict
 
-import numpy as np
-from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
-                             FileWrapper, SessionManager, State, StateSerialiser, StateSerialiserException,
-                             StreamsyncState)
-
-import streamsync as ss
-from streamsync.ss_types import StreamsyncEvent
-import pandas as pd
-import polars as pl
-import plotly.express as px
-import pytest
 import altair
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import polars as pl
 import pyarrow as pa
-import urllib
+import pytest
+import streamsync as ss
+from streamsync.core import (
+    BytesWrapper,
+    Evaluator,
+    EventDeserialiser,
+    FileWrapper,
+    SessionManager,
+    State,
+    StateSerialiser,
+    StateSerialiserException,
+    StreamsyncState,
+)
+from streamsync.ss_types import StreamsyncEvent
 
-from pathlib import Path
 from tests.backend import test_app_dir
 
 raw_state_dict = {
