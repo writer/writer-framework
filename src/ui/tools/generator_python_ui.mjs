@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require("fs").promises;
-const path = require("path");
+import { promises as fs } from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
 
-const core = require("./core");
+import * as core from "./core.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // eslint-disable-next-line prettier/prettier
 const pythonUiPath = path.resolve(__dirname, "..", "..", "streamsync", "ui.py");
@@ -151,7 +155,7 @@ function generateMethods(data) {
  *
  * @returns {Promise<void>}
  */
-async function generate() {
+export async function generate() {
 	const components = await loadComponents();
 
 	// eslint-disable-next-line no-console
@@ -164,9 +168,3 @@ async function generate() {
 			generateMethods(components),
 	);
 }
-
-if (require.main === module) {
-	generate();
-}
-
-module.exports = { generate };
