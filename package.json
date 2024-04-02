@@ -31,6 +31,7 @@
 		"docs:test": "npm run -w streamsync-docs test",
 
 		"e2e": "npm run -w streamsync-e2e e2e",
+		"e2e:setup": "npm run -w streamsync-e2e e2e:setup",
 		"e2e:ui": "npm run -w streamsync-e2e e2e:ui",
 		"e2e:ci": "npm run -w streamsync-e2e e2e:ci",
 		"e2e:firefox": "npm run -w streamsync-e2e e2e:firefox",
