@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { promises as fs } from "fs";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 import { loadComponents } from "./core.mjs";
 
@@ -23,4 +23,3 @@ export async function generate() {
 	console.log("Writing components JSON to", componentsJsonPath);
 	await fs.writeFile(componentsJsonPath, JSON.stringify(components, null, 2));
 }
-
