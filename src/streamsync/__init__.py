@@ -1,5 +1,7 @@
 import importlib.metadata
-from typing import Union, Optional, Dict, Any, Type, TypeVar, cast
+import sys
+import types
+from typing import List, Union, Optional, Dict, Any, Type, TypeVar, cast
 
 from streamsync.core import (BytesWrapper, Config, FileWrapper, Readable,
                              base_component_tree, base_cmc_tree, initial_state,
@@ -83,3 +85,46 @@ def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> U
 
     _initial_state: S = new_initial_state(concrete_schema, raw_state)
     return _initial_state
+
+
+def init_handlers(handler_modules: Union[List[types.ModuleType], types.ModuleType]):
+    """
+    Registers one or more handler modules to enable its containing functions
+    to be used as event handlers by the application's frontend.
+
+    :param handler_modules: A module or list of modules for registration.
+    :type handler_modules: module or list of modules
+
+    **Examples**
+
+    Register a single handler module:
+
+    >>> import streamsync as ss
+    >>> import my_handler_module
+    >>> ss.init_handlers(my_handler_module)
+
+    Register multiple handler modules:
+
+    >>> import streamsync as ss
+    >>> import module_one, module_two
+    >>> ss.init_handlers([module_one, module_two])
+
+    :raises ValueError: If an object that is not a module is attempted to be registered.
+    """
+    streamsyncuserapp = sys.modules.get("streamsyncuserapp")
+
+    # Ensure handler_modules is a list
+    if not isinstance(handler_modules, list):
+        handler_modules = [handler_modules]
+
+    for module in handler_modules:
+        if isinstance(module, types.ModuleType):
+            module_name = module.__name__
+            if module_name not in streamsyncuserapp.__internal_handler_registry__:
+                streamsyncuserapp.__internal_handler_registry__[module_name] = {}
+
+            for fn_name, fn_obj in module.__dict__.items():
+                if callable(fn_obj) and not fn_name.startswith('_'):
+                    streamsyncuserapp.__internal_handler_registry__[module_name][fn_name] = fn_obj
+        else:
+            raise ValueError(f"Attempted to register a non-module object: {module}")

@@ -1193,10 +1193,10 @@ class EventHandler:
         if not handler:
             return
 
-        if not hasattr(streamsyncuserapp, handler):
+        callable_handler = streamsyncuserapp.__find_handler_function__(handler)
+        if not callable_handler:
             raise ValueError(
                 f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-        callable_handler = getattr(streamsyncuserapp, handler)
         is_async_handler = inspect.iscoroutinefunction(callable_handler)
 
         if (not callable(callable_handler)
