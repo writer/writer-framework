@@ -112,6 +112,8 @@ def init_handlers(handler_modules: Union[List[types.ModuleType], types.ModuleTyp
     :raises ValueError: If an object that is not a module is attempted to be registered.
     """
     streamsyncuserapp = sys.modules.get("streamsyncuserapp")
+    if not streamsyncuserapp:
+        raise RuntimeError("Failed to retrieve (streamsyncuserapp) module")
 
     # Ensure handler_modules is a list
     if not isinstance(handler_modules, list):
