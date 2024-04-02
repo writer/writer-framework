@@ -44,7 +44,7 @@
             "parentId": "0jbl2x7sl5gbjdnl",
             "position": 2,
             "handlers": {
-                "ss-click": "execute_test"
+                "ss-click": "main:execute_test"
             },
             "visible": true
         },
