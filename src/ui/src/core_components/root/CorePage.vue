@@ -85,7 +85,6 @@ export default {
 			},
 		},
 		description,
-		allowedSlots: ["sidebar"],
 		allowedChildrenTypes: ["*"],
 		allowedParentTypes: ["root"],
 		fields: {

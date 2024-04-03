@@ -51,8 +51,7 @@ export type StreamsyncComponentDefinition = {
 	category?: string; // Category (Layout, Content, etc)
 	allowedChildrenTypes?: (string | "*" | "inherit")[]; // Which component types are allowed inside (if any)
 	allowedParentTypes?: string[]; // Which component types can contain this type of component
-	slot?: string;
-	allowedSlots?: string[];
+	slot?: string; // In which slot component should render whgen "*" is used it will render in all slots
 	fields?: Record<
 		string, // Id for the field
 		{
