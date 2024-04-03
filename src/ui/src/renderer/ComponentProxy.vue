@@ -21,11 +21,6 @@ export default {
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId: Component["id"] = props.componentId;
 		const component = computed(() => ss.getComponentById(componentId));
-		const componentDefinition = ss.getComponentDefinitionById(componentId);
-		const allowedSlots = computed(() => [
-			...(componentDefinition.value.allowedSlots || []),
-			"default",
-		]);
 		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
@@ -60,7 +55,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-			ext: { class?: string } = {},
+			ext: { class?: string; contextSlot?: string } = {},
 		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -78,11 +73,13 @@ export default {
 			return vnode;
 		};
 
-		const getValidSlot = (childId: Component["id"]): string => {
-			const childDef = ss.getComponentDefinitionById(childId);
-			const slot = childDef.value.slot ?? "default";
-			return allowedSlots.value.includes(slot) ? slot : "default";
-		};
+		const filterBySlot =
+			(slotName: string) =>
+			(c: Component): boolean => {
+				const childDef = ss.getComponentDefinition(c.type);
+				const slot = childDef.slot ?? "default";
+				return slot === "*" || slot === slotName;
+			};
 
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
@@ -101,22 +98,23 @@ export default {
 			};
 
 			const slotComponents = children.value
-				.map((c) => ({ ...c, slot: getValidSlot(c.id) }))
-				.filter(
-					(c: Component & { slot: string }) => c.slot === slotName,
-				)
+				.filter(filterBySlot(slotName))
 				.filter(componentFilter);
 
 			const bmcVNodes = slotComponents
 				.filter((c) => !c.isCodeManaged)
 				.map((childComponent) =>
-					renderProxiedComponent(childComponent.id, instanceNumber),
+					renderProxiedComponent(childComponent.id, instanceNumber, {
+						contextSlot: slotName,
+					}),
 				);
 
 			const cmcVNodes = slotComponents
 				.filter((c) => c.isCodeManaged)
 				.map((childComponent) =>
-					renderProxiedComponent(childComponent.id, instanceNumber),
+					renderProxiedComponent(childComponent.id, instanceNumber, {
+						contextSlot: slotName,
+					}),
 				);
 
 			return [

@@ -564,29 +564,6 @@ export function generateCore() {
 		return userState.value;
 	}
 
-	function getComponentDefinitionById(
-		componentId: Component["id"] | Ref<Component["id"]>,
-	): ComputedRef<StreamsyncComponentDefinition> {
-		return computed(() => {
-			const id: Component["id"] = isRef(componentId)
-				? componentId.value
-				: componentId;
-			const component = components.value[id];
-			if (!component) return null;
-			return {
-				...getComponentDefinition(component.type),
-				...(componentDefinitionOverrides.value[id] || {}),
-			};
-		});
-	}
-
-	function setComponentDefinitionById(
-		componentId: Component["id"],
-		patch: Partial<StreamsyncComponentDefinition>,
-	) {
-		return (componentDefinitionOverrides.value[componentId] = patch);
-	}
-
 	const core = {
 		webSocket,
 		syncHealth,
@@ -614,8 +591,6 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
-		getComponentDefinitionById,
-		setComponentDefinitionById,
 	};
 
 	return core;

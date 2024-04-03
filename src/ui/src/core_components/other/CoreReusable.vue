@@ -1,15 +1,16 @@
 <template>
-	<component :is="vnode" />
+	<component :is="vnode" v-if="shouldRender" />
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import { h, inject, watch, ref } from "vue";
+import { computed, defineProps, h, inject, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 export default {
 	streamsync: {
 		name: "Reuse Component",
+		slot: "*",
 		description:
 			"Those components are used to reuse other components. " +
 			"Reused components share the same state and are updated together.",
@@ -26,6 +27,9 @@ export default {
 };
 </script>
 <script setup lang="ts">
+const props = defineProps<{
+	contextSlot: string;
+}>();
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const parentId = instancePath.at(-2).componentId;
@@ -34,10 +38,12 @@ const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const vnode = ref(h("div", ""));
-const proxyType = ss.getComponentById(parentId).type;
-const parentType = ss.getComponentById(parentId).type;
-const proxyDefinition = ss.getComponentDefinitionById(fields.proxyId);
-const parentDef = ss.getComponentDefinitionById(parentId);
+const shouldRender = ref(true);
+const proxyType = computed(() => ss.getComponentById(fields.proxyId.value)?.type);
+const parentType = computed(() => ss.getComponentById(parentId)?.type);
+
+const proxyDefinition = computed(() => ss.getComponentDefinition(proxyType.value));
+const parentDef = computed(() => ss.getComponentDefinition(parentType.value));
 
 function renderError(message: string, cls: string) {
 	vnode.value = h(
@@ -62,6 +68,10 @@ function isAllowedParentType(type) {
 }
 
 function render() {
+	console.log(props.contextSlot, proxyDefinition.value, props.contextSlot, proxyType.value?.slot ?? "default");
+	shouldRender.value = (!proxyDefinition.value && props.contextSlot === 'default') 
+		|| props.contextSlot === (proxyDefinition.value.slot ?? "default");
+
 	if (!fields.proxyId.value) {
 		return renderError("No component selected to reuse", "empty");
 	}
@@ -72,17 +82,13 @@ function render() {
 		);
 	}
 
-	if (!isAllowedChildType(proxyType) || !isAllowedParentType(parentType)) {
+	if (!isAllowedChildType(proxyType.value) || !isAllowedParentType(parentType.value)) {
 		return renderError(
 			`The component cannot be reused here.`,
 			"invalid-context",
 		);
 	}
-
-	ss.setComponentDefinitionById(componentId, {
-		slot: proxyDefinition.value.slot || "default",
-		positionless: proxyDefinition.value.positionless || false,
-	});
+	
 	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0, {
 		class: ["CoreReuse"],
 	});
