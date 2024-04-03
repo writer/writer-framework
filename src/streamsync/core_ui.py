@@ -1,10 +1,9 @@
 import contextlib
+import uuid
 from contextvars import ContextVar
 from typing import Any, Dict, List, Optional, Union
-import uuid
 
 from pydantic import BaseModel, Field
-
 
 current_parent_container: ContextVar[Union["Component", None]] = \
     ContextVar("current_parent_container")

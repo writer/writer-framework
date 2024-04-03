@@ -1,29 +1,43 @@
-import multiprocessing
-import multiprocessing.synchronize
-import multiprocessing.connection
-import signal
-import threading
 import asyncio
 import concurrent.futures
 import importlib.util
 import inspect
-import os
-import sys
+import json
 import logging
 import logging.handlers
+import multiprocessing
+import multiprocessing.connection
+import multiprocessing.synchronize
+import os
+import signal
+import sys
+import threading
 from types import ModuleType
-import json
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Callable, Dict, List, Optional, cast
 
+import watchdog.events
+import watchdog.observers
+from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from pydantic import ValidationError
-from streamsync.core import StreamsyncSession
-from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
-                                 EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StateEnquiryRequest, StateEnquiryResponsePayload, StreamsyncEvent)
-import watchdog.observers
-import watchdog.events
 from streamsync import VERSION
+from streamsync.core import StreamsyncSession
+from streamsync.ss_types import (
+    AppProcessServerRequest,
+    AppProcessServerRequestPacket,
+    AppProcessServerResponse,
+    AppProcessServerResponsePacket,
+    ComponentUpdateRequest,
+    ComponentUpdateRequestPayload,
+    EventRequest,
+    EventResponsePayload,
+    InitSessionRequest,
+    InitSessionRequestPayload,
+    InitSessionResponsePayload,
+    StateEnquiryRequest,
+    StateEnquiryResponsePayload,
+    StreamsyncEvent,
+)
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -106,7 +120,7 @@ class AppProcess(multiprocessing.Process):
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
         if streamsyncuserapp is None:
             raise ValueError("Couldn't find app module (streamsyncuserapp).")
-        all_fn_names = map(lambda x: x[0], inspect.getmembers(
+        all_fn_names = (x[0] for x in inspect.getmembers(
             streamsyncuserapp, inspect.isfunction))
         exposed_fn_names = list(
             filter(lambda x: not x.startswith("_"), all_fn_names))
@@ -130,8 +144,9 @@ class AppProcess(multiprocessing.Process):
         Handles session initialisation and provides a starter pack.
         """
 
-        import streamsync
         import traceback as tb
+
+        import streamsync
 
         session = streamsync.session_manager.get_new_session(
             payload.cookies, payload.headers, payload.proposedSessionId)
@@ -194,7 +209,7 @@ class AppProcess(multiprocessing.Process):
         except BaseException:
             session.session_state.add_log_entry("error",
                                                 "Serialisation Error",
-                                                f"An exception was raised during serialisation.",
+                                                "An exception was raised during serialisation.",
                                                 tb.format_exc())
 
         mail = session.session_state.mail
@@ -275,9 +290,10 @@ class AppProcess(multiprocessing.Process):
         Executes the user code and captures standard output.
         """
 
-        import streamsync
-        from contextlib import redirect_stdout
         import io
+        from contextlib import redirect_stdout
+
+        import streamsync
 
         streamsyncuserapp = sys.modules.get("streamsyncuserapp")
         if streamsyncuserapp is None:
@@ -318,8 +334,9 @@ class AppProcess(multiprocessing.Process):
         # Allows for relative imports from the app's path
         sys.path.append(self.app_path)
 
-        import streamsync
         import traceback as tb
+
+        import streamsync
 
         terminate_early = False
 
