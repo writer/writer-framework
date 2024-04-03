@@ -1,7 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
 
-test.describe("Reusable component", () => {
-	const TYPE = "reusable";
+test.describe("Reuse component", () => {
+	const TYPE = "reuse";
 	const COMPONENT_LOCATOR = `div.CoreReuse.component`;
 
 	const fillSettingsField = async (page: Page, key: string, value: string) => {

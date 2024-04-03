@@ -40,6 +40,13 @@ export default {
 				component.value.type !== "root",
 		);
 
+		const isParentSuitable = (parentId, childType) => {
+			const allowedTypes = !parentId
+				? ["root"]
+				: ss.getContainableTypes(parentId);
+			return allowedTypes.includes(childType);
+		};
+
 		const isDisabled = ref(false);
 		const userFunctions: Ref<UserFunction[]> = computed(() =>
 			ss.getUserFunctions(),
@@ -76,6 +83,11 @@ export default {
 		const filterBySlot =
 			(slotName: string) =>
 			(c: Component): boolean => {
+				if (
+					!isParentSuitable(componentId, c.type) &&
+					slotName === "default"
+				)
+					return true;
 				const childDef = ss.getComponentDefinition(c.type);
 				const slot = childDef.slot ?? "default";
 				return slot === "*" || slot === slotName;
@@ -301,13 +313,6 @@ export default {
 			return rootElProps;
 		};
 
-		const isParentSuitable = () => {
-			const allowedTypes = !component.value.parentId
-				? ["root"]
-				: ss.getContainableTypes(component.value.parentId);
-			return allowedTypes.includes(component.value.type);
-		};
-
 		const renderErrorVNode = (vnodeProps, message): VNode => {
 			if (!isBeingEdited.value) return h("div");
 			return h(RenderError, {
@@ -349,7 +354,12 @@ export default {
 				...getRootElProps(),
 			};
 
-			if (!isParentSuitable()) {
+			if (
+				!isParentSuitable(
+					component.value.parentId,
+					component.value.type,
+				)
+			) {
 				return renderErrorVNode(
 					vnodeProps,
 					"Parent is not suitable for this component",

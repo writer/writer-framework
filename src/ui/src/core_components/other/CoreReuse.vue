@@ -39,13 +39,18 @@ const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const vnode = ref(h("div", ""));
 const shouldRender = ref(true);
-const proxyType = computed(() => ss.getComponentById(fields.proxyId.value)?.type);
+const proxyType = computed(
+	() => ss.getComponentById(fields.proxyId.value)?.type,
+);
 const parentType = computed(() => ss.getComponentById(parentId)?.type);
 
-const proxyDefinition = computed(() => ss.getComponentDefinition(proxyType.value));
+const proxyDefinition = computed(() =>
+	proxyType.value ? ss.getComponentDefinition(proxyType.value) : null,
+);
 const parentDef = computed(() => ss.getComponentDefinition(parentType.value));
 
 function renderError(message: string, cls: string) {
+	shouldRender.value = props.contextSlot === "default";
 	vnode.value = h(
 		"div",
 		{ class: ["CoreReuse", cls] },
@@ -68,10 +73,6 @@ function isAllowedParentType(type) {
 }
 
 function render() {
-	console.log(props.contextSlot, proxyDefinition.value, props.contextSlot, proxyType.value?.slot ?? "default");
-	shouldRender.value = (!proxyDefinition.value && props.contextSlot === 'default') 
-		|| props.contextSlot === (proxyDefinition.value.slot ?? "default");
-
 	if (!fields.proxyId.value) {
 		return renderError("No component selected to reuse", "empty");
 	}
@@ -82,13 +83,18 @@ function render() {
 		);
 	}
 
-	if (!isAllowedChildType(proxyType.value) || !isAllowedParentType(parentType.value)) {
+	if (
+		!isAllowedChildType(proxyType.value) ||
+		!isAllowedParentType(parentType.value)
+	) {
 		return renderError(
 			`The component cannot be reused here.`,
 			"invalid-context",
 		);
 	}
-	
+
+	shouldRender.value =
+		props.contextSlot === (proxyDefinition.value.slot ?? "default");
 	const reusedNode = renderProxiedComponent(fields.proxyId.value, 0, {
 		class: ["CoreReuse"],
 	});

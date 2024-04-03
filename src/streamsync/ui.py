@@ -1915,7 +1915,7 @@ class StreamsyncUIManager(StreamsyncUI):
         Those components are used to reuse other components. Reused components share the same state and are updated together.
         """
         component = StreamsyncUI.create_component(
-            'reusable',
+            'reuse',
             content=content,
             id=id,
             position=position,
