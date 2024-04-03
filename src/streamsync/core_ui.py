@@ -45,7 +45,6 @@ class Component(BaseModel):
 class ComponentTree:
 
     def __init__(self, attach_root=True) -> None:
-        self.counter: int = 0
         self.components: Dict[str, Component] = {}
 
         if attach_root:
@@ -93,7 +92,6 @@ class ComponentTree:
                          be overridden. Defaults to False.
         :type override: bool, optional
         """
-        self.counter += 1
         if (component.id in self.components) and (override is False):
             raise RuntimeWarning(
                 f"Component with ID {component.id} already exists"
@@ -201,7 +199,6 @@ class SessionComponentTree(DependentComponentTree):
         # CMC pool, added during app initialization
         preinitialized_components = base_cmc_tree.to_dict()
         self.ingest(preinitialized_components)
-        self.counter = len(self.components)
 
         preinitialized_pages = \
             filter(lambda c: c.type == "page", self.components.values())
