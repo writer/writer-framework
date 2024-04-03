@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, Ref, computed, isRef, ComputedRef } from "vue";
+import { ref, Ref } from "vue";
 import {
 	Component,
 	ComponentMap,
 	InstancePath,
 	MailItem,
 	UserFunction,
-	StreamsyncComponentDefinition,
 } from "../streamsyncTypes";
 import {
 	getSupportedComponentTypes,
@@ -24,8 +23,6 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
-	const componentDefinitionOverrides: Ref<Partial<StreamsyncComponentDefinition>> =
-		ref({});
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
@@ -426,7 +423,6 @@ export function generateCore() {
 	}
 
 	function deleteComponent(componentId: Component["id"]) {
-		delete componentDefinitionOverrides.value[componentId];
 		delete components.value[componentId];
 	}
 

@@ -136,9 +136,6 @@
       }
     },
     "description": "A container component representing a single page within the application.",
-    "allowedSlots": [
-      "sidebar"
-    ],
     "allowedChildrenTypes": [
       "*"
     ],
@@ -2845,6 +2842,7 @@
   {
     "type": "reusable",
     "name": "Reuse Component",
+    "slot": "*",
     "description": "Those components are used to reuse other components. Reused components share the same state and are updated together.",
     "category": "Other",
     "allowedChildrenTypes": [],
