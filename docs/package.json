@@ -3,6 +3,7 @@
 	"version": "0.2.4",
 	"description": "",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
 		"dev": "npm run codegen; vitepress dev docs",
 		"build": "npm run codegen; vitepress build docs",
@@ -16,7 +17,7 @@
 		"monaco-editor": "^0.47.0",
 		"streamsync-ui": "*",
 		"vite-plugin-monaco-editor": "^1.1.0",
-		"vitepress": "^1.0.0-rc.44",
+		"vitepress": "^1.0.2",
 		"vue": "^3.4.21"
 	},
 	"devDependencies": {

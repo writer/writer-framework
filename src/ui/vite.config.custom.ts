@@ -2,14 +2,12 @@ import path from "path";
 
 import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import monacoEditorPlugin from "vite-plugin-monaco-editor";
 import streamsyncPlugin from "./viteStreamsyncPlugin";
 
 export default defineConfig({
 	base: "./",
 	plugins: [
 		vue(),
-		{ ...monacoEditorPlugin({}), apply: "serve" },
 		streamsyncPlugin(),
 	],
 	includeStreamsyncComponentPath: false,

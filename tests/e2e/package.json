@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+		"e2e:setup": "playwright install --with-deps",
     "e2e": "playwright test --project=chromium --reporter=list",
     "e2e:ci": "playwright test",
     "e2e:chromium": "playwright test --project=chromium",
@@ -14,11 +15,11 @@
   },
   "dependencies": {
     "streamsync-ui": "*",
-    "express": "4.18.2",
+    "express": "4.19.2",
     "http-proxy": "1.18.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.41.2",
+    "@playwright/test": "1.42.1",
     "nodemon": "3.1.0"
   }
 }
