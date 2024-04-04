@@ -241,6 +241,7 @@
     "name": "Sidebar",
     "description": "A container component that organises its children in a sidebar. Its parent must be a Page component.",
     "positionless": true,
+    "slot": "sidebar",
     "allowedParentTypes": [
       "page"
     ],
@@ -2837,6 +2838,22 @@
       }
     },
     "fileRef": "src/core_components/input/CoreSwitchInput.vue"
+  },
+  {
+    "type": "reuse",
+    "name": "Reuse Component",
+    "slot": "*",
+    "description": "Those components are used to reuse other components. Reused components share the same state and are updated together.",
+    "category": "Other",
+    "allowedChildrenTypes": [],
+    "fields": {
+      "proxyId": {
+        "name": "Component id",
+        "type": "Text",
+        "desc": "The id of the component to reuse."
+      }
+    },
+    "fileRef": "src/core_components/other/CoreReuse.vue"
   },
   {
     "type": "avatar",

@@ -40,6 +40,13 @@ export default {
 				component.value.type !== "root",
 		);
 
+		const isParentSuitable = (parentId, childType) => {
+			const allowedTypes = !parentId
+				? ["root"]
+				: ss.getContainableTypes(parentId);
+			return allowedTypes.includes(childType);
+		};
+
 		const isDisabled = ref(false);
 		const userFunctions: Ref<UserFunction[]> = computed(() =>
 			ss.getUserFunctions(),
@@ -55,6 +62,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
+			ext: { class?: string; contextSlot?: string } = {},
 		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -67,12 +75,27 @@ export default {
 					},
 				],
 				instanceData: [...instanceData, ref(null)],
+				...ext,
 			});
 			return vnode;
 		};
 
+		const filterBySlot =
+			(slotName: string) =>
+			(c: Component): boolean => {
+				if (
+					!isParentSuitable(componentId, c.type) &&
+					slotName === "default"
+				)
+					return true;
+				const childDef = ss.getComponentDefinition(c.type);
+				const slot = childDef.slot ?? "default";
+				return slot === "*" || slot === slotName;
+			};
+
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
+			slotName: string = "default",
 			componentFilter: (c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
@@ -86,18 +109,24 @@ export default {
 				];
 			};
 
-			const slotComponents = children.value.filter(componentFilter);
+			const slotComponents = children.value
+				.filter(filterBySlot(slotName))
+				.filter(componentFilter);
 
 			const bmcVNodes = slotComponents
 				.filter((c) => !c.isCodeManaged)
 				.map((childComponent) =>
-					renderProxiedComponent(childComponent.id, instanceNumber),
+					renderProxiedComponent(childComponent.id, instanceNumber, {
+						contextSlot: slotName,
+					}),
 				);
 
 			const cmcVNodes = slotComponents
 				.filter((c) => c.isCodeManaged)
 				.map((childComponent) =>
-					renderProxiedComponent(childComponent.id, instanceNumber),
+					renderProxiedComponent(childComponent.id, instanceNumber, {
+						contextSlot: slotName,
+					}),
 				);
 
 			return [
@@ -284,13 +313,6 @@ export default {
 			return rootElProps;
 		};
 
-		const isParentSuitable = () => {
-			const allowedTypes = !component.value.parentId
-				? ["root"]
-				: ss.getContainableTypes(component.value.parentId);
-			return allowedTypes.includes(component.value.type);
-		};
-
 		const renderErrorVNode = (vnodeProps, message): VNode => {
 			if (!isBeingEdited.value) return h("div");
 			return h(RenderError, {
@@ -307,10 +329,12 @@ export default {
 
 			const defaultSlotFn = ({
 				instanceNumber = 0,
+				slotName = "default",
 				componentFilter = () => true,
 				positionlessSlot = false,
 			}: {
 				instanceNumber: number;
+				slotName: string;
 				componentFilter: (c: Component) => boolean;
 				positionlessSlot: boolean;
 			}) => {
@@ -319,6 +343,7 @@ export default {
 				}
 				const vnodes = getChildrenVNodes(
 					instanceNumber,
+					slotName,
 					componentFilter,
 					positionlessSlot,
 				);
@@ -329,7 +354,12 @@ export default {
 				...getRootElProps(),
 			};
 
-			if (!isParentSuitable()) {
+			if (
+				!isParentSuitable(
+					component.value.parentId,
+					component.value.type,
+				)
+			) {
 				return renderErrorVNode(
 					vnodeProps,
 					"Parent is not suitable for this component",
