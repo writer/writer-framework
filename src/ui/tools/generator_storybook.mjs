@@ -34,19 +34,47 @@ import "remixicon/fonts/remixicon.css";
 import { generateCore } from "${srcPath("stories", "fakeCore")}";`;
 }
 
+function generateArgDefault(field) {
+	if (field.default !== undefined) {
+		return `			table: {
+				defaultValue: { summary: ${JSON.stringify(field.default)} }
+			},`;
+	}
+	return "";
+}
 function generateArgTypes(component) {
 	return Object.entries(component.fields)
 		.map(([key, field]) => {
-			return `		${key}: { control: "text" },`;
+			return `		${key}: {
+			control: "text",
+${generateArgDefault(field)} },`;
 		})
 		.join("\n");
 }
 
 function generateArgWrap(component) {
 	return Object.entries(component.fields)
-		.map(([key]) => {
+		.map(([key, field]) => {
+			if (field.type === "Object" || field.type === "Key-Value") {
+				return `				${key}: computed(() => JSON.parse(args.${key})),`;
+			}
+			if (field.type === "Number") {
+				return `				${key}: computed(() => args.${key} ? Number.parseInt(args.${key}, 10) : args.${key}),`;
+			}
 			return `				${key}: computed(() => args.${key}),`;
 		})
+		.join("\n");
+}
+
+function generateInitArgValues(component) {
+	return Object.entries(component.fields)
+		.map(([key, field]) => {
+			if (field.init !== undefined || field.default !== undefined) {
+				return `		${key}: ${JSON.stringify(field.init || field.default)},`;
+			}
+			return null;
+		})
+		.filter((x) => x !== null)
 		.join("\n");
 }
 
@@ -61,6 +89,9 @@ const meta = {
 	tags: ["autodocs"],
 	argTypes: {
 ${generateArgTypes(component)}
+	},
+	args: {
+${generateInitArgValues(component)}
 	},
 } satisfies Meta<typeof ${component.nameTrim}>;
 
@@ -92,6 +123,10 @@ export const Sample: Story = {
 ${generateArgWrap(component)}
 			});
 			provide(injectionKeys.isDisabled, ref(false));
+			provide(injectionKeys.componentId, "test");
+			provide(injectionKeys.isBeingEdited, ref(false));
+			provide(injectionKeys.instancePath, [{componentId: "test", instanceNumber: 0}]);
+			provide(injectionKeys.flattenedInstancePath, "test:0");
 			provide(injectionKeys.core, ss as any);
 			return { args };
 		},
@@ -115,7 +150,7 @@ export async function generate() {
 			await fs.mkdir(storyFile(mod), { recursive: true });
 		}
 		const filePath = storyFile(mod, name + ".stories.ts");
-	
+
 		await fs.writeFile(
 			filePath,
 			generateImports(component, {
