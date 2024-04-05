@@ -6,9 +6,10 @@ The alfred publish command creates a new tag that triggers the deployment pipeli
 import os
 import sys
 
-import alfred
 import click
 from click import Choice
+
+import alfred
 
 ROOT_DIR = os.path.realpath(os.path.join(__file__, "..", ".."))
 

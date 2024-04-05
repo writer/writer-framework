@@ -1,8 +1,14 @@
 from json import dumps as json_dumps
 from typing import Optional
 
-from streamsync.core_ui import (Component, UIError,
-                                current_parent_container, current_component_tree, ComponentTree, DependentComponentTree)
+from streamsync.core_ui import (
+    Component,
+    ComponentTree,
+    DependentComponentTree,
+    UIError,
+    current_component_tree,
+    current_parent_container,
+)
 
 
 class StreamsyncUI:

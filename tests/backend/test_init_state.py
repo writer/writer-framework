@@ -2,7 +2,8 @@ import contextlib
 from typing import Optional
 
 import streamsync.core
-from streamsync.core import StreamsyncState, State
+from streamsync.core import State, StreamsyncState
+
 
 @contextlib.contextmanager
 def use_dedicated_streamsync_initial_state():

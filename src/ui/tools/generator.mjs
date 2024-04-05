@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const generatorPythonUi = require("./generator_python_ui");
-const generatorUiComponentJson = require("./generator_ui_component_json");
+import * as generatorPythonUi from "./generator_python_ui.mjs";
+import * as generatorUiComponentJson from "./generator_ui_component_json.mjs";
 
 async function generate() {
 	await generatorPythonUi.generate();

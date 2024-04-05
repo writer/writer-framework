@@ -1,12 +1,16 @@
 
-import logging
-import threading
-import time
-from streamsync.app_runner import AppRunner
-import pytest
-from streamsync.ss_types import EventRequest, InitSessionRequest, InitSessionRequestPayload, StreamsyncEvent
 import asyncio
 import contextlib
+import threading
+
+import pytest
+from streamsync.app_runner import AppRunner
+from streamsync.ss_types import (
+    EventRequest,
+    InitSessionRequest,
+    InitSessionRequestPayload,
+    StreamsyncEvent,
+)
 
 from tests.backend import test_app_dir
 
@@ -120,7 +124,7 @@ class TestAppRunner:
             ))
             ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
             assert ev_res.status == "ok"
-            assert ev_res.payload.result.get("ok") == True
+            assert ev_res.payload.result.get("ok")
             assert ev_res.payload.mutations.get(
                 "+inspected_payload") == "129673.0"
             assert ev_res.payload.mutations.get(
@@ -157,7 +161,7 @@ class TestAppRunner:
             ))
             ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
             assert ev_res.status == "ok"
-            assert ev_res.payload.result.get("ok") == True
+            assert ev_res.payload.result.get("ok")
             assert "+counter" in ev_res.payload.mutations
 
     @pytest.mark.asyncio
@@ -187,7 +191,7 @@ class TestAppRunner:
             ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
             print(repr(ev_res))
             assert ev_res.status == "ok"
-            assert ev_res.payload.result.get("ok") == False
+            assert not ev_res.payload.result.get("ok")
 
     @pytest.mark.usefixtures("setup_app_runner")
     def test_run_code_edit(self, setup_app_runner) -> None:

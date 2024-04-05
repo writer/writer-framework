@@ -1,9 +1,9 @@
 import contextlib
+import json
+
+import streamsync as ss
 from streamsync.core_ui import ComponentTree, UIError, use_component_tree
 from streamsync.ui import StreamsyncUIManager
-import streamsync as ss
-
-import json
 
 from tests.backend import test_app_dir
 
@@ -39,7 +39,7 @@ class TestComponentTree:
     def test_descendents(self) -> None:
         with use_new_ss_session() as session:
             desc = session.session_component_tree.get_descendents("root")
-            desc_ids = list(map(lambda x: x.id, desc))
+            desc_ids = [x.id for x in desc]
             assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
             assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
             assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids

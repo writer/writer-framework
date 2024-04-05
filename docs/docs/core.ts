@@ -1,7 +1,7 @@
 import hljs from 'highlight.js/lib/core';
 import python from 'highlight.js/lib/languages/python';
 import { marked } from 'marked';
-import components from "streamsync-ui/components.codegen.json";
+import components from "streamsync-ui/components.codegen.json" assert { type: "json" };
 
 // @ts-ignore
 hljs.registerLanguage('python', python);

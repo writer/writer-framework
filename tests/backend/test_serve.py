@@ -1,11 +1,10 @@
 import mimetypes
 
 import fastapi
-from fastapi import FastAPI
-
-import streamsync.serve
 import fastapi.testclient
 import pytest
+import streamsync.serve
+from fastapi import FastAPI
 
 from tests.backend import test_app_dir, test_multiapp_dir
 
