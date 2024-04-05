@@ -1,5 +1,6 @@
 import importlib.metadata
-from typing import Any, Dict, Optional, Type, TypeVar, Union, cast
+from types import ModuleType
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from streamsync.core import (
     BytesWrapper,
@@ -11,10 +12,10 @@ from streamsync.core import (
     base_cmc_tree,
     base_component_tree,
     initial_state,
+    handler_registry,
     new_initial_state,
     session_manager,
     session_verifier,
-    handler_registry
 )
 from streamsync.ui import StreamsyncUIManager
 
@@ -95,7 +96,7 @@ def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> U
     return _initial_state
 
 
-def init_handlers(handler_modules: Union[List[types.ModuleType], types.ModuleType]):
+def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
     """
     Registers one or more handler modules to enable its containing functions
     to be used as event handlers by the application's frontend.
