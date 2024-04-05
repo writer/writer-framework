@@ -49,7 +49,7 @@
             "position": 1,
             "parentId": "0jbl2x7sl5gbjdnl",
             "handlers": {
-                "ss-click": "main:execute_test"
+                "ss-click": "execute_test"
             },
             "visible": true
         },

@@ -18,7 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, cast
 from watchdog.observers.polling import PollingObserver
 
 from pydantic import ValidationError
-from streamsync.core import StreamsyncSession
+from streamsync.core import StreamsyncSession, handler_registry
 from streamsync.ss_types import (AppProcessServerRequest, AppProcessServerRequestPacket, AppProcessServerResponse, AppProcessServerResponsePacket, ComponentUpdateRequest, ComponentUpdateRequestPayload,
                                  EventRequest, EventResponsePayload, InitSessionRequest, InitSessionRequestPayload, InitSessionResponse, InitSessionResponsePayload, StateEnquiryRequest, StateEnquiryResponsePayload, StreamsyncEvent)
 import watchdog.observers
@@ -97,23 +97,6 @@ class AppProcess(multiprocessing.Process):
         sys.modules[module_name] = module
         globals()[module_name] = module
 
-        # Search function for handlers
-        def __find_handler_function__(handler_path: str) -> Optional[Callable]:
-            raw_path_parts = handler_path.split(":")
-            if len(raw_path_parts) != 2:
-                raise ValueError(f"Improper handler configuration: {handler_path}")
-            module_name, handler_name = raw_path_parts
-
-            # Access the handler registry
-            handler_registry = getattr(module, '__internal_handler_registry__', {})
-            if module_name in handler_registry:
-                module_handlers: dict = handler_registry[module_name]
-                return module_handlers.get(handler_name)
-
-            return None  # Handler not found
-
-        setattr(module, '__find_handler_function__', __find_handler_function__)
-        setattr(module, '__internal_handler_registry__', {'main': {}})
         return module
 
     def _get_user_functions(self) -> List[Dict]:
@@ -121,27 +104,7 @@ class AppProcess(multiprocessing.Process):
         Returns functions exposed in the user code module and registered modules,
         which are potential event handlers, using the handler registry.
         """
-        fn_info = []
-
-        streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-        if streamsyncuserapp is None:
-            raise ValueError("Couldn't find app module (streamsyncuserapp).")
-
-        # Access the handler registry directly
-        handler_registry = getattr(streamsyncuserapp, '__internal_handler_registry__')
-
-        for module_name, handlers in handler_registry.items():
-            for fn_name, fn_callable in handlers.items():
-                # Since we're directly accessing registered handlers,
-                # we assume they are valid and public (non-private)
-                args = inspect.getfullargspec(fn_callable).args
-
-                fn_info.append({
-                    "name": f"{module_name}:{fn_name}",
-                    "args": args
-                })
-
-        return fn_info
+        return handler_registry.gather_handler_meta()
 
     def _handle_session_init(self, payload: InitSessionRequestPayload) -> InitSessionResponsePayload:
         """
@@ -312,9 +275,7 @@ class AppProcess(multiprocessing.Process):
                 "info", "Stdout message during initialisation", captured_stdout)
 
         # Register non-private functions as handlers
-        for name, func in inspect.getmembers(streamsyncuserapp, inspect.isfunction):
-            if not name.startswith('_'):
-                streamsyncuserapp.__internal_handler_registry__['main'][name] = func
+        handler_registry.register_module(streamsyncuserapp)
 
     def _apply_configuration(self) -> None:
         import streamsync

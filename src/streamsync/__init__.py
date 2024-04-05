@@ -5,7 +5,7 @@ from typing import List, Union, Optional, Dict, Any, Type, TypeVar, cast
 
 from streamsync.core import (BytesWrapper, Config, FileWrapper, Readable,
                              base_component_tree, base_cmc_tree, initial_state,
-                             session_manager, session_verifier)
+                             session_manager, session_verifier, handler_registry)
 from streamsync.core import Readable, FileWrapper, BytesWrapper, Config, StreamsyncState
 from streamsync.core import new_initial_state, base_component_tree, session_manager, session_verifier
 from streamsync.ui import StreamsyncUIManager
@@ -111,22 +111,9 @@ def init_handlers(handler_modules: Union[List[types.ModuleType], types.ModuleTyp
 
     :raises ValueError: If an object that is not a module is attempted to be registered.
     """
-    streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-    if not streamsyncuserapp:
-        raise RuntimeError("Failed to retrieve (streamsyncuserapp) module")
-
     # Ensure handler_modules is a list
     if not isinstance(handler_modules, list):
         handler_modules = [handler_modules]
 
     for module in handler_modules:
-        if isinstance(module, types.ModuleType):
-            module_name = module.__name__
-            if module_name not in streamsyncuserapp.__internal_handler_registry__:
-                streamsyncuserapp.__internal_handler_registry__[module_name] = {}
-
-            for fn_name, fn_obj in module.__dict__.items():
-                if callable(fn_obj) and not fn_name.startswith('_'):
-                    streamsyncuserapp.__internal_handler_registry__[module_name][fn_name] = fn_obj
-        else:
-            raise ValueError(f"Attempted to register a non-module object: {module}")
+        handler_registry.register_module(module)

@@ -153,7 +153,7 @@
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "position": 1,
             "handlers": {
-                "ss-number-change": "main:update"
+                "ss-number-change": "update"
             },
             "binding": {
                 "eventType": "ss-number-change",
@@ -172,7 +172,7 @@
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "position": 0,
             "handlers": {
-                "ss-number-change": "main:update"
+                "ss-number-change": "update"
             },
             "binding": {
                 "eventType": "ss-number-change",
@@ -413,7 +413,7 @@
             "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "position": 0,
             "handlers": {
-                "ss-tick": "main:handle_timer_tick"
+                "ss-tick": "handle_timer_tick"
             }
         },
         "e296866a-75d2-4677-b55d-3c1456113b89": {
@@ -795,7 +795,7 @@
             "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "position": 5,
             "handlers": {
-                "click": "main:test_context"
+                "click": "test_context"
             },
             "visible": true
         },
@@ -849,7 +849,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 0,
             "handlers": {
-                "ss-change": "main:payload_inspector"
+                "ss-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-change",
@@ -867,7 +867,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 1,
             "handlers": {
-                "ss-change": "main:payload_inspector"
+                "ss-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-change",
@@ -884,7 +884,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 2,
             "handlers": {
-                "ss-number-change": "main:payload_inspector"
+                "ss-number-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-number-change",
@@ -904,7 +904,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 7,
             "handlers": {
-                "ss-number-change": "main:payload_inspector"
+                "ss-number-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-number-change",
@@ -921,7 +921,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 8,
             "handlers": {
-                "ss-date-change": "main:payload_inspector"
+                "ss-date-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-date-change",
@@ -938,7 +938,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 9,
             "handlers": {
-                "ss-option-change": "main:payload_inspector"
+                "ss-option-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-option-change",
@@ -955,7 +955,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 5,
             "handlers": {
-                "ss-options-change": "main:payload_inspector"
+                "ss-options-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-options-change",
@@ -972,7 +972,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 10,
             "handlers": {
-                "ss-option-change": "main:payload_inspector"
+                "ss-option-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-option-change",
@@ -990,7 +990,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 11,
             "handlers": {
-                "ss-file-change": "main:payload_inspector"
+                "ss-file-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-file-change",
@@ -1008,7 +1008,7 @@
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "position": 3,
             "handlers": {
-                "ss-option-change": "main:payload_inspector"
+                "ss-option-change": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-option-change",
@@ -1115,7 +1115,7 @@
             "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "position": 0,
             "handlers": {
-                "click": "main:payload_inspector"
+                "click": "payload_inspector"
             },
             "visible": true
         },
@@ -1148,7 +1148,7 @@
             "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "position": 6,
             "handlers": {
-                "click": "main:payload_inspector"
+                "click": "payload_inspector"
             },
             "binding": {
                 "eventType": "ss-click",
@@ -1550,7 +1550,7 @@
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "position": 0,
             "handlers": {
-                "click": "main:payload_inspector"
+                "click": "payload_inspector"
             },
             "visible": true
         },
@@ -1643,7 +1643,7 @@
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "position": 3,
             "handlers": {
-                "ss-tick": "main:handle_timer_tick",
+                "ss-tick": "handle_timer_tick",
                 "ss-not-a-real-event": "handle_not_a_real_function"
             },
             "visible": true
@@ -1679,7 +1679,7 @@
             "parentId": "f39b508d-6fec-465c-856c-c064179a46d0",
             "position": 1,
             "handlers": {
-                "click": "main:payload_inspector"
+                "click": "payload_inspector"
             },
             "visible": true
         },
@@ -1692,7 +1692,7 @@
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "position": 4,
             "handlers": {
-                "ss-tick": "main:handle_timer_tick"
+                "ss-tick": "handle_timer_tick"
             },
             "visible": true
         },
@@ -1717,7 +1717,7 @@
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "position": 8,
             "handlers": {
-                "ss-webcam": "main:handle_webcam"
+                "ss-webcam": "handle_webcam"
             },
             "visible": true
         },
@@ -1741,7 +1741,7 @@
             "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "position": 6,
             "handlers": {
-                "click": "main:handle_form_submit"
+                "click": "handle_form_submit"
             },
             "visible": true
         },
@@ -1929,7 +1929,7 @@
             "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
             "position": 2,
             "handlers": {
-                "click": "main:handle_add_to_list"
+                "click": "handle_add_to_list"
             },
             "visible": true
         },
@@ -1999,7 +1999,7 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 6,
             "handlers": {
-                "click": "main:handle_file_download"
+                "click": "handle_file_download"
             },
             "visible": true
         },
@@ -2012,7 +2012,7 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 7,
             "handlers": {
-                "click": "main:add_notification"
+                "click": "add_notification"
             },
             "visible": true
         },
@@ -2039,7 +2039,7 @@
             "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "position": 8,
             "handlers": {
-                "ss-file-change": "main:file_change_handler"
+                "ss-file-change": "file_change_handler"
             },
             "visible": true
         },
@@ -2052,7 +2052,7 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 9,
             "handlers": {
-                "click": "main:increment"
+                "click": "increment"
             },
             "visible": true
         },
@@ -2754,7 +2754,7 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 11,
             "handlers": {
-                "ss-option-change": "main:update_cities"
+                "ss-option-change": "update_cities"
             },
             "visible": true
         },
@@ -2846,7 +2846,7 @@
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "position": 10,
             "handlers": {
-                "ss-click": "main:test_async_handler"
+                "ss-click": "test_async_handler"
             },
             "visible": true
         },
