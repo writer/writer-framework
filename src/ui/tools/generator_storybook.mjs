@@ -52,11 +52,40 @@ function generateArgDefault(field) {
 	}
 	return "";
 }
+
+function generateDescription(field) {
+	if (field.desc) {
+		return `			description: "${field.desc.replaceAll('"', '\\"')}",`;
+	}
+	return "";
+}
+
+function mappedControl(field) {
+	switch (field.type) {
+		case "Number":
+			return `			control: "number",
+			type: 'number',`;
+		case "Color":
+			return `			control: "color",
+			type: 'string',`;
+		case "Key-Value":
+			return `			control: "object",`;
+		default:
+			if (field.options) {
+				return `			control: "select",
+			options: ${JSON.stringify(Object.keys(field.options))},
+			type: 'string',`;
+			}
+			return `			control: "text",
+			type: 'string',`;
+	}
+}
 function generateArgTypes(component) {
 	return Object.entries(component.fields)
 		.map(([key, field]) => {
 			return `		${key}: {
-			control: "text",
+${mappedControl(field)}
+${generateDescription(field)}
 ${generateArgDefault(field)}		},`;
 		})
 		.join("\n");
@@ -132,6 +161,7 @@ export const Sample: Story = {
 			provide(injectionKeys.evaluatedFields, {
 ${generateArgWrap(component)}
 			});
+			provide(injectionKeys.instanceData, [ref({})]);
 			provide(injectionKeys.isDisabled, ref(false));
 			provide(injectionKeys.componentId, "test");
 			provide(injectionKeys.isBeingEdited, ref(false));
