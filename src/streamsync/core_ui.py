@@ -20,9 +20,9 @@ def generate_component_id():
     return str(uuid.uuid4())
 
 
-class Fragment(Enum):
+class Branch(Enum):
     """
-    Enum for the component tree fragments that can be created in streamsync
+    Enum for the component tree branches that can be created in streamsync
 
     * bmc: builder managed component
     * cmc: code managed component
@@ -60,15 +60,15 @@ class Component(BaseModel):
         current_parent_container.reset(self._token)
 
 
-class ComponentTreeFragment:
+class ComponentTreeBranch:
     """
-    >>> bmc_tree = ComponentTreeFragment(Fragment.bmc, False)
+    >>> bmc_tree = ComponentTreeBranch(Branch.bmc, False)
     """
 
-    def __init__(self, id: Fragment, freeze: bool = False) -> None:
+    def __init__(self, id: Branch, freeze: bool = False) -> None:
         """
 
-        :param id: the id of the component tree fragment (bmc, cmc, session)
+        :param id: the id of the component tree branch (bmc, cmc, session)
         :param freeze: the component list can not be modified
         """
         self.components: Dict[str, Component] = {}
@@ -125,8 +125,8 @@ class ComponentTreeFragment:
 
 class ComponentTree():
 
-    def __init__(self, trees: List[ComponentTreeFragment]):
-        assert len(trees) > 0, "Component tree must have at least one tree fragment"
+    def __init__(self, trees: List[ComponentTreeBranch]):
+        assert len(trees) > 0, "Component tree must have at least one tree branch"
         self.trees = trees
         self.updated = False
 
@@ -150,35 +150,35 @@ class ComponentTree():
 
         return None
 
-    def attach(self, component: Component, tree: Optional[Fragment] = None) -> None:
+    def attach(self, component: Component, tree: Optional[Branch] = None) -> None:
         """
-        Attach a component to the first tree fragment in the component tree.
+        Attach a component to the first tree branch in the component tree.
 
         >>> component = Component(id="root", type="root", content={})
         >>> component_tree.attach(component)
 
-        When the tree parameter is given, the component is attached to the corresponding fragment.
+        When the tree parameter is given, the component is attached to the corresponding branch.
 
         >>> component = Component(id="root", type="root", content={})
-        >>> component_tree.attach(component, tree=Fragment.cmc)
+        >>> component_tree.attach(component, tree=Branch.cmc)
 
-        If the component is associated with a frozen fragment, an exception is thrown
+        If the component is associated with a frozen branch, an exception is thrown
         """
         self.updated = True
 
-        _fragment = self._tree_fragment(tree)
-        if _fragment is None:
-            raise ValueError(f"Invalid tree fragment : {tree}")
+        _branch = self._tree_branch(tree)
+        if _branch is None:
+            raise ValueError(f"Invalid tree branch : {tree}")
 
-        cast(ComponentTreeFragment, _fragment).attach(component)
+        cast(ComponentTreeBranch, _branch).attach(component)
 
-    def ingest(self, serialised_components: Dict[str, Any], tree: Optional[Fragment] = None) -> None:
+    def ingest(self, serialised_components: Dict[str, Any], tree: Optional[Branch] = None) -> None:
         self.updated = True
-        _fragment = self._tree_fragment(tree)
-        if _fragment is None:
-            raise ValueError(f"Invalid tree fragment : {tree}")
+        _branch = self._tree_branch(tree)
+        if _branch is None:
+            raise ValueError(f"Invalid tree branch : {tree}")
 
-        cast(ComponentTreeFragment, _fragment).ingest(serialised_components)
+        cast(ComponentTreeBranch, _branch).ingest(serialised_components)
 
     def delete_component(self, component_id: str) -> None:
         for tree in self.trees:
@@ -257,44 +257,41 @@ class ComponentTree():
 
         return desc
 
-    def fragment(self, component_id: Fragment) -> ComponentTreeFragment:
-        fragment = self._tree_fragment(component_id)
-        if fragment is None:
-            raise ValueError(f"Component tree with ID {component_id} does not exist")
+    def branch(self, branch_id: Branch) -> ComponentTreeBranch:
+        _branch = self._tree_branch(branch_id)
+        if _branch is None:
+            raise ValueError(f"Component tree with ID {branch_id} does not exist")
 
-        return fragment
+        return _branch
 
-    def exists(self, tree_fragment: Fragment) -> bool:
+    def exists(self, branch_id: Branch) -> bool:
         """
         Checks if a component with the given ID exists in the component tree.
-
-        :param tree_fragment:
-        :return:
         """
-        fragment = self._tree_fragment(tree_fragment)
-        return fragment is not None
+        branch = self._tree_branch(branch_id)
+        return branch is not None
 
-    def is_frozen(self, tree_fragment: Fragment) -> bool:
+    def is_frozen(self, branch_id: Branch) -> bool:
         """
-        Checks if a component tree fragment is frozen.
+        Checks if a component tree branch is frozen.
         """
-        fragment = self._tree_fragment(tree_fragment)
-        if fragment is None:
-            raise ValueError(f"Component tree with ID {tree_fragment} does not exist")
+        branch = self._tree_branch(branch_id)
+        if branch is None:
+            raise ValueError(f"Component tree with ID {branch_id} does not exist")
 
-        return fragment.freeze
+        return branch.freeze
 
     def _get_direct_descendents(self, parent_id: str) -> List[Component]:
         _all_components = self.components.values()
         children = list(filter(lambda c: c.parentId == parent_id, _all_components))
         return children
 
-    def _tree_fragment(self, tree_fragment: Optional[Fragment]) -> Optional[ComponentTreeFragment]:
-        if tree_fragment is None:
+    def _tree_branch(self, branch: Optional[Branch]) -> Optional[ComponentTreeBranch]:
+        if branch is None:
             return self.trees[0]
 
         for tree in self.trees:
-            if tree_fragment == tree.component_tree_id:
+            if branch == tree.component_tree_id:
                 return tree
 
         return None
@@ -327,10 +324,10 @@ def build_base_component_tree() -> ComponentTree:
 
     It contains the components in common between all users.
     """
-    bmc_tree_fragment = ComponentTreeFragment(Fragment.bmc)
-    bmc_tree_fragment.attach(Component(id="root", type="root", content={}))
-    cmc_tree_fragment = ComponentTreeFragment(Fragment.cmc)
-    return ComponentTree([cmc_tree_fragment, bmc_tree_fragment])
+    bmc_tree_branch = ComponentTreeBranch(Branch.bmc)
+    bmc_tree_branch.attach(Component(id="root", type="root", content={}))
+    cmc_tree_branch = ComponentTreeBranch(Branch.cmc)
+    return ComponentTree([cmc_tree_branch, bmc_tree_branch])
 
 
 def build_session_component_tree(base_component_tree: ComponentTree) -> ComponentTree:
@@ -343,28 +340,28 @@ def build_session_component_tree(base_component_tree: ComponentTree) -> Componen
     The builder managed component, copy from base component tree, can not be modified anymore.
     The code managed component can be modified.
     """
-    session_fragment = ComponentTreeFragment(Fragment.session)
+    session_tree_branch = ComponentTreeBranch(Branch.session)
 
-    cmc_tree_fragment = copy.copy(base_component_tree.fragment(Fragment.cmc))
-    bmc_tree_fragment = copy.copy(base_component_tree.fragment(Fragment.bmc))
-    bmc_tree_fragment.freeze = True
+    cmc_tree_branch = copy.copy(base_component_tree.branch(Branch.cmc))
+    bmc_tree_branch = copy.copy(base_component_tree.branch(Branch.bmc))
+    bmc_tree_branch.freeze = True
 
-    return ComponentTree([session_fragment, cmc_tree_fragment, bmc_tree_fragment])
+    return ComponentTree([session_tree_branch, cmc_tree_branch, bmc_tree_branch])
 
 
-def injest_bmc_component_tree(component_tree: ComponentTree, components: Dict[str, Any]):
+def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[str, Any]):
     """
-    Updates the builder managed component tree fragment with the provided components.
+    Updates the builder managed component tree branch with the provided components.
     This method is used on the event `componentUpdate`.
 
-    >>> injest_bmc_component_tree(component_tree, {"root": {"type": "root", "content": {}})
+    >>> ingest_bmc_component_tree(component_tree, {"root": {"type": "root", "content": {}})
     """
-    assert component_tree.exists(Fragment.bmc) is True, \
-        "bmc component tree fragment does not exists in this component tree"
-    assert component_tree.is_frozen(Fragment.bmc) is False, \
+    assert component_tree.exists(Branch.bmc) is True, \
+        "bmc component tree branch does not exists in this component tree"
+    assert component_tree.is_frozen(Branch.bmc) is False, \
         "builder managed component tree are frozen and cannot be updated"
 
-    component_tree.ingest(components, tree=Fragment.bmc)
+    component_tree.ingest(components, tree=Branch.bmc)
 
 
 def cmc_components_list(component_tree: ComponentTree) -> list:
@@ -373,7 +370,7 @@ def cmc_components_list(component_tree: ComponentTree) -> list:
 
     (use mainly for testing purposes)
     """
-    return list(component_tree.fragment(Fragment.cmc).components.values())
+    return list(component_tree.branch(Branch.cmc).components.values())
 
 
 def session_components_list(component_tree: ComponentTree) -> list:
@@ -382,7 +379,7 @@ def session_components_list(component_tree: ComponentTree) -> list:
 
    (use mainly for testing purposes)
    """
-    return list(component_tree.fragment(Fragment.session).components.values())
+    return list(component_tree.branch(Branch.session).components.values())
 
 
 class UIError(Exception):

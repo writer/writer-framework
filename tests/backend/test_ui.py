@@ -7,7 +7,7 @@ from streamsync.core_ui import (
     Component,
     UIError,
     cmc_components_list,
-    injest_bmc_component_tree,
+    ingest_bmc_component_tree,
     session_components_list,
     use_component_tree,
 )
@@ -26,7 +26,7 @@ def use_ui_manager_with_init_ui():
     application loads in the `ss.init_ui` context.
     """
     core.reset_base_component_tree()
-    injest_bmc_component_tree(core.base_component_tree, sc)
+    ingest_bmc_component_tree(core.base_component_tree, sc)
     with use_component_tree(core.base_component_tree):
         yield StreamsyncUIManager()
 
@@ -38,7 +38,7 @@ def use_ui_manager_with_event_handler():
     an event handler context.
     """
     core.reset_base_component_tree()
-    injest_bmc_component_tree(core.base_component_tree, sc)
+    ingest_bmc_component_tree(core.base_component_tree, sc)
     session = ss.session_manager.get_new_session()
     with use_component_tree(session.session_component_tree):
         yield StreamsyncUIManager()
@@ -191,7 +191,7 @@ class TestUIManager:
     def test_update_bmc_component_tree_should_not_work_from_event_handlers(self):
         with use_ui_manager_with_event_handler() as ui:
             try:
-                injest_bmc_component_tree(ui.component_tree, sc)
+                ingest_bmc_component_tree(ui.component_tree, sc)
             except AssertionError as exception:
                 assert str(exception) == "builder managed component tree are frozen and cannot be updated"
 
