@@ -125,14 +125,14 @@ class ComponentTreeBranch:
 
 class ComponentTree():
 
-    def __init__(self, trees: List[ComponentTreeBranch]):
-        assert len(trees) > 0, "Component tree must have at least one tree branch"
-        self.trees = trees
+    def __init__(self, tree_branches: List[ComponentTreeBranch]):
+        assert len(tree_branches) > 0, "Component tree must have at least one tree branch"
+        self.tree_branches = tree_branches
         self.updated = False
 
     @property
     def components(self) -> Dict[str, Component]:
-        trees = reversed(self.trees)
+        trees = reversed(self.tree_branches)
         all_components = {}
         for tree in trees:
             all_components.update(tree.components)
@@ -140,10 +140,10 @@ class ComponentTree():
 
     @property
     def page_counter(self) -> int:
-        return sum([tree.page_counter for tree in self.trees])
+        return sum([tree.page_counter for tree in self.tree_branches])
 
     def get_component(self, component_id: str) -> Optional[Component]:
-        for tree in self.trees:
+        for tree in self.tree_branches:
             component = tree.get_component(component_id)
             if component:
                 return component
@@ -181,7 +181,7 @@ class ComponentTree():
         cast(ComponentTreeBranch, _branch).ingest(serialised_components)
 
     def delete_component(self, component_id: str) -> None:
-        for tree_branch in self.trees:
+        for tree_branch in self.tree_branches:
             if component_id in tree_branch.components and not tree_branch.freeze:
                 self.updated = True
                 tree_branch.components.pop(component_id, None)
@@ -201,7 +201,11 @@ class ComponentTree():
         children = self.get_descendents(component_id)
         for child in children:
             try:
-                self.delete_component(child.id)
+                self.updated = True
+                for tree in self.tree_branches:
+                    if tree.freeze:
+                        tree.components.pop(child.id, None)
+
             except UIError:
                 logger = logging.getLogger("streamsync")
                 logger.warning(
@@ -211,15 +215,10 @@ class ComponentTree():
                 # This might result in multiple consecutive warnings
                 # for the same parent component, but we have to avoid "break"ing
                 # due to that the component might still have CMC children
-                self.updated = True
-                for tree in self.trees:
-                    if tree.freeze:
-                        tree.components.pop(child.id, None)
-
 
 
     def to_dict(self) -> Dict:
-        trees = reversed(self.trees)
+        trees = reversed(self.tree_branches)
         components = {}
         for tree in trees:
             components.update(tree.to_dict())
@@ -288,9 +287,9 @@ class ComponentTree():
 
     def _tree_branch(self, branch: Optional[Branch]) -> Optional[ComponentTreeBranch]:
         if branch is None:
-            return self.trees[0]
+            return self.tree_branches[0]
 
-        for tree in self.trees:
+        for tree in self.tree_branches:
             if branch == tree.component_tree_id:
                 return tree
 

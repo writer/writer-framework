@@ -1,6 +1,6 @@
 from typing import List
 
-from streamsync.core_ui import Component, ComponentTree, ComponentTreeFragment, Fragment
+from streamsync.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
 
 
 def build_fake_component_tree(components: List[Component] = None, init_root=True):
@@ -10,7 +10,7 @@ def build_fake_component_tree(components: List[Component] = None, init_root=True
     :param components: list of components to attach
     :param init_root: create a root component
     """
-    component_tree = ComponentTree([ComponentTreeFragment(Fragment.bmc, freeze=False)])
+    component_tree = ComponentTree([ComponentTreeBranch(Branch.bmc, freeze=False)])
     if init_root:
         component_tree.attach(Component(id='root', parentId=None, type='root'))
 
