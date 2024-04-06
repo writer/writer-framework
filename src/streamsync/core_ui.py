@@ -181,12 +181,12 @@ class ComponentTree():
         cast(ComponentTreeBranch, _branch).ingest(serialised_components)
 
     def delete_component(self, component_id: str) -> None:
-        for tree in self.trees:
-            if component_id in tree.components and tree.freeze:
+        for tree_branch in self.trees:
+            if component_id in tree_branch.components and not tree_branch.freeze:
                 self.updated = True
-                tree.components.pop(component_id, None)
+                tree_branch.components.pop(component_id, None)
                 return
-            elif component_id in tree.components and not tree.freeze:
+            elif component_id in tree_branch.components and tree_branch.freeze:
                 raise UIError(
                     f"Component with ID '{component_id}' " +
                     "is builder-managed and cannot be removed by app"
