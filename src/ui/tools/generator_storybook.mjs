@@ -60,6 +60,24 @@ function generateDescription(field) {
 	return "";
 }
 
+function generateStyles(component) {
+	return Object.entries(component.fields)
+		.map(([key, field]) => {
+			if (field.category === "Style") {
+				return `						"--${key}": args.${key},`;
+			}
+			return null;
+		})
+		.filter((x) => x !== null)
+		.join("\n");
+}
+
+function generateStylesInfill(component) {
+	const styles = generateStyles(component);
+	return `					...(Object.fromEntries(Object.entries({
+${styles}
+					}).filter(([, value]) => value !== undefined))),`;
+}
 function mappedControl(field) {
 	switch (field.type) {
 		case "Number":
@@ -146,7 +164,7 @@ export const Sample: Story = {
 		components: { ${component.nameTrim} },
 		setup() {
 			const ss = generateCore();
-			args.rootStyle = computed(() => {
+			const rootStyle = computed(() => {
 				return {
 					"--accentColor": "#29cf00",
 					"--buttonColor": "#ffffff",
@@ -156,6 +174,16 @@ export const Sample: Story = {
 					"--buttonTextColor": "#202829",
 					"--secondaryTextColor": "#5d7275",
 					"--containerBackgroundColor": "#ffffff",
+${generateStylesInfill(component)}
+					"width": "100%",
+					"outline": "none",
+					"--notificationsDisplacement": "0",
+					"font-family": "Inter, sans-serif",
+					"font-size": "0.8rem",
+					"color": "var(--primaryTextColor)",
+					"background": "white",
+					"min-height": "100%",
+					"isolation": "isolate",
 				};
 			});
 			provide(injectionKeys.evaluatedFields, {
@@ -168,10 +196,10 @@ ${generateArgWrap(component)}
 			provide(injectionKeys.instancePath, [{componentId: "test", instanceNumber: 0}]);
 			provide(injectionKeys.flattenedInstancePath, "test:0");
 			provide(injectionKeys.core, ss as any);
-			return { args };
+			return { args, rootStyle };
 		},
 		template:
-			'<${component.nameTrim} :style="args.rootStyle" :prop-name="args.propName" />',
+			'<div :style="rootStyle"><${component.nameTrim} /></div>',
 	}),
 };
 	`;

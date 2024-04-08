@@ -12,6 +12,8 @@
 		"test": "npm run --if-present -ws test",
 		"lint": "npm run --if-present -ws lint",
 		"dev": "npm run -w streamsync-ui dev",
+		"storybook": "npm run -w streamsync-ui storybook",
+		"storybook.build": "npm run -w streamsync-ui storybook.build",
 		"custom.dev": "npm run -w streamsync-ui dev",
 
 		"cli:test": "pytest tests -o log_cli=true ",
