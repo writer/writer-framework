@@ -5,6 +5,19 @@ import { fileURLToPath } from "url";
 
 import * as core from "./core.mjs";
 
+const IGNORE_COMPONENT_TYPES = [
+	"root",
+	"page",
+	"tab",
+	"tabs",
+	"column",
+	"columns",
+	"step",
+	"steps",
+	"html",
+	"repeater",
+];
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -209,6 +222,9 @@ export async function generate() {
 	const components = await loadComponents();
 
 	for (const component of components) {
+		if (IGNORE_COMPONENT_TYPES.includes(component.type)) {
+			continue;
+		}
 		component.nameTrim = component.name.replaceAll(/\s/g, "");
 		const name = path.basename(component.fileRef, ".vue");
 		const mod = component.fileRef.split("/").slice(-2, -1)[0];
