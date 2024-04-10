@@ -10,7 +10,7 @@
 				class="content"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
-				:options="templateField.options"
+				:options="options"
 				@input="handleInput"
 			/>
 		</template>
@@ -27,18 +27,15 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref, watch } from "vue";
+import { toRefs, inject, computed } from "vue";
 import { Component, FieldControl } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import Fuse from "fuse.js";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(ss, ssbm);
-
-const autocompleteOptions = ref<string[]>([]);
 
 const props = defineProps<{
 	componentId: Component["id"];
@@ -46,7 +43,6 @@ const props = defineProps<{
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => ss.getComponentById(componentId.value));
-const value = computed(() => component.value.content[fieldKey.value]);
 const templateField = computed(() => {
 	const { type } = component.value;
 	const definition = ss.getComponentDefinition(type);

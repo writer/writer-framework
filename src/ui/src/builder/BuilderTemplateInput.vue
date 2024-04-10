@@ -122,10 +122,13 @@ const getPath = (text) => {
 };
 
 const handleInput = (ev) => {
-	const newValue = ev.target.value;
 	emit("input", ev);
 	emit("update:value", ev.target.value);
-	const { selectionStart, selectionEnd } = input.value ?? {};
+	showAutocomplete();
+};
+
+const showAutocomplete = () => {
+	const { selectionStart, selectionEnd, value: newValue } = input.value ?? {};
 	const collapsed = selectionStart === selectionEnd;
 	if (!collapsed) {
 		autocompleteOptions.value = [];
@@ -166,7 +169,7 @@ const handleInput = (ev) => {
 const handleBlur = () => {
 	setTimeout(() => {
 		autocompleteOptions.value = [];
-	}, 100);
+	}, 10);
 };
 </script>
 
