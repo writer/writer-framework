@@ -111,7 +111,6 @@ export function useEvaluator(ss: Core) {
 		instancePath: InstancePath,
 	): string {
 		if (template === undefined || template === null) return "";
-
 		const evaluatedTemplate = template.replace(
 			templateRegex,
 			(match, captured) => {

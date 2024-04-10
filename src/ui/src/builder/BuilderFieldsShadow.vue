@@ -113,10 +113,9 @@
 				</div>
 			</div>
 
-			<input
+			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				type="text"
 				:value="component.content[fieldKey]"
 				@input="handleCSSInput"
 			/>
@@ -138,6 +137,7 @@ import {
 import { Component } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

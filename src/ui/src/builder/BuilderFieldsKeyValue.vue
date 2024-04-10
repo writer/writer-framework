@@ -38,16 +38,14 @@
 				</div>
 			</div>
 			<div class="formAdd">
-				<input
+				<BuilderTemplateInput
 					ref="assistedKeyEl"
-					v-model="formAdd.key"
-					type="text"
+					v-model:value="formAdd.key"
 					placeholder="Type a key..."
 					@keydown.enter="addAssistedEntry"
 				/>
-				<input
-					v-model="formAdd.value"
-					type="text"
+				<BuilderTemplateInput
+					v-model:value="formAdd.value"
 					placeholder="Type a value..."
 					@keydown.enter="addAssistedEntry"
 				/>
@@ -81,6 +79,7 @@ import { Component } from "../streamsyncTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -250,13 +249,7 @@ onMounted(async () => {
 	padding: 12px;
 }
 
-textarea {
-	resize: vertical;
-	height: 8em;
-	padding: 12px;
-}
-
-input {
+.BuilderTemplateInput {
 	margin-bottom: 8px;
 }
 </style>
