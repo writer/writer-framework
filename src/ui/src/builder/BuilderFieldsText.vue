@@ -15,7 +15,8 @@
 			/>
 		</template>
 		<template v-else-if="templateField.control == FieldControl.Textarea">
-			<BuilderTemplateTextarea
+			<BuilderTemplateInput
+				type="textarea"
 				class="content"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
@@ -31,7 +32,6 @@ import { Component, FieldControl } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import BuilderTemplateTextarea from "./BuilderTemplateTextarea.vue";
 import Fuse from 'fuse.js';
 
 const ss = inject(injectionKeys.core);

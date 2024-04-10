@@ -1,5 +1,6 @@
 <template>
-	<BuilderTemplateTextarea
+	<BuilderTemplateInput
+		type="textarea"
 		:value="component.content[fieldKey]"
 		@input="
 			(ev: Event) =>
@@ -13,7 +14,7 @@ import { toRefs, inject, computed } from "vue";
 import { Component } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
-import BuilderTemplateTextarea from "./BuilderTemplateTextarea.vue";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

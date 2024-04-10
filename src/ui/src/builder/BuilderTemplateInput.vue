@@ -1,32 +1,49 @@
 <template>
 	<div class="BuilderTemplateInput">
-		<input
-			type="text"
-			:value="props.value"
-			autocorrect="off"
-			autocomplete="off"
-			spellcheck="false"
-			:placeholder="props.placeholder"
-			:list="props.options ? `list-${props.inputId}` : undefined"
-			ref="input"
-			@input="handleInput"
-		/>
-		<datalist
-			v-if="props.options"
-			:id="`list-${props.inputId}`"
-		>
-			<option
-				v-for="(option, optionKey) in options"
-				:key="optionKey"
-				:value="optionKey"
+		<template v-if="props.type === 'input'">
+			<input
+				type="text"
+				:value="props.value"
+				autocorrect="off"
+				autocomplete="off"
+				spellcheck="false"
+				:placeholder="props.placeholder"
+				:list="props.options ? `list-${props.inputId}` : undefined"
+				ref="input"
+				@input="handleInput"
+			/>
+			<datalist
+				v-if="props.options"
+				:id="`list-${props.inputId}`"
 			>
-				<template
-					v-if="option.toLowerCase() !== optionKey.toLowerCase()"
+				<option
+					v-for="(option, optionKey) in options"
+					:key="optionKey"
+					:value="optionKey"
 				>
-					{{ option }}
-				</template>
-			</option>
-		</datalist>
+					<template
+						v-if="option.toLowerCase() !== optionKey.toLowerCase()"
+					>
+						{{ option }}
+					</template>
+				</option>
+			</datalist>
+		</template>
+
+		<template v-if="props.type === 'textarea'">
+			<textarea
+				v-capture-tabs
+				variant="code"
+				:value="props.value"
+				ref="input"
+				autocorrect="off"
+				autocomplete="off"
+				spellcheck="false"
+				:placeholder="props.placeholder"
+				@input="handleInput"
+			></textarea>
+		</template>
+
 		<div
 			v-if="autocompleteOptions.length"
 			class="fieldStateAutocomplete"
@@ -55,6 +72,7 @@ const emit = defineEmits(['input', 'update:value']);
 const props = defineProps<{
 	inputId?: string;
 	value?: string;
+	type?: 'input' | 'textarea';
 	options?: Record<string, string>;
 	placeholder?: string;
 }>();
