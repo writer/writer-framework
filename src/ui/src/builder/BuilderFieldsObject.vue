@@ -1,6 +1,6 @@
 <template>
 	<BuilderTemplateInput
-		type="textarea"
+		multitine="true"
 		:value="component.content[fieldKey]"
 		@input="
 			(ev: Event) =>

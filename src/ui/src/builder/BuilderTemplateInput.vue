@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderTemplateInput">
-		<template v-if="type === 'input'">
+		<template v-if="!props.multiline">
 			<input
 				ref="input"
 				type="text"
@@ -11,6 +11,7 @@
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
 				@input="handleInput"
+				@blur="handleBlur"
 			/>
 			<datalist v-if="props.options" :id="`list-${props.inputId}`">
 				<option
@@ -27,7 +28,7 @@
 			</datalist>
 		</template>
 
-		<template v-if="type === 'textarea'">
+		<template v-if="props.multiline">
 			<textarea
 				ref="input"
 				v-capture-tabs
@@ -65,11 +66,11 @@ const emit = defineEmits(["input", "update:value"]);
 const props = defineProps<{
 	inputId?: string;
 	value?: string;
-	type?: "input" | "textarea";
+	multiline?: boolean;
+	type?: "state" | "template";
 	options?: Record<string, string>;
 	placeholder?: string;
 }>();
-const type = props.type ?? "input";
 
 const ss = inject(injectionKeys.core);
 const autocompleteOptions = ref<string[]>([]);
@@ -87,11 +88,8 @@ const handleComplete = (selectedText) => {
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value ?? {};
 	const text = newValue.slice(0, selectionStart);
-	const m = text.match(/@\{([^}{@]*)$/);
-	if (!m) {
-		return;
-	}
-	const full = (m?.[1] ?? "").split(".");
+	const full = getPath(text);
+	if (full === null) return;
 	const keyword = full.at(-1);
 	const replaced = text.replace(new RegExp(keyword + "$"), selectedText);
 	newValue = replaced + newValue.slice(selectionEnd);
@@ -111,6 +109,18 @@ const typeToString = (val) => {
 	return typeof val;
 };
 
+const getPath = (text) => {
+	if ((props.type ?? "template") === "state") {
+		return text.split(".");
+	}
+	const m = text.match(/@\{([^}{@]*)$/);
+	if (!m) {
+		return null;
+	}
+	const raw = m?.[1] ?? "";
+	return raw.split(".");
+};
+
 const handleInput = (ev) => {
 	const newValue = ev.target.value;
 	emit("input", ev);
@@ -122,17 +132,15 @@ const handleInput = (ev) => {
 		return;
 	}
 	const text = newValue.slice(0, selectionStart);
-	const m = text.match(/@\{([^}{@]*)$/);
-	if (!m) {
+	const full = getPath(text);
+	if (full === null) {
 		autocompleteOptions.value = [];
 		return;
 	}
-
-	const full = (m?.[1] ?? "").split(".");
 	const keyword = full.at(-1);
 	const path = full.slice(0, -1);
 
-	const allOptions = Object.entries(_get(ss.getUserState(), path)).map(
+	const allOptions = Object.entries(_get(ss.getUserState(), path) ?? {}).map(
 		([key, val]) => ({
 			text: key,
 			type: typeToString(val),
@@ -153,6 +161,12 @@ const handleInput = (ev) => {
 		const { item } = match;
 		return item;
 	});
+};
+
+const handleBlur = () => {
+	setTimeout(() => {
+		autocompleteOptions.value = [];
+	}, 100);
 };
 </script>
 
