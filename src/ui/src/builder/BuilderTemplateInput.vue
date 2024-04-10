@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderTemplateInput">
-		<template v-if="props.type === 'input'">
+		<template v-if="type === 'input'">
 			<input
 				type="text"
 				:value="props.value"
@@ -30,7 +30,7 @@
 			</datalist>
 		</template>
 
-		<template v-if="props.type === 'textarea'">
+		<template v-if="type === 'textarea'">
 			<textarea
 				v-capture-tabs
 				variant="code"
@@ -76,6 +76,7 @@ const props = defineProps<{
 	options?: Record<string, string>;
 	placeholder?: string;
 }>();
+const type = props.type ?? 'input'
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
