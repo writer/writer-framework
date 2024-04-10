@@ -2,6 +2,7 @@
 	<div class="BuilderTemplateInput">
 		<template v-if="type === 'input'">
 			<input
+				ref="input"
 				type="text"
 				:value="props.value"
 				autocorrect="off"
@@ -9,13 +10,9 @@
 				spellcheck="false"
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
-				ref="input"
 				@input="handleInput"
 			/>
-			<datalist
-				v-if="props.options"
-				:id="`list-${props.inputId}`"
-			>
+			<datalist v-if="props.options" :id="`list-${props.inputId}`">
 				<option
 					v-for="(option, optionKey) in options"
 					:key="optionKey"
@@ -32,10 +29,10 @@
 
 		<template v-if="type === 'textarea'">
 			<textarea
+				ref="input"
 				v-capture-tabs
 				variant="code"
 				:value="props.value"
-				ref="input"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
@@ -44,10 +41,7 @@
 			></textarea>
 		</template>
 
-		<div
-			v-if="autocompleteOptions.length"
-			class="fieldStateAutocomplete"
-		>
+		<div v-if="autocompleteOptions.length" class="fieldStateAutocomplete">
 			<div
 				v-for="(option, optionKey) in autocompleteOptions"
 				:key="optionKey"
@@ -55,106 +49,103 @@
 				:value="optionKey"
 				@click="() => handleComplete(option.text)"
 			>
-			<span class="text">{{ option.text }}</span><span class="type">{{option.type}}</span>
+				<span class="text">{{ option.text }}</span
+				><span class="type">{{ option.type }}</span>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref, watch, expose, nextTick } from "vue";
-import { Component, FieldControl } from "../streamsyncTypes";
-import { useComponentActions } from "./useComponentActions";
+import { inject, ref, nextTick } from "vue";
 import injectionKeys from "../injectionKeys";
-import Fuse from 'fuse.js';
+import Fuse from "fuse.js";
 
-const emit = defineEmits(['input', 'update:value']);
+const emit = defineEmits(["input", "update:value"]);
 const props = defineProps<{
 	inputId?: string;
 	value?: string;
-	type?: 'input' | 'textarea';
+	type?: "input" | "textarea";
 	options?: Record<string, string>;
 	placeholder?: string;
 }>();
-const type = props.type ?? 'input'
+const type = props.type ?? "input";
 
 const ss = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
 const autocompleteOptions = ref<string[]>([]);
 const input = ref<HTMLInputElement | null>(null);
-const value = computed(() => input.value?.value);
 
 defineExpose({
 	focus: () => input.value?.focus(),
-})
+});
 
-function _get(object: object, path: string[]){
+function _get(object: object, path: string[]) {
 	return path.reduce((acc, key) => acc?.[key], object);
 }
 
 const handleComplete = (selectedText) => {
 	let newValue = input.value?.value ?? "";
-	const {selectionStart, selectionEnd} = input.value ?? {};
+	const { selectionStart, selectionEnd } = input.value ?? {};
 	const text = newValue.slice(0, selectionStart);
 	const m = text.match(/@\{([^}{@]*)$/);
-	if(!m) {
+	if (!m) {
 		return;
-	}	
-	const full = (m?.[1] ?? '').split('.');
+	}
+	const full = (m?.[1] ?? "").split(".");
 	const keyword = full.at(-1);
-	const replaced = text.replace(new RegExp(keyword+'$'), selectedText);
+	const replaced = text.replace(new RegExp(keyword + "$"), selectedText);
 	newValue = replaced + newValue.slice(selectionEnd);
-	emit('input', {target: {value: newValue}});
-	emit('update:value', newValue);
+	emit("input", { target: { value: newValue } });
+	emit("update:value", newValue);
 	autocompleteOptions.value = [];
 	input.value.focus();
 	nextTick(() => {
 		input.value.selectionEnd = replaced.length;
 		input.value.selectionStart = replaced.length;
 	});
-}
+};
 
 const typeToString = (val) => {
-	if(val === null) return 'null';
-	if(val === undefined) return 'undefined';
+	if (val === null) return "null";
+	if (val === undefined) return "undefined";
 	return typeof val;
-}
+};
 
 const handleInput = (ev) => {
 	const newValue = ev.target.value;
-	emit('input', ev);
-	emit('update:value', ev.target.value);
-	const {selectionStart, selectionEnd} = input.value ?? {};
+	emit("input", ev);
+	emit("update:value", ev.target.value);
+	const { selectionStart, selectionEnd } = input.value ?? {};
 	const collapsed = selectionStart === selectionEnd;
-	if(!collapsed) {
+	if (!collapsed) {
 		autocompleteOptions.value = [];
 		return;
 	}
 	const text = newValue.slice(0, selectionStart);
 	const m = text.match(/@\{([^}{@]*)$/);
-	if(!m) {
+	if (!m) {
 		autocompleteOptions.value = [];
 		return;
-	}	
-	
-	const full = (m?.[1] ?? '').split('.');
-	const keyword = full.at(-1);
-	const path = full.slice(0, -1); 
-		
+	}
 
-	const allOptions = Object.entries(_get(ss.getUserState(), path))
-		.map(([key, val]) => ({
+	const full = (m?.[1] ?? "").split(".");
+	const keyword = full.at(-1);
+	const path = full.slice(0, -1);
+
+	const allOptions = Object.entries(_get(ss.getUserState(), path)).map(
+		([key, val]) => ({
 			text: key,
 			type: typeToString(val),
-		}));
+		}),
+	);
 
 	const fuse = new Fuse(allOptions, {
 		findAllMatches: true,
 		includeMatches: true,
-		keys: ['text'],
+		keys: ["text"],
 	});
 
-	if(keyword === ''){
+	if (keyword === "") {
 		autocompleteOptions.value = allOptions;
 		return;
 	}
@@ -162,7 +153,7 @@ const handleInput = (ev) => {
 		const { item } = match;
 		return item;
 	});
-}
+};
 </script>
 
 <style scoped>
@@ -193,7 +184,7 @@ const handleInput = (ev) => {
 	flex-direction: row;
 }
 
-.fieldStateAutocompleteOption span.text{
+.fieldStateAutocompleteOption span.text {
 	flex: 1 1;
 	line-height: 24px;
 	vertical-align: middle;
@@ -202,17 +193,15 @@ const handleInput = (ev) => {
 	text-overflow: ellipsis;
 }
 
-.fieldStateAutocompleteOption span.type{
+.fieldStateAutocompleteOption span.type {
 	flex: 0;
 	width: fit-content;
 	padding: 4px 8px;
 	border-radius: 4px;
-	background-color: var(--builderSubtleHighlightColor)
+	background-color: var(--builderSubtleHighlightColor);
 }
 
 .fieldStateAutocompleteOption:hover {
 	background-color: var(--builderSubtleHighlightColorSolid);
 }
-
-
 </style>

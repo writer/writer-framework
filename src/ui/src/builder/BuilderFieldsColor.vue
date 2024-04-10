@@ -48,7 +48,7 @@
 					@input="handleInput"
 				/>
 			</div>
-			
+
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"

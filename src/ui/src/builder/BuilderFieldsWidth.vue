@@ -52,7 +52,6 @@
 				</div>
 			</div>
 
-			
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"

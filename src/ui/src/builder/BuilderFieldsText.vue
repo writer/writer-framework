@@ -32,7 +32,7 @@ import { Component, FieldControl } from "../streamsyncTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import Fuse from 'fuse.js';
+import Fuse from "fuse.js";
 
 const ss = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -70,7 +70,6 @@ const handleInput = (ev: Event) => {
 		(ev.target as HTMLInputElement).value,
 	);
 };
-
 </script>
 
 <style>
