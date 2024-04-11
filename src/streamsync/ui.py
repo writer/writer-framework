@@ -713,6 +713,13 @@ SwitchInputBindings = TypedDict('SwitchInputBindings', {
     "ss-toggle": str
 }, total=False)
 
+ReuseComponentProps = TypedDict('ReuseComponentProps', {
+    "proxyId": str
+}, total=False)
+
+ReuseComponentEventHandlers = TypedDict('ReuseComponentEventHandlers', {
+}, total=False)
+
 AvatarProps = TypedDict('AvatarProps', {
     "name": str,
     "imageSrc": str,
@@ -1892,6 +1899,29 @@ class StreamsyncUIManager(StreamsyncUI):
             handlers=handlers,
             visible=visible,
             binding=binding)
+        return component
+    
+    @staticmethod
+    def ReuseComponent(
+            content: ReuseComponentProps = {},
+            *,
+            id: Optional[str] = None,
+            position: Optional[int] = None,
+            parentId: Optional[str] = None,
+            handlers: Optional[ReuseComponentEventHandlers] = None,
+            visible: Optional[Union[bool, str]] = None,
+            ) -> Component:
+        """
+        Those components are used to reuse other components. Reused components share the same state and are updated together.
+        """
+        component = StreamsyncUI.create_component(
+            'reuse',
+            content=content,
+            id=id,
+            position=position,
+            parentId=parentId,
+            handlers=handlers,
+            visible=visible)
         return component
     
     @staticmethod
