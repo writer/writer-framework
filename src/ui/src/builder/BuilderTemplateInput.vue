@@ -3,6 +3,7 @@
 		<template v-if="!props.multiline">
 			<input
 				ref="input"
+				class="templateInput"
 				type="text"
 				:value="props.value"
 				autocorrect="off"
@@ -32,6 +33,7 @@
 			<textarea
 				ref="input"
 				v-capture-tabs
+				class="templateInput"
 				variant="code"
 				:value="props.value"
 				autocorrect="off"
