@@ -25,7 +25,7 @@ test.describe("image", () => {
 			.dragTo(page.locator(".CoreSection .ChildlessPlaceholder"));
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
-			.locator('.BuilderFieldsText[data-key="caption"] input')
+			.locator('.BuilderFieldsText[data-automation-key="caption"] input')
 			.fill("Hello, World!");
 		await expect(page.locator(COMPONENT_LOCATOR)).toContainText(
 			"Hello, World!",

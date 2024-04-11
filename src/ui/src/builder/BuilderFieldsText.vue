@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderFieldsText" :data-key="props.fieldKey">
+	<div class="BuilderFieldsText" :data-automation-key="props.fieldKey">
 		<template
 			v-if="
 				!templateField.control ||
@@ -77,29 +77,4 @@ const handleInput = (ev: Event) => {
 
 <style scoped>
 @import "./sharedStyles.css";
-
-.field-state-autocomplete {
-	position: absolute;
-	background-color: var(--builderBackgroundColor);
-	border: 1px solid var(--builderSeparatorColor);
-	border-radius: 4px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	max-height: 200px;
-	overflow-y: auto;
-	width: 100%;
-	z-index: 2;
-}
-
-.field-state-autocomplete-option {
-	padding: 8px 12px;
-	cursor: pointer;
-}
-
-.field-state-autocomplete-option:hover {
-	background-color: var(--builderSubtleHighlightColorSolid);
-}
-
-textarea {
-	resize: vertical;
-}
 </style>

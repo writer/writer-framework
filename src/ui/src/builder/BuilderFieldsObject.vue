@@ -1,7 +1,7 @@
 <template>
 	<BuilderTemplateInput
 		class="BuilderFieldsObject"
-		:data-key="props.fieldKey"
+		:data-automation-key="props.fieldKey"
 		multitine="true"
 		:value="component.content[fieldKey]"
 		@input="

@@ -203,7 +203,7 @@ const handleBlur = () => {
 	flex-direction: row;
 }
 
-.fieldStateAutocompleteOption span.prop{
+.fieldStateAutocompleteOption span.prop {
 	flex: 1 1;
 	line-height: 24px;
 	vertical-align: middle;

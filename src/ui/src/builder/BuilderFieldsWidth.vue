@@ -3,7 +3,7 @@
 		ref="rootEl"
 		class="BuilderFieldsWidth"
 		tabindex="-1"
-		:data-key="props.fieldKey"
+		:data-automation-key="props.fieldKey"
 	>
 		<div class="chipStackContainer">
 			<div class="chipStack">

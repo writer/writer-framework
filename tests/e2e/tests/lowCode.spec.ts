@@ -79,8 +79,8 @@ with ui.find('results'):
 
 			await page.locator(`.results .ss-type-${type}.component`).click({force: true});
 			for (const [key, value] of Object.entries(props)) {
-				await expect(page.locator(`.BuilderSettings div[data-key="${key}"] input, .BuilderSettings div[data-key="${key}"] textarea`)).toHaveCount(1);
-				await expect(page.locator(`.BuilderSettings div[data-key="${key}"] input, .BuilderSettings div[data-key="${key}"] textarea`)).toHaveValue(value);
+				await expect(page.locator(`.BuilderSettings div[data-automation-key="${key}"] input, .BuilderSettings div[data-automation-key="${key}"] textarea`)).toHaveCount(1);
+				await expect(page.locator(`.BuilderSettings div[data-automation-key="${key}"] input, .BuilderSettings div[data-automation-key="${key}"] textarea`)).toHaveValue(value);
 			}
 
 			if (renderError) {

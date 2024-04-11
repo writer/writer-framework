@@ -3,7 +3,7 @@
 		ref="rootEl"
 		class="BuilderFieldsColor"
 		tabindex="-1"
-		:data-key="fieldKey"
+		:data-automation-key="fieldKey"
 	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
