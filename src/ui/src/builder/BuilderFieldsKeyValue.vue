@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsOptions" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsOptions"
+		tabindex="-1"
+		:data-key="props.fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
@@ -41,11 +46,13 @@
 				<BuilderTemplateInput
 					ref="assistedKeyEl"
 					v-model:value="formAdd.key"
+					class="inputKey"
 					placeholder="Type a key..."
 					@keydown.enter="addAssistedEntry"
 				/>
 				<BuilderTemplateInput
 					v-model:value="formAdd.value"
+					class="inputValue"
 					placeholder="Type a value..."
 					@keydown.enter="addAssistedEntry"
 				/>

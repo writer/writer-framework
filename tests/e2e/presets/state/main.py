@@ -1,6 +1,12 @@
 import streamsync as ss
 
 initial_state = ss.init_state({
+    "types": {
+        "none": None,
+        "string": "Hello, World!",
+        "integer": 42,
+        "float": 3.14,
+    },
     "counter": 26,
     "list": ["A", "B", "C"],
     "dict": {"a": 1, "b": 2},

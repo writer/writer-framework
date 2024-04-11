@@ -52,7 +52,7 @@
 				:value="optionKey"
 				@click="() => handleComplete(option.text)"
 			>
-				<span class="text">{{ option.text }}</span
+				<span class="prop">{{ option.text }}</span
 				><span class="type">{{ option.type }}</span>
 			</div>
 		</div>
@@ -203,7 +203,7 @@ const handleBlur = () => {
 	flex-direction: row;
 }
 
-.fieldStateAutocompleteOption span.text {
+.fieldStateAutocompleteOption span.prop{
 	flex: 1 1;
 	line-height: 24px;
 	vertical-align: middle;

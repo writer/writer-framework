@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsAlign" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsAlign"
+		tabindex="-1"
+		:data-key="props.fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
