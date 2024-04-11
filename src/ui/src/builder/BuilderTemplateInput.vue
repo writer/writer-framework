@@ -171,7 +171,7 @@ const showAutocomplete = () => {
 const handleBlur = () => {
 	setTimeout(() => {
 		autocompleteOptions.value = [];
-	}, 10);
+	}, 100);
 };
 </script>
 
