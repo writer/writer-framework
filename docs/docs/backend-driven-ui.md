@@ -64,7 +64,7 @@ If the component couldn't be found, the method raises a `RuntimeError`.
 
 ### `refresh_with` method
 
-You can use the `ui.refresh_with(component_id: str)` method to replace children of an existing component (referenced by its ID):
+You can use the `ui.refresh_with(component_id: str)` method to replace children CMCs of an existing component (referenced by its ID):
 ```python
 with ui.refresh_with("my-page"):
     # Previously existing children are cleared
@@ -74,15 +74,15 @@ with ui.refresh_with("my-page"):
             ui.Text({"text": "Nobody here for now..."})
 ```
 
-This method also allows to clear children of a component:
+This method also allows to clear children CMCs of a component:
 ```python
 with ui.refresh_with("my-page"):
     # Empties the page
     pass
 ```
 
-This method works only with CMCs exclusively and doesn't allow to modify BMCs, which will raise an `UIError`.  
-As well as with `find` method, it also raises a `RuntimeError` if it failes to find a referenced component.
+If a targeted component has builder-managed children, they will not be removed. A warning message will be recorded in the application's log for each BMC attempted to be removed. This does not stop the execution of the method – any remaining CMCs will still be removed.
+As well as with `find` method, it also raises a `RuntimeError` if it fails to find a referenced component.
 
 ### Component methods
 
