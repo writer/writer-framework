@@ -109,6 +109,7 @@ class StreamsyncUI:
 
         return component
 
+    @staticmethod
     def parent(component_id: str, level: int = 1) -> Optional[str]:
         """
         Retrieves the ID of the top-level parent.
