@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import uuid
 from contextvars import ContextVar
 from typing import Any, Dict, List, Optional, Union
@@ -183,9 +184,14 @@ class DependentComponentTree(ComponentTree):
             try:
                 self.delete_component(child.id)
             except UIError:
-                raise UIError("Failed to clear children of component " +
-                              f"with ID '{component_id}': {child.id} " +
-                              "is a builder-managed component.")
+                logger = logging.getLogger("streamsync")
+                logger.warning(
+                    f"Failed to remove child with ID '{child.id}' " +
+                    f"from component with ID '{component_id}': " +
+                    "child is a builder-managed component.")
+                # This might result in multiple consecutive warnings
+                # for the same parent component, but we have to avoid "break"ing
+                # due to that the component might still have CMC children
 
     def get_direct_descendents(self, parent_id: str) -> List[Component]:
         base_children = self.base_component_tree.get_direct_descendents(parent_id)
