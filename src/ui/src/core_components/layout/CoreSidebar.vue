@@ -120,7 +120,7 @@ onMounted(() => {
 	const rendererEl: HTMLElement =
 		document.querySelector(".ComponentRenderer");
 	rendererTop.value =
-		document.body.clientHeight - rendererEl.parentElement.clientHeight;
+		document.body.clientHeight - rendererEl?.parentElement.clientHeight;
 });
 </script>
 

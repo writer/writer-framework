@@ -62,6 +62,18 @@ with ui.find("column-container"):
 ```
 If the component couldn't be found, the method raises a `RuntimeError`.
 
+### `parent` method
+
+`ui.parent(component_id: str, level: int = 1)` gives access to the id to parents at higher levels.
+
+```python
+container = ui.parent('my-text') # first parent id
+
+container = ui.parent('my-text', 3) # level 3 parent id
+with ui.find(container):
+	...
+```
+
 ### Component methods
 
 UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).

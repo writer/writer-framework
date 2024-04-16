@@ -1076,6 +1076,9 @@ class Evaluator:
             context[key_variable] = repeater_items[instance_number][0]
             context[value_variable] = repeater_items[instance_number][1]
 
+        if len(instance_path) > 0:
+            context['target'] = instance_path[-1]['componentId']
+            
         return context
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:

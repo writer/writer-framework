@@ -9,7 +9,7 @@
 		"build": "npm run codegen; vitepress build docs",
 		"preview": "npm run codegen; vitepress preview docs",
 		"test": "jest",
-		"codegen": "node codegen/generator_components_pages.js"
+		"codegen": "node codegen/generator_components_pages.mjs"
 	},
 	"dependencies": {
 		"highlight.js": "^11.9.0",

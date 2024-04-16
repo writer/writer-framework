@@ -76,6 +76,22 @@ class StreamsyncUI:
         return component
 
     @staticmethod
+    def parent(component_id: str, level: int = 1) -> Optional[str]:
+        """
+        Retrieves the ID of the top-level parent.
+
+        :param component_id:
+        :param level:
+        :return:
+        """
+        component_tree = current_component_tree()
+        parents_container = component_tree.get_parent(component_id)
+        if len(parents_container) < level - 1:
+            return None
+
+        return parents_container[level - 1]
+
+    @staticmethod
     def create_container_component(component_type: str, **kwargs) -> Component:
         component_tree = current_component_tree()
         container = _create_component(component_tree, component_type, **kwargs)
