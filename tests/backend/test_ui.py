@@ -1,10 +1,11 @@
 import contextlib
-from streamsync.core_ui import ComponentTree, UIError, use_component_tree
-from streamsync.ui import StreamsyncUIManager
-import streamsync as ss
-
 import json
 
+import streamsync as ss
+from streamsync.core_ui import Component, ComponentTree, UIError, use_component_tree
+from streamsync.ui import StreamsyncUIManager
+
+from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
 
 sc = None
@@ -39,7 +40,7 @@ class TestComponentTree:
     def test_descendents(self) -> None:
         with use_new_ss_session() as session:
             desc = session.session_component_tree.get_descendents("root")
-            desc_ids = list(map(lambda x: x.id, desc))
+            desc_ids = [x.id for x in desc]
             assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
             assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
             assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids
@@ -123,3 +124,37 @@ class TestUIManager:
             assert text_component.id == "test_text"
             assert text_component.parentId == column.id
             assert text_component in ui.component_tree.components.values()
+
+    def test_parent_should_return_the_first_level_parent(self):
+        """
+        Test that the parent method returns the first level parent of a component
+        """
+        # Given
+        fake_component_tree = core_ui_fixtures.build_fake_component_tree([
+            Component(id='test_button', parentId='root', type='button'),
+        ], init_root=True)
+
+        with use_component_tree(fake_component_tree):
+            # When
+            id = StreamsyncUIManager().parent('test_button', 1)
+
+            # Then
+            assert id == 'root'
+
+    def test_parent_should_return_the_2_level_parent(self):
+        """
+        Test that the parent with level 2 as argument returns the 2 level parent of a component
+        """
+        # Given
+        fake_component_tree = core_ui_fixtures.build_fake_component_tree([
+            Component(id='section1', parentId='root', type='section'),
+            Component(id='section2', parentId='section1', type='section'),
+            Component(id='test_button', parentId='section2', type='button'),
+            Component(id='section3', parentId='root', type='section'),
+        ], init_root=True)
+
+        with use_component_tree(fake_component_tree):
+            # When
+            id = StreamsyncUIManager().parent('test_button', 2)
+            # Then
+            assert id == 'section1'

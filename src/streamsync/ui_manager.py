@@ -1,8 +1,14 @@
 from json import dumps as json_dumps
 from typing import Optional
 
-from streamsync.core_ui import (Component, UIError,
-                                current_parent_container, current_component_tree, ComponentTree, DependentComponentTree)
+from streamsync.core_ui import (
+    Component,
+    ComponentTree,
+    DependentComponentTree,
+    UIError,
+    current_component_tree,
+    current_parent_container,
+)
 
 
 class StreamsyncUI:
@@ -102,6 +108,21 @@ class StreamsyncUI:
         current_component_tree().clear_children(component_id)
 
         return component
+
+    def parent(component_id: str, level: int = 1) -> Optional[str]:
+        """
+        Retrieves the ID of the top-level parent.
+
+        :param component_id:
+        :param level:
+        :return:
+        """
+        component_tree = current_component_tree()
+        parents_container = component_tree.get_parent(component_id)
+        if len(parents_container) < level - 1:
+            return None
+
+        return parents_container[level - 1]
 
     @staticmethod
     def create_container_component(component_type: str, **kwargs) -> Component:

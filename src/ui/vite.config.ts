@@ -1,13 +1,12 @@
 import { fileURLToPath, URL } from "url";
 import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import monacoEditorPlugin from "vite-plugin-monaco-editor";
 import streamsyncPlugin from "./viteStreamsyncPlugin";
 
 // https://vitejs.dev/config/
 export default defineConfig({
 	base: "./",
-	plugins: [vue(), monacoEditorPlugin({}), streamsyncPlugin()],
+	plugins: [vue(), streamsyncPlugin()],
 	includeStreamsyncComponentPath: false,
 	define: {
 		STREAMSYNC_LIVE_CCT: JSON.stringify("no"),

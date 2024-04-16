@@ -157,7 +157,7 @@ Those with a position higher than mnccp collapse to the right.
 const isCollapsibleToRight = computed(
 	() =>
 		position.value >=
-		columnsData.value.value?.minimumNonCollapsiblePosition,
+		columnsData.value?.value?.minimumNonCollapsiblePosition,
 );
 
 const columnsData: ComputedRef<Ref> = computed(() => {

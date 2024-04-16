@@ -4,9 +4,13 @@
  */
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-const components = require("streamsync-ui/components.codegen.json");
-const path = require("path");
-const fs = require("fs");
+import * as  components from "streamsync-ui/components.codegen.json" with { type: "json" };
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const docDirectory = path.resolve(__dirname, "..", "docs");
 const docComponentsDirectory = path.resolve(docDirectory, "components");
@@ -15,7 +19,7 @@ const componentPageTemplate = path.resolve(
 	"component_page.md.tpl",
 );
 
-async function generate() {
+export async function generate() {
 	// eslint-disable-next-line no-console
 	console.log("generate doc components pages into", docComponentsDirectory);
 
@@ -32,9 +36,3 @@ async function generate() {
 		fs.writeFileSync(componentPath, renderedPage);
 	});
 }
-
-if (require.main === module) {
-	generate();
-}
-
-module.exports = { generate };

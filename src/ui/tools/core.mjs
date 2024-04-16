@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const path = require("path");
+import path from "path";
 
-const { createServer } = require("vite");
+import { createServer } from "vite";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Loads the definition of streamsync components.
  *
  * @returns {Promise<import("./getComponents").Component[]>} The components.
  */
-async function loadComponents() {
+export async function loadComponents() {
 	const vite = await createServer({
 		includeStreamsyncComponentPath: true,
 		server: {
@@ -25,5 +28,3 @@ async function loadComponents() {
 
 	return data;
 }
-
-module.exports = { loadComponents };

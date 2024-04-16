@@ -1,5 +1,6 @@
+
 import alfred
-import os
+
 
 @alfred.command("npm.lint", help="lint check npm packages")
 def npm_lint():

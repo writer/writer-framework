@@ -1,7 +1,7 @@
-import streamsync as ss
 import plotly.graph_objects as go
-from sklearn.linear_model import LogisticRegression
+import streamsync as ss
 from sklearn.datasets import make_blobs
+from sklearn.linear_model import LogisticRegression
 
 COLOR = {
     0: '#3c64fa',
@@ -53,11 +53,11 @@ def update(state):
                 mode='markers',
                 name='Group '+str(i),
                 hoverinfo='none',
-                marker=dict(
-                    color=COLOR[i],
-                    symbol='circle',
-                    size=10
-                )
+                marker={
+                    'color': COLOR[i],
+                    'symbol': 'circle',
+                    'size': 10
+                }
             )
         )
 
@@ -69,29 +69,29 @@ def update(state):
                 _line(20, coef, intercept, i)
             ],
             mode='lines', 
-            line=dict(color=COLOR[i], width=2),
+            line={'color': COLOR[i], 'width': 2},
             name='Logistic Regression'
         ))
 
     layout = go.Layout(
         width=700,height=700,
         hovermode='closest', hoverdistance=1,
-        xaxis=dict(
-            title='Feature 1',
-            range=[-20,20],
-            fixedrange=True,
-            constrain="domain",
-            scaleanchor="y",
-            scaleratio=1
-        ),
-        yaxis=dict(
-            title='Feature 2',
-            range=[-20,20],
-            fixedrange=True,
-            constrain="domain"
-        ),
+        xaxis={
+            'title': 'Feature 1',
+            'range': [-20,20],
+            'fixedrange': True,
+            'constrain': "domain",
+            'scaleanchor': "y",
+            'scaleratio': 1
+        },
+        yaxis={
+            'title': 'Feature 2',
+            'range': [-20,20],
+            'fixedrange': True,
+            'constrain': "domain"
+        },
         paper_bgcolor='#FFFFFF',
-        margin=dict(l=30, r=30, t=30, b=30),
+        margin={'l': 30, 'r': 30, 't': 30, 'b': 30},
     )
 
     fig = go.Figure(data=data, layout=layout)

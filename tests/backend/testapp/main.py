@@ -1,12 +1,13 @@
-import streamsync as ss
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import statistics
-import logging
-import streamsync.core
-import altair as alt
 import asyncio
+import logging
+import statistics
+
+import altair as alt
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import streamsync as ss
+import streamsync.core
 
 
 @ss.session_verifier
@@ -173,7 +174,7 @@ def _update_role_chart(state):
     fig = px.bar(role_counts, x='role', y='count', color='role',
                  color_discrete_sequence=custom_color_scale)
     fig.update_layout(
-        margin=dict(l=20, r=20, t=20, b=50),
+        margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False
     )
     state["role_chart"] = fig
@@ -186,7 +187,7 @@ def _update_scatter_chart(state):
     fig = px.scatter(average_role_data, x="length_cm", y="weight_g",
                      color="role", height=400, size_max=10, size="weight_g")
     fig.update_layout(
-        margin=dict(l=20, r=20, t=20, b=50),
+        margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False
     )
     state["scatter_chart"] = fig

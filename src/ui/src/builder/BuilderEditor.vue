@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
-
+import "./builderEditorWorker";
 import {
 	inject,
 	onMounted,

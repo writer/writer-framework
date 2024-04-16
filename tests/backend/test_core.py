@@ -1,24 +1,32 @@
 import json
 import math
 import unittest
+import urllib
 from typing import Dict
 
-import numpy as np
-from streamsync.core import (BytesWrapper, ComponentTree, Evaluator, EventDeserialiser,
-                             FileWrapper, SessionManager, State, StateSerialiser, StateSerialiserException,
-                             StreamsyncState)
-
-import streamsync as ss
-from streamsync.ss_types import StreamsyncEvent
-import pandas as pd
-import polars as pl
-import plotly.express as px
-import pytest
 import altair
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import polars as pl
 import pyarrow as pa
-import urllib
+import pytest
+import streamsync as ss
+from streamsync.core import (
+    BytesWrapper,
+    Evaluator,
+    EventDeserialiser,
+    FileWrapper,
+    SessionManager,
+    State,
+    StateSerialiser,
+    StateSerialiserException,
+    StreamsyncState,
+)
+from streamsync.core_ui import Component
+from streamsync.ss_types import StreamsyncEvent
 
-from pathlib import Path
+from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
 
 raw_state_dict = {
@@ -832,6 +840,56 @@ class TestEvaluator:
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
+
+    def test_get_context_data_should_return_the_target_of_event(self) -> None:
+        """
+        Test that the target of the event is correctly returned by the get_context_data method
+
+        Here we reproduce a click on a button
+        """
+        # Given
+        st = StreamsyncState({})
+        ct = core_ui_fixtures.build_fake_component_tree([
+            Component(id="button1", parentId="root", type="button")
+        ], init_root=True)
+
+        e = Evaluator(st, ct)
+
+        # When
+        context = e.get_context_data([
+            {"componentId": "root", "instanceNumber": 0},
+            {"componentId": "button1", "instanceNumber": 0}
+        ])
+
+        # Then
+        assert context.get("target") == "button1"
+
+    def test_get_context_data_should_return_the_repeater_position_and_the_target_inside_the_repeater(self) -> None:
+        """
+        Test that the repeater position and target of the event is correctly returned by the get_context_data method
+
+        Here we reproduce a click on a button
+        """
+        # Given
+        st = StreamsyncState({})
+        ct = core_ui_fixtures.build_fake_component_tree([
+            Component(id="repeater1", parentId="root", type="repeater", content={'keyVariable': 'item', 'valueVariable': 'value', 'repeaterObject': json.dumps({'a': 'A', 'b': 'B'})}),
+            Component(id="button1", parentId="repeater1", type="button")
+        ], init_root=True)
+
+        e = Evaluator(st, ct)
+
+        # When
+        context = e.get_context_data([
+            {"componentId": "root", "instanceNumber": 0},
+            {"componentId": "repeater1", "instanceNumber": 0},
+            {"componentId": "button1", "instanceNumber": 1}
+        ])
+
+        # Then
+        assert context.get("target") == "button1"
+        assert context.get("item") == "b"
+        assert context.get("value") == "B"
 
 
 class TestSessionManager:

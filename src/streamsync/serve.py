@@ -1,25 +1,38 @@
 import asyncio
-import dataclasses
+import logging
 import mimetypes
-from contextlib import asynccontextmanager
-import sys
+import os
+import pathlib
 import textwrap
-from typing import Any, Callable, Dict, List, Optional, Set, Union
 import typing
-from fastapi import FastAPI, Request, HTTPException
+from contextlib import asynccontextmanager
+from typing import Any, Callable, Dict, List, Optional, Set, Union
+from urllib.parse import urlsplit
+
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-from fastapi.routing import Mount
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
-from streamsync.ss_types import (AppProcessServerResponse, ComponentUpdateRequestPayload, EventResponsePayload, InitRequestBody, InitResponseBodyEdit,
-                                 InitResponseBodyRun, InitSessionRequestPayload, InitSessionResponsePayload, ServeMode, StateEnquiryResponsePayload, StreamsyncEvent, StreamsyncWebsocketIncoming, StreamsyncWebsocketOutgoing)
-import os
-import uvicorn
-from streamsync.app_runner import AppRunner
-from urllib.parse import urlsplit
-import logging
-import pathlib
+
 from streamsync import VERSION
+from streamsync.app_runner import AppRunner
+from streamsync.ss_types import (
+    AppProcessServerResponse,
+    ComponentUpdateRequestPayload,
+    EventResponsePayload,
+    InitRequestBody,
+    InitResponseBodyEdit,
+    InitResponseBodyRun,
+    InitSessionRequestPayload,
+    InitSessionResponsePayload,
+    ServeMode,
+    StateEnquiryResponsePayload,
+    StreamsyncEvent,
+    StreamsyncWebsocketIncoming,
+    StreamsyncWebsocketOutgoing,
+)
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
@@ -265,7 +278,7 @@ def get_asgi_app(
 
     async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
         response = StreamsyncWebsocketOutgoing(
-            messageType=f"keepAliveResponse",
+            messageType="keepAliveResponse",
             trackingId=req_message.trackingId,
             payload=None
         )

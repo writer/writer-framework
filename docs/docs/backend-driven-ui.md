@@ -84,6 +84,18 @@ with ui.refresh_with("my-page"):
 If a targeted component has builder-managed children, they will not be removed. A warning message will be recorded in the application's log for each BMC attempted to be removed. This does not stop the execution of the method – any remaining CMCs will still be removed.
 As well as with `find` method, it also raises a `RuntimeError` if it fails to find a referenced component.
 
+### `parent` method
+
+`ui.parent(component_id: str, level: int = 1)` gives access to the id to parents at higher levels.
+
+```python
+container = ui.parent('my-text') # first parent id
+
+container = ui.parent('my-text', 3) # level 3 parent id
+with ui.find(container):
+	...
+```
+
 ### Component methods
 
 UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).

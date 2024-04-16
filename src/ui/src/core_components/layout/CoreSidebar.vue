@@ -43,6 +43,7 @@ export default {
 		name: "Sidebar",
 		description,
 		positionless: true,
+		slot: "sidebar",
 		allowedParentTypes: ["page"],
 		allowedChildrenTypes: ["*"],
 		category: "Layout",
@@ -119,7 +120,7 @@ onMounted(() => {
 	const rendererEl: HTMLElement =
 		document.querySelector(".ComponentRenderer");
 	rendererTop.value =
-		document.body.clientHeight - rendererEl.parentElement.clientHeight;
+		document.body.clientHeight - rendererEl?.parentElement.clientHeight;
 });
 </script>
 

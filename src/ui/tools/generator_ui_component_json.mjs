@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const path = require("path");
-const fs = require("fs").promises;
+import { promises as fs } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const { loadComponents } = require("./core");
+import { loadComponents } from "./core.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // eslint-disable-next-line prettier/prettier
 const componentsJsonPath = path.resolve(__dirname, "..", "components.codegen.json");
@@ -12,16 +16,10 @@ const componentsJsonPath = path.resolve(__dirname, "..", "components.codegen.jso
  *
  * @returns {Promise<void>}
  */
-async function generate() {
+export async function generate() {
 	const components = await loadComponents();
 
 	// eslint-disable-next-line no-console
 	console.log("Writing components JSON to", componentsJsonPath);
 	await fs.writeFile(componentsJsonPath, JSON.stringify(components, null, 2));
 }
-
-if (require.main === module) {
-	generate();
-}
-
-module.exports = { generate };
