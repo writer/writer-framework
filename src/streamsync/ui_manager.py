@@ -78,7 +78,6 @@ class StreamsyncUI:
 
         :param component_id: The unique identifier of the container component
                              to be refreshed.
-        :type component_id: str
         :raises RuntimeError: If no component with the specified ID is found
         in the current session's component tree.
 
