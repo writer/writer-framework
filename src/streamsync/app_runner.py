@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
 import importlib.util
-import inspect
 import json
 import logging
 import logging.handlers
@@ -21,7 +20,7 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from streamsync import VERSION
-from streamsync.core import StreamsyncSession, handler_registry
+from streamsync.core import StreamsyncSession, EventHandlerRegistry
 from streamsync.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -49,7 +48,7 @@ class MessageHandlingException(Exception):
 class SessionPruner(threading.Thread):
 
     """
-    Prunes sessions in intervals, without interfering with the AppProcess server thread.  
+    Prunes sessions in intervals, without interfering with the AppProcess server thread.
     """
 
     PRUNE_SESSIONS_INTERVAL_SECONDS = 60
@@ -96,6 +95,7 @@ class AppProcess(multiprocessing.Process):
         self.is_app_process_server_ready = is_app_process_server_ready
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
+        self.handler_registry = EventHandlerRegistry()
 
 
     def _load_module(self) -> ModuleType:
@@ -118,7 +118,7 @@ class AppProcess(multiprocessing.Process):
         Returns functions exposed in the user code module and registered modules,
         which are potential event handlers, using the handler registry.
         """
-        return handler_registry.gather_handler_meta()
+        return self.handler_registry.gather_handler_meta()
 
     def _handle_session_init(self, payload: InitSessionRequestPayload) -> InitSessionResponsePayload:
         """
@@ -291,7 +291,7 @@ class AppProcess(multiprocessing.Process):
                 "info", "Stdout message during initialisation", captured_stdout)
 
         # Register non-private functions as handlers
-        handler_registry.register_module(streamsyncuserapp)
+        self.handler_registry.register_module(streamsyncuserapp)
 
     def _apply_configuration(self) -> None:
         import streamsync
@@ -498,6 +498,7 @@ class AppProcessListener(threading.Thread):
                 raise ValueError(
                     f"No response event found for message {message_id}.")
 
+
 class LogListener(threading.Thread):
 
     """
@@ -519,6 +520,7 @@ class LogListener(threading.Thread):
             if message is None:
                 break
             self.logger.handle(message)            
+
 
 class AppRunner:
 
@@ -620,7 +622,7 @@ class AppRunner:
         response_packet = self.response_packets.get(message_id)
         if response_packet is None:
             raise ValueError(
-                f"Empty packet received in response to message { message_id }.")
+                f"Empty packet received in response to message {message_id}.")
         response_message_id, response_session_id, response = response_packet
         del self.response_packets[message_id]
         del self.response_events[message_id]
@@ -750,8 +752,8 @@ class AppRunner:
                 "Cannot start app process. Components haven't been set.")
         self.is_app_process_server_ready.clear()
         client_conn, server_conn = multiprocessing.Pipe(duplex=True)
-        self.client_conn = cast(multiprocessing.connection.Connection, client_conn) # for mypy type checking on windows
-        self.server_conn = cast(multiprocessing.connection.Connection, server_conn) # for mypy type checking on windows
+        self.client_conn = cast(multiprocessing.connection.Connection, client_conn)  # for mypy type checking on windows
+        self.server_conn = cast(multiprocessing.connection.Connection, server_conn)  # for mypy type checking on windows
 
         self.app_process = AppProcess(
             client_conn=self.client_conn,

@@ -12,7 +12,6 @@ from streamsync.core import (
     base_cmc_tree,
     base_component_tree,
     initial_state,
-    handler_registry,
     new_initial_state,
     session_manager,
     session_verifier,
@@ -45,7 +44,9 @@ def pack_bytes(raw_data, mime_type: Optional[str] = None):
 
     return BytesWrapper(raw_data, mime_type)
 
+
 S = TypeVar('S', bound=StreamsyncState)
+
 
 def init_ui() -> StreamsyncUIManager:
     """Initializes and returns an instance of StreamsyncUIManager.
@@ -120,6 +121,9 @@ def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
 
     :raises ValueError: If an object that is not a module is attempted to be registered.
     """
+    from streamsync.core import get_app_process
+    current_app_process = get_app_process()
+    handler_registry = current_app_process.handler_registry
     # Ensure handler_modules is a list
     if not isinstance(handler_modules, list):
         handler_modules = [handler_modules]

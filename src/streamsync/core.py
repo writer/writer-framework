@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import base64
 import contextlib
@@ -8,9 +9,9 @@ import io
 import json
 import logging
 import math
+import multiprocessing
 import re
 import secrets
-import sys
 import time
 import traceback
 import urllib.request
@@ -45,6 +46,21 @@ from streamsync.ss_types import (
     StreamsyncEventResult,
     StreamsyncFileItem,
 )
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from streamsync.app_runner import AppProcess
+
+
+def get_app_process() -> 'AppProcess':
+    from streamsync.app_runner import AppProcess  # Needed during runtime
+    raw_process: Union[multiprocessing.Process, AppProcess] = \
+        multiprocessing.current_process()
+    if isinstance(raw_process, AppProcess):
+        return raw_process
+    raise RuntimeError(
+        "Failed to retrieve the AppProcess: running in wrong context"
+        )
 
 
 class Config:
@@ -1299,6 +1315,8 @@ class EventHandler:
         return result, captured_stdout
 
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
+        current_app_process = get_app_process()
+        handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
             return
         handler = target_component.handlers.get(event_type)
@@ -1470,4 +1488,3 @@ initial_state = StreamsyncState()
 base_component_tree = ComponentTree()
 base_cmc_tree = DependentComponentTree(base_component_tree)
 session_manager = SessionManager()
-handler_registry = EventHandlerRegistry()
