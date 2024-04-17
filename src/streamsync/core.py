@@ -1,4 +1,3 @@
-from __future__ import annotations
 import asyncio
 import base64
 import contextlib
@@ -10,6 +9,7 @@ import json
 import logging
 import math
 import multiprocessing
+from multiprocessing.process import BaseProcess
 import re
 import secrets
 import time
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 
 def get_app_process() -> 'AppProcess':
     from streamsync.app_runner import AppProcess  # Needed during runtime
-    raw_process: Union[multiprocessing.Process, AppProcess] = \
+    raw_process: BaseProcess = \
         multiprocessing.current_process()
     if isinstance(raw_process, AppProcess):
         return raw_process
