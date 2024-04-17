@@ -113,11 +113,11 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
         for event, handler in raw_handlers.items():
             if callable(handler):
                 module_name = \
-                    handler.__module__ \
+                    handler.__module__ + "." \
                     if handler.__module__ != "streamsyncuserapp" \
-                    else "main"
+                    else ""
                 handlers[event] = \
-                    f"{module_name}:{handler.__name__}"
+                    f"{module_name}{handler.__name__}"
             else:
                 handlers[event] = handler
     return handlers
