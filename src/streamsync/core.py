@@ -9,14 +9,15 @@ import json
 import logging
 import math
 import multiprocessing
-from multiprocessing.process import BaseProcess
 import re
 import secrets
 import time
 import traceback
 import urllib.request
+from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -47,7 +48,6 @@ from streamsync.ss_types import (
     StreamsyncFileItem,
 )
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from streamsync.app_runner import AppProcess
 

@@ -20,7 +20,7 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from streamsync import VERSION
-from streamsync.core import StreamsyncSession, EventHandlerRegistry
+from streamsync.core import EventHandlerRegistry, StreamsyncSession
 from streamsync.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
