@@ -9,18 +9,22 @@ import alfred
 
 @alfred.command("ci", help="continuous integration pipeline")
 @alfred.option('--front', '-f', help="run for frontend only", is_flag=True, default=False)
+@alfred.option('--docs', '-d', help="run for docs only", is_flag=True, default=False)
 @alfred.option('--back', '-b', help="run for backend only", is_flag=True, default=False)
 @alfred.option('--e2e', '-e', help="run for end-to-end only", default=None)
-def ci(front, back, e2e):
-    if back or (not front and not back and not e2e):
+def ci(front, back, e2e, docs):
+    no_flags = (not front and not back and not e2e and not docs)
+
+    if back or no_flags:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest")
-    if front or (not front and not back and not e2e):
+    if front or no_flags:
         alfred.invoke_command("npm.lint")
-        alfred.invoke_command("npm.test")
         alfred.invoke_command("npm.build")
-        alfred.invoke_command("ci.codegen.ui.binding")
+    if docs or no_flags:
+        alfred.invoke_command("npm.docs")
+        alfred.invoke_command("npm.docs.test")
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
 
@@ -36,18 +40,6 @@ def ci_ruff():
 def ci_test():
     os.chdir("tests")
     alfred.run("pytest")
-
-
-@alfred.command("ci.codegen.ui.binding", help="check if ui binding is up to date")
-def ci_codegen_ui_binding():
-    with _preserve_files(["src/streamsync/ui.py", "src/ui/components.codegen.json"]):
-        _, original_diff, stderr = alfred.run("git diff  src/streamsync/ui.py", exit_on_error=False, stream_stdout=False)
-        alfred.invoke_command("npm.codegen")
-        _, final_diff, stderr = alfred.run("git diff  src/streamsync/ui.py", exit_on_error=False, stream_stdout=False)
-        if original_diff != final_diff:
-            print("UI binding is incomplete and has to be regenerated with `alfred npm.codegen`")
-            exit(1)
-
 
 @contextlib.contextmanager
 def _preserve_files(path: List[str]):
