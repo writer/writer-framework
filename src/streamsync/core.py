@@ -29,8 +29,8 @@ from typing import (
     Set,
     Tuple,
     Type,
-    TypeVar,
     TypedDict,
+    TypeVar,
     Union,
     cast,
 )
