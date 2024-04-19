@@ -27,6 +27,7 @@ import {
 	separatorColor,
 	cssClasses,
 } from "../../renderer/sharedStyleFields";
+import { onMounted } from "vue";
 
 const description = "A user input component with a simple on/off status.";
 
@@ -72,13 +73,17 @@ const fields = inject(injectionKeys.evaluatedFields);
 const rootEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const { handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 const toggleValue = ref(false);
 
 function handleToggle() {
 	toggleValue.value = !toggleValue.value;
 	handleInput(toggleValue.value, "ss-toggle");
 }
+
+onMounted(() => {
+	toggleValue.value = !!formValue.value;
+});
 </script>
 
 <style scoped>
