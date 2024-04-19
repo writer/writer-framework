@@ -113,7 +113,7 @@ class AppProcess(multiprocessing.Process):
 
         return module
 
-    def _get_user_functions(self) -> List[Dict]:
+    def _get_user_functions(self) -> List[EventHandlerRegistry.HandlerMeta]:
         """
         Returns functions exposed in the user code module and registered modules,
         which are potential event handlers, using the handler registry.

@@ -30,6 +30,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    TypedDict,
     Union,
     cast,
 )
@@ -745,9 +746,13 @@ class EventHandlerRegistry:
     and external modules, providing an access mechanism to these maps.
     """
 
-    HandlerArgsSequence = Sequence[str]
-    HandlerMetaEntry = Dict[str, Union[str, HandlerArgsSequence]]
-    HandlerEntry = Dict[str, Union[Callable, HandlerMetaEntry]]
+    class HandlerMeta(TypedDict):
+        name: str
+        args: List[str]
+
+    class HandlerEntry(TypedDict):
+        callable: Callable
+        meta: 'EventHandlerRegistry.HandlerMeta'
 
     def __init__(self):
         self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}
@@ -798,31 +803,23 @@ class EventHandlerRegistry:
                 )
 
     def find_handler(self, handler_name: str) -> Optional[Callable]:
+        if handler_name not in self.handler_map:
+            return None
         handler_entry: EventHandlerRegistry.HandlerEntry = \
-            self.handler_map.get(handler_name, {})
-        handler_callable = \
-            cast(Optional[Callable], handler_entry.get("callable"))
-        return handler_callable
+            self.handler_map[handler_name]
+        return handler_entry["callable"]
 
     def get_handler_meta(
             self,
             handler_name: str
-            ) -> "EventHandlerRegistry.HandlerMetaEntry":
+            ) -> "EventHandlerRegistry.HandlerMeta":
         if handler_name not in self.handler_map:
             raise RuntimeError(f"Handler {handler_name} is not registered")
         entry: EventHandlerRegistry.HandlerEntry = \
             self.handler_map[handler_name]
-        if "meta" not in entry:
-            raise RuntimeError(
-                "Improper handler configuration " +
-                f"for {handler_name}: " +
-                "missing meta"
-                )
-        meta = \
-            cast(EventHandlerRegistry.HandlerMetaEntry, entry.get("meta"))
-        return meta
+        return entry["meta"]
 
-    def gather_handler_meta(self) -> List["EventHandlerRegistry.HandlerMetaEntry"]:
+    def gather_handler_meta(self) -> List["EventHandlerRegistry.HandlerMeta"]:
         return [self.get_handler_meta(handler_name) for handler_name in self]
 
 
