@@ -29,7 +29,8 @@ export function generateCore() {
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
-	const syncHealth: Ref<"idle" | "connected" | "offline"> = ref("idle");
+	const syncHealth: Ref<"idle" | "connected" | "offline" | "suspended"> =
+		ref("idle");
 	let frontendMessageCounter = 0;
 	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(
 		new Map(),
@@ -336,6 +337,8 @@ export function generateCore() {
 				messageData,
 				messageCallback,
 			);
+
+			syncHealth.value = "suspended";
 		});
 	}
 
@@ -390,6 +393,10 @@ export function generateCore() {
 		callback?: Function,
 		track = false,
 	) {
+		if (syncHealth.value == "offline" || syncHealth.value == "suspended") {
+			callback?.({ ok: false });
+			return;
+		}
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {

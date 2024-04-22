@@ -100,6 +100,8 @@ const syncHealthStatus = () => {
 			return "Online. Syncing...";
 		case "idle":
 			return "Sync not initialised.";
+		case "suspended":
+			return "Sync suspended.";
 	}
 };
 
@@ -157,6 +159,10 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 .syncHealth.offline {
+	background: var(--builderErrorColor);
+}
+
+.syncHealth.suspended {
 	background: var(--builderErrorColor);
 }
 
