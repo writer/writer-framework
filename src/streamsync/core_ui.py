@@ -198,28 +198,32 @@ class DependentComponentTree(ComponentTree):
         own_children = list(filter(lambda c: c.parentId == parent_id, self.components.values()))
         return base_children + own_children
 
-    def to_dict(self) -> Dict:
-        active_components = {
-            # Collecting serialized base tree components
-            component_id: base_component.to_dict()
-            for component_id, base_component
-            in self.base_component_tree.components.items()
-        }
+    def to_dict(self, owned_only=False) -> Dict:
+        if owned_only:
+            # If only owned components are requested,
+            # do not collect base tree components
+            active_components = {}
+        else:
+            active_components = {
+                # Collecting serialized base tree components
+                component_id: base_component.to_dict()
+                for component_id, base_component
+                in self.base_component_tree.components.items()
+            }
         for component_id, own_component in self.components.items():
             # Overriding base tree components with ones that belong to dependent tree
             active_components[component_id] = own_component.to_dict()
         return active_components
 
 
-
 class SessionComponentTree(DependentComponentTree):
 
-    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: ComponentTree):
+    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: DependentComponentTree):
         super().__init__(base_component_tree, attach_root=False)
 
         # Initialize SessionComponentTree with components from the base
         # CMC pool, added during app initialization
-        preinitialized_components = base_cmc_tree.to_dict()
+        preinitialized_components = base_cmc_tree.to_dict(owned_only=True)
         self.ingest(preinitialized_components)
 
         preinitialized_pages = \
