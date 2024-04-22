@@ -216,10 +216,9 @@ class DependentComponentTree(ComponentTree):
         return active_components
 
 
-
 class SessionComponentTree(DependentComponentTree):
 
-    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: ComponentTree):
+    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: DependentComponentTree):
         super().__init__(base_component_tree, attach_root=False)
 
         # Initialize SessionComponentTree with components from the base
