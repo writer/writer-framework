@@ -11,8 +11,8 @@
 		"codegen": "node tools/generator.mjs",
 		"custom.dev": "vite --config vite.config.custom.ts",
 		"custom.build": "vite build --config vite.config.custom.ts",
-    "storybook": "storybook dev -p 6006",
-    "storybook.build": "storybook build"
+		"storybook": "storybook dev -p 6006",
+		"storybook.build": "storybook build"
 	},
 	"dependencies": {
 		"@apache-arrow/ts": "^15.0.2",
@@ -47,15 +47,15 @@
 		"prettier": "3.2.5",
 		"vite": "^5.2.7",
 		"volar-service-vetur": "*",
-    "@chromatic-com/storybook": "1.2.26",
-    "@storybook/addon-essentials": "8.0.5",
-    "@storybook/addon-interactions": "8.0.5",
-    "@storybook/addon-links": "8.0.5",
-    "@storybook/blocks": "8.0.5",
-    "@storybook/test": "8.0.5",
-    "@storybook/vue3": "8.0.5",
-    "@storybook/vue3-vite": "8.0.5",
-    "eslint-plugin-storybook": "0.8.0",
-    "storybook": "8.0.5"
+		"@chromatic-com/storybook": "1.2.26",
+		"@storybook/addon-essentials": "8.0.5",
+		"@storybook/addon-interactions": "8.0.5",
+		"@storybook/addon-links": "8.0.5",
+		"@storybook/blocks": "8.0.5",
+		"@storybook/test": "8.0.5",
+		"@storybook/vue3": "8.0.5",
+		"@storybook/vue3-vite": "8.0.5",
+		"eslint-plugin-storybook": "0.8.0",
+		"storybook": "8.0.5"
 	}
 }

@@ -8,7 +8,7 @@
 		"docs"
 	],
 	"scripts": {
-		"build": "npm run --if-present -ws build && npm run apps:build && npm run cli:build",
+		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen && npm run docs:build",
 		"test": "npm run --if-present -ws test",
 		"lint": "npm run --if-present -ws lint",
 		"dev": "npm run -w streamsync-ui dev",
