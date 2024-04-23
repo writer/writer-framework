@@ -24,7 +24,9 @@ packages = [
     { include = "streamsync", from = "src" }
 ]
 include = [
-	"src/streamsync/static/**/*"
+    "src/streamsync/*.py",
+    "src/streamsync/static/**/*",
+    "src/streamsync/app_templates/**/*"
 ]
 
 [tool.poetry.dependencies]
