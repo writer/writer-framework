@@ -1,19 +1,30 @@
+import contextlib
 import os
+import shutil
+import tempfile
+from typing import List
 
 import alfred
 
 
 @alfred.command("ci", help="continuous integration pipeline")
 @alfred.option('--front', '-f', help="run for frontend only", is_flag=True, default=False)
+@alfred.option('--docs', '-d', help="run for docs only", is_flag=True, default=False)
 @alfred.option('--back', '-b', help="run for backend only", is_flag=True, default=False)
 @alfred.option('--e2e', '-e', help="run for end-to-end only", default=None)
-def ci(front, back, e2e):
-    if back or (not front and not back and not e2e):
+def ci(front, back, e2e, docs):
+    no_flags = (not front and not back and not e2e and not docs)
+
+    if back or no_flags:
         alfred.invoke_command("ci.mypy")
+        alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest")
-    if front or (not front and not back and not e2e):
+    if front or no_flags:
         alfred.invoke_command("npm.lint")
         alfred.invoke_command("npm.build")
+    if docs or no_flags:
+        alfred.invoke_command("npm.docs")
+        alfred.invoke_command("npm.docs.test")
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
 
@@ -21,8 +32,33 @@ def ci(front, back, e2e):
 def ci_mypy():
     alfred.run("mypy ./src/streamsync --exclude app_templates/*")
 
+@alfred.command("ci.ruff", help="linting with ruff")
+def ci_ruff():
+    alfred.run("ruff check")
 
 @alfred.command("ci.pytest", help="run pytest on ./tests")
 def ci_test():
     os.chdir("tests")
     alfred.run("pytest")
+
+@contextlib.contextmanager
+def _preserve_files(path: List[str]):
+    """
+    Preserve files in a temporary directory and restore them after the context
+
+    :param path: list of files to preserve
+    """
+    tmpdir = tempfile.mkdtemp()
+    try:
+        for p in path:
+            os.makedirs(os.path.dirname(os.path.join(tmpdir, p)), exist_ok=True)
+            shutil.copy(p, os.path.join(tmpdir, p))
+
+        yield
+    finally:
+        for p in path:
+            shutil.copy(os.path.join(tmpdir, p), p)
+
+        shutil.rmtree(tmpdir)
+
+

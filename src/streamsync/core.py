@@ -1,23 +1,49 @@
 import asyncio
+import base64
 import contextlib
 import copy
 import datetime
 import inspect
+import io
+import json
 import logging
+import math
+import re
 import secrets
 import sys
-import threading
 import time
 import traceback
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union
 import urllib.request
-import base64
-import io
-import re
-import json
-import math
-from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from pydantic import BaseModel, Field
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
+
+from streamsync.core_ui import (
+    ComponentTree,
+    DependentComponentTree,
+    SessionComponentTree,
+    use_component_tree,
+)
+from streamsync.ss_types import (
+    InstancePath,
+    Readable,
+    StreamsyncEvent,
+    StreamsyncEventResult,
+    StreamsyncFileItem,
+)
 
 
 class Config:
@@ -91,7 +117,7 @@ class StateSerialiser:
     """
 
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
-        if isinstance(v, StateProxy):
+        if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
         if isinstance(v, (FileWrapper, BytesWrapper)):
             return self._serialise_ss_wrapper(v)
@@ -121,6 +147,11 @@ class StateSerialiser:
                 return None
             return v
 
+        if "pandas.core.frame.DataFrame" in v_mro:
+            return self._serialise_pandas_dataframe(v)
+        if hasattr(v, "__dataframe__"):
+            return self._serialize_dataframe(v)
+
         if "matplotlib.figure.Figure" in v_mro:
             return self._serialise_matplotlib_fig(v)
         if "plotly.graph_objs._figure.Figure" in v_mro:
@@ -129,8 +160,6 @@ class StateSerialiser:
             return float(v)
         if "numpy.ndarray" in v_mro:
             return self._serialise_list_recursively(v.tolist())
-        if "pandas.core.frame.DataFrame" in v_mro:
-            return self._serialise_pandas_dataframe(v)
         if "pyarrow.lib.Table" in v_mro:
             return self._serialise_pyarrow_table(v)
 
@@ -144,7 +173,7 @@ class StateSerialiser:
     def _serialise_dict_recursively(self, d: Dict) -> Dict:
         return {str(k): self.serialise(v) for k, v in d.items()}
 
-    def _serialise_list_recursively(self, l: List) -> List:
+    def _serialise_list_recursively(self, l: List) -> List:  # noqa: E741
         return [self.serialise(v) for v in l]
 
     def _serialise_ss_wrapper(self, v: Union[FileWrapper, BytesWrapper]) -> str:
@@ -162,14 +191,25 @@ class StateSerialiser:
         plt.close(fig)
         return FileWrapper(iobytes, "image/png").get_as_dataurl()
 
-    def _serialise_pandas_dataframe(self, df):
-        import pyarrow as pa # type: ignore
+    def _serialize_dataframe(self, df) -> str:
+        """
+        Serialize a dataframe with pyarrow a dataframe that implements
+        the Dataframe Interchange Protocol i.e. the __dataframe__() method
 
+        :param df: dataframe that implements Dataframe Interchange Protocol (__dataframe__ method)
+        :return: a arrow file as a dataurl (application/vnd.apache.arrow.file)
+        """
+        import pyarrow.interchange  # type: ignore
+        table = pyarrow.interchange.from_dataframe(df)
+        return self._serialise_pyarrow_table(table)
+
+    def _serialise_pandas_dataframe(self, df):
+        import pyarrow as pa  # type: ignore
         pa_table = pa.Table.from_pandas(df, preserve_index=True)
         return self._serialise_pyarrow_table(pa_table)
 
     def _serialise_pyarrow_table(self, table):
-        import pyarrow as pa # type: ignore
+        import pyarrow as pa  # type: ignore
 
         sink = pa.BufferOutputStream()
         batches = table.to_batches()
@@ -204,6 +244,9 @@ class StateProxy:
         for key, raw_value in raw_state.items():
             self.__setitem__(key, raw_value)
 
+    def items(self) -> Sequence[Tuple[str, Any]]:
+        return cast(Sequence[Tuple[str, Any]], self.state.items())
+
     def get(self, key) -> Any:
         return self.state.get(key)
 
@@ -215,19 +258,7 @@ class StateProxy:
             raise ValueError(
                 f"State keys must be strings. Received {str(key)} ({type(key)}).")
 
-        # Items that are dictionaries are converted to StateProxy instances
-
-        if isinstance(raw_value, dict):
-            value = StateProxy(raw_value)
-        elif isinstance(raw_value, StateProxy):
-            # Children StateProxies need to be reinitialised
-            # during an assignment to parent StateProxy
-            # to ensure proper mutation tracking
-            value = StateProxy(raw_value.state)
-        else:
-            value = raw_value
-
-        self.state[key] = value
+        self.state[key] = raw_value
         self._apply_raw(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
@@ -241,8 +272,28 @@ class StateProxy:
     def _apply_raw(self, key) -> None:
         self.mutated.add(key)
 
-    def apply(self, key) -> None:
-        self._apply_raw(f"+{key}")
+    def apply_mutation_marker(self, key: Optional[str] = None, recursive: bool = False) -> None:
+        """
+        Adds the mutation marker to a state. The mutation marker is used to track changes in the state.
+
+        >>> self.apply_mutation_marker()
+
+        Add the mutation marker on a specific field
+
+        >>> self.apply_mutation_marker("field")
+
+        Add the mutation marker to a state and all of its children
+
+        >>> self.apply_mutation_marker(recursive=True)
+        """
+        keys = [key] if key is not None else self.state.keys()
+
+        for k in keys:
+            self._apply_raw(f"+{k}")
+            if recursive is True:
+                value = self.state[k]
+                if isinstance(value, StateProxy):
+                    value.apply_mutation_marker(recursive=True)
 
     @staticmethod
     def escape_key(key):
@@ -263,7 +314,7 @@ class StateProxy:
             serialised_value = None
 
             if isinstance(value, StateProxy):
-                if value.initial_assignment:
+                if f"+{key}" in self.mutated:
                     serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
                 child_mutations = value.get_mutations_as_dict()
@@ -304,9 +355,208 @@ class StateProxy:
             serialised[key] = serialised_value
         return serialised
 
+    def to_raw_state(self):
+        """
+        Converts a StateProxy and its children into a python dictionary.
 
-class StreamsyncState():
+        >>> state = State({'a': 1, 'c': {'a': 1, 'b': 3}})
+        >>> _raw_state = state._state_proxy.to_raw_state()
+        >>> {'a': 1, 'c': {'a': 1, 'b': 3}}
 
+        :return: a python dictionary that represents the raw state
+        """
+        raw_state = {}
+        for key, value in self.state.items():
+            if isinstance(value, StateProxy):
+                value = value.to_raw_state()
+            raw_state[key] = value
+
+        return raw_state
+
+
+def get_annotations(instance) -> Dict[str, Any]:
+    """
+    Returns the annotations of the class in a way that works on python 3.9 and python 3.10
+    """
+    if isinstance(instance, type):
+        ann = instance.__dict__.get('__annotations__', None)
+    else:
+        ann = getattr(instance, '__annotations__', None)
+
+    if ann is None:
+        ann = {}
+    return ann
+
+
+class StateMeta(type):
+    """
+    Constructs a class at runtime that extends StreamsyncState or State
+    with dynamic properties for each annotation of the class.
+    """
+
+    def __new__(cls, name, bases, attrs):
+        klass = super().__new__(cls, name, bases, attrs)
+        cls.bind_annotations_to_state_proxy(klass)
+        return klass
+
+    @classmethod
+    def bind_annotations_to_state_proxy(cls, klass):
+        """
+        Loops through the class annotations and creates properties dynamically for each one.
+
+        >>> class MyState(State):
+        >>>     counter: int
+
+        will be transformed into
+
+        >>> class MyState(State):
+        >>>
+        >>>     @property
+        >>>     def counter(self):
+        >>>         return self._state_proxy["counter"]
+        >>>
+        >>>    @counter.setter
+        >>>    def counter(self, value):
+        >>>        self._state_proxy["counter"] = value
+
+        Annotations that reference a State are ignored. The link will be established through a State instance
+        when ingesting state data.
+
+        >>> class MyAppState(State):
+        >>>     title: str
+
+        >>> class MyState(State):
+        >>>     myapp: MyAppState # Nothing happens
+        """
+
+        annotations = get_annotations(klass)
+        for key, expected_type in annotations.items():
+            if key == "_state_proxy":
+                raise AttributeError("_state_proxy is an reserved keyword for streamsync, don't use it in annotation.")
+
+            if not(inspect.isclass(expected_type) and issubclass(expected_type, State)):
+                proxy = DictPropertyProxy("_state_proxy", key)
+                setattr(klass, key, proxy)
+
+
+class State(metaclass=StateMeta):
+    """
+    `State` represents a state of the application.
+    """
+
+    def __init__(self, raw_state: Dict[str, Any] = {}):
+        self._state_proxy: StateProxy = StateProxy(raw_state)
+        self.ingest(raw_state)
+
+    def ingest(self, raw_state: Dict[str, Any]) -> None:
+        """
+        hydrates a state from raw data by applying a schema when it is provided.
+        The existing content in the state is erased.
+
+
+        >>> state = StreamsyncState({'message': "hello world"})
+        >>> state.ingest({'a': 1, 'b': 2})
+        >>> {'a': 1, 'b': 2}
+        """
+        self._state_proxy.state = {}
+        for key, value in raw_state.items():
+            assert not isinstance(value, StateProxy), f"state proxy datatype is not expected in ingest operation, {locals()}"
+            self._set_state_item(key, value)
+
+    def to_dict(self) -> dict:
+        """
+        Serializes state data as a dictionary
+
+        Private attributes, prefixed with _, are ignored.
+
+        >>> state = StreamsyncState({'message': "hello world"})
+        >>> return state.to_dict()
+        """
+        return self._state_proxy.to_dict()
+
+
+    def to_raw_state(self) -> dict:
+        """
+        Converts a StateProxy and its children into a python dictionary that can be used to recreate the
+        state from scratch.
+
+        >>> state = StreamsyncState({'a': 1, 'c': {'a': 1, 'b': 3}})
+        >>> raw_state = state.to_raw_state()
+        >>> "{'a': 1, 'c': {'a': 1, 'b': 3}}"
+
+        :return: a python dictionary that represents the raw state
+        """
+        return self._state_proxy.to_raw_state()
+
+    def __repr__(self) -> str:
+        return self._state_proxy.__repr__()
+
+    def __getitem__(self, key: str) -> Any:
+
+        # Essential to support operation like
+        # state['item']['a'] = state['item']['b']
+        if hasattr(self, key):
+            value = getattr(self, key)
+            if isinstance(value, State):
+                return value
+
+        return self._state_proxy.__getitem__(key)
+
+    def __setitem__(self, key: str, raw_value: Any) -> None:
+        assert not isinstance(raw_value, StateProxy), f"state proxy datatype is not expected, {locals()}"
+
+        self._set_state_item(key, raw_value)
+
+    def __delitem__(self, key: str) -> Any:
+        return self._state_proxy.__delitem__(key)
+
+    def remove(self, key: str) -> Any:
+        return self.__delitem__(key)
+
+    def items(self) -> Generator[Tuple[str, Any], None, None]:
+        for k, v in self._state_proxy.items():
+            if isinstance(v, StateProxy):
+                # We don't want to expose StateProxy to the user, so
+                # we replace it with relative State
+                yield k, getattr(self, k)
+            else:
+                yield k, v
+
+    def __contains__(self, key: str) -> bool:
+        return self._state_proxy.__contains__(key)
+
+    def _set_state_item(self, key: str, value: Any):
+        """
+        """
+
+        """
+        At this level, the values that arrive are either States which encapsulate a StateProxy, or another datatype. 
+        If there is a StateProxy, it is a fault in the code.
+        """
+        annotations = get_annotations(self)
+        expected_type = annotations.get(key, None)
+        expect_dict = expected_type is not None and inspect.isclass(expected_type) and issubclass(expected_type, dict)
+        if isinstance(value, dict) and not expect_dict:
+            """
+            When the value is a dictionary and the attribute does not explicitly 
+            expect a dictionary, we instantiate a new state to manage mutations.
+            """
+            state = annotations[key](value) if key in annotations else State()
+            if not isinstance(state, State):
+                raise ValueError(f"Attribute {key} must inherit of State or requires a dict to accept dictionary")
+
+            setattr(self, key, state)
+            state.ingest(value)
+            self._state_proxy[key] = state._state_proxy
+        else:
+            if isinstance(value, State):
+                value._state_proxy.apply_mutation_marker(recursive=True)
+                self._state_proxy[key] = value._state_proxy
+            else:
+                self._state_proxy[key] = value
+
+
+class StreamsyncState(State):
     """
     Root state. Comprises user configurable state and
     mail (notifications, log entries, etc).
@@ -315,11 +565,12 @@ class StreamsyncState():
     LOG_ENTRY_MAX_LEN = 8192
 
     def __init__(self, raw_state: Dict[str, Any] = {}, mail: List[Any] = []):
-        self.user_state: StateProxy = StateProxy(raw_state)
+        super().__init__(raw_state)
         self.mail = copy.deepcopy(mail)
 
-    def __repr__(self) -> str:
-        return self.user_state.__repr__()
+    @property
+    def user_state(self) -> StateProxy:
+        return self._state_proxy
 
     @classmethod
     def get_new(cls):
@@ -327,9 +578,21 @@ class StreamsyncState():
 
         return initial_state.get_clone()
 
-    def get_clone(self):
+    def get_clone(self) -> 'StreamsyncState':
+        """
+        get_clone clones the destination application state for the session.
+
+        The class is rebuilt identically in the case where the user
+        has constructed a schema inherited from StreamsyncState
+
+        >>> class AppSchema(StreamsyncState):
+        >>>     counter: int
+        >>>
+        >>> root_state = AppSchema({'counter': 1})
+        >>> clone_state = root_state.get_clone() # instance of AppSchema
+        """
         try:
-            cloned_user_state = copy.deepcopy(self.user_state.state)
+            cloned_user_state = copy.deepcopy(self.user_state.to_raw_state())
             cloned_mail = copy.deepcopy(self.mail)
         except BaseException:
             substitute_state = StreamsyncState()
@@ -338,22 +601,7 @@ class StreamsyncState():
                                            "The state may contain unpickable objects, such as modules.",
                                            traceback.format_exc())
             return substitute_state
-        return StreamsyncState(cloned_user_state, cloned_mail)
-
-    def __getitem__(self, key: str) -> Any:
-        return self.user_state.__getitem__(key)
-
-    def __setitem__(self, key: str, raw_value: Any) -> None:
-        self.user_state.__setitem__(key, raw_value)
-
-    def __delitem__(self, key: str) -> Any:
-        return self.user_state.__delitem__(key)
-
-    def remove(self, key: str) -> Any:
-        return self.__delitem__(key)
-
-    def __contains__(self, key: str) -> bool:
-        return self.user_state.__contains__(key)
+        return self.__class__(cloned_user_state, cloned_mail)
 
     def add_mail(self, type: str, payload: Any) -> None:
         mail_item = {
@@ -474,101 +722,6 @@ class StreamsyncState():
         })
 
 
-# TODO Consider switching Component to use Pydantic
-
-class Component(BaseModel):
-    id: str
-    type: str
-    content: Dict[str, str] = Field(default_factory=dict)
-    flag: Optional[str] = None
-    position: int = 0
-    parentId: Optional[str] = None
-    handlers: Optional[Dict[str, str]] = None
-    visible: Optional[Union[bool, str]] = None
-    binding: Optional[Dict] = None
-
-    def to_dict(self) -> Dict:
-        """
-        Wrapper for model_dump to ensure backward compatibility.
-        """
-        return self.model_dump(exclude_none=True)
-
-
-class ComponentTree:
-
-    def __init__(self) -> None:
-        self.counter: int = 0
-        self.components: Dict[str, Component] = {}
-        root_component = Component(
-            id="root", type="root", content={}
-        )
-        self.attach(root_component)
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        return self.components.get(component_id)
-
-    def get_descendents(self, parent_id: str) -> List[Component]:
-        children = list(filter(lambda c: c.parentId == parent_id,
-                               self.components.values()))
-        desc = children.copy()
-        for child in children:
-            desc += self.get_descendents(child.id)
-
-        return desc
-
-    def attach(self, component: Component) -> None:
-        self.counter += 1
-        self.components[component.id] = component
-
-    def ingest(self, serialised_components: Dict[str, Any]) -> None:
-        removed_ids = self.components.keys() - serialised_components.keys()
-
-        for component_id in removed_ids:
-            if component_id == "root":
-                continue
-            self.components.pop(component_id)
-        for component_id, sc in serialised_components.items():
-            component = Component(**sc)
-            self.components[component_id] = component
-
-    def to_dict(self) -> Dict:
-        active_components = {}
-        for id, component in self.components.items():
-            active_components[id] = component.to_dict()
-        return active_components
-
-
-class SessionComponentTree(ComponentTree):
-
-    def __init__(self, base_component_tree: ComponentTree):
-        super().__init__()
-        self.base_component_tree = base_component_tree
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        # Check if session component tree contains requested key
-        session_component_present = component_id in self.components
-
-        if session_component_present:
-            # If present, return session component (even if it's None)
-            session_component = self.components.get(component_id)
-            return session_component
-
-        # Otherwise, try to obtain the base tree component
-        return self.base_component_tree.get_component(component_id)
-
-    def to_dict(self) -> Dict:
-        active_components = {
-            # Collecting serialized base tree components
-            component_id: base_component.to_dict()
-            for component_id, base_component
-            in self.base_component_tree.components.items()
-        }
-        for component_id, session_component in self.components.items():
-            # Overriding base tree components with session-specific ones
-            active_components[component_id] = session_component.to_dict()
-        return active_components
-
-
 class EventDeserialiser:
 
     """Applies transformations to the payload of an incoming event, depending on its type.
@@ -607,6 +760,17 @@ class EventDeserialiser:
         else:
             ev.payload = tf_payload
 
+    def _transform_tag_click(self, ev: StreamsyncEvent) -> Optional[str]:
+        payload = ev.payload
+        instance_path = ev.instancePath
+        options = self.evaluator.evaluate_field(
+            instance_path, "tags", True, "{ }")
+        if not isinstance(options, dict):
+            raise ValueError("Invalid value for tags")
+        if payload not in options.keys():
+            raise ValueError("Unauthorised option")
+        return payload
+
     def _transform_option_change(self, ev: StreamsyncEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
@@ -630,6 +794,10 @@ class EventDeserialiser:
                 "Invalid multiple options payload. Expected a list.")
         if not all(item in options.keys() for item in payload):
             raise ValueError("Unauthorised option")
+        return payload
+
+    def _transform_toggle(self, ev: StreamsyncEvent) -> bool:
+        payload = bool(ev.payload)
         return payload
 
     def _transform_keydown(self, ev) -> Dict:
@@ -672,11 +840,11 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
-    def _transform_chat_message(self, ev) -> str:
+    def _transform_chatbot_message(self, ev) -> str:
         payload = str(ev.payload)
         return payload
 
-    def _transform_chat_action_click(self, ev) -> str:
+    def _transform_chatbot_action_click(self, ev) -> str:
         payload = str(ev.payload)
         return payload
 
@@ -811,8 +979,7 @@ class Evaluator:
             if isinstance(repeater_object, dict):
                 repeater_items = list(repeater_object.items())
             elif isinstance(repeater_object, list):
-                repeater_items = [(k, v)
-                                for (k, v) in enumerate(repeater_object)]
+                repeater_items = list(enumerate(repeater_object))
             else:
                 raise ValueError(
                     "Cannot produce context. Repeater object must evaluate to a dictionary.")
@@ -820,11 +987,14 @@ class Evaluator:
             context[key_variable] = repeater_items[instance_number][0]
             context[value_variable] = repeater_items[instance_number][1]
 
+        if len(instance_path) > 0:
+            context['target'] = instance_path[-1]['componentId']
+            
         return context
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
         accessors = self.parse_expression(expr, instance_path)
-        state_ref: Any = self.ss.user_state
+        state_ref: StateProxy = self.ss.user_state
         for accessor in accessors[:-1]:
             state_ref = state_ref[accessor]
 
@@ -866,7 +1036,7 @@ class Evaluator:
                 s += c
 
         if s:
-            accessors.append(s);
+            accessors.append(s)
 
         return accessors
 
@@ -910,7 +1080,7 @@ class StreamsyncSession:
         new_state = StreamsyncState.get_new()
         new_state.user_state.mutated = set()
         self.session_state = new_state
-        self.session_component_tree = SessionComponentTree(base_component_tree)
+        self.session_component_tree = SessionComponentTree(base_component_tree, base_cmc_tree)
         self.event_handler = EventHandler(self)
 
     def update_last_active_timestamp(self) -> None:
@@ -1078,12 +1248,17 @@ class EventHandler:
                     "headers": self.session.headers
                 }
                 arg_values.append(session_info)
+            elif arg == "ui":
+                from streamsync.ui import StreamsyncUIManager
+                ui_manager = StreamsyncUIManager()
+                arg_values.append(ui_manager)
 
         result = None
-        if is_async_handler:
-            result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
-        else:
-            result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
+        with use_component_tree(self.session.session_component_tree):
+            if is_async_handler:
+                result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
+            else:
+                result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
 
         if captured_stdout:
             self.session_state.add_log_entry(
@@ -1124,10 +1299,71 @@ class EventHandler:
         return {"ok": ok, "result": result}
 
 
-state_serialiser = StateSerialiser()
-initial_state = StreamsyncState()
-base_component_tree = ComponentTree()
-session_manager = SessionManager()
+class DictPropertyProxy:
+    """
+    A descriptor based recipe that makes it possible to write shorthands
+    that forward attribute access from one object onto another.
+
+    >>> class A:
+    >>>     foo: int = DictPropertyProxy("proxy_state", "prop1")
+    >>>     bar: int = DictPropertyProxy("proxy_state", "prop2")
+    >>>
+    >>>     def __init__(self):
+    >>>         self._state_proxy = StateProxy({"prop1": 1, "prop2": 2})
+    >>>
+    >>> a = A()
+    >>> print(a.foo)
+
+    This descriptor avoids writing the code below to establish a proxy
+     with a child instance
+
+    >>> class A:
+    >>>
+    >>>     def __init__(self):
+    >>>         self._state_proxy = StateProxy({"prop1": 1, "prop2": 2})
+    >>>
+    >>>     @property
+    >>>     def prop1(self):
+    >>>         return self._state_proxy['prop1']
+    >>>
+    >>>     @foo.setter
+    >>>     def prop1(self, value):
+    >>>         self._state_proxy['prop1'] = value
+    >>>
+    """
+
+    def __init__(self, objectName, key):
+        self.objectName = objectName
+        self.key = key
+
+    def __get__(self, instance, owner=None):
+        proxy = getattr(instance, self.objectName)
+        return proxy[self.key]
+
+    def __set__(self, instance, value):
+        proxy = getattr(instance, self.objectName)
+        proxy[self.key] = value
+
+S = TypeVar("S", bound=StreamsyncState)
+
+def new_initial_state(klass: Type[S], raw_state: dict) -> S:
+    """
+    Initializes the initial state of the application and makes it globally accessible.
+
+    The class used for the initial state must be a subclass of StreamsyncState.
+
+    >>> class MyState(StreamsyncState):
+    >>>     pass
+    >>>
+    >>> initial_state = new_initial_state(MyState, {})
+    """
+    global initial_state
+    if raw_state is None:
+        raw_state = {}
+
+    initial_state = klass(raw_state)
+
+    return initial_state
 
 
 def session_verifier(func: Callable) -> Callable:
@@ -1140,3 +1376,12 @@ def session_verifier(func: Callable) -> Callable:
 
     session_manager.add_verifier(func)
     return wrapped
+
+
+
+
+state_serialiser = StateSerialiser()
+initial_state = StreamsyncState()
+base_component_tree = ComponentTree()
+base_cmc_tree = DependentComponentTree(base_component_tree)
+session_manager = SessionManager()

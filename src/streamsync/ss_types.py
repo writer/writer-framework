@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Protocol, Tuple
+
 from pydantic import BaseModel
-from typing_extensions import TypedDict, Literal
+from typing_extensions import Literal, TypedDict
+
 
 class StreamsyncFileItem(TypedDict):
     name: str
@@ -134,7 +136,7 @@ class EventResponsePayload(BaseModel):
     result: Any
     mutations: Dict[str, Any]
     mail: List
-    components: Dict
+    components: Optional[Dict] = None
 
 
 class StateEnquiryResponsePayload(BaseModel):

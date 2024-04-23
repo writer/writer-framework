@@ -1,10 +1,11 @@
+import argparse
+import logging
+import os
+import shutil
 import sys
 from typing import Optional
+
 import streamsync.serve
-import argparse
-import os
-import logging
-import shutil
 
 
 def main():
@@ -53,9 +54,9 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
 
     if command in ("hello"):
         try:
-            import pandas
-            import pyarrow # type: ignore
-            import plotly.express # type: ignore
+            import pandas  # noqa: F401
+            import plotly.express  # type: ignore  # noqa: F401
+            import pyarrow  # type: ignore  # noqa: F401
         except ImportError:
             logging.error("Running streamsync hello requires pandas, pyarrow and plotly.express. Install them with:\npip install streamsync[ds]")
             sys.exit(1)
