@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-import * as  components from "streamsync-ui/components.codegen.json" with { type: "json" };
+import components from "streamsync-ui/components.codegen.json" with { type: "json" };
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -36,3 +36,5 @@ export async function generate() {
 		fs.writeFileSync(componentPath, renderedPage);
 	});
 }
+
+generate();
