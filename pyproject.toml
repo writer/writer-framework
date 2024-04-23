@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "streamsync"
-version = "0.4.0"
+version = "0.5.0rc1"
 description = "Streamsync helps you create performant data apps, via Python code and its built-in visual UI editor."
 authors = ["Ramiro Medina <ramiro.a.medina@gmail.com>"]
 license = "Apache 2.0"
@@ -54,9 +54,38 @@ altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
 alfred-cli = "^2.2.7"
 polars = "^0.20.15"
+ruff = "^0.3.4"
 
 [tool.poetry.extras]
 ds = ["pandas", "pyarrow", "plotly"]
 
 [tool.poetry.scripts]
 streamsync = 'streamsync.command_line:main'
+
+
+[tool.ruff]
+exclude = [
+    "src/ui",
+		"src/streamsync/ui.py",
+    "docs",
+    "tests/e2e",
+    ".git",
+]
+
+line-length = 100
+indent-width = 4
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["I","E", "F", "C"]
+ignore = ["E501", "C901", "E712", "F401"]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+

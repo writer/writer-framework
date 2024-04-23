@@ -1,23 +1,49 @@
 import asyncio
+import base64
 import contextlib
 import copy
 import datetime
 import inspect
+import io
+import json
 import logging
+import math
+import re
 import secrets
 import sys
 import time
 import traceback
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, TypeVar, Type, Sequence, cast, \
-    Generator
 import urllib.request
-import base64
-import io
-import re
-import json
-import math
-from streamsync.ss_types import Readable, InstancePath, StreamsyncEvent, StreamsyncEventResult, StreamsyncFileItem
-from streamsync.core_ui import ComponentTree, DependentComponentTree, SessionComponentTree, use_component_tree
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
+
+from streamsync.core_ui import (
+    ComponentTree,
+    DependentComponentTree,
+    SessionComponentTree,
+    use_component_tree,
+)
+from streamsync.ss_types import (
+    InstancePath,
+    Readable,
+    StreamsyncEvent,
+    StreamsyncEventResult,
+    StreamsyncFileItem,
+)
 
 
 class Config:
@@ -147,7 +173,7 @@ class StateSerialiser:
     def _serialise_dict_recursively(self, d: Dict) -> Dict:
         return {str(k): self.serialise(v) for k, v in d.items()}
 
-    def _serialise_list_recursively(self, l: List) -> List:
+    def _serialise_list_recursively(self, l: List) -> List:  # noqa: E741
         return [self.serialise(v) for v in l]
 
     def _serialise_ss_wrapper(self, v: Union[FileWrapper, BytesWrapper]) -> str:
@@ -173,17 +199,17 @@ class StateSerialiser:
         :param df: dataframe that implements Dataframe Interchange Protocol (__dataframe__ method)
         :return: a arrow file as a dataurl (application/vnd.apache.arrow.file)
         """
-        import pyarrow.interchange # type: ignore
+        import pyarrow.interchange  # type: ignore
         table = pyarrow.interchange.from_dataframe(df)
         return self._serialise_pyarrow_table(table)
 
     def _serialise_pandas_dataframe(self, df):
-        import pyarrow as pa # type: ignore
+        import pyarrow as pa  # type: ignore
         pa_table = pa.Table.from_pandas(df, preserve_index=True)
         return self._serialise_pyarrow_table(pa_table)
 
     def _serialise_pyarrow_table(self, table):
-        import pyarrow as pa # type: ignore
+        import pyarrow as pa  # type: ignore
 
         sink = pa.BufferOutputStream()
         batches = table.to_batches()
@@ -883,7 +909,6 @@ class EventDeserialiser:
             return None
 
 
-
 class Evaluator:
 
     """
@@ -891,7 +916,7 @@ class Evaluator:
     It allows for the sanitisation of frontend inputs.
     """
 
-    template_regex = re.compile(r"[\\]?@{([\w\s.\[\]]*)}")
+    template_regex = re.compile(r"[\\]?@{([^{]*)}")
 
     def __init__(self, session_state: StreamsyncState, session_component_tree: ComponentTree):
         self.ss = session_state
@@ -954,8 +979,7 @@ class Evaluator:
             if isinstance(repeater_object, dict):
                 repeater_items = list(repeater_object.items())
             elif isinstance(repeater_object, list):
-                repeater_items = [(k, v)
-                                for (k, v) in enumerate(repeater_object)]
+                repeater_items = list(enumerate(repeater_object))
             else:
                 raise ValueError(
                     "Cannot produce context. Repeater object must evaluate to a dictionary.")
@@ -963,6 +987,9 @@ class Evaluator:
             context[key_variable] = repeater_items[instance_number][0]
             context[value_variable] = repeater_items[instance_number][1]
 
+        if len(instance_path) > 0:
+            context['target'] = instance_path[-1]['componentId']
+            
         return context
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
@@ -1009,7 +1036,7 @@ class Evaluator:
                 s += c
 
         if s:
-            accessors.append(s);
+            accessors.append(s)
 
         return accessors
 

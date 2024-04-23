@@ -3,15 +3,21 @@
 	"version": "0.2.4",
 	"description": "",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
 		"dev": "vitepress dev docs",
 		"build": "vitepress build docs",
 		"preview": "vitepress preview docs",
-		"test": "jest"
+		"test": "jest",
+		"codegen": "node codegen/generator_components_pages.mjs"
 	},
 	"dependencies": {
+		"highlight.js": "^11.9.0",
+		"marked": "^12.0.1",
+		"monaco-editor": "^0.47.0",
 		"streamsync-ui": "*",
-		"vitepress": "^1.0.0-rc.44",
+		"vite-plugin-monaco-editor": "^1.1.0",
+		"vitepress": "^1.0.2",
 		"vue": "^3.4.21"
 	},
 	"devDependencies": {

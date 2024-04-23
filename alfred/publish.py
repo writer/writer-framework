@@ -6,9 +6,10 @@ The alfred publish command creates a new tag that triggers the deployment pipeli
 import os
 import sys
 
-import alfred
 import click
 from click import Choice
+
+import alfred
 
 ROOT_DIR = os.path.realpath(os.path.join(__file__, "..", ".."))
 
@@ -79,8 +80,10 @@ def publish_pypi():
     """
     pypi_token = os.getenv('PYPI_TOKEN', None)
     if pypi_token is not None:
+        alfred.invoke_command("build")
+
         alfred.run(f"poetry config pypi-token.pypi {pypi_token}")
-        alfred.run("poetry publish --build")
+        alfred.run("poetry publish")
     else:
         click.echo(click.style("PYPI_TOKEN is not set as environment variable", fg='red'))
         sys.exit(1)
