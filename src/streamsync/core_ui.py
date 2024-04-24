@@ -25,14 +25,14 @@ class Branch(Enum):
     Enum for the component tree branches that can be created in streamsync
 
     * bmc: builder managed component
-    * cmc: code managed component
+    * initial_cmc: code managed component
     * session: session managed component
 
     This enum should be used only in the module core_ui.py.
     """
     bmc = "bmc"
-    cmc = "cmc"
-    session = "session"
+    initial_cmc = "initial_cmc"
+    session_cmc = "session_cmc"
 
 
 class Component(BaseModel):
@@ -160,7 +160,7 @@ class ComponentTree():
         When the tree parameter is given, the component is attached to the corresponding branch.
 
         >>> component = Component(id="root", type="root", content={})
-        >>> component_tree.attach(component, tree=Branch.cmc)
+        >>> component_tree.attach(component, tree=Branch.initial_cmc)
 
         If the component is associated with a frozen branch, an exception is thrown
         """
@@ -325,7 +325,7 @@ def build_base_component_tree() -> ComponentTree:
     """
     bmc_tree_branch = ComponentTreeBranch(Branch.bmc)
     bmc_tree_branch.attach(Component(id="root", type="root", content={}))
-    cmc_tree_branch = ComponentTreeBranch(Branch.cmc)
+    cmc_tree_branch = ComponentTreeBranch(Branch.initial_cmc)
     return ComponentTree([cmc_tree_branch, bmc_tree_branch])
 
 
@@ -339,9 +339,9 @@ def build_session_component_tree(base_component_tree: ComponentTree) -> Componen
     The builder managed component, copy from base component tree, can not be modified anymore.
     The code managed component can be modified.
     """
-    session_tree_branch = ComponentTreeBranch(Branch.session)
+    session_tree_branch = ComponentTreeBranch(Branch.session_cmc)
 
-    cmc_tree_branch = copy.copy(base_component_tree.branch(Branch.cmc))
+    cmc_tree_branch = copy.copy(base_component_tree.branch(Branch.initial_cmc))
     bmc_tree_branch = copy.copy(base_component_tree.branch(Branch.bmc))
     bmc_tree_branch.freeze = True
 
@@ -369,7 +369,7 @@ def cmc_components_list(component_tree: ComponentTree) -> list:
 
     (use mainly for testing purposes)
     """
-    return list(component_tree.branch(Branch.cmc).components.values())
+    return list(component_tree.branch(Branch.initial_cmc).components.values())
 
 
 def session_components_list(component_tree: ComponentTree) -> list:
@@ -378,7 +378,7 @@ def session_components_list(component_tree: ComponentTree) -> list:
 
    (use mainly for testing purposes)
    """
-    return list(component_tree.branch(Branch.session).components.values())
+    return list(component_tree.branch(Branch.session_cmc).components.values())
 
 
 class UIError(Exception):
