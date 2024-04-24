@@ -203,7 +203,7 @@ class ComponentTree():
             try:
                 self.updated = True
                 for tree in self.tree_branches:
-                    if tree.freeze:
+                    if not tree.freeze:
                         tree.components.pop(child.id, None)
 
             except UIError:

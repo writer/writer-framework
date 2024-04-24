@@ -195,3 +195,51 @@ class TestUIManager:
             except AssertionError as exception:
                 assert str(exception) == "builder managed component tree are frozen and cannot be updated"
 
+    def test_refresh_with_should_remove_existing_children(self):
+        """
+        Verifies that context refresh with cleans up existing children of the specified component
+        """
+        # Given
+        fake_component_tree = core_ui_fixtures.build_fake_component_tree([
+            Component(id='section1', parentId='root', type='section'),
+            Component(id='section2', parentId='section1', type='section'),
+            Component(id='test_button', parentId='section2', type='button'),
+            Component(id='section3', parentId='root', type='section'),
+        ], init_root=True)
+
+
+        with use_component_tree(fake_component_tree):
+            ui = StreamsyncUIManager()
+
+            assert len(ui.component_tree.components) == 5
+
+            # When
+            with ui.refresh_with('section1'):
+                ui.Text({"text": "New content"}, id="new-content-1")
+
+            # Then
+            assert len(ui.component_tree.components) == 4
+
+    def test_refresh_with_should_remove_new_children(self):
+        """
+        Verifies that context refresh with cleans up existing children of the specified component
+        """
+        # Given
+        fake_component_tree = core_ui_fixtures.build_fake_component_tree([
+            Component(id='section1', parentId='root', type='section'),
+            Component(id='section2', parentId='section1', type='section'),
+            Component(id='test_button', parentId='section2', type='button'),
+            Component(id='section3', parentId='root', type='section'),
+        ], init_root=True)
+
+
+        with use_component_tree(fake_component_tree):
+            ui = StreamsyncUIManager()
+
+            with ui.refresh_with('section1'):
+                ui.Text({"text": "New content"}, id="new-content-1")
+
+            assert len(ui.component_tree.components) == 4
+
+            with ui.refresh_with('section1'):
+                assert len(ui.component_tree.components) == 3
