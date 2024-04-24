@@ -7,6 +7,10 @@
 		"tests/e2e",
 		"docs"
 	],
+  "engines": {
+    "node": "20.x.x",
+    "npm": "10.x.x"
+  },
 	"scripts": {
 		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen && npm run docs:build",
 		"test": "npm run --if-present -ws test",
