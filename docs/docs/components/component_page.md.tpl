@@ -9,8 +9,10 @@
 
 {{ component.description }}
 
-<div class="imageContainer">
-	<img :src="withBase(`/components/${component.type}.png`)">
+<div class="expandedImageContainer">
+	<div class="expandedImageContainerInner">
+		<img :src="withBase(`/components/${component.type}.png`)">
+	</div>
 </div>
 
 <div v-html="`${ markdownToHtml(component.docs) }`"></div>
@@ -57,7 +59,7 @@
 
 <h2>Low code usage</h2>
 
-This component can be used in python
+This component can be declared directly in Python, using [backend-driven UI](../backend-driven-ui).
 
 <div class="language-py vp-adaptive-theme">
 	<button title="Copy Code" class="copy"></button>
@@ -66,7 +68,7 @@ This component can be used in python
 </div>
 
 <div v-if="component.events">
-	<div>The function <code>handle_event</code> should be implemented in your code to handle events.</div>
+	<div>A function, in this example <code>handle_event</code>, should be implemented in your code to handle events.</div>
 	<div class="language-py vp-adaptive-theme">
 		<button title="Copy Code" class="copy"></button>
 		<span class="lang">python</span>
@@ -77,26 +79,33 @@ This component can be used in python
 
 <h2>Reference</h2>
 
-* [Learn more about building Backend-driven UI](../backend-driven-ui)
-* <a :href="`https://github.com/streamsync-cloud/streamsync/blob/dev/ui/${component.fileRef}`" target="_blank" >Explore the source on GitHub</a>
+* <a :href="`https://github.com/streamsync-cloud/streamsync/blob/dev/src/ui/${component.fileRef}`" target="_blank" >Explore this component's source code on GitHub</a>
 
 
 <style>
 
-.imageContainer {
+.expandedImageContainer {
+	padding: 16px;
+	border-radius: 16px;
+    background: #E9EEF1;
+	overflow: hidden;
 	display: flex;
 	justify-content: center;
-	margin: 16px 0;
 }
 
-.imageContainer img {
-    background: #E9EEF1;
-    border-top: 1px solid #E9EEF1;
-    border-bottom: 1px solid #E9EEF1;
-    height: auto;
-	max-width: 50%;
-	min-width: 30%;
-    padding: 8px;
+.expandedImageContainerInner {
+    display: flex;
+    align-items: flex-start;
+	max-width: 300px;
+    max-height: 210px;
+}
+
+.expandedImageContainer img {
+    max-height: 210px;
+}
+
+thead {
+	font-weight: bold;
 }
 
 .codeblock {
