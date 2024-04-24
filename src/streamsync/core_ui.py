@@ -78,6 +78,21 @@ class ComponentTreeBranch:
         self.component_tree_id = id
         self.freeze = freeze
 
+    def clone(self) -> 'ComponentTreeBranch':
+        """
+        Clone a component branch into a new one.
+
+        Streamsync uses this action when it instantiates the component tree attached to the session.
+        This ensures complete insulation of the original shaft.
+
+        >>> cloned = bmc_tree.clone()
+        :return:
+        """
+        cloned = ComponentTreeBranch(self.component_tree_id, self.freeze)
+        cloned.components = copy.copy(self.components)
+        cloned.page_counter = self.page_counter
+        return cloned
+
 
     def get_component(self, component_id: str) -> Optional[Component]:
         return self.components.get(component_id)
@@ -341,8 +356,8 @@ def build_session_component_tree(base_component_tree: ComponentTree) -> Componen
     """
     session_tree_branch = ComponentTreeBranch(Branch.session_cmc)
 
-    cmc_tree_branch = copy.copy(base_component_tree.branch(Branch.initial_cmc))
-    bmc_tree_branch = copy.copy(base_component_tree.branch(Branch.bmc))
+    cmc_tree_branch = base_component_tree.branch(Branch.initial_cmc).clone()
+    bmc_tree_branch = base_component_tree.branch(Branch.bmc).clone()
     bmc_tree_branch.freeze = True
 
     return ComponentTree([session_tree_branch, cmc_tree_branch, bmc_tree_branch])
