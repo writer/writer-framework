@@ -8,13 +8,16 @@ import io
 import json
 import logging
 import math
+import multiprocessing
 import re
 import secrets
-import sys
 import time
 import traceback
 import urllib.request
+from multiprocessing.process import BaseProcess
+from types import ModuleType
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -26,6 +29,7 @@ from typing import (
     Set,
     Tuple,
     Type,
+    TypedDict,
     TypeVar,
     Union,
     cast,
@@ -44,6 +48,20 @@ from streamsync.ss_types import (
     StreamsyncEventResult,
     StreamsyncFileItem,
 )
+
+if TYPE_CHECKING:
+    from streamsync.app_runner import AppProcess
+
+
+def get_app_process() -> 'AppProcess':
+    from streamsync.app_runner import AppProcess  # Needed during runtime
+    raw_process: BaseProcess = \
+        multiprocessing.current_process()
+    if isinstance(raw_process, AppProcess):
+        return raw_process
+    raise RuntimeError(
+        "Failed to retrieve the AppProcess: running in wrong context"
+        )
 
 
 class Config:
@@ -722,6 +740,89 @@ class StreamsyncState(State):
         })
 
 
+class EventHandlerRegistry:
+    """
+    Maps functions registered as event handlers from the user app's core
+    and external modules, providing an access mechanism to these maps.
+    """
+
+    class HandlerMeta(TypedDict):
+        name: str
+        args: List[str]
+
+    class HandlerEntry(TypedDict):
+        callable: Callable
+        meta: 'EventHandlerRegistry.HandlerMeta'
+
+    def __init__(self):
+        self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}
+
+    def __iter__(self):
+        return iter(self.handler_map.keys())
+
+    def register_handler(self, handler: Callable):
+        module_name = handler.__module__
+
+        # Prepare "access name"
+        # (i.e. the key that frontend uses to retrieve handler)
+        if module_name == "streamsyncuserapp":
+            # Use the handler's __qualname__ directly
+            # for functions from main.py in user's app
+            access_name = handler.__qualname__
+        else:
+            # For external handlers, separate the module name
+            # and handler __qualname__by a dot
+            access_name = f"{module_name}.{handler.__qualname__}"
+
+        entry: EventHandlerRegistry.HandlerEntry = \
+            {
+                "callable": handler,
+                "meta": {
+                    "name": access_name,
+                    "args": inspect.getfullargspec(handler).args
+                }
+            }
+
+        self.handler_map[access_name] = entry
+
+    def register_module(self, module: ModuleType):
+        if isinstance(module, ModuleType):
+            all_fn_names = (x[0] for x in inspect.getmembers(
+                module, inspect.isfunction))
+            exposed_fn_names = list(
+                filter(lambda x: not x.startswith("_"), all_fn_names))
+
+            for fn_name in exposed_fn_names:
+                fn_callable = getattr(module, fn_name)
+                if not fn_callable:
+                    continue
+                self.register_handler(fn_callable)
+        else:
+            raise ValueError(
+                f"Attempted to register a non-module object: {module}"
+                )
+
+    def find_handler(self, handler_name: str) -> Optional[Callable]:
+        if handler_name not in self.handler_map:
+            return None
+        handler_entry: EventHandlerRegistry.HandlerEntry = \
+            self.handler_map[handler_name]
+        return handler_entry["callable"]
+
+    def get_handler_meta(
+            self,
+            handler_name: str
+            ) -> "EventHandlerRegistry.HandlerMeta":
+        if handler_name not in self.handler_map:
+            raise RuntimeError(f"Handler {handler_name} is not registered")
+        entry: EventHandlerRegistry.HandlerEntry = \
+            self.handler_map[handler_name]
+        return entry["meta"]
+
+    def gather_handler_meta(self) -> List["EventHandlerRegistry.HandlerMeta"]:
+        return [self.get_handler_meta(handler_name) for handler_name in self]
+
+
 class EventDeserialiser:
 
     """Applies transformations to the payload of an incoming event, depending on its type.
@@ -1210,20 +1311,18 @@ class EventHandler:
         return result, captured_stdout
 
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
-        streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-        if streamsyncuserapp is None:
-            raise ValueError("Couldn't find app module (streamsyncuserapp).")
-
+        current_app_process = get_app_process()
+        handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
             return
         handler = target_component.handlers.get(event_type)
         if not handler:
             return
 
-        if not hasattr(streamsyncuserapp, handler):
+        callable_handler = handler_registry.find_handler(handler)
+        if not callable_handler:
             raise ValueError(
                 f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-        callable_handler = getattr(streamsyncuserapp, handler)
         is_async_handler = inspect.iscoroutinefunction(callable_handler)
 
         if (not callable(callable_handler)

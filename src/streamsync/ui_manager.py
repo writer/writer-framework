@@ -146,7 +146,12 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
     if raw_handlers is not None:
         for event, handler in raw_handlers.items():
             if callable(handler):
-                handlers[event] = handler.__name__
+                module_name = \
+                    handler.__module__ + "." \
+                    if handler.__module__ != "streamsyncuserapp" \
+                    else ""
+                handlers[event] = \
+                    f"{module_name}{handler.__name__}"
             else:
                 handlers[event] = handler
     return handlers
