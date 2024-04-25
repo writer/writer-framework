@@ -34,7 +34,7 @@
 				ref="input"
 				v-capture-tabs
 				class="templateInput"
-				variant="code"
+				:variant="props.vatiant"
 				:value="props.value"
 				autocorrect="off"
 				autocomplete="off"
@@ -69,6 +69,7 @@ const props = defineProps<{
 	inputId?: string;
 	value?: string;
 	multiline?: boolean;
+	variant?: "code" | "text";
 	type?: "state" | "template";
 	options?: Record<string, string>;
 	placeholder?: string;

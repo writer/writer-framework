@@ -2,8 +2,10 @@
 	<BuilderTemplateInput
 		class="BuilderFieldsObject"
 		:data-automation-key="props.fieldKey"
-		multitine="true"
+		multiline="true"
+		variant="code"
 		:value="component.content[fieldKey]"
+		:placeholder="templateField.placeholder"
 		@input="
 			(ev: Event) =>
 				formatAndSetContentValue((ev.target as HTMLInputElement).value)
