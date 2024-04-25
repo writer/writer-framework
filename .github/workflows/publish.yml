@@ -28,11 +28,11 @@ jobs:
                 node-version: "18.x"
                 cache: npm
 
-            - name: update package manager & install python3 environment
+            - name: install python3 environment
               run: poetry install --with build
 
-            - name: install npm environment
-              run: npm ci
+            - name: install ci dependencies and generate code
+              run: poetry run alfred install.ci
 
             - name: publish on pypi
               run: |

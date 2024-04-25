@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-		"e2e:setup": "playwright install --with-deps",
+    "e2e:setup": "playwright install --with-deps",
     "e2e": "playwright test --project=chromium --reporter=list",
     "e2e:ci": "playwright test",
     "e2e:chromium": "playwright test --project=chromium",

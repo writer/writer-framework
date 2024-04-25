@@ -1,3 +1,4 @@
+import os
 
 import alfred
 
@@ -5,10 +6,6 @@ import alfred
 @alfred.command("npm.lint", help="lint check npm packages")
 def npm_lint():
     alfred.run("npm run ui:lint:ci")
-
-@alfred.command("npm.test", help="test against documentation")
-def npm_test():
-    alfred.run("npm run docs:test")
 
 @alfred.command("npm.e2e", help="run e2e tests")
 @alfred.option('--browser', '-b', help="run e2e tests on specified browser", default='chromium')
@@ -24,6 +21,20 @@ def npm_build():
 def npm_build_custom_components():
     alfred.run("npm run ui:custom.build")
 
-@alfred.command("npm.codegen", help="generate code for different usecase (low code ui, documentation, ...)")
+@alfred.command("npm.docs", help="build docs", hidden=True)
+def npm_docs():
+    alfred.run("npm run docs:build")
+
+@alfred.command("npm.docs.test", help="test against documentation")
+def npm_docs_test():
+    alfred.run("npm run docs:test")
+
+@alfred.command("npm.storybook", help="build storybook for continuous integration")
+def npm_storybook():
+    os.chdir("src/ui")
+    alfred.run("npm run storybook.build")
+
+@alfred.command("npm.codegen", help="generate code for low code ui")
 def npm_codegen():
-    alfred.run("npm run codegen")
+    alfred.run("npm run ui:codegen")
+    alfred.run("npm run docs:codegen")

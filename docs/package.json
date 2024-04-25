@@ -5,11 +5,11 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"dev": "npm run codegen; vitepress dev docs",
-		"build": "npm run codegen; vitepress build docs",
-		"preview": "npm run codegen; vitepress preview docs",
+		"dev": "vitepress dev docs",
+		"build": "vitepress build docs",
+		"preview": "vitepress preview docs",
 		"test": "jest",
-		"codegen": "node codegen/generator_components_pages.cjs"
+		"codegen": "node codegen/generator_components_pages.mjs"
 	},
 	"dependencies": {
 		"highlight.js": "^11.9.0",

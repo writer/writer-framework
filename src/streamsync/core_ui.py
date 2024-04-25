@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import uuid
 from contextvars import ContextVar
 from typing import Any, Dict, List, Optional, Union
@@ -117,6 +118,26 @@ class ComponentTree:
             active_components[id] = component.to_dict()
         return active_components
 
+    def get_parent(self, component_id: str) -> List[str]:
+        """
+        Returns the list of parents, from the first to the highest level (root normally)
+
+        :param component_id:
+        :return:
+        """
+        components = self.components.values()
+        parents = []
+        current_node: Optional[str] = component_id
+        while current_node is not None:
+            for component in components:
+                if component.id == current_node:
+                    if component.parentId is not None:
+                        parents.append(component.parentId)
+
+                    current_node = component.parentId
+
+        return parents
+
 
 class DependentComponentTree(ComponentTree):
 
@@ -163,22 +184,32 @@ class DependentComponentTree(ComponentTree):
             try:
                 self.delete_component(child.id)
             except UIError:
-                raise UIError("Failed to clear children of component " +
-                              f"with ID '{component_id}': {child.id} " +
-                              "is a builder-managed component.")
+                logger = logging.getLogger("streamsync")
+                logger.warning(
+                    f"Failed to remove child with ID '{child.id}' " +
+                    f"from component with ID '{component_id}': " +
+                    "child is a builder-managed component.")
+                # This might result in multiple consecutive warnings
+                # for the same parent component, but we have to avoid "break"ing
+                # due to that the component might still have CMC children
 
     def get_direct_descendents(self, parent_id: str) -> List[Component]:
         base_children = self.base_component_tree.get_direct_descendents(parent_id)
         own_children = list(filter(lambda c: c.parentId == parent_id, self.components.values()))
         return base_children + own_children
 
-    def to_dict(self) -> Dict:
-        active_components = {
-            # Collecting serialized base tree components
-            component_id: base_component.to_dict()
-            for component_id, base_component
-            in self.base_component_tree.components.items()
-        }
+    def to_dict(self, owned_only=False) -> Dict:
+        if owned_only:
+            # If only owned components are requested,
+            # do not collect base tree components
+            active_components = {}
+        else:
+            active_components = {
+                # Collecting serialized base tree components
+                component_id: base_component.to_dict()
+                for component_id, base_component
+                in self.base_component_tree.components.items()
+            }
         for component_id, own_component in self.components.items():
             # Overriding base tree components with ones that belong to dependent tree
             active_components[component_id] = own_component.to_dict()
@@ -187,12 +218,12 @@ class DependentComponentTree(ComponentTree):
 
 class SessionComponentTree(DependentComponentTree):
 
-    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: ComponentTree):
+    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: DependentComponentTree):
         super().__init__(base_component_tree, attach_root=False)
 
         # Initialize SessionComponentTree with components from the base
         # CMC pool, added during app initialization
-        preinitialized_components = base_cmc_tree.to_dict()
+        preinitialized_components = base_cmc_tree.to_dict(owned_only=True)
         self.ingest(preinitialized_components)
 
         preinitialized_pages = \

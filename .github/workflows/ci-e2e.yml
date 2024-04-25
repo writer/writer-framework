@@ -32,8 +32,8 @@ jobs:
       - name: install python3 environment
         run: poetry install --with build
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: install ci dependencies and generate code
+        run: poetry run alfred install.ci
 
       - name: Build UI
         run: npm run build

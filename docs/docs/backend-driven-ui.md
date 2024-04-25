@@ -62,6 +62,40 @@ with ui.find("column-container"):
 ```
 If the component couldn't be found, the method raises a `RuntimeError`.
 
+### `refresh_with` method
+
+You can use the `ui.refresh_with(component_id: str)` method to replace children CMCs of an existing component (referenced by its ID):
+```python
+with ui.refresh_with("my-page"):
+    # Previously existing children are cleared
+    ui.Header({"text": "Hello New World!"})
+    with ui.ColumnContainer():
+        with ui.Column():
+            ui.Text({"text": "Nobody here for now..."})
+```
+
+This method also allows to clear children CMCs of a component:
+```python
+with ui.refresh_with("my-page"):
+    # Empties the page
+    pass
+```
+
+If a targeted component has builder-managed children, they will not be removed. A warning message will be recorded in the application's log for each BMC attempted to be removed. This does not stop the execution of the method – any remaining CMCs will still be removed.
+As well as with `find` method, it also raises a `RuntimeError` if it fails to find a referenced component.
+
+### `parent` method
+
+`ui.parent(component_id: str, level: int = 1)` gives access to the id to parents at higher levels.
+
+```python
+container = ui.parent('my-text') # first parent id
+
+container = ui.parent('my-text', 3) # level 3 parent id
+with ui.find(container):
+	...
+```
+
 ### Component methods
 
 UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).
@@ -217,4 +251,21 @@ with ui.find(id="cmc-column-1"):
     # The following component is going to be appended 
     # to the retrieved Column
     ui.Text({"text": 'Hello World again!'}, id="hello-world-2")
+```
+
+This will result in a Column component having two children Text components. To replace or clear the children, use [`refresh_with` method](#refresh_with-method):
+
+```python
+with ui.Column(id="cmc-column-1"):
+    ui.Text({"text": 'Hello World!'}, id="hello-world-1")
+
+...
+
+with ui.refresh_with(id="cmc-column-1"):
+    # The following component is going to replace 
+    # previously existing children of the retrieved Column
+    ui.Text(
+        {"text": 'To Hello World, or not to Hello World?'}, 
+        id="hello-world-new"
+        )
 ```
