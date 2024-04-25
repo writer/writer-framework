@@ -6,17 +6,20 @@ import sys
 from typing import Optional
 
 import streamsync.serve
+import streamsync.deploy
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Run, edit or create a Streamsync app.")
     parser.add_argument("command", choices=[
-                        "run", "edit", "create", "hello"])
+                        "run", "edit", "create", "hello", "deploy"])
     parser.add_argument(
         "path", nargs="?", help="Path to the app's folder")
     parser.add_argument(
         "--port", help="The port on which to run the server.")
+    parser.add_argument(
+        "--api-key", help="The API key to use for deployment.")
     parser.add_argument(
         "--host", help="The host on which to run the server. Use 0.0.0.0 to share in your local network.")
     parser.add_argument(
@@ -31,11 +34,12 @@ def main():
     absolute_app_path = _get_absolute_app_path(
         args.path) if args.path else None
     host = args.host if args.host else None
+    api_key = args.api_key if args.api_key else None
 
-    _perform_checks(command, absolute_app_path, host, enable_remote_edit)
-    _route(command, absolute_app_path, port, host, enable_remote_edit)
+    _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
+    _route(command, absolute_app_path, port, host, enable_remote_edit, api_key)
 
-def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool]):
+def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool], api_key: Optional[str] = None):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
 
     if command in ("run", "edit") and is_path_folder is False:
@@ -44,6 +48,10 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
 
     if command in ("create") and absolute_app_path is None:
         logging.error("A target folder is required to create a Streamsync app. For example: streamsync create my_app")
+        sys.exit(1)
+
+    if command in ("deploy") and api_key is None:
+        logging.error("An API key is required to deploy a Streamsync app. For example: streamsync deploy my_app --api-key my_api_key")
         sys.exit(1)
 
     if command in ("edit", "hello") and host is not None:
@@ -62,9 +70,11 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
             sys.exit(1)
 
 
-def _route(command: str, absolute_app_path: str, port: int, host: Optional[str], enable_remote_edit: Optional[bool]):
+def _route(command: str, absolute_app_path: str, port: int, host: Optional[str], enable_remote_edit: Optional[bool], api_key: Optional[str] = None):
     if host is None:
         host = "127.0.0.1"
+    if command in ("deploy"):
+        streamsync.deploy.deploy(absolute_app_path, api_key)
     if command in ("edit"):
         streamsync.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host, enable_remote_edit=enable_remote_edit)
