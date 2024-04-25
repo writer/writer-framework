@@ -179,7 +179,7 @@ export const Sample: Story = {
 			const ss = generateCore();
 			const rootStyle = computed(() => {
 				return {
-					"--accentColor": "#29cf00",
+					"--accentColor": "#721CC9",
 					"--buttonColor": "#ffffff",
 					"--emptinessColor": "#e9eef1",
 					"--separatorColor": "rgba(0, 0, 0, 0.07)",
@@ -191,7 +191,7 @@ ${generateStylesInfill(component)}
 					"width": "100%",
 					"outline": "none",
 					"--notificationsDisplacement": "0",
-					"font-family": "Inter, sans-serif",
+					"font-family": "Poppins",
 					"font-size": "0.8rem",
 					"color": "var(--primaryTextColor)",
 					"background": "white",

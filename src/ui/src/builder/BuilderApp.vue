@@ -295,7 +295,7 @@ onMounted(() => {
 
 .BuilderApp {
 	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #29cf00;
+	--builderAccentColor: #721CC9;
 	--builderSuccessColor: #29cf00;
 	--builderErrorColor: #ff3d00;
 	--builderHeaderBackgroundColor: #353535;
@@ -320,7 +320,7 @@ onMounted(() => {
 	--builderWarningColor: #ff3d00;
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
-	font-family: "Inter";
+	font-family: "Poppins";
 	width: 100vw;
 	height: 100vh;
 	position: relative;

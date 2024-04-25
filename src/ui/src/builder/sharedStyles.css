@@ -6,7 +6,7 @@
 
 .BuilderApp {
 	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #29cf00;
+	--builderAccentColor: #721CC9;
 	--builderSuccessColor: #29cf00;
 	--builderErrorColor: #ff3d00;
 	--builderHeaderBackgroundColor: #353535;
@@ -18,7 +18,7 @@
 	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
 	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
 	--builderSelectedColor: rgba(210, 234, 244, 0.8);
-	--builderIntenseSelectedColor: #0094d1;
+	--builderIntenseSelectedColor: #6985FF;
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
 	--builderSubtleHighlightColorSolid: #f2f2f2;
 	--builderDisabledColor: rgb(180, 180, 180);
@@ -30,7 +30,7 @@
 h1,
 h2,
 h3 {
-	font-weight: 300;
+	font-weight: 600;
 	margin: 0;
 }
 
