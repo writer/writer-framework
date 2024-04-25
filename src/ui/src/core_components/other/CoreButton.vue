@@ -115,12 +115,16 @@ function handleClick(ev: MouseEvent) {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	border-radius: 300px;
+	border: 1px solid #5551ff;
+	background: #5551ff;
+	font-weight: 600;
 }
 
 .CoreButton.disabled {
 	border: 1px solid var(--separatorColor);
 	cursor: default;
-	opacity: 0.9;
+	opacity: 0.4;
 	filter: contrast(90%);
 }
 </style>

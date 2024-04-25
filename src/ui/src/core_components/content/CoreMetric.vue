@@ -51,7 +51,7 @@ export default {
 			secondaryTextColor,
 			positiveColor: {
 				name: "Positive",
-				default: "#00B800",
+				default: "#3be19b",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
@@ -63,7 +63,7 @@ export default {
 			},
 			negativeColor: {
 				name: "Negative",
-				default: "#FB0000",
+				default: "#ff643c",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},

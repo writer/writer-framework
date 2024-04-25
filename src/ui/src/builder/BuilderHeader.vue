@@ -122,7 +122,7 @@ const customHandlerModalCloseAction: ModalAction = {
 
 .BuilderHeader {
 	background: var(--builderHeaderBackgroundColor);
-	color: white;
+	color: var(--builderBackgroundColor);
 	padding: 0 12px 0 16px;
 	display: flex;
 	align-items: center;
@@ -167,7 +167,7 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 .syncHealth.connected {
-	color: var(--builderAccentColor);
+	color: var(--builderIntenseSelectedColor);
 }
 
 .syncHealth .icon {
@@ -190,6 +190,7 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 button {
-	color: #ffffff;
+	background: unset;
+	color: var(--builderBackgroundColor);
 }
 </style>

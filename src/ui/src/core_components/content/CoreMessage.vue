@@ -52,7 +52,7 @@ export default {
 			},
 			successColor: {
 				name: "Success",
-				default: "#00B800",
+				default: "#3be19b",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},

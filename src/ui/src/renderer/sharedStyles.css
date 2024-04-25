@@ -76,7 +76,7 @@ button {
 	background: var(--buttonColor);
 	font-size: 0.8rem;
 	border-radius: 8px;
-	padding: 12px;
+	padding: 10px 20px 10px 20px;
 	display: block;
 	cursor: pointer;
 	color: var(--buttonTextColor);

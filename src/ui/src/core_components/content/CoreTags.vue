@@ -49,7 +49,7 @@ export default {
 				name: "Reference",
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
-				default: "#721cc9",
+				default: "#5551ff",
 				category: FieldCategory.Style,
 			},
 			seed: {

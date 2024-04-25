@@ -85,12 +85,12 @@ function updateTitle(appName: string) {
 @import "./sharedStyles.css";
 
 .ComponentRenderer {
-	--accentColor: #721cc9;
+	--accentColor: #5551ff;
 	--buttonColor: #ffffff;
 	--emptinessColor: #e9eef1;
 	--separatorColor: rgba(0, 0, 0, 0.07);
-	--primaryTextColor: #202829;
-	--buttonTextColor: #202829;
+	--primaryTextColor: #000000;
+	--buttonTextColor: #ffffff;
 	--secondaryTextColor: #5d7275;
 	--containerBackgroundColor: #ffffff;
 	width: 100%;

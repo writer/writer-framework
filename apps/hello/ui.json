@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.4.0rc3"
+        "streamsync_version": "0.5.0"
     },
     "components": {
         "root": {
@@ -79,7 +79,7 @@
             "id": "7fdd1d02-53de-4466-bd3c-4822cbc2694f",
             "type": "image",
             "content": {
-                "src": "static/pigeon1.jpg",
+                "src": "static/pigeon1.jpg?4",
                 "caption": ""
             },
             "isCodeManaged": false,
@@ -127,8 +127,6 @@
             "type": "dataframe",
             "content": {
                 "dataframe": "@{main_df}",
-                "dataframeBackgroundColor": "#f5fdff",
-                "dataframeHeaderRowBackgroundColor": "#d0e6eb",
                 "showIndex": ""
             },
             "isCodeManaged": false,
@@ -239,8 +237,7 @@
             "type": "heading",
             "content": {
                 "text": "Pigeon Power: Clever Birds Tackle Data Apps",
-                "alignment": "right",
-                "primaryTextColor": "#2fa0c6"
+                "alignment": "right"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -560,9 +557,7 @@
             "type": "section",
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f",
-                "containerBackgroundColor": "#40687d",
-                "primaryTextColor": "#ffffff",
-                "containerShadow": "0px 4px 11px -6px #000000"
+                "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
             "position": 0,

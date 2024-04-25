@@ -174,12 +174,10 @@ def _update_metrics(state):
 
 def _update_role_chart(state):
     main_df = state["main_df"]
-    custom_color_scale = ["#dd43df", "#e057e7",
-                          "#e36bef", "#e680f7", "#e994ff"]
     role_counts = main_df['role'].value_counts().reset_index()
     role_counts.columns = ['role', 'count']
-    fig = px.bar(role_counts, x='role', y='count', color='role',
-                 color_discrete_sequence=custom_color_scale)
+    fig = px.bar(role_counts, x='role', y='count')
+    fig.update_traces(marker_color="#a95ef8")
     fig.update_layout(
         margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False
@@ -191,8 +189,9 @@ def _update_scatter_chart(state):
     main_df = state["main_df"]
     average_role_data = main_df.groupby("role").agg(
         {"length_cm": "mean", "weight_g": "mean"}).reset_index()
-    fig = px.scatter(average_role_data, x="length_cm", y="weight_g",
-                     color="role", height=400, size_max=10, size="weight_g")
+    fig = px.scatter(average_role_data, x="length_cm", y="weight_g", height=400,
+        size_max=10, size="weight_g")
+    fig.update_traces(marker_color="#a95ef8")
     fig.update_layout(
         margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False

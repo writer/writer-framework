@@ -204,6 +204,7 @@ button.bit {
 	border-radius: 0;
 	margin: 0;
 	background: var(--containerBackgroundColor);
+	color: var(--primaryTextColor);
 }
 
 button.bit:focus {
@@ -214,6 +215,6 @@ button.bit:focus {
 button.bit.active,
 button.bit.active:focus {
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--accentColor);
+	border-bottom: 1px solid var(--primaryTextColor);
 }
 </style>
