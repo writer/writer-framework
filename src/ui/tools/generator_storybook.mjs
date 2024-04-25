@@ -179,7 +179,7 @@ export const Sample: Story = {
 			const ss = generateCore();
 			const rootStyle = computed(() => {
 				return {
-					"--accentColor": "#721CC9",
+					"--accentColor": "#721cc9",
 					"--buttonColor": "#ffffff",
 					"--emptinessColor": "#e9eef1",
 					"--separatorColor": "rgba(0, 0, 0, 0.07)",

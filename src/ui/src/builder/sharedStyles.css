@@ -6,7 +6,7 @@
 
 .BuilderApp {
 	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #721CC9;
+	--builderAccentColor: #721cc9;
 	--builderSuccessColor: #29cf00;
 	--builderErrorColor: #ff3d00;
 	--builderHeaderBackgroundColor: #353535;
