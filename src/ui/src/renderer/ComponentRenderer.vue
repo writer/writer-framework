@@ -88,11 +88,12 @@ function updateTitle(appName: string) {
 	--accentColor: #5551ff;
 	--buttonColor: #ffffff;
 	--emptinessColor: #e9eef1;
-	--separatorColor: rgba(0, 0, 0, 0.07);
+	--separatorColor: #e4e7ed;
 	--primaryTextColor: #000000;
 	--buttonTextColor: #ffffff;
 	--secondaryTextColor: #5d7275;
 	--containerBackgroundColor: #ffffff;
+	--containerShadow: 0px 1px 8px 0px rgba(191, 203, 255, 0.25);
 	width: 100%;
 	outline: none;
 	--notificationsDisplacement: 0;

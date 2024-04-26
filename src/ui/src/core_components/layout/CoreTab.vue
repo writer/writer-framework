@@ -209,12 +209,11 @@ button.bit {
 
 button.bit:focus {
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--primaryTextColor);
 }
 
 button.bit.active,
 button.bit.active:focus {
+	font-weight: 600;
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--primaryTextColor);
 }
 </style>

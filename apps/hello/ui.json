@@ -7,7 +7,8 @@
             "id": "root",
             "type": "root",
             "content": {
-                "appName": "Hello"
+                "appName": "Hello",
+                "emptinessColor": "#ffffff"
             },
             "isCodeManaged": false,
             "position": 0
@@ -27,7 +28,7 @@
             "id": "84378aea-b64c-49a3-9539-f854532279ee",
             "type": "header",
             "content": {
-                "text": "Hacker Pigeons",
+                "text": "HACKER PIGEONS",
                 "emptinessColor": "#ffffff"
             },
             "isCodeManaged": false,
@@ -79,7 +80,7 @@
             "id": "7fdd1d02-53de-4466-bd3c-4822cbc2694f",
             "type": "image",
             "content": {
-                "src": "static/pigeon1.jpg?4",
+                "src": "static/pigeon1.jpg?8",
                 "caption": ""
             },
             "isCodeManaged": false,
@@ -446,7 +447,7 @@
             "content": {
                 "element": "img",
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(80deg + @{hue_rotation}deg))\"\n}",
-                "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
+                "attrs": "{ \"src\": \"static/pigeon1.jpg?3\"}"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -458,7 +459,7 @@
             "content": {
                 "element": "img",
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(140deg + @{hue_rotation}deg))\"\n}",
-                "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
+                "attrs": "{ \"src\": \"static/pigeon1.jpg?3\"}"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -556,8 +557,7 @@
             "id": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "type": "section",
             "content": {
-                "title": "@{item.name} \u2b50\ufe0f",
-                "containerBackgroundColor": "#F5F5F9"
+                "title": "@{item.name} \u2b50\ufe0f"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -926,7 +926,6 @@
             "type": "button",
             "content": {
                 "text": "Read the story",
-                "buttonShadow": "0px 4px 8px -8px #000000",
                 "icon": "book-2",
                 "buttonColor": "#34b9da",
                 "buttonTextColor": "#ffffff"
