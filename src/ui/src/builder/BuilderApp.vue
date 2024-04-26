@@ -303,9 +303,9 @@ onMounted(() => {
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
 	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSeparatorColor: rgba(0, 0, 0, 0.1);
-	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
-	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
+	--builderSeparatorColor: #e4e7ed;
+	--builderSubtleSeparatorColor: #f5f5f9;
+	--builderIntenseSeparatorColor: #d2d4d7;
 	--builderSelectedColor: #e4e9ff;
 	--builderMatchingColor: #f8dccc;
 	--builderIntenseSelectedColor: #0094d1;

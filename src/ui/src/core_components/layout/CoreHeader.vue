@@ -1,8 +1,6 @@
 <template>
 	<div class="CoreHeader">
-		<div class="rectangle">
-			<h1>{{ fields.text.value }}</h1>
-		</div>
+		<h1>{{ fields.text.value }}</h1>
 		<div class="container horizontal" data-streamsync-container>
 			<slot></slot>
 		</div>
@@ -11,11 +9,7 @@
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
-import {
-	accentColor,
-	cssClasses,
-	emptinessColor,
-} from "../../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that typically contains the main navigation elements.";
@@ -33,8 +27,7 @@ export default {
 				default: "(No text)",
 				type: FieldType.Text,
 			},
-			accentColor,
-			emptinessColor,
+			primaryTextColor,
 			cssClasses,
 		},
 		previewField: "text",
@@ -56,19 +49,11 @@ const fields = inject(injectionKeys.evaluatedFields);
 	flex-wrap: wrap;
 	gap: 16px;
 	max-width: 100%;
-}
-
-.rectangle {
-	background: var(--accentColor);
-	padding: 16px;
-	width: fit-content;
-	flex: 0 0 auto;
-	display: flex;
-	align-items: center;
+	color: var(--primaryTextColor);
 }
 
 h1 {
-	color: var(--emptinessColor);
+	line-height: 4rem;
 }
 
 .container {

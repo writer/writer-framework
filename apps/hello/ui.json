@@ -29,7 +29,8 @@
             "type": "header",
             "content": {
                 "text": "HACKER PIGEONS",
-                "emptinessColor": "#ffffff"
+                "emptinessColor": "#000000",
+                "accentColor": "#ffffff"
             },
             "isCodeManaged": false,
             "position": 0,
