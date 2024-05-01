@@ -1,4 +1,5 @@
 import asyncio
+import importlib.util
 import logging
 import mimetypes
 import os
@@ -6,6 +7,7 @@ import pathlib
 import textwrap
 import typing
 from contextlib import asynccontextmanager
+from importlib.machinery import ModuleSpec
 from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
 from urllib.parse import urlsplit
 
@@ -44,8 +46,10 @@ def get_asgi_app(
         user_app_path: str,
         serve_mode: ServeMode,
         enable_remote_edit: bool = False,
+        enable_server_setup: bool = False,
         on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None) -> FastAPI:
+        on_shutdown: Optional[Callable] = None,
+) -> FastAPI:
     global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
@@ -403,6 +407,8 @@ def get_asgi_app(
         )
 
     # Return
+    if enable_server_setup is True:
+        _execute_server_setup_hook(user_app_path)
 
     return app
 
@@ -427,7 +433,7 @@ def print_route_message(run_name: str, port: int, host: str):
     print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
 
-def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
+def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, enable_server_setup=False):
     """ Initialises the web server. """
 
     print_init_message()
@@ -436,7 +442,12 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
         run_name = "Builder" if mode == "edit" else "App"
         print_route_message(run_name, port, host)
 
-    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load)
+    """
+    Loading of the server_setup.py is active by default 
+    when streamsync is launched with the run command.
+    """
+    enable_server_setup = mode == "run" or enable_server_setup
+    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
     log_level = "warning"
     uvicorn.run(app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
 
@@ -520,3 +531,15 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
             app.get(f"/{f.name}")(lambda: FileResponse(f))
         if f.is_dir():
             app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
+
+def _execute_server_setup_hook(user_app_path: str) -> None:
+    """
+    Runs the server_setup.py module if present in the application directory.
+
+    """
+    server_setup_path = os.path.join(user_app_path, "server_setup.py")
+    if os.path.isfile(server_setup_path):
+        spec = cast(ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore
+

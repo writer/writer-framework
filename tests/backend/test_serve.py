@@ -146,3 +146,26 @@ class TestServe:
                 })
                 with pytest.raises(fastapi.WebSocketDisconnect):
                     websocket.receive_json()
+
+    def test_server_setup_hook_is_executed_when_its_present_and_enabled(self):
+        """
+        This test verifies that the server_setup.py hook is executed when the application
+        is started with the enable_server_setup=True option.
+
+        """
+        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(test_app_dir, "run", enable_server_setup=True)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/probes/healthcheck")
+            assert res.status_code == 200
+            assert res.text == '"1"'
+
+    def test_server_setup_hook_is_ignored_when_its_disabled(self):
+        """
+        This test verifies that the server_setup.py hook is not executed
+        when the application is started by disabling the server_setup.py hook.
+
+        """
+        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(test_app_dir, "run", enable_server_setup=False)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/probes/healthcheck")
+            assert res.status_code == 404
