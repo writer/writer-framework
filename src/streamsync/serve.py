@@ -383,12 +383,10 @@ def get_asgi_app(
         app.mount(
             "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
-    server_path = os.path.dirname(__file__)
-    server_static_path = pathlib.Path(server_path) / "static"
+    server_path = pathlib.Path(__file__)
+    server_static_path = server_path.parent / "static"
     if server_static_path.exists():
-        app.mount("/assets", StaticFiles(directory=os.path.join(server_static_path, 'assets'), html=True), name="server_static")
-        app.get('/')(lambda: FileResponse(os.path.join(server_static_path, 'index.html')))
-        app.get('/favicon.png')(lambda: FileResponse(os.path.join(server_static_path, 'favicon.png')))
+        _mount_server_static_path(app, server_static_path)
         app.state.is_server_static_mounted = True
     else:
         logging.error(
@@ -504,3 +502,21 @@ def _fix_mimetype():
     js_mimetype = mimetypes.guess_type("myfile.js")[0]
     if js_mimetype[0] != "text/javascript":
         mimetypes.add_type("text/javascript", ".js")
+
+def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) -> None:
+    """
+    Unitarily declares the files and folders present in "/static" directory of source code.
+
+    We avoid the general declaration as below. This declaration limit the ability of a developper to
+    declare it's own route.
+    
+    >>> asgi_app.mount("/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
+
+    Streamsync routes remain priority. A developer cannot come and overload them.
+    """
+    app.get('/')(lambda: FileResponse(server_static_path.joinpath('index.html')))
+    for f in server_static_path.glob('*'):
+        if f.is_file():
+            app.get(f"/{f.name}")(lambda: FileResponse(f))
+        if f.is_dir():
+            app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
