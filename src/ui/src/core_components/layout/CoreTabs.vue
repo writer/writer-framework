@@ -5,9 +5,7 @@
 			data-streamsync-cage
 			data-streamsync-container
 		>
-			<div class="tabSelectorInner">
-				<slot :instance-number="0"></slot>
-			</div>
+			<slot :instance-number="0"></slot>
 		</nav>
 		<div class="container">
 			<slot :instance-number="1"></slot>
@@ -66,27 +64,22 @@ instanceData.at(-1).value = { activeTab: undefined };
 
 .CoreTabs {
 	width: 100%;
+	background: var(--containerBackgroundColor);
+	border-radius: 8px;
+	box-shadow: var(--containerShadow);
+	border: 1px solid var(--separatorColor);
+	overflow: hidden;
 }
 
 .tabSelector {
 	pointer-events: all;
-	border-radius: 8px 8px 0 0;
-	background: var(--containerBackgroundColor);
-	width: fit-content;
 	color: var(--secondaryTextColor);
 	max-width: 100%;
 	overflow-x: auto;
-	box-shadow: var(--containerShadow);
-	border-top: 1px solid var(--separatorColor);
-	border-left: 1px solid var(--separatorColor);
-	border-right: 1px solid var(--separatorColor);
-}
-
-.tabSelectorInner {
+	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
-	gap: 16px;
+	gap: 24px;
 	padding: 0 16px 0 16px;
-	background: var(--containerBackgroundColor);
 }
 
 .childless > .tabSelector {
@@ -95,9 +88,6 @@ instanceData.at(-1).value = { activeTab: undefined };
 
 .container {
 	background: var(--containerBackgroundColor);
-	border-radius: 0 8px 8px 8px;
-	box-shadow: var(--containerShadow);
-	border: 1px solid var(--separatorColor);
 }
 
 .childless > .container {

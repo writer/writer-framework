@@ -30,7 +30,6 @@
 					v-if="isIndexShown"
 					data-streamsync-grid-col="0"
 					class="cell headerCell indexCell"
-					:style="gridHeadStyle"
 				>
 					<div class="name"></div>
 					<div class="widthAdjuster"></div>
@@ -42,7 +41,6 @@
 						columnPosition + (isIndexShown ? 1 : 0)
 					"
 					class="cell headerCell"
-					:style="gridHeadStyle"
 					@click="handleSetOrder($event, columnName)"
 				>
 					<div class="name">
@@ -181,13 +179,6 @@ export default {
 				default: "#ffffff",
 				applyStyleVariable: true,
 			},
-			dataframeHeaderRowBackgroundColor: {
-				name: "Header row background",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-				default: "#f0f0f0",
-				applyStyleVariable: true,
-			},
 			fontStyle: {
 				name: "Font style",
 				type: FieldType.Text,
@@ -286,12 +277,6 @@ const slicedTable = computed(() => {
 	return {
 		data,
 		indices,
-	};
-});
-
-const gridHeadStyle = computed(() => {
-	return {
-		"background-color": fields.dataframeHeaderRowBackgroundColor.value,
 	};
 });
 
@@ -558,7 +543,6 @@ onUnmounted(() => {
 	background: var(--dataframeBackgroundColor);
 	position: relative;
 	overflow: auto;
-	border: 1px solid var(--separatorColor);
 	max-height: 90vh;
 }
 
@@ -577,8 +561,8 @@ onUnmounted(() => {
 	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
 	align-items: center;
-	border-right: 1px solid var(--separatorColor);
 	white-space: nowrap;
+	font-size: 0.75rem;
 }
 
 .grid.wrapText .cell {
@@ -590,10 +574,14 @@ onUnmounted(() => {
 	cursor: pointer;
 	gap: 8px;
 	user-select: none;
+	font-size: 0.875rem;
+	font-weight: 400;
+	margin-bottom: 12px;
+	border-bottom: none;
 }
 
 .grid.scrolled .cell.headerCell {
-	box-shadow: 0 4px 4px 0px rgba(0, 0, 0, 0.08);
+	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
 }
 
 .cell .name {

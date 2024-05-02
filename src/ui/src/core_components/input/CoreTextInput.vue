@@ -1,26 +1,27 @@
 <template>
 	<div ref="rootEl" class="CoreTextInput">
-		<label>{{ fields.label.value }}</label>
-		<input
-			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
-			:value="formValue"
-			:placeholder="fields.placeholder.value"
-			aria-autocomplete="none"
-			@input="
-				($event) =>
-					handleInput(
-						($event.target as HTMLInputElement).value,
-						'ss-change',
-					)
-			"
-			@change="
-				($event) =>
-					handleInput(
-						($event.target as HTMLInputElement).value,
-						'ss-change-finish',
-					)
-			"
-		/>
+		<BaseInputWrapper :label="fields.label.value">
+			<input
+				:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
+				:value="formValue"
+				:placeholder="fields.placeholder.value"
+				aria-autocomplete="none"
+				@input="
+					($event) =>
+						handleInput(
+							($event.target as HTMLInputElement).value,
+							'ss-change',
+						)
+				"
+				@change="
+					($event) =>
+						handleInput(
+							($event.target as HTMLInputElement).value,
+							'ss-change-finish',
+						)
+				"
+			/>
+		</BaseInputWrapper>
 	</div>
 </template>
 
@@ -84,6 +85,7 @@ export default {
 import { inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootEl = ref(null);
@@ -101,15 +103,16 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 	width: 100%;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
-}
-
 input {
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.5px 12px 8.5px 12px;
+	font-size: 0.875rem;
+}
+
+input:focus {
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 </style>

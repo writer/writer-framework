@@ -199,21 +199,23 @@ onBeforeMount(() => {
 @import "../../renderer/sharedStyles.css";
 
 button.bit {
-	padding: 16px 0 16px 0;
+	padding: 11.5px 0 9.5px 0;
 	border: none;
 	border-radius: 0;
 	margin: 0;
-	background: var(--containerBackgroundColor);
-	color: var(--primaryTextColor);
+	background: unset;
+	color: var(--secondaryTextColor);
+	font-size: 0.875rem;
+	border-bottom: 2px solid transparent;
 }
 
 button.bit:focus {
 	color: var(--primaryTextColor);
 }
 
-button.bit.active,
-button.bit.active:focus {
-	font-weight: 600;
+button.bit.active {
+	font-weight: 500;
 	color: var(--primaryTextColor);
+	border-bottom: 2px solid var(--primaryTextColor);
 }
 </style>

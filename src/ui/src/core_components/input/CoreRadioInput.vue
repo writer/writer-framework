@@ -39,7 +39,7 @@
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import { accentColor, cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A user input component that allows users to choose a single value from a list of options using radio buttons.";
@@ -81,6 +81,8 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Specify how to lay out the options.",
 			},
+			primaryTextColor,
+			accentColor,
 			cssClasses,
 		},
 		events: {
@@ -137,6 +139,7 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 input {
 	margin: 0 8px 0 0;
+	accent-color: var(--accentColor);
 }
 
 label {

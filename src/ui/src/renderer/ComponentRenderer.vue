@@ -69,13 +69,13 @@ function updateTitle(appName: string) {
 	const mode = ss.getMode();
 	let title: string;
 	if (appName && mode == "edit") {
-		title = `${appName} | Streamsync Builder`;
+		title = `${appName} | Writer Framework | Builder`;
 	} else if (!appName && mode == "edit") {
-		title = "Streamsync Builder";
+		title = "Writer Framework | Builder";
 	} else if (appName && mode == "run") {
 		title = `${appName}`;
 	} else if (!appName && mode == "run") {
-		title = "Streamsync App";
+		title = "Writer Framework App";
 	}
 	document.title = title;
 }
@@ -86,14 +86,14 @@ function updateTitle(appName: string) {
 
 .ComponentRenderer {
 	--accentColor: #5551ff;
-	--buttonColor: #ffffff;
-	--emptinessColor: #e9eef1;
+	--buttonColor: #5551ff;
+	--emptinessColor: #ffffff;
 	--separatorColor: #e4e7ed;
 	--primaryTextColor: #000000;
 	--buttonTextColor: #ffffff;
-	--secondaryTextColor: #5d7275;
+	--secondaryTextColor: #828282;
 	--containerBackgroundColor: #ffffff;
-	--containerShadow: 0px 1px 8px 0px rgba(191, 203, 255, 0.25);
+	--containerShadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
 	width: 100%;
 	outline: none;
 	--notificationsDisplacement: 0;

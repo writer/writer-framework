@@ -32,7 +32,7 @@ export default {
 			},
 			headingType: {
 				name: "Heading type",
-				default: "h2",
+				default: "h3",
 				options: {
 					h1: "h1 (Big)",
 					h2: "h2 (Normal)",

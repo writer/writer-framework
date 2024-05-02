@@ -1,48 +1,57 @@
 <template>
 	<div ref="rootEl" class="CoreRatingInput">
-		<label v-if="fields.label.value">{{ fields.label.value }}</label>
-		<div
-			ref="unitsEl"
-			class="units"
-			:class="{ valueSet: feedbackRating !== null }"
-			@click="handleClick"
-			@mousemove="handleMousemove"
-			@mouseout="handleMouseout"
-		>
+		<BaseInputWrapper :label="fields.label.value">
 			<div
-				v-for="n in [...Array(normalisedMaxValue).keys()]"
-				:key="n"
-				class="unit"
-				:class="fields.feedback.value"
+				ref="unitsEl"
+				class="units"
+				:class="{ valueSet: feedbackRating !== null }"
+				@click="handleClick"
+				@mousemove="handleMousemove"
+				@mouseout="handleMouseout"
 			>
 				<div
-					class="filler"
-					:style="{
-						width: `${
-							feedbackRating > n
-								? Math.min(feedbackRating - n, 1) * 100
-								: 0
-						}%`,
-					}"
-				></div>
-				<div v-if="feedbackRating !== null" class="filler light"></div>
-				<div v-if="fields.feedback.value == 'faces'" class="face">
-					<svg viewBox="0 0 100 100">
-						<circle class="eye left" cx="35" cy="38" r="6"></circle>
-						<circle
-							class="eye right"
-							cx="65"
-							cy="38"
-							r="6"
-						></circle>
-						<path
-							class="mouth"
-							:d="getMouthPath(feedbackRating ?? n + 1)"
-						></path>
-					</svg>
+					v-for="n in [...Array(normalisedMaxValue).keys()]"
+					:key="n"
+					class="unit"
+					:class="fields.feedback.value"
+				>
+					<div
+						class="filler"
+						:style="{
+							width: `${
+								feedbackRating > n
+									? Math.min(feedbackRating - n, 1) * 100
+									: 0
+							}%`,
+						}"
+					></div>
+					<div
+						v-if="feedbackRating !== null"
+						class="filler light"
+					></div>
+					<div v-if="fields.feedback.value == 'faces'" class="face">
+						<svg viewBox="0 0 100 100">
+							<circle
+								class="eye left"
+								cx="35"
+								cy="38"
+								r="6"
+							></circle>
+							<circle
+								class="eye right"
+								cx="65"
+								cy="38"
+								r="6"
+							></circle>
+							<path
+								class="mouth"
+								:d="getMouthPath(feedbackRating ?? n + 1)"
+							></path>
+						</svg>
+					</div>
 				</div>
 			</div>
-		</div>
+		</BaseInputWrapper>
 	</div>
 </template>
 
@@ -53,6 +62,7 @@ import {
 	cssClasses,
 	primaryTextColor,
 } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to provide a rating.";
@@ -238,12 +248,6 @@ const feedbackRating = computed(() => {
 
 .CoreRatingInput {
 	width: fit-content;
-}
-
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
 }
 
 .units {

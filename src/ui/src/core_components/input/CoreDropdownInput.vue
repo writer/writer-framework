@@ -84,16 +84,24 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-.CoreSelectInput {
+.CoreDropdownInput {
 	width: fit-content;
 	max-width: 100%;
 }
 
 label {
 	color: var(--primaryTextColor);
+	margin-bottom: 4px;
+	font-size: 0.875rem;
+	color: var(--primaryTextColor);
+	line-height: 142.857%;
 }
 
 select {
+	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.25px;
+	font-size: 0.875rem;
 	max-width: 100%;
 }
 

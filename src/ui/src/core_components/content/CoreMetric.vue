@@ -4,7 +4,7 @@
 		<div v-if="fields.description.value" class="description">
 			{{ fields.description.value }}
 		</div>
-		<div class="value">{{ fields.metricValue.value }}</div>
+		<h2 class="value">{{ fields.metricValue.value }}</h2>
 		<div v-if="noteWithoutPrefix" class="note">{{ noteWithoutPrefix }}</div>
 	</div>
 </template>
@@ -51,19 +51,19 @@ export default {
 			secondaryTextColor,
 			positiveColor: {
 				name: "Positive",
-				default: "#3be19b",
+				default: "#a9f9e1",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			neutralColor: {
 				name: "Neutral",
-				default: "var(--secondaryTextColor)",
+				default: "var(--separatorColor)",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			negativeColor: {
 				name: "Negative",
-				default: "#ff643c",
+				default: "#ffcfc2",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
@@ -116,8 +116,6 @@ const rootStyle = computed(() => {
 
 .CoreMetric {
 	color: var(--primaryTextColor);
-	border-left: 4px solid transparent;
-	padding-left: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -133,15 +131,21 @@ const rootStyle = computed(() => {
 	color: var(--secondaryTextColor);
 }
 
-.value {
+h2.value {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: 1.6rem;
 }
 
 .note {
 	font-size: 0.9rem;
-	color: var(--messageActiveSentimentColor);
-	filter: brightness(0.9);
+	background: var(--messageActiveSentimentColor);
+	padding: 6px 8px 6px 8px;
+	text-transform: uppercase;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 12px;
+	letter-spacing: 1.3px;
+	border-radius: 4px;
+	width: fit-content;
 }
 </style>

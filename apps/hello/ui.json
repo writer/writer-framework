@@ -132,7 +132,7 @@
                 "showIndex": ""
             },
             "isCodeManaged": false,
-            "position": 4,
+            "position": 5,
             "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "fbad9feb-5c88-4425-bb17-0d138286a875": {
@@ -220,7 +220,7 @@
             "type": "text",
             "content": {
                 "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges.",
-                "alignment": "center"
+                "alignment": ""
             },
             "isCodeManaged": false,
             "position": 3,
@@ -238,8 +238,8 @@
             "id": "31c1b0d5-bfb6-4304-82bd-1687d492f0a2",
             "type": "heading",
             "content": {
-                "text": "Pigeon Power: Clever Birds Tackle Data Apps",
-                "alignment": "right"
+                "text": "Pigeon Power: Birds Tackle Data Apps",
+                "alignment": ""
             },
             "isCodeManaged": false,
             "position": 1,
@@ -501,14 +501,6 @@
                 "width": "1"
             },
             "isCodeManaged": false,
-            "position": 2,
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
-        },
-        "888b1eb9-609c-4205-bbda-262999d197ff": {
-            "id": "888b1eb9-609c-4205-bbda-262999d197ff",
-            "type": "separator",
-            "content": {},
-            "isCodeManaged": false,
             "position": 1,
             "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
@@ -517,7 +509,7 @@
             "type": "heading",
             "content": {
                 "text": "Highlighted Members",
-                "headingType": "h1",
+                "headingType": "h2",
                 "alignment": "center"
             },
             "isCodeManaged": false,
@@ -809,7 +801,7 @@
             "id": "1d195388-35a3-43e1-b825-1d263b100a28",
             "type": "header",
             "content": {
-                "text": "Hacker Pigeons"
+                "text": "HACKER PIGEONS"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -927,9 +919,7 @@
             "type": "button",
             "content": {
                 "text": "Read the story",
-                "icon": "book-2",
-                "buttonColor": "#34b9da",
-                "buttonTextColor": "#ffffff"
+                "icon": "book-2"
             },
             "isCodeManaged": false,
             "position": 4,
@@ -1184,9 +1174,7 @@
             "id": "pwkjgwhmw5i58oh2",
             "type": "button",
             "content": {
-                "text": "Check out our chat component!",
-                "buttonColor": "#34b9da",
-                "buttonTextColor": "#ffffff"
+                "text": "Check out our chat component!"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -1206,6 +1194,91 @@
             "position": 1,
             "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
             "handlers": {},
+            "visible": true
+        },
+        "5pi4fh3g2wi1etdw": {
+            "id": "5pi4fh3g2wi1etdw",
+            "type": "tab",
+            "content": {
+                "name": "Inputs"
+            },
+            "isCodeManaged": false,
+            "position": 5,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
+            "handlers": {},
+            "visible": true
+        },
+        "t9481mlo4wdb7qqe": {
+            "id": "t9481mlo4wdb7qqe",
+            "type": "textinput",
+            "content": {
+                "label": "City"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "1tshrjmgd9fdki4t": {
+            "id": "1tshrjmgd9fdki4t",
+            "type": "textareainput",
+            "content": {
+                "label": "What do you think about pigeons?",
+                "rows": "5"
+            },
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "kthes9431gufxjf6": {
+            "id": "kthes9431gufxjf6",
+            "type": "dropdowninput",
+            "content": {
+                "label": "Choose your favourite animal",
+                "options": "{\n  \"dog\": \"Dog\",\n  \"cat\": \"Cat\",\n  \"elephant\": \"Elephant\",\n  \"honeybadger\": \"Honey badger\"\n}"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "poewgrktf5shwntp": {
+            "id": "poewgrktf5shwntp",
+            "type": "ratinginput",
+            "content": {
+                "label": "How would you rate our service?"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "pha5qeg8896ps0bm": {
+            "id": "pha5qeg8896ps0bm",
+            "type": "switchinput",
+            "content": {
+                "label": "Enable experimental features"
+            },
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "6xlc6mnbb9c5sapq": {
+            "id": "6xlc6mnbb9c5sapq",
+            "type": "heading",
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+            "content": {
+                "text": "Pigeon dataset"
+            },
+            "handlers": {},
+            "position": 4,
             "visible": true
         }
     }

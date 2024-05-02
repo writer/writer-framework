@@ -116,8 +116,8 @@ function handleClick(ev: MouseEvent) {
 	align-items: center;
 	gap: 8px;
 	border-radius: 300px;
-	border: 1px solid #5551ff;
-	background: #5551ff;
+	border: 1px solid var(--buttonColor);
+	background: var(--buttonColor);
 	font-weight: 600;
 }
 

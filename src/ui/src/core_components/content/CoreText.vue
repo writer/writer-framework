@@ -38,6 +38,7 @@ export default {
 				name: "Text",
 				default: "(No text)",
 				init: "Text",
+				desc: "Add text directly, or reference state elements with @{my_text}.",
 				type: FieldType.Text,
 				control: FieldControl.Textarea,
 			},

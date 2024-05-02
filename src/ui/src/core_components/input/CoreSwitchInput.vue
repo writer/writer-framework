@@ -90,19 +90,16 @@ onMounted(() => {
 @import "../../renderer/sharedStyles.css";
 .CoreSwitchInput {
 	display: flex;
-	gap: 8px;
+	gap: 12px;
 	align-items: center;
 }
 
 .switch {
 	background: var(--separatorColor);
-	width: 32px;
-	height: 16px;
-	padding: 1px;
-	border-radius: 8px;
+	width: 34px;
+	height: 14px;
+	border-radius: 14px;
 	cursor: pointer;
-	box-shadow: 0 0 2px 0px rgba(0, 0, 0, 0.2) inset;
-	overflow: hidden;
 }
 
 .switch:focus-visible {
@@ -114,10 +111,11 @@ onMounted(() => {
 }
 
 .toggle {
-	width: 14px;
-	height: 14px;
-	background: var(--containerBackgroundColor);
-	border-radius: 8px;
+	margin-top: -3px;
+	width: 20px;
+	height: 20px;
+	background: var(--accentColor);
+	border-radius: 10px;
 	transition: 0.2s margin ease-in-out;
 }
 

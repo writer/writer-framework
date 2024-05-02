@@ -9,15 +9,8 @@ button,
 textarea,
 select {
 	outline: none;
-	border: 1px solid var(--separatorColor);
 	font-size: 0.75rem;
 	padding: 4px;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-	border: 1px solid var(--primaryTextColor);
 }
 
 h1,
@@ -32,14 +25,20 @@ h4 {
 h1 {
 	font-size: 1.5rem;
 	letter-spacing: 0.1875rem;
+	font-weight: 600;
+	line-height: 162.5%;
 }
 
 h2 {
-	font-size: 1rem;
+	font-size: 1.5rem;
+	font-weight: 500;
+	line-height: 120%;
 }
 
 h3 {
-	font-size: 0.9rem;
+	font-size: 1.25rem;
+	font-weight: 500;
+	line-height: 120%;	
 }
 
 h4 {

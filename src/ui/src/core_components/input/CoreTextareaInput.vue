@@ -1,31 +1,33 @@
 <template>
 	<div ref="rootEl" class="CoreTextareaInput">
-		<label>{{ fields.label.value }}</label>
-		<textarea
-			:value="formValue"
-			:placeholder="fields.placeholder.value"
-			:rows="fields.rows.value"
-			@input="
-				($event) =>
-					handleInput(
-						($event.target as HTMLTextAreaElement).value,
-						'ss-change',
-					)
-			"
-			@change="
-				($event) =>
-					handleInput(
-						($event.target as HTMLTextAreaElement).value,
-						'ss-change-finish',
-					)
-			"
-		></textarea>
+		<BaseInputWrapper :label="fields.label.value">
+			<textarea
+				:value="formValue"
+				:placeholder="fields.placeholder.value"
+				:rows="fields.rows.value"
+				@input="
+					($event) =>
+						handleInput(
+							($event.target as HTMLTextAreaElement).value,
+							'ss-change',
+						)
+				"
+				@change="
+					($event) =>
+						handleInput(
+							($event.target as HTMLTextAreaElement).value,
+							'ss-change-finish',
+						)
+				"
+			></textarea>
+		</BaseInputWrapper>
 	</div>
 </template>
 
 <script lang="ts">
 import { FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to enter multi-line text values.";
@@ -104,9 +106,16 @@ label {
 }
 
 textarea {
+	resize: vertical;
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
-	resize: vertical;
+	border-radius: 8px;
+	padding: 8.5px 12px 8.5px 12px;
+	font-size: 0.875rem;
+}
+
+textarea:focus {
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 </style>
