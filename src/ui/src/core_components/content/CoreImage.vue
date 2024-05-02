@@ -56,7 +56,7 @@ export default {
 				name: "Source",
 				default:
 					"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjMwIiBoZWlnaHQ9IjIzMCIgdmlld0JveD0iMCAwIDIzMCAyMzAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMzAiIGhlaWdodD0iMjMwIiBmaWxsPSIjREFEQURBIi8+CjxyZWN0IHg9Ijg2LjA0MzkiIHk9Ijc4IiB3aWR0aD0iNzEuMjkzNyIgaGVpZ2h0PSIzNC42NDY3IiByeD0iMTcuMzIzMyIgZmlsbD0id2hpdGUiIHN0cm9rZT0id2hpdGUiLz4KPHJlY3QgeD0iNzIuNSIgeT0iMTEzLjY5MyIgd2lkdGg9IjcwLjI5MzciIGhlaWdodD0iMzYuODA3MyIgcng9IjE3LjUiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIi8+Cjwvc3ZnPgo=",
-				desc: "A valid URL. Alternatively, you can provide a state reference to a Matplotlib figure or a packed file, using the @{my_img} syntax.",
+				desc: "A valid URL. Alternatively, you can provide a state reference to a Matplotlib figure or a packed file.",
 				type: FieldType.Text,
 			},
 			caption: {
