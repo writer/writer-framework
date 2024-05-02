@@ -28,6 +28,7 @@ export default {
 				name: "Text",
 				default: "(No text)",
 				init: "Heading Text",
+				desc: "Add text directly, or reference state elements with @{my_text}.",
 				type: FieldType.Text,
 			},
 			headingType: {
