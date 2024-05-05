@@ -1,30 +1,35 @@
 <template>
-	<div ref="rootEl" class="CoreFileInput">
-		<div v-if="!processingFiles" class="inputContainer">
-			<label>{{ fields.label.value }}</label>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="!processingFiles ? fields.label.value : null"
+		class="CoreFileInput"
+	>
+		<div class="main">
 			<input
+				v-if="!processingFiles"
 				ref="fileEl"
 				type="file"
 				:multiple="allowMultipleFilesFlag"
 				@change="fileChange($event as InputEvent)"
 			/>
+			<div v-if="message || processingFiles" class="status">
+				<LoadingSymbol
+					v-if="processingFiles"
+					class="loadingSymbol"
+				></LoadingSymbol>
+				<span v-if="processingFiles"
+					>Processing {{ processingFiles.join(", ") }}...</span
+				>
+				<span v-if="message">{{ message }}</span>
+			</div>
 		</div>
-		<div v-if="message || processingFiles" class="status">
-			<LoadingSymbol
-				v-if="processingFiles"
-				class="loadingSymbol"
-			></LoadingSymbol>
-			<span v-if="processingFiles"
-				>Processing {{ processingFiles.join(", ") }}...</span
-			>
-			<span v-if="message">{{ message }}</span>
-		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -154,27 +159,28 @@ watch(formValue, (newValue: string) => {
 
 .CoreFileInput {
 	width: 100%;
+}
+
+.main {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-}
-
 input {
 	max-width: 70ch;
-	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.25px;
+	font-size: 0.875rem;
+	width: fit-content;
 }
 
 .status {
 	display: flex;
 	align-items: center;
-	gap: 16px;
+	gap: 12px;
 	min-height: 36px;
 }
 

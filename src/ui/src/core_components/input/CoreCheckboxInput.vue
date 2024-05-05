@@ -1,6 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreCheckboxInput">
-		<div class="mainLabel">{{ fields.label.value }}</div>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreCheckboxInput"
+	>
 		<div
 			class="options"
 			:class="{
@@ -29,11 +32,11 @@
 				</label>
 			</div>
 		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
@@ -41,6 +44,7 @@ import {
 	cssClasses,
 	primaryTextColor,
 } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const defaultOptions = { a: "Option A", b: "Option B" };
 
@@ -127,17 +131,14 @@ function getCheckedKeys() {
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreCheckboxInput {
-	width: 100%;
-}
-
-.mainLabel:not(:empty) {
-	margin-bottom: 12px;
+	width: fit-content;
+	max-width: 100%;
 }
 
 .options {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 5px;
 }
 
 .options.horizontal {
@@ -153,11 +154,7 @@ function getCheckedKeys() {
 }
 
 input {
-	margin: 0 8px 0 0;
+	margin-right: 8px;
 	accent-color: var(--accentColor);
-}
-
-label {
-	color: var(--primaryTextColor);
 }
 </style>

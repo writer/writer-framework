@@ -55,17 +55,16 @@ const logEntryCount = computed(() => {
 .BuilderSwitcher {
 	background: var(--builderHeaderBackgroundHoleColor);
 	color: white;
-	font-size: 0.7rem;
+	font-size: 0.75rem;
 	display: flex;
 	gap: 0px;
 	padding: 4px;
-	border-radius: 4px;
+	border-radius: 8px;
 	overflow: hidden;
 }
 
 .BuilderSwitcher div {
-	padding: 4px 16px 4px 16px;
-	height: 32px;
+	padding: 4px 12px 4px 12px;
 	cursor: pointer;
 	display: flex;
 	align-items: center;

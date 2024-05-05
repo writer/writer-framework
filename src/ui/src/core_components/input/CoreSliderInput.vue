@@ -1,6 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreSliderInput">
-		<label>{{ fields.label.value }}</label>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreSliderInput"
+	>
 		<div class="inputArea">
 			<input
 				type="range"
@@ -20,12 +23,13 @@
 				<h3>{{ formValue }}</h3>
 			</div>
 		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.";
@@ -99,12 +103,6 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 .CoreSliderInput {
 	width: 100%;
 	max-width: 40ch;
-}
-
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
 }
 
 .inputArea {

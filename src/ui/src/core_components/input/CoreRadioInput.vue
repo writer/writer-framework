@@ -1,45 +1,48 @@
 <template>
-	<div ref="rootEl" class="CoreRadioInput">
-		<div class="main">
-			<div class="inputContainer">
-				<div class="mainLabel">{{ fields.label.value }}</div>
-				<div
-					class="options"
-					:class="{
-						horizontal: fields.orientation.value == 'horizontal',
-					}"
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreRadioInput"
+	>
+		<div
+			class="options"
+			:class="{
+				horizontal: fields.orientation.value == 'horizontal',
+			}"
+		>
+			<div
+				v-for="(option, optionKey) in fields.options.value"
+				:key="optionKey"
+				class="option"
+			>
+				<input
+					:id="`${flattenedInstancePath}-option-${optionKey}`"
+					type="radio"
+					:checked="formValue === optionKey"
+					:value="optionKey"
+					:name="`${flattenedInstancePath}-options`"
+					@input="
+						($event) => handleInput(optionKey, 'ss-option-change')
+					"
+				/><label
+					:for="`${flattenedInstancePath}-option-${optionKey}`"
+					>{{ option }}</label
 				>
-					<div
-						v-for="(option, optionKey) in fields.options.value"
-						:key="optionKey"
-						class="option"
-					>
-						<input
-							:id="`${flattenedInstancePath}-option-${optionKey}`"
-							type="radio"
-							:checked="formValue === optionKey"
-							:value="optionKey"
-							:name="`${flattenedInstancePath}-options`"
-							@input="
-								($event) =>
-									handleInput(optionKey, 'ss-option-change')
-							"
-						/><label
-							:for="`${flattenedInstancePath}-option-${optionKey}`"
-							>{{ option }}</label
-						>
-					</div>
-				</div>
 			</div>
 		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { accentColor, cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	cssClasses,
+	primaryTextColor,
+} from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to choose a single value from a list of options using radio buttons.";
@@ -112,17 +115,14 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreRadioInput {
-	width: 100%;
-}
-
-.mainLabel:not(:empty) {
-	margin-bottom: 12px;
+	width: fit-content;
+	max-width: 100%;
 }
 
 .options {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 5px;
 }
 
 .options.horizontal {
@@ -140,9 +140,5 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 input {
 	margin: 0 8px 0 0;
 	accent-color: var(--accentColor);
-}
-
-label {
-	color: var(--primaryTextColor);
 }
 </style>

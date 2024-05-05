@@ -1,27 +1,27 @@
 <template>
-	<div ref="rootEl" class="CoreDateInput">
-		<div class="main">
-			<div class="inputContainer">
-				<label>{{ fields.label.value }}</label>
-				<input
-					type="date"
-					:value="formValue"
-					@change="
-						($event) =>
-							handleInput(
-								($event.target as HTMLInputElement).value,
-								'ss-date-change',
-							)
-					"
-				/>
-			</div>
-		</div>
-	</div>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreDateInput"
+	>
+		<input
+			type="date"
+			:value="formValue"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-date-change',
+					)
+			"
+		/>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to select a date using a date picker interface.";
@@ -76,15 +76,13 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 	width: fit-content;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-}
-
 input {
-	max-width: 20ch;
 	width: 100%;
+	max-width: 20ch;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.5px 12px 8.5px 12px;
+	font-size: 0.875rem;
 }
 </style>

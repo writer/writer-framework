@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="CoreSwitchInput">
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		:is-horizontal="true"
+		class="CoreSwitchInput"
+	>
 		<div
 			class="switch"
 			:class="{ on: toggleValue }"
@@ -11,10 +16,7 @@
 		>
 			<div class="toggle"></div>
 		</div>
-		<label @click="handleToggle">
-			{{ fields.label.value }}
-		</label>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
@@ -28,6 +30,7 @@ import {
 	cssClasses,
 } from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description = "A user input component with a simple on/off status.";
 
@@ -89,9 +92,6 @@ onMounted(() => {
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreSwitchInput {
-	display: flex;
-	gap: 12px;
-	align-items: center;
 }
 
 .switch {
@@ -121,9 +121,5 @@ onMounted(() => {
 
 .switch.on .toggle {
 	margin-left: 16px;
-}
-
-label {
-	cursor: pointer;
 }
 </style>

@@ -2,7 +2,7 @@
 	<div class="ChildlessPlaceholder">
 		<div class="content">
 			<div class="title">
-				<h2>Empty {{ definition.name }}</h2>
+				<h3>Empty {{ definition.name }}</h3>
 			</div>
 			<div v-if="message" class="message">
 				{{ message }}

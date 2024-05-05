@@ -132,7 +132,7 @@
                 "showIndex": ""
             },
             "isCodeManaged": false,
-            "position": 5,
+            "position": 4,
             "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "fbad9feb-5c88-4425-bb17-0d138286a875": {
@@ -223,7 +223,7 @@
                 "alignment": ""
             },
             "isCodeManaged": false,
-            "position": 3,
+            "position": 4,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "b9cb10e5-1ead-448b-afcc-909e23afb72a": {
@@ -243,14 +243,6 @@
             },
             "isCodeManaged": false,
             "position": 1,
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
-        },
-        "804e15bf-11a7-463d-8082-f46ea3acac1b": {
-            "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
-            "type": "separator",
-            "content": {},
-            "isCodeManaged": false,
-            "position": 2,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "3cc9c5e9-6c77-401d-ab82-7805d9df760c": {
@@ -922,7 +914,7 @@
                 "icon": "book-2"
             },
             "isCodeManaged": false,
-            "position": 4,
+            "position": 5,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "$goToPage_story"
@@ -1270,16 +1262,126 @@
             "handlers": {},
             "visible": true
         },
-        "6xlc6mnbb9c5sapq": {
-            "id": "6xlc6mnbb9c5sapq",
-            "type": "heading",
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+        "lf68z0xw6gmxjko0": {
+            "id": "lf68z0xw6gmxjko0",
+            "type": "checkboxinput",
             "content": {
-                "text": "Pigeon dataset"
+                "label": "Input Label"
             },
+            "isCodeManaged": false,
+            "position": 5,
+            "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "position": 4,
             "visible": true
+        },
+        "y2l4x11oiiy16342": {
+            "id": "y2l4x11oiiy16342",
+            "type": "radioinput",
+            "content": {
+                "label": "Input Label",
+                "orientation": ""
+            },
+            "isCodeManaged": false,
+            "position": 6,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "cjf7nsvsxiz2pv0v": {
+            "id": "cjf7nsvsxiz2pv0v",
+            "type": "numberinput",
+            "content": {
+                "label": "How many?"
+            },
+            "isCodeManaged": false,
+            "position": 8,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "0wplntctbm3v2qa4": {
+            "id": "0wplntctbm3v2qa4",
+            "type": "sliderinput",
+            "content": {
+                "label": "Input Label",
+                "minValue": "0",
+                "maxValue": "100",
+                "stepSize": "1"
+            },
+            "isCodeManaged": false,
+            "position": 9,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "tn91gqv470596y0c": {
+            "id": "tn91gqv470596y0c",
+            "type": "dateinput",
+            "content": {
+                "label": "Input Label"
+            },
+            "isCodeManaged": false,
+            "position": 10,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "hp70sz1hoate7ysi": {
+            "id": "hp70sz1hoate7ysi",
+            "type": "selectinput",
+            "content": {
+                "label": "Input Label"
+            },
+            "isCodeManaged": false,
+            "position": 7,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "zf9smr5e0e4dagbm": {
+            "id": "zf9smr5e0e4dagbm",
+            "type": "multiselectinput",
+            "content": {
+                "label": "Input Label"
+            },
+            "isCodeManaged": false,
+            "position": 11,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "3wuhz81j4ztl19k3": {
+            "id": "3wuhz81j4ztl19k3",
+            "type": "fileinput",
+            "content": {
+                "label": "Input Label"
+            },
+            "isCodeManaged": false,
+            "position": 12,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "b27lw9ex8ig3x17p": {
+            "id": "b27lw9ex8ig3x17p",
+            "type": "tags",
+            "content": {
+                "tags": "{\n  \"fiction\": \"fiction\",\n  \"inspirational\": \"inspirational\",\n  \"ai-generated\": \"ai-generated\"\n}",
+                "seed": ""
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "handlers": {},
+            "visible": true
+        },
+        "804e15bf-11a7-463d-8082-f46ea3acac1b": {
+            "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
+            "type": "separator",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         }
     }
 }

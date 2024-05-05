@@ -1,58 +1,52 @@
 <template>
-	<div ref="rootEl" class="CoreRatingInput">
-		<BaseInputWrapper :label="fields.label.value">
+	<BaseInputWrapper
+		ref="rootEl"
+		class="CoreRatingInput"
+		:label="fields.label.value"
+	>
+		<div
+			ref="unitsEl"
+			class="units"
+			:class="{ valueSet: feedbackRating !== null }"
+			@click="handleClick"
+			@mousemove="handleMousemove"
+			@mouseout="handleMouseout"
+		>
 			<div
-				ref="unitsEl"
-				class="units"
-				:class="{ valueSet: feedbackRating !== null }"
-				@click="handleClick"
-				@mousemove="handleMousemove"
-				@mouseout="handleMouseout"
+				v-for="n in [...Array(normalisedMaxValue).keys()]"
+				:key="n"
+				class="unit"
+				:class="fields.feedback.value"
 			>
 				<div
-					v-for="n in [...Array(normalisedMaxValue).keys()]"
-					:key="n"
-					class="unit"
-					:class="fields.feedback.value"
-				>
-					<div
-						class="filler"
-						:style="{
-							width: `${
-								feedbackRating > n
-									? Math.min(feedbackRating - n, 1) * 100
-									: 0
-							}%`,
-						}"
-					></div>
-					<div
-						v-if="feedbackRating !== null"
-						class="filler light"
-					></div>
-					<div v-if="fields.feedback.value == 'faces'" class="face">
-						<svg viewBox="0 0 100 100">
-							<circle
-								class="eye left"
-								cx="35"
-								cy="38"
-								r="6"
-							></circle>
-							<circle
-								class="eye right"
-								cx="65"
-								cy="38"
-								r="6"
-							></circle>
-							<path
-								class="mouth"
-								:d="getMouthPath(feedbackRating ?? n + 1)"
-							></path>
-						</svg>
-					</div>
+					class="filler"
+					:style="{
+						width: `${
+							feedbackRating > n
+								? Math.min(feedbackRating - n, 1) * 100
+								: 0
+						}%`,
+					}"
+				></div>
+				<div v-if="feedbackRating !== null" class="filler light"></div>
+				<div v-if="fields.feedback.value == 'faces'" class="face">
+					<svg viewBox="0 0 100 100">
+						<circle class="eye left" cx="35" cy="38" r="6"></circle>
+						<circle
+							class="eye right"
+							cx="65"
+							cy="38"
+							r="6"
+						></circle>
+						<path
+							class="mouth"
+							:d="getMouthPath(feedbackRating ?? n + 1)"
+						></path>
+					</svg>
 				</div>
 			</div>
-		</BaseInputWrapper>
-	</div>
+		</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">

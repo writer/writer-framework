@@ -337,14 +337,16 @@ function highlightItem(offset: number) {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	padding: 8px;
 	border: 1px solid var(--separatorColor);
 	width: 100%;
 	outline: none;
-	min-height: 50px;
+	min-height: 46px;
 	background: var(--containerBackgroundColor);
 	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
 	overflow-y: auto;
+	padding: 7px 8px 7px 8px;
+	font-size: 0.875rem;
+	border-radius: 8px;
 }
 
 [data-mode]:not([data-list-position="hidden"]) .selectedOptions .placeholder {
@@ -366,11 +368,13 @@ function highlightItem(offset: number) {
 [data-list-position="bottom"] .selectedOptions {
 	border: 1px solid var(--primaryTextColor);
 	border-bottom: 1px solid var(--containerBackgroundColor);
+	border-radius: 8px 8px 0 0;
 }
 
 [data-list-position="top"] .selectedOptions {
 	border: 1px solid var(--primaryTextColor);
 	border-top: 1px solid var(--containerBackgroundColor);
+	border-radius: 0 0 8px 8px;
 }
 
 .selectedOptions .option {
@@ -378,11 +382,12 @@ function highlightItem(offset: number) {
 	color: var(--chipTextColor);
 	border-radius: 4px;
 	display: flex;
-	gap: 4px;
+	gap: 8px;
 	user-select: none;
 	align-items: center;
 	outline: none;
 	min-height: 32px;
+	padding: 4px 8px 4px 8px;
 }
 
 .selectedOptions .option.notFound {
@@ -398,7 +403,6 @@ function highlightItem(offset: number) {
 
 .selectedOptions .option .desc {
 	height: 100%;
-	padding: 8px;
 	display: flex;
 	align-items: center;
 }
@@ -407,7 +411,9 @@ function highlightItem(offset: number) {
 	display: flex;
 	align-items: center;
 	height: 100%;
-	padding: 0 8px 0 8px;
+	padding: 4px;
+	margin-right: -4px;
+	border-radius: 4px;
 	backdrop-filter: brightness(95%);
 	cursor: pointer;
 }

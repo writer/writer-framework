@@ -1,11 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreSelectInput">
-		<div
-			v-if="fields.label.value || fields.label.value === 0"
-			class="labelContainer"
-		>
-			<label>{{ fields.label.value }}</label>
-		</div>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreSelectInput"
+	>
 		<BaseSelect
 			:base-id="flattenedInstancePath"
 			:active-value="formValue ? [formValue] : []"
@@ -15,7 +13,7 @@
 			:placeholder="fields.placeholder.value"
 			@change="handleChange"
 		></BaseSelect>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
@@ -31,6 +29,7 @@ import {
 	selectedColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to select a single value from a searchable list of options.";
@@ -122,13 +121,8 @@ function handleChange(selectedOptions: string[]) {
 
 .CoreSelectInput {
 	width: fit-content;
-	max-width: 100%;
+	max-width: 70ch;
 	width: 100%;
 	position: relative;
-}
-
-.labelContainer {
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
 }
 </style>

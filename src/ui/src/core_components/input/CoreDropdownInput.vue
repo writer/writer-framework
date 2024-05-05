@@ -1,27 +1,28 @@
 <template>
-	<div ref="rootEl" class="CoreDropdownInput">
-		<label class="mainLabel">{{ fields.label.value }}</label>
-		<div class="selectContainer">
-			<select
-				:value="formValue"
-				@input="
-					($event) =>
-						handleInput(
-							($event.target as HTMLInputElement).value,
-							'ss-option-change',
-						)
-				"
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreDropdownInput"
+	>
+		<select
+			:value="formValue"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-option-change',
+					)
+			"
+		>
+			<option
+				v-for="(option, optionKey) in fields.options.value"
+				:key="optionKey"
+				:value="optionKey"
 			>
-				<option
-					v-for="(option, optionKey) in fields.options.value"
-					:key="optionKey"
-					:value="optionKey"
-				>
-					{{ option }}
-				</option>
-			</select>
-		</div>
-	</div>
+				{{ option }}
+			</option>
+		</select>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
@@ -29,6 +30,7 @@ import { inject, Ref } from "vue";
 import { ref } from "vue";
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to select a single value from a list of options using a dropdown menu.";
@@ -89,23 +91,12 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 	max-width: 100%;
 }
 
-label {
-	color: var(--primaryTextColor);
-	margin-bottom: 4px;
-	font-size: 0.875rem;
-	color: var(--primaryTextColor);
-	line-height: 142.857%;
-}
-
 select {
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	padding: 8.25px;
 	font-size: 0.875rem;
 	max-width: 100%;
-}
-
-.selectContainer {
-	margin-top: 8px;
+	width: fit-content;
 }
 </style>

@@ -1,6 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreNumberInput">
-		<label>{{ fields.label.value }}</label>
+	<BaseInputWrapper
+		ref="rootEl"
+		:label="fields.label.value"
+		class="CoreNumberInput"
+	>
 		<input
 			ref="inputEl"
 			type="number"
@@ -24,12 +27,13 @@
 			@input="handleInputEvent"
 			@change="handleChangeEvent"
 		/>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to enter numeric values.";
@@ -139,15 +143,13 @@ function handleChangeEvent() {
 	width: 100%;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
-}
-
 input {
+	max-width: 30ch;
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.5px 12px 8.5px 12px;
+	font-size: 0.875rem;
 }
 </style>
