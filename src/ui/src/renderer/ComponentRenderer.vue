@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, Ref, computed, watch } from "vue";
+import { inject, ref, computed, watch } from "vue";
 import { Component, InstancePath } from "../streamsyncTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
