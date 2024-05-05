@@ -124,11 +124,11 @@ function generateColor(s: string) {
 		)
 		.set(
 			"hsl.s",
-			`${Math.sign(colorStep.s) == -1 ? "-" : "+"}${Math.abs(colorStep.s/100.0)}`,
+			`${Math.sign(colorStep.s) == -1 ? "-" : "+"}${Math.abs(colorStep.s / 100.0)}`,
 		)
 		.set(
 			"hsl.l",
-			`${Math.sign(colorStep.l) == -1 ? "-" : "+"}${Math.abs(colorStep.l/100.0)}`,
+			`${Math.sign(colorStep.l) == -1 ? "-" : "+"}${Math.abs(colorStep.l / 100.0)}`,
 		);
 	return genColor.css();
 }
