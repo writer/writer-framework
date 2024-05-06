@@ -11,7 +11,10 @@
 			<WdsButton @click="toggleActive">
 				{{ isActive ? "Stop capture" : "Start webcam capture" }}
 			</WdsButton>
-			<WdsDropdownInput v-if="videoDevices?.length > 1" v-model="preferredDeviceId">
+			<WdsDropdownInput
+				v-if="videoDevices?.length > 1"
+				v-model="preferredDeviceId"
+			>
 				<option
 					v-for="(device, deviceIndex) in videoDevices"
 					:key="device.deviceId"

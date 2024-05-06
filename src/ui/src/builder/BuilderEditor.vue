@@ -10,7 +10,9 @@
 	>
 		<div class="editor">
 			<div class="windowBar">
-				<div class="icon"><i class="ri-code-line ri-lg"></i></div>
+				<div class="icon">
+					<i class="material-symbols-outlined"> code </i>
+				</div>
 				<div class="title">Code Editor</div>
 				<button
 					class="windowAction"
@@ -20,12 +22,14 @@
 				>
 					<i
 						v-show="theme == 'vs-dark'"
-						class="ri-sun-line ri-lg"
-					></i>
+						class="material-symbols-outlined"
+						>light_mode</i
+					>
 					<i
 						v-show="theme == 'vs-light'"
-						class="ri-moon-line ri-lg"
-					></i>
+						class="material-symbols-outlined"
+						>dark_mode</i
+					>
 				</button>
 			</div>
 			<div class="codeActions">

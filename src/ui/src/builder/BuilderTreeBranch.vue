@@ -34,17 +34,17 @@
 			</div>
 			<span class="type">{{ name }}</span>
 			<template v-if="Object.keys(component.handlers ?? {}).length > 0">
-				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
 					>bolt</i
 				>
 			</template>
 			<template v-if="!isComponentVisible(component.id)">
-				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
 					>visibility_off</i
 				>
 			</template>
 			<template v-if="component.isCodeManaged">
-				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
 					>terminal</i
 				>
 			</template>

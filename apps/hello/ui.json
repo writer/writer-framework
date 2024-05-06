@@ -546,7 +546,8 @@
             "id": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "type": "section",
             "content": {
-                "title": "@{item.name} \u2b50\ufe0f"
+                "title": "@{item.name} \u2b50\ufe0f",
+                "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -782,8 +783,8 @@
                 "key": "story",
                 "buttonColor": "#242424",
                 "buttonTextColor": "#ffffff",
-                "containerBackgroundColor": "#383838",
-                "emptinessColor": "#474c4d",
+                "containerBackgroundColor": "#4F4F4F",
+                "emptinessColor": "#333333",
                 "primaryTextColor": "#ffffff",
                 "separatorColor": "rgba(0, 0, 0, 0.2)"
             },
@@ -832,7 +833,7 @@
             "type": "button",
             "content": {
                 "text": "Go back to the main page",
-                "icon": "arrow-go-back"
+                "icon": "arrow_back"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -880,8 +881,7 @@
             "id": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
             "type": "section",
             "content": {
-                "title": "",
-                "containerBackgroundColor": "#383838"
+                "title": ""
             },
             "isCodeManaged": false,
             "position": 0,
@@ -963,7 +963,7 @@
             "type": "button",
             "content": {
                 "text": "Download this story",
-                "icon": "file-download"
+                "icon": "download"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -1004,7 +1004,8 @@
             "type": "section",
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f",
-                "containerShadow": "none"
+                "containerShadow": "none",
+                "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -1479,32 +1480,35 @@
         "kl8k26gdpj208dz4": {
             "id": "kl8k26gdpj208dz4",
             "type": "steps",
-            "parentId": "wbl4qliuwb7w2vtd",
             "content": {},
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "wbl4qliuwb7w2vtd",
+            "handlers": {},
             "visible": true
         },
         "mr6zarp7ieznqvx8": {
             "id": "mr6zarp7ieznqvx8",
             "type": "step",
-            "parentId": "kl8k26gdpj208dz4",
             "content": {
                 "name": "Step name"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "kl8k26gdpj208dz4",
+            "handlers": {},
             "visible": true
         },
         "lek8vvblwjthotju": {
             "id": "lek8vvblwjthotju",
             "type": "step",
-            "parentId": "kl8k26gdpj208dz4",
             "content": {
                 "name": "Step name"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "kl8k26gdpj208dz4",
+            "handlers": {},
             "visible": true
         }
     }

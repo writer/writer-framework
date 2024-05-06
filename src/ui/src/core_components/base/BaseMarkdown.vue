@@ -51,7 +51,7 @@ onBeforeMount(async () => {
 .markdown:deep() h3 {
 	font-size: 1.25rem;
 	font-weight: 500;
-	line-height: 120%;	
+	line-height: 120%;
 }
 
 .markdown:deep() h4 {

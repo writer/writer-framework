@@ -56,7 +56,7 @@ const message = computed(() => {
 @import "./sharedStyles.css";
 
 .ChildlessPlaceholder {
-	background: #e4e7eD;
+	background: #e4e7ed;
 	color: var(--primaryTextColor);
 	padding: 16px;
 	display: flex;

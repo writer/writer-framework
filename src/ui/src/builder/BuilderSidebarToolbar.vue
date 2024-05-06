@@ -11,7 +11,7 @@
 			>
 				<div v-if="categoryData.isVisible !== false" class="category">
 					<div class="title">
-						<i class="material-symbols-outlined lg">{{
+						<i class="material-symbols-outlined">{{
 							categoryData.icon ?? "question_mark"
 						}}</i>
 						<h4>{{ category }}</h4>
