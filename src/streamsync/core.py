@@ -786,21 +786,18 @@ class EventHandlerRegistry:
         self.handler_map[access_name] = entry
 
     def register_module(self, module: ModuleType):
-        if isinstance(module, ModuleType):
-            all_fn_names = (x[0] for x in inspect.getmembers(
-                module, inspect.isfunction))
-            exposed_fn_names = list(
-                filter(lambda x: not x.startswith("_"), all_fn_names))
+        if not isinstance(module, ModuleType):
+            raise ValueError(f"Attempted to register a non-module object: {module}")
 
-            for fn_name in exposed_fn_names:
-                fn_callable = getattr(module, fn_name)
-                if not fn_callable:
-                    continue
+        module_name = module.__name__
+        all_fn_names = (x[0] for x in inspect.getmembers(module, inspect.isfunction))
+        exposed_fn_names = list(filter(lambda x: not x.startswith("_"), all_fn_names))
+
+        for fn_name in exposed_fn_names:
+            fn_callable = getattr(module, fn_name)
+            # Ensure the function is callable and was defined in this module
+            if fn_callable and getattr(fn_callable, '__module__', None) == module_name:
                 self.register_handler(fn_callable)
-        else:
-            raise ValueError(
-                f"Attempted to register a non-module object: {module}"
-                )
 
     def find_handler(self, handler_name: str) -> Optional[Callable]:
         if handler_name not in self.handler_map:
