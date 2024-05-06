@@ -20,6 +20,7 @@ const mapComponents = {
 	column: {ignore: true},
 	tab: {ignore: true},
 	step: {ignore: true},
+	dropdowninput: {ignore: true},
 	section: {test: 'basic'},
 	columns: {test: 'basic'},
 	sidebar: {test: 'basic'},
