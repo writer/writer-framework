@@ -753,7 +753,7 @@ class EventHandlerRegistry:
         meta: 'EventHandlerRegistry.HandlerMeta'
 
     def __init__(self):
-        self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}
+        self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}  # type: ignore
 
     def __iter__(self):
         return iter(self.handler_map.keys())
@@ -1181,6 +1181,7 @@ class StreamsyncSession:
         self.session_state = new_state
         self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
         self.event_handler = EventHandler(self)
+        self.userinfo: Optional[dict] = None
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
@@ -1245,7 +1246,10 @@ class SessionManager:
         self.sessions[new_id] = new_session
         return new_session
 
-    def get_session(self, session_id: str) -> Optional[StreamsyncSession]:
+    def get_session(self, session_id: Optional[str]) -> Optional[StreamsyncSession]:
+        if session_id is None:
+            return None
+
         return self.sessions.get(session_id)
 
     def _generate_session_id(self) -> str:
@@ -1268,6 +1272,14 @@ class SessionManager:
                 prune_sessions.append(session_id)
         for session_id in prune_sessions:
             self.close_session(session_id)
+
+    @staticmethod
+    def generate_session_id() -> str:
+        """
+        Generates a random session identifier which can be used to propose a session number before starting
+        the app process in the apiinit route.
+        """
+        return secrets.token_hex(SessionManager.TOKEN_SIZE_BYTES)
 
 
 class EventHandler:
@@ -1342,7 +1354,8 @@ class EventHandler:
                 session_info = {
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
-                    "headers": self.session.headers
+                    "headers": self.session.headers,
+                    "userinfo": self.session.userinfo
                 }
                 arg_values.append(session_info)
             elif arg == "ui":

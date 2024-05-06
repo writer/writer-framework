@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
@@ -37,10 +37,25 @@ from streamsync.ss_types import (
     StreamsyncWebsocketOutgoing,
 )
 
+if typing.TYPE_CHECKING:
+    from .auth import Auth
+
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
 
-app: FastAPI = cast(FastAPI, None)
+
+class StreamsyncState(typing.Protocol):
+    app_runner: AppRunner
+    streamsync_app: bool
+    is_server_static_mounted: bool
+
+class StreamsyncAsgi(typing.Protocol):
+    state: StreamsyncState
+
+class StreamsyncFastAPI(FastAPI, StreamsyncAsgi):  # type: ignore
+    pass
+
+app: StreamsyncFastAPI = cast(StreamsyncFastAPI, None)
 
 def get_asgi_app(
         user_app_path: str,
@@ -49,7 +64,7 @@ def get_asgi_app(
         enable_server_setup: bool = False,
         on_load: Optional[Callable] = None,
         on_shutdown: Optional[Callable] = None,
-) -> FastAPI:
+) -> StreamsyncFastAPI:
     global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
@@ -78,12 +93,13 @@ def get_asgi_app(
         if on_shutdown is not None:
             on_shutdown()
 
-    app = FastAPI(lifespan=lifespan)
+    app = cast(StreamsyncFastAPI, FastAPI(lifespan=lifespan))
     """
     Reuse the same pattern to give variable to FastAPI application
     than `app.state.is_server_static_mounted` already use in streamsync.
     """
     app.state.streamsync_app = True
+    app.state.app_runner = app_runner
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -135,7 +151,7 @@ def get_asgi_app(
         )
 
     @app.post("/api/init")
-    async def init(initBody: InitRequestBody, request: Request) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
+    async def init(initBody: InitRequestBody, request: Request, response: Response) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
 
         """
         Handles session init and provides a "starter pack" to the frontend.
@@ -149,21 +165,26 @@ def get_asgi_app(
             raise HTTPException(
                 status_code=403, detail="Incorrect origin. Only local origins are allowed.")
 
-        response = await app_runner.init_session(InitSessionRequestPayload(
+        session_id = request.cookies.get("session")
+        if session_id is not None:
+            initBody.proposedSessionId = session_id
+
+        app_response = await app_runner.init_session(InitSessionRequestPayload(
             cookies=dict(request.cookies),
             headers=dict(request.headers),
             proposedSessionId=initBody.proposedSessionId
         ))
-        status = response.status
 
-        if status == "error" or response.payload is None:
+        status = app_response.status
+
+        if status == "error" or app_response.payload is None:
             raise HTTPException(status_code=403, detail="Session rejected.")
 
         if serve_mode == "run":
-            return _get_run_starter_pack(response.payload)
+            return _get_run_starter_pack(app_response.payload)
 
         if serve_mode == "edit":
-            return _get_edit_starter_pack(response.payload)
+            return _get_edit_starter_pack(app_response.payload)
 
     # Streaming
 
@@ -432,6 +453,8 @@ def print_route_message(run_name: str, port: int, host: str):
 
     print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
+def register_auth(auth: 'Auth', callback: Optional[Callable[[Request, str], None]] = None):
+    auth.register(app, callback=callback)
 
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, enable_server_setup=False):
     """ Initialises the web server. """
@@ -543,3 +566,6 @@ def _execute_server_setup_hook(user_app_path: str) -> None:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore
 
+
+def app_runner(asgi_app: StreamsyncFastAPI) -> AppRunner:
+    return asgi_app.state.app_runner

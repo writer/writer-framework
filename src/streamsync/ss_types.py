@@ -25,7 +25,8 @@ class Readable(Protocol):
 
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
-                      "event", "codeUpdate", "codeSave", "checkSession", "keepAlive", "stateEnquiry"]
+                      "event", "codeUpdate", "codeSave", "checkSession",
+                      "keepAlive", "stateEnquiry", "setUserinfo"]
 
 # Web server models
 
@@ -76,7 +77,6 @@ class InitSessionRequestPayload(BaseModel):
     cookies: Optional[Dict[str, str]] = None
     headers: Optional[Dict[str, str]] = None
     proposedSessionId: Optional[str] = None
-
 
 class InitSessionRequest(AppProcessServerRequest):
     type: Literal["sessionInit"]
