@@ -14,7 +14,7 @@
 				class="download"
 				@click="download"
 			>
-				<span class="material-symbols-outlined"> download </span>
+				<i class="material-symbols-outlined"> download </i>
 			</WdsControl>
 		</div>
 		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">

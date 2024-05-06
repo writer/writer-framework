@@ -2,25 +2,25 @@
 	<div ref="rootEl" class="CorePDF">
 		<div v-if="fields.controls.value === 'yes'" class="controls">
 			<WdsControl @click="() => gotoPage(page - 1)">
-				<span class="material-symbols-outlined">arrow_upward</span>
+				<i class="material-symbols-outlined">arrow_upward</i>
 			</WdsControl>
 			<WdsControl @click="() => gotoPage(page + 1)">
-				<span class="material-symbols-outlined">arrow_downward</span>
+				<i class="material-symbols-outlined">arrow_downward</i>
 			</WdsControl>
 			<span :key="page">{{ page }} / {{ pages }}</span>
 			<WdsControl :disabled="loading" @click="incrementScale">
-				<span class="material-symbols-outlined">zoom_in</span>
+				<i class="material-symbols-outlined">zoom_in</i>
 			</WdsControl>
 			<WdsControl :disabled="loading" @click="decrementScale">
-				<span class="material-symbols-outlined">zoom_out</span>
+				<i class="material-symbols-outlined">zoom_out</i>
 			</WdsControl>
 			<span>{{ Math.round(scale * 100) }}%</span>
 			<span class="separator" />
 			<WdsControl v-if="matches.length" @click="decrementMatchIdx">
-				<span class="material-symbols-outlined">navigate_before</span>
+				<i class="material-symbols-outlined">navigate_before</i>
 			</WdsControl>
 			<WdsControl v-if="matches.length" @click="incrementMatchIdx">
-				<span class="material-symbols-outlined">navigate_next</span>
+				<i class="material-symbols-outlined">navigate_next</i>
 			</WdsControl>
 			<span v-if="matches.length"
 				>Matches {{ currentMatch }} / {{ matches.length }}</span

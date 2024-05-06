@@ -9,9 +9,9 @@
 		:aria-disabled="isDisabled"
 		@click="handleClick"
 	>
-		<span v-if="fields.icon.value" class="material-symbols-outlined">{{
+		<i v-if="fields.icon.value" class="material-symbols-outlined">{{
 			fields.icon.value
-		}}</span>
+		}}</i>
 		{{ fields.text.value }}
 	</WdsButton>
 </template>

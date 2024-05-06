@@ -23,7 +23,8 @@ button {
 	box-shadow: var(--buttonShadow);
 }
 
-button:hover {
+button:hover,
+button:focus {
 	border: 1px solid var(--intensifiedButtonColor);
 	background: var(--intensifiedButtonColor);
 }

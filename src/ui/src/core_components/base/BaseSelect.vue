@@ -51,7 +51,7 @@
 					aria-label="Remove"
 					@click="removeItem(optionKey)"
 				>
-					<span class="material-symbols-outlined"> close </span>
+					<i class="material-symbols-outlined"> close </i>
 				</div>
 			</div>
 			<input

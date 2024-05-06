@@ -102,9 +102,7 @@ See the stubs for more details.
 							variant="subtle"
 							@click="handleRemoveFile(fileIndex)"
 						>
-							<span class="material-symbols-outlined">
-								delete
-							</span>
+							<i class="material-symbols-outlined"> delete </i>
 						</button>
 					</div>
 				</div>
@@ -115,11 +113,11 @@ See the stubs for more details.
 					class="uploadButton"
 					@click="handleUploadFiles"
 				>
-					<span class="material-symbols-outlined">upload</span>
+					<i class="material-symbols-outlined">upload</i>
 					Upload
 				</button>
 				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
-					<span class="material-symbols-outlined">warning</span>
+					<i class="material-symbols-outlined">warning</i>
 					Size limit of
 					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
 				</div>
@@ -134,14 +132,14 @@ See the stubs for more details.
 		</div>
 		<div class="inputButtons">
 			<button title="Send message" @click="handleMessageSent">
-				<span class="material-symbols-outlined">send</span>
+				<i class="material-symbols-outlined">send</i>
 			</button>
 			<button
 				v-if="fields.enableFileUpload.value != 'no'"
 				title="Attach files"
 				@click="handleAttachFiles"
 			>
-				<span class="material-symbols-outlined">attach_file</span>
+				<i class="material-symbols-outlined">attach_file</i>
 			</button>
 		</div>
 	</div>

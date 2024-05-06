@@ -129,7 +129,9 @@
             "type": "dataframe",
             "content": {
                 "dataframe": "@{main_df}",
-                "showIndex": ""
+                "showIndex": "",
+                "enableSearch": "yes",
+                "enableDownload": "yes"
             },
             "isCodeManaged": false,
             "position": 4,
@@ -383,8 +385,8 @@
             "content": {
                 "dataframe": "@{random_df}",
                 "fontStyle": "monospace",
-                "enableSearch": "yes",
-                "enableDownload": "yes"
+                "enableSearch": "",
+                "enableDownload": ""
             },
             "isCodeManaged": false,
             "position": 1,
@@ -1462,18 +1464,6 @@
             "handlers": {},
             "visible": true
         },
-        "di258wu6pm79x6ij": {
-            "id": "di258wu6pm79x6ij",
-            "type": "webcamcapture",
-            "content": {
-                "refreshRate": "0"
-            },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "wbl4qliuwb7w2vtd",
-            "handlers": {},
-            "visible": true
-        },
         "4hzjr6nxbeynykkc": {
             "id": "4hzjr6nxbeynykkc",
             "type": "text",
@@ -1486,46 +1476,35 @@
             "handlers": {},
             "visible": true
         },
-        "14cql2nnkjsw375p": {
-            "id": "14cql2nnkjsw375p",
-            "type": "message",
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "content": {
-                "message": "+ Perro"
-            },
-            "handlers": {},
-            "position": 6,
-            "visible": true
-        },
-        "adi8tai691s0o6kt": {
-            "id": "adi8tai691s0o6kt",
-            "type": "message",
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "content": {
-                "message": "- Perro"
-            },
-            "handlers": {},
-            "position": 8,
-            "visible": true
-        },
-        "b2p8t2r0w1c5w3o7": {
-            "id": "b2p8t2r0w1c5w3o7",
-            "type": "message",
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "content": {
-                "message": "! Perro"
-            },
-            "handlers": {},
-            "position": 7,
-            "visible": true
-        },
-        "txiwl8ka3urogpqn": {
-            "id": "txiwl8ka3urogpqn",
-            "type": "pdf",
+        "kl8k26gdpj208dz4": {
+            "id": "kl8k26gdpj208dz4",
+            "type": "steps",
             "parentId": "wbl4qliuwb7w2vtd",
             "content": {},
             "handlers": {},
-            "position": 2,
+            "position": 1,
+            "visible": true
+        },
+        "mr6zarp7ieznqvx8": {
+            "id": "mr6zarp7ieznqvx8",
+            "type": "step",
+            "parentId": "kl8k26gdpj208dz4",
+            "content": {
+                "name": "Step name"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "lek8vvblwjthotju": {
+            "id": "lek8vvblwjthotju",
+            "type": "step",
+            "parentId": "kl8k26gdpj208dz4",
+            "content": {
+                "name": "Step name"
+            },
+            "handlers": {},
+            "position": 1,
             "visible": true
         }
     }

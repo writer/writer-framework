@@ -82,7 +82,7 @@
                 "text": "@{story.text}"
             },
             "isCodeManaged": false,
-            "position": 2,
+            "position": 1,
             "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf"
         },
         "ee919cd6-8153-4f34-8c6a-bfc1153df360": {
@@ -589,14 +589,6 @@
             },
             "isCodeManaged": false,
             "position": 0,
-            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf"
-        },
-        "3cf72c75-9585-403b-9cc6-af8f04ce1180": {
-            "id": "3cf72c75-9585-403b-9cc6-af8f04ce1180",
-            "type": "separator",
-            "content": {},
-            "isCodeManaged": false,
-            "position": 1,
             "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf"
         },
         "2f4969e2-e248-43ed-9e63-222fc35250e2": {
@@ -2172,7 +2164,8 @@
             "id": "6e912116-4cc5-4840-96b9-84106bee795d",
             "type": "button",
             "content": {
-                "text": "File download"
+                "text": "File download",
+                "icon": "download"
             },
             "isCodeManaged": false,
             "position": 6,
@@ -2186,7 +2179,8 @@
             "id": "272f0871-585e-4662-8ae1-a8cd6067b60b",
             "type": "button",
             "content": {
-                "text": "Add notifications"
+                "text": "Add notifications",
+                "icon": "notifications"
             },
             "isCodeManaged": false,
             "position": 7,
@@ -2229,7 +2223,8 @@
             "id": "5c0df6e8-4dd8-4485-a244-8e9e7f4b4675",
             "type": "button",
             "content": {
-                "text": "Increment"
+                "text": "Increment",
+                "icon": "arrow_upward"
             },
             "isCodeManaged": false,
             "position": 9,

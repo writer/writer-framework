@@ -42,12 +42,14 @@
 						>
 							<i
 								v-if="ssbm.isSettingsBarCollapsed()"
-								class="ri-settings-3-line ri-lg"
-							></i>
+								class="material-symbols-outlined"
+								>settings</i
+							>
 							<i
 								v-if="!ssbm.isSettingsBarCollapsed()"
-								class="ri-arrow-drop-right-line ri-lg"
-							></i>
+								class="material-symbols-outlined"
+								>arrow_right</i
+							>
 						</div>
 						<div
 							v-if="ssbm.isSelectionActive()"
@@ -419,6 +421,7 @@ onMounted(() => {
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+	font-size: 0.875rem;
 }
 
 .settingsHiderTab:hover {

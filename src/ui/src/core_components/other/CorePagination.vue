@@ -28,9 +28,7 @@
 					}"
 					@click="jumpTo(fields.page.value - 1)"
 				>
-					<span class="material-symbols-outlined">
-						navigate_before
-					</span>
+					<i class="material-symbols-outlined"> navigate_before </i>
 				</div>
 				<template v-for="(l, index) in links" :key="index">
 					<div
@@ -58,9 +56,7 @@
 					:class="{ 'paginationpicker-disabled': pageNextDisabled }"
 					@click="jumpTo(fields.page.value + 1)"
 				>
-					<span class="material-symbols-outlined">
-						navigate_next
-					</span>
+					<i class="material-symbols-outlined"> navigate_next </i>
 				</div>
 			</div>
 			<div v-show="jumptoEnabled" class="pagination-jump">

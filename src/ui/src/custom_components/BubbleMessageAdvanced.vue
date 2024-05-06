@@ -17,10 +17,10 @@ You _can_ use **markdown**.
 			</div>
 			<div class="actions">
 				<div class="action" @click="emitPinEvent">
-					<span class="material-symbols-outlined"> keep </span>
+					<i class="material-symbols-outlined"> keep </i>
 				</div>
 				<div class="action" @click="emitFlagEvent">
-					<span class="material-symbols-outlined"> flag </span>
+					<i class="material-symbols-outlined"> flag </i>
 				</div>
 			</div>
 		</div>

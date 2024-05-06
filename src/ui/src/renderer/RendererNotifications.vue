@@ -5,14 +5,14 @@
 		@click="toggle"
 	>
 		<div ref="balloon" class="balloon" title="Toggle notifications">
-			<span class="icon material-symbols-outlined"> notifications </span>
+			<i class="icon material-symbols-outlined"> notifications </i>
 			<div class="counter">{{ notifications.length }}</div>
 		</div>
 		<div class="balloonFlash"></div>
 		<div v-show="isActive" class="main">
 			<div class="clearContainer">
 				<WdsButton @click="clearAll">
-					<span class="material-symbols-outlined"> clear_all </span>
+					<i class="material-symbols-outlined"> clear_all </i>
 					Clear all
 				</WdsButton>
 			</div>
@@ -22,7 +22,7 @@
 				class="notification"
 			>
 				<div class="icon" :class="notification.type">
-					<span class="material-symbols-outlined"> exclamation </span>
+					<i class="material-symbols-outlined"> exclamation </i>
 				</div>
 				<div class="content">
 					<header>

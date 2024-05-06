@@ -1,7 +1,7 @@
 <template>
 	<div class="BuilderSidebarToolbar">
 		<div class="sectionTitle">
-			<i class="ri-tools-line ri-xl"></i>
+			<i class="material-symbols-outlined"> handyman </i>
 			<h3>Toolkit</h3>
 		</div>
 		<div class="categories">
@@ -11,21 +11,22 @@
 			>
 				<div v-if="categoryData.isVisible !== false" class="category">
 					<div class="title">
-						<i :class="categoryData.icon ?? 'ri-question-line'"></i>
+						<i class="material-symbols-outlined lg">{{
+							categoryData.icon ?? "question_mark"
+						}}</i>
 						<h4>{{ category }}</h4>
 
 						<div
 							class="drop-arrow"
 							@click="toggleCollapseCategory(category)"
 						>
-							<i
-								class="ri-xl"
-								:class="
+							<i class="material-symbols-outlined">
+								{{
 									categoryData.isCollapsed
-										? 'ri-arrow-drop-down-line'
-										: 'ri-arrow-drop-up-line'
-								"
-							></i>
+										? "expand_more"
+										: "expand_less"
+								}}
+							</i>
 						</div>
 					</div>
 
@@ -45,9 +46,10 @@
 							{{ definition.name ?? type }}
 							<i
 								v-if="type.startsWith('custom_')"
-								class="ri-collage-line ri-lg"
+								class="material-symbols-outlined"
 								title="(Custom component template)"
-							></i>
+								>manga</i
+							>
 						</div>
 					</div>
 				</div>
@@ -77,23 +79,23 @@ const categoriesData: Ref<Record<string, CategoryData>> = ref({
 		isVisible: false,
 	},
 	Layout: {
-		icon: "ri-layout-line",
+		icon: "space_dashboard",
 		isCollapsed: false,
 	},
 	Content: {
-		icon: "ri-image-line",
+		icon: "toc",
 		isCollapsed: false,
 	},
 	Input: {
-		icon: "ri-keyboard-line",
+		icon: "input",
 		isCollapsed: false,
 	},
 	Embed: {
-		icon: "ri-code-s-slash-line",
+		icon: "integration_instructions",
 		isCollapsed: false,
 	},
 	Other: {
-		icon: "ri-flow-chart",
+		icon: "dynamic_feed",
 		isCollapsed: false,
 	},
 });
@@ -152,6 +154,12 @@ const handleDragEnd = (ev: DragEvent) => {
 	position: sticky;
 	top: 0;
 	background: var(--builderBackgroundColor);
+	font-size: 0.875rem;
+}
+
+h3 {
+	font-weight: 500;
+	font-size: 0.875rem;
 }
 
 .categories {

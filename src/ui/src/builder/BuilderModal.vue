@@ -10,7 +10,7 @@
 						:title="closeAction?.desc ?? 'Close'"
 						@click="closeAction.fn"
 					>
-						<i class="ri-close-line ri-lg"></i>
+						<i class="material-symbols-outlined">close</i>
 					</button>
 				</div>
 				<div class="slotContainer">

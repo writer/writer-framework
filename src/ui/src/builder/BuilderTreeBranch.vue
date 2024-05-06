@@ -25,24 +25,28 @@
 				class="toggleChildren"
 				@click="toggleChildrenVisible"
 			>
-				<i
-					v-if="childrenVisible"
-					class="ri-arrow-drop-up-line ri-lg"
-				></i>
-				<i
-					v-if="!childrenVisible"
-					class="ri-arrow-drop-down-line ri-lg"
-				></i>
+				<i v-if="childrenVisible" class="material-symbols-outlined"
+					>expand_less</i
+				>
+				<i v-if="!childrenVisible" class="material-symbols-outlined"
+					>expand_more</i
+				>
 			</div>
 			<span class="type">{{ name }}</span>
 			<template v-if="Object.keys(component.handlers ?? {}).length > 0">
-				&nbsp;&middot;&nbsp;<i class="ri-flashlight-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+					>bolt</i
+				>
 			</template>
 			<template v-if="!isComponentVisible(component.id)">
-				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+					>visibility_off</i
+				>
 			</template>
 			<template v-if="component.isCodeManaged">
-				&nbsp;&middot;&nbsp;<i class="ri-terminal-box-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined lg"
+					>terminal</i
+				>
 			</template>
 
 			<span v-if="previewText" class="preview">

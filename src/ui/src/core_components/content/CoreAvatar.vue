@@ -5,12 +5,9 @@
 		:class="[fields.size.value, fields.orientation.value]"
 	>
 		<div class="image" @click="handleClick">
-			<span
-				v-if="!fields.imageSrc.value"
-				class="material-symbols-outlined"
-			>
+			<i v-if="!fields.imageSrc.value" class="material-symbols-outlined">
 				account_circle
-			</span>
+			</i>
 		</div>
 		<div class="info">
 			<div v-if="fields.name.value" class="name" @click="handleClick">

@@ -1,13 +1,15 @@
 <template>
 	<div class="BuilderSidebarTree">
 		<div v-if="!isSearchActive" class="sectionTitle">
-			<i class="ri-node-tree ri-xl"></i>
+			<i class="material-symbols-outlined"> account_tree </i>
 			<h3>Component Tree</h3>
 			<i
-				class="ri-search-line ri-xl searchIcon"
 				title="Search"
+				class="searchIcon material-symbols-outlined"
 				@click="toggleSearch"
-			></i>
+			>
+				search
+			</i>
 		</div>
 		<div v-if="isSearchActive" class="sectionTitle">
 			<input
@@ -17,30 +19,37 @@
 				placeholder="Search..."
 			/>
 			<i
-				class="ri-arrow-left-s-line ri-xl searchIcon"
 				:class="{ disabled: !matchAvailable }"
+				class="searchIcon material-symbols-outlined"
 				:title="
 					matchAvailable
 						? `Go to match ${previousMatchIndex + 1} of ${matchingComponents.length}`
 						: `Previous match`
 				"
 				@click="goToPreviousMatch"
-			></i>
+			>
+				navigate_before
+			</i>
 			<i
-				class="ri-arrow-right-s-line ri-xl searchIcon"
 				:class="{ disabled: !matchAvailable }"
+				class="searchIcon material-symbols-outlined"
 				:title="
 					matchAvailable
 						? `Go to match ${nextMatchIndex + 1} of ${matchingComponents.length}`
 						: `Next match`
 				"
 				@click="goToNextMatch"
-			></i>
+			>
+				navigate_next
+			</i>
 			<i
-				class="ri-close-line ri-xl searchIcon"
+				:class="{ disabled: !matchAvailable }"
+				class="searchIcon material-symbols-outlined"
 				title="Close"
 				@click="toggleSearch"
-			></i>
+			>
+				close
+			</i>
 		</div>
 		<div ref="componentTree" class="components">
 			<div
@@ -187,9 +196,12 @@ async function addPage() {
 	padding: 16px;
 	top: 0;
 	position: sticky;
+	font-size: 1rem;
 }
 
 .sectionTitle h3 {
+	font-weight: 500;
+	font-size: 0.875rem;
 	flex-grow: 1;
 }
 
