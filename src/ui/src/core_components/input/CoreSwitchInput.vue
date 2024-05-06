@@ -1,6 +1,6 @@
 <template>
 	<BaseInputWrapper
-		ref="rootEl"
+		ref="rootInstance"
 		:label="fields.label.value"
 		:is-horizontal="true"
 		class="CoreSwitchInput"
@@ -12,7 +12,7 @@
 			role="switch"
 			:aria-checked="toggleValue"
 			@click="handleToggle"
-			@keydown.enter.space="handleToggle"
+			@keydown.enter.space.prevent="handleToggle"
 		>
 			<div class="toggle"></div>
 		</div>
@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { inject, Ref } from "vue";
+import { inject } from "vue";
 import { ref } from "vue";
 import { FieldType } from "../../streamsyncTypes";
 import {
@@ -31,6 +31,7 @@ import {
 } from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description = "A user input component with a simple on/off status.";
 
@@ -73,10 +74,14 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 const toggleValue = ref(false);
 
 function handleToggle() {
@@ -91,6 +96,8 @@ onMounted(() => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
+
 .CoreSwitchInput {
 }
 
@@ -103,23 +110,24 @@ onMounted(() => {
 }
 
 .switch:focus-visible {
-	outline: 1px solid var(--primaryTextColor);
+	outline: 1px solid var(--softenedAccentColor);
 }
 
 .switch.on {
-	background: var(--accentColor);
+	background: var(--softenedAccentColor);
 }
 
 .toggle {
 	margin-top: -3px;
 	width: 20px;
 	height: 20px;
-	background: var(--accentColor);
+	background: var(--intensifiedSeparatorColor);
 	border-radius: 10px;
 	transition: 0.2s margin ease-in-out;
 }
 
 .switch.on .toggle {
 	margin-left: 16px;
+	background: var(--accentColor);
 }
 </style>

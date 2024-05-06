@@ -111,10 +111,12 @@ function handleClick(ev: MouseEvent) {
 
 .CoreText {
 	color: var(--primaryTextColor);
-	line-height: 1.5;
+	line-height: 140%;
 	white-space: pre-wrap;
 	max-width: 100%;
 	overflow: hidden;
+	font-size: 0.875rem;
+	font-weight: 400;
 }
 
 .CoreText ol,

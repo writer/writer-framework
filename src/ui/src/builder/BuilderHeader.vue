@@ -167,7 +167,7 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 .syncHealth.connected {
-	color: var(--builderIntenseSelectedColor);
+	color: var(--builderBackgroundColor);
 }
 
 .syncHealth .icon {

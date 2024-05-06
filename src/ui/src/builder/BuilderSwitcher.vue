@@ -1,14 +1,14 @@
 <template>
 	<div class="BuilderSwitcher">
 		<div :class="{ active: activeId == 'ui' }" @click="selectOption('ui')">
-			<i class="ri-brush-line"></i>
+			<span class="icon material-symbols-outlined"> brush </span>
 			User Interface
 		</div>
 		<div
 			:class="{ active: activeId == 'code' }"
 			@click="selectOption('code')"
 		>
-			<i class="ri-code-line"></i>
+			<span class="icon material-symbols-outlined"> code </span>
 			Code
 			<span v-show="logEntryCount > 0" class="countLabel">{{
 				logEntryCount
@@ -18,7 +18,7 @@
 			:class="{ active: activeId == 'preview' }"
 			@click="selectOption('preview')"
 		>
-			<i class="ri-pages-line"></i>
+			<span class="icon material-symbols-outlined"> preview </span>
 			Preview
 		</div>
 	</div>
@@ -70,7 +70,7 @@ const logEntryCount = computed(() => {
 	align-items: center;
 }
 
-.BuilderSwitcher div i {
+.BuilderSwitcher .icon {
 	margin-right: 8px;
 }
 

@@ -1,33 +1,37 @@
 <template>
-	<div ref="rootEl" class="CoreTextInput">
-		<BaseInputWrapper :label="fields.label.value">
-			<input
-				:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
-				:value="formValue"
-				:placeholder="fields.placeholder.value"
-				aria-autocomplete="none"
-				@input="
-					($event) =>
-						handleInput(
-							($event.target as HTMLInputElement).value,
-							'ss-change',
-						)
-				"
-				@change="
-					($event) =>
-						handleInput(
-							($event.target as HTMLInputElement).value,
-							'ss-change-finish',
-						)
-				"
-			/>
-		</BaseInputWrapper>
-	</div>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreTextInput"
+	>
+		<WdsTextInput
+			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
+			:value="formValue"
+			:placeholder="fields.placeholder.value"
+			aria-autocomplete="none"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-change',
+					)
+			"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-change-finish',
+					)
+			"
+		/>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
+import WdsTextInput from "../../wds/WdsTextInput.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to enter single-line text values.";
@@ -64,6 +68,7 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
+			accentColor,
 			cssClasses,
 		},
 		events: {
@@ -88,31 +93,23 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreTextInput {
 	max-width: 70ch;
 	width: 100%;
-}
-
-input {
-	width: 100%;
-	margin: 0;
-	border: 1px solid var(--separatorColor);
-	border-radius: 8px;
-	padding: 8.5px 12px 8.5px 12px;
-	font-size: 0.875rem;
-}
-
-input:focus {
-	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 </style>

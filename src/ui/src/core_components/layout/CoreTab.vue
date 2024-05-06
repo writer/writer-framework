@@ -201,12 +201,12 @@ onBeforeMount(() => {
 button.bit {
 	padding: 11.5px 0 9.5px 0;
 	border: none;
-	border-radius: 0;
 	margin: 0;
 	background: unset;
 	color: var(--secondaryTextColor);
 	font-size: 0.875rem;
 	border-bottom: 2px solid transparent;
+	outline: none;
 }
 
 button.bit:focus {

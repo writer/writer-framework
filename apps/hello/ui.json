@@ -209,7 +209,7 @@
             "id": "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0",
             "type": "text",
             "content": {
-                "text": "This app is meant to serve as a lighthearted introduction to Streamsync. It's not a comprehensive demonstration of its capabilities."
+                "text": "This app is meant to serve as a lighthearted introduction to the framework. It's not a comprehensive demonstration of its capabilities."
             },
             "isCodeManaged": false,
             "position": 0,
@@ -294,7 +294,7 @@
             "id": "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b",
             "type": "text",
             "content": {
-                "text": "\n## Role Distribution\n\nThe Hacker Pigeons _dataframe_ consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe **role distribution** among the hacker pigeons can be analysed to understand the composition of the secret society and the proportions of various roles.",
+                "text": "\n### Role Distribution\n\nThe Hacker Pigeons _dataframe_ consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe **role distribution** among the hacker pigeons can be analysed to understand the composition of the secret society and the proportions of various roles.",
                 "useMarkdown": "yes"
             },
             "isCodeManaged": false,
@@ -382,7 +382,9 @@
             "type": "dataframe",
             "content": {
                 "dataframe": "@{random_df}",
-                "fontStyle": "monospace"
+                "fontStyle": "monospace",
+                "enableSearch": "yes",
+                "enableDownload": "yes"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -911,7 +913,7 @@
             "type": "button",
             "content": {
                 "text": "Read the story",
-                "icon": "book-2"
+                "icon": "library_books"
             },
             "isCodeManaged": false,
             "position": 5,
@@ -926,8 +928,7 @@
             "type": "heading",
             "content": {
                 "text": "Each page can have its own style",
-                "alignment": "",
-                "primaryTextColor": "#ffb3fc"
+                "alignment": ""
             },
             "isCodeManaged": false,
             "position": 1,
@@ -1000,7 +1001,8 @@
             "id": "4wzaubf275w17gac",
             "type": "section",
             "content": {
-                "title": "@{item.name} \u2b50\ufe0f"
+                "title": "@{item.name} \u2b50\ufe0f",
+                "containerShadow": "none"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -1207,10 +1209,14 @@
                 "label": "City"
             },
             "isCodeManaged": false,
-            "position": 2,
+            "position": 3,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "my_v"
+            }
         },
         "1tshrjmgd9fdki4t": {
             "id": "1tshrjmgd9fdki4t",
@@ -1220,10 +1226,14 @@
                 "rows": "5"
             },
             "isCodeManaged": false,
-            "position": 3,
+            "position": 4,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "my_v"
+            }
         },
         "kthes9431gufxjf6": {
             "id": "kthes9431gufxjf6",
@@ -1233,10 +1243,14 @@
                 "options": "{\n  \"dog\": \"Dog\",\n  \"cat\": \"Cat\",\n  \"elephant\": \"Elephant\",\n  \"honeybadger\": \"Honey badger\"\n}"
             },
             "isCodeManaged": false,
-            "position": 1,
+            "position": 2,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-option-change",
+                "stateRef": "my_v"
+            }
         },
         "poewgrktf5shwntp": {
             "id": "poewgrktf5shwntp",
@@ -1245,10 +1259,14 @@
                 "label": "How would you rate our service?"
             },
             "isCodeManaged": false,
-            "position": 0,
+            "position": 1,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "my_v"
+            }
         },
         "pha5qeg8896ps0bm": {
             "id": "pha5qeg8896ps0bm",
@@ -1257,10 +1275,14 @@
                 "label": "Enable experimental features"
             },
             "isCodeManaged": false,
-            "position": 4,
+            "position": 5,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-toggle",
+                "stateRef": "my_v"
+            }
         },
         "lf68z0xw6gmxjko0": {
             "id": "lf68z0xw6gmxjko0",
@@ -1269,10 +1291,14 @@
                 "label": "Input Label"
             },
             "isCodeManaged": false,
-            "position": 5,
+            "position": 6,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-options-change",
+                "stateRef": "my_v"
+            }
         },
         "y2l4x11oiiy16342": {
             "id": "y2l4x11oiiy16342",
@@ -1282,10 +1308,14 @@
                 "orientation": ""
             },
             "isCodeManaged": false,
-            "position": 6,
+            "position": 7,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-option-change",
+                "stateRef": "my_v"
+            }
         },
         "cjf7nsvsxiz2pv0v": {
             "id": "cjf7nsvsxiz2pv0v",
@@ -1294,10 +1324,14 @@
                 "label": "How many?"
             },
             "isCodeManaged": false,
-            "position": 8,
+            "position": 9,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "my_v"
+            }
         },
         "0wplntctbm3v2qa4": {
             "id": "0wplntctbm3v2qa4",
@@ -1309,10 +1343,14 @@
                 "stepSize": "1"
             },
             "isCodeManaged": false,
-            "position": 9,
+            "position": 10,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "my_v"
+            }
         },
         "tn91gqv470596y0c": {
             "id": "tn91gqv470596y0c",
@@ -1321,10 +1359,14 @@
                 "label": "Input Label"
             },
             "isCodeManaged": false,
-            "position": 10,
+            "position": 11,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-date-change",
+                "stateRef": "my_v"
+            }
         },
         "hp70sz1hoate7ysi": {
             "id": "hp70sz1hoate7ysi",
@@ -1333,10 +1375,14 @@
                 "label": "Input Label"
             },
             "isCodeManaged": false,
-            "position": 7,
+            "position": 8,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-option-change",
+                "stateRef": "my_v"
+            }
         },
         "zf9smr5e0e4dagbm": {
             "id": "zf9smr5e0e4dagbm",
@@ -1345,10 +1391,14 @@
                 "label": "Input Label"
             },
             "isCodeManaged": false,
-            "position": 11,
+            "position": 12,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-options-change",
+                "stateRef": "my_v"
+            }
         },
         "3wuhz81j4ztl19k3": {
             "id": "3wuhz81j4ztl19k3",
@@ -1357,10 +1407,14 @@
                 "label": "Input Label"
             },
             "isCodeManaged": false,
-            "position": 12,
+            "position": 13,
             "parentId": "5pi4fh3g2wi1etdw",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "eventType": "ss-file-change",
+                "stateRef": "my_v"
+            }
         },
         "b27lw9ex8ig3x17p": {
             "id": "b27lw9ex8ig3x17p",
@@ -1372,7 +1426,6 @@
             "isCodeManaged": false,
             "position": 2,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "handlers": {},
             "visible": true
         },
         "804e15bf-11a7-463d-8082-f46ea3acac1b": {
@@ -1382,6 +1435,98 @@
             "isCodeManaged": false,
             "position": 3,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
+        },
+        "wbl4qliuwb7w2vtd": {
+            "id": "wbl4qliuwb7w2vtd",
+            "type": "tab",
+            "content": {
+                "name": "Tab Name"
+            },
+            "isCodeManaged": false,
+            "position": 6,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
+            "handlers": {},
+            "visible": true
+        },
+        "h7fs55jc4m7bcz33": {
+            "id": "h7fs55jc4m7bcz33",
+            "type": "avatar",
+            "content": {
+                "name": "Ramiro",
+                "caption": "Engineering - Writer Framework",
+                "size": ""
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "wbl4qliuwb7w2vtd",
+            "handlers": {},
+            "visible": true
+        },
+        "di258wu6pm79x6ij": {
+            "id": "di258wu6pm79x6ij",
+            "type": "webcamcapture",
+            "content": {
+                "refreshRate": "0"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "wbl4qliuwb7w2vtd",
+            "handlers": {},
+            "visible": true
+        },
+        "4hzjr6nxbeynykkc": {
+            "id": "4hzjr6nxbeynykkc",
+            "type": "text",
+            "content": {
+                "text": "@{my_v}"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "5pi4fh3g2wi1etdw",
+            "handlers": {},
+            "visible": true
+        },
+        "14cql2nnkjsw375p": {
+            "id": "14cql2nnkjsw375p",
+            "type": "message",
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "content": {
+                "message": "+ Perro"
+            },
+            "handlers": {},
+            "position": 6,
+            "visible": true
+        },
+        "adi8tai691s0o6kt": {
+            "id": "adi8tai691s0o6kt",
+            "type": "message",
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "content": {
+                "message": "- Perro"
+            },
+            "handlers": {},
+            "position": 8,
+            "visible": true
+        },
+        "b2p8t2r0w1c5w3o7": {
+            "id": "b2p8t2r0w1c5w3o7",
+            "type": "message",
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "content": {
+                "message": "! Perro"
+            },
+            "handlers": {},
+            "position": 7,
+            "visible": true
+        },
+        "txiwl8ka3urogpqn": {
+            "id": "txiwl8ka3urogpqn",
+            "type": "pdf",
+            "parentId": "wbl4qliuwb7w2vtd",
+            "content": {},
+            "handlers": {},
+            "position": 2,
+            "visible": true
         }
     }
 }

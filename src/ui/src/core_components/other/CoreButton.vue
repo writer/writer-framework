@@ -1,24 +1,24 @@
 <docs lang="md">
-    Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`) and it to your _Button_.
+    Writer Framework uses Material Symbols to display icons. To include an icon, check https://fonts.google.com/icons, find the icon's id (such as \`arrow_forward\`) and it to your _Button_.
 </docs>
 
 <template>
-	<button
-		ref="rootEl"
+	<WdsButton
+		ref="rootInstance"
 		class="CoreButton"
 		:aria-disabled="isDisabled"
 		@click="handleClick"
 	>
-		<i
-			v-if="fields.icon.value"
-			:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
-		></i>
+		<span v-if="fields.icon.value" class="material-symbols-outlined">{{
+			fields.icon.value
+		}}</span>
 		{{ fields.text.value }}
-	</button>
+	</WdsButton>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import WdsButton from "../../wds/WdsButton.vue";
 import {
 	buttonColor,
 	buttonTextColor,
@@ -71,7 +71,7 @@ export default {
 			icon: {
 				name: "Icon",
 				type: FieldType.Text,
-				desc: `A RemixIcon id, such as "arrow-up".`,
+				desc: `A Material Symbols id, such as "arrow_forward".`,
 				category: FieldCategory.Style,
 			},
 			buttonShadow,
@@ -83,10 +83,10 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, inject, ref } from "vue";
+import { ComponentPublicInstance, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const isDisabled = inject(injectionKeys.isDisabled);
 
@@ -101,25 +101,15 @@ watch(
 );
 
 function handleClick(ev: MouseEvent) {
+	if (!rootInstance.value) return;
 	const ssEv = getClick(ev);
-	rootEl.value.dispatchEvent(ssEv);
+	rootInstance.value.$el.dispatchEvent(ssEv);
 }
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-
-.CoreButton {
-	width: fit-content;
-	max-width: 100%;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	border-radius: 300px;
-	border: 1px solid var(--buttonColor);
-	background: var(--buttonColor);
-	font-weight: 600;
-}
+@import "../../renderer/colorTransformations.css";
 
 .CoreButton.disabled {
 	border: 1px solid var(--separatorColor);

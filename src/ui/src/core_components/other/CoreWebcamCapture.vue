@@ -4,14 +4,14 @@
 			<video ref="videoEl" autoplay="true"></video>
 		</div>
 		<div class="actions">
-			<button v-if="refreshRate == 0" @click="sendFrame">
+			<WdsButton v-if="refreshRate == 0" @click="sendFrame">
 				Capture image
-			</button>
+			</WdsButton>
 
-			<button @click="toggleActive">
+			<WdsButton @click="toggleActive">
 				{{ isActive ? "Stop capture" : "Start webcam capture" }}
-			</button>
-			<select v-if="videoDevices?.length > 1" v-model="preferredDeviceId">
+			</WdsButton>
+			<WdsDropdownInput v-if="videoDevices?.length > 1" v-model="preferredDeviceId">
 				<option
 					v-for="(device, deviceIndex) in videoDevices"
 					:key="device.deviceId"
@@ -19,7 +19,7 @@
 				>
 					{{ device.label || `Webcam ${deviceIndex + 1}` }}
 				</option>
-			</select>
+			</WdsDropdownInput>
 		</div>
 	</div>
 </template>
@@ -33,6 +33,8 @@ import {
 	cssClasses,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
+import WdsButton from "../../wds/WdsButton.vue";
+import WdsDropdownInput from "../../wds/WdsDropdownInput.vue";
 
 const description =
 	"A user input component that allows users to capture images using their webcam.";
@@ -221,6 +223,7 @@ const stopCapture = () => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreWebcamCapture {
 	width: 100%;

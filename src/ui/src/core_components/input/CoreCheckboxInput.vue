@@ -1,6 +1,6 @@
 <template>
 	<BaseInputWrapper
-		ref="rootEl"
+		ref="rootInstance"
 		:label="fields.label.value"
 		class="CoreCheckboxInput"
 	>
@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { inject, Ref } from "vue";
+import { ComponentPublicInstance, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
@@ -107,17 +107,21 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 
 function getCheckedKeys() {
-	if (!rootEl.value) return;
+	if (!rootInstance.value) return;
 	const checkboxEls = Array.from(
-		rootEl.value.querySelectorAll(`input[type="checkbox"]`),
+		rootInstance.value.$el.querySelectorAll(`input[type="checkbox"]`),
 	) as HTMLInputElement[];
 	const checkedValues = checkboxEls
 		.map((checkboxEl) =>
@@ -130,6 +134,8 @@ function getCheckedKeys() {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
+
 .CoreCheckboxInput {
 	width: fit-content;
 	max-width: 100%;
@@ -156,5 +162,6 @@ function getCheckedKeys() {
 input {
 	margin-right: 8px;
 	accent-color: var(--accentColor);
+	outline-color: var(--softenedAccentColor);
 }
 </style>

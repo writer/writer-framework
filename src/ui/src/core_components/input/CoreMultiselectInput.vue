@@ -1,6 +1,6 @@
 <template>
 	<BaseInputWrapper
-		ref="rootEl"
+		ref="rootInstance"
 		:label="fields.label.value"
 		class="CoreMultiselectInput"
 	>
@@ -26,10 +26,10 @@ import {
 	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
-	selectedColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to select multiple values from a searchable list of options.";
@@ -81,10 +81,6 @@ export default {
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
-			selectedColor: {
-				...selectedColor,
-				desc: "The colour of the highlighted item in the list.",
-			},
 			primaryTextColor,
 			secondaryTextColor,
 			containerBackgroundColor,
@@ -110,12 +106,16 @@ import BaseSelect from "../base/BaseSelect.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const options = computed(() => fields.options.value);
 const maximumCount: Ref<number> = computed(() => fields.maximumCount.value);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 
 function handleChange(selectedOptions: string[]) {
 	handleInput(selectedOptions, "ss-options-change");

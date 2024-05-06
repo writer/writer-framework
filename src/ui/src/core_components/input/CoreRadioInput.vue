@@ -1,6 +1,6 @@
 <template>
 	<BaseInputWrapper
-		ref="rootEl"
+		ref="rootInstance"
 		:label="fields.label.value"
 		class="CoreRadioInput"
 	>
@@ -43,6 +43,7 @@ import {
 	primaryTextColor,
 } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to choose a single value from a list of options using radio buttons.";
@@ -105,15 +106,21 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
+
 .CoreRadioInput {
 	width: fit-content;
 	max-width: 100%;
@@ -138,7 +145,8 @@ const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
 }
 
 input {
-	margin: 0 8px 0 0;
+	margin-right: 8px;
 	accent-color: var(--accentColor);
+	outline-color: var(--softenedAccentColor);
 }
 </style>

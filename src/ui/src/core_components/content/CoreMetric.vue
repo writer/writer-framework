@@ -119,7 +119,6 @@ const rootStyle = computed(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	border-color: var(--messageActiveSentimentColor);
 }
 
 .name {
@@ -137,11 +136,10 @@ h2.value {
 }
 
 .note {
-	font-size: 0.9rem;
 	background: var(--messageActiveSentimentColor);
 	padding: 6px 8px 6px 8px;
 	text-transform: uppercase;
-	font-size: 10px;
+	font-size: 0.625rem;
 	font-weight: 500;
 	line-height: 12px;
 	letter-spacing: 1.3px;

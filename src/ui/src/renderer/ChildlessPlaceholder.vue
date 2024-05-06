@@ -56,7 +56,7 @@ const message = computed(() => {
 @import "./sharedStyles.css";
 
 .ChildlessPlaceholder {
-	background: rgba(0, 0, 0, 0.05);
+	background: #e4e7eD;
 	color: var(--primaryTextColor);
 	padding: 16px;
 	display: flex;
@@ -70,9 +70,8 @@ const message = computed(() => {
 	text-align: center;
 }
 
-.title > h2 {
+.title > h3 {
 	color: var(--primaryTextColor);
-	opacity: 0.8;
 }
 
 .message {

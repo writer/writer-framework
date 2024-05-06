@@ -1,6 +1,6 @@
 <template>
 	<BaseInputWrapper
-		ref="rootEl"
+		ref="rootInstance"
 		:label="!processingFiles ? fields.label.value : null"
 		class="CoreFileInput"
 	>
@@ -30,6 +30,7 @@
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -89,14 +90,18 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLInputElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fileEl: Ref<HTMLInputElement> = ref(null);
 const message: Ref<string> = ref(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const processingFiles: Ref<string[]> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 
 const allowMultipleFilesFlag = computed(() => {
 	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
@@ -156,6 +161,7 @@ watch(formValue, (newValue: string) => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreFileInput {
 	width: 100%;
@@ -175,6 +181,12 @@ input {
 	padding: 8.25px;
 	font-size: 0.875rem;
 	width: fit-content;
+	outline: none;
+}
+
+input:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 
 .status {

@@ -17,10 +17,10 @@ You _can_ use **markdown**.
 			</div>
 			<div class="actions">
 				<div class="action" @click="emitPinEvent">
-					<i class="ri-pushpin-line"></i>
+					<span class="material-symbols-outlined"> keep </span>
 				</div>
 				<div class="action" @click="emitFlagEvent">
-					<i class="ri-flag-line"></i>
+					<span class="material-symbols-outlined"> flag </span>
 				</div>
 			</div>
 		</div>

@@ -5,7 +5,12 @@
 		:class="[fields.size.value, fields.orientation.value]"
 	>
 		<div class="image" @click="handleClick">
-			<i v-if="!fields.imageSrc.value" class="ri-user-line"></i>
+			<span
+				v-if="!fields.imageSrc.value"
+				class="material-symbols-outlined"
+			>
+				account_circle
+			</span>
 		</div>
 		<div class="info">
 			<div v-if="fields.name.value" class="name" @click="handleClick">
@@ -195,15 +200,15 @@ function handleClick(ev: MouseEvent) {
 }
 
 .small .name {
-	font-size: 0.8rem;
+	font-size: 0.875rem;
 }
 
 .medium .name {
-	font-size: 0.9rem;
+	font-size: 1rem;
 }
 
 .large .name {
-	font-size: 1.2rem;
+	font-size: 1.25rem;
 }
 
 .info .caption {

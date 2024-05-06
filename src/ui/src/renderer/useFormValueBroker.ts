@@ -1,4 +1,4 @@
-import { computed, Ref, ref, watch } from "vue";
+import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
 import { Core, InstancePath } from "../streamsyncTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
 
@@ -13,7 +13,7 @@ import { useEvaluator } from "../renderer/useEvaluator";
 export function useFormValueBroker(
 	ss: Core,
 	instancePath: InstancePath,
-	emitterEl: Ref<HTMLElement>,
+	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
 ) {
 	const formValue: Ref<any> = ref();
 	const isBusy = ref(false);
@@ -87,7 +87,14 @@ export function useFormValueBroker(
 				callback,
 			},
 		});
-		emitterEl.value.dispatchEvent(event);
+
+		if (emitterEl.value instanceof HTMLElement) {
+			emitterEl.value.dispatchEvent(event);
+		} else {
+			// Vue instance (ComponentPublicInstance)
+
+			emitterEl.value.$el.dispatchEvent(event);
+		}
 	}
 
 	watch(

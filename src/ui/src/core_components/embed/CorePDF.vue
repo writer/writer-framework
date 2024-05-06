@@ -1,27 +1,27 @@
 <template>
 	<div ref="rootEl" class="CorePDF">
 		<div v-if="fields.controls.value === 'yes'" class="controls">
-			<button @click="() => gotoPage(page - 1)">
-				<i class="ri-arrow-up-s-line" />
-			</button>
-			<button @click="() => gotoPage(page + 1)">
-				<i class="ri-arrow-down-s-line" />
-			</button>
+			<WdsControl @click="() => gotoPage(page - 1)">
+				<span class="material-symbols-outlined">arrow_upward</span>
+			</WdsControl>
+			<WdsControl @click="() => gotoPage(page + 1)">
+				<span class="material-symbols-outlined">arrow_downward</span>
+			</WdsControl>
 			<span :key="page">{{ page }} / {{ pages }}</span>
-			<button :disabled="loading" @click="incrementScale">
-				<i class="ri-zoom-in-line" />
-			</button>
-			<button :disabled="loading" @click="decrementScale">
-				<i class="ri-zoom-out-line" />
-			</button>
+			<WdsControl :disabled="loading" @click="incrementScale">
+				<span class="material-symbols-outlined">zoom_in</span>
+			</WdsControl>
+			<WdsControl :disabled="loading" @click="decrementScale">
+				<span class="material-symbols-outlined">zoom_out</span>
+			</WdsControl>
 			<span>{{ Math.round(scale * 100) }}%</span>
 			<span class="separator" />
-			<button v-if="matches.length" @click="decrementMatchIdx">
-				<i class="ri-arrow-up-s-line" />
-			</button>
-			<button v-if="matches.length" @click="incrementMatchIdx">
-				<i class="ri-arrow-down-s-line" />
-			</button>
+			<WdsControl v-if="matches.length" @click="decrementMatchIdx">
+				<span class="material-symbols-outlined">navigate_before</span>
+			</WdsControl>
+			<WdsControl v-if="matches.length" @click="incrementMatchIdx">
+				<span class="material-symbols-outlined">navigate_next</span>
+			</WdsControl>
 			<span v-if="matches.length"
 				>Matches {{ currentMatch }} / {{ matches.length }}</span
 			>
@@ -52,6 +52,7 @@ import {
 	primaryTextColor,
 	containerBackgroundColor,
 } from "../../renderer/sharedStyleFields";
+import WdsControl from "../../wds/WdsControl.vue";
 
 const description = "A component to embed PDF documents.";
 
@@ -310,6 +311,7 @@ watch(fields.page, () => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CorePDF {
 	position: relative;
@@ -322,12 +324,12 @@ watch(fields.page, () => {
 
 .CorePDF .controls {
 	flex: 0 0 40px;
+	gap: 8px;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 	align-items: center;
 	background-color: var(--backgroundColor);
-	border-bottom: 1px solid var(--separatorColor);
 	padding: 0;
 }
 
@@ -335,31 +337,6 @@ watch(fields.page, () => {
 	flex: 0 0 fit-content;
 	text-align: left;
 	padding: 0 10px;
-}
-
-.CorePDF .controls button {
-	display: flex;
-	height: 40px;
-	width: 40px;
-	line-height: 40px;
-	text-align: center;
-	border-radius: 4px;
-	flex: 0 0 40px;
-	border: none;
-	cursor: pointer;
-	background: none;
-	align-items: center;
-	justify-content: center;
-}
-.CorePDF .controls button i {
-	line-height: 40px;
-	text-align: center;
-	vertical-align: middle;
-	color: var(--primaryTextColor);
-}
-
-.CorePDF .controls button:hover {
-	border: 1px solid black;
 }
 
 .CorePDF .controls > .separator {

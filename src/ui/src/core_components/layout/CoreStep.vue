@@ -31,10 +31,12 @@
 						completed: fields.isCompleted.value == 'yes',
 					}"
 				>
-					<i
+					<span
 						v-if="fields.isCompleted.value == 'yes'"
-						class="ri-check-line"
-					></i>
+						class="material-symbols-outlined"
+					>
+						done
+					</span>
 				</div>
 				<div class="linker right"></div>
 			</div>

@@ -1,21 +1,21 @@
 <template>
 	<div ref="rootEl" class="CoreDataframe">
 		<div ref="toolsEl" class="tools">
-			<div v-if="fields.enableSearch.value === 'yes'" class="search">
-				<i class="ri-search-line"></i>
-				<input
-					type="text"
+			<div v-if="fields.enableSearch.value === 'yes'">
+				<WdsTextInput
+					class="search"
 					placeholder="Search..."
 					@change="handleSearchChange"
 				/>
 			</div>
-			<button
+			<WdsControl
 				v-if="fields.enableDownload.value === 'yes'"
+				title="Download"
 				class="download"
 				@click="download"
 			>
-				<i class="ri-download-2-line"></i>
-			</button>
+				<span class="material-symbols-outlined"> download </span>
+			</WdsControl>
 		</div>
 		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">
 			<div
@@ -55,14 +55,18 @@
 									: 'hidden',
 						}"
 					>
-						<i
+						<span
 							v-show="!orderSetting?.descending"
-							class="ri-arrow-down-line"
-						></i>
-						<i
+							class="material-symbols-outlined"
+						>
+							arrow_downward
+						</span>
+						<span
 							v-show="orderSetting?.descending"
-							class="ri-arrow-up-line"
-						></i>
+							class="material-symbols-outlined"
+						>
+							arrow_upward
+						</span>
 					</div>
 					<div class="widthAdjuster"></div>
 				</div>
@@ -106,6 +110,8 @@ import { watch } from "vue";
 import { nextTick } from "vue";
 import { ComputedRef } from "vue";
 import { onUnmounted } from "vue";
+import WdsTextInput from "../../wds/WdsTextInput.vue";
+import WdsControl from "../../wds/WdsControl.vue";
 
 const description = "A component to display Pandas DataFrames.";
 const defaultDataframe = `data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==`;
@@ -504,6 +510,7 @@ onUnmounted(() => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreDataframe {
 	font-size: 0.8rem;
@@ -526,17 +533,7 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	border: 1px solid var(--separatorColor);
-	padding: 8px 8px 8px 12px;
 	border-radius: 8px;
-	color: var(--buttonTextColor);
-	background: var(--buttonColor);
-}
-
-.tools .search input {
-	border: 0;
-	color: var(--buttonTextColor);
-	background: var(--buttonColor);
 }
 
 .gridContainer {

@@ -1,33 +1,36 @@
 <template>
-	<div ref="rootEl" class="CoreTextareaInput">
-		<BaseInputWrapper :label="fields.label.value">
-			<textarea
-				:value="formValue"
-				:placeholder="fields.placeholder.value"
-				:rows="fields.rows.value"
-				@input="
-					($event) =>
-						handleInput(
-							($event.target as HTMLTextAreaElement).value,
-							'ss-change',
-						)
-				"
-				@change="
-					($event) =>
-						handleInput(
-							($event.target as HTMLTextAreaElement).value,
-							'ss-change-finish',
-						)
-				"
-			></textarea>
-		</BaseInputWrapper>
-	</div>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreTextareaInput"
+	>
+		<textarea
+			:value="formValue"
+			:placeholder="fields.placeholder.value"
+			:rows="fields.rows.value"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLTextAreaElement).value,
+						'ss-change',
+					)
+			"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLTextAreaElement).value,
+						'ss-change-finish',
+					)
+			"
+		></textarea>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldControl, FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to enter multi-line text values.";
@@ -84,15 +87,20 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreTextareaInput {
 	max-width: 70ch;
@@ -113,9 +121,11 @@ textarea {
 	border-radius: 8px;
 	padding: 8.5px 12px 8.5px 12px;
 	font-size: 0.875rem;
+	outline: none;
 }
 
 textarea:focus {
+	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 </style>
