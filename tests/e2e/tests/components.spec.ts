@@ -20,7 +20,7 @@ const mapComponents = {
 	column: {ignore: true},
 	tab: {ignore: true},
 	step: {ignore: true},
-	dropdowninput: {ignore: true},
+	dropdowninput: {locator: '.component.ss-type-dropdowninput label'},
 	section: {test: 'basic'},
 	columns: {test: 'basic'},
 	sidebar: {test: 'basic'},
