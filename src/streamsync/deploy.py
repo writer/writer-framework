@@ -30,11 +30,15 @@ def pack_project(path):
 
 def upload_package(package, token):
     print("Uploading package to deployment server")
-    url = "http://localhost:8000/upload?app_id=1&org_id=1"
+    url = "http://localhost:8001/api/v1/namespaces/default/services/framework-deployment:80/proxy/api/framework/deployment/apps"
     files = {'file': open(package, 'rb')}
     with requests.post(
         url, 
-        headers={"Authorization": f"Bearer {token}"},
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "applicationId": "1",
+            "organizationId": "1"
+        },
         files=files,
         stream=True
     ) as resp:
