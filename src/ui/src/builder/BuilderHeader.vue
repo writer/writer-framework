@@ -33,12 +33,12 @@
 		<div>
 			<button @click="showStateExplorer">
 				<i class="material-symbols-outlined"> mystery </i>
-				View state
+				State Explorer
 			</button>
 			<BuilderModal
 				v-if="isStateExplorerShown"
 				:close-action="customHandlerModalCloseAction"
-				icon="eye"
+				icon="mystery"
 				modal-title="State Explorer"
 			>
 				<BuilderStateExplorer></BuilderStateExplorer>

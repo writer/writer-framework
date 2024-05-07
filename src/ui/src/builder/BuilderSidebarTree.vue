@@ -65,7 +65,8 @@
 		</div>
 		<div class="addPage">
 			<button @click="addPage">
-				<i class="ri-add-line"></i>Add Page
+				<i class="material-symbols-outlined"> add </i>
+				Add Page
 			</button>
 		</div>
 	</div>

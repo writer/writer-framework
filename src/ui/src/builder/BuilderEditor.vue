@@ -38,23 +38,23 @@
 					:title="`Save and run (${modifierKeyName}+s)`"
 					@click="save"
 				>
-					<i class="ri-save-line"></i>{{ "Save and run" }}
+					<i class="material-symbols-outlined">save</i>Save and run
 				</button>
 				<div v-if="statusMessage" class="statusMessage">
 					<div v-if="statusMessage.ok === true" class="statusOk ok">
-						<i class="ri-check-line"></i>
+						<i class="material-symbols-outlined">done</i>
 					</div>
 					<div
 						v-else-if="statusMessage.ok === false"
 						class="statusOk notOk"
 					>
-						<i class="ri-error-warning-line"></i>
+						<i class="material-symbols-outlined">error</i>
 					</div>
 					<div
 						v-else-if="statusMessage.ok === 'processing'"
 						class="statusOk processing"
 					>
-						<i class="ri-loader-3-line"></i>
+						<i class="material-symbols-outlined">pending</i>
 					</div>
 					{{ statusMessage.message }}
 				</div>
@@ -63,7 +63,9 @@
 		</div>
 		<div class="log">
 			<div class="windowBar">
-				<div class="icon"><i class="ri-booklet-line"></i></div>
+				<div class="icon">
+					<i class="material-symbols-outlined">menu_book</i>
+				</div>
 				<div class="title">
 					Log <span class="countLabel">{{ logEntries.length }}</span>
 				</div>
@@ -73,7 +75,7 @@
 					title="Clear log"
 					@click="ssbm.clearLogEntries"
 				>
-					<i class="ri-delete-bin-line"></i>
+					<i class="material-symbols-outlined">delete</i>
 				</button>
 				<button
 					class="windowAction"
@@ -84,14 +86,12 @@
 					"
 					@click="toggleLog"
 				>
-					<i
-						v-show="!isLogActive"
-						class="ri-arrow-drop-up-line ri-lg"
-					></i>
-					<i
-						v-show="isLogActive"
-						class="ri-arrow-drop-down-line ri-lg"
-					></i>
+					<i v-show="!isLogActive" class="material-symbols-outlined"
+						>expand_less</i
+					>
+					<i v-show="isLogActive" class="material-symbols-outlined"
+						>expand_more</i
+					>
 				</button>
 			</div>
 			<div v-if="isLogActive" class="entryContainer">
@@ -101,10 +101,9 @@
 					class="entry"
 				>
 					<div class="icon" :class="logEntry.type">
-						<i
-							:class="logEntryTypeIcon[logEntry.type]"
-							class="ri-xl"
-						></i>
+						<i class="material-symbols-outlined">{{
+							logEntryTypeIcon[logEntry.type]
+						}}</i>
 					</div>
 					<div class="content">
 						<div class="header">
@@ -176,8 +175,8 @@ type StatusMessage = {
 const statusMessage: Ref<StatusMessage> = ref(null);
 
 const logEntryTypeIcon: Record<string, string> = {
-	error: "ri-error-warning-fill",
-	info: "ri-information-fill",
+	error: "error",
+	info: "info",
 };
 
 const logEntries = computed(() => {
@@ -438,6 +437,7 @@ const updateDimensions = () => {
 }
 
 .entry .icon {
+	font-size: 1rem;
 	flex: 0 0 72px;
 	display: flex;
 	align-items: center;

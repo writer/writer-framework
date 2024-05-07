@@ -4,7 +4,9 @@
 		<div class="BuilderModal" tabindex="-1" @keydown="handleKeydown">
 			<div class="main">
 				<div class="titleContainer">
-					<i v-if="icon" :class="`ri-${icon}-line`" class="ri-lg"></i>
+					<i v-if="icon" class="material-symbols-outlined">{{
+						icon
+					}}</i>
 					<h2>{{ modalTitle }}</h2>
 					<button
 						:title="closeAction?.desc ?? 'Close'"
@@ -79,6 +81,7 @@ const handleKeydown = (ev: KeyboardEvent) => {
 	padding: 16px;
 	display: flex;
 	align-items: center;
+	font-size: 1rem;
 }
 
 .titleContainer > i {

@@ -1,7 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsVisibility">
 		<div class="sectionTitle">
-			<i class="ri-eye-line ri-xl"></i>
+			<i class="material-symbols-outlined"> visibility </i>
 			<h3>Visibility</h3>
 		</div>
 		<div class="main">

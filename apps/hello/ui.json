@@ -1004,7 +1004,6 @@
             "type": "section",
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f",
-                "containerShadow": "none",
                 "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
@@ -1514,119 +1513,130 @@
         "qw5x1bt783mjy5bf": {
             "id": "qw5x1bt783mjy5bf",
             "type": "page",
-            "parentId": "root",
             "content": {},
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "root",
+            "handlers": {},
             "visible": true
         },
         "c9v39dduv9m4l61e": {
             "id": "c9v39dduv9m4l61e",
             "type": "section",
-            "parentId": "qw5x1bt783mjy5bf",
             "content": {
                 "title": "Email Generator"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "qw5x1bt783mjy5bf",
+            "handlers": {},
             "visible": true
         },
         "ko3spgrorlns3bcz": {
             "id": "ko3spgrorlns3bcz",
             "type": "button",
-            "parentId": "6ffco65rel4hjcyy",
             "content": {
                 "text": "Generate",
                 "icon": "ink_pen"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "6ffco65rel4hjcyy",
+            "handlers": {},
             "visible": true
         },
         "r3fzzgfgaof15knp": {
             "id": "r3fzzgfgaof15knp",
             "type": "columns",
-            "parentId": "c9v39dduv9m4l61e",
             "content": {},
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c9v39dduv9m4l61e",
+            "handlers": {},
             "visible": true
         },
         "a1f3ln5dzino6e3p": {
             "id": "a1f3ln5dzino6e3p",
             "type": "column",
-            "parentId": "r3fzzgfgaof15knp",
             "content": {
                 "width": "2"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "r3fzzgfgaof15knp",
+            "handlers": {},
             "visible": true
         },
         "6ffco65rel4hjcyy": {
             "id": "6ffco65rel4hjcyy",
             "type": "column",
-            "parentId": "r3fzzgfgaof15knp",
             "content": {
                 "width": "1"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "r3fzzgfgaof15knp",
+            "handlers": {},
             "visible": true
         },
         "f4nxpimqlqfy1526": {
             "id": "f4nxpimqlqfy1526",
             "type": "text",
-            "parentId": "a1f3ln5dzino6e3p",
             "content": {
                 "text": "Hi Anton,\n\nI hope this message finds you well! We're excited to offer you a special treat as a token of our appreciation for being a valued customer. We'd like to give you an exclusive 10% discount on your next granola subscription renewal.\n\nOur granola is crafted with the finest ingredients and comes in a variety of delicious flavors designed to energize your day. With this special offer, you can continue enjoying the wholesome goodness of our granola, now at a more delightful price!\n\nTo redeem your discount, simply use the promo code GRANOLA10 at checkout.\n\nIf you have any questions or need further assistance, please feel free to reach out. We're always here to help.\n\nThank you for being a part of our community. We look forward to continuing to serve your healthy lifestyle needs!"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "a1f3ln5dzino6e3p",
+            "handlers": {},
             "visible": true
         },
         "w6ys7yrlsnjvaojn": {
             "id": "w6ys7yrlsnjvaojn",
             "type": "separator",
-            "parentId": "r3fzzgfgaof15knp",
             "content": {},
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "r3fzzgfgaof15knp",
+            "handlers": {},
             "visible": true
         },
         "fgf7on40d1q3lc2o": {
             "id": "fgf7on40d1q3lc2o",
             "type": "textinput",
-            "parentId": "6ffco65rel4hjcyy",
             "content": {
                 "label": "Name",
                 "placeholder": "Who's this discount for?"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6ffco65rel4hjcyy",
+            "handlers": {},
             "visible": true
         },
         "xix6388qyonapetr": {
             "id": "xix6388qyonapetr",
             "type": "textinput",
-            "parentId": "6ffco65rel4hjcyy",
             "content": {
                 "label": "Product",
                 "placeholder": "What's the product?"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "6ffco65rel4hjcyy",
+            "handlers": {},
             "visible": true
         },
         "au6obez6i4xpv3r5": {
             "id": "au6obez6i4xpv3r5",
             "type": "message",
-            "parentId": "a1f3ln5dzino6e3p",
             "content": {
                 "message": "+ Generated successfully"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "a1f3ln5dzino6e3p",
+            "handlers": {},
             "visible": true
         }
     }

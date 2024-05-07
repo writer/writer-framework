@@ -1,7 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
 		<div class="sectionTitle">
-			<i class="ri-links-line ri-xl"></i>
+			<i class="material-symbols-outlined">link</i>
 			<h3>Binding</h3>
 		</div>
 		<div class="main">

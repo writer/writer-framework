@@ -6,6 +6,8 @@ import plotly.express as px
 import streamsync as ss
 from streamsync.core import StreamsyncState
 
+print("hello")
+
 # EVENT HANDLERS
 
 def handle_timer_tick(state: StreamsyncState):

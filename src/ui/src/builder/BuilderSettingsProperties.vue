@@ -4,7 +4,7 @@
 		class="BuilderSettingsProperties"
 	>
 		<div class="sectionTitle">
-			<i class="ri-equalizer-line ri-xl"></i>
+			<span class="material-symbols-outlined"> tune </span>
 			<h3>Properties</h3>
 		</div>
 		<div>

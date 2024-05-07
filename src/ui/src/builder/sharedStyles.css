@@ -130,7 +130,7 @@ code {
 	top: 0;
 	background: var(--builderSubtleHighlightColorSolid);
 	z-index: 2;
-	font-size: 0.8rem;
+	font-size: 0.875rem;
 }
 
 .windowBar .icon {
@@ -152,12 +152,14 @@ code {
 	padding-left: 8px;
 	padding-right: 8px;
 	flex: 0 0 auto;
+	gap: 4px;
 	display: flex;
 	border-radius: 12px;
 	align-items: center;
 	justify-content: center;
 	background: var(--builderSubtleHighlightColor);
 	cursor: pointer;
+	font-size: 0.875rem;
 	margin-left: 8px;
 	outline: none;
 }
@@ -172,6 +174,7 @@ code {
 	display: flex;
 	gap: 8px;
 	align-items: center;
+	font-size: 1rem;
 }
 
 .fieldWrapper {
