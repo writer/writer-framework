@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import sys
+import getpass
 from typing import Optional
 
 import streamsync.deploy
@@ -52,7 +53,7 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
 
     if command in ("deploy") and api_key is None:
         logging.info("An API key is required to deploy a Streamsync app.")
-        api_key = input("Enter your API key: ")
+        api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
         if api_key is None or api_key == "":
             logging.error("No API key provided. Exiting.")
             sys.exit(1)
