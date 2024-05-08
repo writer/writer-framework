@@ -1355,7 +1355,7 @@ class EventHandler:
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
                     "headers": self.session.headers,
-                    "userinfo": self.session.userinfo
+                    "userinfo": self.session.userinfo or {}
                 }
                 arg_values.append(session_info)
             elif arg == "ui":

@@ -100,3 +100,42 @@ class Oidc(Auth):
             # At this part, we should
             response.set_cookie(key="session", value=session_id, httponly=True, expires=0)
             return response
+
+def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
+    """
+    Configure Google Social login configured through Client Id for Web application in Google Cloud Console.
+
+    >>> import streamsync.auth
+    >>> oidc = streamsync.auth.Google(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx.apps.googleusercontent.com", host_url="http://localhost:5000")
+
+    :param client_id: client id of Web application
+    :param client_secret: client secret of Web application
+    :param host_url: The URL of the streamsync application (for callback)
+    """
+    return Oidc(
+        client_id=client_id,
+        client_secret=client_secret,
+        host_url=host_url,
+        url_authorize="https://accounts.google.com/o/oauth2/auth",
+        url_oauthtoken="https://oauth2.googleapis.com/token",
+        url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json")
+
+def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oidc:
+    """
+    Configure Auth0 application for authentication.
+
+    >>> import streamsync.auth
+    >>> oidc = streamsync.auth.Auth0(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", domain="xxx-xxxxx.eu.auth0.com", host_url="http://localhost:5000")
+
+    :param client_id: client id
+    :param client_secret: client secret
+    :param domain: Domain of the Auth0 application
+    :param host_url: The URL of the streamsync application (for callback)
+    """
+    return Oidc(
+        client_id=client_id,
+        client_secret=client_secret,
+        host_url=host_url,
+        url_authorize=f"https://{domain}/authorize",
+        url_oauthtoken=f"https://{domain}/oauth/token",
+        url_userinfo=f"https://{domain}/userinfo")
