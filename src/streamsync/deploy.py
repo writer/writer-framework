@@ -2,12 +2,16 @@ import tarfile
 import requests
 import os
 from gitignore_parser import parse_gitignore
+import tempfile
 
-DEPLOY_URL = os.getenv("DEPLOY_URL", "https://api.writer.com/api/framework/deployment/apps")
+
+WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/api/framework/deployment/apps")
+
+print("Deploying to:", WRITER_DEPLOY_URL)
 
 def deploy(path, token):
-    package = pack_project(path)
-    upload_package(package, token)
+    tar = pack_project(path)
+    upload_package(tar, token)
 
 def pack_project(path):
     print(f"Creating deployment package from path: {path}")
@@ -21,21 +25,23 @@ def pack_project(path):
             if not match(os.path.join(root, filename)):
                 files.append(os.path.relpath(os.path.join(root, filename), path))
 
-    with tarfile.open("/tmp/streamsync_app.tar", "w") as tar:
+    f = tempfile.TemporaryFile(suffix='.tar');
+
+    with tarfile.open(fileobj=f, mode="w") as tar:
         for file in files:
             print("Packing file:", file)
             tar.add(os.path.join(path, file), file)
+    f.flush()
 
-    print("Streamsync app tar file created: /tmp/streamsync_app.tar")
-
-    return "/tmp/streamsync_app.tar"
+    return f
 
 
-def upload_package(package, token):
+def upload_package(tar, token):
     print("Uploading package to deployment server")
-    files = {'file': open(package, 'rb')}
+    tar.seek(0)
+    files = {'file': tar}
     with requests.post(
-        url = DEPLOY_URL, 
+        url = WRITER_DEPLOY_URL, 
         headers = {
             "Authorization": f"Bearer {token}",
         },

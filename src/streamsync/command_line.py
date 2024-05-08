@@ -42,7 +42,7 @@ def main():
 def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool], api_key: Optional[str] = None):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
 
-    if command in ("run", "edit") and is_path_folder is False:
+    if command in ("run", "edit", "deploy") and is_path_folder is False:
         logging.error("A path to a folder containing a Streamsync app is required. For example: streamsync edit my_app")
         sys.exit(1)
 
@@ -51,8 +51,11 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
         sys.exit(1)
 
     if command in ("deploy") and api_key is None:
-        logging.error("An API key is required to deploy a Streamsync app. For example: streamsync deploy my_app --api-key my_api_key")
-        sys.exit(1)
+        logging.info("An API key is required to deploy a Streamsync app.")
+        api_key = input("Enter your API key: ")
+        if api_key is None or api_key == "":
+            logging.error("No API key provided. Exiting.")
+            sys.exit(1)
 
     if command in ("edit", "hello") and host is not None:
         logging.warning("Streamsync has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Streamsync Builder to the Internet. We recommend using a SSH tunnel instead.")
