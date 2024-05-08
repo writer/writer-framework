@@ -1,9 +1,9 @@
-import tarfile
-import requests
 import os
-from gitignore_parser import parse_gitignore
+import tarfile
 import tempfile
 
+import requests
+from gitignore_parser import parse_gitignore
 
 WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/api/framework/deployment/apps")
 
@@ -25,7 +25,7 @@ def pack_project(path):
             if not match(os.path.join(root, filename)):
                 files.append(os.path.relpath(os.path.join(root, filename), path))
 
-    f = tempfile.TemporaryFile(suffix='.tar');
+    f = tempfile.TemporaryFile(suffix='.tar')
 
     with tarfile.open(fileobj=f, mode="w") as tar:
         for file in files:

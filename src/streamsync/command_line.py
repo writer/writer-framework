@@ -5,8 +5,8 @@ import shutil
 import sys
 from typing import Optional
 
-import streamsync.serve
 import streamsync.deploy
+import streamsync.serve
 
 
 def main():
