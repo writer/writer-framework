@@ -63,6 +63,25 @@ oidc = streamsync.auth.Google(
 streamsync.serve.register_auth(oidc)
 ```
 
+#### Github
+
+You have to register your application into [Github](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)
+
+*server_setup.py*
+```python
+import os
+import streamsync.serve
+import streamsync.auth
+
+oidc = streamsync.auth.Github(
+	client_id="xxxxxxx",
+	client_secret="xxxxxxxxxxxxx",
+	host_url=os.getenv('HOST_URL', "http://localhost:5000")
+)
+
+streamsync.serve.register_auth(oidc)
+```
+
 #### Auth0
 
 You have to register your application into [Auth0](https://auth0.com/).

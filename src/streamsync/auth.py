@@ -155,6 +155,25 @@ def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
         url_oauthtoken="https://oauth2.googleapis.com/token",
         url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json")
 
+def Github(client_id: str, client_secret: str, host_url: str) -> Oidc:
+    """
+    Configure Github authentication.
+
+    >>> import streamsync.auth
+    >>> oidc = streamsync.auth.Github(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", host_url="http://localhost:5000")
+
+    :param client_id: client id
+    :param client_secret: client secret
+    :param host_url: The URL of the streamsync application (for callback)
+    """
+    return Oidc(
+        client_id=client_id,
+        client_secret=client_secret,
+        host_url=host_url,
+        url_authorize=f"https://github.com/login/oauth/authorize",
+        url_oauthtoken=f"https://github.com/login/oauth/access_token",
+        url_userinfo=f"https://api.github.com/user")
+
 def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oidc:
     """
     Configure Auth0 application for authentication.
