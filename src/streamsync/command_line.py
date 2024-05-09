@@ -1,9 +1,9 @@
 import argparse
+import getpass
 import logging
 import os
 import shutil
 import sys
-import getpass
 from typing import Optional
 
 import streamsync.deploy
