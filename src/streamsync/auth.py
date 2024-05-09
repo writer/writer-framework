@@ -1,15 +1,29 @@
 import dataclasses
+import os.path
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Optional
 
 from authlib.integrations.requests_client.oauth2_session import OAuth2Session  # type: ignore
-from fastapi import Request
-from starlette.responses import RedirectResponse
+from fastapi import Request, Response
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 
 import streamsync.serve
 from streamsync.core import session_manager
 from streamsync.serve import StreamsyncFastAPI
 from streamsync.ss_types import InitSessionRequestPayload
+
+
+class Unauthorized(Exception):
+    """
+    This exception allows you to reject the authentication of a user.
+
+    >>>
+    """
+    def __init__(self, status_code = 401, message = "Unauthorized", more_info = ""):
+        self.status_code = status_code
+        self.message = message
+        self.more_info = more_info
 
 
 class Auth:
@@ -19,7 +33,11 @@ class Auth:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def register(self, app: StreamsyncFastAPI, callback: Optional[Callable[[Request, str], None]] = None):
+    def register(self,
+                 app: StreamsyncFastAPI,
+                 callback: Optional[Callable[[Request, str, dict], None]] = None,
+                 unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None
+    ):
         raise NotImplementedError
 
 
@@ -55,10 +73,15 @@ class Oidc(Auth):
     url_userinfo: Optional[str] = None
 
     authlib: OAuth2Session = None
-    callback_func: Optional[Callable[[Request, str], None]] = None
+    callback_func: Optional[Callable[[Request, str, dict], None]] = None # Callback to validate user authentication
+    unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None # Callback to build its own page when a user is not allowed
 
 
-    def register(self, asgi_app: StreamsyncFastAPI, callback: Optional[Callable[[Request, str], None]] = None):
+    def register(self,
+                 asgi_app: StreamsyncFastAPI,
+                 callback: Optional[Callable[[Request, str, dict], None]] = None,
+                 unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None
+                 ):
         self.authlib = OAuth2Session(
             client_id=self.client_id,
             client_secret=self.client_secret,
@@ -73,7 +96,7 @@ class Oidc(Auth):
         @asgi_app.middleware("http")
         async def oidc_middleware(request: Request, call_next):
             session = request.cookies.get('session')
-            if session is not None or request.url.path in [self.callback_route]:
+            if session is not None or request.url.path in [self.callback_route] or request.url.path.startswith('/assets'):
                 return await call_next(request)
             else:
                 url = self.authlib.create_authorization_url(self.url_authorize)
@@ -83,23 +106,35 @@ class Oidc(Auth):
         @asgi_app.get(self.callback_route)
         async def route_callback(request: Request):
             self.authlib.fetch_token(url=self.url_oauthtoken, authorization_response=str(request.url))
-            response = RedirectResponse(url='/')
-            session_id = session_manager.generate_session_id()
+            try:
+                response = RedirectResponse(url='/')
+                session_id = session_manager.generate_session_id()
 
-            app_runner = streamsync.serve.app_runner(asgi_app)
-            await app_runner.init_session(InitSessionRequestPayload(
-                cookies=request.cookies, headers=request.headers, proposedSessionId=session_id))
+                app_runner = streamsync.serve.app_runner(asgi_app)
+                await app_runner.init_session(InitSessionRequestPayload(
+                    cookies=request.cookies, headers=request.headers, proposedSessionId=session_id))
 
-            if self.url_userinfo:
-                userinfo = self.authlib.get(self.url_userinfo).json()
-                app_runner.set_userinfo(session_id=session_id, userinfo=userinfo)
+                userinfo = {}
+                if self.url_userinfo:
+                    userinfo = self.authlib.get(self.url_userinfo).json()
+                    app_runner.set_userinfo(session_id=session_id, userinfo=userinfo)
 
-            if self.callback_func:
-                self.callback_func(request, session_id)
+                if self.callback_func:
+                    self.callback_func(request, session_id, userinfo)
 
-            # At this part, we should
-            response.set_cookie(key="session", value=session_id, httponly=True, expires=0)
-            return response
+                response.set_cookie(key="session", value=session_id, httponly=True, expires=0)
+                return response
+            except Unauthorized as exc:
+                if self.unauthorized_action:
+                    return self.unauthorized_action(request, exc)
+                else:
+                    templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+                    return templates.TemplateResponse(request=request, name="auth_unauthorized.html", status_code=exc.status_code, context={
+                        "status_code": exc.status_code,
+                        "message": exc.message,
+                        "more_info": exc.more_info
+                    })
+
 
 def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
     """

@@ -83,12 +83,6 @@ oidc = streamsync.auth.Auth0(
 streamsync.serve.register_auth(oidc)
 ```
 
-[//]: # (### Callback to refuse access to the application)
-
-[//]: # ()
-[//]: # (### Callback to modify user information)
-
-
 ### Authentication workflow
 
 <img src="./images/authentication_oidc.png" style="min-width: 25%; width: 35%; margin: auto">
@@ -102,5 +96,68 @@ in the event handler through the `session` argument.
 def on_page_load(state, session):
     email = session['userinfo'].get('email', None)
     state['email'] = email
+```
+
+
+## Unauthorize access
+
+It is possible to reject a user who, for example, does not have the correct email address.
+
+::: tip you can also use userinfo inside app
+You can restrict access to certain pages inside the application by using the `session` object.
+See [User information in event handler](#user-information-in-event-handler)
+:::
+
+```python
+from fastapi import Request
+
+import streamsync.serve
+import streamsync.auth
+
+oidc = ...
+
+def callback(request: Request, session_id: str, userinfo: dict):
+    if userinfo['email'] not in ['nom.prenom123@example.com']:
+        raise streamsync.auth.Unauthorized(more_info="You can contact the administrator at <a href='https://support.example.com'>support.example.com</a>")
+
+streamsync.serve.register_auth(oidc, callback=callback)
+```
+
+The default authentication error page look like this:
+
+<img src="./images/auth_unauthorized_default.png">
+
+*streamsync.auth.Unauthorized*
+
+| Parameter | Description |
+|-----------|-------------|
+| status_code | HTTP status code |
+| message | Error message |
+| more_info | Additional information |
+
+## Custom unauthorized page
+
+You can customize the access denial page using your own template.
+
+```python
+import os
+
+from fastapi import Request, Response
+from fastapi.templating import Jinja2Templates
+
+import streamsync.serve
+import streamsync.auth
+
+oidc = ...
+
+def unauthorized(request: Request, exc: streamsync.auth.Unauthorized) -> Response:
+    templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+    return templates.TemplateResponse(request=request, name="unauthorized.html", status_code=exc.status_code, context={
+        "status_code": exc.status_code,
+        "message": exc.message,
+        "more_info": exc.more_info
+    })
+
+streamsync.serve.register_auth(oidc, unauthorized_action=unauthorized)
 ```
 

@@ -3,6 +3,7 @@ import importlib.util
 import logging
 import mimetypes
 import os
+import os.path
 import pathlib
 import textwrap
 import typing
@@ -38,7 +39,7 @@ from streamsync.ss_types import (
 )
 
 if typing.TYPE_CHECKING:
-    from .auth import Auth
+    from .auth import Auth, Unauthorized
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
@@ -453,8 +454,12 @@ def print_route_message(run_name: str, port: int, host: str):
 
     print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
-def register_auth(auth: 'Auth', callback: Optional[Callable[[Request, str], None]] = None):
-    auth.register(app, callback=callback)
+def register_auth(
+    auth: 'Auth',
+    callback: Optional[Callable[[Request, str, dict], None]] = None,
+    unauthorized_action: Optional[Callable[[Request, 'Unauthorized'], Response]] = None
+):
+    auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
 def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, enable_server_setup=False):
     """ Initialises the web server. """
