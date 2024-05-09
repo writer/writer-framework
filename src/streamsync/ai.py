@@ -379,6 +379,16 @@ class Conversation:
             self.max_tokens = WriterAIManager.get_max_tokens()
 
     def _merge_chunk_to_last_message(self, raw_chunk: dict):
+        """
+        Merge a chunk of data into the last message in the conversation.
+
+        This method takes a chunk of data and integrates it into the content of the
+        last message of the conversation. It appends additional content if present,
+        and merges other key-value pairs into the last message's dictionary.
+
+        :param raw_chunk: A dictionary containing the chunk of data to be merged.
+        :raises ValueError: If the Conversation's `messages` list is empty, indicating there is no message to merge the chunk with.
+        """
         def _clear_chunk_flag(chunk):
             return {key: value for key, value in chunk.items() if key != "chunk"}
         if not self.messages:
@@ -391,10 +401,11 @@ class Conversation:
 
     def __add__(self, chunk_or_message: Union['Conversation.Message', dict]):
         """
-        Adds a message or appends a chunk of text to the last message in the conversation.
+        Adds a message or appends a chunk to the last message in the conversation.
 
-        :param chunk_or_message: Message dictionary or string text to add.
-        :raises ValueError: If chunk_or_message is neither a dictionary with "role" and "content" nor a string.
+        :param chunk_or_message: Dictionary representation of a message or chunk to add.
+        :raises TypeError: If passed chunk_or_message is not a dictionary.
+        :raises ValueError: If chunk_or_message is not a proper message with "role" and "content".
         """
         if not isinstance(chunk_or_message, dict):
             raise TypeError("Conversation only supports dict operands for addition")
@@ -485,7 +496,7 @@ class Conversation:
             response.close()
 
     @property
-    def serialized_messages(self) -> list:
+    def serialized_messages(self) -> List['Conversation.Message']:
         """
         Returns a representation of the conversation, excluding system messages.
 
