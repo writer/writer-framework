@@ -63,6 +63,26 @@ oidc = streamsync.auth.Google(
 streamsync.serve.register_auth(oidc)
 ```
 
+#### Microsoft
+
+You have to register your application into [Azure AD](https://docs.snowflake.com/en/user-guide/oauth-azure)
+
+*server_setup.py*
+```python
+import os
+import streamsync.serve
+import streamsync.auth
+
+oidc = streamsync.auth.Microsoft(
+	client_id="xxxxxxx",
+	client_secret="xxxxxxxxxxxxx",
+	tenant_id="xxxxxxxxxxxxx",
+	host_url=os.getenv('HOST_URL', "http://localhost:5000")
+)
+
+streamsync.serve.register_auth(oidc)
+```
+
 #### Github
 
 You have to register your application into [Github](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)
