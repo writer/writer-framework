@@ -407,16 +407,16 @@ class Conversation:
                     return text
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> list:
         """
-        Returns a dictionary representation of the conversation, excluding system messages.
+        Returns a representation of the conversation, excluding system messages.
 
-        :return: Dictionary of messages without system messages.
+        :return: List of messages without system messages.
         """
         # Excluding system messages for privacy & security reasons
         serialized_messages = \
             [message for message in self.messages if message["role"] != "system"]
-        return {"messages": serialized_messages}
+        return [serialized_messages]
 
 
 def complete(initial_text: str, data: Optional[dict] = None) -> str:
