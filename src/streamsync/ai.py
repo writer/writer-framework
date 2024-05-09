@@ -43,7 +43,7 @@ def retry(max_retries=3, backoff_factor=1, status_forcelist=(500, 502, 503, 504)
     return decorator
 
 
-def _process_completion_data_chunk(line: str):
+def _process_completion_data_chunk(line: str) -> str:
     prefix = "data: "
     if line.startswith(prefix):
         line = line[len(prefix):]
@@ -53,7 +53,7 @@ def _process_completion_data_chunk(line: str):
             return text
 
 
-def _process_chat_data_chunk(line: str):
+def _process_chat_data_chunk(line: str) -> dict:
     prefix = "data: "
     if line.startswith(prefix):
         line = line[len(prefix):]
@@ -62,7 +62,7 @@ def _process_chat_data_chunk(line: str):
         if choices and isinstance(choices, list):
             for entry in choices:
                 message = entry.get("message", {})
-                return message.get("content")
+                return message
 
 
 class WriterAIManager:
@@ -475,14 +475,12 @@ class Conversation:
         flag_chunks = False
 
         for line in response:
-            processed_line = _process_chat_data_chunk(line)
-            if processed_line:
-                chunk = {"role": "assistant", "content": processed_line}
-                if flag_chunks is True:
-                    chunk |= {"chunk": True}
-                if flag_chunks is False:
-                    flag_chunks = True
-                yield chunk
+            chunk = _process_chat_data_chunk(line)
+            if flag_chunks is True:
+                chunk |= {"chunk": True}
+            if flag_chunks is False:
+                flag_chunks = True
+            yield chunk
         else:
             response.close()
 
