@@ -53,6 +53,9 @@ class WriterAIManager:
     :ivar max_tokens: Maximum number of tokens per generation.
     """
 
+    default_temperature: float = 0.7
+    default_max_tokens = 2048
+
     def __init__(self, token: Optional[str] = None, api_url: Optional[str] = None):
         """
         Initializes a WriterAIManager instance.
@@ -65,8 +68,8 @@ class WriterAIManager:
         """
         self.url: str = os.environ.get('WRITER_API_URL', api_url)
         self.token: Optional[str] = os.environ.get('WRITER_API_KEY', token)
-        self.temperature: float = os.environ.get('WRITER_API_TEMPERATURE', 0.7)
-        self.max_tokens: int = os.environ.get('WRITER_API_MAX_TOKENS', 2048)
+        self.temperature: float = os.environ.get('WRITER_API_TEMPERATURE', self.default_temperature)
+        self.max_tokens: int = os.environ.get('WRITER_API_MAX_TOKENS', self.default_max_tokens)
 
         current_process = get_app_process()
         current_process.ai_manager = self
@@ -134,8 +137,11 @@ class WriterAIManager:
 
         :returns max_tokens: The maximum number of tokens from config.
         """
-        instance = cls.acquire_instance()
-        return instance.max_tokens
+        try:
+            instance = cls.acquire_instance()
+            return instance.max_tokens
+        except RuntimeWarning:
+            return cls.default_max_tokens
 
     @classmethod
     def set_max_tokens(cls, new_max_tokens: int):
@@ -154,8 +160,11 @@ class WriterAIManager:
 
         :returns temperature: The temperature value from config.
         """
-        instance = cls.acquire_instance()
-        return instance.temperature
+        try:
+            instance = cls.acquire_instance()
+            return instance.temperature
+        except RuntimeWarning:
+            return cls.default_temperature
 
     @classmethod
     def set_temperature(cls, new_temperature: float):
