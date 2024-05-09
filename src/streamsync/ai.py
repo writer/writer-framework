@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from time import sleep
-from typing import Dict, Generator, Optional, Union
+from typing import Generator, List, Optional, TypedDict, Union
 
 from requests import RequestException, Response
 from requests import post as r_post
@@ -66,13 +66,13 @@ class WriterAIManager:
         :param token: Optional; the default token for API authentication used if WRITER_API_KEY environment variable is not set up.
         :param token: Optional; API URL to use if WRITER_API_URL environment variable is not set up.
         """
-        self.url: str = os.environ.get('WRITER_API_URL', api_url)
+        self.url: Optional[str] = os.environ.get('WRITER_API_URL', api_url)
         self.token: Optional[str] = os.environ.get('WRITER_API_KEY', token)
-        self.temperature: float = os.environ.get('WRITER_API_TEMPERATURE', self.default_temperature)
-        self.max_tokens: int = os.environ.get('WRITER_API_MAX_TOKENS', self.default_max_tokens)
+        self.temperature: float = float(os.environ.get('WRITER_API_TEMPERATURE', self.default_temperature))
+        self.max_tokens: int = int(os.environ.get('WRITER_API_MAX_TOKENS', self.default_max_tokens))
 
         current_process = get_app_process()
-        current_process.ai_manager = self
+        setattr(current_process, 'ai_manager', self)
 
     @classmethod
     def acquire_instance(cls) -> 'WriterAIManager':
@@ -84,7 +84,7 @@ class WriterAIManager:
         """
         current_process = get_app_process()
         try:
-            instance = current_process.ai_manager
+            instance = getattr(current_process, 'ai_manager')
             return instance
         except AttributeError:
             raise RuntimeWarning('No WriterAIManager instance found. Have you initialized it?')
@@ -182,8 +182,11 @@ class WriterAIManager:
         Get the base URL of the API.
 
         :returns: The base URL of the API.
+        :raises RuntimeError: If URL was not provided.
         """
         instance = cls.acquire_instance()
+        if not instance.url:
+            raise RuntimeError("No URL defined for AI manager")
         return instance.url
 
     @classmethod
@@ -277,7 +280,7 @@ class WriterAIManager:
             response.close()
 
     @staticmethod
-    def make_call_to_complete(text: str, data: dict = None):
+    def make_call_to_complete(text: str, data: Optional[dict] = None):
         if not data:
             data = {}
 
@@ -290,7 +293,7 @@ class WriterAIManager:
         return response_data
 
     @staticmethod
-    def make_call_to_stream_complete(text: str, data: dict = None):
+    def make_call_to_stream_complete(text: str, data: Optional[dict] = None):
         if not data:
             data = {}
 
@@ -304,7 +307,7 @@ class WriterAIManager:
         return response
 
     @staticmethod
-    def make_call_to_chat_complete(messages: list, data: dict = None):
+    def make_call_to_chat_complete(messages: list, data: Optional[dict] = None):
         if not data:
             data = {}
 
@@ -317,6 +320,9 @@ class WriterAIManager:
 
 
 class Conversation:
+    class Message(TypedDict):
+        role: str
+        content: str
 
     def __init__(self, config: Optional[dict] = None):
         """
@@ -324,7 +330,7 @@ class Conversation:
 
         :param config: Optional dictionary containing initial configuration settings.
         """
-        self.messages = []
+        self.messages: List[Conversation.Message] = []
         self.temperature = None
         self.max_tokens = None
 
@@ -337,7 +343,7 @@ class Conversation:
         if self.max_tokens is None:
             self.max_tokens = WriterAIManager.get_max_tokens()
 
-    def __add__(self, chunk_or_message: Union[Dict, str]):
+    def __add__(self, chunk_or_message: Union['Conversation.Message', str]):
         """
         Adds a message or appends a chunk of text to the last message in the conversation.
 
