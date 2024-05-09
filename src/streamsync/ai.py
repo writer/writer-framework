@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from time import sleep
-from typing import Generator, List, Optional, TypedDict, Union
+from typing import Generator, List, Optional, TypedDict, Union, cast
 
 from requests import RequestException, Response
 from requests import post as r_post
@@ -400,12 +400,12 @@ class Conversation:
             raise TypeError("Conversation only supports dict operands for addition")
         if chunk_or_message.get("chunk") is True:
             chunk = chunk_or_message
-            self._merge_chunk_to_last_message(chunk)
+            self._merge_chunk_to_last_message(cast(dict, chunk))
         else:
             message = chunk_or_message
             if not ("role" in message and "content" in message):
                 raise ValueError("Improper message format to add to Conversation")
-            self.messages.append({"role": message["role"], "content": message["content"]})
+            self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
         return self
 
     @property
