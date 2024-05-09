@@ -174,6 +174,30 @@ The default authentication error page look like this:
 | message | Error message |
 | more_info | Additional information |
 
+## Modify user info
+
+User info can be modified in the callback.
+
+```python
+from fastapi import Request
+
+import streamsync.serve
+import streamsync.auth
+
+oidc = ...
+
+def callback(request: Request, session_id: str, userinfo: dict):
+	userinfo['group'] = []
+	if userinfo['email'] in ['fabien@example.com']:
+		userinfo['group'].append('admin')
+		userinfo['group'].append('user')
+	else:
+		userinfo['group'].append('user')
+	
+streamsync.serve.register_auth(oidc, callback=callback)
+```
+from fastapi import Request
+
 ## Custom unauthorized page
 
 You can customize the access denial page using your own template.
@@ -200,3 +224,16 @@ def unauthorized(request: Request, exc: streamsync.auth.Unauthorized) -> Respons
 streamsync.serve.register_auth(oidc, unauthorized_action=unauthorized)
 ```
 
+## Enable in edit mode
+
+Authentication is disabled in edit mode. To activate it, 
+you must trigger the loading of the server_setup module in edition mode.
+
+```bash
+streamsync edit --enable-server-setup
+```
+
+```
+
+
+```python

@@ -2,6 +2,7 @@ import dataclasses
 import os.path
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Optional
+from urllib.parse import urlparse
 
 from authlib.integrations.requests_client.oauth2_session import OAuth2Session  # type: ignore
 from fastapi import Request, Response
@@ -69,7 +70,7 @@ class Oidc(Auth):
     url_authorize: str
     url_oauthtoken: str
     scope: str = "openid email profile"
-    callback_route: str = "/callback"
+    callback_authorize: str = "authorize"
     url_userinfo: Optional[str] = None
 
     authlib: OAuth2Session = None
@@ -86,7 +87,7 @@ class Oidc(Auth):
             client_id=self.client_id,
             client_secret=self.client_secret,
             scope=self.scope.split(" "),
-            redirect_uri=f"{self.host_url}{self.callback_route}",
+            redirect_uri=_urljoin(self.host_url, self.callback_authorize),
             authorization_endpoint=self.url_authorize,
             token_endpoint=self.url_oauthtoken,
         )
@@ -96,18 +97,23 @@ class Oidc(Auth):
         @asgi_app.middleware("http")
         async def oidc_middleware(request: Request, call_next):
             session = request.cookies.get('session')
-            if session is not None or request.url.path in [self.callback_route] or request.url.path.startswith('/assets'):
-                return await call_next(request)
+            host_url_path = _urlpath(self.host_url)
+            full_callback_authorize = '/' + _urljoin(host_url_path, self.callback_authorize)
+            full_assets = '/' + _urljoin(host_url_path, '/assets')
+            if session is not None or request.url.path in [full_callback_authorize] or request.url.path.startswith(full_assets):
+                response: Response = await call_next(request)
+                return response
             else:
                 url = self.authlib.create_authorization_url(self.url_authorize)
                 response = RedirectResponse(url=url[0])
                 return response
 
-        @asgi_app.get(self.callback_route)
+        @asgi_app.get('/' + _urlstrip(self.callback_authorize))
         async def route_callback(request: Request):
             self.authlib.fetch_token(url=self.url_oauthtoken, authorization_response=str(request.url))
             try:
-                response = RedirectResponse(url='/')
+                host_url_path = _urlpath(self.host_url)
+                response = RedirectResponse(url=host_url_path)
                 session_id = session_manager.generate_session_id()
 
                 app_runner = streamsync.serve.app_runner(asgi_app)
@@ -117,15 +123,17 @@ class Oidc(Auth):
                 userinfo = {}
                 if self.url_userinfo:
                     userinfo = self.authlib.get(self.url_userinfo).json()
-                    app_runner.set_userinfo(session_id=session_id, userinfo=userinfo)
 
                 if self.callback_func:
                     self.callback_func(request, session_id, userinfo)
 
-                response.set_cookie(key="session", value=session_id, httponly=True, expires=0)
+                if self.url_userinfo:
+                    app_runner.set_userinfo(session_id=session_id, userinfo=userinfo)
+
+                response.set_cookie(key="session", value=session_id, httponly=True)
                 return response
             except Unauthorized as exc:
-                if self.unauthorized_action:
+                if self.unauthorized_action is not None:
                     return self.unauthorized_action(request, exc)
                 else:
                     templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -213,3 +221,45 @@ def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oid
         url_authorize=f"https://{domain}/authorize",
         url_oauthtoken=f"https://{domain}/oauth/token",
         url_userinfo=f"https://{domain}/userinfo")
+
+def _urlpath(url: str):
+    """
+    >>> _urlpath("http://localhost/app1")
+    >>> "/app1"
+    """
+    return urlparse(url).path
+
+def _urljoin(*args):
+    """
+    >>> _urljoin("http://localhost/app1", "edit")
+    >>> "http://localhost/app1/edit"
+
+    >>> _urljoin("app1/", "edit")
+    >>> "app1/edit"
+
+    >>> _urljoin("app1", "edit")
+    >>> "app1/edit"
+
+    >>> _urljoin("/app1/", "/edit")
+    >>> "app1/edit"
+    """
+    url_strip_parts = []
+    for part in args:
+        if part:
+            url_strip_parts.append(_urlstrip(part))
+
+    return '/'.join(url_strip_parts)
+
+def _urlstrip(url_path: str):
+    """
+
+    >>> _urlstrip("/app1/")
+    >>> "app1"
+
+    >>> _urlstrip("http://localhost/app1")
+    >>> "http://localhost/app1"
+
+    >>> _urlstrip("http://localhost/app1/")
+    >>> "http://localhost/app1"
+    """
+    return url_path.strip('/')

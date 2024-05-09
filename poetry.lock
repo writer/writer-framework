@@ -2175,4 +2175,4 @@ ds = ["pandas", "plotly", "pyarrow"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "3ee7a7551fff7da5d312f98fd7035e6a10589b7c6ba57013b87128c13a4a55c8"
+content-hash = "14d24fe303bef4e05f04602ee213ecc2bb533e72915ec481d39b11fe06398f4e"

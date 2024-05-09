@@ -170,6 +170,7 @@ def get_asgi_app(
         if session_id is not None:
             initBody.proposedSessionId = session_id
 
+
         app_response = await app_runner.init_session(InitSessionRequestPayload(
             cookies=dict(request.cookies),
             headers=dict(request.headers),
@@ -177,6 +178,13 @@ def get_asgi_app(
         ))
 
         status = app_response.status
+
+        """
+        Deletes the session cookie that was set by 
+        authentication when it is present.
+        """
+        if session_id is not None:
+            response.delete_cookie("session")
 
         if status == "error" or app_response.payload is None:
             raise HTTPException(status_code=403, detail="Session rejected.")
@@ -186,6 +194,7 @@ def get_asgi_app(
 
         if serve_mode == "edit":
             return _get_edit_starter_pack(app_response.payload)
+
 
     # Streaming
 
