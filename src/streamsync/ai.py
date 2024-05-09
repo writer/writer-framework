@@ -43,6 +43,16 @@ def retry(max_retries=3, backoff_factor=1, status_forcelist=(500, 502, 503, 504)
     return decorator
 
 
+def _process_line(line: str):
+    prefix = "data: "
+    if line.startswith(prefix):
+        line = line[len(prefix):]
+        data: dict = json.loads(line)
+        text = data.get("value")
+        if text:
+            return text
+
+
 class WriterAIManager:
     """
     Manages configuration and authentication data for Writer AI functionalities.
@@ -219,16 +229,16 @@ class WriterAIManager:
         return instance.prepare_config() | {"model": model}
 
     @classmethod
-    def use_chat_model(cls, messages: list) -> dict:
+    def use_chat_model(cls, messages: list, stream: Optional[bool] = False) -> dict:
         """
         Get the configuration for the chat model.
 
         :returns: Configuration dictionary for the chat model.
         """
-        return cls.use_model("palmyra-chat-v2-32k") | {"messages": messages}
+        return cls.use_model("palmyra-chat-v2-32k") | {"messages": messages, "stream": stream}
 
     @classmethod
-    def use_completion_model(cls, prompt: str, stream=False) -> dict:
+    def use_completion_model(cls, prompt: str, stream: Optional[bool] = False) -> dict:
         """
         Get the configuration for the completion model.
 
@@ -284,7 +294,7 @@ class WriterAIManager:
         if not data:
             data = {}
 
-        request_data = WriterAIManager.use_completion_model(text, stream=False) | data
+        request_data = WriterAIManager.use_completion_model(text) | data
 
         url = WriterAIManager.get_completion_url()
         headers = WriterAIManager.prepare_headers()
@@ -317,6 +327,18 @@ class WriterAIManager:
         headers = WriterAIManager.prepare_headers()
         response_data = WriterAIManager.safe_post(url, headers, request_data).json()
         return response_data
+
+    @staticmethod
+    def make_call_to_stream_chat_complete(messages: list, data: Optional[dict] = None):
+        if not data:
+            data = {}
+
+        request_data = WriterAIManager.use_chat_model(messages, stream=True) | data
+
+        url = WriterAIManager.get_chat_url()
+        headers = WriterAIManager.prepare_headers()
+        response = WriterAIManager.safe_post_stream(url, headers, request_data)
+        return response
 
 
 class Conversation:
@@ -407,6 +429,29 @@ class Conversation:
                     return text
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
+    def stream_complete(self, data: Optional[dict] = None) -> Generator[str, None, None]:
+        """
+        Initiates a stream to receive chunks of the model's reply.
+        Note: in contrast with `Conversation.complete`, this method is not adding any messages to the conversation.
+
+        :param data: Optional parameters to pass for processing.
+        :yields: Model response chunks as they arrive from the stream.
+        """
+        if not data:
+            data = {}
+
+        response = \
+            WriterAIManager.make_call_to_stream_chat_complete(
+                messages=self.messages,
+                data=self.json_config | data
+            )
+        for line in response:
+            processed_line = _process_line(line)
+            if processed_line:
+                yield processed_line
+        else:
+            response.close()
+
     def to_dict(self) -> list:
         """
         Returns a representation of the conversation, excluding system messages.
@@ -447,15 +492,6 @@ def stream_complete(initial_text: str, data: Optional[dict] = None) -> Generator
     :param data: Optional dictionary containing parameters for the stream completion call.
     :yields: Each text completion as it arrives from the stream.
     """
-    def _process_line(line: str):
-        prefix = "data: "
-        if line.startswith(prefix):
-            line = line[len(prefix):]
-            data: dict = json.loads(line)
-            text = data.get("value")
-            if text:
-                return text
-
     response = WriterAIManager.make_call_to_stream_complete(initial_text, data)
     for line in response:
         processed_line = _process_line(line)
