@@ -45,18 +45,19 @@ requests = "^2.31.0"
 optional = true
 
 [tool.poetry.group.build.dependencies]
-pandas = ">= 2.2.0, < 3"
-pyarrow = ">= 15.0.0, < 16.0.0"
-plotly = ">= 5.18.0, < 6"
-mypy = ">= 1.8.0, < 2"
-pandas-stubs = ">= 2.0.0, <3"
-pytest-asyncio = ">= 0.23.4, < 1"
-pytest = ">= 7.0.0, < 8"
+alfred-cli = "^2.2.7"
 altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
-alfred-cli = "^2.2.7"
+mypy = ">= 1.8.0, < 2"
+pandas = ">= 2.2.0, < 3"
+pandas-stubs = ">= 2.0.0, <3"
+plotly = ">= 5.18.0, < 6"
 polars = "^0.20.15"
+pyarrow = ">= 15.0.0, < 16.0.0"
+pytest = ">= 7.0.0, < 8"
+pytest-asyncio = ">= 0.23.4, < 1"
 ruff = "^0.3.4"
+types-requests = "^2.31.0.20240406"
 
 [tool.poetry.extras]
 ds = ["pandas", "pyarrow", "plotly"]

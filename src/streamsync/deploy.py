@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 import tempfile
 
@@ -37,17 +38,24 @@ def pack_project(path):
 
 
 def upload_package(tar, token):
-    print("Uploading package to deployment server")
-    tar.seek(0)
-    files = {'file': tar}
-    with requests.post(
-        url = WRITER_DEPLOY_URL, 
-        headers = {
-            "Authorization": f"Bearer {token}",
-        },
-        files=files,
-        stream=True
-    ) as resp:
-        for line in resp.iter_lines():
-            if line:
-                print(line.decode("utf-8"))
+    try: 
+        print("Uploading package to deployment server")
+        tar.seek(0)
+        files = {'file': tar}
+        with requests.post(
+            url = WRITER_DEPLOY_URL, 
+            headers = {
+                "Authorization": f"Bearer {token}",
+            },
+            files=files,
+            stream=True
+        ) as resp:
+            for line in resp.iter_lines():
+                if line:
+                    print(line.decode("utf-8"))
+    except Exception as e:
+        print("Error uploading package")
+        print(e)
+        sys.exit(1)
+    finally:
+        tar.close()
