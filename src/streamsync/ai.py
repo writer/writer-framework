@@ -43,7 +43,7 @@ def retry(max_retries=3, backoff_factor=1, status_forcelist=(500, 502, 503, 504)
     return decorator
 
 
-def _process_line(line: str):
+def _process_completion_data_chunk(line: str):
     prefix = "data: "
     if line.startswith(prefix):
         line = line[len(prefix):]
@@ -51,6 +51,18 @@ def _process_line(line: str):
         text = data.get("value")
         if text:
             return text
+
+
+def _process_chat_data_chunk(line: str):
+    prefix = "data: "
+    if line.startswith(prefix):
+        line = line[len(prefix):]
+        data: dict = json.loads(line)
+        choices = data.get("choices")
+        if choices and isinstance(choices, list):
+            for entry in choices:
+                message = entry.get("message", {})
+                return message.get("content")
 
 
 class WriterAIManager:
@@ -345,6 +357,7 @@ class Conversation:
     class Message(TypedDict):
         role: str
         content: str
+        actions: Optional[dict]
 
     def __init__(self, config: Optional[dict] = None):
         """
@@ -365,25 +378,35 @@ class Conversation:
         if self.max_tokens is None:
             self.max_tokens = WriterAIManager.get_max_tokens()
 
-    def __add__(self, chunk_or_message: Union['Conversation.Message', str]):
+    def _merge_chunk_to_last_message(self, raw_chunk: dict):
+        def _clear_chunk_flag(chunk):
+            return {key: value for key, value in chunk.items() if key != "chunk"}
+        if not self.messages:
+            raise ValueError("No message to merge chunk with")
+        clear_chunk = _clear_chunk_flag(raw_chunk)
+        updated_last_message: 'Conversation.Message' = self.messages[-1]
+        if "content" in clear_chunk:
+            updated_last_message["content"] += clear_chunk.pop("content")
+        updated_last_message |= clear_chunk
+
+    def __add__(self, chunk_or_message: Union['Conversation.Message', dict]):
         """
         Adds a message or appends a chunk of text to the last message in the conversation.
 
         :param chunk_or_message: Message dictionary or string text to add.
         :raises ValueError: If chunk_or_message is neither a dictionary with "role" and "content" nor a string.
         """
-        if isinstance(chunk_or_message, dict):
-            # Trying to add a whole message
+        if not isinstance(chunk_or_message, dict):
+            raise TypeError("Conversation only supports dict operands for addition")
+        if chunk_or_message.get("chunk") is True:
+            chunk = chunk_or_message
+            self._merge_chunk_to_last_message(chunk)
+        else:
             message = chunk_or_message
             if not ("role" in message and "content" in message):
                 raise ValueError("Improper message format to add to Conversation")
             self.messages.append({"role": message["role"], "content": message["content"]})
-        elif isinstance(chunk_or_message, str):
-            # Trying to add a chunk of text to the last message
-            chunk = chunk_or_message
-            self.messages[-1]["content"] = self.messages[-1]["content"] + chunk
-        else:
-            raise ValueError("Conversation can only be appended with messages (dict) or chunks of text (str)")
+        return self
 
     @property
     def json_config(self) -> dict:
@@ -429,7 +452,7 @@ class Conversation:
                     return text
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
-    def stream_complete(self, data: Optional[dict] = None) -> Generator[str, None, None]:
+    def stream_complete(self, data: Optional[dict] = None) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
         Note: in contrast with `Conversation.complete`, this method is not adding any messages to the conversation.
@@ -445,14 +468,26 @@ class Conversation:
                 messages=self.messages,
                 data=self.json_config | data
             )
+
+        # We avoid flagging first chunk
+        # to trigger creating a message
+        # to append chunks to
+        flag_chunks = False
+
         for line in response:
-            processed_line = _process_line(line)
+            processed_line = _process_chat_data_chunk(line)
             if processed_line:
-                yield processed_line
+                chunk = {"role": "assistant", "content": processed_line}
+                if flag_chunks is True:
+                    chunk |= {"chunk": True}
+                if flag_chunks is False:
+                    flag_chunks = True
+                yield chunk
         else:
             response.close()
 
-    def to_dict(self) -> list:
+    @property
+    def serialized_messages(self) -> list:
         """
         Returns a representation of the conversation, excluding system messages.
 
@@ -461,7 +496,7 @@ class Conversation:
         # Excluding system messages for privacy & security reasons
         serialized_messages = \
             [message for message in self.messages if message["role"] != "system"]
-        return [serialized_messages]
+        return serialized_messages
 
 
 def complete(initial_text: str, data: Optional[dict] = None) -> str:
@@ -494,7 +529,7 @@ def stream_complete(initial_text: str, data: Optional[dict] = None) -> Generator
     """
     response = WriterAIManager.make_call_to_stream_complete(initial_text, data)
     for line in response:
-        processed_line = _process_line(line)
+        processed_line = _process_completion_data_chunk(line)
         if processed_line:
             yield processed_line
     else:
