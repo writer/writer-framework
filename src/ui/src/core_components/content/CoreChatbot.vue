@@ -1,7 +1,7 @@
 <docs lang="md">
-Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message. When the response is ready, return it.
+Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message.
 
-You can add \`actions\` to your response, which are buttons that trigger the \`ss-chatbot-action-click\`.
+You can add \`actions\` to messages, which are buttons that trigger the \`ss-chatbot-action-click\`.
 
 See the stubs for more details.
 </docs>
@@ -13,17 +13,17 @@ See the stubs for more details.
 					v-for="(message, messageId) in messages"
 					:key="messageId"
 					class="message"
-					:class="message.origin"
+					:class="message.role"
 				>
 					<div class="avatar">
 						{{
-							message.origin == "incoming"
-								? fields.incomingInitials.value
-								: fields.outgoingInitials.value
+							message.role == "assistant"
+								? fields.assistantInitials.value
+								: fields.userInitials.value
 						}}
 					</div>
-					<div class="contents">
-						<div v-if="message.isLoading" class="loadingContainer">
+					<div class="content">
+						<div v-if="message.pending" class="loadingContainer">
 							<LoadingSymbol
 								class="loadingSymbol"
 							></LoadingSymbol>
@@ -31,24 +31,19 @@ See the stubs for more details.
 						<template v-else>
 							<div class="text">
 								<BaseMarkdown
-									v-if="
-										message.origin == 'incoming' &&
-										fields.useMarkdown.value == 'yes'
-									"
-									:raw-text="message.contents.text"
+									v-if="fields.useMarkdown.value == 'yes'"
+									:raw-text="message.content"
 								>
 								</BaseMarkdown>
 								<template v-else>
-									{{ message.contents.text }}
+									{{ message.content }}
 								</template>
 							</div>
-							<div
-								v-if="message.contents.actions"
-								class="actions"
-							>
+							<div v-if="message.actions" class="actions">
 								<button
-									v-for="(action, actionIndex) in message
-										.contents.actions"
+									v-for="(
+										action, actionIndex
+									) in message.actions"
 									:key="actionIndex"
 									class="action"
 									@click="handleActionClick(action)"
@@ -66,13 +61,6 @@ See the stubs for more details.
 								</button>
 							</div>
 						</template>
-					</div>
-					<div
-						v-if="message.date"
-						class="time"
-						:title="getFormattedDate(message.date, false)"
-					>
-						{{ getFormattedDate(message.date, true) }}
 					</div>
 				</div>
 			</div>
@@ -164,45 +152,63 @@ const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
+const defaultConversation = `[
+  {
+  "role": "assistant",
+  "content": "How can I help you?"
+  },
+  {
+  "role": "user",
+  "content": "I'm building a Chatbot"
+  }
+]`;
+
 const chatbotMessageStub = `
-def handle_message_simple(payload):
-    query = payload
+def handle_message_simple(payload, state): 
+    state["conversation"] += [{
+        "role": "user",
+        "content": payload
+    }]
+    state["conversation"] += [{
+        "role": "assistant",
+        "content": "Hello human" if payload == "Hello" else "I don't understand"
+    }]
 
-    if query == "Hello":
+    # Handle streaming by appending to the last message
 
-		# You can simply return a string
-
-        return "Hello, human."
-    elif query == "Surprise me":
-
-		# Or you can return a dict with actions, which are buttons
-		# added to the conversation
-
-        return {
-            "text": "I can help you with that.",
-            "actions": [{
-            	"subheading": "Resource",
-            	"name": "Surprise",
-            	"desc": "Click to be surprised",
-            	"data": "change_title" 
-        	}]
-        }
-    else:
-        return "I don't know"
+    import time
+    for i in range(10):
+        conv = state["conversation"] 
+        conv[-1]["content"] += f" {i}"
+        state["conversation"] = conv
+        time.sleep(0.5)
 `.trim();
 
 const chatbotActionClickStub = `
 def handle_action_simple(payload, state):
-    
+
     # payload contains the "data" property of the action 
     
     if payload == "change_title":
-        state["app_title"] = "Surprise!"
         state["app_background_color"] = "red"
-    
-    # A message can be added to the chat
-    
-    return "Hope you're surprised."
+
+# Make an action available when adding a message
+
+def handle_message_with_action(payload, state):
+    state["conversation"] += [{
+        "role": "user",
+        "content": payload
+    }]
+    state["conversation"] += [{
+        "role": "assistant",
+        "content": "I don't know, but check this out.",
+        "actions": [{
+            "subheading": "Resource",
+            "name": "Surprise",
+            "desc": "Click to be surprised",
+            "data": "change_title" 
+        }]
+    }]
 `.trim();
 
 const fileChangeStub = `
@@ -214,10 +220,11 @@ def handle_file_upload(state, payload):
 
     uploaded_files = payload
     for i, uploaded_file in enumerate(uploaded_files):
-		name = uploaded_file.get("name")
+        name = uploaded_file.get("name")
         file_data = uploaded_file.get("data")
         with open(f"{name}-{i}.jpeg", "wb") as file_handle:
-            file_handle.write(file_data)`.trim();
+            file_handle.write(file_data)
+`.trim();
 
 export default {
 	streamsync: {
@@ -225,19 +232,25 @@ export default {
 		description,
 		category: "Content",
 		fields: {
-			incomingInitials: {
-				name: "Incoming initials",
+			conversation: {
+				name: "Conversation",
+				default: defaultConversation,
+				desc: "An array with messages or a writer.ai.Conversation object.",
+				type: FieldType.Object,
+			},
+			assistantInitials: {
+				name: "Assistant initials",
 				default: "AI",
 				type: FieldType.Text,
 			},
-			outgoingInitials: {
-				name: "Outgoing initials",
+			userInitials: {
+				name: "User initials",
 				default: "YOU",
 				type: FieldType.Text,
 			},
 			useMarkdown: {
 				name: "Use Markdown",
-				desc: "It'll only be applied to incoming messages. The output will be sanitised; unsafe elements will be removed.",
+				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
 				type: FieldType.Text,
 				options: {
@@ -257,17 +270,17 @@ export default {
 			},
 			placeholder: {
 				name: "Placeholder",
-				default: "Write something...",
+				default: "What do you need?",
 				type: FieldType.Text,
 			},
-			incomingColor: {
-				name: "Incoming",
+			assistantRoleColor: {
+				name: "Assistant role",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
-			outgoingColor: {
-				name: "Outgoing",
+			userRoleColor: {
+				name: "User role",
 				default: "#F5F5F9",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
@@ -321,33 +334,35 @@ import {
 	inject,
 	ref,
 	computed,
+	ComputedRef,
 } from "vue";
 import injectionKeys from "../../injectionKeys";
 
+type Action = {
+	subheading?: string;
+	name: string;
+	desc?: string;
+	data?: string;
+};
+
 type Message = {
-	origin: "incoming" | "outgoing";
-	isLoading?: boolean;
-	date?: Date;
-	contents: {
-		text: string;
-		actions?: {
-			subheading?: string;
-			name: string;
-			desc?: string;
-			data?: string;
-		}[];
-	};
+	role: string;
+	pending: boolean;
+	content: string;
+	actions?: Action[];
 };
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
-const messages: Ref<Record<string, Message>> = ref({});
 const files: Ref<File[]> = shallowRef([]);
 const isUploadingFiles = ref(false);
-let messageCounter = 0;
 let resizeObserver: ResizeObserver;
+
+const messages: ComputedRef<Message[]> = computed(() => {
+	return fields.conversation?.value ?? [];
+});
 
 const outgoingMessage: Ref<string> = ref("");
 
@@ -359,95 +374,21 @@ const isUploadSizeExceeded = computed(() => {
 	return filesSize >= MAX_FILE_SIZE;
 });
 
-function getFormattedDate(date: Date, isTimeOnly: boolean) {
-	if (!date) return;
-
-	if (!isTimeOnly) {
-		return date.toLocaleString();
-	}
-
-	const options: Intl.DateTimeFormatOptions = {
-		hour: "numeric",
-		minute: "numeric",
-		hour12: true,
-	};
-	return date.toLocaleTimeString(undefined, options);
-}
-
-function addMessage(message: Message) {
-	messageCounter += 1;
-	const messageKey = `msg${messageCounter}`;
-	messages.value[messageKey] = message;
-	return messageKey;
-}
-
-function replaceMessage(messageKey: string, message: Message) {
-	messages.value[messageKey] = message;
-}
-
 function handleMessageSent() {
-	addMessage({
-		origin: "outgoing",
-		contents: {
-			text: outgoingMessage.value,
-		},
-		date: new Date(),
-	});
-	const outgoingMessageKey = addMessage({
-		origin: "incoming",
-		contents: {
-			text: "Loading...",
-		},
-		isLoading: true,
-	});
 	const event = new CustomEvent("ss-chatbot-message", {
 		detail: {
 			payload: outgoingMessage.value,
-			callback: ({ payload }) => {
-				const callbackResult = payload?.result?.result;
-				if (!callbackResult) return;
-				replaceMessage(outgoingMessageKey, {
-					origin: "incoming",
-					contents: getNormalisedCallbackResult(callbackResult),
-					date: new Date(),
-				});
-			},
 		},
 	});
 	rootEl.value.dispatchEvent(event);
 	outgoingMessage.value = "";
 }
 
-/**
- * Allows strings to be sent from the backend as a substitute of Message["contents"].
- *
- * @param callbackResult
- */
-function getNormalisedCallbackResult(
-	callbackResult: string | Message["contents"],
-): Message["contents"] {
-	if (typeof callbackResult == "string") {
-		return {
-			text: callbackResult,
-		};
-	}
-	return callbackResult;
-}
-
-function handleActionClick(action: Message["contents"]["actions"][number]) {
+function handleActionClick(action: Message["actions"][number]) {
 	const { data } = action;
 	const event = new CustomEvent("ss-chatbot-action-click", {
 		detail: {
 			payload: data,
-			callback: ({ payload }) => {
-				const callbackResult = payload?.result?.result;
-				if (!callbackResult) return;
-				addMessage({
-					origin: "incoming",
-					contents: getNormalisedCallbackResult(callbackResult),
-					date: new Date(),
-				});
-			},
 		},
 	});
 	rootEl.value.dispatchEvent(event);
@@ -533,16 +474,9 @@ async function handleUploadFiles() {
 	const event = new CustomEvent("ss-file-change", {
 		detail: {
 			payload,
-			callback: ({ payload }) => {
+			callback: () => {
 				isUploadingFiles.value = false;
 				files.value = [];
-				const callbackResult = payload?.result?.result;
-				if (!callbackResult) return;
-				addMessage({
-					origin: "incoming",
-					contents: getNormalisedCallbackResult(callbackResult),
-					date: new Date(),
-				});
 			},
 		},
 	});
@@ -620,7 +554,7 @@ onBeforeUnmount(() => {
 	text-transform: uppercase;
 }
 
-.message .contents {
+.message .content {
 	border-radius: 8px;
 	width: fit-content;
 	flex: 0 1 auto;
@@ -635,26 +569,26 @@ onBeforeUnmount(() => {
 	text-wrap: nowrap;
 }
 
-.message.incoming .contents {
+.message.assistant .content {
 	background: v-bind(
-		"fields.incomingColor.value ? fields.incomingColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'"
+		"fields.assistantRoleColor.value ? fields.assistantRoleColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'"
 	);
 }
 
-.message.outgoing .contents {
-	background: var(--outgoingColor);
+.message.user .content {
+	background: var(--userRoleColor);
 }
 
-.contents .loadingContainer {
+.content .loadingContainer {
 	padding: 16px;
 }
 
-.contents .text {
+.content .text {
 	line-height: 2;
 	padding: 12px 16px 12px 16px;
 }
 
-.contents .actions {
+.content .actions {
 	padding: 16px;
 	background: rgba(0, 0, 0, 0.02);
 	display: flex;
@@ -662,7 +596,7 @@ onBeforeUnmount(() => {
 	flex-wrap: wrap;
 }
 
-.contents .actions .action {
+.content .actions .action {
 	padding: 12px;
 	border-radius: 4px;
 	background: var(--containerBackgroundColor);
