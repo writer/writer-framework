@@ -1456,7 +1456,8 @@
             "content": {
                 "name": "Ramiro",
                 "caption": "Engineering - Writer Framework",
-                "size": ""
+                "size": "",
+                "orientation": "vertical"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -1637,6 +1638,48 @@
             "position": 0,
             "parentId": "a1f3ln5dzino6e3p",
             "handlers": {},
+            "visible": true
+        },
+        "4zildpxbjckbpydr": {
+            "id": "4zildpxbjckbpydr",
+            "type": "image",
+            "content": {
+                "caption": "Image Caption"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "wbl4qliuwb7w2vtd",
+            "handlers": {},
+            "visible": true
+        },
+        "hf72u3houk2xt1v0": {
+            "id": "hf72u3houk2xt1v0",
+            "type": "page",
+            "parentId": "root",
+            "content": {},
+            "handlers": {},
+            "position": 4,
+            "visible": true
+        },
+        "zl5jznav4hsen4n1": {
+            "id": "zl5jznav4hsen4n1",
+            "type": "section",
+            "parentId": "hf72u3houk2xt1v0",
+            "content": {
+                "title": "Section Title",
+                "containerBackgroundColor": "#6b6b6b"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "a3s94dx0uywqoikc": {
+            "id": "a3s94dx0uywqoikc",
+            "type": "chatbot",
+            "parentId": "zl5jznav4hsen4n1",
+            "content": {},
+            "handlers": {},
+            "position": 0,
             "visible": true
         }
     }

@@ -61,6 +61,7 @@ instanceData.at(-1).value = { activeTab: undefined };
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreTabs {
 	width: 100%;

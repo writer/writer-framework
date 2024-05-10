@@ -583,8 +583,6 @@ onBeforeUnmount(() => {
 	height: 80vh;
 	border-radius: 8px;
 	overflow: hidden;
-	background: var(--containerBackgroundColor);
-	border: 1px solid var(--separatorColor);
 }
 
 .messageArea {

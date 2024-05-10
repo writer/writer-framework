@@ -25,7 +25,7 @@ else:
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
 		<div v-else class="empty">
-			<h3>Blank Message</h3>
+			<h3>Blank message</h3>
 		</div>
 	</div>
 </template>

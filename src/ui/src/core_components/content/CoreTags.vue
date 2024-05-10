@@ -14,7 +14,7 @@
 				:style="{ background: generateColor(tagId) }"
 				@click="() => handleTagClick(tagId)"
 			>
-				{{ tagDesc }}
+				<span>{{ tagDesc }}</span>
 			</div>
 		</template>
 		<div v-else class="tag empty">
@@ -167,6 +167,7 @@ function handleTagClick(tagId: string) {
 	padding: 6px 12px 6px 12px;
 	border-radius: 16px;
 	font-size: 0.75rem;
+	line-height: 100%;
 	font-weight: 500;
 	letter-spacing: 1.3px;
 	text-transform: uppercase;

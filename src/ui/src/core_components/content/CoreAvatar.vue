@@ -131,11 +131,11 @@ function handleClick(ev: MouseEvent) {
 }
 
 .CoreAvatar.medium {
-	gap: 24px;
+	gap: 16px;
 }
 
 .CoreAvatar.large {
-	gap: 24px;
+	gap: 16px;
 }
 
 .CoreAvatar.vertical {
@@ -156,10 +156,6 @@ function handleClick(ev: MouseEvent) {
 	);
 	color: var(--primaryTextColor);
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
-}
-
-.image i {
-	opacity: 0.3;
 }
 
 .info {
@@ -192,7 +188,7 @@ function handleClick(ev: MouseEvent) {
 }
 
 .name {
-	font-weight: bold;
+	font-weight: 500;
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
 }
 

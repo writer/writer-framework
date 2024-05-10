@@ -57,7 +57,7 @@ const message = computed(() => {
 
 .ChildlessPlaceholder {
 	background: #e4e7ed;
-	color: var(--primaryTextColor);
+	color: #4f4f4f;
 	padding: 16px;
 	display: flex;
 	align-items: center;
@@ -71,7 +71,7 @@ const message = computed(() => {
 }
 
 .title > h3 {
-	color: var(--primaryTextColor);
+	color: #4f4f4f;
 }
 
 .message {
