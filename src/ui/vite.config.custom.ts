@@ -20,7 +20,16 @@ export default defineConfig({
 			entry: ["./src/custom_components"],
 			formats: ["umd"],
 			name: "StreamsyncCustomComponentTemplates",
-			fileName: "templates",
+			fileName: (format, entryalias: string): string => {
+				/*
+				The umd file is generated with a cjs extension since transforming the streamsync package into a module
+				(https://github.com/streamsync-cloud/streamsync/issues/405).
+
+				We use the generated file inside a browser, not a nodejs application.
+				The cjs extension is not adapted. We implement our own name builder.
+				 */
+				return "templates.umd.js";
+			},
 		},
 		rollupOptions: {
 			external: ["vue", "../injectionKeys"],

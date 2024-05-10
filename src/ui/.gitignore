@@ -6,3 +6,4 @@ node_modules/
 storybook-static/
 
 *storybook.log
+/custom_components_dist
