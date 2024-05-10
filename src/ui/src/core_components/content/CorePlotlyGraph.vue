@@ -90,7 +90,6 @@ const renderChart = async () => {
 			...spec.value?.layout,
 		},
 	};
-	console.log(chartObj);
 	Plotly.newPlot(chartTargetEl.value, chartObj);
 	bindPlotlyEvents();
 	if (spec.value?.layout?.autosize) {
