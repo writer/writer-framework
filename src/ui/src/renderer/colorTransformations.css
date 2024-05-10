@@ -1,7 +1,7 @@
 .component, .colorTransformer {
 	--softenedAccentColor: var(--accentColor);
 	--intensifiedAccentColor: var(--accentColor);
-    --intensifiedButtonColor: var(--buttonColor);
+	--intensifiedButtonColor: var(--buttonColor);
     --softenedSeparatorColor: var(--separatorColor);
     --intensifiedSeparatorColor: var(--separatorColor);
 }

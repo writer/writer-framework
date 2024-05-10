@@ -1,9 +1,9 @@
 <template>
-	<input type="text" />
+	<textarea></textarea>
 </template>
 
 <style scoped>
-input {
+textarea {
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
@@ -12,10 +12,9 @@ input {
 	font-size: 0.875rem;
 	outline: none;
 	color: var(--primaryTextColor);
-	background: transparent;
 }
 
-input:focus {
+textarea:focus {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
