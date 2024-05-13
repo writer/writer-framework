@@ -39,6 +39,7 @@ pyarrow = {version = ">= 15.0.0, < 16.0.0",optional = true}
 plotly = {version = ">= 5.18.0, < 6", optional = true}
 gitignore-parser = "^0.1.11"
 requests = "^2.31.0"
+python-dateutil = "^2.9.0.post0"
 
 
 [tool.poetry.group.build]
