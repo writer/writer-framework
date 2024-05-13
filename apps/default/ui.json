@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.4"
+        "streamsync_version": "0.5.0"
     },
     "components": {
         "root": {
@@ -9,7 +9,7 @@
             "content": {
                 "appName": "My App"
             },
-            "parentId": null,
+            "isCodeManaged": false,
             "position": 0,
             "handlers": {},
             "visible": true
@@ -18,11 +18,11 @@
             "id": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
             "type": "page",
             "content": {
-                "pageMode": "compact",
-                "emptinessColor": "#e9eef1"
+                "pageMode": "compact"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -32,8 +32,9 @@
             "content": {
                 "text": "@{my_app.title}"
             },
-            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
             "handlers": {},
             "visible": true
         },
@@ -42,11 +43,11 @@
             "type": "section",
             "content": {
                 "title": "",
-                "snapMode": "no",
                 "containerShadow": "0px 4px 11px -12px #000000"
             },
-            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
             "handlers": {},
             "visible": true
         },
@@ -55,10 +56,11 @@
             "type": "button",
             "content": {
                 "text": " Increment",
-                "icon": "arrow-up"
+                "icon": "arrow_upward"
             },
-            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "handlers": {
                 "click": "increment"
             },
@@ -69,10 +71,11 @@
             "type": "button",
             "content": {
                 "text": "Decrement",
-                "icon": "arrow-down"
+                "icon": "arrow_downward"
             },
-            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "handlers": {
                 "click": "decrement"
             },
@@ -82,10 +85,11 @@
             "id": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "type": "horizontalstack",
             "content": {
-                "alignment": "left"
+                "contentHAlign": "center"
             },
-            "parentId": "f3777e75-3659-4d44-8ef7-aeec0d06855b",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "f3777e75-3659-4d44-8ef7-aeec0d06855b",
             "handlers": {},
             "visible": true
         },
@@ -97,8 +101,9 @@
                 "note": "@{message}",
                 "name": "Counter"
             },
-            "parentId": "c2519671-9ce7-44e7-ba4e-b0efda9cb20e",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c2519671-9ce7-44e7-ba4e-b0efda9cb20e",
             "handlers": {},
             "visible": true
         },
@@ -106,8 +111,9 @@
             "id": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
             "type": "columns",
             "content": {},
-            "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
             "handlers": {},
             "visible": true
         },
@@ -117,11 +123,12 @@
             "content": {
                 "title": "",
                 "width": "1",
-                "verticalAlignment": "center",
-                "horizontalAlignment": "center"
+                "contentHAlign": "center",
+                "contentVAlign": "center"
             },
-            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
             "handlers": {},
             "visible": true
         },
@@ -131,8 +138,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
             "handlers": {},
             "visible": true
         },
@@ -140,8 +148,9 @@
             "id": "d4a71819-7444-4083-a1c7-7995452a7abf",
             "type": "separator",
             "content": {},
-            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
             "handlers": {},
             "visible": true
         }
