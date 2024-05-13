@@ -1,7 +1,10 @@
 <template>
-	<div ref="rootEl" class="CoreTextInput">
-		<label>{{ fields.label.value }}</label>
-		<input
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreTextInput"
+	>
+		<WdsTextInput
 			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
 			:value="formValue"
 			:placeholder="fields.placeholder.value"
@@ -21,12 +24,14 @@
 					)
 			"
 		/>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
+import WdsTextInput from "../../wds/WdsTextInput.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to enter single-line text values.";
@@ -63,6 +68,7 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
+			accentColor,
 			cssClasses,
 		},
 		events: {
@@ -84,32 +90,26 @@ export default {
 import { inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreTextInput {
 	max-width: 70ch;
 	width: 100%;
-}
-
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
-}
-
-input {
-	width: 100%;
-	margin: 0;
-	border: 1px solid var(--separatorColor);
 }
 </style>

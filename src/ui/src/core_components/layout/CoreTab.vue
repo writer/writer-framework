@@ -199,21 +199,35 @@ onBeforeMount(() => {
 @import "../../renderer/sharedStyles.css";
 
 button.bit {
-	padding: 16px 0 16px 0;
+	padding: 11.5px 0 9.5px 0;
 	border: none;
-	border-radius: 0;
 	margin: 0;
-	background: var(--containerBackgroundColor);
+	background: unset;
+	color: var(--secondaryTextColor);
+	font-size: 0.875rem;
+	border-bottom: 2px solid transparent;
+	outline: none;
+	cursor: pointer;
+}
+
+button.bit:hover {
+	padding: 11.5px 0 9.5px 0;
+	border: none;
+	margin: 0;
+	background: unset;
+	color: var(--secondaryTextColor);
+	font-size: 0.875rem;
+	border-bottom: 2px solid var(--separatorColor);
+	outline: none;
 }
 
 button.bit:focus {
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--primaryTextColor);
 }
 
-button.bit.active,
-button.bit.active:focus {
+button.bit.active {
+	font-weight: 500;
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--accentColor);
+	border-bottom: 2px solid var(--primaryTextColor);
 }
 </style>

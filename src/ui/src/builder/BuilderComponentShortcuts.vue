@@ -21,7 +21,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-add-line"></i>
+				<i class="material-symbols-outlined">add</i>
 			</div>
 			<div
 				class="actionButton"
@@ -35,7 +35,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-arrow-up-line"></i>
+				<i class="material-symbols-outlined">arrow_upward</i>
 			</div>
 			<div
 				class="actionButton"
@@ -49,7 +49,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-arrow-down-line"></i>
+				<i class="material-symbols-outlined">arrow_downward</i>
 			</div>
 
 			<div
@@ -64,7 +64,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-scissors-line"></i>
+				<i class="material-symbols-outlined">cut</i>
 			</div>
 			<div
 				class="actionButton"
@@ -78,7 +78,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-file-copy-line"></i>
+				<i class="material-symbols-outlined">content_copy</i>
 			</div>
 			<div
 				class="actionButton"
@@ -92,7 +92,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-clipboard-line"></i>
+				<i class="material-symbols-outlined">content_paste</i>
 			</div>
 			<div
 				class="actionButton"
@@ -106,7 +106,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-parent-line"></i>
+				<i class="material-symbols-outlined">move_up</i>
 			</div>
 			<div
 				class="actionButton delete"
@@ -121,7 +121,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-delete-bin-line"></i>
+				<i class="material-symbols-outlined">delete</i>
 			</div>
 		</template>
 		<template v-if="isAddMode">
@@ -268,6 +268,7 @@ onMounted(() => {
 	background: var(--builderBackgroundColor);
 	pointer-events: auto;
 	overflow: hidden;
+	font-size: 0.75rem;
 }
 
 .type {

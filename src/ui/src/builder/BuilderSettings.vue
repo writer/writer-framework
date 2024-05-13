@@ -1,9 +1,6 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettings">
 		<div class="windowBar">
-			<div class="icon">
-				<i class="ri-settings-3-line ri-lg"></i>
-			</div>
 			<div class="title">
 				{{ componentDefinition.name }}
 			</div>
@@ -14,9 +11,11 @@
 				:title="(docsActive ? 'Hide' : 'Show') + ' inline docs'"
 				@click="toggleDocs"
 			>
-				<i class="ri-question-line ri-lg"></i>
-				<i v-if="docsActive" class="ri-arrow-drop-up-line ri-lg"></i>
-				<i v-else class="ri-arrow-drop-down-line ri-lg"></i>
+				<i class="material-symbols-outlined">help</i>
+				<i v-if="docsActive" class="material-symbols-outlined"
+					>expand_less</i
+				>
+				<i v-else class="material-symbols-outlined">expand_more</i>
 			</button>
 			<button
 				class="windowAction"
@@ -24,7 +23,7 @@
 				title="Close (Esc)"
 				@click="closeSettings"
 			>
-				<i class="ri-close-line ri-lg"></i>
+				<i class="material-symbols-outlined">close</i>
 			</button>
 		</div>
 
@@ -38,7 +37,7 @@
 		</div>
 
 		<div v-if="readonly" class="warning cmc-warning">
-			<i class="ri-error-warning-line ri-xl"></i>
+			<i class="material-symbols-outlined">warning</i>
 			<span>
 				This component is instantiated in code. All settings in this
 				panel are read-only and cannot be edited.

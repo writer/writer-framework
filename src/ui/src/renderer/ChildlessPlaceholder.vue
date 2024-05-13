@@ -2,7 +2,7 @@
 	<div class="ChildlessPlaceholder">
 		<div class="content">
 			<div class="title">
-				<h2>Empty {{ definition.name }}</h2>
+				<h3>Empty {{ definition.name }}</h3>
 			</div>
 			<div v-if="message" class="message">
 				{{ message }}
@@ -56,8 +56,8 @@ const message = computed(() => {
 @import "./sharedStyles.css";
 
 .ChildlessPlaceholder {
-	background: rgba(0, 0, 0, 0.05);
-	color: var(--primaryTextColor);
+	background: #e4e7ed;
+	color: #4f4f4f;
 	padding: 16px;
 	display: flex;
 	align-items: center;
@@ -70,9 +70,8 @@ const message = computed(() => {
 	text-align: center;
 }
 
-.title > h2 {
-	color: var(--primaryTextColor);
-	opacity: 0.8;
+.title > h3 {
+	color: #4f4f4f;
 }
 
 .message {

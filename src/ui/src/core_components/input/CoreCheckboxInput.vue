@@ -1,6 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreCheckboxInput">
-		<div class="mainLabel">{{ fields.label.value }}</div>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreCheckboxInput"
+	>
 		<div
 			class="options"
 			:class="{
@@ -29,14 +32,19 @@
 				</label>
 			</div>
 		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { ComponentPublicInstance, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
+import {
+	accentColor,
+	cssClasses,
+	primaryTextColor,
+} from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const defaultOptions = { a: "Option A", b: "Option B" };
 
@@ -79,6 +87,8 @@ export default {
 				category: FieldCategory.Style,
 				desc: "Specify how to lay out the options.",
 			},
+			primaryTextColor,
+			accentColor,
 			cssClasses,
 		},
 		events: {
@@ -97,17 +107,21 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 
 function getCheckedKeys() {
-	if (!rootEl.value) return;
+	if (!rootInstance.value) return;
 	const checkboxEls = Array.from(
-		rootEl.value.querySelectorAll(`input[type="checkbox"]`),
+		rootInstance.value.$el.querySelectorAll(`input[type="checkbox"]`),
 	) as HTMLInputElement[];
 	const checkedValues = checkboxEls
 		.map((checkboxEl) =>
@@ -120,18 +134,17 @@ function getCheckedKeys() {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-.CoreCheckboxInput {
-	width: 100%;
-}
+@import "../../renderer/colorTransformations.css";
 
-.mainLabel:not(:empty) {
-	margin-bottom: 12px;
+.CoreCheckboxInput {
+	width: fit-content;
+	max-width: 100%;
 }
 
 .options {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 5px;
 }
 
 .options.horizontal {
@@ -147,10 +160,8 @@ function getCheckedKeys() {
 }
 
 input {
-	margin: 0 8px 0 0;
-}
-
-label {
-	color: var(--primaryTextColor);
+	margin-right: 8px;
+	accent-color: var(--accentColor);
+	outline-color: var(--softenedAccentColor);
 }
 </style>

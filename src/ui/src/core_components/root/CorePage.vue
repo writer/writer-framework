@@ -29,7 +29,6 @@ import {
 	emptinessColor,
 	primaryTextColor,
 	secondaryTextColor,
-	selectedColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
@@ -113,7 +112,6 @@ export default {
 			buttonColor,
 			buttonTextColor,
 			buttonShadow,
-			selectedColor,
 			cssClasses,
 		},
 		previewField: "key",

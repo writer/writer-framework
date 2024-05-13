@@ -1,6 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreRatingInput">
-		<label v-if="fields.label.value">{{ fields.label.value }}</label>
+	<BaseInputWrapper
+		ref="rootInstance"
+		class="CoreRatingInput"
+		:label="fields.label.value"
+	>
 		<div
 			ref="unitsEl"
 			class="units"
@@ -43,7 +46,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
@@ -53,6 +56,8 @@ import {
 	cssClasses,
 	primaryTextColor,
 } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to provide a rating.";
@@ -123,13 +128,17 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const unitsEl: Ref<HTMLElement> = ref(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const provisionalValue: Ref<number> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 
 function getRawRatingFromEvent(event: MouseEvent) {
 	const evX = event.offsetX;
@@ -238,12 +247,6 @@ const feedbackRating = computed(() => {
 
 .CoreRatingInput {
 	width: fit-content;
-}
-
-label {
-	display: block;
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
 }
 
 .units {

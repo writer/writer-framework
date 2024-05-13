@@ -67,11 +67,7 @@ See the stubs for more details.
 		</div>
 		<template v-if="files.length > 0">
 			<div class="filesArea">
-				<template v-if="isUploadingFiles">
-					<LoadingSymbol class="loadingSymbol"></LoadingSymbol>
-
-					Uploading...
-				</template>
+				<template v-if="isUploadingFiles"> Uploading... </template>
 				<div v-if="!isUploadingFiles" class="list">
 					<div
 						v-for="(file, fileIndex) in files"
@@ -86,47 +82,62 @@ See the stubs for more details.
 								{{ prettyBytes(file.size) }}
 							</div>
 						</div>
-						<button
-							variant="subtle"
-							@click="handleRemoveFile(fileIndex)"
-						>
-							<i class="ri-close-line"></i>
-						</button>
+						<WdsControl @click="handleRemoveFile(fileIndex)">
+							<i class="material-symbols-outlined"> delete </i>
+						</WdsControl>
 					</div>
 				</div>
 			</div>
 			<div class="filesButtons">
-				<button
+				<WdsControl
 					v-if="!isUploadSizeExceeded && !isUploadingFiles"
-					class="uploadButton"
+					title="Upload"
 					@click="handleUploadFiles"
 				>
-					<i class="ri-upload-line"></i>Upload
-				</button>
+					<i class="material-symbols-outlined">upload</i>
+				</WdsControl>
 				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
-					<i class="ri-file-warning-line"></i> Size limit of
+					<i class="material-symbols-outlined">warning</i>
+					Size limit of
 					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
 				</div>
 			</div>
 		</template>
 		<div class="inputArea">
-			<textarea
+			<WdsTextareaInput
 				v-model="outgoingMessage"
 				:placeholder="fields.placeholder.value"
 				@keydown.prevent.enter="handleMessageSent"
-			></textarea>
+			>
+			</WdsTextareaInput>
 		</div>
 		<div class="inputButtons">
-			<button title="Send message" @click="handleMessageSent">
-				<i class="ri-send-plane-line"></i>
-			</button>
-			<button
+			<WdsControl
+				class="send action"
+				title="Send message"
+				@click="handleMessageSent"
+			>
+				<svg
+					width="15"
+					height="12"
+					viewBox="0 0 15 12"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path
+						d="M14.0712 4.50295C14.2882 4.72002 14.2882 5.07197 14.0712 5.28905L10.5337 8.8265C10.3166 9.04357 9.96468 9.04357 9.7476 8.8265C9.53052 8.60942 9.53052 8.25747 9.7476 8.0404L12.892 4.896L9.7476 1.7516C9.53052 1.53452 9.53052 1.18257 9.7476 0.965495C9.96467 0.74842 10.3166 0.74842 10.5337 0.965495L14.0712 4.50295ZM13.6781 5.45185L3.67268 5.45185L3.67268 4.34014L13.6781 4.34014L13.6781 5.45185ZM2.00511 7.11942L2.00511 8.23114L0.893394 8.23114L0.893394 7.11942L2.00511 7.11942ZM3.67268 9.89871L5.52553 9.89871L5.52553 11.0104L3.67268 11.0104L3.67268 9.89871ZM2.00511 8.23114C2.00511 9.15211 2.7517 9.89871 3.67268 9.89871L3.67268 11.0104C2.13772 11.0104 0.893394 9.76609 0.893394 8.23114L2.00511 8.23114ZM3.67268 5.45185C2.7517 5.45185 2.00511 6.19845 2.00511 7.11942L0.893394 7.11942C0.893394 5.58447 2.13772 4.34014 3.67268 4.34014L3.67268 5.45185Z"
+						fill="currentColor"
+					/>
+				</svg>
+			</WdsControl>
+			<WdsControl
 				v-if="fields.enableFileUpload.value != 'no'"
+				class="action"
 				title="Attach files"
 				@click="handleAttachFiles"
 			>
-				<i class="ri-attachment-line"></i>
-			</button>
+				<i class="material-symbols-outlined">attach_file</i>
+			</WdsControl>
 		</div>
 	</div>
 </template>
@@ -136,6 +147,7 @@ import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
 import { FieldCategory, FieldType } from "../../streamsyncTypes";
 import {
+	accentColor,
 	buttonColor,
 	buttonTextColor,
 	containerBackgroundColor,
@@ -145,6 +157,8 @@ import {
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
 import prettyBytes from "pretty-bytes";
+import WdsTextareaInput from "../../wds/WdsTextareaInput.vue";
+import WdsControl from "../../wds/WdsControl.vue";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -162,7 +176,7 @@ const defaultConversation = `[
 ]`;
 
 const chatbotMessageStub = `
-def handle_message_simple(payload, state): 
+def handle_message_simple(payload, state):
     state["conversation"] += [{
         "role": "user",
         "content": payload
@@ -176,7 +190,7 @@ def handle_message_simple(payload, state):
 
     import time
     for i in range(10):
-        conv = state["conversation"] 
+        conv = state["conversation"]
         conv[-1]["content"] += f" {i}"
         state["conversation"] = conv
         time.sleep(0.5)
@@ -185,8 +199,8 @@ def handle_message_simple(payload, state):
 const chatbotActionClickStub = `
 def handle_action_simple(payload, state):
 
-    # payload contains the "data" property of the action 
-    
+    # payload contains the "data" property of the action
+
     if payload == "change_title":
         state["app_background_color"] = "red"
 
@@ -204,7 +218,7 @@ def handle_message_with_action(payload, state):
             "subheading": "Resource",
             "name": "Surprise",
             "desc": "Click to be surprised",
-            "data": "change_title" 
+            "data": "change_title"
         }]
     }]
 `.trim();
@@ -298,12 +312,19 @@ export default {
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
+			accentColor,
 			containerBackgroundColor,
 			primaryTextColor,
 			secondaryTextColor,
 			separatorColor,
-			buttonColor,
-			buttonTextColor,
+			buttonColor: {
+				...buttonColor,
+				default: "#000000",
+			},
+			buttonTextColor: {
+				...buttonTextColor,
+				default: "#ffffff",
+			},
 			cssClasses,
 		},
 		events: {
@@ -507,28 +528,24 @@ onBeforeUnmount(() => {
 </script>
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreChatbot {
 	display: grid;
-	grid-template-columns: 1fr fit-content(20%);
+	grid-template-columns: 1fr 20%;
 	grid-template-rows: 1fr fit-content(20%) 20%;
 	height: 80vh;
-	border-radius: 8px;
-	overflow: hidden;
-	background: var(--containerBackgroundColor);
-	border: 1px solid var(--separatorColor);
+	gap: 16px;
 }
 
 .messageArea {
 	overflow-y: auto;
 	overflow-x: hidden;
-	border-bottom: 1px solid var(--separatorColor);
 	grid-column: 1 / 3;
 	grid-row: 1;
 }
 
 .messages {
-	padding: 16px;
 	display: flex;
 	gap: 16px;
 	flex-direction: column;
@@ -543,11 +560,13 @@ onBeforeUnmount(() => {
 	border-radius: 50%;
 	background: var(--avatarBackgroundColor);
 	color: var(--avatarTextColor);
-	height: 36px;
-	width: 36px;
-	flex: 0 0 36px;
+	margin-top: 6px;
+	height: 32px;
+	width: 32px;
+	flex: 0 0 32px;
 	display: flex;
-	font-weight: bold;
+	font-weight: 500;
+	font-size: 0.75rem;
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
@@ -562,16 +581,9 @@ onBeforeUnmount(() => {
 	white-space: pre-wrap;
 }
 
-.message .time {
-	color: var(--secondaryTextColor);
-	font-size: 0.7rem;
-	align-self: end;
-	text-wrap: nowrap;
-}
-
 .message.assistant .content {
 	background: v-bind(
-		"fields.assistantRoleColor.value ? fields.assistantRoleColor.value : 'linear-gradient(264.27deg, rgb(245, 235, 255) 0.71%, rgb(255, 241, 237) 100%)'"
+		"fields.assistantRoleColor.value ? fields.assistantRoleColor.value : 'linear-gradient(264deg, #f5ebff 0.71%, #eef1ff 100%)'"
 	);
 }
 
@@ -622,12 +634,10 @@ onBeforeUnmount(() => {
 .filesArea {
 	grid-column: 1;
 	grid-row: 2;
-	border-bottom: 1px solid var(--separatorColor);
 	overflow-y: auto;
 }
 
 .filesArea .list {
-	padding: 16px;
 	flex: 1 1 auto;
 	display: flex;
 	flex-wrap: wrap;
@@ -636,12 +646,12 @@ onBeforeUnmount(() => {
 }
 
 .file {
-	background: var(--separatorColor);
+	background: var(--softenedSeparatorColor);
 	border-radius: 8px;
 	display: flex;
 	gap: 16px;
 	align-items: center;
-	padding: 8px;
+	padding: 12px;
 	font-size: 0.7rem;
 }
 
@@ -658,32 +668,18 @@ onBeforeUnmount(() => {
 	color: var(--secondaryTextColor);
 }
 
-.file button {
-	border-radius: 8px;
-	padding: 0;
-	width: 24px;
-	height: 24px;
-	background: unset;
-}
-
 .filesButtons {
 	grid-column: 2;
 	grid-row: 2;
-	padding: 16px;
-	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
 	flex-direction: column;
+	align-items: end;
 	justify-content: center;
-}
-
-.filesButtons .uploadButton {
-	display: flex;
-	gap: 8px;
-	align-items: center;
+	padding-right: 14px;
 }
 
 .inputArea {
-	grid-column: 1;
+	grid-column: 1 / 3;
 	grid-row: 3;
 	text-align: right;
 	display: flex;
@@ -691,31 +687,26 @@ onBeforeUnmount(() => {
 }
 
 .inputArea textarea {
-	border: none;
 	width: 100%;
 	height: 100%;
-	padding: 16px;
 	resize: none;
+	border-radius: 12px;
+	padding: 14px 20% 14px 14px;
 	background: transparent;
-	color: var(--primaryTextColor);
-	font-size: 0.8rem;
 }
 
 .inputButtons {
 	grid-column: 2;
 	grid-row: 3;
 	display: flex;
-	padding: 16px;
+	padding: 14px;
 	flex-direction: column;
 	gap: 8px;
 	align-items: flex-end;
 }
 
-.inputButtons button {
-	height: fit-content;
-	flex: 0 0 auto;
-	display: flex;
-	gap: 8px;
-	align-items: center;
+.inputButtons .action {
+	color: var(--buttonTextColor);
+	background-color: var(--buttonColor);
 }
 </style>
