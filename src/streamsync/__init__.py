@@ -9,7 +9,6 @@ from streamsync.core import (
     Readable,
     State,
     StreamsyncState,
-    base_cmc_tree,
     base_component_tree,
     initial_state,
     new_initial_state,
@@ -21,7 +20,6 @@ from streamsync.ui import StreamsyncUIManager
 VERSION = importlib.metadata.version("streamsync")
 
 base_component_tree
-base_cmc_tree
 session_manager
 Config
 session_verifier

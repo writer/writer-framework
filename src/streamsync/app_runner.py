@@ -15,12 +15,12 @@ from types import ModuleType
 from typing import Callable, Dict, List, Optional, cast
 
 import watchdog.events
-import watchdog.observers
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from streamsync import VERSION
 from streamsync.core import EventHandlerRegistry, StreamsyncSession
+from streamsync.core_ui import ingest_bmc_component_tree
 from streamsync.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -206,13 +206,12 @@ class AppProcess(multiprocessing.Process):
     
     def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
         import streamsync
-        streamsync.base_component_tree.ingest(payload.components)
+        ingest_bmc_component_tree(streamsync.base_component_tree, payload.components)
 
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
         Handles messages from the main process to the app's isolated process.
         """
-
         import streamsync
 
         session = None
@@ -325,7 +324,7 @@ class AppProcess(multiprocessing.Process):
         terminate_early = False
 
         try:
-            streamsync.base_component_tree.ingest(self.bmc_components)
+            ingest_bmc_component_tree(streamsync.base_component_tree, self.bmc_components)
         except BaseException:
             streamsync.core.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())

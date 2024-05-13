@@ -1,20 +1,38 @@
 import contextlib
+import copy
 import logging
 import uuid
 from contextvars import ContextVar
-from typing import Any, Dict, List, Optional, Union
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union, cast
 
 from pydantic import BaseModel, Field
 
 current_parent_container: ContextVar[Union["Component", None]] = \
     ContextVar("current_parent_container")
-_current_component_tree: ContextVar[Union["DependentComponentTree", None]] = \
-    ContextVar("current_component_tree", default=None)
+
 # This variable is thread safe and context safe
+_current_component_tree: ContextVar[Union["ComponentTree", None]] = \
+    ContextVar("current_component_tree", default=None)
 
 
 def generate_component_id():
     return str(uuid.uuid4())
+
+
+class Branch(Enum):
+    """
+    Enum for the component tree branches that can be created in streamsync
+
+    * bmc: builder managed component
+    * initial_cmc: code managed component
+    * session: session managed component
+
+    This enum should be used only in the module core_ui.py.
+    """
+    bmc = "bmc"
+    initial_cmc = "initial_cmc"
+    session_cmc = "session_cmc"
 
 
 class Component(BaseModel):
@@ -42,72 +60,71 @@ class Component(BaseModel):
         current_parent_container.reset(self._token)
 
 
-class ComponentTree:
+class ComponentTreeBranch:
+    """
+    >>> bmc_tree = ComponentTreeBranch(Branch.bmc, False)
+    """
 
-    def __init__(self, attach_root=True) -> None:
+    def __init__(self, id: Branch, freeze: bool = False) -> None:
+        """
+
+        :param id: the id of the component tree branch (bmc, cmc, session)
+        :param freeze: the component list can not be modified
+        """
         self.components: Dict[str, Component] = {}
+        # Page counter is required to set
+        # predefined IDs & keys for code-managed pages
+        self.page_counter = 0
+        self.component_tree_id = id
+        self.freeze = freeze
 
-        if attach_root:
-            root_component = Component(
-                id="root", type="root", content={}
-            )
-            self.attach(root_component)
+    def clone(self) -> 'ComponentTreeBranch':
+        """
+        Clone a component branch into a new one.
+
+        Streamsync uses this action when it instantiates the component tree attached to the session.
+        This ensures complete insulation of the original shaft.
+
+        >>> cloned = bmc_tree.clone()
+        :return:
+        """
+        cloned = ComponentTreeBranch(self.component_tree_id, self.freeze)
+        cloned.components = copy.copy(self.components)
+        cloned.page_counter = self.page_counter
+        return cloned
+
 
     def get_component(self, component_id: str) -> Optional[Component]:
         return self.components.get(component_id)
 
-    def get_direct_descendents(self, parent_id: str) -> List[Component]:
-        children = list(filter(lambda c: c.parentId == parent_id,
-                               self.components.values()))
-        return children
-
-    def get_descendents(self, parent_id: str) -> List[Component]:
-        children = self.get_direct_descendents(parent_id)
-        desc = children.copy()
-        for child in children:
-            desc += self.get_descendents(child.id)
-
-        return desc
-
-    def determine_position(self, parent_id: str, is_positionless: bool = False):
-        if is_positionless:
-            return -2
-
-        children = self.get_direct_descendents(parent_id)
-        cmc_children = list(filter(lambda c: c.isCodeManaged is True, children))
-        if len(cmc_children) > 0:
-            position = \
-                max([0, max([child.position for child in cmc_children]) + 1])
-            return position
-        else:
-            return 0
-
-    def attach(self, component: Component, override=False) -> None:
+    def attach(self, component: Component) -> None:
         """
         Attaches a component to the main components dictionary of the instance.
 
         :param component: The component to be attached.
-        :type component: Component
-        :param override: If True, an existing component with the same ID will
-                         be overridden. Defaults to False.
-        :type override: bool, optional
         """
-        if (component.id in self.components) and (override is False):
-            raise RuntimeWarning(
-                f"Component with ID {component.id} already exists"
-                )
+        if self.freeze:
+            raise UIError(f"Component tree {self.component_tree_id} is frozen and cannot be modified")
+
+        if (component.id in self.components):
+            raise RuntimeWarning(f"Component with ID {component.id} already exists")
+
+        if component.type == "page" and component.id not in self.components:
+            self.page_counter += 1
+
         self.components[component.id] = component
 
     def ingest(self, serialised_components: Dict[str, Any]) -> None:
-        removed_ids = [
-            key for key in self.components
-            if key not in serialised_components
-        ]
+        if self.freeze:
+            raise UIError(f"Component tree {self.component_tree_id} is frozen and cannot be modified")
+
+        removed_ids = [key for key in self.components if key not in serialised_components]
 
         for component_id in removed_ids:
             if component_id == "root":
                 continue
             self.components.pop(component_id)
+
         for component_id, sc in serialised_components.items():
             component = Component(**sc)
             self.components[component_id] = component
@@ -116,7 +133,183 @@ class ComponentTree:
         active_components = {}
         for id, component in self.components.items():
             active_components[id] = component.to_dict()
+
         return active_components
+
+
+
+class ComponentTree():
+
+    def __init__(self, tree_branches: List[ComponentTreeBranch]):
+        assert len(tree_branches) > 0, "Component tree must have at least one tree branch"
+        self.tree_branches = tree_branches
+        self.updated = False
+
+    @property
+    def components(self) -> Dict[str, Component]:
+        trees = reversed(self.tree_branches)
+        all_components = {}
+        for tree in trees:
+            all_components.update(tree.components)
+        return all_components
+
+    @property
+    def page_counter(self) -> int:
+        return sum([tree.page_counter for tree in self.tree_branches])
+
+    def get_component(self, component_id: str) -> Optional[Component]:
+        for tree in self.tree_branches:
+            component = tree.get_component(component_id)
+            if component:
+                return component
+
+        return None
+
+    def attach(self, component: Component, tree: Optional[Branch] = None) -> None:
+        """
+        Attach a component to the first tree branch in the component tree.
+
+        >>> component = Component(id="root", type="root", content={})
+        >>> component_tree.attach(component)
+
+        When the tree parameter is given, the component is attached to the corresponding branch.
+
+        >>> component = Component(id="root", type="root", content={})
+        >>> component_tree.attach(component, tree=Branch.initial_cmc)
+
+        If the component is associated with a frozen branch, an exception is thrown
+        """
+        self.updated = True
+
+        _branch = self._tree_branch(tree)
+        if _branch is None:
+            raise ValueError(f"Invalid tree branch : {tree}")
+
+        cast(ComponentTreeBranch, _branch).attach(component)
+
+    def ingest(self, serialised_components: Dict[str, Any], tree: Optional[Branch] = None) -> None:
+        self.updated = True
+        _branch = self._tree_branch(tree)
+        if _branch is None:
+            raise ValueError(f"Invalid tree branch : {tree}")
+
+        cast(ComponentTreeBranch, _branch).ingest(serialised_components)
+
+    def delete_component(self, component_id: str) -> None:
+        for tree_branch in self.tree_branches:
+            if component_id in tree_branch.components and not tree_branch.freeze:
+                self.updated = True
+                tree_branch.components.pop(component_id, None)
+                return
+            elif component_id in tree_branch.components and tree_branch.freeze:
+                raise UIError(
+                    f"Component with ID '{component_id}' " +
+                    "is builder-managed and cannot be removed by app"
+                    )
+
+        raise KeyError(
+            f"Failed to delete component with ID {component_id}: " +
+            "no such component"
+        )
+
+    def clear_children(self, component_id: str) -> None:
+        children = self.get_descendents(component_id)
+        for child in children:
+            try:
+                self.updated = True
+                for tree in self.tree_branches:
+                    if not tree.freeze:
+                        tree.components.pop(child.id, None)
+
+            except UIError:
+                logger = logging.getLogger("streamsync")
+                logger.warning(
+                    f"Failed to remove child with ID '{child.id}' " +
+                    f"from component with ID '{component_id}': " +
+                    "child is a builder-managed component.")
+                # This might result in multiple consecutive warnings
+                # for the same parent component, but we have to avoid "break"ing
+                # due to that the component might still have CMC children
+
+
+    def to_dict(self) -> Dict:
+        trees = reversed(self.tree_branches)
+        components = {}
+        for tree in trees:
+            components.update(tree.to_dict())
+
+        return components
+
+    def next_page_id(self) -> str:
+        return f"page-{self.page_counter}"
+
+    def fetch_updates(self):
+        if self.updated:
+            self.updated = False
+            return self.to_dict()
+
+        return
+
+    def determine_position(self, parent_id: str, is_positionless: bool) -> int:
+        if is_positionless:
+            return -2
+
+        children = self._get_direct_descendents(parent_id)
+        cmc_children = list(filter(lambda c: c.isCodeManaged is True, children))
+        if len(cmc_children) > 0:
+            position = \
+                max([0, max([child.position for child in cmc_children]) + 1])
+            return position
+        else:
+            return 0
+
+    def get_descendents(self, parent_id: str) -> List[Component]:
+        children = self._get_direct_descendents(parent_id)
+        desc = children.copy()
+        for child in children:
+            desc += self.get_descendents(child.id)
+
+        return desc
+
+    def branch(self, branch_id: Branch) -> ComponentTreeBranch:
+        _branch = self._tree_branch(branch_id)
+        if _branch is None:
+            raise ValueError(f"Component tree with ID {branch_id} does not exist")
+
+        return _branch
+
+    def exists(self, branch_id: Branch) -> bool:
+        """
+        Checks if a component with the given ID exists in the component tree.
+        """
+        branch = self._tree_branch(branch_id)
+        return branch is not None
+
+    def is_frozen(self, branch_id: Branch) -> bool:
+        """
+        Checks if a component tree branch is frozen.
+        """
+        branch = self._tree_branch(branch_id)
+        if branch is None:
+            raise ValueError(f"Component tree with ID {branch_id} does not exist")
+
+        return branch.freeze
+
+    def _get_direct_descendents(self, parent_id: str) -> List[Component]:
+        _all_components = self.components.values()
+        children = list(filter(lambda c: c.parentId == parent_id, _all_components))
+        return children
+
+    def _tree_branch(self, branch: Optional[Branch]) -> Optional[ComponentTreeBranch]:
+        if branch is None:
+            return self.tree_branches[0]
+
+        for tree in self.tree_branches:
+            if branch == tree.component_tree_id:
+                return tree
+
+        return None
+
 
     def get_parent(self, component_id: str) -> List[str]:
         """
@@ -139,116 +332,68 @@ class ComponentTree:
         return parents
 
 
-class DependentComponentTree(ComponentTree):
+def build_base_component_tree() -> ComponentTree:
+    """
+    Create the base component tree. This tree is used when loading streamsync.
 
-    def __init__(self, base_component_tree: ComponentTree, attach_root=False):
-        super().__init__(attach_root)
-        self.base_component_tree = base_component_tree
-
-        # Page counter is required to set
-        # predefined IDs & keys for code-managed pages
-        self.page_counter = 0
-
-    def attach(self, component: Component, override=False) -> None:
-        if component.type == "page" and component.id not in self.components:
-            self.page_counter += 1
-        return super().attach(component, override)
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        own_component_present = component_id in self.components
-        if own_component_present:
-            # If present, return own component
-            own_component = self.components.get(component_id)
-            return own_component
-
-        # Otherwise, try to obtain the base tree component
-        return self.base_component_tree.get_component(component_id)
-
-    def delete_component(self, component_id: str) -> None:
-        if component_id in self.components:
-            self.components.pop(component_id, None)
-            return
-        if component_id in self.base_component_tree.components:
-            raise UIError(
-                f"Component with ID '{component_id}' " +
-                "is builder-managed and cannot be removed by app"
-                )
-        raise KeyError(
-            f"Failed to delete component with ID {component_id}: " +
-            "no such component"
-            )
-
-    def clear_children(self, component_id: str) -> None:
-        children = self.get_descendents(component_id)
-        for child in children:
-            try:
-                self.delete_component(child.id)
-            except UIError:
-                logger = logging.getLogger("streamsync")
-                logger.warning(
-                    f"Failed to remove child with ID '{child.id}' " +
-                    f"from component with ID '{component_id}': " +
-                    "child is a builder-managed component.")
-                # This might result in multiple consecutive warnings
-                # for the same parent component, but we have to avoid "break"ing
-                # due to that the component might still have CMC children
-
-    def get_direct_descendents(self, parent_id: str) -> List[Component]:
-        base_children = self.base_component_tree.get_direct_descendents(parent_id)
-        own_children = list(filter(lambda c: c.parentId == parent_id, self.components.values()))
-        return base_children + own_children
-
-    def to_dict(self, owned_only=False) -> Dict:
-        if owned_only:
-            # If only owned components are requested,
-            # do not collect base tree components
-            active_components = {}
-        else:
-            active_components = {
-                # Collecting serialized base tree components
-                component_id: base_component.to_dict()
-                for component_id, base_component
-                in self.base_component_tree.components.items()
-            }
-        for component_id, own_component in self.components.items():
-            # Overriding base tree components with ones that belong to dependent tree
-            active_components[component_id] = own_component.to_dict()
-        return active_components
+    It contains the components in common between all users.
+    """
+    bmc_tree_branch = ComponentTreeBranch(Branch.bmc)
+    bmc_tree_branch.attach(Component(id="root", type="root", content={}))
+    cmc_tree_branch = ComponentTreeBranch(Branch.initial_cmc)
+    return ComponentTree([cmc_tree_branch, bmc_tree_branch])
 
 
-class SessionComponentTree(DependentComponentTree):
+def build_session_component_tree(base_component_tree: ComponentTree) -> ComponentTree:
+    """
+    Creates a session component tree.
 
-    def __init__(self, base_component_tree: ComponentTree, base_cmc_tree: DependentComponentTree):
-        super().__init__(base_component_tree, attach_root=False)
+    The session component tree is associated with a user session, i.e. a browser tab.
+    If the user refreshes the page, a new component tree for the session is created.
 
-        # Initialize SessionComponentTree with components from the base
-        # CMC pool, added during app initialization
-        preinitialized_components = base_cmc_tree.to_dict(owned_only=True)
-        self.ingest(preinitialized_components)
+    The builder managed component, copy from base component tree, can not be modified anymore.
+    The code managed component can be modified.
+    """
+    session_tree_branch = ComponentTreeBranch(Branch.session_cmc)
 
-        preinitialized_pages = \
-            filter(lambda c: c.type == "page", self.components.values())
-        self.page_counter = len(list(preinitialized_pages))
+    cmc_tree_branch = base_component_tree.branch(Branch.initial_cmc).clone()
+    bmc_tree_branch = base_component_tree.branch(Branch.bmc).clone()
+    bmc_tree_branch.freeze = True
 
-        self.updated = False
+    return ComponentTree([session_tree_branch, cmc_tree_branch, bmc_tree_branch])
 
-    def attach(self, component: Component, override=False) -> None:
-        self.updated = True
-        return super().attach(component, override)
 
-    def ingest(self, serialised_components: Dict[str, Any]) -> None:
-        self.updated = True
-        return super().ingest(serialised_components)
+def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[str, Any]):
+    """
+    Updates the builder managed component tree branch with the provided components.
+    This method is used on the event `componentUpdate`.
 
-    def delete_component(self, component_id: str) -> None:
-        self.updated = True
-        return super().delete_component(component_id)
+    >>> ingest_bmc_component_tree(component_tree, {"root": {"type": "root", "content": {}})
+    """
+    assert component_tree.exists(Branch.bmc) is True, \
+        "bmc component tree branch does not exists in this component tree"
+    assert component_tree.is_frozen(Branch.bmc) is False, \
+        "builder managed component tree are frozen and cannot be updated"
 
-    def fetch_updates(self):
-        if self.updated:
-            self.updated = False
-            return self.to_dict()
-        return
+    component_tree.ingest(components, tree=Branch.bmc)
+
+
+def cmc_components_list(component_tree: ComponentTree) -> list:
+    """
+    Returns the list of code managed components in the component tree.
+
+    (use mainly for testing purposes)
+    """
+    return list(component_tree.branch(Branch.initial_cmc).components.values())
+
+
+def session_components_list(component_tree: ComponentTree) -> list:
+    """
+   Returns the list of session managed components in the component tree.
+
+   (use mainly for testing purposes)
+   """
+    return list(component_tree.branch(Branch.session_cmc).components.values())
 
 
 class UIError(Exception):
@@ -256,7 +401,7 @@ class UIError(Exception):
 
 
 @contextlib.contextmanager
-def use_component_tree(component_tree: DependentComponentTree):
+def use_component_tree(component_tree: ComponentTree):
     """
     Declares the component tree that will be manipulated during a context.
 
@@ -273,7 +418,7 @@ def use_component_tree(component_tree: DependentComponentTree):
     _current_component_tree.reset(token)
 
 
-def current_component_tree() -> DependentComponentTree:
+def current_component_tree() -> ComponentTree:
     """
     Retrieves the component tree of the current context or the base
     one if no context has been declared.
@@ -283,6 +428,6 @@ def current_component_tree() -> DependentComponentTree:
     tree = _current_component_tree.get()
     if tree is None:
         import streamsync.core
-        return streamsync.core.base_cmc_tree
+        return streamsync.core.base_component_tree
 
     return tree
