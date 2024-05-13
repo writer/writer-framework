@@ -1,7 +1,7 @@
-import statistics
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import statistics
 import streamsync as ss
 from streamsync.core import StreamsyncState
 
