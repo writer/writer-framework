@@ -1,6 +1,10 @@
 <template>
-	<input type="text" />
+	<input v-model="model" type="text" />
 </template>
+
+<script setup lang="ts">
+const model = defineModel<string>();
+</script>
 
 <style scoped>
 input {
