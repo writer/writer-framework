@@ -1,27 +1,28 @@
 <template>
-	<div ref="rootEl" class="CoreDateInput">
-		<div class="main">
-			<div class="inputContainer">
-				<label>{{ fields.label.value }}</label>
-				<input
-					type="date"
-					:value="formValue"
-					@change="
-						($event) =>
-							handleInput(
-								($event.target as HTMLInputElement).value,
-								'ss-date-change',
-							)
-					"
-				/>
-			</div>
-		</div>
-	</div>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreDateInput"
+	>
+		<input
+			type="date"
+			:value="formValue"
+			@change="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'ss-date-change',
+					)
+			"
+		/>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { FieldType } from "../../streamsyncTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to select a date using a date picker interface.";
@@ -57,34 +58,43 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject, Ref, ref } from "vue";
+import { inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const ss = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	ss,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreDateInput {
 	width: fit-content;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-}
-
 input {
-	max-width: 20ch;
 	width: 100%;
+	max-width: 20ch;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.5px 12px 8.5px 12px;
+	font-size: 0.875rem;
+	outline: none;
+}
+
+input:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 </style>

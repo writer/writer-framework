@@ -61,25 +61,26 @@ instanceData.at(-1).value = { activeTab: undefined };
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreTabs {
 	width: 100%;
+	background: var(--containerBackgroundColor);
+	border-radius: 8px;
+	box-shadow: var(--containerShadow);
+	border: 1px solid var(--separatorColor);
+	overflow: hidden;
 }
 
 .tabSelector {
 	pointer-events: all;
-	border-radius: 8px 8px 0 0;
-	background: var(--containerBackgroundColor);
-	display: flex;
-	gap: 16px;
-	width: fit-content;
-	border-top: 1px solid var(--separatorColor);
-	border-left: 1px solid var(--separatorColor);
-	border-right: 1px solid var(--separatorColor);
 	color: var(--secondaryTextColor);
-	padding: 0 16px 0 16px;
 	max-width: 100%;
 	overflow-x: auto;
+	border-bottom: 1px solid var(--separatorColor);
+	display: flex;
+	gap: 24px;
+	padding: 0 16px 0 16px;
 }
 
 .childless > .tabSelector {
@@ -87,13 +88,7 @@ instanceData.at(-1).value = { activeTab: undefined };
 }
 
 .container {
-	border-top: 1px solid var(--separatorColor);
-	border-left: 1px solid var(--separatorColor);
-	border-right: 1px solid var(--separatorColor);
-	border-bottom: 1px solid var(--separatorColor);
 	background: var(--containerBackgroundColor);
-	border-radius: 0 8px 8px 8px;
-	box-shadow: var(--containerShadow);
 }
 
 .childless > .container {

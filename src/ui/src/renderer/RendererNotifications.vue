@@ -1,19 +1,20 @@
 <template>
 	<div
 		v-show="notifications.length > 0"
-		class="RendererNotifications"
+		class="RendererNotifications colorTransformer"
 		@click="toggle"
 	>
 		<div ref="balloon" class="balloon" title="Toggle notifications">
-			<i class="ri-notification-2-line ri-xl"></i>
+			<i class="icon material-symbols-outlined"> notifications </i>
 			<div class="counter">{{ notifications.length }}</div>
 		</div>
 		<div class="balloonFlash"></div>
 		<div v-show="isActive" class="main">
 			<div class="clearContainer">
-				<button @click="clearAll">
-					<i class="ri-close-line"></i> Clear all
-				</button>
+				<WdsButton @click="clearAll">
+					<i class="material-symbols-outlined"> clear_all </i>
+					Clear all
+				</WdsButton>
 			</div>
 			<div
 				v-for="(notification, notificationId) in notifications"
@@ -21,7 +22,7 @@
 				class="notification"
 			>
 				<div class="icon" :class="notification.type">
-					<i class="ri-error-warning-fill ri-xl"></i>
+					<i class="material-symbols-outlined"> exclamation </i>
 				</div>
 				<div class="content">
 					<header>
@@ -40,6 +41,7 @@
 <script setup lang="ts">
 import { inject, onMounted, reactive, Ref, ref } from "vue";
 import injectionKeys from "../injectionKeys";
+import WdsButton from "../wds/WdsButton.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
 const ss = inject(injectionKeys.core);
@@ -91,6 +93,7 @@ const clearAll = () => {
 
 <style scoped>
 @import "./sharedStyles.css";
+@import "./colorTransformations.css";
 
 .RendererNotifications {
 	position: sticky;
@@ -100,6 +103,7 @@ const clearAll = () => {
 	max-width: 70ch;
 	width: 40vw;
 	z-index: 3;
+	--buttonColor: #5551ff;
 }
 
 .balloonFlash {
@@ -137,7 +141,11 @@ const clearAll = () => {
 	flex-direction: column;
 }
 
-.balloon.alert i {
+.balloon .icon {
+	font-size: 1.25rem;
+}
+
+.balloon.alert .icon {
 	animation-name: ring;
 	animation-duration: 0.3s;
 	animation-iteration-count: 4;
@@ -219,6 +227,7 @@ const clearAll = () => {
 .notification .icon {
 	grid-area: 1/1;
 	text-align: center;
+	font-size: 1.25rem;
 }
 
 .notification .icon.error {
@@ -254,6 +263,6 @@ const clearAll = () => {
 }
 
 .message {
-	margin-top: 12px;
+	margin-top: 4px;
 }
 </style>

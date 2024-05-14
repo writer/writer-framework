@@ -22,12 +22,14 @@
 		<div class="pagination-right">
 			<div class="pagination-picker">
 				<div
-					class="paginationpicker-block ri-arrow-left-s-line"
+					class="paginationpicker-block"
 					:class="{
 						'paginationpicker-disabled': pagePreviousDisabled,
 					}"
 					@click="jumpTo(fields.page.value - 1)"
-				></div>
+				>
+					<i class="material-symbols-outlined"> navigate_before </i>
+				</div>
 				<template v-for="(l, index) in links" :key="index">
 					<div
 						v-if="l == '...'"
@@ -50,10 +52,12 @@
 					</div>
 				</template>
 				<div
-					class="paginationpicker-block ri-arrow-right-s-line"
+					class="paginationpicker-block"
 					:class="{ 'paginationpicker-disabled': pageNextDisabled }"
 					@click="jumpTo(fields.page.value + 1)"
-				></div>
+				>
+					<i class="material-symbols-outlined"> navigate_next </i>
+				</div>
 			</div>
 			<div v-show="jumptoEnabled" class="pagination-jump">
 				<label>Jump to</label>
@@ -170,13 +174,13 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch, onUnmounted, onMounted } from "vue";
+import { inject, ref, computed, watch, onUnmounted, onMounted, Ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const ss = inject(injectionKeys.core);
-const rootEl = ref(null);
+const rootEl: Ref<HTMLElement> = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue: pageValue, handleInput: handlePageInput } =
@@ -413,6 +417,9 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 0;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid var(--separatorColor);
 }
 
 .pagination-jump {
@@ -424,7 +431,6 @@ onUnmounted(() => {
 .pagination-jump input {
 	width: 32px;
 	height: 30px;
-
 	border: 1px solid var(--separatorColor);
 	background-color: transparent;
 }
@@ -436,12 +442,15 @@ onUnmounted(() => {
 
 	height: 32px;
 	width: 32px;
-	border: 1px solid var(--separatorColor);
 	border-collapse: collapse;
 
 	margin-top: -1px;
 	margin-left: -1px;
 	cursor: pointer;
+}
+
+.paginationpicker-block:not(:last-of-type) {
+	border-right: 1px solid var(--separatorColor);
 }
 
 .paginationpicker-currentpage {
@@ -458,10 +467,15 @@ onUnmounted(() => {
 	cursor: default;
 }
 
-.pagesize-select {
-	height: 30px;
+select {
 	border: 1px solid var(--separatorColor);
-	background-color: transparent;
+	border-radius: 8px;
+	height: 32px;
+	padding: 0 8px 0 8px;
+	font-size: 0.75rem;
+	max-width: 100%;
+	width: fit-content;
+	outline: none;
 }
 
 .bold {

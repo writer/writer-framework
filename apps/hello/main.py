@@ -79,77 +79,7 @@ def _get_story_text():
     with open("assets/story.txt", "r") as f:
         return f.read()
 
-def handle_chat_message(payload, state):
-    if payload == "pdf":
-        return {
-            "text": "In this demo you can find only this PDF file.",
-            "actions": [{
-                "subheading": "Resource",
-                "name": "Neon Feathers",
-                "desc": "Click to open",
-                "data": "open_pdf" 
-            }]
-        }
-    elif payload == "web":
-        return {
-            "text": "In this demo you can find only this web link.",
-            "actions": [{
-                "subheading": "Resource",
-                "name": "Streamsync",
-                "desc": "Click to open",
-                "data": "open_web" 
-            }]
-        }
-
-    elif payload == "highlight" and state["chat_bot"]["show_pdf"]:
-        state["chat_bot"]["pdf"]["highlights"] = ["FeatherByte", "SynthoCorp"]
-        return "I have highlighted some interesting parts of the story."
-    elif payload == "help":
-        return "You can type `pdf` or `web` to see what these components can do."
-    else:
-        return "I don't understand that command. Type 'help' to see what is possible."
-
-def _show_chatbot_resource(name, resource, state):
-    if name == "pdf":
-        state["chat_bot"]['pdf']['source'] = resource
-        state["chat_bot"]["show_pdf"] = True
-        state["chat_bot"]["show_web"] = False
-    elif name == "web":
-        state["chat_bot"]['web']['url'] = resource
-        state["chat_bot"]["show_pdf"] = False
-        state["chat_bot"]["show_web"] = True
-
-def handle_chat_action(payload, state):
-    if payload == "open_pdf":
-        _show_chatbot_resource("pdf", "static/neon_feathers.pdf", state)
-        return "I hope you will enjoy the story. Now you can type `highlight` to see what I can show you."
-    if payload == "open_web":
-        _show_chatbot_resource("web", "https://streamsync.cloud/", state)
-        return {
-            "text": "This is Streamsync documentation. You can find more information about Streamsync here.",
-            "actions": [{
-                "subheading": "Resource",
-                "name": "Components",
-                "desc": "Click to open",
-                "data": "open_web_components" 
-            }, {
-                "subheading": "Tutorial",
-                "name": "Quick start",
-                "desc": "Click to open",
-                "data": "open_web_tutorial" 
-            }]
-        }
-    if payload == "open_web_components":
-        _show_chatbot_resource("web", "https://streamsync.cloud/component-list.html", state)
-        return "You can find all components here."
-    if payload == "open_web_tutorial":
-        _show_chatbot_resource("web", "https://www.streamsync.cloud/component-list.html", state)
-        return "You can find quick start tutorial here."
-
-    return "I don't understand that command. Type 'help' to see what is possible."
-
 # UPDATES
-
 
 def _update_metrics(state):
     main_df = state["main_df"]
@@ -174,12 +104,9 @@ def _update_metrics(state):
 
 def _update_role_chart(state):
     main_df = state["main_df"]
-    custom_color_scale = ["#dd43df", "#e057e7",
-                          "#e36bef", "#e680f7", "#e994ff"]
     role_counts = main_df['role'].value_counts().reset_index()
     role_counts.columns = ['role', 'count']
-    fig = px.bar(role_counts, x='role', y='count', color='role',
-                 color_discrete_sequence=custom_color_scale)
+    fig = px.bar(role_counts, x='role', y='count')
     fig.update_layout(
         margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False
@@ -191,8 +118,8 @@ def _update_scatter_chart(state):
     main_df = state["main_df"]
     average_role_data = main_df.groupby("role").agg(
         {"length_cm": "mean", "weight_g": "mean"}).reset_index()
-    fig = px.scatter(average_role_data, x="length_cm", y="weight_g",
-                     color="role", height=400, size_max=10, size="weight_g")
+    fig = px.scatter(average_role_data, x="length_cm", y="weight_g", height=400,
+        size_max=10, size="weight_g")
     fig.update_layout(
         margin={"l": 20, "r": 20, "t": 20, "b": 50},
         showlegend=False
@@ -218,17 +145,7 @@ initial_state = ss.init_state({
         "min_length": 25,
         "min_weight": 300,
     },
-    "metrics": {},
-    "chat_bot": {
-        "show_web": False,
-        "show_pdf": False,
-        "pdf": {
-            "source": "",
-        },
-        "web": {
-            "url": "",
-        },
-    }
+    "metrics": {}
 })
 
 update(initial_state, None)

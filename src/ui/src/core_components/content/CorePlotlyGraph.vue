@@ -63,12 +63,34 @@ const chartTargetEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const spec = computed(() => fields.spec.value);
 
+const defaultLayout = {
+	paper_bgcolor: "#ffffff",
+	plot_bgcolor: "#f5f5f9",
+	colorway: ["#6985FF", "#A95EF8", "#F86", "#3BDCAB"],
+	font: {
+		family: "Poppins, sans-serif",
+		size: 12,
+		color: "#000000",
+	},
+	hoverlabel: {
+		color: "#ffffff",
+		bgcolor: "#000000",
+	},
+};
+
 const renderChart = async () => {
 	if (import.meta.env.SSR) return;
 	if (!spec.value || !chartTargetEl.value) return;
 	const Plotly = await import("plotly.js-dist-min");
 	if (!rootEl.value || rootEl.value.clientHeight == 0) return;
-	Plotly.newPlot(chartTargetEl.value, spec.value);
+	const chartObj = {
+		...spec.value,
+		layout: {
+			...defaultLayout,
+			...spec.value?.layout,
+		},
+	};
+	Plotly.newPlot(chartTargetEl.value, chartObj);
 	bindPlotlyEvents();
 	if (spec.value?.layout?.autosize) {
 		applyAutosize();

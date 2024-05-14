@@ -11,7 +11,7 @@
 	>
 		<div v-if="fields.title.value || isCollapsible" class="header">
 			<div v-if="!isCollapsed" class="titleContainer">
-				<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
+				<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 			</div>
 			<div
 				v-if="isCollapsible"

@@ -35,12 +35,7 @@ from typing import (
     cast,
 )
 
-from streamsync.core_ui import (
-    ComponentTree,
-    DependentComponentTree,
-    SessionComponentTree,
-    use_component_tree,
-)
+from streamsync import core_ui
 from streamsync.ss_types import (
     InstancePath,
     Readable,
@@ -835,7 +830,7 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: StreamsyncState, session_component_tree: SessionComponentTree):
+    def __init__(self, session_state: StreamsyncState, session_component_tree: core_ui.ComponentTree):
         self.evaluator = Evaluator(session_state, session_component_tree)
 
     def transform(self, ev: StreamsyncEvent) -> None:
@@ -1022,7 +1017,7 @@ class Evaluator:
 
     template_regex = re.compile(r"[\\]?@{([^{]*)}")
 
-    def __init__(self, session_state: StreamsyncState, session_component_tree: ComponentTree):
+    def __init__(self, session_state: StreamsyncState, session_component_tree: core_ui.ComponentTree):
         self.ss = session_state
         self.ct = session_component_tree
 
@@ -1184,7 +1179,7 @@ class StreamsyncSession:
         new_state = StreamsyncState.get_new()
         new_state.user_state.mutated = set()
         self.session_state = new_state
-        self.session_component_tree = SessionComponentTree(base_component_tree, base_cmc_tree)
+        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
         self.event_handler = EventHandler(self)
 
     def update_last_active_timestamp(self) -> None:
@@ -1356,7 +1351,7 @@ class EventHandler:
                 arg_values.append(ui_manager)
 
         result = None
-        with use_component_tree(self.session.session_component_tree):
+        with core_ui.use_component_tree(self.session.session_component_tree):
             if is_async_handler:
                 result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
             else:
@@ -1479,11 +1474,17 @@ def session_verifier(func: Callable) -> Callable:
     session_manager.add_verifier(func)
     return wrapped
 
+def reset_base_component_tree() -> None:
+    """
+    Reset the base component tree to zero
 
+    (use mainly in tests)
+    """
+    global base_component_tree
+    base_component_tree = core_ui.build_base_component_tree()
 
 
 state_serialiser = StateSerialiser()
 initial_state = StreamsyncState()
-base_component_tree = ComponentTree()
-base_cmc_tree = DependentComponentTree(base_component_tree)
+base_component_tree = core_ui.build_base_component_tree()
 session_manager = SessionManager()

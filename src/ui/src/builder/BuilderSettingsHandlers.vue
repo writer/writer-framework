@@ -1,7 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsHandlers">
 		<div class="sectionTitle">
-			<i class="ri-flashlight-line ri-xl"></i>
+			<i class="material-symbols-outlined">bolt</i>
 			<h3>Events</h3>
 		</div>
 		<div class="list">
@@ -56,7 +56,7 @@
 							title="Show event handler stub"
 							@click="showStub(eventType)"
 						>
-							<i class="ri-question-line ri-lg"></i>
+							<i class="material-symbols-outlined">help</i>
 						</button>
 					</div>
 				</div>
@@ -68,7 +68,7 @@
 		<BuilderModal
 			v-if="stubModal"
 			:close-action="stubCloseAction"
-			icon="question"
+			icon="help"
 			:modal-title="stubModal?.modalTitle"
 		>
 			<div class="stubMessage">
@@ -79,7 +79,7 @@
 				<code v-dompurify-html="stubModal.highlightedCodeHtml"> </code>
 			</div>
 			<button @click="copyToClipboard(stubModal.code)">
-				<i class="ri-file-copy-line ri-lg"></i>
+				<i class="material-symbols-outlined"> content_copy </i>
 				Copy code to clipboard
 			</button>
 		</BuilderModal>
@@ -88,12 +88,12 @@
 				title="Add a custom event handler"
 				@click="showCustomHandlerModal"
 			>
-				<i class="ri-add-line ri-lg"></i>Add custom handler
+				<i class="material-symbols-outlined">add</i>Add custom handler
 			</button>
 			<BuilderModal
 				v-if="customHandlerModal"
 				:close-action="customHandlerModalCloseAction"
-				icon="flashlight"
+				icon="bolt"
 				modal-title="Add Custom Event Handler"
 			>
 				<div class="customHandlerModalForm">
@@ -148,8 +148,7 @@
 				</div>
 
 				<button @click="addCustomEventHandler()">
-					<i class="ri-add-line ri-lg"></i>
-					Add
+					<i class="material-symbols-outlined">add</i>Add
 				</button>
 			</BuilderModal>
 		</div>
@@ -343,6 +342,7 @@ const copyToClipboard = (text: string) => {
 
 .fieldActions > button {
 	border-radius: 16px;
+	font-size: 0.875rem;
 }
 
 .customHandler {

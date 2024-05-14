@@ -1,6 +1,6 @@
 <template>
 	<section class="CoreSection">
-		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
+		<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 		<BaseContainer
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
@@ -81,7 +81,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 	background-color: var(--containerBackgroundColor);
 }
 
-h2 {
+h3 {
 	margin: 16px 16px 0 16px;
 }
 </style>
