@@ -1,0 +1,72 @@
+{
+	"$schema": "https://mintlify.com/schema.json",
+	"name": "Starter Kit",
+	"logo": {
+		"dark": "/logo/dark.svg",
+		"light": "/logo/writer_logo.svg"
+	},
+	"favicon": "/favicon.svg",
+	"colors": {
+		"primary": "#0D9373",
+		"light": "#07C983",
+		"dark": "#0D9373",
+		"anchors": {
+			"from": "#0D9373",
+			"to": "#07C983"
+		}
+	},
+	"primaryTab": {
+		"name": "Home"
+	},
+	"tabs": [
+		{
+			"name": "Framework",
+			"url": "docs/docs"
+		}
+	],
+	"navigation": [
+		{
+			"group": "Guide",
+			"pages": [
+				"docs/docs/getting-started",
+				"docs/docs/builder-basics",
+				"docs/docs/application-state",
+				"docs/docs/event-handlers",
+				"docs/docs/handling-inputs"
+			]
+		},
+		{
+			"group": "Advanced",
+			"pages": [
+				"docs/docs/repeater",
+				"docs/docs/backend-initiated-actions",
+				"docs/docs/page-routes",
+				"docs/docs/sessions",
+				"docs/docs/custom-server",
+				"docs/docs/state-schema",
+				"docs/docs/backend-driven-ui"
+			]
+		},
+		{
+			"group": "Extending it",
+			"pages": [
+				"docs/docs/stylesheets",
+				"docs/docs/frontend-scripts",
+				"docs/docs/custom-components"
+			]
+		},
+		{
+			"group": "Tutorials",
+			"pages": ["docs/docs/quickstart-tutorial"]
+		},
+		{
+			"group": "Reference",
+			"pages": ["docs/docs/testing", "docs/docs/deploy-with-docker"]
+		}
+	],
+	"footerSocials": {
+		"x": "https://x.com/mintlify",
+		"github": "https://github.com/mintlify",
+		"linkedin": "https://www.linkedin.com/company/mintsearch"
+	}
+}
