@@ -213,9 +213,7 @@ class Conversation:
         for entry in response_data.choices:
             message = entry.message
             if message:
-                text = message.content
-                self.add("assistant", text)
-                return text
+                return message
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
     def stream_complete(self, data: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
