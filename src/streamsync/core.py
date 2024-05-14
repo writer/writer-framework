@@ -130,8 +130,11 @@ class StateSerialiser:
     """
 
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
+        from streamsync.ai import Conversation
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
+        if isinstance(v, Conversation):
+            return v.serialized_messages
         if isinstance(v, (FileWrapper, BytesWrapper)):
             return self._serialise_ss_wrapper(v)
         if isinstance(v, (datetime.datetime, datetime.date)):
