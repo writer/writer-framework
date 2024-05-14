@@ -1,6 +1,10 @@
 <template>
-	<textarea></textarea>
+	<textarea v-model="model"></textarea>
 </template>
+
+<script setup lang="ts">
+const model = defineModel<string>();
+</script>
 
 <style scoped>
 textarea {

@@ -1,8 +1,12 @@
 <template>
-	<select>
+	<select v-model="model">
 		<slot></slot>
 	</select>
 </template>
+
+<script setup lang="ts">
+const model = defineModel<string>();
+</script>
 
 <style scoped>
 select {
