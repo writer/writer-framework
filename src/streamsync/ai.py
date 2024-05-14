@@ -6,6 +6,7 @@ from writerai import WriterAI
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
 from writerai.types import Chat, Completion, StreamingData
+from writerai.types.chat import ChoiceMessage
 from writerai.types.chat_chat_params import Message
 
 from streamsync.core import get_app_process
@@ -180,6 +181,8 @@ class Conversation:
             self._merge_chunk_to_last_message(cast(dict, chunk))
         else:
             message = chunk_or_message
+            if isinstance(message, ChoiceMessage):
+                message = {"content": message.content, "role": message.role}
             if not ("role" in message and "content" in message):
                 raise ValueError("Improper message format to add to Conversation")
             self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
