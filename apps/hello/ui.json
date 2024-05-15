@@ -1,13 +1,14 @@
 {
     "metadata": {
-        "streamsync_version": "0.4.0rc3"
+        "streamsync_version": "0.5.0"
     },
     "components": {
         "root": {
             "id": "root",
             "type": "root",
             "content": {
-                "appName": "Hello"
+                "appName": "Hello",
+                "emptinessColor": "#ffffff"
             },
             "isCodeManaged": false,
             "position": 0
@@ -27,8 +28,9 @@
             "id": "84378aea-b64c-49a3-9539-f854532279ee",
             "type": "header",
             "content": {
-                "text": "Hacker Pigeons",
-                "emptinessColor": "#ffffff"
+                "text": "HACKER PIGEONS",
+                "emptinessColor": "#000000",
+                "accentColor": "#ffffff"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -79,7 +81,7 @@
             "id": "7fdd1d02-53de-4466-bd3c-4822cbc2694f",
             "type": "image",
             "content": {
-                "src": "static/pigeon1.jpg",
+                "src": "static/pigeon1.jpg?8",
                 "caption": ""
             },
             "isCodeManaged": false,
@@ -127,9 +129,9 @@
             "type": "dataframe",
             "content": {
                 "dataframe": "@{main_df}",
-                "dataframeBackgroundColor": "#f5fdff",
-                "dataframeHeaderRowBackgroundColor": "#d0e6eb",
-                "showIndex": ""
+                "showIndex": "",
+                "enableSearch": "yes",
+                "enableDownload": "yes"
             },
             "isCodeManaged": false,
             "position": 4,
@@ -209,7 +211,7 @@
             "id": "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0",
             "type": "text",
             "content": {
-                "text": "This app is meant to serve as a lighthearted introduction to Streamsync. It's not a comprehensive demonstration of its capabilities."
+                "text": "This app is meant to serve as a lighthearted introduction to the framework. It's not a comprehensive demonstration of its capabilities."
             },
             "isCodeManaged": false,
             "position": 0,
@@ -219,11 +221,11 @@
             "id": "7b710d37-1c68-4d06-a65a-e6596ccc826a",
             "type": "text",
             "content": {
-                "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges.",
-                "alignment": "center"
+                "text": "In a city plagued by technology gone awry, a group of unlikely heroes emerges. Introducing the Hacker Pigeons, a team of intelligent and resourceful pigeons on a mission to save their home from destruction. Follow their journey as they battle against malicious hackers, and prove that even the smallest creatures can make a big difference.",
+                "alignment": ""
             },
             "isCodeManaged": false,
-            "position": 3,
+            "position": 4,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "b9cb10e5-1ead-448b-afcc-909e23afb72a": {
@@ -238,20 +240,11 @@
             "id": "31c1b0d5-bfb6-4304-82bd-1687d492f0a2",
             "type": "heading",
             "content": {
-                "text": "Pigeon Power: Clever Birds Tackle Data Apps",
-                "alignment": "right",
-                "primaryTextColor": "#2fa0c6"
+                "text": "Pigeon Power: Birds Tackle Data Apps",
+                "alignment": ""
             },
             "isCodeManaged": false,
             "position": 1,
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
-        },
-        "804e15bf-11a7-463d-8082-f46ea3acac1b": {
-            "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
-            "type": "separator",
-            "content": {},
-            "isCodeManaged": false,
-            "position": 2,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "3cc9c5e9-6c77-401d-ab82-7805d9df760c": {
@@ -303,7 +296,7 @@
             "id": "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b",
             "type": "text",
             "content": {
-                "text": "\n## Role Distribution\n\nThe Hacker Pigeons _dataframe_ consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe **role distribution** among the hacker pigeons can be analysed to understand the composition of the secret society and the proportions of various roles.",
+                "text": "\n### Role Distribution\n\nThe Hacker Pigeons _dataframe_ consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe **role distribution** among the hacker pigeons can be analysed to understand the composition of the secret society and the proportions of various roles.",
                 "useMarkdown": "yes"
             },
             "isCodeManaged": false,
@@ -391,7 +384,9 @@
             "type": "dataframe",
             "content": {
                 "dataframe": "@{random_df}",
-                "fontStyle": "monospace"
+                "fontStyle": "monospace",
+                "enableSearch": "",
+                "enableDownload": ""
             },
             "isCodeManaged": false,
             "position": 1,
@@ -449,7 +444,7 @@
             "content": {
                 "element": "img",
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(80deg + @{hue_rotation}deg))\"\n}",
-                "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
+                "attrs": "{ \"src\": \"static/pigeon1.jpg?3\"}"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -461,7 +456,7 @@
             "content": {
                 "element": "img",
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(140deg + @{hue_rotation}deg))\"\n}",
-                "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
+                "attrs": "{ \"src\": \"static/pigeon1.jpg?3\"}"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -502,14 +497,6 @@
                 "width": "1"
             },
             "isCodeManaged": false,
-            "position": 2,
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
-        },
-        "888b1eb9-609c-4205-bbda-262999d197ff": {
-            "id": "888b1eb9-609c-4205-bbda-262999d197ff",
-            "type": "separator",
-            "content": {},
-            "isCodeManaged": false,
             "position": 1,
             "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
@@ -518,7 +505,7 @@
             "type": "heading",
             "content": {
                 "text": "Highlighted Members",
-                "headingType": "h1",
+                "headingType": "h2",
                 "alignment": "center"
             },
             "isCodeManaged": false,
@@ -560,9 +547,7 @@
             "type": "section",
             "content": {
                 "title": "@{item.name} \u2b50\ufe0f",
-                "containerBackgroundColor": "#40687d",
-                "primaryTextColor": "#ffffff",
-                "containerShadow": "0px 4px 11px -6px #000000"
+                "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -798,8 +783,8 @@
                 "key": "story",
                 "buttonColor": "#242424",
                 "buttonTextColor": "#ffffff",
-                "containerBackgroundColor": "#383838",
-                "emptinessColor": "#474c4d",
+                "containerBackgroundColor": "#4F4F4F",
+                "emptinessColor": "#333333",
                 "primaryTextColor": "#ffffff",
                 "separatorColor": "rgba(0, 0, 0, 0.2)"
             },
@@ -813,7 +798,7 @@
             "id": "1d195388-35a3-43e1-b825-1d263b100a28",
             "type": "header",
             "content": {
-                "text": "Hacker Pigeons"
+                "text": "HACKER PIGEONS"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -848,7 +833,7 @@
             "type": "button",
             "content": {
                 "text": "Go back to the main page",
-                "icon": "arrow-go-back"
+                "icon": "arrow_back"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -896,8 +881,7 @@
             "id": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
             "type": "section",
             "content": {
-                "title": "",
-                "containerBackgroundColor": "#383838"
+                "title": ""
             },
             "isCodeManaged": false,
             "position": 0,
@@ -931,13 +915,10 @@
             "type": "button",
             "content": {
                 "text": "Read the story",
-                "buttonShadow": "0px 4px 8px -8px #000000",
-                "icon": "book-2",
-                "buttonColor": "#34b9da",
-                "buttonTextColor": "#ffffff"
+                "icon": "library_books"
             },
             "isCodeManaged": false,
-            "position": 4,
+            "position": 5,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "$goToPage_story"
@@ -949,8 +930,7 @@
             "type": "heading",
             "content": {
                 "text": "Each page can have its own style",
-                "alignment": "",
-                "primaryTextColor": "#ffb3fc"
+                "alignment": ""
             },
             "isCodeManaged": false,
             "position": 1,
@@ -983,7 +963,7 @@
             "type": "button",
             "content": {
                 "text": "Download this story",
-                "icon": "file-download"
+                "icon": "download"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -1023,7 +1003,8 @@
             "id": "4wzaubf275w17gac",
             "type": "section",
             "content": {
-                "title": "@{item.name} \u2b50\ufe0f"
+                "title": "@{item.name} \u2b50\ufe0f",
+                "containerBackgroundColor": "#F5F5F9"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -1063,155 +1044,25 @@
             },
             "visible": true
         },
-        "k43pdntm5kbc2b07": {
-            "id": "k43pdntm5kbc2b07",
-            "type": "page",
+        "b27lw9ex8ig3x17p": {
+            "id": "b27lw9ex8ig3x17p",
+            "type": "tags",
             "content": {
-                "key": "chat"
+                "tags": "{\n  \"fiction\": \"fiction\",\n  \"inspirational\": \"inspirational\",\n  \"ai-generated\": \"ai-generated\"\n}",
+                "seed": ""
             },
             "isCodeManaged": false,
             "position": 2,
-            "parentId": "root",
-            "handlers": {},
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "visible": true
         },
-        "x2sfld99y54kyw9f": {
-            "id": "x2sfld99y54kyw9f",
-            "type": "header",
-            "content": {
-                "text": "ChatBot"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "k43pdntm5kbc2b07",
-            "handlers": {},
-            "visible": true
-        },
-        "n9tpz1b2dxzkl88c": {
-            "id": "n9tpz1b2dxzkl88c",
-            "type": "columns",
+        "804e15bf-11a7-463d-8082-f46ea3acac1b": {
+            "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
+            "type": "separator",
             "content": {},
             "isCodeManaged": false,
-            "position": 1,
-            "parentId": "k43pdntm5kbc2b07",
-            "handlers": {},
-            "visible": true
-        },
-        "erfftfpxdjinum0p": {
-            "id": "erfftfpxdjinum0p",
-            "type": "column",
-            "content": {
-                "width": "1"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "n9tpz1b2dxzkl88c",
-            "handlers": {},
-            "visible": true
-        },
-        "urnb1gwv1k5you33": {
-            "id": "urnb1gwv1k5you33",
-            "type": "column",
-            "content": {
-                "width": "2"
-            },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "n9tpz1b2dxzkl88c",
-            "handlers": {},
-            "visible": true
-        },
-        "9eae3xsw5ky8r2o1": {
-            "id": "9eae3xsw5ky8r2o1",
-            "type": "chatbot",
-            "content": {
-                "useMarkdown": "yes"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "erfftfpxdjinum0p",
-            "handlers": {
-                "ss-chatbot-message": "handle_chat_message",
-                "ss-chatbot-action-click": "handle_chat_action"
-            },
-            "visible": true
-        },
-        "gv9hkazc34el3hmp": {
-            "id": "gv9hkazc34el3hmp",
-            "type": "pdf",
-            "content": {
-                "source": "@{chat_bot.pdf.source}",
-                "highlights": "@{chat_bot.pdf.highlights}"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "j6nr9ctckqgpiel4",
-            "handlers": {},
-            "visible": true
-        },
-        "kozlv3tcuxqc9koc": {
-            "id": "kozlv3tcuxqc9koc",
-            "type": "iframe",
-            "content": {
-                "src": "@{chat_bot.web.url}"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "rd66bd5buksqw0ip",
-            "handlers": {},
-            "visible": true
-        },
-        "rd66bd5buksqw0ip": {
-            "id": "rd66bd5buksqw0ip",
-            "type": "section",
-            "content": {
-                "title": "Web"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "urnb1gwv1k5you33",
-            "handlers": {},
-            "visible": "chat_bot.show_web"
-        },
-        "j6nr9ctckqgpiel4": {
-            "id": "j6nr9ctckqgpiel4",
-            "type": "section",
-            "content": {
-                "title": "PDF"
-            },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "urnb1gwv1k5you33",
-            "handlers": {},
-            "visible": "chat_bot.show_pdf"
-        },
-        "pwkjgwhmw5i58oh2": {
-            "id": "pwkjgwhmw5i58oh2",
-            "type": "button",
-            "content": {
-                "text": "Check out our chat component!",
-                "buttonColor": "#34b9da",
-                "buttonTextColor": "#ffffff"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "us54ingwa99l1vbb",
-            "handlers": {
-                "ss-click": "$goToPage_chat"
-            },
-            "visible": true
-        },
-        "us54ingwa99l1vbb": {
-            "id": "us54ingwa99l1vbb",
-            "type": "section",
-            "content": {
-                "title": "Interested in building AI agents?"
-            },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
-            "handlers": {},
-            "visible": true
+            "position": 3,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         }
     }
 }

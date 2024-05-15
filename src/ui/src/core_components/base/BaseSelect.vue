@@ -2,7 +2,7 @@
 	<div
 		:id="baseId"
 		ref="rootEl"
-		class="BaseSelect"
+		class="BaseSelect colorTransformer"
 		tabindex="0"
 		:data-mode="mode"
 		:data-list-position="listPosition"
@@ -51,7 +51,7 @@
 					aria-label="Remove"
 					@click="removeItem(optionKey)"
 				>
-					<i class="ri-close-line"></i>
+					<i class="material-symbols-outlined"> close </i>
 				</div>
 			</div>
 			<input
@@ -327,6 +327,8 @@ function highlightItem(offset: number) {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
+
 .BaseSelect {
 	width: 100%;
 	position: relative;
@@ -337,14 +339,16 @@ function highlightItem(offset: number) {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	padding: 8px;
 	border: 1px solid var(--separatorColor);
 	width: 100%;
 	outline: none;
-	min-height: 50px;
+	min-height: 48px;
 	background: var(--containerBackgroundColor);
 	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
 	overflow-y: auto;
+	padding: 7px 8px 7px 8px;
+	font-size: 0.75rem;
+	border-radius: 8px;
 }
 
 [data-mode]:not([data-list-position="hidden"]) .selectedOptions .placeholder {
@@ -360,17 +364,19 @@ function highlightItem(offset: number) {
 }
 
 .BaseSelect:focus-within[data-list-position="hidden"] .selectedOptions {
-	border-color: var(--primaryTextColor);
+	border-color: var(--softenedAccentColor);
 }
 
 [data-list-position="bottom"] .selectedOptions {
-	border: 1px solid var(--primaryTextColor);
+	border: 1px solid var(--softenedAccentColor);
 	border-bottom: 1px solid var(--containerBackgroundColor);
+	border-radius: 8px 8px 0 0;
 }
 
 [data-list-position="top"] .selectedOptions {
-	border: 1px solid var(--primaryTextColor);
+	border: 1px solid var(--softenedAccentColor);
 	border-top: 1px solid var(--containerBackgroundColor);
+	border-radius: 0 0 8px 8px;
 }
 
 .selectedOptions .option {
@@ -378,11 +384,12 @@ function highlightItem(offset: number) {
 	color: var(--chipTextColor);
 	border-radius: 4px;
 	display: flex;
-	gap: 4px;
+	gap: 8px;
 	user-select: none;
 	align-items: center;
 	outline: none;
 	min-height: 32px;
+	padding: 4px 8px 4px 8px;
 }
 
 .selectedOptions .option.notFound {
@@ -398,7 +405,6 @@ function highlightItem(offset: number) {
 
 .selectedOptions .option .desc {
 	height: 100%;
-	padding: 8px;
 	display: flex;
 	align-items: center;
 }
@@ -407,7 +413,9 @@ function highlightItem(offset: number) {
 	display: flex;
 	align-items: center;
 	height: 100%;
-	padding: 0 8px 0 8px;
+	padding: 4px;
+	margin-right: -4px;
+	border-radius: 4px;
 	backdrop-filter: brightness(95%);
 	cursor: pointer;
 }
@@ -425,6 +433,7 @@ function highlightItem(offset: number) {
 	display: none;
 	color: var(--primaryTextColor);
 	background: var(--containerBackgroundColor);
+	outline: none;
 }
 
 [data-mode]:not([data-list-position="hidden"]) .selectedOptions input {
@@ -436,24 +445,26 @@ function highlightItem(offset: number) {
 	z-index: 10;
 	background: var(--containerBackgroundColor);
 	width: 100%;
-	border: 1px solid var(--primaryTextColor);
+	border: 1px solid var(--softenedAccentColor);
 	border-top: none;
 	max-height: v-bind("`${LIST_MAX_HEIGHT_PX}px`");
 	overflow-y: auto;
 	overflow-x: hidden;
+	border-radius: 0 0 8px 8px;
 }
 
 [data-list-position="top"] .list {
 	box-shadow: 0 -4px 16px -4px rgba(0, 0, 0, 0.2);
 	bottom: 100%;
-	border: 1px solid var(--primaryTextColor);
+	border: 1px solid var(--softenedAccentColor);
 	border-bottom: none;
+	border-radius: 8px 8px 0 0;
 }
 
 [data-list-position="bottom"] .list {
 	box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.2);
 	top: 100%;
-	border: 1px solid var(--primaryTextColor);
+	border: 1px solid var(--softenedAccentColor);
 	border-top: none;
 }
 
@@ -466,7 +477,7 @@ function highlightItem(offset: number) {
 }
 
 .list .option.highlighted {
-	background: var(--selectedColor);
+	background: var(--softenedAccentColor);
 	padding: 8px;
 }
 

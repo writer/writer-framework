@@ -4,7 +4,6 @@ from typing import Optional
 from streamsync.core_ui import (
     Component,
     ComponentTree,
-    DependentComponentTree,
     UIError,
     current_component_tree,
     current_parent_container,
@@ -48,8 +47,7 @@ class StreamsyncUI:
         return root_component
 
     @staticmethod
-    def find(component_id: str) \
-            -> Component:
+    def find(component_id: str) -> Component:
         """
         Retrieves a component by its ID from the current session's component tree.
 
@@ -146,7 +144,12 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
     if raw_handlers is not None:
         for event, handler in raw_handlers.items():
             if callable(handler):
-                handlers[event] = handler.__name__
+                module_name = \
+                    handler.__module__ + "." \
+                    if handler.__module__ != "streamsyncuserapp" \
+                    else ""
+                handlers[event] = \
+                    f"{module_name}{handler.__name__}"
             else:
                 handlers[event] = handler
     return handlers
@@ -170,7 +173,7 @@ def _prepare_value(value):
     return str(value)
 
 
-def _create_component(component_tree: DependentComponentTree,  component_type: str, **kwargs) -> Component:
+def _create_component(component_tree: ComponentTree, component_type: str, **kwargs) -> Component:
 
     parent_container = current_parent_container.get(None)
     if kwargs.get("id", False) is None:

@@ -83,6 +83,7 @@ instanceData.at(-1).value = stepsData;
 	border-radius: 8px;
 	background: var(--containerBackgroundColor);
 	overflow: hidden;
+	box-shadow: var(--containerShadow);
 }
 
 .stepSelector {

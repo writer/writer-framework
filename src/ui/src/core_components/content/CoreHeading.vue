@@ -28,11 +28,12 @@ export default {
 				name: "Text",
 				default: "(No text)",
 				init: "Heading Text",
+				desc: "Add text directly, or reference state elements with @{my_text}.",
 				type: FieldType.Text,
 			},
 			headingType: {
 				name: "Heading type",
-				default: "h2",
+				default: "h3",
 				options: {
 					h1: "h1 (Big)",
 					h2: "h2 (Normal)",

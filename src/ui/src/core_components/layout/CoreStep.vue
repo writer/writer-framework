@@ -33,8 +33,10 @@
 				>
 					<i
 						v-if="fields.isCompleted.value == 'yes'"
-						class="ri-check-line"
-					></i>
+						class="material-symbols-outlined"
+					>
+						done
+					</i>
 				</div>
 				<div class="linker right"></div>
 			</div>

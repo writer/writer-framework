@@ -71,14 +71,6 @@ export const buttonShadow = {
 	applyStyleVariable: true,
 };
 
-export const selectedColor = {
-	name: "Selected",
-	type: FieldType.Color,
-	default: "rgba(210, 234, 244, 0.8)",
-	category: FieldCategory.Style,
-	applyStyleVariable: true,
-};
-
 export const cssClasses = {
 	name: "Custom CSS classes",
 	type: FieldType.Text,

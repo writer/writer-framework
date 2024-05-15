@@ -1,15 +1,15 @@
 <docs lang="md">
-    When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.
-    Then, assign a message when the operation is completed.
+When working with operations that can succeed or fail, _Message_ can be useful. You can reserve a state element to be used for the outcome of the operation; empty messages aren't shown, so you can initialise it empty.
+Then, assign a message when the operation is completed.
 
-    \`\`\`python
-    state["msg"] = ""
+\`\`\`python
+state["msg"] = ""
 
-    if is_ok:
-    	state["msg"] = "+It worked!"
-    else:
-    	state["msg"] = "-It failed"
-    \`\`\`
+if is_ok:
+\ \ state["msg"] = "+It worked!"
+else:
+\ \ state["msg"] = "-It failed"
+\`\`\`
 </docs>
 
 <template>
@@ -19,14 +19,13 @@
 		:style="rootStyle"
 		:class="severity"
 	>
-		<div class="messageBackground"></div>
 		<div v-if="messageWithoutPrefix" class="message">
 			<LoadingSymbol v-if="severity == 'loading'" class="loadingSymbol">
 			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
 		<div v-else class="empty">
-			<h2>Blank Message</h2>
+			<h3>Blank message</h3>
 		</div>
 	</div>
 </template>
@@ -52,31 +51,31 @@ export default {
 			},
 			successColor: {
 				name: "Success",
-				default: "#00B800",
+				default: "#A9F9E1",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			errorColor: {
 				name: "Error",
-				default: "#FB0000",
+				default: "#FFCFC2",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			warningColor: {
 				name: "Warning",
-				default: "#FB9600",
+				default: "#FFE999",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			infoColor: {
 				name: "Info",
-				default: "#00ADB8",
+				default: "#E4E9FF",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			loadingColor: {
 				name: "Loading",
-				default: "#00ADB8",
+				default: "#E4E9FF",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
@@ -144,45 +143,28 @@ const rootStyle = computed(() => {
 .CoreMessage {
 	color: var(--primaryTextColor);
 	--messageActiveSeverityColor: var(--separatorColor);
-	position: relative;
-	border-color: var(--messageActiveSeverityColor);
-	color: var(--messageActiveSeverityColor);
-	background: white;
-}
-
-.messageBackground {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	opacity: 0.2;
 	background-color: var(--messageActiveSeverityColor);
-	transition: 0.2s background-color ease-in-out;
+	border-radius: 8px;
+	font-size: 0.875rem;
 }
 
 .message {
-	border-left: 4px solid var(--messageActiveSeverityColor);
 	padding: 16px;
 	display: flex;
 	align-items: center;
 	gap: 16px;
 }
-
-.message span {
-	filter: brightness(0.7);
-}
-
 .loadingSymbol {
 	margin: -8px 0 -8px 0;
 }
 
 .empty {
 	padding: 16px;
-	background-color: var(--separatorColor);
+	background-color: #e4e7ed;
 }
 
-.empty > h2 {
+.empty > h3 {
 	text-align: center;
 	color: var(--primaryTextColor);
-	opacity: 0.8;
 }
 </style>

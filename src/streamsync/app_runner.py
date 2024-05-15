@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
 import importlib.util
-import inspect
 import json
 import logging
 import logging.handlers
@@ -16,12 +15,12 @@ from types import ModuleType
 from typing import Callable, Dict, List, Optional, cast
 
 import watchdog.events
-import watchdog.observers
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from streamsync import VERSION
-from streamsync.core import StreamsyncSession
+from streamsync.core import EventHandlerRegistry, StreamsyncSession
+from streamsync.core_ui import ingest_bmc_component_tree
 from streamsync.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -49,7 +48,7 @@ class MessageHandlingException(Exception):
 class SessionPruner(threading.Thread):
 
     """
-    Prunes sessions in intervals, without interfering with the AppProcess server thread.  
+    Prunes sessions in intervals, without interfering with the AppProcess server thread.
     """
 
     PRUNE_SESSIONS_INTERVAL_SECONDS = 60
@@ -96,6 +95,7 @@ class AppProcess(multiprocessing.Process):
         self.is_app_process_server_ready = is_app_process_server_ready
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
+        self.handler_registry = EventHandlerRegistry()
 
 
     def _load_module(self) -> ModuleType:
@@ -110,34 +110,15 @@ class AppProcess(multiprocessing.Process):
         module: ModuleType = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         globals()[module_name] = module
+
         return module
 
-    def _get_user_functions(self) -> List[Dict]:
+    def _get_user_functions(self) -> List[EventHandlerRegistry.HandlerMeta]:
         """
-        Returns functions exposed in the user code module, which are potential event handlers.
+        Returns functions exposed in the user code module and registered modules,
+        which are potential event handlers, using the handler registry.
         """
-
-        streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-        if streamsyncuserapp is None:
-            raise ValueError("Couldn't find app module (streamsyncuserapp).")
-        all_fn_names = (x[0] for x in inspect.getmembers(
-            streamsyncuserapp, inspect.isfunction))
-        exposed_fn_names = list(
-            filter(lambda x: not x.startswith("_"), all_fn_names))
-        
-        fn_info = []
-
-        for fn_name in exposed_fn_names:
-            fn_callable = getattr(streamsyncuserapp, fn_name)
-            if not fn_callable:
-                continue
-            args = inspect.getfullargspec(fn_callable).args
-            fn_info.append({
-                "name": fn_name,
-                "args": args
-            }) 
-
-        return fn_info
+        return self.handler_registry.gather_handler_meta()
 
     def _handle_session_init(self, payload: InitSessionRequestPayload) -> InitSessionResponsePayload:
         """
@@ -223,15 +204,15 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
     
-    def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
+    def _handle_component_update(self, session: StreamsyncSession, payload: ComponentUpdateRequestPayload) -> None:
         import streamsync
-        streamsync.base_component_tree.ingest(payload.components)
+        ingest_bmc_component_tree(streamsync.base_component_tree, payload.components)
+        ingest_bmc_component_tree(session.session_component_tree, payload.components, True)
 
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
         Handles messages from the main process to the app's isolated process.
         """
-
         import streamsync
 
         session = None
@@ -276,7 +257,7 @@ class AppProcess(multiprocessing.Process):
         if self.mode == "edit" and type == "componentUpdate":
             cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
                 request.payload)
-            self._handle_component_update(cu_req_payload)
+            self._handle_component_update(session, cu_req_payload)
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
@@ -308,6 +289,9 @@ class AppProcess(multiprocessing.Process):
         if captured_stdout:
             streamsync.core.initial_state.add_log_entry(
                 "info", "Stdout message during initialisation", captured_stdout)
+
+        # Register non-private functions as handlers
+        self.handler_registry.register_module(streamsyncuserapp)
 
     def _apply_configuration(self) -> None:
         import streamsync
@@ -341,7 +325,7 @@ class AppProcess(multiprocessing.Process):
         terminate_early = False
 
         try:
-            streamsync.base_component_tree.ingest(self.bmc_components)
+            ingest_bmc_component_tree(streamsync.base_component_tree, self.bmc_components)
         except BaseException:
             streamsync.core.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
@@ -514,6 +498,7 @@ class AppProcessListener(threading.Thread):
                 raise ValueError(
                     f"No response event found for message {message_id}.")
 
+
 class LogListener(threading.Thread):
 
     """
@@ -535,6 +520,7 @@ class LogListener(threading.Thread):
             if message is None:
                 break
             self.logger.handle(message)            
+
 
 class AppRunner:
 
@@ -636,7 +622,7 @@ class AppRunner:
         response_packet = self.response_packets.get(message_id)
         if response_packet is None:
             raise ValueError(
-                f"Empty packet received in response to message { message_id }.")
+                f"Empty packet received in response to message {message_id}.")
         response_message_id, response_session_id, response = response_packet
         del self.response_packets[message_id]
         del self.response_events[message_id]
@@ -766,8 +752,8 @@ class AppRunner:
                 "Cannot start app process. Components haven't been set.")
         self.is_app_process_server_ready.clear()
         client_conn, server_conn = multiprocessing.Pipe(duplex=True)
-        self.client_conn = cast(multiprocessing.connection.Connection, client_conn) # for mypy type checking on windows
-        self.server_conn = cast(multiprocessing.connection.Connection, server_conn) # for mypy type checking on windows
+        self.client_conn = cast(multiprocessing.connection.Connection, client_conn)  # for mypy type checking on windows
+        self.server_conn = cast(multiprocessing.connection.Connection, server_conn)  # for mypy type checking on windows
 
         self.app_process = AppProcess(
             client_conn=self.client_conn,

@@ -30,7 +30,7 @@ def increment(state):
 
 initial_state = ss.init_state({
     "my_app": {
-        "title": "My App"
+        "title": "MY APP"
     },
     "_my_private_element": 1337,
     "message": None,

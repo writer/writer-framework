@@ -142,7 +142,7 @@ const selectOptions = computed(() => {
 		return {
 			value: m.key,
 			label: m.label,
-			icon: "ri-split-cells-horizontal",
+			icon: "width",
 		};
 	});
 });

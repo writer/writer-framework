@@ -33,7 +33,7 @@
 						variant="subtle"
 						@click="removeAssistedEntry(entryKey)"
 					>
-						<i class="ri-delete-bin-line"></i>
+						<i class="material-symbols-outlined">delete</i>
 					</button>
 				</div>
 			</div>
@@ -52,7 +52,7 @@
 					@keydown.enter="addAssistedEntry"
 				/>
 				<button @click="addAssistedEntry">
-					<i class="ri-add-line"></i>Add
+					<i class="material-symbols-outlined">add</i>Add
 				</button>
 			</div>
 		</template>
@@ -227,6 +227,7 @@ onMounted(async () => {
 .staticList:empty::before {
 	content: "No entries yet.";
 }
+
 .staticList .entry {
 	display: flex;
 	align-items: center;

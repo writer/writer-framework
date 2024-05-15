@@ -14,7 +14,7 @@
 				:style="{ background: generateColor(tagId) }"
 				@click="() => handleTagClick(tagId)"
 			>
-				{{ tagDesc }}
+				<span>{{ tagDesc }}</span>
 			</div>
 		</template>
 		<div v-else class="tag empty">
@@ -49,7 +49,7 @@ export default {
 				name: "Reference",
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
-				default: "#29cf00",
+				default: "#5551FF",
 				category: FieldCategory.Style,
 			},
 			seed: {
@@ -70,10 +70,7 @@ export default {
 				default: "yes",
 				category: FieldCategory.Style,
 			},
-			primaryTextColor: {
-				...primaryTextColor,
-				default: "#ffffff",
-			},
+			primaryTextColor,
 			cssClasses,
 		},
 		events: {
@@ -91,7 +88,18 @@ import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import chroma from "chroma-js";
 
-const COLOR_STEPS = 18;
+const COLOR_STEPS = [
+	{ h: -78, s: -34, l: 16 },
+	{ h: -61, s: -37, l: 16 },
+	{ h: -2, s: 0, l: 24 },
+	{ h: -12, s: 0, l: 29 },
+	{ h: 28, s: -20, l: 24 },
+	{ h: -61, s: -95, l: 25 },
+	{ h: -173, s: 0, l: 16 },
+	{ h: -228, s: 0, l: 22 },
+	{ h: 69, s: 0, l: 25 },
+	{ h: 70, s: 0, l: 29 },
+];
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
@@ -108,10 +116,20 @@ function generateColor(s: string) {
 		return fields.referenceColor.value;
 	}
 	const baseColor = chroma(fields.referenceColor.value);
-	let genColor = baseColor.set(
-		"hcl.h",
-		`+${calculateColorStep(s) * (360 / COLOR_STEPS)}`,
-	);
+	const colorStep = COLOR_STEPS[calculateColorStep(s)];
+	let genColor = baseColor
+		.set(
+			"hsl.h",
+			`${Math.sign(colorStep.h) == -1 ? "-" : "+"}${Math.abs(colorStep.h)}`,
+		)
+		.set(
+			"hsl.s",
+			`${Math.sign(colorStep.s) == -1 ? "-" : "+"}${Math.abs(colorStep.s / 100.0)}`,
+		)
+		.set(
+			"hsl.l",
+			`${Math.sign(colorStep.l) == -1 ? "-" : "+"}${Math.abs(colorStep.l / 100.0)}`,
+		);
 	return genColor.css();
 }
 
@@ -120,7 +138,7 @@ function calculateColorStep(s: string) {
 	for (let i = 0; i < s.length; i++) {
 		hash = ((i + 1) * s.charCodeAt(i)) ^ (hash & 0xffffffff);
 	}
-	const step = Math.abs(hash) % COLOR_STEPS;
+	const step = Math.abs(hash) % COLOR_STEPS.length;
 	return step;
 }
 
@@ -146,9 +164,13 @@ function handleTagClick(tagId: string) {
 
 .tag {
 	height: fit-content;
-	padding: 4px 8px 4px 8px;
+	padding: 6px 12px 6px 12px;
 	border-radius: 16px;
-	font-size: 0.65rem;
+	font-size: 0.75rem;
+	line-height: 100%;
+	font-weight: 500;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
 	color: var(--primaryTextColor);
 	display: flex;
 	align-items: center;

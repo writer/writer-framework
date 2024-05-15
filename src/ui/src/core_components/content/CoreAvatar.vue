@@ -5,7 +5,9 @@
 		:class="[fields.size.value, fields.orientation.value]"
 	>
 		<div class="image" @click="handleClick">
-			<i v-if="!fields.imageSrc.value" class="ri-user-line"></i>
+			<i v-if="!fields.imageSrc.value" class="material-symbols-outlined">
+				account_circle
+			</i>
 		</div>
 		<div class="info">
 			<div v-if="fields.name.value" class="name" @click="handleClick">
@@ -129,11 +131,11 @@ function handleClick(ev: MouseEvent) {
 }
 
 .CoreAvatar.medium {
-	gap: 24px;
+	gap: 16px;
 }
 
 .CoreAvatar.large {
-	gap: 24px;
+	gap: 16px;
 }
 
 .CoreAvatar.vertical {
@@ -154,10 +156,6 @@ function handleClick(ev: MouseEvent) {
 	);
 	color: var(--primaryTextColor);
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
-}
-
-.image i {
-	opacity: 0.3;
 }
 
 .info {
@@ -190,20 +188,20 @@ function handleClick(ev: MouseEvent) {
 }
 
 .name {
-	font-weight: bold;
+	font-weight: 500;
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
 }
 
 .small .name {
-	font-size: 0.8rem;
+	font-size: 0.875rem;
 }
 
 .medium .name {
-	font-size: 0.9rem;
+	font-size: 1rem;
 }
 
 .large .name {
-	font-size: 1.2rem;
+	font-size: 1.25rem;
 }
 
 .info .caption {
