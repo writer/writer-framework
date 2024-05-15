@@ -49,7 +49,7 @@ def _process_completion_data_chunk(choice: StreamingData) -> str:
 def _process_chat_data_chunk(chat_data: Chat) -> dict:
     choices = chat_data.choices
     for entry in choices:
-        message = cast(dict, entry.get("message"))
+        message = cast(dict, entry).get("message")
         return message
     raise ValueError("Failed to retrieve text from chat stream")
 
