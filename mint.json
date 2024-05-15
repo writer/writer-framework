@@ -26,14 +26,25 @@
 	],
 	"navigation": [
 		{
-			"group": "Guide",
+			"group": "Get Started",
+			"pages": ["docs/docs/getting-started", "docs/docs/quickstart-tutorial"]
+		},
+		{
+			"group": "Guides",
 			"pages": [
-				"docs/docs/getting-started",
-				"docs/docs/builder-basics",
 				"docs/docs/application-state",
 				"docs/docs/event-handlers",
-				"docs/docs/handling-inputs"
+				"docs/docs/builder-basics",
+				"docs/docs/handling-inputs",
+				"docs/docs/backend-driven-ui",
+				"docs/docs/stylesheets",
+				"docs/docs/frontend-scripts",
+				"docs/docs/custom-components"
 			]
+		},
+		{
+			"group": "Deployment",
+			"pages": ["docs/docs/deploy-with-docker", "docs/docs/testing"]
 		},
 		{
 			"group": "Advanced",
@@ -43,25 +54,8 @@
 				"docs/docs/page-routes",
 				"docs/docs/sessions",
 				"docs/docs/custom-server",
-				"docs/docs/state-schema",
-				"docs/docs/backend-driven-ui"
+				"docs/docs/state-schema"
 			]
-		},
-		{
-			"group": "Extending it",
-			"pages": [
-				"docs/docs/stylesheets",
-				"docs/docs/frontend-scripts",
-				"docs/docs/custom-components"
-			]
-		},
-		{
-			"group": "Tutorials",
-			"pages": ["docs/docs/quickstart-tutorial"]
-		},
-		{
-			"group": "Reference",
-			"pages": ["docs/docs/testing", "docs/docs/deploy-with-docker"]
 		}
 	],
 	"footerSocials": {
