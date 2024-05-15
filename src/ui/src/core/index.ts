@@ -371,8 +371,8 @@ export function generateCore() {
 	}
 
 	function setupMessageFollowUp(trackingId: number) {
-		const INITIAL_FOLLOWUP_MS = 100;
-		const SUBSEQUENT_FOLLOWUPS_MS = 1000;
+		const INITIAL_FOLLOWUP_MS = 150;
+		const SUBSEQUENT_FOLLOWUPS_MS = 150;
 
 		const checkIfStateEnquiryRequired = () => {
 			const isPending = frontendMessageMap.value.has(trackingId);
