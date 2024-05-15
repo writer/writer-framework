@@ -358,12 +358,12 @@ def build_session_component_tree(base_component_tree: ComponentTree) -> Componen
 
     cmc_tree_branch = base_component_tree.branch(Branch.initial_cmc).clone()
     bmc_tree_branch = base_component_tree.branch(Branch.bmc).clone()
-    bmc_tree_branch.freeze = True
+    # bmc_tree_branch.freeze = True
 
     return ComponentTree([session_tree_branch, cmc_tree_branch, bmc_tree_branch])
 
 
-def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[str, Any]):
+def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[str, Any], ignore_freeze: bool = False):
     """
     Updates the builder managed component tree branch with the provided components.
     This method is used on the event `componentUpdate`.
@@ -372,7 +372,7 @@ def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[st
     """
     assert component_tree.exists(Branch.bmc) is True, \
         "bmc component tree branch does not exists in this component tree"
-    assert component_tree.is_frozen(Branch.bmc) is False, \
+    assert component_tree.is_frozen(Branch.bmc) is False or ignore_freeze is True, \
         "builder managed component tree are frozen and cannot be updated"
 
     component_tree.ingest(components, tree=Branch.bmc)

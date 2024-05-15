@@ -23,45 +23,40 @@ See the stubs for more details.
 						}}
 					</div>
 					<div class="content">
-						<div v-if="message.pending" class="loadingContainer">
-							<LoadingSymbol
-								class="loadingSymbol"
-							></LoadingSymbol>
+						<div class="text">
+							<BaseMarkdown
+								v-if="fields.useMarkdown.value == 'yes'"
+								:raw-text="message.content?.trim()"
+							>
+							</BaseMarkdown>
+							<template v-else>
+								{{ message.content?.trim() }}
+							</template>
 						</div>
-						<template v-else>
-							<div class="text">
-								<BaseMarkdown
-									v-if="fields.useMarkdown.value == 'yes'"
-									:raw-text="message.content"
+						<div v-if="message.actions" class="actions">
+							<button
+								v-for="(action, actionIndex) in message.actions"
+								:key="actionIndex"
+								class="action"
+								@click="handleActionClick(action)"
+							>
+								<div
+									v-if="action.subheading"
+									class="subheading"
 								>
-								</BaseMarkdown>
-								<template v-else>
-									{{ message.content }}
-								</template>
-							</div>
-							<div v-if="message.actions" class="actions">
-								<button
-									v-for="(
-										action, actionIndex
-									) in message.actions"
-									:key="actionIndex"
-									class="action"
-									@click="handleActionClick(action)"
-								>
-									<div
-										v-if="action.subheading"
-										class="subheading"
-									>
-										{{ action.subheading }}
-									</div>
-									<h3 class="name">{{ action.name }}</h3>
-									<div v-if="action.desc" class="desc">
-										{{ action.desc }}
-									</div>
-								</button>
-							</div>
-						</template>
+									{{ action.subheading }}
+								</div>
+								<h3 class="name">{{ action.name }}</h3>
+								<div v-if="action.desc" class="desc">
+									{{ action.desc }}
+								</div>
+							</button>
+						</div>
 					</div>
+				</div>
+				<div v-if="isResponsePending" class="loadingContainer">
+					<LoadingSymbol class="loadingSymbol"></LoadingSymbol
+					>Loading...
 				</div>
 			</div>
 		</div>
@@ -177,10 +172,10 @@ const defaultConversation = `[
 
 const chatbotMessageStub = `
 def handle_message_simple(payload, state):
-    state["conversation"] += [{
-        "role": "user",
-        "content": payload
-    }]
+
+	# payload contains a dict in the form { "role": "user", "message": "hello"}
+
+	state["conversation"] += [payload]
     state["conversation"] += [{
         "role": "assistant",
         "content": "Hello human" if payload == "Hello" else "I don't understand"
@@ -207,10 +202,7 @@ def handle_action_simple(payload, state):
 # Make an action available when adding a message
 
 def handle_message_with_action(payload, state):
-    state["conversation"] += [{
-        "role": "user",
-        "content": payload
-    }]
+    state["conversation"] += [payload]
     state["conversation"] += [{
         "role": "assistant",
         "content": "I don't know, but check this out.",
@@ -374,6 +366,7 @@ type Message = {
 const rootEl: Ref<HTMLElement> = ref(null);
 const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
+const isResponsePending: Ref<boolean> = ref(false);
 const fields = inject(injectionKeys.evaluatedFields);
 const files: Ref<File[]> = shallowRef([]);
 const isUploadingFiles = ref(false);
@@ -394,9 +387,16 @@ const isUploadSizeExceeded = computed(() => {
 });
 
 function handleMessageSent() {
+	isResponsePending.value = true;
 	const event = new CustomEvent("ss-chatbot-message", {
 		detail: {
-			payload: outgoingMessage.value,
+			payload: {
+				role: "user",
+				content: outgoingMessage.value,
+			},
+			callback: () => {
+				isResponsePending.value = false;
+			},
 		},
 	});
 	rootEl.value.dispatchEvent(event);
@@ -543,6 +543,7 @@ onBeforeUnmount(() => {
 	overflow-x: hidden;
 	grid-column: 1 / 3;
 	grid-row: 1;
+	padding-right: 16px;
 }
 
 .messages {
@@ -591,10 +592,6 @@ onBeforeUnmount(() => {
 	background: var(--userRoleColor);
 }
 
-.content .loadingContainer {
-	padding: 16px;
-}
-
 .content .text {
 	line-height: 2;
 	padding: 12px 16px 12px 16px;
@@ -629,6 +626,14 @@ onBeforeUnmount(() => {
 
 .action .desc {
 	font-size: 0.7rem;
+}
+
+.loadingContainer {
+	padding: 16px;
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	justify-content: center;
 }
 
 .filesArea {

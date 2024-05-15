@@ -204,9 +204,10 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
     
-    def _handle_component_update(self, payload: ComponentUpdateRequestPayload) -> None:
+    def _handle_component_update(self, session: StreamsyncSession, payload: ComponentUpdateRequestPayload) -> None:
         import streamsync
         ingest_bmc_component_tree(streamsync.base_component_tree, payload.components)
+        ingest_bmc_component_tree(session.session_component_tree, payload.components, True)
 
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
@@ -256,7 +257,7 @@ class AppProcess(multiprocessing.Process):
         if self.mode == "edit" and type == "componentUpdate":
             cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
                 request.payload)
-            self._handle_component_update(cu_req_payload)
+            self._handle_component_update(session, cu_req_payload)
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
