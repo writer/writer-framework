@@ -2,11 +2,11 @@ import logging
 from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 from httpx import Timeout
-from writerai import WriterAI
-from writerai._streaming import Stream
-from writerai._types import Body, Headers, NotGiven, Query
-from writerai.types import Chat, Completion, StreamingData
-from writerai.types.chat_chat_params import Message as WriterAIMessage
+from writer import Writer
+from writer._streaming import Stream
+from writer._types import Body, Headers, NotGiven, Query
+from writer.types import Chat, Completion, StreamingData
+from writer.types.chat_chat_params import Message as WriterAIMessage
 
 from streamsync.core import get_app_process
 
@@ -66,10 +66,10 @@ class WriterAIManager:
         Initializes a WriterAIManager instance.
 
 
-        :param token: Optional; the default token for API authentication used if WRITERAI_API_KEY environment variable is not set up.
+        :param token: Optional; the default token for API authentication used if WRITER_API_KEY environment variable is not set up.
         """
 
-        self.client = WriterAI(
+        self.client = Writer(
             # This is the default and can be omitted
             api_key=token,
         )
@@ -104,7 +104,7 @@ class WriterAIManager:
         :param token: The new token to use for authentication.
         """
         instance = cls.acquire_instance()
-        instance.client = WriterAI(api_key=token)
+        instance.client = Writer(api_key=token)
 
     @classmethod
     def use_chat_model(cls) -> str:
@@ -125,7 +125,7 @@ class WriterAIManager:
         return "palmyra-x-v2"
 
     @classmethod
-    def acquire_client(cls) -> WriterAI:
+    def acquire_client(cls) -> Writer:
         instance = cls.acquire_instance()
         return instance.client
 

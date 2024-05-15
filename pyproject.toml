@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "streamsync"
-version = "0.5.0"
+version = "0.6.0rc1"
 description = "Streamsync helps you create performant data apps, via Python code and its built-in visual UI editor."
 authors = ["Ramiro Medina <ramiro.a.medina@gmail.com>"]
 license = "Apache 2.0"
@@ -36,6 +36,7 @@ fastapi = ">= 0.89.1, < 1"
 websockets = ">= 12, < 13"
 uvicorn = ">= 0.20.0, < 1"
 watchdog = ">= 3.0.0, < 4"
+writer-sdk = "0.1.0a1"
 pandas = {version = ">= 2.2.0, < 3", optional = true}
 pyarrow = {version = ">= 15.0.0, < 16.0.0",optional = true}
 plotly = {version = ">= 5.18.0, < 6", optional = true}
