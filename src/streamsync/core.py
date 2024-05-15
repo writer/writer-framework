@@ -937,7 +937,7 @@ class EventDeserialiser:
         return payload
 
     def _transform_chatbot_message(self, ev) -> str:
-        payload = str(ev.payload)
+        payload = dict(ev.payload)
         return payload
 
     def _transform_chatbot_action_click(self, ev) -> str:
