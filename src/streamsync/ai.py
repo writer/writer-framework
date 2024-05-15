@@ -65,8 +65,6 @@ class WriterAIManager:
         """
         Initializes a WriterAIManager instance.
 
-        This method sets the API URL, authentication token, global temperature setting,
-        and global maximum token limit for responses, using environment variables.
 
         :param token: Optional; the default token for API authentication used if WRITERAI_API_KEY environment variable is not set up.
         """
@@ -83,16 +81,19 @@ class WriterAIManager:
     def acquire_instance(cls) -> 'WriterAIManager':
         """
         Retrieve the existing instance of WriterAIManager from the current app process.
+        If no instance was previously initialized, creates a new one and attaches it to the current app process.
 
         :returns: The current instance of the manager.
-        :raises RuntimeWarning: If no instance of WriterAIManager is found in the current process.
         """
+        instance: WriterAIManager
         current_process = get_app_process()
         try:
             instance = getattr(current_process, 'ai_manager')
             return instance
         except AttributeError:
-            raise RuntimeWarning('No WriterAIManager instance found. Have you initialized it?')
+            # Instance was not initialized explicitly; creating a new one
+            instance = cls()
+        return instance
 
     @classmethod
     def authorize(cls, token: str):
@@ -167,6 +168,9 @@ class Conversation:
 
     @staticmethod
     def _prepare_message(message: 'Conversation.Message') -> WriterAIMessage:
+        """
+        Converts a message object stored in Conversation to a Writer SDK `Message` model, suitable for calls to API.
+        """
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
         return WriterAIMessage(content=message["content"], role=message["role"])
@@ -203,9 +207,10 @@ class Conversation:
     def complete(self, data: Optional['ChatOptions'] = None) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
+        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
         :param data: Optional parameters to pass for processing.
-        :return: The content of the generated response.
+        :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
         if not data:
@@ -226,7 +231,7 @@ class Conversation:
             extra_headers=request_data.get('extra_headers'),
             extra_query=request_data.get('extra_query'),
             extra_body=request_data.get('extra_body'),
-            timeout=request_data.get('timeout')
+            timeout=request_data.get('timeout', NotGiven())
             )
 
         for entry in response_data.choices:
@@ -238,7 +243,7 @@ class Conversation:
     def stream_complete(self, data: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
-        Note: in contrast with `Conversation.complete`, this method is not adding any messages to the conversation.
+        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
         :param data: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
