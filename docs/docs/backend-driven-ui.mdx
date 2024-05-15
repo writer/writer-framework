@@ -6,11 +6,13 @@ Streamsync facilitates backend-initiated user interface modifications. These cha
 
 CMCs, unlike BMCs, are dynamically created and modified via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
 
-::: warning Experimental feature
-This Streamsync feature is still evolving. You may encounter unexpected behaviour. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
-:::
+<Warning>
+Experimental feature! This Streamsync feature is still evolving. You may encounter unexpected behaviour. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
+</Warning>
 
-::: tip To summarise
+<Note> 
+To summarise:
+
 **CMC** – Code-Managed Component 
 - created via **application backend**;
 - **cannot be edited** in builder;
@@ -20,7 +22,7 @@ This Streamsync feature is still evolving. You may encounter unexpected behaviou
 - created via **builder**; 
 - **can be edited** in builder;
 - is **saved** to `ui.json`.
-:::
+</Note>
 
 ## UI manager
 
@@ -143,9 +145,10 @@ In addition to `content`, a set of fields which is specific to the component typ
         )
     ```
     *If no ID is provided with a component, a UUID is automatically generated for it.*  
-    ::: note Make sure to provide an `id` if you intend to `find` the component later  
+    <Note> 
+    Make sure to provide an `id` if you intend to `find` the component later  
     As the `find` method relies on `id` of the component, retrieval might get tricky if its `id` was generated randomly.
-    :::
+    </Note>
 - **`position: int`**: Determines the display order of the component in relation to its siblings.  
     Position `0` means that the component is the first child of its parent.  
     Position `-2` is used for components – such as [sidebars](https://www.streamsync.cloud/component-list.html#sidebar) – that have a specific reserved position not related to their siblings.  
@@ -237,9 +240,9 @@ with ui.ColumnContainer(id="cmc-column-container"):
             ui.Text({"text": 'Hello World again!'}, id="hello-world-2")
 ```
 
-::: warning Most components depend on being inside of a container
-This means, for example, that Text components in code above cannot be created as "orphans", outside a Column or Section. Attempting to do so would raise an `UIError`.
-:::
+<Warning> 
+Most components depend on being inside of a container. This means, for example, that Text components in code above cannot be created as "orphans", outside a Column or Section. Attempting to do so would raise an `UIError`.
+</Warning>
 
 By default, components inside container's `with` are being *appended* to it:
 ```python

@@ -45,9 +45,9 @@ From Builder, you can reference the element above as `@{my_app.title}`.
 
 By default, all of the elements in the session state are sent to the frontend.
 
-::: warning State elements are sent to the frontend by default
-Even if they aren't actively being shown in the user interface, they're sent to the user's browser.
-:::
+<Warning> 
+State elements are sent to the frontend by default. Even if they aren't actively being shown in the user interface, they're sent to the user's browser.
+</Warning>
 
 Prefix a state element with `_` (underscore) to make them private (backend-only). This can be very useful in some scenarios.
 

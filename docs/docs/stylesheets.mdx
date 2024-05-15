@@ -27,9 +27,11 @@ initial_state = ss.init_state({
 initial_state.import_stylesheet("theme", "/static/custom.css")
 ```
 
-::: tip Use versions to avoid caching
+<Note> 
+Use versions to avoid caching
+
 During development time, stylesheets may be cached by your browser, preventing updates from being reflected. Append a querystring to bust the cache, e.g. use `/static/custom.css?3`. 
-:::
+</Note>
 
 
 ## Applying CSS classes
@@ -55,9 +57,11 @@ The CSS code for the class used earlier, `bubblegum`, can be found below. Note h
 }
 ```
 
-::: warning Component structure may change
+<Warning> 
+Component structure may change
+
 When targeting specific HTML elements inside components, take into account that the internal structure of components may change across Streamsync versions.
-:::
+</Warning>
 
 Alternatively, you can override Streamsync's style variables. This behaves slightly differently though; style variables are inherited by children components. For example, if a *Section* has been assigned the `bubblegum` class, its children will also have a pink background by default.
 

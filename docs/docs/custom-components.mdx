@@ -6,9 +6,10 @@ It's possible to extend Streamsync with custom component templates.
 
 They're developed using Vue 3 and TypeScript. Once transpiled, they can be used by copying them to the `extensions/` folder of any project.
 
-::: tip Custom components behave exactly like built-in ones
+<Note> 
+Custom components behave exactly like built-in ones.
 They are just as performant, can contain other components, and offer the same Builder experience. They only differ from built-in components in the way that they're bundled and imported.
-:::
+</Note>
 
 ## Architecture
 
@@ -128,9 +129,9 @@ You should now be able to access Streamsync via the URL provided by Vite, e.g. `
 
 Go to `ui/src/custom_components/` and open the Vue single-file components, i.e. the `.vue` files. These files contain comments that will help you get started. Try editing the provided templates, you should see changes reflected.
 
-::: tip
+<Note>
 You can also have a look at the built-in component templates, since their syntax is equivalent. They can be found in the `ui/src/core_components/` folder.
-:::
+</Note>
 
 You can get started by duplicating one of these examples. Make sure you add the new template to the entrypoint, as discussed below.
 

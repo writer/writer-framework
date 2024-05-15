@@ -32,10 +32,11 @@ EXPOSE 8080
 CMD [ ".",  "--port", "8080", "--host", "0.0.0.0" ] 
 ```
 
-::: tip This Dockerfile is just a guideline
-It uses an official Python base image.
+<Note> 
+This Dockerfile is just a guideline.
+It uses an official Python slim base image with a multistage build to reduce the size of the built image.
 If you're a Docker expert, feel free to work on your own `Dockerfile`. Streamsync is, after all, a standard Python package.
-:::
+</Note>
 
 ### Building the Docker image
 
@@ -45,9 +46,11 @@ To build the image, write `docker build . -t ` followed by an image tag, which y
 docker build . -t my_streamsync_app
 ```
 
-::: warning Platform considerations
+<Warning> 
+Platform considerations
+
 By default, Docker builds images in the architecture it's being run on. If you're working with an ARM computer, such as a Mac M2 or a Raspberry Pi, Docker will build an ARM image. Most cloud services will only accept x86 images. You can use another computer (or virtual machine) to build the image, or you can use [Docker buildx](https://docs.docker.com/build/building/multi-platform/).
-:::
+</Warning>
 
 ## Publishing your Docker image
 
