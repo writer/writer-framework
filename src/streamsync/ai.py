@@ -1,13 +1,12 @@
 import logging
-from typing import Generator, Iterable, List, Optional, TypedDict, Union, cast
+from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 from httpx import Timeout
 from writerai import WriterAI
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
 from writerai.types import Chat, Completion, StreamingData
-from writerai.types.chat import ChoiceMessage
-from writerai.types.chat_chat_params import Message
+from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from streamsync.core import get_app_process
 
@@ -66,8 +65,6 @@ class WriterAIManager:
         """
         Initializes a WriterAIManager instance.
 
-        This method sets the API URL, authentication token, global temperature setting,
-        and global maximum token limit for responses, using environment variables.
 
         :param token: Optional; the default token for API authentication used if WRITERAI_API_KEY environment variable is not set up.
         """
@@ -84,16 +81,19 @@ class WriterAIManager:
     def acquire_instance(cls) -> 'WriterAIManager':
         """
         Retrieve the existing instance of WriterAIManager from the current app process.
+        If no instance was previously initialized, creates a new one and attaches it to the current app process.
 
         :returns: The current instance of the manager.
-        :raises RuntimeWarning: If no instance of WriterAIManager is found in the current process.
         """
+        instance: WriterAIManager
         current_process = get_app_process()
         try:
             instance = getattr(current_process, 'ai_manager')
             return instance
         except AttributeError:
-            raise RuntimeWarning('No WriterAIManager instance found. Have you initialized it?')
+            # Instance was not initialized explicitly; creating a new one
+            instance = cls()
+        return instance
 
     @classmethod
     def authorize(cls, token: str):
@@ -132,17 +132,17 @@ class WriterAIManager:
 
 class Conversation:
     class Message(TypedDict):
-        role: str
+        role: Literal['system', 'assistant', 'user']
         content: str
         actions: Optional[dict]
 
-    def __init__(self, config: Optional[dict] = None):
+    def __init__(self, config: Optional[ChatOptions] = None):
         """
         Initializes the Conversation object.
 
         :param config: Optional dictionary containing initial configuration settings.
         """
-        self.messages: List[Conversation.Message] = []
+        self.messages: List['Conversation.Message'] = []
         self.config = config or {}
 
     def _merge_chunk_to_last_message(self, raw_chunk: dict):
@@ -166,7 +166,16 @@ class Conversation:
             updated_last_message["content"] += clear_chunk.pop("content")
         updated_last_message |= clear_chunk
 
-    def __add__(self, chunk_or_message: Union['Message', dict]):
+    @staticmethod
+    def _prepare_message(message: 'Conversation.Message') -> WriterAIMessage:
+        """
+        Converts a message object stored in Conversation to a Writer SDK `Message` model, suitable for calls to API.
+        """
+        if not ("role" in message and "content" in message):
+            raise ValueError("Improper message format")
+        return WriterAIMessage(content=message["content"], role=message["role"])
+
+    def __add__(self, chunk_or_message: Union['Conversation.Message', dict]):
         """
         Adds a message or appends a chunk to the last message in the conversation.
 
@@ -181,8 +190,6 @@ class Conversation:
             self._merge_chunk_to_last_message(cast(dict, chunk))
         else:
             message = chunk_or_message
-            if isinstance(message, ChoiceMessage):
-                message = {"content": message.content, "role": message.role}
             if not ("role" in message and "content" in message):
                 raise ValueError("Improper message format to add to Conversation")
             self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
@@ -197,32 +204,46 @@ class Conversation:
         """
         self.__add__({"role": role, "content": message})
 
-    def complete(self, data: Optional['ChatOptions'] = None) -> str:
+    def complete(self, data: Optional['ChatOptions'] = None) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
+        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
         :param data: Optional parameters to pass for processing.
-        :return: The content of the generated response.
+        :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
         if not data:
             data = {}
 
         client = WriterAIManager.acquire_client()
-        passed_messages = cast(Iterable[Message], self.messages)
+        passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
+        request_data: ChatOptions = {**data, **self.config}
 
-        response_data: Chat = client.chat.chat(messages=passed_messages, model=WriterAIManager.use_chat_model(), **{**data, **self.config})
+        response_data: Chat = client.chat.chat(
+            messages=passed_messages,
+            model=WriterAIManager.use_chat_model(),
+            max_tokens=request_data.get('max_tokens', NotGiven()),
+            n=request_data.get('n', NotGiven()),
+            stop=request_data.get('stop', NotGiven()),
+            temperature=request_data.get('temperature', NotGiven()),
+            top_p=request_data.get('top_p', NotGiven()),
+            extra_headers=request_data.get('extra_headers'),
+            extra_query=request_data.get('extra_query'),
+            extra_body=request_data.get('extra_body'),
+            timeout=request_data.get('timeout', NotGiven())
+            )
 
         for entry in response_data.choices:
             message = entry.message
             if message:
-                return message
+                return cast(Conversation.Message, message.model_dump())
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
     def stream_complete(self, data: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
-        Note: in contrast with `Conversation.complete`, this method is not adding any messages to the conversation.
+        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
         :param data: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
@@ -231,9 +252,23 @@ class Conversation:
             data = {}
 
         client = WriterAIManager.acquire_client()
-        passed_messages = cast(Iterable[Message], self.messages)
+        passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
+        request_data: ChatOptions = {**data, **self.config}
 
-        response: Stream = client.chat.chat(messages=passed_messages, model=WriterAIManager.use_chat_model(), stream=True, **{**data, **self.config})
+        response: Stream = client.chat.chat(
+            messages=passed_messages,
+            model=WriterAIManager.use_chat_model(),
+            stream=True,
+            max_tokens=request_data.get('max_tokens', NotGiven()),
+            n=request_data.get('n', NotGiven()),
+            stop=request_data.get('stop', NotGiven()),
+            temperature=request_data.get('temperature', NotGiven()),
+            top_p=request_data.get('top_p', NotGiven()),
+            extra_headers=request_data.get('extra_headers'),
+            extra_query=request_data.get('extra_query'),
+            extra_body=request_data.get('extra_body'),
+            timeout=request_data.get('timeout'),
+            )
 
         # We avoid flagging first chunk
         # to trigger creating a message
