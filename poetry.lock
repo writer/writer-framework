@@ -2015,4 +2015,4 @@ ds = ["pandas", "plotly", "pyarrow"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "675969bf6243f6e55489132576b7f57a9504a8b863f80ff24ee916f38b50976f"
+content-hash = "8fb7730ae9b6c5b30fc375e413b6a8cacb5aec8852d32f0978cffe6b8509dc06"
