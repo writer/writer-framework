@@ -163,26 +163,6 @@ def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
         url_oauthtoken="https://oauth2.googleapis.com/token",
         url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json")
 
-def Microsoft(client_id: str, client_secret: str, tenant_id: str, host_url: str) -> Oidc:
-    """
-    Configure Office 365 login configured through Client Id for Web application in Google Cloud Console.
-
-    >>> import streamsync.auth
-    >>> oidc = streamsync.auth.Microsoft(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxxxx", tenant_id='xxxxxxxxxxxxxxxxx', host_url="http://localhost:5000")
-
-    :param client_id: client id of Web application
-    :param client_secret: client secret of Web application
-    :param tenant_id: tenant id of the application
-    :param host_url: The URL of the streamsync application (for callback)
-    """
-    return Oidc(
-        client_id=client_id,
-        client_secret=client_secret,
-        host_url=host_url,
-        url_authorize=f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize",
-        url_oauthtoken=f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
-        url_userinfo="https://graph.microsoft.com/v1.0/me")
-
 def Github(client_id: str, client_secret: str, host_url: str) -> Oidc:
     """
     Configure Github authentication.

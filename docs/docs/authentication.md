@@ -39,7 +39,6 @@ StreamSync provides pre-configured OIDC providers. You can use them directly in 
 |                                                                                    | Provider                                                                                | Function | Description                                                                                     |
 |------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------|
 | <img src="./images/auth_google_fill.png" style="width: 25px; min-width:25px" />    | Google  | `streamsync.auth.Google` | Allow your users to login with their Google Account                                             |
-| <img src="./images/auth_microsoft_fill.png" style="width: 25px; min-width:25px" /> | Microsoft                                                                               | `streamsync.auth.Microsoft` | Allow your users to login with their Microsoft Account                                          |
 | <img src="./images/auth_github_fill.png" style="width: 25px; min-width:25px" />    | Github                                                                                  | `streamsync.auth.Github` | Allow your users to login with their Github Account                                             |
 | <img src="./images/auth_auth0_fill.png" style="width: 25px; min-width:25px" />     | Auth0                                                                                   | `streamsync.auth.Auth0` | Allow your users to login with different providers or with login password through Auth0 |
 
@@ -57,26 +56,6 @@ import streamsync.auth
 oidc = streamsync.auth.Google(
 	client_id="1xxxxxxxxx-qxxxxxxxxxxxxxxx.apps.googleusercontent.com",
 	client_secret="GOxxxx-xxxxxxxxxxxxxxxxxxxxx",
-	host_url=os.getenv('HOST_URL', "http://localhost:5000")
-)
-
-streamsync.serve.register_auth(oidc)
-```
-
-#### Microsoft
-
-You have to register your application into [Azure AD](https://docs.snowflake.com/en/user-guide/oauth-azure)
-
-*server_setup.py*
-```python
-import os
-import streamsync.serve
-import streamsync.auth
-
-oidc = streamsync.auth.Microsoft(
-	client_id="xxxxxxx",
-	client_secret="xxxxxxxxxxxxx",
-	tenant_id="xxxxxxxxxxxxx",
 	host_url=os.getenv('HOST_URL', "http://localhost:5000")
 )
 
@@ -233,7 +212,3 @@ you must trigger the loading of the server_setup module in edition mode.
 streamsync edit --enable-server-setup
 ```
 
-```
-
-
-```python

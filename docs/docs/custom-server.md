@@ -2,13 +2,13 @@
 
 Streamsync uses Uvicorn and serves the app in the root path i.e. `/`. If you need to use another ASGI-compatible server or fine-tune Uvicorn, you can easily do so.
 
-## Tune server
+## Configure webserver
 
-You can tune your server at startup by adding a `server_setup.py` file to the root 
+You can tune your server by adding a `server_setup.py` file to the root 
 of your application, next to the `main.py` and `ui.json` files.
 
-This file is executed during server startup. It allows you to configure [authentication](),
-add your own routes and middlewares on FastAPI before the server starts. 
+This file is executed before starting streamsync. It allows you to configure [authentication](./authentication.md),
+add your own routes and middlewares on FastAPI. 
 
 ```python
 # server_setup.py
@@ -27,7 +27,7 @@ def hello():
     return "1"
 ```
 
-::: warning Using in `edit` mode
+::: warning Use `server_setup.py` in `edit` mode
 If you want to use in `edit` mode, 
 you can launch `streamsync edit --enable-server-setup <app>`.
 :::

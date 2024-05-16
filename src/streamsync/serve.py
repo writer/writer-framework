@@ -14,10 +14,10 @@ from urllib.parse import urlsplit
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-from starlette.responses import FileResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from streamsync import VERSION
