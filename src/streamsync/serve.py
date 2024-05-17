@@ -1,16 +1,20 @@
 import asyncio
+import importlib.util
 import logging
 import mimetypes
 import os
+import os.path
 import pathlib
 import textwrap
 import typing
 from contextlib import asynccontextmanager
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from importlib.machinery import ModuleSpec
+from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
@@ -34,15 +38,35 @@ from streamsync.ss_types import (
     StreamsyncWebsocketOutgoing,
 )
 
+if typing.TYPE_CHECKING:
+    from .auth import Auth, Unauthorized
+
 MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
+
+
+class StreamsyncState(typing.Protocol):
+    app_runner: AppRunner
+    streamsync_app: bool
+    is_server_static_mounted: bool
+
+class StreamsyncAsgi(typing.Protocol):
+    state: StreamsyncState
+
+class StreamsyncFastAPI(FastAPI, StreamsyncAsgi):  # type: ignore
+    pass
+
+app: StreamsyncFastAPI = cast(StreamsyncFastAPI, None)
 
 def get_asgi_app(
         user_app_path: str,
         serve_mode: ServeMode,
         enable_remote_edit: bool = False,
+        enable_server_setup: bool = False,
         on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None) -> FastAPI:
+        on_shutdown: Optional[Callable] = None,
+) -> StreamsyncFastAPI:
+    global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
@@ -50,15 +74,15 @@ def get_asgi_app(
     app_runner = AppRunner(user_app_path, serve_mode)
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI):
+    async def lifespan(asgi_app: FastAPI):
         nonlocal app_runner
 
         app_runner.hook_to_running_event_loop()
         app_runner.load()
 
         if on_load is not None \
-           and hasattr(app.state, 'is_server_static_mounted') \
-           and app.state.is_server_static_mounted:
+           and hasattr(asgi_app.state, 'is_server_static_mounted') \
+           and asgi_app.state.is_server_static_mounted:
             on_load()
 
         try:
@@ -70,12 +94,13 @@ def get_asgi_app(
         if on_shutdown is not None:
             on_shutdown()
 
-    asgi_app = FastAPI(lifespan=lifespan)
+    app = cast(StreamsyncFastAPI, FastAPI(lifespan=lifespan))
     """
     Reuse the same pattern to give variable to FastAPI application
-    than `asgi_app.state.is_server_static_mounted` already use in streamsync.
+    than `app.state.is_server_static_mounted` already use in streamsync.
     """
-    asgi_app.state.streamsync_app = True
+    app.state.streamsync_app = True
+    app.state.app_runner = app_runner
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -126,8 +151,8 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths
         )
 
-    @asgi_app.post("/api/init")
-    async def init(initBody: InitRequestBody, request: Request) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
+    @app.post("/api/init")
+    async def init(initBody: InitRequestBody, request: Request, response: Response) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
 
         """
         Handles session init and provides a "starter pack" to the frontend.
@@ -141,21 +166,35 @@ def get_asgi_app(
             raise HTTPException(
                 status_code=403, detail="Incorrect origin. Only local origins are allowed.")
 
-        response = await app_runner.init_session(InitSessionRequestPayload(
+        session_id = request.cookies.get("session")
+        if session_id is not None:
+            initBody.proposedSessionId = session_id
+
+
+        app_response = await app_runner.init_session(InitSessionRequestPayload(
             cookies=dict(request.cookies),
             headers=dict(request.headers),
             proposedSessionId=initBody.proposedSessionId
         ))
-        status = response.status
 
-        if status == "error" or response.payload is None:
+        status = app_response.status
+
+        """
+        Deletes the session cookie that was set by 
+        authentication when it is present.
+        """
+        if session_id is not None:
+            response.delete_cookie("session")
+
+        if status == "error" or app_response.payload is None:
             raise HTTPException(status_code=403, detail="Session rejected.")
 
         if serve_mode == "run":
-            return _get_run_starter_pack(response.payload)
+            return _get_run_starter_pack(app_response.payload)
 
         if serve_mode == "edit":
-            return _get_edit_starter_pack(response.payload)
+            return _get_edit_starter_pack(app_response.payload)
+
 
     # Streaming
 
@@ -331,7 +370,7 @@ def get_asgi_app(
         except (WebSocketDisconnect):
             pass
 
-    @asgi_app.websocket("/api/stream")
+    @app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
 
         """ Initialises incoming and outgoing communications on the stream. """
@@ -371,20 +410,19 @@ def get_asgi_app(
 
     user_app_static_path = pathlib.Path(user_app_path) / "static"
     if user_app_static_path.exists():
-        asgi_app.mount(
+        app.mount(
             "/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
 
     user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
     if user_app_extensions_path.exists():
-        asgi_app.mount(
+        app.mount(
             "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
-    server_path = os.path.dirname(__file__)
-    server_static_path = pathlib.Path(server_path) / "static"
+    server_path = pathlib.Path(__file__)
+    server_static_path = server_path.parent / "static"
     if server_static_path.exists():
-        asgi_app.mount(
-            "/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
-        asgi_app.state.is_server_static_mounted = True
+        _mount_server_static_path(app, server_static_path)
+        app.state.is_server_static_mounted = True
     else:
         logging.error(
             textwrap.dedent(
@@ -400,8 +438,10 @@ def get_asgi_app(
         )
 
     # Return
+    if enable_server_setup is True:
+        _execute_server_setup_hook(user_app_path)
 
-    return asgi_app
+    return app
 
 
 def print_init_message():
@@ -423,8 +463,14 @@ def print_route_message(run_name: str, port: int, host: str):
 
     print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
 
+def register_auth(
+    auth: 'Auth',
+    callback: Optional[Callable[[Request, str, dict], None]] = None,
+    unauthorized_action: Optional[Callable[[Request, 'Unauthorized'], Response]] = None
+):
+    auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
-def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
+def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, enable_server_setup=False):
     """ Initialises the web server. """
 
     print_init_message()
@@ -433,12 +479,14 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False):
         run_name = "Builder" if mode == "edit" else "App"
         print_route_message(run_name, port, host)
 
-    asgi_app = get_asgi_app(
-        app_path, mode, enable_remote_edit, on_load)
+    """
+    Loading of the server_setup.py is active by default 
+    when streamsync is launched with the run command.
+    """
+    enable_server_setup = mode == "run" or enable_server_setup
+    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
     log_level = "warning"
-
-    uvicorn.run(asgi_app, host=host,
-                port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
+    uvicorn.run(app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -502,3 +550,36 @@ def _fix_mimetype():
     js_mimetype = mimetypes.guess_type("myfile.js")[0]
     if js_mimetype[0] != "text/javascript":
         mimetypes.add_type("text/javascript", ".js")
+
+def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) -> None:
+    """
+    Unitarily declares the files and folders present in "/static" directory of source code.
+
+    We avoid the general declaration as below. This declaration limit the ability of a developper to
+    declare it's own route.
+    
+    >>> asgi_app.mount("/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
+
+    Streamsync routes remain priority. A developer cannot come and overload them.
+    """
+    app.get('/')(lambda: FileResponse(server_static_path.joinpath('index.html')))
+    for f in server_static_path.glob('*'):
+        if f.is_file():
+            app.get(f"/{f.name}")(lambda: FileResponse(f))
+        if f.is_dir():
+            app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
+
+def _execute_server_setup_hook(user_app_path: str) -> None:
+    """
+    Runs the server_setup.py module if present in the application directory.
+
+    """
+    server_setup_path = os.path.join(user_app_path, "server_setup.py")
+    if os.path.isfile(server_setup_path):
+        spec = cast(ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore
+
+
+def app_runner(asgi_app: StreamsyncFastAPI) -> AppRunner:
+    return asgi_app.state.app_runner

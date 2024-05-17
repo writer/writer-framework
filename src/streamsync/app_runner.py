@@ -129,8 +129,9 @@ class AppProcess(multiprocessing.Process):
 
         import streamsync
 
-        session = streamsync.session_manager.get_new_session(
-            payload.cookies, payload.headers, payload.proposedSessionId)
+        session = streamsync.session_manager.get_session(payload.proposedSessionId)
+        if session is None:
+            session = streamsync.session_manager.get_new_session(payload.cookies, payload.headers, payload.proposedSessionId)
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
@@ -252,6 +253,14 @@ class AppProcess(multiprocessing.Process):
                 status="ok",
                 status_message=None,
                 payload=self._handle_state_enquiry(session)
+            )
+
+        if type == "setUserinfo":
+            session.userinfo = request.payload
+            return AppProcessServerResponse(
+                status="ok",
+                status_message=None,
+                payload=None
             )
 
         if self.mode == "edit" and type == "componentUpdate":
@@ -808,3 +817,18 @@ class AppRunner:
             self.code_update_condition.notify_all()
         finally:
             self.code_update_condition.release()
+
+    def set_userinfo(self, session_id: str, userinfo: dict) -> None:
+        def run_async_in_thread():
+            message = AppProcessServerRequest(
+                type="setUserinfo",
+                payload=userinfo
+            )
+
+            asyncio.run(self.dispatch_message(session_id, message))
+
+        thread = threading.Thread(target=run_async_in_thread)
+        thread.start()
+        thread.join()
+        return
+

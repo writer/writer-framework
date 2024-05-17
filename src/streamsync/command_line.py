@@ -21,11 +21,14 @@ def main():
         "--host", help="The host on which to run the server. Use 0.0.0.0 to share in your local network.")
     parser.add_argument(
         "--enable-remote-edit", help="Set this flag to allow non-local requests in edit mode.", action='store_true')
+    parser.add_argument(
+        "--enable-server-setup", help="Set this flag to enable server setup hook in edit mode.", action='store_true')
 
     args = parser.parse_args()
     command = args.command
     default_port = 3006 if command in ("edit", "hello") else 3005
     enable_remote_edit = args.enable_remote_edit
+    enable_server_setup_hook = args.enable_server_setup
 
     port = int(args.port) if args.port else default_port
     absolute_app_path = _get_absolute_app_path(
@@ -33,7 +36,7 @@ def main():
     host = args.host if args.host else None
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit)
-    _route(command, absolute_app_path, port, host, enable_remote_edit)
+    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook)
 
 def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool]):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
@@ -62,19 +65,28 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
             sys.exit(1)
 
 
-def _route(command: str, absolute_app_path: str, port: int, host: Optional[str], enable_remote_edit: Optional[bool]):
+def _route(
+    command: str,
+    absolute_app_path: str,
+    port: int,
+    host: Optional[str],
+    enable_remote_edit: Optional[bool],
+    enable_server_setup: Optional[bool]
+):
     if host is None:
         host = "127.0.0.1"
     if command in ("edit"):
         streamsync.serve.serve(
-            absolute_app_path, mode="edit", port=port, host=host, enable_remote_edit=enable_remote_edit)
+            absolute_app_path, mode="edit", port=port, host=host,
+            enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
     if command in ("run"):
         streamsync.serve.serve(
-            absolute_app_path, mode="run", port=port, host=host)
+            absolute_app_path, mode="run", port=port, host=host, enable_server_setup=True)
     elif command in ("hello"):
         create_app("hello", template_name="hello", overwrite=True)
         streamsync.serve.serve("hello", mode="edit",
-                               port=port, host=host, enable_remote_edit=enable_remote_edit)
+                               port=port, host=host, enable_remote_edit=enable_remote_edit,
+                               enable_server_setup=False)
     elif command in ("create"):
         create_app(absolute_app_path)
 
