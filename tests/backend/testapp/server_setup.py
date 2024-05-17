@@ -1,12 +1,12 @@
 import typing
 
-import streamsync.serve
+import writer.serve
 
 if typing.TYPE_CHECKING:
     from fastapi import FastAPI
 
-# Returns the FastAPI application associated with the streamsync server.
-asgi_app: 'FastAPI' = streamsync.serve.app
+# Returns the FastAPI application associated with the Writer Framework server.
+asgi_app: 'FastAPI' = writer.serve.app
 
 @asgi_app.get("/probes/healthcheck")
 def hello():

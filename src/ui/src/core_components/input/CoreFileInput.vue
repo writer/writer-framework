@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
@@ -51,7 +51,7 @@ def onchange_handler(state, payload):
             file_handle.write(file_data)`.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "File Input",
 		description,
 		category: "Input",
@@ -73,7 +73,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-file-change": {
+			"wf-file-change": {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
@@ -93,12 +93,12 @@ const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fileEl: Ref<HTMLInputElement> = ref(null);
 const message: Ref<string> = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const processingFiles: Ref<string[]> = ref(null);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
@@ -149,7 +149,7 @@ const fileChange = async (ev: InputEvent) => {
 		processingFiles.value = null;
 	};
 
-	handleInput(getValue(), "ss-file-change", customCallback);
+	handleInput(getValue(), "wf-file-change", customCallback);
 };
 
 watch(formValue, (newValue: string) => {

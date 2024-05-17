@@ -9,10 +9,10 @@ from fastapi import Request, Response
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-import streamsync.serve
-from streamsync.core import session_manager
-from streamsync.serve import StreamsyncFastAPI
-from streamsync.ss_types import InitSessionRequestPayload
+import writer.serve
+from writer.core import session_manager
+from writer.serve import WriterFastAPI
+from writer.ss_types import InitSessionRequestPayload
 
 
 class Unauthorized(Exception):
@@ -29,13 +29,13 @@ class Unauthorized(Exception):
 
 class Auth:
     """
-    Interface to implement authentication in streamsync.
+    Interface to implement authentication in Writer Framework.
     """
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def register(self,
-                 app: StreamsyncFastAPI,
+                 app: WriterFastAPI,
                  callback: Optional[Callable[[Request, str, dict], None]] = None,
                  unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None
     ):
@@ -45,12 +45,12 @@ class Auth:
 @dataclasses.dataclass
 class Oidc(Auth):
     """
-    Configure streamsync to use OpenID Connect. If this is set, streamsync will
+    Configure Writer Framework to use OpenID Connect. If this is set, Writer Framework will
     redirect anonymous users to OpenID Connect issuer.
 
     The issuer will then
-    authenticate the user and redirect back to the streamsync application with
-    an authorization code. The streamsync application will then exchange the
+    authenticate the user and redirect back to the Writer Framework application with
+    an authorization code. The Writer Framework application will then exchange the
     authorization code for an access token and use the access token to
     authenticate the user and fetch user information.
 
@@ -61,7 +61,7 @@ class Oidc(Auth):
     ...     url_oauthtoken="https://oauth2.googleapis.com/token",
     ...     url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
     ... )
-    >>> streamsync.server.register_auth(oidc)
+    >>> writer.server.register_auth(oidc)
 
     """
     client_id: str
@@ -79,7 +79,7 @@ class Oidc(Auth):
 
 
     def register(self,
-                 asgi_app: StreamsyncFastAPI,
+                 asgi_app: WriterFastAPI,
                  callback: Optional[Callable[[Request, str, dict], None]] = None,
                  unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None
                  ):
@@ -116,7 +116,7 @@ class Oidc(Auth):
                 response = RedirectResponse(url=host_url_path)
                 session_id = session_manager.generate_session_id()
 
-                app_runner = streamsync.serve.app_runner(asgi_app)
+                app_runner = writer.serve.app_runner(asgi_app)
                 await app_runner.init_session(InitSessionRequestPayload(
                     cookies=request.cookies, headers=request.headers, proposedSessionId=session_id))
 
@@ -148,12 +148,12 @@ def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
     """
     Configure Google Social login configured through Client Id for Web application in Google Cloud Console.
 
-    >>> import streamsync.auth
-    >>> oidc = streamsync.auth.Google(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx.apps.googleusercontent.com", host_url="http://localhost:5000")
+    >>> import writer.auth
+    >>> oidc = writer.auth.Google(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx.apps.googleusercontent.com", host_url="http://localhost:5000")
 
     :param client_id: client id of Web application
     :param client_secret: client secret of Web application
-    :param host_url: The URL of the streamsync application (for callback)
+    :param host_url: The URL of the Writer Framework application (for callback)
     """
     return Oidc(
         client_id=client_id,
@@ -167,12 +167,12 @@ def Github(client_id: str, client_secret: str, host_url: str) -> Oidc:
     """
     Configure Github authentication.
 
-    >>> import streamsync.auth
-    >>> oidc = streamsync.auth.Github(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", host_url="http://localhost:5000")
+    >>> import writer.auth
+    >>> oidc = writer.auth.Github(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", host_url="http://localhost:5000")
 
     :param client_id: client id
     :param client_secret: client secret
-    :param host_url: The URL of the streamsync application (for callback)
+    :param host_url: The URL of the Writer Framework application (for callback)
     """
     return Oidc(
         client_id=client_id,
@@ -186,13 +186,13 @@ def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oid
     """
     Configure Auth0 application for authentication.
 
-    >>> import streamsync.auth
-    >>> oidc = streamsync.auth.Auth0(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", domain="xxx-xxxxx.eu.auth0.com", host_url="http://localhost:5000")
+    >>> import writer.auth
+    >>> oidc = writer.auth.Auth0(client_id="xxxxxxx", client_secret="xxxxxxxxxxxxx", domain="xxx-xxxxx.eu.auth0.com", host_url="http://localhost:5000")
 
     :param client_id: client id
     :param client_secret: client secret
     :param domain: Domain of the Auth0 application
-    :param host_url: The URL of the streamsync application (for callback)
+    :param host_url: The URL of the Writer Framework application (for callback)
     """
     return Oidc(
         client_id=client_id,

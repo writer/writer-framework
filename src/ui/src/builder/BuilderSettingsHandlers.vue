@@ -162,18 +162,18 @@ import { computed, ComputedRef, inject, Ref, ref } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import { StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { WriterComponentDefinition } from "../writerTypes";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const { setHandlerValue } = useComponentActions(ss, ssbm);
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const { setHandlerValue } = useComponentActions(wf, ssbm);
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 
-const recognisedEvents: ComputedRef<StreamsyncComponentDefinition["events"]> =
+const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	computed(() => {
 		const { type } = component.value;
-		const { events: supportedEvents } = ss.getComponentDefinition(type);
+		const { events: supportedEvents } = wf.getComponentDefinition(type);
 
 		const recEvents = { ...supportedEvents };
 
@@ -185,8 +185,8 @@ const recognisedEvents: ComputedRef<StreamsyncComponentDefinition["events"]> =
 		return recEvents;
 	});
 
-const userFunctions = computed(() => ss.getUserFunctions());
-const pageKeys = computed(() => ss.getPageKeys());
+const userFunctions = computed(() => wf.getUserFunctions());
+const pageKeys = computed(() => wf.getPageKeys());
 
 const isHandlerInvalid = (eventType: string) => {
 	const handlerFunctionName = component.value.handlers?.[eventType];
@@ -223,7 +223,7 @@ const customHandlerModal: Ref<CustomHandlerModal> = ref(null);
 
 function getCustomEventStubCode() {
 	return `
-# When dealing with a DOM event, Streamsync generates a payload by serialising its
+# When dealing with a DOM event, Writer Framework generates a payload by serialising its
 # primitive properties (non-Object, non-function properties).
 
 # If the event is instead an instance of CustomEvent,
@@ -243,7 +243,7 @@ def handle_keydown(state, payload):
 
 function getStubCode(eventType: string) {
 	const { type } = component.value;
-	const { events } = ss.getComponentDefinition(type);
+	const { events } = wf.getComponentDefinition(type);
 	const event = events?.[eventType];
 
 	if (!event) return getCustomEventStubCode();

@@ -44,7 +44,7 @@ export type InstancePath = InstancePathItem[];
  * Defines component structure and behaviour. Included in Component templates.
  */
 
-export type StreamsyncComponentDefinition = {
+export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
 	docs?: string; // Collapsible mini-docs
@@ -63,7 +63,7 @@ export type StreamsyncComponentDefinition = {
 			options?:
 				| Record<string, string>
 				| ((
-						ss?: Core,
+						wf?: Core,
 						componentId?: ComponentId,
 				  ) => Record<string, string>); // List of values to be provided as autocomplete options
 			type: FieldType; // Data type for the field

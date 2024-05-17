@@ -10,7 +10,7 @@
 				($event) =>
 					handleInput(
 						($event.target as HTMLInputElement).value,
-						'ss-option-change',
+						'wf-option-change',
 					)
 			"
 		>
@@ -28,7 +28,7 @@
 <script lang="ts">
 import { inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import WdsDropdownInput from "../../wds/WdsDropdownInput.vue";
@@ -45,7 +45,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Dropdown Input",
 		description,
 		category: "Input",
@@ -64,7 +64,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-option-change": {
+			"wf-option-change": {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -80,11 +80,11 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

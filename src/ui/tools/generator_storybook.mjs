@@ -176,7 +176,7 @@ export const Sample: Story = {
 	render: (args) => ({
 		components: { ${component.nameTrim} },
 		setup() {
-			const ss = generateCore();
+			const wf = generateCore();
 			const rootStyle = computed(() => {
 				return {
 					"--accentColor": "#5551ff",
@@ -208,7 +208,7 @@ ${generateArgWrap(component)}
 			provide(injectionKeys.isBeingEdited, ref(false));
 			provide(injectionKeys.instancePath, [{componentId: "test", instanceNumber: 0}]);
 			provide(injectionKeys.flattenedInstancePath, "test:0");
-			provide(injectionKeys.core, ss as any);
+			provide(injectionKeys.core, wf as any);
 			return { args, rootStyle };
 		},
 		template:

@@ -19,7 +19,7 @@
 <script lang="ts">
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
@@ -42,7 +42,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Multiselect Input",
 		description,
 		category: "Input",
@@ -88,7 +88,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-options-change": {
+			"wf-options-change": {
 				desc: "Sent when the selected options change.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -107,18 +107,18 @@ const fields = inject(injectionKeys.evaluatedFields);
 const options = computed(() => fields.options.value);
 const maximumCount: Ref<number> = computed(() => fields.maximumCount.value);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
 
 function handleChange(selectedOptions: string[]) {
-	handleInput(selectedOptions, "ss-options-change");
+	handleInput(selectedOptions, "wf-options-change");
 }
 </script>
 

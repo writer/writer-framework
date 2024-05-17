@@ -2,22 +2,22 @@ import importlib.metadata
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from streamsync.core import (
+from writer.core import (
     BytesWrapper,
     Config,
     FileWrapper,
     Readable,
     State,
-    StreamsyncState,
+    WriterState,
     base_component_tree,
     initial_state,
     new_initial_state,
     session_manager,
     session_verifier,
 )
-from streamsync.ui import StreamsyncUIManager
+from writer.ui import WriterUIManager
 
-VERSION = importlib.metadata.version("streamsync")
+VERSION = importlib.metadata.version("writer")
 
 base_component_tree
 session_manager
@@ -43,34 +43,34 @@ def pack_bytes(raw_data, mime_type: Optional[str] = None):
     return BytesWrapper(raw_data, mime_type)
 
 
-S = TypeVar('S', bound=StreamsyncState)
+S = TypeVar('S', bound=WriterState)
 
 
-def init_ui() -> StreamsyncUIManager:
-    """Initializes and returns an instance of StreamsyncUIManager.
+def init_ui() -> WriterUIManager:
+    """Initializes and returns an instance of WriterUIManager.
     This manager provides methods to dynamically create and manage UI
-    components in a Streamsync application.
+    components in a Writer Framework application.
 
-    The StreamsyncUIManager allows for the creation of application-wide,
+    The WriterUIManager allows for the creation of application-wide,
     code-managed components during startup, ensuring that the set of components
     is initially accessible by all sessions.
 
     :return: An instance that serves as a bridge for programmatically
     interacting with the frontend, facilitating dynamic UI component management.
-    :rtype: StreamsyncUIManager
+    :rtype: WriterUIManager
 
     **Example**::
 
-    >>> import streamsync as ss
+    >>> import writer as wf
     >>>
-    >>> with ss.init_ui() as ui:
+    >>> with wf.init_ui() as ui:
     >>>     with ui.Page({"key": "hello"}):
     >>>         ui.Text({"text": "Hello pigeons"})
     """
-    return StreamsyncUIManager()
+    return WriterUIManager()
 
 
-def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, StreamsyncState]:
+def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, WriterState]:
     """
     Sets the initial state, which will be used as the starting point for
     every session.
@@ -81,15 +81,15 @@ def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> U
 
 
 
-    >>> import streamsync as ss
+    >>> import writer as wf
 
-    >>> initial_state = ss.init_state({
+    >>> initial_state = wf.init_state({
     >>>   "counter": 0,
     >>> }, schema=AppSchema)
     """
-    concrete_schema = cast(Type[S], StreamsyncState if schema is None else schema)
-    if not issubclass(concrete_schema, StreamsyncState):
-        raise ValueError("Root schema must inherit from StreamsyncState")
+    concrete_schema = cast(Type[S], WriterState if schema is None else schema)
+    if not issubclass(concrete_schema, WriterState):
+        raise ValueError("Root schema must inherit from WriterState")
 
     _initial_state: S = new_initial_state(concrete_schema, raw_state)
     return _initial_state
@@ -107,19 +107,19 @@ def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
 
     Register a single handler module:
 
-    >>> import streamsync as ss
+    >>> import writer as wf
     >>> import my_handler_module
-    >>> ss.init_handlers(my_handler_module)
+    >>> wf.init_handlers(my_handler_module)
 
     Register multiple handler modules:
 
-    >>> import streamsync as ss
+    >>> import writer as wf
     >>> import module_one, module_two
-    >>> ss.init_handlers([module_one, module_two])
+    >>> wf.init_handlers([module_one, module_two])
 
     :raises ValueError: If an object that is not a module is attempted to be registered.
     """
-    from streamsync.core import get_app_process
+    from writer.core import get_app_process
     current_app_process = get_app_process()
     handler_registry = current_app_process.handler_registry
     # Ensure handler_modules is a list

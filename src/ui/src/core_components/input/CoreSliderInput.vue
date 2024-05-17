@@ -15,7 +15,7 @@
 					($event) =>
 						handleInput(
 							($event.target as HTMLInputElement).value,
-							'ss-number-change',
+							'wf-number-change',
 						)
 				"
 			/>
@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
@@ -43,7 +43,7 @@ def onchange_handler(state, payload):
 	state["new_val"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Slider Input",
 		description,
 		category: "Input",
@@ -75,7 +75,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-number-change": {
+			"wf-number-change": {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
@@ -92,11 +92,11 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

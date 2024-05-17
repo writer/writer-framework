@@ -5,12 +5,12 @@ import shutil
 import sys
 from typing import Optional
 
-import streamsync.serve
+import writer.serve
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run, edit or create a Streamsync app.")
+        description="Run, edit or create a Writer Framework app.")
     parser.add_argument("command", choices=[
                         "run", "edit", "create", "hello"])
     parser.add_argument(
@@ -42,27 +42,18 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
 
     if command in ("run", "edit") and is_path_folder is False:
-        logging.error("A path to a folder containing a Streamsync app is required. For example: streamsync edit my_app")
+        logging.error("A path to a folder containing a Writer Framework app is required. For example: writer edit my_app")
         sys.exit(1)
 
     if command in ("create") and absolute_app_path is None:
-        logging.error("A target folder is required to create a Streamsync app. For example: streamsync create my_app")
+        logging.error("A target folder is required to create a Writer Framework app. For example: writer create my_app")
         sys.exit(1)
 
     if command in ("edit", "hello") and host is not None:
-        logging.warning("Streamsync has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Streamsync Builder to the Internet. We recommend using a SSH tunnel instead.")
+        logging.warning("Writer Framework has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Builder to the Internet. We recommend using a SSH tunnel instead.")
 
     if command in ("edit", "hello") and enable_remote_edit is True:
-        logging.warning("The remote edit flag is active. Streamsync Builder will accept non-local requests. Please make sure the host is protected to avoid drive-by attacks.")
-
-    if command in ("hello"):
-        try:
-            import pandas  # noqa: F401
-            import plotly.express  # type: ignore  # noqa: F401
-            import pyarrow  # type: ignore  # noqa: F401
-        except ImportError:
-            logging.error("Running streamsync hello requires pandas, pyarrow and plotly.express. Install them with:\npip install streamsync[ds]")
-            sys.exit(1)
+        logging.warning("The remote edit flag is active. Builder will accept non-local requests. Please make sure the host is protected to avoid drive-by attacks.")
 
 
 def _route(
@@ -76,15 +67,15 @@ def _route(
     if host is None:
         host = "127.0.0.1"
     if command in ("edit"):
-        streamsync.serve.serve(
+        writer.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host,
             enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
     if command in ("run"):
-        streamsync.serve.serve(
+        writer.serve.serve(
             absolute_app_path, mode="run", port=port, host=host, enable_server_setup=True)
     elif command in ("hello"):
         create_app("hello", template_name="hello", overwrite=True)
-        streamsync.serve.serve("hello", mode="edit",
+        writer.serve.serve("hello", mode="edit",
                                port=port, host=host, enable_remote_edit=enable_remote_edit,
                                enable_server_setup=False)
     elif command in ("create"):

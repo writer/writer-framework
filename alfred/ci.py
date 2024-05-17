@@ -28,9 +28,9 @@ def ci(front, back, e2e, docs):
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
 
-@alfred.command("ci.mypy", help="typing checking with mypy on ./src/streamsync")
+@alfred.command("ci.mypy", help="typing checking with mypy on ./src/writer")
 def ci_mypy():
-    alfred.run("mypy ./src/streamsync --exclude app_templates/*")
+    alfred.run("mypy ./src/writer --exclude app_templates/*")
 
 @alfred.command("ci.ruff", help="linting with ruff")
 def ci_ruff():

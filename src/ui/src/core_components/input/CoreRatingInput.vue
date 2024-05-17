@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	cssClasses,
@@ -70,7 +70,7 @@ def onchange_handler(state, payload):
 	state["rating"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Rating Input",
 		description,
 		category: "Input",
@@ -113,7 +113,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-number-change": {
+			"wf-number-change": {
 				stub: onChangeHandlerStub,
 				bindable: true,
 			},
@@ -130,12 +130,12 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const unitsEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const provisionalValue: Ref<number> = ref(null);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
@@ -201,7 +201,7 @@ function getMouthPath(n: number) {
 
 function handleClick(event: MouseEvent) {
 	const n = getRatingFromEvent(event);
-	handleInput(n, "ss-number-change");
+	handleInput(n, "wf-number-change");
 }
 
 const normalisedMinValue = computed(() => {

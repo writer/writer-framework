@@ -1,4 +1,4 @@
-// Maps Streamsync component types to renderable Vue components
+// Maps Writer Framework component types to renderable Vue components
 // content
 import CoreDataframe from "../core_components/content/CoreDataframe.vue";
 import CoreHeading from "../core_components/content/CoreHeading.vue";
@@ -58,7 +58,7 @@ import CoreRoot from "../core_components/root/CoreRoot.vue";
 
 import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
 
-import { StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { WriterComponentDefinition } from "../writerTypes";
 import { h } from "vue";
 
 const templateMap = {
@@ -115,7 +115,7 @@ const templateMap = {
 	avatar: CoreAvatar,
 };
 
-if (STREAMSYNC_LIVE_CCT === "yes") {
+if (WRITER_LIVE_CCT === "yes") {
 	/*
 	Assigns the components in custom_components to the template map,
 	allowing for live updates when developing custom component templates. 
@@ -131,7 +131,7 @@ if (STREAMSYNC_LIVE_CCT === "yes") {
 function fallbackTemplate(type: string) {
 	const message = `Component type "${type}" not supported. If it's a custom component, please ensure it's been loaded.`;
 	return {
-		streamsync: {
+		writer: {
 			name: "Fallback Component",
 			allowedChildrenTypes: ["*"],
 			description: message,
@@ -142,7 +142,7 @@ function fallbackTemplate(type: string) {
 				return h(
 					"div",
 					{
-						"data-streamsync-container": "",
+						"data-writer-container": "",
 						style: {
 							color: "var(--primaryTextColor)",
 						},
@@ -160,8 +160,8 @@ export function getTemplate(type: string) {
 
 export function getComponentDefinition(
 	type: string,
-): StreamsyncComponentDefinition {
-	return getTemplate(type)?.streamsync;
+): WriterComponentDefinition {
+	return getTemplate(type)?.writer;
 }
 
 export function getSupportedComponentTypes() {

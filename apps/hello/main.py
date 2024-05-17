@@ -3,12 +3,12 @@ import statistics
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import streamsync as ss
-from streamsync.core import StreamsyncState
+import writer as wf
+from writer.core import WriterState
 
 # EVENT HANDLERS
 
-def handle_timer_tick(state: StreamsyncState):
+def handle_timer_tick(state: WriterState):
     df = state["random_df"]
     for i in range(5):
         df[f'pgcf_{i+1}'] = np.around(np.random.rand(10, 1), decimals=9)
@@ -30,7 +30,7 @@ def update(state, session):
 
 
 def handle_story_download(state):
-    data = ss.pack_file("assets/story.txt", "text/plain")
+    data = wf.pack_file("assets/story.txt", "text/plain")
     file_name = "hacker_pigeons.txt"
     state.file_download(data, file_name)
 
@@ -129,7 +129,7 @@ def _update_scatter_chart(state):
 # STATE INIT
 
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "main_df": _get_main_df(),
     "highlighted_members": _get_highlighted_members(),
     "random_df": _generate_random_df(),

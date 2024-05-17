@@ -10,7 +10,7 @@ For example, implement cross-filtering.
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Plotly graphs.";
@@ -26,7 +26,7 @@ const defaultSpec = {
 };
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Plotly Graph",
 		description,
 		category: "Content",

@@ -1,8 +1,8 @@
 import {
 	Component,
 	ComponentMap,
-	StreamsyncComponentDefinition,
-} from "../streamsyncTypes";
+	WriterComponentDefinition,
+} from "../writerTypes";
 import { getComponentDefinition } from "./templateMap";
 
 /**
@@ -66,7 +66,7 @@ function auditOrphanComponents(components: ComponentMap) {
 
 function auditComponentFieldKeys(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
 	const fieldKeys = Object.keys(def.fields ?? {});
 	if (!component.content) return;
@@ -80,7 +80,7 @@ function auditComponentFieldKeys(
 
 function auditComponentBinding(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
 	const eventKeys = Object.keys(def.events ?? {});
 	if (!component.binding) return;
@@ -157,7 +157,7 @@ function fixPositions(positionfulChildren: Component[]) {
  */
 function fixComponentDeprecatedContent(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
 	if (component.type == "column") {
 		if ("horizontalAlignment" in component.content) {

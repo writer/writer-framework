@@ -66,7 +66,7 @@
 const STEP_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "../../streamsyncTypes";
+import { Component, FieldType, InstancePath } from "../../writerTypes";
 import { useEvaluator } from "../../renderer/useEvaluator";
 import {
 	contentHAlign,
@@ -79,7 +79,7 @@ const description =
 	"A container component that displays its child components as a step inside a Step Container.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Step",
 		description,
 		allowedParentTypes: ["steps", "repeater"],
@@ -124,10 +124,10 @@ const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const { isComponentVisible } = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(wf);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const stepContainerData: Ref<StepsData> = getStepContainerData();
@@ -141,7 +141,7 @@ const stepContainerData: Ref<StepsData> = getStepContainerData();
 function getStepContainerNegativeIndex(): number {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const component = ss.getComponentById(item.componentId);
+		const component = wf.getComponentById(item.componentId);
 		if (!component) return;
 		const type = component.type;
 		if (type !== "steps") continue;
@@ -215,7 +215,7 @@ function activateNextStep() {
 }
 
 function checkIfStepIsParent(childId: Component["id"]): boolean {
-	const child = ss.getComponentById(childId);
+	const child = wf.getComponentById(childId);
 	if (!child || child.type == "root") return false;
 	if (child.parentId == componentId) return true;
 	return checkIfStepIsParent(child.parentId);

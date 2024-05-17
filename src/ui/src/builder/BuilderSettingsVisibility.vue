@@ -65,11 +65,11 @@ import { computed, inject } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setVisibleValue } = useComponentActions(ss, ssbm);
+const { setVisibleValue } = useComponentActions(wf, ssbm);
 
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 </script>
 
 <style scoped>

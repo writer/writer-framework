@@ -1,4 +1,4 @@
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldType } from "../writerTypes";
 
 export const accentColor = {
 	name: "Accent",

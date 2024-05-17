@@ -1,45 +1,45 @@
 import contextlib
 from typing import Optional
 
-import streamsync.core
-from streamsync.core import State, StreamsyncState
+import writer.core
+from writer.core import State, WriterState
 
 
 @contextlib.contextmanager
-def use_dedicated_streamsync_initial_state():
+def use_dedicated_writer_initial_state():
     """
 
     Returns
     -------
 
     """
-    previous_state = streamsync.core.initial_state
+    previous_state = writer.core.initial_state
     yield
-    streamsync.core.initial_state = previous_state
+    writer.core.initial_state = previous_state
 
-def test_init_state_should_build_simple_streamsync_state_without_schema():
+def test_init_state_should_build_simple_writer_state_without_schema():
     """
-    Tests that `streamsync.init_state` without schema returns a StreamsyncState object.
+    Tests that `writer.init_state` without schema returns a WriterState object.
     """
-    with use_dedicated_streamsync_initial_state():
+    with use_dedicated_writer_initial_state():
         # When
-        state = streamsync.init_state({})
+        state = writer.init_state({})
 
         # Then
-        assert isinstance(state, StreamsyncState)
+        assert isinstance(state, WriterState)
 
 
-def test_init_state_with_schema_should_inherits_streamsync_state():
+def test_init_state_with_schema_should_inherits_writer_state():
     """
-    Tests that `streamsync.init_state` with schema returns a StreamsyncState object.
+    Tests that `writer.init_state` with schema returns a WriterState object.
     """
-    class SimpleSchema(StreamsyncState):
+    class SimpleSchema(WriterState):
         value: int
         message: Optional[str]
 
-    with use_dedicated_streamsync_initial_state():
+    with use_dedicated_writer_initial_state():
         # When
-        state = streamsync.init_state({'value': 1, 'message': None, 'hello': 2}, schema=SimpleSchema)
+        state = writer.init_state({'value': 1, 'message': None, 'hello': 2}, schema=SimpleSchema)
 
         # Then
         assert isinstance(state, SimpleSchema)
@@ -50,19 +50,19 @@ def test_init_state_with_schema_should_inherits_streamsync_state():
 
 def test_init_state_should_build_a_state_with_a_schema_that_contains_a_substate():
     """
-    Tests that `streamsync.init_state` constructs an instance with schema that contains a substate.
+    Tests that `writer.init_state` constructs an instance with schema that contains a substate.
     """
     class AppState(State):
         title: str
 
-    class ComplexSchema(StreamsyncState):
+    class ComplexSchema(WriterState):
         app: AppState
         value: int
         message: Optional[str]
 
-    with use_dedicated_streamsync_initial_state():
+    with use_dedicated_writer_initial_state():
         # When
-        state = streamsync.init_state({'app': {'title': 'hello'}, 'value': 1, 'message': None, 'hello': 2}, schema=ComplexSchema)
+        state = writer.init_state({'app': {'title': 'hello'}, 'value': 1, 'message': None, 'hello': 2}, schema=ComplexSchema)
 
         # Then
         assert isinstance(state, ComplexSchema)
@@ -79,19 +79,19 @@ def test_init_state_should_build_a_state_with_a_schema_that_contains_a_substate(
 
 def test_init_state_with_state_accept_raw_values_that_deviates_from_the_expected_type():
     """
-    Tests that `streamsync.init_state` with schema accepts in raw state values that deviate from the expected type.
+    Tests that `writer.init_state` with schema accepts in raw state values that deviate from the expected type.
     """
     class AppState(State):
         year: int
 
-    class ComplexSchema(StreamsyncState):
+    class ComplexSchema(WriterState):
         app: AppState
         value: int
         message: Optional[str]
 
-    with use_dedicated_streamsync_initial_state():
+    with use_dedicated_writer_initial_state():
         # When
-        state = streamsync.init_state({'app': {'year': 'hello'}, 'value': 1, 'message': None, 'hello': 2}, schema=ComplexSchema)
+        state = writer.init_state({'app': {'year': 'hello'}, 'value': 1, 'message': None, 'hello': 2}, schema=ComplexSchema)
 
         # Then
         assert isinstance(state, ComplexSchema)

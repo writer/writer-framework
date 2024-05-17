@@ -7,7 +7,7 @@ import {
 	InstancePath,
 	MailItem,
 	UserFunction,
-} from "../streamsyncTypes";
+} from "../writerTypes";
 import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
@@ -44,7 +44,7 @@ export function generateCore() {
 	}
 
 	/**
-	 * Whether Streamsync is running as builder or runner.
+	 * Whether Writer Framework is running as builder or runner.
 	 * The mode is enforced in the backend and used in the frontend for presentation purposes only.
 	 *
 	 * @returns
@@ -492,7 +492,7 @@ export function generateCore() {
 	}
 
 	/**
-	 * Gets registered Streamsync components.
+	 * Gets registered Writer Framework components.
 	 *
 	 * @param parentId If specified, only include results that are children of a component with this id.
 	 * @param param1 Whether to include Builder-managed components and code-managed components, and whether to sort.

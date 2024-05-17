@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="CoreRoot" data-streamsync-container>
+	<div ref="rootEl" class="CoreRoot" data-writer-container>
 		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
 			<component
 				:is="vnode"
@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import * as sharedStyleFields from "../../renderer/sharedStyleFields";
 import { nextTick } from "vue";
 import { useEvaluator } from "../../renderer/useEvaluator";
@@ -44,7 +44,7 @@ const description =
 	"The root component of the application, which serves as the starting point of the component hierarchy.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Root",
 		category: "Root",
 		description,
@@ -58,7 +58,7 @@ export default {
 			...sharedStyleFields,
 		},
 		events: {
-			"ss-hashchange": {
+			"wf-hashchange": {
 				desc: "Capture changes to the URL hash, including page key and route vars.",
 				stub: ssHashChangeStub,
 			},
@@ -71,14 +71,14 @@ import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 const importedModulesSpecifiers: Record<string, string> = {};
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
-const { isComponentVisible } = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(wf);
 
 const getFirstPageId = () => {
-	const pageComponents = ss.getComponents("root", {
+	const pageComponents = wf.getComponents("root", {
 		includeBMC: true,
 		includeCMC: true,
 		sortedByPosition: true,
@@ -91,10 +91,10 @@ const getFirstPageId = () => {
 
 const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
 const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
-const activePageId = computed(() => ss.getActivePageId() ?? getFirstPageId());
+const activePageId = computed(() => wf.getActivePageId() ?? getFirstPageId());
 
 watch(activePageId, (newPageId) => {
-	const page = ss.getComponentById(newPageId);
+	const page = wf.getComponentById(newPageId);
 	const pageKey = page.content?.["key"];
 	if (ssbm && ssbm.getSelectedId() !== newPageId) {
 		ssbm.setSelection(null);
@@ -176,23 +176,23 @@ function changeRouteVarsInHash(targetRouteVars: Record<string, string>) {
 
 function handleHashChange() {
 	const parsedHash = getParsedHash();
-	const event = new CustomEvent("ss-hashchange", {
+	const event = new CustomEvent("wf-hashchange", {
 		detail: {
 			payload: parsedHash,
 		},
 	});
 	rootEl.value?.dispatchEvent(event);
 	if (!parsedHash.pageKey) return;
-	ss.setActivePageFromKey(parsedHash.pageKey);
+	wf.setActivePageFromKey(parsedHash.pageKey);
 }
 
 async function importStylesheet(stylesheetKey: string, path: string) {
 	const existingEl = document.querySelector(
-		`[data-streamsync-stylesheet-key="${stylesheetKey}"]`,
+		`[data-writer-stylesheet-key="${stylesheetKey}"]`,
 	);
 	existingEl?.remove();
 	const el = document.createElement("link");
-	el.dataset.streamsyncStylesheetKey = stylesheetKey;
+	el.dataset.writerStylesheetKey = stylesheetKey;
 	el.setAttribute("href", path);
 	el.setAttribute("rel", "stylesheet");
 	document.head.appendChild(el);
@@ -200,11 +200,11 @@ async function importStylesheet(stylesheetKey: string, path: string) {
 
 async function importScript(scriptKey: string, path: string) {
 	const existingEl = document.querySelector(
-		`[data-streamsync-script-key="${scriptKey}"]`,
+		`[data-writer-script-key="${scriptKey}"]`,
 	);
 	existingEl?.remove();
 	const el = document.createElement("script");
-	el.dataset.streamsyncScriptKey = scriptKey;
+	el.dataset.writerScriptKey = scriptKey;
 	el.src = path;
 	el.setAttribute("rel", "modulepreload");
 	document.head.appendChild(el);
@@ -239,7 +239,7 @@ type FileDownloadMailItemPayload = {
 };
 
 function addMailSubscriptions() {
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"fileDownload",
 		(mailItem: FileDownloadMailItemPayload) => {
 			const el = document.createElement("a");
@@ -248,35 +248,35 @@ function addMailSubscriptions() {
 			el.click();
 		},
 	);
-	ss.addMailSubscription("openUrl", (url: string) => {
+	wf.addMailSubscription("openUrl", (url: string) => {
 		const el = document.createElement("a");
 		el.href = url;
 		el.target = "_blank";
 		el.rel = "noopener noreferrer";
 		el.click();
 	});
-	ss.addMailSubscription("pageChange", (pageKey: string) => {
+	wf.addMailSubscription("pageChange", (pageKey: string) => {
 		changePageInHash(pageKey);
 	});
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"routeVarsChange",
 		(routeVars: Record<string, string>) => {
 			changeRouteVarsInHash(routeVars);
 		},
 	);
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"importStylesheet",
 		({ stylesheetKey, path }: { stylesheetKey: string; path: string }) => {
 			importStylesheet(stylesheetKey, path);
 		},
 	);
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"importScript",
 		({ scriptKey, path }: { scriptKey: string; path: string }) => {
 			importScript(scriptKey, path);
 		},
 	);
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"importModule",
 		({
 			moduleKey,
@@ -288,7 +288,7 @@ function addMailSubscriptions() {
 			importModule(moduleKey, specifier);
 		},
 	);
-	ss.addMailSubscription(
+	wf.addMailSubscription(
 		"functionCall",
 		({
 			moduleKey,

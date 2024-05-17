@@ -9,7 +9,7 @@
 				compact: fields.pageMode.value == 'compact',
 				wide: fields.pageMode.value == 'wide',
 			}"
-			data-streamsync-container
+			data-writer-container
 		>
 			<slot></slot>
 		</div>
@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	buttonColor,
@@ -70,15 +70,15 @@ const description =
 	"A container component representing a single page within the application.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Page",
 		category: "Root",
 		events: {
-			"ss-keydown": {
+			"wf-keydown": {
 				desc: "Captures all key activity while this page is open.",
 				stub: ssKeydownStub,
 			},
-			"ss-page-open": {
+			"wf-page-open": {
 				desc: "Emitted when the page is opened.",
 				stub: ssPageOpenStub,
 			},
@@ -132,7 +132,7 @@ function handleKeydown(ev: KeyboardEvent) {
 
 function emitPageOpenEvent() {
 	const payload = fields.key.value;
-	const event = new CustomEvent("ss-page-open", {
+	const event = new CustomEvent("wf-page-open", {
 		detail: {
 			payload,
 		},

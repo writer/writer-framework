@@ -1,6 +1,6 @@
 <script lang="ts">
 import { computed, h, inject } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import injectionKeys from "../../injectionKeys";
 
 const description =
@@ -12,7 +12,7 @@ const defaultRepeaterObject = {
 };
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Repeater",
 		description,
 		category: "Other",
@@ -41,7 +41,7 @@ export default {
 		},
 	},
 	setup(props, { slots }) {
-		const ss = inject(injectionKeys.core);
+		const wf = inject(injectionKeys.core);
 		const componentId = inject(injectionKeys.componentId);
 		const fields = inject(injectionKeys.evaluatedFields);
 		const isBeingEdited = inject(injectionKeys.isBeingEdited);
@@ -50,7 +50,7 @@ export default {
 		);
 
 		const children = computed(() =>
-			ss.getComponents(componentId, { sortedByPosition: true }),
+			wf.getComponents(componentId, { sortedByPosition: true }),
 		);
 		const getRepeatedChildrenVNodes = () => {
 			if (typeof fields.repeaterObject.value !== "object") {
@@ -85,7 +85,7 @@ export default {
 				"div",
 				{
 					class: "CoreRepeater",
-					"data-streamsync-container": "",
+					"data-writer-container": "",
 				},
 				repeater_children,
 			);
@@ -98,7 +98,7 @@ export default {
 	display: contents;
 }
 
-[data-streamsync-container].horizontal .CoreRepeater.childless {
+[data-writer-container].horizontal .CoreRepeater.childless {
 	flex: 1 0 auto;
 }
 </style>

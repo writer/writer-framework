@@ -1,7 +1,7 @@
 <docs lang="md">
-Connect it to an LLM by handling the \`ss-chatbot-message\` event, which is triggered every time the user sends a message.
+Connect it to an LLM by handling the \`wf-chatbot-message\` event, which is triggered every time the user sends a message.
 
-You can add \`actions\` to messages, which are buttons that trigger the \`ss-chatbot-action-click\`.
+You can add \`actions\` to messages, which are buttons that trigger the \`wf-chatbot-action-click\`.
 
 See the stubs for more details.
 </docs>
@@ -140,7 +140,7 @@ See the stubs for more details.
 <script lang="ts">
 import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	buttonColor,
@@ -231,7 +231,7 @@ def handle_file_upload(state, payload):
 `.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Chatbot",
 		description,
 		category: "Content",
@@ -320,15 +320,15 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-chatbot-message": {
+			"wf-chatbot-message": {
 				desc: "Triggered when the user sends a message.",
 				stub: chatbotMessageStub,
 			},
-			"ss-chatbot-action-click": {
+			"wf-chatbot-action-click": {
 				desc: "Handle clicks on actions.",
 				stub: chatbotActionClickStub,
 			},
-			"ss-file-change": {
+			"wf-file-change": {
 				desc: "Triggered when files are uploaded",
 				stub: fileChangeStub,
 			},
@@ -388,7 +388,7 @@ const isUploadSizeExceeded = computed(() => {
 
 function handleMessageSent() {
 	isResponsePending.value = true;
-	const event = new CustomEvent("ss-chatbot-message", {
+	const event = new CustomEvent("wf-chatbot-message", {
 		detail: {
 			payload: {
 				role: "user",
@@ -405,7 +405,7 @@ function handleMessageSent() {
 
 function handleActionClick(action: Message["actions"][number]) {
 	const { data } = action;
-	const event = new CustomEvent("ss-chatbot-action-click", {
+	const event = new CustomEvent("wf-chatbot-action-click", {
 		detail: {
 			payload: data,
 		},
@@ -490,7 +490,7 @@ async function handleUploadFiles() {
 		return;
 	}
 
-	const event = new CustomEvent("ss-file-change", {
+	const event = new CustomEvent("wf-file-change", {
 		detail: {
 			payload,
 			callback: () => {

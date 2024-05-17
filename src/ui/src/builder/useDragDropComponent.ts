@@ -1,5 +1,5 @@
 import { Ref, ref } from "vue";
-import { Core, Component } from "../streamsyncTypes";
+import { Core, Component } from "../writerTypes";
 import { CANDIDATE_CONFIRMATION_DELAY_MS } from "./builderManager";
 
 /*
@@ -23,14 +23,14 @@ If the user gets off bounds by MAX_DISTANCE_FROM_CANDIDATE_PX, the candidacy is 
 
 const MAX_DISTANCE_FROM_CANDIDATE_PX = 30;
 const dragDropMimeRegex =
-	/^application\/json;streamsync=(?<componentType>\w+),(?<componentId>[\w\-]*)$/;
+	/^application\/json;writer=(?<componentType>\w+),(?<componentId>[\w\-]*)$/;
 const candidateId: Ref<Component["id"]> = ref(null);
 const candidateInstancePath: Ref<string> = ref(null);
 const isCandidacyConfirmed: Ref<boolean> = ref(false);
 let candidacyStartTime: number = null;
 let insertionPosition: number = null;
 
-export function useDragDropComponent(ss: Core) {
+export function useDragDropComponent(wf: Core) {
 	function getComponentInfoFromDrag(ev: DragEvent) {
 		const mimeString: string = ev.dataTransfer.types[0];
 		const matchGroups = mimeString?.match(dragDropMimeRegex)?.groups;
@@ -44,11 +44,11 @@ export function useDragDropComponent(ss: Core) {
 	function getIdFromElement(el: HTMLElement) {
 		// Elements inside a cage aren't taken into account for insertion
 
-		const cageEl = el.closest("[data-streamsync-cage]");
+		const cageEl = el.closest("[data-writer-cage]");
 		const startEl = cageEl ?? el;
-		const targetEl: HTMLElement = startEl.closest("[data-streamsync-id]");
+		const targetEl: HTMLElement = startEl.closest("[data-writer-id]");
 		if (!targetEl) return;
-		return targetEl.dataset.streamsyncId;
+		return targetEl.dataset.writerId;
 	}
 
 	function dropComponent(ev: DragEvent) {
@@ -77,12 +77,12 @@ export function useDragDropComponent(ss: Core) {
 		draggedId: Component["id"],
 		draggedType: Component["type"],
 	): boolean {
-		const targetComponent = ss.getComponentById(targetId);
+		const targetComponent = wf.getComponentById(targetId);
 		if (!targetComponent) return false;
-		const containableTypes = ss.getContainableTypes(targetId);
+		const containableTypes = wf.getContainableTypes(targetId);
 		return (
 			!targetComponent?.isCodeManaged &&
-			!ss.isChildOf(draggedId, targetId) &&
+			!wf.isChildOf(draggedId, targetId) &&
 			containableTypes.includes(draggedType)
 		);
 	}
@@ -92,7 +92,7 @@ export function useDragDropComponent(ss: Core) {
 		draggedId: Component["id"],
 		draggedType: Component["type"],
 	): Component["id"] {
-		const targetComponent = ss.getComponentById(targetId);
+		const targetComponent = wf.getComponentById(targetId);
 		if (!targetComponent) return;
 		if (isParentSuitable(targetId, draggedId, draggedType)) {
 			return targetId;
@@ -128,10 +128,10 @@ export function useDragDropComponent(ss: Core) {
 		);
 		if (!parentId || parentId == draggedId) return;
 		const parentComponentEl: HTMLElement = targetEl.closest(
-			`[data-streamsync-id="${parentId}"]`,
+			`[data-writer-id="${parentId}"]`,
 		);
 		const parentComponentInstancePath =
-			parentComponentEl.dataset.streamsyncInstancePath;
+			parentComponentEl.dataset.writerInstancePath;
 		ev.preventDefault();
 
 		if (candidateInstancePath.value !== parentComponentInstancePath) {
@@ -158,7 +158,7 @@ export function useDragDropComponent(ss: Core) {
 		// If the user goes too far off the candidate, reject candidacy
 
 		const candidateEl: HTMLElement = document.querySelector(
-			`[data-streamsync-instance-path="${candidateInstancePath.value}"]`,
+			`[data-writer-instance-path="${candidateInstancePath.value}"]`,
 		);
 		if (
 			getDistanceFromElement(ev.clientX, ev.clientY, candidateEl) >
@@ -182,8 +182,8 @@ export function useDragDropComponent(ss: Core) {
 		const { el: nearestSlotEl } = nearestSlot;
 
 		const { draggedId } = dragInfo;
-		const slotPosition = parseInt(nearestSlotEl.dataset.streamsyncPosition);
-		const draggedComponent = ss.getComponentById(draggedId);
+		const slotPosition = parseInt(nearestSlotEl.dataset.writerPosition);
+		const draggedComponent = wf.getComponentById(draggedId);
 
 		slotEls.map((el) => {
 			if (!el.classList.contains("highlighted")) return;
@@ -209,7 +209,7 @@ export function useDragDropComponent(ss: Core) {
 	function getSlotElementsOfCrackedContainer(instancePath: string) {
 		const el = getContainerInInstancePath(instancePath);
 		const slotEls: HTMLElement[] = Array.from(
-			el.querySelectorAll(`[data-streamsync-position]`),
+			el.querySelectorAll(`[data-writer-position]`),
 		);
 		return slotEls;
 	}
@@ -249,13 +249,13 @@ export function useDragDropComponent(ss: Core) {
 
 	function getContainerInInstancePath(instancePath: string): HTMLElement {
 		const rootEl: HTMLElement = document.querySelector(
-			`[data-streamsync-instance-path="${instancePath}"]`,
+			`[data-writer-instance-path="${instancePath}"]`,
 		);
-		if (rootEl.hasAttribute("data-streamsync-container")) {
+		if (rootEl.hasAttribute("data-writer-container")) {
 			return rootEl;
 		}
 		const containers = rootEl.querySelectorAll(
-			`[data-streamsync-container]`,
+			`[data-writer-container]`,
 		);
 		for (let i = 0; i < containers.length; i++) {
 			const container = containers[i];
@@ -264,7 +264,7 @@ export function useDragDropComponent(ss: Core) {
 			// the container belongs to the component in question -not to a child.
 
 			const closestRootEl = container.closest(
-				"[data-streamsync-instance-path]",
+				"[data-writer-instance-path]",
 			);
 			if (closestRootEl == rootEl) {
 				return container as HTMLElement;

@@ -16,7 +16,7 @@ function* id() {
 	}
 }
 
-class StreamsyncProcess {
+class WriterProcess {
 	constructor(path, port) {
 		this.path = path;
     this.process = null;
@@ -29,48 +29,48 @@ class StreamsyncProcess {
       if (this.process !== null) {
         this.process.kill();
       }
-      const ss = spawn(
-        "streamsync",
+      const wf = spawn(
+        "writer",
         ["edit", this.path, "--port", this.port]
       );
-      this.process = ss;
+      this.process = wf;
       const startupTimeout = setTimeout(() => {
         // eslint-disable-next-line no-console
-        console.error("Streamsync startup timeout");
-        ss.kill();
+        console.error("Writer Framework startup timeout");
+        wf.kill();
         reject();
       }, 5000);
 
-      ss.stdout.on("data", (data) => {
+      wf.stdout.on("data", (data) => {
         // eslint-disable-next-line no-console
         console.log(
-          `[${ss.pid}] stdout: ${Buffer.from(data, "utf-8").toString()}`,
+          `[${wf.pid}] stdout: ${Buffer.from(data, "utf-8").toString()}`,
         );
         if (data.includes("Builder is available at")) {
           this.initialized = true;
           clearTimeout(startupTimeout);
-          resolve(ss);
+          resolve(wf);
         }
       });
 
-      ss.stderr.on("data", (data) => {
+      wf.stderr.on("data", (data) => {
         // eslint-disable-next-line no-console
-        console.error(`[${ss.pid}] stderr: ${data}`);
+        console.error(`[${wf.pid}] stderr: ${data}`);
       });
 
-      ss.on("close", () => {
+      wf.on("close", () => {
         // eslint-disable-next-line no-console
-        console.log(`[${ss.pid}] child process closed`);
+        console.log(`[${wf.pid}] child process closed`);
       });
-      ss.on("error", (err) => {
+      wf.on("error", (err) => {
         // eslint-disable-next-line no-console
-        console.log(`[${ss.pid}] child process error`, err);
+        console.log(`[${wf.pid}] child process error`, err);
       });
-      ss.on("exit", (code) => {
+      wf.on("exit", (code) => {
         // eslint-disable-next-line no-console
         this.process = null;
         console.log(
-          `[${ss.pid}] child process exited with code ${code}`,
+          `[${wf.pid}] child process exited with code ${code}`,
         );
       });
     });
@@ -99,7 +99,7 @@ class StreamsyncProcess {
   }
 }
 
-class StreamsyncProcessPool {
+class WriterProcessPool {
 	constructor() {
 		this.genPort = port(7358);
 		this.genId = id();
@@ -111,7 +111,7 @@ class StreamsyncProcessPool {
 		await fs.mkdir(`./runtime/${id}`);
 		await fs.copyFile(`./presets/${preset}/ui.json`, `./runtime/${id}/ui.json`);
 		await fs.copyFile(`./presets/${preset}/main.py`, `./runtime/${id}/main.py`);
-		const process = new StreamsyncProcess(`./runtime/${id}`, this.genPort.next().value);
+		const process = new WriterProcess(`./runtime/${id}`, this.genPort.next().value);
 		await process.start();
 		this.processes[id] = process;
 		return id;
@@ -128,7 +128,7 @@ class StreamsyncProcessPool {
 
 }
 
-const sspp = new StreamsyncProcessPool();
+const sspp = new WriterProcessPool();
 (async () => {
 	await fs.rm(`./runtime`, { recursive: true, force: true });
   await fs.mkdir("runtime", { recursive: true });
@@ -187,9 +187,9 @@ const server = app.listen(7357, () => {
 server.on('upgrade', (req, socket, head) => {
 	try{
 		const id = req.url.split("/")[1];
-		const ss = sspp.processes[id];
+		const wf = sspp.processes[id];
 		req.url = req.url.replace(`/${id}/`, '/');
-		proxy.ws(req, socket, head, {target: 'ws://127.0.0.1:'+ss.port, ws: true});
+		proxy.ws(req, socket, head, {target: 'ws://127.0.0.1:'+wf.port, ws: true});
 	} catch (e) {
 		console.error(e);
 	}

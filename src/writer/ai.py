@@ -2,13 +2,13 @@ import logging
 from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 from httpx import Timeout
-from writer import Writer
-from writer._streaming import Stream
-from writer._types import Body, Headers, NotGiven, Query
-from writer.types import Chat, Completion, StreamingData
-from writer.types.chat_chat_params import Message as WriterAIMessage
+from writerai import Writer
+from writerai._streaming import Stream
+from writerai._types import Body, Headers, NotGiven, Query
+from writerai.types import Chat, Completion, StreamingData
+from writerai.types.chat_chat_params import Message as WriterAIMessage
 
-from streamsync.core import get_app_process
+from writer.core import get_app_process
 
 
 class ChatOptions(TypedDict, total=False):
@@ -49,7 +49,8 @@ def _process_completion_data_chunk(choice: StreamingData) -> str:
 def _process_chat_data_chunk(chat_data: Chat) -> dict:
     choices = chat_data.choices
     for entry in choices:
-        message = cast(dict, entry.message)
+        dict_entry = cast(dict, entry)
+        message = cast(dict, dict_entry["message"])
         return message
     raise ValueError("Failed to retrieve text from chat stream")
 

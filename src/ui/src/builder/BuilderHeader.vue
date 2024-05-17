@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderHeader">
-		<img src="../assets/logo.svg" alt="Streamsync logo" />
+		<img src="../assets/logo.svg" alt="Writer Framework logo" />
 		<BuilderSwitcher></BuilderSwitcher>
 		<div class="undoRedo">
 			<button
@@ -47,13 +47,13 @@
 		<div class="gap"></div>
 		<div
 			class="syncHealth"
-			:class="ss.syncHealth.value"
+			:class="wf.syncHealth.value"
 			:title="syncHealthStatus()"
 			@click="animate"
 		>
 			<i ref="syncHealthIcon" class="material-symbols-outlined icon"
 				>sync</i
-			><span v-if="ss.syncHealth.value == 'offline'">Offline</span>
+			><span v-if="wf.syncHealth.value == 'offline'">Offline</span>
 		</div>
 	</div>
 </template>
@@ -67,9 +67,9 @@ import injectionKeys from "../injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
 const syncHealthIcon = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { undo, redo, getUndoRedoSnapshot } = useComponentActions(ss, ssbm);
+const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
@@ -82,7 +82,7 @@ const animate = () => {
 };
 
 const syncHealthStatus = () => {
-	switch (ss.syncHealth.value) {
+	switch (wf.syncHealth.value) {
 		case "offline":
 			return "Offline. Not syncing.";
 		case "connected":

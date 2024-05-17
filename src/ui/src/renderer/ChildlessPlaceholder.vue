@@ -12,27 +12,27 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, toRefs } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import injectionKeys from "../injectionKeys";
 
 const ALLOWED_LIST_MAX_LENGTH = 10;
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 
 interface Props {
 	componentId: Component["id"];
 }
 const props = defineProps<Props>();
 const { componentId } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 const definition = computed(() =>
-	ss.getComponentDefinition(component.value.type),
+	wf.getComponentDefinition(component.value.type),
 );
 
 const typesToMessage = (
 	types: Component["type"][],
 	lastJoiner: "or" | "and",
 ) => {
-	const definitions = types.map((type) => ss.getComponentDefinition(type));
+	const definitions = types.map((type) => wf.getComponentDefinition(type));
 	const names = definitions.map((def) => def?.name);
 	const message = `${names.slice(0, -1).join(", ")} ${
 		names.length > 1 ? lastJoiner : ""
@@ -41,7 +41,7 @@ const typesToMessage = (
 };
 
 const message = computed(() => {
-	const containableTypes = ss.getContainableTypes(componentId.value);
+	const containableTypes = wf.getContainableTypes(componentId.value);
 	let message: string;
 
 	if (containableTypes.length <= ALLOWED_LIST_MAX_LENGTH) {

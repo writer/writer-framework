@@ -13,14 +13,14 @@
 				($event) =>
 					handleInput(
 						($event.target as HTMLInputElement).value,
-						'ss-change',
+						'wf-change',
 					)
 			"
 			@change="
 				($event) =>
 					handleInput(
 						($event.target as HTMLInputElement).value,
-						'ss-change-finish',
+						'wf-change-finish',
 					)
 			"
 		/>
@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
 import { ComponentPublicInstance } from "vue";
 
@@ -43,7 +43,7 @@ def onchange_handler(state, payload):
 	state["new_val"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Text Input",
 		description,
 		category: "Input",
@@ -71,12 +71,12 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-change": {
+			"wf-change": {
 				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
 			},
-			"ss-change-finish": {
+			"wf-change-finish": {
 				desc: "Capture changes once this control has lost focus.",
 				stub: onChangeHandlerStub,
 			},
@@ -93,11 +93,11 @@ import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

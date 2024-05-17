@@ -22,8 +22,8 @@ def publish():
 
     >>> $ alfred publish
     """
-    import streamsync
-    VERSION = f"v{streamsync.VERSION}"
+    import writer
+    VERSION = f"v{writer.VERSION}"
 
     git = alfred.sh("git", "git should be present")
     os.chdir(ROOT_DIR)

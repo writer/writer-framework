@@ -12,14 +12,14 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A text component used to display headings or titles in different sizes and styles.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Heading",
 		description,
 		category: "Content",

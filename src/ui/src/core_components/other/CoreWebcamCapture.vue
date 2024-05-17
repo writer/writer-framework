@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	buttonColor,
 	buttonShadow,
@@ -58,7 +58,7 @@ def webcam_handler(payload):
 		file_handle.write(image_file)`.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Webcam Capture",
 		description,
 		category: "Other",
@@ -77,7 +77,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-webcam": {
+			"wf-webcam": {
 				desc: "Sent when a frame is captured. Its payload contains the captured frame in PNG format.",
 				stub: ssWebcamHandlerStub.trim(),
 			},
@@ -155,7 +155,7 @@ const getFrameAsDataURL = () => {
 };
 
 const sendFrame = () => {
-	const event = new CustomEvent("ss-webcam", {
+	const event = new CustomEvent("wf-webcam", {
 		detail: {
 			payload: getFrameAsDataURL(),
 			callback: () => {

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing_extensions import Literal, TypedDict
 
 
-class StreamsyncFileItem(TypedDict):
+class WriterFileItem(TypedDict):
     name: str
     type: str
     data: str
@@ -54,13 +54,13 @@ class InitResponseBodyEdit(InitResponseBody):
     runCode: Optional[str] = None
 
 
-class StreamsyncWebsocketIncoming(BaseModel):
+class WriterWebsocketIncoming(BaseModel):
     type: str
     trackingId: int
     payload: Dict[str, Any]
 
 
-class StreamsyncWebsocketOutgoing(BaseModel):
+class WriterWebsocketOutgoing(BaseModel):
     messageType: str
     trackingId: int
     payload: Optional[Dict[str, Any]] = None
@@ -92,7 +92,7 @@ class ComponentUpdateRequest(AppProcessServerRequest):
     payload: ComponentUpdateRequestPayload
 
 
-class StreamsyncEvent(BaseModel):
+class WriterEvent(BaseModel):
     type: str
     instancePath: InstancePath
     payload: Optional[Any] = None
@@ -100,7 +100,7 @@ class StreamsyncEvent(BaseModel):
 
 class EventRequest(AppProcessServerRequest):
     type: Literal["event"]
-    payload: StreamsyncEvent
+    payload: WriterEvent
 
 
 class StateEnquiryRequest(AppProcessServerRequest):
@@ -158,6 +158,6 @@ AppProcessServerResponsePacket = Tuple[int,
                                        Optional[str], AppProcessServerResponse]
 
 
-class StreamsyncEventResult(TypedDict):
+class WriterEventResult(TypedDict):
     ok: bool
     result: Any

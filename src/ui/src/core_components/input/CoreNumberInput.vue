@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
@@ -47,7 +47,7 @@ def onchange_handler(state, payload):
 	state["new_val"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Number Input",
 		description,
 		category: "Input",
@@ -79,12 +79,12 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-number-change": {
+			"wf-number-change": {
 				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
 			},
-			"ss-number-change-finish": {
+			"wf-number-change-finish": {
 				desc: "Capture changes once this control has lost focus.",
 				stub: onChangeHandlerStub,
 			},
@@ -101,11 +101,11 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const inputEl = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
@@ -130,13 +130,13 @@ function enforceLimitsAndReturnValue() {
 function handleInputEvent() {
 	const v = enforceLimitsAndReturnValue();
 	if (isNaN(v)) return;
-	handleInput(v, "ss-number-change");
+	handleInput(v, "wf-number-change");
 }
 
 function handleChangeEvent() {
 	const v = enforceLimitsAndReturnValue();
 	if (isNaN(v)) return;
-	handleInput(v, "ss-number-change-finish");
+	handleInput(v, "wf-number-change-finish");
 }
 </script>
 
