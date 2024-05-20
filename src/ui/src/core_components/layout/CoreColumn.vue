@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	contentHAlign,
 	contentPadding,
@@ -54,7 +54,7 @@ const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Column",
 		description,
 		allowedParentTypes: ["columns", "repeater"],
@@ -121,7 +121,7 @@ import IconGen from "../../renderer/IconGen.vue";
 import BaseContainer from "../base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
 
 const fields = inject(injectionKeys.evaluatedFields);
@@ -163,7 +163,7 @@ const isCollapsibleToRight = computed(
 const columnsData: ComputedRef<Ref> = computed(() => {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const type = ss.getComponentById(item.componentId)?.type;
+		const type = wf.getComponentById(item.componentId)?.type;
 		if (type !== "columns") continue;
 		const columnsData = instanceData.at(i);
 		return columnsData;
@@ -171,7 +171,7 @@ const columnsData: ComputedRef<Ref> = computed(() => {
 	return null;
 });
 
-const position = computed(() => ss.getComponentById(componentId)?.position);
+const position = computed(() => wf.getComponentById(componentId)?.position);
 
 watch([() => fields.isCollapsible.value, position], () => {
 	const cd = columnsData.value;

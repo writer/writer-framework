@@ -79,7 +79,7 @@
 				:prevent-settings-bar-overlap="true"
 				:instance-path="selectedInstancePath"
 				:vertical-offset-pixels="-48"
-				data-streamsync-cage
+				data-writer-cage
 				@dragstart="handleRendererDragStart"
 				@dragend="handleRendererDragEnd"
 			>
@@ -106,8 +106,8 @@
 				>
 					<BuilderInsertionLabel>
 						{{
-							ss.getComponentDefinition(
-								ss.getComponentById(candidateId).type,
+							wf.getComponentDefinition(
+								wf.getComponentById(candidateId).type,
 							).name
 						}}
 					</BuilderInsertionLabel>
@@ -136,7 +136,7 @@ import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const {
@@ -146,7 +146,7 @@ const {
 	dropComponent,
 	assignInsertionCandidacy,
 	removeInsertionCandidacy,
-} = useDragDropComponent(ss);
+} = useDragDropComponent(wf);
 const {
 	createAndInsertComponent,
 	undo,
@@ -164,7 +164,7 @@ const {
 	copyComponent,
 	removeComponentSubtree,
 	goToParent,
-} = useComponentActions(ss, ssbm);
+} = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
 
@@ -254,11 +254,11 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]",
+		"[data-writer-id]",
 	);
 	if (!targetEl) return;
-	const targetId = targetEl.dataset.streamsyncId;
-	const targetInstancePath = targetEl.dataset.streamsyncInstancePath;
+	const targetId = targetEl.dataset.writerId;
+	const targetInstancePath = targetEl.dataset.writerInstancePath;
 	if (targetId !== ssbm.getSelectedId()) {
 		ev.preventDefault();
 		ev.stopPropagation();
@@ -270,14 +270,14 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]",
+		"[data-writer-id]",
 	);
 
-	const componentId = targetEl.dataset.streamsyncId;
-	const { type } = ss.getComponentById(componentId);
+	const componentId = targetEl.dataset.writerId;
+	const { type } = wf.getComponentById(componentId);
 
 	ev.dataTransfer.setData(
-		`application/json;streamsync=${type},${componentId}`,
+		`application/json;writer=${type},${componentId}`,
 		"{}",
 	);
 };

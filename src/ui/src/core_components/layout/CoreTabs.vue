@@ -2,8 +2,8 @@
 	<div class="CoreTabs">
 		<nav
 			class="tabSelector horizontal"
-			data-streamsync-cage
-			data-streamsync-container
+			data-writer-cage
+			data-writer-container
 		>
 			<slot :instance-number="0"></slot>
 		</nav>
@@ -31,7 +31,7 @@ const description =
 	"A container component for organising and displaying Tab components in a tabbed interface.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Tab Container",
 		description,
 		category: "Layout",

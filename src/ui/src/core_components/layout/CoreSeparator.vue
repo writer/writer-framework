@@ -17,7 +17,7 @@ const description =
 	"A visual component to create a separation between adjacent elements.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Separator",
 		description,
 		category: "Layout",

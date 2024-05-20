@@ -3,12 +3,12 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { computed, defineProps, h, inject, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Reuse Component",
 		slot: "*",
 		description:
@@ -33,21 +33,21 @@ const props = defineProps<{
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const parentId = instancePath.at(-2).componentId;
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const vnode = ref(h("div", ""));
 const shouldRender = ref(true);
 const proxyType = computed(
-	() => ss.getComponentById(fields.proxyId.value)?.type,
+	() => wf.getComponentById(fields.proxyId.value)?.type,
 );
-const parentType = computed(() => ss.getComponentById(parentId)?.type);
+const parentType = computed(() => wf.getComponentById(parentId)?.type);
 
 const proxyDefinition = computed(() =>
-	proxyType.value ? ss.getComponentDefinition(proxyType.value) : null,
+	proxyType.value ? wf.getComponentDefinition(proxyType.value) : null,
 );
-const parentDef = computed(() => ss.getComponentDefinition(parentType.value));
+const parentDef = computed(() => wf.getComponentDefinition(parentType.value));
 
 function renderError(message: string, cls: string) {
 	shouldRender.value = props.contextSlot === "default";

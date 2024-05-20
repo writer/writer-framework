@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import components from "streamsync-ui/components.codegen.json";
+import components from "writer-ui/components.codegen.json";
 
 type Component = {
 	type: string;
@@ -20,15 +20,15 @@ const mapComponents = {
 	column: {ignore: true},
 	tab: {ignore: true},
 	step: {ignore: true},
-	dropdowninput: {locator: '.component.ss-type-dropdowninput label'},
+	dropdowninput: {locator: '.component.wf-type-dropdowninput label'},
 	section: {test: 'basic'},
 	columns: {test: 'basic'},
 	sidebar: {test: 'basic'},
-	fileinput: {locator: '.component.ss-type-fileinput label'},
-	dateinput: {locator: '.component.ss-type-dateinput label'},
-	sliderinput: {locator: '.component.ss-type-sliderinput label'},
-	numberinput: {locator: '.component.ss-type-numberinput label'},
-	textinput: {locator: '.component.ss-type-textinput label'},
+	fileinput: {locator: '.component.wf-type-fileinput label'},
+	dateinput: {locator: '.component.wf-type-dateinput label'},
+	sliderinput: {locator: '.component.wf-type-sliderinput label'},
+	numberinput: {locator: '.component.wf-type-numberinput label'},
+	textinput: {locator: '.component.wf-type-textinput label'},
 }
 
 function findTest(component: Component) {
@@ -45,7 +45,7 @@ const tests = components
 	.map((component: Component): ComponentTestData => ({
 		...component, 
 		test: findTest(component),
-		locator: '.component.ss-type-' + component.type,
+		locator: '.component.wf-type-' + component.type,
 		...(mapComponents[component.type] || {}),
 	}))
 

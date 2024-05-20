@@ -69,16 +69,16 @@ import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "./BuilderCopyText.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 const readonly = computed(() => component.value.isCodeManaged);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;
-	const definition = ss.getComponentDefinition(type);
+	const definition = wf.getComponentDefinition(type);
 	return definition;
 });
 

@@ -16,7 +16,7 @@
 			<div v-if="fields.caption.value" class="caption">
 				{{ fields.caption.value }}
 			</div>
-			<div class="container" data-streamsync-container>
+			<div class="container" data-writer-container>
 				<slot></slot>
 			</div>
 		</div>
@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	primaryTextColor,
@@ -40,7 +40,7 @@ def handle_avatar_click():
 const description = "A component to display user avatars.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Avatar",
 		description,
 		category: "Content",
@@ -87,7 +87,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-click": {
+			"wf-click": {
 				desc: "Triggered when the avatar is clicked.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -103,11 +103,11 @@ import injectionKeys from "../../injectionKeys";
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 
 const isClickable = computed(() => {
-	const component = ss.getComponentById(componentId);
-	return typeof component.handlers?.["ss-click"] !== "undefined";
+	const component = wf.getComponentById(componentId);
+	return typeof component.handlers?.["wf-click"] !== "undefined";
 });
 
 function handleClick(ev: MouseEvent) {

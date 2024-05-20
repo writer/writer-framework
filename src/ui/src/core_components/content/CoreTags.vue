@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const clickHandlerStub = `
@@ -34,7 +34,7 @@ def handle_tag_click(state, payload):
 const description = "A component to display coloured tag pills.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Tags",
 		description,
 		category: "Content",
@@ -74,7 +74,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-tag-click": {
+			"wf-tag-click": {
 				desc: "Triggered when a tag is clicked.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -103,12 +103,12 @@ const COLOR_STEPS = [
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
 const isClickable = computed(() => {
-	const component = ss.getComponentById(componentId);
-	return typeof component.handlers?.["ss-tag-click"] !== "undefined";
+	const component = wf.getComponentById(componentId);
+	return typeof component.handlers?.["wf-tag-click"] !== "undefined";
 });
 
 function generateColor(s: string) {
@@ -143,7 +143,7 @@ function calculateColorStep(s: string) {
 }
 
 function handleTagClick(tagId: string) {
-	const event = new CustomEvent("ss-tag-click", {
+	const event = new CustomEvent("wf-tag-click", {
 		detail: {
 			payload: tagId,
 		},

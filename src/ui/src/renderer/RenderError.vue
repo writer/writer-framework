@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 
 interface Props {
 	componentType: Component["type"];

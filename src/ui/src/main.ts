@@ -27,19 +27,19 @@ function setCaptureTabsDirective(app: App<Element>) {
 	});
 }
 
-const ss = generateCore();
+const wf = generateCore();
 
 globalThis.vue = vue;
 globalThis.injectionKeys = injectionKeys;
-globalThis.core = ss;
+globalThis.core = wf;
 
 async function load() {
-	await ss.init();
-	const mode = ss.getMode();
+	await wf.init();
+	const mode = wf.getMode();
 	const ssbm = mode == "edit" ? generateBuilderManager() : undefined;
 
 	if (ssbm) {
-		ss.addMailSubscription("logEntry", ssbm.handleLogEntry);
+		wf.addMailSubscription("logEntry", ssbm.handleLogEntry);
 	}
 
 	console.log(`Mounting app in mode ${mode}...`);
@@ -51,14 +51,14 @@ async function load() {
 
 	const app = createApp(componentRenderer || builderApp);
 	app.use(VueDOMPurifyHTML);
-	app.provide(injectionKeys.core, ss);
+	app.provide(injectionKeys.core, wf);
 	app.provide(injectionKeys.builderManager, ssbm);
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");
 }
 
-console.log("Initialising Streamsync core...");
+console.log("Initialising Writer Framework core...");
 load()
 	.then(async () => {
 		console.log("Core initialised.");

@@ -19,7 +19,7 @@
 <script lang="ts">
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
@@ -42,7 +42,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Select Input",
 		description,
 		category: "Input",
@@ -85,7 +85,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-option-change": {
+			"wf-option-change": {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -103,19 +103,19 @@ import BaseSelect from "../base/BaseSelect.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const options = computed(() => fields.options.value);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
 
 function handleChange(selectedOptions: string[]) {
 	const selectedOption = selectedOptions?.[0] ?? null;
-	handleInput(selectedOption, "ss-option-change");
+	handleInput(selectedOption, "wf-option-change");
 }
 </script>
 

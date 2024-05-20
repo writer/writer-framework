@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	primaryTextColor,
@@ -21,7 +21,7 @@ const description =
 	"A component that prominently displays a metric value and associated information.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Metric",
 		description,
 		category: "Content",

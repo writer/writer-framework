@@ -21,7 +21,7 @@ const description =
 	"A layout component that stacks its child components horizontally, wrapping them to the next row if necessary.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Horizontal Stack",
 		description,
 		allowedChildrenTypes: ["*"],

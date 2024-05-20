@@ -62,11 +62,11 @@
 import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
-import { Component, StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { Component, WriterComponentDefinition } from "../writerTypes";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { removeInsertionCandidacy } = useDragDropComponent(ss);
+const { removeInsertionCandidacy } = useDragDropComponent(wf);
 
 type CategoryData = {
 	isVisible?: boolean;
@@ -106,14 +106,14 @@ function toggleCollapseCategory(categoryId: string) {
 }
 
 const definitionsByDisplayCategory = computed(() => {
-	const types = ss.getSupportedComponentTypes();
+	const types = wf.getSupportedComponentTypes();
 	const result: Record<
 		string,
-		Record<string, StreamsyncComponentDefinition>
+		Record<string, WriterComponentDefinition>
 	> = {};
 
 	types.map((type) => {
-		const definition = ss.getComponentDefinition(type);
+		const definition = wf.getComponentDefinition(type);
 		const isMatch = Object.keys(categoriesData.value).includes(
 			definition.category,
 		);
@@ -134,7 +134,7 @@ const definitionsByDisplayCategory = computed(() => {
 
 const handleDragStart = (ev: DragEvent, type: Component["type"]) => {
 	ssbm.setSelection(null);
-	ev.dataTransfer.setData(`application/json;streamsync=${type},`, "{}");
+	ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
 };
 
 const handleDragEnd = (ev: DragEvent) => {

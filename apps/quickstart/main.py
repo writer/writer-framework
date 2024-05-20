@@ -1,5 +1,5 @@
 import plotly.graph_objects as go
-import streamsync as ss
+import writer as wf
 from sklearn.datasets import make_blobs
 from sklearn.linear_model import LogisticRegression
 
@@ -98,7 +98,7 @@ def update(state):
     state['figure'] = fig
 
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "my_app": {
         "title": "Logistic regression visualizer"
     },

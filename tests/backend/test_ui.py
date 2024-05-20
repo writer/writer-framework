@@ -1,9 +1,9 @@
 import contextlib
 import json
 
-import streamsync as ss
-from streamsync import core
-from streamsync.core_ui import (
+import writer as wf
+from writer import core
+from writer.core_ui import (
     Component,
     UIError,
     cmc_components_list,
@@ -11,7 +11,7 @@ from streamsync.core_ui import (
     session_components_list,
     use_component_tree,
 )
-from streamsync.ui import StreamsyncUIManager
+from writer.ui import WriterUIManager
 
 from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
@@ -22,26 +22,26 @@ with open(test_app_dir / "ui.json", "r") as f:
 @contextlib.contextmanager
 def use_ui_manager_with_init_ui():
     """
-    create a Streamsync UIManager such that streamsync retrieves it when an
-    application loads in the `ss.init_ui` context.
+    create a UIManager such that Framework retrieves it when an
+    application loads in the `wf.init_ui` context.
     """
     core.reset_base_component_tree()
     ingest_bmc_component_tree(core.base_component_tree, sc)
     with use_component_tree(core.base_component_tree):
-        yield StreamsyncUIManager()
+        yield WriterUIManager()
 
 
 @contextlib.contextmanager
 def use_ui_manager_with_event_handler():
     """
-    create a Streamsync UIManager such that streamsync retrieves it in
+    create a UIManager such that Framework retrieves it in
     an event handler context.
     """
     core.reset_base_component_tree()
     ingest_bmc_component_tree(core.base_component_tree, sc)
-    session = ss.session_manager.get_new_session()
+    session = wf.session_manager.get_new_session()
     with use_component_tree(session.session_component_tree):
-        yield StreamsyncUIManager()
+        yield WriterUIManager()
 
 
 class TestComponentTree:
@@ -155,7 +155,7 @@ class TestUIManager:
 
         with use_component_tree(fake_component_tree):
             # When
-            id = StreamsyncUIManager().parent('test_button', 1)
+            id = WriterUIManager().parent('test_button', 1)
 
             # Then
             assert id == 'root'
@@ -174,7 +174,7 @@ class TestUIManager:
 
         with use_component_tree(fake_component_tree):
             # When
-            id = StreamsyncUIManager().parent('test_button', 2)
+            id = WriterUIManager().parent('test_button', 2)
             # Then
             assert id == 'section1'
 
@@ -209,7 +209,7 @@ class TestUIManager:
 
 
         with use_component_tree(fake_component_tree):
-            ui = StreamsyncUIManager()
+            ui = WriterUIManager()
 
             assert len(ui.component_tree.components) == 5
 
@@ -234,7 +234,7 @@ class TestUIManager:
 
 
         with use_component_tree(fake_component_tree):
-            ui = StreamsyncUIManager()
+            ui = WriterUIManager()
 
             with ui.refresh_with('section1'):
                 ui.Text({"text": "New content"}, id="new-content-1")

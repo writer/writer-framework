@@ -2,7 +2,37 @@
 
 Streamsync uses Uvicorn and serves the app in the root path i.e. `/`. If you need to use another ASGI-compatible server or fine-tune Uvicorn, you can easily do so.
 
-## Getting the ASGI app
+## Configure webserver
+
+You can tune your server by adding a `server_setup.py` file to the root 
+of your application, next to the `main.py` and `ui.json` files.
+
+This file is executed before starting streamsync. It allows you to configure [authentication](./authentication.md),
+add your own routes and middlewares on FastAPI. 
+
+```python
+# server_setup.py
+import typing
+
+import streamsync.serve
+
+if typing.TYPE_CHECKING:
+    from fastapi import FastAPI
+
+# Returns the FastAPI application associated with the streamsync server.
+asgi_app: FastAPI = streamsync.serve.app
+
+@asgi_app.get("/probes/healthcheck")
+def hello():
+    return "1"
+```
+
+::: warning Use `server_setup.py` in `edit` mode
+If you want to use in `edit` mode, 
+you can launch `streamsync edit --enable-server-setup <app>`.
+:::
+
+## Implement custom server
 
 You can import `streamsync.serve` and use the function `get_asgi_app`. This returns an ASGI app created by FastAPI, which you can choose how to serve.
 
@@ -27,6 +57,12 @@ uvicorn.run(asgi_app,
 Note the inclusion of the imported `ws_max_size` setting. This is important for normal functioning of the framework when dealing with bigger files.
 
 Fine-tuning Uvicorn allows you to set up SSL, configure proxy headers, etc, which can prove vital in complex deployments.
+
+::: tip Use server setup hook
+```python
+asgi_app = streamsync.serve.get_asgi_app(app_path, mode, enable_server_setup=True)
+```
+:::
 
 ## Multiple apps at once
 

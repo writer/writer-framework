@@ -21,15 +21,15 @@
 
 <script setup lang="ts">
 import { inject, ref, computed, watch } from "vue";
-import { Component, InstancePath } from "../streamsyncTypes";
+import { Component, InstancePath } from "../writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
 import injectionKeys from "../injectionKeys";
 import { useEvaluator } from "./useEvaluator";
 
-const ss = inject(injectionKeys.core);
-const templateEvaluator = useEvaluator(ss);
-const rootComponent: Component = ss.getComponentById("root");
+const wf = inject(injectionKeys.core);
+const templateEvaluator = useEvaluator(wf);
+const rootComponent: Component = wf.getComponentById("root");
 
 if (!rootComponent) {
 	// eslint-disable-next-line no-console
@@ -53,7 +53,7 @@ const rootStyle = computed(() => {
 });
 
 const isMessagePending = computed(() => {
-	const frontendMessageMap = ss.getFrontendMessageMap();
+	const frontendMessageMap = wf.getFrontendMessageMap();
 	return frontendMessageMap.size > 0;
 });
 
@@ -66,7 +66,7 @@ watch(
 );
 
 function updateTitle(appName: string) {
-	const mode = ss.getMode();
+	const mode = wf.getMode();
 	let title: string;
 	if (appName && mode == "edit") {
 		title = `${appName} | Writer Framework | Builder`;

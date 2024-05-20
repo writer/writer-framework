@@ -7,9 +7,9 @@ Alternatively, pass a Matplotlib figure via state.
 
 You can also use packed files or bytes:
 
-\`state["img_b"] = ss.pack_bytes(img_bytes, "image/png")\`
+\`state["img_b"] = wf.pack_bytes(img_bytes, "image/png")\`
 
-\`state["img_f"] = ss.pack_file(img_file, "image/png")\`
+\`state["img_f"] = wf.pack_file(img_file, "image/png")\`
 </docs>
 
 <template>
@@ -30,7 +30,7 @@ You can also use packed files or bytes:
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	secondaryTextColor,
@@ -47,7 +47,7 @@ def click_handler(state):
 	state["counter"] += 1`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Image",
 		description,
 		category: "Content",
@@ -81,7 +81,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-click": {
+			"wf-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -96,14 +96,14 @@ import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 
 const rootStyle = computed(() => {
-	const component = ss.getComponentById(componentId);
+	const component = wf.getComponentById(componentId);
 	const isClickHandled =
-		typeof component.handlers?.["ss-click"] !== "undefined";
+		typeof component.handlers?.["wf-click"] !== "undefined";
 
 	return {
 		cursor: isClickHandled ? "pointer" : "unset",

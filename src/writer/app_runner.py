@@ -18,10 +18,10 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from streamsync import VERSION
-from streamsync.core import EventHandlerRegistry, StreamsyncSession
-from streamsync.core_ui import ingest_bmc_component_tree
-from streamsync.ss_types import (
+from writer import VERSION
+from writer.core import EventHandlerRegistry, WriterSession
+from writer.core_ui import ingest_bmc_component_tree
+from writer.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
     AppProcessServerResponse,
@@ -35,7 +35,7 @@ from streamsync.ss_types import (
     InitSessionResponsePayload,
     StateEnquiryRequest,
     StateEnquiryResponsePayload,
-    StreamsyncEvent,
+    WriterEvent,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -59,20 +59,20 @@ class SessionPruner(threading.Thread):
         self.is_session_pruner_terminated = is_session_pruner_terminated
 
     def run(self) -> None:
-        import streamsync
+        import writer
 
         while True:
             self.is_session_pruner_terminated.wait(
                 timeout=SessionPruner.PRUNE_SESSIONS_INTERVAL_SECONDS)
             if self.is_session_pruner_terminated.is_set():
                 return
-            streamsync.session_manager.prune_sessions()
+            writer.session_manager.prune_sessions()
 
 
 class AppProcess(multiprocessing.Process):
 
     """
-    Streamsync runs the user's app code using an isolated process, based on this class.
+    Writer Framework runs the user's app code using an isolated process, based on this class.
     The main process is able to communicate with the user app process via app messages (e.g. event, componentUpdate).
     """
 
@@ -100,10 +100,10 @@ class AppProcess(multiprocessing.Process):
 
     def _load_module(self) -> ModuleType:
         """
-        Loads the entry point for the user code in module streamsyncuserapp.
+        Loads the entry point for the user code in module writeruserapp.
         """
 
-        module_name = "streamsyncuserapp"
+        module_name = "writeruserapp"
         spec = importlib.util.spec_from_loader(module_name, loader=None)
         if spec is None:
             raise ModuleNotFoundError("Couldn't load app module spec.")
@@ -127,10 +127,11 @@ class AppProcess(multiprocessing.Process):
 
         import traceback as tb
 
-        import streamsync
+        import writer
 
-        session = streamsync.session_manager.get_new_session(
-            payload.cookies, payload.headers, payload.proposedSessionId)
+        session = writer.session_manager.get_session(payload.proposedSessionId)
+        if session is None:
+            session = writer.session_manager.get_new_session(payload.cookies, payload.headers, payload.proposedSessionId)
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
@@ -153,7 +154,7 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
 
-    def _handle_event(self, session: StreamsyncSession, event: StreamsyncEvent) -> EventResponsePayload:
+    def _handle_event(self, session: WriterSession, event: WriterEvent) -> EventResponsePayload:
         import traceback as tb
 
         result = session.event_handler.handle(event)
@@ -180,7 +181,7 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
     
-    def _handle_state_enquiry(self, session: StreamsyncSession) -> StateEnquiryResponsePayload:
+    def _handle_state_enquiry(self, session: WriterSession) -> StateEnquiryResponsePayload:
         import traceback as tb
 
         mutations = {}
@@ -204,16 +205,16 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
     
-    def _handle_component_update(self, session: StreamsyncSession, payload: ComponentUpdateRequestPayload) -> None:
-        import streamsync
-        ingest_bmc_component_tree(streamsync.base_component_tree, payload.components)
+    def _handle_component_update(self, session: WriterSession, payload: ComponentUpdateRequestPayload) -> None:
+        import writer
+        ingest_bmc_component_tree(writer.base_component_tree, payload.components)
         ingest_bmc_component_tree(session.session_component_tree, payload.components, True)
 
     def _handle_message(self, session_id: str, request: AppProcessServerRequest) -> AppProcessServerResponse:
         """
         Handles messages from the main process to the app's isolated process.
         """
-        import streamsync
+        import writer
 
         session = None
         type = request.type
@@ -227,7 +228,7 @@ class AppProcess(multiprocessing.Process):
                 payload=self._handle_session_init(si_req_payload)
             )
 
-        session = streamsync.session_manager.get_session(session_id)
+        session = writer.session_manager.get_session(session_id)
         if not session:
             raise MessageHandlingException("Session not found.")
         session.update_last_active_timestamp()
@@ -240,7 +241,7 @@ class AppProcess(multiprocessing.Process):
             )
 
         if type == "event":
-            ev_req_payload = StreamsyncEvent.parse_obj(request.payload)
+            ev_req_payload = WriterEvent.parse_obj(request.payload)
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
@@ -252,6 +253,14 @@ class AppProcess(multiprocessing.Process):
                 status="ok",
                 status_message=None,
                 payload=self._handle_state_enquiry(session)
+            )
+
+        if type == "setUserinfo":
+            session.userinfo = request.payload
+            return AppProcessServerResponse(
+                status="ok",
+                status_message=None,
+                payload=None
             )
 
         if self.mode == "edit" and type == "componentUpdate":
@@ -274,35 +283,35 @@ class AppProcess(multiprocessing.Process):
         import io
         from contextlib import redirect_stdout
 
-        import streamsync
+        import writer
 
-        streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-        if streamsyncuserapp is None:
-            raise ValueError("Couldn't find app module (streamsyncuserapp).")
+        writeruserapp = sys.modules.get("writeruserapp")
+        if writeruserapp is None:
+            raise ValueError("Couldn't find app module (writeruserapp).")
 
         code_path = os.path.join(self.app_path, "main.py")
         with redirect_stdout(io.StringIO()) as f:
             code = compile(self.run_code, code_path, "exec")
-            exec(code, streamsyncuserapp.__dict__)
+            exec(code, writeruserapp.__dict__)
         captured_stdout = f.getvalue()
 
         if captured_stdout:
-            streamsync.core.initial_state.add_log_entry(
+            writer.core.initial_state.add_log_entry(
                 "info", "Stdout message during initialisation", captured_stdout)
 
         # Register non-private functions as handlers
-        self.handler_registry.register_module(streamsyncuserapp)
+        self.handler_registry.register_module(writeruserapp)
 
     def _apply_configuration(self) -> None:
-        import streamsync
+        import writer
 
-        streamsync.Config.mode = self.mode
-        streamsync.Config.logger = self.logger
+        writer.Config.mode = self.mode
+        writer.Config.logger = self.logger
 
         if self.mode == "edit":
-            streamsync.Config.is_mail_enabled_for_log = True
+            writer.Config.is_mail_enabled_for_log = True
         elif self.mode == "run":
-            streamsync.Config.is_mail_enabled_for_log = False
+            writer.Config.is_mail_enabled_for_log = False
 
     def _terminate_early(self) -> None:
         self.is_app_process_server_failed.set()
@@ -320,14 +329,14 @@ class AppProcess(multiprocessing.Process):
 
         import traceback as tb
 
-        import streamsync
+        import writer
 
         terminate_early = False
 
         try:
-            ingest_bmc_component_tree(streamsync.base_component_tree, self.bmc_components)
+            ingest_bmc_component_tree(writer.base_component_tree, self.bmc_components)
         except BaseException:
-            streamsync.core.initial_state.add_log_entry(
+            writer.core.initial_state.add_log_entry(
                 "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
             if self.mode == "run":
                 terminate_early = True
@@ -337,7 +346,7 @@ class AppProcess(multiprocessing.Process):
         except BaseException:
             # Initialisation errors will be sent to all sessions via mail during session initialisation
 
-            streamsync.core.initial_state.add_log_entry(
+            writer.core.initial_state.add_log_entry(
                 "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
             
             # Exit if in run mode
@@ -682,7 +691,7 @@ class AppRunner:
         self.bmc_components = payload.components
         file_contents = {
             "metadata": {
-                "streamsync_version": VERSION
+                "writer_version": VERSION
             },
             "components": payload.components
         }
@@ -693,7 +702,7 @@ class AppRunner:
             payload=payload
         ))
 
-    async def handle_event(self, session_id: str, event: StreamsyncEvent) -> AppProcessServerResponse:
+    async def handle_event(self, session_id: str, event: WriterEvent) -> AppProcessServerResponse:
         return await self.dispatch_message(session_id, EventRequest(
             type="event",
             payload=event
@@ -808,3 +817,18 @@ class AppRunner:
             self.code_update_condition.notify_all()
         finally:
             self.code_update_condition.release()
+
+    def set_userinfo(self, session_id: str, userinfo: dict) -> None:
+        def run_async_in_thread():
+            message = AppProcessServerRequest(
+                type="setUserinfo",
+                payload=userinfo
+            )
+
+            asyncio.run(self.dispatch_message(session_id, message))
+
+        thread = threading.Thread(target=run_async_in_thread)
+        thread.start()
+        thread.join()
+        return
+

@@ -2,13 +2,13 @@ import logging
 from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 from httpx import Timeout
-from writer import Writer
-from writer._streaming import Stream
-from writer._types import Body, Headers, NotGiven, Query
-from writer.types import Chat, Completion, StreamingData
-from writer.types.chat_chat_params import Message as WriterAIMessage
+from writerai import Writer
+from writerai._streaming import Stream
+from writerai._types import Body, Headers, NotGiven, Query
+from writerai.types import Chat, Completion, StreamingData
+from writerai.types.chat_chat_params import Message as WriterAIMessage
 
-from streamsync.core import get_app_process
+from writer.core import get_app_process
 
 
 class ChatOptions(TypedDict, total=False):
@@ -41,7 +41,7 @@ logger = logging.Logger(__name__)
 
 def _process_completion_data_chunk(choice: StreamingData) -> str:
     text = choice.value
-    if text:
+    if isinstance(text, str):
         return text
     raise ValueError("Failed to retrieve text from completion stream")
 
@@ -90,7 +90,6 @@ class WriterAIManager:
         current_process = get_app_process()
         try:
             instance = getattr(current_process, 'ai_manager')
-            return instance
         except AttributeError:
             # Instance was not initialized explicitly; creating a new one
             instance = cls()
@@ -132,18 +131,99 @@ class WriterAIManager:
 
 
 class Conversation:
+    """
+    Manages messages within a conversation flow with an AI system, including message validation,
+    history management, and communication with an AI model.
+
+    The Conversation class can be initialized in two ways:
+    1. By providing an initial system prompt as a string. This starts a new conversation, adding a system message with the provided prompt.
+       Example:
+           >>> conversation = Conversation("You are a social media expert in the financial industry")
+    2. By providing a history of messages as a list. This initializes the conversation with existing message data.
+       Example:
+           >>> history = [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi, how can I help?"}]
+           >>> conversation = Conversation(history)
+
+    The class supports both class-wide configuration, which affects the entire conversation, and call-specific configuration,
+    which can override or complement the class-wide settings for specific method calls.
+
+    :param prompt_or_history: Initial system prompt as a string, or history of messages as a list, used to start a new conversation or to load an existing one.
+    :param config: Configuration settings for the conversation. These settings can include parameters such as `max_tokens`, `temperature`, and `timeout`,
+                   which affect the behavior and performance of the conversation operations. This configuration provides a default context for all operations,
+                   but can be overridden or extended by additional configurations passed directly to specific methods.
+
+    Configuration Example:
+        When initializing, you might provide a general configuration:
+            >>> config = {'max_tokens': 100, 'temperature': 0.5}
+            >>> conversation = Conversation("Initial prompt", config=config)
+
+        Later, when calling `complete` or `stream_complete`, you can override or extend the initial configuration:
+            >>> response = conversation.complete(data={'max_tokens': 150, 'temperature': 0.7})
+        This would increase the `max_tokens` limit to 150 and adjust the `temperature` to 0.7 for this specific call.
+
+    """
     class Message(TypedDict):
-        role: Literal['system', 'assistant', 'user']
+        """
+        Typed dictionary for conversation messages.
+
+        :param role: Specifies the sender role.
+        :param content: Text content of the message.
+        :param actions: Optional dictionary containing actions related to the message.
+        """
+        role: Literal["system", "assistant", "user"]
         content: str
         actions: Optional[dict]
 
-    def __init__(self, config: Optional[ChatOptions] = None):
+    @classmethod
+    def validate_message(cls, message):
         """
-        Initializes the Conversation object.
+        Validates if the provided message dictionary matches the required structure and values.
 
-        :param config: Optional dictionary containing initial configuration settings.
+        :param message: The message to validate.
+        :raises ValueError: If the message structure is incorrect or values are inappropriate.
+        """
+        if not isinstance(message, dict):
+            raise ValueError(f"Attempted to add a non-dict object to the Conversation: {message}")
+        if not ("role" in message and "content" in message):
+            raise ValueError(f"Improper message format to add to Conversation: {message}")
+        if not (isinstance(message["content"], str)):
+            raise ValueError(f"Non-string content in message cannot be added: {message}")
+        if message["role"] not in ["system", "assistant", "user"]:
+            raise ValueError(f"Unsupported role in message: {message}")
+
+    def __init__(self, prompt_or_history: Optional[Union[str, List['Conversation.Message']]] = None, config: Optional[ChatOptions] = None):
+        """
+        Initializes a new conversation. Two options are possible:
+
+        1. With a system prompt.
+
+        :param system_prompt: The initial message from the system to start the conversation.
+        :param config: Optional configuration settings for the conversation.
+
+        Example:
+        >>> conversation = Conversation("You are a social media expert in the financial industry")
+
+        2. With a history of past messages.
+
+        :param history_import: A list of messages that form the history of the conversation.
+        :param config: Optional configuration settings for the conversation.
+
+        Example:
+        >>> history = [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi, how can I help?"}]
+        >>> conversation = Conversation(history)
         """
         self.messages: List['Conversation.Message'] = []
+        if isinstance(prompt_or_history, str):
+            # Working with a prompt: adding a system message to history
+            prompt = prompt_or_history
+            self.add("system", prompt)
+        elif isinstance(prompt_or_history, list):
+            # Working with a history: trying to add messages
+            history_import = prompt_or_history
+            for message in history_import:
+                self.validate_message(message)
+                self += message
+
         self.config = config or {}
 
     def _merge_chunk_to_last_message(self, raw_chunk: dict):
@@ -170,7 +250,10 @@ class Conversation:
     @staticmethod
     def _prepare_message(message: 'Conversation.Message') -> WriterAIMessage:
         """
-        Converts a message object stored in Conversation to a Writer SDK `Message` model, suitable for calls to API.
+        Converts a message object stored in Conversation to a Writer AI SDK `Message` model, suitable for calls to API.
+
+        :param raw_chunk: The data to be merged into the last message.
+        :raises ValueError: If there are no messages in the conversation to merge with.
         """
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
@@ -191,8 +274,7 @@ class Conversation:
             self._merge_chunk_to_last_message(cast(dict, chunk))
         else:
             message = chunk_or_message
-            if not ("role" in message and "content" in message):
-                raise ValueError("Improper message format to add to Conversation")
+            self.validate_message(message)
             self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
         return self
 
@@ -215,7 +297,7 @@ class Conversation:
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
         if not data:
-            data = {}
+            data = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
@@ -250,7 +332,7 @@ class Conversation:
         :yields: Model response chunks as they arrive from the stream.
         """
         if not data:
-            data = {}
+            data = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
@@ -350,7 +432,6 @@ def init(token: Optional[str] = None):
     Initializes the WriterAIManager with an optional token.
 
     :param token: Optional token for authentication.
-    :param url: Optional API URL to use for calls.
     :return: An instance of WriterAIManager.
     """
     return WriterAIManager(token=token)

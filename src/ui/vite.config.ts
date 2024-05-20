@@ -1,18 +1,18 @@
 import { fileURLToPath, URL } from "url";
 import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import streamsyncPlugin from "./viteStreamsyncPlugin";
+import writerPlugin from "./viteWriterPlugin";
 
 // https://vitejs.dev/config/
 export default defineConfig({
 	base: "./",
-	plugins: [vue(), streamsyncPlugin()],
-	includeStreamsyncComponentPath: false,
+	plugins: [vue(), writerPlugin()],
+	includeWriterComponentPath: false,
 	define: {
-		STREAMSYNC_LIVE_CCT: JSON.stringify("no"),
+		WRITER_LIVE_CCT: JSON.stringify("no"),
 	},
 	build: {
-		outDir: "../streamsync/static",
+		outDir: "../writer/static",
 		emptyOutDir: true,
 	},
 	resolve: {

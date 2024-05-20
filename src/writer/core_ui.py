@@ -22,7 +22,7 @@ def generate_component_id():
 
 class Branch(Enum):
     """
-    Enum for the component tree branches that can be created in streamsync
+    Enum for the component tree branches that can be created in Writer Framework
 
     * bmc: builder managed component
     * initial_cmc: code managed component
@@ -82,7 +82,7 @@ class ComponentTreeBranch:
         """
         Clone a component branch into a new one.
 
-        Streamsync uses this action when it instantiates the component tree attached to the session.
+        Writer Framework uses this action when it instantiates the component tree attached to the session.
         This ensures complete insulation of the original shaft.
 
         >>> cloned = bmc_tree.clone()
@@ -222,7 +222,7 @@ class ComponentTree():
                         tree.components.pop(child.id, None)
 
             except UIError:
-                logger = logging.getLogger("streamsync")
+                logger = logging.getLogger("writer")
                 logger.warning(
                     f"Failed to remove child with ID '{child.id}' " +
                     f"from component with ID '{component_id}': " +
@@ -334,7 +334,7 @@ class ComponentTree():
 
 def build_base_component_tree() -> ComponentTree:
     """
-    Create the base component tree. This tree is used when loading streamsync.
+    Create the base component tree. This tree is used when loading Writer Framework.
 
     It contains the components in common between all users.
     """
@@ -408,7 +408,7 @@ def use_component_tree(component_tree: ComponentTree):
     The declared tree can be retrieved with the `current_component_tree` method.
 
     >>> with use_component_tree(component_tree):
-    >>>     ui_manager = StreamsyncUIManager()
+    >>>     ui_manager = WriterUIManager()
     >>>     ui_manager.create_component("text", text="Hello, world!")
 
     :param component_tree:
@@ -427,7 +427,7 @@ def current_component_tree() -> ComponentTree:
     """
     tree = _current_component_tree.get()
     if tree is None:
-        import streamsync.core
-        return streamsync.core.base_component_tree
+        import writer.core
+        return writer.core.base_component_tree
 
     return tree

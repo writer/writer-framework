@@ -1,7 +1,7 @@
 import { ComputedRef, computed } from "vue";
-import { Component, Core, FieldType, InstancePath } from "../streamsyncTypes";
+import { Component, Core, FieldType, InstancePath } from "../writerTypes";
 
-export function useEvaluator(ss: Core) {
+export function useEvaluator(wf: Core) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;
 
 	/**
@@ -58,7 +58,7 @@ export function useEvaluator(ss: Core) {
 			? getContextData(instancePath)
 			: undefined;
 		let contextRef = contextData;
-		let stateRef = ss.getUserState();
+		let stateRef = wf.getUserState();
 		const accessors = parseExpression(expr, instancePath);
 
 		for (let i = 0; i < accessors.length; i++) {
@@ -75,7 +75,7 @@ export function useEvaluator(ss: Core) {
 		for (let i = 0; i < instancePath.length - 1; i++) {
 			const pathItem = instancePath[i];
 			const { componentId } = pathItem;
-			const { type } = ss.getComponentById(componentId);
+			const { type } = wf.getComponentById(componentId);
 			if (type !== "repeater") continue;
 			if (i + 1 >= instancePath.length) continue;
 			const repeaterInstancePath = instancePath.slice(0, i + 1);
@@ -139,10 +139,10 @@ export function useEvaluator(ss: Core) {
 		instancePath: InstancePath,
 	): Record<string, ComputedRef<any>> {
 		const { componentId } = instancePath.at(-1);
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const evaluatedFields: Record<string, ComputedRef<any>> = {};
-		const { fields } = ss.getComponentDefinition(component.type);
+		const { fields } = wf.getComponentDefinition(component.type);
 		if (!fields) return;
 		Object.keys(fields).forEach((fieldKey) => {
 			evaluatedFields[fieldKey] = computed(() =>
@@ -155,9 +155,9 @@ export function useEvaluator(ss: Core) {
 
 	function evaluateField(instancePath: InstancePath, fieldKey: string) {
 		const { componentId } = instancePath.at(-1);
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		const { fields } = ss.getComponentDefinition(component.type);
+		const { fields } = wf.getComponentDefinition(component.type);
 		const contentValue = component.content?.[fieldKey];
 		const defaultValue = fields[fieldKey].default;
 		const evaluated = evaluateTemplate(contentValue, instancePath);
@@ -206,7 +206,7 @@ export function useEvaluator(ss: Core) {
 		componentId: Component["id"],
 		instancePath?: InstancePath,
 	): boolean {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 
 		if (typeof component.visible === "undefined") return true;

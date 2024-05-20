@@ -11,7 +11,7 @@
 
 <script lang="ts">
 /* global google */
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description =
@@ -22,7 +22,7 @@ const markersDefaultData = [
 ];
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Google Maps",
 		description,
 		category: "Embed",

@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreColumns horizontal" data-streamsync-container>
+	<div class="CoreColumns horizontal" data-writer-container>
 		<slot></slot>
 	</div>
 </template>
@@ -8,7 +8,7 @@
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Column Container",
 		description: "Serves as container for Column components",
 		allowedChildrenTypes: ["column", "repeater", "separator"],

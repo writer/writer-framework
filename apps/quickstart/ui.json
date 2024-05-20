@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.3.0"
+        "writer_version": "0.3.0"
     },
     "components": {
         "root": {
@@ -75,10 +75,10 @@
             "parentId": "t3zfxwztd4cozu6v",
             "position": 0,
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "number_of_groups"
             },
             "visible": true
@@ -106,10 +106,10 @@
             "parentId": "t3zfxwztd4cozu6v",
             "position": 1,
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "number_of_points"
             },
             "visible": true
@@ -136,10 +136,10 @@
             "parentId": "t3zfxwztd4cozu6v",
             "position": 3,
             "handlers": {
-                "ss-option-change": "update"
+                "wf-option-change": "update"
             },
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "multi_class"
             },
             "visible": true
@@ -156,10 +156,10 @@
             "parentId": "t3zfxwztd4cozu6v",
             "position": 2,
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "cluster_std"
             },
             "visible": true
@@ -173,7 +173,7 @@
             "parentId": "t3zfxwztd4cozu6v",
             "position": 4,
             "handlers": {
-                "ss-click": "update"
+                "wf-click": "update"
             },
             "visible": true
         },

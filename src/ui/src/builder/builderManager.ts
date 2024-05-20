@@ -1,5 +1,5 @@
 import { ref, Ref } from "vue";
-import { Component, ClipboardOperation } from "../streamsyncTypes";
+import { Component, ClipboardOperation } from "../writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -97,10 +97,10 @@ export function generateBuilderManager() {
 		let resolvedInstancePath = instancePath;
 		if (typeof resolvedInstancePath == "undefined") {
 			const componentFirstElement: HTMLElement = document.querySelector(
-				`.ComponentRenderer [data-streamsync-id="${componentId}"]`,
+				`.ComponentRenderer [data-writer-id="${componentId}"]`,
 			);
 			resolvedInstancePath =
-				componentFirstElement.dataset.streamsyncInstancePath;
+				componentFirstElement.dataset.writerInstancePath;
 		}
 
 		state.value.selection = {

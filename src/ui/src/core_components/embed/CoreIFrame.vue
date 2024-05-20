@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses, separatorColor } from "../../renderer/sharedStyleFields";
 
 const description = "A component to embed an external resource in an iframe.";
@@ -27,7 +27,7 @@ def load_handler(state):
 	state["status"] = "Page loaded"`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "IFrame",
 		description,
 		category: "Embed",
@@ -42,7 +42,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-load": {
+			"wf-load": {
 				desc: "Fires when the resource has successfully loaded.",
 				stub: loadHandlerStub.trim(),
 			},
@@ -59,7 +59,7 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 
 function handleLoad() {
-	const event = new CustomEvent("ss-load");
+	const event = new CustomEvent("wf-load");
 	rootEl.value.dispatchEvent(event);
 }
 </script>

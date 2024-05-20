@@ -1,7 +1,7 @@
 from json import dumps as json_dumps
 from typing import Optional
 
-from streamsync.core_ui import (
+from writer.core_ui import (
     Component,
     ComponentTree,
     UIError,
@@ -10,9 +10,9 @@ from streamsync.core_ui import (
 )
 
 
-class StreamsyncUI:
+class WriterUI:
     """Provides mechanisms to manage and manipulate UI components within a
-    Streamsync session.
+    Writer Framework session.
 
     This class offers context managers and methods to dynamically create, find,
     and organize UI components based on a structured component tree.
@@ -100,7 +100,7 @@ class StreamsyncUI:
         >>> with ui.refresh_with(id="my-container"):
         >>>     pass
         """
-        component = StreamsyncUI.find(component_id)
+        component = WriterUI.find(component_id)
 
         # Clear the children of the specified component.
         current_component_tree().clear_children(component_id)
@@ -132,7 +132,7 @@ class StreamsyncUI:
 
     @staticmethod
     def create_component(component_type: str, **kwargs) -> Component:
-        StreamsyncUI.assert_in_container()
+        WriterUI.assert_in_container()
         component_tree = current_component_tree()
         component = _create_component(component_tree, component_type, **kwargs)
         component_tree.attach(component)
@@ -146,7 +146,7 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
             if callable(handler):
                 module_name = \
                     handler.__module__ + "." \
-                    if handler.__module__ != "streamsyncuserapp" \
+                    if handler.__module__ != "writeruserapp" \
                     else ""
                 handlers[event] = \
                     f"{module_name}{handler.__name__}"
