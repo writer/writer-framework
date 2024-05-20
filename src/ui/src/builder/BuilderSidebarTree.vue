@@ -77,21 +77,21 @@ import { inject, computed, nextTick, ref, Ref, ComputedRef } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import BuilderTreeBranch from "./BuilderTreeBranch.vue";
 import injectionKeys from "../injectionKeys";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { watch } from "vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const { createAndInsertComponent, goToComponentParentPage } =
-	useComponentActions(ss, ssbm);
+	useComponentActions(wf, ssbm);
 
 const searchInput: Ref<HTMLInputElement> = ref(null);
 const isSearchActive: Ref<boolean> = ref(false);
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
 const rootComponents = computed(() => {
-	return ss.getComponents(null, { sortedByPosition: true });
+	return wf.getComponents(null, { sortedByPosition: true });
 });
 
 async function toggleSearch() {
@@ -107,7 +107,7 @@ async function toggleSearch() {
 function determineMatch(component: Component, query: string): boolean {
 	if (component.id.toLocaleLowerCase().includes(query)) return true;
 	if (component.type.toLocaleLowerCase().includes(query)) return true;
-	const typeName = ss.getComponentDefinition(component.type)?.name;
+	const typeName = wf.getComponentDefinition(component.type)?.name;
 	if (typeName.includes(query)) return true;
 	const fields = [
 		...Object.values(component.content ?? {}),
@@ -161,7 +161,7 @@ const matchingComponents: ComputedRef<Component[]> = computed(() => {
 	if (!isSearchActive.value) return;
 	if (!searchQuery.value) return;
 	const query = searchQuery.value.toLocaleLowerCase();
-	const components = ss.getComponents();
+	const components = wf.getComponents();
 	const matching = components.filter((c) => determineMatch(c, query));
 	return matching;
 });
@@ -176,7 +176,7 @@ const matchAvailable: ComputedRef<boolean> = computed(
 
 async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
-	ss.setActivePageId(pageId);
+	wf.setActivePageId(pageId);
 	await nextTick();
 	ssbm.setSelection(pageId);
 }

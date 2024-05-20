@@ -11,7 +11,7 @@
 				($event) =>
 					handleInput(
 						($event.target as HTMLInputElement).value,
-						'ss-date-change',
+						'wf-date-change',
 					)
 			"
 		/>
@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
@@ -35,7 +35,7 @@ def onchange_handler(state, payload):
 	state["new_date"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Date Input",
 		description,
 		category: "Input",
@@ -48,7 +48,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-date-change": {
+			"wf-date-change": {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
@@ -64,11 +64,11 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

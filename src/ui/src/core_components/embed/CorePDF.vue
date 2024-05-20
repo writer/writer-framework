@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	separatorColor,
@@ -57,7 +57,7 @@ import WdsControl from "../../wds/WdsControl.vue";
 const description = "A component to embed PDF documents.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "PDF",
 		description,
 		category: "Embed",

@@ -1,21 +1,21 @@
 <template>
 	<div class="CoreHeader">
 		<h1>{{ fields.text.value }}</h1>
-		<div class="container horizontal" data-streamsync-container>
+		<div class="container horizontal" data-writer-container>
 			<slot></slot>
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 
 const description =
 	"A container component that typically contains the main navigation elements.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Header",
 		description,
 		category: "Layout",

@@ -25,7 +25,7 @@
 					:value="optionKey"
 					@input="
 						($event) =>
-							handleInput(getCheckedKeys(), 'ss-options-change')
+							handleInput(getCheckedKeys(), 'wf-options-change')
 					"
 				/><label :for="`${flattenedInstancePath}-option-${optionKey}`">
 					{{ option }}
@@ -38,7 +38,7 @@
 <script lang="ts">
 import { ComponentPublicInstance, inject } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	cssClasses,
@@ -60,7 +60,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Checkbox Input",
 		description,
 		category: "Input",
@@ -92,7 +92,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-options-change": {
+			"wf-options-change": {
 				desc: "Sent when the selected options change.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -108,12 +108,12 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

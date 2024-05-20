@@ -3,7 +3,7 @@ outline: [2, 2]
 ---
 
 <script setup>
-    import defs from "streamsync-ui/components.codegen.json";
+    import defs from "writer-ui/components.codegen.json";
 	import { categories, categoryDescription } from "../core";
 	import { withBase } from 'vitepress'
 </script>

@@ -17,11 +17,11 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Icon",
 		description: "A component to display an icon",
 		category: "Content",

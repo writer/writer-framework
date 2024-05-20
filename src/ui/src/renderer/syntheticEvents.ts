@@ -4,7 +4,7 @@ export function getClick(ev: MouseEvent): CustomEvent {
 		shiftKey: ev.shiftKey,
 		metaKey: ev.metaKey,
 	};
-	const event = new CustomEvent("ss-click", {
+	const event = new CustomEvent("wf-click", {
 		detail: {
 			payload,
 		},
@@ -19,7 +19,7 @@ export function getKeydown(ev: KeyboardEvent): CustomEvent {
 		shiftKey: ev.shiftKey,
 		metaKey: ev.metaKey,
 	};
-	const event = new CustomEvent("ss-keydown", {
+	const event = new CustomEvent("wf-keydown", {
 		detail: {
 			payload,
 		},

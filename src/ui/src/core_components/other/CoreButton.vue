@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import WdsButton from "../../wds/WdsButton.vue";
 import {
 	buttonColor,
@@ -40,12 +40,12 @@ const description =
 	"A standalone button component that can be linked to a click event handler.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Button",
 		description,
 		category: "Other",
 		events: {
-			"ss-click": {
+			"wf-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},

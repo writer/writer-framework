@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.5.0"
+        "writer_version": "0.5.0"
     },
     "components": {
         "root": {
@@ -170,10 +170,10 @@
             "position": 1,
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_weight"
             }
         },
@@ -190,10 +190,10 @@
             "position": 0,
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_length"
             }
         },
@@ -363,7 +363,7 @@
             "id": "5da5e007-d60a-4313-9d21-885deae7b37d",
             "type": "text",
             "content": {
-                "text": "You can put other Streamsync components inside HTML Elements."
+                "text": "You can put other Writer Framework components inside HTML Elements."
             },
             "isCodeManaged": false,
             "position": 1,
@@ -413,7 +413,7 @@
             "position": 0,
             "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "handlers": {
-                "ss-tick": "handle_timer_tick"
+                "wf-tick": "handle_timer_tick"
             }
         },
         "e296866a-75d2-4677-b55d-3c1456113b89": {
@@ -475,7 +475,7 @@
             "position": 2,
             "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "hue_rotation"
             }
         },
@@ -950,7 +950,7 @@
             "id": "77cb256b-ef12-4a55-a051-500497f41302",
             "type": "text",
             "content": {
-                "text": "It's easy to switch between pages and it can be done from the frontend (via Streamsync Builder) and from the backend (via Python)."
+                "text": "It's easy to switch between pages and it can be done from the frontend (via Writer Framework Builder) and from the backend (via Python)."
             },
             "isCodeManaged": false,
             "position": 2,
@@ -1039,8 +1039,8 @@
             "position": 1,
             "parentId": "e1ax8ctt8lrao0e4",
             "handlers": {
-                "ss-change-page": "handle_paginated_members_page_change",
-                "ss-change-page-size": "handle_paginated_members_page_size_change"
+                "wf-change-page": "handle_paginated_members_page_change",
+                "wf-change-page-size": "handle_paginated_members_page_size_change"
             },
             "visible": true
         },

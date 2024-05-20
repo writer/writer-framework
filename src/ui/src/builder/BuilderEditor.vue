@@ -149,7 +149,7 @@ import {
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const builderEditor: Ref<HTMLElement> = ref(null);
@@ -164,7 +164,7 @@ const theme: Ref<string> = ref(
 
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
 const sessionTimestamp: ComputedRef<number> = computed(() =>
-	ss.getSessionTimestamp(),
+	wf.getSessionTimestamp(),
 );
 
 type StatusMessage = {
@@ -208,10 +208,10 @@ onMounted(() => {
 
 	// Subscribe to new log entries to open log section, but ignore content of log entry.
 
-	ss.addMailSubscription("logEntry", handleLogEntry);
+	wf.addMailSubscription("logEntry", handleLogEntry);
 	const targetEl = editorContainer.value;
 	editor = monaco.editor.create(targetEl, {
-		value: ss.getRunCode(),
+		value: wf.getRunCode(),
 		language: "python",
 		theme: theme.value,
 	});
@@ -227,7 +227,7 @@ onUnmounted(() => {
 });
 
 watch(
-	() => ss.getRunCode(),
+	() => wf.getRunCode(),
 	(newRunCode) => {
 		editor.getModel().setValue(newRunCode);
 	},
@@ -265,7 +265,7 @@ const save = async () => {
 	};
 	try {
 		disableEditor();
-		await ss.sendCodeSaveRequest(editorCode);
+		await wf.sendCodeSaveRequest(editorCode);
 	} catch (error) {
 		statusMessage.value = {
 			ok: false,

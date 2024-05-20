@@ -7,13 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Loads the definition of streamsync components.
+ * Loads the definition of Writer Framework components.
  *
  * @returns {Promise<import("./getComponents").Component[]>} The components.
  */
 export async function loadComponents() {
 	const vite = await createServer({
-		includeStreamsyncComponentPath: true,
+		includeWriterComponentPath: true,
 		server: {
 			middlewareMode: true,
 		},

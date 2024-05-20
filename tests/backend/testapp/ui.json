@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.5.0"
+        "writer_version": "0.5.0"
     },
     "components": {
         "root": {
@@ -168,10 +168,10 @@
             "position": 1,
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_weight"
             }
         },
@@ -188,10 +188,10 @@
             "position": 0,
             "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_length"
             }
         },
@@ -209,7 +209,7 @@
             "id": "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0",
             "type": "text",
             "content": {
-                "text": "This app is meant to serve as a lighthearted introduction to Streamsync. It's not a comprehensive demonstration of its capabilities."
+                "text": "This app is meant to serve as a lighthearted introduction to Writer Framework. It's not a comprehensive demonstration of its capabilities."
             },
             "isCodeManaged": false,
             "position": 0,
@@ -407,7 +407,7 @@
             "id": "5da5e007-d60a-4313-9d21-885deae7b37d",
             "type": "text",
             "content": {
-                "text": "You can put other Streamsync components inside HTML Elements."
+                "text": "You can put other Writer Framework components inside HTML Elements."
             },
             "isCodeManaged": false,
             "position": 1,
@@ -455,7 +455,7 @@
             "position": 0,
             "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "handlers": {
-                "ss-tick": "handle_timer_tick"
+                "wf-tick": "handle_timer_tick"
             }
         },
         "e296866a-75d2-4677-b55d-3c1456113b89": {
@@ -517,7 +517,7 @@
             "position": 2,
             "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "hue_rotation"
             }
         },
@@ -925,11 +925,11 @@
             "position": 0,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-change": "payload_inspector"
+                "wf-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.name"
             }
         },
@@ -944,11 +944,11 @@
             "position": 1,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-change": "payload_inspector"
+                "wf-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.summary"
             }
         },
@@ -962,11 +962,11 @@
             "position": 2,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-number-change": "payload_inspector"
+                "wf-number-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "b.pet_count"
             }
         },
@@ -983,11 +983,11 @@
             "position": 7,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-number-change": "payload_inspector"
+                "wf-number-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "b.review_score"
             }
         },
@@ -1001,11 +1001,11 @@
             "position": 8,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-date-change": "payload_inspector"
+                "wf-date-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-date-change",
+                "eventType": "wf-date-change",
                 "stateRef": "b.join_date"
             }
         },
@@ -1019,11 +1019,11 @@
             "position": 9,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.default_radio"
             }
         },
@@ -1037,11 +1037,11 @@
             "position": 5,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-options-change": "payload_inspector"
+                "wf-options-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-options-change",
+                "eventType": "wf-options-change",
                 "stateRef": "b.default_checkbox"
             }
         },
@@ -1055,11 +1055,11 @@
             "position": 10,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.default_dropdown"
             }
         },
@@ -1074,11 +1074,11 @@
             "position": 11,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-file-change": "payload_inspector"
+                "wf-file-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-file-change",
+                "eventType": "wf-file-change",
                 "stateRef": "b.files"
             }
         },
@@ -1093,11 +1093,11 @@
             "position": 3,
             "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.language"
             }
         },
@@ -1195,7 +1195,7 @@
             "handlers": {},
             "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.just_binding"
             }
         },
@@ -1249,7 +1249,7 @@
             },
             "visible": true,
             "binding": {
-                "eventType": "ss-click",
+                "eventType": "wf-click",
                 "stateRef": "not-a-bindable-event"
             }
         },
@@ -1784,8 +1784,8 @@
             "position": 3,
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-tick": "handle_timer_tick",
-                "ss-not-a-real-event": "handle_not_a_real_function"
+                "wf-tick": "handle_timer_tick",
+                "wf-not-a-real-event": "handle_not_a_real_function"
             },
             "visible": true
         },
@@ -1837,7 +1837,7 @@
             "position": 4,
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-tick": "handle_timer_tick"
+                "wf-tick": "handle_timer_tick"
             },
             "visible": true
         },
@@ -1864,7 +1864,7 @@
             "position": 8,
             "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-webcam": "handle_webcam"
+                "wf-webcam": "handle_webcam"
             },
             "visible": true
         },
@@ -2156,7 +2156,7 @@
             "handlers": {},
             "visible": "",
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "name"
             }
         },
@@ -2215,7 +2215,7 @@
             "position": 8,
             "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {
-                "ss-file-change": "file_change_handler"
+                "wf-file-change": "file_change_handler"
             },
             "visible": true
         },
@@ -2997,7 +2997,7 @@
             "position": 11,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
-                "ss-option-change": "update_cities"
+                "wf-option-change": "update_cities"
             },
             "visible": true
         },
@@ -3065,7 +3065,7 @@
             "handlers": {},
             "visible": true,
             "binding": {
-                "eventType": "ss-options-change",
+                "eventType": "wf-options-change",
                 "stateRef": "b.default_checkbox"
             }
         },
@@ -3082,7 +3082,7 @@
             "handlers": {},
             "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.language"
             }
         },
@@ -3096,7 +3096,7 @@
             "position": 10,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
-                "ss-click": "test_async_handler"
+                "wf-click": "test_async_handler"
             },
             "visible": true
         },

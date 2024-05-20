@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.1.4"
+        "writer_version": "0.1.4"
     },
     "components": {
         "root": {

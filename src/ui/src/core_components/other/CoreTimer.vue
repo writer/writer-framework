@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
 const description =
 	"A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.";
@@ -21,7 +21,7 @@ def handle_timer_tick(state):
 	state["counter"] += 1`.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Timer",
 		description,
 		category: "Other",
@@ -46,7 +46,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-tick": {
+			"wf-tick": {
 				desc: "Emitted when the timer ticks.",
 				stub: ssTickHandlerStub.trim(),
 			},
@@ -62,7 +62,7 @@ import injectionKeys from "../../injectionKeys";
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;
 const fields = inject(injectionKeys.evaluatedFields);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const rootEl: Ref<HTMLElement> = ref(null);
 
 const intervalMs = computed(() => fields.intervalMs.value);
@@ -70,7 +70,7 @@ const isActive = computed(() => fields.isActive.value == "yes");
 const isFailing = ref(false);
 const componentId = inject(injectionKeys.componentId);
 const isTickHandlerSet = computed(
-	() => !!ss.getComponentById(componentId)?.handlers?.["ss-tick"],
+	() => !!wf.getComponentById(componentId)?.handlers?.["wf-tick"],
 );
 
 const rootStyle = computed(() => {
@@ -119,7 +119,7 @@ function fireTimer() {
 			fireTimer();
 		}, intervalMs.value);
 	};
-	const event = new CustomEvent("ss-tick", {
+	const event = new CustomEvent("wf-tick", {
 		detail: {
 			callback,
 		},

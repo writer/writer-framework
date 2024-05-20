@@ -1,6 +1,6 @@
 import { registerComponentTemplate } from "./templateMap";
 
-const CUSTOM_COMPONENTS_GLOBAL_VAR = "StreamsyncCustomComponentTemplates";
+const CUSTOM_COMPONENTS_GLOBAL_VAR = "WriterCustomComponentTemplates";
 
 export async function loadExtensions(extensionPaths: string[]) {
 	await Promise.all(

@@ -7,7 +7,7 @@ Take into account the potential risks of adding custom HTML to your app, includi
 </docs>
 <script lang="ts">
 import { h, inject } from "vue";
-import { FieldControl, FieldType } from "../../streamsyncTypes";
+import { FieldControl, FieldType } from "../../writerTypes";
 import injectionKeys from "../../injectionKeys";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
@@ -24,7 +24,7 @@ const description =
 	"A generic component that creates customisable HTML elements, which can serve as containers for other components.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "HTML Element",
 		description,
 		category: "Other",
@@ -73,7 +73,7 @@ export default {
 				{
 					...fields.attrs.value,
 					class: "CoreHTML",
-					"data-streamsync-container": "",
+					"data-writer-container": "",
 					style: fields.styles.value,
 				},
 				[slots.default({}), insideHtmlNode],

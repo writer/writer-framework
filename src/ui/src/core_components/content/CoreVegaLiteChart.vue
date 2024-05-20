@@ -15,7 +15,7 @@ Alternatively, you can work with Vega-Lite directly.
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const description = "A component that displays Vega-Lite/Altair charts.";
@@ -39,7 +39,7 @@ const defaultSpec = {
 };
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Vega Lite Chart",
 		description,
 		category: "Content",

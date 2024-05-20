@@ -53,7 +53,7 @@
 const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "../../streamsyncTypes";
+import { Component, FieldType, InstancePath } from "../../writerTypes";
 import { useEvaluator } from "../../renderer/useEvaluator";
 import {
 	contentHAlign,
@@ -65,7 +65,7 @@ const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Tab",
 		description,
 		allowedParentTypes: ["tabs", "repeater"],
@@ -97,16 +97,16 @@ import BaseContainer from "../base/BaseContainer.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const { isComponentVisible } = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(wf);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {
 	for (let i = -2; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const { type } = ss.getComponentById(item.componentId);
+		const { type } = wf.getComponentById(item.componentId);
 		if (type !== "tabs") continue;
 		return i + 1;
 	}
@@ -121,7 +121,7 @@ const tabContainerDirectChildInstanceItem = computed(() => {
 const getTabContainerData = () => {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const { type } = ss.getComponentById(item.componentId);
+		const { type } = wf.getComponentById(item.componentId);
 		if (type !== "tabs") continue;
 		return instanceData.at(i);
 	}
@@ -151,7 +151,7 @@ const activateTab = () => {
 };
 
 const checkIfTabIsParent = (childId: Component["id"]): boolean => {
-	const child = ss.getComponentById(childId);
+	const child = wf.getComponentById(childId);
 	if (!child || child.type == "root") return false;
 	if (child.parentId == componentId) return true;
 	return checkIfTabIsParent(child.parentId);

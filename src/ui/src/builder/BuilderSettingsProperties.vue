@@ -119,7 +119,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import BuilderFieldsKeyValue from "./BuilderFieldsKeyValue.vue";
-import { FieldType, FieldCategory } from "../streamsyncTypes";
+import { FieldType, FieldCategory } from "../writerTypes";
 import BuilderFieldsColor from "./BuilderFieldsColor.vue";
 import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
@@ -129,16 +129,16 @@ import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsPadding from "./BuilderFieldsPadding.vue";
 import injectionKeys from "../injectionKeys";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const selectedComponent = computed(() => {
-	return ss.getComponentById(ssbm.getSelectedId());
+	return wf.getComponentById(ssbm.getSelectedId());
 });
 
 const fields = computed(() => {
 	const { type } = selectedComponent.value;
-	const definition = ss.getComponentDefinition(type);
+	const definition = wf.getComponentDefinition(type);
 	return definition.fields;
 });
 

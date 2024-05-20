@@ -44,7 +44,7 @@ import injectionKeys from "../injectionKeys";
 import WdsButton from "../wds/WdsButton.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const isActive = ref(false);
 const balloon: Ref<HTMLElement> = ref(null);
 
@@ -77,7 +77,7 @@ const handleNotification = (notification: {
 };
 
 onMounted(() => {
-	ss.addMailSubscription("notification", handleNotification);
+	wf.addMailSubscription("notification", handleNotification);
 });
 
 const toggle = () => {

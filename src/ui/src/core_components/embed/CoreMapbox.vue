@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 const markersDefaultData = [
@@ -18,7 +18,7 @@ const markersDefaultData = [
 ];
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Mapbox",
 		description:
 			"A component to embed a Mapbox map. It can be used to display a map with markers.",

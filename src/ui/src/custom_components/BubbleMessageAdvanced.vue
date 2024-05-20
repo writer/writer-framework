@@ -29,8 +29,8 @@ You _can_ use **markdown**.
 
 <script lang="ts">
 /*
-Define the Streamsync-specific information for the template.
-Consult the type StreamsyncComponentDefinition for an overview of all fields.
+Define the Writer Framework-specific information for the template.
+Consult the type WriterComponentDefinition for an overview of all fields.
 */
 
 const flagMessageHandlerStub = `
@@ -41,12 +41,12 @@ const pinMessageHandlerStub = `
 def handle_pin(state, payload):
 	state["pinned_message_id"] = payload`;
 
-const streamsync: StreamsyncComponentDefinition = {
+const writer: WriterComponentDefinition = {
 	name: "Bubble Message (Advanced)",
 	description: "Shows a message in the shape of a speech bubble.",
 	category: "Content",
 
-	// Fields will be editable via Streamsync Builder
+	// Fields will be editable via Writer Framework Builder
 
 	fields: {
 		messageId: {
@@ -105,7 +105,7 @@ const streamsync: StreamsyncComponentDefinition = {
 };
 
 export default {
-	streamsync,
+	writer,
 };
 </script>
 <script setup lang="ts">
@@ -113,8 +113,8 @@ import {
 	FieldCategory,
 	FieldControl,
 	FieldType,
-	StreamsyncComponentDefinition,
-} from "../streamsyncTypes";
+	WriterComponentDefinition,
+} from "../writerTypes";
 import injectionKeys from "../injectionKeys";
 import { inject, computed, ref, Ref } from "vue";
 
@@ -139,7 +139,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 const messageId = computed(() => fields.messageId.value);
 
 /*
-Streamsync uses DOM events to manage events.
+Writer Framework uses DOM events to manage events.
 Event types that don't exist in the browser are generated using
 CustomEvent (https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent).
 */

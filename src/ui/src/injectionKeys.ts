@@ -5,7 +5,7 @@ import {
 	Core,
 	InstancePath,
 	InstancePathItem,
-} from "./streamsyncTypes";
+} from "./writerTypes";
 
 export default {
 	core: Symbol() as InjectionKey<Core>,

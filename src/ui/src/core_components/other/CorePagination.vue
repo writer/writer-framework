@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 
 const pageChangeStub = `
 def handle_page_change(state, payload):
@@ -94,7 +94,7 @@ def handle_page_size_change(state, payload):
 `;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Pagination",
 		category: "Other",
 		description:
@@ -160,11 +160,11 @@ export default {
 			// }
 		},
 		events: {
-			"ss-change-page": {
+			"wf-change-page": {
 				desc: "Fires when the user pick a page",
 				stub: pageChangeStub.trim(),
 			},
-			"ss-change-page-size": {
+			"wf-change-page-size": {
 				desc: "Fires when the user change the page size.",
 				stub: onPageSizeChangeStub.trim(),
 			},
@@ -179,14 +179,14 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const rootEl: Ref<HTMLElement> = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue: pageValue, handleInput: handlePageInput } =
-	useFormValueBroker(ss, instancePath, rootEl);
+	useFormValueBroker(wf, instancePath, rootEl);
 const { formValue: pageSizeValue, handleInput: handlePageSizeInput } =
-	useFormValueBroker(ss, instancePath, rootEl);
+	useFormValueBroker(wf, instancePath, rootEl);
 const pagesizeEnabled = computed(
 	() =>
 		fields.pageSizeOptions.value !== "" ||
@@ -318,16 +318,16 @@ const onJumpTo = (event) => {
 		page = totalPage.value;
 	}
 
-	handlePageInput(page, "ss-change-page");
+	handlePageInput(page, "wf-change-page");
 };
 
 const jumpTo = (page: number) => {
-	handlePageInput(page, "ss-change-page");
+	handlePageInput(page, "wf-change-page");
 };
 
 const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
-	handlePageSizeInput(pageSize, "ss-change-page-size");
+	handlePageSizeInput(pageSize, "wf-change-page-size");
 };
 
 watch(fields.page, () => {

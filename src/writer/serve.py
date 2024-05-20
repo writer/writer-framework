@@ -20,9 +20,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from streamsync import VERSION
-from streamsync.app_runner import AppRunner
-from streamsync.ss_types import (
+from writer import VERSION
+from writer.app_runner import AppRunner
+from writer.ss_types import (
     AppProcessServerResponse,
     ComponentUpdateRequestPayload,
     EventResponsePayload,
@@ -33,9 +33,9 @@ from streamsync.ss_types import (
     InitSessionResponsePayload,
     ServeMode,
     StateEnquiryResponsePayload,
-    StreamsyncEvent,
-    StreamsyncWebsocketIncoming,
-    StreamsyncWebsocketOutgoing,
+    WriterEvent,
+    WriterWebsocketIncoming,
+    WriterWebsocketOutgoing,
 )
 
 if typing.TYPE_CHECKING:
@@ -45,18 +45,18 @@ MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
 
 
-class StreamsyncState(typing.Protocol):
+class WriterState(typing.Protocol):
     app_runner: AppRunner
-    streamsync_app: bool
+    writer_app: bool
     is_server_static_mounted: bool
 
-class StreamsyncAsgi(typing.Protocol):
-    state: StreamsyncState
+class WriterAsgi(typing.Protocol):
+    state: WriterState
 
-class StreamsyncFastAPI(FastAPI, StreamsyncAsgi):  # type: ignore
+class WriterFastAPI(FastAPI, WriterAsgi):  # type: ignore
     pass
 
-app: StreamsyncFastAPI = cast(StreamsyncFastAPI, None)
+app: WriterFastAPI = cast(WriterFastAPI, None)
 
 def get_asgi_app(
         user_app_path: str,
@@ -65,7 +65,7 @@ def get_asgi_app(
         enable_server_setup: bool = False,
         on_load: Optional[Callable] = None,
         on_shutdown: Optional[Callable] = None,
-) -> StreamsyncFastAPI:
+) -> WriterFastAPI:
     global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
@@ -94,12 +94,12 @@ def get_asgi_app(
         if on_shutdown is not None:
             on_shutdown()
 
-    app = cast(StreamsyncFastAPI, FastAPI(lifespan=lifespan))
+    app = cast(WriterFastAPI, FastAPI(lifespan=lifespan))
     """
     Reuse the same pattern to give variable to FastAPI application
-    than `app.state.is_server_static_mounted` already use in streamsync.
+    than `app.state.is_server_static_mounted` already use in Writer Framework.
     """
-    app.state.streamsync_app = True
+    app.state.writer_app = True
     app.state.app_runner = app_runner
 
     def _get_extension_paths() -> List[str]:
@@ -210,7 +210,7 @@ def get_asgi_app(
             req_message_raw = await websocket.receive_json()
 
             try:
-                req_message = StreamsyncWebsocketIncoming.model_validate(
+                req_message = WriterWebsocketIncoming.model_validate(
                     req_message_raw)
             except ValidationError:
                 logging.error("Incorrect incoming request.")
@@ -233,7 +233,7 @@ def get_asgi_app(
                 req_message_raw = await websocket.receive_json()
 
                 try:
-                    req_message = StreamsyncWebsocketIncoming.model_validate(
+                    req_message = WriterWebsocketIncoming.model_validate(
                         req_message_raw)
                 except ValidationError:
                     logging.error("Incorrect incoming request.")
@@ -275,8 +275,8 @@ def get_asgi_app(
                 except asyncio.CancelledError:
                     pass
 
-    async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
-        response = StreamsyncWebsocketOutgoing(
+    async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
             payload=None
@@ -284,7 +284,7 @@ def get_asgi_app(
         res_payload: Optional[Dict[str, Any]] = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_event(
-            session_id, StreamsyncEvent(
+            session_id, WriterEvent(
                 type=req_message.payload["type"],
                 instancePath=req_message.payload["instancePath"],
                 payload=req_message.payload["payload"]
@@ -296,8 +296,8 @@ def get_asgi_app(
             response.payload = res_payload
         await websocket.send_json(response.model_dump())
 
-    async def _handle_incoming_edit_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
-        response = StreamsyncWebsocketOutgoing(
+    async def _handle_incoming_edit_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
             payload=None
@@ -315,16 +315,16 @@ def get_asgi_app(
                 session_id, req_message.payload["code"])
         await websocket.send_json(response.model_dump())
 
-    async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
-        response = StreamsyncWebsocketOutgoing(
+    async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
             messageType="keepAliveResponse",
             trackingId=req_message.trackingId,
             payload=None
         )
         await websocket.send_json(response.model_dump())
 
-    async def _handle_state_enquiry_message(websocket: WebSocket, session_id: str, req_message: StreamsyncWebsocketIncoming):
-        response = StreamsyncWebsocketOutgoing(
+    async def _handle_state_enquiry_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
             payload=None
@@ -354,7 +354,7 @@ def get_asgi_app(
         finally:
             app_runner.code_update_condition.release()
 
-        announcement = StreamsyncWebsocketOutgoing(
+        announcement = WriterWebsocketOutgoing(
             messageType="announcement",
             trackingId=-1,
             payload={
@@ -427,7 +427,7 @@ def get_asgi_app(
         logging.error(
             textwrap.dedent(
                 """\
-                \x1b[31;20mError: Failed to acquire server static path. Streamsync may not be properly built.
+                \x1b[31;20mError: Failed to acquire server static path. Writer Framework may not be properly built.
 
                 To resolve this issue, try the following steps:
                 1. Run the 'npm run build' script in the 'ui' directory and then restart the app.
@@ -449,11 +449,7 @@ def print_init_message():
     END_TOKEN = "\033[0m"
 
     print(f"""{ GREEN_TOKEN }
-     _                                     
- ___| |_ ___ ___ ___ _____ ___ _ _ ___ ___ 
-|_ -|  _|  _| -_| .'|     |_ -| | |   |  _|
-|___|_| |_| |___|__,|_|_|_|___|_  |_|_|___|  v{VERSION}
-                              |___|    
+Writer Framework v{VERSION}    
 {END_TOKEN}""")
 
 
@@ -481,7 +477,7 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, 
 
     """
     Loading of the server_setup.py is active by default 
-    when streamsync is launched with the run command.
+    when Writer Framework is launched with the run command.
     """
     enable_server_setup = mode == "run" or enable_server_setup
     app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
@@ -491,30 +487,30 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    This feature supports launching multiple streamsync applications simultaneously.
+    This feature supports launching multiple Writer Framework applications simultaneously.
 
     >>> import uvicorn
-    >>> import streamsync.serve
+    >>> import writer.serve
     >>> from fastapi import FastAPI, Response
     >>>
-    >>> root_asgi_app = FastAPI(lifespan=streamsync.serve.lifespan)
+    >>> root_asgi_app = FastAPI(lifespan=writer.serve.lifespan)
     >>>
-    >>> sub_asgi_app_1 = streamsync.serve.get_asgi_app("../app1", "run")
-    >>> sub_asgi_app_2 = streamsync.serve.get_asgi_app("../app2", "run")
+    >>> sub_asgi_app_1 = writer.serve.get_asgi_app("../app1", "run")
+    >>> sub_asgi_app_2 = writer.serve.get_asgi_app("../app2", "run")
     >>>
-    >>> uvicorn.run(root_asgi_app, ws_max_size=streamsync.serve.MAX_WEBSOCKET_MESSAGE_SIZE)
+    >>> uvicorn.run(root_asgi_app, ws_max_size=writer.serve.MAX_WEBSOCKET_MESSAGE_SIZE)
 
-    Streamsync uses lifespan to start an application server (app_runner) per
+    Writer Framework uses lifespan to start an application server (app_runner) per
     application.
     """
-    streamsync_lifespans = []
+    writer_lifespans = []
     for route in app.routes:
         if isinstance(route, Mount) and isinstance(route.app, FastAPI):
-            if hasattr(route.app.state, "streamsync_app"):
+            if hasattr(route.app.state, "writer_app"):
                 ctx = route.app.router.lifespan_context
-                streamsync_lifespans.append(ctx)
+                writer_lifespans.append(ctx)
 
-    async with _lifespan_invoke(streamsync_lifespans, app):
+    async with _lifespan_invoke(writer_lifespans, app):
         yield
 
 
@@ -560,7 +556,7 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
     
     >>> asgi_app.mount("/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
 
-    Streamsync routes remain priority. A developer cannot come and overload them.
+    Writer Framework routes remain priority. A developer cannot come and overload them.
     """
     app.get('/')(lambda: FileResponse(server_static_path.joinpath('index.html')))
     for f in server_static_path.glob('*'):
@@ -581,5 +577,5 @@ def _execute_server_setup_hook(user_app_path: str) -> None:
         spec.loader.exec_module(module)  # type: ignore
 
 
-def app_runner(asgi_app: StreamsyncFastAPI) -> AppRunner:
+def app_runner(asgi_app: WriterFastAPI) -> AppRunner:
     return asgi_app.state.app_runner

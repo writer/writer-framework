@@ -22,7 +22,7 @@
 					:value="optionKey"
 					:name="`${flattenedInstancePath}-options`"
 					@input="
-						($event) => handleInput(optionKey, 'ss-option-change')
+						($event) => handleInput(optionKey, 'wf-option-change')
 					"
 				/><label
 					:for="`${flattenedInstancePath}-option-${optionKey}`"
@@ -36,7 +36,7 @@
 <script lang="ts">
 import { inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	cssClasses,
@@ -58,7 +58,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Radio Input",
 		description,
 		category: "Input",
@@ -90,7 +90,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-option-change": {
+			"wf-option-change": {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -107,11 +107,11 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 const fields = inject(injectionKeys.evaluatedFields);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );

@@ -1,6 +1,6 @@
 from typing import List
 
-from streamsync.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
+from writer.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
 
 
 def build_fake_component_tree(components: List[Component] = None, init_root=True):

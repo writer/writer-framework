@@ -5,9 +5,9 @@ import {
 	Component,
 	ClipboardOperation,
 	ComponentMap,
-} from "../streamsyncTypes";
+} from "../writerTypes";
 
-export function useComponentActions(ss: Core, ssbm: BuilderManager) {
+export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -27,14 +27,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Mutates the component and its previous sibling.
 	 */
 	function moveComponentUp(componentId: Component["id"]): void {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const position = component.position;
 		if (position == 0) return;
-		const parent = ss.getComponentById(component.parentId);
+		const parent = wf.getComponentById(component.parentId);
 		if (!parent) return;
 
-		const previousSibling = ss
+		const previousSibling = wf
 			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position == position - 1)[0];
 
@@ -51,7 +51,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		component.position--;
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -59,14 +59,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Mutates the component and its next sibling.
 	 */
 	function moveComponentDown(componentId: Component["id"]): void {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		const parent = ss.getComponentById(component.parentId);
+		const parent = wf.getComponentById(component.parentId);
 		if (!parent) return;
 		const position = component.position;
 		if (position == -2) return; // Positionless
 
-		const positionfulSiblings = ss
+		const positionfulSiblings = wf
 			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
 			.filter((c) => c.position !== -2);
 		if (position >= positionfulSiblings.length - 1) {
@@ -86,7 +86,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		component.position++;
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -102,9 +102,9 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		newParentId: Component["id"],
 		newPosition?: number,
 	) {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		const currentParentComponent = ss.getComponentById(component.parentId);
+		const currentParentComponent = wf.getComponentById(component.parentId);
 		if (!currentParentComponent) return;
 		if (componentId == newParentId) return;
 		if (currentParentComponent.id == newParentId && newPosition === null)
@@ -120,7 +120,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		repositionHigherSiblings(componentId, 1);
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	function createComponent(
@@ -129,7 +129,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		position?: number,
 	) {
 		const newId = generateNewComponentId();
-		const definition = ss.getComponentDefinition(type);
+		const definition = wf.getComponentDefinition(type);
 		const { fields } = definition;
 		const initContent = {};
 		Object.entries(fields ?? {}).map(([fieldKey, field]) => {
@@ -165,11 +165,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		const component = createComponent(type, parentId, position);
 		const transactionId = `create-${component.id}`;
 		ssbm.openMutationTransaction(transactionId, `Create`);
-		ss.addComponent(component);
+		wf.addComponent(component);
 		repositionHigherSiblings(component.id, 1);
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 		return component.id;
 	}
 
@@ -184,12 +184,12 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		componentId: Component["id"],
 		delta: number,
 	) {
-		const component = ss.getComponentById(componentId);
-		const positionless = ss.getComponentDefinition(
+		const component = wf.getComponentById(componentId);
+		const positionless = wf.getComponentDefinition(
 			component.type,
 		).positionless;
 		if (positionless) return;
-		const siblings = ss
+		const siblings = wf
 			.getComponents(component.parentId, {
 				includeBMC: true,
 				includeCMC: false,
@@ -216,10 +216,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	function getFlatComponentSubtree(
 		componentId: Component["id"],
 	): Component[] {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		const subtree: Component[] = [];
 		const pushToSubtreeRecursively = (rootComponent: Component) => {
-			const children = ss.getComponents(rootComponent.id);
+			const children = wf.getComponents(rootComponent.id);
 			subtree.push(rootComponent);
 			children.map((child) => pushToSubtreeRecursively(child));
 		};
@@ -233,9 +233,9 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * @param componentId Id of the target component
 	 */
 	function removeComponentSubtree(componentId: Component["id"]): void {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		const parentId = ss.getComponentById(componentId).parentId;
+		const parentId = wf.getComponentById(componentId).parentId;
 
 		const transactionId = `delete-${componentId}`;
 		ssbm.openMutationTransaction(transactionId, `Delete`);
@@ -243,13 +243,13 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			repositionHigherSiblings(component.id, -1);
 		}
 		const subtree = getFlatComponentSubtree(componentId);
-		subtree.map((c) => ss.deleteComponent(c.id));
+		subtree.map((c) => wf.deleteComponent(c.id));
 		subtree.map((c) => {
 			ssbm.registerPreMutation(c);
-			ss.deleteComponent(c.id);
+			wf.deleteComponent(c.id);
 		});
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -263,7 +263,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be dragged.
 	 */
 	function isDraggingAllowed(targetId: Component["id"]): boolean {
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
@@ -271,10 +271,10 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be added to the target component.
 	 */
 	function isAddAllowed(targetId: Component["id"]): boolean {
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		return (
 			!component?.isCodeManaged &&
-			ss.getContainableTypes(targetId).length > 0
+			wf.getContainableTypes(targetId).length > 0
 		);
 	}
 
@@ -289,7 +289,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be cut and placed in the clipboard.
 	 */
 	function isCutAllowed(targetId: Component["id"]): boolean {
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
@@ -297,7 +297,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * Whether a component can be deleted.
 	 */
 	function isDeleteAllowed(targetId: Component["id"]): boolean {
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		return !isRoot(targetId) && !component?.isCodeManaged;
 	}
 
@@ -318,7 +318,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		targetId: Component["id"],
 		targetInstancePath?: string,
 	) {
-		const targetComponent = ss.getComponentById(targetId);
+		const targetComponent = wf.getComponentById(targetId);
 		if (!targetComponent) return;
 		const parentId = targetComponent.parentId;
 		if (!parentId) return;
@@ -355,7 +355,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		*/
 
 		const componentMap: ComponentMap = {};
-		[...ss.getComponents(), ...subtree].forEach((component) => {
+		[...wf.getComponents(), ...subtree].forEach((component) => {
 			componentMap[component.id] = component;
 		});
 
@@ -376,7 +376,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * pasted to the target component.
 	 */
 	function isPasteAllowed(targetId: Component["id"]): boolean {
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) return false;
 		const clipboard = ssbm.getClipboard();
 		if (clipboard === null) return false;
@@ -398,12 +398,12 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 */
 	function getEnabledMoves(targetId: Component["id"]) {
 		const getPositionableChildrenCount = (parentId: Component["id"]) => {
-			const children = ss.getComponents(parentId, {
+			const children = wf.getComponents(parentId, {
 				includeBMC: true,
 				includeCMC: false,
 			});
 			const positionableChildren = children.filter((c) => {
-				const positionless = ss.getComponentDefinition(
+				const positionless = wf.getComponentDefinition(
 					c.type,
 				)?.positionless;
 				if (positionless) return false;
@@ -412,11 +412,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 			return positionableChildren.length;
 		};
 
-		const component = ss.getComponentById(targetId);
+		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) {
 			return { up: false, down: false };
 		}
-		const definition = ss.getComponentDefinition(component.type);
+		const definition = wf.getComponentDefinition(component.type);
 		if (definition.positionless) return { up: false, down: false };
 		const positionableSiblingCount = component.parentId
 			? getPositionableChildrenCount(component.parentId)
@@ -434,7 +434,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * @param componentId Id of the component to be cut
 	 */
 	function cutComponent(componentId: Component["id"]): void {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		ssbm.setClipboard({
 			operation: ClipboardOperation.Cut,
@@ -442,7 +442,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		});
 		ssbm.setSelection(null);
 		removeComponentSubtree(componentId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -474,7 +474,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * @returns
 	 */
 	function copyComponent(componentId: Component["id"]): void {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const subtree = getFlatComponentSubtree(componentId);
 		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
@@ -490,7 +490,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 	 * @param targetParentId Id of the component where to paste the clipboard
 	 */
 	function pasteComponent(targetParentId: Component["id"]): void {
-		const targetParent = ss.getComponentById(targetParentId);
+		const targetParent = wf.getComponentById(targetParentId);
 		if (!targetParent) return;
 
 		const clipboard = ssbm.getClipboard();
@@ -523,11 +523,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		const transactionId = `paste-cut-${targetParentId}`;
 		ssbm.openMutationTransaction(transactionId, `Paste from cut`);
 		subtree.map((c) => {
-			ss.addComponent(c);
+			wf.addComponent(c);
 			ssbm.registerPostMutation(c);
 		});
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -558,11 +558,11 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		const transactionId = `paste-copy-${targetParentId}`;
 		ssbm.openMutationTransaction(transactionId, `Paste from copy`);
 		subtree.map((c) => {
-			ss.addComponent(c);
+			wf.addComponent(c);
 			ssbm.registerPostMutation(c);
 		});
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -572,12 +572,12 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		targetParentId: Component["id"],
 		childType: Component["type"],
 	) {
-		const positionless = ss.getComponentDefinition(childType).positionless;
+		const positionless = wf.getComponentDefinition(childType).positionless;
 		if (positionless) {
 			return -2;
 		}
 
-		const positionfulChildren = ss
+		const positionfulChildren = wf
 			.getComponents(targetParentId, {
 				includeBMC: true,
 				includeCMC: false,
@@ -622,22 +622,22 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		Object.entries(transaction.mutations).forEach(
 			([mutationId, mutation]) => {
 				if (mutation.jsonPre && mutation.jsonPost) {
-					ss.addComponent(JSON.parse(mutation.jsonPre));
+					wf.addComponent(JSON.parse(mutation.jsonPre));
 					return;
 				}
 
 				if (!mutation.jsonPre && mutation.jsonPost) {
-					ss.deleteComponent(mutationId);
+					wf.deleteComponent(mutationId);
 					return;
 				}
 
 				if (mutation.jsonPre && !mutation.jsonPost) {
-					ss.addComponent(JSON.parse(mutation.jsonPre));
+					wf.addComponent(JSON.parse(mutation.jsonPre));
 					return;
 				}
 			},
 		);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -650,22 +650,22 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		Object.entries(transaction.mutations).forEach(
 			([mutationId, mutation]) => {
 				if (mutation.jsonPre && mutation.jsonPost) {
-					ss.addComponent(JSON.parse(mutation.jsonPost));
+					wf.addComponent(JSON.parse(mutation.jsonPost));
 					return;
 				}
 
 				if (!mutation.jsonPre && mutation.jsonPost) {
-					ss.addComponent(JSON.parse(mutation.jsonPost));
+					wf.addComponent(JSON.parse(mutation.jsonPost));
 					return;
 				}
 
 				if (mutation.jsonPre && !mutation.jsonPost) {
-					ss.deleteComponent(mutationId);
+					wf.deleteComponent(mutationId);
 					return;
 				}
 			},
 		);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -676,7 +676,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		fieldKey: string,
 		value: string,
 	) {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const transactionId = `edit-${componentId}-content-${fieldKey}`;
 		ssbm.openMutationTransaction(transactionId, `Edit property`, true);
@@ -686,7 +686,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -696,7 +696,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		componentId: Component["id"],
 		visible: Component["visible"],
 	) {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const transactionId = `change-visibility-${componentId}`;
 		ssbm.openMutationTransaction(transactionId, `Change visibility`, true);
@@ -710,7 +710,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -721,14 +721,14 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		stateRef: Component["binding"]["stateRef"],
 		targetEventType?: Component["binding"]["eventType"],
 	) {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 
 		let eventType: string;
 		if (targetEventType) {
 			eventType = targetEventType;
 		} else {
-			const definition = ss.getComponentDefinition(component.type);
+			const definition = wf.getComponentDefinition(component.type);
 			const events = Object.entries(definition.events).filter(
 				([eventType, event]) => event.bindable,
 			);
@@ -754,7 +754,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		}
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	/**
@@ -765,7 +765,7 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 		eventType: string,
 		userFunction: string,
 	) {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const transactionId = `set-handler-${componentId}`;
 		ssbm.openMutationTransaction(transactionId, `Set event handler`, true);
@@ -785,25 +785,25 @@ export function useComponentActions(ss: Core, ssbm: BuilderManager) {
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
-		ss.sendComponentUpdate();
+		wf.sendComponentUpdate();
 	}
 
 	function getContainingPageId(
 		componentId: Component["id"],
 	): Component["id"] {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (!component || component.type == "root") return null;
 		if (component.type == "page") return componentId;
 		return getContainingPageId(component.parentId);
 	}
 
 	async function goToComponentParentPage(componentId: Component["id"]) {
-		const component = ss.getComponentById(componentId);
-		const componentDefinition = ss.getComponentDefinition(
+		const component = wf.getComponentById(componentId);
+		const componentDefinition = wf.getComponentDefinition(
 			component.type,
 		)?.name;
 		if (!componentDefinition) return; // Unknown component, not rendered
-		ss.setActivePageId(getContainingPageId(componentId));
+		wf.setActivePageId(getContainingPageId(componentId));
 	}
 
 	return {

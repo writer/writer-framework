@@ -3,7 +3,7 @@
 		class="BaseContainer"
 		:style="rootStyle"
 		:class="{ horizontal: props.isHorizontal }"
-		data-streamsync-container
+		data-writer-container
 	>
 		<slot></slot>
 	</div>

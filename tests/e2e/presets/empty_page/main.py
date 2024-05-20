@@ -1,5 +1,5 @@
-import streamsync as ss
+import writer as wf
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 26,
 })

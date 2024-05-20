@@ -10,12 +10,12 @@ COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
 
-RUN pip3 install streamsync==0.1.2
+RUN pip3 install writer==0.1.2
 RUN pip3 install -r requirements.txt
 
 COPY . /app
 
-ENTRYPOINT [ "streamsync", "run" ]
+ENTRYPOINT [ "writer", "run" ]
 
 EXPOSE 5000
 

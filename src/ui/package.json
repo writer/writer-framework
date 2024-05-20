@@ -1,5 +1,5 @@
 {
-	"name": "streamsync-ui",
+	"name": "writer-ui",
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {

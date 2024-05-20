@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -31,7 +31,7 @@ const description =
 	"A container component that divides the layout into sections, with an optional title.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Section",
 		description,
 		category: "Layout",

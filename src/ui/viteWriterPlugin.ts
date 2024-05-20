@@ -1,16 +1,16 @@
 import { ResolvedConfig, Plugin } from "vite";
 
-type StreamsyncPluginConfig = ResolvedConfig & {
-	includeStreamsyncComponentPath?: boolean;
+type WriterPluginConfig = ResolvedConfig & {
+	includeWriterComponentPath?: boolean;
 };
 
 export default (): Plugin => {
-	let config: StreamsyncPluginConfig;
+	let config: WriterPluginConfig;
 
 	return {
-		name: "streamsync-plugin",
+		name: "writer-plugin",
 		configResolved(resolvedConfig) {
-			config = resolvedConfig as StreamsyncPluginConfig;
+			config = resolvedConfig as WriterPluginConfig;
 		},
 		transform(code: string, id: string) {
 			if (/vue&type=docs/.test(id)) {
@@ -22,15 +22,15 @@ export default (): Plugin => {
 					.replace(/^(\\n|\\t|[ \s])*/, "")
 					.replace(/(\\n|\\t|[ \s])*$/, "");
 				return `export default Comp => {
-					if(!Comp.streamsync) return;
-					Comp.streamsync.docs = '${docs}';
+					if(!Comp.writer) return;
+					Comp.writer.docs = '${docs}';
 				}`;
 			}
 			if (/\.vue$/.test(id)) {
-				if (config.includeStreamsyncComponentPath === false) return;
+				if (config.includeWriterComponentPath === false) return;
 				const fileRef = id.replace(`${__dirname}/`, "");
 				return `${code}
-					if(_sfc_main.streamsync) _sfc_main.streamsync.fileRef = '${fileRef}';
+					if(_sfc_main.writer) _sfc_main.writer.fileRef = '${fileRef}';
 				`;
 			}
 		},

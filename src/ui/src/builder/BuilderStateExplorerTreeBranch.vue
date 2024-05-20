@@ -63,13 +63,13 @@ interface Props {
 const props = defineProps<Props>();
 const { rootAccessors } = toRefs(props);
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const areChildrenVisible: Ref<boolean> = ref(
 	rootAccessors.value.length > 0 ? false : true,
 );
 
 function getStateValue(accessors: string[]) {
-	let state = ss.getUserState();
+	let state = wf.getUserState();
 	accessors.forEach((accessor) => {
 		state = state[accessor];
 	});

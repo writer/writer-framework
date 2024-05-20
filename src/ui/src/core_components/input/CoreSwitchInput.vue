@@ -22,7 +22,7 @@
 <script lang="ts">
 import { inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -43,7 +43,7 @@ def handle_toggle(state, payload):
 	state["its_on"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Switch Input",
 		description,
 		category: "Input",
@@ -59,7 +59,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-toggle": {
+			"wf-toggle": {
 				desc: "Sent when the switch is toggled.",
 				stub: onToggleHandlerStub.trim(),
 				bindable: true,
@@ -75,10 +75,10 @@ import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const { formValue, handleInput } = useFormValueBroker(
-	ss,
+	wf,
 	instancePath,
 	rootInstance,
 );
@@ -86,7 +86,7 @@ const toggleValue = ref(false);
 
 function handleToggle() {
 	toggleValue.value = !toggleValue.value;
-	handleInput(toggleValue.value, "ss-toggle");
+	handleInput(toggleValue.value, "wf-toggle");
 }
 
 onMounted(() => {

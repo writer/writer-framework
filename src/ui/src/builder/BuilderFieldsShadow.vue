@@ -135,13 +135,13 @@ import {
 	ref,
 	toRefs,
 } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
@@ -164,7 +164,7 @@ const props = defineProps<{
 	fieldKey: string;
 }>();
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const boxShadowRegex =
 	/^(?<offsetX>[0-9]+)px (?<offsetY>[0-9]+)px (?<blurRadius>[0-9]+)px (?<spreadRadius>[0-9-]+)px (?<color>#[A-Fa-f0-9]{6})$/;
