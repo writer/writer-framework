@@ -20,8 +20,7 @@ def build_app_provisionning():
     if os.path.isdir('src/writer/app_templates'):
         shutil.rmtree('src/writer/app_templates')
 
-    shutil.copytree( 'apps/default', 'src/writer/app_templates/default')
-    shutil.copytree( 'apps/hello', 'src/writer/app_templates/hello')
+    shutil.copytree( 'apps', 'src/writer/app_templates')
 
 @alfred.command("build.poetry", help="build python packages with poetry", hidden=True)
 def build_poetry():

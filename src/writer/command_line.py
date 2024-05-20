@@ -23,12 +23,15 @@ def main():
         "--enable-remote-edit", help="Set this flag to allow non-local requests in edit mode.", action='store_true')
     parser.add_argument(
         "--enable-server-setup", help="Set this flag to enable server setup hook in edit mode.", action='store_true')
+    parser.add_argument(
+        "--template", help="The template to use when creating a new app.")
 
     args = parser.parse_args()
     command = args.command
     default_port = 3006 if command in ("edit", "hello") else 3005
     enable_remote_edit = args.enable_remote_edit
     enable_server_setup_hook = args.enable_server_setup
+    template_name = args.template
 
     port = int(args.port) if args.port else default_port
     absolute_app_path = _get_absolute_app_path(
@@ -36,7 +39,7 @@ def main():
     host = args.host if args.host else None
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit)
-    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook)
+    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name)
 
 def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool]):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
@@ -62,7 +65,8 @@ def _route(
     port: int,
     host: Optional[str],
     enable_remote_edit: Optional[bool],
-    enable_server_setup: Optional[bool]
+    enable_server_setup: Optional[bool],
+    template_name: Optional[str]
 ):
     if host is None:
         host = "127.0.0.1"
@@ -79,9 +83,12 @@ def _route(
                                port=port, host=host, enable_remote_edit=enable_remote_edit,
                                enable_server_setup=False)
     elif command in ("create"):
-        create_app(absolute_app_path)
+        create_app(absolute_app_path, template_name=template_name)
 
-def create_app(app_path: str, template_name: str = "default", overwrite=False):
+def create_app(app_path: str, template_name: Optional[str], overwrite=False):
+    if template_name is None:
+        template_name = "default"
+
     is_folder_created = os.path.exists(app_path)
     is_folder_empty = True if not is_folder_created else len(os.listdir(app_path)) == 0
 
@@ -91,6 +98,11 @@ def create_app(app_path: str, template_name: str = "default", overwrite=False):
 
     server_path = os.path.dirname(__file__)
     template_path = os.path.join(server_path, "app_templates", template_name)
+
+    if not os.path.exists(template_path):
+        logging.error(f"Template { template_name } couldn't be found.")
+        sys.exit(1)
+
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
 
 
