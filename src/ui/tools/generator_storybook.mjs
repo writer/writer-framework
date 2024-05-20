@@ -176,22 +176,22 @@ export const Sample: Story = {
 	render: (args) => ({
 		components: { ${component.nameTrim} },
 		setup() {
-			const ss = generateCore();
+			const wf = generateCore();
 			const rootStyle = computed(() => {
 				return {
-					"--accentColor": "#29cf00",
+					"--accentColor": "#5551ff",
 					"--buttonColor": "#ffffff",
 					"--emptinessColor": "#e9eef1",
 					"--separatorColor": "rgba(0, 0, 0, 0.07)",
 					"--primaryTextColor": "#202829",
-					"--buttonTextColor": "#202829",
+					"--buttonTextColor": "#ffffff",
 					"--secondaryTextColor": "#5d7275",
 					"--containerBackgroundColor": "#ffffff",
 ${generateStylesInfill(component)}
 					"width": "100%",
 					"outline": "none",
 					"--notificationsDisplacement": "0",
-					"font-family": "Inter, sans-serif",
+					"font-family": "Poppins",
 					"font-size": "0.8rem",
 					"color": "var(--primaryTextColor)",
 					"background": "white",
@@ -208,7 +208,7 @@ ${generateArgWrap(component)}
 			provide(injectionKeys.isBeingEdited, ref(false));
 			provide(injectionKeys.instancePath, [{componentId: "test", instanceNumber: 0}]);
 			provide(injectionKeys.flattenedInstancePath, "test:0");
-			provide(injectionKeys.core, ss as any);
+			provide(injectionKeys.core, wf as any);
 			return { args, rootStyle };
 		},
 		template:

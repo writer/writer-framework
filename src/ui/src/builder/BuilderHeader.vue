@@ -1,20 +1,7 @@
 <template>
 	<div class="BuilderHeader">
-		<img src="../assets/logo.svg" alt="Streamsync logo" />
-		<BuilderSwitcher
-			:options="{
-				ui: { desc: 'User Interface', icon: 'ri-brush-line' },
-				code: { desc: 'Code', icon: 'ri-code-line' },
-				preview: { desc: 'Preview', icon: 'ri-pages-line' },
-			}"
-			:fn="
-				(optionId: 'ui' | 'code' | 'preview') => {
-					ssbm.setMode(optionId);
-					if (ssbm.getMode() != 'preview') return;
-					ssbm.setSelection(null);
-				}
-			"
-		></BuilderSwitcher>
+		<img src="../assets/logo.svg" alt="Writer Framework logo" />
+		<BuilderSwitcher></BuilderSwitcher>
 		<div class="undoRedo">
 			<button
 				class="undo"
@@ -26,7 +13,7 @@
 				:disabled="!undoRedoSnapshot.isUndoAvailable"
 				@click="undo()"
 			>
-				<i class="ri-arrow-go-back-line"></i>
+				<i class="material-symbols-outlined"> undo </i>
 				Undo
 			</button>
 			<button
@@ -39,18 +26,19 @@
 				:disabled="!undoRedoSnapshot.isRedoAvailable"
 				@click="redo()"
 			>
-				<i class="ri-arrow-go-forward-line"></i>
+				<i class="material-symbols-outlined"> redo </i>
 				Redo
 			</button>
 		</div>
 		<div>
 			<button @click="showStateExplorer">
-				<i class="ri-eye-line"></i>View state
+				<i class="material-symbols-outlined"> mystery </i>
+				State Explorer
 			</button>
 			<BuilderModal
 				v-if="isStateExplorerShown"
 				:close-action="customHandlerModalCloseAction"
-				icon="eye"
+				icon="mystery"
 				modal-title="State Explorer"
 			>
 				<BuilderStateExplorer></BuilderStateExplorer>
@@ -59,12 +47,13 @@
 		<div class="gap"></div>
 		<div
 			class="syncHealth"
-			:class="ss.syncHealth.value"
+			:class="wf.syncHealth.value"
 			:title="syncHealthStatus()"
 			@click="animate"
 		>
-			<i ref="syncHealthIcon" class="ri-refresh-line ri-lg icon"></i
-			><span v-if="ss.syncHealth.value == 'offline'">Offline</span>
+			<i ref="syncHealthIcon" class="material-symbols-outlined icon"
+				>sync</i
+			><span v-if="wf.syncHealth.value == 'offline'">Offline</span>
 		</div>
 	</div>
 </template>
@@ -78,9 +67,9 @@ import injectionKeys from "../injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
 const syncHealthIcon = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { undo, redo, getUndoRedoSnapshot } = useComponentActions(ss, ssbm);
+const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
@@ -93,7 +82,7 @@ const animate = () => {
 };
 
 const syncHealthStatus = () => {
-	switch (ss.syncHealth.value) {
+	switch (wf.syncHealth.value) {
 		case "offline":
 			return "Offline. Not syncing.";
 		case "connected":
@@ -122,7 +111,7 @@ const customHandlerModalCloseAction: ModalAction = {
 
 .BuilderHeader {
 	background: var(--builderHeaderBackgroundColor);
-	color: white;
+	color: var(--builderBackgroundColor);
 	padding: 0 12px 0 16px;
 	display: flex;
 	align-items: center;
@@ -167,11 +156,12 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 .syncHealth.connected {
-	color: var(--builderAccentColor);
+	color: var(--builderBackgroundColor);
 }
 
 .syncHealth .icon {
 	transform-origin: center;
+	font-size: 0.875rem;
 }
 
 .syncHealth .icon.beingAnimated {
@@ -190,6 +180,7 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 button {
-	color: #ffffff;
+	background: unset;
+	color: var(--builderBackgroundColor);
 }
 </style>

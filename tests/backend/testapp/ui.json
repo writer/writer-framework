@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.3.0a1"
+        "writer_version": "0.5.0"
     },
     "components": {
         "root": {
@@ -9,7 +9,7 @@
             "content": {
                 "appName": "My App"
             },
-            "parentId": null,
+            "isCodeManaged": false,
             "position": 0
         },
         "bb4d0e86-619e-4367-a180-be28ab6059f4": {
@@ -19,25 +19,28 @@
                 "pageMode": "",
                 "key": "main"
             },
-            "parentId": "root",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "root"
         },
         "84378aea-b64c-49a3-9539-f854532279ee": {
             "id": "84378aea-b64c-49a3-9539-f854532279ee",
             "type": "header",
             "content": {
-                "text": "Hacker Pigeons",
+                "text": "TEST APP",
                 "emptinessColor": "#ffffff"
             },
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5": {
             "id": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
             "type": "columns",
             "content": {},
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5": {
             "id": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
@@ -48,8 +51,9 @@
                 "title": "",
                 "isSticky": "yes"
             },
-            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5"
         },
         "0569937e-c72c-4fb9-820e-2ae56e17bcc0": {
             "id": "0569937e-c72c-4fb9-820e-2ae56e17bcc0",
@@ -57,8 +61,9 @@
             "content": {
                 "width": "1.61"
             },
-            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5"
         },
         "9c30af6d-4ee5-4782-9169-0f361d67fa76": {
             "id": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
@@ -66,8 +71,9 @@
             "content": {
                 "title": ""
             },
-            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5"
         },
         "26f412c4-1016-488e-9777-512a4f748c82": {
             "id": "26f412c4-1016-488e-9777-512a4f748c82",
@@ -75,15 +81,17 @@
             "content": {
                 "text": "@{story.text}"
             },
-            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf"
         },
         "ee919cd6-8153-4f34-8c6a-bfc1153df360": {
             "id": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
             "type": "tabs",
             "content": {},
-            "parentId": "0569937e-c72c-4fb9-820e-2ae56e17bcc0",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "0569937e-c72c-4fb9-820e-2ae56e17bcc0"
         },
         "c6392876-7cfd-4680-8725-b04f43ff294f": {
             "id": "c6392876-7cfd-4680-8725-b04f43ff294f",
@@ -91,8 +99,9 @@
             "content": {
                 "name": "Data and Charts"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "da00a61f-0ee2-434e-acd6-228d32eae5c6": {
             "id": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
@@ -100,15 +109,17 @@
             "content": {
                 "name": "Repeater"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "d0298b1c-7c64-4b58-a018-db97dd49675b": {
             "id": "d0298b1c-7c64-4b58-a018-db97dd49675b",
             "type": "separator",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "f1d6bc8e-a780-4ae5-8b7c-082fe8a6867d": {
             "id": "f1d6bc8e-a780-4ae5-8b7c-082fe8a6867d",
@@ -120,8 +131,9 @@
                 "showIndex": "",
                 "enableSearch": ""
             },
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "fbad9feb-5c88-4425-bb17-0d138286a875": {
             "id": "fbad9feb-5c88-4425-bb17-0d138286a875",
@@ -129,8 +141,9 @@
             "content": {
                 "startCollapsed": "yes"
             },
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
-            "position": -2
+            "isCodeManaged": false,
+            "position": -2,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4"
         },
         "7e625201-20c2-4b05-951c-d825de28b216": {
             "id": "7e625201-20c2-4b05-951c-d825de28b216",
@@ -138,8 +151,9 @@
             "content": {
                 "title": "Filter data"
             },
-            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875"
         },
         "385247e5-5c89-4352-a598-b8da81146a5a": {
             "id": "385247e5-5c89-4352-a598-b8da81146a5a",
@@ -150,13 +164,14 @@
                 "maxValue": "600",
                 "stepSize": "0.1"
             },
-            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_weight"
             }
         },
@@ -169,13 +184,14 @@
                 "maxValue": "35",
                 "stepSize": "1"
             },
-            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "7e625201-20c2-4b05-951c-d825de28b216",
             "handlers": {
-                "ss-number-change": "update"
+                "wf-number-change": "update"
             },
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "filter.min_length"
             }
         },
@@ -185,17 +201,19 @@
             "content": {
                 "title": "About this app"
             },
-            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "fbad9feb-5c88-4425-bb17-0d138286a875"
         },
         "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0": {
             "id": "12e11005-3b5e-4bd8-9a8c-fc7b8cb757d0",
             "type": "text",
             "content": {
-                "text": "This app is meant to serve as a lighthearted introduction to Streamsync. It's not a comprehensive demonstration of its capabilities."
+                "text": "This app is meant to serve as a lighthearted introduction to Writer Framework. It's not a comprehensive demonstration of its capabilities."
             },
-            "parentId": "70d82458-a08f-4005-8f96-dc8d3ba92fad",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "70d82458-a08f-4005-8f96-dc8d3ba92fad"
         },
         "18f73ad0-3961-4aed-9dc1-5ed54d939fdf": {
             "id": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf",
@@ -203,8 +221,9 @@
             "content": {
                 "name": "Download"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "7b710d37-1c68-4d06-a65a-e6596ccc826a": {
             "id": "7b710d37-1c68-4d06-a65a-e6596ccc826a",
@@ -212,15 +231,17 @@
             "content": {
                 "text": "In the bustling city, a hidden group of hacker pigeons works together to break into computer systems and create advanced data apps. These smart birds have different roles, like leaders, developers, security experts, and designers, and they use their skills to complete various tech challenges."
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "b9cb10e5-1ead-448b-afcc-909e23afb72a": {
             "id": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
             "type": "columns",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f"
         },
         "31c1b0d5-bfb6-4304-82bd-1687d492f0a2": {
             "id": "31c1b0d5-bfb6-4304-82bd-1687d492f0a2",
@@ -230,15 +251,17 @@
                 "alignment": "right",
                 "primaryTextColor": "#2fa0c6"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "804e15bf-11a7-463d-8082-f46ea3acac1b": {
             "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",
             "type": "separator",
             "content": {},
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
         },
         "3cc9c5e9-6c77-401d-ab82-7805d9df760c": {
             "id": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
@@ -246,15 +269,17 @@
             "content": {
                 "name": "Layout"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff": {
             "id": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
             "type": "columns",
             "content": {},
-            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c"
         },
         "25dda22d-1b18-4584-aa99-aaae9f3b8edf": {
             "id": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
@@ -263,8 +288,9 @@
                 "width": "1",
                 "contentVAlign": ""
             },
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "b1ee642e-f2e7-453b-a6ef-3d96eea37140": {
             "id": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
@@ -275,8 +301,9 @@
                 "isCollapsible": "yes",
                 "startCollapsed": ""
             },
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b": {
             "id": "d1f43b6f-5b0f-4c8f-95bf-a92dd7ed723b",
@@ -285,8 +312,9 @@
                 "text": "\n## Role Distribution\n\nThe hacker pigeons dataframe consists of five distinct roles:\n\n1. Leader\n2. Developer\n3. Data Expert\n4. Designer\n5. Security Expert\n\nThe role distribution among the hacker pigeons can be analyzed to understand the composition of the secret society and the proportions of various roles.\n\n## Length and Weight Statistics\n\n- The length and weight of hacker pigeons in the dataframe can be used to gain insights into their physical characteristics.\n- Examining the minimum, maximum, and average values for length and weight can provide an overview of the size variation among the hacker pigeons.\n- By grouping the data by role, we can analyze the differences in length and weight for each role and identify any patterns or trends.",
                 "useMarkdown": "yes"
             },
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "71766c0c-e1e5-4675-9dd0-3aa2627773a0": {
             "id": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
@@ -294,8 +322,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"margin\": \"24px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"transform\": \"rotate(-3deg)\",\n  \"box-shadow\": \"0 4px 16px -8px black\"\n}"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "c73602a6-453d-4ccf-b8e3-b1774ab4ff17": {
             "id": "c73602a6-453d-4ccf-b8e3-b1774ab4ff17",
@@ -303,15 +332,17 @@
             "content": {
                 "text": "Use the HTML Element component when you need additional control."
             },
-            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0"
         },
         "573f095f-94a7-43e4-a94e-b2f69439a164": {
             "id": "573f095f-94a7-43e4-a94e-b2f69439a164",
             "type": "separator",
             "content": {},
-            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "fb22acfc-cdb5-44b6-9e97-76c3a51a8fff"
         },
         "feedc43f-a7cf-499b-962e-8170f1032b69": {
             "id": "feedc43f-a7cf-499b-962e-8170f1032b69",
@@ -319,15 +350,17 @@
             "content": {
                 "text": "You can use Markdown, as shown below."
             },
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "1ee57415-557d-4529-be99-36f4d91fdf69": {
             "id": "1ee57415-557d-4529-be99-36f4d91fdf69",
             "type": "separator",
             "content": {},
-            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "25dda22d-1b18-4584-aa99-aaae9f3b8edf"
         },
         "ec5bc32e-1456-4abd-8d3e-97c640e32339": {
             "id": "ec5bc32e-1456-4abd-8d3e-97c640e32339",
@@ -336,8 +369,9 @@
                 "title": "",
                 "containerBackgroundColor": "#ebfcff"
             },
-            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "3cc9c5e9-6c77-401d-ab82-7805d9df760c"
         },
         "919b0d26-ea9b-4364-b5af-865236b3fc3a": {
             "id": "919b0d26-ea9b-4364-b5af-865236b3fc3a",
@@ -345,8 +379,9 @@
             "content": {
                 "contentHAlign": "start"
             },
-            "parentId": "ec5bc32e-1456-4abd-8d3e-97c640e32339",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "ec5bc32e-1456-4abd-8d3e-97c640e32339"
         },
         "0cf677a9-34f6-461a-a531-5578939400c7": {
             "id": "0cf677a9-34f6-461a-a531-5578939400c7",
@@ -354,8 +389,9 @@
             "content": {
                 "text": "Used to stack things horizontally."
             },
-            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a"
         },
         "a36b75bc-58e6-48ba-bdef-0824e6b21e8d": {
             "id": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
@@ -363,17 +399,19 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"margin\": \"24px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"transform\": \"rotate(3deg)\",\n  \"box-shadow\": \"0 4px 16px -8px black\"\n}"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "5da5e007-d60a-4313-9d21-885deae7b37d": {
             "id": "5da5e007-d60a-4313-9d21-885deae7b37d",
             "type": "text",
             "content": {
-                "text": "You can put other Streamsync components inside HTML Elements."
+                "text": "You can put other Writer Framework components inside HTML Elements."
             },
-            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d"
         },
         "85120b55-69c6-4b50-853a-bbbf73ff8121": {
             "id": "85120b55-69c6-4b50-853a-bbbf73ff8121",
@@ -381,8 +419,9 @@
             "content": {
                 "name": "Timer"
             },
-            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360"
         },
         "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12": {
             "id": "db4c66d6-1eb7-44d3-a2d4-65d0b3e5cf12",
@@ -391,8 +430,9 @@
                 "dataframe": "@{random_df}",
                 "fontStyle": "monospace"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d": {
             "id": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
@@ -400,8 +440,9 @@
             "content": {
                 "contentHAlign": "start"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "50a05488-d6fe-47bf-b681-36870d04f5d7": {
             "id": "50a05488-d6fe-47bf-b681-36870d04f5d7",
@@ -410,10 +451,11 @@
                 "intervalMs": "500",
                 "isActive": "no"
             },
-            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
             "handlers": {
-                "ss-tick": "handle_timer_tick"
+                "wf-tick": "handle_timer_tick"
             }
         },
         "e296866a-75d2-4677-b55d-3c1456113b89": {
@@ -422,8 +464,9 @@
             "content": {
                 "text": "Refreshing automatically using a timer."
             },
-            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "09ddb2da-6fa3-4157-8da3-4d5d44a6a58d"
         },
         "fdf38e46-c01e-4a93-94d5-e187f9e4c823": {
             "id": "fdf38e46-c01e-4a93-94d5-e187f9e4c823",
@@ -433,8 +476,9 @@
                 "useMarkdown": "yes",
                 "primaryTextColor": "#8a8a8a"
             },
-            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "85120b55-69c6-4b50-853a-bbbf73ff8121"
         },
         "c921816d-6d45-4ce3-9c18-2c78ff850e0e": {
             "id": "c921816d-6d45-4ce3-9c18-2c78ff850e0e",
@@ -444,8 +488,9 @@
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(80deg + @{hue_rotation}deg))\"\n}",
                 "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
             },
-            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "71766c0c-e1e5-4675-9dd0-3aa2627773a0"
         },
         "c684f61e-0c79-4cb1-af9f-46c9cab5dfea": {
             "id": "c684f61e-0c79-4cb1-af9f-46c9cab5dfea",
@@ -455,8 +500,9 @@
                 "styles": "{\n  \"filter\": \"hue-rotate(calc(140deg + @{hue_rotation}deg))\"\n}",
                 "attrs": "{ \"src\": \"static/pigeon1.jpg\"}"
             },
-            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "a36b75bc-58e6-48ba-bdef-0824e6b21e8d"
         },
         "ee82e035-cfb2-4d00-95ce-ccbb9eb2dbb9": {
             "id": "ee82e035-cfb2-4d00-95ce-ccbb9eb2dbb9",
@@ -467,10 +513,11 @@
                 "maxValue": "360",
                 "stepSize": "1"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "hue_rotation"
             }
         },
@@ -481,8 +528,9 @@
                 "text": "As shown above, you can use _HTML Element_ components together with state references.",
                 "useMarkdown": "yes"
             },
-            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "b1ee642e-f2e7-453b-a6ef-3d96eea37140"
         },
         "e77448dd-4e7c-451c-8f31-4edde9bbf9f5": {
             "id": "e77448dd-4e7c-451c-8f31-4edde9bbf9f5",
@@ -490,15 +538,17 @@
             "content": {
                 "text": "Horizontal Stack"
             },
-            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a"
         },
         "b4dc3e9c-ce01-4690-8e0e-e4357dbe70ad": {
             "id": "b4dc3e9c-ce01-4690-8e0e-e4357dbe70ad",
             "type": "separator",
             "content": {},
-            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "919b0d26-ea9b-4364-b5af-865236b3fc3a"
         },
         "6a490318-239e-4fe9-a56b-f0f33d628c87": {
             "id": "6a490318-239e-4fe9-a56b-f0f33d628c87",
@@ -506,15 +556,17 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "888b1eb9-609c-4205-bbda-262999d197ff": {
             "id": "888b1eb9-609c-4205-bbda-262999d197ff",
             "type": "separator",
             "content": {},
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "de70a15a-2ff6-42d2-ab12-c7fc9c3ed4e1": {
             "id": "de70a15a-2ff6-42d2-ab12-c7fc9c3ed4e1",
@@ -524,8 +576,9 @@
                 "headingType": "h1",
                 "alignment": "center"
             },
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "e72f2050-3156-4fbf-9961-9a31945425fb": {
             "id": "e72f2050-3156-4fbf-9961-9a31945425fb",
@@ -534,22 +587,17 @@
                 "text": "The Story",
                 "headingType": "h1"
             },
-            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf",
-            "position": 0
-        },
-        "3cf72c75-9585-403b-9cc6-af8f04ce1180": {
-            "id": "3cf72c75-9585-403b-9cc6-af8f04ce1180",
-            "type": "separator",
-            "content": {},
-            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "18f73ad0-3961-4aed-9dc1-5ed54d939fdf"
         },
         "2f4969e2-e248-43ed-9e63-222fc35250e2": {
             "id": "2f4969e2-e248-43ed-9e63-222fc35250e2",
             "type": "columns",
             "content": {},
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "f46cd60d-f01e-4390-a161-4353006b72a1": {
             "id": "f46cd60d-f01e-4390-a161-4353006b72a1",
@@ -559,8 +607,9 @@
                 "keyVariable": "itemId",
                 "valueVariable": "item"
             },
-            "parentId": "2f4969e2-e248-43ed-9e63-222fc35250e2",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "2f4969e2-e248-43ed-9e63-222fc35250e2"
         },
         "0dd29423-3867-478a-997e-eeaafb6b811e": {
             "id": "0dd29423-3867-478a-997e-eeaafb6b811e",
@@ -568,8 +617,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "f46cd60d-f01e-4390-a161-4353006b72a1",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "f46cd60d-f01e-4390-a161-4353006b72a1"
         },
         "2d326b15-da90-496e-86e8-7fdd4bcbe822": {
             "id": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
@@ -578,8 +628,9 @@
                 "title": "@{item.name}",
                 "containerBackgroundColor": "#eff4f6"
             },
-            "parentId": "0dd29423-3867-478a-997e-eeaafb6b811e",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "0dd29423-3867-478a-997e-eeaafb6b811e"
         },
         "7ea0d29a-5dca-4b6c-a067-322ccaee5032": {
             "id": "7ea0d29a-5dca-4b6c-a067-322ccaee5032",
@@ -588,8 +639,9 @@
                 "text": "You can use a _Repeater_ component to repeat components, based on a dictionary.",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 4
+            "isCodeManaged": false,
+            "position": 4,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "cd611ce2-f594-4b55-9932-d48e657b2e31": {
             "id": "cd611ce2-f594-4b55-9932-d48e657b2e31",
@@ -598,15 +650,17 @@
                 "text": "**Role:** @{item.role}\n",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "9d6ee245-b8f7-4391-9934-89598b7fa9f8": {
             "id": "9d6ee245-b8f7-4391-9934-89598b7fa9f8",
             "type": "separator",
             "content": {},
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "01c33c6e-3788-4b5d-b7aa-2addaa7b503f": {
             "id": "01c33c6e-3788-4b5d-b7aa-2addaa7b503f",
@@ -615,8 +669,9 @@
                 "text": "The following Hacker Pigeons have made an impressive contribution this month.",
                 "alignment": "center"
             },
-            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6",
-            "position": 1
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "da00a61f-0ee2-434e-acd6-228d32eae5c6"
         },
         "e0e2391e-7bab-4c68-ad92-841942cb12fb": {
             "id": "e0e2391e-7bab-4c68-ad92-841942cb12fb",
@@ -625,15 +680,17 @@
                 "text": "The ability @{item.name} demonstrated in @{item.specialty} has earned them this recognition.",
                 "useMarkdown": "yes"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 2
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "4ef4655b-45ca-495c-9f8d-fa1d7ae3565e": {
             "id": "4ef4655b-45ca-495c-9f8d-fa1d7ae3565e",
             "type": "separator",
             "content": {},
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
-            "position": 3
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822"
         },
         "f67c98aa-3a7b-4f40-ac1f-0dd4aa06e22d": {
             "id": "f67c98aa-3a7b-4f40-ac1f-0dd4aa06e22d",
@@ -641,8 +698,9 @@
             "content": {
                 "spec": "@{scatter_chart}"
             },
-            "parentId": "6a490318-239e-4fe9-a56b-f0f33d628c87",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6a490318-239e-4fe9-a56b-f0f33d628c87",
             "handlers": {},
             "visible": true
         },
@@ -655,8 +713,9 @@
                 "contentHAlign": "",
                 "contentVAlign": ""
             },
-            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a",
-            "position": 0
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "b9cb10e5-1ead-448b-afcc-909e23afb72a"
         },
         "70bd9ea8-baa9-4e1d-bce5-deee6a3c5440": {
             "id": "70bd9ea8-baa9-4e1d-bce5-deee6a3c5440",
@@ -664,8 +723,9 @@
             "content": {
                 "spec": "@{role_chart}"
             },
-            "parentId": "6d895924-e808-44aa-a119-f4e2d7f394f3",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6d895924-e808-44aa-a119-f4e2d7f394f3",
             "handlers": {}
         },
         "8c8dd54f-af2c-4d6d-9603-dfea11cf326b": {
@@ -677,8 +737,9 @@
                 "note": "@{metrics.average_weight_note}",
                 "description": ""
             },
-            "parentId": "feb9ca67-6670-483d-a895-22b031426a13",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "feb9ca67-6670-483d-a895-22b031426a13",
             "handlers": {},
             "visible": true
         },
@@ -686,8 +747,9 @@
             "id": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "type": "columns",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
             "visible": true
         },
@@ -697,8 +759,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -708,8 +771,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -719,8 +783,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -730,8 +795,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
             "visible": true
         },
@@ -744,8 +810,9 @@
                 "note": "@{metrics.average_length_note}",
                 "description": ""
             },
-            "parentId": "3b325899-e560-40ea-ba54-9c55967af1e3",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "3b325899-e560-40ea-ba54-9c55967af1e3",
             "handlers": {},
             "visible": true
         },
@@ -758,8 +825,9 @@
                 "note": "@{metrics.average_bmi_note}",
                 "description": ""
             },
-            "parentId": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
             "handlers": {},
             "visible": true
         },
@@ -772,8 +840,9 @@
                 "description": "",
                 "note": "@{metrics.diversity_note}"
             },
-            "parentId": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
             "handlers": {},
             "visible": true
         },
@@ -781,8 +850,9 @@
             "id": "4cca0893-5ad7-4152-b805-5c87babc4dee",
             "type": "separator",
             "content": {},
-            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
             "visible": true
         },
@@ -792,8 +862,9 @@
             "content": {
                 "text": "Test context"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "handlers": {
                 "click": "test_context"
             },
@@ -805,8 +876,9 @@
             "content": {
                 "text": "Selected info: @{highlighted_context}"
             },
-            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "2d326b15-da90-496e-86e8-7fdd4bcbe822",
             "handlers": {},
             "visible": true
         },
@@ -816,8 +888,9 @@
             "content": {
                 "key": "emptyPage@{notaref}"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -827,8 +900,9 @@
             "content": {
                 "key": "inputTest"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -836,8 +910,9 @@
             "id": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "type": "section",
             "content": {},
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "visible": true
         },
         "9bd98acc-b429-42da-afc0-5798089d5d59": {
@@ -846,16 +921,17 @@
             "content": {
                 "label": "Name"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-change": "payload_inspector"
+                "wf-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.name"
-            },
-            "visible": true
+            }
         },
         "d00db022-c880-46d7-9c14-4b62012ab747": {
             "id": "d00db022-c880-46d7-9c14-4b62012ab747",
@@ -864,16 +940,17 @@
                 "label": "Summary",
                 "rows": "5"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-change": "payload_inspector"
+                "wf-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.summary"
-            },
-            "visible": true
+            }
         },
         "c282ad31-2487-4296-a944-508c167c43be": {
             "id": "c282ad31-2487-4296-a944-508c167c43be",
@@ -881,16 +958,17 @@
             "content": {
                 "label": "Number of pets"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-number-change": "payload_inspector"
+                "wf-number-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "b.pet_count"
-            },
-            "visible": true
+            }
         },
         "362f4557-4643-4e93-b3ae-28607fceb2df": {
             "id": "362f4557-4643-4e93-b3ae-28607fceb2df",
@@ -901,16 +979,17 @@
                 "maxValue": "100",
                 "stepSize": "1"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-number-change": "payload_inspector"
+                "wf-number-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-number-change",
+                "eventType": "wf-number-change",
                 "stateRef": "b.review_score"
-            },
-            "visible": true
+            }
         },
         "05f71732-4161-42d5-93f7-d49f66d82082": {
             "id": "05f71732-4161-42d5-93f7-d49f66d82082",
@@ -918,16 +997,17 @@
             "content": {
                 "label": "Join date"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-date-change": "payload_inspector"
+                "wf-date-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-date-change",
+                "eventType": "wf-date-change",
                 "stateRef": "b.join_date"
-            },
-            "visible": true
+            }
         },
         "d2269aeb-c84e-4075-8679-c6f168fecfac": {
             "id": "d2269aeb-c84e-4075-8679-c6f168fecfac",
@@ -935,16 +1015,17 @@
             "content": {
                 "label": "Default radio"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 9,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.default_radio"
-            },
-            "visible": true
+            }
         },
         "784288ff-80ec-4170-a3de-53e461ca1640": {
             "id": "784288ff-80ec-4170-a3de-53e461ca1640",
@@ -952,16 +1033,17 @@
             "content": {
                 "label": "Default checkbox"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-options-change": "payload_inspector"
+                "wf-options-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-options-change",
+                "eventType": "wf-options-change",
                 "stateRef": "b.default_checkbox"
-            },
-            "visible": true
+            }
         },
         "b48bfd8f-4db7-400c-8bfc-d575ae164a5a": {
             "id": "b48bfd8f-4db7-400c-8bfc-d575ae164a5a",
@@ -969,16 +1051,17 @@
             "content": {
                 "label": "Default dropdown"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 10,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.default_dropdown"
-            },
-            "visible": true
+            }
         },
         "e4cc004d-8183-4482-8159-1c8ac0318b26": {
             "id": "e4cc004d-8183-4482-8159-1c8ac0318b26",
@@ -987,16 +1070,17 @@
                 "label": "Files",
                 "allowMultipleFiles": "yes"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 11,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-file-change": "payload_inspector"
+                "wf-file-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-file-change",
+                "eventType": "wf-file-change",
                 "stateRef": "b.files"
-            },
-            "visible": true
+            }
         },
         "9b09d964-da68-4d47-851a-31f070ae1f2f": {
             "id": "9b09d964-da68-4d47-851a-31f070ae1f2f",
@@ -1005,16 +1089,17 @@
                 "label": "Language",
                 "options": "{\n  \"en\": \"English\",\n  \"sp\": \"Spanish\",\n  \"pl\": \"Polish\"\n}"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {
-                "ss-option-change": "payload_inspector"
+                "wf-option-change": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.language"
-            },
-            "visible": true
+            }
         },
         "2ab19af7-1efa-4012-af35-f01c3d39a409": {
             "id": "2ab19af7-1efa-4012-af35-f01c3d39a409",
@@ -1022,8 +1107,9 @@
             "content": {
                 "title": "Payload"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
             "visible": true
         },
@@ -1033,8 +1119,9 @@
             "content": {
                 "text": "@{inspected_payload}"
             },
-            "parentId": "2ab19af7-1efa-4012-af35-f01c3d39a409",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "2ab19af7-1efa-4012-af35-f01c3d39a409",
             "handlers": {},
             "visible": true
         },
@@ -1044,8 +1131,9 @@
             "content": {
                 "text": "DO NOT CHANGE FORM BELOW"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
             "visible": true
         },
@@ -1053,8 +1141,9 @@
             "id": "2e10d41b-83b6-422b-a2c2-7e19b1834d45",
             "type": "separator",
             "content": {},
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
             "visible": true
         },
@@ -1064,8 +1153,9 @@
             "content": {
                 "key": "content"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -1075,8 +1165,9 @@
             "content": {
                 "title": "Bindings"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
             "visible": true
         },
@@ -1086,8 +1177,9 @@
             "content": {
                 "text": "@{b}"
             },
-            "parentId": "3eb28922-ef5c-47de-88aa-d100c503a2f5",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "3eb28922-ef5c-47de-88aa-d100c503a2f5",
             "handlers": {},
             "visible": true
         },
@@ -1097,14 +1189,15 @@
             "content": {
                 "label": "Just Binding"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
+            "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "b.just_binding"
-            },
-            "visible": true
+            }
         },
         "d18393c5-08ee-4fe6-ab4c-cb1de961a905": {
             "id": "d18393c5-08ee-4fe6-ab4c-cb1de961a905",
@@ -1112,8 +1205,9 @@
             "content": {
                 "text": "Text"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {
                 "click": "payload_inspector"
             },
@@ -1125,8 +1219,9 @@
             "content": {
                 "text": "Heading Text"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1134,8 +1229,9 @@
             "id": "b87338f7-1879-4060-8c6b-7f813a94736e",
             "type": "dataframe",
             "content": {},
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1145,16 +1241,17 @@
             "content": {
                 "caption": "Image Caption"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {
                 "click": "payload_inspector"
             },
+            "visible": true,
             "binding": {
-                "eventType": "ss-click",
+                "eventType": "wf-click",
                 "stateRef": "not-a-bindable-event"
-            },
-            "visible": true
+            }
         },
         "40ab3f09-37fb-4150-9196-5540044ef92a": {
             "id": "40ab3f09-37fb-4150-9196-5540044ef92a",
@@ -1162,8 +1259,9 @@
             "content": {
                 "spec": "@{altair_chart}"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1171,8 +1269,9 @@
             "id": "92f59f46-e2ac-47a4-8b78-da20a24299bf",
             "type": "plotlygraph",
             "content": {},
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 9,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1184,8 +1283,9 @@
                 "metricValue": "1",
                 "note": "-Low"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 10,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1195,8 +1295,9 @@
             "content": {
                 "message": "+Hello"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 13,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1206,8 +1307,9 @@
             "content": {
                 "src": "https://www.learningcontainer.com/download/sample-mp4-video-file-download-for-testing/?wpdmdl=2727&refresh=642fee645899d1680862820"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 17,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1217,8 +1319,9 @@
             "content": {
                 "message": "-Hello"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 16,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1228,8 +1331,9 @@
             "content": {
                 "message": "!Hello"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 15,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1239,8 +1343,9 @@
             "content": {
                 "message": "Hello"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 14,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1252,8 +1357,9 @@
                 "metricValue": "2",
                 "note": ""
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 11,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1266,8 +1372,9 @@
                 "description": "The description of the metric.",
                 "note": "+Great"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 12,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1278,8 +1385,9 @@
                 "text": "Heading Text",
                 "headingType": "h1"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1290,8 +1398,9 @@
                 "text": "Heading Text",
                 "headingType": "h3"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1302,8 +1411,9 @@
                 "text": "Heading Text",
                 "headingType": "h4"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -1313,8 +1423,9 @@
             "content": {
                 "key": "layoutTest"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -1322,8 +1433,9 @@
             "id": "c55caf0b-39c1-4fe5-8756-7506b3e3a19a",
             "type": "sidebar",
             "content": {},
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": -2,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1333,8 +1445,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "c55caf0b-39c1-4fe5-8756-7506b3e3a19a",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c55caf0b-39c1-4fe5-8756-7506b3e3a19a",
             "handlers": {},
             "visible": true
         },
@@ -1344,8 +1457,9 @@
             "content": {
                 "text": "Header Text"
             },
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1355,8 +1469,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "d4d9fd0d-b347-42d9-9786-a9873cdd0912",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "d4d9fd0d-b347-42d9-9786-a9873cdd0912",
             "handlers": {},
             "visible": true
         },
@@ -1364,8 +1479,9 @@
             "id": "5190d792-4e80-40a9-b168-051018b12f3d",
             "type": "columns",
             "content": {},
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1375,8 +1491,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "5190d792-4e80-40a9-b168-051018b12f3d",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "5190d792-4e80-40a9-b168-051018b12f3d",
             "handlers": {},
             "visible": true
         },
@@ -1386,8 +1503,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "5190d792-4e80-40a9-b168-051018b12f3d",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "5190d792-4e80-40a9-b168-051018b12f3d",
             "handlers": {},
             "visible": true
         },
@@ -1397,8 +1515,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "c937bbfd-a510-432c-8e58-c50eecd5c67a",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "c937bbfd-a510-432c-8e58-c50eecd5c67a",
             "handlers": {},
             "visible": true
         },
@@ -1406,8 +1525,9 @@
             "id": "56074976-153a-4af3-ad65-fbd49da61f32",
             "type": "tabs",
             "content": {},
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1417,8 +1537,9 @@
             "content": {
                 "name": "Tab Name"
             },
-            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
             "handlers": {},
             "visible": true
         },
@@ -1428,8 +1549,9 @@
             "content": {
                 "name": "Tab Name"
             },
-            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
             "handlers": {},
             "visible": true
         },
@@ -1439,8 +1561,9 @@
             "content": {
                 "name": "Tab Name"
             },
-            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "56074976-153a-4af3-ad65-fbd49da61f32",
             "handlers": {},
             "visible": true
         },
@@ -1450,8 +1573,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "ad8bd11b-3f89-4839-b2d3-4c7f52c267bd",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "ad8bd11b-3f89-4839-b2d3-4c7f52c267bd",
             "handlers": {},
             "visible": true
         },
@@ -1461,8 +1585,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
             "handlers": {},
             "visible": true
         },
@@ -1472,8 +1597,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "065e4f07-c707-4cc7-8cbe-143be5ab2486",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "065e4f07-c707-4cc7-8cbe-143be5ab2486",
             "handlers": {},
             "visible": true
         },
@@ -1483,8 +1609,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "e702f506-8ec1-495e-9d8e-e488120b9a7b",
             "handlers": {},
             "visible": true
         },
@@ -1494,8 +1621,9 @@
             "content": {
                 "contentHAlign": "start"
             },
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1505,8 +1633,9 @@
             "content": {
                 "text": "Text"
             },
-            "parentId": "ba15571d-4baa-4c65-b600-45af1c32ca75",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "ba15571d-4baa-4c65-b600-45af1c32ca75",
             "handlers": {},
             "visible": true
         },
@@ -1516,8 +1645,9 @@
             "content": {
                 "text": "Text"
             },
-            "parentId": "ba15571d-4baa-4c65-b600-45af1c32ca75",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "ba15571d-4baa-4c65-b600-45af1c32ca75",
             "handlers": {},
             "visible": true
         },
@@ -1525,8 +1655,9 @@
             "id": "e4e5c10f-f5f3-44cb-bd3a-34e4f771829e",
             "type": "separator",
             "content": {},
-            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "88ea37a5-eb07-4740-ae42-a3eeeacca310",
             "handlers": {},
             "visible": true
         },
@@ -1536,8 +1667,9 @@
             "content": {
                 "key": "otherTest"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -1547,8 +1679,9 @@
             "content": {
                 "text": "Button Text"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
                 "click": "payload_inspector"
             },
@@ -1560,8 +1693,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"background\": \"linear-gradient(90deg, rgba(41,207,0,1) 0%, rgba(145,231,78,1) 100%)\"\n}"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {},
             "visible": true
         },
@@ -1571,8 +1705,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"background\": \"linear-gradient(10deg, rgba(91,197,190,1) 0%, rgba(145,231,78,1) 100%)\"\n}"
             },
-            "parentId": "04915674-0afd-4f53-9dfd-301887e7e005",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "04915674-0afd-4f53-9dfd-301887e7e005",
             "handlers": {},
             "visible": true
         },
@@ -1582,8 +1717,9 @@
             "content": {
                 "title": "iframe"
             },
-            "parentId": "f2c445a4-9d3c-4c38-9fe3-cda02126d5d0",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "f2c445a4-9d3c-4c38-9fe3-cda02126d5d0",
             "handlers": {},
             "visible": true
         },
@@ -1595,8 +1731,9 @@
                 "styles": "{\n  \"outline\": \"none\",\n  \"border\": \"none\",\n  \"padding\": \"16px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"background\": \"linear-gradient(90deg, rgba(41,207,0,1) 0%, rgba(145,231,78,1) 100%)\"\n}",
                 "attrs": "{ \"src\": \"static/favicon.png\" }"
             },
-            "parentId": "1b3c8d83-36c1-4c74-9dcd-110160c16081",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "1b3c8d83-36c1-4c74-9dcd-110160c16081",
             "handlers": {},
             "visible": true
         },
@@ -1607,8 +1744,9 @@
                 "keyVariable": "itemId",
                 "valueVariable": "item"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {},
             "visible": true
         },
@@ -1618,8 +1756,9 @@
             "content": {
                 "styles": "{\n  \"padding\": \"16px\",\n  \"min-height\": \"64px\",\n  \"min-width\": \"64px\",\n  \"border-radius\": \"8px\",\n  \"background\": \"linear-gradient(90deg, rgba(41,207,0,1) 0%, rgba(145,231,78,1) 100%)\"\n}"
             },
-            "parentId": "056faae6-fc09-4482-b046-9818e62714c0",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "056faae6-fc09-4482-b046-9818e62714c0",
             "handlers": {},
             "visible": true
         },
@@ -1629,8 +1768,9 @@
             "content": {
                 "text": "@{item}"
             },
-            "parentId": "f39b508d-6fec-465c-856c-c064179a46d0",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "f39b508d-6fec-465c-856c-c064179a46d0",
             "handlers": {},
             "visible": true
         },
@@ -1640,11 +1780,12 @@
             "content": {
                 "intervalMs": "5000"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-tick": "handle_timer_tick",
-                "ss-not-a-real-event": "handle_not_a_real_function"
+                "wf-tick": "handle_timer_tick",
+                "wf-not-a-real-event": "handle_not_a_real_function"
             },
             "visible": true
         },
@@ -1654,8 +1795,9 @@
             "content": {
                 "text": "@{counter}"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {},
             "visible": true
         },
@@ -1665,8 +1807,9 @@
             "content": {
                 "text": "Webcam supports multiple channels"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {},
             "visible": true
         },
@@ -1676,8 +1819,9 @@
             "content": {
                 "text": "Inspect Payload and Context"
             },
-            "parentId": "f39b508d-6fec-465c-856c-c064179a46d0",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "f39b508d-6fec-465c-856c-c064179a46d0",
             "handlers": {
                 "click": "payload_inspector"
             },
@@ -1689,10 +1833,11 @@
             "content": {
                 "intervalMs": "4000"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-tick": "handle_timer_tick"
+                "wf-tick": "handle_timer_tick"
             },
             "visible": true
         },
@@ -1703,8 +1848,9 @@
                 "src": "@{webcam_image}",
                 "caption": "Image Caption"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {},
             "visible": true
         },
@@ -1714,10 +1860,11 @@
             "content": {
                 "refreshRate": "200"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
-                "ss-webcam": "handle_webcam"
+                "wf-webcam": "handle_webcam"
             },
             "visible": true
         },
@@ -1727,8 +1874,9 @@
             "content": {
                 "message": "@{b.message}"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {},
             "visible": true
         },
@@ -1738,8 +1886,9 @@
             "content": {
                 "text": "Submit form"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {
                 "click": "handle_form_submit"
             },
@@ -1749,8 +1898,9 @@
             "id": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83",
             "type": "page",
             "content": {},
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -1760,8 +1910,9 @@
             "content": {
                 "text": "The counter is @{counter}"
             },
-            "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83",
             "handlers": {},
             "visible": true
         },
@@ -1773,8 +1924,9 @@
                 "keyVariable": "itemId",
                 "valueVariable": "item"
             },
-            "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83",
             "handlers": {},
             "visible": true
         },
@@ -1784,8 +1936,9 @@
             "content": {
                 "text": "The id is @{itemId} and the name is @{item.name}"
             },
-            "parentId": "f811ca14-8915-443d-8dd3-77ae69fb80f4",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "f811ca14-8915-443d-8dd3-77ae69fb80f4",
             "handlers": {},
             "visible": true
         },
@@ -1795,8 +1948,9 @@
             "content": {
                 "text": "UTF-8 state: @{utf\u0800}"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {},
             "visible": true
         },
@@ -1806,8 +1960,9 @@
             "content": {
                 "text": "Go to page \"inputTest\""
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "$goToPage_inputTest"
             },
@@ -1819,8 +1974,9 @@
             "content": {
                 "text": "Go to page \"content\""
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "$goToPage_content"
             },
@@ -1833,8 +1989,9 @@
                 "key": "repeater2",
                 "emptinessColor": "#f1ece9"
             },
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -1846,8 +2003,9 @@
                 "keyVariable": "",
                 "valueVariable": ""
             },
-            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
             "handlers": {},
             "visible": true
         },
@@ -1857,8 +2015,9 @@
             "content": {
                 "title": ""
             },
-            "parentId": "d15b9cf1-7e79-4ee5-9f0d-7c38c6b6c070",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "d15b9cf1-7e79-4ee5-9f0d-7c38c6b6c070",
             "handlers": {},
             "visible": true
         },
@@ -1866,8 +2025,9 @@
             "id": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
             "type": "columns",
             "content": {},
-            "parentId": "9f589947-0ea9-4a70-9d57-4ae52543be42",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "9f589947-0ea9-4a70-9d57-4ae52543be42",
             "handlers": {},
             "visible": true
         },
@@ -1877,8 +2037,9 @@
             "content": {
                 "width": "0.25"
             },
-            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
             "handlers": {},
             "visible": true
         },
@@ -1889,8 +2050,9 @@
                 "caption": "",
                 "src": "static/@{itemId}.jpg"
             },
-            "parentId": "faf077b6-c62f-4a5a-b24e-4590efcae11f",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "faf077b6-c62f-4a5a-b24e-4590efcae11f",
             "handlers": {},
             "visible": true
         },
@@ -1900,8 +2062,9 @@
             "content": {
                 "width": "1"
             },
-            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
             "handlers": {},
             "visible": true
         },
@@ -1912,8 +2075,9 @@
                 "text": "**Type**: @{item.type}\n**Colour**: @{item.colour}\n",
                 "useMarkdown": "yes"
             },
-            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
             "handlers": {},
             "visible": true
         },
@@ -1926,8 +2090,9 @@
                 "buttonColor": "#5fcd37",
                 "buttonTextColor": "#ffffff"
             },
-            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
             "handlers": {
                 "click": "handle_add_to_list"
             },
@@ -1939,8 +2104,9 @@
             "content": {
                 "text": "@{itemId}"
             },
-            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "b87ff7c9-9849-401a-a89b-85d8e9e6f628",
             "handlers": {},
             "visible": true
         },
@@ -1948,8 +2114,9 @@
             "id": "dd335761-033a-47eb-9ddf-c3e3d25ba8a8",
             "type": "separator",
             "content": {},
-            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "2b3a1237-8884-4fc7-a7a7-fdc51511e6f2",
             "handlers": {},
             "visible": true
         },
@@ -1959,8 +2126,9 @@
             "content": {
                 "text": "You've added the following items to your list: @{order_list}"
             },
-            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
             "handlers": {},
             "visible": true
         },
@@ -1970,8 +2138,9 @@
             "content": {
                 "text": "Food Selector"
             },
-            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
             "handlers": {},
             "visible": true
         },
@@ -1981,23 +2150,26 @@
             "content": {
                 "label": "Input Label"
             },
-            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "06c660f8-e3d6-4bdd-92be-64cb080ee933",
             "handlers": {},
+            "visible": "",
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "name"
-            },
-            "visible": ""
+            }
         },
         "6e912116-4cc5-4840-96b9-84106bee795d": {
             "id": "6e912116-4cc5-4840-96b9-84106bee795d",
             "type": "button",
             "content": {
-                "text": "File download"
+                "text": "File download",
+                "icon": "download"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "handle_file_download"
             },
@@ -2007,10 +2179,12 @@
             "id": "272f0871-585e-4662-8ae1-a8cd6067b60b",
             "type": "button",
             "content": {
-                "text": "Add notifications"
+                "text": "Add notifications",
+                "icon": "notifications"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "add_notification"
             },
@@ -2022,8 +2196,9 @@
             "content": {
                 "text": "Bad event handler"
             },
-            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
+            "isCodeManaged": false,
             "position": 9,
+            "parentId": "28a2212b-bc58-4398-8a72-2554e5296490",
             "handlers": {
                 "click": "bad_event_handler"
             },
@@ -2036,10 +2211,11 @@
                 "label": "Input Label",
                 "allowMultipleFiles": "yes"
             },
-            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "7730df5b-8731-4123-bacc-898e7347b124",
             "handlers": {
-                "ss-file-change": "file_change_handler"
+                "wf-file-change": "file_change_handler"
             },
             "visible": true
         },
@@ -2047,10 +2223,12 @@
             "id": "5c0df6e8-4dd8-4485-a244-8e9e7f4b4675",
             "type": "button",
             "content": {
-                "text": "Increment"
+                "text": "Increment",
+                "icon": "arrow_upward"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 9,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
                 "click": "increment"
             },
@@ -2062,8 +2240,9 @@
             "content": {
                 "text": "@{counter}"
             },
-            "parentId": "84378aea-b64c-49a3-9539-f854532279ee",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "84378aea-b64c-49a3-9539-f854532279ee",
             "handlers": {},
             "visible": true
         },
@@ -2073,8 +2252,9 @@
             "content": {
                 "refreshRate": "200"
             },
-            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "bb4d0e86-619e-4367-a180-be28ab6059f4",
             "handlers": {},
             "visible": true
         },
@@ -2084,8 +2264,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "35986d56-3a1a-4ded-bb5c-b60c2046756f",
             "handlers": {},
             "visible": true
         },
@@ -2093,8 +2274,9 @@
             "id": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "type": "page",
             "content": {},
-            "parentId": "root",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "root",
             "handlers": {},
             "visible": true
         },
@@ -2104,8 +2286,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2115,8 +2298,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 2,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2126,8 +2310,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 5,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2137,8 +2322,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 45,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2148,8 +2334,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2159,8 +2346,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 7,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2170,8 +2358,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2181,8 +2370,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 9,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2192,8 +2382,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 10,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2203,8 +2394,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 11,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2214,8 +2406,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 12,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2225,8 +2418,9 @@
             "content": {
                 "text": "Header Text"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 13,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2236,8 +2430,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 14,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2247,8 +2442,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 15,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2258,8 +2454,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 16,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2269,8 +2466,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 17,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2280,8 +2478,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 18,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2291,8 +2490,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 19,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2302,8 +2502,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 20,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2313,8 +2514,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 21,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2324,8 +2526,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 22,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2335,8 +2538,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 23,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2346,8 +2550,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 24,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2357,8 +2562,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 25,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2368,8 +2574,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 26,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2379,8 +2586,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 27,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2390,8 +2598,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 28,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2401,8 +2610,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 29,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2412,8 +2622,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 30,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2423,8 +2634,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 31,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2434,8 +2646,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 32,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2445,8 +2658,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 33,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2456,8 +2670,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 35,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2467,8 +2682,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 36,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2478,8 +2694,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 37,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2489,8 +2706,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 38,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2500,8 +2718,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "4c65268c-b536-4671-8081-c69be3e84161",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "4c65268c-b536-4671-8081-c69be3e84161",
             "handlers": {},
             "visible": true
         },
@@ -2511,8 +2730,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 39,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2522,8 +2742,9 @@
             "content": {
                 "text": "Header Text"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 41,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2533,8 +2754,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 42,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2544,8 +2766,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 43,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2555,8 +2778,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 44,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2566,8 +2790,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 46,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2577,8 +2802,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 47,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2588,8 +2814,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 48,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2599,8 +2826,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 49,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2610,8 +2838,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 50,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2621,8 +2850,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 51,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2632,8 +2862,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 52,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2641,8 +2872,9 @@
             "id": "16d1a673-48f3-47de-a875-1053ffb58e65",
             "type": "videoplayer",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 58,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2650,8 +2882,9 @@
             "id": "58807828-af04-434d-9a0a-6419ced716d7",
             "type": "message",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 53,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2659,8 +2892,9 @@
             "id": "23e7a993-1344-4c3a-a65f-87b72b9d72a3",
             "type": "vegalitechart",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 54,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2670,8 +2904,9 @@
             "content": {
                 "caption": "Image Caption"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 55,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2679,8 +2914,9 @@
             "id": "f0e45dc7-a752-49cd-8315-79cce246f8db",
             "type": "dataframe",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 56,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2690,8 +2926,9 @@
             "content": {
                 "note": "+Pass"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 57,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2699,8 +2936,9 @@
             "id": "04da32e4-11c9-400f-ba44-3be79c760ca7",
             "type": "tabs",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 59,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2708,8 +2946,9 @@
             "id": "10e93acf-3b13-40a8-ac8d-8222bfb4d7ca",
             "type": "columns",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2719,8 +2958,9 @@
             "content": {
                 "text": "Header Text"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 34,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2730,8 +2970,9 @@
             "content": {
                 "title": "Section Title"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 40,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2739,8 +2980,9 @@
             "id": "a34cba3c-0eb6-4bc8-bd69-67ee80ee6005",
             "type": "sidebar",
             "content": {},
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": -2,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2751,10 +2993,11 @@
                 "label": "Input Label",
                 "options": "{\n  \"ar\": \"Argentina\",\n  \"uk\": \"United Kingdom\"\n}"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 11,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
-                "ss-option-change": "update_cities"
+                "wf-option-change": "update_cities"
             },
             "visible": true
         },
@@ -2765,8 +3008,9 @@
                 "label": "Input Label",
                 "options": "@{cities}"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 12,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {},
             "visible": true
         },
@@ -2777,8 +3021,9 @@
                 "label": "Input Label",
                 "orientation": "horizontal"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2789,8 +3034,9 @@
                 "label": "Input Label",
                 "orientation": "horizontal"
             },
-            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
+            "isCodeManaged": false,
             "position": 3,
+            "parentId": "aade8074-13be-4e11-a405-a71b8138e6ae",
             "handlers": {},
             "visible": true
         },
@@ -2801,8 +3047,9 @@
                 "label": "Input Label",
                 "passwordMode": "yes"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 13,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {},
             "visible": true
         },
@@ -2812,14 +3059,15 @@
             "content": {
                 "label": "Default checkbox mirrored in multiselect"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 6,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {},
+            "visible": true,
             "binding": {
-                "eventType": "ss-options-change",
+                "eventType": "wf-options-change",
                 "stateRef": "b.default_checkbox"
-            },
-            "visible": true
+            }
         },
         "c1d1f478-3dbb-4009-94a0-9b92404348cd": {
             "id": "c1d1f478-3dbb-4009-94a0-9b92404348cd",
@@ -2828,14 +3076,15 @@
                 "label": "Language",
                 "options": "{\n  \"en\": \"English\",\n  \"sp\": \"Spanish\",\n  \"pl\": \"Polish\"\n}"
             },
-            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
+            "isCodeManaged": false,
             "position": 4,
+            "parentId": "6010765e-9ac3-4570-84bf-913ae404e03a",
             "handlers": {},
+            "visible": true,
             "binding": {
-                "eventType": "ss-option-change",
+                "eventType": "wf-option-change",
                 "stateRef": "b.language"
-            },
-            "visible": true
+            }
         },
         "nyo5vc79sb031yz8": {
             "id": "nyo5vc79sb031yz8",
@@ -2843,22 +3092,24 @@
             "content": {
                 "text": "Increment asynchronically"
             },
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "isCodeManaged": false,
             "position": 10,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "handlers": {
-                "ss-click": "test_async_handler"
+                "wf-click": "test_async_handler"
             },
             "visible": true
         },
         "3apnnxxg7pubdeqp": {
             "id": "3apnnxxg7pubdeqp",
             "type": "text",
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
             "content": {
                 "text": "@{counter}"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 8,
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "handlers": {},
             "visible": true
         }
     }

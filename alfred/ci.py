@@ -28,9 +28,9 @@ def ci(front, back, e2e, docs):
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
 
-@alfred.command("ci.mypy", help="typing checking with mypy on ./src/streamsync")
+@alfred.command("ci.mypy", help="typing checking with mypy on ./src/writer")
 def ci_mypy():
-    alfred.run("mypy ./src/streamsync --exclude app_templates/*")
+    alfred.run("mypy ./src/writer --exclude app_templates/*")
 
 @alfred.command("ci.ruff", help="linting with ruff")
 def ci_ruff():
@@ -40,25 +40,5 @@ def ci_ruff():
 def ci_test():
     os.chdir("tests")
     alfred.run("pytest")
-
-@contextlib.contextmanager
-def _preserve_files(path: List[str]):
-    """
-    Preserve files in a temporary directory and restore them after the context
-
-    :param path: list of files to preserve
-    """
-    tmpdir = tempfile.mkdtemp()
-    try:
-        for p in path:
-            os.makedirs(os.path.dirname(os.path.join(tmpdir, p)), exist_ok=True)
-            shutil.copy(p, os.path.join(tmpdir, p))
-
-        yield
-    finally:
-        for p in path:
-            shutil.copy(os.path.join(tmpdir, p), p)
-
-        shutil.rmtree(tmpdir)
 
 

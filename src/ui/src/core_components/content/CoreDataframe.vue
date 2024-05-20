@@ -1,21 +1,21 @@
 <template>
 	<div ref="rootEl" class="CoreDataframe">
 		<div ref="toolsEl" class="tools">
-			<div v-if="fields.enableSearch.value === 'yes'" class="search">
-				<i class="ri-search-line"></i>
-				<input
-					type="text"
+			<div v-if="fields.enableSearch.value === 'yes'">
+				<WdsTextInput
+					class="search"
 					placeholder="Search..."
 					@change="handleSearchChange"
 				/>
 			</div>
-			<button
+			<WdsControl
 				v-if="fields.enableDownload.value === 'yes'"
+				title="Download"
 				class="download"
 				@click="download"
 			>
-				<i class="ri-download-2-line"></i>
-			</button>
+				<i class="material-symbols-outlined"> download </i>
+			</WdsControl>
 		</div>
 		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">
 			<div
@@ -28,9 +28,8 @@
 			>
 				<div
 					v-if="isIndexShown"
-					data-streamsync-grid-col="0"
+					data-writer-grid-col="0"
 					class="cell headerCell indexCell"
-					:style="gridHeadStyle"
 				>
 					<div class="name"></div>
 					<div class="widthAdjuster"></div>
@@ -38,11 +37,10 @@
 				<div
 					v-for="(columnName, columnPosition) in shownColumnNames"
 					:key="columnName"
-					:data-streamsync-grid-col="
+					:data-writer-grid-col="
 						columnPosition + (isIndexShown ? 1 : 0)
 					"
 					class="cell headerCell"
-					:style="gridHeadStyle"
 					@click="handleSetOrder($event, columnName)"
 				>
 					<div class="name">
@@ -57,14 +55,18 @@
 									: 'hidden',
 						}"
 					>
-						<i
+						<span
 							v-show="!orderSetting?.descending"
-							class="ri-arrow-down-line"
-						></i>
-						<i
+							class="material-symbols-outlined"
+						>
+							arrow_downward
+						</span>
+						<span
 							v-show="orderSetting?.descending"
-							class="ri-arrow-up-line"
-						></i>
+							class="material-symbols-outlined"
+						>
+							arrow_upward
+						</span>
 					</div>
 					<div class="widthAdjuster"></div>
 				</div>
@@ -96,7 +98,7 @@
 
 <script lang="ts">
 import { Ref, computed, inject, ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	primaryTextColor,
@@ -108,12 +110,14 @@ import { watch } from "vue";
 import { nextTick } from "vue";
 import { ComputedRef } from "vue";
 import { onUnmounted } from "vue";
+import WdsTextInput from "../../wds/WdsTextInput.vue";
+import WdsControl from "../../wds/WdsControl.vue";
 
 const description = "A component to display Pandas DataFrames.";
 const defaultDataframe = `data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "DataFrame",
 		description,
 		category: "Content",
@@ -179,13 +183,6 @@ export default {
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				default: "#ffffff",
-				applyStyleVariable: true,
-			},
-			dataframeHeaderRowBackgroundColor: {
-				name: "Header row background",
-				type: FieldType.Color,
-				category: FieldCategory.Style,
-				default: "#f0f0f0",
 				applyStyleVariable: true,
 			},
 			fontStyle: {
@@ -289,12 +286,6 @@ const slicedTable = computed(() => {
 	};
 });
 
-const gridHeadStyle = computed(() => {
-	return {
-		"background-color": fields.dataframeHeaderRowBackgroundColor.value,
-	};
-});
-
 const gridStyle = computed(() => {
 	const fontStyle = fields.fontStyle.value;
 	let templateColumns: string, maxHeight: number;
@@ -343,11 +334,11 @@ async function recalculateColumnWidths() {
 	columnWidths.value = [];
 	await nextTick();
 	const columnHeadersEls = gridContainerEl.value?.querySelectorAll(
-		"[data-streamsync-grid-col]",
+		"[data-writer-grid-col]",
 	);
 	columnHeadersEls?.forEach((headerEl) => {
 		const headerHTMLEl = headerEl as HTMLElement;
-		const columnPosition = headerHTMLEl.dataset.streamsyncGridCol;
+		const columnPosition = headerHTMLEl.dataset.writerGridCol;
 		const { width: autoWidth } = headerHTMLEl.getBoundingClientRect();
 		const newWidth = Math.min(autoWidth, MAX_COLUMN_AUTO_WIDTH_PX);
 		columnWidths.value[columnPosition] = newWidth;
@@ -470,14 +461,14 @@ async function handleWidthAdjust(ev: MouseEvent) {
 	) {
 		const adjustedColEl = targetEl.closest(".cell") as HTMLElement;
 		columnBeingWidthAdjusted = parseInt(
-			adjustedColEl.dataset.streamsyncGridCol,
+			adjustedColEl.dataset.writerGridCol,
 		);
 	} else if (columnBeingWidthAdjusted === null) {
 		return;
 	}
 
 	const colEl = gridContainerEl.value.querySelector(
-		`[data-streamsync-grid-col="${columnBeingWidthAdjusted}"]`,
+		`[data-writer-grid-col="${columnBeingWidthAdjusted}"]`,
 	);
 	const adjusterEl = colEl.querySelector(".widthAdjuster");
 	const { width: adjusterWidth } = adjusterEl.getBoundingClientRect();
@@ -519,6 +510,7 @@ onUnmounted(() => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreDataframe {
 	font-size: 0.8rem;
@@ -541,24 +533,13 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	border: 1px solid var(--separatorColor);
-	padding: 8px 8px 8px 12px;
 	border-radius: 8px;
-	color: var(--buttonTextColor);
-	background: var(--buttonColor);
-}
-
-.tools .search input {
-	border: 0;
-	color: var(--buttonTextColor);
-	background: var(--buttonColor);
 }
 
 .gridContainer {
 	background: var(--dataframeBackgroundColor);
 	position: relative;
 	overflow: auto;
-	border: 1px solid var(--separatorColor);
 	max-height: 90vh;
 }
 
@@ -577,8 +558,8 @@ onUnmounted(() => {
 	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
 	align-items: center;
-	border-right: 1px solid var(--separatorColor);
 	white-space: nowrap;
+	font-size: 0.75rem;
 }
 
 .grid.wrapText .cell {
@@ -590,10 +571,14 @@ onUnmounted(() => {
 	cursor: pointer;
 	gap: 8px;
 	user-select: none;
+	font-size: 0.875rem;
+	font-weight: 400;
+	margin-bottom: 12px;
+	border-bottom: none;
 }
 
 .grid.scrolled .cell.headerCell {
-	box-shadow: 0 4px 4px 0px rgba(0, 0, 0, 0.08);
+	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
 }
 
 .cell .name {

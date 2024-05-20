@@ -1,26 +1,27 @@
 <docs lang="md">
-    Streamsync uses the library RemixIcon to display icons. To include an icon, check remixicon.com, find the icon's id (such as \`arrow-up\`)
+    Writer Framework uses Material Symbols to display icons. To include an icon, check https://fonts.google.com/icons, find the icon's id (such as \`arrow_forward\`) and it to your _Icon.
 </docs>
 
 <template>
 	<div class="icon">
-		<i
+		<span
 			v-if="fields.icon.value"
-			:class="[`ri-${fields.icon.value}-line`, `ri-${fields.icon.value}`]"
+			class="material-symbols-outlined"
 			:style="{
 				fontSize: `${fields.size.value}px`,
 				color: fields.color.value,
 			}"
-		></i>
+			>{{ fields.icon.value }}</span
+		>
 	</div>
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Icon",
 		description: "A component to display an icon",
 		category: "Content",
@@ -28,16 +29,16 @@ export default {
 			icon: {
 				name: "Icon",
 				type: FieldType.Text,
-				desc: `A RemixIcon id, such as "arrow-up".`,
+				desc: `A Material Symbols id, such as "arrow_forward".`,
 				category: FieldCategory.Style,
-				default: "square-line",
+				default: "arrow_forward",
 			},
 			size: {
 				name: "Icon size",
 				type: FieldType.Number,
 				desc: `Icon size in px`,
 				category: FieldCategory.Style,
-				default: 14,
+				default: "14",
 			},
 			color: {
 				name: "Icon color",

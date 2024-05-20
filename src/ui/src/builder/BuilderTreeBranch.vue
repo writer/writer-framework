@@ -25,24 +25,28 @@
 				class="toggleChildren"
 				@click="toggleChildrenVisible"
 			>
-				<i
-					v-if="childrenVisible"
-					class="ri-arrow-drop-up-line ri-lg"
-				></i>
-				<i
-					v-if="!childrenVisible"
-					class="ri-arrow-drop-down-line ri-lg"
-				></i>
+				<i v-if="childrenVisible" class="material-symbols-outlined"
+					>expand_less</i
+				>
+				<i v-if="!childrenVisible" class="material-symbols-outlined"
+					>expand_more</i
+				>
 			</div>
 			<span class="type">{{ name }}</span>
 			<template v-if="Object.keys(component.handlers ?? {}).length > 0">
-				&nbsp;&middot;&nbsp;<i class="ri-flashlight-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
+					>bolt</i
+				>
 			</template>
 			<template v-if="!isComponentVisible(component.id)">
-				&nbsp;&middot;&nbsp;<i class="ri-eye-off-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
+					>visibility_off</i
+				>
 			</template>
 			<template v-if="component.isCodeManaged">
-				&nbsp;&middot;&nbsp;<i class="ri-terminal-box-line ri-lg"></i>
+				&nbsp;&middot;&nbsp;<i class="material-symbols-outlined"
+					>terminal</i
+				>
 			</template>
 
 			<span v-if="previewText" class="preview">
@@ -82,12 +86,12 @@
 import { useComponentActions } from "./useComponentActions";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { computed, inject, nextTick, Ref, ref, toRefs, watch } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import injectionKeys from "../injectionKeys";
 import { onMounted } from "vue";
 import { useEvaluator } from "../renderer/useEvaluator";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const {
@@ -95,10 +99,10 @@ const {
 	moveComponent,
 	goToComponentParentPage,
 	isDraggingAllowed,
-} = useComponentActions(ss, ssbm);
+} = useComponentActions(wf, ssbm);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
-	useDragDropComponent(ss);
-const { isComponentVisible } = useEvaluator(ss);
+	useDragDropComponent(wf);
+const { isComponentVisible } = useEvaluator(wf);
 
 interface Props {
 	componentId: Component["id"];
@@ -108,14 +112,14 @@ interface Props {
 const props = defineProps<Props>();
 const { componentId, matchingComponents } = toRefs(props);
 const component = computed(() => {
-	return ss.getComponentById(componentId.value);
+	return wf.getComponentById(componentId.value);
 });
 
 const isSelectedBySelf = ref(false);
 const rootEl: Ref<HTMLElement> = ref(null);
 
 const componentDefinition = computed(() =>
-	ss.getComponentDefinition(component.value.type),
+	wf.getComponentDefinition(component.value.type),
 );
 
 const name = computed(() => {
@@ -142,7 +146,7 @@ const isMatching = computed(() => {
 const previewText = computed(() => {
 	const key = componentDefinition.value?.previewField;
 	if (!key) return;
-	const component = ss.getComponentById(componentId.value);
+	const component = wf.getComponentById(componentId.value);
 	const text = component.content?.[key];
 
 	let shortenedText: string;
@@ -166,7 +170,7 @@ const summaryText = computed(() => {
 });
 
 const childrenComponents = computed(() => {
-	return ss.getComponents(componentId.value, { sortedByPosition: true });
+	return wf.getComponents(componentId.value, { sortedByPosition: true });
 });
 
 const childrenVisible = ref(true);
@@ -189,14 +193,14 @@ const isSelected = computed(() => {
 
 watch(selectedId, (newSelectedId) => {
 	if (!newSelectedId) return;
-	const selected = ss.getComponentById(newSelectedId);
+	const selected = wf.getComponentById(newSelectedId);
 	let parentId = selected.parentId;
 	while (parentId) {
 		if (parentId === componentId.value) {
 			childrenVisible.value = true;
 			break;
 		}
-		parentId = ss.getComponentById(parentId)?.parentId;
+		parentId = wf.getComponentById(parentId)?.parentId;
 	}
 });
 
@@ -223,7 +227,7 @@ const scrollTreeToShowRootElement = () => {
 const handleDragStart = (ev: DragEvent) => {
 	ssbm.setSelection(null);
 	ev.dataTransfer.setData(
-		`application/json;streamsync=${component.value.type},${component.value.id}`,
+		`application/json;writer=${component.value.type},${component.value.id}`,
 		"{}",
 	);
 };

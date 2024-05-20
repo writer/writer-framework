@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import components from "streamsync-ui/components.codegen.json";
+import components from "writer-ui/components.codegen.json";
 
 const setInstruction = async (page, instruction) => {
 	await page.locator('div.TestInput textarea').click();
@@ -62,7 +62,7 @@ test.describe("low-code UI", () => {
 	});
 
 	test("init_ui -  ui initialization" , async ({ page }) => {
-			await expect(page.locator(`.initialization .ss-type-text`)).toHaveText("Initialization successful!");
+			await expect(page.locator(`.initialization .wf-type-text`)).toHaveText("Initialization successful!");
 	});
 
 	components.forEach(({ type, name, fields, allowedParentTypes }) => {
@@ -75,18 +75,18 @@ with ui.find('results'):
 		ui.${componentName}(${JSON.stringify(props)})
 			`);
 			await execute(page);
-			await expect(page.locator(`.results .ss-type-${type}.component`)).toHaveCount(1);
+			await expect(page.locator(`.results .wf-type-${type}.component`)).toHaveCount(1);
 
-			await page.locator(`.results .ss-type-${type}.component`).click({force: true});
+			await page.locator(`.results .wf-type-${type}.component`).click({force: true});
 			for (const [key, value] of Object.entries(props)) {
 				await expect(page.locator(`.BuilderSettings div[data-key="${key}"] input, .BuilderSettings div[data-key="${key}"] textarea`)).toHaveCount(1);
 				await expect(page.locator(`.BuilderSettings div[data-key="${key}"] input, .BuilderSettings div[data-key="${key}"] textarea`)).toHaveValue(value);
 			}
 
 			if (renderError) {
-				await expect(page.locator(`.results .ss-type-${type}.component`)).toHaveClass(/RenderError/);
+				await expect(page.locator(`.results .wf-type-${type}.component`)).toHaveClass(/RenderError/);
 			}else{
-				await expect(page.locator(`.results .ss-type-${type}.component`)).not.toHaveClass(/RenderError/);
+				await expect(page.locator(`.results .wf-type-${type}.component`)).not.toHaveClass(/RenderError/);
 			}
 		});
 	});
@@ -102,7 +102,7 @@ with ui.find('results'):
 			ui.Text({"cssClasses": "out", "text": "Hello"})
 			`);
 			await execute(page);
-			await page.locator(`.results .ss-type-text.component.out`).click({force: true});
+			await page.locator(`.results .wf-type-text.component.out`).click({force: true});
 			await expect(page.locator(`.BuilderSettings > .sections`)).toHaveAttribute("inert");
 			await expect(page.locator(`.BuilderSettings > .cmc-warning`)).toHaveCount(1);
 	});
@@ -115,14 +115,14 @@ with ui.find('results'):
 			ui.Text({"cssClasses": "level3", "text": "Hello"})
 			`);
 			await execute(page);
-			await expect(page.locator(`.results .ss-type-columns.level1 .ss-type-column.level2 .ss-type-text.level3`)).toHaveCount(1);
-			await expect(page.locator(`.results .ss-type-columns.level1 .ss-type-column.level2 .ss-type-text.level3`)).toHaveText("Hello");
+			await expect(page.locator(`.results .wf-type-columns.level1 .wf-type-column.level2 .wf-type-text.level3`)).toHaveCount(1);
+			await expect(page.locator(`.results .wf-type-columns.level1 .wf-type-column.level2 .wf-type-text.level3`)).toHaveText("Hello");
 	});
 
 	test("binding state", async ({ page }) => {
 			await setInstruction(page, `
 with ui.find('results'):
-	ui.TextInput({"cssClasses": "in"}, binding={"ss-change": "value"})
+	ui.TextInput({"cssClasses": "in"}, binding={"wf-change": "value"})
 	ui.Text({"cssClasses": "out", "text": "@{value}"})
 			`);
 			await execute(page);
@@ -142,7 +142,7 @@ with ui.find('results'):
 	test("handlers", async ({ page }) => {
 			await setInstruction(page, `
 with ui.find('results'):
-	ui.TextInput({"cssClasses": "in"}, handlers={"ss-change": update_value})
+	ui.TextInput({"cssClasses": "in"}, handlers={"wf-change": update_value})
 	ui.Text({"cssClasses": "out", "text": "@{value}"})
 			`);
 			await execute(page);

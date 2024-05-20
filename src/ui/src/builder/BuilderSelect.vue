@@ -1,19 +1,3 @@
-Usage: ```js // icon is using https://remixicon.com const options = [ { value:
-"auto", label: "Default" }, { value: "fit-content", label: "Fit content", icon:
-"ri-split-cells-horizontal" }, ]; const select = (value: string) => {
-console.log(value); }; ``` ```
-<BuilderSelect :options="options" @select="select" />
-``` ```
-<BuilderSelect :options="options" defaultValue="fit-content" @select="select" />
-``` You can specify a default icon from https://remixicon.com ```
-<BuilderSelect
-	:options="options"
-	defaultValue="fit-content"
-	defaultIcon="ri-expand-up-down-fill"
-	@select="select"
-/>
-```
-
 <template>
 	<!-- inspired from https://andrejgajdos.com/custom-select-dropdown -->
 	<div class="selectWrapper" @click="open">
@@ -21,12 +5,16 @@ console.log(value); }; ``` ```
 			<div class="selectTrigger">
 				<div class="selectContent">
 					<div v-if="currentLabel != null" class="flexRow">
-						<div><i :class="currentIcon"></i></div>
+						<div>
+							<i class="material-symbols-outlined">{{
+								currentIcon
+							}}</i>
+						</div>
 						<div>{{ currentLabel }}</div>
 					</div>
 				</div>
 				<div class="selectArrow">
-					<i class="ri-arrow-down-s-fill"></i>
+					<i class="material-symbols-outlined">expand_more</i>
 				</div>
 			</div>
 			<div class="selectOptions">
@@ -39,7 +27,11 @@ console.log(value); }; ``` ```
 					@click="select"
 				>
 					<div class="flexRow">
-						<div><i :class="option.icon"></i></div>
+						<div>
+							<i class="material-symbols-outlined">{{
+								option.icon
+							}}</i>
+						</div>
 						<div>{{ option.label }}</div>
 					</div>
 				</div>
@@ -69,7 +61,7 @@ const currentLabel = computed(() => {
 });
 
 const currentIcon = computed(() => {
-	const defaultIcon = props.defaultIcon ? props.defaultIcon : "ri-empty";
+	const defaultIcon = props.defaultIcon ? props.defaultIcon : "help_center";
 	const option = props.options.find(
 		(option) => option.value == currentValue.value,
 	);
@@ -83,10 +75,10 @@ let compOptions = computed(() => {
 		let new_option = { ...option, class: "" };
 		if (new_option.value == currentValue.value) {
 			new_option.class = "selected";
-			new_option.icon = new_option.icon ? new_option.icon : "ri-empty";
+			new_option.icon = new_option.icon ? new_option.icon : "help_center";
 		} else {
 			new_option.class = "";
-			new_option.icon = new_option.icon ? new_option.icon : "ri-empty";
+			new_option.icon = new_option.icon ? new_option.icon : "help_center";
 		}
 		return new_option;
 	});
@@ -112,6 +104,7 @@ const select = (event) => {
 	position: relative;
 	user-select: none;
 	width: 100%;
+	font-size: 0.875rem;
 }
 
 .select {
@@ -188,10 +181,5 @@ const select = (event) => {
 	display: flex;
 	flex-direction: row;
 	gap: 8px;
-}
-
-.ri-empty {
-	display: block;
-	width: 12px;
 }
 </style>

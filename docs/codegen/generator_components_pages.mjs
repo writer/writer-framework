@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-import components from "streamsync-ui/components.codegen.json" with { type: "json" };
+import components from "writer-ui/components.codegen.json" with { type: "json" };
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";

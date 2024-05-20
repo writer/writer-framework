@@ -1,30 +1,36 @@
 <template>
-	<div ref="rootEl" class="CoreFileInput">
-		<div v-if="!processingFiles" class="inputContainer">
-			<label>{{ fields.label.value }}</label>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="!processingFiles ? fields.label.value : null"
+		class="CoreFileInput"
+	>
+		<div class="main">
 			<input
+				v-if="!processingFiles"
 				ref="fileEl"
 				type="file"
 				:multiple="allowMultipleFilesFlag"
 				@change="fileChange($event as InputEvent)"
 			/>
+			<div v-if="message || processingFiles" class="status">
+				<LoadingSymbol
+					v-if="processingFiles"
+					class="loadingSymbol"
+				></LoadingSymbol>
+				<span v-if="processingFiles"
+					>Processing {{ processingFiles.join(", ") }}...</span
+				>
+				<span v-if="message">{{ message }}</span>
+			</div>
 		</div>
-		<div v-if="message || processingFiles" class="status">
-			<LoadingSymbol
-				v-if="processingFiles"
-				class="loadingSymbol"
-			></LoadingSymbol>
-			<span v-if="processingFiles"
-				>Processing {{ processingFiles.join(", ") }}...</span
-			>
-			<span v-if="message">{{ message }}</span>
-		</div>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -45,7 +51,7 @@ def onchange_handler(state, payload):
             file_handle.write(file_data)`.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "File Input",
 		description,
 		category: "Input",
@@ -67,7 +73,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-file-change": {
+			"wf-file-change": {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
@@ -84,14 +90,18 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLInputElement> = ref(null);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fileEl: Ref<HTMLInputElement> = ref(null);
 const message: Ref<string> = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const processingFiles: Ref<string[]> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 const allowMultipleFilesFlag = computed(() => {
 	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
@@ -139,7 +149,7 @@ const fileChange = async (ev: InputEvent) => {
 		processingFiles.value = null;
 	};
 
-	handleInput(getValue(), "ss-file-change", customCallback);
+	handleInput(getValue(), "wf-file-change", customCallback);
 };
 
 watch(formValue, (newValue: string) => {
@@ -151,30 +161,38 @@ watch(formValue, (newValue: string) => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreFileInput {
 	width: 100%;
+}
+
+.main {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
 }
 
-label {
-	display: block;
-	margin-bottom: 8px;
-}
-
 input {
 	max-width: 70ch;
-	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	padding: 8.25px;
+	font-size: 0.875rem;
+	width: fit-content;
+	outline: none;
+}
+
+input:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 
 .status {
 	display: flex;
 	align-items: center;
-	gap: 16px;
+	gap: 12px;
 	min-height: 36px;
 }
 

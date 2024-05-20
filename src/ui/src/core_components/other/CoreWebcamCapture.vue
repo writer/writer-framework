@@ -4,14 +4,17 @@
 			<video ref="videoEl" autoplay="true"></video>
 		</div>
 		<div class="actions">
-			<button v-if="refreshRate == 0" @click="sendFrame">
+			<WdsButton v-if="refreshRate == 0" @click="sendFrame">
 				Capture image
-			</button>
+			</WdsButton>
 
-			<button @click="toggleActive">
+			<WdsButton @click="toggleActive">
 				{{ isActive ? "Stop capture" : "Start webcam capture" }}
-			</button>
-			<select v-if="videoDevices?.length > 1" v-model="preferredDeviceId">
+			</WdsButton>
+			<WdsDropdownInput
+				v-if="videoDevices?.length > 1"
+				v-model="preferredDeviceId"
+			>
 				<option
 					v-for="(device, deviceIndex) in videoDevices"
 					:key="device.deviceId"
@@ -19,13 +22,13 @@
 				>
 					{{ device.label || `Webcam ${deviceIndex + 1}` }}
 				</option>
-			</select>
+			</WdsDropdownInput>
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	buttonColor,
 	buttonShadow,
@@ -33,6 +36,8 @@ import {
 	cssClasses,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
+import WdsButton from "../../wds/WdsButton.vue";
+import WdsDropdownInput from "../../wds/WdsDropdownInput.vue";
 
 const description =
 	"A user input component that allows users to capture images using their webcam.";
@@ -53,7 +58,7 @@ def webcam_handler(payload):
 		file_handle.write(image_file)`.trim();
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Webcam Capture",
 		description,
 		category: "Other",
@@ -72,7 +77,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-webcam": {
+			"wf-webcam": {
 				desc: "Sent when a frame is captured. Its payload contains the captured frame in PNG format.",
 				stub: ssWebcamHandlerStub.trim(),
 			},
@@ -150,7 +155,7 @@ const getFrameAsDataURL = () => {
 };
 
 const sendFrame = () => {
-	const event = new CustomEvent("ss-webcam", {
+	const event = new CustomEvent("wf-webcam", {
 		detail: {
 			payload: getFrameAsDataURL(),
 			callback: () => {
@@ -221,6 +226,7 @@ const stopCapture = () => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
 
 .CoreWebcamCapture {
 	width: 100%;

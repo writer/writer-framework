@@ -14,14 +14,14 @@
 				></IconGen>
 			</div>
 		</div>
-		<div class="container" data-streamsync-container>
+		<div class="container" data-writer-container>
 			<slot></slot>
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { Component, FieldCategory, FieldType } from "../../streamsyncTypes";
+import { Component, FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -39,7 +39,7 @@ const description =
 	"A container component that organises its children in a sidebar. Its parent must be a Page component.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Sidebar",
 		description,
 		positionless: true,
@@ -86,7 +86,7 @@ import IconGen from "../../renderer/IconGen.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const selectedId = computed(() => ssbm?.getSelectedId());
@@ -110,7 +110,7 @@ watch(selectedId, (newSelectedId) => {
 });
 
 const checkIfSidebarIsParent = (childId: Component["id"]): boolean => {
-	const child = ss.getComponentById(childId);
+	const child = wf.getComponentById(childId);
 	if (!child || child.type == "root") return false;
 	if (child.parentId == componentId) return true;
 	return checkIfSidebarIsParent(child.parentId);

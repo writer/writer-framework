@@ -1,4 +1,4 @@
-import { FieldCategory, FieldType } from "../streamsyncTypes";
+import { FieldCategory, FieldType } from "../writerTypes";
 
 export const accentColor = {
 	name: "Accent",
@@ -67,14 +67,6 @@ export const buttonTextColor = {
 export const buttonShadow = {
 	name: "Button shadow",
 	type: FieldType.Shadow,
-	category: FieldCategory.Style,
-	applyStyleVariable: true,
-};
-
-export const selectedColor = {
-	name: "Selected",
-	type: FieldType.Color,
-	default: "rgba(210, 234, 244, 0.8)",
 	category: FieldCategory.Style,
 	applyStyleVariable: true,
 };

@@ -33,7 +33,7 @@
 						variant="subtle"
 						@click="removeAssistedEntry(entryKey)"
 					>
-						<i class="ri-delete-bin-line"></i>
+						<i class="material-symbols-outlined">delete</i>
 					</button>
 				</div>
 			</div>
@@ -52,7 +52,7 @@
 					@keydown.enter="addAssistedEntry"
 				/>
 				<button @click="addAssistedEntry">
-					<i class="ri-add-line"></i>Add
+					<i class="material-symbols-outlined">add</i>Add
 				</button>
 			</div>
 		</template>
@@ -77,21 +77,21 @@ import {
 	computed,
 	watch,
 } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 }>();
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const assistedKeyEl: Ref<HTMLInputElement> = ref(null);
@@ -227,6 +227,7 @@ onMounted(async () => {
 .staticList:empty::before {
 	content: "No entries yet.";
 }
+
 .staticList .entry {
 	display: flex;
 	align-items: center;

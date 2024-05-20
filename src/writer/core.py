@@ -8,13 +8,16 @@ import io
 import json
 import logging
 import math
+import multiprocessing
 import re
 import secrets
-import sys
 import time
 import traceback
 import urllib.request
+from multiprocessing.process import BaseProcess
+from types import ModuleType
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -26,24 +29,34 @@ from typing import (
     Set,
     Tuple,
     Type,
+    TypedDict,
     TypeVar,
     Union,
     cast,
 )
 
-from streamsync.core_ui import (
-    ComponentTree,
-    DependentComponentTree,
-    SessionComponentTree,
-    use_component_tree,
-)
-from streamsync.ss_types import (
+from writer import core_ui
+from writer.ss_types import (
     InstancePath,
     Readable,
-    StreamsyncEvent,
-    StreamsyncEventResult,
-    StreamsyncFileItem,
+    WriterEvent,
+    WriterEventResult,
+    WriterFileItem,
 )
+
+if TYPE_CHECKING:
+    from writer.app_runner import AppProcess
+
+
+def get_app_process() -> 'AppProcess':
+    from writer.app_runner import AppProcess  # Needed during runtime
+    raw_process: BaseProcess = \
+        multiprocessing.current_process()
+    if isinstance(raw_process, AppProcess):
+        return raw_process
+    raise RuntimeError(
+        "Failed to retrieve the AppProcess: running in wrong context"
+        )
 
 
 class Config:
@@ -117,8 +130,11 @@ class StateSerialiser:
     """
 
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
+        from writer.ai import Conversation
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
+        if isinstance(v, Conversation):
+            return v.serialized_messages
         if isinstance(v, (FileWrapper, BytesWrapper)):
             return self._serialise_ss_wrapper(v)
         if isinstance(v, (datetime.datetime, datetime.date)):
@@ -390,7 +406,7 @@ def get_annotations(instance) -> Dict[str, Any]:
 
 class StateMeta(type):
     """
-    Constructs a class at runtime that extends StreamsyncState or State
+    Constructs a class at runtime that extends WriterState or State
     with dynamic properties for each annotation of the class.
     """
 
@@ -432,7 +448,7 @@ class StateMeta(type):
         annotations = get_annotations(klass)
         for key, expected_type in annotations.items():
             if key == "_state_proxy":
-                raise AttributeError("_state_proxy is an reserved keyword for streamsync, don't use it in annotation.")
+                raise AttributeError("_state_proxy is an reserved keyword for Writer Framework, don't use it in annotation.")
 
             if not(inspect.isclass(expected_type) and issubclass(expected_type, State)):
                 proxy = DictPropertyProxy("_state_proxy", key)
@@ -454,7 +470,7 @@ class State(metaclass=StateMeta):
         The existing content in the state is erased.
 
 
-        >>> state = StreamsyncState({'message': "hello world"})
+        >>> state = WriterState({'message': "hello world"})
         >>> state.ingest({'a': 1, 'b': 2})
         >>> {'a': 1, 'b': 2}
         """
@@ -469,7 +485,7 @@ class State(metaclass=StateMeta):
 
         Private attributes, prefixed with _, are ignored.
 
-        >>> state = StreamsyncState({'message': "hello world"})
+        >>> state = WriterState({'message': "hello world"})
         >>> return state.to_dict()
         """
         return self._state_proxy.to_dict()
@@ -480,7 +496,7 @@ class State(metaclass=StateMeta):
         Converts a StateProxy and its children into a python dictionary that can be used to recreate the
         state from scratch.
 
-        >>> state = StreamsyncState({'a': 1, 'c': {'a': 1, 'b': 3}})
+        >>> state = WriterState({'a': 1, 'c': {'a': 1, 'b': 3}})
         >>> raw_state = state.to_raw_state()
         >>> "{'a': 1, 'c': {'a': 1, 'b': 3}}"
 
@@ -556,7 +572,7 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value
 
 
-class StreamsyncState(State):
+class WriterState(State):
     """
     Root state. Comprises user configurable state and
     mail (notifications, log entries, etc).
@@ -574,18 +590,18 @@ class StreamsyncState(State):
 
     @classmethod
     def get_new(cls):
-        """ Returns a new StreamsyncState instance set to the initial state."""
+        """ Returns a new WriterState instance set to the initial state."""
 
         return initial_state.get_clone()
 
-    def get_clone(self) -> 'StreamsyncState':
+    def get_clone(self) -> 'WriterState':
         """
         get_clone clones the destination application state for the session.
 
         The class is rebuilt identically in the case where the user
-        has constructed a schema inherited from StreamsyncState
+        has constructed a schema inherited from WriterState
 
-        >>> class AppSchema(StreamsyncState):
+        >>> class AppSchema(WriterState):
         >>>     counter: int
         >>>
         >>> root_state = AppSchema({'counter': 1})
@@ -595,7 +611,7 @@ class StreamsyncState(State):
             cloned_user_state = copy.deepcopy(self.user_state.to_raw_state())
             cloned_mail = copy.deepcopy(self.mail)
         except BaseException:
-            substitute_state = StreamsyncState()
+            substitute_state = WriterState()
             substitute_state.add_log_entry("error",
                                            "Cannot clone state",
                                            "The state may contain unpickable objects, such as modules.",
@@ -655,8 +671,8 @@ class StreamsyncState(State):
         if not Config.is_mail_enabled_for_log:
             return
         shortened_message = None
-        if len(message) > StreamsyncState.LOG_ENTRY_MAX_LEN:
-            shortened_message = message[0:StreamsyncState.LOG_ENTRY_MAX_LEN] + "..."
+        if len(message) > WriterState.LOG_ENTRY_MAX_LEN:
+            shortened_message = message[0:WriterState.LOG_ENTRY_MAX_LEN] + "..."
         else:
             shortened_message = message
         self.add_mail("logEntry", {
@@ -697,7 +713,7 @@ class StreamsyncState(State):
         """
         imports the content of a script into the page
 
-        >>> initial_state = ss.init_state({
+        >>> initial_state = wf.init_state({
         >>>     "counter": 1
         >>> })
         >>>
@@ -722,6 +738,89 @@ class StreamsyncState(State):
         })
 
 
+class EventHandlerRegistry:
+    """
+    Maps functions registered as event handlers from the user app's core
+    and external modules, providing an access mechanism to these maps.
+    """
+
+    class HandlerMeta(TypedDict):
+        name: str
+        args: List[str]
+
+    class HandlerEntry(TypedDict):
+        callable: Callable
+        meta: 'EventHandlerRegistry.HandlerMeta'
+
+    def __init__(self):
+        self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}  # type: ignore
+
+    def __iter__(self):
+        return iter(self.handler_map.keys())
+
+    def register_handler(self, handler: Callable):
+        module_name = handler.__module__
+
+        # Prepare "access name"
+        # (i.e. the key that frontend uses to retrieve handler)
+        if module_name == "writeruserapp":
+            # Use the handler's __qualname__ directly
+            # for functions from main.py in user's app
+            access_name = handler.__qualname__
+        else:
+            # For external handlers, separate the module name
+            # and handler __qualname__by a dot
+            access_name = f"{module_name}.{handler.__qualname__}"
+
+        entry: EventHandlerRegistry.HandlerEntry = \
+            {
+                "callable": handler,
+                "meta": {
+                    "name": access_name,
+                    "args": inspect.getfullargspec(handler).args
+                }
+            }
+
+        self.handler_map[access_name] = entry
+
+    def register_module(self, module: ModuleType):
+        if isinstance(module, ModuleType):
+            all_fn_names = (x[0] for x in inspect.getmembers(
+                module, inspect.isfunction))
+            exposed_fn_names = list(
+                filter(lambda x: not x.startswith("_"), all_fn_names))
+
+            for fn_name in exposed_fn_names:
+                fn_callable = getattr(module, fn_name)
+                if not fn_callable:
+                    continue
+                self.register_handler(fn_callable)
+        else:
+            raise ValueError(
+                f"Attempted to register a non-module object: {module}"
+                )
+
+    def find_handler(self, handler_name: str) -> Optional[Callable]:
+        if handler_name not in self.handler_map:
+            return None
+        handler_entry: EventHandlerRegistry.HandlerEntry = \
+            self.handler_map[handler_name]
+        return handler_entry["callable"]
+
+    def get_handler_meta(
+            self,
+            handler_name: str
+            ) -> "EventHandlerRegistry.HandlerMeta":
+        if handler_name not in self.handler_map:
+            raise RuntimeError(f"Handler {handler_name} is not registered")
+        entry: EventHandlerRegistry.HandlerEntry = \
+            self.handler_map[handler_name]
+        return entry["meta"]
+
+    def gather_handler_meta(self) -> List["EventHandlerRegistry.HandlerMeta"]:
+        return [self.get_handler_meta(handler_name) for handler_name in self]
+
+
 class EventDeserialiser:
 
     """Applies transformations to the payload of an incoming event, depending on its type.
@@ -731,19 +830,19 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: StreamsyncState, session_component_tree: SessionComponentTree):
+    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
         self.evaluator = Evaluator(session_state, session_component_tree)
 
-    def transform(self, ev: StreamsyncEvent) -> None:
+    def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
         # This includes non-custom events such as click
-        # Events not natively provided by Streamsync aren't sanitised
+        # Events not natively provided by Writer Framework aren't sanitised
 
-        if ev.payload is None or not ev.type.startswith("ss-"):
+        if ev.payload is None or not ev.type.startswith("wf-"):
             return
 
         # Look for a method in this class that matches the event type
-        # As a security measure, all event types starting with "ss-" must be linked to a transformer function.
+        # As a security measure, all event types starting with "wf-" must be linked to a transformer function.
 
         custom_event_name = ev.type[3:]
         func_name = "_transform_" + custom_event_name.replace("-", "_")
@@ -760,7 +859,7 @@ class EventDeserialiser:
         else:
             ev.payload = tf_payload
 
-    def _transform_tag_click(self, ev: StreamsyncEvent) -> Optional[str]:
+    def _transform_tag_click(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
         options = self.evaluator.evaluate_field(
@@ -771,7 +870,7 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
-    def _transform_option_change(self, ev: StreamsyncEvent) -> Optional[str]:
+    def _transform_option_change(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
         options = self.evaluator.evaluate_field(
@@ -782,7 +881,7 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
-    def _transform_options_change(self, ev: StreamsyncEvent) -> Optional[List[str]]:
+    def _transform_options_change(self, ev: WriterEvent) -> Optional[List[str]]:
         payload = ev.payload
         instance_path = ev.instancePath
         options = self.evaluator.evaluate_field(
@@ -796,7 +895,7 @@ class EventDeserialiser:
             raise ValueError("Unauthorised option")
         return payload
 
-    def _transform_toggle(self, ev: StreamsyncEvent) -> bool:
+    def _transform_toggle(self, ev: WriterEvent) -> bool:
         payload = bool(ev.payload)
         return payload
 
@@ -840,8 +939,8 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
-    def _transform_chatbot_message(self, ev) -> str:
-        payload = str(ev.payload)
+    def _transform_chatbot_message(self, ev) -> dict:
+        payload = dict(ev.payload)
         return payload
 
     def _transform_chatbot_action_click(self, ev) -> str:
@@ -867,7 +966,7 @@ class EventDeserialiser:
     def _transform_webcam(self, ev) -> Any:
         return urllib.request.urlopen(ev.payload).read()
 
-    def _file_item_transform(self, file_item: StreamsyncFileItem) -> Dict:
+    def _file_item_transform(self, file_item: WriterFileItem) -> Dict:
         data = file_item.get("data")
         if data is None:
             raise ValueError("No data provided.")
@@ -909,7 +1008,6 @@ class EventDeserialiser:
             return None
 
 
-
 class Evaluator:
 
     """
@@ -917,10 +1015,10 @@ class Evaluator:
     It allows for the sanitisation of frontend inputs.
     """
 
-    template_regex = re.compile(r"[\\]?@{([\w\s.\[\]]*)}")
+    template_regex = re.compile(r"[\\]?@{([^{]*)}")
 
-    def __init__(self, session_state: StreamsyncState, session_component_tree: ComponentTree):
-        self.ss = session_state
+    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
+        self.wf = session_state
         self.ct = session_component_tree
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="") -> Any:
@@ -995,7 +1093,7 @@ class Evaluator:
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
         accessors = self.parse_expression(expr, instance_path)
-        state_ref: StateProxy = self.ss.user_state
+        state_ref: StateProxy = self.wf.user_state
         for accessor in accessors[:-1]:
             state_ref = state_ref[accessor]
 
@@ -1047,7 +1145,7 @@ class Evaluator:
         if instance_path:
             context_data = self.get_context_data(instance_path)
         context_ref: Any = context_data
-        state_ref: Any = self.ss.user_state.state
+        state_ref: Any = self.wf.user_state.state
         accessors: List[str] = self.parse_expression(expr, instance_path)
         for accessor in accessors:
             if isinstance(state_ref, (StateProxy, dict)):
@@ -1067,7 +1165,7 @@ class Evaluator:
         return result
 
 
-class StreamsyncSession:
+class WriterSession:
 
     """
     Represents a session.
@@ -1078,11 +1176,12 @@ class StreamsyncSession:
         self.cookies = cookies
         self.headers = headers
         self.last_active_timestamp: int = int(time.time())
-        new_state = StreamsyncState.get_new()
+        new_state = WriterState.get_new()
         new_state.user_state.mutated = set()
         self.session_state = new_state
-        self.session_component_tree = SessionComponentTree(base_component_tree, base_cmc_tree)
+        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
         self.event_handler = EventHandler(self)
+        self.userinfo: Optional[dict] = None
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
@@ -1100,7 +1199,7 @@ class SessionManager:
         r"^[0-9a-fA-F]{" + str(TOKEN_SIZE_BYTES*2) + r"}$")
 
     def __init__(self) -> None:
-        self.sessions: Dict[str, StreamsyncSession] = {}
+        self.sessions: Dict[str, WriterSession] = {}
         self.verifiers: List[Callable] = []
 
     def add_verifier(self, verifier: Callable) -> None:
@@ -1132,7 +1231,7 @@ class SessionManager:
             return True
         return False
 
-    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[StreamsyncSession]:
+    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[WriterSession]:
         if not self._check_proposed_session_id(proposed_session_id):
             return None
         if not self._verify_before_new_session(cookies, headers):
@@ -1142,12 +1241,15 @@ class SessionManager:
             new_id = self._generate_session_id()
         else:
             new_id = proposed_session_id
-        new_session = StreamsyncSession(
+        new_session = WriterSession(
             new_id, cookies, headers)
         self.sessions[new_id] = new_session
         return new_session
 
-    def get_session(self, session_id: str) -> Optional[StreamsyncSession]:
+    def get_session(self, session_id: Optional[str]) -> Optional[WriterSession]:
+        if session_id is None:
+            return None
+
         return self.sessions.get(session_id)
 
     def _generate_session_id(self) -> str:
@@ -1171,6 +1273,14 @@ class SessionManager:
         for session_id in prune_sessions:
             self.close_session(session_id)
 
+    @staticmethod
+    def generate_session_id() -> str:
+        """
+        Generates a random session identifier which can be used to propose a session number before starting
+        the app process in the apiinit route.
+        """
+        return secrets.token_hex(SessionManager.TOKEN_SIZE_BYTES)
+
 
 class EventHandler:
 
@@ -1178,7 +1288,7 @@ class EventHandler:
     Handles events in the context of a Session.
     """
 
-    def __init__(self, session: StreamsyncSession) -> None:
+    def __init__(self, session: WriterSession) -> None:
         self.session = session
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
@@ -1211,20 +1321,18 @@ class EventHandler:
         return result, captured_stdout
 
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
-        streamsyncuserapp = sys.modules.get("streamsyncuserapp")
-        if streamsyncuserapp is None:
-            raise ValueError("Couldn't find app module (streamsyncuserapp).")
-
+        current_app_process = get_app_process()
+        handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
             return
         handler = target_component.handlers.get(event_type)
         if not handler:
             return
 
-        if not hasattr(streamsyncuserapp, handler):
+        callable_handler = handler_registry.find_handler(handler)
+        if not callable_handler:
             raise ValueError(
                 f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-        callable_handler = getattr(streamsyncuserapp, handler)
         is_async_handler = inspect.iscoroutinefunction(callable_handler)
 
         if (not callable(callable_handler)
@@ -1246,16 +1354,17 @@ class EventHandler:
                 session_info = {
                     "id": self.session.session_id,
                     "cookies": self.session.cookies,
-                    "headers": self.session.headers
+                    "headers": self.session.headers,
+                    "userinfo": self.session.userinfo or {}
                 }
                 arg_values.append(session_info)
             elif arg == "ui":
-                from streamsync.ui import StreamsyncUIManager
-                ui_manager = StreamsyncUIManager()
+                from writer.ui import WriterUIManager
+                ui_manager = WriterUIManager()
                 arg_values.append(ui_manager)
 
         result = None
-        with use_component_tree(self.session.session_component_tree):
+        with core_ui.use_component_tree(self.session.session_component_tree):
             if is_async_handler:
                 result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
             else:
@@ -1269,7 +1378,7 @@ class EventHandler:
             )
         return result
 
-    def handle(self, ev: StreamsyncEvent) -> StreamsyncEventResult:
+    def handle(self, ev: WriterEvent) -> WriterEventResult:
         ok = True
 
         try:
@@ -1345,15 +1454,15 @@ class DictPropertyProxy:
         proxy = getattr(instance, self.objectName)
         proxy[self.key] = value
 
-S = TypeVar("S", bound=StreamsyncState)
+S = TypeVar("S", bound=WriterState)
 
 def new_initial_state(klass: Type[S], raw_state: dict) -> S:
     """
     Initializes the initial state of the application and makes it globally accessible.
 
-    The class used for the initial state must be a subclass of StreamsyncState.
+    The class used for the initial state must be a subclass of WriterState.
 
-    >>> class MyState(StreamsyncState):
+    >>> class MyState(WriterState):
     >>>     pass
     >>>
     >>> initial_state = new_initial_state(MyState, {})
@@ -1378,11 +1487,17 @@ def session_verifier(func: Callable) -> Callable:
     session_manager.add_verifier(func)
     return wrapped
 
+def reset_base_component_tree() -> None:
+    """
+    Reset the base component tree to zero
 
+    (use mainly in tests)
+    """
+    global base_component_tree
+    base_component_tree = core_ui.build_base_component_tree()
 
 
 state_serialiser = StateSerialiser()
-initial_state = StreamsyncState()
-base_component_tree = ComponentTree()
-base_cmc_tree = DependentComponentTree(base_component_tree)
+initial_state = WriterState()
+base_component_tree = core_ui.build_base_component_tree()
 session_manager = SessionManager()

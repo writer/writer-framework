@@ -6,7 +6,7 @@ import {
 	InstancePath,
 	InstancePathItem,
 	UserFunction,
-} from "../streamsyncTypes";
+} from "../writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import { useEvaluator } from "./useEvaluator";
 import injectionKeys from "../injectionKeys";
@@ -17,18 +17,18 @@ import RenderError from "./RenderError.vue";
 export default {
 	props: ["componentId", "instancePath", "instanceData"],
 	setup(props) {
-		const ss = inject(injectionKeys.core);
+		const wf = inject(injectionKeys.core);
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId: Component["id"] = props.componentId;
-		const component = computed(() => ss.getComponentById(componentId));
+		const component = computed(() => wf.getComponentById(componentId));
 		const template = getTemplate(component.value.type);
 		const instancePath: InstancePath = props.instancePath;
 		const instanceData = props.instanceData;
-		const { getEvaluatedFields, isComponentVisible } = useEvaluator(ss);
+		const { getEvaluatedFields, isComponentVisible } = useEvaluator(wf);
 		const evaluatedFields = getEvaluatedFields(instancePath);
 
 		const children = computed(() =>
-			ss.getComponents(componentId, { sortedByPosition: true }),
+			wf.getComponents(componentId, { sortedByPosition: true }),
 		);
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
@@ -43,13 +43,13 @@ export default {
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
 				? ["root"]
-				: ss.getContainableTypes(parentId);
+				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};
 
 		const isDisabled = ref(false);
 		const userFunctions: Ref<UserFunction[]> = computed(() =>
-			ss.getUserFunctions(),
+			wf.getUserFunctions(),
 		);
 
 		const getChildlessPlaceholderVNode = (): VNode => {
@@ -88,7 +88,7 @@ export default {
 					slotName === "default"
 				)
 					return true;
-				const childDef = ss.getComponentDefinition(c.type);
+				const childDef = wf.getComponentDefinition(c.type);
 				const slot = childDef.slot ?? "default";
 				return slot === "*" || slot === slotName;
 			};
@@ -103,8 +103,8 @@ export default {
 				if (!isBeingEdited.value || positionlessSlot) return [];
 				return [
 					h("div", {
-						"data-streamsync-slot-of-id": componentId,
-						"data-streamsync-position": position,
+						"data-writer-slot-of-id": componentId,
+						"data-writer-position": position,
 					}),
 				];
 			};
@@ -159,8 +159,8 @@ export default {
 		provide(injectionKeys.flattenedInstancePath, flattenedInstancePath);
 
 		const dataAttrs = {
-			"data-streamsync-id": componentId,
-			"data-streamsync-instance-path": flattenedInstancePath,
+			"data-writer-id": componentId,
+			"data-writer-instance-path": flattenedInstancePath,
 		};
 
 		/*
@@ -209,14 +209,14 @@ export default {
 					) {
 						includePayload = true;
 					}
-					ss.forwardEvent(ev, instancePath, includePayload);
+					wf.forwardEvent(ev, instancePath, includePayload);
 				};
 			}
 			if (handlerFunctionName.startsWith("$goToPage_")) {
 				const pageKey = handlerFunctionName.substring(
 					"$goToPage_".length,
 				);
-				return (ev: Event) => ss.setActivePageFromKey(pageKey);
+				return (ev: Event) => wf.setActivePageFromKey(pageKey);
 			}
 			return null;
 		};
@@ -244,7 +244,7 @@ export default {
 					eventType === component.value.binding?.eventType;
 				props[eventKey] = (ev: Event) => {
 					if (isBinding) {
-						ss.forwardEvent(ev, instancePath, true);
+						wf.forwardEvent(ev, instancePath, true);
 					}
 					const handlerFunction =
 						component.value.handlers?.[eventType];
@@ -258,7 +258,7 @@ export default {
 		});
 
 		const fieldBasedStyleVars = computed(() => {
-			const fields = ss.getComponentDefinition(
+			const fields = wf.getComponentDefinition(
 				component.value.type,
 			)?.fields;
 			if (!fields) return;
@@ -273,7 +273,7 @@ export default {
 
 		const fieldBasedCssClasses = computed(() => {
 			const CSS_CLASSES_FIELD_KEY = "cssClasses";
-			const fields = ss.getComponentDefinition(
+			const fields = wf.getComponentDefinition(
 				component.value.type,
 			)?.fields;
 			if (!fields) return;
@@ -294,7 +294,7 @@ export default {
 		const getRootElProps = function () {
 			const rootElProps = {
 				class: {
-					[`ss-type-${component.value.type}`]: true,
+					[`wf-type-${component.value.type}`]: true,
 					component: true,
 					childless: isChildless.value,
 					selected: isSelected.value,

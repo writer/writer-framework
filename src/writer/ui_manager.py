@@ -1,19 +1,18 @@
 from json import dumps as json_dumps
 from typing import Optional
 
-from streamsync.core_ui import (
+from writer.core_ui import (
     Component,
     ComponentTree,
-    DependentComponentTree,
     UIError,
     current_component_tree,
     current_parent_container,
 )
 
 
-class StreamsyncUI:
+class WriterUI:
     """Provides mechanisms to manage and manipulate UI components within a
-    Streamsync session.
+    Writer Framework session.
 
     This class offers context managers and methods to dynamically create, find,
     and organize UI components based on a structured component tree.
@@ -48,8 +47,7 @@ class StreamsyncUI:
         return root_component
 
     @staticmethod
-    def find(component_id: str) \
-            -> Component:
+    def find(component_id: str) -> Component:
         """
         Retrieves a component by its ID from the current session's component tree.
 
@@ -102,7 +100,7 @@ class StreamsyncUI:
         >>> with ui.refresh_with(id="my-container"):
         >>>     pass
         """
-        component = StreamsyncUI.find(component_id)
+        component = WriterUI.find(component_id)
 
         # Clear the children of the specified component.
         current_component_tree().clear_children(component_id)
@@ -134,7 +132,7 @@ class StreamsyncUI:
 
     @staticmethod
     def create_component(component_type: str, **kwargs) -> Component:
-        StreamsyncUI.assert_in_container()
+        WriterUI.assert_in_container()
         component_tree = current_component_tree()
         component = _create_component(component_tree, component_type, **kwargs)
         component_tree.attach(component)
@@ -146,7 +144,12 @@ def _prepare_handlers(raw_handlers: Optional[dict]):
     if raw_handlers is not None:
         for event, handler in raw_handlers.items():
             if callable(handler):
-                handlers[event] = handler.__name__
+                module_name = \
+                    handler.__module__ + "." \
+                    if handler.__module__ != "writeruserapp" \
+                    else ""
+                handlers[event] = \
+                    f"{module_name}{handler.__name__}"
             else:
                 handlers[event] = handler
     return handlers
@@ -170,7 +173,7 @@ def _prepare_value(value):
     return str(value)
 
 
-def _create_component(component_tree: DependentComponentTree,  component_type: str, **kwargs) -> Component:
+def _create_component(component_tree: ComponentTree, component_type: str, **kwargs) -> Component:
 
     parent_container = current_parent_container.get(None)
     if kwargs.get("id", False) is None:

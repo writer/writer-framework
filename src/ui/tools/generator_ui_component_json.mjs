@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const componentsJsonPath = path.resolve(__dirname, "..", "components.codegen.json");
 
 /**
- * Exports an inventory of Streamsync components into json.
+ * Exports an inventory of Writer Framework components into json.
  *
  * @returns {Promise<void>}
  */

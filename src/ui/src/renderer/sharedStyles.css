@@ -4,48 +4,37 @@
 		url("../assets/Inter-Regular.woff2") format("woff2");
 }
 
-input,
-button,
-textarea,
-select {
-	outline: none;
-	border: 1px solid var(--separatorColor);
-	font-size: 0.75rem;
-	padding: 4px;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-	border: 1px solid var(--primaryTextColor);
-}
-
 h1,
 h2,
 h3,
 h4 {
-	font-weight: 300;
 	margin: 0;
 	color: var(--primaryTextColor);
 }
 
 h1 {
-	font-size: 1.3rem;
+	font-size: 1.5rem;
+	letter-spacing: 0.1875rem;
+	font-weight: 600;
+	line-height: 162.5%;
 }
 
 h2 {
-	font-size: 1rem;
+	font-size: 1.5rem;
+	font-weight: 500;
+	line-height: 120%;
 }
 
 h3 {
-	font-size: 0.9rem;
+	font-size: 1.25rem;
+	font-weight: 500;
+	line-height: 120%;	
 }
 
 h4 {
-	text-transform: uppercase;
-	font-weight: bold;
-	font-size: 0.65rem;
-	letter-spacing: 0.2ch;
+	font-weight: 700;
+	font-size: 1rem;
+	line-height: 247.5%;
 }
 
 ul,
@@ -72,34 +61,18 @@ code {
 	background-color: var(--separatorColor);
 }
 
-button {
-	background: var(--buttonColor);
-	font-size: 0.8rem;
-	border-radius: 8px;
-	padding: 12px;
-	display: block;
-	cursor: pointer;
-	color: var(--buttonTextColor);
-	box-shadow: var(--buttonShadow);
-}
-
-button:focus,
-button:hover {
-	border: 1px solid var(--buttonTextColor);
-}
-
 .component {
-	font-size: 0.8rem;
+	font-size: 0.875rem;
 }
 
 .component.selected {
 	background-color: var(--builderSelectedColor);
 }
 
-[data-streamsync-slot-of-id] {
+[data-writer-slot-of-id] {
 	display: none;
 	opacity: 0;
-	border-radius: 2px;
+	border-radius: 4px;
 	border: 1px solid var(--separatorColor);
 	box-shadow: 0 0 3px 0 var(--separatorColor) inset;
 	min-height: 0px;
@@ -108,30 +81,30 @@ button:hover {
 	animation: appear 0.2s reverse;
 }
 
-[data-streamsync-slot-of-id].highlighted {
+[data-writer-slot-of-id].highlighted {
 	background: var(--builderIntenseSelectedColor);
 }
 
-[data-streamsync-container] {
+[data-writer-container] {
 	display: flex;
 	gap: 16px;
 }
 
-[data-streamsync-container]:not(.horizontal) {
+[data-writer-container]:not(.horizontal) {
 	flex-direction: column;
 }
 
-[data-streamsync-container].horizontal {
+[data-writer-container].horizontal {
 	flex-direction: row;
 }
 
-[data-streamsync-container].crackedContainer > [data-streamsync-slot-of-id] {
+[data-writer-container].crackedContainer > [data-writer-slot-of-id] {
 	animation: appearVertical 0.2s forwards;
 	display: block;
 }
 
-[data-streamsync-container].crackedContainer.horizontal
-	> [data-streamsync-slot-of-id] {
+[data-writer-container].crackedContainer.horizontal
+	> [data-writer-slot-of-id] {
 	animation: appearHorizontal 0.2s forwards;
 	align-self:center;
 	display: block;

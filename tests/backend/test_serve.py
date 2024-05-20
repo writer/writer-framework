@@ -3,7 +3,7 @@ import mimetypes
 import fastapi
 import fastapi.testclient
 import pytest
-import streamsync.serve
+import writer.serve
 from fastapi import FastAPI
 
 from tests.backend import test_app_dir, test_multiapp_dir
@@ -12,7 +12,7 @@ from tests.backend import test_app_dir, test_multiapp_dir
 class TestServe:
 
     def test_valid(self) -> None:
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.post("/api/init", json={
@@ -35,7 +35,7 @@ class TestServe:
                     "type": "event",
                     "trackingId": 1,
                     "payload": {
-                        "type": "ss-number-change",
+                        "type": "wf-number-change",
                         "instancePath": [
                             {"componentId": "root", "instanceNumber": 0}
                         ],
@@ -47,7 +47,7 @@ class TestServe:
                 websocket.close(1000)
 
     def test_bad_session(self) -> None:
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             with client.websocket_connect("/api/stream") as websocket:
@@ -62,7 +62,7 @@ class TestServe:
                     websocket.receive_json()
 
     def test_session_verifier_header(self) -> None:
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.post("/api/init", json={
@@ -74,7 +74,7 @@ class TestServe:
             assert res.status_code == 403
 
     def test_session_verifier_cookies(self) -> None:
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app, cookies={
             "fail_cookie": "yes"
@@ -87,7 +87,7 @@ class TestServe:
             assert res.status_code == 403
 
     def test_session_verifier_pass(self) -> None:
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app, cookies={
             "another_cookie": "yes"
@@ -104,7 +104,7 @@ class TestServe:
         # Arrange
         mimetypes.add_type("text/plain", ".js")
 
-        asgi_app: fastapi.FastAPI = streamsync.serve.get_asgi_app(test_app_dir, "run")
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             # Acts
             res = client.get("/static/file.js")
@@ -113,14 +113,14 @@ class TestServe:
             assert res.status_code == 200
             assert res.headers["Content-Type"].startswith("text/javascript")
 
-    def test_multiapp_should_run_the_lifespan_of_all_streamsync_app(self):
+    def test_multiapp_should_run_the_lifespan_of_all_writer_app(self):
         """
-        This test check that multiple streamsync applications embedded
+        This test check that multiple Writer Framework applications embedded
         in FastAPI start completely and answer websocket request.
         """
-        asgi_app: fastapi.FastAPI = FastAPI(lifespan=streamsync.serve.lifespan)
-        asgi_app.mount("/app1", streamsync.serve.get_asgi_app(test_multiapp_dir / 'app1', "run"))
-        asgi_app.mount("/app2", streamsync.serve.get_asgi_app(test_multiapp_dir / 'app2', "run"))
+        asgi_app: fastapi.FastAPI = FastAPI(lifespan=writer.serve.lifespan)
+        asgi_app.mount("/app1", writer.serve.get_asgi_app(test_multiapp_dir / 'app1', "run"))
+        asgi_app.mount("/app2", writer.serve.get_asgi_app(test_multiapp_dir / 'app2', "run"))
 
         with fastapi.testclient.TestClient(asgi_app) as client:
             # test websocket connection on app1
@@ -146,3 +146,26 @@ class TestServe:
                 })
                 with pytest.raises(fastapi.WebSocketDisconnect):
                     websocket.receive_json()
+
+    def test_server_setup_hook_is_executed_when_its_present_and_enabled(self):
+        """
+        This test verifies that the server_setup.py hook is executed when the application
+        is started with the enable_server_setup=True option.
+
+        """
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(test_app_dir, "run", enable_server_setup=True)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/probes/healthcheck")
+            assert res.status_code == 200
+            assert res.text == '"1"'
+
+    def test_server_setup_hook_is_ignored_when_its_disabled(self):
+        """
+        This test verifies that the server_setup.py hook is not executed
+        when the application is started by disabling the server_setup.py hook.
+
+        """
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(test_app_dir, "run", enable_server_setup=False)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/probes/healthcheck")
+            assert res.status_code == 404

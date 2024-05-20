@@ -4,8 +4,8 @@ import tarfile
 import tempfile
 import time
 from datetime import datetime
-import pytz
 
+import pytz
 import requests
 from gitignore_parser import parse_gitignore
 
@@ -61,10 +61,10 @@ def upload_package(tar, token):
             resp.raise_for_status()
             data = resp.json()
             build_id = data["buildId"]
-        print(f"Package uploaded. Building...")
+        print("Package uploaded. Building...")
         status = "WAITING"
         url = ""
-        while not status in ["COMPLETED", "FAILED"]:
+        while status not in ["COMPLETED", "FAILED"]:
             end_time = datetime.now(pytz.timezone('UTC')).isoformat()
             with requests.get(WRITER_DEPLOY_URL, params = {
                 "buildId": build_id,
@@ -76,7 +76,7 @@ def upload_package(tar, token):
                 data = resp.json()
                 #print(data["status"])
                 if data["status"]["status"] == "DEPLOYING" and data["status"]["status"] != status:
-                    print(f"Build completed. Deploying app...")
+                    print("Build completed. Deploying app...")
                 status = data["status"]["status"]
                 url = data["status"]["url"]
                 for log in data.get("logs", []):

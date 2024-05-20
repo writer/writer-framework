@@ -11,11 +11,11 @@
 </template>
 
 <script lang="ts">
-import { FieldType, Core } from "../../streamsyncTypes";
+import { FieldType, Core } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import injectionKeys from "../../injectionKeys";
 export default {
-	streamsync: {
+	writer: {
 		name: "Link",
 		description: "A component to create a hyperlink.",
 		category: "Content",
@@ -23,11 +23,11 @@ export default {
 			url: {
 				name: "URL",
 				type: FieldType.Text,
-				default: "https://streamsync.cloud",
+				default: "https://writer.com",
 				desc: "Specify a URL or choose a page. Keep in mind that you can only link to pages for which a key has been specified.",
-				options: (ss: Core) => {
+				options: (wf: Core) => {
 					return Object.fromEntries(
-						ss
+						wf
 							.getComponents("root", { sortedByPosition: true })
 							.map((page) => page.content.key)
 							.filter((key) => Boolean(key))

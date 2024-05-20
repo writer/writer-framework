@@ -42,7 +42,7 @@
 					@select="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.all_sides" class="row">
-					<i class="ico ico-padding-4-side"></i>
+					<i class="material-symbols-outlined">padding</i>
 					<input
 						ref="fixedEl"
 						type="text"
@@ -53,7 +53,7 @@
 				</div>
 				<div v-if="subMode == SubMode.xy_sides">
 					<div class="row">
-						<i class="ico ico-padding-x-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -63,7 +63,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="ico ico-padding-y-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -74,7 +74,7 @@
 				</div>
 				<div v-if="subMode == SubMode.per_side">
 					<div class="row">
-						<i class="ico ico-padding-left-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -84,7 +84,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="ico ico-padding-right-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							type="text"
 							:value="valuePadding[1]"
@@ -93,7 +93,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="ico ico-padding-top-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -102,7 +102,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="ico ico-padding-bottom-side"></i>
+						<i class="material-symbols-outlined">padding</i>
 						<input
 							type="text"
 							:value="valuePadding[3]"
@@ -135,16 +135,16 @@ import {
 	ref,
 	toRefs,
 } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";
 import { languages } from "monaco-editor";
 import css = languages.css;
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
@@ -209,11 +209,11 @@ const props = defineProps<{
 }>();
 
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const selectOptions = computed(() => {
 	return subModes.map((m) => {
-		return { value: m.key, label: m.label, icon: "ico ico-padding-4-side" };
+		return { value: m.key, label: m.label, icon: "padding" };
 	});
 });
 
