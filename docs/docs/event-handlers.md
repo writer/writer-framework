@@ -22,6 +22,78 @@ def _reticulate(splines):
     return r_splines
 ```
 
+### External handlers
+
+If you find that your `main.py` contains too many handler functions, and you want to organize them more effectively, you can use the **`init_handlers`** method to register functions from other modules as handlers. This method accepts an imported module as its argument.
+
+```py
+# my_app/my_handlers_module.py
+
+def increment(state):
+    state["counter"] += 1
+
+```
+```py
+# my_app/main.py
+
+import streamsync as ss
+import my_handlers_module
+
+ss.init_handlers(my_handlers_module)
+# Register all functions from the module as handlers;
+# this makes `increment` handler accessible on frontend
+```
+
+Or, additionally, you can pass a list of modules to register them all at once:
+```py
+# my_app/main.py
+
+import streamsync as ss
+import handler_module_one
+import handler_module_two
+
+ss.init_handlers([handler_module_one, handler_module_two])
+```
+
+::: warning Each function inside a module is attempted to be registered as a handler
+Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to frontend.
+:::
+
+You can also call `init_handlers` within other modules, which allows for a sequence of registrations:
+
+```py
+# my_app/another_handlers_module.py
+
+def decrement(state):
+    state["counter"] -= 1
+
+```
+
+```py
+# my_app/my_handlers_module.py
+
+import streamsync as ss
+import another_handlers_module
+
+ss.init_handlers(another_handlers_module)
+# Makes `decrement` handler accessible on frontend
+
+...
+
+```
+
+```py
+# my_app/main.py
+
+import streamsync as ss
+import my_handlers_module
+
+...
+
+```
+
+Note that for this "chain" to work, you need to import the final module in the sequence into `main.py`.
+
 ## Mutating state
 
 In most cases, event handlers will modify the application state. State can be accessed by including the `state` argument in the handler, which will provide you with a `StreamsyncState` object for the session that invoked the handler.
