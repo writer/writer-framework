@@ -289,21 +289,21 @@ class Conversation:
         """
         self.__add__({"role": role, "content": message})
 
-    def complete(self, data: Optional['ChatOptions'] = None) -> 'Conversation.Message':
+    def complete(self, config: Optional['ChatOptions'] = None) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
-        :param data: Optional parameters to pass for processing.
+        :param config: Optional parameters to pass for processing.
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
-        if not data:
-            data = {'max_tokens': 2048}
+        if not config:
+            config = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
-        request_data: ChatOptions = {**data, **self.config}
+        request_data: ChatOptions = {**config, **self.config}
         request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response_data: Chat = client.chat.chat(
@@ -326,20 +326,20 @@ class Conversation:
                 return cast(Conversation.Message, message.model_dump())
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
-    def stream_complete(self, data: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
+    def stream_complete(self, config: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
-        :param data: Optional parameters to pass for processing.
+        :param config: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
         """
-        if not data:
-            data = {'max_tokens': 2048}
+        if not config:
+            config = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
-        request_data: ChatOptions = {**data, **self.config}
+        request_data: ChatOptions = {**config, **self.config}
         request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response: Stream = client.chat.chat(
@@ -385,34 +385,34 @@ class Conversation:
         return serialized_messages
 
 
-def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
+def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str:
     """
     Completes the input text using the given data and returns the first resulting text choice.
 
     :param initial_text: The initial text prompt for the completion.
-    :param data: Optional dictionary containing parameters for the completion call.
+    :param config: Optional dictionary containing parameters for the completion call.
     :return: The text of the first choice from the completion response.
     :raises RuntimeError: If response data was not properly formatted to retrieve model text.
     """
-    if not data:
-        data = {}
+    if not config:
+        config = {}
 
     client = WriterAIManager.acquire_client()
-    request_model = data.get("model", None) or WriterAIManager.use_completion_model()
+    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
 
     response_data: Completion = client.completions.create(
-        model=request_model, 
+        model=request_model,
         prompt=initial_text,
-        best_of=data.get("best_of", NotGiven()),
-        max_tokens=data.get("max_tokens", NotGiven()),
-        random_seed=data.get("random_seed", NotGiven()),
-        stop=data.get("stop", NotGiven()),
-        temperature=data.get("temperature", NotGiven()),
-        top_p=data.get("top_p", NotGiven()),
-        extra_headers=data.get("extra_headers"),
-        extra_body=data.get("extra_body"),
-        extra_query=data.get("extra_query"),
-        timeout=data.get("timeout")
+        best_of=config.get("best_of", NotGiven()),
+        max_tokens=config.get("max_tokens", NotGiven()),
+        random_seed=config.get("random_seed", NotGiven()),
+        stop=config.get("stop", NotGiven()),
+        temperature=config.get("temperature", NotGiven()),
+        top_p=config.get("top_p", NotGiven()),
+        extra_headers=config.get("extra_headers"),
+        extra_body=config.get("extra_body"),
+        extra_query=config.get("extra_query"),
+        timeout=config.get("timeout")
         )
 
     for entry in response_data.choices:
@@ -423,36 +423,36 @@ def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
     raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
 
-def stream_complete(initial_text: str, data: Optional['CreateOptions'] = None) -> Generator[str, None, None]:
+def stream_complete(initial_text: str, config: Optional['CreateOptions'] = None) -> Generator[str, None, None]:
     """
     Streams completion results from an initial text prompt, yielding each piece of text as it is received.
 
     :param initial_text: The initial text prompt for the stream completion.
-    :param data: Optional dictionary containing parameters for the stream completion call.
+    :param config: Optional dictionary containing parameters for the stream completion call.
     :yields: Each text completion as it arrives from the stream.
     """
-    if not data:
-        data = {"max_tokens": 2048}
+    if not config:
+        config = {"max_tokens": 2048}
 
     client = WriterAIManager.acquire_client()
-    request_model = data.get("model", None) or WriterAIManager.use_completion_model()
+    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
 
     response: Stream = client.completions.create(
-        model=request_model, 
+        model=request_model,
         prompt=initial_text,
         stream=True,
-        best_of=data.get("best_of", NotGiven()),
-        max_tokens=data.get("max_tokens", NotGiven()),
-        random_seed=data.get("random_seed", NotGiven()),
-        stop=data.get("stop", NotGiven()),
-        temperature=data.get("temperature", NotGiven()),
-        top_p=data.get("top_p", NotGiven()),
-        extra_headers=data.get("extra_headers"),
-        extra_body=data.get("extra_body"),
-        extra_query=data.get("extra_query"),
-        timeout=data.get("timeout")
+        best_of=config.get("best_of", NotGiven()),
+        max_tokens=config.get("max_tokens", NotGiven()),
+        random_seed=config.get("random_seed", NotGiven()),
+        stop=config.get("stop", NotGiven()),
+        temperature=config.get("temperature", NotGiven()),
+        top_p=config.get("top_p", NotGiven()),
+        extra_headers=config.get("extra_headers"),
+        extra_body=config.get("extra_body"),
+        extra_query=config.get("extra_query"),
+        timeout=config.get("timeout")
         )
-    
+
     for line in response:
         processed_line = _process_completion_data_chunk(line)
         if processed_line:
