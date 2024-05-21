@@ -9,7 +9,7 @@ import pytz
 import requests
 from gitignore_parser import parse_gitignore
 
-WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/api/framework/deployment/apps")
+WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
 
 print("Deploying to:", WRITER_DEPLOY_URL)
 
