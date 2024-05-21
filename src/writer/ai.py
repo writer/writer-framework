@@ -12,6 +12,7 @@ from writer.core import get_app_process
 
 
 class ChatOptions(TypedDict, total=False):
+    model: str
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
     stop: Union[List[str], str, NotGiven]
@@ -24,6 +25,7 @@ class ChatOptions(TypedDict, total=False):
 
 
 class CreateOptions(TypedDict, total=False):
+    model: str
     best_of: Union[int, NotGiven]
     max_tokens: Union[int, NotGiven]
     random_seed: Union[int, NotGiven]
@@ -302,10 +304,11 @@ class Conversation:
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**data, **self.config}
+        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response_data: Chat = client.chat.chat(
             messages=passed_messages,
-            model=WriterAIManager.use_chat_model(),
+            model=request_model,
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
             stop=request_data.get('stop', NotGiven()),
@@ -337,10 +340,11 @@ class Conversation:
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**data, **self.config}
+        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response: Stream = client.chat.chat(
             messages=passed_messages,
-            model=WriterAIManager.use_chat_model(),
+            model=request_model,
             stream=True,
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
@@ -394,8 +398,9 @@ def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
         data = {}
 
     client = WriterAIManager.acquire_client()
+    request_model = data.pop("model", None) or WriterAIManager.use_completion_model()
 
-    response_data: Completion = client.completions.create(prompt=initial_text, model=WriterAIManager.use_completion_model(), **data)
+    response_data: Completion = client.completions.create(prompt=initial_text, model=request_model, **data)
 
     for entry in response_data.choices:
         text = entry.text
@@ -417,8 +422,9 @@ def stream_complete(initial_text: str, data: Optional['CreateOptions'] = None) -
         data = {"max_tokens": 2048}
 
     client = WriterAIManager.acquire_client()
+    request_model = data.pop("model", None) or WriterAIManager.use_completion_model()
 
-    response: Stream = client.completions.create(prompt=initial_text, model=WriterAIManager.use_completion_model(), stream=True, **data)
+    response: Stream = client.completions.create(prompt=initial_text, model=request_model, stream=True, **data)
     for line in response:
         processed_line = _process_completion_data_chunk(line)
         if processed_line:

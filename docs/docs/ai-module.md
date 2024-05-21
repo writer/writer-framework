@@ -25,18 +25,18 @@ A `Conversation` can be initialized with either a system prompt or a list of pre
 
 ```python
 # Initialize with a system prompt
-conversation = Conversation(system_prompt="You assist Chinese-speaking clients with their questions")
+conversation = Conversation("You assist Chinese-speaking clients with their questions")
 
 # Initialize with a history of messages
 history = [
     {"role": "user", "content": "Hello"},
     {"role": "assistant", "content": "Hi, how can I help?"}
 ]
-conversation = Conversation(history_import=history)
+conversation = Conversation(history)
 
 # Initialize with a configuration
 config = {'max_tokens': 150, 'temperature': 0.7}
-conversation = Conversation(system_prompt="You are a social media expert in the financial industry", config=config)
+conversation = Conversation("You are a social media expert in the financial industry", config=config)
 
 ```
 
