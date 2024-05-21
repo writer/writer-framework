@@ -398,9 +398,22 @@ def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
         data = {}
 
     client = WriterAIManager.acquire_client()
-    request_model = data.pop("model", None) or WriterAIManager.use_completion_model()
+    request_model = data.get("model", None) or WriterAIManager.use_completion_model()
 
-    response_data: Completion = client.completions.create(prompt=initial_text, model=request_model, **data)
+    response_data: Completion = client.completions.create(
+        model=request_model, 
+        prompt=initial_text,
+        best_of=data.get("best_of", NotGiven()),
+        max_tokens=data.get("max_tokens", NotGiven()),
+        random_seed=data.get("random_seed", NotGiven()),
+        stop=data.get("stop", NotGiven()),
+        temperature=data.get("temperature", NotGiven()),
+        top_p=data.get("top_p", NotGiven()),
+        extra_headers=data.get("extra_headers"),
+        extra_body=data.get("extra_body"),
+        extra_query=data.get("extra_query"),
+        timeout=data.get("timeout")
+        )
 
     for entry in response_data.choices:
         text = entry.text
@@ -422,9 +435,24 @@ def stream_complete(initial_text: str, data: Optional['CreateOptions'] = None) -
         data = {"max_tokens": 2048}
 
     client = WriterAIManager.acquire_client()
-    request_model = data.pop("model", None) or WriterAIManager.use_completion_model()
+    request_model = data.get("model", None) or WriterAIManager.use_completion_model()
 
-    response: Stream = client.completions.create(prompt=initial_text, model=request_model, stream=True, **data)
+    response: Stream = client.completions.create(
+        model=request_model, 
+        prompt=initial_text,
+        stream=True,
+        best_of=data.get("best_of", NotGiven()),
+        max_tokens=data.get("max_tokens", NotGiven()),
+        random_seed=data.get("random_seed", NotGiven()),
+        stop=data.get("stop", NotGiven()),
+        temperature=data.get("temperature", NotGiven()),
+        top_p=data.get("top_p", NotGiven()),
+        extra_headers=data.get("extra_headers"),
+        extra_body=data.get("extra_body"),
+        extra_query=data.get("extra_query"),
+        timeout=data.get("timeout")
+        )
+    
     for line in response:
         processed_line = _process_completion_data_chunk(line)
         if processed_line:
