@@ -44,7 +44,24 @@ def main():
     api_key = args.api_key if args.api_key else None
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
+    api_key = _get_api_key(command, api_key)
     _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name, api_key)
+
+def _get_api_key(command, api_key: Optional[str]) -> Optional[str]:
+    if command in ("deploy") and api_key is None:
+        env_key = os.getenv("WRITER_API_KEY", None)
+        if env_key is not None and env_key != "": 
+            return env_key
+        else:
+            logging.info("An API key is required to deploy a Streamsync app.")
+            api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
+            if api_key is None or api_key == "":
+                logging.error("No API key provided. Exiting.")
+                sys.exit(1)
+            return api_key
+    else:
+        return api_key
+
 
 def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool], api_key: Optional[str] = None):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
@@ -56,17 +73,6 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
     if command in ("create") and absolute_app_path is None:
         logging.error("A target folder is required to create a Writer Framework app. For example: writer create my_app")
         sys.exit(1)
-
-    if command in ("deploy") and api_key is None:
-        env_key = os.getenv("WRITER_API_KEY", None)
-        if env_key is not None:
-            api_key = env_key
-        else:
-            logging.info("An API key is required to deploy a Streamsync app.")
-            api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
-            if api_key is None or api_key == "":
-                logging.error("No API key provided. Exiting.")
-                sys.exit(1)
 
     if command in ("edit", "hello") and host is not None:
         logging.warning("Writer Framework has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Builder to the Internet. We recommend using a SSH tunnel instead.")
