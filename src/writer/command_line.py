@@ -58,11 +58,15 @@ def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], e
         sys.exit(1)
 
     if command in ("deploy") and api_key is None:
-        logging.info("An API key is required to deploy a Streamsync app.")
-        api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
-        if api_key is None or api_key == "":
-            logging.error("No API key provided. Exiting.")
-            sys.exit(1)
+        env_key = os.getenv("WRITER_API_KEY", None)
+        if env_key is not None:
+            api_key = env_key
+        else:
+            logging.info("An API key is required to deploy a Streamsync app.")
+            api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
+            if api_key is None or api_key == "":
+                logging.error("No API key provided. Exiting.")
+                sys.exit(1)
 
     if command in ("edit", "hello") and host is not None:
         logging.warning("Writer Framework has been enabled in edit mode with a host argument\nThis is enabled for local development purposes (such as a local VM).\nDon't expose Builder to the Internet. We recommend using a SSH tunnel instead.")
