@@ -1,9 +1,3 @@
-@font-face {
-	font-family: "Inter";
-	src: url("../assets/Inter-Regular.woff2") format("woff2"),
-		url("../assets/Inter-Regular.ttf") format("truetype");
-}
-
 .BuilderApp {
 	--builderBackgroundColor: #ffffff;
 	--builderAccentColor: #5551ff;
