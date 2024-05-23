@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "streamsync-hello"
+name = "writer-framework-hello"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
