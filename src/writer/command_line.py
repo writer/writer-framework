@@ -53,7 +53,7 @@ def _get_api_key(command, api_key: Optional[str]) -> Optional[str]:
         if env_key is not None and env_key != "": 
             return env_key
         else:
-            logging.info("An API key is required to deploy a Streamsync app.")
+            logging.info("An API key is required to deploy a Writer Framework app.")
             api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
             if api_key is None or api_key == "":
                 logging.error("No API key provided. Exiting.")
