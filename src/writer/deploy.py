@@ -21,7 +21,9 @@ def pack_project(path):
     print(f"Creating deployment package from path: {path}")
 
     files = []
-    match = parse_gitignore(os.path.join(path, ".gitignore"))
+    def match(file_path) -> bool: return False
+    if os.path.exists(os.path.join(path, ".gitignore")):
+        match = parse_gitignore(os.path.join(path, ".gitignore"))
     for root, _, filenames in os.walk(path):
         for filename in filenames:
             if ".git" in root.split(os.path.sep):
