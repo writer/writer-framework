@@ -322,7 +322,7 @@ onMounted(() => {
 	--builderWarningColor: #ff3d00;
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
-	font-family: "Poppins";
+	font-family: "Poppins", "Helvetica Neue", "Lucida Grande", sans-serif;
 	width: 100vw;
 	height: 100vh;
 	position: relative;
