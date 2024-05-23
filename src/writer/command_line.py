@@ -1,10 +1,12 @@
 import argparse
+import getpass
 import logging
 import os
 import shutil
 import sys
 from typing import Optional
 
+import writer.deploy
 import writer.serve
 
 
@@ -12,11 +14,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run, edit or create a Writer Framework app.")
     parser.add_argument("command", choices=[
-                        "run", "edit", "create", "hello"])
+                        "run", "edit", "create", "hello", "deploy"])
     parser.add_argument(
         "path", nargs="?", help="Path to the app's folder")
     parser.add_argument(
         "--port", help="The port on which to run the server.")
+    parser.add_argument(
+        "--api-key", help="The API key to use for deployment.")
     parser.add_argument(
         "--host", help="The host on which to run the server. Use 0.0.0.0 to share in your local network.")
     parser.add_argument(
@@ -37,14 +41,32 @@ def main():
     absolute_app_path = _get_absolute_app_path(
         args.path) if args.path else None
     host = args.host if args.host else None
+    api_key = args.api_key if args.api_key else None
 
-    _perform_checks(command, absolute_app_path, host, enable_remote_edit)
-    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name)
+    _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
+    api_key = _get_api_key(command, api_key)
+    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name, api_key)
 
-def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool]):
+def _get_api_key(command, api_key: Optional[str]) -> Optional[str]:
+    if command in ("deploy") and api_key is None:
+        env_key = os.getenv("WRITER_API_KEY", None)
+        if env_key is not None and env_key != "": 
+            return env_key
+        else:
+            logging.info("An API key is required to deploy a Writer Framework app.")
+            api_key = getpass.getpass(prompt='Enter your API key: ', stream=None)
+            if api_key is None or api_key == "":
+                logging.error("No API key provided. Exiting.")
+                sys.exit(1)
+            return api_key
+    else:
+        return api_key
+
+
+def _perform_checks(command: str, absolute_app_path: str, host: Optional[str], enable_remote_edit: Optional[bool], api_key: Optional[str] = None):
     is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
 
-    if command in ("run", "edit") and is_path_folder is False:
+    if command in ("run", "edit", "deploy") and is_path_folder is False:
         logging.error("A path to a folder containing a Writer Framework app is required. For example: writer edit my_app")
         sys.exit(1)
 
@@ -66,10 +88,13 @@ def _route(
     host: Optional[str],
     enable_remote_edit: Optional[bool],
     enable_server_setup: Optional[bool],
-    template_name: Optional[str]
+    template_name: Optional[str],
+    api_key: Optional[str] = None
 ):
     if host is None:
         host = "127.0.0.1"
+    if command in ("deploy"):
+        writer.deploy.deploy(absolute_app_path, api_key)
     if command in ("edit"):
         writer.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host,

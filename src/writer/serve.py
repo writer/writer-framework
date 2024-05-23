@@ -151,6 +151,10 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths
         )
 
+    @app.get("/api/health")
+    async def health():
+        return {"status": "ok"}
+
     @app.post("/api/init")
     async def init(initBody: InitRequestBody, request: Request, response: Response) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
 
