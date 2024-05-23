@@ -3,7 +3,7 @@ import sys
 import tarfile
 import tempfile
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 import requests
@@ -48,7 +48,7 @@ def upload_package(tar, token):
         print("Uploading package to deployment server")
         tar.seek(0)
         files = {'file': tar}
-        start_time = datetime.now(pytz.timezone('UTC')).isoformat()
+        start_time = datetime.now(pytz.timezone('UTC'))
         build_time = start_time
         with requests.post(
             url = WRITER_DEPLOY_URL, 
@@ -64,13 +64,13 @@ def upload_package(tar, token):
         print("Package uploaded. Building...")
         status = "WAITING"
         url = ""
-        while status not in ["COMPLETED", "FAILED"]:
-            end_time = datetime.now(pytz.timezone('UTC')).isoformat()
+        while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < start_time + timedelta(minutes=5):
+            end_time = datetime.now(pytz.timezone('UTC'))
             with requests.get(WRITER_DEPLOY_URL, params = {
                 "buildId": build_id,
-                "buildTime": build_time,
-                "startTime": start_time,
-                "endTime": end_time
+                "buildTime": build_time.isoformat(),
+                "startTime": start_time.isoformat(),
+                "endTime": end_time.isoformat()
             }, headers={"Authorization": f"Bearer {token}"}) as resp:
                 resp.raise_for_status()
                 data = resp.json()
