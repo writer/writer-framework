@@ -1,22 +1,22 @@
-# Streamsync app
+# Writer Framework app
 
 ## Editing the project
 
 ```bash
 poetry install
-poetry run streamsync edit .
+poetry run writer edit .
 ```
 
 ## Running the project
 
 ```bash
-poetry run streamsync run .
+poetry run writer run .
 ```
 
 ## Deploying the project
 
 ```bash
-poetry run streamsync deploy .
+poetry run writer deploy .
 ```
 
 
