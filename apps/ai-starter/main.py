@@ -3,7 +3,7 @@ import writer.ai
 
 # Welcome to Writer Framework! 
 # This template is a starting point for your AI apps.
-# More documentation is available at https://developer.writer.com
+# More documentation is available at https://developer.writer.com/framework
 
 
 # Initialise the state
