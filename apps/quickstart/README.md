@@ -1,22 +1,3 @@
-# Writer Framework app
+This app was created using Writer Framework.
 
-## Editing the project
-
-```bash
-poetry install
-poetry run writer edit .
-```
-
-## Running the project
-
-```bash
-poetry run writer run .
-```
-
-## Deploying the project
-
-```bash
-poetry run writer deploy .
-```
-
-
+To learn more about it, visit https://developer.writer.com/framework
