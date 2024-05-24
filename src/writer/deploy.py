@@ -11,11 +11,21 @@ from gitignore_parser import parse_gitignore
 
 WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
 
-print("Deploying to:", WRITER_DEPLOY_URL)
-
 def deploy(path, token):
     tar = pack_project(path)
     upload_package(tar, token)
+
+def undeploy(token):
+    try:
+        print("Undeploying app")
+        with requests.delete(WRITER_DEPLOY_URL, headers={"Authorization": f"Bearer {token}"}) as resp:
+            resp.raise_for_status()
+            print("App undeployed")
+            sys.exit(0)
+    except Exception as e:
+        print("Error undeploying app")
+        print(e)
+        sys.exit(1)
 
 def pack_project(path):
     print(f"Creating deployment package from path: {path}")
