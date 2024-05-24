@@ -3,6 +3,7 @@ from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Unio
 
 from httpx import Timeout
 from writerai import Writer
+from writerai._exceptions import WriterError
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
 from writerai.types import Chat, Completion, StreamingData
@@ -70,13 +71,20 @@ class WriterAIManager:
 
 
         :param token: Optional; the default token for API authentication used if WRITER_API_KEY environment variable is not set up.
+        :raises RuntimeError: If an API key was not provided to initialize SDK client properly.
         """
-
-        self.client = Writer(
-            # This is the default and can be omitted
-            api_key=token,
-        )
-
+        try:
+            self.client = Writer(
+                # This is the default and can be omitted
+                api_key=token,
+            )
+        except WriterError:
+            raise RuntimeError(
+                "Failed to acquire Writer API key. " +
+                "Provide it by either setting a WRITER_API_KEY" +
+                " environment variable, or by initializing the" +
+                " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
+                ) from None
         current_process = get_app_process()
         setattr(current_process, 'ai_manager', self)
 
@@ -88,13 +96,11 @@ class WriterAIManager:
 
         :returns: The current instance of the manager.
         """
-        instance: WriterAIManager
         current_process = get_app_process()
-        try:
-            instance = getattr(current_process, 'ai_manager')
-        except AttributeError:
-            # Instance was not initialized explicitly; creating a new one
-            instance = cls()
+
+        # If instance was not created explicitly, we initialize a new one
+        instance: WriterAIManager = \
+            getattr(current_process, 'ai_manager', cls())
         return instance
 
     @classmethod
