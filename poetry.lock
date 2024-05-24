@@ -44,13 +44,13 @@ doc = ["docutils", "jinja2", "myst-parser", "numpydoc", "pillow (>=9,<10)", "pyd
 
 [[package]]
 name = "annotated-types"
-version = "0.6.0"
+version = "0.7.0"
 description = "Reusable constraint types to use with typing.Annotated"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "annotated_types-0.6.0-py3-none-any.whl", hash = "sha256:0641064de18ba7a25dee8f96403ebc39113d0cb953a01429249d5c7564666a43"},
-    {file = "annotated_types-0.6.0.tar.gz", hash = "sha256:563339e807e53ffd9c267e99fc6d9ea23eb8443c08f112651963e24e22f84a5d"},
+    {file = "annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53"},
+    {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
 ]
 
 [[package]]
@@ -1046,22 +1046,22 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.20.26"
+version = "0.20.29"
 description = "Blazingly fast DataFrame library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "polars-0.20.26-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:97d0e4b6ab6b47fa07798b447189ee9505d2085ec1a64a6aa8a65fdd429cd49f"},
-    {file = "polars-0.20.26-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:c270e366b4d8b672b204e7d48e39d255641d3d2b7bdc3a0ccd968cf53934657f"},
-    {file = "polars-0.20.26-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:db35d6eed508256a797c7f1b8e9dec4aae9c11b891797b2d38fac5627d072d34"},
-    {file = "polars-0.20.26-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:25b00bd5cf44929722aa6389706559c5e8cedd6db2cfc38b27b706ed37e1b2af"},
-    {file = "polars-0.20.26-cp38-abi3-win_amd64.whl", hash = "sha256:b22063acc815bc5c6d2e24292ff771ca0df306ecf97e8f6899924a1ec6d3f136"},
-    {file = "polars-0.20.26.tar.gz", hash = "sha256:fa83d130562a5180a47f8763a7bb9f408dbbf51eafc1380e8a2951be8ce05a2c"},
+    {file = "polars-0.20.29-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:45e0de4839fd45385781f5bc1bf3d53571df16e04aa6722af094d34f689efaf1"},
+    {file = "polars-0.20.29-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:438e4c7e24a6d84dbebbe7a652dd818311ed23b7a3da384716b1db0f6d152e2a"},
+    {file = "polars-0.20.29-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:46dd26dd34cf4688025f821ac0591fc7fde24d6468c034228b0f74b76bb1bee3"},
+    {file = "polars-0.20.29-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:ac94306437435047c7530bb13f8a5a89b22dff18fc9a7d46380ae96eb1a04714"},
+    {file = "polars-0.20.29-cp38-abi3-win_amd64.whl", hash = "sha256:cd9b4728beb4744d0cfd947d08f5a1ce2cec9529208645e950299a5297b4b0bc"},
+    {file = "polars-0.20.29.tar.gz", hash = "sha256:79d9789afc33b0618400790f66045e590be61d0f47f45567a63e1b8b76ac0382"},
 ]
 
 [package.extras]
 adbc = ["adbc-driver-manager", "adbc-driver-sqlite"]
-all = ["polars[adbc,async,cloudpickle,connectorx,deltalake,fastexcel,fsspec,gevent,iceberg,numpy,pandas,plot,pyarrow,pydantic,sqlalchemy,timezone,torch,xlsx2csv,xlsxwriter]"]
+all = ["polars[adbc,async,cloudpickle,connectorx,deltalake,fastexcel,fsspec,gevent,iceberg,numpy,pandas,plot,pyarrow,pydantic,sqlalchemy,timezone,xlsx2csv,xlsxwriter]"]
 async = ["nest-asyncio"]
 cloudpickle = ["cloudpickle"]
 connectorx = ["connectorx (>=0.3.2)"]
@@ -1080,7 +1080,6 @@ pydantic = ["pydantic"]
 pyxlsb = ["pyxlsb (>=1.0)"]
 sqlalchemy = ["pandas", "sqlalchemy"]
 timezone = ["backports-zoneinfo", "tzdata"]
-torch = ["torch"]
 xlsx2csv = ["xlsx2csv (>=0.8.0)"]
 xlsxwriter = ["xlsxwriter"]
 
@@ -1451,13 +1450,13 @@ rpds-py = ">=0.7.0"
 
 [[package]]
 name = "requests"
-version = "2.31.0"
+version = "2.32.2"
 description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "requests-2.31.0-py3-none-any.whl", hash = "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f"},
-    {file = "requests-2.31.0.tar.gz", hash = "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"},
+    {file = "requests-2.32.2-py3-none-any.whl", hash = "sha256:fc06670dd0ed212426dfeb94fc1b983d917c4f9847c863f313c9dfaaffb7c23c"},
+    {file = "requests-2.32.2.tar.gz", hash = "sha256:dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289"},
 ]
 
 [package.dependencies]
@@ -1751,13 +1750,13 @@ files = [
 
 [[package]]
 name = "types-requests"
-version = "2.31.0.20240406"
+version = "2.32.0.20240523"
 description = "Typing stubs for requests"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-requests-2.31.0.20240406.tar.gz", hash = "sha256:4428df33c5503945c74b3f42e82b181e86ec7b724620419a2966e2de604ce1a1"},
-    {file = "types_requests-2.31.0.20240406-py3-none-any.whl", hash = "sha256:6216cdac377c6b9a040ac1c0404f7284bd13199c0e1bb235f4324627e8898cf5"},
+    {file = "types-requests-2.32.0.20240523.tar.gz", hash = "sha256:26b8a6de32d9f561192b9942b41c0ab2d8010df5677ca8aa146289d11d505f57"},
+    {file = "types_requests-2.32.0.20240523-py3-none-any.whl", hash = "sha256:f19ed0e2daa74302069bbbbf9e82902854ffa780bc790742a810a9aaa52f65ec"},
 ]
 
 [package.dependencies]
@@ -1765,13 +1764,13 @@ urllib3 = ">=2"
 
 [[package]]
 name = "typing-extensions"
-version = "4.11.0"
+version = "4.12.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.11.0-py3-none-any.whl", hash = "sha256:c1f94d72897edaf4ce775bb7558d5b79d8126906a14ea5ed1635921406c0387a"},
-    {file = "typing_extensions-4.11.0.tar.gz", hash = "sha256:83f085bd5ca59c80295fc2a82ab5dac679cbe02b9f33f7d83af68e241bea51b0"},
+    {file = "typing_extensions-4.12.0-py3-none-any.whl", hash = "sha256:b349c66bea9016ac22978d800cfff206d5f9816951f12a7d0ec5578b0a819594"},
+    {file = "typing_extensions-4.12.0.tar.gz", hash = "sha256:8cbcdc8606ebcb0d95453ad7dc5065e6237b6aa230a31e81d0f440c30fed5fd8"},
 ]
 
 [[package]]
