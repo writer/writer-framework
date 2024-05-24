@@ -1,0 +1,149 @@
+{
+    "metadata": {
+        "writer_version": "0.6.0rc4"
+    },
+    "components": {
+        "root": {
+            "id": "root",
+            "type": "root",
+            "content": {
+                "appName": "Social Post Generator Demo",
+                "cssClasses": ""
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "handlers": {},
+            "visible": true
+        },
+        "c0f99a9e-5004-4e75-a6c6-36f17490b134": {
+            "id": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "type": "page",
+            "content": {
+                "pageMode": "compact"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "root",
+            "handlers": {},
+            "visible": true
+        },
+        "bebc5fe9-63a7-46a7-b0fa-62303555cfaf": {
+            "id": "bebc5fe9-63a7-46a7-b0fa-62303555cfaf",
+            "type": "header",
+            "content": {
+                "text": "SOCIAL POST GENERATOR"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "handlers": {},
+            "visible": true
+        },
+        "q237uluwl8idg8is": {
+            "id": "q237uluwl8idg8is",
+            "type": "text",
+            "content": {
+                "text": "@{posts}",
+                "useMarkdown": "yes"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "4k8f6ju68i8qej2s",
+            "handlers": {},
+            "visible": ""
+        },
+        "xszjpksyo1sfdu0c": {
+            "id": "xszjpksyo1sfdu0c",
+            "type": "section",
+            "content": {
+                "title": "",
+                "containerBackgroundColor": "#EDE2FF",
+                "accentColor": "#721CC9"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "handlers": {},
+            "visible": true
+        },
+        "3fbhifcljb3mqnpv": {
+            "id": "3fbhifcljb3mqnpv",
+            "type": "textinput",
+            "content": {
+                "label": "Generate social posts about..."
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "xszjpksyo1sfdu0c",
+            "visible": true,
+            "binding": {
+                "eventType": "wf-change",
+                "stateRef": "topic"
+            }
+        },
+        "v8o8h5estbx22uw7": {
+            "id": "v8o8h5estbx22uw7",
+            "type": "button",
+            "content": {
+                "text": "Generate posts",
+                "icon": "arrow_forward"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "xszjpksyo1sfdu0c",
+            "handlers": {
+                "wf-click": "handle_button_click"
+            },
+            "visible": true
+        },
+        "hhmi0u8nksz57cbc": {
+            "id": "hhmi0u8nksz57cbc",
+            "type": "message",
+            "content": {
+                "message": "@{message}",
+                "loadingColor": "#D4FFF2"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "xszjpksyo1sfdu0c",
+            "handlers": {},
+            "visible": "message"
+        },
+        "4k8f6ju68i8qej2s": {
+            "id": "4k8f6ju68i8qej2s",
+            "type": "section",
+            "content": {
+                "title": "",
+                "containerBackgroundColor": "#F6EFFD",
+                "containerShadow": "none"
+            },
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "xszjpksyo1sfdu0c",
+            "handlers": {},
+            "visible": "posts"
+        },
+        "o1753ot0w2n4704o": {
+            "id": "o1753ot0w2n4704o",
+            "type": "tags",
+            "content": {
+                "tags": "@{tags}"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "4k8f6ju68i8qej2s",
+            "handlers": {},
+            "visible": true
+        },
+        "ywzboz2fup220b1d": {
+            "id": "ywzboz2fup220b1d",
+            "type": "separator",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "4k8f6ju68i8qej2s",
+            "handlers": {},
+            "visible": true
+        }
+    }
+}
