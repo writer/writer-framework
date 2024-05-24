@@ -1,6 +1,7 @@
+import re
+
 import writer as wf
 import writer.ai
-import re
 
 # Welcome to Writer Framework! 
 # This is a simple app to get you started with text completion.
