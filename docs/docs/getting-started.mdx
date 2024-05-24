@@ -1,74 +1,84 @@
 ﻿---
-title: "Getting Started"
+title: "Quickstart"
 ---
 
 ## Install it and run the demo app
 
-It works on Linux, Mac and Windows. Python 3.9.2 or higher is required.
+<Tip>
+It works on Linux, Mac and Windows. Python 3.9.2 or higher is required. We recommend using a virtual environment.
+</Tip>
 
-```sh
-pip install "streamsync[ds]"
-streamsync hello
-```
-
-- The first command will install Streamsync using `pip` and include the optional data science dependencies.
-- The second command will create a demo application in the subfolder "hello" and start Streamsync Builder, the framework's visual editor, which will be accessible via a local URL.
-
-We recommend using a virtual environment.
+<Steps>
+  <Step title="Install Framework">
+    Use the following command to install the necessary framework using `pip`. Open your command line interface and type:
+    ```bash
+    pip install writer
+    ```
+    This will download and install Framework and all its required dependencies.
+  </Step>
+  <Step title="Start demo application">
+    Once the installation is complete, you can create a demo application and start the Framework. To do this, navigate to your desired directory and run:
+    ```bash
+    writer hello
+    ```
+    This command creates a subfolder named **hello** and initiates the Framework, which opens a visual editor accessible through a local URL displayed in your command line.
+  </Step>
+</Steps>
 
 ## Create an app
 
-You can use the command `streamsync create`, which will create a placeholder app in the path provided.
+You can use the command `writer create`, which will create a placeholder app in the path provided.
 
 ```sh
-streamsync create [path]
+writer create [path]
 
 # Creates a new app in folder "testapp"
-streamsync create testapp
+writer create testapp
 ```
 
-A Streamsync app is a folder with the following items.
+A Framework app is a folder with the following items.
 
-- `main.py`. The entry point for the app. You can import anything you need from here.
-- `ui.json`. Contains the UI component declarations. Maintained by Builder, the framework's visual editor.
-- `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images and stylesheets.
+1. `main.py`. The entry point for the app. You can import anything you need from here.
+2. `ui.json`. Contains the UI component declarations. Maintained by Builder, the framework's visual editor.
+3. `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images and stylesheets.
 
 ## Start the editor
 
-You can use the command `streamsync edit`.
+You can use the command `writer edit`.
 
 ```sh
-streamsync edit [path]
+writer edit [path]
 
 # Edit the application in subfolder "testapp"
-streamsync edit testapp
+writer edit testapp
 ```
 
 This command will provide you with a local URL which you can use to access Builder.
 
 <Warning>
-It's not recommended to expose Streamsync Builder to the Internet.
-If you need to access Builder remotely, we recommend setting up a SSH tunnel. By default, requests from non-local origins are rejected, as a security measure to protect against drive-by attacks. If you need to disable this protection, use the flag `--enable-remote-edit`. 
+It's not recommended to expose Framework to the Internet. If you need to access Builder remotely, we recommend setting up a SSH tunnel. By default, requests from non-local origins are rejected, as a security measure to protect against drive-by attacks. 
+
+If you need to disable this protection, use the flag `--enable-remote-edit`. 
 </Warning>
 
 ## Run an app
 
-When your app is ready, execute the `run` command, which will allow others to run, but not edit, your Streamsync app.
+When your app is ready, execute the `run` command, which will allow others to run, but not edit, your Framework app.
 
 ```sh
-streamsync run my_app
+writer run my_app
 ```
 
 You can specify a port and host. Specifying `--host 0.0.0.0` enables you to share your application in your local network.
 
 ```sh
-streamsync run my_app --port 5000 --host 0.0.0.0
+writer run my_app --port 5000 --host 0.0.0.0
 ```
 
 ## Run as a module
 
-If you need to run Streamsync as a module, you can use the `streamsync.command_line` module.
+If you need to run Framework as a module, you can use the `writer.command_line` module.
 
 ```sh
-python -m streamsync.command_line run my_app
+python -m writer.command_line run my_app
 ```

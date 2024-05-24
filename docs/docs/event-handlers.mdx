@@ -2,11 +2,11 @@
 title: "Event handlers"
 ---
 
-Events originate in the frontend. For example, when a user clicks a _Button_ component. Using Builder, these events can be linked to event handlers.
+Events originate in the frontend, for example, when a user clicks a _Button_ component. Using Builder, these events can be linked to event handlers.
 
 ## Plain Python functions
 
-Event handlers are Python functions accessible from `main.py`. They can be defined in that same file or imported. No decorators or special syntax required.
+Event handlers are Python functions accessible from `main.py`. They can be defined in that same file or imported. No decorators or special syntax are required.
 
 ```py
 # This event handler will add an entry to the log
@@ -26,73 +26,70 @@ def _reticulate(splines):
 
 ### External handlers
 
-If you find that your `main.py` contains too many handler functions, and you want to organize them more effectively, you can use the **`init_handlers`** method to register functions from other modules as handlers. This method accepts an imported module as its argument.
+If your `main.py` file has become cluttered with too many handler functions, you can organize them more effectively using the `init_handlers` method. This method allows you to register handler functions from other modules. You can pass a single imported module or a list of modules to the init_handlers method to register multiple handlers simultaneously:
 
-```py
+<CodeGroup>
+```py one_handler
 # my_app/my_handlers_module.py
 
 def increment(state):
     state["counter"] += 1
-
 ```
-```py
+```py init_handlers one module
 # my_app/main.py
 
-import streamsync as ss
+import writer as wf
 import my_handlers_module
 
-ss.init_handlers(my_handlers_module)
+wf.init_handlers(my_handlers_module)
 # Register all functions from the module as handlers;
 # this makes `increment` handler accessible on frontend
 ```
 
-Or, additionally, you can pass a list of modules to register them all at once:
-```py
+```py init_handlers many modules
 # my_app/main.py
 
-import streamsync as ss
+import writer as wf
 import handler_module_one
 import handler_module_two
 
-ss.init_handlers([handler_module_one, handler_module_two])
+wf.init_handlers([handler_module_one, handler_module_two])
 ```
+</CodeGroup>
 
-::: warning Each function inside a module is attempted to be registered as a handler
-Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to frontend.
-:::
+<Warning>
+Each function inside a module is attempted to be registered as a handler. Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to frontend.
+</Warning>
 
 You can also call `init_handlers` within other modules, which allows for a sequence of registrations:
 
-```py
+<CodeGroup>
+```py another_handlers_module
 # my_app/another_handlers_module.py
 
 def decrement(state):
     state["counter"] -= 1
-
 ```
-
-```py
+```py register_additional_handlers
 # my_app/my_handlers_module.py
 
-import streamsync as ss
+import writer as wf
 import another_handlers_module
 
-ss.init_handlers(another_handlers_module)
+wf.init_handlers(another_handlers_module)
 # Makes `decrement` handler accessible on frontend
 
 ...
-
 ```
-
-```py
+```py my_handlers_module
 # my_app/main.py
 
-import streamsync as ss
+import writer as wf
 import my_handlers_module
 
 ...
-
 ```
+</CodeGroup>
 
 Note that for this "chain" to work, you need to import the final module in the sequence into `main.py`.
 
@@ -143,7 +140,7 @@ Make sure you perform an assignment on the state element you're mutating, for th
 
 Several events include additional data, known as the event's payload. The event handler can receive that data using the `payload` argument.
 
-For example, the `ss-change` event in a _Text Input_ component is triggered every time the value changes. As a payload, it includes the new value.
+For example, the `wf-change` event in a _Text Input_ component is triggered every time the value changes. As a payload, it includes the new value.
 
 ```py
 def handle_input_change(state, payload):
@@ -253,4 +250,4 @@ def handle_repeater_click(state, context: dict):
 	state['repeater_content'][key]['last_action'] = 'Clicked' 
 ```
 
-more information in [repeater chapter](repeater.md)
+More information in [Repeater chapter](/framework/repeater)
