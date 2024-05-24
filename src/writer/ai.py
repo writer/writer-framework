@@ -3,9 +3,9 @@ from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Unio
 
 from httpx import Timeout
 from writerai import Writer
+from writerai._exceptions import WriterError
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
-from writerai._exceptions import WriterError
 from writerai.types import Chat, Completion, StreamingData
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 
