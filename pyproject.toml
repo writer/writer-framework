@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "0.6.0rc3"
+version = "0.6.0rc4"
 description = "Writer Framework helps you create performant data apps, via Python code and its built-in visual UI editor."
 authors = ["Writer, Inc. <dev-feedback@writer.com>"]
 readme = "README.md"
