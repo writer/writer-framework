@@ -97,7 +97,7 @@ function updateTitle(appName: string) {
 	width: 100%;
 	outline: none;
 	--notificationsDisplacement: 0;
-	font-family: Poppins, sans-serif;
+	font-family: Poppins, "Helvetica Neue", "Lucida Grande", sans-serif;
 	font-size: 0.8rem;
 	color: var(--primaryTextColor);
 	background: var(--emptinessColor);

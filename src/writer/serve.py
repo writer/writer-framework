@@ -151,6 +151,10 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths
         )
 
+    @app.get("/api/health")
+    async def health():
+        return {"status": "ok"}
+
     @app.post("/api/init")
     async def init(initBody: InitRequestBody, request: Request, response: Response) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
 
@@ -445,12 +449,23 @@ def get_asgi_app(
 
 
 def print_init_message():
-    GREEN_TOKEN = "\033[92m"
-    END_TOKEN = "\033[0m"
+    print(f"""               
+                                                               
+                   &@@@@@@@@@@     ,@@@@@@@@@@*     @@@@@@@@@@                  
+                   .@@@@@@@@@@(     &@@@@@@@@@@     *@@@@@@@@*                  
+                    %@@@@@@@@@@     .@@@@@@@@@@(     @@@@@@@@                   
+                     @@@@@@@@@@&     #@@@@@@@@@@      @@@@@@                    
+                     ,@@@@@@@@@@,     @@@@@@@@@@@     (@@@@(                    
+                      &@@@@@@@@@@     .@@@@@@@@@@*     @@@@                     
+                       @@@@@@@@@@%     %@@@@@@@@@@     .@@,                     
+                       (@@@@@@@@@@.     @@@@@@@@@@%     %&                      
+                        @@@@@@@@@@&     (@@@@@@@@@@      .                      
+                        *@@@@@@@@@@,     @@@@@@@@@@&                            
+                         @@@@@@@@@@@     ,@@@@@@@@@@*                           
+                          @@@@@@@@@@#     %@@@@@@@@@@ 
 
-    print(f"""{ GREEN_TOKEN }
-Writer Framework v{VERSION}    
-{END_TOKEN}""")
+
+WRITER FRAMEWORK v{VERSION}""")
 
 
 def print_route_message(run_name: str, port: int, host: str):

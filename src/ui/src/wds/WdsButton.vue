@@ -21,6 +21,7 @@ button {
 	color: var(--buttonTextColor);
 	cursor: pointer;
 	box-shadow: var(--buttonShadow);
+	outline: none;
 }
 
 button:hover,

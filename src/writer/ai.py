@@ -3,6 +3,7 @@ from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Unio
 
 from httpx import Timeout
 from writerai import Writer
+from writerai._exceptions import WriterError
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
 from writerai.types import Chat, Completion, StreamingData
@@ -12,6 +13,7 @@ from writer.core import get_app_process
 
 
 class ChatOptions(TypedDict, total=False):
+    model: str
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
     stop: Union[List[str], str, NotGiven]
@@ -24,6 +26,7 @@ class ChatOptions(TypedDict, total=False):
 
 
 class CreateOptions(TypedDict, total=False):
+    model: str
     best_of: Union[int, NotGiven]
     max_tokens: Union[int, NotGiven]
     random_seed: Union[int, NotGiven]
@@ -68,13 +71,20 @@ class WriterAIManager:
 
 
         :param token: Optional; the default token for API authentication used if WRITER_API_KEY environment variable is not set up.
+        :raises RuntimeError: If an API key was not provided to initialize SDK client properly.
         """
-
-        self.client = Writer(
-            # This is the default and can be omitted
-            api_key=token,
-        )
-
+        try:
+            self.client = Writer(
+                # This is the default and can be omitted
+                api_key=token,
+            )
+        except WriterError:
+            raise RuntimeError(
+                "Failed to acquire Writer API key. " +
+                "Provide it by either setting a WRITER_API_KEY" +
+                " environment variable, or by initializing the" +
+                " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
+                ) from None
         current_process = get_app_process()
         setattr(current_process, 'ai_manager', self)
 
@@ -86,13 +96,11 @@ class WriterAIManager:
 
         :returns: The current instance of the manager.
         """
-        instance: WriterAIManager
         current_process = get_app_process()
-        try:
-            instance = getattr(current_process, 'ai_manager')
-        except AttributeError:
-            # Instance was not initialized explicitly; creating a new one
-            instance = cls()
+
+        # If instance was not created explicitly, we initialize a new one
+        instance: WriterAIManager = \
+            getattr(current_process, 'ai_manager', cls())
         return instance
 
     @classmethod
@@ -287,25 +295,26 @@ class Conversation:
         """
         self.__add__({"role": role, "content": message})
 
-    def complete(self, data: Optional['ChatOptions'] = None) -> 'Conversation.Message':
+    def complete(self, config: Optional['ChatOptions'] = None) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
-        :param data: Optional parameters to pass for processing.
+        :param config: Optional parameters to pass for processing.
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
-        if not data:
-            data = {'max_tokens': 2048}
+        if not config:
+            config = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
-        request_data: ChatOptions = {**data, **self.config}
+        request_data: ChatOptions = {**config, **self.config}
+        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response_data: Chat = client.chat.chat(
             messages=passed_messages,
-            model=WriterAIManager.use_chat_model(),
+            model=request_model,
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
             stop=request_data.get('stop', NotGiven()),
@@ -323,24 +332,25 @@ class Conversation:
                 return cast(Conversation.Message, message.model_dump())
         raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
-    def stream_complete(self, data: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
+    def stream_complete(self, config: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
 
-        :param data: Optional parameters to pass for processing.
+        :param config: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
         """
-        if not data:
-            data = {'max_tokens': 2048}
+        if not config:
+            config = {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
-        request_data: ChatOptions = {**data, **self.config}
+        request_data: ChatOptions = {**config, **self.config}
+        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
         response: Stream = client.chat.chat(
             messages=passed_messages,
-            model=WriterAIManager.use_chat_model(),
+            model=request_model,
             stream=True,
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
@@ -381,21 +391,35 @@ class Conversation:
         return serialized_messages
 
 
-def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
+def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str:
     """
     Completes the input text using the given data and returns the first resulting text choice.
 
     :param initial_text: The initial text prompt for the completion.
-    :param data: Optional dictionary containing parameters for the completion call.
+    :param config: Optional dictionary containing parameters for the completion call.
     :return: The text of the first choice from the completion response.
     :raises RuntimeError: If response data was not properly formatted to retrieve model text.
     """
-    if not data:
-        data = {}
+    if not config:
+        config = {}
 
     client = WriterAIManager.acquire_client()
+    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
 
-    response_data: Completion = client.completions.create(prompt=initial_text, model=WriterAIManager.use_completion_model(), **data)
+    response_data: Completion = client.completions.create(
+        model=request_model,
+        prompt=initial_text,
+        best_of=config.get("best_of", NotGiven()),
+        max_tokens=config.get("max_tokens", NotGiven()),
+        random_seed=config.get("random_seed", NotGiven()),
+        stop=config.get("stop", NotGiven()),
+        temperature=config.get("temperature", NotGiven()),
+        top_p=config.get("top_p", NotGiven()),
+        extra_headers=config.get("extra_headers"),
+        extra_body=config.get("extra_body"),
+        extra_query=config.get("extra_query"),
+        timeout=config.get("timeout")
+        )
 
     for entry in response_data.choices:
         text = entry.text
@@ -405,20 +429,36 @@ def complete(initial_text: str, data: Optional['CreateOptions'] = None) -> str:
     raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
 
 
-def stream_complete(initial_text: str, data: Optional['CreateOptions'] = None) -> Generator[str, None, None]:
+def stream_complete(initial_text: str, config: Optional['CreateOptions'] = None) -> Generator[str, None, None]:
     """
     Streams completion results from an initial text prompt, yielding each piece of text as it is received.
 
     :param initial_text: The initial text prompt for the stream completion.
-    :param data: Optional dictionary containing parameters for the stream completion call.
+    :param config: Optional dictionary containing parameters for the stream completion call.
     :yields: Each text completion as it arrives from the stream.
     """
-    if not data:
-        data = {"max_tokens": 2048}
+    if not config:
+        config = {"max_tokens": 2048}
 
     client = WriterAIManager.acquire_client()
+    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
 
-    response: Stream = client.completions.create(prompt=initial_text, model=WriterAIManager.use_completion_model(), stream=True, **data)
+    response: Stream = client.completions.create(
+        model=request_model,
+        prompt=initial_text,
+        stream=True,
+        best_of=config.get("best_of", NotGiven()),
+        max_tokens=config.get("max_tokens", NotGiven()),
+        random_seed=config.get("random_seed", NotGiven()),
+        stop=config.get("stop", NotGiven()),
+        temperature=config.get("temperature", NotGiven()),
+        top_p=config.get("top_p", NotGiven()),
+        extra_headers=config.get("extra_headers"),
+        extra_body=config.get("extra_body"),
+        extra_query=config.get("extra_query"),
+        timeout=config.get("timeout")
+        )
+
     for line in response:
         processed_line = _process_completion_data_chunk(line)
         if processed_line:
