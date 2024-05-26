@@ -2,23 +2,16 @@
 	"name": "writer-docs",
 	"version": "0.2.4",
 	"description": "",
-	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"dev": "vitepress dev docs",
-		"build": "vitepress build docs",
-		"preview": "vitepress preview docs",
+		"preview": "cd docs; mintlify dev",
 		"test": "jest",
 		"codegen": "node codegen/generator_components_pages.mjs"
 	},
 	"dependencies": {
-		"highlight.js": "^11.9.0",
-		"marked": "^12.0.1",
-		"monaco-editor": "^0.47.0",
-		"writer-ui": "*",
-		"vite-plugin-monaco-editor": "^1.1.0",
-		"vitepress": "^1.0.2",
-		"vue": "^3.4.21"
+		"mintlify": "^4.0.160",
+		"nunjucks": "^3.2.4",
+		"writer-ui": "*"
 	},
 	"devDependencies": {
 		"jest": "29.7.0"

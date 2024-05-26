@@ -1,0 +1,64 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Writer framework",
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "navigation": [
+    {
+      "group": "Guide",
+      "pages": [
+        "quickstart-tutorial",
+        "builder-basics",
+        "application-state",
+        "event-handlers",
+        "handling-inputs"
+      ]
+    },
+    {
+      "group": "Advanced",
+      "pages": [
+        "repeater",
+        "backend-initiated-actions",
+        "page-routes",
+        "sessions",
+        "custom-server",
+        "state-schema",
+        "backend-driven-ui"
+      ]
+    },
+    {
+      "group": "Extending it",
+      "pages": [
+        "stylesheets",
+        "frontend-scripts",
+        "custom-components"
+      ]
+    },
+    {
+      "group": "Components",
+      "pages": [
+        "components/avatar",
+        "components/chatbot"
+      ]
+    },
+    {
+      "group": "Tutorials",
+      "pages": ["docs/quickstart-tutorial"]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+		"testing",
+		"deploy-with-docker"
+	  ]
+    }
+  ]
+}

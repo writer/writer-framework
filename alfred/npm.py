@@ -21,10 +21,6 @@ def npm_build():
 def npm_build_custom_components():
     alfred.run("npm run ui:custom.build")
 
-@alfred.command("npm.docs", help="build docs", hidden=True)
-def npm_docs():
-    alfred.run("npm run docs:build")
-
 @alfred.command("npm.docs.test", help="test against documentation")
 def npm_docs_test():
     alfred.run("npm run docs:test")
