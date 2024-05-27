@@ -14,22 +14,22 @@ import * as core from "./core.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const docDirectory = path.resolve(__dirname, "..", "docs");
-const docComponentsDirectory = path.resolve(docDirectory, "components");
+// const frameworkDirectory = path.resolve(__dirname, "..", "framework");
+const componentsDirectory = path.resolve(__dirname, "..", "components");
 
 
 export async function generate() {
 	// eslint-disable-next-line no-console
-	console.log("generate doc components pages into", docComponentsDirectory);
+	console.log("generate doc components pages into", componentsDirectory);
 	nunjucks.configure({ autoescape: true });
 
-	if (!fs.existsSync(docComponentsDirectory)) {
-		fs.mkdirSync(docComponentsDirectory);
+	if (!fs.existsSync(componentsDirectory)) {
+		fs.mkdirSync(componentsDirectory);
 	}
 
 	components.map((component) => {
 		// eslint-disable-next-line prettier/prettier
-		const componentPageTemplate = path.resolve(docComponentsDirectory, "component_page.mdx.tpl");
+		const componentPageTemplate = path.resolve(componentsDirectory, "component_page.mdx.tpl");
 		const page = fs.readFileSync(componentPageTemplate, "utf8");
 
 		component.low_code_usage = core.generateLowCodeUsage(component)
@@ -37,7 +37,7 @@ export async function generate() {
 
 		const renderedPage = nunjucks.renderString(page, component);
 
-		const componentPath = path.resolve(docComponentsDirectory, `${component.type}.mdx`);
+		const componentPath = path.resolve(componentsDirectory, `${component.type}.mdx`);
 		fs.writeFileSync(componentPath, renderedPage);
 	});
 }

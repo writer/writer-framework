@@ -5,7 +5,7 @@ describe('Components docs', () => {
 	for (const component of components) {
 		it(`${component.name} - should have an image`, () => {
 			expect(() => {
-				fs.accessSync(`./docs/public/components/${component.type}.png`);
+				fs.accessSync(`./framework/public/components/${component.type}.png`);
 			}).not.toThrow();
 		});
 	}
