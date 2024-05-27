@@ -41,3 +41,5 @@ export async function generate() {
 		fs.writeFileSync(componentPath, renderedPage);
 	});
 }
+
+generate();

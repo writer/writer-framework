@@ -56,6 +56,12 @@
 				"docs/docs/custom-server",
 				"docs/docs/state-schema"
 			]
+		},
+		{
+			"group": "Component list",
+			"pages": [
+				"docs/docs/components/avatar"
+			]
 		}
 	],
 	"footerSocials": {
