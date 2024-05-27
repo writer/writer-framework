@@ -5,7 +5,7 @@ mode: "wide"
 
 {{ description }}
 
-<img src="/public/components/{{type}}.png" />
+<img src="/framework/public/components/{{type}}.png" />
 
 {{ docs }}
 
@@ -14,10 +14,10 @@ mode: "wide"
 
 <table>
 	<thead>
-		<td>Name</td>
-		<td>Type</td>
-		<td>Description</td>
-		<td>Options</td>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Description</th>
+		<th>Options</th>
 	</thead>
 	<tbody>
 		{% for _, field in fields %}
