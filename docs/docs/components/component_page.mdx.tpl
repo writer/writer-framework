@@ -1,5 +1,6 @@
 ---
 title: {{ name }}
+mode: "wide"
 ---
 
 {{ description }}
@@ -18,43 +19,38 @@ title: {{ name }}
 		<td>Description</td>
 		<td>Options</td>
 	</thead>
-	{% for _, field in fields %}
-	<tr>
-		<td>{{ field.name }}</td>
-		<td>{{ field.type }}</td>
-		<td>{{ field.desc }}</td>
-		<td>
-			<ul>
-				{% for _, option in field.options %}
-				<li>{{ option }}</li>
-				{% endfor %}
-			</ul>
-		</td>
-	</tr>
-	{% endfor %}
+	<tbody>
+		{% for _, field in fields %}
+		<tr>
+			<td>{{ field.name }}</td>
+			<td>{{ field.type }}</td>
+			<td>{{ field.desc }}</td>
+			<td>
+				<ol>
+					{% for _, option in field.options %}
+					<li>{{ option }}</li>
+					{% endfor %}
+				</ol>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
 </table>
 {% endif %}
 
 {% if events %}
 ## Events
-<table>
-	<thead>
-		<td>Name</td>
-		<td>Description</td>
-		<td>Usage</td>
-	</thead>
-	{% for event, eventInfo in events %}
-	<tr>
-		<td>{{ event }}</td>
-		<td>{{ eventInfo.desc }}</td>
-		<td>
-```python
-{{ eventInfo.stub | safe }}
-```
-		</td>
-	</tr>
-	{% endfor %}
-</table>
+<AccordionGroup>
+  {% for event, eventInfo in events %}
+  <Accordion title="{{ event }}" icon="code">
+    {{ eventInfo.desc }}
+
+    ```python
+	{{ eventInfo.stub | safe }}
+	```
+  </Accordion>
+  {% endfor %}
+</AccordionGroup>
 {% endif %}
 
 ## Low code usage

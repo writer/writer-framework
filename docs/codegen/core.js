@@ -37,8 +37,7 @@ export function generateLowCodeUsage(component) {
  */
 export function generateEventHandler() {
 	let code = `def handle_event(state, payload, context, ui):
-  pass
-`
+  pass`
 	return code
 }
 

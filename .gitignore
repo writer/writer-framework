@@ -23,3 +23,4 @@ src/ui/components.codegen.json
 playground/
 *.mp4
 .turbo
+styles.css

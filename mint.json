@@ -60,7 +60,8 @@
 		{
 			"group": "Component list",
 			"pages": [
-				"docs/docs/components/avatar"
+				"docs/docs/components/avatar",
+				"docs/docs/components/button"
 			]
 		}
 	],
