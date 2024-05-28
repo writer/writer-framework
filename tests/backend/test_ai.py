@@ -40,15 +40,15 @@ pytest ./tests/backend/test_ai.py --full-run
 ```
 """
 
-import httpx
 import os
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from writerai import Writer
-from writerai.types import Chat, Completion, StreamingData, ChatStreamingData
-from writerai._streaming import Stream
-from writer.ai import Conversation, complete, stream_complete, init, WriterAIManager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
+import pytest
+from writer.ai import Conversation, WriterAIManager, complete, init, stream_complete
+from writerai import Writer
+from writerai._streaming import Stream
+from writerai.types import Chat, ChatStreamingData, Completion, StreamingData
 
 # Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
