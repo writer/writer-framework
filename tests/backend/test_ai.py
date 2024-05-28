@@ -40,7 +40,6 @@ pytest ./tests/backend/test_ai.py --full-run
 ```
 """
 
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -49,6 +48,7 @@ from writer.ai import Conversation, WriterAIManager, complete, init, stream_comp
 from writerai import Writer
 from writerai._streaming import Stream
 from writerai.types import Chat, ChatStreamingData, Completion, StreamingData
+
 
 # Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
@@ -252,6 +252,7 @@ def test_conversation_serialized_messages_excludes_system():
         {"role": "assistant", "content": "Hi, how can I help?", "actions": None}
 
 
+@pytest.mark.set_token("fake_token")
 @pytest.mark.asyncio
 def test_conversation_complete(emulate_app_process, mock_non_streaming_client):
     conversation = Conversation()
@@ -261,6 +262,7 @@ def test_conversation_complete(emulate_app_process, mock_non_streaming_client):
     assert response["content"] == "Response"
 
 
+@pytest.mark.set_token("fake_token")
 def test_conversation_stream_complete(emulate_app_process, mock_streaming_client):
     # Create the Conversation object and collect the response chunks
     conversation = Conversation("Initial prompt")
@@ -273,18 +275,21 @@ def test_conversation_stream_complete(emulate_app_process, mock_streaming_client
     assert " ".join(chunk["content"] for chunk in response_chunks) == "part1 part2"
 
 
+@pytest.mark.set_token("fake_token")
 def test_complete(emulate_app_process, mock_non_streaming_client):
     response = complete("test")
 
     assert response == test_complete_literal
 
 
+@pytest.mark.set_token("fake_token")
 def test_stream_complete(emulate_app_process, mock_streaming_client):
     response_chunks = list(stream_complete("test"))
 
     assert "".join(response_chunks) == "part1 part2"
 
 
+@pytest.mark.set_token("fake_token")
 def test_init_writer_ai_manager(emulate_app_process):
     manager = init("fake_token")
     assert isinstance(manager, WriterAIManager)
