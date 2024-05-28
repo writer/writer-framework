@@ -49,7 +49,6 @@ from writerai import Writer
 from writerai._streaming import Stream
 from writerai.types import Chat, ChatStreamingData, Completion, StreamingData
 
-
 # Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
 
