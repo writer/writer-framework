@@ -96,11 +96,14 @@ class WriterAIManager:
 
         :returns: The current instance of the manager.
         """
+        instance: WriterAIManager
         current_process = get_app_process()
 
         # If instance was not created explicitly, we initialize a new one
-        instance: WriterAIManager = \
-            getattr(current_process, 'ai_manager', cls())
+        try:
+            instance = getattr(current_process, 'ai_manager')
+        except AttributeError:
+            instance = cls()
         return instance
 
     @classmethod
