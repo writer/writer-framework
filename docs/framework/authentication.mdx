@@ -4,7 +4,7 @@ title: "Authentication"
 
 The Writer framework authentication module allows you to restrict access to your application.
 
-Writer framework offers either simple password authentication or identity provider authentication (Google, Microsoft, Facebook, Github, Auth0, etc.).
+Framework will be able to authenticate a user through an identity provider such as Google, Microsoft, Facebook, Github, Auth0, etc.
 
 <Warning>
   Authentication is done before accessing the application. It is not possible to
@@ -53,7 +53,7 @@ modifying the value of delay_after_failure.
 Authentication configuration is done in the `server_setup.py` [module](custom-server.md). The configuration depends on your identity provider.
 Here is an example configuration for Google.
 
-![Authentication OIDC Principle](/framework/images/authentication_oidc_principle.png)
+![Authentication OIDC Principle](/framework/images/auth.png)
 
 **server_setup.py**
 
@@ -80,9 +80,9 @@ Writer framework provides pre-configured OIDC providers. You can use them direct
 
  | Provider | Function                 | Description                                                                             |
  | -------- | ------------------------ | --------------------------------------------------------------------------------------- |
- | Google   | `streamsync.auth.Google` | Allow your users to login with their Google Account                                     |
- | Github   | `streamsync.auth.Github` | Allow your users to login with their Github Account                                     |
- | Auth0    | `streamsync.auth.Auth0`  | Allow your users to login with different providers or with login password through Auth0 |
+ | Google   | `writer.auth.Google` | Allow your users to login with their Google Account                                     |
+ | Github   | `writer.auth.Github` | Allow your users to login with their Github Account                                     |
+ | Auth0    | `writer.auth.Auth0`  | Allow your users to login with different providers or with login password through Auth0 |
 
 #### Google
 

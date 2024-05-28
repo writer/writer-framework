@@ -2,11 +2,11 @@
 title: "Introduction"
 ---
 
-## What is Streamsync?
+## What is Framework?
 
-Streamsync is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python.
+Framework is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python.
 
-![Streamsync Builder screenshot](/framework/public/builder.png)
+![Framework Builder screenshot](/framework/public/builder.png)
 
 It's an alternative to Plotly Dash, Streamlit and Gradio. Its focused on the creation of web applications for data analytics and machine learning.
 
@@ -21,12 +21,12 @@ Event handlers are defined as plain, easily-testable Python functions.
 def handle_increment(state):
     state["counter"] += 1
 
-ss.init_state({
+wf.init_state({
     "counter": 0
 })
 ```
 
-The event handler and state are linked to the UI using Streamsync Builder, the framework's visual editor.
+The event handler and state are linked to the UI using Framework Builder, the framework's visual editor.
 
 ![Counter Increment example](/framework/public/introduction.counter.gif)
 

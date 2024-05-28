@@ -2,18 +2,18 @@
 title: "State schema"
 ---
 
-Schema declarations on the [Application state](./application-state) allows Streamsync to handle complex serialisation 
+Schema declarations on the [Application state](./application-state) allows Framework to handle complex serialisation 
 scenarios, while also allowing your IDE and toolchains to provide autocomplete and type checking.
 
 ## Schema declaration
 
 ```python
-import streamsync as ss
+import writer as wf
 
-class AppSchema(ss.StreamsyncState):
+class AppSchema(wf.StreamsyncState):
     counter: int
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 0
 }, schema=AppSchema)
 
@@ -33,7 +33,7 @@ def increment(state: AppSchema):
 Attributes missing from the schema remain accessible by their key.
 
 ```python
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 0,
     "message": None
 }, schema=AppSchema)
@@ -47,14 +47,14 @@ def increment(state: AppSchema):
 Schema composition allows you to model a complex Application state.
 
 ```python
-class MyappSchema(ss.State):
+class MyappSchema(wf.State):
     title: str
 
-class AppSchema(ss.StreamsyncState):
+class AppSchema(wf.StreamsyncState):
     my_app: MyappSchema
     counter: int
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 0,
     "my_app": {
         "title": "Nested value"
@@ -70,7 +70,7 @@ A schema allows you to specify that an attribute which contains a dictionary
 must be treated as a dictionary, rather than as a group of state.
 
 ```python
-class AppSchema(ss.StreamsyncState):
+class AppSchema(wf.StreamsyncState):
     vegas_graph: dict
 
 # Without schema, this handler is execute only once
@@ -79,7 +79,7 @@ def handle_vega_graph(state: AppSchema):
     graph["data"]["values"][0]["b"] += 1000
     state.vega_graph = graph
     
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "vegas_graph": {
         "data": {
             "values": [
@@ -110,15 +110,15 @@ apps/myapp/main.py:7: error: "AppSchema" has no attribute "countr"; maybe "count
 Here is the code, can you spot the error ?
 
 ```python
-import streamsync as ss
+import writer as wf
 
-class AppSchema(ss.StreamsyncState):
+class AppSchema(wf.StreamsyncState):
     counter: int
 
 def increment(state: AppSchema):
     state.countr += 1
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 26,
 }, schema=AppSchema)
 ```

@@ -2,7 +2,7 @@
 title: "Deploy with Docker"
 ---
 
-You can use Docker to deploy Streamsync anywhere. If you're an experienced Docker user, you may want to go straight to the provided Dockerfile.
+You can use Docker to deploy Framework anywhere. If you're an experienced Docker user, you may want to go straight to the provided Dockerfile.
 
 ## Creating a Docker image
 
@@ -10,7 +10,7 @@ You can use Docker to deploy Streamsync anywhere. If you're an experienced Docke
 
 - Make sure you have Docker installed.
 - Open a terminal and navigate to your app's folder.
-- Create a `pyproject.toml` using `poetry init` and install `streamsync` using `poetry add streamsync`
+- Create a `pyproject.toml` using `poetry init` and install `writer` using `poetry add writer`
 
 ### Creating a Dockerfile
 
@@ -27,7 +27,7 @@ WORKDIR /app
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --only main
-ENTRYPOINT [ "streamsync", "run" ]
+ENTRYPOINT [ "writer", "run" ]
 EXPOSE 8080
 CMD [ ".",  "--port", "8080", "--host", "0.0.0.0" ] 
 ```
@@ -35,7 +35,7 @@ CMD [ ".",  "--port", "8080", "--host", "0.0.0.0" ]
 <Note> 
 This Dockerfile is just a guideline.
 It uses an official Python slim base image with a multistage build to reduce the size of the built image.
-If you're a Docker expert, feel free to work on your own `Dockerfile`. Streamsync is, after all, a standard Python package.
+If you're a Docker expert, feel free to work on your own `Dockerfile`. Framework is, after all, a standard Python package.
 </Note>
 
 ### Building the Docker image

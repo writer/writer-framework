@@ -2,7 +2,7 @@
 title: "Builder basics"
 ---
 
-Streamsync Builder works as an overlay of the running app; you edit your app while it's running. It gives you an accurate representation of what the app will look like and how it'll behave, without the need to constantly preview it. Changes to the user interface are automatically saved to `ui.json`.
+Framework Builder works as an overlay of the running app; you edit your app while it's running. It gives you an accurate representation of what the app will look like and how it'll behave, without the need to constantly preview it. Changes to the user interface are automatically saved to `ui.json`.
 
 ## Modes
 
@@ -10,13 +10,13 @@ You can switch modes between _User Interface_, _Code_ and _Preview_ using the bu
 
 ### User Interface
 
-![Streamsync Builder - Mode: User Interface](/framework/images/builder-basics.ui.png)
+![Framework Builder - Mode: User Interface](/framework/images/builder-basics.ui.png)
 
 The default mode. Allows you to focus on building the interface.
 
 ### Code
 
-![Streamsync Builder - Mode: Code](/framework/images/builder-basics.code.png)
+![Framework Builder - Mode: Code](/framework/images/builder-basics.code.png)
 
 This mode displays the code editor and the application log, while still allowing you to access the _Component Tree_ and _Settings_.
 
@@ -30,7 +30,7 @@ If you need a more powerful editor or if your codebase is distributed across sev
 
 Code changes are automatically detected
 
-The application will reload whenever a change to a `.py` file inside the app folder is detected. This feature only works in Streamsync Builder i.e. `edit` mode, not when running the app in `run` mode.
+The application will reload whenever a change to a `.py` file inside the app folder is detected. This feature only works in Framework Builder i.e. `edit` mode, not when running the app in `run` mode.
 
 </Note>
 
@@ -40,7 +40,7 @@ Exceptions raised by your application are shown here, as log entries. Standard o
 
 ### Preview
 
-![Streamsync Builder - Mode: Preview](/framework/images/builder-basics.preview.png)
+![Framework Builder - Mode: Preview](/framework/images/builder-basics.preview.png)
 
 The _Preview_ mode shows the application exactly like the user will see it. It allocates the whole width of the viewport to the app.
 
@@ -51,7 +51,7 @@ The _Preview_ mode shows the application exactly like the user will see it. It a
 - Certain components have restrictions. For example, a _Column_ can only be added to a _Column Container_. A _Sidebar_ can only be added to a _Page_.
 - By default, components are added in the last position. To add components in a specific position, drag over the desired parent until the insertion lines are shown.
 
-![Streamsync Builder - Insertion position](./images/builder-basics.insertion.gif)
+![Framework Builder - Insertion position](/framework/images/builder-basics.insertion.gif)
 
 - You can drag and drop existing components within the app, from one parent to another, or within the same parent to reposition them.
 - Alternatively, you can use the _Component Tree_ either as source or destination for drag and drop.
@@ -67,7 +67,7 @@ The _Preview_ mode shows the application exactly like the user will see it. It a
 
 Settings are divided into the following sections. Changes to settings can be undone and redone using the buttons on the top bar.
 
-![Streamsync Builder - Component settings](./images/builder-basics.component-settings.png)
+![Framework Builder - Component settings](/framework/images/builder-basics.component-settings.png)
 
 ### Properties
 
@@ -83,7 +83,7 @@ Properties are of different types, such as _Text_, _Color_ and _Number_. All pro
 
 ### Binding
 
-![Streamsync Builder - Binding](./images/builder-basics.binding.png)
+![Framework Builder - Binding](/framework/images/builder-basics.binding.png)
 
 Input components can be bound, in a two-way fashion, to a state element.
 
@@ -107,7 +107,7 @@ Whether the component should be displayed. There are three visibility options:
 
 Perform a variety of operations on existing components. Options will be grayed out when they're not applicable to the relevant component. Most shortcuts can be triggered using the keyboard; hover on them to show the appropriate combination.
 
-![Streamsync Builder - Component shortcuts](./images/builder-basics.component-shortcuts.png)
+![Framework Builder - Component shortcuts](/framework/images/builder-basics.component-shortcuts.png)
 
 - _Add_. Adds a child of a given type to this component.
 - _Move up_. Decrements the position index of the component, used to sort children in the parent container.

@@ -2,13 +2,9 @@
 title: "Backend-driven UI"
 ---
 
-Streamsync facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). 
+Framework facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). 
 
 CMCs, unlike BMCs, are dynamically created and modified via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
-
-<Warning>
-Experimental feature! This Streamsync feature is still evolving. You may encounter unexpected behaviour. Your feedback is invaluable — please feel free to [share your experience and suggestions](https://github.com/streamsync-cloud/streamsync/discussions). 
-</Warning>
 
 <Note> 
 To summarise:
@@ -26,16 +22,16 @@ To summarise:
 
 ## UI manager
 
-Streamsync provides two independent approaches for managing your application's UI: initializing a base UI and making session-specific updates.
+Framework provides two independent approaches for managing your application's UI: initializing a base UI and making session-specific updates.
 
 ### Initializing base UI
 
 The `init_ui()` method sets up a UI manager to configure UI components at the application's startup. This creates a component set that is accessible across all sessions:
 
 ```python
-import streamsync as ss
+import writer as wf
 
-with ss.init_ui() as ui:
+with wf.init_ui() as ui:
     with ui.Page(id="my-page"):
         ui.Header({"text": "Hello World!"})
         ui.ColumnContainer(id="column-container")
@@ -179,13 +175,13 @@ In addition to `content`, a set of fields which is specific to the component typ
     def increment(state):
         state["counter"] += 1
 
-    initial_state = ss.init_state({"counter": 0})
+    initial_state = wf.init_state({"counter": 0})
 
     ...
     
     ui.Button(
         {"text": "My Counter: @{counter}"}, 
-        handlers={"ss-click": increment}
+        handlers={"wf-click": increment}
         )
     # You have two options for adding a function 
     # to the `handlers` dictionary: 
@@ -196,7 +192,7 @@ In addition to `content`, a set of fields which is specific to the component typ
     *A component can be linked to multiple event handlers.*
 - **`binding: dict[str, str]`**: Links the component to a state variable via [binding](https://www.streamsync.cloud/builder-basics.html#binding). The dictionary key is the bindable event, and the value is the state variable's name:
     ```python
-    initial_state = ss.init_state({
+    initial_state = wf.init_state({
         "header_text": "Default Text"
         "counter": 0
         })
@@ -205,14 +201,14 @@ In addition to `content`, a set of fields which is specific to the component typ
 
     ui.TextInput(
         {"label": "Bound Text"}, 
-        binding={"ss-change": "header_text"}
+        binding={"wf-change": "header_text"}
         )
     # This input will display "Default Text"
     # Changing the text in this input will modify the `header_text` variable
 
     ui.SliderInput(
         {"minValue": 0, "maxValue": 300, "stepSize": 1}, 
-        binding={"ss-number-change": "counter"}
+        binding={"wf-number-change": "counter"}
         )
     # This slider will have 0 as a default value
     # Sliding it will modify the `counter` variable
@@ -221,7 +217,7 @@ In addition to `content`, a set of fields which is specific to the component typ
 
 ### Container components
 
-Streamsync provides multiple layout components that can serve as *containers* for other components. 
+Framework provides multiple layout components that can serve as *containers* for other components. 
 
 You can use `with` keyword to define such layouts:
 ```python

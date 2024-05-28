@@ -2,11 +2,11 @@
 title: "Handling inputs"
 ---
 
-There are two, complementary, ways to handle inputs in Streamsync: via event handlers and via binding.
+There are two, complementary, ways to handle inputs in Framework: via event handlers and via binding.
 
 ## Event handlers
 
-Input components have _change_ events that are dispatched when the value changes. The new value is provided as a payload in the event handler. Change events have slightly different names across components, reflecting the payloads they provide. For example, _Number Input_ and _Slider Input_ use the event `ss-number-change` while _Text Input_ and _Text Area Input_ use the generic `ss-change`.
+Input components have _change_ events that are dispatched when the value changes. The new value is provided as a payload in the event handler. Change events have slightly different names across components, reflecting the payloads they provide. For example, _Number Input_ and _Slider Input_ use the event `wf-number-change` while _Text Input_ and _Text Area Input_ use the generic `wf-change`.
 
 As discussed in the [Event handlers](event-handlers.html) section, the payload can be accessed via the `payload` argument in the event handler.
 
@@ -25,7 +25,7 @@ Bindings automatically handle the _change_ event for the component and set the v
 
 As mentioned in the [Builder basics](builder-basics.html) section of the guide, bindings can be configured in the component settings.
 
-![Repeater example](./images/handling-inputs.binding.png)
+![Repeater example](/framework/images/handling-inputs.binding.png)
 
 The binding above establishes a two-way link between the component and the state element `name`. If `name` changes in the backend, the component changes. If the component changes, the value of `name` changes.
 
@@ -40,9 +40,9 @@ def recalculate(state):
 
 ## Handling inputs safely
 
-Streamsync automatically sanitises the payloads it provides for its built-in events, those that start with `ss-`.
+Framework automatically sanitises the payloads it provides for its built-in events, those that start with `wf-`.
 
-For example, if a _Dropdown Input_ component lists options `high` and `low`, you're guaranteed you won't get a value like `"Robert'); DROP TABLE students;--"` when handling `ss-option-change`. You'll get `"high"`, `"low"` or `None`.
+For example, if a _Dropdown Input_ component lists options `high` and `low`, you're guaranteed you won't get a value like `"Robert'); DROP TABLE students;--"` when handling `wf-option-change`. You'll get `"high"`, `"low"` or `None`.
 
 <Warning> 
 
@@ -55,4 +55,4 @@ As with any application, it's important to be familiar with the risks associated
 
 Input components can be combined with _Message_ and _Button_ components to create forms with messages, indicating whether the submission was successful.
 
-![Form example](./images/handling-inputs.form.png)
+![Form example](/framework/images/handling-inputs.form.png)

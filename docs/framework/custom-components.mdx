@@ -2,7 +2,7 @@
 title: "Custom components"
 ---
 
-It's possible to extend Streamsync with custom component templates. 
+It's possible to extend Framework with custom component templates. 
 
 They're developed using Vue 3 and TypeScript. Once transpiled, they can be used by copying them to the `extensions/` folder of any project.
 
@@ -13,7 +13,7 @@ They are just as performant, can contain other components, and offer the same Bu
 
 ## Architecture
 
-Streamsync frontend compiles to a collection of static assets that is distributed in the Python package. These static assets are then served via FastAPI.
+Framework frontend compiles to a collection of static assets that is distributed in the Python package. These static assets are then served via FastAPI.
 
 During initialisation time, the server scans the `extensions/` folder in the project folder and looks for `.css` and `.js` files. This folder is also served, similarly to `static/`. If it finds any valid files in `extensions/`, it shares the list with clients and tells them to dynamically import these files during runtime.
 
@@ -31,7 +31,7 @@ Dependencies are [_provided_](https://vuejs.org/api/composition-api-dependency-i
 
 A template defines how a certain component is rendered. For example, `corebutton` defines how _Button_ components are rendered.
 
-Streamsync component templates are purely frontend-based. **They are Vue 3 templates that extend the Vue specification** via a [custom option](https://vuejs.org/api/utility-types.html#componentcustomoptions), `streamsync`. This _custom option_ defines all the Streamsync-specific behaviour of the component. For example, its `fields` property establishes which fields will be editable via Builder.
+Framework component templates are purely frontend-based. **They are Vue 3 templates that extend the Vue specification** via a [custom option](https://vuejs.org/api/utility-types.html#componentcustomoptions), `writer`. This _custom option_ defines all the Framework-specific behaviour of the component. For example, its `fields` property establishes which fields will be editable via Builder.
 
 ### Simple example
 
@@ -52,12 +52,12 @@ This example shows a template for _Bubble Message_, a simple demo component with
 
 <script lang="ts">
 export default {    
-    streamsync: {
+    writer: {
 		name: "Bubble Message",
 		description: "Shows a message in the shape of a speech bubble.",
 		category: "Content",
 		
-        // Fields will be editable via Streamsync Builder
+        // Fields will be editable via Framework Builder
         
         fields: {
 			text: {
@@ -98,11 +98,11 @@ The code above will make _Bubble Message_ available in Builder.
 
 ### Run a local server
 
-To get started, clone the [Streamsync repository](https://github.com/streamsync-cloud/streamsync) from GitHub. 
+To get started, clone the [Framework repository](https://github.com/streamsync-cloud/streamsync) from GitHub. 
 
 To develop custom templates, at least in a developer-friendly way, you'll need a frontend development server with instant reloads.
 
-The frontend code for Streamsync can be found in the folder `ui`. With Node and npm in your system, run `npm install` to install dependencies, and start the server with support for custom component templates using `npm run custom.dev`.
+The frontend code for Framework can be found in the folder `ui`. With Node and npm in your system, run `npm install` to install dependencies, and start the server with support for custom component templates using `npm run custom.dev`.
 
 ```sh
 cd ui
@@ -116,14 +116,14 @@ npm run custom.dev
 
 The command above will start a frontend server, but won't be of much use by itself —a backend is needed. The frontend development server proxies backend requests to port 5000.
 
-Start Streamsync via command line, specifying the option `--port 5000`, to provide a backend in that port. It's recommended to create a new app for testing the template you're developing.
+Start Framework via command line, specifying the option `--port 5000`, to provide a backend in that port. It's recommended to create a new app for testing the template you're developing.
 
 ```sh
-streamsync create customtester
-streamsync edit customtester --port 5000
+writer create customtester
+writer edit customtester --port 5000
 ```
 
-You should now be able to access Streamsync via the URL provided by Vite, e.g. `http://localhost:5174`. In Builder's _Toolkit_, you should see the sample component, _Balloon Message_. Add it to your tester application.
+You should now be able to access Framework via the URL provided by Vite, e.g. `http://localhost:5174`. In Builder's _Toolkit_, you should see the sample component, _Balloon Message_. Add it to your tester application.
 
 ### Create a new component
 
@@ -175,4 +175,4 @@ Collect the files from `ui/custom_components_dist` and pack them in a folder suc
 
 ### Try them
 
-The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Streamsync project. It'll be automatically detected during server startup.
+The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Framework project. It'll be automatically detected during server startup.

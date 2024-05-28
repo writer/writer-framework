@@ -2,7 +2,7 @@
 title: "Sessions"
 ---
 
-Sessions are designed for advanced use cases, being most relevant when Streamsync is deployed behind a proxy.
+Sessions are designed for advanced use cases, being most relevant when Framework is deployed behind a proxy.
 
 ## Session information in event handlers
 
@@ -23,14 +23,14 @@ This enables you to adapt the logic of an event to a number of factors, such as 
 
 You can use session verifiers to accept or deny a session based on headers or cookies, thus making sure that users without the right privileges don't get access to the initial state or components.
 
-Session verifiers are functions decorated with `ss.session_verifier` and are run every time a user requests a session. A `True` value means that the session must be accepted, a `False` value means that the session must be rejected.
+Session verifiers are functions decorated with `wf.session_verifier` and are run every time a user requests a session. A `True` value means that the session must be accepted, a `False` value means that the session must be rejected.
 
 ```py
-import streamsync as ss
+import writer as wf
 
 # Users without the header x-success will be denied the session
 
-@ss.session_verifier
+@wf.session_verifier
 def check_headers(headers):
     if headers.get("x-success") is None:
         return False

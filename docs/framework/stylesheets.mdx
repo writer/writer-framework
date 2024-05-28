@@ -6,7 +6,7 @@ The appearance of your application can be fully customised via CSS stylesheets. 
 
 ## Importing a stylesheet
 
-Stylesheet imports are triggered via Streamsync's `mail`, similarly to other features discussed in [Backend-initiated actions](/backend-initiated-actions). When the import is triggered, the frontend downloads the specified stylesheet and creates a `style` element with its contents.
+Stylesheet imports are triggered via Framework's `mail`, similarly to other features discussed in [Backend-initiated actions](/backend-initiated-actions). When the import is triggered, the frontend downloads the specified stylesheet and creates a `style` element with its contents.
 
 The `import_stylesheet` method takes the `stylesheet_key` and `path` arguments. The first works as an identifier that will let you override the stylesheet later if needed. The second is the path to the CSS file.The path specified needs to be available to the frontend, so storing it in the `/static` folder of your app is recommended.
 
@@ -20,7 +20,7 @@ def handle_click(state):
 In many cases, you'll want to import a stylesheet during initialisation time, for all users. This is easily achievable via the initial state, as shown below.
 
 ```py
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 1
 })
 
@@ -38,11 +38,11 @@ During development time, stylesheets may be cached by your browser, preventing u
 
 You can use the property *Custom CSS classes* in Builder's *Component Settings* to apply classes to a component, separated by spaces. Internally, this will apply the classes to the root HTML element of the rendered component.
 
-![Stylesheets - Component Settings](./images/stylesheets.component-settings.png)
+![Stylesheets - Component Settings](/framework/images/stylesheets.component-settings.png)
 
 ## Tips for effective stylesheets
 
-The CSS code for the class used earlier, `bubblegum`, can be found below. Note how the `!important` flag is used when targetting style attributes that are configurable via Builder. If the flag isn't included, these declarations will not work, because built-in Streamsync styling is of higher specificity. 
+The CSS code for the class used earlier, `bubblegum`, can be found below. Note how the `!important` flag is used when targetting style attributes that are configurable via Builder. If the flag isn't included, these declarations will not work, because built-in Framework styling is of higher specificity. 
 
 ```css
 .bubblegum {
@@ -60,10 +60,10 @@ The CSS code for the class used earlier, `bubblegum`, can be found below. Note h
 <Warning> 
 Component structure may change
 
-When targeting specific HTML elements inside components, take into account that the internal structure of components may change across Streamsync versions.
+When targeting specific HTML elements inside components, take into account that the internal structure of components may change across Framework versions.
 </Warning>
 
-Alternatively, you can override Streamsync's style variables. This behaves slightly differently though; style variables are inherited by children components. For example, if a *Section* has been assigned the `bubblegum` class, its children will also have a pink background by default.
+Alternatively, you can override Framework's style variables. This behaves slightly differently though; style variables are inherited by children components. For example, if a *Section* has been assigned the `bubblegum` class, its children will also have a pink background by default.
 
 ```css
 .bubblegum {
@@ -76,11 +76,11 @@ Alternatively, you can override Streamsync's style variables. This behaves sligh
 
 The class can be used in *Component Settings*. If the stylesheet is imported, the effect will be immediate. In case the stylesheet has been modified since imported, it'll need to be imported again.
 
-![Stylesheets - Applied Classes](./images/stylesheets.applied-classes.png)
+![Stylesheets - Applied Classes](/framework/images/stylesheets.applied-classes.png)
 
 ## Targeting component types
 
-Streamsync components have root HTML elements with a class linked to their type. For example, *Dataframe* components use the class *CoreDataframe*. When writing a stylesheet, you can target all *Dataframe* components as shown below.
+Framework components have root HTML elements with a class linked to their type. For example, *Dataframe* components use the class *CoreDataframe*. When writing a stylesheet, you can target all *Dataframe* components as shown below.
 
 ```css
 .CoreDataframe {

@@ -2,11 +2,11 @@
 title: "Frontend scripts"
 ---
 
-Streamsync can import custom JavaScript/ES6 modules from the frontend. Module functions can be triggered from the backend.
+Framework can import custom JavaScript/ES6 modules from the frontend. Module functions can be triggered from the backend.
 
 ## Importing an ES6 module
 
-Similarly to [stylesheets](/stylesheets), frontend scripts are imported via Streamsync's `mail` capability. This allows you to trigger an import for all or specific sessions at any time during runtime. When the `import_frontend_module` method is called, this triggers a dynamic [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) call in the frontend.
+Similarly to [stylesheets](/stylesheets), frontend scripts are imported via Framework's `mail` capability. This allows you to trigger an import for all or specific sessions at any time during runtime. When the `import_frontend_module` method is called, this triggers a dynamic [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) call in the frontend.
 
 The `import_frontend_module` method takes the `module_key` and `specifier` arguments. The `module_key` is an identifier used to store the reference to the module, which will be used later to call the module's functions. The `specifier` is the path to the module, such as `/static/mymodule.js`. It needs to be available to the frontend, so storing in the `/static/` folder is recommended.
 
@@ -20,7 +20,7 @@ def handle_click(state):
 If you want the module to be imported during initialisation, use the initial state.
 
 ```py
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 1
 })
 
@@ -61,10 +61,10 @@ def handle_click(state):
 
 ## Import a JavaScript script
 
-Streamsync can also import and run JavaScript scripts directly, for their side effects. These are imported via the report's `import_script` method. This method takes two arguments. The first, `script_key` is the identifier used to import the script. The second, `path` is the path to the file. The specified path must be available to the frontend, so storing it in your application's `./static` folder is recommended.
+Framework can also import and run JavaScript scripts directly, for their side effects. These are imported via the report's `import_script` method. This method takes two arguments. The first, `script_key` is the identifier used to import the script. The second, `path` is the path to the file. The specified path must be available to the frontend, so storing it in your application's `./static` folder is recommended.
 
 ```py
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "counter": 1
 })
 
@@ -79,10 +79,10 @@ Importing scripts is useful to import libraries that don't support ES6 modules. 
 
 ## Importing a script or stylesheet from a URL
 
-Streamsync can also import scripts and stylesheets from URLs. This is useful for importing libraries from CDNs. The `import_script` and `import_stylesheet` methods take a `url` argument, which is the URL to the script or stylesheet.
+Framework can also import scripts and stylesheets from URLs. This is useful for importing libraries from CDNs. The `import_script` and `import_stylesheet` methods take a `url` argument, which is the URL to the script or stylesheet.
 
 ```python
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "my_app": {
         "title": "My App"
     },
@@ -93,7 +93,7 @@ initial_state.import_script("lodash", "https://cdnjs.cloudflare.com/ajax/libs/lo
 
 ## Frontend core
 
-You can access Streamsync's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `getUserState()` to get values from state.
+You can access Framework's frontend core via `globalThis.core`, unlocking all sorts of functionality. Notably, you can use `getUserState()` to get values from state.
 
 ```js
 export function alertHueRotationValue() {
@@ -105,5 +105,5 @@ export function alertHueRotationValue() {
 <Warning> 
 Here be dragons
 
-Effectively using Streamsync's core can be challenging and will likely entail reading its [source code](https://github.com/streamsync-cloud/streamsync/blob/master/ui/src/core/index.ts). Furthermore, it's considered an internal capability rather than a public API, so it may unexpectedly change between releases.
+Effectively using Framework's core can be challenging and will likely entail reading its [source code](https://github.com/streamsync-cloud/streamsync/blob/master/ui/src/core/index.ts). Furthermore, it's considered an internal capability rather than a public API, so it may unexpectedly change between releases.
 </Warning>

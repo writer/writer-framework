@@ -2,20 +2,20 @@
 title: "Testing"
 ---
 
-Testing a Streamsync application is easy. Given that event handlers are plain Python functions that take arguments such as `state` and `payload`, you can inject your own and test whether the outcome is correct. This section will use `pytest` examples.
+Testing a Framework application is easy. Given that event handlers are plain Python functions that take arguments such as `state` and `payload`, you can inject your own and test whether the outcome is correct. This section will use `pytest` examples.
 
 ## State
 
 ### Accessing the initial state
 
-To get started, import your app's entry point, `main`. This will initialise state and make event handlers available. The initial state is available in the module, at `main.ss.initial_state` provided you imported `streamsync` as `ss`.
+To get started, import your app's entry point, `main`. This will initialise state and make event handlers available. The initial state is available in the module, at `main.wf.initial_state` provided you imported `writer` as `wf`.
 
 ### Creating states
 
-For testing purposes, you can create your own state using the `StreamsyncState` class in `streamsync.core`. Pass a dictionary when constructing it.
+For testing purposes, you can create your own state using the `StreamsyncState` class in `writer.core`. Pass a dictionary when constructing it.
 
 ```py
-from streamsync.core import StreamsyncState
+from writer.core import StreamsyncState
 
 artificial_state = StreamsyncState({
     "a": 3,
@@ -25,7 +25,7 @@ artificial_state = StreamsyncState({
 
 ## Example
 
-The code of a Streamsync application basically consists of two things:
+The code of a Framework application basically consists of two things:
 
 - Initial state
 - Event handlers
@@ -35,12 +35,12 @@ It's straightforward to test both, as shown below.
 ### The app
 
 ```py
-import streamsync as ss
+import writer as wf
 
 def handle_multiplication(state):
     state["n"] = state["a"]*state["b"]
 
-ss.init_state({
+wf.init_state({
     "counter": 0,
     "a": 0,
     "b": 0
@@ -50,14 +50,14 @@ ss.init_state({
 ### The tests
 
 ```py
-from streamsync.core import StreamsyncState
+from writer.core import WriterState
 import main
 
 
 class TestApp:
 
-    initial_state = main.ss.initial_state
-    artificial_state = StreamsyncState({
+    initial_state = main.wf.initial_state
+    artificial_state = WriterState({
         "a": 3,
         "b": 2
     })

@@ -108,7 +108,7 @@ The handler above receives the application state for the relevant session and mu
 
 ## Mutation detection
 
-When communicating with the frontend, Streamsync only sends state elements that have mutated.
+When communicating with the frontend, Framework only sends state elements that have mutated.
 
 To detect which elements have mutated, it relies on assignment (via operators such as `=`, `+=`, etc). This is because Python doesn't offer a performant, reliable mechanism to detect mutations. See the example below.
 
@@ -198,7 +198,7 @@ def handle_fast(state):
     state["y"] += 2
 ```
 
-However, for long-running tasks, Streamsync will periodically check state and provide partial updates to the user.
+However, for long-running tasks, Framework will periodically check state and provide partial updates to the user.
 
 ```py
 def handle_slowly(state):
@@ -212,7 +212,7 @@ The code above will set `message` to "Loading...", then to "Completed".
 
 ## Asynchronous Event Handlers
 
-Streamsync supports asynchronous event handlers, allowing for non-blocking I/O operations directly within event handlers. This is particularly useful for tasks such as fetching data from a database, making HTTP requests, or performing any other I/O bound operation that can benefit from asynchronous execution.
+Framework supports asynchronous event handlers, allowing for non-blocking I/O operations directly within event handlers. This is particularly useful for tasks such as fetching data from a database, making HTTP requests, or performing any other I/O bound operation that can benefit from asynchronous execution.
 
 ### Defining an Asynchronous Handler
 
