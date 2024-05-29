@@ -10,7 +10,7 @@ authors = ["Writer, Inc."]
 readme = "README.md"
 homepage = "https://www.writer.com"
 repository = "https://www.github.com/streamsync-cloud/streamsync"
-documentation = "https://developer.writer.com/framework""
+documentation = "https://developer.writer.com/framework"
 keywords = ["data apps", "gui", "ui", "framework", "writer framework"]
 classifiers = [
     "Programming Language :: Python :: 3.9",
