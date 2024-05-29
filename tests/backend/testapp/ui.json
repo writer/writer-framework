@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "writer_version": "0.5.0"
+        "writer_version": "0.6.0rc4"
     },
     "components": {
         "root": {
@@ -2136,7 +2136,7 @@
             "id": "abaa1903-e58e-4a67-92ef-d7065f1a7fcf",
             "type": "header",
             "content": {
-                "text": "Food Selector"
+                "text": "FOOD SELECTOR"
             },
             "isCodeManaged": false,
             "position": 0,
