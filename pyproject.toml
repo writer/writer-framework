@@ -4,14 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "0.6.0rc4"
-description = "Writer Framework helps you create performant data apps, via Python code and its built-in visual UI editor."
-authors = ["Writer, Inc. <dev-feedback@writer.com>"]
+version = "0.6.0rc5"
+description = "An open-source, Python framework for building feature-rich apps that are fully integrated with the Writer platform."
+authors = ["Writer, Inc."]
 readme = "README.md"
 homepage = "https://www.writer.com"
 repository = "https://www.github.com/streamsync-cloud/streamsync"
-documentation = "https://www.streamsync.cloud/getting-started.html"
-keywords = ["data apps", "gui", "ui"]
+documentation = "https://developer.writer.com/framework"
+keywords = ["data apps", "gui", "ui", "framework", "writer framework"]
 classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -45,7 +45,7 @@ requests = "^2.31.0"
 uvicorn = ">= 0.20.0, < 1"
 watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
-writer-sdk = "0.1.0a2"
+writer-sdk = "0.1.0a3"
 
 
 [tool.poetry.group.build]
