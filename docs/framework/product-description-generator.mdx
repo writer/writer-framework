@@ -1,7 +1,6 @@
 ---
 title: "Product description generator"
 ---
-# Writer Framework tutorial: Product Description Generator
 
 In this tutorial, you will use Writer Framework to build a Saturn Snacks product description generator for a variety of food outlets. After adding the initial functionality of the app, you will also extend the app to include a chart of SEO keyword analysis and the ability for users to add their own food outlet.
 
@@ -177,23 +176,23 @@ You can now set up the UI to iterate over the product descriptions dictionary an
 
 Click on the Repeater component to open its component settings. Under Properties, add `@{product_descriptions.outlets}` as the Repeater object to be used for repeating the child components. Replace the default “Key variable name” with `itemID`. You can leave “Value variable name” as `item`. 
 
-![Repeater component settings](/framework/images/tutorial/pdg-repeater-settings.png)
+<img width="250" src="/framework/images/tutorial/pdg-repeater-settings.png" alt="Repeater component settings" />
 
 Next, from the Layout section of the toolkit, drag a Tab component into the Repeater. Click on the Tab to bring up the component settings and add `@{itemID}` to the Name property. This will display the outlet name on the tab. 
 
-![Tab component settings](/framework/images/tutorial/pdg-tab-settings.png)
+<img width="250" src="/framework/images/tutorial/pdg-tab-settings.png" alt="Tab component settings" />
 
 To display the resulting text from the call to the AI module, drag a Text component from the Content section of the Toolkit into the Tab. Click on the Text component to open the Component settings and set the Text property to `@{item}`. You may also choose to set “Use Markdown” to “yes.” 
 
-![Text component settings](/framework/images/tutorial/pdg-text-settings.png)
+<img width="250" src="/framework/images/tutorial/pdg-text-settings.png" alt="Text component settings" />
 
 To control the visibility of the Tab Container, click on the Tab Container to bring up its component settings. Scroll to the bottom and, under Visibility, click “Custom” and add `product_descriptions.visible` to the Visibility value input. 
 
-![Tab Container visibility setting](/framework/images/tutorial/pdg-tab-visibility.png)
+<img width="250" src="/framework/images/tutorial/pdg-tab-visibility.png" alt="Tab Container visibility setting" />
 
 Lastly, to wire up the form, click on the Generate button inside the form to bring up its component settings. In the Events section, select `handle_click` for the `wf-click` event. 
 
-![Button settings](/framework/images/tutorial/pdg-button-settings.png)
+<img width="250" src="/framework/images/tutorial/pdg-button-settings.png" alt="Button settings" />
 
 Now, click Preview in the top toolbar, enter some test data, and click the Generate button. You should see a loading message, as well as three example food outlets displayed in the tabs. The loading message should disappear when everything is loaded, and the tab should remain visible once the data has loaded.
 
@@ -239,7 +238,7 @@ This code sets the loading message and passes all of the product descriptions to
 
 To update the UI to display this chart, first drag a new tab from the Layout section of the toolkit into the Tab Container. This tab should not be inside of the Repeater, but can be either before or after it. Click on the tab to open the component settings, and change the name to “SEO Analysis.” If you'd like, you can also set the Visibility to “Custom” and set `seo_analysis` as the visibility value. 
 
-![SEO analysis tab settings](/framework/images/tutorial/pdg-seo-tab.png)
+<img width="250" src="/framework/images/tutorial/pdg-seo-tab.png" alt="SEO analysis settings" />
 
 To display the chart, drag a Plotly Graph component from the Content section of the toolkit into your new Tab. Click on the component to bring up the component settings. The Plotly graph component accepts a graph specification. Add `@{seo_analysis}` to pass the LLM-generated graph specification to the component. 
 
@@ -261,7 +260,7 @@ To create the inputs for the form, drag a Text Input and a Number Input from the
 
 Finally, add a Button from the Other section of the toolkit to the bottom of the new section. Click on the button and change the text to “Add and Generate.” You can also add `laps` or another [Material Symbols](https://fonts.google.com/icons) ID to the Icon input if you wish. 
 
-![Add outlet form](/framework/images/tutorial/pdg-add-outlet-form.png)
+<img width="300" src="/framework/images/tutorial/pdg-add-outlet-form.png" alt="Add outlet form" />
 
 
 ### Updating the code
@@ -365,4 +364,4 @@ Once the application has been deployed, the CLI will return with the URL of your
 
 ## Conclusion
 
-You’ve now built a full application with Writer Framework and the Writer AI module. Congratulations! This setup not only demonstrates the platform's capabilities but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation.
+You’ve now built a full application with Writer Framework and the Writer AI module. Congratulations! This application not only demonstrates the platform's capabilities but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation.

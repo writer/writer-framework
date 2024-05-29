@@ -2,9 +2,9 @@
 title: "Chat assistant"
 ---
 
-In this tutorial, you will use Writer Framework to build an AI chat assistant.
+In this introductory tutorial, you will use Writer Framework to build an AI chat assistant.
 
-[IMAGE: Screenshot of finished project]
+![Finished chat assistant project](/framework/images/tutorial/chat-finished-app.png)
 
 ## Setting up your project
 
@@ -123,15 +123,15 @@ The `Conversation` method is a wrapper for the `chat` API endpoint and can be us
 
 Click on the chatbot component to open up the Component Settings panel. Bind this chatbot to a conversation variable by adding `@{conversation}` in the Conversation Object property under General. This variable will reference the Writer AI SDK. You can also update properties such as the assistant's initials, the user's initials, and whether the chat uses markdown.
 
-![Chatbot conversation object setting](/framework/images/tutorial/chat-conversation-setting.png)
+<img width="250" src="/framework/images/tutorial/chat-conversation-setting.png" alt="Chatbot conversation object setting" />
 
 Finally, attach the handler to the chatbot. In the User Interface, click on the chatbot component to bring up the Component Settings panel. Scroll to the Events section towards the bottom of the pane and choose the `handle_simple_message` handler for the `wf-chatbot-message` event.
 
-![Chatbot event handler settings](/framework/images/tutorial/chat-event-handler.png) 
+<img width="250" src="/framework/images/tutorial/chat-event-handler.png" alt="Chatbot event handler settings" />
 
 After saving and running your code, click the preview button and type something into your chat assistant. You should see the response appear on the screen as it comes back from the assistant. Congratulations!
 
-[IMAGE: Screenshot of finished project]
+![Finished chat assistant project](/framework/images/tutorial/chat-finished-app.png)
 
 
 ## Deploying the application

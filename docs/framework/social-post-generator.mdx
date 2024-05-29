@@ -173,21 +173,21 @@ The last task is to bind all of the state elements and the click handler to the 
 
 First, click on the Text Input component to bring up the Component Settings panel. In the Bindings section, type `topic`. 
 
-![Text input settings](/framework/images/tutorial/social-text-input-settings.png)
+<img width="250" src="/framework/images/tutorial/social-text-input-settings.png" alt="Text input settings" />
 
 Next, click on the Button component to bring up the Component Settings panel. In the Events section, use the dropdown for `wf-click` to choose the `handle_button_click` handler.
 
-![Button event handler settings](/framework/images/tutorial/social-button-event-settings.png)
+<img width="300" src="/framework/images/tutorial/social-button-event-settings.png" alt="Button event handler settings" />
 
 Click on the Message component and set the Text to `@{message}`. Under Visibility, choose “Custom” and set it to `message`.
 
 Next, click on the Tags component. Under General, click “JSON” for Tags and set the object to `@{tags}`. 
 
-![Tags settings](/framework/images/tutorial/social-tags-settings.png)
+<img width="250" src="/framework/images/tutorial/social-tags-settings.png" alt="Tags settings" />
 
 Then, click on the Text component to bring up the Component Settings panel. In General Properties, bind this text box to a variable called `posts` by entering `@{posts}` in the text property field. You can also set this text box to accept Markdown input if needed by toggling the “Use Markdown” property.
 
-![Text settings](/framework/images/tutorial/social-text-settings.png)
+<img width="250" src="/framework/images/tutorial/social-text-settings.png" alt="Text settings" />
 
 Finally, click on the Section that contains the Tags and Text components. Under Visibility, choose “Custom” and set it to `posts`.
 

@@ -51,8 +51,8 @@
 		{
 			"group": "Tutorials",
 			"pages": [
-				"docs/framework/social-post-generator",
 				"docs/framework/chat-assistant",
+				"docs/framework/social-post-generator",
 				"docs/framework/product-description-generator"
 			]
 		},
