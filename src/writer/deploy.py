@@ -55,6 +55,23 @@ def pack_project(path):
     return f
 
 
+def get_logs(token, build_id, build_time, start_time, end_time, last_status):
+    with requests.get(WRITER_DEPLOY_URL, params = {
+        "buildId": build_id,
+        "buildTime": build_time.isoformat(),
+        "startTime": start_time.isoformat(),
+        "endTime": end_time.isoformat()
+    }, headers={"Authorization": f"Bearer {token}"}) as resp:
+        resp.raise_for_status()
+        data = resp.json()
+        if data["status"]["status"] == "DEPLOYING" and data["status"]["status"] != last_status:
+            print("Build completed. Deploying app...")
+        status = data["status"]["status"]
+        url = data["status"]["url"]
+        for log in data.get("logs", []):
+            print(log["log"])
+        return status, url
+
 def upload_package(tar, token):
     try: 
         print("Uploading package to deployment server")
@@ -78,21 +95,7 @@ def upload_package(tar, token):
         url = ""
         while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < start_time + timedelta(minutes=5):
             end_time = datetime.now(pytz.timezone('UTC'))
-            with requests.get(WRITER_DEPLOY_URL, params = {
-                "buildId": build_id,
-                "buildTime": build_time.isoformat(),
-                "startTime": start_time.isoformat(),
-                "endTime": end_time.isoformat()
-            }, headers={"Authorization": f"Bearer {token}"}) as resp:
-                resp.raise_for_status()
-                data = resp.json()
-                #print(data["status"])
-                if data["status"]["status"] == "DEPLOYING" and data["status"]["status"] != status:
-                    print("Build completed. Deploying app...")
-                status = data["status"]["status"]
-                url = data["status"]["url"]
-                for log in data.get("logs", []):
-                    print(log["log"])
+            status, url = get_logs(token, build_id, build_time, start_time, end_time, status)
             time.sleep(5)
             start_time = end_time
 
@@ -101,6 +104,8 @@ def upload_package(tar, token):
             print(f"URL: {url}")
             sys.exit(0)
         else:
+            time.sleep(5)
+            get_logs(token, build_id, build_time, start_time, datetime.now(pytz.timezone('UTC')), status)
             print("Deployment failed")
             sys.exit(1)
 
