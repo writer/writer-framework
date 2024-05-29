@@ -1,12 +1,11 @@
 ---
 title: "Product description generator"
 ---
-
 # Writer Framework tutorial: Product Description Generator
 
 In this tutorial, you will use Writer Framework to build a Saturn Snacks product description generator for a variety of food outlets. After adding the initial functionality of the app, you will also extend the app to include a chart of SEO keyword analysis and the ability for users to add their own food outlet.
 
-[IMAGE: Gif of finished project with alt text]
+![Finished application](/framework/images/tutorial/pdg-finished-app.png)
 
 
 ## Setting up your project
@@ -16,11 +15,11 @@ In this tutorial, you will use Writer Framework to build a Saturn Snacks product
 
 From the Home screen, click on Build an app.
 
-[IMAGE: Screenshot of home screen]
+![Writer home screen](/framework/images/tutorial/home.png)
 
 Select Framework as the app type you’d like to create, enabling you to generate keys and build your app with the Writer Framework.
 
-[IMAGE: Screenshot of app type selection]
+![App type selection](/framework/images/tutorial/app-selection.png)
 
 On the next screen, you can edit your Writer application name in the upper left. Underneath “Authenticate with an API key,” click on “Reveal” to see and copy your API key.
 
@@ -63,7 +62,7 @@ writer edit product-description-app
 
 This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. 
 
-By default, the Writer Framework builder is accessible at `localhost:3006`. If that port is in use, run the `edit` command again with the `port` flag to specify your desired port:
+By default, the Writer Framework Builder is accessible at `localhost:3006`. If that port is in use, run the `edit` command again with the `port` flag to specify your desired port:
 
 
 ```
@@ -77,13 +76,10 @@ Open this address in your browser to view your default application setup.
 ## Introduction to the Application Setup
 When you first start up the application, you're going to see two main layout items provided by the template:
 
-
-
 * A header component with the name of the application
 * A column container that will house most of the UI of the app
 
 The left column includes a form that has three text inputs and a button. These three text inputs are bound to corresponding state elements. The right column contains a message component for loading and status messages, as well as an empty tab container which you'll use to display the product descriptions of the various outlets.
-
 
 ### Code overview
 
@@ -117,7 +113,7 @@ The form elements and the message have been initialized as strings. You will add
 
 Your first goal is to generate product descriptions for the various food outlets, with each outlet appearing as a tab to the right of the form.
 
-[IMAGE: Screenshot of finished descriptions]
+![Finished product description tabs](/framework/images/tutorial/pdg-finished-descriptions.png)
 
 
 ### Setting up the code
@@ -179,25 +175,25 @@ This handler will loop through each imported base prompt, format it with the for
 
 You can now set up the UI to iterate over the product descriptions dictionary and create tabs. To do this, open the User iInterface. In the toolkit, drag a Repeater component from the Other section into the empty Tab Container. 
 
-Click on the Repeater component to open its component settings. Under Properties, add `@{product_descriptions.outlets}` as the Repeater object to be used for repeating the child components. Set “Key variable name” to `itemID` and “Value variable name” to `item`. 
+Click on the Repeater component to open its component settings. Under Properties, add `@{product_descriptions.outlets}` as the Repeater object to be used for repeating the child components. Replace the default “Key variable name” with `itemID`. You can leave “Value variable name” as `item`. 
 
-[IMAGE: Screenshot of Repeater component settings]
+![Repeater component settings](/framework/images/tutorial/pdg-repeater-settings.png)
 
 Next, from the Layout section of the toolkit, drag a Tab component into the Repeater. Click on the Tab to bring up the component settings and add `@{itemID}` to the Name property. This will display the outlet name on the tab. 
 
-[IMAGE: Screenshot of Tab component settings]
+![Tab component settings](/framework/images/tutorial/pdg-tab-settings.png)
 
 To display the resulting text from the call to the AI module, drag a Text component from the Content section of the Toolkit into the Tab. Click on the Text component to open the Component settings and set the Text property to `@{item}`. You may also choose to set “Use Markdown” to “yes.” 
 
-[IMAGE: Screenshot of Text component settings]
+![Text component settings](/framework/images/tutorial/pdg-text-settings.png)
 
 To control the visibility of the Tab Container, click on the Tab Container to bring up its component settings. Scroll to the bottom and, under Visibility, click “Custom” and add `product_descriptions.visible` to the Visibility value input. 
 
-[IMAGE: Screenshot of Tab Container visibility setting]
+![Tab Container visibility setting](/framework/images/tutorial/pdg-tab-visibility.png)
 
 Lastly, to wire up the form, click on the Generate button inside the form to bring up its component settings. In the Events section, select `handle_click` for the `wf-click` event. 
 
-[IMAGE: Screenshot of Button settings]
+![Button settings](/framework/images/tutorial/pdg-button-settings.png)
 
 Now, click Preview in the top toolbar, enter some test data, and click the Generate button. You should see a loading message, as well as three example food outlets displayed in the tabs. The loading message should disappear when everything is loaded, and the tab should remain visible once the data has loaded.
 
@@ -227,7 +223,7 @@ def _generate_seo_keywords(outlets):
 
 This method concatenates all of the product descriptions and incorporates them into a prompt in `prompts.py`. It then sends the formatted prompt to the Palmyra LLM using the `complete` method. The prompt not only analyzes the descriptions for SEO keywords, but also outputs a [Plotly.js](Plotly.js) schema object that you can use directly with a Plotly graph component. 
 
-With the helper method in place, you can now update the click handler for the button. On line 27, add the following code:
+With the helper method in place, you can now update the click handler for the button. On line 27, add the following code before the product description visibility is set:
 
 ```python
 # Create the SEO analysis
@@ -243,13 +239,13 @@ This code sets the loading message and passes all of the product descriptions to
 
 To update the UI to display this chart, first drag a new tab from the Layout section of the toolkit into the Tab Container. This tab should not be inside of the Repeater, but can be either before or after it. Click on the tab to open the component settings, and change the name to “SEO Analysis.” If you'd like, you can also set the Visibility to “Custom” and set `seo_analysis` as the visibility value. 
 
-[IMAGE: Screenshot of new tab settings]
+![SEO analysis tab settings](/framework/images/tutorial/pdg-seo-tab.png)
 
-To display the chart, drag a Plotly Graph component from the Content section of the toolkit into your new Tab. Click on the component to bring up the component settings. The Plotly graph component accepts a graph specification. Add `seo_analysis` to pass the LLM-generated graph specification to the component. 
+To display the chart, drag a Plotly Graph component from the Content section of the toolkit into your new Tab. Click on the component to bring up the component settings. The Plotly graph component accepts a graph specification. Add `@{seo_analysis}` to pass the LLM-generated graph specification to the component. 
 
 Click preview, add some data to the form, and click generate. You should see a new SEO analysis tab appear with a nicely formatted and labeled chart. 
 
-[IMAGE: Screenshot of SEO analysis tab]
+![SEO analysis tab and chart](/framework/images/tutorial/pdg-seo-chart.png)
 
 
 ## Extending the application: user-added outlet 
@@ -265,7 +261,7 @@ To create the inputs for the form, drag a Text Input and a Number Input from the
 
 Finally, add a Button from the Other section of the toolkit to the bottom of the new section. Click on the button and change the text to “Add and Generate.” You can also add `laps` or another [Material Symbols](https://fonts.google.com/icons) ID to the Icon input if you wish. 
 
-[IMAGE: Screenshot of form]
+![Add outlet form](/framework/images/tutorial/pdg-add-outlet-form.png)
 
 
 ### Updating the code
@@ -347,7 +343,7 @@ Finally, if you'd like to hide this form until some of the descriptions have bee
 
 To see the result of your hard work, click Preview in the top toolbar, enter some information into the original product description form, and click “Generate.” The “Add an outlet” form should appear once the product descriptions have been generated. Add a new example outlet name and a character max and click “Add and Generate.” You should see a new tab appear with your new outlet, as well as an updated SEO analysis chart. 
 
-[IMAGE: Gif of working application]
+![Finished application](/framework/images/tutorial/pdg-finished-app.png)
 
 You can add whatever additional form inputs you wish to the outlet form, but be sure to update `user_prompt` in the `prompts.py` file using your favorite editor.
 

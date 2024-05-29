@@ -2,11 +2,9 @@
 title: "Chat assistant"
 ---
 
-# Writer Framework tutorial: Chat Assistant
-In this tutorial, you will use Writer Framework to build an AI chat assistant to get started with the Writer platform. The application will use the Writer AI module to use Writer’s chat completion capability.
+In this tutorial, you will use Writer Framework to build an AI chat assistant.
 
-[IMAGE: Gif of finished project with alt text]
-
+[IMAGE: Screenshot of finished project]
 
 ## Setting up your project
 
@@ -14,11 +12,11 @@ In this tutorial, you will use Writer Framework to build an AI chat assistant to
 
 From the Home screen, click on Build an app.
 
-[IMAGE: Screenshot of home screen]
+![Writer home screen](/framework/images/tutorial/home.png)
 
 Select Framework as the app type you’d like to create, enabling you to generate keys and build your app with the Writer Framework.
 
-[IMAGE: Screenshot of app type selection]
+![App type selection](/framework/images/tutorial/app-selection.png)
 
 On the next screen, you can edit your Writer application name in the upper left. Underneath “Authenticate with an API key,” click on “Reveal” to see and copy your API key.
 
@@ -61,7 +59,7 @@ writer edit chat-assistant
 
 This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. 
 
-By default, the Writer Framework builder is accessible at `localhost:3006`. If that port is in use, run the `edit` command again with the `port` flag to specify your desired port:
+By default, the Writer Framework Builder is accessible at `localhost:3006`. If that port is in use, run the `edit` command again with the `port` flag to specify your desired port:
 
 
 ```
@@ -76,11 +74,21 @@ Open this address in your browser to view your default application setup.
 
 The Writer Framework lets you set up any layout according to your preferences with a fast drag-and-drop UI. 
 
-For this application, click the provided Section component to open its Component Settings and give it the title “AI Assistant.” If you’d like to provide any other instructions or context to the user, you can also drag a Text component into the section.
+To rename this application and update the Header component, open the code editor and update `my_app.title` in `wf.init_state`:
+
+```python
+wf.init_state({
+    "my_app": {
+        "title": "CHAT ASSISTANT"
+    }
+})
+```
+
+Click the provided Section component to open its Component Settings and clear out the default title. If you’d like to provide any other instructions or context to the user, you can also drag a Text component into the section.
 
 Finally, drag a Chatbot component into the Section beneath the Text box. 
 
-[IMAGE: Screenshot of UI with alt text]
+![Initial UI with text and chatbot](/framework/images/tutorial/chat-initial-ui.png)
 
 
 ## Updating the code
@@ -91,6 +99,7 @@ To add chat functionality, first initialize your application state by clearing a
 
 ```python
 wf.init_state({
+    // Other state elements above
     "conversation": writer.ai.Conversation()
 })
 ```
@@ -112,17 +121,17 @@ The `Conversation` method is a wrapper for the `chat` API endpoint and can be us
 
 ## Binding to the UI
 
-Click on the chatbot component to open up the Component Settings panel. Bind this chatbot to a conversation variable by adding `a{conversation}` in the Conversation Object property under General. This variable will reference the Writer AI SDK. You can also update properties such as the assistant's initials, the user's initials, and whether the chat uses markdown.
+Click on the chatbot component to open up the Component Settings panel. Bind this chatbot to a conversation variable by adding `@{conversation}` in the Conversation Object property under General. This variable will reference the Writer AI SDK. You can also update properties such as the assistant's initials, the user's initials, and whether the chat uses markdown.
 
-[IMAGE: Screenshot of Component Settings panel with alt text]
+![Chatbot conversation object setting](/framework/images/tutorial/chat-conversation-setting.png)
 
 Finally, attach the handler to the chatbot. In the User Interface, click on the chatbot component to bring up the Component Settings panel. Scroll to the Events section towards the bottom of the pane and choose the `handle_simple_message` handler for the `wf-chatbot-message` event.
 
-[IMAGE: Screenshot of event handler in Component Settings panel with alt text] 
+![Chatbot event handler settings](/framework/images/tutorial/chat-event-handler.png) 
 
 After saving and running your code, click the preview button and type something into your chat assistant. You should see the response appear on the screen as it comes back from the assistant. Congratulations!
 
-[IMAGE: Gif or webp of working chat assistant with alt text]
+[IMAGE: Screenshot of finished project]
 
 
 ## Deploying the application
