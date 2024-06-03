@@ -5,7 +5,7 @@ import os
 import re
 import shutil
 import sys
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import writer.deploy
 import writer.serve
@@ -52,7 +52,7 @@ def main():
     env = _validate_env_vars(args.env)
     _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name, api_key, env)
 
-def _validate_env_vars(env: List[str] | None) -> List[str] | None:
+def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
     if env is None:
         return None
     for var in env:
@@ -105,7 +105,7 @@ def _route(
     enable_server_setup: Optional[bool],
     template_name: Optional[str],
     api_key: Optional[str] = None,
-    env: List[str] | None = None
+    env: Union[List[str], None] = None
 ):
     if host is None:
         host = "127.0.0.1"
