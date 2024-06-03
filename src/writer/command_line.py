@@ -15,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run, edit or create a Writer Framework app.")
     parser.add_argument("command", choices=[
-                        "run", "edit", "create", "hello", "deploy", "undeploy"])
+                        "run", "edit", "create", "hello", "deploy", "undeploy", "deployment-logs"])
     parser.add_argument(
         "path", nargs="?", help="Path to the app's folder")
     parser.add_argument(
@@ -63,7 +63,7 @@ def _validate_env_vars(env: List[str] | None) -> List[str] | None:
     return env
 
 def _get_api_key(command, api_key: Optional[str]) -> Optional[str]:
-    if command in ("deploy", "undeploy") and api_key is None:
+    if command in ("deploy", "undeploy", "deployment-logs") and api_key is None:
         env_key = os.getenv("WRITER_API_KEY", None)
         if env_key is not None and env_key != "": 
             return env_key
@@ -113,6 +113,8 @@ def _route(
         writer.deploy.deploy(absolute_app_path, api_key, env=env)
     if command in ("undeploy"):
         writer.deploy.undeploy(api_key)
+    if command in ("deployment-logs"):
+        writer.deploy.runtime_logs(api_key)
     if command in ("edit"):
         writer.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host,
