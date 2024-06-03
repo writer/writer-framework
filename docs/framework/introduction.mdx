@@ -2,50 +2,81 @@
 title: "Introduction"
 ---
 
-## What is Framework?
+The Writer Framework lets you build feature-rich apps by using a drag-and-drop visual editor called **the Builder** and writing the back-end code in Python. It's fast and flexible, with clean, easy-to-test syntax. It provides separation of concerns between UI and business logic, enabling more complex apps.
 
-Framework is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python.
+![Framework Builder screenshot](/framework/public/builder.png#framework) 
 
-![Framework Builder screenshot](/framework/public/builder.png)
+Build AI apps with the Writer Framework when:
 
-It's an alternative to Plotly Dash, Streamlit and Gradio. Its focused on the creation of web applications for data analytics and machine learning.
+1. You need to incorporate external data sources, such as external APIs
+2. You have complex user input that requires custom logic, such as conditions that trigger the use of different prompts
+3. You want to quickly analyze and visualize data using an LLM
 
-It aims to be as simple as Streamlit, but faster, more flexible and with a cleaner, easily-testable syntax. It provides separation of concerns between UI and business logic, enabling more complex applications.
+The Writer Framework offers:
 
-## Highlights
+<AccordionGroup>
+  <Accordion title="Easily-testable Python functions" >
+    Define event handlers as plain Python functions.
+    ```python
+    def handle_text_update(state):
+        state["text"] = "Updated text"
 
-### Simple
-Event handlers are defined as plain, easily-testable Python functions.
+    writer.init_state({
+        "text": "Initial text"
+    })
+    ```
+  </Accordion>
 
-```py
-def handle_increment(state):
-    state["counter"] += 1
+  <Accordion title="Visual editor">
+    Link the event handler and state to the UI seamlessly.
+  </Accordion>
 
-wf.init_state({
-    "counter": 0
-})
-```
+  <Accordion title="Standard Python packages">
+    Install with a simple pip command.
+  </Accordion>
 
-The event handler and state are linked to the UI using Framework Builder, the framework's visual editor.
+  <Accordion title="Version control">
+    Save user interfaces as JSON to be version controlled with the rest of the app.
+  </Accordion>
 
-![Counter Increment example](/framework/public/introduction.counter.gif)
+  <Accordion title="Flexible editing">
+    Use your local code editor with instant refreshes or the provided web-based editor. Edit the UI while your app is running without needing to click “Preview.”
+  </Accordion>
 
-### Developer-friendly
-- It's all contained in a standard Python package, just one `pip install` away.
-- User interfaces are saved as JSON, so they can be version controlled together with the rest of the application.
-- Use your local code editor and get instant refreshes when you save your code. Alternatively, use the provided web-based editor.
-- You edit the UI while your app is running. No hitting "Preview" and seeing something completely different to what you expected.
+  <Accordion title="Minimal overhead">
+    Event handling adds only 1-2ms to your Python code.
+  </Accordion>
 
-### Fast
-- Event handling adds minimal overhead to your Python code (~1-2ms*).
-- Streaming (WebSockets) is used to synchronise frontend and backend states.
-- The script only runs once.
-- Non-blocking by default. Events are handled asynchronously in a thread pool running in a dedicated process.
+  <Accordion title="Real-time synchronization">
+    Use WebSockets to synchronize front-end and back-end states.
+  </Accordion>
 
-*End-to-end figure, including DOM mutation. Tested locally on a Macbook Air M2. [Measurement methodology](https://medium.com/@ramiromedina/measuring-time-elapsed-between-an-event-and-its-associated-dom-mutation-80431ad576e1).
+  <Accordion title="Efficient execution">
+    Non-blocking by default, with asynchronous event handling in a dedicated thread pool.
+  </Accordion>
 
-### Flexible
-- Elements are highly customisable with no CSS required, allowing for shadows, button icons, background colours, etc.
-- HTML elements with custom CSS can be included using the _HTML Element_ component. They can serve as containers for built-in components.
+  <Accordion title="Customizable elements">
+    No CSS required for customization like shadows, button icons, and background colors.
+  </Accordion>
+
+  <Accordion title="HTML integration">
+    Include HTML elements with custom CSS using the HTML Element component, which can serve as containers for built-in components.
+  </Accordion>
+</AccordionGroup>
+
+To get started, head to [Quickstart](/framework/quickstart) or our tutorials:
+
+<CardGroup cols={3}>
+  <Card title="Social post generator" icon="megaphone" href="/framework/social-post-generator" color="currentColor">
+    Generate multiple social media posts in a click of button using our social media generator.
+  </Card>
+  <Card title="Chat assistant" icon="comment" href="/framework/chat-assistant" color="currentColor">
+    Using Knowledge Graph, our graph-based RAG solution, you can build chat assistants to quickly ask questions using your data sources.
+  </Card>
+  <Card title="Product description generator" icon="page" href="/framework/product-description-generator" color="currentColor">
+    Build real-time digital shelves for hundreds of products that are automatically customized for different e-retailers.
+  </Card>
+</CardGroup>
+
   
 

@@ -12,11 +12,11 @@ mode: "wide"
 {% if fields %}
 ## Fields
 
-<table>
+<table className="componentFields">
 	<thead>
 		<th>Name</th>
 		<th>Type</th>
-		<th>Description</th>
+		<th class="desc">Description</th>
 		<th>Options</th>
 	</thead>
 	<tbody>

@@ -128,7 +128,7 @@ initial_state = wf.init_state({
 ```
 For now, only the Framework import is needed, but the rest will be used later on. Notice that after pasting this code into the editor, when we click on `Save and run`, the header of our application will immediately change to "Logistic regression visualiser". This is because the Header has in its text property the value `@{my_app.title}`, which is a template syntax that uses a value from the state.
 
-The rest of the keys and values from the `initial_state` are names and initial values for components that will be used for communication between the app UI and the backend. Assigning those keys to components is called binding, and it is done by clicking on each component and filling property "State element" in the "Binding" menu. Let's use these bindings for our 3 _Slider Input_ components:
+The rest of the keys and values from the `initial_state` are names and initial values for components that will be used for communication between the app UI and the back-end. Assigning those keys to components is called binding, and it is done by clicking on each component and filling property "State element" in the "Binding" menu. Let's use these bindings for our 3 _Slider Input_ components:
 
 |   Property        |   Value (Slider 1)    |   Value (Slider 2)    |   Value (Slider 3)    |
 | :-----------:     | :-------------------  | :-------------------  | :-------------------  |
@@ -212,7 +212,7 @@ The algorithm will generate one or many lines depending on how many groups we ha
 def _line(x0, coef, intercept, c):
     return (-(x0 * coef[c, 0]) - intercept[c]) / coef[c, 1]
 ```
-This function is a helper function meant to be used on the backend. The underscore at the beginning of its name tells Framework that this function is private, and the frontend won't know about its existence.
+This function is a helper function meant to be used on the back-end. The underscore at the beginning of its name tells Framework that this function is private, and the front-end won't know about its existence.
 
 To make the plot more readable, let's quickly define some colours for our plots:
 
@@ -288,7 +288,7 @@ Now, let's create a plot for our logistic regressions. For that, we will use `pl
 ```
 After saving and running the code, we should get something like this:
 
-But as you could notice, when we change our slider values, nothing happens. It's because our function is currently called only once on app initialisation and not after input changes. To change this behaviour, let's set the event handler for `wf-number-change` in all slider inputs to `update`, which is the name of our function in the Python code. Notice that `_line` is not visible there because it's private to the backend. If we would change its name to `line`, then it would be visible on this list.
+But as you could notice, when we change our slider values, nothing happens. It's because our function is currently called only once on app initialisation and not after input changes. To change this behaviour, let's set the event handler for `wf-number-change` in all slider inputs to `update`, which is the name of our function in the Python code. Notice that `_line` is not visible there because it's private to the back-end. If we would change its name to `line`, then it would be visible on this list.
 
 Set also event handler for dropdown input `wf-option-change` and `wf-click` in the button, also to `update`.
 

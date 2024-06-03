@@ -30,7 +30,7 @@
 			"group": "Getting started",
 			"pages": [
 				"docs/framework/introduction",
-				"docs/framework/getting-started",
+				"docs/framework/quickstart",
 				"docs/framework/ai-module"
 			]
 		},

@@ -2,15 +2,15 @@
 title: "Backend-driven UI"
 ---
 
-Framework facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from *Builder-Managed Components* (BMCs). 
+Framework facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from the *Builder-Managed Components* (BMCs). 
 
-CMCs, unlike BMCs, are dynamically created and modified via backend code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
+CMCs, unlike BMCs, are dynamically created and modified via back-end code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
 
 <Note> 
 To summarise:
 
 **CMC** – Code-Managed Component 
-- created via **application backend**;
+- created via **application back-end**;
 - **cannot be edited** in builder;
 - is **not saved** to `ui.json`.
 
@@ -98,7 +98,7 @@ with ui.find(container):
 
 ### Component methods
 
-UI manager contains methods linked to each frontend component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).
+UI manager contains methods linked to each front-end component. For example, in previous code snippets we provide a `ui.Text` method, which is used for creating [Text components](https://www.streamsync.cloud/component-list.html#text).
 
 This method expects `content: dict` as first argument, which enables you to set the field properties of the component, through corresponding keys:
 ```python

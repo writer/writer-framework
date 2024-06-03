@@ -28,11 +28,9 @@ asgi_app: FastAPI = writer.serve.app
 def hello():
     return "1"
 ```
-
-::: warning Use `server_setup.py` in `edit` mode
-If you want to use in `edit` mode, 
-you can launch `writer edit --enable-server-setup <app>`.
-:::
+<Warning>
+Use `server_setup.py` in `edit` mode. If you want to use in `edit` mode, you can launch `writer edit --enable-server-setup <app>`.
+</Warning>
 
 ## Implement custom server
 
@@ -60,11 +58,10 @@ Note the inclusion of the imported `ws_max_size` setting. This is important for 
 
 Fine-tuning Uvicorn allows you to set up SSL, configure proxy headers, etc, which can prove vital in complex deployments.
 
-::: tip Use server setup hook
+Use server setup hook
 ```python
 asgi_app = writer.serve.get_asgi_app(app_path, mode, enable_server_setup=True)
 ```
-:::
 
 ## Multiple apps at once
 

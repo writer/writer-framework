@@ -4,9 +4,13 @@ title: "Application state"
 
 Each session is assigned a unique application state by the Framework.
 
-## Initialising state
+## Initializing state
 
-To set the initial application state, use the `wf.init_state()` method with a dictionary argument. **All user sessions will start with a clone of this initial state**.
+To set the initial application state, use the `wf.init_state()` method with a dictionary argument. 
+
+<Tip>
+All user sessions will start with a clone of this initial state.
+</Tip>
 
 ```py
 import writer as wf
@@ -26,7 +30,7 @@ In the above example, each session begins with a `counter` at 0. As users intera
 
 To access the `counter` value in the Builder, use @{counter}.
 
-### Managing Nested State Elements
+### Managing nested state elements
 
 To include nested elements in your state, use nested dictionaries:
 
@@ -44,53 +48,25 @@ You can reference nested elements in the Builder as `@{my_app.title}`.
 
 ### Backend-only state elements
 
-By default, all of the elements in the session state are sent to the frontend.
+By default, all of the elements in the session state are sent to the front-end.
 
 <Warning> 
-All state elements are transmitted to the frontend by default, regardless of their visibility in the user interface.
+All state elements are transmitted to the front-end by default, regardless of their visibility in the user interface.
 </Warning>
 
-To keep certain state elements private (backend-only), prefix them with an underscore `_`. This is useful in several scenarios:
+To keep certain state elements private (back-end-only), prefix them with an underscore `_`. This is useful in several scenarios:
 
-1. When data synchronization to the frontend is unnecessary.
-2. When data cannot be serialized for the frontend, such as database connections.
+1. When data synchronization to the front-end is unnecessary.
+2. When data cannot be serialized for the front-end, such as database connections.
 3. When data is sensitive to the specific session and should remain confidential.
 
-These elements remain in the backend and cannot be accessed from the Builder.
-
-## Handling non-standard data types
-
-The frontend cannot directly display complex data types such as Pandas dataframes or Matplotlib figures. Such objects must be serialized before being sent.
-
-<Tabs>
-  <Tab title="Matplotlib Figures">
-    Matplotlib figures are converted to PNG data URLs, which can be shown using a standard _Image_ component.
-
-    ```python
-    wf.init_state({
-        "my_matplotlib_fig": fig,
-    })
-    ```
-
-    The element can be used in an _Image_ component in Builder by setting the source to `@{my_matplotlib_fig}`. Alternatively, as data inside a _File Download_ component.
-  </Tab>
-  <Tab title="Plotly Graphs">
-    Plotly graphs are converted to Plotly JS specifications, using JSON. They can be used in _Plotly Graph_ components.
-  </Tab>
-  <Tab title="Altair Charts">
-    Altair charts are converted to Vega Lite specifications, based on JSON. They can be used in _Vega Lite Chart_ components.
-  </Tab>
-  <Tab title="Pandas Dataframes">
-    Pandas dataframes are converted to JSON and can be used in _Dataframe_ components.
-  </Tab>
-</Tabs>
-
+These elements remain in the back-end and cannot be accessed from the Builder.
 
 ## Managing files and binary data
 
-In components where Builder interfaces with external data, such as images, it often requires the use of data URLs. The source for an _Image_ component, for example, can be a standard URL or a data URL.
+In components where the Builder interfaces with external data, such as images, it often requires the use of data URLs. The source for an _Image_ component, for example, can be a standard URL or a data URL.
 
-Packing Files and Binary Data: Files and binary data can be converted to data URLs before they are sent to the frontend. Use `wf.pack_file()` and `wf.pack_bytes()` for this purpose. The `mime_type` argument, while optional, specifies the media type, helping the browser to correctly handle the data.
+Packing Files and Binary Data: Files and binary data can be converted to data URLs before they are sent to the front-end. Use `wf.pack_file()` and `wf.pack_bytes()` for this purpose. The `mime_type` argument, while optional, specifies the media type, helping the browser to correctly handle the data.
 
 ```python
 import writer as wf
@@ -110,3 +86,30 @@ wf.init_state({
     "my_raw_bytes": b"\x31\x33\x33\x37",
 })
 ```
+
+## Handling non-standard data types
+
+The front-end cannot directly display complex data types such as Pandas dataframes or Matplotlib figures. Such objects must be serialized before being sent.
+
+<Tabs>
+  <Tab title="Matplotlib figures">
+    Matplotlib figures are converted to PNG data URLs, which can be shown using a standard _Image_ component.
+
+    ```python
+    wf.init_state({
+        "my_matplotlib_fig": fig,
+    })
+    ```
+
+    The element can be used in an _Image_ component in the Builder by setting the source to `@{my_matplotlib_fig}`. Alternatively, as data inside a _File Download_ component.
+  </Tab>
+  <Tab title="Plotly graphs">
+    Plotly graphs are converted to Plotly JS specifications, using JSON. They can be used in _Plotly Graph_ components.
+  </Tab>
+  <Tab title="Altair charts">
+    Altair charts are converted to Vega Lite specifications, based on JSON. They can be used in _Vega Lite Chart_ components.
+  </Tab>
+  <Tab title="Pandas dataframes">
+    Pandas dataframes are converted to JSON and can be used in _Dataframe_ components.
+  </Tab>
+</Tabs>

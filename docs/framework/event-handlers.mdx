@@ -2,7 +2,7 @@
 title: "Event handlers"
 ---
 
-Events originate in the frontend, for example, when a user clicks a _Button_ component. Using Builder, these events can be linked to event handlers.
+Events originate in the front-end, for example, when a user clicks a _Button_ component. Using the Builder, these events can be linked to event handlers.
 
 ## Plain Python functions
 
@@ -14,10 +14,10 @@ def handle_click()
     print("Hello")
 ```
 
-To specify that a function isn't an event handler and should remain hidden to the frontend, prefix it with a `_` (underscore).
+To specify that a function isn't an event handler and should remain hidden to the front-end, prefix it with a `_` (underscore).
 
 ```py
-# This function won't be visible in the frontend
+# This function won't be visible in the front-end
 # because its name starts with an underscore
 def _reticulate(splines):
     r_splines = np.random.normal(size=(splines,100))
@@ -43,7 +43,7 @@ import my_handlers_module
 
 wf.init_handlers(my_handlers_module)
 # Register all functions from the module as handlers;
-# this makes `increment` handler accessible on frontend
+# this makes `increment` handler accessible on front-end
 ```
 
 ```py init_handlers many modules
@@ -58,7 +58,7 @@ wf.init_handlers([handler_module_one, handler_module_two])
 </CodeGroup>
 
 <Warning>
-Each function inside a module is attempted to be registered as a handler. Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to frontend.
+Each function inside a module is attempted to be registered as a handler. Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to front-end.
 </Warning>
 
 You can also call `init_handlers` within other modules, which allows for a sequence of registrations:
@@ -77,7 +77,7 @@ import writer as wf
 import another_handlers_module
 
 wf.init_handlers(another_handlers_module)
-# Makes `decrement` handler accessible on frontend
+# Makes `decrement` handler accessible on front-end
 
 ...
 ```
@@ -108,11 +108,17 @@ The handler above receives the application state for the relevant session and mu
 
 ## Mutation detection
 
-When communicating with the frontend, Framework only sends state elements that have mutated.
+<Warning> 
+Mutations are detected via assignment.
+Make sure you perform an assignment on the state element you're mutating, for the mutation to be detected.
+</Warning>
 
-To detect which elements have mutated, it relies on assignment (via operators such as `=`, `+=`, etc). This is because Python doesn't offer a performant, reliable mechanism to detect mutations. See the example below.
+When communicating with the front-end, Framework only sends state elements that have mutated.
 
-```py
+To detect which elements have mutated, it relies on assignment (via operators such as `=`, `+=`, etc). This is because Python doesn't offer a performant, reliable mechanism to detect mutations. See the two examples below.
+
+<CodeGroup>
+```python hande_click
 def handle_click(state):
     state["my_df"].sample(frac=1, random_state=random.seed())
 
@@ -121,20 +127,14 @@ def handle_click(state):
 
     state["my_df"] = state["my_df"]
 ```
-
-The following, arguably cleaner, code, also works as it naturally relies on assignment.
-
-```py
-def handle_click(state):
+```python hande_click_cleaner
+# The following cleaner code also works as it relies on assignment
+def hande_click_cleaner(state):
     my_df = state["my_df"]
     my_df.sample(frac=1, random_state=random.seed())
     state["my_df"] = my_df # State assignmnet
 ```
-
-<Warning> 
-Mutations are detected via assignment.
-Make sure you perform an assignment on the state element you're mutating, for the mutation to be detected.
-</Warning>
+</CodeGroup>
 
 ## Receiving a payload
 
@@ -156,7 +156,7 @@ def handle_webcam_capture(payload):
 		file_handle.write(image_file)
 ```
 
-Handling different payloads across events can be challenging, especially since the shape of the payload may vary. To simplify this process, Builder provides stub code that can help you get started with writing an event handler. You can access it by clicking the icon located next to the event when configuring the component's settings. This feature can help you quickly understand the structure of the payload and start writing the appropriate code to handle it.
+Handling different payloads across events can be challenging, especially since the shape of the payload may vary. To simplify this process, the Builder provides stub code that can help you get started with writing an event handler. You can access it by clicking the icon located next to the event when configuring the component's settings. This feature can help you quickly understand the structure of the payload and start writing the appropriate code to handle it.
 
 ## Globals
 
@@ -189,32 +189,31 @@ def payload_inspector(state, payload):
 
 Event handlers run in a thread pool and are non-blocking. Each event is processed independently from each other.
 
-State mutations are sent to the frontend after the function has finished executing. The code below will accumulate all mutations and send to the frontend after the function returns.
+State mutations are sent to the front-end after the function has finished executing. The code in `handle_fast` will accumulate all mutations and send to the front-end after the function returns. For long-running tasks, Framework will periodically check state and provide partial updates to the user.
 
-```py
+<CodeGroup>
+```py handle_fast
 def handle_fast(state):
     state["text"] = "Hello"
     state["x"] += 3
     state["y"] += 2
 ```
 
-However, for long-running tasks, Framework will periodically check state and provide partial updates to the user.
-
-```py
+```py handle slowly
+# The code below will set `message` to "Loading...", then to "Completed".  
 def handle_slowly(state):
     state["message"] = "Loading..."
     import time
     time.sleep(5)
     state["message"] = "Completed"
 ```
+</CodeGroup>
 
-The code above will set `message` to "Loading...", then to "Completed".  
-
-## Asynchronous Event Handlers
+## Asynchronous event handlers
 
 Framework supports asynchronous event handlers, allowing for non-blocking I/O operations directly within event handlers. This is particularly useful for tasks such as fetching data from a database, making HTTP requests, or performing any other I/O bound operation that can benefit from asynchronous execution.
 
-### Defining an Asynchronous Handler
+### Defining an asynchronous handler
 
 An asynchronous event handler is defined with the standard `async` keyword syntax.
 
@@ -227,7 +226,7 @@ async def handle_async_click(state):
 
 In the example above, `fetch_data()` is an asynchronous function that retrieves data, potentially from a remote source. The `await` keyword is used to wait for the operation to complete without blocking the main thread, allowing other tasks to run concurrently.
 
-### Awaitable Objects
+### Awaitable objects
 
 You can use any awaitable object within an async event handler. This includes the output of any function defined with `async def`, or objects with an `__await__` method. This makes it easy to integrate with asynchronous libraries and frameworks.
 

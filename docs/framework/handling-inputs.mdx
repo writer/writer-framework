@@ -8,7 +8,7 @@ There are two, complementary, ways to handle inputs in Framework: via event hand
 
 Input components have _change_ events that are dispatched when the value changes. The new value is provided as a payload in the event handler. Change events have slightly different names across components, reflecting the payloads they provide. For example, _Number Input_ and _Slider Input_ use the event `wf-number-change` while _Text Input_ and _Text Area Input_ use the generic `wf-change`.
 
-As discussed in the [Event handlers](event-handlers.html) section, the payload can be accessed via the `payload` argument in the event handler.
+As discussed in the [Event handlers](/framework/event-handlers) section, the payload can be accessed via the `payload` argument in the event handler.
 
 ```py
 # This event handler takes the payload and assigns it
@@ -21,13 +21,13 @@ def handle_input_change(state, payload):
 
 Writing event handlers for every input component can be tedious. In most cases, you'll only need to update a single element of state when the value changes, akin to the example above. You can achieve this by binding a component to a state element.
 
-Bindings automatically handle the _change_ event for the component and set the value of the state element to the payload. Furthermore, bindings are two-way. If the state element is updated from the backend, the frontend component is updated to reflect the new value.
+Bindings automatically handle the _change_ event for the component and set the value of the state element to the payload. Furthermore, bindings are two-way. If the state element is updated from the back-end, the front-end component is updated to reflect the new value.
 
-As mentioned in the [Builder basics](builder-basics.html) section of the guide, bindings can be configured in the component settings.
+As mentioned in the [Builder basics](/framework/builder-basics) section of the guide, bindings can be configured in the component settings.
 
 ![Repeater example](/framework/images/handling-inputs.binding.png)
 
-The binding above establishes a two-way link between the component and the state element `name`. If `name` changes in the backend, the component changes. If the component changes, the value of `name` changes.
+The binding above establishes a two-way link between the component and the state element `name`. If `name` changes in the back-end, the component changes. If the component changes, the value of `name` changes.
 
 ## Using events and bindings simultaneously
 

@@ -2,9 +2,9 @@
 title: "Product description generator"
 ---
 
-In this tutorial, you will use Writer Framework to build a Saturn Snacks product description generator for a variety of food outlets. After adding the initial functionality of the app, you will also extend the app to include a chart of SEO keyword analysis and the ability for users to add their own food outlet.
+In this tutorial, you'll use the Writer Framework to build a Saturn Snacks product description generator for a variety of food outlets. After adding the initial functionality of the app, you'll also extend the app to include a chart of SEO keyword analysis and the ability for users to add their own food outlet.
 
-![Finished application](/framework/images/tutorial/pdg-finished-app.png)
+![Finished application](/framework/images/tutorial/product_desciption/pd_gen_1.png)
 
 
 ## Setting up your project
@@ -12,13 +12,13 @@ In this tutorial, you will use Writer Framework to build a Saturn Snacks product
 
 ### Creating a Writer app and getting your API key
 
-From the Home screen, click on Build an app.
+From the Home screen, click on **Build an app**.
 
-![Writer home screen](/framework/images/tutorial/home.png)
+![Writer home screen](/framework/images/tutorial/product_desciption/pd_gen_2.png)
 
 Select Framework as the app type you’d like to create, enabling you to generate keys and build your app with the Writer Framework.
 
-![App type selection](/framework/images/tutorial/app-selection.png)
+![App type selection](/framework/images/tutorial/product_desciption/pd_gen_3.png)
 
 On the next screen, you can edit your Writer application name in the upper left. Underneath “Authenticate with an API key,” click on “Reveal” to see and copy your API key.
 
@@ -27,62 +27,57 @@ On the next screen, you can edit your Writer application name in the upper left.
 
 Next, open your terminal and navigate to the directory where you want to create your application directory.
 
-To pass your API key to Writer Framework, you will need to set an environment variable called `WRITER_API_KEY`. One simple way to do this is by exporting the variable for your terminal session. On Mac and Linux, you can run the following command, replacing `key` with your API key:
+<Steps>
+  <Step title="Set the API key environment variable">
+    To pass your API key to the Writer Framework, you'll need to set an environment variable called `WRITER_API_KEY`. Here’s how you can set this variable in your terminal session:
+
+    <CodeGroup>
+    ```sh On macOS/Linux
+    export WRITER_API_KEY=[key]
+    ```
+
+    ```sh On Windows
+    set WRITER_API_KEY=[key]
+    ```
+    </CodeGroup>
+  </Step>
+  <Step title="Create the application">
+    Run the following command to create your application. Replace `product-description-app` with your desired project name and `pdg-tutorial` with the template you wish to use:
+
+    ```
+    writer create product-description-app --template=pdg-tutorial
+    ```
+
+    This command sets up a new project called `product-description-app` in the specified directory using a template designed for this tutorial.
+  </Step>
+  <Step title="Edit your project">
+    To edit your project, run the below commands. This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. By default, the Writer Framework Builder is accessible at `localhost:3006`. If that port is in use, you can specify a different port. Open this address in your browser to view your default application setup.
+
+    <CodeGroup>
+    ```bash Standard port
+     writer edit product-description-app
+    ```
+
+    ```bash Custom port
+     writer edit product-description-app –port=3007
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
 
 
-```
-export WRITER_API_KEY=[key]
-```
 
-
-On Windows, use the following:
-
-
-```
-set WRITER_API_KEY=[key]
-```
-
-
-To create the application, run the following command:
-
-
-```
-writer create product-description-app --template=pdg-tutorial
-```
-
-
-This command will set up a new project called `product-description-app` in the specified directory using a template created for this tutorial. To edit your project, run this command: 
-
-
-```
-writer edit product-description-app
-```
-
-
-This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. 
-
-By default, the Writer Framework Builder is accessible at `localhost:3006`. If that port is in use, run the `edit` command again with the `port` flag to specify your desired port:
-
-
-```
-writer edit product-description-app –port=3007
-```
-
-
-Open this address in your browser to view your default application setup.
-
-
-## Introduction to the Application Setup
+## Introduction to the application setup
 When you first start up the application, you're going to see two main layout items provided by the template:
 
-* A header component with the name of the application
-* A column container that will house most of the UI of the app
+1. A Header component with the name of the application
+2. A Column container that'll house most of the UI of the app
 
-The left column includes a form that has three text inputs and a button. These three text inputs are bound to corresponding state elements. The right column contains a message component for loading and status messages, as well as an empty tab container which you'll use to display the product descriptions of the various outlets.
+The left column includes a form that has three text inputs and a button. These three text inputs are bound to corresponding state elements. The right column contains a Message component for loading and status messages, as well as an empty Tab container which you'll use to display the product descriptions of the various outlets.
 
 ### Code overview
 
-Looking at the code in `main.py`, you'll see that the template already imported the Writer Framework, the AI module, and the product description prompts that you will use throughout this tutorial. 
+Looking at the code in `main.py`, you'll see that the template already imported the Writer Framework, the AI module, and the product description prompts that you'll use throughout this tutorial. 
 
 ```python
 import writer as wf
@@ -105,99 +100,110 @@ wf.init_state({
 })
 ```
 
-The form elements and the message have been initialized as strings. You will add to this state dictionary throughout the tutorial. 
+The form elements and the message have been initialized as strings. You'll add to this state dictionary throughout the tutorial. 
 
 
-## Implementing the Product Description Generator
+## Implementing the Product description generator
 
 Your first goal is to generate product descriptions for the various food outlets, with each outlet appearing as a tab to the right of the form.
 
-![Finished product description tabs](/framework/images/tutorial/pdg-finished-descriptions.png)
+![Finished product description tabs](/framework/images/tutorial/product_desciption/pd_gen_4.png)
 
 
 ### Setting up the code
 
-First, paste the following method on line 5 after all of the imports:
+First, integrate new functionality into your code for generating product descriptions.
 
-```python
-def _generate_product_description(base_prompt, product_info):
-   prompt = base_prompt.format(**product_info)
-   description = writer.ai.complete(prompt)
-   return description
-```
+<Steps>
+  <Step title="Add a private helper method">
+    Paste the following method on line 5 after all of the imports to create a helper function for generating product descriptions:
 
-This helper function accepts a base prompt as well as the product information from the form on the page. Note that the product description helper has an underscore at the beginning of its name, indicating that it's a private method not exposed to the UI. 
+    ```python
+    def _generate_product_description(base_prompt, product_info):
+       prompt = base_prompt.format(**product_info)
+       description = writer.ai.complete(prompt)
+       return description
+    ```
 
-Next, you’ll initialize some additional state elements and create a handler for the button on the form. 
+    This function, `_generate_product_description`, accepts a base prompt and the product information from a form on the page. The underscore at the beginning of its name indicates that it's a private method not exposed to the UI.
+  </Step>
+  <Step title="Initialize additional state elements">
+    Update the `wf.init_state()` to include a `product_description` dictionary with visibility control and outlets for descriptions:
 
-First, update `wf.init_state()` to include the `product_description` dictionary:
+    ```python
+    wf.init_state({
+       "form": {
+           "title": "",
+           "description": "",
+           "keywords": ""
+       },
+       "message": "Fill in the inputs and click \"Generate\" to get started.",
+       "product_descriptions": {
+           "visible": False,
+           "outlets": {}
+       }
+    })
+    ```
 
-```python
-wf.init_state({
-   "form": {
-       "title": "",
-       "description": "",
-       "keywords": ""
-   },
-   "message": "Fill in the inputs and click \"Generate\" to get started.",
-   "product_descriptions": {
-       "visible": False,
-       "outlets": {}
-   }
-})
-```
+    This setup includes a variable `visible` to control whether product description tabs are shown or hidden, and an empty dictionary `outlets` for storing descriptions.
+  </Step>
+  <Step title="Add a button click handler">
+    Paste the following method beneath `_generate_product_description` to handle button clicks and generate descriptions:
 
-This dictionary includes a variable called `visible` that will allow you to control whether the product description tabs are hidden or visible. It also includes an empty dictionary called `outlets` to which the button click handler will add.
+    ```python
+    def handle_click(state):
+       state["product_descriptions"]["visible"] = False
 
-To add the button click handler, paste the following method beneath `_generate_product_description`:
+       # Loop through all the base prompts to generate versions tailored to each outlet
+       for outlet, base_prompt in base_prompts.items():
+           state["message"] = f"% Generating product description for {outlet}..."
+           product_description = _generate_product_description(base_prompt, state["form"].to_dict())
+           state["product_descriptions"]["outlets"][outlet] = product_description
 
-```python
-def handle_click(state):
-   state["product_descriptions"]["visible"] = False
+       state["product_descriptions"]["visible"] = True
+       state["message"] = ""
+    ```
 
+    This handler will loop through each imported base prompt, format it with the form information, and pass it to the helper method. The handler also manages UI interactions, such as displaying and hiding product descriptions and managing loading messages.
+  </Step>
+</Steps>
 
-   # Loop through all the base prompts to generate versions tailored to each outlet
-   for outlet, base_prompt in base_prompts.items():
-       state["message"] = f"% Generating product description for {outlet}..."
-       product_description = _generate_product_description(base_prompt, state["form"].to_dict())
-       state["product_descriptions"]["outlets"][outlet] = product_description
+### Setting up the user interface
 
+You can now set up the UI to iterate over the product descriptions dictionary and create tabs. Begin by opening the User Interface.
 
-   state["product_descriptions"]["visible"] = True
-   state["message"] = ""
-```
+<Steps>
+  <Step title="Add and configure the Repeater component">
+    In the toolkit, drag a Repeater component from the Other section into the empty Tab Container. Click on the Repeater component to open its component settings. Under Properties, add `@{product_descriptions.outlets}` as the Repeater object to be used for repeating the child components. Replace the default “Key variable name” with `itemID`. You can leave “Value variable name” as `item`.
 
-This handler will loop through each imported base prompt, format it with the form information, and pass it to the helper method. It then adds the resulting product description to the `state["product_descriptions"]["outlets"]` dictionary. The click handler method also includes some UI touches, such as showing and hiding the product descriptions and adding and removing loading messages to the message component.
+    ![Repeater settings](/framework/images/tutorial/product_desciption/pd_gen_5.png)
+  </Step>
+  <Step title="Add and configure the Tab component">
+    From the Layout section of the toolkit, drag a Tab component into the Repeater. Click on the Tab to bring up the component settings and add `@{itemID}` to the Name property to display the outlet name on the tab.
 
+    ![Tab settings](/framework/images/tutorial/product_desciption/pd_gen_6.png)
+  </Step>
+  <Step title="Add and configure the Text component">
+    Drag a Text component from the Content section of the Toolkit into the Tab. Click on the Text component to open the Component settings and set the Text property to `@{item}`. You may also choose to set “Use Markdown” to “yes.”
 
-### Setting Up the User Interface
+    ![Text settings](/framework/images/tutorial/product_desciption/pd_gen_7.png)
+  </Step>
+  <Step title="Control the visibility of the Tab container">
+    Click on the Tab container to bring up its Component settings. Scroll to the bottom and, under Visibility, click “Custom” and add `product_descriptions.visible` to the Visibility value input.
 
-You can now set up the UI to iterate over the product descriptions dictionary and create tabs. To do this, open the User iInterface. In the toolkit, drag a Repeater component from the Other section into the empty Tab Container. 
+    ![Tab container visibility settings](/framework/images/tutorial/product_desciption/pd_gen_8.png)
+  </Step>
+  <Step title="Wire up the form with the Generate button">
+    Click on the Generate button inside the form to bring up its Component settings. In the Events section, select `handle_click` for the `wf-click` event.
 
-Click on the Repeater component to open its component settings. Under Properties, add `@{product_descriptions.outlets}` as the Repeater object to be used for repeating the child components. Replace the default “Key variable name” with `itemID`. You can leave “Value variable name” as `item`. 
+    ![Button settings](/framework/images/tutorial/product_desciption/pd_gen_9.png)
+  </Step>
+  <Step title="Preview and test the application">
+    Click **Preview** in the top toolbar, enter some test data, and click the **Generate** button. You should see a loading message, as well as three example food outlets displayed in the tabs. The loading message should disappear when everything is loaded, and the tab should remain visible once the data has loaded.
 
-<img width="250" src="/framework/images/tutorial/pdg-repeater-settings.png" alt="Repeater component settings" />
-
-Next, from the Layout section of the toolkit, drag a Tab component into the Repeater. Click on the Tab to bring up the component settings and add `@{itemID}` to the Name property. This will display the outlet name on the tab. 
-
-<img width="250" src="/framework/images/tutorial/pdg-tab-settings.png" alt="Tab component settings" />
-
-To display the resulting text from the call to the AI module, drag a Text component from the Content section of the Toolkit into the Tab. Click on the Text component to open the Component settings and set the Text property to `@{item}`. You may also choose to set “Use Markdown” to “yes.” 
-
-<img width="250" src="/framework/images/tutorial/pdg-text-settings.png" alt="Text component settings" />
-
-To control the visibility of the Tab Container, click on the Tab Container to bring up its component settings. Scroll to the bottom and, under Visibility, click “Custom” and add `product_descriptions.visible` to the Visibility value input. 
-
-<img width="250" src="/framework/images/tutorial/pdg-tab-visibility.png" alt="Tab Container visibility setting" />
-
-Lastly, to wire up the form, click on the Generate button inside the form to bring up its component settings. In the Events section, select `handle_click` for the `wf-click` event. 
-
-<img width="250" src="/framework/images/tutorial/pdg-button-settings.png" alt="Button settings" />
-
-Now, click Preview in the top toolbar, enter some test data, and click the Generate button. You should see a loading message, as well as three example food outlets displayed in the tabs. The loading message should disappear when everything is loaded, and the tab should remain visible once the data has loaded.
-
-Great work!
-
+    Great work!
+  </Step>
+</Steps>
 
 ## Expanding the application: SEO keyword analysis
 
@@ -236,15 +242,15 @@ This code sets the loading message and passes all of the product descriptions to
 
 ### Adding SEO analysis to the UI
 
-To update the UI to display this chart, first drag a new tab from the Layout section of the toolkit into the Tab Container. This tab should not be inside of the Repeater, but can be either before or after it. Click on the tab to open the component settings, and change the name to “SEO Analysis.” If you'd like, you can also set the Visibility to “Custom” and set `seo_analysis` as the visibility value. 
+To update the UI to display this chart, first drag a new tab from the Layout section of the toolkit into the Tab container. This tab should not be inside of the Repeater, but can be either before or after it. Click on the tab to open the component settings, and change the name to “SEO Analysis.” If you'd like, you can also set the Visibility to “Custom” and set `seo_analysis` as the visibility value. 
 
-<img width="250" src="/framework/images/tutorial/pdg-seo-tab.png" alt="SEO analysis settings" />
+![SEO Tab](/framework/images/tutorial/product_desciption/pd_gen_10.png)
 
-To display the chart, drag a Plotly Graph component from the Content section of the toolkit into your new Tab. Click on the component to bring up the component settings. The Plotly graph component accepts a graph specification. Add `@{seo_analysis}` to pass the LLM-generated graph specification to the component. 
+To display the chart, drag a Plotly graph component from the Content section of the toolkit into your new tab. Click on the component to bring up the component settings. The Plotly graph component accepts a graph specification. Add `@{seo_analysis}` to pass the LLM-generated graph specification to the component. 
 
 Click preview, add some data to the form, and click generate. You should see a new SEO analysis tab appear with a nicely formatted and labeled chart. 
 
-![SEO analysis tab and chart](/framework/images/tutorial/pdg-seo-chart.png)
+![SEO analysis tab and chart](/framework/images/tutorial/product_desciption/pd_gen_11.png)
 
 
 ## Extending the application: user-added outlet 
@@ -260,8 +266,7 @@ To create the inputs for the form, drag a Text Input and a Number Input from the
 
 Finally, add a Button from the Other section of the toolkit to the bottom of the new section. Click on the button and change the text to “Add and Generate.” You can also add `laps` or another [Material Symbols](https://fonts.google.com/icons) ID to the Icon input if you wish. 
 
-<img width="300" src="/framework/images/tutorial/pdg-add-outlet-form.png" alt="Add outlet form" />
-
+![Add outlet form](/framework/images/tutorial/product_desciption/pd_gen_12.png)
 
 ### Updating the code
 
@@ -330,19 +335,27 @@ This method formats the input from both forms into the imported `user_prompt` an
 
 
 ### Binding the elements and handler to the UI
+Finalize your setup by binding the state elements and configuring the click handler to the UI components.
 
-Finally, bind the state elements and the click handler to the UI. 
-
-First, click on the “Outlet name” Text Input and, under Binding, set the state element to `outlet_form.name`. Click on the “Character max” Text Input and change the state element binding to `outlet_form.character_max`. Then, click on the “Add and Generate” Button and select `handle_add_outlet` to the `wf-click` event in the Events section of the component settings. 
-
-Finally, if you'd like to hide this form until some of the descriptions have been generated, click on the Section for the form, and in the Visibility section, click “Custom” and add `product_descriptions.visible` as the “Visibility value.” 
+<Steps>
+  <Step title="Bind text inputs to state elements">
+    - **Outlet Name**: Click on the “Outlet name” Text Input component. In the Binding section of the component settings, set the state element to `outlet_form.name`.
+    - **Character Max**: Move to the “Character max” Text Input. Update its state element binding to `outlet_form.character_max`.
+  </Step>
+  <Step title="Assign click handler to button">
+    Click on the **Add and Generate** Button. In the Events section of the component settings, select `handle_add_outlet` for the `wf-click` event.
+  </Step>
+  <Step title="Configure form visibility">
+    To conditionally display the form based on whether descriptions have been generated, click on the Section containing the form. In the Visibility section, choose “Custom” and set `product_descriptions.visible` as the “Visibility value.”
+  </Step>
+</Steps>
 
 
 ### Testing the finished product
 
-To see the result of your hard work, click Preview in the top toolbar, enter some information into the original product description form, and click “Generate.” The “Add an outlet” form should appear once the product descriptions have been generated. Add a new example outlet name and a character max and click “Add and Generate.” You should see a new tab appear with your new outlet, as well as an updated SEO analysis chart. 
+To see the result of your hard work, click **Preview** in the top toolbar, enter some information into the original product description form, and click **Generate**. The “Add an outlet” form should appear once the product descriptions have been generated. Add a new example outlet name and a character max and click “Add and Generate.” You should see a new tab appear with your new outlet, as well as an updated SEO analysis chart. 
 
-![Finished application](/framework/images/tutorial/pdg-finished-app.png)
+![Finished application](/framework/images/tutorial/product_desciption/pd_gen_13.png)
 
 You can add whatever additional form inputs you wish to the outlet form, but be sure to update `user_prompt` in the `prompts.py` file using your favorite editor.
 
@@ -359,9 +372,9 @@ writer deploy product-description-app
 
 You’ll be prompted for your API key.
 
-Once the application has been deployed, the CLI will return with the URL of your live application.
+Once the application is deployed, the CLI will return with the URL of your live application.
 
 
 ## Conclusion
 
-You’ve now built a full application with Writer Framework and the Writer AI module. Congratulations! This application not only demonstrates the platform's capabilities but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation.
+You’ve now built a full application with the Writer Framework and the Writer AI module. Congratulations! This application not only demonstrates the platform's capabilities but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation.

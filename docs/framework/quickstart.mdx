@@ -5,7 +5,7 @@ title: "Quickstart"
 ## Install it and run the demo app
 
 <Tip>
-It works on Linux, Mac and Windows. Python 3.9.2 or higher is required. We recommend using a virtual environment.
+It works on Linux, Mac, and Windows. Python 3.9.2 or higher is required. We recommend using a virtual environment.
 </Tip>
 
 <Steps>
@@ -38,9 +38,9 @@ writer create testapp
 
 A Framework app is a folder with the following items.
 
-1. `main.py`. The entry point for the app. You can import anything you need from here.
-2. `ui.json`. Contains the UI component declarations. Maintained by Builder, the framework's visual editor.
-3. `static/`. This folder contains frontend-facing static files which you might want to distribute with your app. For example, images and stylesheets.
+1. `main.py` - The entry point for the app. You can import anything you need from here.
+2. `ui.json` - Contains the UI component declarations. Maintained by the Writer Framework's visual editor.
+3. `static/` - This folder contains front-end static files which you might want to distribute with your app. For example, images and stylesheets.
 
 ## Start the editor
 
@@ -53,10 +53,10 @@ writer edit [path]
 writer edit testapp
 ```
 
-This command will provide you with a local URL which you can use to access Builder.
+This command will provide you with a local URL which you can use to access the Builder.
 
 <Warning>
-It's not recommended to expose Framework to the Internet. If you need to access Builder remotely, we recommend setting up a SSH tunnel. By default, requests from non-local origins are rejected, as a security measure to protect against drive-by attacks. 
+It's not recommended to expose Framework to the Internet. If you need to access the Builder remotely, we recommend setting up an SSH tunnel. By default, requests from non-local origins are rejected, as a security measure to protect against drive-by attacks. 
 
 If you need to disable this protection, use the flag `--enable-remote-edit`. 
 </Warning>
@@ -83,11 +83,11 @@ If you need to run Framework as a module, you can use the `writer.command_line` 
 python -m writer.command_line run my_app
 ```
 
-## Writer Cloud
+## Deploying on Writer cloud
 Writer provides a quick and fast way to deploy your apps via the Writer cloud.
 
 ```sh
 writer deploy <my_app_name>
 ```
 
-You will be asked to enter your API key. To find your key please log into your [App Studio account](https://app.writer.com/aistudio) and either create a new framework app by going through the create app workflow or choose an existing framework app from your home screen. For other deployment options, see [Deploy with Docker](/framework/deploy-with-docker)
+You’ll be asked to enter your API key. To find your key, log in to your [AI Studio account](https://app.writer.com/aistudio) and either create a new framework app by going through the create app workflow or choose an existing framework app from your home screen. For other deployment options, see [Deploy with Docker](/framework/deploy-with-docker).
