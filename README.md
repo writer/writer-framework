@@ -1,20 +1,8 @@
-## What is Streamsync?
+## What is Writer Framework?
 
-[![PyPi](https://img.shields.io/pypi/v/streamsync.svg?label=Version)](https://pypi.org/project/streamsync/)
-[![CI](https://github.com/streamsync-cloud/streamsync/actions/workflows/ci.yml/badge.svg)](https://github.com/streamsync-cloud/streamsync/actions/workflows/ci.yml)
-[![Discord](https://img.shields.io/badge/discord-streamsync-sn677E3Pd3?logo=discord&logoColor=white)](https://discord.gg/sn677E3Pd3)
-[![License](https://img.shields.io/pypi/l/streamsync)](LICENSE)
+Writer Framework is an open-source framework for creating AI applications. Build user interfaces using a visual editor; write the backend code in Python.
 
-Writer Framework is an open-source framework for creating data apps. Build user interfaces using a visual editor; write the backend code in Python.
-
-![Writer Framework Builder screenshot](https://raw.githubusercontent.com/streamsync-cloud/streamsync/master/docs/docs/public/sc1.png "Writer Framework Builder screenshot")
-
-- [Live demo](https://hello.streamsync.cloud/) of an app. [Source code](https://github.com/streamsync-cloud/streamsync/blob/master/apps/hello/main.py).
-- [1 minute introduction video](https://youtu.be/XBAPBy_zf8s) on YouTube
-
-It's an alternative to Plotly Dash, Streamlit and Gradio. Its focused on the creation of web applications for data analytics and machine learning.
-
-It aims to be as simple as Streamlit, but faster, more flexible and with a cleaner, easily-testable syntax. It provides separation of concerns between UI and business logic, enabling more complex applications.
+Writer Framework is fast and flexible with a clean, easily-testable syntax. It provides separation of concerns between UI and business logic, enabling more complex applications.
 
 ## Highlights
 
@@ -37,13 +25,13 @@ The user interface is a template, which is defined visually. The template contai
 
 ### Flexible
 
-- Elements are highly customisable with no CSS required, allowing for shadows, button icons, background colours, etc.
+- Elements are highly customizable with no CSS required, allowing for shadows, button icons, background colors, etc.
 - HTML elements with custom CSS can be included using the _HTML Element_ component. They can serve as containers for built-in components.
 
 ### Fast
 
 - Event handling adds minimal overhead to your Python code (~1-2ms\*).
-- Streaming (WebSockets) is used to synchronise frontend and backend states.
+- Streaming (WebSockets) is used to synchronize frontend and backend states.
 - The script only runs once.
 - Non-blocking by default. Events are handled asynchronously in a thread pool running in a dedicated process.
 
@@ -61,24 +49,28 @@ The user interface is a template, which is defined visually. The template contai
 Getting started with Writer Framework is easy. It works on Linux, Mac and Windows.
 
 ```sh
-pip install "streamsync[ds]"
-streamsync hello
+pip install writer
+writer hello
 ```
 
-- The first command will install Writer Framework using `pip` and include the optional data science dependencies.
+- The first command will install Writer Framework using `pip`.
 - The second command will create a demo application in the subfolder "hello" and start Writer Framework Builder, the framework's visual editor, which will be accessible via a local URL.
 
 The following commands can be used to create, launch Writer Framework Builder and run an application.
 
 ```sh
-streamsync create my_app
-streamsync edit my_app
-streamsync run my_app
+writer create my_app
+writer edit my_app
+writer run my_app
 ```
 
 ## Documentation
 
-Documentation is available online at [streamsync.cloud](https://streamsync.cloud).
+Full documentation, including how to use Writer's AI module and deployment options, is available at [Writer](https://developer.writer.com/framework?utm_source=github&utm_medium=readme&utm_campaign=framework).
+
+## About Writer
+
+Writer is the full-stack generative AI platform for enterprises. Quickly and easily build and deploy generative AI apps with a suite of developer tools fully integrated with our platform of LLMs, graph-based RAG tools, AI guardrails, and more. Learn more at [writer.com](https://www.writer.com?utm_source=github&utm_medium=readme&utm_campaign=framework).
 
 ## License
 
