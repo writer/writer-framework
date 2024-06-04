@@ -2,9 +2,10 @@ import argparse
 import getpass
 import logging
 import os
+import re
 import shutil
 import sys
-from typing import Optional
+from typing import List, Optional, Union
 
 import writer.deploy
 import writer.serve
@@ -14,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run, edit or create a Writer Framework app.")
     parser.add_argument("command", choices=[
-                        "run", "edit", "create", "hello", "deploy", "undeploy"])
+                        "run", "edit", "create", "hello", "deploy", "undeploy", "deployment-logs"])
     parser.add_argument(
         "path", nargs="?", help="Path to the app's folder")
     parser.add_argument(
@@ -29,6 +30,8 @@ def main():
         "--enable-server-setup", help="Set this flag to enable server setup hook in edit mode.", action='store_true')
     parser.add_argument(
         "--template", help="The template to use when creating a new app.")
+    parser.add_argument(
+        "--env", nargs="*", help="Env variables for the deploy command in the format ENV_VAR=value.")
 
     args = parser.parse_args()
     command = args.command
@@ -42,13 +45,25 @@ def main():
         args.path) if args.path else None
     host = args.host if args.host else None
     api_key = args.api_key if args.api_key else None
+    print(args.env)
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
     api_key = _get_api_key(command, api_key)
-    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name, api_key)
+    env = _validate_env_vars(args.env)
+    _route(command, absolute_app_path, port, host, enable_remote_edit, enable_server_setup_hook, template_name, api_key, env)
+
+def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
+    if env is None:
+        return None
+    for var in env:
+        regex = r"^[a-zA-Z_]+[a-zA-Z0-9_]*=.*$"
+        if not re.match(regex, var):
+            logging.error(f"Invalid environment variable: {var}, please use the format ENV_VAR=value")
+            sys.exit(1)
+    return env
 
 def _get_api_key(command, api_key: Optional[str]) -> Optional[str]:
-    if command in ("deploy", "undeploy") and api_key is None:
+    if command in ("deploy", "undeploy", "deployment-logs") and api_key is None:
         env_key = os.getenv("WRITER_API_KEY", None)
         if env_key is not None and env_key != "": 
             return env_key
@@ -89,14 +104,17 @@ def _route(
     enable_remote_edit: Optional[bool],
     enable_server_setup: Optional[bool],
     template_name: Optional[str],
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    env: Union[List[str], None] = None
 ):
     if host is None:
         host = "127.0.0.1"
     if command in ("deploy"):
-        writer.deploy.deploy(absolute_app_path, api_key)
+        writer.deploy.deploy(absolute_app_path, api_key, env=env)
     if command in ("undeploy"):
         writer.deploy.undeploy(api_key)
+    if command in ("deployment-logs"):
+        writer.deploy.runtime_logs(api_key)
     if command in ("edit"):
         writer.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host,
