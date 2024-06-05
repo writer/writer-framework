@@ -66,7 +66,7 @@ writer run my_app
 
 ## Documentation
 
-Full documentation, including how to use Writer's AI module and deployment options, is available at [Writer](https://developer.writer.com/framework?utm_source=github&utm_medium=readme&utm_campaign=framework).
+Full documentation, including how to use Writer's AI module and deployment options, is available at [Writer](https://dev.writer.com/framework?utm_source=github&utm_medium=readme&utm_campaign=framework).
 
 ## About Writer
 
