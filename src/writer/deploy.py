@@ -16,21 +16,42 @@ WRITER_DEPLOY_URL = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/de
 
 def deploy(path, token, env):
     tar = pack_project(path)
-    upload_package(tar, token, env)
+    try:
+        upload_package(tar, token, env)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            unauthorized_error()
+        print(e)
+        print("Error deploying app")
+        sys.exit(1)
+    except Exception as e:
+        print(e)
+        print("Error deploying app")
+        sys.exit(1)
+    finally:
+        tar.close()
+
 
 def undeploy(token):
     try:
         print("Undeploying app")
         with requests.delete(WRITER_DEPLOY_URL, headers={"Authorization": f"Bearer {token}"}) as resp:
-            resp.raise_for_status()
+            on_error_print_and_raise(resp)
             print("App undeployed")
             sys.exit(0)
-    except Exception as e:
-        print("Error undeploying app")
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            unauthorized_error()
         print(e)
+        print("Error undeploying app")
         sys.exit(1)
 
-def runtime_logs(token):
+    except Exception as e:
+        print(e)
+        print("Error undeploying app")
+        sys.exit(1)
+
+def logs(token):
     try: 
         build_time = datetime.now(pytz.timezone('UTC')) - timedelta(days=4)
         start_time = build_time
@@ -54,8 +75,16 @@ def runtime_logs(token):
                 print(log[0], log[1])
             print(start_time)
             time.sleep(1)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            unauthorized_error()
+        print(e)
+        print("Error fetching logs")
+        sys.exit(1)
+
     except Exception as e:
         print(e)
+        print("Error fetching logs")
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(0)
@@ -92,11 +121,7 @@ def pack_project(path):
 
 def get_logs(token, params):
     with requests.get(WRITER_DEPLOY_URL, params = params, headers={"Authorization": f"Bearer {token}"}) as resp:
-        try:
-            resp.raise_for_status()
-        except Exception as e:
-            print(resp.json())
-            raise e
+        on_error_print_and_raise(resp)
         data = resp.json()
 
         logs = []
@@ -134,53 +159,53 @@ def dictFromEnv(env: List[str]) -> dict:
 
     return env_dict
 
+
 def upload_package(tar, token, env):
-    try: 
-        print("Uploading package to deployment server")
-        tar.seek(0)
-        files = {'file': tar}
-        start_time = datetime.now(pytz.timezone('UTC'))
-        build_time = start_time
-        with requests.post(
-            url = WRITER_DEPLOY_URL, 
-            headers = {
-                "Authorization": f"Bearer {token}",
-            },
-            files=files,
-            data={"envs": json.dumps(dictFromEnv(env))}
-        ) as resp:
-            try:
-                resp.raise_for_status()
-            except Exception as e:
-                print(resp.json())
-                raise e
-            data = resp.json()
-            build_id = data["buildId"]
+    print("Uploading package to deployment server")
+    tar.seek(0)
+    files = {'file': tar}
+    start_time = datetime.now(pytz.timezone('UTC'))
+    build_time = start_time
+    with requests.post(
+        url = WRITER_DEPLOY_URL, 
+        headers = {
+            "Authorization": f"Bearer {token}",
+        },
+        files=files,
+        data={"envs": json.dumps(dictFromEnv(env))}
+    ) as resp:
+        on_error_print_and_raise(resp)
+        data = resp.json()
+        build_id = data["buildId"]
 
-        print("Package uploaded. Building...")
-        status = "WAITING"
-        url = ""
-        while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < build_time + timedelta(minutes=5):
-            end_time = datetime.now(pytz.timezone('UTC'))
-            status, url = check_service_status(token, build_id, build_time, start_time, end_time, status)
-            time.sleep(5)
-            start_time = end_time
+    print("Package uploaded. Building...")
+    status = "WAITING"
+    url = ""
+    while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < build_time + timedelta(minutes=5):
+        end_time = datetime.now(pytz.timezone('UTC'))
+        status, url = check_service_status(token, build_id, build_time, start_time, end_time, status)
+        time.sleep(5)
+        start_time = end_time
 
-        if status == "COMPLETED":
-            print("Deployment successful")
-            print(f"URL: {url}")
-            sys.exit(0)
-        else:
-            time.sleep(5)
-            check_service_status(token, build_id, build_time, start_time, datetime.now(pytz.timezone('UTC')), status)
-            print("Deployment failed")
-            sys.exit(1)
-
-    except Exception as e:
-        print("Error uploading package")
-        print(e)
+    if status == "COMPLETED":
+        print("Deployment successful")
+        print(f"URL: {url}")
+        sys.exit(0)
+    else:
+        time.sleep(5)
+        check_service_status(token, build_id, build_time, start_time, datetime.now(pytz.timezone('UTC')), status)
+        print("Deployment failed")
         sys.exit(1)
-    finally:
-        tar.close()
 
+def on_error_print_and_raise(resp):
+    try:
+        resp.raise_for_status()
+    except Exception as e:
+        if os.getenv('DEBUG') == 'true':
+            print(resp.json())
+        raise e
 
+def unauthorized_error():
+    print(f"\n{WRITER_DEPLOY_URL}")
+    print("Unauthorized. Please check your API key.")
+    sys.exit(1)

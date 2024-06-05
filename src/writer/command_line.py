@@ -45,7 +45,6 @@ def main():
         args.path) if args.path else None
     host = args.host if args.host else None
     api_key = args.api_key if args.api_key else None
-    print(args.env)
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
     api_key = _get_api_key(command, api_key)
@@ -114,7 +113,7 @@ def _route(
     if command in ("undeploy"):
         writer.deploy.undeploy(api_key)
     if command in ("deployment-logs"):
-        writer.deploy.runtime_logs(api_key)
+        writer.deploy.logs(api_key)
     if command in ("edit"):
         writer.serve.serve(
             absolute_app_path, mode="edit", port=port, host=host,
