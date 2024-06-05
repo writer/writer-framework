@@ -5,7 +5,7 @@ import writer.ai
 
 # Welcome to Writer Framework! 
 # This is a simple app to get you started with text completion.
-# More documentation is available at https://developer.writer.com
+# More documentation is available at https://dev.writer.com
 
 def handle_button_click(state):
     state["message"] = "% Loading up expert social media posts..."

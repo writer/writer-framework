@@ -124,7 +124,7 @@ class WriterAIManager:
 
         :returns: Name for the chat model.
         """
-        return "palmyra-chat-v2-32k"
+        return "palmyra-x-002-32k"
 
     @classmethod
     def use_completion_model(cls) -> str:
@@ -133,7 +133,7 @@ class WriterAIManager:
 
         :returns: Name for the completion model.
         """
-        return "palmyra-x-v2"
+        return "palmyra-x-002-instruct"
 
     @classmethod
     def acquire_client(cls) -> Writer:

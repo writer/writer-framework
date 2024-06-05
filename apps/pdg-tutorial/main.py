@@ -3,7 +3,7 @@ import writer.ai
 from prompts import base_prompts, seo_keywords, user_prompt
 
 # This is the base template for the Product Description Generator tutorial.
-# More documentation is available at https://developer.writer.com/framework
+# More documentation is available at https://dev.writer.com/framework
 
 # Initialize state here
 wf.init_state({
