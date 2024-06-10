@@ -738,6 +738,14 @@ class WriterState(State):
         })
 
 
+class MiddlewareRegistry:
+
+    def __init__(self):
+        self.registry = []
+
+    def register(self, middleware: Callable):
+        self.registry.append(middleware)
+
 class EventHandlerRegistry:
     """
     Maps functions registered as event handlers from the user app's core

@@ -19,7 +19,7 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from writer import VERSION
-from writer.core import EventHandlerRegistry, WriterSession
+from writer.core import EventHandlerRegistry, WriterSession, MiddlewareRegistry
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -96,6 +96,7 @@ class AppProcess(multiprocessing.Process):
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
         self.handler_registry = EventHandlerRegistry()
+        self.middleware_registry = MiddlewareRegistry()
 
 
     def _load_module(self) -> ModuleType:
