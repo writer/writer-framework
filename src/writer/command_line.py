@@ -9,43 +9,56 @@ import click
 import writer.serve
 from writer.deploy import cloud
 
-
 @click.group(
     help="Writer Framework CLI",
 )
 def main():
-   pass
+    pass
 
-@click.command()
+@main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=5000, help="Port to run the app on")
-@click.argument('path', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
+@click.argument('path')
 def run(path, host, port):
     """Run the app from PATH folder in run mode."""
 
-    writer.serve.serve(
-        path, mode="run", port=port, host=host, enable_server_setup=True)
+    abs_path, is_folder = _get_absolute_app_path(path)
+    if not is_folder:
+        raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer run my_app")
 
-@click.command()
+    writer.serve.serve(
+        abs_path, mode="run", port=port, host=host, enable_server_setup=True)
+
+@main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=5000, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
-@click.argument('path', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
+@click.argument('path')
 def edit(path, port, host, enable_remote_edit, enable_server_setup):
     """Run the app from PATH folder in edit mode."""
+
+    abs_path, is_folder = _get_absolute_app_path(path)
+    if not is_folder:
+        raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer edit my_app")
+
     writer.serve.serve(
-        path, mode="edit", port=port, host=host,
+        abs_path, mode="edit", port=port, host=host,
         enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
 
-@click.command()
+@main.command()
 @click.argument('path', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
 @click.option('--template', help="The template to use when creating a new app.")
 def create(path, template):
     """Create a new app in PATH folder."""
-    create_app(path, template_name=template)
 
-@click.command()
+    abs_path, _ = _get_absolute_app_path(path)
+    if abs_path is None:
+        raise click.ClickException("A target folder is required to create a Writer Framework app. For example: writer create my_app")
+
+    create_app(abs_path, template_name=template)
+
+@main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=5000, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
@@ -55,9 +68,6 @@ def hello(port, host, enable_remote_edit):
        port=port, host=host, enable_remote_edit=enable_remote_edit,
        enable_server_setup=False)
 
-main.add_command(run)
-main.add_command(edit)
-main.add_command(create)
 main.add_command(cloud)
 
 def create_app(app_path: str, template_name: Optional[str], overwrite=False):
@@ -79,6 +89,12 @@ def create_app(app_path: str, template_name: Optional[str], overwrite=False):
         sys.exit(1)
 
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
+
+def _get_absolute_app_path(app_path: str):
+    is_path_absolute = os.path.isabs(app_path)
+    absolute_app_path = app_path if is_path_absolute else os.path.join(os.getcwd(), app_path)
+    is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
+    return absolute_app_path, is_path_folder
 
 if __name__ == "__main__":
     main()
