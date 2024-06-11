@@ -105,6 +105,7 @@ export default {
 					items: [
 						{text: "Testing", link: "/testing"},
 						{text: "Deploy with Docker", link: "/deploy-with-docker"},
+						{text: "Cloud deployment", link: "/cloud-deploy"},
 						{text: "Component list", link: "/components/component-list"},
 					],
 				}
