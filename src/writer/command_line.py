@@ -9,6 +9,7 @@ import click
 import writer.serve
 from writer.deploy import cloud
 
+
 @click.group(
     help="Writer Framework CLI",
 )
