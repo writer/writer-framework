@@ -24,6 +24,7 @@ The `writer cloud` command group includes the following commands:
 
 These options are common across multiple commands:
 - `--api-key`: The Writer API key used for authentication. If not provided, you will be prompted to enter it.
+- `--verbose, -v`: Enable verbose output.
 
 ## Commands
 
@@ -41,7 +42,8 @@ writer cloud deploy [OPTIONS] PATH
 
 **Options:**
 - `--api-key`: Writer API key for authentication. If not provided, you will be prompted to enter it.
-- `--env`: Environment variables to set in the deployed app. Use the format `VAR=value`. Multiple environment variables can be specified by repeating the `--env` option.
+- `--env, -e`: Environment variables to set in the deployed app. Use the format `VAR=value`. Multiple environment variables can be specified by repeating the `--env` option.
+- `--verbose, -v`: Enable verbose output.
 
 **Example:**
 ```
@@ -81,6 +83,7 @@ writer cloud undeploy [OPTIONS]
 
 **Options:**
 - `--api-key`: Writer API key for authentication. If not provided, you will be prompted to enter it.
+- `--verbose, -v`: Enable verbose output.
 
 **Example:**
 ```
@@ -101,6 +104,7 @@ writer cloud logs [OPTIONS]
 
 **Options:**
 - `--api-key`: Writer API key for authentication. If not provided, you will be prompted to enter it.
+- `--verbose, -v`: Enable verbose output.
 
 **Example:**
 ```
