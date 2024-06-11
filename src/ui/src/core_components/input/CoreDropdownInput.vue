@@ -1,34 +1,38 @@
 <template>
-	<div ref="rootEl" class="CoreDropdownInput">
-		<label class="mainLabel">{{ fields.label.value }}</label>
-		<div class="selectContainer">
-			<select
-				:value="formValue"
-				@input="
-					($event) =>
-						handleInput(
-							($event.target as HTMLInputElement).value,
-							'ss-option-change',
-						)
-				"
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreDropdownInput"
+	>
+		<WdsDropdownInput
+			:value="formValue"
+			@input="
+				($event) =>
+					handleInput(
+						($event.target as HTMLInputElement).value,
+						'wf-option-change',
+					)
+			"
+		>
+			<option
+				v-for="(option, optionKey) in fields.options.value"
+				:key="optionKey"
+				:value="optionKey"
 			>
-				<option
-					v-for="(option, optionKey) in fields.options.value"
-					:key="optionKey"
-					:value="optionKey"
-				>
-					{{ option }}
-				</option>
-			</select>
-		</div>
-	</div>
+				{{ option }}
+			</option>
+		</WdsDropdownInput>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { inject, Ref } from "vue";
+import { inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import { cssClasses } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import WdsDropdownInput from "../../wds/WdsDropdownInput.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to select a single value from a list of options using a dropdown menu.";
@@ -41,7 +45,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Dropdown Input",
 		description,
 		category: "Input",
@@ -60,7 +64,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-option-change": {
+			"wf-option-change": {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -75,29 +79,23 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
-.CoreSelectInput {
+@import "../../renderer/colorTransformations.css";
+
+.CoreDropdownInput {
 	width: fit-content;
 	max-width: 100%;
-}
-
-label {
-	color: var(--primaryTextColor);
-}
-
-select {
-	max-width: 100%;
-}
-
-.selectContainer {
-	margin-top: 8px;
 }
 </style>

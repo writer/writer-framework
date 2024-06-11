@@ -15,21 +15,21 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 }>();
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const formatAndSetContentValue = (value: string) => {
 	setContentValue(component.value.id, fieldKey.value, value);
@@ -37,7 +37,7 @@ const formatAndSetContentValue = (value: string) => {
 
 const templateField = computed(() => {
 	const { type } = component.value;
-	const definition = ss.getComponentDefinition(type);
+	const definition = wf.getComponentDefinition(type);
 	return definition.fields[fieldKey.value];
 });
 </script>

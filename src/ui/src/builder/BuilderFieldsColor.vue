@@ -70,14 +70,14 @@ import {
 	ref,
 	toRefs,
 } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
@@ -96,7 +96,7 @@ const props = defineProps<{
 	fieldKey: string;
 }>();
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const getInitialMode = (): Mode => {
 	const value = component.value.content[fieldKey.value];

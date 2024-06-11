@@ -7,3 +7,4 @@ storybook-static/
 src/stories/core_components/
 
 *storybook.log
+/custom_components_dist

@@ -6,14 +6,12 @@
 				class="toggleChildren"
 				@click="toggleChildrenVisible"
 			>
-				<i
-					v-if="areChildrenVisible"
-					class="ri-arrow-drop-up-line ri-lg"
-				></i>
-				<i
-					v-if="!areChildrenVisible"
-					class="ri-arrow-drop-down-line ri-lg"
-				></i>
+				<i v-if="areChildrenVisible" class="material-symbols-outlined"
+					>expand_less</i
+				>
+				<i v-if="!areChildrenVisible" class="material-symbols-outlined"
+					>expand_more</i
+				>
 				{{ rootAccessors.at(-1) }}
 			</div>
 			<div v-if="areChildrenVisible" class="children">
@@ -39,14 +37,14 @@
 				title="Copy reference to clipboard"
 				@click="copyReferenceToClipboard()"
 			>
-				<i class="ri-braces-line ri-nd"></i>
+				<i class="material-symbols-outlined">copy_all</i>
 			</button>
 			<button
 				class="action"
 				title="Copy contents to clipboard"
 				@click="copyContentsToClipboard()"
 			>
-				<i class="ri-file-copy-2-line ri-nd"></i>
+				<i class="material-symbols-outlined">content_copy</i>
 			</button>
 		</div>
 	</div>
@@ -65,13 +63,13 @@ interface Props {
 const props = defineProps<Props>();
 const { rootAccessors } = toRefs(props);
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const areChildrenVisible: Ref<boolean> = ref(
 	rootAccessors.value.length > 0 ? false : true,
 );
 
 function getStateValue(accessors: string[]) {
-	let state = ss.getUserState();
+	let state = wf.getUserState();
 	accessors.forEach((accessor) => {
 		state = state[accessor];
 	});
@@ -138,8 +136,9 @@ function copyContentsToClipboard() {
 @import "./sharedStyles.css";
 
 .toggleChildren {
-	margin-left: -5px;
 	cursor: pointer;
+	display: flex;
+	align-items: center;
 }
 
 .toggleChildren ~ .children {

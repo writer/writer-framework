@@ -1,7 +1,7 @@
 <template>
 	<div class="BuilderSidebarToolbar">
 		<div class="sectionTitle">
-			<i class="ri-tools-line ri-xl"></i>
+			<i class="material-symbols-outlined"> handyman </i>
 			<h3>Toolkit</h3>
 		</div>
 		<div class="categories">
@@ -11,21 +11,22 @@
 			>
 				<div v-if="categoryData.isVisible !== false" class="category">
 					<div class="title">
-						<i :class="categoryData.icon ?? 'ri-question-line'"></i>
+						<i class="material-symbols-outlined">{{
+							categoryData.icon ?? "question_mark"
+						}}</i>
 						<h4>{{ category }}</h4>
 
 						<div
 							class="drop-arrow"
 							@click="toggleCollapseCategory(category)"
 						>
-							<i
-								class="ri-xl"
-								:class="
+							<i class="material-symbols-outlined">
+								{{
 									categoryData.isCollapsed
-										? 'ri-arrow-drop-down-line'
-										: 'ri-arrow-drop-up-line'
-								"
-							></i>
+										? "expand_more"
+										: "expand_less"
+								}}
+							</i>
 						</div>
 					</div>
 
@@ -45,9 +46,10 @@
 							{{ definition.name ?? type }}
 							<i
 								v-if="type.startsWith('custom_')"
-								class="ri-collage-line ri-lg"
+								class="material-symbols-outlined"
 								title="(Custom component template)"
-							></i>
+								>manga</i
+							>
 						</div>
 					</div>
 				</div>
@@ -60,11 +62,11 @@
 import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
-import { Component, StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { Component, WriterComponentDefinition } from "../writerTypes";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { removeInsertionCandidacy } = useDragDropComponent(ss);
+const { removeInsertionCandidacy } = useDragDropComponent(wf);
 
 type CategoryData = {
 	isVisible?: boolean;
@@ -77,23 +79,23 @@ const categoriesData: Ref<Record<string, CategoryData>> = ref({
 		isVisible: false,
 	},
 	Layout: {
-		icon: "ri-layout-line",
+		icon: "space_dashboard",
 		isCollapsed: false,
 	},
 	Content: {
-		icon: "ri-image-line",
+		icon: "toc",
 		isCollapsed: false,
 	},
 	Input: {
-		icon: "ri-keyboard-line",
+		icon: "input",
 		isCollapsed: false,
 	},
 	Embed: {
-		icon: "ri-code-s-slash-line",
+		icon: "integration_instructions",
 		isCollapsed: false,
 	},
 	Other: {
-		icon: "ri-flow-chart",
+		icon: "dynamic_feed",
 		isCollapsed: false,
 	},
 });
@@ -104,14 +106,14 @@ function toggleCollapseCategory(categoryId: string) {
 }
 
 const definitionsByDisplayCategory = computed(() => {
-	const types = ss.getSupportedComponentTypes();
+	const types = wf.getSupportedComponentTypes();
 	const result: Record<
 		string,
-		Record<string, StreamsyncComponentDefinition>
+		Record<string, WriterComponentDefinition>
 	> = {};
 
 	types.map((type) => {
-		const definition = ss.getComponentDefinition(type);
+		const definition = wf.getComponentDefinition(type);
 		const isMatch = Object.keys(categoriesData.value).includes(
 			definition.category,
 		);
@@ -132,7 +134,7 @@ const definitionsByDisplayCategory = computed(() => {
 
 const handleDragStart = (ev: DragEvent, type: Component["type"]) => {
 	ssbm.setSelection(null);
-	ev.dataTransfer.setData(`application/json;streamsync=${type},`, "{}");
+	ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
 };
 
 const handleDragEnd = (ev: DragEvent) => {
@@ -152,6 +154,12 @@ const handleDragEnd = (ev: DragEvent) => {
 	position: sticky;
 	top: 0;
 	background: var(--builderBackgroundColor);
+	font-size: 0.875rem;
+}
+
+h3 {
+	font-weight: 500;
+	font-size: 0.875rem;
 }
 
 .categories {

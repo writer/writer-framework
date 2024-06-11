@@ -1,6 +1,6 @@
-import streamsync as ss
+import writer as wf
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "value": "",
 })
 
@@ -11,6 +11,6 @@ def execute_test(state, ui):
     exec(state['code'])
 
 
-with ss.init_ui() as ui:
+with wf.init_ui() as ui:
     with ui.find('initialization'):
         ui.Text({"text": "Initialization successful!"});

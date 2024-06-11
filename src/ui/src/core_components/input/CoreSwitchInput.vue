@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="CoreSwitchInput">
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		:is-horizontal="true"
+		class="CoreSwitchInput"
+	>
 		<div
 			class="switch"
 			:class="{ on: toggleValue }"
@@ -7,20 +12,17 @@
 			role="switch"
 			:aria-checked="toggleValue"
 			@click="handleToggle"
-			@keydown.enter.space="handleToggle"
+			@keydown.enter.space.prevent="handleToggle"
 		>
 			<div class="toggle"></div>
 		</div>
-		<label @click="handleToggle">
-			{{ fields.label.value }}
-		</label>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { inject, Ref } from "vue";
+import { inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -28,6 +30,8 @@ import {
 	cssClasses,
 } from "../../renderer/sharedStyleFields";
 import { onMounted } from "vue";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description = "A user input component with a simple on/off status.";
 
@@ -39,7 +43,7 @@ def handle_toggle(state, payload):
 	state["its_on"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Switch Input",
 		description,
 		category: "Input",
@@ -55,7 +59,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-toggle": {
+			"wf-toggle": {
 				desc: "Sent when the switch is toggled.",
 				stub: onToggleHandlerStub.trim(),
 				bindable: true,
@@ -70,15 +74,19 @@ import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
+const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 const toggleValue = ref(false);
 
 function handleToggle() {
 	toggleValue.value = !toggleValue.value;
-	handleInput(toggleValue.value, "ss-toggle");
+	handleInput(toggleValue.value, "wf-toggle");
 }
 
 onMounted(() => {
@@ -88,44 +96,38 @@ onMounted(() => {
 
 <style scoped>
 @import "../../renderer/sharedStyles.css";
+@import "../../renderer/colorTransformations.css";
+
 .CoreSwitchInput {
-	display: flex;
-	gap: 8px;
-	align-items: center;
 }
 
 .switch {
 	background: var(--separatorColor);
-	width: 32px;
-	height: 16px;
-	padding: 1px;
-	border-radius: 8px;
+	width: 34px;
+	height: 14px;
+	border-radius: 14px;
 	cursor: pointer;
-	box-shadow: 0 0 2px 0px rgba(0, 0, 0, 0.2) inset;
-	overflow: hidden;
 }
 
 .switch:focus-visible {
-	outline: 1px solid var(--primaryTextColor);
+	outline: 1px solid var(--softenedAccentColor);
 }
 
 .switch.on {
-	background: var(--accentColor);
+	background: var(--softenedAccentColor);
 }
 
 .toggle {
-	width: 14px;
-	height: 14px;
-	background: var(--containerBackgroundColor);
-	border-radius: 8px;
+	margin-top: -3px;
+	width: 20px;
+	height: 20px;
+	background: var(--intensifiedSeparatorColor);
+	border-radius: 10px;
 	transition: 0.2s margin ease-in-out;
 }
 
 .switch.on .toggle {
 	margin-left: 16px;
-}
-
-label {
-	cursor: pointer;
+	background: var(--accentColor);
 }
 </style>

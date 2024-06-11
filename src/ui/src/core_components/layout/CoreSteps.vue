@@ -2,8 +2,8 @@
 	<div class="CoreSteps">
 		<nav
 			class="stepSelector horizontal"
-			data-streamsync-cage
-			data-streamsync-container
+			data-writer-cage
+			data-writer-container
 		>
 			<slot :instance-number="0"></slot>
 		</nav>
@@ -31,7 +31,7 @@ const description =
 	"A container component for displaying Step components, allowing you to implement a stepped workflow.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Step Container",
 		description,
 		category: "Layout",
@@ -54,7 +54,7 @@ export default {
 <script setup lang="ts">
 import { inject } from "vue";
 import injectionKeys from "../../injectionKeys";
-import { InstancePath } from "../../streamsyncTypes";
+import { InstancePath } from "../../writerTypes";
 
 export type StepsData = {
 	activeStep: InstancePath;
@@ -83,6 +83,7 @@ instanceData.at(-1).value = stepsData;
 	border-radius: 8px;
 	background: var(--containerBackgroundColor);
 	overflow: hidden;
+	box-shadow: var(--containerShadow);
 }
 
 .stepSelector {

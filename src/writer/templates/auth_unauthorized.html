@@ -1,0 +1,35 @@
+<html>
+<style>
+body {
+	background-color: #e9eef1;
+	color: #000000;
+	font-family: Inter, sans-serif;
+}
+
+#container {
+	height: 100%;
+}
+
+#container {
+	padding-top: 30vh;
+	padding-left: 20%;
+	vertical-align: middle;
+	text-align: left;
+
+}
+
+#container h1 {
+	font-size: 4em;
+}
+
+#container p {
+	font-size: 1em;
+}
+</style>
+<body>
+<div id="container">
+	<h1>{{status_code}} {{message}}</h1>
+	<p>{{more_info | safe}}</p>
+</div>
+</body>
+</html>

@@ -42,12 +42,14 @@
 						>
 							<i
 								v-if="ssbm.isSettingsBarCollapsed()"
-								class="ri-settings-3-line ri-lg"
-							></i>
+								class="material-symbols-outlined"
+								>settings</i
+							>
 							<i
 								v-if="!ssbm.isSettingsBarCollapsed()"
-								class="ri-arrow-drop-right-line ri-lg"
-							></i>
+								class="material-symbols-outlined"
+								>arrow_right</i
+							>
 						</div>
 						<div
 							v-if="ssbm.isSelectionActive()"
@@ -77,7 +79,7 @@
 				:prevent-settings-bar-overlap="true"
 				:instance-path="selectedInstancePath"
 				:vertical-offset-pixels="-48"
-				data-streamsync-cage
+				data-writer-cage
 				@dragstart="handleRendererDragStart"
 				@dragend="handleRendererDragEnd"
 			>
@@ -104,8 +106,8 @@
 				>
 					<BuilderInsertionLabel>
 						{{
-							ss.getComponentDefinition(
-								ss.getComponentById(candidateId).type,
+							wf.getComponentDefinition(
+								wf.getComponentById(candidateId).type,
 							).name
 						}}
 					</BuilderInsertionLabel>
@@ -134,7 +136,7 @@ import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const {
@@ -144,7 +146,7 @@ const {
 	dropComponent,
 	assignInsertionCandidacy,
 	removeInsertionCandidacy,
-} = useDragDropComponent(ss);
+} = useDragDropComponent(wf);
 const {
 	createAndInsertComponent,
 	undo,
@@ -162,7 +164,7 @@ const {
 	copyComponent,
 	removeComponentSubtree,
 	goToParent,
-} = useComponentActions(ss, ssbm);
+} = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
 
@@ -252,11 +254,11 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]",
+		"[data-writer-id]",
 	);
 	if (!targetEl) return;
-	const targetId = targetEl.dataset.streamsyncId;
-	const targetInstancePath = targetEl.dataset.streamsyncInstancePath;
+	const targetId = targetEl.dataset.writerId;
+	const targetInstancePath = targetEl.dataset.writerInstancePath;
 	if (targetId !== ssbm.getSelectedId()) {
 		ev.preventDefault();
 		ev.stopPropagation();
@@ -268,14 +270,14 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	if (builderMode.value === "preview") return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
-		"[data-streamsync-id]",
+		"[data-writer-id]",
 	);
 
-	const componentId = targetEl.dataset.streamsyncId;
-	const { type } = ss.getComponentById(componentId);
+	const componentId = targetEl.dataset.writerId;
+	const { type } = wf.getComponentById(componentId);
 
 	ev.dataTransfer.setData(
-		`application/json;streamsync=${type},${componentId}`,
+		`application/json;writer=${type},${componentId}`,
 		"{}",
 	);
 };
@@ -295,18 +297,18 @@ onMounted(() => {
 
 .BuilderApp {
 	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #29cf00;
-	--builderSuccessColor: #29cf00;
+	--builderAccentColor: #5551ff;
+	--builderSuccessColor: #3be19b;
 	--builderErrorColor: #ff3d00;
-	--builderHeaderBackgroundColor: #353535;
-	--builderHeaderBackgroundHoleColor: #202020;
+	--builderHeaderBackgroundColor: #333333;
+	--builderHeaderBackgroundHoleColor: #000000;
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
 	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSeparatorColor: rgba(0, 0, 0, 0.1);
-	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
-	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSelectedColor: rgba(210, 234, 244, 0.8);
+	--builderSeparatorColor: #e4e7ed;
+	--builderSubtleSeparatorColor: #f5f5f9;
+	--builderIntenseSeparatorColor: #d2d4d7;
+	--builderSelectedColor: #e4e9ff;
 	--builderMatchingColor: #f8dccc;
 	--builderIntenseSelectedColor: #0094d1;
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
@@ -314,13 +316,13 @@ onMounted(() => {
 	--builderDisabledColor: rgb(180, 180, 180);
 	--builderSidebarWidth: max(265px, 27vh);
 	--builderSettingsWidth: max(265px, 27vh);
-	--builderActionOngoingColor: rgba(0, 0, 0, 0.7);
+	--builderActionOngoingColor: #333333;
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
 	--builderWarningColor: #ff3d00;
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
-	font-family: "Inter";
+	font-family: "Poppins", "Helvetica Neue", "Lucida Grande", sans-serif;
 	width: 100vw;
 	height: 100vh;
 	position: relative;
@@ -419,6 +421,7 @@ onMounted(() => {
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+	font-size: 0.875rem;
 }
 
 .settingsHiderTab:hover {

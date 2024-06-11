@@ -1,19 +1,19 @@
-import { computed, Ref, ref, watch } from "vue";
-import { Core, InstancePath } from "../streamsyncTypes";
+import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
+import { Core, InstancePath } from "../writerTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
 
 /**
  *
  * Encapsulates repeatable form value logic, including binding.
  *
- * @param ss
+ * @param wf
  * @param componentId
  * @returns
  */
 export function useFormValueBroker(
-	ss: Core,
+	wf: Core,
 	instancePath: InstancePath,
-	emitterEl: Ref<HTMLElement>,
+	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
 ) {
 	const formValue: Ref<any> = ref();
 	const isBusy = ref(false);
@@ -21,11 +21,11 @@ export function useFormValueBroker(
 		ref(null);
 
 	const componentId = instancePath.at(-1).componentId;
-	const component = computed(() => ss.getComponentById(componentId));
-	const { evaluateExpression } = useEvaluator(ss);
+	const component = computed(() => wf.getComponentById(componentId));
+	const { evaluateExpression } = useEvaluator(wf);
 
 	function getBindingValue() {
-		const component = ss.getComponentById(componentId);
+		const component = wf.getComponentById(componentId);
 		if (component?.binding?.stateRef) {
 			const value = evaluateExpression(
 				component.binding.stateRef,
@@ -87,7 +87,14 @@ export function useFormValueBroker(
 				callback,
 			},
 		});
-		emitterEl.value.dispatchEvent(event);
+
+		if (emitterEl.value instanceof HTMLElement) {
+			emitterEl.value.dispatchEvent(event);
+		} else {
+			// Vue instance (ComponentPublicInstance)
+
+			emitterEl.value.$el.dispatchEvent(event);
+		}
 	}
 
 	watch(

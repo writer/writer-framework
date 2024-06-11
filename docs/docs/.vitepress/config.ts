@@ -74,6 +74,7 @@ export default {
 						{text: "Custom server", link: "/custom-server"},
 						{text: "State schema", link: "/state-schema"},
 						{text: "Backend-driven UI", link: "/backend-driven-ui"},
+						{text: "Authentication", link: "/authentication"},
 					],
 				},
 				{

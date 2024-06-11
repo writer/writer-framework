@@ -1,11 +1,9 @@
 <template>
-	<div ref="rootEl" class="CoreSelectInput">
-		<div
-			v-if="fields.label.value || fields.label.value === 0"
-			class="labelContainer"
-		>
-			<label>{{ fields.label.value }}</label>
-		</div>
+	<BaseInputWrapper
+		ref="rootInstance"
+		:label="fields.label.value"
+		class="CoreSelectInput"
+	>
 		<BaseSelect
 			:base-id="flattenedInstancePath"
 			:active-value="formValue ? [formValue] : []"
@@ -15,22 +13,23 @@
 			:placeholder="fields.placeholder.value"
 			@change="handleChange"
 		></BaseSelect>
-	</div>
+	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { computed, inject, Ref } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
 	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
-	selectedColor,
 	separatorColor,
 } from "../../renderer/sharedStyleFields";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to select a single value from a searchable list of options.";
@@ -43,7 +42,7 @@ def onchange_handler(state, payload):
 	state["selected"] = payload`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Select Input",
 		description,
 		category: "Input",
@@ -79,7 +78,6 @@ export default {
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
-			selectedColor,
 			primaryTextColor,
 			secondaryTextColor,
 			containerBackgroundColor,
@@ -87,7 +85,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-option-change": {
+			"wf-option-change": {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
@@ -104,16 +102,20 @@ import BaseSelect from "../base/BaseSelect.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const options = computed(() => fields.options.value);
-const rootEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const rootInstance = ref<ComponentPublicInstance | null>(null);
+const wf = inject(injectionKeys.core);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(ss, instancePath, rootEl);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 function handleChange(selectedOptions: string[]) {
 	const selectedOption = selectedOptions?.[0] ?? null;
-	handleInput(selectedOption, "ss-option-change");
+	handleInput(selectedOption, "wf-option-change");
 }
 </script>
 
@@ -122,13 +124,8 @@ function handleChange(selectedOptions: string[]) {
 
 .CoreSelectInput {
 	width: fit-content;
-	max-width: 100%;
+	max-width: 70ch;
 	width: 100%;
 	position: relative;
-}
-
-.labelContainer {
-	margin-bottom: 8px;
-	color: var(--primaryTextColor);
 }
 </style>

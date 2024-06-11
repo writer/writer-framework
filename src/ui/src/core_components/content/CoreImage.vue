@@ -7,9 +7,9 @@ Alternatively, pass a Matplotlib figure via state.
 
 You can also use packed files or bytes:
 
-\`state["img_b"] = ss.pack_bytes(img_bytes, "image/png")\`
+\`state["img_b"] = wf.pack_bytes(img_bytes, "image/png")\`
 
-\`state["img_f"] = ss.pack_file(img_file, "image/png")\`
+\`state["img_f"] = wf.pack_file(img_file, "image/png")\`
 </docs>
 
 <template>
@@ -30,7 +30,7 @@ You can also use packed files or bytes:
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldType } from "../../writerTypes";
 import {
 	cssClasses,
 	secondaryTextColor,
@@ -47,7 +47,7 @@ def click_handler(state):
 	state["counter"] += 1`;
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Image",
 		description,
 		category: "Content",
@@ -55,7 +55,7 @@ export default {
 			src: {
 				name: "Source",
 				default:
-					"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjMwIiBoZWlnaHQ9IjIzMCIgdmlld0JveD0iMCAwIDIzMCAyMzAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMzAiIGhlaWdodD0iMjMwIiBmaWxsPSIjREFEQURBIi8+CjxyZWN0IHg9Ijg2LjA0MzkiIHk9Ijc4IiB3aWR0aD0iNzEuMjkzNyIgaGVpZ2h0PSIzNC42NDY3IiByeD0iMTcuMzIzMyIgZmlsbD0id2hpdGUiIHN0cm9rZT0id2hpdGUiLz4KPHJlY3QgeD0iNzIuNSIgeT0iMTEzLjY5MyIgd2lkdGg9IjcwLjI5MzciIGhlaWdodD0iMzYuODA3MyIgcng9IjE3LjUiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIi8+Cjwvc3ZnPgo=",
+					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQoAAAEKCAYAAADqyxvJAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAemSURBVHgB7d3baltHGIZhJd5DW3pS2vu/tkKgEFragiXLjuvVkpOS5PMa6Z8ZWc8DPXPBJNGrpX82evfrh4/PG4BveL8BCIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiIQCiC43HN3PP/24ubyoafCnT8+bD7/9vur/+f67u80PL/9V+fjHX5vtdv/qn794+bP55eXPaJbfh8wTRYGHh7p/pO/fv/v3hbZG5e+zuLm+WvXzT0+fNo8v/1XZ7582HJdQFKj+h3p7c73q5/ePTy9PInUvzOuVoVhUxWsJ0FNhhM6VUBS43z1sKl1fXaz6+eXjyv6xMBSXF5t3L086a+weHjcVqp+ezpVQFFje0Srfwdc+USz2jzUvzM+WWKyxK3pB74SihFAU2e7mmlNst7VPObe36+JVFdOqJ5VzJxRFqucUaweIy5yi0tXl+gW0Y8fUfKKOUBTZla80rHth/jenqIvFVcOc4tgx3e89TVQRiiLVKw03DSsNu+Jl29Fzim3xEPmcCUWhh8LPy8uMYu07+EPx5/frho9Dx4yp/RN1hKJQ9WDtbuXqx26yjVeLY8Wr+qPVuROKQtVLklcN+ykqd0RerfzosThWTC2L1hKKQsuLoHJOcdewn6Lyc/wyp1g7ZD3WC9yyaC2hKFa5I7JlTlH9Of5y5TLpseYUdmTWEopi1Rud1r6DV68MrP19FofG1HyinlAUq55TrB0gVs8pWgaah8ZUJOoJRbFzOrm5WOYUa4eah8b0fmv/RDWhKHZOJzc/672f4vHRILOaUHRwLic3P2vbXt4eCise9YSigxlPbs42p2iNl0j0IRQdzHhy861c12ejVR9C0cHyaF35zrc86s+2n6Llur4W9k/0IRSdzDanmPG6vpaY+ujRh1B0MtvJzerr+lrmFGtjKhL9CEUnb/nk5pcsM4r1c4p1v8/esmg3QtFJjxum1qp+R14br7Ux3dpo1Y1QdFR9w9Sok5tfU31d34Ot290IRUdv9eTm11Tup1gi8fwSFvoQio6qT27e3bZ838dcx+BfO6ewLNqXUHQ04w1T1Z/zq67rs9GqL6Ho7K2d3EyqruuzNNqXUHQ228nN6uv6Wo7Bp49o5hP9CUVns600LGY7Bp+Gvo++6Kc7oejsLZ3cfK1jL9ve+6Kf7oRigLdycvO1bhq2l38rpr7opz+hGGDGk5uVc4pjHoP3RcRjCMUAM57crJxTtByD/9rQ1/6JMYRigOqTm7c3LRuvTuO6PvsnxhCKQba7ueYUM17X96WY2j8xhlAMUj2nuGm4CbtSy5zi/zE1nxhHKAY59ZOba10dYT/F3v6JYYRikFM+udli+Th06Jxia//EMEIxUPUNU1UnN1sd+sVA9k+MIxQDVQ/mqk5utjrkuj5fRDyWUAx0qic3Wx1yXZ9l0bGEYqDqk5t3DfspKucAh1zXZ1l0LKEYbLYbpma9rs+OzLGEYrDZlkmrVxZajsEvcwrzibGEYrDZTm5WzylaBpp//n2/YSyhGKx6P8V100rDbNf1eZoYTSgGqz652XLD1GzX9TGeUEzgVE5uHsvaY/CMJxQTmPHkZuWcouUYPGMJxQRmPLk523V9jOVvawLLnKJyLtByw9Rs1/UxllBMYrY5xWzX9TGWUExitpOb1df13Vj5OClCMYmZT25WWGYU5hSnw9/UJHrcMLVW9X4KTxWnQygmUn3D1LG/setQLec+GEMoJjLryc0qnihOh1BMpPrk5t1ty/d9zHUMnjGEYiIz3jBVvWv0zn6KkyAUk5nv5OZc1/UxhlBMZraTm9XX9TlJehqEYjIzrjTMdgye/oRiMtUnN2f7YqCFZdL5CcWEZju5Odt1ffT37tcPH583AN/giQKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKIhAKI/gE7SXVdY25ypwAAAABJRU5ErkJggg==",
 				desc: "A valid URL. Alternatively, you can provide a state reference to a Matplotlib figure or a packed file.",
 				type: FieldType.Text,
 			},
@@ -81,7 +81,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-click": {
+			"wf-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -96,14 +96,14 @@ import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 
 const rootEl: Ref<HTMLElement> = ref(null);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 
 const rootStyle = computed(() => {
-	const component = ss.getComponentById(componentId);
+	const component = wf.getComponentById(componentId);
 	const isClickHandled =
-		typeof component.handlers?.["ss-click"] !== "undefined";
+		typeof component.handlers?.["wf-click"] !== "undefined";
 
 	return {
 		cursor: isClickHandled ? "pointer" : "unset",

@@ -1,4 +1,4 @@
-import { Component, ComponentMap } from "../streamsyncTypes";
+import { Component, ComponentMap } from "../writerTypes";
 import {
 	getComponentDefinition,
 	getSupportedComponentTypes,

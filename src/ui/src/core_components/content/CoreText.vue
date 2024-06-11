@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldControl, FieldType } from "../../streamsyncTypes";
+import { FieldCategory, FieldControl, FieldType } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import { getClick } from "../../renderer/syntheticEvents";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
@@ -29,7 +29,7 @@ const description =
 	"A component to display plain text or formatted text using Markdown syntax.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Text",
 		description,
 		category: "Content",
@@ -38,6 +38,7 @@ export default {
 				name: "Text",
 				default: "(No text)",
 				init: "Text",
+				desc: "Add text directly, or reference state elements with @{my_text}.",
 				type: FieldType.Text,
 				control: FieldControl.Textarea,
 			},
@@ -66,7 +67,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"ss-click": {
+			"wf-click": {
 				desc: "Capture single clicks.",
 				stub: clickHandlerStub.trim(),
 			},
@@ -82,10 +83,10 @@ import injectionKeys from "../../injectionKeys";
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 
 const rootStyle = computed(() => {
-	const component = ss.getComponentById(componentId);
+	const component = wf.getComponentById(componentId);
 	const isClickHandled = typeof component.handlers?.["click"] !== "undefined";
 
 	return {
@@ -110,10 +111,12 @@ function handleClick(ev: MouseEvent) {
 
 .CoreText {
 	color: var(--primaryTextColor);
-	line-height: 1.5;
+	line-height: 140%;
 	white-space: pre-wrap;
 	max-width: 100%;
 	overflow: hidden;
+	font-size: 0.875rem;
+	font-weight: 400;
 }
 
 .CoreText ol,

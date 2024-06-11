@@ -1,5 +1,5 @@
 {
-  "name": "streamsync-e2e",
+  "name": "writer-e2e",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +14,7 @@
     "e2e:ui": "playwright test --project=chromium --ui"
   },
   "dependencies": {
-    "streamsync-ui": "*",
+    "writer-ui": "*",
     "express": "4.19.2",
     "http-proxy": "1.18.1"
   },

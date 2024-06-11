@@ -29,24 +29,24 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
-import { Component, FieldControl } from "../streamsyncTypes";
+import { Component, FieldControl } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 }>();
 const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 const templateField = computed(() => {
 	const { type } = component.value;
-	const definition = ss.getComponentDefinition(type);
+	const definition = wf.getComponentDefinition(type);
 	return definition.fields[fieldKey.value];
 });
 
@@ -54,7 +54,7 @@ const options = computed(() => {
 	const field = templateField.value;
 	if (field.options) {
 		return typeof field.options === "function"
-			? field.options(ss, componentId.value)
+			? field.options(wf, componentId.value)
 			: field.options;
 	}
 	return [];

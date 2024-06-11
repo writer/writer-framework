@@ -1,17 +1,17 @@
-# Contributing to Streamsync
+# Contributing to Writer Framework
 
-Thank you for your interest in contributing to Streamsync.
+Thank you for your interest in contributing to Writer Framework.
 
 ## Ways to contribute
 
-Beyond contributing to the repository, some ways to contribute to this project include: 
+Beyond contributing to the repository, some ways to contribute to this project include:
 
-- *Reporting bugs*. Bug reports are relatively easy to write, but have a big impact. Please include the steps required to reproduce the bug. Use "Issues" on GitHub. This is an example of a [wonderful bug report](https://github.com/streamsync-cloud/streamsync/issues/24).
-- *Creating content*. Think articles or tutorials. It doesn't have to be overwhelmingly positive; constructive criticism is appreciated. A great example is [this review](https://jreyesr.github.io/posts/streamsync-review/). A YouTube tutorial would be fantastic!
-- *Browse Issues and Discussions*. Browse these sections on GitHub and see if you can help.
-- *Suggesting valuable enhancements*. If you think of a feature that can have a positive impact, suggest it. Please use the "Discussions" on GitHub.
-- *Sponsoring the project*. Helps offset hosting and other expenses.
-- *Promoting the project*. Star it, share on LinkedIn or other social media.
+- _Reporting bugs_. Bug reports are relatively easy to write, but have a big impact. Please include the steps required to reproduce the bug. Use "Issues" on GitHub. This is an example of a [wonderful bug report](https://github.com/streamsync-cloud/streamsync/issues/24).
+- _Creating content_. Think articles or tutorials. It doesn't have to be overwhelmingly positive; constructive criticism is appreciated. A great example is [this review](https://jreyesr.github.io/posts/streamsync-review/). A YouTube tutorial would be fantastic!
+- _Browse Issues and Discussions_. Browse these sections on GitHub and see if you can help.
+- _Suggesting valuable enhancements_. If you think of a feature that can have a positive impact, suggest it. Please use the "Discussions" on GitHub.
+- _Sponsoring the project_. Helps offset hosting and other expenses.
+- _Promoting the project_. Star it, share on LinkedIn or other social media.
 
 ## Contributing to the repository
 
@@ -23,8 +23,9 @@ Pull requests should be done on the `dev` branch. When the release is finalised,
 
 ## Setting up a development environment
 
-Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Streamsync, these are the suggested steps for setting up a development environment.
+Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Writer Framework, these are the suggested steps for setting up a development environment.
+
 - You can install the package in editable mode using `poetry install`
 - Enable the virtual environment with `poetry shell`
 - Install all the dev dependencies with `alfred install.dev`
-- Run streamsync in port 5000. For example, `streamsync edit apps/hello --port 5000`.
+- Run Writer Framework on port 5000. For example, `writer edit apps/hello --port 5000`.

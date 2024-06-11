@@ -91,14 +91,14 @@ const trackElement = (el: HTMLElement) => {
 
 const triggerTrack = () => {
 	let el: HTMLElement = document.querySelector(
-		`.ComponentRenderer [data-streamsync-instance-path="${instancePath.value}"]`,
+		`.ComponentRenderer [data-writer-instance-path="${instancePath.value}"]`,
 	);
 	scheduleNextTrigger();
 	if (!el) return;
 	const elStyle = getComputedStyle(el);
 	if (!elStyle) return;
 	if (elStyle.display == "contents") {
-		el = el.querySelector("[data-streamsync-id]");
+		el = el.querySelector("[data-writer-id]");
 	}
 	if (!el) return;
 	trackElement(el);

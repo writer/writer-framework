@@ -6,18 +6,18 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import streamsync as ss
-import streamsync.core
+import writer as wf
+import writer.core
 
 
-@ss.session_verifier
+@wf.session_verifier
 def check_headers(headers):
     if headers.get("x-fail") is not None:
         return False
     return True
 
 
-@ss.session_verifier
+@wf.session_verifier
 def check_cookies(cookies):
     if cookies.get("fail_cookie") is not None:
         return False
@@ -36,7 +36,7 @@ def update_cities(state, payload):
         }
 
 logging.info("VERIFIERS")
-logging.info(streamsync.core.session_manager.verifiers)
+logging.info(writer.core.session_manager.verifiers)
 
 
 my_var = 3
@@ -59,7 +59,7 @@ def handle_timer_tick(state):
 
 
 def handle_file_download(state):
-    data = ss.pack_file("assets/story.txt", "text/plain")
+    data = wf.pack_file("assets/story.txt", "text/plain")
     file_name = "thestory.txt"
     state.file_download(data, file_name)
 
@@ -79,7 +79,7 @@ def payload_inspector(state, payload, context):
 
 
 def handle_webcam(state, payload):
-    state["webcam_image"] = ss.pack_bytes(payload, "image/png")
+    state["webcam_image"] = wf.pack_bytes(payload, "image/png")
 
 
 def handle_form_submit(state):
@@ -206,14 +206,14 @@ def _get_altair_chart():
 # STATE INIT
 
 
-initial_state = ss.init_state({
+initial_state = wf.init_state({
     "main_df": _get_main_df(),
     "highlighted_members_dict": _get_highlighted_members_dict(),
     "random_df": _generate_random_df(),
     "hue_rotation": 26,
     "story": {
         "text": _get_story_text(),  # For display
-        "file": ss.pack_file("assets/story.txt", "text/plain")  # For download
+        "file": wf.pack_file("assets/story.txt", "text/plain")  # For download
     },
     "filter": {
         "min_length": 25,

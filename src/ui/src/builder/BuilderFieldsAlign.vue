@@ -70,15 +70,15 @@ import {
 	ref,
 	toRefs,
 } from "vue";
-import { Component } from "../streamsyncTypes";
+import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(ss, ssbm);
+const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
@@ -112,21 +112,21 @@ const horizontalSubmodes: SubModes = [
 		label: "Left",
 		match: (v) => v == "start",
 		default: "start",
-		icon: "ri-align-left",
+		icon: "format_align_left",
 	},
 	{
 		key: SubMode.hcenter,
 		label: "Center",
 		match: (v) => v == "center",
 		default: "center",
-		icon: "ri-align-center",
+		icon: "format_align_center",
 	},
 	{
 		key: SubMode.hright,
 		label: "Right",
 		match: (v) => v == "end",
 		default: "end",
-		icon: "ri-align-right",
+		icon: "format_align_right",
 	},
 ];
 
@@ -136,21 +136,21 @@ const verticalSubmodes: SubModes = [
 		label: "Top",
 		match: (v) => v == "start",
 		default: "start",
-		icon: "ri-align-top",
+		icon: "vertical_align_top",
 	},
 	{
 		key: SubMode.vcenter,
 		label: "Center",
 		match: (v) => v == "center",
 		default: "center",
-		icon: "ri-align-vertically",
+		icon: "vertical_align_center",
 	},
 	{
 		key: SubMode.vbottom,
 		label: "Bottom",
 		match: (v) => v == "end",
 		default: "end",
-		icon: "ri-align-bottom",
+		icon: "vertical_align_bottom",
 	},
 ];
 
@@ -167,7 +167,7 @@ const props = defineProps<{
 }>();
 
 const { componentId, fieldKey, direction } = toRefs(props);
-const component = computed(() => ss.getComponentById(componentId.value));
+const component = computed(() => wf.getComponentById(componentId.value));
 
 const subModes: ComputedRef<SubModes> = computed(() => {
 	if (direction.value == "vertical") return verticalSubmodes;

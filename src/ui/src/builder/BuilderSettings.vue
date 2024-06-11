@@ -1,9 +1,6 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettings">
 		<div class="windowBar">
-			<div class="icon">
-				<i class="ri-settings-3-line ri-lg"></i>
-			</div>
 			<div class="title">
 				{{ componentDefinition.name }}
 			</div>
@@ -14,9 +11,11 @@
 				:title="(docsActive ? 'Hide' : 'Show') + ' inline docs'"
 				@click="toggleDocs"
 			>
-				<i class="ri-question-line ri-lg"></i>
-				<i v-if="docsActive" class="ri-arrow-drop-up-line ri-lg"></i>
-				<i v-else class="ri-arrow-drop-down-line ri-lg"></i>
+				<i class="material-symbols-outlined">help</i>
+				<i v-if="docsActive" class="material-symbols-outlined"
+					>expand_less</i
+				>
+				<i v-else class="material-symbols-outlined">expand_more</i>
 			</button>
 			<button
 				class="windowAction"
@@ -24,7 +23,7 @@
 				title="Close (Esc)"
 				@click="closeSettings"
 			>
-				<i class="ri-close-line ri-lg"></i>
+				<i class="material-symbols-outlined">close</i>
 			</button>
 		</div>
 
@@ -38,7 +37,7 @@
 		</div>
 
 		<div v-if="readonly" class="warning cmc-warning">
-			<i class="ri-error-warning-line ri-xl"></i>
+			<i class="material-symbols-outlined">warning</i>
 			<span>
 				This component is instantiated in code. All settings in this
 				panel are read-only and cannot be edited.
@@ -70,16 +69,16 @@ import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "./BuilderCopyText.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const docsActive = ref(false);
 
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 const readonly = computed(() => component.value.isCodeManaged);
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;
-	const definition = ss.getComponentDefinition(type);
+	const definition = wf.getComponentDefinition(type);
 	return definition;
 });
 

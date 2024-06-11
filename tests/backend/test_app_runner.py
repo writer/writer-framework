@@ -4,12 +4,12 @@ import contextlib
 import threading
 
 import pytest
-from streamsync.app_runner import AppRunner
-from streamsync.ss_types import (
+from writer.app_runner import AppRunner
+from writer.ss_types import (
     EventRequest,
     InitSessionRequest,
     InitSessionRequestPayload,
-    StreamsyncEvent,
+    WriterEvent,
 )
 
 from tests.backend import test_app_dir
@@ -63,7 +63,7 @@ class TestAppRunner:
         with setup_app_runner(test_app_dir, "run") as ar:
             er = EventRequest(
                 type="event",
-                payload=StreamsyncEvent(
+                payload=WriterEvent(
                     type="virus",
                     instancePath=self.numberinput_instance_path,
                     payload={
@@ -91,7 +91,7 @@ class TestAppRunner:
             sres = await ar.dispatch_message(None, si)
             assert sres.status == "ok"
             assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
-            er = EventRequest(type="event", payload=StreamsyncEvent(
+            er = EventRequest(type="event", payload=WriterEvent(
                 type="virus",
                 instancePath=self.numberinput_instance_path,
                 payload={
@@ -117,8 +117,8 @@ class TestAppRunner:
             sres = await ar.dispatch_message(None, si)
             assert sres.status == "ok"
             assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
-            ev_req = EventRequest(type="event", payload=StreamsyncEvent(
-                type="ss-number-change",
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-number-change",
                 instancePath=self.numberinput_instance_path,
                 payload="129673"
             ))
@@ -148,15 +148,15 @@ class TestAppRunner:
             assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
 
             # Firing an event to bypass "initial" state mutations
-            ev_req = EventRequest(type="event", payload=StreamsyncEvent(
-                type="ss-number-change",
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-number-change",
                 instancePath=self.numberinput_instance_path,
                 payload="129673"
             ))
             ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
 
-            ev_req = EventRequest(type="event", payload=StreamsyncEvent(
-                type="ss-click",
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-click",
                 instancePath=self.async_handler_click_path
             ))
             ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
@@ -183,7 +183,7 @@ class TestAppRunner:
                 {"componentId": "28a2212b-bc58-4398-8a72-2554e5296490", "instanceNumber": 0},
                 {"componentId": "232d749a-5e0c-4802-bbe1-f8cae06db112", "instanceNumber": 0}
             ]
-            ev_req = EventRequest(type="event", payload=StreamsyncEvent(
+            ev_req = EventRequest(type="event", payload=WriterEvent(
                 type="click",
                 instancePath=bad_button_instance_path,
                 payload={}

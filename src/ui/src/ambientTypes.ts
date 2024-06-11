@@ -1,9 +1,9 @@
-import { StreamsyncComponentDefinition } from "./streamsyncTypes";
+import { WriterComponentDefinition } from "./writerTypes";
 
 declare module "marked";
 declare module "vue" {
 	interface ComponentCustomOptions {
-		streamsync?: StreamsyncComponentDefinition;
+		writer?: WriterComponentDefinition;
 	}
 }
 

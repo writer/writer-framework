@@ -2,25 +2,31 @@ import path from "path";
 
 import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import streamsyncPlugin from "./viteStreamsyncPlugin";
+import writerPlugin from "./viteWriterPlugin";
 
 export default defineConfig({
 	base: "./",
-	plugins: [
-		vue(),
-		streamsyncPlugin(),
-	],
-	includeStreamsyncComponentPath: false,
+	plugins: [vue(), writerPlugin()],
+	includeWriterComponentPath: false,
 	define: {
-		STREAMSYNC_LIVE_CCT: JSON.stringify("yes"),
+		WRITER_LIVE_CCT: JSON.stringify("yes"),
 	},
 	publicDir: false,
 	build: {
 		lib: {
 			entry: ["./src/custom_components"],
 			formats: ["umd"],
-			name: "StreamsyncCustomComponentTemplates",
-			fileName: "templates",
+			name: "WriterCustomComponentTemplates",
+			fileName: (format, entryalias: string): string => {
+				/*
+				The umd file is generated with a cjs extension since transforming the package into a module
+				(issue #405).
+
+				We use the generated file inside a browser, not a nodejs application.
+				The cjs extension is not adapted. We implement our own name builder.
+				 */
+				return "templates.umd.js";
+			},
 		},
 		rollupOptions: {
 			external: ["vue", "../injectionKeys"],

@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "streamsync_version": "0.3.0"
+        "writer_version": "0.3.0"
     },
     "components": {
         "root": {
@@ -49,7 +49,7 @@
             "position": 1,
             "parentId": "0jbl2x7sl5gbjdnl",
             "handlers": {
-                "ss-click": "execute_test"
+                "wf-click": "execute_test"
             },
             "visible": true
         },
@@ -67,7 +67,7 @@
             "handlers": {},
             "visible": true,
             "binding": {
-                "eventType": "ss-change",
+                "eventType": "wf-change",
                 "stateRef": "code"
             }
         },

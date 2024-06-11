@@ -3,7 +3,7 @@
 		v-if="shortcutsInfo"
 		:draggable="shortcutsInfo?.isDraggable"
 		class="BuilderComponentShortcuts"
-		:data-streamsync-id="componentId"
+		:data-writer-id="componentId"
 	>
 		<div class="type">
 			{{ shortcutsInfo?.componentTypeName }}
@@ -21,7 +21,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-add-line"></i>
+				<i class="material-symbols-outlined">add</i>
 			</div>
 			<div
 				class="actionButton"
@@ -35,7 +35,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-arrow-up-line"></i>
+				<i class="material-symbols-outlined">arrow_upward</i>
 			</div>
 			<div
 				class="actionButton"
@@ -49,7 +49,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-arrow-down-line"></i>
+				<i class="material-symbols-outlined">arrow_downward</i>
 			</div>
 
 			<div
@@ -64,7 +64,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-scissors-line"></i>
+				<i class="material-symbols-outlined">cut</i>
 			</div>
 			<div
 				class="actionButton"
@@ -78,7 +78,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-file-copy-line"></i>
+				<i class="material-symbols-outlined">content_copy</i>
 			</div>
 			<div
 				class="actionButton"
@@ -92,7 +92,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-clipboard-line"></i>
+				<i class="material-symbols-outlined">content_paste</i>
 			</div>
 			<div
 				class="actionButton"
@@ -106,7 +106,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-parent-line"></i>
+				<i class="material-symbols-outlined">move_up</i>
 			</div>
 			<div
 				class="actionButton delete"
@@ -121,7 +121,7 @@
 						: undefined
 				"
 			>
-				<i class="ri-delete-bin-line"></i>
+				<i class="material-symbols-outlined">delete</i>
 			</div>
 		</template>
 		<template v-if="isAddMode">
@@ -149,11 +149,11 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref, toRefs, watch } from "vue";
 import { useComponentActions } from "./useComponentActions";
-import { Component, StreamsyncComponentDefinition } from "../streamsyncTypes";
+import { Component, WriterComponentDefinition } from "../writerTypes";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const {
@@ -173,7 +173,7 @@ const {
 	getEnabledMoves,
 	removeComponentSubtree,
 	goToParent,
-} = useComponentActions(ss, ssbm);
+} = useComponentActions(wf, ssbm);
 
 const props = defineProps<{
 	componentId: Component["id"];
@@ -198,11 +198,11 @@ const shortcutsInfo: Ref<{
 }> = ref(null);
 
 const validChildrenTypes = computed(() => {
-	const types = ss.getContainableTypes(componentId.value);
-	const result: Record<string, StreamsyncComponentDefinition> = {};
+	const types = wf.getContainableTypes(componentId.value);
+	const result: Record<string, WriterComponentDefinition> = {};
 
 	types.map((type) => {
-		const definition = ss.getComponentDefinition(type);
+		const definition = wf.getComponentDefinition(type);
 		result[type] = definition;
 	});
 
@@ -224,14 +224,14 @@ function addComponent(event: Event) {
 }
 
 function reprocessShorcutsInfo(): void {
-	const component = ss.getComponentById(componentId.value);
+	const component = wf.getComponentById(componentId.value);
 	if (!component) return;
 	const { up: isMoveUpEnabled, down: isMoveDownEnabled } = getEnabledMoves(
 		componentId.value,
 	);
 	shortcutsInfo.value = {
 		isAddEnabled: isAddAllowed(componentId.value),
-		componentTypeName: ss.getComponentDefinition(component.type)?.name,
+		componentTypeName: wf.getComponentDefinition(component.type)?.name,
 		isMoveUpEnabled,
 		isMoveDownEnabled,
 		isCopyEnabled: isCopyAllowed(componentId.value),
@@ -244,7 +244,7 @@ function reprocessShorcutsInfo(): void {
 }
 
 watch(
-	() => ss.getComponentById(componentId.value)?.position,
+	() => wf.getComponentById(componentId.value)?.position,
 	async (newPosition) => {
 		if (typeof newPosition == "undefined" || newPosition === null) return;
 		reprocessShorcutsInfo();
@@ -268,6 +268,7 @@ onMounted(() => {
 	background: var(--builderBackgroundColor);
 	pointer-events: auto;
 	overflow: hidden;
+	font-size: 0.75rem;
 }
 
 .type {

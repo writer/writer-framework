@@ -1,8 +1,8 @@
 import {
 	Component,
 	ComponentMap,
-	StreamsyncComponentDefinition,
-} from "../streamsyncTypes";
+	WriterComponentDefinition,
+} from "../writerTypes";
 import { getComponentDefinition } from "./templateMap";
 
 /**
@@ -16,25 +16,27 @@ export function auditAndFixComponents(components: ComponentMap): boolean {
 	auditOrphanComponents(components);
 	Object.entries(components).forEach(([, component]) => {
 		isFixApplied =
-			isFixApplied || auditAndFixPositions(component, components);
-		auditComponent(component);
+			auditAndFixPositions(component, components) || isFixApplied;
+		isFixApplied = auditAndFixComponent(component) || isFixApplied;
 	});
 	return isFixApplied;
 }
 
-export function auditComponent(component: Component) {
+export function auditAndFixComponent(component: Component): boolean {
 	const def = getComponentDefinition(component.type);
 	if (!def || def.category == "Fallback") {
 		console.error(
 			`Component ${component.id} (${component.type}). Invalid component type.`,
 		);
-		return;
+		return false;
 	}
 
-	fixComponentDeprecatedContent(component, def);
-
+	let isFixApplied = false;
+	isFixApplied = fixComponentDeprecatedContent(component, def);
+	isFixApplied = fixComponentDeprecatedPrefixes(component) || isFixApplied;
 	auditComponentFieldKeys(component, def);
 	auditComponentBinding(component, def);
+	return isFixApplied;
 }
 
 function traverseComponentTree(
@@ -66,7 +68,7 @@ function auditOrphanComponents(components: ComponentMap) {
 
 function auditComponentFieldKeys(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
 	const fieldKeys = Object.keys(def.fields ?? {});
 	if (!component.content) return;
@@ -80,7 +82,7 @@ function auditComponentFieldKeys(
 
 function auditComponentBinding(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
 	const eventKeys = Object.keys(def.events ?? {});
 	if (!component.binding) return;
@@ -149,6 +151,26 @@ function fixPositions(positionfulChildren: Component[]) {
 	});
 }
 
+function fixComponentDeprecatedPrefixes(component: Component) {
+	let isFixApplied = false;
+	Object.keys(component.handlers ?? {}).forEach((eventName) => {
+		if (!eventName.startsWith("ss-")) return;
+		const newEventName = `wf-${eventName.substring(3)}`;
+		component.handlers[newEventName] = component.handlers[eventName];
+		isFixApplied = true;
+		delete component.handlers[eventName];
+	});
+
+	if (component.binding?.eventType?.startsWith("ss-")) {
+		const eventName = component.binding?.eventType;
+		const newEventName = `wf-${eventName.substring(3)}`;
+		component.binding.eventType = newEventName;
+		isFixApplied = true;
+	}
+
+	return isFixApplied;
+}
+
 /**
  * Corrects the mapping of deprecated properties following component changes.
  *
@@ -157,8 +179,9 @@ function fixPositions(positionfulChildren: Component[]) {
  */
 function fixComponentDeprecatedContent(
 	component: Component,
-	def: StreamsyncComponentDefinition,
+	def: WriterComponentDefinition,
 ) {
+	let isFixApplied = false;
 	if (component.type == "column") {
 		if ("horizontalAlignment" in component.content) {
 			const mapping = {
@@ -171,6 +194,7 @@ function fixComponentDeprecatedContent(
 				mapping[component.content["horizontalAlignment"]] ||
 				component.content["horizontalAlignment"];
 			delete component.content["horizontalAlignment"];
+			isFixApplied = true;
 		}
 		if ("verticalAlignment" in component.content) {
 			const mapping = {
@@ -184,6 +208,7 @@ function fixComponentDeprecatedContent(
 				mapping[component.content["verticalAlignment"]] ||
 				component.content["verticalAlignment"];
 			delete component.content["verticalAlignment"];
+			isFixApplied = true;
 		}
 	} else if (component.type == "horizontalstack") {
 		if ("alignment" in component.content) {
@@ -197,10 +222,13 @@ function fixComponentDeprecatedContent(
 				mapping[component.content["alignment"]] ||
 				component.content["alignment"];
 			delete component.content["alignment"];
+			isFixApplied = true;
 		}
 	} else if (component.type == "section") {
 		if ("snapMode" in component.content) {
 			delete component.content["snapMode"];
+			isFixApplied = true;
 		}
 	}
+	return isFixApplied;
 }

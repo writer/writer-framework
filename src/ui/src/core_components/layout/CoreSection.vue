@@ -1,6 +1,6 @@
 <template>
 	<section class="CoreSection">
-		<h2 v-if="fields.title.value">{{ fields.title.value }}</h2>
+		<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 		<BaseContainer
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../streamsyncTypes";
+import { FieldType } from "../../writerTypes";
 import {
 	accentColor,
 	primaryTextColor,
@@ -31,7 +31,7 @@ const description =
 	"A container component that divides the layout into sections, with an optional title.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Section",
 		description,
 		category: "Layout",
@@ -81,7 +81,7 @@ const fields = inject(injectionKeys.evaluatedFields);
 	background-color: var(--containerBackgroundColor);
 }
 
-h2 {
+h3 {
 	margin: 16px 16px 0 16px;
 }
 </style>

@@ -20,16 +20,16 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, Ref, computed, watch } from "vue";
-import { Component, InstancePath } from "../streamsyncTypes";
+import { inject, ref, computed, watch } from "vue";
+import { Component, InstancePath } from "../writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
 import injectionKeys from "../injectionKeys";
 import { useEvaluator } from "./useEvaluator";
 
-const ss = inject(injectionKeys.core);
-const templateEvaluator = useEvaluator(ss);
-const rootComponent: Component = ss.getComponentById("root");
+const wf = inject(injectionKeys.core);
+const templateEvaluator = useEvaluator(wf);
+const rootComponent: Component = wf.getComponentById("root");
 
 if (!rootComponent) {
 	// eslint-disable-next-line no-console
@@ -53,7 +53,7 @@ const rootStyle = computed(() => {
 });
 
 const isMessagePending = computed(() => {
-	const frontendMessageMap = ss.getFrontendMessageMap();
+	const frontendMessageMap = wf.getFrontendMessageMap();
 	return frontendMessageMap.size > 0;
 });
 
@@ -66,16 +66,16 @@ watch(
 );
 
 function updateTitle(appName: string) {
-	const mode = ss.getMode();
+	const mode = wf.getMode();
 	let title: string;
 	if (appName && mode == "edit") {
-		title = `${appName} | Streamsync Builder`;
+		title = `${appName} | Writer Framework | Builder`;
 	} else if (!appName && mode == "edit") {
-		title = "Streamsync Builder";
+		title = "Writer Framework | Builder";
 	} else if (appName && mode == "run") {
 		title = `${appName}`;
 	} else if (!appName && mode == "run") {
-		title = "Streamsync App";
+		title = "Writer Framework App";
 	}
 	document.title = title;
 }
@@ -85,18 +85,19 @@ function updateTitle(appName: string) {
 @import "./sharedStyles.css";
 
 .ComponentRenderer {
-	--accentColor: #29cf00;
-	--buttonColor: #ffffff;
-	--emptinessColor: #e9eef1;
-	--separatorColor: rgba(0, 0, 0, 0.07);
-	--primaryTextColor: #202829;
-	--buttonTextColor: #202829;
-	--secondaryTextColor: #5d7275;
+	--accentColor: #5551ff;
+	--buttonColor: #5551ff;
+	--emptinessColor: #ffffff;
+	--separatorColor: #e4e7ed;
+	--primaryTextColor: #000000;
+	--buttonTextColor: #ffffff;
+	--secondaryTextColor: #828282;
 	--containerBackgroundColor: #ffffff;
+	--containerShadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
 	width: 100%;
 	outline: none;
 	--notificationsDisplacement: 0;
-	font-family: Inter, sans-serif;
+	font-family: Poppins, "Helvetica Neue", "Lucida Grande", sans-serif;
 	font-size: 0.8rem;
 	color: var(--primaryTextColor);
 	background: var(--emptinessColor);

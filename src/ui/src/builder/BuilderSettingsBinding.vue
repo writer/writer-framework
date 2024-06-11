@@ -1,7 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
 		<div class="sectionTitle">
-			<i class="ri-links-line ri-xl"></i>
+			<i class="material-symbols-outlined">link</i>
 			<h3>Binding</h3>
 		</div>
 		<div class="main">
@@ -36,11 +36,11 @@ import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setBinding } = useComponentActions(ss, ssbm);
+const { setBinding } = useComponentActions(wf, ssbm);
 
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 </script>
 
 <style scoped>

@@ -1,7 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsVisibility">
 		<div class="sectionTitle">
-			<i class="ri-eye-line ri-xl"></i>
+			<i class="material-symbols-outlined"> visibility </i>
 			<h3>Visibility</h3>
 		</div>
 		<div class="main">
@@ -66,11 +66,11 @@ import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setVisibleValue } = useComponentActions(ss, ssbm);
+const { setVisibleValue } = useComponentActions(wf, ssbm);
 
-const component = computed(() => ss.getComponentById(ssbm.getSelectedId()));
+const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 </script>
 
 <style scoped>

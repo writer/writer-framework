@@ -11,12 +11,12 @@
 
 <script lang="ts">
 export default {
-	streamsync: {
+	writer: {
 		name: "Bubble Message",
 		description: "Shows a message in the shape of a speech bubble.",
 		category: "Content",
 
-		// Fields will be editable via Streamsync Builder
+		// Fields will be editable via Writer Framework Builder
 
 		fields: {
 			text: {
@@ -32,7 +32,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { FieldType } from "../streamsyncTypes";
+import { FieldType } from "../writerTypes";
 import injectionKeys from "../injectionKeys";
 import { inject } from "vue";
 

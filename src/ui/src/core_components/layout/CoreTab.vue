@@ -53,7 +53,7 @@
 const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "../../streamsyncTypes";
+import { Component, FieldType, InstancePath } from "../../writerTypes";
 import { useEvaluator } from "../../renderer/useEvaluator";
 import {
 	contentHAlign,
@@ -65,7 +65,7 @@ const description =
 	"A container component that displays its child components as a tab inside a Tab Container.";
 
 export default {
-	streamsync: {
+	writer: {
 		name: "Tab",
 		description,
 		allowedParentTypes: ["tabs", "repeater"],
@@ -97,16 +97,16 @@ import BaseContainer from "../base/BaseContainer.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const { isComponentVisible } = useEvaluator(ss);
+const { isComponentVisible } = useEvaluator(wf);
 const selectedId = computed(() => ssbm?.getSelectedId());
 
 const getDirectChildInstanceNegativeIndex = () => {
 	for (let i = -2; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const { type } = ss.getComponentById(item.componentId);
+		const { type } = wf.getComponentById(item.componentId);
 		if (type !== "tabs") continue;
 		return i + 1;
 	}
@@ -121,7 +121,7 @@ const tabContainerDirectChildInstanceItem = computed(() => {
 const getTabContainerData = () => {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
-		const { type } = ss.getComponentById(item.componentId);
+		const { type } = wf.getComponentById(item.componentId);
 		if (type !== "tabs") continue;
 		return instanceData.at(i);
 	}
@@ -151,7 +151,7 @@ const activateTab = () => {
 };
 
 const checkIfTabIsParent = (childId: Component["id"]): boolean => {
-	const child = ss.getComponentById(childId);
+	const child = wf.getComponentById(childId);
 	if (!child || child.type == "root") return false;
 	if (child.parentId == componentId) return true;
 	return checkIfTabIsParent(child.parentId);
@@ -199,21 +199,35 @@ onBeforeMount(() => {
 @import "../../renderer/sharedStyles.css";
 
 button.bit {
-	padding: 16px 0 16px 0;
+	padding: 11.5px 0 9.5px 0;
 	border: none;
-	border-radius: 0;
 	margin: 0;
-	background: var(--containerBackgroundColor);
+	background: unset;
+	color: var(--secondaryTextColor);
+	font-size: 0.875rem;
+	border-bottom: 2px solid transparent;
+	outline: none;
+	cursor: pointer;
+}
+
+button.bit:hover {
+	padding: 11.5px 0 9.5px 0;
+	border: none;
+	margin: 0;
+	background: unset;
+	color: var(--secondaryTextColor);
+	font-size: 0.875rem;
+	border-bottom: 2px solid var(--separatorColor);
+	outline: none;
 }
 
 button.bit:focus {
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--primaryTextColor);
 }
 
-button.bit.active,
-button.bit.active:focus {
+button.bit.active {
+	font-weight: 500;
 	color: var(--primaryTextColor);
-	border-bottom: 1px solid var(--accentColor);
+	border-bottom: 2px solid var(--primaryTextColor);
 }
 </style>

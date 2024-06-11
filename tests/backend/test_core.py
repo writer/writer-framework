@@ -11,8 +11,8 @@ import plotly.express as px
 import polars as pl
 import pyarrow as pa
 import pytest
-import streamsync as ss
-from streamsync.core import (
+import writer as wf
+from writer.core import (
     BytesWrapper,
     Evaluator,
     EventDeserialiser,
@@ -21,10 +21,10 @@ from streamsync.core import (
     State,
     StateSerialiser,
     StateSerialiserException,
-    StreamsyncState,
+    WriterState,
 )
-from streamsync.core_ui import Component
-from streamsync.ss_types import StreamsyncEvent
+from writer.core_ui import Component
+from writer.ss_types import WriterEvent
 
 from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
@@ -54,13 +54,13 @@ simple_dict = {"items": {
         "Lettuce": {"name": "Lettuce", "type": "vegetable"}
     }}
 
-ss.Config.is_mail_enabled_for_log = True
-ss.init_state(raw_state_dict)
+wf.Config.is_mail_enabled_for_log = True
+wf.init_state(raw_state_dict)
 
 sc = None
 with open(test_app_dir / "ui.json", "r") as f:
     sc = json.load(f).get("components")
-session = ss.session_manager.get_new_session()
+session = wf.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
 
@@ -201,7 +201,7 @@ class TestState:
         Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
         triggers mutations to update the interface
 
-        #>>> _state = streamsync.init_state({'app': {}})
+        #>>> _state = writer.init_state({'app': {}})
         #>>> _state["app"] = {"hello": "world"}
         """
         _state = State()
@@ -326,11 +326,11 @@ class TestState:
         assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
 
 
-class TestStreamsyncState:
+class TestWriterState:
 
     # Initialised manually
 
-    base_s = StreamsyncState(raw_state_dict)
+    base_s = WriterState(raw_state_dict)
 
     def test_dict_json_serialisable(self) -> None:
         json.dumps(self.base_s.user_state.to_dict())
@@ -353,7 +353,7 @@ class TestStreamsyncState:
 
         # Initialised via clone of initial_state
 
-        cloned_s = StreamsyncState.get_new()
+        cloned_s = WriterState.get_new()
         cloned_s["age"] = 2
         cloned_s["features"]["height"] = "short"
 
@@ -385,10 +385,10 @@ class TestStreamsyncState:
             ("tuple", "key"): "Invalid"
         }
         with pytest.raises(ValueError):
-            StreamsyncState(d)
+            WriterState(d)
 
     def test_unpickable_members(self) -> None:
-        bad_base_s = StreamsyncState({
+        bad_base_s = WriterState({
             "unpickable_thing": json,
         })
         assert bad_base_s.mail == []
@@ -406,12 +406,12 @@ class TestStreamsyncState:
 class TestEventDeserialiser:
 
     root_instance_path = [{"componentId": "root", "instanceNumber": 0}]
-    session_state = StreamsyncState(raw_state_dict)
+    session_state = WriterState(raw_state_dict)
     component_tree = session.session_component_tree
     ed = EventDeserialiser(session_state, component_tree)
 
     def test_unknown_no_payload(self) -> None:
-        ev = StreamsyncEvent(
+        ev = WriterEvent(
             type="not-a-known-event",
             instancePath=self.root_instance_path,
             payload=None
@@ -420,7 +420,7 @@ class TestEventDeserialiser:
         assert ev.type == "not-a-known-event"
 
     def test_unknown_with_payload(self) -> None:
-        ev = StreamsyncEvent(
+        ev = WriterEvent(
             type="not-a-known-event",
             instancePath=self.root_instance_path,
             payload={"has_payload": "yes"}
@@ -428,18 +428,18 @@ class TestEventDeserialiser:
         assert ev.type == "not-a-known-event"
 
     def test_unknown_native_with_payload(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-not-a-known-event",
+        ev = WriterEvent(
+            type="wf-not-a-known-event",
             instancePath=self.root_instance_path,
             payload={"has_payload": "yes"}
         )
-        assert ev.type == "ss-not-a-known-event"
+        assert ev.type == "wf-not-a-known-event"
         with pytest.raises(ValueError):
             self.ed.transform(ev)
 
     def test_number_change(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-number-change",
+        ev = WriterEvent(
+            type="wf-number-change",
             instancePath=self.root_instance_path,
             payload="44"
         )
@@ -447,8 +447,8 @@ class TestEventDeserialiser:
         assert ev.payload == 44
 
     def test_change(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-change",
+        ev = WriterEvent(
+            type="wf-change",
             instancePath=self.root_instance_path,
             payload="44 !@"
         )
@@ -463,8 +463,8 @@ class TestEventDeserialiser:
             {"componentId": "d2269aeb-c84e-4075-8679-c6f168fecfac", "instanceNumber": 0}
         ]
 
-        ev_valid = StreamsyncEvent(
-            type="ss-option-change",
+        ev_valid = WriterEvent(
+            type="wf-option-change",
             instancePath=instance_path,
             payload="a"
         )
@@ -472,8 +472,8 @@ class TestEventDeserialiser:
         self.ed.transform(ev_valid)
         assert ev_valid.payload == "a"
 
-        ev_invalid = StreamsyncEvent(
-            type="ss-option-change",
+        ev_invalid = WriterEvent(
+            type="wf-option-change",
             instancePath=instance_path,
             payload="d"
         )
@@ -489,8 +489,8 @@ class TestEventDeserialiser:
             {"componentId": "9b09d964-da68-4d47-851a-31f070ae1f2f", "instanceNumber": 0}
         ]
 
-        ev_valid = StreamsyncEvent(
-            type="ss-option-change",
+        ev_valid = WriterEvent(
+            type="wf-option-change",
             instancePath=instance_path,
             payload="sp"
         )
@@ -498,8 +498,8 @@ class TestEventDeserialiser:
         self.ed.transform(ev_valid)
         assert ev_valid.payload == "sp"
 
-        ev_invalid = StreamsyncEvent(
-            type="ss-option-change",
+        ev_invalid = WriterEvent(
+            type="wf-option-change",
             instancePath=instance_path,
             payload="dk"
         )
@@ -515,8 +515,8 @@ class TestEventDeserialiser:
             {"componentId": "784288ff-80ec-4170-a3de-53e461ca1640", "instanceNumber": 0}
         ]
 
-        ev_valid = StreamsyncEvent(
-            type="ss-options-change",
+        ev_valid = WriterEvent(
+            type="wf-options-change",
             instancePath=instance_path,
             payload=["a", "b"]
         )
@@ -524,8 +524,8 @@ class TestEventDeserialiser:
         self.ed.transform(ev_valid)
         assert ev_valid.payload == ["a", "b"]
 
-        ev_invalid = StreamsyncEvent(
-            type="ss-options-change",
+        ev_invalid = WriterEvent(
+            type="wf-options-change",
             instancePath=instance_path,
             payload=["a", "d"]
         )
@@ -534,8 +534,8 @@ class TestEventDeserialiser:
             self.ed.transform(ev_invalid)
 
     def test_hashchange(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-hashchange",
+        ev = WriterEvent(
+            type="wf-hashchange",
             instancePath=self.root_instance_path,
             payload={
                 "pageKey": "myPage",
@@ -554,8 +554,8 @@ class TestEventDeserialiser:
         }
 
     def test_webcam(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-webcam",
+        ev = WriterEvent(
+            type="wf-webcam",
             instancePath=self.root_instance_path,
             payload="data:text/plain;base64,aGVsbG8gd29ybGQ="
         )
@@ -563,8 +563,8 @@ class TestEventDeserialiser:
         assert bytes(ev.payload).decode("utf-8") == "hello world"
 
     def test_file_change(self) -> None:
-        ev = StreamsyncEvent(
-            type="ss-file-change",
+        ev = WriterEvent(
+            type="wf-file-change",
             instancePath=self.root_instance_path,
             payload=[{
                 "name": "myfile.txt",
@@ -579,16 +579,16 @@ class TestEventDeserialiser:
             "utf-8") == "hello world"
 
     def test_date_change(self) -> None:
-        ev_invalid = StreamsyncEvent(
-            type="ss-date-change",
+        ev_invalid = WriterEvent(
+            type="wf-date-change",
             instancePath=self.root_instance_path,
             payload="virus"
         )
         with pytest.raises(RuntimeError):
             self.ed.transform(ev_invalid)
 
-        ev_valid = StreamsyncEvent(
-            type="ss-date-change",
+        ev_valid = WriterEvent(
+            type="wf-date-change",
             instancePath=self.root_instance_path,
             payload="2019-11-23"
         )
@@ -676,7 +676,7 @@ class TestStateSerialiser():
         # A Python module is used as an example of a non-serialisable object
 
         d = {
-            "fav_module": ss
+            "fav_module": wf
         }
 
         with pytest.raises(StateSerialiserException):
@@ -780,7 +780,7 @@ class TestEvaluator:
             {"componentId": "0cd59329-29c8-4887-beee-39794065221e", "instanceNumber": 0}
 
         ]
-        st = StreamsyncState({
+        st = WriterState({
             "counter": 8
         })
         ct = session.session_component_tree
@@ -800,7 +800,7 @@ class TestEvaluator:
         instance_path_2 = instance_path_base + [
             {"componentId": "2e688107-f865-419b-a07b-95103197e3fd", "instanceNumber": 2}
         ]
-        st = StreamsyncState({
+        st = WriterState({
             "prog_languages": {
                 "c": "C",
                 "py": "Python",
@@ -819,7 +819,7 @@ class TestEvaluator:
         instance_path = [
             {"componentId": "root", "instanceNumber": 0}
         ]
-        st = StreamsyncState(raw_state_dict)
+        st = WriterState(raw_state_dict)
         ct = session.session_component_tree
         e = Evaluator(st, ct)
         e.set_state("name", instance_path, "Roger")
@@ -834,7 +834,7 @@ class TestEvaluator:
         instance_path = [
             {"componentId": "root", "instanceNumber": 0}
         ]
-        st = StreamsyncState(raw_state_dict)
+        st = WriterState(raw_state_dict)
         ct = session.session_component_tree
         e = Evaluator(st, ct)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
@@ -848,7 +848,7 @@ class TestEvaluator:
         Here we reproduce a click on a button
         """
         # Given
-        st = StreamsyncState({})
+        st = WriterState({})
         ct = core_ui_fixtures.build_fake_component_tree([
             Component(id="button1", parentId="root", type="button")
         ], init_root=True)
@@ -871,7 +871,7 @@ class TestEvaluator:
         Here we reproduce a click on a button
         """
         # Given
-        st = StreamsyncState({})
+        st = WriterState({})
         ct = core_ui_fixtures.build_fake_component_tree([
             Component(id="repeater1", parentId="root", type="repeater", content={'keyVariable': 'item', 'valueVariable': 'value', 'repeaterObject': json.dumps({'a': 'A', 'b': 'B'})}),
             Component(id="button1", parentId="repeater1", type="button")
