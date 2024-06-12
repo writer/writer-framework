@@ -45,7 +45,6 @@ def main():
         args.path) if args.path else None
     host = args.host if args.host else None
     api_key = args.api_key if args.api_key else None
-    print(args.env)
 
     _perform_checks(command, absolute_app_path, host, enable_remote_edit, api_key)
     api_key = _get_api_key(command, api_key)
