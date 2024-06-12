@@ -1,12 +1,14 @@
+import asyncio
 import dataclasses
 import os.path
+import time
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 from urllib.parse import urlparse
 
 from authlib.integrations.requests_client.oauth2_session import OAuth2Session  # type: ignore
-from fastapi import Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi import Request, Response, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 import writer.serve
@@ -14,6 +16,8 @@ from writer.core import session_manager
 from writer.serve import WriterFastAPI
 from writer.ss_types import InitSessionRequestPayload
 
+# Dictionary for storing failed attempts {ip_address: timestamp}
+failed_attempts: Dict[str, float] = {}
 
 class Unauthorized(Exception):
     """
@@ -35,12 +39,106 @@ class Auth:
 
     @abstractmethod
     def register(self,
-                 app: WriterFastAPI,
+                 asgi_app: WriterFastAPI,
                  callback: Optional[Callable[[Request, str, dict], None]] = None,
                  unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None
     ):
         raise NotImplementedError
 
+@dataclasses.dataclass
+class BasicAuth(Auth):
+    """
+    Configure Writer Framework to use Basic Authentication. If this is set, Writer Framework will
+    ask anonymous users to authenticate using Basic Authentication.
+
+    >>> _auth = auth.BasicAuth(
+    >>>     login=os.getenv('LOGIN'),
+    >>>     password=os.getenv('PASSWORD')
+    >>> )
+    >>> writer.server.register_auth(_auth)
+
+    Brute force protection
+    ----------------------
+
+    A simple brute force protection is implemented by default. If a user fails to log in, the IP of this user is blocked.
+    Writer framework will ban the IP from either the `X-Forwarded-For` header or the `X-Real-IP` header or the client IP address.
+
+    When a user fails to log in, they wait 1 second before they can try again. This time can be modified by
+    modifying the value of `delay_after_failure`.
+
+    >>> _auth = auth.BasicAuth(
+    >>>     login=os.getenv('LOGIN'),
+    >>>     password=os.getenv('PASSWORD')
+    >>>     delay_after_failure=5 # 5 seconds delay after a failed login
+    >>> )
+    >>> writer.server.register_auth(_auth)
+
+    The user is stuck by default after a failure.
+
+    >>> _auth = auth.BasicAuth(
+    >>>     login=os.getenv('LOGIN'),
+    >>>     password=os.getenv('PASSWORD'),
+    >>>     delay_after_failure=5,
+    >>>     block_webserver_after_failure=False
+    >>> )
+    """
+    login: str
+    password: str
+    delay_after_failure: int = 1  # limit attempt when authentication fail (reduce brute force risk)
+    block_user_after_failure: bool = True  # delay the answer to the user after a failed login
+
+    callback_func: Optional[Callable[[Request, str, dict], None]] = None  # Callback to validate user authentication
+    unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None  # Callback to build its own page when a user is not allowed
+
+
+    def register(self,
+                 asgi_app: WriterFastAPI,
+                 callback: Optional[Callable[[Request, str, dict], None]] = None,
+                 unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None):
+
+        @asgi_app.middleware("http")
+        async def basicauth_middleware(request: Request, call_next):
+            import base64
+            client_ip = _client_ip(request)
+
+            try:
+                if client_ip in failed_attempts and time.time() - failed_attempts[client_ip] < self.delay_after_failure:
+                    remaining_time = int(self.delay_after_failure - (time.time() - failed_attempts[client_ip]))
+                    raise Unauthorized(status_code=429, message="Too Many Requests", more_info=f"You can try to log in every {self.delay_after_failure}s. Your next try is in {remaining_time}s.")
+
+                session_id = session_manager.generate_session_id()
+                _auth = request.headers.get('Authorization')
+                if _auth is None:
+                    return HTMLResponse("", status.HTTP_401_UNAUTHORIZED, {"WWW-Authenticate": "Basic"})
+
+                scheme, data = (_auth or ' ').split(' ', 1)
+                if scheme != 'Basic':
+                    return HTMLResponse("", status.HTTP_401_UNAUTHORIZED, {"WWW-Authenticate": "Basic"})
+
+                username, password = base64.b64decode(data).decode().split(':', 1)
+                if self.callback_func:
+                    self.callback_func(request, session_id, {'username': username})
+                else:
+                    if username != self.login or password != self.password:
+                        raise Unauthorized()
+
+                return await call_next(request)
+            except Unauthorized as exc:
+                if exc.status_code != 429:
+                    failed_attempts[client_ip] = time.time()
+
+                    if self.block_user_after_failure:
+                        await asyncio.sleep(self.delay_after_failure)
+
+                if self.unauthorized_action is not None:
+                    return self.unauthorized_action(request, exc)
+                else:
+                    templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+                    return templates.TemplateResponse(request=request, name="auth_unauthorized.html", status_code=exc.status_code, context={
+                        "status_code": exc.status_code,
+                        "message": exc.message,
+                        "more_info": exc.more_info
+                    })
 
 @dataclasses.dataclass
 class Oidc(Auth):
@@ -243,3 +341,19 @@ def _urlstrip(url_path: str):
     >>> "http://localhost/app1"
     """
     return url_path.strip('/')
+
+def _client_ip(request: Request) -> str:
+    """
+    Get the client IP address from the request.
+
+    >>> _client_ip(request)
+    """
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for:
+        # X-Forwarded-For can contain a list of IPs, the first is the real IP of the client
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        # Otherwise, use the direct connection IP
+        ip = request.headers.get("X-Real-IP", request.client.host)  # type: ignore
+
+    return ip
