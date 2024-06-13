@@ -1,0 +1,16 @@
+{
+    "metadata": {
+        "writer_version": "0.5.0"
+    },
+    "components": {
+        "root": {
+            "id": "root",
+            "type": "root",
+            "content": {
+                "appName": "My App"
+            },
+            "isCodeManaged": false,
+            "position": 0
+        }
+    }
+}

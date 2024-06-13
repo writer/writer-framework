@@ -1,12 +1,49 @@
 # Authentication
 
-The StreamSync authentication module allows you to restrict access to your application.
+The Writer framework authentication module allows you to restrict access to your application.
 
-Streamsync will be able to authenticate a user through an identity provider such as Google, Microsoft, Facebook, Github, Auth0, etc.
+Writer framework offers either simple password authentication or identity provider authentication (Google, Microsoft, Facebook, Github, Auth0, etc.).
 
 ::: warning Authentication is done before accessing the application
 Authentication is done before accessing the application. It is not possible to trigger authentication for certain pages exclusively.
 :::
+
+## Use Basic Auth
+
+Basic Auth is a simple authentication method that uses a username and password. Authentication configuration is done in [the `server_setup.py` module](custom-server.md).
+
+::: warning Password authentication is not safe for critical application
+Basic Auth authentication is not secure for critical applications.
+
+A user can intercept the plaintext password if https encryption fails. 
+It may also try to force password using brute force attacks.
+
+For added security, it's recommended to use identity provider (Google, Microsoft, Facebook, Github, Auth0, etc.).
+:::
+
+*server_setup.py*
+```python
+import os
+import writer.serve
+import writer.auth
+
+auth = writer.auth.BasicAuth(
+    login=os.get('LOGIN'),
+    password=os.get('PASSWORD'),
+)
+
+writer.serve.register_auth(auth)
+```
+
+### Brute force protection
+
+A simple brute force protection is implemented by default. If a user fails to log in, the IP of this user is blocked.
+Writer framework will ban the IP from either the X-Forwarded-For header or the X-Real-IP header or the client IP address.
+
+When a user fails to log in, they wait 1 second before they can try again. This time can be modified by
+modifying the value of delay_after_failure.
+
+<img src="./images/auth_too_many_request.png" style="width: 100%; margin: auto">
 
 ## Use OIDC provider
 
@@ -18,10 +55,10 @@ Here is an example configuration for Google.
 *server_setup.py*
 ```python
 import os
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
-oidc = streamsync.auth.Oidc(
+oidc = writer.auth.Oidc(
     client_id="1xxxxxxxxx-qxxxxxxxxxxxxxxx.apps.googleusercontent.com",
     client_secret="GOxxxx-xxxxxxxxxxxxxxxxxxxxx",
     host_url=os.getenv('HOST_URL', "http://localhost:5000"),
@@ -30,17 +67,17 @@ oidc = streamsync.auth.Oidc(
     url_userinfo='https://www.googleapis.com/oauth2/v1/userinfo?alt=json'
 )
 
-streamsync.serve.register_auth(oidc)
+writer.serve.register_auth(oidc)
 ```
 ### Use pre-configured OIDC
 
-StreamSync provides pre-configured OIDC providers. You can use them directly in your application.
+Writer framework provides pre-configured OIDC providers. You can use them directly in your application.
 
-|                                                                                    | Provider                                                                                | Function | Description                                                                                     |
-|------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------|
-| <img src="./images/auth_google_fill.png" style="width: 25px; min-width:25px" />    | Google  | `streamsync.auth.Google` | Allow your users to login with their Google Account                                             |
-| <img src="./images/auth_github_fill.png" style="width: 25px; min-width:25px" />    | Github                                                                                  | `streamsync.auth.Github` | Allow your users to login with their Github Account                                             |
-| <img src="./images/auth_auth0_fill.png" style="width: 25px; min-width:25px" />     | Auth0                                                                                   | `streamsync.auth.Auth0` | Allow your users to login with different providers or with login password through Auth0 |
+|                                                                                    | Provider                                                                                | Function                | Description                                                                                     |
+|------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|-------------------------|-------------------------------------------------------------------------------------------------|
+| <img src="./images/auth_google_fill.png" style="width: 25px; min-width:25px" />    | Google  | `writer.auth.Google`    | Allow your users to login with their Google Account                                             |
+| <img src="./images/auth_github_fill.png" style="width: 25px; min-width:25px" />    | Github                                                                                  | `writer.auth.Github`    | Allow your users to login with their Github Account                                             |
+| <img src="./images/auth_auth0_fill.png" style="width: 25px; min-width:25px" />     | Auth0                                                                                   | `writer.auth.Auth0` | Allow your users to login with different providers or with login password through Auth0 |
 
 
 #### Google
@@ -50,16 +87,16 @@ You have to register your application into [Google Cloud Console](https://consol
 *server_setup.py*
 ```python
 import os
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
-oidc = streamsync.auth.Google(
+oidc = writer.auth.Google(
 	client_id="1xxxxxxxxx-qxxxxxxxxxxxxxxx.apps.googleusercontent.com",
 	client_secret="GOxxxx-xxxxxxxxxxxxxxxxxxxxx",
 	host_url=os.getenv('HOST_URL', "http://localhost:5000")
 )
 
-streamsync.serve.register_auth(oidc)
+writer.serve.register_auth(oidc)
 ```
 
 #### Github
@@ -69,16 +106,16 @@ You have to register your application into [Github](https://docs.github.com/en/a
 *server_setup.py*
 ```python
 import os
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
-oidc = streamsync.auth.Github(
+oidc = writer.auth.Github(
 	client_id="xxxxxxx",
 	client_secret="xxxxxxxxxxxxx",
 	host_url=os.getenv('HOST_URL', "http://localhost:5000")
 )
 
-streamsync.serve.register_auth(oidc)
+writer.serve.register_auth(oidc)
 ```
 
 #### Auth0
@@ -88,17 +125,17 @@ You have to register your application into [Auth0](https://auth0.com/).
 *server_setup.py*
 ```python
 import os
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
-oidc = streamsync.auth.Auth0(
+oidc = writer.auth.Auth0(
 	client_id="xxxxxxx",
 	client_secret="xxxxxxxxxxxxx",
 	domain="xxx-xxxxx.eu.auth0.com",
 	host_url=os.getenv('HOST_URL', "http://localhost:5000")
 )
 
-streamsync.serve.register_auth(oidc)
+writer.serve.register_auth(oidc)
 ```
 
 ### Authentication workflow
@@ -129,23 +166,23 @@ See [User information in event handler](#user-information-in-event-handler)
 ```python
 from fastapi import Request
 
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
 oidc = ...
 
 def callback(request: Request, session_id: str, userinfo: dict):
     if userinfo['email'] not in ['nom.prenom123@example.com']:
-        raise streamsync.auth.Unauthorized(more_info="You can contact the administrator at <a href='https://support.example.com'>support.example.com</a>")
+        raise writer.auth.Unauthorized(more_info="You can contact the administrator at <a href='https://support.example.com'>support.example.com</a>")
 
-streamsync.serve.register_auth(oidc, callback=callback)
+writer.serve.register_auth(oidc, callback=callback)
 ```
 
 The default authentication error page look like this:
 
 <img src="./images/auth_unauthorized_default.png">
 
-*streamsync.auth.Unauthorized*
+*writer.auth.Unauthorized*
 
 | Parameter | Description |
 |-----------|-------------|
@@ -160,8 +197,8 @@ User info can be modified in the callback.
 ```python
 from fastapi import Request
 
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
 oidc = ...
 
@@ -173,7 +210,7 @@ def callback(request: Request, session_id: str, userinfo: dict):
 	else:
 		userinfo['group'].append('user')
 	
-streamsync.serve.register_auth(oidc, callback=callback)
+writer.serve.register_auth(oidc, callback=callback)
 ```
 from fastapi import Request
 
@@ -187,12 +224,12 @@ import os
 from fastapi import Request, Response
 from fastapi.templating import Jinja2Templates
 
-import streamsync.serve
-import streamsync.auth
+import writer.serve
+import writer.auth
 
 oidc = ...
 
-def unauthorized(request: Request, exc: streamsync.auth.Unauthorized) -> Response:
+def unauthorized(request: Request, exc: writer.auth.Unauthorized) -> Response:
     templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
     return templates.TemplateResponse(request=request, name="unauthorized.html", status_code=exc.status_code, context={
         "status_code": exc.status_code,
@@ -200,7 +237,7 @@ def unauthorized(request: Request, exc: streamsync.auth.Unauthorized) -> Respons
         "more_info": exc.more_info
     })
 
-streamsync.serve.register_auth(oidc, unauthorized_action=unauthorized)
+writer.serve.register_auth(oidc, unauthorized_action=unauthorized)
 ```
 
 ## Enable in edit mode
@@ -209,6 +246,6 @@ Authentication is disabled in edit mode. To activate it,
 you must trigger the loading of the server_setup module in edition mode.
 
 ```bash
-streamsync edit --enable-server-setup
+writer edit --enable-server-setup
 ```
 
