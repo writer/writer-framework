@@ -69,7 +69,7 @@ test.describe("state autocompletion", () => {
 				.locator(`div.component.button[data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
-			await page.locator('div.CoreRadioInput.component .mainLabel').click();
+			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
 				.locator(`${FIELD} button.chip:text-matches("Static List")`)
 				.click();
@@ -100,7 +100,7 @@ test.describe("state autocompletion", () => {
 				.locator(`div.component.button[data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
-			await page.locator('div.CoreRadioInput.component .mainLabel').click();
+			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
 				.locator(`${FIELD} button.chip:text-matches("JSON")`)
 				.click();
