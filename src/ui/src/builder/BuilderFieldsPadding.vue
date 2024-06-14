@@ -42,7 +42,7 @@
 					@select="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.all_sides" class="row">
-					<i class="material-symbols-outlined">padding</i>
+					<i>All</i>
 					<input
 						ref="fixedEl"
 						type="text"
@@ -53,7 +53,7 @@
 				</div>
 				<div v-if="subMode == SubMode.xy_sides">
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>X</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -63,7 +63,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Y</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -74,7 +74,7 @@
 				</div>
 				<div v-if="subMode == SubMode.per_side">
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Left</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -84,7 +84,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Right</i>
 						<input
 							type="text"
 							:value="valuePadding[1]"
@@ -93,7 +93,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Top</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -102,7 +102,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Bottom</i>
 						<input
 							type="text"
 							:value="valuePadding[3]"
@@ -412,10 +412,11 @@ onBeforeUnmount(() => {
 	flex-direction: row;
 	gap: 8px;
 	padding: 8px;
-	align-items: center;
+	align-items: baseline;
 }
 
 .row input {
 	width: calc(100% - 32px) !important;
+	text-align: right;
 }
 </style>
