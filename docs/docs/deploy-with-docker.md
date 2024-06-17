@@ -1,6 +1,6 @@
 # Deploy with Docker
 
-You can use Docker to deploy Streamsync anywhere. If you're an experienced Docker user, you may want to go straight to the provided Dockerfile.
+You can use Docker to deploy Writer anywhere. If you're an experienced Docker user, you may want to go straight to the provided Dockerfile.
 
 ## Creating a Docker image
 
@@ -8,7 +8,64 @@ You can use Docker to deploy Streamsync anywhere. If you're an experienced Docke
 
 - Make sure you have Docker installed.
 - Open a terminal and navigate to your app's folder.
-- Create a `pyproject.toml` using `poetry init` and install `streamsync` using `poetry add streamsync`
+- Create a `pyproject.toml` using `poetry init` and install `writer` using `poetry add writer`
+
+### What is Poetry and Its Purpose?
+
+Poetry is a tool for dependency management and packaging in Python. It aims to bring the best of all packaging worlds (bundling, distributing, and dependency management) to the Python world. Poetry helps to create and manage projects with a consistent and reproducible environment. Here are some key features and purposes of Poetry:
+
+1. **Dependency Management**: Poetry manages your project’s dependencies, ensuring that you and anyone else working on your project have the same packages installed, which helps avoid the common "it works on my machine" problem.
+
+2. **Project Configuration**: It uses a simple `pyproject.toml` file to specify project details such as name, version, dependencies, and more, making the configuration clean and straightforward.
+
+3. **Virtual Environment Management**: Poetry can create and manage virtual environments automatically. This isolates project dependencies from the global Python environment, preventing conflicts between different projects.
+
+4. **Publishing Packages**: It simplifies the process of publishing your project to the Python Package Index (PyPI) or other repositories, helping you share your work with the community easily.
+
+5. **Reproducible Builds**: By locking dependencies to specific versions, Poetry ensures that builds are reproducible, which means the same dependencies are installed each time, preventing unexpected changes in behavior due to updates.
+
+### Using and Setting Up Poetry
+
+Poetry is a dependency management tool for Python that helps you declare, manage, and install dependencies. Here’s how you can set it up for your project:
+
+1. **Install Poetry**: If you don't have Poetry installed, you can install it using the following command:
+   ```sh
+   curl -sSL https://install.python-poetry.org | python3 -
+   ```
+   Alternatively, you can use the following command if you prefer to use pip:
+   ```sh
+   pip install poetry
+   ```
+
+2. **Initialize Your Project**: Navigate to your project directory and initialize a new Poetry project.
+   ```sh
+   poetry init
+   ```
+   Follow the prompts to set up your `pyproject.toml` file. This file will include metadata about your project and its dependencies.
+
+3. **Add Dependencies**: Use Poetry to add `writer` and any other dependencies your project needs.
+   ```sh
+   poetry add writer 
+   ```
+   This command will update your `pyproject.toml` file with `writer` as a dependency and install it.
+
+4. **Install Dependencies**: Ensure all dependencies are installed in your virtual environment.
+   ```sh
+   poetry install
+   ```
+   This will create a virtual environment (if it doesn't already exist) and install all dependencies listed in `pyproject.toml`.
+
+### What is Docker and Why Use It?
+
+Docker is a platform that enables developers to create, deploy, and run applications in containers. Containers are lightweight, portable, and ensure consistency across multiple environments. Here’s why Docker is useful:
+
+1. **Consistency**: Docker ensures that your application runs the same way, regardless of where it is deployed, by packaging everything it needs into a single container.
+
+2. **Isolation**: Containers isolate your application from other applications and the underlying system, preventing conflicts and making it easier to manage dependencies.
+
+3. **Portability**: Docker containers can run on any system that supports Docker, making it easy to move applications between development, testing, and production environments.
+
+4. **Efficiency**: Containers are more lightweight than virtual machines, as they share the host system’s kernel, which makes them start up faster and consume fewer resources.
 
 ### Creating a Dockerfile
 
@@ -17,72 +74,105 @@ A Dockerfile is a file with instructions that tell Docker how to build your imag
 You can use the following as-is, or as a starting point. It should be saved in your app's folder, together with `main.py` and `ui.json`.
 
 ```docker
+# Use an official Python runtime as a parent image
 FROM python:3.10-bullseye
+
+# Update the package repository and install required dependencies
 RUN apt-get update -y && mkdir /app
 RUN apt-get install build-essential cmake python3-dev -y
-COPY . /app
-WORKDIR /app
-RUN pip3 install poetry
-RUN poetry config virtualenvs.create false
-RUN poetry install --only main
-ENTRYPOINT [ "streamsync", "run" ]
-EXPOSE 8080
-CMD [ ".",  "--port", "8080", "--host", "0.0.0.0" ] 
-```
 
-::: tip This Dockerfile is just a guideline
-It uses an official Python base image.
-If you're a Docker expert, feel free to work on your own `Dockerfile`. Streamsync is, after all, a standard Python package.
-:::
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install Poetry
+RUN pip3 install poetry
+
+# Configure Poetry to not create a virtual environment
+RUN poetry config virtualenvs.create false
+
+# Install dependencies specified in pyproject.toml
+RUN poetry install --only main
+
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
+
+# Define environment variable
+ENV NAME StreamsyncApp
+
+# Run Streamsync when the container launches
+ENTRYPOINT [ "writer", "run" ]
+CMD [ ".",  "--port", "8080", "--host", "0.0.0.0" ]
+```
 
 ### Building the Docker image
 
-To build the image, write `docker build . -t ` followed by an image tag, which you're free to choose and will locally identify your image.
+To build the image, you need to run the `docker build` command in your terminal. This command tells Docker to build the image according to the instructions in the Dockerfile. The `-t` option tags the image with a name.
 
-```sh
-docker build . -t my_streamsync_app
-```
+1. **Navigate to your project directory**:
+   ```sh
+   cd path/to/your/app
+   ```
 
-::: warning Platform considerations
-By default, Docker builds images in the architecture it's being run on. If you're working with an ARM computer, such as a Mac M2 or a Raspberry Pi, Docker will build an ARM image. Most cloud services will only accept x86 images. You can use another computer (or virtual machine) to build the image, or you can use [Docker buildx](https://docs.docker.com/build/building/multi-platform/).
-:::
+2. **Build the Docker image**:
+   ```sh
+   docker build . -t my_framework_app
+   ```
+   In this command:
+   - `.` tells Docker to use the current directory as the context for the build.
+   - `-t my_framework_app` tags the image with the name `my_framework_app`.
 
-## Publishing your Docker image
+Docker will read the Dockerfile, execute the instructions, and build the image. This process may take a few minutes, especially the first time, as it needs to download the base image and install dependencies.
 
-Once your Docker image has been built, you can publish it to a registry. This is a place where Docker images are stored and made available to other services.
+### Running the Docker Container
 
-We recommend using Docker Hub; it has a generous free tier, it's very easy to set up and it's widely supported. However, you can choose to use another service such as Azure Container Registry. To use Docker Hub, you'll need to sign up for an account.
+Once the image is built, you can run a container based on that image. Use the `docker run` command to start the container.
 
-You can push your image using the following commands.
+1. **Run the container**:
+   ```sh
+   docker run -p 8080:8080 my_framework_app
+   ```
+   In this command:
+   - `-p 8080:8080` maps port 8080 of the host machine to port 8080 of the container, making the app accessible via `http://localhost:8080`.
+   - `my_framework_app` is the name of the image to run.
 
-```sh
-# Login to Docker Hub
-docker login
+2. **Access the application**:
+   Open your web browser and go to [http://localhost:8080](http://localhost:8080) to see your app running.
 
-# Push the image
-# Replace "my_streamsync_app" for the tag you've previously chosen
-# Replace "my_user" for your user on Docker Hub
-docker tag my_streamsync_app:latest my_user/my_streamsync_app:latest
-docker push my_user/my_streamsync_app:latest
-```
+### Publishing Your Docker Image
 
-If your image is public, anyone can now run the following command and start the app. It's important to bind the port to a port in the host machine. The command below binds port 8080 in the Docker image to port 8080 in the host.
+Once your Docker image has been built, you can publish it to a registry. A registry is a place where Docker images are stored and made available to other services.
 
-```sh
-docker run -p 8080:8080 my_user/my_streamsync_app
-```
+We recommend using Docker Hub; it has a generous free tier, it's very easy to set up, and it's widely supported. However, you can choose to use another service such as Azure Container Registry. To use Docker Hub, you'll need to sign up for an account.
 
-Go on your browser to [http://localhost:8080](http://localhost:8080) to check everything is working as expected.
+1. **Login to Docker Hub**:
+   ```sh
+   docker login
+   ```
 
-## Deploying your Docker image
+2. **Tag your image**:
+   ```sh
+   docker tag my_framework_app:latest my_user/my_framework_app:latest
+   ```
+   Replace `my_user` with your Docker Hub username.
 
-As mentioned earlier, once the image is a registry, it can be spun up by others. After trying a few options, we recommend using Google Cloud Run. Its free tier is generous and SSL works out of the box.
+3. **Push your image to Docker Hub**:
+   ```sh
+   docker push my_user/my_framework_app:latest
+   ```
 
-![Run and Share - Google Cloud Run](./images/deploy-with-docker.google-cloud-run.png)
+### Deploying Your Docker Image
+
+As mentioned earlier, once the image is in a registry, it can be spun up by others. After trying a few options, we recommend using Google Cloud Run. Its free tier is generous, and SSL works out of the box.
 
 Cloud Run can be configured in just one page. It takes the image from a registry and makes it available via a URL, with SSL enabled by default. We recommend the following settings:
 
 - Minimum 0 instances, maximum 4 instances. Unless your app needs to serve several thousands of users.
 - Request timeout to the maximum allowed and _Session Affinity_ enabled. This ensures that WebSockets connections are not unnecessarily dropped.
-- 2GB of memory and 2 vCPUs. This will likely be enough to comfortably run a simple app. You can probably get away with much less (512MB of memory and 1vCPU), if your app isn't too demanding and you don't expect much traffic.
+- 2GB of memory and 2 vCPUs. This will likely be enough to comfortably run a simple app. You can probably get away with much less (512MB of memory and 1vCPU) if your app isn't too demanding and you don't expect much traffic.
 
+Follow the Google Cloud Run documentation to deploy your Docker image and make your app available on the web.
+
+![Run and Share - Google Cloud Run](./images/deploy-with-docker.google-cloud-run.png)
