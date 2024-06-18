@@ -1,4 +1,4 @@
-## What is Writer Framework?
+## What is Framework?
 
 Writer Framework is an open-source framework for creating AI applications. Build user interfaces using a visual editor; write the backend code in Python.
 
