@@ -36,8 +36,10 @@ from typing import (
 )
 
 from writer import core_ui
+from writer.core_ui import Component
 from writer.ss_types import (
     InstancePath,
+    InstancePathItem,
     Readable,
     WriterEvent,
     WriterEventResult,
@@ -1122,7 +1124,7 @@ class Evaluator:
 
         if len(instance_path) > 0:
             context['target'] = instance_path[-1]['componentId']
-            
+
         return context
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
@@ -1338,7 +1340,13 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
+    def _call_handler_callable(
+        self,
+        event_type: str,
+        target_component: Component,
+        instance_path: List[InstancePathItem],
+        payload: Any
+    ) -> Any:
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
@@ -1353,10 +1361,13 @@ class EventHandler:
 
         # Preparation of arguments
         from writer.ui import WriterUIManager
+
+        context_data = self.evaluator.get_context_data(instance_path)
+        context_data['event'] = event_type
         writer_args = {
             'state': self.session_state,
             'payload': payload,
-            'context': self.evaluator.get_context_data(instance_path),
+            'context': context_data,
             'session': {
                 'id': self.session.session_id,
                 'cookies': self.session.cookies,
@@ -1409,11 +1420,11 @@ class EventHandler:
         try:
             instance_path = ev.instancePath
             target_id = instance_path[-1]["componentId"]
-            target_component = self.session_component_tree.get_component(target_id)
+            target_component = cast(Component, self.session_component_tree.get_component(target_id))
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(ev.type, target_component, instance_path, ev.payload)
-        except BaseException as e:
+        except BaseException:
             ok = False
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
                                                 )
