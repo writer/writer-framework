@@ -26,7 +26,7 @@ class Readable(Protocol):
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo"]
+                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent"]
 
 # Web server models
 
@@ -107,6 +107,10 @@ class StateEnquiryRequest(AppProcessServerRequest):
     type: Literal["stateEnquiry"]
 
 
+class StateContentRequest(AppProcessServerRequest):
+    type: Literal["stateContent"]
+
+
 AppProcessServerRequestPacket = Tuple[int,
                                       Optional[str], AppProcessServerRequest]
 
@@ -142,6 +146,9 @@ class EventResponsePayload(BaseModel):
 class StateEnquiryResponsePayload(BaseModel):
     mutations: Dict[str, Any]
     mail: List
+
+class StateContentResponsePayload(BaseModel):
+    state: Dict[str, Any]
 
 
 class EventResponse(AppProcessServerResponse):

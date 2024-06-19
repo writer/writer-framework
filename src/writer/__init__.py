@@ -10,10 +10,11 @@ from writer.core import (
     State,
     WriterState,
     base_component_tree,
+    get_app_process,
     initial_state,
     new_initial_state,
     session_manager,
-    session_verifier, get_app_process,
+    session_verifier,
 )
 from writer.ui import WriterUIManager
 

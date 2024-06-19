@@ -49,14 +49,18 @@ if TYPE_CHECKING:
 
 
 def get_app_process() -> 'AppProcess':
+    """
+    Retrieves the Writer Framework process context.
+
+    >>> _current_process = get_app_process()
+    >>> _current_process.bmc_components # get the component tree
+    """
     from writer.app_runner import AppProcess  # Needed during runtime
-    raw_process: BaseProcess = \
-        multiprocessing.current_process()
+    raw_process: BaseProcess = multiprocessing.current_process()
     if isinstance(raw_process, AppProcess):
         return raw_process
-    raise RuntimeError(
-        "Failed to retrieve the AppProcess: running in wrong context"
-        )
+
+    raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
 
 
 class Config:

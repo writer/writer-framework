@@ -10,6 +10,11 @@ import writer as wf
 import writer.core
 
 
+@wf.middleware()
+def my_middleware(state):
+    state['counter_middleware'] += 1
+    yield
+
 @wf.session_verifier
 def check_headers(headers):
     if headers.get("x-fail") is not None:
@@ -220,6 +225,7 @@ initial_state = wf.init_state({
         "min_weight": 300,
     },
     "counter": 0,
+    "counter_middleware": 0,
     "metrics": {},
     "b": {
         "pet_count": 8

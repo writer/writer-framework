@@ -1,34 +1,29 @@
 import pytest
+from writer.app_runner import AppRunner
+from writer.ss_types import WriterEvent
 
-import writer.tests
 from backend import test_app_dir
-from backend.test_app_runner import setup_app_runner
+from backend.fixtures.app_runner_fixtures import init_app_session
 
 
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("setup_app_runner")
-def test_middleware_should_apply_on_every_event_handler_invocation(setup_app_runner):
+async def test_middleware_should_apply_on_every_event_handler_invocation(setup_app_runner):
     # 08/06/2024 : the code that executes middleware is not yet implemented
-    # pytest.skip('this test is not implemented')
+    pytest.skip('this test is not implemented')
     # Given
-    with setup_app_process():
-        import writer as wf
-        @wf.middleware()
-        def my_middleware(state):
-            state['counter'] += 1
-            yield
-
-        def handle_multiplication(state):
-            state["r"] = state["a"] * state["b"]
-
-        s = wf.init_state({
-            "counter": 0,
-            "a": 2,
-            "b": 3,
-            "r": None
-        })
+    ar: AppRunner
+    with setup_app_runner(test_app_dir, 'run', load=True) as ar:
+        session_id = await init_app_session(ar)
 
         # When
-        writer.tests.invoke_event_handler(handle_multiplication, state=s)
+        await ar.handle_event(session_id, WriterEvent(
+            type='click',
+            instancePath=[{'componentId': '5c0df6e8-4dd8-4485-a244-8e9e7f4b4675', 'instanceNumber': 0}],
+            payload={})
+        )
 
         # Then
-        assert s["counter"] == 1
+        full_state = await ar.handle_state_content(session_id)
+        assert full_state.payload.state['counter'] == 3
+        assert full_state.payload.state['counter_middleware'] == 1
