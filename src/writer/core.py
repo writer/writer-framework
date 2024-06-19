@@ -1316,22 +1316,6 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _async_handler_executor(self, callable_handler, arg_values):
-        async_callable = self._async_handler_executor_internal(callable_handler, arg_values)
-        return asyncio.run(async_callable)
-
-    async def _async_handler_executor_internal(self, callable_handler, arg_values):
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = await callable_handler(*arg_values)
-        captured_stdout = f.getvalue()
-        return result, captured_stdout
-
-    def _sync_handler_executor(self, callable_handler, arg_values):
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = callable_handler(*arg_values)
-        captured_stdout = f.getvalue()
-        return result, captured_stdout
-
     def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
@@ -1343,44 +1327,38 @@ class EventHandler:
 
         callable_handler = handler_registry.find_handler(handler)
         if not callable_handler:
-            raise ValueError(
-                f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-        is_async_handler = inspect.iscoroutinefunction(callable_handler)
+            raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
 
-        if (not callable(callable_handler)
-           and not is_async_handler):
-            raise ValueError(
-                "Invalid handler. The handler isn't a callable object.")
+        # Preparation of arguments
+        from writer.ui import WriterUIManager
+        all_args = {
+            'state': self.session_state,
+            'payload': payload,
+            'context': self.evaluator.get_context_data(instance_path),
+            'session': {
+                'id': self.session.session_id,
+                'cookies': self.session.cookies,
+                'headers': self.session.headers,
+                'userinfo': self.session.userinfo or {}
+            },
+            'ui': WriterUIManager()
+        }
 
-        args = inspect.getfullargspec(callable_handler).args
-        arg_values = []
-        for arg in args:
-            if arg == "state":
-                arg_values.append(self.session_state)
-            elif arg == "payload":
-                arg_values.append(payload)
-            elif arg == "context":
-                context = self.evaluator.get_context_data(instance_path)
-                arg_values.append(context)
-            elif arg == "session":
-                session_info = {
-                    "id": self.session.session_id,
-                    "cookies": self.session.cookies,
-                    "headers": self.session.headers,
-                    "userinfo": self.session.userinfo or {}
-                }
-                arg_values.append(session_info)
-            elif arg == "ui":
-                from writer.ui import WriterUIManager
-                ui_manager = WriterUIManager()
-                arg_values.append(ui_manager)
-
+        # Invocation of handler
         result = None
-        with core_ui.use_component_tree(self.session.session_component_tree):
-            if is_async_handler:
-                result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
-            else:
-                result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
+        captured_stdout = None
+        with core_ui.use_component_tree(self.session.session_component_tree), \
+            contextlib.redirect_stdout(io.StringIO()) as f:
+            # middlewares = middleware.all()
+            # for m in middlewares:
+            #     middleware_request_executor(m, all_args)
+
+            result = handler_executor(callable_handler, all_args)
+
+            # for m in middlewares:
+            #     middleware_response_executor(m, all_args)
+
+            captured_stdout = f.getvalue()
 
         if captured_stdout:
             self.session_state.add_log_entry(
@@ -1388,6 +1366,7 @@ class EventHandler:
                 "Stdout message",
                 captured_stdout
             )
+
         return result
 
     def handle(self, ev: WriterEvent) -> WriterEventResult:
@@ -1409,8 +1388,7 @@ class EventHandler:
             target_component = self.session_component_tree.get_component(target_id)
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
-            result = self._call_handler_callable(
-                ev.type, target_component, instance_path, ev.payload)
+            result = self._call_handler_callable(ev.type, target_component, instance_path, ev.payload)
         except BaseException:
             ok = False
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
@@ -1507,6 +1485,42 @@ def reset_base_component_tree() -> None:
     """
     global base_component_tree
     base_component_tree = core_ui.build_base_component_tree()
+
+
+def handler_executor(callable_handler: Callable, args: dict) -> Any:
+    """
+    Runs a handler based on its signature.
+
+    If the handler is asynchronous, it is executed asynchronously.
+    If the handler only has certain parameters, only these are passed as arguments
+
+    >>> def my_handler(state):
+    >>>     state['a'] = 2
+    >>>
+    >>> handler_executor(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    """
+    is_async_handler = inspect.iscoroutinefunction(callable_handler)
+    if (not callable(callable_handler) and not is_async_handler):
+        raise ValueError("Invalid handler. The handler isn't a callable object.")
+
+    handler_args = inspect.getfullargspec(callable_handler).args
+    arg_values = []
+    for arg in handler_args:
+        if arg in args:
+            arg_values.append(args[arg])
+
+    if is_async_handler:
+        async_wrapper = _async_wrapper_internal(callable_handler, arg_values)
+        result = asyncio.run(async_wrapper)
+    else:
+        result = callable_handler(*arg_values)
+
+    return result
+
+
+async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
+    result = await callable_handler(*arg_values)
+    return result
 
 
 state_serialiser = StateSerialiser()
