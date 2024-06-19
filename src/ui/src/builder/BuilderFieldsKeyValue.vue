@@ -45,15 +45,17 @@
 			<div class="formAdd">
 				<BuilderTemplateInput
 					ref="assistedKeyEl"
-					v-model:value="formAdd.key"
 					class="inputKey"
 					placeholder="Type a key..."
+					:value="formAdd.key"
+					@update:value="$event => (formAdd.key = $event)"
 					@keydown.enter="addAssistedEntry"
 				/>
 				<BuilderTemplateInput
-					v-model:value="formAdd.value"
 					class="inputValue"
 					placeholder="Type a value..."
+					:value="formAdd.key"
+					@update:value="$event => (formAdd.key = $event)"
 					@keydown.enter="addAssistedEntry"
 				/>
 				<button @click="addAssistedEntry">
