@@ -743,36 +743,58 @@ class WriterState(State):
             "args": args
         })
 
+class MiddlewareExecutor():
+    """
+    A MiddlewareExecutor executes middleware in a controlled context. It allows writer framework
+    to manage different implementations of middleware.
+
+    Case 1 : A middleware is a generator, then run before and after code
+
+    >>> @wf.middleware()
+    >>> def my_middleware():
+    >>>     print("before event handler")
+    >>>     yield()
+    >>>     print("after event handler")
+
+    Case 2 : A middleware is just a function, then run the function before
+
+    >>> @wf.middleware()
+    >>> def my_middleware():
+    >>>     print("before event handler")
+    """
+
+    def __init__(self, middleware: Callable):
+        self.middleware = middleware
+
+    @contextlib.contextmanager
+    def execute(self, args: dict):
+        middleware_args = build_writer_func_arguments(self.middleware, args)
+        it = self.middleware(*middleware_args)
+        try:
+            yield from it
+        except StopIteration:
+            yield
+        except TypeError:
+            yield
+
 
 class MiddlewareRegistry:
 
     def __init__(self):
-        self.registry = []
+        self.registry: List[MiddlewareExecutor] = []
 
     def register(self, middleware: Callable):
-        self.registry.append(middleware)
+        me = MiddlewareExecutor(middleware)
+        self.registry.append(me)
 
-    def executors(self, writer_args: dict) -> List[Generator]:
+    def executors(self) -> List[MiddlewareExecutor]:
         """
-        Retrieves middleware ready to be executed in the form of an iterator.
+        Retrieves middlewares prepared for execution
+
+        >>> executors = middleware_registry.executors()
+        >>> result = handle_with_middlewares_executor(executors, lambda state: pass, {'state': {}, 'payload': {}})
         """
-        executors = []
-        for m in self.registry:
-            handler_args = build_writer_func_arguments(m, writer_args)
-            def wrapper(middleware):
-                it = middleware(*handler_args)
-                try:
-                    next(it)
-                    yield
-                    next(it)
-                except StopIteration:
-                    # This part manages the end of the middleware which will throw a StopIteration exception
-                    # because there is only one yield in the middleware.
-                    yield
-
-            executors.append(wrapper(m))
-
-        return executors
+        return self.registry
 
 class EventHandlerRegistry:
     """
@@ -1382,17 +1404,9 @@ class EventHandler:
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
-            middlewares_executors = current_app_process.middleware_registry.executors(writer_args)
-            # before executing the event
-            for me in middlewares_executors:
-                next(me)
+            middlewares_executors = current_app_process.middleware_registry.executors()
 
-            result = handler_executor(callable_handler, writer_args)
-
-            # after executing the event
-            for me in middlewares_executors:
-                next(me)
-
+            result = handle_with_middlewares_executor(middlewares_executors, callable_handler, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -1548,6 +1562,26 @@ def handler_executor(callable_handler: Callable, writer_args: dict) -> Any:
 
     return result
 
+def handle_with_middlewares_executor(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+    """
+    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+
+    :param middlewares_executors: The list of middleware to run
+    :param callable_handler: The target handler
+
+    >>> @wf.middleware()
+    >>> def my_middleware(state, payload, context, session, ui):
+    >>>     yield
+
+    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    >>> handle_with_middlewares_executor([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+    """
+    if len(middlewares_executors) == 0:
+        return handler_executor(callable_handler, writer_args)
+    else:
+        executor = middlewares_executors[0]
+        with executor.execute(writer_args):
+            return handle_with_middlewares_executor(middlewares_executors[1:], callable_handler, writer_args)
 
 def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
     """

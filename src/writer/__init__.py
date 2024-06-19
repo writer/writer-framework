@@ -154,7 +154,6 @@ def middleware():
     >>>     state['processing'] -= 1
     """
     def inner(func):
-        # enregistre la fonction en tant que middlewares
         _app_process = get_app_process()
         _app_process.middleware_registry.register(func)
 

@@ -3,23 +3,23 @@ from typing import Optional
 from writer.app_runner import AppRunner
 from writer.ss_types import InitSessionRequestPayload
 
-FIXED_SESSION_ID = "0000000000000000000000000000000000000000000000000000000000000000"
+FIXED_SESSION_ID = "0000000000000000000000000000000000000000000000000000000000000000" # Compliant session number
 
 async def init_app_session(app_runner: AppRunner,
                            session_id: str = None,
                            cookies: Optional[dict] = None,
                            headers: Optional[dict] = None) -> str:
     """
-    Creates a session in writer framework for automatic testing
+    Fixture to initialize a session and be able to use it in tests.
 
-    Creates a session with a random ID.
+    If the `session_id` is missing from the parameters, the fixture creates a session with a random ID.
 
     >>> with setup_app_runner(test_app_dir, 'run') as ar:
     >>>     # When
     >>>     ar.load()
     >>>     session_id = await init_app_session(ar)
 
-    Creates a session with a fixed identifier.
+    If the `session_id` is missing from the parameters, the fixture creates a session for this identifier.
 
     >>>     session_id = await init_app_session(ar, session_id=FIXED_SESSION_ID)
     """

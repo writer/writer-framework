@@ -182,3 +182,25 @@ class TestAppRunner:
             mail = list(si_res.payload.model_dump().get("mail"))
 
             assert mail[0].get("payload").get("message") == "188542\n"
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_handle_event_should_return_result_of_event_handler_execution(self, setup_app_runner):
+        """
+        Tests that an event handler should result the result of function execution in
+        payload.result['result'].
+        """
+        # Given
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, 'run', load=True) as ar:
+            session_id = await init_app_session(ar)
+
+            # When
+            res = await ar.handle_event(session_id, WriterEvent(
+                type='click',
+                instancePath=[{'componentId': '5c0df6e8-4dd8-4485-a244-8e9e7f4b4675', 'instanceNumber': 0}],
+                payload={})
+            )
+
+            # Then
+            assert res.payload.result['result'] is not None
