@@ -46,7 +46,7 @@
 				<BuilderTemplateInput
 					ref="assistedKeyEl"
 					class="inputKey"
-					laceholder="Type a key..."
+					placeholder="Type a key..."
 					:value="formAdd.key"
 					@update:value="$event => (formAdd.key = $event)"
 					@keydown.enter="addAssistedEntry"
@@ -55,7 +55,7 @@
 					class="inputValue"
 					placeholder="Type a value..."
 					:value="formAdd.value"
-					@update:value="$event => (formAdd.value= $event)"
+					@update:value="$event => (formAdd.value = $event)"
 					@keydown.enter="addAssistedEntry"
 				/>
 				<button @click="addAssistedEntry">
