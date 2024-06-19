@@ -15,6 +15,11 @@ def my_middleware(state):
     state['counter_middleware'] += 1
     yield
 
+@wf.middleware()
+def post_middleware(state):
+    yield
+    state['counter_post_middleware'] += 1
+
 @wf.session_verifier
 def check_headers(headers):
     if headers.get("x-fail") is not None:
@@ -226,6 +231,7 @@ initial_state = wf.init_state({
     },
     "counter": 0,
     "counter_middleware": 0,
+    "counter_post_middleware": 0,
     "metrics": {},
     "b": {
         "pet_count": 8

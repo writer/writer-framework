@@ -750,6 +750,28 @@ class MiddlewareRegistry:
     def register(self, middleware: Callable):
         self.registry.append(middleware)
 
+    def executors(self, writer_args: dict) -> List[Generator]:
+        """
+        Retrieves middleware ready to be executed in the form of an iterator.
+        """
+        executors = []
+        for m in self.registry:
+            handler_args = build_writer_func_arguments(m, writer_args)
+            def wrapper(middleware):
+                it = middleware(*handler_args)
+                try:
+                    next(it)
+                    yield
+                    next(it)
+                except StopIteration:
+                    # This part manages the end of the middleware which will throw a StopIteration exception
+                    # because there is only one yield in the middleware.
+                    yield
+
+            executors.append(wrapper(m))
+
+        return executors
+
 class EventHandlerRegistry:
     """
     Maps functions registered as event handlers from the user app's core
@@ -1331,7 +1353,7 @@ class EventHandler:
 
         # Preparation of arguments
         from writer.ui import WriterUIManager
-        all_args = {
+        writer_args = {
             'state': self.session_state,
             'payload': payload,
             'context': self.evaluator.get_context_data(instance_path),
@@ -1349,14 +1371,16 @@ class EventHandler:
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
-            # middlewares = middleware.all()
-            # for m in middlewares:
-            #     middleware_request_executor(m, all_args)
+            middlewares_executors = current_app_process.middleware_registry.executors(writer_args)
+            # before executing the event
+            for me in middlewares_executors:
+                next(me)
 
-            result = handler_executor(callable_handler, all_args)
+            result = handler_executor(callable_handler, writer_args)
 
-            # for m in middlewares:
-            #     middleware_response_executor(m, all_args)
+            # after executing the event
+            for me in middlewares_executors:
+                next(me)
 
             captured_stdout = f.getvalue()
 
@@ -1389,7 +1413,7 @@ class EventHandler:
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             result = self._call_handler_callable(ev.type, target_component, instance_path, ev.payload)
-        except BaseException:
+        except BaseException as e:
             ok = False
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
                                                 )
@@ -1487,7 +1511,7 @@ def reset_base_component_tree() -> None:
     base_component_tree = core_ui.build_base_component_tree()
 
 
-def handler_executor(callable_handler: Callable, args: dict) -> Any:
+def handler_executor(callable_handler: Callable, writer_args: dict) -> Any:
     """
     Runs a handler based on its signature.
 
@@ -1503,19 +1527,32 @@ def handler_executor(callable_handler: Callable, args: dict) -> Any:
     if (not callable(callable_handler) and not is_async_handler):
         raise ValueError("Invalid handler. The handler isn't a callable object.")
 
-    handler_args = inspect.getfullargspec(callable_handler).args
-    arg_values = []
-    for arg in handler_args:
-        if arg in args:
-            arg_values.append(args[arg])
+    handler_args = build_writer_func_arguments(callable_handler, writer_args)
 
     if is_async_handler:
-        async_wrapper = _async_wrapper_internal(callable_handler, arg_values)
+        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
         result = asyncio.run(async_wrapper)
     else:
-        result = callable_handler(*arg_values)
+        result = callable_handler(*handler_args)
 
     return result
+
+
+def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
+    """
+    Constructs the list of arguments based on the signature of the function
+    which can be a handler or middleware.
+
+    :param func: the function that will be called
+    :param writer_args: the possible arguments in writer (state, payload, ...)
+    """
+    handler_args = inspect.getfullargspec(func).args
+    func_args = []
+    for arg in handler_args:
+        if arg in writer_args:
+            func_args.append(writer_args[arg])
+
+    return func_args
 
 
 async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
