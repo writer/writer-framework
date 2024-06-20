@@ -5,7 +5,7 @@
 		class="CoreDropdownInput"
 	>
 		<WdsDropdownInput
-			:value="formValue"
+			v-model="formValue"
 			@input="
 				($event) =>
 					handleInput(

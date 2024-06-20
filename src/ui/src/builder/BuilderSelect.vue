@@ -152,6 +152,7 @@ const select = (event) => {
 	display: block;
 	padding: 8px;
 	font-weight: 400;
+	font-size: 0.75rem;
 	color: #000000e6;
 	cursor: pointer;
 	transition: all 0.2s;
@@ -181,5 +182,9 @@ const select = (event) => {
 	display: flex;
 	flex-direction: row;
 	gap: 8px;
+}
+
+.selectContent {
+	font-size: 0.75rem;
 }
 </style>

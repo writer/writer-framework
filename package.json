@@ -12,7 +12,7 @@
     "npm": "10.x.x"
   },
 	"scripts": {
-		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen && npm run docs:build",
+		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen",
 		"test": "npm run --if-present -ws test",
 		"lint": "npm run --if-present -ws lint",
 		"dev": "npm run -w writer-ui dev",
@@ -33,8 +33,6 @@
 		"ui:lint:ci": "npm run -w writer-ui lint:ci",
 
 		"docs:codegen": "npm run -w writer-docs codegen",
-		"docs:dev": "npm run -w writer-docs dev",
-		"docs:build": "npm run -w writer-docs build",
 		"docs:preview": "npm run -w writer-docs preview",
 		"docs:test": "npm run -w writer-docs test",
 
