@@ -20,7 +20,7 @@ You can manage your environment variables using methods that best suit your setu
 
 Furthermore, when deploying an application with `writer deploy`, the `WRITER_API_KEY` environment variable is automatically configured with the API key specified during the deployment process.
 
-## Conversation class
+## Chat completion with the Conversation class
 The `Conversation` class manages LLM communications within a chat framework, storing the conversation history and handling the interactions.
 
 ```python
@@ -74,13 +74,7 @@ conversation += {"role": "user", "content": "Can you break down the assets secti
 conversation.add(role="user", content="How should I interpret the equity section?")
 ```
 
-Addition to `Conversation` only works against `dict` objects that contain `"role"` and `"content"` items. Providing a `"chunk": True` flag into the object will merge it against the last message - appending `"content"` and replacing other values.
-
 ### Completing and streaming Conversations
-<Tip> 
-When utilizing the `stream_complete` feature, the initial chunk of data returned by the stream is not specifically marked as a "chunk." This is intentional, allowing for the seamless integration of this first piece into the conversation history when appended using the + operator.
-</Tip>
-
 The `complete` and `stream_complete` methods facilitate interaction with the LLM based on the accumulated messages and configuration. These methods execute calls to generate responses and return them in the form of a message object, but do not alter the conversation's `messages` list, allowing you to validate or modify the output before deciding to add it to the history.
 
 <CodeGroup>
@@ -105,8 +99,8 @@ Instance-wide configuration parameters can be complemented or overriden on indiv
 response = conversation.complete(config={'max_tokens': 200, 'temperature': 0.5})
 ```
 
-## Text completions without a conversation state
-These `complete` and `stream_complete` methods are designed for one-off text completions without the need to manage a conversation state. They return the model's response as a string. Each function accepts a `config` dictionary allowing call-specific configurations.
+## Text generation without a conversation state
+These `complete` and `stream_complete` methods are designed for one-off text generation without the need to manage a conversation state. They return the model's response as a string. Each function accepts a `config` dictionary allowing call-specific configurations.
 
 <CodeGroup>
 ```python complete
