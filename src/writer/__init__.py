@@ -10,6 +10,7 @@ from writer.core import (
     State,
     WriterState,
     base_component_tree,
+    get_app_process,
     initial_state,
     new_initial_state,
     session_manager,
@@ -128,3 +129,33 @@ def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
 
     for module in handler_modules:
         handler_registry.register_module(module)
+
+
+def middleware():
+    """
+    A "middleware" is a function that works with every event handler before it is processed and also before returning it.
+
+    >>> import writer as wf
+    >>>
+    >>> @wf.middleware()
+    >>> def my_middleware(state):
+    >>>     state['processing'] += 1
+    >>>     yield
+    >>>     state['processing'] -= 1
+
+    Middleware accepts the same arguments as an event handler.
+
+    >>> import writer as wf
+    >>>
+    >>> @wf.middleware()
+    >>> def my_middleware(state, payload, session):
+    >>>     state['processing'] += 1
+    >>>     yield
+    >>>     state['processing'] -= 1
+    """
+    def inner(func):
+        _app_process = get_app_process()
+        _app_process.middleware_registry.register(func)
+
+
+    return inner

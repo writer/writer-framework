@@ -19,7 +19,7 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from writer import VERSION
-from writer.core import EventHandlerRegistry, WriterSession
+from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -33,6 +33,8 @@ from writer.ss_types import (
     InitSessionRequest,
     InitSessionRequestPayload,
     InitSessionResponsePayload,
+    StateContentRequest,
+    StateContentResponsePayload,
     StateEnquiryRequest,
     StateEnquiryResponsePayload,
     WriterEvent,
@@ -96,6 +98,7 @@ class AppProcess(multiprocessing.Process):
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
         self.handler_registry = EventHandlerRegistry()
+        self.middleware_registry = MiddlewareRegistry()
 
 
     def _load_module(self) -> ModuleType:
@@ -204,6 +207,19 @@ class AppProcess(multiprocessing.Process):
         session.session_state.clear_mail()
 
         return res_payload
+
+    def _handle_state_content(self, session: WriterSession) -> StateContentResponsePayload:
+        serialized_state = {}
+        try:
+            serialized_state = session.session_state.user_state.to_raw_state()
+        except BaseException:
+            import traceback as tb
+            session.session_state.add_log_entry("error",
+                                                "Serialisation Error",
+                                                "An exception was raised during serialisation.",
+                                                tb.format_exc())
+
+        return StateContentResponsePayload(state=serialized_state)
     
     def _handle_component_update(self, session: WriterSession, payload: ComponentUpdateRequestPayload) -> None:
         import writer
@@ -253,6 +269,13 @@ class AppProcess(multiprocessing.Process):
                 status="ok",
                 status_message=None,
                 payload=self._handle_state_enquiry(session)
+            )
+
+        if type == "stateContent":
+            return AppProcessServerResponse(
+                status="ok",
+                status_message=None,
+                payload=self._handle_state_content(session)
             )
 
         if type == "setUserinfo":
@@ -711,6 +734,16 @@ class AppRunner:
     async def handle_state_enquiry(self, session_id: str) -> AppProcessServerResponse:
         return await self.dispatch_message(session_id, StateEnquiryRequest(
             type="stateEnquiry"
+        ))
+
+    async def handle_state_content(self, session_id: str) -> AppProcessServerResponse:
+        """
+        This method returns the complete status of the application.
+
+        It is only accessible through tests
+        """
+        return await self.dispatch_message(session_id, StateContentRequest(
+            type="stateContent"
         ))
 
     def save_code(self, session_id: str, code: str) -> None:

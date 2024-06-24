@@ -10,6 +10,20 @@ import writer as wf
 import writer.core
 
 
+@wf.middleware()
+def my_middleware(state):
+    state['counter_middleware'] += 1
+    yield
+
+@wf.middleware()
+def no_yield_middleware(state):
+    state['counter_middleware_without_yield'] += 1
+
+@wf.middleware()
+def post_middleware(state):
+    yield
+    state['counter_post_middleware'] += 1
+
 @wf.session_verifier
 def check_headers(headers):
     if headers.get("x-fail") is not None:
@@ -43,6 +57,7 @@ my_var = 3
 
 def increment(state):
     state["counter"] += 1*my_var
+    return 1
 
 # EVENT HANDLERS
 
@@ -220,6 +235,9 @@ initial_state = wf.init_state({
         "min_weight": 300,
     },
     "counter": 0,
+    "counter_middleware": 0,
+    "counter_post_middleware": 0,
+    "counter_middleware_without_yield": 0,
     "metrics": {},
     "b": {
         "pet_count": 8
