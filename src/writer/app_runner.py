@@ -208,7 +208,7 @@ class AppProcess(multiprocessing.Process):
 
         return res_payload
 
-    def _handle_state_full(self, session: WriterSession) -> StateContentResponsePayload:
+    def _handle_state_content(self, session: WriterSession) -> StateContentResponsePayload:
         serialized_state = {}
         try:
             serialized_state = session.session_state.user_state.to_raw_state()
@@ -275,7 +275,7 @@ class AppProcess(multiprocessing.Process):
             return AppProcessServerResponse(
                 status="ok",
                 status_message=None,
-                payload=self._handle_state_full(session)
+                payload=self._handle_state_content(session)
             )
 
         if type == "setUserinfo":

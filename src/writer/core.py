@@ -1588,6 +1588,12 @@ def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
     Constructs the list of arguments based on the signature of the function
     which can be a handler or middleware.
 
+    >>> def my_event_handler(state, context):
+    >>>     yield
+
+    >>> args = build_writer_func_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
+    >>> [{}, {"target": '11'}]
+
     :param func: the function that will be called
     :param writer_args: the possible arguments in writer (state, payload, ...)
     """
