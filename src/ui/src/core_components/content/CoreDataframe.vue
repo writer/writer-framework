@@ -326,13 +326,9 @@ const gridStyle = computed(() => {
 			.join(" ");
 	}
 
-	if (fields.wrapText.value == "yes") {
-		maxHeight = (displayRowCount.value + 1) * ROW_HEIGHT_PX;
-	}
-
 	return {
 		"min-height": `${ROW_HEIGHT_PX * (1 + fields.displayRowCount.value)}px`,
-		"max-height": maxHeight ? `${maxHeight}px` : undefined,
+		"max-height": `${(displayRowCount.value + 1) * ROW_HEIGHT_PX}px`,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
 		"grid-template-columns": templateColumns,
 		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
