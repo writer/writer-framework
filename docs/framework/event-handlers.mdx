@@ -172,6 +172,41 @@ def evaluate(state, payload):
 
 Take into account that globals apply to all users. If you need to store data that's only relevant to a particular user, use application state. 
 
+## Middlewares
+
+Middlewares are functions that run before and after every event handler.
+They can be used to perform tasks such as logging, error handling, session management, or modifying the state.
+
+```py
+import writer as wf
+
+@wf.middleware()
+def middleware_before(state, payload, context):
+	print("Middleware before event handler")
+	state['running'] += 1
+	yield
+	print("Middleware after event handler")
+	state['running'] -= 1
+```
+
+A middleware receives the same parameters as an event handler.
+
+A middleware can be used to handle exceptions that happens in event handlers.
+
+```py
+import writer as wf
+
+@wf.middleware()
+def middleware_before(state):
+	try:
+		yield
+	except Exception as e:
+		state['error_counter'] += 1
+		state['last_error'] = str()
+	finally:
+		pass
+```
+
 ## Standard output
 
 The standard output of an app is captured and shown in the code editor's log. You can use the standard `print` function to output results.
@@ -232,13 +267,23 @@ You can use any awaitable object within an async event handler. This includes th
 
 ## Context
 
-The `context` argument provides additional information about the event. For example, if the event 
-was triggered by a _Button_, the `context` will include target field that contains the id of the button.
+The `context` argument provides additional information about the event.
+
+The context provide the id of component that trigger the event in `target` field.
 
 ```py
 def handle_click(state, context: dict):
 	last_source_of_click = context['target']
 	state["last_source_of_click"] = last_source_of_click
+```
+
+The context provides the event triggered in the `event` field.
+
+```py
+def handle_click(state, context: dict):
+	event_type = context['event']
+	if event_type == 'click':
+		state["last_event"] = 'Click'
 ```
 
 The repeater components have additional fields in the context, such as defined in `keyVariable` and `valueVariable`.

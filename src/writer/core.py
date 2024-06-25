@@ -36,8 +36,10 @@ from typing import (
 )
 
 from writer import core_ui
+from writer.core_ui import Component
 from writer.ss_types import (
     InstancePath,
+    InstancePathItem,
     Readable,
     WriterEvent,
     WriterEventResult,
@@ -49,14 +51,18 @@ if TYPE_CHECKING:
 
 
 def get_app_process() -> 'AppProcess':
+    """
+    Retrieves the Writer Framework process context.
+
+    >>> _current_process = get_app_process()
+    >>> _current_process.bmc_components # get the component tree
+    """
     from writer.app_runner import AppProcess  # Needed during runtime
-    raw_process: BaseProcess = \
-        multiprocessing.current_process()
+    raw_process: BaseProcess = multiprocessing.current_process()
     if isinstance(raw_process, AppProcess):
         return raw_process
-    raise RuntimeError(
-        "Failed to retrieve the AppProcess: running in wrong context"
-        )
+
+    raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
 
 
 class Config:
@@ -737,6 +743,58 @@ class WriterState(State):
             "args": args
         })
 
+class MiddlewareExecutor():
+    """
+    A MiddlewareExecutor executes middleware in a controlled context. It allows writer framework
+    to manage different implementations of middleware.
+
+    Case 1 : A middleware is a generator, then run before and after code
+
+    >>> @wf.middleware()
+    >>> def my_middleware():
+    >>>     print("before event handler")
+    >>>     yield()
+    >>>     print("after event handler")
+
+    Case 2 : A middleware is just a function, then run the function before
+
+    >>> @wf.middleware()
+    >>> def my_middleware():
+    >>>     print("before event handler")
+    """
+
+    def __init__(self, middleware: Callable):
+        self.middleware = middleware
+
+    @contextlib.contextmanager
+    def execute(self, args: dict):
+        middleware_args = build_writer_func_arguments(self.middleware, args)
+        it = self.middleware(*middleware_args)
+        try:
+            yield from it
+        except StopIteration:
+            yield
+        except TypeError:
+            yield
+
+
+class MiddlewareRegistry:
+
+    def __init__(self):
+        self.registry: List[MiddlewareExecutor] = []
+
+    def register(self, middleware: Callable):
+        me = MiddlewareExecutor(middleware)
+        self.registry.append(me)
+
+    def executors(self) -> List[MiddlewareExecutor]:
+        """
+        Retrieves middlewares prepared for execution
+
+        >>> executors = middleware_registry.executors()
+        >>> result = handle_with_middlewares_executor(executors, lambda state: pass, {'state': {}, 'payload': {}})
+        """
+        return self.registry
 
 class EventHandlerRegistry:
     """
@@ -1088,7 +1146,7 @@ class Evaluator:
 
         if len(instance_path) > 0:
             context['target'] = instance_path[-1]['componentId']
-            
+
         return context
 
     def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
@@ -1304,23 +1362,13 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _async_handler_executor(self, callable_handler, arg_values):
-        async_callable = self._async_handler_executor_internal(callable_handler, arg_values)
-        return asyncio.run(async_callable)
-
-    async def _async_handler_executor_internal(self, callable_handler, arg_values):
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = await callable_handler(*arg_values)
-        captured_stdout = f.getvalue()
-        return result, captured_stdout
-
-    def _sync_handler_executor(self, callable_handler, arg_values):
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            result = callable_handler(*arg_values)
-        captured_stdout = f.getvalue()
-        return result, captured_stdout
-
-    def _call_handler_callable(self, event_type, target_component, instance_path, payload) -> Any:
+    def _call_handler_callable(
+        self,
+        event_type: str,
+        target_component: Component,
+        instance_path: List[InstancePathItem],
+        payload: Any
+    ) -> Any:
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
@@ -1331,44 +1379,35 @@ class EventHandler:
 
         callable_handler = handler_registry.find_handler(handler)
         if not callable_handler:
-            raise ValueError(
-                f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-        is_async_handler = inspect.iscoroutinefunction(callable_handler)
+            raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
 
-        if (not callable(callable_handler)
-           and not is_async_handler):
-            raise ValueError(
-                "Invalid handler. The handler isn't a callable object.")
+        # Preparation of arguments
+        from writer.ui import WriterUIManager
 
-        args = inspect.getfullargspec(callable_handler).args
-        arg_values = []
-        for arg in args:
-            if arg == "state":
-                arg_values.append(self.session_state)
-            elif arg == "payload":
-                arg_values.append(payload)
-            elif arg == "context":
-                context = self.evaluator.get_context_data(instance_path)
-                arg_values.append(context)
-            elif arg == "session":
-                session_info = {
-                    "id": self.session.session_id,
-                    "cookies": self.session.cookies,
-                    "headers": self.session.headers,
-                    "userinfo": self.session.userinfo or {}
-                }
-                arg_values.append(session_info)
-            elif arg == "ui":
-                from writer.ui import WriterUIManager
-                ui_manager = WriterUIManager()
-                arg_values.append(ui_manager)
+        context_data = self.evaluator.get_context_data(instance_path)
+        context_data['event'] = event_type
+        writer_args = {
+            'state': self.session_state,
+            'payload': payload,
+            'context': context_data,
+            'session': {
+                'id': self.session.session_id,
+                'cookies': self.session.cookies,
+                'headers': self.session.headers,
+                'userinfo': self.session.userinfo or {}
+            },
+            'ui': WriterUIManager()
+        }
 
+        # Invocation of handler
         result = None
-        with core_ui.use_component_tree(self.session.session_component_tree):
-            if is_async_handler:
-                result, captured_stdout = self._async_handler_executor(callable_handler, arg_values)
-            else:
-                result, captured_stdout = self._sync_handler_executor(callable_handler, arg_values)
+        captured_stdout = None
+        with core_ui.use_component_tree(self.session.session_component_tree), \
+            contextlib.redirect_stdout(io.StringIO()) as f:
+            middlewares_executors = current_app_process.middleware_registry.executors()
+
+            result = handle_with_middlewares_executor(middlewares_executors, callable_handler, writer_args)
+            captured_stdout = f.getvalue()
 
         if captured_stdout:
             self.session_state.add_log_entry(
@@ -1376,6 +1415,7 @@ class EventHandler:
                 "Stdout message",
                 captured_stdout
             )
+
         return result
 
     def handle(self, ev: WriterEvent) -> WriterEventResult:
@@ -1394,11 +1434,10 @@ class EventHandler:
         try:
             instance_path = ev.instancePath
             target_id = instance_path[-1]["componentId"]
-            target_component = self.session_component_tree.get_component(target_id)
+            target_component = cast(Component, self.session_component_tree.get_component(target_id))
 
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
-            result = self._call_handler_callable(
-                ev.type, target_component, instance_path, ev.payload)
+            result = self._call_handler_callable(ev.type, target_component, instance_path, ev.payload)
         except BaseException:
             ok = False
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
@@ -1495,6 +1534,81 @@ def reset_base_component_tree() -> None:
     """
     global base_component_tree
     base_component_tree = core_ui.build_base_component_tree()
+
+
+def handler_executor(callable_handler: Callable, writer_args: dict) -> Any:
+    """
+    Runs a handler based on its signature.
+
+    If the handler is asynchronous, it is executed asynchronously.
+    If the handler only has certain parameters, only these are passed as arguments
+
+    >>> def my_handler(state):
+    >>>     state['a'] = 2
+    >>>
+    >>> handler_executor(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    """
+    is_async_handler = inspect.iscoroutinefunction(callable_handler)
+    if (not callable(callable_handler) and not is_async_handler):
+        raise ValueError("Invalid handler. The handler isn't a callable object.")
+
+    handler_args = build_writer_func_arguments(callable_handler, writer_args)
+
+    if is_async_handler:
+        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
+        result = asyncio.run(async_wrapper)
+    else:
+        result = callable_handler(*handler_args)
+
+    return result
+
+def handle_with_middlewares_executor(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+    """
+    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+
+    :param middlewares_executors: The list of middleware to run
+    :param callable_handler: The target handler
+
+    >>> @wf.middleware()
+    >>> def my_middleware(state, payload, context, session, ui):
+    >>>     yield
+
+    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    >>> handle_with_middlewares_executor([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+    """
+    if len(middlewares_executors) == 0:
+        return handler_executor(callable_handler, writer_args)
+    else:
+        executor = middlewares_executors[0]
+        with executor.execute(writer_args):
+            return handle_with_middlewares_executor(middlewares_executors[1:], callable_handler, writer_args)
+
+def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
+    """
+    Constructs the list of arguments based on the signature of the function
+    which can be a handler or middleware.
+
+    >>> def my_event_handler(state, context):
+    >>>     yield
+
+    >>> args = build_writer_func_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
+    >>> [{}, {"target": '11'}]
+
+    :param func: the function that will be called
+    :param writer_args: the possible arguments in writer (state, payload, ...)
+    """
+    handler_args = inspect.getfullargspec(func).args
+    func_args = []
+    for arg in handler_args:
+        if arg in writer_args:
+            func_args.append(writer_args[arg])
+
+    return func_args
+
+
+async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
+    result = await callable_handler(*arg_values)
+    return result
 
 
 state_serialiser = StateSerialiser()
