@@ -23,7 +23,6 @@ def ci(front, back, e2e, docs):
         alfred.invoke_command("npm.lint")
         alfred.invoke_command("npm.build")
     if docs or no_flags:
-        alfred.invoke_command("npm.docs")
         alfred.invoke_command("npm.docs.test")
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)

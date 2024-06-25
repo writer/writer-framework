@@ -1,0 +1,154 @@
+{
+	"$schema": "https://mintlify.com/schema.json",
+	"name": "Starter Kit",
+	"logo": {
+		"dark": "/logo/dark.svg",
+		"light": "/logo/writer_logo.svg"
+	},
+	"favicon": "/favicon.svg",
+	"colors": {
+		"primary": "#0D9373",
+		"light": "#07C983",
+		"dark": "#0D9373",
+		"anchors": {
+			"from": "#0D9373",
+			"to": "#07C983"
+		}
+	},
+	"tabs": [
+		{
+			"name": "Framework",
+			"url": "docs/framework"
+		},
+		{
+			"name": "Components",
+			"url": "docs/components"
+		}
+	],
+	"navigation": [
+		{
+			"group": "Getting started",
+			"pages": [
+				"docs/framework/introduction",
+				"docs/framework/quickstart",
+				"docs/framework/ai-module"
+			]
+		},
+		{
+			"group": "Guides",
+			"pages": [
+				"docs/framework/application-state",
+				"docs/framework/event-handlers",
+				"docs/framework/builder-basics",
+				"docs/framework/handling-inputs",
+				"docs/framework/backend-driven-ui",
+				"docs/framework/stylesheets",
+				"docs/framework/frontend-scripts",
+				"docs/framework/custom-components",
+				"docs/framework/authentication"
+			]
+		},
+		{
+			"group": "Tutorials",
+			"pages": [
+				"docs/framework/chat-assistant",
+				"docs/framework/social-post-generator",
+				"docs/framework/product-description-generator"
+			]
+		},
+		{
+			"group": "Deployment",
+			"pages": ["docs/framework/deploy-with-docker", "docs/framework/testing"]
+		},
+		{
+			"group": "Advanced",
+			"pages": [
+				"docs/framework/repeater",
+				"docs/framework/backend-initiated-actions",
+				"docs/framework/page-routes",
+				"docs/framework/sessions",
+				"docs/framework/custom-server",
+				"docs/framework/state-schema"
+			]
+		},
+		{
+			"group": "Layout",
+			"pages": [
+				"docs/components/column",
+				"docs/components/columns",
+				"docs/components/header",
+				"docs/components/horizontalstack",
+				"docs/components/section",
+				"docs/components/separator",
+				"docs/components/sidebar",
+				"docs/components/step",
+				"docs/components/steps",
+				"docs/components/tab",
+				"docs/components/tabs"
+			]
+		},
+		{
+			"group": "Content",
+			"pages": [
+				"docs/components/avatar",
+				"docs/components/chatbot",
+				"docs/components/dataframe",
+				"docs/components/heading",
+				"docs/components/icon",
+				"docs/components/image",
+				"docs/components/link",
+				"docs/components/message",
+				"docs/components/metric",
+				"docs/components/plotlygraph",
+				"docs/components/tags",
+				"docs/components/text",
+				"docs/components/vegalitechart",
+				"docs/components/videoplayer"
+			]
+		},
+		{
+			"group": "Input",
+			"pages": [
+				"docs/components/checkboxinput",
+				"docs/components/dateinput",
+				"docs/components/dropdowninput",
+				"docs/components/fileinput",
+				"docs/components/multiselectinput",
+				"docs/components/numberinput",
+				"docs/components/radioinput",
+				"docs/components/ratinginput",
+				"docs/components/selectinput",
+				"docs/components/sliderinput",
+				"docs/components/switchinput",
+				"docs/components/textareainput",
+				"docs/components/textinput"
+			]
+		},
+		{
+			"group": "Other",
+			"pages": [
+				"docs/components/button",
+				"docs/components/html",
+				"docs/components/pagination",
+				"docs/components/repeater",
+				"docs/components/reuse",
+				"docs/components/timer",
+				"docs/components/webcamcapture"
+			]
+		},
+		{
+			"group": "Embed",
+			"pages": [
+				"docs/components/googlemaps",
+				"docs/components/mapbox",
+				"docs/components/pdf",
+				"docs/components/iframe"
+			]
+		}
+	],
+	"footerSocials": {
+		"x": "https://x.com/mintlify",
+		"github": "https://github.com/mintlify",
+		"linkedin": "https://www.linkedin.com/company/mintsearch"
+	}
+}

@@ -1,0 +1,124 @@
+---
+title: "Writer AI module"
+---
+
+This module leverages the [Writer Python SDK](https://pypi.org/project/writer-sdk/) to enable applications to interact with large language models (LLMs) in chat or text completion formats. It provides tools to manage conversation states and to dynamically interact with LLMs using both synchronous and asynchronous methods.
+
+## Getting your API key
+To utilize the Writer AI module, you'll need to configure the `WRITER_API_KEY` environment variable with an API key obtained from AI Studio. Here is a detailed [guide](/api-guides/quickstart) to setup up this key. You will need to select an **API** app under **Developer tools**
+
+Once you have your API key, set it as an environment variable on your system:
+<CodeGroup>
+ ``` bash For macOS and Linux
+export WRITER_API_KEY=your_api_key_here
+ ```
+```bash For Windows
+set WRITER_API_KEY=your_api_key_here
+```
+</CodeGroup>
+You can manage your environment variables using methods that best suit your setup, such as employing tools like [python-dotenv](https://pypi.org/project/python-dotenv/).
+
+Furthermore, when deploying an application with `writer deploy`, the `WRITER_API_KEY` environment variable is automatically configured with the API key specified during the deployment process.
+
+## Conversation class
+The `Conversation` class manages LLM communications within a chat framework, storing the conversation history and handling the interactions.
+
+```python
+import writer as wf
+import writer.ai
+
+def handle_simple_message(state, payload):
+    # Update the conversation state by appending the incoming user message.
+    state["conversation"] += payload
+    
+    # Stream the complete response from the AI model in chunks.
+    for chunk in state["conversation"].stream_complete():
+        # Append each chunk of the model's response to the ongoing conversation state.
+        state["conversation"] += chunk
+
+# Initialize the application state with a new Conversation object.
+initial_state = wf.init_state({
+    "conversation": writer.ai.Conversation(),
+})
+```
+
+### Initializing a conversation
+A `Conversation` can be initialized with either a system prompt or a list of previous messages. It can also accept a default configuration dictionary that sets parameters for all interactions.
+
+
+```python
+# Initialize with a system prompt for a Financial Analyst specializing in balance sheets
+conversation = Conversation("You assist clients with analyzing and understanding their balance sheets")
+
+# Initialize with a history of messages related to balance sheet queries
+history = [
+    {"role": "user", "content": "Can you explain the liabilities section?"},
+    {"role": "assistant", "content": "Certainly! Liabilities are legally binding obligations payable to another entity."}
+]
+
+conversation = Conversation(history)
+
+# Initialize with a configuration suitable for financial analysis discussions
+config = {'max_tokens': 200, 'temperature': 0.5}
+conversation = Conversation("You provide detailed insights into balance sheet components", config=config)
+```
+
+### Adding messages to conversation
+Messages can be added to a `Conversation` instance using the `+` operator or the `add` method.
+
+```python
+# Using the `+` operator to add a balance sheet-related query
+conversation += {"role": "user", "content": "Can you break down the assets section of the balance sheet?"}
+
+# Using the `add` method to add a balance sheet-related query
+conversation.add(role="user", content="How should I interpret the equity section?")
+```
+
+Addition to `Conversation` only works against `dict` objects that contain `"role"` and `"content"` items. Providing a `"chunk": True` flag into the object will merge it against the last message - appending `"content"` and replacing other values.
+
+### Completing and streaming Conversations
+<Tip> 
+When utilizing the `stream_complete` feature, the initial chunk of data returned by the stream is not specifically marked as a "chunk." This is intentional, allowing for the seamless integration of this first piece into the conversation history when appended using the + operator.
+</Tip>
+
+The `complete` and `stream_complete` methods facilitate interaction with the LLM based on the accumulated messages and configuration. These methods execute calls to generate responses and return them in the form of a message object, but do not alter the conversation's `messages` list, allowing you to validate or modify the output before deciding to add it to the history.
+
+<CodeGroup>
+```python complete
+# Using `complete` to get a single response
+response = conversation.complete()
+print("LLM Response:", response)
+```
+``` python stream_complete
+# Using `stream_complete` to get streamed responses
+for chunk in conversation.stream_complete():
+    print("Streamed Message:", chunk)
+    # Manually adding to the conversation
+    conversation += chunk
+```
+</CodeGroup>
+
+Instance-wide configuration parameters can be complemented or overriden on individual call's level, if a `config` dictionary is provided to the method:
+
+```python
+# Overriding configuration for a specific call
+response = conversation.complete(config={'max_tokens': 200, 'temperature': 0.5})
+```
+
+## Text completions without a conversation state
+These `complete` and `stream_complete` methods are designed for one-off text completions without the need to manage a conversation state. They return the model's response as a string. Each function accepts a `config` dictionary allowing call-specific configurations.
+
+<CodeGroup>
+```python complete
+# Using `complete` for a single completion
+text_response = complete("Explore the benefits of AI.", config={'temperature': 0.3})
+print("Completion:", text_response)
+```
+```python stream_complete
+# Using `stream_complete` for streamed text completions
+for text_chunk in stream_complete("Explore the benefits of AI.", config={'temperature': 0.3}):
+    print("Streamed Text:", text_chunk)
+```
+</CodeGroup>
+
+

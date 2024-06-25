@@ -1,0 +1,297 @@
+﻿---
+title: "Event handlers"
+---
+
+Events originate in the front-end, for example, when a user clicks a _Button_ component. Using the Builder, these events can be linked to event handlers.
+
+## Plain Python functions
+
+Event handlers are Python functions accessible from `main.py`. They can be defined in that same file or imported. No decorators or special syntax are required.
+
+```py
+# This event handler will add an entry to the log
+def handle_click()
+    print("Hello")
+```
+
+To specify that a function isn't an event handler and should remain hidden to the front-end, prefix it with a `_` (underscore).
+
+```py
+# This function won't be visible in the front-end
+# because its name starts with an underscore
+def _reticulate(splines):
+    r_splines = np.random.normal(size=(splines,100))
+    return r_splines
+```
+
+### External handlers
+
+If your `main.py` file has become cluttered with too many handler functions, you can organize them more effectively using the `init_handlers` method. This method allows you to register handler functions from other modules. You can pass a single imported module or a list of modules to the init_handlers method to register multiple handlers simultaneously:
+
+<CodeGroup>
+```py one_handler
+# my_app/my_handlers_module.py
+
+def increment(state):
+    state["counter"] += 1
+```
+```py init_handlers one module
+# my_app/main.py
+
+import writer as wf
+import my_handlers_module
+
+wf.init_handlers(my_handlers_module)
+# Register all functions from the module as handlers;
+# this makes `increment` handler accessible on front-end
+```
+
+```py init_handlers many modules
+# my_app/main.py
+
+import writer as wf
+import handler_module_one
+import handler_module_two
+
+wf.init_handlers([handler_module_one, handler_module_two])
+```
+</CodeGroup>
+
+<Warning>
+Each function inside a module is attempted to be registered as a handler. Make sure to use `_` prefix as described [before](#plain-python-functions) to prevent exposing unwanted functions to front-end.
+</Warning>
+
+You can also call `init_handlers` within other modules, which allows for a sequence of registrations:
+
+<CodeGroup>
+```py another_handlers_module
+# my_app/another_handlers_module.py
+
+def decrement(state):
+    state["counter"] -= 1
+```
+```py register_additional_handlers
+# my_app/my_handlers_module.py
+
+import writer as wf
+import another_handlers_module
+
+wf.init_handlers(another_handlers_module)
+# Makes `decrement` handler accessible on front-end
+
+...
+```
+```py my_handlers_module
+# my_app/main.py
+
+import writer as wf
+import my_handlers_module
+
+...
+```
+</CodeGroup>
+
+Note that for this "chain" to work, you need to import the final module in the sequence into `main.py`.
+
+## Mutating state
+
+In most cases, event handlers will modify the application state. State can be accessed by including the `state` argument in the handler, which will provide you with a `StreamsyncState` object for the session that invoked the handler.
+
+Elements of state can be reached using the square brackets syntax `state["my_element"]`. Accessing keys that don't exist will return `None`.
+
+```py
+def handle_click(state):
+    state["counter"] += 1
+```
+
+The handler above receives the application state for the relevant session and mutates it. For example, if Bob's counter was 4, and he clicks on a _Button_ linked to `handle_click`, his new counter value will be 5. Other sessions remain unaffected.
+
+## Mutation detection
+
+<Warning> 
+Mutations are detected via assignment.
+Make sure you perform an assignment on the state element you're mutating, for the mutation to be detected.
+</Warning>
+
+When communicating with the front-end, Framework only sends state elements that have mutated.
+
+To detect which elements have mutated, it relies on assignment (via operators such as `=`, `+=`, etc). This is because Python doesn't offer a performant, reliable mechanism to detect mutations. See the two examples below.
+
+<CodeGroup>
+```python hande_click
+def handle_click(state):
+    state["my_df"].sample(frac=1, random_state=random.seed())
+
+    # The self-assignment is necessary when mutating
+    # an existing object directly on state
+
+    state["my_df"] = state["my_df"]
+```
+```python hande_click_cleaner
+# The following cleaner code also works as it relies on assignment
+def hande_click_cleaner(state):
+    my_df = state["my_df"]
+    my_df.sample(frac=1, random_state=random.seed())
+    state["my_df"] = my_df # State assignmnet
+```
+</CodeGroup>
+
+## Receiving a payload
+
+Several events include additional data, known as the event's payload. The event handler can receive that data using the `payload` argument.
+
+For example, the `wf-change` event in a _Text Input_ component is triggered every time the value changes. As a payload, it includes the new value.
+
+```py
+def handle_input_change(state, payload):
+    state["value"] = payload
+```
+
+The content of the payload will vary depending on the event. For example, when a user takes a photo with a _Webcam Capture_, the picture they took is sent across as a PNG image.
+
+```py
+def handle_webcam_capture(payload):
+	image_file = payload
+	with open(f"picture.png", "wb") as file_handle:
+		file_handle.write(image_file)
+```
+
+Handling different payloads across events can be challenging, especially since the shape of the payload may vary. To simplify this process, the Builder provides stub code that can help you get started with writing an event handler. You can access it by clicking the icon located next to the event when configuring the component's settings. This feature can help you quickly understand the structure of the payload and start writing the appropriate code to handle it.
+
+## Globals
+
+You can use globals and module attributes, just as you would in a standard Python script. This is very convenient for storing a single copy of resource-intensive object.
+
+```py
+my_ai = CatIdentifierAI()
+
+def evaluate(state, payload):
+    result = my_ai.process(payload)
+    state["is_a_cat"] = result
+```
+
+Take into account that globals apply to all users. If you need to store data that's only relevant to a particular user, use application state. 
+
+## Middlewares
+
+Middlewares are functions that run before and after every event handler.
+They can be used to perform tasks such as logging, error handling, session management, or modifying the state.
+
+```py
+import writer as wf
+
+@wf.middleware()
+def middleware_before(state, payload, context):
+	print("Middleware before event handler")
+	state['running'] += 1
+	yield
+	print("Middleware after event handler")
+	state['running'] -= 1
+```
+
+A middleware receives the same parameters as an event handler.
+
+A middleware can be used to handle exceptions that happens in event handlers.
+
+```py
+import writer as wf
+
+@wf.middleware()
+def middleware_before(state):
+	try:
+		yield
+	except Exception as e:
+		state['error_counter'] += 1
+		state['last_error'] = str()
+	finally:
+		pass
+```
+
+## Standard output
+
+The standard output of an app is captured and shown in the code editor's log. You can use the standard `print` function to output results.
+
+```py
+# Shown every time the app starts
+print("Hello world")
+
+def payload_inspector(state, payload):
+    # Shown every time the event handler is executed
+    print("Payload: " + repr(payload))
+```
+
+## Execution flow
+
+Event handlers run in a thread pool and are non-blocking. Each event is processed independently from each other.
+
+State mutations are sent to the front-end after the function has finished executing. The code in `handle_fast` will accumulate all mutations and send to the front-end after the function returns. For long-running tasks, Framework will periodically check state and provide partial updates to the user.
+
+<CodeGroup>
+```py handle_fast
+def handle_fast(state):
+    state["text"] = "Hello"
+    state["x"] += 3
+    state["y"] += 2
+```
+
+```py handle slowly
+# The code below will set `message` to "Loading...", then to "Completed".  
+def handle_slowly(state):
+    state["message"] = "Loading..."
+    import time
+    time.sleep(5)
+    state["message"] = "Completed"
+```
+</CodeGroup>
+
+## Asynchronous event handlers
+
+Framework supports asynchronous event handlers, allowing for non-blocking I/O operations directly within event handlers. This is particularly useful for tasks such as fetching data from a database, making HTTP requests, or performing any other I/O bound operation that can benefit from asynchronous execution.
+
+### Defining an asynchronous handler
+
+An asynchronous event handler is defined with the standard `async` keyword syntax.
+
+```py
+# An asynchronous event handler for performing an I/O bound operation
+async def handle_async_click(state):
+    data = await fetch_data()
+    state["data"] = data
+```
+
+In the example above, `fetch_data()` is an asynchronous function that retrieves data, potentially from a remote source. The `await` keyword is used to wait for the operation to complete without blocking the main thread, allowing other tasks to run concurrently.
+
+### Awaitable objects
+
+You can use any awaitable object within an async event handler. This includes the output of any function defined with `async def`, or objects with an `__await__` method. This makes it easy to integrate with asynchronous libraries and frameworks.
+
+## Context
+
+The `context` argument provides additional information about the event.
+
+The context provide the id of component that trigger the event in `target` field.
+
+```py
+def handle_click(state, context: dict):
+	last_source_of_click = context['target']
+	state["last_source_of_click"] = last_source_of_click
+```
+
+The context provides the event triggered in the `event` field.
+
+```py
+def handle_click(state, context: dict):
+	event_type = context['event']
+	if event_type == 'click':
+		state["last_event"] = 'Click'
+```
+
+The repeater components have additional fields in the context, such as defined in `keyVariable` and `valueVariable`.
+
+```py
+def handle_repeater_click(state, context: dict):
+	key = context['keyVariable']
+	state['repeater_content'][key]['last_action'] = 'Clicked' 
+```
+
+More information in [Repeater chapter](/framework/repeater)

@@ -1,6 +1,5 @@
 
 import asyncio
-import contextlib
 import threading
 
 import pytest
@@ -12,19 +11,8 @@ from writer.ss_types import (
     WriterEvent,
 )
 
+from backend.fixtures.app_runner_fixtures import init_app_session
 from tests.backend import test_app_dir
-
-
-@pytest.fixture
-def setup_app_runner():
-    @contextlib.contextmanager
-    def _manage_launch_args(app_dir, app_command):
-        ar = AppRunner(app_dir, app_command)
-        try:
-            yield ar
-        finally:
-            ar.shut_down()
-    return _manage_launch_args
 
 
 class TestAppRunner:
@@ -60,7 +48,7 @@ class TestAppRunner:
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_pre_session(self, setup_app_runner) -> None:
-        with setup_app_runner(test_app_dir, "run") as ar:
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
             er = EventRequest(
                 type="event",
                 payload=WriterEvent(
@@ -71,26 +59,14 @@ class TestAppRunner:
                     }
                 )
             )
-            ar.load()
             r = await ar.dispatch_message(None,  er)
             assert r.status == "error"
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_valid_session_invalid_event(self, setup_app_runner) -> None:
-        with setup_app_runner(test_app_dir, "run") as ar:
-            ar.load()
-            si = InitSessionRequest(
-                type="sessionInit",
-                payload=InitSessionRequestPayload(
-                    cookies={},
-                    headers={},
-                    proposedSessionId=self.proposed_session_id
-                )
-            )
-            sres = await ar.dispatch_message(None, si)
-            assert sres.status == "ok"
-            assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
             er = EventRequest(type="event", payload=WriterEvent(
                 type="virus",
                 instancePath=self.numberinput_instance_path,
@@ -104,19 +80,8 @@ class TestAppRunner:
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_valid_event(self, setup_app_runner) -> None:
-        with setup_app_runner(test_app_dir, "run") as ar:
-            ar.load()
-            si = InitSessionRequest(
-                type="sessionInit",
-                payload=InitSessionRequestPayload(
-                    cookies={},
-                    headers={},
-                    proposedSessionId=self.proposed_session_id
-                )
-            )
-            sres = await ar.dispatch_message(None, si)
-            assert sres.status == "ok"
-            assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
             ev_req = EventRequest(type="event", payload=WriterEvent(
                 type="wf-number-change",
                 instancePath=self.numberinput_instance_path,
@@ -133,20 +98,8 @@ class TestAppRunner:
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_async_handler(self, setup_app_runner) -> None:
-        with setup_app_runner(test_app_dir, "run") as ar:
-            ar.load()
-            si = InitSessionRequest(
-                type="sessionInit",
-                payload=InitSessionRequestPayload(
-                    cookies={},
-                    headers={},
-                    proposedSessionId=self.proposed_session_id
-                )
-            )
-            sres = await ar.dispatch_message(None, si)
-            assert sres.status == "ok"
-            assert sres.payload.model_dump().get("sessionId") == self.proposed_session_id
-
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
             # Firing an event to bypass "initial" state mutations
             ev_req = EventRequest(type="event", payload=WriterEvent(
                 type="wf-number-change",
@@ -167,17 +120,8 @@ class TestAppRunner:
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_bad_event_handler(self, setup_app_runner) -> None:
-        with setup_app_runner(test_app_dir, "run") as ar:
-            ar.load()
-            si = InitSessionRequest(
-                type="sessionInit",
-                payload=InitSessionRequestPayload(
-                    cookies={},
-                    headers={},
-                    proposedSessionId=self.proposed_session_id
-                )
-            )
-            await ar.dispatch_message(None, si)
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
             bad_button_instance_path = [
                 {"componentId": "root", "instanceNumber": 0},
                 {"componentId": "28a2212b-bc58-4398-8a72-2554e5296490", "instanceNumber": 0},
@@ -238,3 +182,25 @@ class TestAppRunner:
             mail = list(si_res.payload.model_dump().get("mail"))
 
             assert mail[0].get("payload").get("message") == "188542\n"
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_handle_event_should_return_result_of_event_handler_execution(self, setup_app_runner):
+        """
+        Tests that an event handler should result the result of function execution in
+        payload.result['result'].
+        """
+        # Given
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, 'run', load=True) as ar:
+            session_id = await init_app_session(ar)
+
+            # When
+            res = await ar.handle_event(session_id, WriterEvent(
+                type='click',
+                instancePath=[{'componentId': '5c0df6e8-4dd8-4485-a244-8e9e7f4b4675', 'instanceNumber': 0}],
+                payload={})
+            )
+
+            # Then
+            assert res.payload.result['result'] is not None

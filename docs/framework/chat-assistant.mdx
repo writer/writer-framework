@@ -1,0 +1,154 @@
+---
+title: "Chat assistant"
+---
+
+In this introductory tutorial, you'll use the Writer Framework to build an AI chat assistant.
+
+![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_1.png)
+
+## Setting up your project
+
+### Creating a Writer app and getting your API key
+
+From the Home screen, click on **Build an app**.
+
+![Writer home screen](/framework/images/tutorial/chat/chat_assistant_2.png)
+
+Select Framework as the app type you’d like to create, enabling you to generate keys and build your app with the Writer Framework.
+
+![App type selection](/framework/images/tutorial/chat/chat_assistant_3.png)
+
+On the next screen, you can edit your Writer application name in the upper left. Underneath “Authenticate with an API key,” click on **Reveal** to see and copy your API key.
+
+
+### Creating the application
+
+Next, open your terminal and navigate to the directory where you want to create your application directory.
+
+<Steps>
+  <Step title="Set the API key environment variable">
+    To pass your API key to the Writer Framework, you need to set an environment variable called `WRITER_API_KEY`. One simple way to do this is by exporting the variable for your terminal session.
+
+    <CodeGroup>
+    ```sh On macOS/Linux
+    export WRITER_API_KEY=[key]
+    ```
+
+    ```sh On Windows
+    set WRITER_API_KEY=[key]
+    ```
+    </CodeGroup>
+  </Step>
+  <Step title="Create the application">
+    Run the following command to create your application, replacing `chat-assistant` with your desired project name and `ai-starter` with the template you want to use:
+
+    ```bash
+    writer create chat-assistant --template=ai-starter
+    ```
+
+    This command sets up a new project called `chat-assistant` in the specified directory.
+  </Step>
+  <Step title="Edit your project">
+    To edit your project, run the below commands. This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. By default, the Writer Framework Builder is accessible at `localhost:3006`. If that port is in use, you can specify a different port. Open this address in your browser to view your default application setup.
+
+    <CodeGroup>
+    ```bash Standard port
+    writer edit chat-assistant
+    ```
+
+    ```bash Custom port
+    writer edit chat-assistant –port=3007
+    ```
+    </CodeGroup>
+
+  </Step>
+</Steps>
+
+
+
+## Creating the UI
+
+The Writer Framework lets you set up any layout according to your preferences with a fast drag-and-drop UI. 
+
+To rename this application and update the Header component, open the code editor and update `my_app.title` in `wf.init_state`:
+
+```python
+wf.init_state({
+    "my_app": {
+        "title": "CHAT ASSISTANT"
+    }
+})
+```
+
+Click the provided Section component to open its Component settings and clear out the default title. If you’d like to provide any other instructions or context to the user, you can also drag a Text component into the section.
+
+Finally, drag a Chatbot component into the Section beneath the Text box. 
+
+![Initial UI with text and chatbot](/framework/images/tutorial/chat/chat_assistant_4.png)
+
+
+## Updating the code
+
+With the UI built, you can now update your code to add chat functionality.
+
+<Steps>
+  <Step title="Initialize your application state">
+    First, clear any default-generated state and add a `conversation` property set to `writer.ai.Conversation()`. Update your `initial_state` as follows:
+
+    ```python
+    wf.init_state({
+        // Other state elements above
+        "conversation": writer.ai.Conversation()
+    })
+    ```
+
+    The `Conversation` method can optionally accept a dictionary or a content prompt (e.g., “You are a social media expert in the financial services industry”), but it can also be left empty to use the defaults.
+  </Step>
+  <Step title="Create a handler for the Chatbot component">
+    Next, create a handler for incoming messages by adding the `handle_simple_message` handler. This method will manage the chat interactions:
+
+    ```python
+    def handle_simple_message(state, payload):
+        state["conversation"] += payload
+        
+        for chunk in state["conversation"].stream_complete():
+            state["conversation"] += chunk
+    ```
+
+    This code uses the streaming function of the `Conversation` method, which is a wrapper for the `chat` API endpoint. Each chunk returned from the stream is added to the `conversation` variable in the application state.
+  </Step>
+</Steps>
+
+
+
+## Binding to the UI
+
+Click on the **chatbot component** to open up the Component settings panel. Bind this chatbot to a conversation variable by adding `@{conversation}` in the Conversation Object property under General. This variable will reference the Writer AI SDK. You can also update properties such as the assistant's initials, the user's initials, and whether the chat uses markdown.
+
+![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_5.png)
+
+Finally, attach the handler to the chatbot. In the User Interface, click on the **chatbot component** to bring up the Component settings panel. Scroll to the Events section towards the bottom of the pane and choose the `handle_simple_message` handler for the `wf-chatbot-message` event.
+
+![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_6.png)
+
+After saving and running your code, click the preview button and type something into your chat assistant. You should see the response appear on the screen as it comes back from the assistant. Congratulations!
+
+![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_7.png)
+
+
+## Deploying the application
+
+To deploy the application to the Writer cloud, either terminate your current Writer Framework process or open a new terminal session and run the following command:
+
+
+```
+writer deploy chat-assistant
+```
+
+
+Once the application is deployed, the CLI will return with the URL of your live application.
+
+
+## Conclusion
+
+That's all it takes to set up a basic application with the Writer Framework. This setup not only demonstrates the platform's capabilities, but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation. 
