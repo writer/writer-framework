@@ -3,6 +3,7 @@
 		<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 		<BaseContainer
 			v-on:click.capture="captureClick"
+			v-on:input.capture="captureInput"
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
 		>
@@ -74,7 +75,6 @@ import BaseContainer from "../core_components/base/BaseContainer.vue";
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const ignoreClickComponents = ["tab"]
 
 function captureClick(event: Event) {
 	const targetElement: HTMLElement = (event.target as HTMLElement).closest(
@@ -117,6 +117,34 @@ function clickIsOnATab(targetElement): boolean {
 
 function clickIsNotOnAButton(targetElement: HTMLElement): boolean {
     return "BUTTON" != targetElement.nodeName	
+}
+
+function elementIsNotThisType(event: Event, expectedTypes: Array<String>): boolean {
+    const thisElementType = (<HTMLInputElement>event.target).nodeName
+	console.log("this element type: " + thisElementType)	
+    return !expectedTypes.includes(thisElementType)
+}
+
+function captureInput(event: Event) {
+	const targetWriterElement: HTMLElement = (event.target as HTMLElement).closest(
+		"[data-writer-id]"
+	);
+
+    event.stopPropagation()
+    if (elementIsNotThisType(event, ["INPUT"])) { return }
+
+	const componentId = getComponentCustomId(targetWriterElement)
+	const inputValue = (<HTMLInputElement>event.target).value
+	const customEvent = new CustomEvent("input", {
+		detail: {
+			payload: {
+				id: componentId,
+				value: inputValue
+			},
+		},
+	});
+
+	wf.forwardEvent(customEvent, instancePath, true)
 }
 
 </script>
