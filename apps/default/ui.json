@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "writer_version": "0.5.0"
+        "writer_version": "0.6.1"
     },
     "components": {
         "root": {
@@ -152,6 +152,62 @@
             "position": 1,
             "parentId": "d4a5e62c-c6fe-49c4-80d4-33862af8727d",
             "handlers": {},
+            "visible": true
+        },
+        "dlkb5bcgszlm3cg7": {
+            "id": "dlkb5bcgszlm3cg7",
+            "type": "custom_bubblemessage",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "handlers": {},
+            "visible": true
+        },
+        "j56gqugza00ktx53": {
+            "id": "j56gqugza00ktx53",
+            "type": "custom_bubblemessageadvanced",
+            "content": {
+                "messageId": "a1"
+            },
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "handlers": {},
+            "visible": true
+        },
+        "fu5gb0d4cb1mplnr": {
+            "id": "fu5gb0d4cb1mplnr",
+            "type": "custom_customsection",
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "content": {
+                "title": "Custom Section Title"
+            },
+            "handlers": {},
+            "position": 4,
+            "visible": true
+        },
+        "jtryyq4kpstyai7m": {
+            "id": "jtryyq4kpstyai7m",
+            "type": "custom_customdropdown",
+            "parentId": "fu5gb0d4cb1mplnr",
+            "content": {
+                "label": "Input Label"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "nwd42r2er0r4s78r": {
+            "id": "nwd42r2er0r4s78r",
+            "type": "custom_custombutton",
+            "parentId": "fu5gb0d4cb1mplnr",
+            "content": {
+                "text": "Button Text",
+                "customId": "Button CustomId"
+            },
+            "handlers": {},
+            "position": 1,
             "visible": true
         }
     }
