@@ -217,17 +217,51 @@
             "handlers": {},
             "visible": true
         },
-        "r84t53wcv7ib7k8q": {
-            "id": "r84t53wcv7ib7k8q",
+        "j7nnsdryjvtzc9x3": {
+            "id": "j7nnsdryjvtzc9x3",
             "type": "custom_customtextinput",
             "content": {
-                "label": "Input Label",
-                "customId": "text_input_cid"
+                "label": "Text Input Label",
+                "customId": "Input CustomId"
             },
             "isCodeManaged": false,
             "position": 2,
             "parentId": "fu5gb0d4cb1mplnr",
             "handlers": {},
+            "visible": true
+        },
+        "a6l3vbbh1jiysi61": {
+            "id": "a6l3vbbh1jiysi61",
+            "type": "custom_customnumberinput",
+            "content": {
+                "label": "Number Input Label",
+                "customId": "Input CustomId"
+            },
+            "isCodeManaged": false,
+            "position": 3,
+            "parentId": "fu5gb0d4cb1mplnr",
+            "handlers": {},
+            "visible": true
+        },
+        "vyi5ioz1o6it8a5j": {
+            "id": "vyi5ioz1o6it8a5j",
+            "type": "custom_customtabs",
+            "parentId": "fu5gb0d4cb1mplnr",
+            "content": {},
+            "handlers": {},
+            "position": 4,
+            "visible": true
+        },
+        "11aoj92d51rpuf36": {
+            "id": "11aoj92d51rpuf36",
+            "type": "custom_customtab",
+            "parentId": "vyi5ioz1o6it8a5j",
+            "content": {
+                "name": "Tab Name",
+                "customId": "Tab CustomId"
+            },
+            "handlers": {},
+            "position": 0,
             "visible": true
         }
     }
