@@ -55,6 +55,11 @@ export default {
 				init: "Input Label",
 				type: FieldType.Text,
 			},
+			customId: {
+				name: "CustomId",
+				init: "Dropdown CustomId",
+				type: FieldType.Text,
+			},
 			options: {
 				name: "Options",
 				desc: "Key-value object with options. Must be a JSON string or a state reference to a dictionary.",
