@@ -4,6 +4,7 @@
 		<BaseContainer
 			v-on:click.capture="captureClick"
 			v-on:input.capture="captureInput"
+			v-on:change.capture="captureChange"
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
 		>
@@ -144,6 +145,30 @@ function captureInput(event: Event) {
 		},
 	});
 
+	wf.forwardEvent(customEvent, instancePath, true)
+}
+
+function captureChange(event: Event) {
+	console.log('captureChange event')
+	event.stopPropagation()
+    if (elementIsNotThisType(event, ["SELECT", "INPUT"])) { return }
+
+	const targetElement: HTMLElement = (event.target as HTMLElement).closest(
+		"[data-writer-id]"
+	);
+
+	const componentId = getComponentCustomId(targetElement)
+	const inputValue = (<HTMLInputElement>event.target).value
+	const customEvent = new CustomEvent("change", {
+		detail: {
+			payload: {
+				id: componentId,
+				value: inputValue
+			},
+		},
+	});
+
+	// toggleDisableInputs(componentId, inputValue)
 	wf.forwardEvent(customEvent, instancePath, true)
 }
 

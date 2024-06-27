@@ -22,6 +22,10 @@ def increment(state):
     # Shows in the log when the event handler is run
     print("The counter has been incremented.")
     _update_message(state)
+
+def sectionHandler(state, payload):
+    print(payload)
+
     
 # Initialise the state
 
