@@ -62,10 +62,25 @@ def get_asgi_app(
         user_app_path: str,
         serve_mode: ServeMode,
         enable_remote_edit: bool = False,
-        enable_server_setup: bool = False,
+        enable_server_setup: bool = True,
         on_load: Optional[Callable] = None,
         on_shutdown: Optional[Callable] = None,
 ) -> WriterFastAPI:
+    """
+    Builds an ASGI server that can be injected into another ASGI application
+    or an asgi server like uvicorn
+
+    >>> asgi_app = writer.serve.get_asgi_app("app1", "run")
+    >>> uvicorn.run(asgi_app, host="0.0.0.0", port=5328)
+
+    :param user_app_path: writer application path
+    :param serve_mode: server mode (run, edit)
+    :param enable_remote_edit: allow editing from the internet (by default, editing only works locally)
+    :param enable_server_setup: enables fastapi setup hook on startup, server_setup.py
+    :param on_load: callback called on loading
+    :param on_shutdown: callback called at shutdown
+    :return: ASGI Server
+    """
     global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
