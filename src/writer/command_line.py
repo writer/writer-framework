@@ -9,11 +9,12 @@ import click
 import writer.serve
 from writer.deploy import cloud
 
-
+CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
 @click.group(
+    context_settings=CONTEXT_SETTINGS,
     help="Writer Framework CLI",
 )
-@click.version_option()
+@click.version_option(None, '--version', '-v')
 def main():
     pass
 
