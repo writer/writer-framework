@@ -1,55 +1,28 @@
 <template>
-	<div class="BuilderFieldsText" :data-key="props.fieldKey">
+	<div class="BuilderFieldsText" :data-automation-key="props.fieldKey">
 		<template
 			v-if="
 				!templateField.control ||
 				templateField.control == FieldControl.Text
 			"
 		>
-			<input
-				type="text"
-				:value="component.content[fieldKey]"
+			<BuilderTemplateInput
 				class="content"
-				autocorrect="off"
-				autocomplete="off"
-				spellcheck="false"
+				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
-				:list="
-					templateField.options
-						? `list-${componentId}-${fieldKey}`
-						: undefined
-				"
+				:options="options"
 				@input="handleInput"
 			/>
-			<datalist
-				v-if="templateField.options"
-				:id="`list-${componentId}-${fieldKey}`"
-			>
-				<option
-					v-for="(option, optionKey) in options"
-					:key="optionKey"
-					:value="optionKey"
-				>
-					<template
-						v-if="option.toLowerCase() !== optionKey.toLowerCase()"
-					>
-						{{ option }}
-					</template>
-				</option>
-			</datalist>
 		</template>
 		<template v-else-if="templateField.control == FieldControl.Textarea">
-			<textarea
-				v-capture-tabs
+			<BuilderTemplateInput
+				multiline="true"
+				variant="text"
 				class="content"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
-				autocorrect="off"
-				autocomplete="off"
-				spellcheck="false"
 				@input="handleInput"
-			>
-			</textarea>
+			/>
 		</template>
 	</div>
 </template>
@@ -59,6 +32,7 @@ import { toRefs, inject, computed } from "vue";
 import { Component, FieldControl } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -95,15 +69,13 @@ const handleInput = (ev: Event) => {
 };
 </script>
 
-<style scoped>
-@import "./sharedStyles.css";
-
-.content {
+<style>
+.BuilderFieldsText .content {
 	padding: 16px 12px 12px 12px;
 	width: 100%;
 }
+</style>
 
-textarea {
-	resize: vertical;
-}
+<style scoped>
+@import "./sharedStyles.css";
 </style>

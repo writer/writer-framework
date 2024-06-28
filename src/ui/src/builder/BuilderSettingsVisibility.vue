@@ -37,9 +37,9 @@
 				class="fieldWrapper"
 			>
 				<span class="name">Visibility value</span>
-				<input
+				<BuilderTemplateInput
 					:value="component.visible"
-					type="text"
+					type="state"
 					class="content"
 					placeholder="my_visibility_state_value"
 					@input="
@@ -64,6 +64,7 @@
 import { computed, inject } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -83,7 +84,7 @@ const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 	margin-top: 16px;
 }
 
-input {
+.content {
 	padding: 16px 12px 12px 12px;
 }
 </style>
