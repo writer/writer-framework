@@ -82,8 +82,8 @@ function captureClick(event: Event) {
 		"[data-writer-id]"
 	);
 
-	//fail early and permit normal behavior for tabs
-	if (clickIsOnATab(targetElement)) return
+	// fail early and permit normal behavior for tabs
+	if (clickIsOnATab(event)) return
 	
     event.stopPropagation()
 
@@ -110,9 +110,17 @@ function getComponentCustomId(targetElement: HTMLElement): string {
 	return (customId != "") ? customId : defaultId
 }
 
-function clickIsOnATab(targetElement): boolean {
-	var component = wf.getComponentById(targetElement.dataset.writerId)
-	return "tab" == component["type"]
+function clickIsOnATab(event: Event): boolean {
+	const targetElement: HTMLElement = event.target as HTMLElement
+	const closesetWriterElement: HTMLElement = targetElement.closest("[data-writer-id]")
+
+	var component = wf.getComponentById(closesetWriterElement.dataset.writerId)
+
+	const writerComponentIsATab = component["type"].includes("tab")
+	const targetElementIsAButton = targetElement.nodeName == "BUTTON"
+
+	//user clicked the button part of a tab
+	return writerComponentIsATab && targetElementIsAButton
 }
 
 
