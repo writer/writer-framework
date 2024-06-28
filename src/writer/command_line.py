@@ -13,6 +13,7 @@ from writer.deploy import cloud
 @click.group(
     help="Writer Framework CLI",
 )
+@click.version_option()
 def main():
     pass
 
@@ -64,6 +65,7 @@ def create(path, template):
 @click.option('--port', default=5000, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 def hello(port, host, enable_remote_edit):
+    """Create and run a onboarding 'Hello' app."""
     create_app("hello", template_name="hello", overwrite=True)
     writer.serve.serve("hello", mode="edit",
        port=port, host=host, enable_remote_edit=enable_remote_edit,
