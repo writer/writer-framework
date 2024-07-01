@@ -6,8 +6,10 @@ from typing import Dict
 
 import altair
 import numpy as np
+import pandas
 import pandas as pd
 import plotly.express as px
+import polars
 import polars as pl
 import pyarrow as pa
 import pytest
@@ -17,6 +19,7 @@ from writer.core import (
     Evaluator,
     EventDeserialiser,
     FileWrapper,
+    MutableValue,
     SessionManager,
     State,
     StateSerialiser,
@@ -192,6 +195,70 @@ class TestStateProxy(unittest.TestCase):
         assert self.sp.to_raw_state() == raw_state_dict
         assert self.sp_simple_dict.to_raw_state() == simple_dict
 
+    def test_mutable_value_should_raise_mutation(self) -> None:
+        """
+        Tests that a class that implements MutableValue can be used in a State and throw mutations.
+        """
+        class MyValue(MutableValue):
+
+            def __init__(self):
+                super().__init__()
+                self._value = 0
+
+            def set(self, value):
+                self._value = value
+                self.mutate()
+
+            def to_dict(self):
+                return {"a": self._value}
+
+        s = WriterState({
+            "value": MyValue()
+        })
+        # Reset the mutation after initialisation
+        s._state_proxy.get_mutations_as_dict()
+
+        # When
+        s["value"].set(2)
+        a = s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        assert "+value" in a
+        assert a["+value"] == {"a": 2}
+
+    def test_mutable_value_should_reset_mutation_after_reading_get_mutations(self) -> None:
+        """
+        Tests that after reading the mutations, they are reset to zero
+        with a focus on the MutableValue.
+        """
+        class MyValue(MutableValue):
+
+            def __init__(self):
+                super().__init__()
+                self._value = 0
+
+            def set(self, value):
+                self._value = value
+                self.mutate()
+
+            def to_dict(self):
+                return {"a": self._value}
+
+        s = WriterState({
+            "value": MyValue()
+        })
+        # Reset the mutation after initialisation
+        s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        s["value"].set(2)
+        s._state_proxy.get_mutations_as_dict()
+
+        # Mutation is read a second time
+        a = s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        assert a == {}
 
 
 class TestState:
@@ -991,3 +1058,177 @@ class TestSessionManager:
             None
         )
         assert s_invalid is None
+
+class TestEditableDataframe:
+
+    def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+        assert edf.df is not None
+        assert isinstance(edf.df, pandas.DataFrame)
+
+    def test_editable_dataframe_register_mutation_when_df_is_updated(self) -> None:
+        # Given
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.df.loc[0, "age"] = 26
+        edf.df = edf.df
+
+        # Then
+        assert edf.mutated() is True
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe_with_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        df = df.set_index('name')
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40, "city": "Berlin"}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_serialize_pandas_dataframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3
+
+    def test_editable_dataframe_expose_polar_dataframe_in_df_property(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+        assert edf.df is not None
+        assert isinstance(edf.df, polars.DataFrame)
+
+    def test_editable_dataframe_should_process_new_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+
+    def test_editable_dataframe_should_serialize_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3
+
+
+    def test_editable_dataframe_expose_list_of_records_in_df_property(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        assert edf.df is not None
+        assert isinstance(edf.df, list)
+
+
+    def test_editable_dataframe_should_process_new_record_into_list_of_records(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+
+    def test_editable_dataframe_should_serialized_list_of_records_into_pyarrow_table(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3

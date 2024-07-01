@@ -2,6 +2,7 @@ import asyncio
 import base64
 import contextlib
 import copy
+import dataclasses
 import datetime
 import inspect
 import io
@@ -14,6 +15,7 @@ import secrets
 import time
 import traceback
 import urllib.request
+from abc import ABCMeta
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
@@ -35,9 +37,15 @@ from typing import (
     cast,
 )
 
+import pandas
+import pyarrow  # type: ignore
+
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
+    DataframeRecordAdded,
+    DataframeRecordRemoved,
+    DataframeRecordUpdated,
     InstancePath,
     InstancePathItem,
     Readable,
@@ -47,6 +55,8 @@ from writer.ss_types import (
 )
 
 if TYPE_CHECKING:
+    import polars
+
     from writer.app_runner import AppProcess
 
 
@@ -129,12 +139,10 @@ class StateSerialiserException(ValueError):
 
 
 class StateSerialiser:
-
     """
     Serialises user state values before sending them to the front end.
     Provides JSON-compatible values, including data URLs for binary data.
     """
-
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
         from writer.ai import Conversation
         if isinstance(v, State):
@@ -153,6 +161,9 @@ class StateSerialiser:
             return self._serialise_list_recursively(v)
         if isinstance(v, (str, bool)):
             return v
+        if isinstance(v, EditableDataframe):
+            table = v.pyarrow_table()
+            return self._serialise_pyarrow_table(table)
         if v is None:
             return v
 
@@ -242,6 +253,44 @@ class StateSerialiser:
         bw = BytesWrapper(buf, "application/vnd.apache.arrow.file")
         return self.serialise(bw)
 
+class MutableValue:
+    """
+    MutableValue allows you to implement a value whose modification
+    will be followed by the state of Writer Framework and will trigger the refresh
+    of the user interface.
+
+    >>> class MyValue(MutableValue):
+    >>>     def __init__(self, value):
+    >>>         self.value = value
+    >>>
+    >>>     def modify(self, new_value):
+    >>>         self.value = new_value
+    >>>         self.mutate()
+    """
+    def __init__(self):
+        self._mutated = False
+
+    def mutated(self) -> bool:
+        """
+        Returns whether the value has been mutated.
+        :return:
+        """
+        return self._mutated
+
+    def mutate(self) -> None:
+        """
+        Marks the value as mutated.
+        This will trigger the refresh of the user interface on the next round trip
+        :return:
+        """
+        self._mutated = True
+
+    def reset_mutation(self) -> None:
+        """
+        Resets the mutation flag to False.
+        :return:
+        """
+        self._mutated = False
 
 class StateProxy:
 
@@ -345,12 +394,13 @@ class StateProxy:
                 for child_key, child_mutation in child_mutations.items():
                     nested_key = carry_mutation_flag(escaped_key, child_key)
                     serialised_mutations[nested_key] = child_mutation
-            elif f"+{key}" in self.mutated:
+            elif f"+{key}" in self.mutated or \
+                (isinstance(value, MutableValue) is True and value.mutated()):
                 try:
                     serialised_value = state_serialiser.serialise(value)
+                    value.reset_mutation()
                 except BaseException:
-                    raise ValueError(
-                        f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
+                    raise ValueError(f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
                 serialised_mutations[f"+{escaped_key}"] = serialised_value
 
         deleted_keys = \
@@ -1506,6 +1556,241 @@ class DictPropertyProxy:
         proxy = getattr(instance, self.objectName)
         proxy[self.key] = value
 
+
+class DataframeRecordRemove:
+    pass
+
+
+class DataframeRecordProcessor():
+    """
+    This interface defines the signature of the methods to process the events of a
+    dataframe compatible with EditableDataframe.
+
+    A Dataframe can be any structure composed of tabular data.
+
+    This class defines the signature of the methods to be implemented.
+    """
+    __metaclass__ = ABCMeta
+
+    @staticmethod
+    def match(df: Any) -> bool:
+        """
+        This method checks if the dataframe is compatible with the processor.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def record_add(df: Any, payload: DataframeRecordAdded) -> Any:
+        """
+        signature of the methods to be implemented to process wf-dfeditor-add event
+
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_add({"record": {"a": 1, "b": 2}})
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def record_update(df: Any, payload: DataframeRecordUpdated) -> Any:
+        """
+        signature of the methods to be implemented to process wf-dfeditor-update event
+
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_update({"record_id": 12, "record": {"a": 1, "b": 2}})
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def record_delete(df: Any, payload: DataframeRecordUpdated) -> Any:
+        """
+        signature of the methods to be implemented to process wf-dfeditor-remove event
+
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_delete({"record_id": 12})
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def pyarrow_table(df: Any) -> pyarrow.Table:
+        """
+        Serializes the dataframe into a pyarrow table
+        """
+        raise NotImplementedError
+
+
+class PandasRecordProcessor(DataframeRecordProcessor):
+    """
+    PandasRecordProcessor processes records from a pandas dataframe saved into an EditableDataframe
+
+    >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+    >>> edf = EditableDataframe(df)
+    >>> edf.record_add({"a": 1, "b": 2})
+    """
+
+    @staticmethod
+    def match(df: Any) -> bool:
+        return True if isinstance(df, pandas.DataFrame) else False
+
+    @staticmethod
+    def record_add(df: pandas.DataFrame, payload: DataframeRecordAdded) -> pandas.DataFrame:
+        """
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_add({"record": {"a": 1, "b": 2}})
+        """
+        record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
+        
+        new_df = pandas.DataFrame([record], index=[index])
+        return pandas.concat([df, new_df])
+
+    @staticmethod
+    def record_update(df: pandas.DataFrame, payload: DataframeRecordUpdated):
+        raise NotImplementedError
+
+    @staticmethod
+    def record_delete(df: pandas.DataFrame, payload: DataframeRecordUpdated):
+        raise NotImplementedError
+
+    @staticmethod
+    def pyarrow_table(df: pandas.DataFrame) -> pyarrow.Table:
+        """
+        Serializes the dataframe into a pyarrow table
+        """
+        df['__record_id'] = range(1, len(df) + 1)
+        table = pyarrow.Table.from_pandas(df=df)
+        return table
+
+
+class PolarRecordProcessor(DataframeRecordProcessor):
+    """
+    PolarRecordProcessor processes records from a polar dataframe saved into an EditableDataframe
+
+    >>> df = polars.DataFrame({"a": [1, 2], "b": [3, 4]})
+    >>> edf = EditableDataframe(df)
+    >>> edf.record_add({"record": {"a": 1, "b": 2}})
+    """
+
+    @staticmethod
+    def match(df: Any) -> bool:
+        import polars
+        return True if isinstance(df, polars.DataFrame) else False
+
+    @staticmethod
+    def record_add(df: 'polars.DataFrame', payload: DataframeRecordAdded) -> 'polars.DataFrame':
+        import polars
+        new_df = polars.DataFrame([payload['record']])
+        return polars.concat([df, new_df])
+
+    @staticmethod
+    def record_update(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
+        raise NotImplementedError
+
+    @staticmethod
+    def record_delete(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
+        raise NotImplementedError
+
+    @staticmethod
+    def pyarrow_table(df: 'polars.DataFrame') -> pyarrow.Table:
+        """
+        Serializes the dataframe into a pyarrow table
+        """
+        import pyarrow.interchange
+        table: pyarrow.Table = pyarrow.interchange.from_dataframe(df)
+        return table
+
+class RecordListRecordProcessor(DataframeRecordProcessor):
+    """
+    RecordListRecordProcessor processes records from a list of record saved into an EditableDataframe
+
+    >>> df = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
+    >>> edf = EditableDataframe(df)
+    >>> edf.record_add({"record": {"a": 1, "b": 2}})
+    """
+
+    @staticmethod
+    def match(df: Any) -> bool:
+        return True if isinstance(df, list) else False
+
+    @staticmethod
+    def record_add(df: List[Dict[str, Any]], payload: DataframeRecordAdded) -> List[Dict[str, Any]]:
+        df.append(payload['record'])
+        return df
+
+    @staticmethod
+    def record_update(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    @staticmethod
+    def record_delete(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    @staticmethod
+    def pyarrow_table(df: List[Dict[str, Any]]) -> pyarrow.Table:
+        """
+        Serializes the dataframe into a pyarrow table
+        """
+        column_names = list(df[0].keys())
+        columns = {key: [record[key] for record in df] for key in column_names}
+
+        pyarrow_columns = {key: pyarrow.array(values) for key, values in columns.items()}
+        schema = pyarrow.schema([(key, pyarrow_columns[key].type) for key in pyarrow_columns])
+        table = pyarrow.Table.from_arrays(
+            [pyarrow_columns[key] for key in column_names],
+            schema=schema
+        )
+
+        return table
+
+class EditableDataframe(MutableValue):
+    """
+    Editable Dataframe makes it easier to process events from components
+    that modify a dataframe like the dataframe editor.
+
+    >>> initial_state = wf.init_state({
+    >>>    "df": wf.EditableDataframe(df)
+    >>> })
+
+    Editable Dataframe is compatible with a pandas, thrillers or record list dataframe
+    """
+    processors = [PandasRecordProcessor, PolarRecordProcessor, RecordListRecordProcessor]
+
+    def __init__(self, df: Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]):
+        super().__init__()
+        self._df = df
+        self.processor: Type[DataframeRecordProcessor]
+        for processor in self.processors:
+            if processor.match(self.df):
+                self.processor = processor
+                break
+
+        if self.processor is None:
+            raise ValueError("The dataframe must be a pandas, polar Dataframe or a list of record")
+
+    @property
+    def df(self) -> Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]:
+        return self._df
+
+    @df.setter
+    def df(self, value: Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]) -> None:
+        self._df = value
+        self.mutate()
+
+    def record_add(self, payload: DataframeRecordAdded) -> None:
+        assert self.processor is not None
+
+        self._df = self.processor.record_add(self.df, payload)
+        self.mutate()
+
+    def record_update(self, payload: DataframeRecordUpdated) -> None:
+        pass
+
+    def record_delete(self, payload: DataframeRecordRemoved) -> None:
+        pass
+
+    def pyarrow_table(self) -> pyarrow.Table:
+        assert self.processor is not None
+
+        pa_table = self.processor.pyarrow_table(self.df)
+        return pa_table
+
 S = TypeVar("S", bound=WriterState)
 
 def new_initial_state(klass: Type[S], raw_state: dict) -> S:
@@ -1623,6 +1908,24 @@ async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[A
     result = await callable_handler(*arg_values)
     return result
 
+def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
+    """
+    Separates a record into the record part and the index part to be able to
+    create or update a row in a dataframe.
+
+    >>> record, index = _split_record_as_pandas_record_and_index({"a": 1, "b": 2}, ["a"])
+    >>> print(record) # {"b": 2}
+    >>> print(index) # (1,)
+    """
+    final_record = {}
+    final_index = []
+    for key, value in param.items():
+        if key in index_columns:
+            final_index.append(value)
+        else:
+            final_record[key] = value
+
+    return final_record, tuple(final_index)
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()
