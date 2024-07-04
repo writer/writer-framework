@@ -1132,6 +1132,40 @@ class TestEditableDataframe:
         # Then
         assert len(edf.df) == 4
 
+    def test_editable_dataframe_should_update_existing_record_as_dateframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25, "city": "Paris"}})
+
+        # Then
+        assert edf.df.iloc[0]['age'] == 25
+
+    def test_editable_dataframe_should_remove_existing_record_as_dateframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
+
     def test_editable_dataframe_should_serialize_pandas_dataframe_with_multiindex(self) -> None:
         df = pandas.DataFrame({
             "name": ["Alice", "Bob", "Charlie"],
@@ -1172,6 +1206,33 @@ class TestEditableDataframe:
         # Then
         assert len(edf.df) == 4
 
+    def test_editable_dataframe_should_update_existing_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
+
+        # Then
+        assert edf.df[0, "name"] == "Alicia"
+
+    def test_editable_dataframe_should_remove_existing_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
 
     def test_editable_dataframe_should_serialize_polar_dataframe(self) -> None:
         df = polars.DataFrame({
@@ -1216,6 +1277,37 @@ class TestEditableDataframe:
 
         # Then
         assert len(edf.df) == 4
+
+
+    def test_editable_dataframe_should_update_existing_record_into_list_of_record(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
+
+        # Then
+        assert edf.df[0]['name'] == "Alicia"
+
+    def test_editable_dataframe_should_remove_existing_record_into_list_of_record(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
 
 
     def test_editable_dataframe_should_serialized_list_of_records_into_pyarrow_table(self) -> None:

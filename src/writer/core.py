@@ -37,7 +37,6 @@ from typing import (
     cast,
 )
 
-import pandas
 import pyarrow  # type: ignore
 
 from writer import core_ui
@@ -55,6 +54,7 @@ from writer.ss_types import (
 )
 
 if TYPE_CHECKING:
+    import pandas
     import polars
 
     from writer.app_runner import AppProcess
@@ -394,8 +394,13 @@ class StateProxy:
                 for child_key, child_mutation in child_mutations.items():
                     nested_key = carry_mutation_flag(escaped_key, child_key)
                     serialised_mutations[nested_key] = child_mutation
-            elif f"+{key}" in self.mutated or \
-                (isinstance(value, MutableValue) is True and value.mutated()):
+            elif f"+{key}" in self.mutated:
+                try:
+                    serialised_value = state_serialiser.serialise(value)
+                except BaseException:
+                    raise ValueError(f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
+                serialised_mutations[f"+{escaped_key}"] = serialised_value
+            elif isinstance(value, MutableValue) is True and value.mutated():
                 try:
                     serialised_value = state_serialiser.serialise(value)
                     value.reset_mutation()
@@ -1595,17 +1600,17 @@ class DataframeRecordProcessor():
         signature of the methods to be implemented to process wf-dfeditor-update event
 
         >>> edf = EditableDataframe(df)
-        >>> edf.record_update({"record_id": 12, "record": {"a": 1, "b": 2}})
+        >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
         """
         raise NotImplementedError
 
     @staticmethod
-    def record_delete(df: Any, payload: DataframeRecordUpdated) -> Any:
+    def record_remove(df: Any, payload: DataframeRecordRemoved) -> Any:
         """
         signature of the methods to be implemented to process wf-dfeditor-remove event
 
         >>> edf = EditableDataframe(df)
-        >>> edf.record_delete({"record_id": 12})
+        >>> edf.record_remove({"record_index": 12})
         """
         raise NotImplementedError
 
@@ -1628,33 +1633,61 @@ class PandasRecordProcessor(DataframeRecordProcessor):
 
     @staticmethod
     def match(df: Any) -> bool:
+        import pandas
         return True if isinstance(df, pandas.DataFrame) else False
 
     @staticmethod
-    def record_add(df: pandas.DataFrame, payload: DataframeRecordAdded) -> pandas.DataFrame:
+    def record_add(df: 'pandas.DataFrame', payload: DataframeRecordAdded) -> 'pandas.DataFrame':
         """
         >>> edf = EditableDataframe(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
         """
+        import pandas
+
+        _assert_record_match_pandas_df(df, payload['record'])
+
         record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
         
         new_df = pandas.DataFrame([record], index=[index])
         return pandas.concat([df, new_df])
 
     @staticmethod
-    def record_update(df: pandas.DataFrame, payload: DataframeRecordUpdated):
-        raise NotImplementedError
+    def record_update(df: 'pandas.DataFrame', payload: DataframeRecordUpdated) -> 'pandas.DataFrame':
+        """
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
+        """
+        _assert_record_match_pandas_df(df, payload['record'])
+
+        record: dict
+        record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
+
+        record_index = payload['record_index']
+        df.iloc[record_index] = record  # type: ignore
+
+        index_list = df.index.tolist()
+        index_list[record_index] = index
+        df.index = index_list  # type: ignore
+
+        return df
 
     @staticmethod
-    def record_delete(df: pandas.DataFrame, payload: DataframeRecordUpdated):
-        raise NotImplementedError
+    def record_remove(df: 'pandas.DataFrame', payload: DataframeRecordRemoved) -> 'pandas.DataFrame':
+        """
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_remove({"record_index": 12})
+        """
+        record_index: int = payload['record_index']
+        idx = df.index[record_index]
+        df = df.drop(idx)
+
+        return df
 
     @staticmethod
-    def pyarrow_table(df: pandas.DataFrame) -> pyarrow.Table:
+    def pyarrow_table(df: 'pandas.DataFrame') -> pyarrow.Table:
         """
         Serializes the dataframe into a pyarrow table
         """
-        df['__record_id'] = range(1, len(df) + 1)
         table = pyarrow.Table.from_pandas(df=df)
         return table
 
@@ -1675,17 +1708,34 @@ class PolarRecordProcessor(DataframeRecordProcessor):
 
     @staticmethod
     def record_add(df: 'polars.DataFrame', payload: DataframeRecordAdded) -> 'polars.DataFrame':
+        _assert_record_match_polar_df(df, payload['record'])
+
         import polars
         new_df = polars.DataFrame([payload['record']])
         return polars.concat([df, new_df])
 
     @staticmethod
     def record_update(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
-        raise NotImplementedError
+        # This implementation works but is not optimal.
+        # I didn't find a better way to update a record in polars
+        #
+        # https://github.com/pola-rs/polars/issues/5973
+        _assert_record_match_polar_df(df, payload['record'])
+
+        record = payload['record']
+        record_index = payload['record_index']
+        for r in record:
+            df[record_index, r] = record[r]
+
+        return df
 
     @staticmethod
-    def record_delete(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
-        raise NotImplementedError
+    def record_remove(df: 'polars.DataFrame', payload: DataframeRecordRemoved) -> 'polars.DataFrame':
+        import polars
+
+        record_index: int = payload['record_index']
+        df_filtered = polars.concat([df[:record_index], df[record_index + 1:]])
+        return df_filtered
 
     @staticmethod
     def pyarrow_table(df: 'polars.DataFrame') -> pyarrow.Table:
@@ -1711,16 +1761,24 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
 
     @staticmethod
     def record_add(df: List[Dict[str, Any]], payload: DataframeRecordAdded) -> List[Dict[str, Any]]:
+        _assert_record_match_list_of_records(df, payload['record'])
         df.append(payload['record'])
         return df
 
     @staticmethod
     def record_update(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
-        raise NotImplementedError
+        _assert_record_match_list_of_records(df, payload['record'])
+
+        record_index = payload['record_index']
+        record = payload['record']
+
+        df[record_index] = record
+        return df
 
     @staticmethod
-    def record_delete(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
-        raise NotImplementedError
+    def record_remove(df: List[Dict[str, Any]], payload: DataframeRecordRemoved) -> List[Dict[str, Any]]:
+        del(df[payload['record_index']])
+        return df
 
     @staticmethod
     def pyarrow_table(df: List[Dict[str, Any]]) -> pyarrow.Table:
@@ -1752,7 +1810,7 @@ class EditableDataframe(MutableValue):
     """
     processors = [PandasRecordProcessor, PolarRecordProcessor, RecordListRecordProcessor]
 
-    def __init__(self, df: Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]):
+    def __init__(self, df: Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]):
         super().__init__()
         self._df = df
         self.processor: Type[DataframeRecordProcessor]
@@ -1765,27 +1823,66 @@ class EditableDataframe(MutableValue):
             raise ValueError("The dataframe must be a pandas, polar Dataframe or a list of record")
 
     @property
-    def df(self) -> Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]:
+    def df(self) -> Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]:
         return self._df
 
     @df.setter
-    def df(self, value: Union[pandas.DataFrame, 'polars.DataFrame', List[dict], List[list]]) -> None:
+    def df(self, value: Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]) -> None:
         self._df = value
         self.mutate()
 
     def record_add(self, payload: DataframeRecordAdded) -> None:
+        """
+        Adds a record to the dataframe
+
+        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_add({"record": {"a": 1, "b": 2}})
+        """
         assert self.processor is not None
 
         self._df = self.processor.record_add(self.df, payload)
         self.mutate()
 
     def record_update(self, payload: DataframeRecordUpdated) -> None:
-        pass
+        """
+        Updates a record in the dataframe
 
-    def record_delete(self, payload: DataframeRecordRemoved) -> None:
-        pass
+        The record must be complete otherwise an error is raised (ValueError).
+        It must a value for each index / column.
+
+        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_update({"record_index": 0, "record": {"a": 2, "b": 2}})
+        """
+        assert self.processor is not None
+
+        self._df = self.processor.record_update(self.df, payload)
+        self.mutate()
+
+    def record_remove(self, payload: DataframeRecordRemoved) -> None:
+        """
+        Removes a record from the dataframe
+
+        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+        >>> edf = EditableDataframe(df)
+        >>> edf.record_remove({"record_index": 0})
+        """
+        assert self.processor is not None
+
+        self._df = self.processor.record_remove(self.df, payload)
+        self.mutate()
 
     def pyarrow_table(self) -> pyarrow.Table:
+        """
+        Serializes the dataframe into a pyarrow table
+
+        This mechanism is used for serializing data for transmission to the frontend.
+
+        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+        >>> edf = EditableDataframe(df)
+        >>> pa_table = edf.pyarrow_table()
+        """
         assert self.processor is not None
 
         pa_table = self.processor.pyarrow_table(self.df)
@@ -1907,6 +2004,45 @@ def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
 async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
     result = await callable_handler(*arg_values)
     return result
+
+def _assert_record_match_pandas_df(df: 'pandas.DataFrame', record: Dict[str, Any]) -> None:
+    """
+    Asserts that the record matches the dataframe columns & index
+
+    >>> _assert_record_match_pandas_df(pandas.DataFrame({"a": [1, 2], "b": [3, 4]}), {"a": 1, "b": 2})
+    """
+    import pandas
+
+    columns = set(list(df.columns.values) + df.index.names) if isinstance(df.index, pandas.RangeIndex) is False else set(df.columns.values)
+    columns_record = set(record.keys())
+    if columns != columns_record:
+        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
+
+def _assert_record_match_polar_df(df: 'polars.DataFrame', record: Dict[str, Any]) -> None:
+    """
+    Asserts that the record matches the columns of polar dataframe
+
+    >>> _assert_record_match_pandas_df(polars.DataFrame({"a": [1, 2], "b": [3, 4]}), {"a": 1, "b": 2})
+    """
+    columns = set(df.columns)
+    columns_record = set(record.keys())
+    if columns != columns_record:
+        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
+
+def _assert_record_match_list_of_records(df: List[Dict[str, Any]], record: Dict[str, Any]) -> None:
+    """
+    Asserts that the record matches the key in the record list (it use the first record to check)
+
+    >>> _assert_record_match_list_of_records([{"a": 1, "b": 2}, {"a": 3, "b": 4}], {"a": 1, "b": 2})
+    """
+    if len(df) == 0:
+        return
+
+    columns = set(df[0].keys())
+    columns_record = set(record.keys())
+    if columns != columns_record:
+        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
+
 
 def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
     """
