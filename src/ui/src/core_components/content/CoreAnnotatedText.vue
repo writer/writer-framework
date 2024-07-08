@@ -16,20 +16,10 @@
 			</span>
 		</span>
 		<template v-if="fields.copyButtons.value === 'yes'">
-			<div class="controls">
-				<button
-					class="control-button"
-					@click="copyJSON(fields.text.value)"
-				>
-					Copy JSON
-				</button>
-				<button
-					class="control-button"
-					@click="copyText(fields.text.value)"
-				>
-					Copy raw
-				</button>
-			</div>
+			<BaseControlBar
+				:copy-raw-content="textToString(fields.text.value)"
+				:copy-structured-content="stringifyData(fields.text.value)"
+			/>
 		</template>
 	</div>
 </template>
@@ -179,85 +169,23 @@ function generateColor(s: string) {
 	return generateColorCss(baseColor, colorData);
 }
 
-function copyText(arr: string[]) {
-	const text = arr.reduce((acc, val) => {
+function textToString(text: string[]) {
+	return text.reduce((acc, val) => {
 		if (typeof val === "string") {
 			return acc + val;
 		}
 
 		return acc + val[0];
 	}, "");
-
-	copyToClipboard({ text });
 }
 
-function copyJSON(arr: string[]) {
+function stringifyData(arr: string[]) {
 	try {
-		copyToClipboard({ text: JSON.stringify(arr) });
+		return JSON.stringify(arr);
 	} catch (e) {
-		copyToClipboard({ text: arr.join("") });
+		return arr.join("");
 	}
 }
-
-function setClipboardData<T = unknown>(
-	source: T & { clipboardData: DataTransfer | null | undefined },
-	{ text, html }: { text?: string; html?: string },
-): void {
-	if (text) {
-		source.clipboardData?.setData("text/plain", text);
-		source.clipboardData?.setData("Text", text); // IE mimetype
-	}
-
-	if (html) {
-		source.clipboardData?.setData("text/html", html);
-	}
-}
-
-function copyToClipboard({
-	text = "",
-	html = "",
-}: {
-	text?: string;
-	html?: string;
-}): boolean {
-	if (
-		(window as any)?.clipboardData &&
-		(window as any)?.clipboardData.setData
-	) {
-		// Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
-		setClipboardData<any>(window, { text, html });
-
-		return true;
-	} else if (
-		document.queryCommandSupported &&
-		document.queryCommandSupported("copy")
-	) {
-		const copyListener = (event: ClipboardEvent) => {
-			event.preventDefault();
-			setClipboardData<ClipboardEvent>(event, { text, html });
-		};
-
-		document.addEventListener("copy", copyListener, false);
-
-		const textarea = document.createElement("textarea");
-		textarea.textContent = text || html;
-		textarea.style.position = "fixed";
-		document.body.appendChild(textarea);
-		textarea.select();
-
-		try {
-			return document.execCommand("copy"); // Security exception may be thrown by some browsers.
-		} catch (ex) {
-			return false;
-		} finally {
-			document.body.removeChild(textarea);
-			document.removeEventListener("copy", copyListener, false);
-		}
-	}
-
-	return false;
-}
-
 </script>
 
 <style scoped>
