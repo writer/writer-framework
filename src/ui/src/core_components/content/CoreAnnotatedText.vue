@@ -11,7 +11,7 @@
 			>
 				{{ content[0] }}
 				<span v-if="content[1]" class="annotation-subject">{{
-					getShortName(content[1])
+					{{ content[1] }}
 				}}</span>
 			</span>
 		</span>
@@ -258,25 +258,6 @@ function copyToClipboard({
 	return false;
 }
 
-const defaultShortNameDictionary = {
-	verb: "Verb",
-	adjective: "Adj",
-	noun: "Noun",
-	pronoun: "Pronoun",
-};
-
-function getShortName(name: string) {
-	if (!name) {
-		return "";
-	}
-
-	const lowerCaseName = name.toLowerCase();
-	if (defaultShortNameDictionary[lowerCaseName]) {
-		return `${defaultShortNameDictionary[lowerCaseName]}`;
-	}
-
-	return name[0].toUpperCase() + name.slice(1);
-}
 </script>
 
 <style scoped>
