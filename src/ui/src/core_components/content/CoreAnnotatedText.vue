@@ -47,7 +47,7 @@ export default {
 				name: "KeyValue",
 				type: FieldType.Object,
 				desc: "Value array with text/annotations. Must be a JSON string or a state reference to an array.",
-				default: `["This ",["is", "Verb"]," some ",["annotated", "Adjective"],    ["text", "Noun"]," for those of ",["you", "Pronoun"]," who ",["like", "Verb"]," this sort of ",["thing", "Noun"],". ","And here's a ",["word", "", "#faf"]," with a fancy background but no label."]`,
+				init: `["This ",["is", "Verb"]," some ",["annotated", "Adjective"],    ["text", "Noun"]," for those of ",["you", "Pronoun"]," who ",["like", "Verb"]," this sort of ",["thing", "Noun"],". ","And here's a ",["word", "", "#faf"]," with a fancy background but no label."]`,
 			},
 			referenceColor: {
 				name: "Reference",
@@ -71,7 +71,7 @@ export default {
 					yes: "yes",
 					no: "no",
 				},
-				default: "no",
+				default: "yes",
 				category: FieldCategory.Style,
 			},
 			copyButtons: {
