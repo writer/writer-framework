@@ -270,8 +270,8 @@ function copyToClipboard({
 	flex-direction: row;
 	align-items: center;
 	background: rgba(255, 164, 33, 0.4);
-	border-radius: 0.5rem;
-	padding: 0.08rem 0.5rem;
+	border-radius: 8px;
+	padding: 2px 8px;
 	overflow: hidden;
 	line-height: 1;
 	vertical-align: middle;
@@ -279,8 +279,8 @@ function copyToClipboard({
 
 .annotation-subject {
 	display: inline-flex;
-	font-size: 0.6rem;
-	margin-left: 1rem;
+	font-size: 10px;
+	margin-left: 14px;
 	opacity: 0.5;
 	position: relative;
 	vertical-align: middle;
@@ -291,7 +291,7 @@ function copyToClipboard({
 		opacity: 0.1;
 		position: absolute;
 		top: 0px;
-		left: -0.55rem;
+		left: -9px;
 		height: 10px;
 	}
 }
@@ -306,12 +306,12 @@ function copyToClipboard({
 .control-button {
 	background-color: var(--buttonColor);
 	border: none;
-	border-radius: 0.5rem;
+	border-radius: 8px;
 	color: white;
 	cursor: pointer;
-	font-size: 0.7rem;
+	font-size: 11px;
 	margin-right: 10px;
-	padding: 0.25rem 0.5rem;
+	padding: 4px 8px;
 
 	&:hover {
 		opacity: 0.9;
