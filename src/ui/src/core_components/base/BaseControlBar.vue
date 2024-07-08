@@ -1,11 +1,17 @@
 <template>
 	<div class="BaseControlBar">
-		<button v-if="props.copyStructuredContent" class="control-button"
-			@click="copyToClipboard({ text: props.copyStructuredContent })">
+		<button
+			v-if="props.copyStructuredContent"
+			class="control-button"
+			@click="copyToClipboard({ text: props.copyStructuredContent })"
+		>
 			Copy JSON
 		</button>
-		<button v-if="props.copyRawContent" class="control-button"
-			@click="copyToClipboard({ text: props.copyRawContent })">
+		<button
+			v-if="props.copyRawContent"
+			class="control-button"
+			@click="copyToClipboard({ text: props.copyRawContent })"
+		>
 			Copy
 		</button>
 	</div>

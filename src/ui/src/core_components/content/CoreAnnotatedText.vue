@@ -10,9 +10,9 @@
 				:style="{ background: content[2] || generateColor(content[1]) }"
 			>
 				{{ content[0] }}
-				<span v-if="content[1]" class="annotation-subject">{{
+				<span v-if="content[1]" class="annotation-subject">
 					{{ content[1] }}
-				}}</span>
+				</span>
 			</span>
 		</span>
 		<template v-if="fields.copyButtons.value === 'yes'">
