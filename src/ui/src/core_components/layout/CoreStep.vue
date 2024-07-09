@@ -275,6 +275,15 @@ watch([isStepActive, fields.isCompleted], () => {
 	}
 });
 
+/*
+Activate any step that was previously complete but switched to non-completed.
+*/
+watch(fields.isCompleted, (value: string, oldValue: string) => {
+	if (oldValue !== "yes") return;
+	if (value !== "no") return;
+	activateDefaultStep();
+});
+
 onBeforeMount(() => {
 	if (
 		stepContainerDirectChildInstanceItem?.value.instanceNumber ==

@@ -3,7 +3,7 @@
 		ref="rootEl"
 		class="BuilderFieldsColor"
 		tabindex="-1"
-		:data-key="fieldKey"
+		:data-automation-key="fieldKey"
 	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
@@ -49,10 +49,9 @@
 				/>
 			</div>
 
-			<input
+			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				type="text"
 				:value="component.content[fieldKey]"
 				@input="handleInput"
 			/>
@@ -74,6 +73,7 @@ import {
 import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

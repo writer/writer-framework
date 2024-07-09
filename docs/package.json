@@ -4,7 +4,7 @@
 	"description": "",
 	"type": "module",
 	"scripts": {
-		"preview": "cd docs; mintlify dev",
+		"preview": "mintlify dev",
 		"test": "jest",
 		"codegen": "node codegen/generator_components_pages.mjs"
 	},

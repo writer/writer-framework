@@ -48,7 +48,7 @@ test.describe('undo and redo', () => {
 
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
-			.locator('.BuilderFieldsText[data-key="text"] input')
+			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill('cool text');
 		await page.locator("button.undo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
