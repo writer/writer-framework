@@ -235,12 +235,11 @@ class WriterGraphManager:
         return graphs.delete(graph_id)
 
     @classmethod
-    def add_file_to_graph(cls, graph_id: str, file_id: Optional[str] = None) -> File:
-        payload = {}
-        if file_id:
-            payload["file_id"] = file_id
+    def add_file_to_graph(cls, graph_id: str, file_id: str, config: Optional[APIOptions] = None) -> File:
+        if not config:
+            config = {}
         graphs = cls.retrieve_graphs_accessor()
-        return graphs.add_file_to_graph(graph_id, **payload)
+        return graphs.add_file_to_graph(graph_id, file_id, **config)
 
     @classmethod
     def remove_file_from_graph(cls, graph_id: str, file_id: str) -> GraphRemoveFileFromGraphResponse:
