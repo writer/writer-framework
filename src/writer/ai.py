@@ -6,7 +6,7 @@ from writerai import Writer
 from writerai._exceptions import WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
-from writerai._types import Body, FileTypes, Headers, NotGiven, Query
+from writerai._types import Body, Headers, NotGiven, Query
 from writerai.pagination import SyncCursorPage
 from writerai.types import (
     Chat,
@@ -52,26 +52,11 @@ class CreateOptions(APIOptions, total=False):
     top_p: Union[float, NotGiven]
 
 
-class GraphCreateUpdateOptions(APIOptions, total=False):
-    name: str
-    description: Union[str, NotGiven]
-
-
 class APIListOptions(APIOptions, total=False):
     after: Union[str, NotGiven]
     before: Union[str, NotGiven]
     limit: Union[int, NotGiven]
     order: Union[Literal["asc", "desc"], NotGiven]
-
-
-class GraphAddFileOptions(APIOptions, total=False):
-    file_id: str
-
-
-class FileAddOptions(APIOptions, total=False):
-    content: FileTypes
-    content_disposition: str
-    content_type: str
 
 
 logger = logging.Logger(__name__)
@@ -250,11 +235,12 @@ class WriterGraphManager:
         return graphs.delete(graph_id)
 
     @classmethod
-    def add_file_to_graph(cls, graph_id: str, config: Optional[GraphAddFileOptions] = None) -> File:
-        if not config:
-            config = {}
+    def add_file_to_graph(cls, graph_id: str, file_id: Optional[str] = None) -> File:
+        payload = {}
+        if file_id:
+            payload["file_id"] = file_id
         graphs = cls.retrieve_graphs_accessor()
-        return graphs.add_file_to_graph(graph_id, **config)
+        return graphs.add_file_to_graph(graph_id, **payload)
 
     @classmethod
     def remove_file_from_graph(cls, graph_id: str, file_id: str) -> GraphRemoveFileFromGraphResponse:
