@@ -203,7 +203,7 @@ class WriterGraphManager:
             cls,
             name: str,
             description: str,
-            config: APIOptions = None
+            config: Optional[APIOptions] = None
             ) -> GraphCreateResponse:
         if not config:
             config = {}
@@ -221,7 +221,7 @@ class WriterGraphManager:
             graph_id: str,
             name: Optional[str] = None,
             description: Optional[str] = None,
-            config: APIOptions = None
+            config: Optional[APIOptions] = None
             ) -> GraphUpdateResponse:
         if not config:
             config = {}
@@ -238,7 +238,7 @@ class WriterGraphManager:
         return graphs.update(graph_id, **payload, **config)
 
     @classmethod
-    def list_graphs(cls, config: APIListOptions = None) -> SyncCursorPage[Graph]:
+    def list_graphs(cls, config: Optional[APIListOptions] = None) -> SyncCursorPage[Graph]:
         if not config:
             config = {}
         graphs = cls.retrieve_graphs_accessor()
@@ -250,7 +250,7 @@ class WriterGraphManager:
         return graphs.delete(graph_id)
 
     @classmethod
-    def add_file_to_graph(cls, graph_id: str, config: GraphAddFileOptions = None) -> File:
+    def add_file_to_graph(cls, graph_id: str, config: Optional[GraphAddFileOptions] = None) -> File:
         if not config:
             config = {}
         graphs = cls.retrieve_graphs_accessor()
@@ -290,7 +290,7 @@ class WriterFileManager:
         return files.retrieve(file_id)
 
     @classmethod
-    def list_files(cls, config: APIListOptions = None) -> SyncCursorPage[File]:
+    def list_files(cls, config: Optional[APIListOptions] = None) -> SyncCursorPage[File]:
         if not config:
             config = {}
         files = cls.retrieve_files_accessor()
