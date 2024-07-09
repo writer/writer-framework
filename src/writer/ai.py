@@ -1,31 +1,41 @@
 import logging
-from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
+from typing import (Generator, Iterable, List, Literal, Optional, TypedDict,
+                    Union, cast)
 
 from httpx import Timeout
 from writerai import Writer
 from writerai._exceptions import WriterError
+from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
-from writerai._types import Body, Headers, NotGiven, Query
-from writerai.types import Chat, Completion, StreamingData
+from writerai._types import Body, FileTypes, Headers, NotGiven, Query
+from writerai.pagination import SyncCursorPage
+from writerai.types import (Chat, Completion, File, FileDeleteResponse, Graph,
+                            GraphCreateResponse, GraphDeleteResponse,
+                            GraphRemoveFileFromGraphResponse,
+                            GraphUpdateResponse, StreamingData)
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from writer.core import get_app_process
+from writer.ss_types import WriterFileItem
 
 
-class ChatOptions(TypedDict, total=False):
-    model: str
-    max_tokens: Union[int, NotGiven]
-    n: Union[int, NotGiven]
-    stop: Union[List[str], str, NotGiven]
-    temperature: Union[float, NotGiven]
-    top_p: Union[float, NotGiven]
+class APIOptions(TypedDict, total=False):
     extra_headers: Optional[Headers]
     extra_query: Optional[Query]
     extra_body: Optional[Body]
     timeout: Union[float, Timeout, None, NotGiven]
 
 
-class CreateOptions(TypedDict, total=False):
+class ChatOptions(APIOptions, total=False):
+    model: str
+    max_tokens: Union[int, NotGiven]
+    n: Union[int, NotGiven]
+    stop: Union[List[str], str, NotGiven]
+    temperature: Union[float, NotGiven]
+    top_p: Union[float, NotGiven]
+
+
+class CreateOptions(APIOptions, total=False):
     model: str
     best_of: Union[int, NotGiven]
     max_tokens: Union[int, NotGiven]
@@ -33,10 +43,28 @@ class CreateOptions(TypedDict, total=False):
     stop: Union[List[str], str, NotGiven]
     temperature: Union[float, NotGiven]
     top_p: Union[float, NotGiven]
-    extra_headers: Optional[Headers]
-    extra_query: Optional[Query]
-    extra_body: Optional[Body]
-    timeout: Union[float, Timeout, None, NotGiven]
+
+
+class GraphCreateUpdateOptions(APIOptions, total=False):
+    name: str
+    description: Union[str, NotGiven]
+
+
+class APIListOptions(APIOptions, total=False):
+    after: Union[str, NotGiven]
+    before: Union[str, NotGiven]
+    limit: Union[int, NotGiven]
+    order: Union[Literal["asc", "desc"], NotGiven]
+
+
+class GraphAddFileOptions(APIOptions, total=False):
+    file_id: str
+
+
+class FileAddOptions(APIOptions, total=False):
+    content: FileTypes
+    content_disposition: str
+    content_type: str
 
 
 logger = logging.Logger(__name__)
@@ -139,6 +167,154 @@ class WriterAIManager:
     def acquire_client(cls) -> Writer:
         instance = cls.acquire_instance()
         return instance.client
+
+
+class WriterGraphManager:
+    """
+    Manages graph-related operations using the Writer AI API.
+
+    Provides methods to create, retrieve, update, delete, and manage files within graphs.
+    """
+
+    def __init__(self):
+        """
+        Initializes a WriterGraphManager instance.
+        """
+        pass
+
+    @classmethod
+    def retrieve_graphs_accessor(cls):
+        """
+        Acquires the graphs accessor from the WriterAIManager singleton instance.
+
+        :returns: The graphs accessor instance.
+        """
+        return WriterAIManager.acquire_client().graphs
+
+    @classmethod
+    def create_graph(
+            cls,
+            name: str,
+            description: str,
+            config: APIOptions = None
+            ) -> GraphCreateResponse:
+        if not config:
+            config = {}
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.create(name=name, description=description, **config)
+
+    @classmethod
+    def retrieve_graph(cls, graph_id: str) -> Graph:
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.retrieve(graph_id)
+
+    @classmethod
+    def update_graph(
+            cls,
+            graph_id: str,
+            name: Optional[str] = None,
+            description: Optional[str] = None,
+            config: APIOptions = None
+            ) -> GraphUpdateResponse:
+        if not config:
+            config = {}
+
+        # We use the payload dictionary
+        # to distinguish between None-values
+        # and NotGiven values
+        payload = {}
+        if name:
+            payload["name"] = name
+        if description:
+            payload["description"] = description
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.update(graph_id, **payload, **config)
+
+    @classmethod
+    def list_graphs(cls, config: APIListOptions = None) -> SyncCursorPage[Graph]:
+        if not config:
+            config = {}
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.list(**config)
+
+    @classmethod
+    def delete_graph(cls, graph_id: str) -> GraphDeleteResponse:
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.delete(graph_id)
+
+    @classmethod
+    def add_file_to_graph(cls, graph_id: str, config: GraphAddFileOptions = None) -> File:
+        if not config:
+            config = {}
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.add_file_to_graph(graph_id, **config)
+
+    @classmethod
+    def remove_file_from_graph(cls, graph_id: str, file_id: str) -> GraphRemoveFileFromGraphResponse:
+        graphs = cls.retrieve_graphs_accessor()
+        return graphs.remove_file_from_graph(graph_id, file_id)
+
+
+class WriterFileManager:
+    """
+    Manages file-related operations using the Writer AI API.
+
+    Provides methods to retrieve, list, delete, download, and upload files.
+    """
+
+    def __init__(self):
+        """
+        Initializes a WriterFileManager instance.
+        """
+        pass
+
+    @classmethod
+    def retrieve_files_accessor(cls):
+        """
+        Acquires the files client from the WriterAIManager singleton instance.
+
+        :returns: The files client instance.
+        """
+        return WriterAIManager.acquire_client().files
+
+    @classmethod
+    def retrieve_file(cls, file_id: str) -> File:
+        files = cls.retrieve_files_accessor()
+        return files.retrieve(file_id)
+
+    @classmethod
+    def list_files(cls, config: APIListOptions = None) -> SyncCursorPage[File]:
+        if not config:
+            config = {}
+        files = cls.retrieve_files_accessor()
+        return files.list(**config)
+
+    @classmethod
+    def delete_file(cls, file_id: str) -> FileDeleteResponse:
+        files = cls.retrieve_files_accessor()
+        return files.delete(file_id)
+
+    @classmethod
+    def download_file(cls, file_id: str) -> BinaryAPIResponse:
+        files = cls.retrieve_files_accessor()
+        return files.download(file_id)
+
+    @classmethod
+    def upload_file(cls, file: WriterFileItem, config: APIOptions) -> File:
+        files = cls.retrieve_files_accessor()
+        if "data" not in file:
+            raise ValueError("Missing `data` in file payload")
+        if "type" not in file:
+            raise ValueError("Missing `type` in file payload")
+        if "name" not in file:
+            raise ValueError("Missing `name` in file payload")
+
+        uploaded_file = {
+            "content": file["data"],
+            "content_type": file["type"],
+            "content_disposition": f'attachment;filename="{file["name"]}"'
+            }
+        return files.upload(**uploaded_file, **config)
 
 
 class Conversation:
