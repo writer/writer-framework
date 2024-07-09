@@ -21,5 +21,5 @@ export default {
 	customtextinput: CustomTextInput,
 	customnumberinput: CustomNumberInput,
 	customtabs: CustomTabs,
-	customtab: CustomTab,
+	customtab: CustomTab
 };

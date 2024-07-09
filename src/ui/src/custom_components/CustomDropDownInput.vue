@@ -52,7 +52,7 @@ export default {
 		fields: {
 			label: {
 				name: "Label",
-				init: "Input Label",
+				init: "Dropdown Input Label",
 				type: FieldType.Text,
 			},
 			customId: {

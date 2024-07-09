@@ -114,7 +114,7 @@ function clickIsOnATab(event: Event): boolean {
 	const targetElement: HTMLElement = event.target as HTMLElement
 	const closesetWriterElement: HTMLElement = targetElement.closest("[data-writer-id]")
 
-	var component = wf.getComponentById(closesetWriterElement.dataset.writerId)
+	let component = wf.getComponentById(closesetWriterElement.dataset.writerId)
 
 	const writerComponentIsATab = component["type"].includes("tab")
 	const targetElementIsAButton = targetElement.nodeName == "BUTTON"
