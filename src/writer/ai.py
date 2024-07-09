@@ -1,6 +1,5 @@
 import logging
-from typing import (Generator, Iterable, List, Literal, Optional, TypedDict,
-                    Union, cast)
+from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 from httpx import Timeout
 from writerai import Writer
@@ -9,10 +8,18 @@ from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
 from writerai._types import Body, FileTypes, Headers, NotGiven, Query
 from writerai.pagination import SyncCursorPage
-from writerai.types import (Chat, Completion, File, FileDeleteResponse, Graph,
-                            GraphCreateResponse, GraphDeleteResponse,
-                            GraphRemoveFileFromGraphResponse,
-                            GraphUpdateResponse, StreamingData)
+from writerai.types import (
+    Chat,
+    Completion,
+    File,
+    FileDeleteResponse,
+    Graph,
+    GraphCreateResponse,
+    GraphDeleteResponse,
+    GraphRemoveFileFromGraphResponse,
+    GraphUpdateResponse,
+    StreamingData,
+)
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from writer.core import get_app_process
