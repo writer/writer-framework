@@ -354,9 +354,10 @@ class File(SDKWrapper):
         return files.download(self.id)
 
 
-def retrieve_file(file_id: str) -> File:
+def retrieve_file(file_id: str, config: Optional[APIOptions]) -> File:
+    config = config or {}
     files = File._retrieve_files_accessor()
-    file_object = files.retrieve(file_id)
+    file_object = files.retrieve(file_id, **config)
     file = File(file_object)
     return file
 
@@ -386,7 +387,11 @@ def upload_file(
     return File(sdk_file)
 
 
-def delete_file(file_id_or_file: Union['File', str]) -> FileDeleteResponse:
+def delete_file(
+        file_id_or_file: Union['File', str],
+        config: Optional[APIOptions]
+        ) -> FileDeleteResponse:
+    config = config or {}
     file_id = None
     if isinstance(file_id_or_file, File):
         file_id = file_id_or_file.id
@@ -399,7 +404,7 @@ def delete_file(file_id_or_file: Union['File', str]) -> FileDeleteResponse:
             )
 
     files = File._retrieve_files_accessor()
-    return files.delete(file_id)
+    return files.delete(file_id, **config)
 
 
 class Conversation:
