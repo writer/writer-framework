@@ -266,10 +266,20 @@ class Graph(SDKWrapper):
 
     def add_file(
             self,
-            file_id: str,
+            file_id_or_file: Union['File', str],
             config: Optional[APIOptions] = None
             ) -> 'File':
         config = config or {}
+        file_id = None
+        if isinstance(file_id_or_file, File):
+            file_id = file_id_or_file.id
+        elif isinstance(file_id_or_file, str):
+            file_id = file_id_or_file
+        else:
+            raise ValueError(
+                "'Graph.add_file' method accepts either 'File' object" +
+                f" or ID of file as string; got '{type(file_id_or_file)}'"
+                )
         graphs = self._retrieve_graphs_accessor()
         response = graphs.add_file_to_graph(
             graph_id=self.id,
@@ -279,7 +289,22 @@ class Graph(SDKWrapper):
         Graph.stale_ids.add(self.id)
         return response
 
-    def remove_file(self, file_id: str) -> GraphRemoveFileFromGraphResponse:
+    def remove_file(
+            self,
+            file_id_or_file: Union['File', str],
+            config: Optional[APIOptions] = None
+            ) -> GraphRemoveFileFromGraphResponse:
+        config = config or {}
+        file_id = None
+        if isinstance(file_id_or_file, File):
+            file_id = file_id_or_file.id
+        elif isinstance(file_id_or_file, str):
+            file_id = file_id_or_file
+        else:
+            raise ValueError(
+                "'Graph.remove_file' method accepts either 'File' object" +
+                f" or ID of file as string; got '{type(file_id_or_file)}'"
+                )
         graphs = self._retrieve_graphs_accessor()
         response = graphs.remove_file_from_graph(
             graph_id=self.id,
