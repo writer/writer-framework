@@ -1,5 +1,8 @@
 import logging
-from typing import Generator, Iterable, List, Literal, Optional, TypedDict, Union, cast
+from datetime import datetime
+from typing import (Generator, Iterable, List, Literal, Optional, TypedDict,
+                    Union, cast)
+from uuid import uuid4
 
 from httpx import Timeout
 from writerai import Writer
@@ -7,23 +10,17 @@ from writerai._exceptions import WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
-from writerai.pagination import SyncCursorPage
-from writerai.types import (
-    Chat,
-    Completion,
-    File,
-    FileDeleteResponse,
-    Graph,
-    GraphCreateResponse,
-    GraphDeleteResponse,
-    GraphRemoveFileFromGraphResponse,
-    GraphUpdateResponse,
-    StreamingData,
-)
+from writerai.resources import FilesResource, GraphsResource
+from writerai.types import Chat, Completion
+from writerai.types import File as SDKFile
+from writerai.types import FileDeleteResponse
+from writerai.types import Graph as SDKGraph
+from writerai.types import (GraphDeleteResponse,
+                            GraphRemoveFileFromGraphResponse,
+                            GraphUpdateResponse, StreamingData)
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from writer.core import get_app_process
-from writer.ss_types import WriterFileItem
 
 
 class APIOptions(TypedDict, total=False):
@@ -161,21 +158,54 @@ class WriterAIManager:
         return instance.client
 
 
-class WriterGraphManager:
-    """
-    Manages graph-related operations using the Writer AI API.
+class SDKWrapper:
+    _wrapped: Union[SDKFile, SDKGraph]
 
-    Provides methods to create, retrieve, update, delete, and manage files within graphs.
-    """
+    def _get_property(self, property_name):
+        try:
+            return getattr(self._wrapped, property_name)
+        except AttributeError:
+            raise AttributeError(
+                f"type object '{self.__class__}' has no attribute {property_name}"
+                ) from None
 
-    def __init__(self):
-        """
-        Initializes a WriterGraphManager instance.
-        """
-        pass
 
-    @classmethod
-    def retrieve_graphs_accessor(cls):
+class Graph(SDKWrapper):
+    _wrapped: SDKGraph
+    stale_ids = set()
+
+    def __init__(
+            self,
+            name: str,
+            description: Optional[str] = None,
+            config: Optional[APIOptions] = None,
+            new_graph: bool = True
+            ):
+        config = config or {}
+        if new_graph is True:
+            graphs = self._retrieve_graphs_accessor()
+            graph_response = \
+                graphs.create(
+                    name=name,
+                    description=description,
+                    **config
+                    )
+            graph_object = graphs.retrieve(graph_response.id)
+            self._wrapped = graph_object
+
+    @staticmethod
+    def _init_from_object(graph_object: SDKGraph):
+        instance = Graph(
+            name=graph_object.name,
+            description=graph_object.description,
+            config=None,
+            new_graph=False
+        )
+        instance._wrapped = graph_object
+        return instance
+
+    @staticmethod
+    def _retrieve_graphs_accessor() -> GraphsResource:
         """
         Acquires the graphs accessor from the WriterAIManager singleton instance.
 
@@ -183,33 +213,43 @@ class WriterGraphManager:
         """
         return WriterAIManager.acquire_client().graphs
 
-    @classmethod
-    def create_graph(
-            cls,
-            name: str,
-            description: str,
-            config: Optional[APIOptions] = None
-            ) -> GraphCreateResponse:
-        if not config:
-            config = {}
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.create(name=name, description=description, **config)
+    @property
+    def id(self) -> str:
+        return self._get_property('id')
 
-    @classmethod
-    def retrieve_graph(cls, graph_id: str) -> Graph:
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.retrieve(graph_id)
+    @property
+    def created_at(self) -> datetime:
+        return self._get_property('created_at')
 
-    @classmethod
-    def update_graph(
-            cls,
-            graph_id: str,
+    def _fetch_object_updates(self):
+        if self.id in Graph.stale_ids:
+            graphs = self._retrieve_graphs_accessor()
+            fresh_object = graphs.retrieve(self.id)
+            self._wrapped = fresh_object
+            Graph.stale_ids.remove(self.id)
+
+    @property
+    def name(self) -> str:
+        self._fetch_object_updates()
+        return self._wrapped.name
+
+    @property
+    def description(self) -> Optional[str]:
+        self._fetch_object_updates()
+        return self._wrapped.description
+
+    @property
+    def file_status(self):
+        self._fetch_object_updates()
+        return self._wrapped.file_status
+
+    def update(
+            self,
             name: Optional[str] = None,
             description: Optional[str] = None,
             config: Optional[APIOptions] = None
             ) -> GraphUpdateResponse:
-        if not config:
-            config = {}
+        config = config or {}
 
         # We use the payload dictionary
         # to distinguish between None-values
@@ -219,49 +259,73 @@ class WriterGraphManager:
             payload["name"] = name
         if description:
             payload["description"] = description
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.update(graph_id, **payload, **config)
+        graphs = self._retrieve_graphs_accessor()
+        response = graphs.update(self.id, **payload, **config)
+        Graph.stale_ids.add(self.id)
+        return response
 
-    @classmethod
-    def list_graphs(cls, config: Optional[APIListOptions] = None) -> SyncCursorPage[Graph]:
-        if not config:
-            config = {}
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.list(**config)
+    def add_file(
+            self,
+            file_id: str,
+            config: Optional[APIOptions] = None
+            ) -> 'File':
+        config = config or {}
+        graphs = self._retrieve_graphs_accessor()
+        response = graphs.add_file_to_graph(
+            graph_id=self.id,
+            file_id=file_id,
+            **config
+            )
+        Graph.stale_ids.add(self.id)
+        return response
 
-    @classmethod
-    def delete_graph(cls, graph_id: str) -> GraphDeleteResponse:
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.delete(graph_id)
-
-    @classmethod
-    def add_file_to_graph(cls, graph_id: str, file_id: str, config: Optional[APIOptions] = None) -> File:
-        if not config:
-            config = {}
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.add_file_to_graph(graph_id, file_id, **config)
-
-    @classmethod
-    def remove_file_from_graph(cls, graph_id: str, file_id: str) -> GraphRemoveFileFromGraphResponse:
-        graphs = cls.retrieve_graphs_accessor()
-        return graphs.remove_file_from_graph(graph_id, file_id)
+    def remove_file(self, file_id: str) -> GraphRemoveFileFromGraphResponse:
+        graphs = self._retrieve_graphs_accessor()
+        response = graphs.remove_file_from_graph(
+            graph_id=self.id,
+            file_id=file_id
+            )
+        Graph.stale_ids.add(self.id)
+        return response
 
 
-class WriterFileManager:
-    """
-    Manages file-related operations using the Writer AI API.
+def retrieve_graph(graph_id: str) -> Graph:
+    graphs = Graph._retrieve_graphs_accessor()
+    graph_object = graphs.retrieve(graph_id)
+    graph = Graph._init_from_object(graph_object)
+    return graph
 
-    Provides methods to retrieve, list, delete, download, and upload files.
-    """
 
-    def __init__(self):
-        """
-        Initializes a WriterFileManager instance.
-        """
-        pass
+def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
+    config = config or {}
+    graphs = Graph._retrieve_graphs_accessor()
+    sdk_graphs = graphs.list(**config)
+    return [Graph._init_from_object(sdk_graph) for sdk_graph in sdk_graphs]
 
-    @classmethod
-    def retrieve_files_accessor(cls):
+
+def delete_graph(graph_id_or_graph: Union[Graph, str]) -> GraphDeleteResponse:
+    graph_id = None
+    if isinstance(graph_id_or_graph, Graph):
+        graph_id = graph_id_or_graph.id
+    elif isinstance(graph_id_or_graph, str):
+        graph_id = graph_id_or_graph
+    else:
+        raise ValueError(
+            "'delete_graph' method accepts either 'Graph' object" +
+            f" or ID of graph as string; got '{type(graph_id_or_graph)}'"
+            )
+    graphs = Graph._retrieve_graphs_accessor()
+    return graphs.delete(graph_id)
+
+
+class File(SDKWrapper):
+    _wrapped: SDKFile
+
+    def __init__(self, file_object: SDKFile):
+        self._wrapped = file_object
+
+    @staticmethod
+    def _retrieve_files_accessor() -> FilesResource:
         """
         Acquires the files client from the WriterAIManager singleton instance.
 
@@ -269,44 +333,73 @@ class WriterFileManager:
         """
         return WriterAIManager.acquire_client().files
 
-    @classmethod
-    def retrieve_file(cls, file_id: str) -> File:
-        files = cls.retrieve_files_accessor()
-        return files.retrieve(file_id)
+    @property
+    def id(self) -> str:
+        return self._get_property('id')
 
-    @classmethod
-    def list_files(cls, config: Optional[APIListOptions] = None) -> SyncCursorPage[File]:
-        if not config:
-            config = {}
-        files = cls.retrieve_files_accessor()
-        return files.list(**config)
+    @property
+    def created_at(self) -> datetime:
+        return self._get_property('created_at')
 
-    @classmethod
-    def delete_file(cls, file_id: str) -> FileDeleteResponse:
-        files = cls.retrieve_files_accessor()
-        return files.delete(file_id)
+    @property
+    def graph_ids(self) -> List[str]:
+        return self._get_property('graph_ids')
 
-    @classmethod
-    def download_file(cls, file_id: str) -> BinaryAPIResponse:
-        files = cls.retrieve_files_accessor()
-        return files.download(file_id)
+    @property
+    def name(self) -> str:
+        return self._get_property('name')
 
-    @classmethod
-    def upload_file(cls, file: WriterFileItem, config: APIOptions) -> File:
-        files = cls.retrieve_files_accessor()
-        if "data" not in file:
-            raise ValueError("Missing `data` in file payload")
-        if "type" not in file:
-            raise ValueError("Missing `type` in file payload")
-        if "name" not in file:
-            raise ValueError("Missing `name` in file payload")
+    def download(self) -> BinaryAPIResponse:
+        files = self._retrieve_files_accessor()
+        return files.download(self.id)
 
-        uploaded_file = {
-            "content": file["data"],
-            "content_type": file["type"],
-            "content_disposition": f'attachment;filename="{file["name"]}"'
-            }
-        return files.upload(**uploaded_file, **config)
+
+def retrieve_file(file_id: str) -> File:
+    files = File._retrieve_files_accessor()
+    file_object = files.retrieve(file_id)
+    file = File(file_object)
+    return file
+
+
+def list_files(config: Optional[APIListOptions] = None) -> List[File]:
+    config = config or {}
+    files = File._retrieve_files_accessor()
+    sdk_files = files.list(**config)
+    return [File(sdk_file) for sdk_file in sdk_files]
+
+
+def upload_file(
+        data: bytes,
+        type: str,
+        name: Optional[str] = None,
+        config: Optional[APIOptions] = None
+        ) -> File:
+    config = config or {}
+    files = File._retrieve_files_accessor()
+    uploaded_file = {
+        "content": data,
+        "content_type": type,
+        "content_disposition":
+            f'attachment;filename="{name or f"WF-{type}-{uuid4()}"}"'
+        }
+    sdk_file = files.upload(**uploaded_file, **config)
+    return File(sdk_file)
+
+
+def delete_file(file_id_or_file: Union['File', str]) -> FileDeleteResponse:
+    file_id = None
+    if isinstance(file_id_or_file, File):
+        file_id = file_id_or_file.id
+    elif isinstance(file_id_or_file, str):
+        file_id = file_id_or_file
+    else:
+        raise ValueError(
+            "'delete_file' method accepts either 'File' object" +
+            f" or ID of file as string; got '{type(file_id_or_file)}'"
+            )
+
+    files = File._retrieve_files_accessor()
+    return files.delete(file_id)
 
 
 class Conversation:
@@ -475,8 +568,7 @@ class Conversation:
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
-        if not config:
-            config = {'max_tokens': 2048}
+        config = config or {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
@@ -511,8 +603,7 @@ class Conversation:
         :param config: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
         """
-        if not config:
-            config = {'max_tokens': 2048}
+        config = config or {'max_tokens': 2048}
 
         client = WriterAIManager.acquire_client()
         passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
@@ -571,8 +662,7 @@ def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str
     :return: The text of the first choice from the completion response.
     :raises RuntimeError: If response data was not properly formatted to retrieve model text.
     """
-    if not config:
-        config = {}
+    config = config or {}
 
     client = WriterAIManager.acquire_client()
     request_model = config.get("model", None) or WriterAIManager.use_completion_model()
