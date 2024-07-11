@@ -171,38 +171,14 @@ class SDKWrapper:
 
 
 class Graph(SDKWrapper):
-    _wrapped: SDKGraph
+    _wrapped: SDKGraph = None
     stale_ids = set()
 
     def __init__(
             self,
-            name: str,
-            description: Optional[str] = None,
-            config: Optional[APIOptions] = None,
-            new_graph: bool = True
+            graph_object: SDKGraph
             ):
-        config = config or {}
-        if new_graph is True:
-            graphs = self._retrieve_graphs_accessor()
-            graph_response = \
-                graphs.create(
-                    name=name,
-                    description=description,
-                    **config
-                    )
-            graph_object = graphs.retrieve(graph_response.id)
-            self._wrapped = graph_object
-
-    @staticmethod
-    def _init_from_object(graph_object: SDKGraph):
-        instance = Graph(
-            name=graph_object.name,
-            description=graph_object.description,
-            config=None,
-            new_graph=False
-        )
-        instance._wrapped = graph_object
-        return instance
+        self._wrapped = graph_object
 
     @staticmethod
     def _retrieve_graphs_accessor() -> GraphsResource:
@@ -287,13 +263,13 @@ class Graph(SDKWrapper):
             **config
             )
         Graph.stale_ids.add(self.id)
-        return response
+        return File(response)
 
     def remove_file(
             self,
             file_id_or_file: Union['File', str],
             config: Optional[APIOptions] = None
-            ) -> GraphRemoveFileFromGraphResponse:
+            ) -> Optional[GraphRemoveFileFromGraphResponse]:
         config = config or {}
         file_id = None
         if isinstance(file_id_or_file, File):
@@ -314,10 +290,26 @@ class Graph(SDKWrapper):
         return response
 
 
-def retrieve_graph(graph_id: str) -> Graph:
+def create_graph(
+        name: str,
+        description: Optional[str] = None,
+        config: Optional[APIOptions] = None
+        ) -> Graph:
+    config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
-    graph_object = graphs.retrieve(graph_id)
-    graph = Graph._init_from_object(graph_object)
+    graph_object = graphs.create(name=name, description=description, **config)
+    graph = Graph(graph_object)
+    return graph
+
+
+def retrieve_graph(
+        graph_id: str,
+        config: Optional[APIListOptions] = None
+        ) -> Graph:
+    config = config or {}
+    graphs = Graph._retrieve_graphs_accessor()
+    graph_object = graphs.retrieve(graph_id, **config)
+    graph = Graph(graph_object)
     return graph
 
 
@@ -325,7 +317,7 @@ def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
     sdk_graphs = graphs.list(**config)
-    return [Graph._init_from_object(sdk_graph) for sdk_graph in sdk_graphs]
+    return [Graph(sdk_graph) for sdk_graph in sdk_graphs]
 
 
 def delete_graph(graph_id_or_graph: Union[Graph, str]) -> GraphDeleteResponse:
