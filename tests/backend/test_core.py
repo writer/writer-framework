@@ -24,7 +24,7 @@ from writer.core import (
     State,
     StateSerialiser,
     StateSerialiserException,
-    WriterState,
+    WriterState, import_failure,
 )
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
@@ -1324,3 +1324,26 @@ class TestEditableDataframe:
 
         # Then
         assert len(table) == 3
+
+
+def test_import_failure_returns_expected_value_when_import_fails():
+    """
+    Test that an import failure returns the expected value
+    """
+    @import_failure(rvalue=False)
+    def myfunc():
+        import yop
+
+    assert myfunc() is False
+
+
+def test_import_failure_do_nothing_when_import_go_well():
+    """
+    Test that the import_failure decorator do nothing when the import is a success
+    """
+    @import_failure(rvalue=False)
+    def myfunc():
+        import math
+        return 2
+
+    assert myfunc() == 2

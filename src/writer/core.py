@@ -16,6 +16,7 @@ import time
 import traceback
 import urllib.request
 from abc import ABCMeta
+from functools import wraps
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
@@ -73,6 +74,31 @@ def get_app_process() -> 'AppProcess':
         return raw_process
 
     raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
+
+
+
+def import_failure(rvalue: Any = None):
+    """
+    This decorator captures the failure to load a volume and returns a value instead.
+
+    If the import of a module fails, the decorator returns the value given as a parameter.
+
+    >>> @import_failure(rvalue=False)
+    >>> def my_handler():
+    >>>     import pandas
+    >>>     return pandas.DataFrame()
+
+    :param rvalue: the value to return
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except ImportError:
+                return rvalue
+        return wrapper
+    return decorator
 
 
 class Config:
@@ -1632,6 +1658,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     """
 
     @staticmethod
+    @import_failure(rvalue=False)
     def match(df: Any) -> bool:
         import pandas
         return True if isinstance(df, pandas.DataFrame) else False
@@ -1702,6 +1729,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
     """
 
     @staticmethod
+    @import_failure(rvalue=False)
     def match(df: Any) -> bool:
         import polars
         return True if isinstance(df, polars.DataFrame) else False
