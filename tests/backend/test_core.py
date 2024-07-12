@@ -24,7 +24,8 @@ from writer.core import (
     State,
     StateSerialiser,
     StateSerialiserException,
-    WriterState, import_failure,
+    WriterState,
+    import_failure,
 )
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
@@ -1087,6 +1088,54 @@ class TestEditableDataframe:
         # Then
         assert edf.mutated() is True
 
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index_when_dataframe_has_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        df = df.set_index('name')
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index_when_dataframe_has_multi_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+        assert r['city'] == 'Paris'
+
     def test_editable_dataframe_should_process_new_record_into_dataframe(self) -> None:
         df = pandas.DataFrame({
             "name": ["Alice", "Bob", "Charlie"],
@@ -1192,6 +1241,20 @@ class TestEditableDataframe:
         assert edf.df is not None
         assert isinstance(edf.df, polars.DataFrame)
 
+    def test_editable_dataframe_should_read_record_from_polar_as_dict_based_on_record_index(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
     def test_editable_dataframe_should_process_new_record_into_polar_dataframe(self) -> None:
         df = polars.DataFrame({
             "name": ["Alice", "Bob", "Charlie"],
@@ -1262,6 +1325,21 @@ class TestEditableDataframe:
         assert edf.df is not None
         assert isinstance(edf.df, list)
 
+    def test_editable_dataframe_should_read_record_from_list_of_record_as_dict_based_on_record_index(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
 
     def test_editable_dataframe_should_process_new_record_into_list_of_records(self) -> None:
         records = [

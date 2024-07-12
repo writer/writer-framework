@@ -1611,9 +1611,19 @@ class DataframeRecordProcessor():
         raise NotImplementedError
 
     @staticmethod
+    def record(df: Any, record_index: int) -> dict:
+        """
+        This method read a record at the given line and get it back as dictionary
+
+        >>> edf = EditableDataframe(df)
+        >>> r = edf.record(1)
+        """
+        raise NotImplementedError
+
+    @staticmethod
     def record_add(df: Any, payload: DataframeRecordAdded) -> Any:
         """
-        signature of the methods to be implemented to process wf-dfeditor-add event
+        signature of the methods to be implemented to process wf-dataframe-add event
 
         >>> edf = EditableDataframe(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
@@ -1623,7 +1633,7 @@ class DataframeRecordProcessor():
     @staticmethod
     def record_update(df: Any, payload: DataframeRecordUpdated) -> Any:
         """
-        signature of the methods to be implemented to process wf-dfeditor-update event
+        signature of the methods to be implemented to process wf-dataframe-update event
 
         >>> edf = EditableDataframe(df)
         >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
@@ -1633,7 +1643,7 @@ class DataframeRecordProcessor():
     @staticmethod
     def record_remove(df: Any, payload: DataframeRecordRemoved) -> Any:
         """
-        signature of the methods to be implemented to process wf-dfeditor-remove event
+        signature of the methods to be implemented to process wf-dataframe-action event
 
         >>> edf = EditableDataframe(df)
         >>> edf.record_remove({"record_index": 12})
@@ -1662,6 +1672,27 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     def match(df: Any) -> bool:
         import pandas
         return True if isinstance(df, pandas.DataFrame) else False
+
+    @staticmethod
+    def record(df: 'pandas.DataFrame', record_index: int) -> dict:
+        """
+
+        >>> edf = EditableDataframe(df)
+        >>> r = edf.record(1)
+        """
+        import pandas
+
+        record = df.iloc[record_index]
+        if not isinstance(df.index, pandas.RangeIndex):
+            index_list = df.index.tolist()
+            record_index_content = index_list[record_index]
+            if isinstance(record_index_content, tuple):
+                for i, n in enumerate(df.index.names):
+                    record[n] = record_index_content[i]
+            else:
+                record[df.index.names[0]] = record_index_content
+
+        return dict(record)
 
     @staticmethod
     def record_add(df: 'pandas.DataFrame', payload: DataframeRecordAdded) -> 'pandas.DataFrame':
@@ -1735,6 +1766,21 @@ class PolarRecordProcessor(DataframeRecordProcessor):
         return True if isinstance(df, polars.DataFrame) else False
 
     @staticmethod
+    def record(df: 'polars.DataFrame', record_index: int) -> dict:
+        """
+
+        >>> edf = EditableDataframe(df)
+        >>> r = edf.record(1)
+        """
+        record = {}
+        r = df[record_index]
+        for c in r.columns:
+            record[c] = df[record_index, c]
+
+        return record
+
+
+    @staticmethod
     def record_add(df: 'polars.DataFrame', payload: DataframeRecordAdded) -> 'polars.DataFrame':
         _assert_record_match_polar_df(df, payload['record'])
 
@@ -1786,6 +1832,17 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
     @staticmethod
     def match(df: Any) -> bool:
         return True if isinstance(df, list) else False
+
+
+    @staticmethod
+    def record(df: List[Dict[str, Any]], record_index: int) -> dict:
+        """
+
+        >>> edf = EditableDataframe(df)
+        >>> r = edf.record(1)
+        """
+        r = df[record_index]
+        return copy.copy(r)
 
     @staticmethod
     def record_add(df: List[Dict[str, Any]], payload: DataframeRecordAdded) -> List[Dict[str, Any]]:
@@ -1915,6 +1972,18 @@ class EditableDataframe(MutableValue):
 
         pa_table = self.processor.pyarrow_table(self.df)
         return pa_table
+
+    def record(self, record_index: int):
+        """
+        Retrieves a specific record in dictionary form.
+
+        :param record_index:
+        :return:
+        """
+        assert self.processor is not None
+
+        record = self.processor.record(self.df, record_index)
+        return record
 
 S = TypeVar("S", bound=WriterState)
 
