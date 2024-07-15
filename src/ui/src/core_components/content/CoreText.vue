@@ -1,20 +1,16 @@
 <template>
-	<div
-		v-if="isDisplayed"
-		ref="rootEl"
-		class="CoreText"
-		:style="rootStyle"
-		@click="handleClick"
-	>
-		<BaseMarkdown
-			v-if="fields.useMarkdown.value == 'yes'"
-			:raw-text="fields.text.value"
-			:style="contentStyle"
-		>
-		</BaseMarkdown>
-		<div v-else class="plainText" :style="contentStyle">
-			{{ fields.text.value }}
-		</div>
+	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
+		<BaseEmptiness :is-empty="isEmpty" :component-id="componentId">
+			<BaseMarkdown
+				v-if="fields.useMarkdown.value == 'yes'"
+				:raw-text="fields.text.value"
+				:style="contentStyle"
+			>
+			</BaseMarkdown>
+			<div v-else class="plainText" :style="contentStyle">
+				{{ fields.text.value }}
+			</div>
+		</BaseEmptiness>
 	</div>
 </template>
 
@@ -22,7 +18,6 @@
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 import { getClick } from "../../renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "../../writerTypes";
-import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -34,8 +29,6 @@ def click_handler(state):
 const description =
 	"A component to display plain text or formatted text using Markdown syntax.";
 
-const emptyText = "(No text)";
-
 export default {
 	writer: {
 		name: "Text",
@@ -44,7 +37,6 @@ export default {
 		fields: {
 			text: {
 				name: "Text",
-				default: emptyText,
 				init: "Text",
 				desc: "Add text directly, or reference state elements with @{my_text}.",
 				type: FieldType.Text,
@@ -87,16 +79,15 @@ export default {
 <script setup lang="ts">
 import { Ref, computed, inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
+import BaseEmptiness from "../base/BaseEmptiness.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
-const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const wf = inject(injectionKeys.core);
 
-const isDisplayed = computed(
-	() => isBeingEdited.value || fields.text.value !== emptyText,
-);
+const isEmpty = computed(() => !fields.text.value);
 
 const rootStyle = computed(() => {
 	const component = wf.getComponentById(componentId);
