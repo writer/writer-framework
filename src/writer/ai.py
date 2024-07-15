@@ -371,7 +371,7 @@ class File(SDKWrapper):
         return files.download(self.id)
 
 
-def retrieve_file(file_id: str, config: Optional[APIOptions]) -> File:
+def retrieve_file(file_id: str, config: Optional[APIOptions] = None) -> File:
     config = config or {}
     files = File._retrieve_files_accessor()
     file_object = files.retrieve(file_id, **config)
@@ -406,7 +406,7 @@ def upload_file(
 
 def delete_file(
         file_id_or_file: Union['File', str],
-        config: Optional[APIOptions]
+        config: Optional[APIOptions] = None
         ) -> FileDeleteResponse:
     config = config or {}
     file_id = None
