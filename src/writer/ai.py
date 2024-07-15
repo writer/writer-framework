@@ -159,9 +159,23 @@ class WriterAIManager:
 
 
 class SDKWrapper:
+    """
+    A wrapper class for SDK objects, allowing dynamic access to properties.
+
+    Attributes:
+        _wrapped (Union[SDKFile, SDKGraph]): The wrapped SDK object.
+    """
     _wrapped: Union[SDKFile, SDKGraph]
 
     def _get_property(self, property_name):
+        """
+        Retrieves a property from the wrapped object.
+
+        :param property_name: The name of the property to retrieve.
+        :type property_name: str
+        :returns: The value of the requested property.
+        :raises AttributeError: If the property does not exist.
+        """
         try:
             return getattr(self._wrapped, property_name)
         except AttributeError:
@@ -171,6 +185,13 @@ class SDKWrapper:
 
 
 class Graph(SDKWrapper):
+    """
+    A wrapper class for SDKGraph objects, providing additional functionality.
+
+    Attributes:
+        _wrapped (writerai.types.Graph): The wrapped SDK Graph object.
+        stale_ids (set): A set of stale graph IDs that need updates.
+    """
     _wrapped: SDKGraph = None
     stale_ids = set()
 
@@ -178,6 +199,12 @@ class Graph(SDKWrapper):
             self,
             graph_object: SDKGraph
             ):
+        """
+        Initializes the Graph with the given SDKGraph object.
+
+        :param graph_object: The SDKGraph object to wrap.
+        :type graph_object: writerai.types.Graph
+        """
         self._wrapped = graph_object
 
     @staticmethod
@@ -186,6 +213,7 @@ class Graph(SDKWrapper):
         Acquires the graphs accessor from the WriterAIManager singleton instance.
 
         :returns: The graphs accessor instance.
+        :rtype: GraphsResource
         """
         return WriterAIManager.acquire_client().graphs
 
@@ -198,6 +226,9 @@ class Graph(SDKWrapper):
         return self._get_property('created_at')
 
     def _fetch_object_updates(self):
+        """
+        Fetches updates for the graph object if it is stale.
+        """
         if self.id in Graph.stale_ids:
             graphs = self._retrieve_graphs_accessor()
             fresh_object = graphs.retrieve(self.id)
@@ -225,6 +256,24 @@ class Graph(SDKWrapper):
             description: Optional[str] = None,
             config: Optional[APIOptions] = None
             ) -> GraphUpdateResponse:
+        """
+        Updates the graph with the given parameters.
+
+        :param name: The new name for the graph.
+        :type name: Optional[str]
+        :param description: The new description for the graph.
+        :type description: Optional[str]
+        :param config: Additional configuration options.
+        :type config: Optional[APIOptions]
+        :returns: The response from the update operation.
+        :rtype: GraphUpdateResponse
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]): Additional headers for the request.
+        - `extra_query` (Optional[Query]): Additional query parameters for the request.
+        - `extra_body` (Optional[Body]): Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        """
         config = config or {}
 
         # We use the payload dictionary
@@ -245,6 +294,23 @@ class Graph(SDKWrapper):
             file_id_or_file: Union['File', str],
             config: Optional[APIOptions] = None
             ) -> 'File':
+        """
+        Adds a file to the graph.
+
+        :param file_id_or_file: The file object or file ID to add.
+        :type file_id_or_file: Union['File', str]
+        :param config: Additional configuration options.
+        :type config: Optional[APIOptions]
+        :returns: The added file object.
+        :rtype: File
+        :raises ValueError: If the input is neither a File object nor a file ID string.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]): Additional headers for the request.
+        - `extra_query` (Optional[Query]): Additional query parameters for the request.
+        - `extra_body` (Optional[Body]): Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        """
         config = config or {}
         file_id = None
         if isinstance(file_id_or_file, File):
@@ -270,6 +336,23 @@ class Graph(SDKWrapper):
             file_id_or_file: Union['File', str],
             config: Optional[APIOptions] = None
             ) -> Optional[GraphRemoveFileFromGraphResponse]:
+        """
+        Removes a file from the graph.
+
+        :param file_id_or_file: The file object or file ID to remove.
+        :type file_id_or_file: Union['File', str]
+        :param config: Additional configuration options.
+        :type config: Optional[APIOptions]
+        :returns: The response from the remove operation.
+        :rtype: Optional[GraphRemoveFileFromGraphResponse]
+        :raises ValueError: If the input is neither a File object nor a file ID string.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]): Additional headers for the request.
+        - `extra_query` (Optional[Query]): Additional query parameters for the request.
+        - `extra_body` (Optional[Body]): Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        """
         config = config or {}
         file_id = None
         if isinstance(file_id_or_file, File):
@@ -295,6 +378,24 @@ def create_graph(
         description: Optional[str] = None,
         config: Optional[APIOptions] = None
         ) -> Graph:
+    """
+    Creates a new graph with the given parameters.
+
+    :param name: The name of the graph.
+    :type name: str
+    :param description: The description of the graph.
+    :type description: Optional[str]
+    :param config: Additional configuration options.
+    :type config: Optional[APIOptions]
+    :returns: The created graph object.
+    :rtype: Graph
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
     graph_object = graphs.create(name=name, description=description, **config)
@@ -306,6 +407,26 @@ def retrieve_graph(
         graph_id: str,
         config: Optional[APIListOptions] = None
         ) -> Graph:
+    """
+    Retrieves a graph by its ID.
+
+    :param graph_id: The ID of the graph to retrieve.
+    :type graph_id: str
+    :param config: Additional configuration options.
+    :type config: Optional[APIListOptions]
+    :returns: The retrieved graph object.
+    :rtype: Graph
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `after` (Union[str, NotGiven]): Filter to retrieve items created after a specific cursor.
+    - `before` (Union[str, NotGiven]): Filter to retrieve items created before a specific cursor.
+    - `limit` (Union[int, NotGiven]): The number of items to retrieve.
+    - `order` (Union[Literal["asc", "desc"], NotGiven]): The order in which to retrieve items.
+    """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
     graph_object = graphs.retrieve(graph_id, **config)
@@ -314,6 +435,24 @@ def retrieve_graph(
 
 
 def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
+    """
+    Lists all graphs with the given configuration.
+
+    :param config: Additional configuration options.
+    :type config: Optional[APIListOptions]
+    :returns: A list of graph objects.
+    :rtype: List[Graph]
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `after` (Union[str, NotGiven]): Filter to retrieve items created after a specific cursor.
+    - `before` (Union[str, NotGiven]): Filter to retrieve items created before a specific cursor.
+    - `limit` (Union[int, NotGiven]): The number of items to retrieve.
+    - `order` (Union[Literal["asc", "desc"], NotGiven]): The order in which to retrieve items.
+    """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
     sdk_graphs = graphs.list(**config)
@@ -321,6 +460,15 @@ def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
 
 
 def delete_graph(graph_id_or_graph: Union[Graph, str]) -> GraphDeleteResponse:
+    """
+    Deletes a graph by its ID or object.
+
+    :param graph_id_or_graph: The graph object or graph ID to delete.
+    :type graph_id_or_graph: Union[Graph, str]
+    :returns: The response from the delete operation.
+    :rtype: GraphDeleteResponse
+    :raises ValueError: If the input is neither a Graph object nor a graph ID string.
+    """
     graph_id = None
     if isinstance(graph_id_or_graph, Graph):
         graph_id = graph_id_or_graph.id
@@ -336,9 +484,21 @@ def delete_graph(graph_id_or_graph: Union[Graph, str]) -> GraphDeleteResponse:
 
 
 class File(SDKWrapper):
+    """
+    A wrapper class for SDK File objects, providing additional functionality.
+
+    Attributes:
+        _wrapped (writerai.types.File): The wrapped SDKFile object.
+    """
     _wrapped: SDKFile
 
     def __init__(self, file_object: SDKFile):
+        """
+        Initializes the File with the given SDKFile object.
+
+        :param file_object: The SDKFile object to wrap.
+        :type file_object: writerai.types.File
+        """
         self._wrapped = file_object
 
     @staticmethod
@@ -347,6 +507,7 @@ class File(SDKWrapper):
         Acquires the files client from the WriterAIManager singleton instance.
 
         :returns: The files client instance.
+        :rtype: FilesResource
         """
         return WriterAIManager.acquire_client().files
 
@@ -367,11 +528,33 @@ class File(SDKWrapper):
         return self._get_property('name')
 
     def download(self) -> BinaryAPIResponse:
+        """
+        Downloads the file content.
+
+        :returns: The response containing the file content.
+        :rtype: BinaryAPIResponse
+        """
         files = self._retrieve_files_accessor()
         return files.download(self.id)
 
 
 def retrieve_file(file_id: str, config: Optional[APIOptions] = None) -> File:
+    """
+    Retrieves a file by its ID.
+
+    :param file_id: The ID of the file to retrieve.
+    :type file_id: str
+    :param config: Additional configuration options.
+    :type config: Optional[APIOptions]
+    :returns: The retrieved file object.
+    :rtype: writerai.types.File
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    """
     config = config or {}
     files = File._retrieve_files_accessor()
     file_object = files.retrieve(file_id, **config)
@@ -380,6 +563,24 @@ def retrieve_file(file_id: str, config: Optional[APIOptions] = None) -> File:
 
 
 def list_files(config: Optional[APIListOptions] = None) -> List[File]:
+    """
+    Lists all files with the given configuration.
+
+    :param config: Additional configuration options.
+    :type config: Optional[APIListOptions]
+    :returns: A list of file objects.
+    :rtype: List[File]
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `after` (Union[str, NotGiven]): Filter to retrieve items created after a specific cursor.
+    - `before` (Union[str, NotGiven]): Filter to retrieve items created before a specific cursor.
+    - `limit` (Union[int, NotGiven]): The number of items to retrieve.
+    - `order` (Union[Literal["asc", "desc"], NotGiven]): The order in which to retrieve items.
+    """
     config = config or {}
     files = File._retrieve_files_accessor()
     sdk_files = files.list(**config)
@@ -392,6 +593,26 @@ def upload_file(
         name: Optional[str] = None,
         config: Optional[APIOptions] = None
         ) -> File:
+    """
+    Uploads a new file with the given parameters.
+
+    :param data: The file content as bytes.
+    :type data: bytes
+    :param type: The MIME type of the file.
+    :type type: str
+    :param name: The name of the file.
+    :type name: Optional[str]
+    :param config: Additional configuration options.
+    :type config: Optional[APIOptions]
+    :returns: The uploaded file object.
+    :rtype: writerai.types.File
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    """
     config = config or {}
     files = File._retrieve_files_accessor()
     uploaded_file = {
@@ -408,6 +629,23 @@ def delete_file(
         file_id_or_file: Union['File', str],
         config: Optional[APIOptions] = None
         ) -> FileDeleteResponse:
+    """
+    Deletes a file by its ID or object.
+
+    :param file_id_or_file: The file object or file ID to delete.
+    :type file_id_or_file: Union['File', str]
+    :param config: Additional configuration options.
+    :type config: Optional[APIOptions]
+    :returns: The response from the delete operation.
+    :rtype: FileDeleteResponse
+    :raises ValueError: If the input is neither a File object nor a file ID string.
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]): Additional headers for the request.
+    - `extra_query` (Optional[Query]): Additional query parameters for the request.
+    - `extra_body` (Optional[Body]): Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    """
     config = config or {}
     file_id = None
     if isinstance(file_id_or_file, File):
