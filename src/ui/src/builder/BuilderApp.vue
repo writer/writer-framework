@@ -6,6 +6,7 @@
 				<BuilderSidebar></BuilderSidebar>
 			</div>
 			<div
+				v-if="builderMode !== 'workflows'"
 				class="builderMain"
 				:class="{
 					buildMode: builderMode !== 'preview',
@@ -67,6 +68,9 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div v-if="builderMode == 'workflows'">
+				<WorkflowsCanvas></WorkflowsCanvas>
 			</div>
 		</div>
 		<!-- INSTANCE TRACKERS -->
@@ -135,6 +139,7 @@ import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
+import WorkflowsCanvas from "./workflows/WorkflowsCanvas.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

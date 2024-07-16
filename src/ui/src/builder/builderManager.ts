@@ -44,7 +44,7 @@ export function generateBuilderManager() {
 	};
 
 	type State = {
-		mode: "ui" | "code" | "preview";
+		mode: "ui" | "code" | "workflows" | "preview";
 		selection: {
 			componentId: Component["id"];
 			instancePath: string;

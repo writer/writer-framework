@@ -1,13 +1,24 @@
 <template>
 	<div class="BuilderSidebar">
-		<BuilderSidebarToolbar class="toolbar"></BuilderSidebarToolbar>
-		<BuilderSidebarTree class="tree"></BuilderSidebarTree>
+		<template v-if="builderMode == 'workflows'">
+			<BuilderSidebarWorkflowsToolkit></BuilderSidebarWorkflowsToolkit>
+		</template>
+		<template v-else>
+			<BuilderSidebarToolbar class="toolbar"></BuilderSidebarToolbar>
+			<BuilderSidebarTree class="tree"></BuilderSidebarTree>
+		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { computed, inject } from "vue";
 import BuilderSidebarToolbar from "./BuilderSidebarToolbar.vue";
+import BuilderSidebarWorkflowsToolkit from "./BuilderSidebarWorkflowsToolkit.vue";
 import BuilderSidebarTree from "./BuilderSidebarTree.vue";
+import injectionKeys from "../injectionKeys";
+
+const ssbm = inject(injectionKeys.builderManager);
+const builderMode = computed(() => ssbm.getMode());
 </script>
 
 <style scoped>

@@ -6,6 +6,7 @@ import {
 	ComponentMap,
 	InstancePath,
 	MailItem,
+	UIComponent,
 	UserFunction,
 } from "../writerTypes";
 import {
