@@ -50,7 +50,7 @@ def edit(path, port, host, enable_remote_edit, enable_server_setup):
         enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
 
 @main.command()
-@click.argument('path', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
+@click.argument('path', type=click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=True))
 @click.option('--template', help="The template to use when creating a new app.")
 def create(path, template):
     """Create a new app in PATH folder."""
