@@ -1149,6 +1149,7 @@ class TestEditableDataframe:
 
         # Then
         assert len(edf.df) == 4
+        assert edf.df.index.tolist()[3] == 3
 
     def test_editable_dataframe_should_process_new_record_into_dataframe_with_index(self) -> None:
         df = pandas.DataFrame({

@@ -1705,9 +1705,13 @@ class PandasRecordProcessor(DataframeRecordProcessor):
         _assert_record_match_pandas_df(df, payload['record'])
 
         record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
-        
-        new_df = pandas.DataFrame([record], index=[index])
-        return pandas.concat([df, new_df])
+
+        if isinstance(df.index, pandas.RangeIndex):
+            new_df = pandas.DataFrame([record])
+            return pandas.concat([df, new_df], ignore_index=True)
+        else:
+            new_df = pandas.DataFrame([record], index=[index])
+            return pandas.concat([df, new_df])
 
     @staticmethod
     def record_update(df: 'pandas.DataFrame', payload: DataframeRecordUpdated) -> 'pandas.DataFrame':

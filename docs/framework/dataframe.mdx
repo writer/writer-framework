@@ -11,7 +11,7 @@ it offers components as `dataframe` to manipulate dataframes. These components a
 | `polar.DataFrame`  | x                                     |
 | `list of records`  | x (with `EditableDataframe`)          |
 
-### Use a dataframe
+## Use a dataframe
 
 **a dataframe is simply added to the state**. A component like `dataframe` will be able to display it.
 
@@ -24,9 +24,9 @@ wf.init_state({
 })
 ```
 
-### Prepare a dataframe for editing
+## Prepare a dataframe for editing
 
-**writer provides a helper to facilitate dataframe manipulatione**. This helper makes it easier to write event handlers such as adding a line,
+**writer provides `EditableDataframe` as a helper to facilitate manipulation**. it makes it easier to write event handlers such as adding a line,
 deleting it or modifying a value, etc...
 
 ```python
@@ -40,9 +40,7 @@ wf.init_state({
 })
 ```
 
-<Info>An `EditableDataframe` value can also be displayed in the `dataframe` component</Info>
-
-#### Handle events from a dataframe editor
+### Handle events from a dataframe editor
 
 **The dataframe component emits events when an action is performed**. You must subscribe to events to integrate changes to the state of the application.
 
@@ -78,9 +76,9 @@ def on_record_action(state, payload):
 		state['record'] = state['df'].record(record_index) # dict representation of record
 ```
 
-#### Alternative to pandas.DataFrame
+### Datastructures supported by `EditableDataframe`
 
-`EditableDataframe` can also be used with a polar dataframe and list of records.
+`EditableDataframe` can be used with a panda dataframe, a polar dataframe and list of records.
 
 ```python
 import pandas
@@ -91,7 +89,6 @@ import writer as wf
 panda_df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
 polars_df = polars.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
 list_of_records = [{'a': 1, 'b': 4}, {'a': 2, 'b': 5}, {'a': 3, 'b': 6}]
-list_of_records = [[1, 4], [2, 5], [3, 6]]
 
 wf.init_state({
 	'mypandas': wf.EditableDataframe(panda_df),
