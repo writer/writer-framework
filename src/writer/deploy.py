@@ -35,6 +35,7 @@ def cloud():
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 @click.argument('path')
 def deploy(path, api_key, env, verbose):
+    check_app(api_key)
     """Deploy the app from PATH folder."""
 
     abs_path, is_folder = _get_absolute_app_path(path)
@@ -162,6 +163,26 @@ def pack_project(path):
     f.flush()
 
     return f
+
+def check_app(token):
+    url = get_app_url(token)
+    if url:
+        print("[WARNING] This token was already used to deploy a different app")
+        print(f"[WARNING] URL: {url}")
+        print("[WARNING] If looking to deploy to a different URL, use a different API key. ")
+        if input("[WARNING] Are you sure you want to overwrite? (y/N)").lower() != "y":
+            sys.exit(1)
+
+def get_app_url(token):
+    with requests.get(WRITER_DEPLOY_URL, params={"lineLimit": 1}, headers={"Authorization": f"Bearer {token}"}) as resp:
+        try:
+            resp.raise_for_status()
+        except Exception as e:
+            print(e)
+            print(resp.json())
+            return None
+        data = resp.json()
+    return data['status']['url']
 
 def get_logs(token, params, verbose=False):
     with requests.get(WRITER_DEPLOY_URL, params = params, headers={"Authorization": f"Bearer {token}"}) as resp:

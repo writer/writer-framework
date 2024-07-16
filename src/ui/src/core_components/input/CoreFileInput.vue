@@ -1,7 +1,7 @@
 <template>
 	<BaseInputWrapper
 		ref="rootInstance"
-		:label="!processingFiles ? fields.label.value : null"
+		:label="!processingFiles ? fields.label.value : ''"
 		class="CoreFileInput"
 	>
 		<div class="main">

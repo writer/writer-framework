@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsPadding" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsPadding"
+		tabindex="-1"
+		:data-automation-key="props.fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
@@ -113,10 +118,9 @@
 				</div>
 			</div>
 
-			<input
+			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				type="text"
 				:value="component.content[fieldKey]"
 				@input="handleInputCss"
 			/>
@@ -141,6 +145,7 @@ import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";
 import { languages } from "monaco-editor";
 import css = languages.css;
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
