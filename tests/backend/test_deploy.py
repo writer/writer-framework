@@ -4,7 +4,7 @@ import re
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Union
 
 import pytest
 import pytz
@@ -17,7 +17,7 @@ from writer.command_line import main
 def create_app():
     class State:
         log_counter = 0
-        envs: str| None = None
+        envs: Union[str, None] = None
 
     state = State()
     app = FastAPI()
