@@ -53,7 +53,8 @@
 			"pages": [
 				"framework/chat-assistant",
 				"framework/social-post-generator",
-				"framework/product-description-generator"
+				"framework/product-description-generator",
+				"framework/release-notes-generator"
 			]
 		},
 		{
