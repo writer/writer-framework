@@ -4,7 +4,7 @@ import re
 from click.testing import CliRunner
 from writer.command_line import main
 
-from backend.fixtures.cloud_deploy_fixtures import use_fake_cloud_deploy_server 
+from backend.fixtures.cloud_deploy_fixtures import use_fake_cloud_deploy_server
 
 
 def _assert_warning(result, url = "https://my-app.com"):

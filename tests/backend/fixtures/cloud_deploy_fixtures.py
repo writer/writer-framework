@@ -14,8 +14,6 @@ from fastapi import Body, Depends, FastAPI, File, Header, UploadFile
 from writer.command_line import main
 
 
-
-
 def create_app():
     class State:
         log_counter = 0
