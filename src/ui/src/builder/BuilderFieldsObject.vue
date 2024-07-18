@@ -1,18 +1,16 @@
 <template>
-	<textarea
-		v-capture-tabs
+	<BuilderTemplateInput
 		class="BuilderFieldsObject"
+		:data-automation-key="props.fieldKey"
+		multiline="true"
 		variant="code"
 		:value="component.content[fieldKey]"
-		autocorrect="off"
-		autocomplete="off"
-		spellcheck="false"
-		:placeholder="templateField.default"
+		:placeholder="templateField.placeholder"
 		@input="
 			(ev: Event) =>
 				formatAndSetContentValue((ev.target as HTMLInputElement).value)
 		"
-	></textarea>
+	/>
 </template>
 
 <script setup lang="ts">
@@ -20,6 +18,7 @@ import { toRefs, inject, computed } from "vue";
 import { Component } from "../writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -58,9 +58,10 @@ Note the inclusion of the imported `ws_max_size` setting. This is important for 
 
 Fine-tuning Uvicorn allows you to set up SSL, configure proxy headers, etc, which can prove vital in complex deployments.
 
-Use server setup hook
+If you want to disable server setup hook, you should use `enable_server_setup`:
+
 ```python
-asgi_app = writer.serve.get_asgi_app(app_path, mode, enable_server_setup=True)
+asgi_app = writer.serve.get_asgi_app(app_path, mode, enable_server_setup=False)
 ```
 
 ## Multiple apps at once

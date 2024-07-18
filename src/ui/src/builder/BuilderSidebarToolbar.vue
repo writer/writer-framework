@@ -155,6 +155,7 @@ const handleDragEnd = (ev: DragEvent) => {
 	top: 0;
 	background: var(--builderBackgroundColor);
 	font-size: 0.875rem;
+	height: 40px;
 }
 
 h3 {
@@ -192,6 +193,7 @@ h3 {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	height: 33px;
 }
 
 .component:hover {
