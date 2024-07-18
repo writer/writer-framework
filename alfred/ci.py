@@ -18,7 +18,6 @@ def ci(front, back, e2e, docs):
     if back or no_flags:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
-        alfred.invoke_command("build.app_provisionning")
         alfred.invoke_command("ci.pytest")
     if front or no_flags:
         alfred.invoke_command("npm.lint")

@@ -18,7 +18,7 @@ from gitignore_parser import parse_gitignore
 
 @click.group()
 def cloud():
-    """A group of commands to deploy the app"""
+    """A group of commands to deploy the app on writer cloud"""
     pass
 
 @cloud.command()
@@ -43,8 +43,8 @@ def deploy(path, api_key, env, verbose, force):
     if not force:
         check_app(deploy_url, api_key)
 
-    abs_path, is_folder = _get_absolute_app_path(path)
-    if not is_folder:
+    abs_path = os.path.abspath(path)
+    if not os.path.isdir(abs_path):
         raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer cloud deploy my_app")
 
     env = _validate_env_vars(env)
@@ -67,7 +67,6 @@ def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
     if env is None:
         return None
     for var in env:
-        print(var)
         regex = r"^[a-zA-Z_]+[a-zA-Z0-9_]*=.*$"
         if not re.match(regex, var):
             logging.error(f"Invalid environment variable: {var}, please use the format ENV_VAR=value")
@@ -174,7 +173,7 @@ def pack_project(path):
     return f
 
 def check_app(deploy_url, token):
-    url = get_app_url(deploy_url, token)
+    url = _get_app_url(deploy_url, token)
     if url:
         print("[WARNING] This token was already used to deploy a different app")
         print(f"[WARNING] URL: {url}")
@@ -182,7 +181,7 @@ def check_app(deploy_url, token):
         if input("[WARNING] Are you sure you want to overwrite? (y/N)").lower() != "y":
             sys.exit(1)
 
-def get_app_url(deploy_url, token):
+def _get_app_url(deploy_url: str, token: str) -> Union[str, None]:
     with requests.get(deploy_url, params={"lineLimit": 1}, headers={"Authorization": f"Bearer {token}"}) as resp:
         try:
             resp.raise_for_status()
@@ -284,8 +283,3 @@ def unauthorized_error():
     print("Unauthorized. Please check your API key.")
     sys.exit(1)
 
-def _get_absolute_app_path(app_path: str):
-    is_path_absolute = os.path.isabs(app_path)
-    absolute_app_path = app_path if is_path_absolute else os.path.join(os.getcwd(), app_path)
-    is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
-    return absolute_app_path, is_path_folder

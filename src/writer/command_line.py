@@ -25,8 +25,8 @@ def main():
 def run(path, host, port):
     """Run the app from PATH folder in run mode."""
 
-    abs_path, is_folder = _get_absolute_app_path(path)
-    if not is_folder:
+    abs_path = os.path.abspath(path)
+    if not os.path.isdir(abs_path):
         raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer run my_app")
 
     writer.serve.serve(
@@ -41,8 +41,8 @@ def run(path, host, port):
 def edit(path, port, host, enable_remote_edit, enable_server_setup):
     """Run the app from PATH folder in edit mode."""
 
-    abs_path, is_folder = _get_absolute_app_path(path)
-    if not is_folder:
+    abs_path = os.path.abspath(path)
+    if not os.path.isdir(abs_path):
         raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer edit my_app")
 
     writer.serve.serve(
@@ -50,16 +50,16 @@ def edit(path, port, host, enable_remote_edit, enable_server_setup):
         enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
 
 @main.command()
-@click.argument('path', type=click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=True))
+@click.argument('path')
 @click.option('--template', help="The template to use when creating a new app.")
 def create(path, template):
     """Create a new app in PATH folder."""
 
-    abs_path, _ = _get_absolute_app_path(path)
-    if abs_path is None:
+    abs_path = os.path.abspath(path)
+    if os.path.isfile(abs_path):
         raise click.ClickException("A target folder is required to create a Writer Framework app. For example: writer create my_app")
 
-    create_app(abs_path, template_name=template)
+    create_app(os.path.abspath(path), template_name=template)
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
@@ -93,12 +93,6 @@ def create_app(app_path: str, template_name: Optional[str], overwrite=False):
         sys.exit(1)
 
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
-
-def _get_absolute_app_path(app_path: str):
-    is_path_absolute = os.path.isabs(app_path)
-    absolute_app_path = app_path if is_path_absolute else os.path.join(os.getcwd(), app_path)
-    is_path_folder = absolute_app_path is not None and os.path.isdir(absolute_app_path)
-    return absolute_app_path, is_path_folder
 
 if __name__ == "__main__":
     main()
