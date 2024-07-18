@@ -59,6 +59,7 @@
 		{
 			"group": "Deployment",
 			"pages": [
+				"framework/cloud-deploy",
 				"framework/deploy-with-docker",
 				"framework/testing"
 			]
