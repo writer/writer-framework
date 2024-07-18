@@ -5,13 +5,28 @@
 		class="CoreFileInput"
 	>
 		<div class="main">
-			<input
-				v-if="!processingFiles"
-				ref="fileEl"
-				type="file"
-				:multiple="allowMultipleFilesFlag"
-				@change="fileChange($event as InputEvent)"
-			/>
+			<div v-if="!processingFiles" class="file-input">
+				<input
+					v-show="false"
+					ref="fileEl"
+					type="file"
+					:multiple="allowMultipleFilesFlag"
+					@change="fileChange($event as InputEvent)"
+				/>
+				<div>
+					<button class="file-input__trigger" @click="fileEl.click()">
+						{{ triggerText }}
+					</button>
+				</div>
+				<ul v-if="selectedFiles" class="file-input__files">
+					<li v-for="(file, i) of selectedFiles" :key="i">
+						<a href="#" @click="downloadFile(file)">{{
+							file.name
+						}}</a>
+					</li>
+				</ul>
+				<p v-else>{{ emptyMessage }}</p>
+			</div>
 			<div v-if="message || processingFiles" class="status">
 				<LoadingSymbol
 					v-if="processingFiles"
@@ -27,10 +42,10 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../writerTypes";
-import { cssClasses } from "../../renderer/sharedStyleFields";
-import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
+import { cssClasses } from "../../renderer/sharedStyleFields";
+import { FieldType } from "../../writerTypes";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -84,10 +99,12 @@ export default {
 </script>
 
 <script setup lang="ts">
-import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import { computed, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+
+type SavedFile = { name: string; type: string; data: unknown };
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
@@ -103,12 +120,16 @@ const { formValue, handleInput } = useFormValueBroker(
 	rootInstance,
 );
 
+const selectedFiles = computed<SavedFile[]>(() =>
+	Array.isArray(formValue.value) ? formValue.value : [],
+);
+
 const allowMultipleFilesFlag = computed(() => {
 	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
 });
 
 const encodeFile = async (file: File) => {
-	var reader = new FileReader();
+	const reader = new FileReader();
 	reader.readAsDataURL(file);
 
 	return new Promise((resolve, reject) => {
@@ -127,7 +148,7 @@ const fileChange = async (ev: InputEvent) => {
 		const encodedFiles = Promise.all(
 			Array.from(el.files).map(async (f) => {
 				accumSize += f.size;
-				const fileItem = {
+				const fileItem: SavedFile = {
 					name: f.name,
 					type: f.type,
 					data: await encodeFile(f),
@@ -157,6 +178,20 @@ watch(formValue, (newValue: string) => {
 		fileEl.value.value = "";
 	}
 });
+
+function downloadFile(file: SavedFile) {
+	const link = document.createElement("a");
+	link.href = String(file.data);
+	link.download = file.name;
+	link.click();
+	link.remove();
+}
+
+const fileLabel = computed(() =>
+	allowMultipleFilesFlag.value ? "files" : "file",
+);
+const triggerText = computed(() => `Browse ${fileLabel.value}`);
+const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
 </script>
 
 <style scoped>
@@ -173,7 +208,24 @@ watch(formValue, (newValue: string) => {
 	gap: 16px;
 }
 
-input {
+.file-input {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.file-input__files {
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.file-input__files li {
+	margin-left: 0;
+}
+
+.file-input__trigger {
 	max-width: 70ch;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
@@ -184,7 +236,7 @@ input {
 	outline: none;
 }
 
-input:focus {
+.file-input__trigger:focus {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
