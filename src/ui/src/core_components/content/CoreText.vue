@@ -1,6 +1,13 @@
 <template>
-	<div ref="rootEl" class="CoreText" :style="rootStyle" @click="handleClick">
-		<BaseEmptiness :is-empty="isEmpty" :component-id="componentId">
+	<div
+		v-if="shouldDisplay"
+		ref="rootEl"
+		class="CoreText"
+		:style="rootStyle"
+		@click="handleClick"
+	>
+		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
+		<template v-else>
 			<BaseMarkdown
 				v-if="fields.useMarkdown.value == 'yes'"
 				:raw-text="fields.text.value"
@@ -10,7 +17,7 @@
 			<div v-else class="plainText" :style="contentStyle">
 				{{ fields.text.value }}
 			</div>
-		</BaseEmptiness>
+		</template>
 	</div>
 </template>
 
@@ -87,7 +94,9 @@ const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);
 
+const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const isEmpty = computed(() => !fields.text.value);
+const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
 
 const rootStyle = computed(() => {
 	const component = wf.getComponentById(componentId);
