@@ -1,4 +1,9 @@
 import os
+import threading
+import ctypes
+import time
+import requests
+import subprocess
 
 from click.testing import CliRunner
 from writer.command_line import main
@@ -36,3 +41,61 @@ def test_create_specific_template():
         with open('./my_app/pyproject.toml') as f:
             content = f.read()
         assert content.find('name = "writer-framework-hello"') != -1
+
+
+def test_run():
+    runner = CliRunner()
+    p = None
+    try:
+        with runner.isolated_filesystem():
+            runner.invoke(main, ['create', './my_app', '--template', 'hello'])
+            p = subprocess.Popen(["writer", "run", "./my_app", "--port", "5001"])
+
+            retry = 0
+            success = False
+            while True:
+                try:
+                    response = requests.get('http://127.0.0.1:5001')
+                    if response.status_code == 200:
+                        success = True
+                        break
+                    if response.status_code != 200:
+                        raise Exception("Status code is not 200")
+                except Exception:
+                    time.sleep(1)
+                    retry += 1
+                    if retry > 10:
+                        break
+            assert success == True
+    finally:
+        if p is not None:
+            p.terminate()
+
+
+def test_edit():
+    runner = CliRunner()
+    p = None
+    try:
+        with runner.isolated_filesystem():
+            runner.invoke(main, ['create', './my_app', '--template', 'hello'])
+            p = subprocess.Popen(["writer", "edit", "./my_app", "--port", "5002"])
+
+            retry = 0
+            success = False
+            while True:
+                try:
+                    response = requests.get('http://127.0.0.1:5002')
+                    if response.status_code == 200:
+                        success = True
+                        break
+                    if response.status_code != 200:
+                        raise Exception("Status code is not 200")
+                except Exception:
+                    retry += 1
+                    time.sleep(1)
+                    if retry > 10:
+                        break
+            assert success == True
+    finally:
+        if p is not None:
+            p.terminate()
