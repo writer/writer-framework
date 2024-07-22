@@ -54,7 +54,7 @@ writer cloud deploy hello --env VAR1=value1 --env VAR2=value2
 
 **Description:**
 - Deploys the app located in the `PATH` folder.
-- Creates a deployment package, ignoring `.git` directories, Dockerfiles, and reserved filenames like `service_entrypoint.py`.
+- Creates a deployment package, ignoring `.git` directories, `Dockerfile`s and all files specified in `.gitignore` file.
 - Uploads the package to the deployment server.
 - The deployed app will have access to specified environment variables.
 - By default, the `WRITER_API_KEY` environment variable will be added to enable AI features.
