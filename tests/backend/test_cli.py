@@ -1,10 +1,10 @@
-import os
-import threading
 import ctypes
-import time
-import requests
+import os
 import subprocess
+import threading
+import time
 
+import requests
 from click.testing import CliRunner
 from writer.command_line import main
 
