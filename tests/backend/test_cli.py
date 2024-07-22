@@ -49,7 +49,7 @@ def test_run():
     try:
         with runner.isolated_filesystem():
             runner.invoke(main, ['create', './my_app', '--template', 'hello'])
-            p = subprocess.Popen(["writer", "run", "./my_app", "--port", "5001"])
+            p = subprocess.Popen(["writer", "run", "my_app", "--port", "5001"])
 
             retry = 0
             success = False
@@ -78,7 +78,7 @@ def test_edit():
     try:
         with runner.isolated_filesystem():
             runner.invoke(main, ['create', './my_app', '--template', 'hello'])
-            p = subprocess.Popen(["writer", "edit", "./my_app", "--port", "5002"])
+            p = subprocess.Popen(["writer", "edit", "my_app", "--port", "5002"])
 
             retry = 0
             success = False
