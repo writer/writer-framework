@@ -6,7 +6,6 @@ import {
 	ComponentMap,
 	InstancePath,
 	MailItem,
-	UIComponent,
 	UserFunction,
 } from "../writerTypes";
 import {
@@ -111,6 +110,13 @@ export function generateCore() {
 		const isFixApplied = auditAndFixComponents(initData.components);
 		if (!isFixApplied) return;
 		await sendComponentUpdate();
+
+		addComponent({
+			id: "workflow1",
+			type: "workflow",
+			parentId: "root",
+			content: {},
+		});
 	}
 
 	function getSessionTimestamp() {

@@ -25,14 +25,10 @@ export type Component = {
 	visible?: boolean | string;
 	x?: number;
 	y?: number;
-	outs?: Record<
-		string,
-		{
-			name: string;
-			description: string;
-			style: string;
-		}
-	>;
+	outs?: {
+		outId: string;
+		toNodeId: string;
+	}[];
 };
 
 /**
@@ -135,14 +131,3 @@ export type ComponentMap = Record<Component["id"], Component>;
 export type MailItem = { type: string; payload: Record<string, string> };
 
 export type UserFunction = { name: string; args: string[] };
-
-export type WorkflowsNode = {
-	type: string;
-	content: Record<string, string>;
-	x: number;
-	y: number;
-	outs: {
-		outId: string;
-		toNodeId: string;
-	}[];
-};

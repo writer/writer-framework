@@ -14,15 +14,15 @@
 			></WorkflowsArrow>
 		</svg>
 		<WorkflowsNodeBox
-			v-for="(node, nodeId) in nodes"
-			:key="nodeId"
-			:data-writer-id="nodeId"
+			v-for="node in nodes"
+			:key="node.id"
+			:data-writer-id="node.id"
 			:node="node"
 			draggable="true"
-			@click="() => handleNodeClick(nodeId)"
+			@click="() => handleNodeClick(node.id)"
 			@drag="handleNodeDrag"
 			@dragstart="handleNodeDragStart"
-			@out-select="(outId) => handleNodeOutSelect(nodeId, outId)"
+			@out-select="(outId) => handleNodeOutSelect(node.id, outId)"
 		></WorkflowsNodeBox>
 	</div>
 </template>
@@ -31,14 +31,18 @@
 import WorkflowsNodeBox from "./WorkflowsNodeBox.vue";
 import WorkflowsArrow from "./WorkflowsArrow.vue";
 import { Ref, computed, ref } from "vue";
-import { onMounted } from "vue";
-import { type WorkflowsComponent } from "../../writerTypes";
+import { onMounted, inject } from "vue";
+import { type Component } from "../../writerTypes";
+import injectionKeys from "../../injectionKeys";
+
+const nodes = computed(() => ss.getComponents("workflow1"));
+
+const ss = inject(injectionKeys.core);
+const ssbm = inject(injectionKeys.builderManager);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 
 let activeNodeOut: { outId: string; fromNodeId: string } | null = null;
-
-const nodes: Ref<Record<string, WorkflowsComponent>> = ref({});
 
 let arrows = ref([]);
 
@@ -57,14 +61,15 @@ function handleCanvasDrop(ev: DragEvent) {
 	const canvasCBR = rootEl.value.getBoundingClientRect();
 	const x = ev.pageX - canvasCBR.x;
 	const y = ev.pageY - canvasCBR.y;
-	nodes.value[id] = {
+	ss.addComponent({
 		id,
+		parentId: "workflow1",
 		x,
 		y,
 		content: {},
 		type: dragData.type,
 		outs: [],
-	};
+	});
 }
 
 function handleNodeDragStart(ev: DragEvent) {
@@ -86,8 +91,11 @@ function handleNodeDrag(ev: DragEvent) {
 	const canvasCBR = rootEl.value.getBoundingClientRect();
 	const x = ev.pageX - canvasCBR.x - nodeClickOffset.x;
 	const y = ev.pageY - canvasCBR.y - nodeClickOffset.y;
-	nodes.value[nodeId].x = Math.max(0, x);
-	nodes.value[nodeId].y = Math.max(0, y);
+
+	const node = ss.getComponentById(nodeId);
+
+	node.x = Math.max(0, x);
+	node.y = Math.max(0, y);
 	refreshArrows();
 }
 
@@ -99,12 +107,26 @@ function handleNodeOutSelect(nodeId, outId) {
 }
 
 function handleNodeClick(nodeId: string) {
-	if (!activeNodeOut) return;
+	if (!activeNodeOut) {
+		ssbm.setSelection(nodeId, `root:0,workflow1:0,${nodeId}:0`);
+		return;
+	}
 	if (activeNodeOut.fromNodeId == nodeId) return;
-	nodes.value[activeNodeOut.fromNodeId].outs.push({
-		toNodeId: nodeId,
-		outId: activeNodeOut.outId,
-	});
+
+	console.log("cat man", activeNodeOut);
+
+	const node = ss.getComponentById(activeNodeOut.fromNodeId);
+
+	node.outs = [
+		...node.outs,
+		{
+			toNodeId: nodeId,
+			outId: activeNodeOut.outId,
+		},
+	];
+
+	console.log(node.outs);
+
 	activeNodeOut = null;
 	refreshArrows();
 }
@@ -117,10 +139,12 @@ function refreshArrows() {
 	arrows.value = [];
 	const canvasCBR = rootEl.value.getBoundingClientRect();
 
-	Object.entries(nodes.value)
-		.filter(([nodeId, node]) => node.outs?.length > 0)
-		.forEach(([nodeId, node]) => {
-			const fromNodeId = nodeId;
+	const nodes = ss.getComponents("workflow1");
+
+	nodes
+		.filter((node) => node.outs?.length > 0)
+		.forEach((node) => {
+			const fromNodeId = node.id;
 			node.outs.forEach((out) => {
 				const fromEl = document.querySelector(
 					`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${out.outId}"]`,

@@ -1092,12 +1092,12 @@ class Evaluator:
         self.wf = session_state
         self.ct = session_component_tree
 
-    def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="") -> Any:
+    def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
         def replacer(matched):
             if matched.string[0] == "\\":  # Escaped @, don't evaluate
                 return matched.string
             expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, instance_path)
+            expr_value = self.evaluate_expression(expr, instance_path, base_context)
 
             serialised_value = None
             try:
@@ -1123,8 +1123,8 @@ class Evaluator:
         else:
             raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
 
-    def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
-        context: Dict[str, Any] = {}
+    def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
+        context: Dict[str, Any] = base_context
         for i in range(len(instance_path)):
             path_item = instance_path[i]
             component_id = path_item["componentId"]
@@ -1211,10 +1211,10 @@ class Evaluator:
         return accessors
 
 
-    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath]) -> Any:
+    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
         context_data = None
         if instance_path:
-            context_data = self.get_context_data(instance_path)
+            context_data = self.get_context_data(instance_path, base_context)
         context_ref: Any = context_data
         state_ref: Any = self.wf.user_state.state
         accessors: List[str] = self.parse_expression(expr, instance_path)

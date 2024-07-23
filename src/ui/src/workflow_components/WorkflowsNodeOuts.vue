@@ -1,20 +1,7 @@
 <template>
-	<div class="WorkflowsNodeBox">
-		<div class="title">{{ nodeDef.name }}</div>
-		<div class="main">
-			<BuilderFieldsText
-				:component-id="node.id"
-				field-key="functionName"
-			></BuilderFieldsText>
-			{{ nodeDef.description }}
-			{{ nodeDef.outs }}
-		</div>
+	<div class="WorkflowsNodeOuts">
 		<div class="outputs">
-			<div
-				v-for="(out, outId) in nodeDef.outs"
-				:key="outId"
-				class="output"
-			>
+			<div v-for="(out, outId) in def.outs" :key="outId" class="output">
 				{{ out.name }}
 				<div
 					class="ball"
@@ -28,30 +15,31 @@
 </template>
 
 <script setup lang="ts">
-import { Component } from "../../writerTypes";
-import BuilderFieldsText from "../BuilderFieldsText.vue";
-import nodeTemplates from "./nodeTemplateDefs";
+import { computed, inject } from "vue";
+import { Component } from "../writerTypes";
+import injectionKeys from "../injectionKeys";
+
+const wf = inject(injectionKeys.core);
 
 const props = defineProps<{
-	node: Component;
+	component: Component;
 }>();
 
-const nodeDef = nodeTemplates[props.node.type];
+const def = computed(() => {
+	return wf?.getComponentDefinition(props.component.type);
+});
 
 defineEmits(["outSelect"]);
 </script>
 
 <style scoped>
-@import "../sharedStyles.css";
+@import "../renderer/sharedStyles.css";
 
-.WorkflowsNodeBox {
+.WorkflowsNodeOuts {
 	background: var(--builderBackgroundColor);
 	border-radius: 12px;
 	width: 240px;
-	position: absolute;
 	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.03);
-	top: v-bind("`${props.node.y}px`");
-	left: v-bind("`${props.node.x}px`");
 }
 
 .title {

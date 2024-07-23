@@ -68,6 +68,10 @@
 				<i class="material-symbols-outlined"> add </i>
 				Add Page
 			</button>
+			<button @click="addWorkflow">
+				<i class="material-symbols-outlined"> add </i>
+				Add Workflow
+			</button>
 		</div>
 	</div>
 </template>
@@ -176,6 +180,13 @@ const matchAvailable: ComputedRef<boolean> = computed(
 
 async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
+	wf.setActivePageId(pageId);
+	await nextTick();
+	ssbm.setSelection(pageId);
+}
+
+async function addWorkflow() {
+	const pageId = createAndInsertComponent("workflow", "root");
 	wf.setActivePageId(pageId);
 	await nextTick();
 	ssbm.setSelection(pageId);

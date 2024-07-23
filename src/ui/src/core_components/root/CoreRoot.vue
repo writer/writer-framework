@@ -48,7 +48,7 @@ export default {
 		name: "Root",
 		category: "Root",
 		description,
-		allowedChildrenTypes: ["page"],
+		allowedChildrenTypes: ["page", "workflow"],
 		fields: {
 			appName: {
 				name: "App name",

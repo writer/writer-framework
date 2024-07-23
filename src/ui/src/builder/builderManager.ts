@@ -100,7 +100,7 @@ export function generateBuilderManager() {
 				`.ComponentRenderer [data-writer-id="${componentId}"]`,
 			);
 			resolvedInstancePath =
-				componentFirstElement.dataset.writerInstancePath;
+				componentFirstElement?.dataset?.writerInstancePath;
 		}
 
 		state.value.selection = {

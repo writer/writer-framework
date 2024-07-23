@@ -16,7 +16,7 @@
 		</template>
 		<template v-else-if="templateField.control == FieldControl.Textarea">
 			<BuilderTemplateInput
-				multiline="true"
+				:multiline="true"
 				variant="text"
 				class="content"
 				:value="component.content[fieldKey]"
@@ -44,6 +44,7 @@ const props = defineProps<{
 }>();
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
+
 const templateField = computed(() => {
 	const { type } = component.value;
 	const definition = wf.getComponentDefinition(type);
