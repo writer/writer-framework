@@ -17,6 +17,7 @@ import CoreAvatar from "../core_components/content/CoreAvatar.vue";
 import CoreJsonViewer from "../core_components/content/CoreJsonViewer.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
+import CoreColorInput from "../core_components/input/CoreColorInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
 import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
 import CoreFileInput from "../core_components/input/CoreFileInput.vue";
@@ -94,6 +95,7 @@ const templateMap = {
 	textareainput: CoreTextareaInput,
 	numberinput: CoreNumberInput,
 	sliderinput: CoreSliderInput,
+	colorinput: CoreColorInput,
 	dateinput: CoreDateInput,
 	timeinput: CoreTimeInput,
 	radioinput: CoreRadioInput,
