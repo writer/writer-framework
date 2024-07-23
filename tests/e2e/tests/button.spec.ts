@@ -26,7 +26,7 @@ test.describe("button", () => {
 			.dragTo(page.locator(".CoreSection .ChildlessPlaceholder"));
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
-			.locator('.BuilderFieldsText[data-key="text"] input')
+			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill("Hello, World!");
 		await expect(page.locator(COMPONENT_LOCATOR)).toContainText(
 			"Hello, World!",

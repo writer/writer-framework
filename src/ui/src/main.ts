@@ -1,9 +1,10 @@
 import * as vue from "vue";
 import { App, createApp } from "vue";
-import injectionKeys from "./injectionKeys";
-import { generateCore } from "./core";
-import { generateBuilderManager } from "./builder/builderManager.js";
 import VueDOMPurifyHTML from "vue-dompurify-html";
+import { generateBuilderManager } from "./builder/builderManager.js";
+import { generateCore } from "./core";
+import "./fonts";
+import injectionKeys from "./injectionKeys";
 
 /**
  * RemixIcon by remixicon.com

@@ -1,0 +1,158 @@
+{
+	"$schema": "https://mintlify.com/schema.json",
+	"name": "Starter Kit",
+	"logo": {
+		"dark": "/logo/dark.svg",
+		"light": "/logo/writer_logo.svg"
+	},
+	"favicon": "../favicon.svg",
+	"colors": {
+		"primary": "#0D9373",
+		"light": "#07C983",
+		"dark": "#0D9373",
+		"anchors": {
+			"from": "#0D9373",
+			"to": "#07C983"
+		}
+	},
+	"tabs": [
+		{
+			"name": "Framework",
+			"url": "framework"
+		},
+		{
+			"name": "Components",
+			"url": "docs/components"
+		}
+	],
+	"navigation": [
+		{
+			"group": "Getting started",
+			"pages": [
+				"framework/introduction",
+				"framework/quickstart",
+				"framework/ai-module"
+			]
+		},
+		{
+			"group": "Guides",
+			"pages": [
+				"framework/application-state",
+				"framework/event-handlers",
+				"framework/builder-basics",
+				"framework/handling-inputs",
+				"framework/backend-driven-ui",
+				"framework/stylesheets",
+				"framework/frontend-scripts",
+				"framework/custom-components",
+				"framework/authentication"
+			]
+		},
+		{
+			"group": "Tutorials",
+			"pages": [
+				"framework/chat-assistant",
+				"framework/social-post-generator",
+				"framework/product-description-generator",
+				"framework/release-notes-generator"
+			]
+		},
+		{
+			"group": "Deployment",
+			"pages": [
+				"framework/deploy-with-docker",
+				"framework/testing"
+			]
+		},
+		{
+			"group": "Advanced",
+			"pages": [
+				"framework/repeater",
+				"framework/backend-initiated-actions",
+				"framework/page-routes",
+				"framework/sessions",
+				"framework/custom-server",
+				"framework/state-schema"
+			]
+		},
+		{
+			"group": "Layout",
+			"pages": [
+				"components/column",
+				"components/columns",
+				"components/header",
+				"components/horizontalstack",
+				"components/section",
+				"components/separator",
+				"components/sidebar",
+				"components/step",
+				"components/steps",
+				"components/tab",
+				"components/tabs"
+			]
+		},
+		{
+			"group": "Content",
+			"pages": [
+				"components/avatar",
+				"components/chatbot",
+				"components/dataframe",
+				"components/heading",
+				"components/icon",
+				"components/image",
+				"components/link",
+				"components/message",
+				"components/metric",
+				"components/plotlygraph",
+				"components/tags",
+				"components/text",
+				"components/vegalitechart",
+				"components/videoplayer"
+			]
+		},
+		{
+			"group": "Input",
+			"pages": [
+				"components/checkboxinput",
+				"components/dateinput",
+				"components/dropdowninput",
+				"components/fileinput",
+				"components/multiselectinput",
+				"components/numberinput",
+				"components/radioinput",
+				"components/ratinginput",
+				"components/selectinput",
+				"components/sliderinput",
+				"components/switchinput",
+				"components/textareainput",
+				"components/textinput"
+			]
+		},
+		{
+			"group": "Other",
+			"pages": [
+				"components/button",
+				"components/html",
+				"components/pagination",
+				"components/repeater",
+				"components/reuse",
+				"components/timer",
+				"components/webcamcapture"
+			]
+		},
+		{
+			"group": "Embed",
+			"pages": [
+				"components/googlemaps",
+				"components/mapbox",
+				"components/pdf",
+				"components/iframe"
+			]
+		}
+	],
+	"footerSocials": {
+		"x": "https://x.com/mintlify",
+		"github": "https://github.com/mintlify",
+		"linkedin": "https://www.linkedin.com/company/mintsearch"
+	}
+}
