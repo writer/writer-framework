@@ -1,9 +1,8 @@
 import ctypes
 import os
-import subprocess
-import threading
-import time
 import platform
+import subprocess
+import time
 
 import requests
 from click.testing import CliRunner
