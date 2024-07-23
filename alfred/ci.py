@@ -15,13 +15,13 @@ import alfred
 def ci(front, back, e2e, docs):
     no_flags = (not front and not back and not e2e and not docs)
 
+    if front or no_flags:
+        alfred.invoke_command("npm.lint")
+        alfred.invoke_command("npm.build")
     if back or no_flags:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest")
-    if front or no_flags:
-        alfred.invoke_command("npm.lint")
-        alfred.invoke_command("npm.build")
     if docs or no_flags:
         alfred.invoke_command("npm.docs.test")
     if e2e:
