@@ -3,6 +3,7 @@ import os
 import subprocess
 import threading
 import time
+import platform
 
 import requests
 from click.testing import CliRunner
@@ -49,7 +50,7 @@ def test_run():
     try:
         with runner.isolated_filesystem():
             runner.invoke(main, ['create', './my_app', '--template', 'hello'])
-            p = subprocess.Popen(["writer run my_app --port 5001"], shell=True)
+            p = subprocess.Popen(["writer", "run", "my_app", "--port", "5001"], shell=(platform.system() == 'Windows'))
 
             retry = 0
             success = False
@@ -78,7 +79,7 @@ def test_edit():
     try:
         with runner.isolated_filesystem():
             runner.invoke(main, ['create', './my_app', '--template', 'hello'])
-            p = subprocess.Popen(["writer edit my_app --port 5002"], shell=True)
+            p = subprocess.Popen(["writer", "edit", "my_app", "--port", "5002"], shell=(platform.system() == 'Windows'))
 
             retry = 0
             success = False
