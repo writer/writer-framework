@@ -93,10 +93,10 @@ The template includes a basic UI setup, including a Page component with a Header
 First, you'll create the backend for the release notes generator. Note that `prompts.py`, `html_template.py`, and `custom.css` are provided by the template used to generate the application.
 
 ### Initializing the application state
-First, set up the initial state for the application. This state will store the application's title, logo image path, file data, metrics, and processing status for each step. You'll also import a custom CSS file to style the application and create a placeholder DataFrame. 
+First, in `main.py`, set up the initial state for the application. This state will store the application's title, logo image path, file data, metrics, and processing status for each step. You'll also import a custom CSS file to style the application and create a placeholder DataFrame. 
 <Steps>
   <Step title="Create initial DataFrame">
-    Create a placeholder DataFrame:
+    Create a placeholder DataFrame on the line above `wf.init_state`:
     ```python
     placeholder_data = {
         'Description': ['Description 1', 'Description 2', 'Description 3'],
@@ -106,7 +106,7 @@ First, set up the initial state for the application. This state will store the a
     ```
   </Step>
   <Step title="Initialize state">
-    Set up the initial state for the application:
+    Update the initial state for the application at the bottom of `main.py`:
     ```python
     initial_state = wf.init_state({
         "my_app": {"title": "MY APP"},
@@ -285,34 +285,34 @@ With the code complete, you can now build the UI for the release notes generator
 
 ### Creating the main steps
 
-Add a Steps component to the Page. This will contain two main steps: "Load a CSV file" and "Release notes".
+Add a Step Container component to the Page. This will contain two main steps: "Load a CSV file" and "Release notes".
 
 #### Loading a CSV file step
 First, you'll first build the UI for the "Load a CSV file" step.
 
 <Steps>
   <Step title="Create Step component">
-    Create the first Step component and name it "Load a CSV file". Set IsCompleted to `@{step1.completed}`.
+    Create the first Step component and name it "Load a CSV file". Set Completed to `@{step1.completed}`. This state reference will contain either "yes" or "no" based on the completion status of the step.
   </Step>
   <Step title="Add Message component">
     Within this Step, add a Message component with the message set to `@{step1.processing-message}`. Scroll down to the Visibility section of the settings. Select "Custom" and set the condition to `step1.processing-message`.
   </Step>
   <Step title="Create three-column layout">
-    Add a Column Container component and add three Column components. For the first column, set the width to 0.5. For the third column, set "Content alignment (V)" to "Left" and "Content alignment (H)" to "Bottom."
+    Add a Column Container component and add three Column components. For the first column, set the width to 0.5. For the third column, set "Content alignment (H)" to "Left" and "Content alignment (V)" to "Bottom."
   </Step>
-  <Step title="Configure first column">
+  <Step title="Configure middle column">
     In the middle column, place a File Input component labeled "Please upload your CSV file". Set its `wf-file-change` handler to `onchangefile_handler`. 
     
     Below it, add another Message component displaying "+@\{file.name}".
   </Step>
-  <Step title="Configure second column">
-    In the second column, add a Button labeled "Generate release notes". Set its "Disabled" property to `@{step1.generate-button-state}` and its `wf-click` handler to `handle_generate_button_click`. You can also set the "Icon" property to `laps`.
+  <Step title="Configure third column">
+    In the third column, add a Button labeled "Generate release notes". Set its "Disabled" property to `@{step1.generate-button-state}` and its `wf-click` handler to `handle_generate_button_click`. You can also set the "Icon" property to `laps`.
   </Step>
   <Step title="Add Raw CSV section">
     Under the columns, create a Section component and set the title to "Raw CSV".
   </Step>
   <Step title="Add DataFrame component">
-    In this section, add a DataFrame component to display the raw CSV data. Configure its properties to use `@{step1.raw_csv}` as the data source. Toggle "Enable download," "Use Markdown," and "Text wrapping" to "yes". Set the Separator color to `#d4b2f7`.
+    In this section, add a DataFrame component to display the raw CSV data. Configure its properties to use `@{step1.raw_csv}` as the data source. Toggle "Enable download," "Use Markdown," and "Wrap text" to "yes". Set the Separator color to `#d4b2f7` using the CSS tab.
   </Step>
 </Steps>
 
@@ -320,7 +320,7 @@ Your application should now look like this:
 
 ![Release notes generator UI](/framework/images/tutorial/release_notes/release_gen_4.png)
 
-When using the sample data, the Raw CSV section will display the uploaded CSV file:
+When using the sample data located in `sample-input/test-data.csv`, the Raw CSV section will display the uploaded CSV file:
 
 ![Raw CSV section](/framework/images/tutorial/release_notes/release_gen_5.png)
 
@@ -331,10 +331,10 @@ Next, you'll build the UI for the "Release notes" step. To display the Release n
     Create the second Step component and name it "Release notes".
   </Step>
   <Step title="Add Separator">
-    Begin with a Separator component.
+    Inside of the Step component, add a Separator component.
   </Step>
   <Step title="Add Columns components">
-    Follow with a Column Container component and a single Column component.
+    Below the Separator, add a Column Container component and a single Column component.
   </Step>
   <Step title="Add Back button">
     In the column, add a Button. Set its text to "Back" and set its `wf-click handler` to `handle_back_button_click`. Set the "Icon" property to `arrow_back`.
@@ -343,7 +343,7 @@ Next, you'll build the UI for the "Release notes" step. To display the Release n
 
 ### Tabs for Release notes display
 
-Below the Back button, add a Tabs component with two tabs: "Formatted release notes" and "Release notes".
+Below the Back button, add a Tab Container component with two tabs: "Formatted release notes" and "Release notes".
 
 #### Formatted release notes tab
 In the first tab, you'll display the formatted release notes.
@@ -368,7 +368,7 @@ In the first tab, you'll display the formatted release notes.
   </Step>
   <Step title="Add Metric components">
     In each column, add three Metric components to display new features, caveats, and fixed issues, respectively.
-    Set the values of these components to `@{metrics.new_features}`, `@{metrics.caveats}`, and `@{metrics.fixed_issues}`. Then, set the Note text to "+New Features", "+Caveats", and "+Fixed Issues" respectively. The "+" sign will display styling that indicates a positive message.
+    Set the "Name" of these components to a single space to remove the placeholder text: ` `. Then, set the values of these components to `@{metrics.new_features}`, `@{metrics.caveats}`, and `@{metrics.fixed_issues}`. Finally, set the "Note" text to "+New Features", "+Caveats", and "+Fixed Issues" respectively. The "+" sign will display styling that indicates a positive message.
   </Step>
   <Step title="Add download button">
     Under the columns, add a "Download HTML" Button with its `wf-click` handler set to `handle_file_download`.
@@ -383,7 +383,7 @@ The Formatted release notes tab should look like this when using the sample data
 Finally, you'll add a Dataframe component to the second tab to display the detailed release notes.
 <Steps>
   <Step title="Add Metric component">
-    In the second tab, start with a Metric component to show the total number of release notes generated. Set the "Name" to "Number of release notes generated" and the "Value" to `@{metrics.total}`.
+    In the second tab, start with a Metric component to show the total number of release notes generated. Set the "Name" to "Number of release notes generated" and the "Value" to `@{metrics.total}`. Delete the default value for "Note".
   </Step>
   <Step title="Add DataFrame component">
     Follow this with a DataFrame component to display the detailed release notes, setting the "Data" property to `@{step2.release-notes}`. Configure it for text wrapping, downloading, and searching capabilities. Set the Separator color to `#d4b2f7`. 
