@@ -16,7 +16,7 @@ import time
 import traceback
 import urllib.request
 from abc import ABCMeta
-from functools import wraps
+from functools import partial, wraps
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
@@ -107,6 +107,21 @@ class Config:
     mode: str = "run"
     logger: Optional[logging.Logger] = None
 
+@dataclasses.dataclass
+class MutationSubscription:
+    """
+    Describes a subscription to a mutation.
+
+    The path on which this subscription is subscribed and the handler
+    to execute when a mutation takes place on this path.
+
+    >>> def myhandler(state):
+    >>>     state["b"] = state["a"]
+
+    >>> m = MutationSubscription(path="a.c", handler=myhandler)
+    """
+    path: str # Path to subscribe
+    handler: Callable # Handler to execute when mutation happens
 
 class FileWrapper:
 
@@ -327,6 +342,7 @@ class StateProxy:
 
     def __init__(self, raw_state: Dict = {}):
         self.state: Dict[str, Any] = {}
+        self.local_mutation_subscriptions: List[MutationSubscription] = []
         self.initial_assignment = True
         self.mutated: Set[str] = set()
         self.ingest(raw_state)
@@ -356,6 +372,11 @@ class StateProxy:
                 f"State keys must be strings. Received {str(key)} ({type(key)}).")
 
         self.state[key] = raw_value
+
+        for local_mutation in self.local_mutation_subscriptions:
+            if local_mutation.path == key:
+                local_mutation.handler()
+
         self._apply_raw(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
@@ -657,6 +678,42 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value._state_proxy
             else:
                 self._state_proxy[key] = value
+
+
+    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable) -> None:
+        """
+        Automatically triggers a handler when a mutation occurs in the state.
+
+        >>> def _increment_counter(state):
+        >>>     state_proxy['my_counter'] += 1
+        >>>
+        >>> state = WriterState({'a': 1, 'c': {'a': 1, 'b': 3}, 'my_counter': 0})
+        >>> state.subscribe_mutation('a', _increment_counter)
+        >>> state.subscribe_mutation('c.a', _increment_counter)
+        >>> state['a'] = 2 # will trigger _increment_counter
+        >>> state['a'] = 3 # will trigger _increment_counter
+        >>> state['c']['a'] = 2 # will trigger _increment_counter
+
+        :param path: path of mutation to monitor
+        :param func: handler to call when the path is mutated
+        """
+        if isinstance(path, str):
+            path_list = [path]
+        else:
+            path_list = path
+
+        for p in path_list:
+            state_proxy = self._state_proxy
+            path_parts = p.split(".")
+            final_handler = partial(handler, self)
+            for i, path_part in enumerate(path_parts):
+                if i == len(path_parts) - 1:
+                    local_mutation = MutationSubscription(path_parts[-1], final_handler)
+                    state_proxy.local_mutation_subscriptions.append(local_mutation)
+                elif path_part in state_proxy:
+                    state_proxy = state_proxy[path_part]
+                else:
+                    raise ValueError("Mutation subscription failed - {p} not found in state")
 
 
 class WriterState(State):

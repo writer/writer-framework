@@ -393,6 +393,141 @@ class TestState:
         }
         assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
 
+    def test_subscribe_mutation_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that the handler that subscribes to a mutation fires when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_nested_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that a handler that subscribes to a nested mutation triggers when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('c.a', _increment_counter)
+        _state['c']['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_2_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that it is possible to subscribe to 2 mutations simultaneously
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation(['a', 'c.a'], _increment_counter)
+        _state['c']['a'] = 2
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 2
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 2
+
+    def test_subscribe_mutation_should_trigger_cascading_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        def _increment_counter2(state):
+            state['my_counter2'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state.subscribe_mutation('my_counter', _increment_counter2)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+        assert _state['my_counter2'] == 1
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+        assert mutations['+my_counter2'] == 1
+
+    def test_subscribe_mutation_should_raise_error_on_infinite_cascading(self):
+        """
+        Tests that an infinite recursive loop is detected and an error is raised if mutations cascade
+
+        Python seems to raise a RecursionError by himself, so we just check that the error is raised
+        """
+        try:
+            # Assign
+            def _increment_counter(state):
+                state['my_counter'] += 1
+
+            def _increment_counter2(state):
+                state['my_counter2'] += 1
+
+            _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+            _state.user_state.get_mutations_as_dict()
+
+            # Acts
+            _state.subscribe_mutation('a', _increment_counter)
+            _state.subscribe_mutation('my_counter', _increment_counter2)
+            _state.subscribe_mutation('my_counter2', _increment_counter)
+            _state['a'] = 2
+            pytest.fail("Should raise an error")
+        except RecursionError:
+            assert True
+
+    def test_subscribe_mutation_with_typed_state_should_manage_mutation(self):
+        """
+        Tests that a mutation handler is triggered on a typed state and can use attributes directly.
+        """
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+            total: int
+
+        def cumulative_sum(state: MyState):
+            state.total += state.counter
+
+        initial_state = wf.init_state({
+            "counter": 0,
+            "total": 0
+        }, schema=MyState)
+
+        initial_state.subscribe_mutation('counter', cumulative_sum)
+
+        # Acts
+        initial_state['counter'] = 1
+        initial_state['counter'] = 3
+
+        # Assert
+        assert initial_state['total'] == 4
 
 class TestWriterState:
 
