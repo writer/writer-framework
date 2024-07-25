@@ -101,7 +101,7 @@ export function useFormValueBroker<T = any>(
 		() => getBindingValue(),
 		(value) => {
 			if (isBusy.value) return;
-			formValue.value = value;
+			formValue.value = value as T;
 		},
 		{ immediate: true },
 	);
@@ -110,7 +110,7 @@ export function useFormValueBroker<T = any>(
 		formValue,
 		(newValue) => {
 			if (typeof newValue === "undefined") {
-				formValue.value = "";
+				formValue.value = "" as T;
 			}
 		},
 		{ immediate: true },

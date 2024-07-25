@@ -4,33 +4,22 @@
 		:label="fields.label.value"
 		class="CoreSliderInput"
 	>
-		<div class="inputArea">
-			<input
-				type="range"
-				:value="formValue"
-				:min="fields.minValue.value"
-				:max="fields.maxValue.value"
-				:step="fields.stepSize.value"
-				@input="
-					($event) =>
-						handleInput(
-							($event.target as HTMLInputElement).value,
-							'wf-number-change',
-						)
-				"
-			/>
-			<div class="valueContainer">
-				<h3>{{ formValue }}</h3>
-			</div>
-		</div>
+		<BaseInputRange
+			popover-display-mode="always"
+			:value="formValue"
+			:min="fields.minValue.value"
+			:max="fields.maxValue.value"
+			:step="fields.stepSize.value"
+			@update:value="handleInput($event, 'wf-number-change')"
+		/>
 	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { FieldType } from "../../writerTypes";
-import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
-import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
+import { accentColor, cssClasses } from "../../renderer/sharedStyleFields";
+import { FieldType } from "../../writerTypes";
+import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
 	"A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.";
@@ -89,13 +78,14 @@ export default {
 import { inject, ref } from "vue";
 import injectionKeys from "../../injectionKeys";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+import BaseInputRange from "../base/BaseInputRange.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(
+const { formValue, handleInput } = useFormValueBroker<number>(
 	wf,
 	instancePath,
 	rootInstance,
@@ -109,29 +99,5 @@ const { formValue, handleInput } = useFormValueBroker(
 .CoreSliderInput {
 	width: 100%;
 	max-width: 50ch;
-}
-
-.inputArea {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	border-radius: 8px;
-	border: 1px solid transparent;
-}
-
-input {
-	flex: 1 1 auto;
-	min-width: 0;
-	margin: 0;
-	accent-color: var(--accentColor);
-	border-radius: 8px;
-	height: 38px;
-	outline: none;
-}
-
-.valueContainer {
-	min-width: 0;
-	flex: 0 0 auto;
-	text-align: center;
 }
 </style>
