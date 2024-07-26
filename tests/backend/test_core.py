@@ -30,7 +30,7 @@ from writer.core import (
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
 
-from backend.fixtures import core_ui_fixtures
+from backend.fixtures import core_ui_fixtures, writer_fixtures
 from tests.backend import test_app_dir
 
 raw_state_dict = {
@@ -507,27 +507,28 @@ class TestState:
         """
         Tests that a mutation handler is triggered on a typed state and can use attributes directly.
         """
-        # Assign
-        class MyState(wf.WriterState):
-            counter: int
-            total: int
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                total: int
 
-        def cumulative_sum(state: MyState):
-            state.total += state.counter
+            def cumulative_sum(state: MyState):
+                state.total += state.counter
 
-        initial_state = wf.init_state({
-            "counter": 0,
-            "total": 0
-        }, schema=MyState)
+            initial_state = wf.init_state({
+                "counter": 0,
+                "total": 0
+            }, schema=MyState)
 
-        initial_state.subscribe_mutation('counter', cumulative_sum)
+            initial_state.subscribe_mutation('counter', cumulative_sum)
 
-        # Acts
-        initial_state['counter'] = 1
-        initial_state['counter'] = 3
+            # Acts
+            initial_state['counter'] = 1
+            initial_state['counter'] = 3
 
-        # Assert
-        assert initial_state['total'] == 4
+            # Assert
+            assert initial_state['total'] == 4
 
 class TestWriterState:
 
