@@ -35,14 +35,7 @@ const pathD = computed(() => {
 	const xDif = props.arrow.x2 - props.arrow.x1;
 	const yDif = props.arrow.y2 - props.arrow.y1;
 
-	const protrusionLength = Math.max(
-		Math.min(
-			Math.sqrt(xDif * xDif + yDif * yDif),
-			0.8 * Math.abs(xDif),
-			50,
-		),
-		0,
-	);
+	const protrusionLength = 30;
 
 	const points = [
 		{ x: props.arrow.x1, y: props.arrow.y1 },
@@ -62,7 +55,7 @@ const pathD = computed(() => {
 
 	let s: string;
 
-	if (xDif > 50) {
+	if (xDif > protrusionLength) {
 		s = `M ${points[0].x} ${points[0].y}`;
 		s += `C ${points[3].x} ${points[0].y}, ${points[3].x} ${points[6].y}, ${points[6].x} ${points[6].y}`;
 	} else {

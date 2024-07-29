@@ -5,7 +5,6 @@
 			<slot></slot>
 		</div>
 		<div class="outputs">
-			{{ component.outs }}
 			<div v-for="(out, outId) in def.outs" :key="outId" class="output">
 				{{ out.name }}
 				<div

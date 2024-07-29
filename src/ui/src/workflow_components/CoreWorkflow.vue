@@ -25,6 +25,7 @@
 				}"
 				@drag="(ev: DragEvent) => handleNodeDrag(ev, component.id)"
 				@dragstart="(ev: DragEvent) => handleNodeDragStart(ev)"
+				@dragend="handleNodeDragend"
 				@click="(ev: MouseEvent) => handleNodeClick(ev, component.id)"
 				@out-select="
 					(outId: string) => handleNodeOutSelect(component.id, outId)
@@ -40,6 +41,7 @@ import WorkflowsNodeBox from "./WorkflowsNodeBox.vue";
 import WorkflowsNodeOuts from "./WorkflowsNodeOuts.vue";
 import WorkflowsArrow from "./WorkflowsArrow.vue";
 import { render } from "vue";
+import { watch } from "vue";
 
 const description =
 	"A container component representing a single page within the application.";
@@ -146,6 +148,7 @@ function handleDragstart(ev: DragEvent) {
 function handleDrag(ev: DragEvent) {
 	ev.preventDefault();
 	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
 	renderOffset.value.x = Math.max(
 		0,
 		renderOffset.value.x - (x - clickOffset.x),
@@ -179,6 +182,7 @@ function handleDrop(ev: DragEvent) {
 	if (draggedId) return;
 
 	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
 
 	createNode(draggedType, x, y);
 }
@@ -201,13 +205,20 @@ function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
 	ev.preventDefault();
 	ev.stopPropagation();
 	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
+
 	const component = wf.getComponentById(componentId);
 	component.x = x - clickOffset.x;
 	component.y = y - clickOffset.y;
 	refreshArrows();
 }
 
+function handleNodeDragend(ev: DragEvent) {
+	ev.preventDefault();
+}
+
 function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
+	console.log("clicko");
 	if (!activeNodeOut.value) return;
 	if (activeNodeOut.value.fromComponentId == componentId) return;
 
@@ -232,6 +243,23 @@ function createNode(type: string, x: number, y: number) {
 	component.y = y;
 }
 
+watch(children, async (postChildren, preChildren) => {
+	// Remove references when a node is deleted
+
+	const preIds = preChildren.map((c) => c.id);
+	const postIds = postChildren.map((c) => c.id);
+	const removedIds = preIds.filter((cId) => !postIds.includes(cId));
+	console.log(removedIds);
+	removedIds.forEach((removedId) => {
+		postChildren.forEach((c) => {
+			if (!c.outs || c.outs.length == 0) return;
+			c.outs = c.outs.filter((out) => out.toNodeId !== removedId);
+		});
+	});
+	refreshArrows();
+	await wf.sendComponentUpdate();
+});
+
 onMounted(() => {
 	refreshArrows();
 });
@@ -248,13 +276,11 @@ onMounted(() => {
 	flex: 1 0 auto;
 	flex-direction: row;
 	align-items: stretch;
+	position: relative;
+	overflow: hidden;
 }
 
 .component.CoreWorkflow.selected {
 	background: var(--builderSubtleSeparatorColor);
-}
-
-.nodeWrapper {
-	position: absolute;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreWriterCompletion">
-		I'm a Writer completion
+	<WorkflowsNodeBox :component="component" class="CoreTwitterPost">
+		<div class="content"></div>
 	</WorkflowsNodeBox>
 </template>
 
@@ -10,8 +10,8 @@ import { computed, inject } from "vue";
 
 export default {
 	writer: {
-		name: "Writer Completion",
-		description: "Execute Writer completions",
+		name: "Post to Twitter (X)",
+		description: "Enables you to post to Twitter.",
 		category: "Content",
 		allowedParentTypes: ["workflow"],
 		fields: {
@@ -19,21 +19,22 @@ export default {
 				name: "Text",
 				type: FieldType.Text,
 				control: FieldControl.Textarea,
-				desc: "The text to complete.",
 			},
-			modelId: {
-				name: "Model",
+			accessToken: {
+				name: "Access Token",
 				type: FieldType.Text,
-				options: {
-					"palmyra-x-003-instruct": "palmyra-x-003-instruct",
-					"palmyra-x-002-instruct": "palmyra-x-002-instruct",
-					"palmyra-x-32k-instruct": "palmyra-x-32k-instruct",
-					"palmyra-x-002-32k": "palmyra-x-002-32k",
-					"palmyra-med-32k": "palmyra-med-32k",
-					"palmyra-med": "palmyra-med",
-					"palmyra-fin-32k": "palmyra-fin-32k",
-				},
-				init: "palmyra-x-002-instruct",
+			},
+			accessTokenSecret: {
+				name: "Access Token Secret",
+				type: FieldType.Text,
+			},
+			apiKey: {
+				name: "API key",
+				type: FieldType.Text,
+			},
+			apiKeySecret: {
+				name: "API key secret",
+				type: FieldType.Text,
 			},
 		},
 		outs: {
@@ -44,7 +45,7 @@ export default {
 			},
 			error: {
 				name: "Error",
-				description: "If the function raises an Exception.",
+				description: "If the operation fails.",
 				style: "error",
 			},
 		},
@@ -57,6 +58,7 @@ import injectionKeys from "../injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const fields = inject(injectionKeys.evaluatedFields);
 
 const component = computed(() => wf.getComponentById(componentId));
 </script>
@@ -64,6 +66,20 @@ const component = computed(() => wf.getComponentById(componentId));
 <style scoped>
 @import "../renderer/sharedStyles.css";
 
-.CoreWriterCompletion {
+.CoreTwitterPost {
+}
+
+.content {
+	gap: 4px;
+}
+
+.method {
+	background-color: #b5eeee;
+	padding: 2px 4px 2px 4px;
+	border-radius: 4px;
+	display: inline;
+}
+
+.url {
 }
 </style>
