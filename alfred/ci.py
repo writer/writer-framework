@@ -32,8 +32,12 @@ def ci_mypy():
     alfred.run("mypy ./src/writer --exclude app_templates/*")
 
 @alfred.command("ci.ruff", help="linting with ruff")
-def ci_ruff():
-    alfred.run("ruff check")
+@alfred.option('--fix', '-f', help="fix linting errors", is_flag=True, default=False)
+def ci_ruff(fix):
+    if fix:
+        alfred.run("ruff check --fix")
+    else:
+        alfred.run("ruff check")
 
 @alfred.command("ci.pytest", help="run pytest on ./tests")
 def ci_test():
