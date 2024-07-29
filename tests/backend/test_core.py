@@ -1196,6 +1196,7 @@ class TestSessionManager:
         )
         assert s_invalid is None
 
+
 class TestEditableDataframe:
 
     def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
@@ -1562,3 +1563,64 @@ def test_import_failure_do_nothing_when_import_go_well():
         return 2
 
     assert myfunc() == 2
+
+class TestCalculatedProperty():
+
+    def test_calculated_property_should_be_triggered_when_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counter = 2
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_str' in mutations
+            assert mutations['+counter_str'] == '2'
+
+    def test_calculated_property_should_be_invoked_as_property(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Assert
+            assert state.counter_str == '0'
+
+    def test_calculated_property_should_be_triggered_when_one_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counterA: int
+            counterB: int
+
+            @wf.property(['counterA', 'counterB'])
+            def counter_sum(self) -> int:
+                return self.counterA + self.counterB
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counterA': 2, 'counterB': 4}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counterA = 4
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_sum' in mutations
+            assert mutations['+counter_sum'] == 8
