@@ -24,16 +24,13 @@ else:
 			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
 		</div>
-		<div v-else class="empty">
-			<h3>Blank message</h3>
-		</div>
+		<BaseEmptiness v-else :component-id="componentId" />
 	</div>
 </template>
 
 <script lang="ts">
-import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
-import { FieldCategory, FieldType } from "../../writerTypes";
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
+import { FieldCategory, FieldType } from "../../writerTypes";
 
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
@@ -86,10 +83,14 @@ export default {
 	},
 };
 </script>
+
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "../../injectionKeys";
+import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
+import BaseEmptiness from "../base/BaseEmptiness.vue";
 
+const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
@@ -156,15 +157,5 @@ const rootStyle = computed(() => {
 }
 .loadingSymbol {
 	margin: -8px 0 -8px 0;
-}
-
-.empty {
-	padding: 16px;
-	background-color: #e4e7ed;
-}
-
-.empty > h3 {
-	text-align: center;
-	color: var(--primaryTextColor);
 }
 </style>

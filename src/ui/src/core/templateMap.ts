@@ -15,8 +15,11 @@ import CoreChatbot from "../core_components/content/CoreChatbot.vue";
 import CoreTags from "../core_components/content/CoreTags.vue";
 import CoreAvatar from "../core_components/content/CoreAvatar.vue";
 import CoreAnnotatedText from "../core_components/content/CoreAnnotatedText.vue";
+import CoreJsonViewer from "../core_components/content/CoreJsonViewer.vue";
+
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
+import CoreColorInput from "../core_components/input/CoreColorInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
 import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
 import CoreFileInput from "../core_components/input/CoreFileInput.vue";
@@ -27,6 +30,7 @@ import CoreSelectInput from "../core_components/input/CoreSelectInput.vue";
 import CoreSliderInput from "../core_components/input/CoreSliderInput.vue";
 import CoreTextInput from "../core_components/input/CoreTextInput.vue";
 import CoreTextareaInput from "../core_components/input/CoreTextareaInput.vue";
+import CoreTimeInput from "../core_components/input/CoreTimeInput.vue";
 import CoreRating from "../core_components/input/CoreRatingInput.vue";
 import CoreSwitchInput from "../core_components/input/CoreSwitchInput.vue";
 // layout
@@ -93,7 +97,9 @@ const templateMap = {
 	textareainput: CoreTextareaInput,
 	numberinput: CoreNumberInput,
 	sliderinput: CoreSliderInput,
+	colorinput: CoreColorInput,
 	dateinput: CoreDateInput,
+	timeinput: CoreTimeInput,
 	radioinput: CoreRadioInput,
 	checkboxinput: CoreCheckboxInput,
 	dropdowninput: CoreDropdownInput,
@@ -115,12 +121,13 @@ const templateMap = {
 	reuse: CoreReuse,
 	avatar: CoreAvatar,
 	annotatedText: CoreAnnotatedText,
+	jsonviewer: CoreJsonViewer,
 };
 
 if (WRITER_LIVE_CCT === "yes") {
 	/*
 	Assigns the components in custom_components to the template map,
-	allowing for live updates when developing custom component templates. 
+	allowing for live updates when developing custom component templates.
 	*/
 
 	const liveCCT: Record<string, any> = (await import("../custom_components"))

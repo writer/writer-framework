@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsPadding" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsPadding"
+		tabindex="-1"
+		:data-automation-key="props.fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
@@ -42,7 +47,7 @@
 					@select="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.all_sides" class="row">
-					<i class="material-symbols-outlined">padding</i>
+					<i>All</i>
 					<input
 						ref="fixedEl"
 						type="text"
@@ -53,7 +58,7 @@
 				</div>
 				<div v-if="subMode == SubMode.xy_sides">
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>X</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -63,7 +68,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Y</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -74,7 +79,7 @@
 				</div>
 				<div v-if="subMode == SubMode.per_side">
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Left</i>
 						<input
 							ref="fixedEl"
 							type="text"
@@ -84,7 +89,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Right</i>
 						<input
 							type="text"
 							:value="valuePadding[1]"
@@ -93,7 +98,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Top</i>
 						<input
 							type="text"
 							:value="valuePadding[2]"
@@ -102,7 +107,7 @@
 						<div>px</div>
 					</div>
 					<div class="row">
-						<i class="material-symbols-outlined">padding</i>
+						<i>Bottom</i>
 						<input
 							type="text"
 							:value="valuePadding[3]"
@@ -113,10 +118,9 @@
 				</div>
 			</div>
 
-			<input
+			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				type="text"
 				:value="component.content[fieldKey]"
 				@input="handleInputCss"
 			/>
@@ -141,6 +145,7 @@ import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";
 import { languages } from "monaco-editor";
 import css = languages.css;
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -412,10 +417,11 @@ onBeforeUnmount(() => {
 	flex-direction: row;
 	gap: 8px;
 	padding: 8px;
-	align-items: center;
+	align-items: baseline;
 }
 
 .row input {
 	width: calc(100% - 32px) !important;
+	text-align: right;
 }
 </style>

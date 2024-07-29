@@ -87,11 +87,22 @@
 						:key="columnName"
 						class="cell"
 					>
-						{{ row[columnName] }}
+						<BaseMarkdown
+							v-if="fields.useMarkdown.value == 'yes'"
+							:raw-text="row[columnName]"
+						>
+						</BaseMarkdown>
+						<template v-else>
+							{{ row[columnName] }}
+						</template>
 					</div>
 				</template>
 			</div>
-			<div class="endpoint" :style="endpointStyle"></div>
+			<div
+				v-if="isRowCountMassive"
+				class="endpoint"
+				:style="endpointStyle"
+			></div>
 		</div>
 	</div>
 </template>
@@ -112,6 +123,7 @@ import { ComputedRef } from "vue";
 import { onUnmounted } from "vue";
 import WdsTextInput from "../../wds/WdsTextInput.vue";
 import WdsControl from "../../wds/WdsControl.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const description = "A component to display Pandas DataFrames.";
 const defaultDataframe = `data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==`;
@@ -156,6 +168,16 @@ export default {
 					yes: "yes",
 					no: "no",
 				},
+			},
+			useMarkdown: {
+				name: "Use Markdown",
+				type: FieldType.Text,
+				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
+				options: {
+					yes: "yes",
+					no: "no",
+				},
+				default: "no",
 			},
 			displayRowCount: {
 				name: "Display row count",
@@ -206,9 +228,10 @@ import type * as aq from "arquero";
 import type { Table } from "apache-arrow";
 
 /**
- * Only a certain amount of rows is rendered at a time (MAX_ROWS_RENDERED),
+ * If the table is massive, only a certain amount of rows is rendered at a time,
  * to prevent filling the DOM with unnecessary rows.
  */
+const MASSIVE_ROW_COUNT = 1000;
 const ROW_HEIGHT_PX = 36; // Must match CSS
 const MIN_COLUMN_WIDTH_PX = 80;
 const MAX_COLUMN_AUTO_WIDTH_PX = 300;
@@ -254,6 +277,7 @@ const columnCount = computed(
 	() => (isIndexShown.value ? 1 : 0) + shownColumnNames.value.length,
 );
 const rowCount = computed(() => table.value?.numRows() ?? 0);
+const isRowCountMassive = computed(() => rowCount.value > MASSIVE_ROW_COUNT);
 const displayRowCount = computed(() =>
 	Math.min(fields.displayRowCount.value, rowCount.value),
 );
@@ -273,9 +297,13 @@ const rowOffset = computed(() => {
 
 const slicedTable = computed(() => {
 	if (!table.value) return null;
+	const offset = isRowCountMassive.value ? rowOffset.value : 0;
+	const limit = isRowCountMassive.value
+		? displayRowCount.value
+		: MASSIVE_ROW_COUNT;
 	const data = table.value.objects({
-		offset: rowOffset.value,
-		limit: displayRowCount.value,
+		offset,
+		limit,
 	});
 	const indices = table.value
 		.indices()
@@ -298,13 +326,9 @@ const gridStyle = computed(() => {
 			.join(" ");
 	}
 
-	if (fields.wrapText.value == "yes") {
-		maxHeight = (displayRowCount.value + 1) * ROW_HEIGHT_PX;
-	}
-
 	return {
 		"min-height": `${ROW_HEIGHT_PX * (1 + fields.displayRowCount.value)}px`,
-		"max-height": maxHeight ? `${maxHeight}px` : undefined,
+		"max-height": `${(displayRowCount.value + 1) * ROW_HEIGHT_PX}px`,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
 		"grid-template-columns": templateColumns,
 		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
@@ -401,7 +425,11 @@ async function loadData() {
 function download() {
 	const csv = table.value.toCSV();
 	const el = document.createElement("a");
-	el.href = "data:text/plain;base64," + window.btoa(csv);
+
+	// btoa only supports ASCII
+
+	const s = String.fromCharCode(...new TextEncoder().encode(csv));
+	el.href = "data:text/plain;base64," + window.btoa(s);
 	el.download = "data.csv";
 	el.click();
 }
@@ -545,7 +573,7 @@ onUnmounted(() => {
 
 .grid {
 	margin-bottom: -1px;
-	position: sticky;
+	position: v-bind("isRowCountMassive ? 'sticky': 'unset'");
 	top: 0;
 	display: grid;
 }
@@ -557,9 +585,10 @@ onUnmounted(() => {
 	color: var(--primaryTextColor);
 	border-bottom: 1px solid var(--separatorColor);
 	display: flex;
-	align-items: center;
+	align-items: start;
 	white-space: nowrap;
 	font-size: 0.75rem;
+	text-overflow: ellipsis;
 }
 
 .grid.wrapText .cell {
@@ -575,6 +604,8 @@ onUnmounted(() => {
 	font-weight: 400;
 	margin-bottom: 12px;
 	border-bottom: none;
+	top: 0;
+	z-index: 1;
 }
 
 .grid.scrolled .cell.headerCell {
@@ -615,5 +646,6 @@ onUnmounted(() => {
 	position: absolute;
 	height: 1px;
 	width: 1px;
+	background: red;
 }
 </style>

@@ -1,5 +1,10 @@
 <template>
-	<div ref="rootEl" class="BuilderFieldsOptions" tabindex="-1">
+	<div
+		ref="rootEl"
+		class="BuilderFieldsOptions"
+		tabindex="-1"
+		:data-automation-key="props.fieldKey"
+	>
 		<div class="chipStackContainer">
 			<div class="chipStack">
 				<button
@@ -38,17 +43,19 @@
 				</div>
 			</div>
 			<div class="formAdd">
-				<input
+				<BuilderTemplateInput
 					ref="assistedKeyEl"
-					v-model="formAdd.key"
-					type="text"
+					class="inputKey"
 					placeholder="Type a key..."
+					:value="formAdd.key"
+					@update:value="($event) => (formAdd.key = $event)"
 					@keydown.enter="addAssistedEntry"
 				/>
-				<input
-					v-model="formAdd.value"
-					type="text"
+				<BuilderTemplateInput
+					class="inputValue"
 					placeholder="Type a value..."
+					:value="formAdd.value"
+					@update:value="($event) => (formAdd.value = $event)"
 					@keydown.enter="addAssistedEntry"
 				/>
 				<button @click="addAssistedEntry">
@@ -81,6 +88,7 @@ import { Component } from "../writerTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -251,13 +259,7 @@ onMounted(async () => {
 	padding: 12px;
 }
 
-textarea {
-	resize: vertical;
-	height: 8em;
-	padding: 12px;
-}
-
-input {
+.BuilderTemplateInput {
 	margin-bottom: 8px;
 }
 </style>

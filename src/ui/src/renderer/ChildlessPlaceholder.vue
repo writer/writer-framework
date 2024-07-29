@@ -1,32 +1,23 @@
 <template>
-	<div class="ChildlessPlaceholder">
-		<div class="content">
-			<div class="title">
-				<h3>Empty {{ definition.name }}</h3>
-			</div>
-			<div v-if="message" class="message">
-				{{ message }}
-			</div>
-		</div>
-	</div>
+	<BaseEmptiness
+		class="ChildlessPlaceholder"
+		:component-id="componentId"
+		:message="message"
+	/>
 </template>
+
 <script setup lang="ts">
-import { computed, inject, toRefs } from "vue";
-import { Component } from "../writerTypes";
+import { computed, inject } from "vue";
+import BaseEmptiness from "../core_components/base/BaseEmptiness.vue";
 import injectionKeys from "../injectionKeys";
+import { Component } from "../writerTypes";
 
 const ALLOWED_LIST_MAX_LENGTH = 10;
 const wf = inject(injectionKeys.core);
 
-interface Props {
-	componentId: Component["id"];
-}
-const props = defineProps<Props>();
-const { componentId } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
-const definition = computed(() =>
-	wf.getComponentDefinition(component.value.type),
-);
+const props = defineProps({
+	componentId: { type: String, required: true },
+});
 
 const typesToMessage = (
 	types: Component["type"][],
@@ -41,7 +32,7 @@ const typesToMessage = (
 };
 
 const message = computed(() => {
-	const containableTypes = wf.getContainableTypes(componentId.value);
+	const containableTypes = wf.getContainableTypes(props.componentId);
 	let message: string;
 
 	if (containableTypes.length <= ALLOWED_LIST_MAX_LENGTH) {
@@ -52,30 +43,3 @@ const message = computed(() => {
 	return message;
 });
 </script>
-<style scoped>
-@import "./sharedStyles.css";
-
-.ChildlessPlaceholder {
-	background: #e4e7ed;
-	color: #4f4f4f;
-	padding: 16px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	min-height: 100%;
-}
-
-.content {
-	text-align: center;
-}
-
-.title > h3 {
-	color: #4f4f4f;
-}
-
-.message {
-	opacity: 0.5;
-	margin-top: 8px;
-}
-</style>

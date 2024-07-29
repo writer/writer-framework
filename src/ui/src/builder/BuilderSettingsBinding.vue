@@ -7,10 +7,10 @@
 		<div class="main">
 			<div class="fieldWrapper">
 				<span class="name">State element</span>
-				<input
-					:value="component.binding?.stateRef"
-					type="text"
+				<BuilderTemplateInput
+					type="state"
 					class="content"
+					:value="component.binding?.stateRef"
 					placeholder="my_var"
 					@input="
 						(ev: Event) =>
@@ -34,6 +34,7 @@
 import { computed, inject } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -53,7 +54,8 @@ const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 	margin-top: 16px;
 }
 
-input {
+.content {
 	padding: 16px 12px 12px 12px;
+	width: 100%;
 }
 </style>
