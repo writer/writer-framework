@@ -426,12 +426,13 @@ function download() {
 	const csv = table.value.toCSV();
 	const el = document.createElement("a");
 
-	// btoa only supports ASCII
+	const blob = new Blob([csv], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
 
-	const s = String.fromCharCode(...new TextEncoder().encode(csv));
-	el.href = "data:text/plain;base64," + window.btoa(s);
+	el.href = url;
 	el.download = "data.csv";
 	el.click();
+	URL.revokeObjectURL(url);
 }
 
 async function applyOrder() {
