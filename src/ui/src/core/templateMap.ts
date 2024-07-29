@@ -65,6 +65,8 @@ import CoreHTTPCall from "../workflow_components/CoreHTTPCall.vue";
 import CoreSetState from "../workflow_components/CoreSetState.vue";
 import CoreWriterCompletion from "../workflow_components/CoreWriterCompletion.vue";
 import CoreTwitterPost from "../workflow_components/CoreTwitterPost.vue";
+import CoreCreateFile from "../workflow_components/CoreCreateFile.vue";
+import CoreWriterKGAdd from "../workflow_components/CoreWriterKGAdd.vue";
 
 import { WriterComponentDefinition } from "../writerTypes";
 import { h } from "vue";
@@ -128,6 +130,8 @@ const templateMap = {
 	setstate: CoreSetState,
 	writercompletion: CoreWriterCompletion,
 	twitterpost: CoreTwitterPost,
+	createfile: CoreCreateFile,
+	writerkgadd: CoreWriterKGAdd,
 };
 
 if (WRITER_LIVE_CCT === "yes") {
