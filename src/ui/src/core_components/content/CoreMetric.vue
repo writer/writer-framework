@@ -28,7 +28,7 @@ export default {
 		fields: {
 			name: {
 				name: "Name",
-				default: "Metric",
+				init: "Metric",
 				type: FieldType.Text,
 			},
 			metricValue: {
