@@ -4,6 +4,7 @@ import contextlib
 import copy
 import dataclasses
 import datetime
+import functools
 import inspect
 import io
 import json
@@ -14,6 +15,7 @@ import re
 import secrets
 import time
 import traceback
+import types
 import urllib.request
 from abc import ABCMeta
 from functools import partial, wraps
@@ -74,7 +76,6 @@ def get_app_process() -> 'AppProcess':
         return raw_process
 
     raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
-
 
 
 def import_failure(rvalue: Any = None):
@@ -511,7 +512,6 @@ def get_annotations(instance) -> Dict[str, Any]:
         ann = {}
     return ann
 
-
 class StateMeta(type):
     """
     Constructs a class at runtime that extends WriterState or State
@@ -562,15 +562,14 @@ class StateMeta(type):
                 proxy = DictPropertyProxy("_state_proxy", key)
                 setattr(klass, key, proxy)
 
-
 class State(metaclass=StateMeta):
-    """
-    `State` represents a state of the application.
-    """
-
     def __init__(self, raw_state: Dict[str, Any] = {}):
         self._state_proxy: StateProxy = StateProxy(raw_state)
         self.ingest(raw_state)
+
+        # Cette étape enregistre les propriétés associés à l'instance
+        for attribute in calculated_properties_per_state_type.get(self.__class__, []):
+            getattr(self, attribute)
 
     def ingest(self, raw_state: Dict[str, Any]) -> None:
         """
@@ -680,7 +679,7 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value
 
 
-    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable) -> None:
+    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable[['State'], None]) -> None:
         """
         Automatically triggers a handler when a mutation occurs in the state.
 
@@ -2067,6 +2066,73 @@ def new_initial_state(klass: Type[S], raw_state: dict) -> S:
 
     return initial_state
 
+"""
+This variable contains the list of properties calculated for each class 
+that inherits from State.
+
+This mechanic allows Writer Framework to subscribe to mutations that trigger 
+these properties when loading an application.
+"""
+calculated_properties_per_state_type: Dict[Type[State], List[str]] = {}
+
+def writerproperty(path: Union[str, List[str]]):
+    """
+    Mechanism for declaring a calculated property whenever an attribute changes
+    in the state of the Writer Framework application.
+
+    >>> class MyState(wf.WriterState):
+    >>>     counter: int
+    >>>
+    >>>     @wf.property("counter")
+    >>>     def double_counter(self):
+    >>>         return self.counter * 2
+
+    This mechanism also supports a calculated property that depends on several dependencies.
+
+    >>> class MyState(wf.WriterState):
+    >>>     counterA: int
+    >>>     counterB: int
+    >>>
+    >>>     @wf.property(["counterA", "counterB"])
+    >>>     def counter_sum(self):
+    >>>         return self.counterA + self.counterB
+    """
+
+    class Property():
+
+        def __init__(self, func):
+            self.func = func
+            self.instance = None
+            self.property_name = None
+
+        def __call__(self, *args, **kwargs):
+            return self.func(*args, **kwargs)
+
+        def __set_name__(self, owner: Type[State], name: str):
+            """
+            Saves the calculated properties when loading the class.
+            """
+            if owner not in calculated_properties_per_state_type:
+                calculated_properties_per_state_type[owner] = []
+
+            calculated_properties_per_state_type[owner].append(name)
+            self.property_name = name
+
+        def __get__(self, instance: State, cls):
+            """
+            This mechanism retrieves the property instance.
+            """
+            property_name = self.property_name
+            if self.instance is None:
+                def calculated_property_handler(state):
+                    instance._state_proxy[property_name] = self.func(state)
+
+                instance.subscribe_mutation(path, calculated_property_handler)
+                self.instance = instance
+
+            return self.func(instance)
+
+    return Property
 
 def session_verifier(func: Callable) -> Callable:
     """
