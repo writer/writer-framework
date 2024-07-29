@@ -1,6 +1,6 @@
 <template>
 	<div class="AnnotatedText">
-		<span v-for="(content, i) in fields.text.value" :key="content + i">
+		<span v-for="(content, i) in fields.text.value" :key="String(content) + i">
 			<template v-if="typeof content === 'string'">{{
 				content
 			}}</template>

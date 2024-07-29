@@ -14,6 +14,7 @@ import CoreLink from "../core_components/content/CoreLink.vue";
 import CoreChatbot from "../core_components/content/CoreChatbot.vue";
 import CoreTags from "../core_components/content/CoreTags.vue";
 import CoreAvatar from "../core_components/content/CoreAvatar.vue";
+import CoreAnnotatedText from "../core_components/content/CoreAnnotatedText.vue";
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
@@ -113,6 +114,7 @@ const templateMap = {
 	switchinput: CoreSwitchInput,
 	reuse: CoreReuse,
 	avatar: CoreAvatar,
+	annotatedText: CoreAnnotatedText,
 };
 
 if (WRITER_LIVE_CCT === "yes") {
