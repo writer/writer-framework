@@ -1,17 +1,11 @@
 <template>
 	<div class="BaseControlBar">
-		<button
-			v-if="props.copyStructuredContent"
-			class="control-button"
-			@click="copyToClipboard({ text: props.copyStructuredContent })"
-		>
+		<button v-if="props.copyStructuredContent" class="control-button"
+			@click="copyToClipboard({ text: props.copyStructuredContent })">
 			Copy JSON
 		</button>
-		<button
-			v-if="props.copyRawContent"
-			class="control-button"
-			@click="copyToClipboard({ text: props.copyRawContent })"
-		>
+		<button v-if="props.copyRawContent" class="control-button"
+			@click="copyToClipboard({ text: props.copyRawContent })">
 			Copy
 		</button>
 	</div>
@@ -39,47 +33,14 @@ function setClipboardData<T = unknown>(
 
 function copyToClipboard({
 	text = "",
-	html = "",
 }: {
 	text?: string;
-	html?: string;
-}): boolean {
-	if (
-		(window as any)?.clipboardData &&
-		(window as any)?.clipboardData.setData
-	) {
-		// Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
-		setClipboardData<any>(window, { text, html });
-
-		return true;
-	} else if (
-		document.queryCommandSupported &&
-		document.queryCommandSupported("copy")
-	) {
-		const copyListener = (event: ClipboardEvent) => {
-			event.preventDefault();
-			setClipboardData<ClipboardEvent>(event, { text, html });
-		};
-
-		document.addEventListener("copy", copyListener, false);
-
-		const textarea = document.createElement("textarea");
-		textarea.textContent = text || html;
-		textarea.style.position = "fixed";
-		document.body.appendChild(textarea);
-		textarea.select();
-
-		try {
-			return document.execCommand("copy"); // Security exception may be thrown by some browsers.
-		} catch (ex) {
-			return false;
-		} finally {
-			document.body.removeChild(textarea);
-			document.removeEventListener("copy", copyListener, false);
-		}
+}) {
+	try {
+		navigator.clipboard.writeText(text);
+	} catch (error) {
+		console.error(error.message);
 	}
-
-	return false;
 }
 </script>
 
