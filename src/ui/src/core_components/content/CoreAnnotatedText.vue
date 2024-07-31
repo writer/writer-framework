@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { cssClasses, primaryTextColor } from "../renderer/sharedStyleFields";
+import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
 export default {
 	writer: {
 		name: "Annotated text",
@@ -83,8 +83,8 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { FieldCategory, FieldType } from "../writerTypes";
-import injectionKeys from "../injectionKeys";
+import { FieldCategory, FieldType } from "../../writerTypes";
+import injectionKeys from "../../injectionKeys";
 import { inject } from "vue";
 import chroma, { Color } from "chroma-js";
 
