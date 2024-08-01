@@ -679,7 +679,7 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value
 
 
-    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable[['State'], None]) -> None:
+    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable[['State'], None], initial_triggered: bool = False) -> None:
         """
         Automatically triggers a handler when a mutation occurs in the state.
 
@@ -713,7 +713,8 @@ class State(metaclass=StateMeta):
                     # At startup, the application must be informed of the
                     # existing states. To cause this, we trigger manually
                     # the handler.
-                    final_handler()
+                    if initial_triggered is True:
+                        final_handler()
                 elif path_part in state_proxy:
                     state_proxy = state_proxy[path_part]
                 else:
@@ -2132,7 +2133,7 @@ def writerproperty(path: Union[str, List[str]]):
                 def calculated_property_handler(state):
                     instance._state_proxy[property_name] = self.func(state)
 
-                instance.subscribe_mutation(path, calculated_property_handler)
+                instance.subscribe_mutation(path, calculated_property_handler, initial_triggered=True)
                 self.instances.add(instance)
 
             return self.func(instance)
