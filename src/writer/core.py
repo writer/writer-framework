@@ -18,7 +18,6 @@ import traceback
 import types
 import urllib.request
 from abc import ABCMeta
-from functools import partial, wraps
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
@@ -92,7 +91,7 @@ def import_failure(rvalue: Any = None):
     :param rvalue: the value to return
     """
     def decorator(func):
-        @wraps(func)
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -567,7 +566,7 @@ class State(metaclass=StateMeta):
         self._state_proxy: StateProxy = StateProxy(raw_state)
         self.ingest(raw_state)
 
-        # Cette étape enregistre les propriétés associés à l'instance
+        # This step saves the properties associated with the instance
         for attribute in calculated_properties_per_state_type.get(self.__class__, []):
             getattr(self, attribute)
 
@@ -704,7 +703,7 @@ class State(metaclass=StateMeta):
         for p in path_list:
             state_proxy = self._state_proxy
             path_parts = p.split(".")
-            final_handler = partial(handler, self)
+            final_handler = functools.partial(handler, self)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
                     local_mutation = MutationSubscription(path_parts[-1], final_handler)
