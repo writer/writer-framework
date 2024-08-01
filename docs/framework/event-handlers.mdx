@@ -136,6 +136,28 @@ def hande_click_cleaner(state):
 ```
 </CodeGroup>
 
+## Mutation event
+
+You can subscribe to mutations on a specific key in the state.
+This is useful when you want to trigger a function every time a specific key is mutated.
+
+```python
+import writer as wf
+
+def _increment_counter(state):
+    state['my_counter'] += 1
+
+state = wf.init_state({"a": 1, "my_counter": 0})
+state.subscribe_mutation('a', _increment_counter)
+
+state['a'] = 2  # trigger _increment_counter mutation
+```
+
+```python
+state.subscribe_mutation('a.b', _increment_counter)  # subscribe to nested key
+state.subscribe_mutation(['title', 'app.title'], _increment_counter)  # subscribe to multiple keys
+```
+
 ## Receiving a payload
 
 Several events include additional data, known as the event's payload. The event handler can receive that data using the `payload` argument.
