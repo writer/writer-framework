@@ -709,6 +709,11 @@ class State(metaclass=StateMeta):
                 if i == len(path_parts) - 1:
                     local_mutation = MutationSubscription(path_parts[-1], final_handler)
                     state_proxy.local_mutation_subscriptions.append(local_mutation)
+
+                    # At startup, the application must be informed of the
+                    # existing states. To cause this, we trigger manually
+                    # the handler.
+                    final_handler()
                 elif path_part in state_proxy:
                     state_proxy = state_proxy[path_part]
                 else:
@@ -2102,7 +2107,7 @@ def writerproperty(path: Union[str, List[str]]):
 
         def __init__(self, func):
             self.func = func
-            self.instance = None
+            self.instances = set()
             self.property_name = None
 
         def __call__(self, *args, **kwargs):
@@ -2123,12 +2128,12 @@ def writerproperty(path: Union[str, List[str]]):
             This mechanism retrieves the property instance.
             """
             property_name = self.property_name
-            if self.instance is None:
+            if instance not in self.instances:
                 def calculated_property_handler(state):
                     instance._state_proxy[property_name] = self.func(state)
 
                 instance.subscribe_mutation(path, calculated_property_handler)
-                self.instance = instance
+                self.instances.add(instance)
 
             return self.func(instance)
 
