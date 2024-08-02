@@ -1,11 +1,17 @@
 <template>
 	<div class="BaseControlBar">
-		<button v-if="props.copyStructuredContent" class="control-button"
-			@click="copyToClipboard({ text: props.copyStructuredContent })">
+		<button
+			v-if="props.copyStructuredContent"
+			class="control-button"
+			@click="copyToClipboard({ text: props.copyStructuredContent })"
+		>
 			Copy JSON
 		</button>
-		<button v-if="props.copyRawContent" class="control-button"
-			@click="copyToClipboard({ text: props.copyRawContent })">
+		<button
+			v-if="props.copyRawContent"
+			class="control-button"
+			@click="copyToClipboard({ text: props.copyRawContent })"
+		>
 			Copy
 		</button>
 	</div>
@@ -17,29 +23,12 @@ const props = defineProps<{
 	copyStructuredContent?: string;
 }>();
 
-function setClipboardData<T = unknown>(
-	source: T & { clipboardData: DataTransfer | null | undefined },
-	{ text, html }: { text?: string; html?: string },
-): void {
-	if (text) {
-		source.clipboardData?.setData("text/plain", text);
-		source.clipboardData?.setData("Text", text); // IE mimetype
-	}
-
-	if (html) {
-		source.clipboardData?.setData("text/html", html);
-	}
-}
-
-function copyToClipboard({
-	text = "",
-}: {
-	text?: string;
-}) {
+function copyToClipboard({ text = "" }: { text?: string }) {
 	try {
 		navigator.clipboard.writeText(text);
 	} catch (error) {
-		console.error(error.message);
+		// eslint-disable-next-line no-console
+		console.error(error);
 	}
 }
 </script>
