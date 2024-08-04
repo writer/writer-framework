@@ -6,6 +6,7 @@
 				<BuilderSidebar></BuilderSidebar>
 			</div>
 			<div
+				v-if="builderMode !== 'workflows'"
 				class="builderMain"
 				:class="{
 					buildMode: builderMode !== 'preview',
@@ -66,6 +67,19 @@
 							<BuilderEditor></BuilderEditor>
 						</div>
 					</div>
+				</div>
+			</div>
+			<div v-if="builderMode == 'workflows'">
+				<WorkflowsCanvas></WorkflowsCanvas>
+				<div
+					v-if="ssbm.isSelectionActive()"
+					:key="selectedId ?? 'noneSelected'"
+					class="settingsBar"
+					:class="{
+						collapsed: ssbm.isSettingsBarCollapsed(),
+					}"
+				>
+					<BuilderSettings></BuilderSettings>
 				</div>
 			</div>
 		</div>
@@ -135,6 +149,7 @@ import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
+import WorkflowsCanvas from "./workflows/WorkflowsCanvas.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -252,6 +267,11 @@ function handleRendererDrop(ev: DragEvent) {
 
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
+
+	const unselectableEl: HTMLElement = (ev.target as HTMLElement).closest(
+		"[data-writer-unselectable]",
+	);
+	if (unselectableEl) return;
 
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
 		"[data-writer-id]",

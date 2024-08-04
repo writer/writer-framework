@@ -15,6 +15,13 @@
 			}}</span>
 		</div>
 		<div
+			:class="{ active: activeId == 'workflows' }"
+			@click="selectOption('workflows')"
+		>
+			<i class="icon material-symbols-outlined"> preview </i>
+			Workflows
+		</div>
+		<div
 			:class="{ active: activeId == 'preview' }"
 			@click="selectOption('preview')"
 		>
@@ -31,7 +38,7 @@ const ssbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
 
-const selectOption = (optionId: "ui" | "code" | "preview") => {
+const selectOption = (optionId: "ui" | "code" | "workflows" | "preview") => {
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
 	if (ssbm.getMode() != "preview") return;

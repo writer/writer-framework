@@ -45,6 +45,9 @@ class Component(BaseModel):
     handlers: Optional[Dict[str, str]] = None
     visible: Optional[Union[bool, str]] = None
     binding: Optional[Dict] = None
+    outs: Optional[Any] = None
+    x: Optional[int] = None
+    y: Optional[int] = None
 
     def to_dict(self) -> Dict:
         """

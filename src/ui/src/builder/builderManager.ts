@@ -44,7 +44,7 @@ export function generateBuilderManager() {
 	};
 
 	type State = {
-		mode: "ui" | "code" | "preview";
+		mode: "ui" | "code" | "workflows" | "preview";
 		selection: {
 			componentId: Component["id"];
 			instancePath: string;
@@ -100,7 +100,7 @@ export function generateBuilderManager() {
 				`.ComponentRenderer [data-writer-id="${componentId}"]`,
 			);
 			resolvedInstancePath =
-				componentFirstElement.dataset.writerInstancePath;
+				componentFirstElement?.dataset?.writerInstancePath;
 		}
 
 		state.value.selection = {

@@ -55,11 +55,20 @@ import CoreReuse from "../core_components/other/CoreReuse.vue";
 import CorePDF from "../core_components/embed/CorePDF.vue";
 import CoreIFrame from "../core_components/embed/CoreIFrame.vue";
 import CoreGoogleMaps from "../core_components/embed/CoreGoogleMaps.vue";
+import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
 // root
 import CorePage from "../core_components/root/CorePage.vue";
 import CoreRoot from "../core_components/root/CoreRoot.vue";
 
-import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
+// workflows
+import CoreWorkflow from "../workflow_components/CoreWorkflow.vue";
+import CorePythonFunction from "../workflow_components/CorePythonFunction.vue";
+import CoreHTTPCall from "../workflow_components/CoreHTTPCall.vue";
+import CoreSetState from "../workflow_components/CoreSetState.vue";
+import CoreWriterCompletion from "../workflow_components/CoreWriterCompletion.vue";
+import CoreTwitterPost from "../workflow_components/CoreTwitterPost.vue";
+import CoreCreateFile from "../workflow_components/CoreCreateFile.vue";
+import CoreWriterKGAdd from "../workflow_components/CoreWriterKGAdd.vue";
 
 import { WriterComponentDefinition } from "../writerTypes";
 import { h } from "vue";
@@ -118,6 +127,14 @@ const templateMap = {
 	switchinput: CoreSwitchInput,
 	reuse: CoreReuse,
 	avatar: CoreAvatar,
+	pythonfunc: CorePythonFunction,
+	workflow: CoreWorkflow,
+	httpcall: CoreHTTPCall,
+	setstate: CoreSetState,
+	writercompletion: CoreWriterCompletion,
+	twitterpost: CoreTwitterPost,
+	createfile: CoreCreateFile,
+	writerkgadd: CoreWriterKGAdd,
 	jsonviewer: CoreJsonViewer,
 };
 
