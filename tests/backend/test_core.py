@@ -477,6 +477,28 @@ class TestState:
         assert mutations['+my_counter'] == 1
         assert mutations['+my_counter2'] == 1
 
+    def test_subscribe_mutation_should_work_with_async_event_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        async def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+
     def test_subscribe_mutation_should_raise_error_on_infinite_cascading(self):
         """
         Tests that an infinite recursive loop is detected and an error is raised if mutations cascade
@@ -512,9 +534,9 @@ class TestState:
             state['my_counter'] += 1
 
             # Assert
-            assert payload['mutation_previous_value'] == 1
-            assert payload['mutation_value'] == 2
             assert context['mutation'] == 'a'
+            assert payload['previous_value'] == 1
+            assert payload['new_value'] == 2
 
         _state = WriterState({"a": 1, "my_counter": 0})
         _state.user_state.get_mutations_as_dict()
