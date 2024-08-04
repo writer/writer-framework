@@ -141,7 +141,8 @@ def hande_click_cleaner(state):
 You can subscribe to mutations on a specific key in the state.
 This is useful when you want to trigger a function every time a specific key is mutated.
 
-```python
+<CodeGroup>
+```python simple subscription
 import writer as wf
 
 def _increment_counter(state):
@@ -153,10 +154,44 @@ state.subscribe_mutation('a', _increment_counter)
 state['a'] = 2  # trigger _increment_counter mutation
 ```
 
-```python
-state.subscribe_mutation('a.b', _increment_counter)  # subscribe to nested key
+```python multiple subscriptions
+import writer as wf
+
+def _increment_counter(state):
+    state['my_counter'] += 1
+
+state = wf.init_state({
+	'title': 'Hello',
+	'app': {'title', 'Writer Framework'},
+	'my_counter': 0}
+)
+
 state.subscribe_mutation(['title', 'app.title'], _increment_counter)  # subscribe to multiple keys
+
+state['title'] = "Hello Pigeon"  # trigger _increment_counter mutation
 ```
+
+```python trigger event handler
+import writer as wf
+
+def _increment_counter(state, context: dict, payload: dict, session: dict, ui: WriterUIManager):
+	if context['event'] == 'mutation' and context['mutation'] == 'a':
+		if payload['previous_value'] > payload['new_value']:
+			state['my_counter'] += 1
+
+state = wf.init_state({"a": 1, "my_counter": 0})
+state.subscribe_mutation('a', _increment_counter)
+
+state['a'] = 2  # increment my_counter
+state['a'] = 3  # increment my_counter
+state['a'] = 2  # do nothing
+```
+</CodeGroup>
+
+<Tip>
+`subscribe_mutation` is compatible with event handler signature. It will accept all the arguments
+of the event handler (`context`, `payload`, ...).
+</Tip>
 
 ## Receiving a payload
 
