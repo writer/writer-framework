@@ -18,6 +18,7 @@ import traceback
 import types
 import urllib.request
 from abc import ABCMeta
+from contextvars import ContextVar
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
@@ -120,11 +121,56 @@ class MutationSubscription:
 
     >>> m = MutationSubscription(path="a.c", handler=myhandler)
     """
-    path: str # Path to subscribe
+    path: str
     handler: Callable # Handler to execute when mutation happens
 
-class FileWrapper:
+    def __post_init__(self):
+        if len(self.path) == 0:
+            raise ValueError("path cannot be empty.")
+        
+        path_parts = self.path.split(".")
+        for part in path_parts:
+            if len(part) == 0:
+                raise ValueError(f"path {self.path} cannot have empty parts.")
 
+    @property
+    def local_path(self) -> str:
+        """
+        Returns the last part of the key to monitor on the state
+
+        >>> m = MutationSubscription(path="a.c", handler=myhandler)
+        >>> m.local_path
+        >>> "c"
+        """
+        path_parts = self.path.split(".")
+        return path_parts[-1]
+
+class StateRecursionWatcher():
+    limit = 128
+
+    def __init__(self):
+        self.counter_recursion = 0
+
+_state_recursion_watcher = ContextVar("state_recursion_watcher", default=StateRecursionWatcher())
+
+@contextlib.contextmanager
+def state_recursion_new(key: str):
+    """
+    Context manager to watch the state recursion on mutation subscriptions.
+
+    The context throws a RecursionError exception if more than 128 cascading mutations
+    are performed on the same state
+    """
+    recursion_watcher = _state_recursion_watcher.get()
+    try:
+        recursion_watcher.counter_recursion += 1
+        if recursion_watcher.counter_recursion > recursion_watcher.limit:
+            raise RecursionError(f"State Recursion limit reached {recursion_watcher.limit}.")
+        yield
+    finally:
+        recursion_watcher.counter_recursion -= 1
+
+class FileWrapper:
     """
     A wrapper for either a string pointing to a file or a file-like object with a read() method.
     Provides a method for retrieving the data as data URL.
@@ -360,34 +406,44 @@ class StateProxy:
     def items(self) -> Sequence[Tuple[str, Any]]:
         return cast(Sequence[Tuple[str, Any]], self.state.items())
 
-    def get(self, key) -> Any:
+    def get(self, key: str) -> Any:
         return self.state.get(key)
 
-    def __getitem__(self, key) -> Any:
+    def __getitem__(self, key: str) -> Any:
         return self.state.get(key)
 
-    def __setitem__(self, key, raw_value) -> None:
-        if not isinstance(key, str):
-            raise ValueError(
-                f"State keys must be strings. Received {str(key)} ({type(key)}).")
+    def __setitem__(self, key: str, raw_value: Any) -> None:
+        with state_recursion_new(key):
+            if not isinstance(key, str):
+                raise ValueError(
+                    f"State keys must be strings. Received {str(key)} ({type(key)}).")
+            previous_value = self.state.get(key)
+            self.state[key] = raw_value
 
-        self.state[key] = raw_value
+            for local_mutation in self.local_mutation_subscriptions:
+                if local_mutation.local_path == key:
+                    from writer.ui import WriterUIManager
 
-        for local_mutation in self.local_mutation_subscriptions:
-            if local_mutation.path == key:
-                local_mutation.handler()
+                    context = {"mutation": local_mutation.path}
+                    payload = {
+                        "mutation_previous_value": previous_value,
+                        "mutation_value": raw_value
+                    }
+                    ui = WriterUIManager()
+                    args = build_writer_func_arguments(local_mutation.handler, {"context": context, "payload": payload, "ui": ui})
+                    local_mutation.handler(*args)
 
-        self._apply_raw(f"+{key}")
+            self._apply_raw(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
         if key in self.state:
             del self.state[key]
             self._apply_raw(f"-{key}")  # Using "-" prefix to indicate deletion
 
-    def remove(self, key) -> None:
+    def remove(self, key: str) -> None:
         return self.__delitem__(key)
 
-    def _apply_raw(self, key) -> None:
+    def _apply_raw(self, key: str) -> None:
         self.mutated.add(key)
 
     def apply_mutation_marker(self, key: Optional[str] = None, recursive: bool = False) -> None:
@@ -562,9 +618,12 @@ class StateMeta(type):
                 setattr(klass, key, proxy)
 
 class State(metaclass=StateMeta):
-    def __init__(self, raw_state: Dict[str, Any] = {}):
-        self._state_proxy: StateProxy = StateProxy(raw_state)
-        self.ingest(raw_state)
+
+    def __init__(self, raw_state: Dict[str, Any] | None = None):
+        final_raw_state = raw_state if raw_state is not None else {}
+
+        self._state_proxy: StateProxy = StateProxy(final_raw_state)
+        self.ingest(final_raw_state)
 
         # This step saves the properties associated with the instance
         for attribute in calculated_properties_per_state_type.get(self.__class__, []):
@@ -678,7 +737,7 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value
 
 
-    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable[['State'], None], initial_triggered: bool = False) -> None:
+    def subscribe_mutation(self, path: Union[str, List[str]], handler: Callable[..., None], initial_triggered: bool = False) -> None:
         """
         Automatically triggers a handler when a mutation occurs in the state.
 
@@ -706,7 +765,7 @@ class State(metaclass=StateMeta):
             final_handler = functools.partial(handler, self)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
-                    local_mutation = MutationSubscription(path_parts[-1], final_handler)
+                    local_mutation = MutationSubscription(p, final_handler)
                     state_proxy.local_mutation_subscriptions.append(local_mutation)
 
                     # At startup, the application must be informed of the

@@ -503,6 +503,27 @@ class TestState:
         except RecursionError:
             assert True
 
+    def test_subscribe_mutation_should_raise_accept_event_handler_as_callback(self):
+        """
+        Tests that the handler that subscribes to a mutation can accept an event as a parameter
+        """
+        # Assign
+        def _increment_counter(state, payload, context: dict, ui):
+            state['my_counter'] += 1
+
+            # Assert
+            assert payload['mutation_previous_value'] == 1
+            assert payload['mutation_value'] == 2
+            assert context['mutation'] == 'a'
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+
     def test_subscribe_mutation_with_typed_state_should_manage_mutation(self):
         """
         Tests that a mutation handler is triggered on a typed state and can use attributes directly.
