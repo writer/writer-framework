@@ -1,6 +1,8 @@
 import fastapi
 import fastapi.testclient
+import pytest
 import writer.serve
+from writer import auth
 
 from tests.backend import test_basicauth_dir
 
@@ -35,3 +37,35 @@ class TestAuth:
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.get("/api/init")
             assert res.status_code == 405
+
+    @pytest.mark.parametrize("path,expected_path", [
+        ("", "/"),
+        ("http://localhost", "/"),
+        ("http://localhost/", "/"),
+        ("http://localhost/any", "/any"),
+        ("http://localhost/any/", "/any/")
+    ])
+    def test_url_path_scenarios(self, path: str, expected_path: str):
+        assert auth.urlpath(path) == expected_path
+
+    @pytest.mark.parametrize("path,expected_path", [
+        ("/", ""),
+        ("/yolo", "yolo"),
+        ("/yolo/", "yolo"),
+        ("http://localhost", "http://localhost"),
+        ("http://localhost/", "http://localhost"),
+        ("http://localhost/any", "http://localhost/any"),
+        ("http://localhost/any/", "http://localhost/any")
+    ])
+    def test_url_split_scenarios(self, path: str, expected_path: str):
+        assert auth.urlstrip(path) == expected_path
+
+    @pytest.mark.parametrize("path1,path2,expected_path", [
+        ("/", "any", "/any"),
+        ("", "any", "any"),
+        ("http://localhost", "any", "http://localhost/any"),
+        ("http://localhost/", "/any", "http://localhost/any"),
+        ("http://localhost/yolo", "/any", "http://localhost/yolo/any"),
+    ])
+    def test_urljoin_scenarios(self, path1: str, path2, expected_path: str):
+        assert auth.urljoin(path1, path2) == expected_path
