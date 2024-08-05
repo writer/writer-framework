@@ -113,3 +113,33 @@ The front-end cannot directly display complex data types such as Pandas datafram
     Pandas dataframes are converted to JSON and can be used in _Dataframe_ components.
   </Tab>
 </Tabs>
+
+## State schema
+
+State schema is a feature that allows you to define the structure of the state.
+This is useful for ensuring that the state is always in the expected format.
+
+Schema allows you to use features like
+
+* typing checking with mypy / ruff
+* autocomplete in IDEs
+* declare dictionaries
+* automatically calculate mutations on properties
+
+more into [Advanced > State schema](./state-schema)
+
+```python
+import writer as wf
+
+class AppSchema(wf.WriterState):
+    counter: int
+
+initial_state = wf.init_state({
+    "counter": 0
+}, schema=AppSchema)
+
+# Event handler
+# It receives the session state as an argument and mutates it
+def increment(state: AppSchema):
+    state.counter += 1
+```

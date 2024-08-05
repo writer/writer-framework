@@ -17,6 +17,9 @@ from writer.core import (
     session_manager,
     session_verifier,
 )
+from writer.core import (
+    writerproperty as property,
+)
 from writer.ui import WriterUIManager
 
 VERSION = importlib.metadata.version("writer")
@@ -94,6 +97,7 @@ def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> U
         raise ValueError("Root schema must inherit from WriterState")
 
     _initial_state: S = new_initial_state(concrete_schema, raw_state)
+
     return _initial_state
 
 
