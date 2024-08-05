@@ -34,7 +34,6 @@ export default {
 		name: "Annotated text",
 		description: "Shows text with annotations",
 		category: "Content",
-
 		fields: {
 			text: {
 				name: "KeyValue",
