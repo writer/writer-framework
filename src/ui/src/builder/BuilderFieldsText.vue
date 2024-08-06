@@ -16,7 +16,7 @@
 		</template>
 		<template v-else-if="templateField.control == FieldControl.Textarea">
 			<BuilderTemplateInput
-				multiline="true"
+				multiline
 				variant="text"
 				class="content"
 				:value="component.content[fieldKey]"

@@ -2,7 +2,7 @@
 	<BuilderTemplateInput
 		class="BuilderFieldsObject"
 		:data-automation-key="props.fieldKey"
-		multiline="true"
+		multiline
 		variant="code"
 		:value="component.content[fieldKey]"
 		:placeholder="templateField.placeholder"
