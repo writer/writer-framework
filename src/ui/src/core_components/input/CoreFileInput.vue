@@ -14,9 +14,13 @@
 					@change="fileChange($event as InputEvent)"
 				/>
 				<div>
-					<button class="file-input__trigger" @click="fileEl.click()">
+					<WdsButton
+						variant="tertiary"
+						size="small"
+						@click="fileEl.click()"
+					>
 						{{ triggerText }}
-					</button>
+					</WdsButton>
 				</div>
 				<ul v-if="selectedFiles" class="file-input__files">
 					<li v-for="(file, i) of selectedFiles" :key="i">
@@ -103,6 +107,7 @@ import { computed, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "../../injectionKeys";
 import LoadingSymbol from "../../renderer/LoadingSymbol.vue";
 import { useFormValueBroker } from "../../renderer/useFormValueBroker";
+import WdsButton from "../../wds/WdsButton.vue";
 
 type SavedFile = { name: string; type: string; data: unknown };
 
@@ -223,22 +228,6 @@ const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
 
 .file-input__files li {
 	margin-left: 0;
-}
-
-.file-input__trigger {
-	max-width: 70ch;
-	margin: 0;
-	border: 1px solid var(--separatorColor);
-	border-radius: 8px;
-	padding: 8.25px;
-	font-size: 0.875rem;
-	width: fit-content;
-	outline: none;
-}
-
-.file-input__trigger:focus {
-	border: 1px solid var(--softenedAccentColor);
-	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 
 .status {
