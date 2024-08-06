@@ -82,7 +82,6 @@ instanceData.at(-1).value = stepsData;
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	background: var(--containerBackgroundColor);
-	overflow: hidden;
 	box-shadow: var(--containerShadow);
 }
 
@@ -103,7 +102,8 @@ instanceData.at(-1).value = stepsData;
 
 .container {
 	background: var(--containerBackgroundColor);
-	box-shadow: var(--containerShadow);
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
 }
 
 .childless > .container {
