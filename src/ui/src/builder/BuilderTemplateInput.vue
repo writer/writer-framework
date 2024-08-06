@@ -39,6 +39,7 @@
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
+				rows="3"
 				:placeholder="props.placeholder"
 				@input="handleInput"
 			></textarea>
@@ -236,5 +237,9 @@ const handleBlur = () => {
 
 .fieldStateAutocompleteOption:hover {
 	background-color: var(--builderSubtleHighlightColorSolid);
+}
+
+textarea {
+	resize: vertical;
 }
 </style>
