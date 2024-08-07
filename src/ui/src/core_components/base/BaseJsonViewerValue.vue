@@ -7,7 +7,10 @@ import { PropType, computed } from "vue";
 import type { JsonValue } from "./BaseJsonViewer.vue";
 
 const props = defineProps({
-	data: { type: Object as PropType<JsonValue>, required: true },
+	data: {
+		type: [Object, String, Number] as PropType<JsonValue>,
+		required: true,
+	},
 });
 
 const dataFormatted = computed(() => JSON.stringify(props.data));
