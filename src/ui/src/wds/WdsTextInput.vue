@@ -1,13 +1,35 @@
 <template>
-	<input v-model="model" type="text" />
+	<div
+		v-if="leftIcon"
+		class="WdsTextInput WdsTextInput--leftIcon"
+		@click="input.focus()"
+	>
+		<i class="material-symbols-outlined">{{ leftIcon }}</i>
+		<input
+			ref="input"
+			v-model="model"
+			type="text"
+			:placeholder="placeholder"
+		/>
+	</div>
+	<input v-else v-model="model" type="text" class="WdsTextInput" />
 </template>
 
 <script setup lang="ts">
-const model = defineModel<string>();
+import { ref } from "vue";
+
+const model = defineModel({ type: String });
+
+defineProps({
+	leftIcon: { type: String, required: false, default: undefined },
+	placeholder: { type: String, required: false, default: undefined },
+});
+
+const input = ref();
 </script>
 
 <style scoped>
-input {
+.WdsTextInput {
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
@@ -19,8 +41,28 @@ input {
 	background: transparent;
 }
 
-input:focus {
+.WdsTextInput:focus,
+.WdsTextInput--leftIcon:focus-within {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+}
+
+.WdsTextInput--leftIcon {
+	cursor: pointer;
+	display: flex;
+	gap: 8px;
+}
+
+.WdsTextInput--leftIcon i {
+	color: #4f4f4f;
+}
+
+.WdsTextInput--leftIcon input {
+	border: none;
+}
+.WdsTextInput--leftIcon input:focus {
+	border: none;
+	box-shadow: none;
+	outline: none;
 }
 </style>
