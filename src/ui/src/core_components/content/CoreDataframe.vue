@@ -4,7 +4,8 @@
 			<div v-if="fields.enableSearch.value === 'yes'">
 				<WdsTextInput
 					class="search"
-					placeholder="Search..."
+					placeholder="Search"
+					left-icon="search"
 					@change="handleSearchChange"
 				/>
 			</div>
@@ -316,7 +317,7 @@ const slicedTable = computed(() => {
 
 const gridStyle = computed(() => {
 	const fontStyle = fields.fontStyle.value;
-	let templateColumns: string, maxHeight: number;
+	let templateColumns: string;
 
 	if (columnWidths.value.length == 0) {
 		templateColumns = `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
@@ -342,7 +343,7 @@ const endpointStyle = computed(() => {
 	};
 });
 
-function handleScroll(ev: Event) {
+function handleScroll() {
 	const scrollTop = gridContainerEl.value.scrollTop;
 	relativePosition.value =
 		scrollTop /
@@ -395,7 +396,7 @@ function handleSetOrder(ev: MouseEvent, columnName: string) {
 	};
 }
 
-function getIndexFromArrowTable(table: Table<any>) {
+function getIndexFromArrowTable(table: Table) {
 	const pandasMetadataJSON = table.schema.metadata.get("pandas");
 	if (!pandasMetadataJSON) return [];
 	const pandasMetadata = JSON.parse(pandasMetadataJSON);
@@ -442,7 +443,7 @@ async function applyOrder() {
 		return;
 	}
 
-	let orderCriterion: any;
+	let orderCriterion: string | object;
 
 	if (orderSetting.value.descending) {
 		orderCriterion = aq.desc(orderSetting.value.columnName);
