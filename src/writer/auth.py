@@ -339,14 +339,17 @@ def urljoin(*args):
     >>> "app1/edit"
 
     >>> urljoin("/app1/", "/edit")
-    >>> "app1/edit"
+    >>> "/app1/edit"
     """
+    root_part = args[0]
+    root_part_is_root_path = root_part.startswith('/') and len(root_part) > 1
+
     url_strip_parts = []
     for part in args:
         if part:
             url_strip_parts.append(urlstrip(part))
 
-    return '/'.join(url_strip_parts)
+    return '/'.join(url_strip_parts) if root_part_is_root_path is False else '/' + '/'.join(url_strip_parts)
 
 def urlstrip(url_path: str):
     """

@@ -43,7 +43,8 @@ class TestAuth:
         ("http://localhost", "/"),
         ("http://localhost/", "/"),
         ("http://localhost/any", "/any"),
-        ("http://localhost/any/", "/any/")
+        ("http://localhost/any/", "/any/"),
+        ("/any/yolo", "/any/yolo")
     ])
     def test_url_path_scenarios(self, path: str, expected_path: str):
         assert auth.urlpath(path) == expected_path
@@ -63,6 +64,8 @@ class TestAuth:
     @pytest.mark.parametrize("path1,path2,expected_path", [
         ("/", "any", "/any"),
         ("", "any", "any"),
+        ("/yolo", "any", "/yolo/any"),
+        ("/yolo", "/any", "/yolo/any"),
         ("http://localhost", "any", "http://localhost/any"),
         ("http://localhost/", "/any", "http://localhost/any"),
         ("http://localhost/yolo", "/any", "http://localhost/yolo/any"),
