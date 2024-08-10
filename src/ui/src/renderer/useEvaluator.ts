@@ -215,7 +215,8 @@ export function useEvaluator(wf: Core) {
 			component.visible as string,
 			instancePath,
 		);
-		return !!evaluated;
+
+		return component.visibleReversed === true ? !evaluated : !!evaluated;
 	}
 
 	return {

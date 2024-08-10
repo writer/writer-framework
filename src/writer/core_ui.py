@@ -44,6 +44,7 @@ class Component(BaseModel):
     parentId: Optional[str] = None
     handlers: Optional[Dict[str, str]] = None
     visible: Optional[Union[bool, str]] = None
+    visibleReversed: Optional[Union[bool]] = None
     binding: Optional[Dict] = None
 
     def to_dict(self) -> Dict:

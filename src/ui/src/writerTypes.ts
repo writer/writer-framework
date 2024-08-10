@@ -19,6 +19,7 @@ export type Component = {
 	isCodeManaged?: boolean;
 	handlers?: Record<string, string>;
 	visible?: boolean | string;
+	visibleReversed?: boolean;
 	binding?: {
 		eventType: string;
 		stateRef: string;

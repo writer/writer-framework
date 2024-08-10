@@ -695,6 +695,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function setVisibleValue(
 		componentId: Component["id"],
 		visible: Component["visible"],
+		reversed: boolean = false,
 	) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
@@ -704,8 +705,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 
 		if (visible === true && typeof component.visible != "undefined") {
 			delete component.visible;
+			delete component.visibleReversed;
 		} else {
 			component.visible = visible;
+			component.visibleReversed = reversed;
 		}
 
 		ssbm.registerPostMutation(component);

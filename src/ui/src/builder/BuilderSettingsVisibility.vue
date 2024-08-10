@@ -47,9 +47,24 @@
 							setVisibleValue(
 								component.id,
 								(ev.target as HTMLInputElement).value,
+								component.visibleReversed,
 							)
 					"
 				/>
+				<div class="flexRow">
+					<input
+						type="checkbox"
+						:checked="component.visibleReversed"
+						@input="
+							(ev: Event) =>
+								setVisibleValue(
+									component.id,
+									component.visible,
+									(ev.target as HTMLInputElement).checked,
+								)
+						"
+					/><span>Reverse</span>
+				</div>
 				<div class="desc">
 					Reference a state or context element that will evaluate to
 					true or false. Reference the element directly, i.e. use
@@ -86,5 +101,11 @@ const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 
 .content {
 	padding: 16px 12px 12px 12px;
+}
+
+.flexRow {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
 }
 </style>
