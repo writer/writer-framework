@@ -80,7 +80,7 @@ export default {
 			primaryTextColor,
 			cssClasses,
 		},
-		previewField: "text",
+		previewField: "data",
 	},
 };
 </script>
