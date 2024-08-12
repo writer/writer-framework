@@ -155,7 +155,7 @@ class MutationSubscription:
         if len(self.path) == 0:
             raise ValueError("path cannot be empty.")
         
-        path_parts = self.path.split(".")
+        path_parts = parse_state_variable_expression(self.path)
         for part in path_parts:
             if len(part) == 0:
                 raise ValueError(f"path {self.path} cannot have empty parts.")
@@ -169,7 +169,7 @@ class MutationSubscription:
         >>> m.local_path
         >>> "c"
         """
-        path_parts = self.path.split(".")
+        path_parts = parse_state_variable_expression(self.path)
         return path_parts[-1]
 
 class StateRecursionWatcher():
@@ -800,6 +800,15 @@ class State(metaclass=StateMeta):
         >>> state.subscribe_mutation('a', _increment_counter)
         >>> state['a'] = 2 # will trigger _increment_counter
 
+        subscribe mutation accepts escaped dot expressions to encode key that contains `dot` separator
+
+        >>> def _increment_counter(state, payload, context, session, ui):
+        >>>     state['my_counter'] += 1
+        >>>
+        >>> state = WriterState({'a.b': 1, 'my_counter': 0})
+        >>> state.subscribe_mutation('a\.b', _increment_counter)
+        >>> state['a.b'] = 2 # will trigger _increment_counter
+
         :param path: path of mutation to monitor
         :param func: handler to call when the path is mutated
         """
@@ -810,7 +819,7 @@ class State(metaclass=StateMeta):
 
         for p in path_list:
             state_proxy = self._state_proxy
-            path_parts = p.split(".")
+            path_parts = parse_state_variable_expression(p)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
                     local_mutation = MutationSubscription('subscription', p, handler, self)
@@ -2354,6 +2363,35 @@ def _clone_mutation_subscriptions(session_state: State, app_state: State, root_s
         new_mutation_subscription.state = _root_state if new_mutation_subscription.type == "subscription" else session_state
         session_state._state_proxy.local_mutation_subscriptions.append(new_mutation_subscription)
 
+
+def parse_state_variable_expression(p: str):
+    """
+    Parses a state variable expression into a list of parts.
+
+    >>> parse_state_variable_expression("a.b.c")
+    >>> ["a", "b", "c"]
+
+    >>> parse_state_variable_expression("a\.b.c")
+    >>> ["a.b", "c"]
+    """
+    parts = []
+    it = 0
+    last_split = 0
+    while it < len(p):
+        if p[it] == '\\':
+            it += 2
+        elif p[it] == '.':
+            new_part = p[last_split: it]
+            parts.append(new_part.replace('\\.', '.'))
+
+            last_split = it + 1
+            it += 1
+        else:
+            it += 1
+
+    new_part = p[last_split: len(p)]
+    parts.append(new_part.replace('\\.', '.'))
+    return parts
 
 
 def writer_event_handler_build_arguments(func: Callable, writer_args: dict) -> List[Any]:

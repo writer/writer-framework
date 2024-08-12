@@ -26,6 +26,7 @@ from writer.core import (
     StateSerialiserException,
     WriterState,
     import_failure,
+    parse_state_variable_expression,
 )
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
@@ -569,6 +570,30 @@ class TestState:
             # Acts
             initial_state['counter'] = 1
             initial_state['counter'] = 3
+
+            # Assert
+            assert initial_state['total'] == 4
+
+    def test_subscribe_mutation_should_manage_escaping_in_subscription(self):
+        """
+        Tests that a key that contains a `.` can be used to subscribe to
+        a mutation using the escape character.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            def cumulative_sum(state):
+                state['total'] += state['a.b']
+
+            initial_state = wf.init_state({
+                "a.b": 0,
+                "total": 0
+            })
+
+            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+
+            # Acts
+            initial_state['a.b'] = 1
+            initial_state['a.b'] = 3
 
             # Assert
             assert initial_state['total'] == 4
@@ -1667,3 +1692,15 @@ class TestCalculatedProperty():
             mutations = state.user_state.get_mutations_as_dict()
             assert '+counter_sum' in mutations
             assert mutations['+counter_sum'] == 8
+
+
+def test_parse_state_variable_expression_should_process_expression():
+    """
+    Test that the parse_state_variable_expression function will process
+    the expression correctly
+    """
+    # When
+    assert parse_state_variable_expression('features') == ['features']
+    assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
+    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']
