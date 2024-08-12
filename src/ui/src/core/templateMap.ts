@@ -120,7 +120,7 @@ const templateMap = {
 	switchinput: CoreSwitchInput,
 	reuse: CoreReuse,
 	avatar: CoreAvatar,
-	annotatedText: CoreAnnotatedText,
+	annotatedtext: CoreAnnotatedText,
 	jsonviewer: CoreJsonViewer,
 };
 

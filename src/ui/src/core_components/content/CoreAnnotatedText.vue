@@ -1,5 +1,5 @@
 <template>
-	<div class="AnnotatedText">
+	<div class="CoreAnnotatedText">
 		<span
 			v-for="(content, i) in fields.text.value"
 			:key="String(content) + i"
@@ -191,7 +191,7 @@ function stringifyData(arr: string[]) {
 </script>
 
 <style scoped>
-.AnnotatedText {
+.CoreAnnotatedText {
 	color: var(--primaryTextColor);
 	line-height: 1.8;
 }
