@@ -1,22 +1,23 @@
 <template>
 	<div class="BuilderSidebarToolbar">
-		<div class="sectionTitle">
-			<i class="material-symbols-outlined"> handyman </i>
-			<h3>Toolkit</h3>
-		</div>
+		<BuilderSidebarTitleSearch
+			v-model="searchQuery"
+			title="Toolkit"
+			icon="handyman"
+		/>
 		<div class="categories">
 			<template
 				v-for="(categoryData, category) in categoriesData"
 				:key="category"
 			>
-				<div v-if="categoryData.isVisible !== false" class="category">
+				<div v-if="shouldDisplayCategory(category)" class="category">
 					<div class="title">
 						<i class="material-symbols-outlined">{{
 							categoryData.icon ?? "question_mark"
 						}}</i>
 						<h4>{{ category }}</h4>
 
-						<div
+						<button
 							class="drop-arrow"
 							@click="toggleCollapseCategory(category)"
 						>
@@ -27,10 +28,14 @@
 										: "expand_less"
 								}}
 							</i>
-						</div>
+						</button>
 					</div>
 
-					<div v-show="!categoryData.isCollapsed" class="components">
+					<div
+						v-show="!categoryData.isCollapsed"
+						class="components"
+						:aria-expanded="!categoryData.isCollapsed"
+					>
 						<div
 							v-for="(
 								definition, type
@@ -63,10 +68,13 @@ import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
 import { Component, WriterComponentDefinition } from "../writerTypes";
+import BuilderSidebarTitleSearch from "./BuilderSidebarTitleSearch.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
+
+type CategoryId = "Root" | "Layout" | "Content" | "Input" | "Embed" | "Other";
 
 type CategoryData = {
 	isVisible?: boolean;
@@ -74,7 +82,9 @@ type CategoryData = {
 	icon?: string;
 };
 
-const categoriesData: Ref<Record<string, CategoryData>> = ref({
+const searchQuery = ref("");
+
+const categoriesData: Ref<Record<CategoryId, CategoryData>> = ref({
 	Root: {
 		isVisible: false,
 	},
@@ -100,6 +110,15 @@ const categoriesData: Ref<Record<string, CategoryData>> = ref({
 	},
 });
 
+function shouldDisplayCategory(categoryId: CategoryId): boolean {
+	if (categoriesData.value[categoryId]?.isVisible === false) return false;
+
+	return (
+		Object.keys(definitionsByDisplayCategory.value[categoryId] ?? {})
+			.length > 0
+	);
+}
+
 function toggleCollapseCategory(categoryId: string) {
 	const categoryData = categoriesData.value[categoryId];
 	categoryData.isCollapsed = !categoryData.isCollapsed;
@@ -107,13 +126,21 @@ function toggleCollapseCategory(categoryId: string) {
 
 const definitionsByDisplayCategory = computed(() => {
 	const types = wf.getSupportedComponentTypes();
-	const result: Record<
-		string,
-		Record<string, WriterComponentDefinition>
+	const result: Partial<
+		Record<CategoryId, Record<string, WriterComponentDefinition>>
 	> = {};
 
 	types.map((type) => {
 		const definition = wf.getComponentDefinition(type);
+
+		const matchingSearch =
+			searchQuery.value === "" ||
+			definition.name
+				.toLocaleLowerCase()
+				.includes(searchQuery.value.toLocaleLowerCase());
+
+		if (!matchingSearch) return;
+
 		const isMatch = Object.keys(categoriesData.value).includes(
 			definition.category,
 		);
@@ -147,20 +174,6 @@ const handleDragEnd = (ev: DragEvent) => {
 
 .BuilderSidebarToolbar {
 	font-size: 0.7rem;
-}
-
-.BuilderSidebarToolbar > .sectionTitle {
-	padding: 16px;
-	position: sticky;
-	top: 0;
-	background: var(--builderBackgroundColor);
-	font-size: 0.875rem;
-	height: 40px;
-}
-
-h3 {
-	font-weight: 500;
-	font-size: 0.875rem;
 }
 
 .categories {
@@ -201,6 +214,14 @@ h3 {
 }
 
 .drop-arrow {
+	/* reset button default */
+	border: none;
+	background-color: unset;
+	padding: 0;
+	margin: 0;
+	height: auto;
+	width: auto;
+
 	border-radius: 50%;
 	min-width: 24px;
 	min-height: 24px;
@@ -212,5 +233,6 @@ h3 {
 
 .drop-arrow:hover {
 	background: var(--builderSubtleSeparatorColor);
+	color: unset;
 }
 </style>
