@@ -10,6 +10,12 @@ type ComponentId = string
  * Multiple instances of a single component can exists. For example, via Repeater.
  */
 
+type VisibleField = {
+	expression: boolean | string; // True | False | 'custom'
+	binding: string; // variable binding when expression is custom
+	reversed: boolean;
+};
+
 export type Component = {
 	id: ComponentId;
 	parentId: string;
@@ -18,8 +24,7 @@ export type Component = {
 	content: Record<string, string>;
 	isCodeManaged?: boolean;
 	handlers?: Record<string, string>;
-	visible?: boolean | string;
-	visibleReversed?: boolean;
+	visible?: VisibleField;
 	binding?: {
 		eventType: string;
 		stateRef: string;

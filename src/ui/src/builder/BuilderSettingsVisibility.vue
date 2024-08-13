@@ -11,7 +11,7 @@
 					:class="{
 						active:
 							typeof component.visible == 'undefined' ||
-							component.visible === true,
+							component.visible.expression === true,
 					}"
 					@click="() => setVisibleValue(component.id, true)"
 				>
@@ -19,26 +19,39 @@
 				</div>
 				<div
 					class="chip"
-					:class="{ active: component.visible === false }"
+					:class="{ active: component.visible?.expression === false }"
 					@click="() => setVisibleValue(component.id, false)"
 				>
 					No
 				</div>
 				<div
 					class="chip"
-					:class="{ active: typeof component.visible === 'string' }"
-					@click="() => setVisibleValue(component.id, '')"
+					:class="{
+						active: component.visible?.expression === 'custom',
+					}"
+					@click="
+						() =>
+							setVisibleValue(
+								component.id,
+								'custom',
+								component.visible?.binding,
+								component.visible?.reversed,
+							)
+					"
 				>
 					Custom
 				</div>
 			</div>
 			<div
-				v-if="typeof component.visible === 'string'"
+				v-if="
+					typeof component.visible != 'undefined' &&
+					component.visible.expression === 'custom'
+				"
 				class="fieldWrapper"
 			>
 				<span class="name">Visibility value</span>
 				<BuilderTemplateInput
-					:value="component.visible"
+					:value="component.visible.binding"
 					type="state"
 					class="content"
 					placeholder="my_visibility_state_value"
@@ -46,20 +59,22 @@
 						(ev: Event) =>
 							setVisibleValue(
 								component.id,
+								'custom',
 								(ev.target as HTMLInputElement).value,
-								component.visibleReversed,
+								component.visible.reversed,
 							)
 					"
 				/>
 				<div class="flexRow">
 					<input
 						type="checkbox"
-						:checked="component.visibleReversed"
+						:checked="component.visible.reversed"
 						@input="
 							(ev: Event) =>
 								setVisibleValue(
 									component.id,
-									component.visible,
+									'custom',
+									component.visible.binding,
 									(ev.target as HTMLInputElement).checked,
 								)
 						"

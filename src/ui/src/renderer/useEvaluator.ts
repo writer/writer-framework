@@ -209,14 +209,14 @@ export function useEvaluator(wf: Core) {
 		if (!component) return;
 
 		if (typeof component.visible === "undefined") return true;
-		if (component.visible === true) return true;
-		if (component.visible === false) return false;
+		if (component.visible.expression === true) return true;
+		if (component.visible.expression === false) return false;
 		const evaluated = evaluateExpression(
-			component.visible as string,
+			component.visible.binding as string,
 			instancePath,
 		);
 
-		return component.visibleReversed === true ? !evaluated : !!evaluated;
+		return component.visible.reversed === true ? !evaluated : !!evaluated;
 	}
 
 	return {
