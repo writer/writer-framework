@@ -161,6 +161,7 @@ onMounted(() => {
 	justify-content: center;
 	stroke: var(--primaryTextColor);
 	border: 1px solid var(--separatorColor);
+	pointer: cursor;
 }
 
 .collapserContainer .collapserArrow {

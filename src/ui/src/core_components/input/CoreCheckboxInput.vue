@@ -159,6 +159,11 @@ function getCheckedKeys() {
 	font-size: 0.75rem;
 }
 
+label,
+input {
+	cursor: pointer;
+}
+
 input {
 	margin-right: 8px;
 	accent-color: var(--accentColor);

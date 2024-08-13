@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { inject, Ref } from "vue";
+import { inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "../../writerTypes";
 import {
@@ -142,6 +142,11 @@ const { formValue, handleInput } = useFormValueBroker(
 	align-items: center;
 	color: var(--primaryTextColor);
 	font-size: 0.75rem;
+}
+
+label,
+input {
+	cursor: pointer;
 }
 
 input {
