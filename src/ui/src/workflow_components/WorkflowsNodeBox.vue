@@ -1,8 +1,19 @@
 <template>
-	<div class="WorkflowsNodeBox">
-		<div class="title">{{ def.name }}</div>
+	<div class="WorkflowsNodeBox" :class="props.variant">
+		<div class="title">
+			<i v-if="props.variant == 'tool'" class="material-symbols-outlined"
+				>settings</i
+			>
+			<img
+				v-if="props.variant == 'writer'"
+				src="../assets/logo.svg"
+				alt="Writer Framework logo"
+			/>
+			{{ def.name }}
+		</div>
 		<div class="main">
 			<slot></slot>
+			<div></div>
 		</div>
 		<div class="outputs">
 			<div v-for="(out, outId) in def.outs" :key="outId" class="output">
@@ -30,6 +41,7 @@ const wf = inject(injectionKeys.core);
 
 const props = defineProps<{
 	component: Component;
+	variant?: string;
 }>();
 
 const def = computed(() => {
@@ -56,16 +68,42 @@ function handleOutClick(ev: DragEvent, outId: string) {
 }
 
 .title {
-	background: #ede2ff;
-	padding: 12px 16px 12px 16px;
+	display: flex;
+	gap: 12px;
+	padding: 14px 16px 14px 16px;
 	border-radius: 12px 12px 0 0;
 	border-top: 1px solid var(--builderSeparatorColor);
 	border-left: 1px solid var(--builderSeparatorColor);
 	border-right: 1px solid var(--builderSeparatorColor);
+	align-items: center;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 12px;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+}
+
+.title img {
+	width: 18px;
+}
+
+.title i {
+	font-size: 16px;
+}
+
+.WorkflowsNodeBox.writer .title {
+	color: #4f4f4f;
+	background: linear-gradient(264deg, #f6effd 0.71%, #e4e9ff 100%);
+}
+
+.WorkflowsNodeBox.tool .title {
+	background: #4f4f4f;
+	color: #ffffff;
 }
 
 .main {
-	font-size: 12.5px;
+	font-size: 14px;
 	padding: 12px 16px 12px 16px;
 	border-left: 1px solid var(--builderSeparatorColor);
 	border-right: 1px solid var(--builderSeparatorColor);

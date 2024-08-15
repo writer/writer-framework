@@ -1,6 +1,11 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreSetState">
-		I'm used to set state
+	<WorkflowsNodeBox
+		:component="component"
+		variant="tool"
+		class="CoreSetState"
+	>
+		Set <span class="highlight">{{ fields.element.value }}</span> to
+		<span class="highlight">{{ fields.value.value }}</span>
 	</WorkflowsNodeBox>
 </template>
 
@@ -45,6 +50,7 @@ import injectionKeys from "../injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const fields = inject(injectionKeys.evaluatedFields);
 
 const component = computed(() => wf.getComponentById(componentId));
 </script>
@@ -53,5 +59,13 @@ const component = computed(() => wf.getComponentById(componentId));
 @import "../renderer/sharedStyles.css";
 
 .CoreSetState {
+}
+
+.highlight {
+	background-color: #f0f0f0;
+	padding: 2px 4px 2px 4px;
+	margin: 2px 0 2px 0;
+	border-radius: 4px;
+	display: inline-block;
 }
 </style>

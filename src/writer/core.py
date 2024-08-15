@@ -1099,26 +1099,33 @@ class Evaluator:
             expr = matched.group(1).strip()
             expr_value = self.evaluate_expression(expr, instance_path, base_context)
 
-            serialised_value = None
             try:
-                serialised_value = state_serialiser.serialise(expr_value)
+                if as_json:
+                    serialised_value = state_serialiser.serialise(expr_value)
+                    return json.dumps(serialised_value)
+                return expr_value
             except BaseException:
                 raise ValueError(
                     f"""Couldn't serialise value of type "{ type(expr_value) }" when evaluating field "{ field_key }".""")
-
-            if as_json:
-                return json.dumps(serialised_value)
-            return str(serialised_value)
 
         component_id = instance_path[-1]["componentId"]
         component = self.ct.get_component(component_id)
         if component:
             field_value = component.content.get(field_key) or default_field_value
-            replaced = self.template_regex.sub(replacer, field_value)
+            replaced = None
+            full_match = self.template_regex.fullmatch(field_value)
+
+            if full_match is None:
+                print(f"Did not obtain full match for {field_key}")
+                replaced = self.template_regex.sub(lambda m: str(replacer(m)), field_value)
+            else:
+                print(f"Obtained full match for {field_key}")
+                replaced = replacer(full_match)
 
             if as_json:
                 return json.loads(replaced)
             else:
+                print(f"Returning {field_key} as {type(replaced)}")
                 return replaced
         else:
             raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
@@ -1212,27 +1219,28 @@ class Evaluator:
 
 
     def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
-        context_data = None
+        context_data = base_context
+        result = None
         if instance_path:
             context_data = self.get_context_data(instance_path, base_context)
         context_ref: Any = context_data
         state_ref: Any = self.wf.user_state.state
         accessors: List[str] = self.parse_expression(expr, instance_path)
+
         for accessor in accessors:
-            if isinstance(state_ref, (StateProxy, dict)):
+            if isinstance(state_ref, (StateProxy, dict)) and state_ref.get(accessor):
                 state_ref = state_ref.get(accessor)
-
-            if context_ref and isinstance(context_ref, dict):
+                result = state_ref
+            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
+                state_ref = state_ref[int(accessor)]
+                result = state_ref
+            elif isinstance(context_ref, dict) and context_ref.get(accessor):
                 context_ref = context_ref.get(accessor)
-
-        result = None
-        if context_ref:
-            result = context_ref
-        elif state_ref:
-            result = state_ref
+                result = context_ref
 
         if isinstance(result, StateProxy):
             return result.to_dict()
+
         return result
 
 

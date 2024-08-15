@@ -1,5 +1,9 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CorePythonFunction">
+	<WorkflowsNodeBox
+		:component="component"
+		variant="tool"
+		class="CorePythonFunction"
+	>
 		I'm a Python function
 	</WorkflowsNodeBox>
 </template>

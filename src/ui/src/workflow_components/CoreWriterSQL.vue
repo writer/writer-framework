@@ -1,10 +1,10 @@
 <template>
 	<WorkflowsNodeBox
 		:component="component"
-		variant="tool"
-		class="CoreWriterKGAdd"
+		variant="writer"
+		class="CoreWriterSQL"
 	>
-		I'm a Writer KG node
+		Complete text <span class="highlight">{{ fields.text.value }}</span>
 	</WorkflowsNodeBox>
 </template>
 
@@ -14,29 +14,30 @@ import { computed, inject } from "vue";
 
 export default {
 	writer: {
-		name: "Add File to Writer KG",
-		description: "Add file to an existing Writer Knowledge Graph",
+		name: "SQL Tool",
+		description: "Execute Writer completions",
 		category: "Content",
 		allowedParentTypes: ["workflow"],
 		fields: {
-			data: {
-				name: "Data",
+			text: {
+				name: "Text",
 				type: FieldType.Text,
 				control: FieldControl.Textarea,
+				desc: "The text to complete.",
 			},
-			type: {
-				name: "Type",
+			modelId: {
+				name: "Model",
 				type: FieldType.Text,
-				init: "text/plain",
-			},
-			name: {
-				name: "Name",
-				type: FieldType.Text,
-				init: "myfile.txt",
-			},
-			graphId: {
-				name: "Graph id",
-				type: FieldType.Text,
+				options: {
+					"palmyra-x-003-instruct": "palmyra-x-003-instruct",
+					"palmyra-x-002-instruct": "palmyra-x-002-instruct",
+					"palmyra-x-32k-instruct": "palmyra-x-32k-instruct",
+					"palmyra-x-002-32k": "palmyra-x-002-32k",
+					"palmyra-med-32k": "palmyra-med-32k",
+					"palmyra-med": "palmyra-med",
+					"palmyra-fin-32k": "palmyra-fin-32k",
+				},
+				init: "palmyra-x-002-instruct",
 			},
 		},
 		outs: {
@@ -60,6 +61,7 @@ import injectionKeys from "../injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const fields = inject(injectionKeys.evaluatedFields);
 
 const component = computed(() => wf.getComponentById(componentId));
 </script>
@@ -67,6 +69,14 @@ const component = computed(() => wf.getComponentById(componentId));
 <style scoped>
 @import "../renderer/sharedStyles.css";
 
-.CoreWriterKGAdd {
+.CoreWriterSQL {
+}
+
+.highlight {
+	background-color: #f0f0f0;
+	padding: 2px 4px 2px 4px;
+	margin: 2px 0 2px 0;
+	border-radius: 4px;
+	display: inline-block;
 }
 </style>

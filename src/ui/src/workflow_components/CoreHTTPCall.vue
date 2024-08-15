@@ -1,12 +1,16 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreHTTPCall">
+	<WorkflowsNodeBox
+		:component="component"
+		variant="tool"
+		class="CoreHTTPCall"
+	>
 		<div class="content">
-			<div class="method">
+			<span class="method">
 				{{ fields.method.value?.toUpperCase() }}
-			</div>
-			<div class="url">
+			</span>
+			<span class="url">
 				{{ fields.url.value }}
-			</div>
+			</span>
 		</div>
 	</WorkflowsNodeBox>
 </template>
@@ -76,14 +80,15 @@ const component = computed(() => wf.getComponentById(componentId));
 }
 
 .content {
-	gap: 4px;
+	display: block;
 }
 
 .method {
-	background-color: #b5eeee;
+	background-color: #f0f0f0;
 	padding: 2px 4px 2px 4px;
+	margin: 2px 0 2px 0;
 	border-radius: 4px;
-	display: inline;
+	display: inline-block;
 }
 
 .url {

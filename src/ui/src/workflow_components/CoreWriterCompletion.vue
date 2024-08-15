@@ -1,6 +1,10 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreWriterCompletion">
-		I'm a Writer completion
+	<WorkflowsNodeBox
+		:component="component"
+		variant="writer"
+		class="CoreWriterCompletion"
+	>
+		Complete text <span class="highlight">{{ fields.text.value }}</span>
 	</WorkflowsNodeBox>
 </template>
 
@@ -57,6 +61,7 @@ import injectionKeys from "../injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const fields = inject(injectionKeys.evaluatedFields);
 
 const component = computed(() => wf.getComponentById(componentId));
 </script>
@@ -65,5 +70,13 @@ const component = computed(() => wf.getComponentById(componentId));
 @import "../renderer/sharedStyles.css";
 
 .CoreWriterCompletion {
+}
+
+.highlight {
+	background-color: #f0f0f0;
+	padding: 2px 4px 2px 4px;
+	margin: 2px 0 2px 0;
+	border-radius: 4px;
+	display: inline-block;
 }
 </style>

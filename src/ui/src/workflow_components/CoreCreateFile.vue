@@ -1,5 +1,9 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreCreateFile">
+	<WorkflowsNodeBox
+		:component="component"
+		variant="tool"
+		class="CoreCreateFile"
+	>
 		I'm used to create files from content
 	</WorkflowsNodeBox>
 </template>
@@ -19,8 +23,8 @@ export default {
 				name: "File name",
 				type: FieldType.Text,
 			},
-			content: {
-				name: "Content",
+			data: {
+				name: "Data",
 				type: FieldType.Text,
 			},
 			fileType: {

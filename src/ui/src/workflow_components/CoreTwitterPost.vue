@@ -1,5 +1,9 @@
 <template>
-	<WorkflowsNodeBox :component="component" class="CoreTwitterPost">
+	<WorkflowsNodeBox
+		:component="component"
+		variant="tool"
+		class="CoreTwitterPost"
+	>
 		<div class="content"></div>
 	</WorkflowsNodeBox>
 </template>
