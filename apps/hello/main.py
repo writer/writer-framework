@@ -1,3 +1,4 @@
+import datetime
 import statistics
 
 import numpy as np
@@ -65,6 +66,17 @@ def _get_main_df():
     main_df = pd.read_csv("assets/main_df.csv")
     return main_df
 
+
+def _get_editable_df():
+
+    df = pd.DataFrame({
+        'number': [1, 2, 3],
+        'boolean': [True, False, True],
+        'object': [{"updatedAt": None}, {"updatedAt": None}, {"updatedAt": None}],
+        'text': ['one', 'two', 'three'],
+    })
+    return wf.EditableDataframe(df)
+
 def _get_highlighted_members():
     sample_df = _get_main_df().sample(3).set_index("name", drop=False)
     sample = sample_df.to_dict("index")
@@ -126,11 +138,36 @@ def _update_scatter_chart(state):
     )
     state["scatter_chart"] = fig
 
-# STATE INIT
 
+# UPDATES DATAFRAME
+
+# Subscribe this event handler to the `wf-dataframe-add` event
+def on_editable_df_record_add(state, payload):
+    state['editable_df'].record_add(payload)
+
+
+# Subscribe this event handler to the `wf-dataframe-update` event
+def on_editable_df_record_change(state, payload):
+    payload['record']['object']['updatedAt'] = str(datetime.datetime.now())
+    state['editable_df'].record_update(payload)
+
+# Subscribe this event handler to the `wf-dataframe-action` event
+def on_editable_df_record_action(state, payload):
+    record_index = payload['record_index']
+    if payload['action'] == 'remove':
+        state['editable_df'].record_remove(payload)
+    if payload['action'] == 'open':
+        state['editable_df_open_text'] = str(state['editable_df'].record(record_index)['text'])
+    if payload['action'] == 'notify':
+        state.add_notification("info", "Test", "Notify on this row : " + str(state['editable_df'].record(record_index)))
+
+
+# STATE INIT
 
 initial_state = wf.init_state({
     "main_df": _get_main_df(),
+    "editable_df": _get_editable_df(),
+    "editable_df_open_text": "<none>",
     "highlighted_members": _get_highlighted_members(),
     "random_df": _generate_random_df(),
     "hue_rotation": 26,
