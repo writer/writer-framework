@@ -18,6 +18,7 @@ import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
+import { bigIntReplacer } from "./serializer";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -422,8 +423,10 @@ export function generateCore() {
 			if (webSocket.readyState !== webSocket.OPEN) {
 				throw "Connection lost.";
 			}
-			webSocket.send(JSON.stringify(wsData));
-		} catch {
+			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+		} catch (error) {
+			// eslint-disable-next-line no-console
+			console.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
 		}
 	}
