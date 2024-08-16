@@ -1,9 +1,7 @@
 <template>
-	<div class="CoreAnnotatedText">
-		<span
-			v-for="(content, i) in fields.text.value"
-			:key="String(content) + i"
-		>
+	<div v-if="shouldDisplay" class="CoreAnnotatedText">
+		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
+		<span v-for="(content, i) in safeText" :key="String(content) + i">
 			<template v-if="typeof content === 'string'">{{
 				content
 			}}</template>
@@ -20,8 +18,8 @@
 		</span>
 		<template v-if="fields.copyButtons.value === 'yes'">
 			<BaseControlBar
-				:copy-raw-content="textToString(fields.text.value)"
-				:copy-structured-content="stringifyData(fields.text.value)"
+				:copy-raw-content="textToString(safeText)"
+				:copy-structured-content="stringifyData(safeText)"
 			/>
 		</template>
 	</div>
@@ -87,10 +85,23 @@ export default {
 <script setup lang="ts">
 import { FieldCategory, FieldType } from "../../writerTypes";
 import injectionKeys from "../../injectionKeys";
-import { inject } from "vue";
+import { computed, ComputedRef, inject } from "vue";
 import chroma, { Color } from "chroma-js";
+import BaseEmptiness from "../base/BaseEmptiness.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
+const safeText: ComputedRef<string[]> = computed(() => {
+	if (!fields.text.value) {
+		return [];
+	}
+	return fields.text.value;
+});
+
+const isBeingEdited = inject(injectionKeys.isBeingEdited);
+const componentId = inject(injectionKeys.componentId);
+const isEmpty = computed(() => !fields.text.value);
+const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
 
 const COLOR_STEPS = [
 	{ h: -78, s: -34, l: 16 },
