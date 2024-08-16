@@ -29,11 +29,11 @@ from writerai.types import (
     GraphRemoveFileFromGraphResponse,
     GraphUpdateResponse,
     StreamingData,
-    Input
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.chat_chat_params import Message as WriterAIMessage
+from writerai.types.application_generate_content_params import Input
 
 from writer.core import get_app_process
 
