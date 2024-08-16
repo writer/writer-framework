@@ -48,6 +48,7 @@ watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
 writer-sdk = ">= 0.6.0, < 1"
 yfinance = "^0.2.40"
+python-multipart = ">=0.0.7, < 1"
 
 
 [tool.poetry.group.build]
