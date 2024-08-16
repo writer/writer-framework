@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import (
+    Dict,
     Generator,
     Iterable,
     List,
@@ -31,6 +32,7 @@ from writerai.types import (
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
+from writerai.types.application_generate_content_params import Input
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from writer.core import get_app_process
@@ -60,14 +62,13 @@ class CreateOptions(APIOptions, total=False):
     stop: Union[List[str], str, NotGiven]
     temperature: Union[float, NotGiven]
     top_p: Union[float, NotGiven]
-
+    
 
 class APIListOptions(APIOptions, total=False):
     after: Union[str, NotGiven]
     before: Union[str, NotGiven]
     limit: Union[int, NotGiven]
     order: Union[Literal["asc", "desc"], NotGiven]
-
 
 logger = logging.Logger(__name__)
 
@@ -926,6 +927,35 @@ class Conversation:
         return serialized_messages
 
 
+class Apps:
+    def generate_content(self, application_id: str, input_dict: Dict[str, str] = {}, config: Optional[APIOptions] = None) -> str:
+        """
+        Generates output based on an existing AI Studio no-code application.
+
+        :param application_id: The id for the application, which can be obtained on AI Studio.
+        :param input_dict: Optional dictionary containing parameters for the generation call.
+        :return: The generated text.
+        :raises RuntimeError: If response data was not properly formatted to retrieve model text.
+        """
+
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+        inputs = []
+
+        for k, v in input_dict.items():
+            inputs.append(Input({
+                "id": k,
+                "value": v if isinstance(v, list) else [v]
+            }))
+
+        response_data = client.applications.generate_content(application_id=application_id, inputs=inputs, **config)
+
+        text = response_data.suggestion
+        if text:
+            return text
+
+        raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+
 def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str:
     """
     Completes the input text using the given data and returns the first resulting text choice.
@@ -1009,3 +1039,5 @@ def init(token: Optional[str] = None):
     :return: An instance of WriterAIManager.
     """
     return WriterAIManager(token=token)
+
+apps = Apps()
