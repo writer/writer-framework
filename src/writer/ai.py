@@ -29,6 +29,7 @@ from writerai.types import (
     GraphRemoveFileFromGraphResponse,
     GraphUpdateResponse,
     StreamingData,
+    Input
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
@@ -942,10 +943,10 @@ class Apps:
         inputs = []
 
         for k, v in input_dict.items():
-            inputs.append({
+            inputs.append(Input({
                 "id": k,
                 "value": v if isinstance(v, list) else [v]
-            })
+            }))
 
         response_data = client.applications.generate_content(application_id=application_id, inputs=inputs, **config)
 
