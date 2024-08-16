@@ -66,16 +66,31 @@ from writer.ai import (
     retrieve_graph,
     stream_complete,
     upload_file,
+    apps
 )
 from writerai import Writer
 from writerai._streaming import Stream
-from writerai.types import Chat, ChatStreamingData, Completion, StreamingData
+from writerai.types import Chat, ChatStreamingData, Completion, StreamingData, ApplicationGenerateContentResponse
 
 # Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
 
 
 test_complete_literal = "Completed text"
+
+
+@pytest.fixture
+def mock_app_content_generation():
+    with patch('writer.ai.WriterAIManager.acquire_client') as mock_acquire_client:
+        original_client = Writer(api_key="fake_token")
+        non_streaming_client = AsyncMock(original_client)
+        mock_acquire_client.return_value = non_streaming_client
+
+        non_streaming_client.applications.generate_content.return_value = ApplicationGenerateContentResponse(
+            suggestion=test_complete_literal
+        )
+
+        yield non_streaming_client
 
 
 @pytest.fixture
@@ -378,6 +393,16 @@ def test_stream_complete(emulate_app_process, mock_streaming_client):
 
 
 @pytest.mark.set_token("fake_token")
+def test_generate_content_from_app(emulate_app_process, mock_app_content_generation):
+    response = apps.generate_content("abc123", {
+        "Favorite animal": "Dog",
+        "Favorite color": "Purple"
+    })
+
+    assert response == test_complete_literal
+
+
+@pytest.mark.set_token("fake_token")
 def test_init_writer_ai_manager(emulate_app_process):
     manager = init("fake_token")
     assert isinstance(manager, WriterAIManager)
@@ -603,3 +628,6 @@ def test_explicit_delete_file(emulate_app_process, created_files):
     created_files.remove(uploaded_file)
 
     assert response.deleted is True
+
+# For doing a explicit test of apps.generate_content() we need a no-code app that
+# nobody will touch. That is a challenge.
