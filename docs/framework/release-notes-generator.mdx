@@ -88,15 +88,11 @@ These dependencies include the Writer Framework, the Writer AI module, and panda
 ### Initial UI
 The template includes a basic UI setup, including a Page component with a Header component. The Header component also includes an Image. If you want to change the logo image, you can replace the `logo_image_path` variable in the state with the path to your desired image in the `static` folder.
 
-## Building the release notes generator backend
-
-First, you'll create the backend for the release notes generator. Note that `prompts.py`, `html_template.py`, and `custom.css` are provided by the template used to generate the application.
-
-### Initializing the application state
-First, set up the initial state for the application. This state will store the application's title, logo image path, file data, metrics, and processing status for each step. You'll also import a custom CSS file to style the application and create a placeholder DataFrame. 
+## Initializing the application state
+First, in `main.py`, set up the initial state for the application. This state will store the application's title, logo image path, file data, metrics, and processing status for each step. You'll also import a custom CSS file to style the application and create a placeholder DataFrame. 
 <Steps>
   <Step title="Create initial DataFrame">
-    Create a placeholder DataFrame:
+    Create a placeholder DataFrame on the line above `wf.init_state`:
     ```python
     placeholder_data = {
         'Description': ['Description 1', 'Description 2', 'Description 3'],
@@ -106,10 +102,10 @@ First, set up the initial state for the application. This state will store the a
     ```
   </Step>
   <Step title="Initialize state">
-    Set up the initial state for the application:
+    Update the initial state for the application at the bottom of `main.py`:
     ```python
     initial_state = wf.init_state({
-        "my_app": {"title": "MY APP"},
+        "my_app": {"title": "RELEASE NOTES GENERATOR"},
         "logo_image_path": 'static/Writer_Logo_black.svg',
         "file": {"name": "", "file_path": ""},
         "metrics": {"new_features": 0, "caveats": 0, "fixed_issues": 0, "total": 0},
@@ -137,9 +133,90 @@ First, set up the initial state for the application. This state will store the a
   </Step>
 </Steps>
 
+## Building the file upload functionality
+
+First, you'll build the file upload feature. Note that `prompts.py`, `html_template.py`, and `custom.css` are provided in the starting point for the application. There is also a sample CSV file in the `sample-input` folder that you can use to test the application.
+
+### Implementing the file upload handler
+To handle file uploads, you'll create a function in `main.py` that reads the uploaded CSV file, processes the data, and stores it in the application state.
+<Steps>
+<Step title="Implementing a file upload handler">
+In `main.py`, create a function to handle file uploads. This function will read the uploaded CSV file, process the data, and store it in the application state.
+
+```python
+def onchangefile_handler(state, payload):
+    uploaded_file = payload[0]
+    name = uploaded_file.get("name")
+    state["file"]["name"] = name
+    state["step1"]["processing-message"] = f'+File {name} uploaded successfully.'
+    state["file"]["file_path"] = f"data/{name}"
+    file_data = uploaded_file.get("data")
+    with open(f"data/{name}", "wb") as file_handle:
+        file_handle.write(file_data)
+    
+    data = pd.read_csv(state["file"]["file_path"])
+    df = pd.DataFrame(data)
+    state["step1"]["raw_csv"] = df
+    state["step1"]["generate-button-state"] = "no"
+```
+</Step>
+<Step title="Create CSV to DataFrame converter">
+    Define a function to convert the CSV file to a DataFrame:
+    ```python
+    def _raw_csv_to_df(state):
+        data = pd.read_csv(state["file"]["file_path"])
+        df = pd.DataFrame(data)
+        return df
+    ```
+  </Step>
+</Steps>
+
+### Displaying the uploaded CSV file
+Next, you'll display the uploaded CSV file in the application UI.
+
+<Steps>
+  <Step title="Creating a Step Container">
+  Add a Step Container component to the Page. This will contain the two steps for the application.
+  </Step>
+  <Step title="Create Step components">
+    Drag two Step components into the Step Container. Name the first one "Load CSV file" and the second "Release notes".
+  </Step>
+  <Step title="Configure first Step component">
+    Click on the the first Step component to select it and bring up the Properties pane. Set "Completed" to `@{step1.completed}`. This state reference will contain either "yes" or "no" based on the completion status of the step.
+  </Step>
+  <Step title="Add Message component">
+    Within this Step, add a Message component with the message set to `@{step1.processing-message}`. Scroll down to the Visibility section of the settings. Select "Custom" and set the condition to `step1.processing-message`.
+  </Step>
+  <Step title="Create three-column layout">
+    Add a Column Container component and add three Column components. For the first column, set the width to 0.5. For the third column, set "Content alignment (H)" to "Left" and "Content alignment (V)" to "Bottom."
+  </Step>
+  <Step title="Add file input">
+    In the middle column, place a File Input component labeled "Please upload your CSV file". Set its `wf-file-change` handler to `onchangefile_handler`.
+  </Step>
+  <Step title="Add generate button">
+    In the third column, add a Button labeled "Generate release notes". Set its "Disabled" property to `@{step1.generate-button-state}` and its "Icon" property to `laps`.
+  </Step>
+  <Step title="Add Raw CSV section">
+    Under the columns, create a Section component and set the title to "Raw CSV".
+  </Step>
+  <Step title="Add DataFrame component">
+    In this section, add a DataFrame component to display the raw CSV data. Configure its properties to use `@{step1.raw_csv}` as the data source. Toggle "Enable download," "Use Markdown," and "Wrap text" to "yes". Set the Separator color to `#d4b2f7` using the CSS tab.
+  </Step>
+</Steps>
+
+Your application should now look like this:
+
+![Release notes generator UI](/framework/images/tutorial/release_notes/release_gen_4.png)
+
+When using the sample data located in `sample-input/test-data.csv`, the Raw CSV section will display the uploaded CSV file:
+
+![Raw CSV section](/framework/images/tutorial/release_notes/release_gen_5.png)
+
+## Generating release notes
+Now that you've set up the file upload functionality, you can generate release notes based on the uploaded CSV file.
 
 ### Defining text completion functions
-Next, using the prompts provided, define functions to get the category, release notes summary, and release notes description using AI completion. You'll use these functions to process the uploaded CSV file and generate release notes.
+Using the prompts provided, define functions to get the category, release notes summary, and release notes description using AI completion. You'll use these functions to process the uploaded CSV file and generate release notes.
 <Steps>
   <Step title="Create category function">
     Define a function to get the category using AI completion:
@@ -170,55 +247,12 @@ Next, using the prompts provided, define functions to get the category, release 
   </Step>
 </Steps>
 
-### Implementing file upload handler
-Next, create a function to handle file uploads. This function will read the uploaded CSV file, process the data, and store it in the application state.
+### Implementing the generate functionality
+You'll next implement the ability to process the CSV and generate release notes.
 
-```python
-def onchangefile_handler(state, payload):
-    uploaded_file = payload[0]
-    name = uploaded_file.get("name")
-    state["file"]["name"] = name
-    state["step1"]["processing-message"] = f'+File {name} uploaded successfully.'
-    state["file"]["file_path"] = f"data/{name}"
-    file_data = uploaded_file.get("data")
-    with open(f"data/{name}", "wb") as file_handle:
-        file_handle.write(file_data)
-    
-    data = pd.read_csv(state["file"]["file_path"])
-    df = pd.DataFrame(data)
-    state["step1"]["raw_csv"] = df
-    state["step1"]["generate-button-state"] = "no"
-```
-
-### Implementing helper functions
-Next, define helper functions to handle back button clicks, write HTML to a file, download the HTML file, and generate HTML for each category.
 <Steps>
-  <Step title="Create back button handler">
-    Define a function to handle the back button click:
-    ```python
-    def handle_back_button_click(state):
-        state["step1"]["completed"] = "no"
-    ```
-  </Step>
-  <Step title="Create HTML file writer">
-    Define a function to write HTML to a file:
-    ```python
-    def _write_html_to_file(html):
-        with open("data/output-html.html", "w") as file_handle:
-            file_handle.write(html)
-    ```
-  </Step>
-  <Step title="Create file download handler">
-    Define a function to handle downloading the HTML file:
-    ```python
-    def handle_file_download(state):
-        html_data = wf.pack_file("data/output-html.html","text/html")
-        file_name = "output-html.html"
-        state.file_download(html_data,file_name)
-    ```
-  </Step>
-  <Step title="Create category HTML generator">
-    Define a function to generate HTML for each category:
+<Step title="Create category HTML">
+    Define a function to generate HTML for the categories:
     ```python
     def _create_df_for_category(df,state):
         unique_categories = df['Primary-Category']
@@ -233,123 +267,102 @@ Next, define helper functions to handle back button clicks, write HTML to a file
         return "".join(formatted_output_list)
     ```
   </Step>
-  <Step title="Create CSV to DataFrame converter">
-    Define a function to convert the CSV file to a DataFrame:
+  <Step title="Create HTML file writer">
+    Define a function to write HTML to a file:
     ```python
-    def _raw_csv_to_df(state):
-        data = pd.read_csv(state["file"]["file_path"])
-        df = pd.DataFrame(data)
-        return df
+    def _write_html_to_file(html):
+        with open("data/output-html.html", "w") as file_handle:
+            file_handle.write(html)
+    ```
+  </Step>
+  <Step title="Implement generate button handler">
+  Next, create a function to handle the generate button click. This function will process the uploaded CSV file, generate release notes, and store the formatted output in the application state.
+
+  ```python
+  def handle_generate_button_click(state):
+      state["step1"]["generate-button-state"] = "yes"
+      state["step1"]["processing-message-isVisible"] = True
+      state["step1"]["processing-message"] = "%Hang tight, preparing to process your file"
+
+      notes_counter = 0
+      df = _raw_csv_to_df(state)
+      csv_row_count = df.shape[0]
+      for index, row in df.iterrows():
+          df.at[index,"Primary-Category"] = _get_category(label=row["Labels"], desc=row["Description"])
+          df.at[index,"Release-Notes-Summary"] = _get_release_notes_summary(label=row["Labels"], desc=row["Description"])
+          df.at[index,"Release-Notes-Description"] = _get_release_notes_desc(label=row["Labels"], desc=row["Description"])
+          notes_counter += 1 
+          state["step1"]["processing-message"] = f'%Processing {notes_counter} of {csv_row_count} Release Notes'
+      
+      df_temp = df[["Primary-Category","Release-Notes-Summary","Release-Notes-Description"]]
+      df_sorted = df_temp.sort_values(by='Primary-Category')
+
+      state["step2"]["release-notes"] = df_sorted
+      state["step1"]["completed"] = "yes"
+      state["step1"]["processing-message"] = ""
+
+      html = _create_df_for_category(df_sorted,state)
+      _write_html_to_file(html)
+      state["step2"]["formatted-release-notes"] = html
+      state["metrics"]["total"] = df_sorted.shape[0]
+
+      state["step1"]["generate-button-state"] = "no"
+  ```
+  </Step>
+  <Step title="Bind button handler to Generate button">
+  Finally, click on the "Generate release notes" button in the UI builder and set its `wf-click` handler to `handle_generate_button_click`.
+  </Step>
+</Steps>
+
+## Displaying the release notes
+Now that you've generated the release notes, you can display them in the application UI.
+
+### Implementing helper functions
+Define helper functions to handle back button clicks, write HTML to a file and download the HTML file.
+<Steps>
+  <Step title="Create back button handler">
+    Define a function to handle the back button click:
+    ```python
+    def handle_back_button_click(state):
+        state["step1"]["completed"] = "no"
+    ```
+  </Step>
+  <Step title="Create file download handler">
+    Define a function to handle downloading the HTML file:
+    ```python
+    def handle_file_download(state):
+        html_data = wf.pack_file("data/output-html.html","text/html")
+        file_name = "output-html.html"
+        state.file_download(html_data,file_name)
     ```
   </Step>
 </Steps>
 
-### Implementing the generate button handler
-Finally, create a function to handle the generate button click. This function will process the uploaded CSV file, generate release notes, and store the formatted output in the application state.
-
-```python
-def handle_generate_button_click(state):
-    state["step1"]["generate-button-state"] = "yes"
-    state["step1"]["processing-message-isVisible"] = True
-    state["step1"]["processing-message"] = "%Hang tight, preparing to process your file"
-
-    notes_counter = 0
-    df = _raw_csv_to_df(state)
-    csv_row_count = df.shape[0]
-    for index, row in df.iterrows():
-        df.at[index,"Primary-Category"] = _get_category(label=row["Labels"], desc=row["Description"])
-        df.at[index,"Release-Notes-Summary"] = _get_release_notes_summary(label=row["Labels"], desc=row["Description"])
-        df.at[index,"Release-Notes-Description"] = _get_release_notes_desc(label=row["Labels"], desc=row["Description"])
-        notes_counter += 1 
-        state["step1"]["processing-message"] = f'%Processing {notes_counter} of {csv_row_count} Release Notes'
-    
-    df_temp = df[["Primary-Category","Release-Notes-Summary","Release-Notes-Description"]]
-    df_sorted = df_temp.sort_values(by='Primary-Category')
-
-    state["step2"]["release-notes"] = df_sorted
-    state["step1"]["completed"] = "yes"
-    state["step1"]["processing-message"] = ""
-
-    html = _create_df_for_category(df_sorted,state)
-    _write_html_to_file(html)
-    state["step2"]["formatted-release-notes"] = html
-    state["metrics"]["total"] = df_sorted.shape[0]
-
-    state["step1"]["generate-button-state"] = "no"
-```
-
-This completes the backend implementation. Next, you'll build the UI for the release notes generator.
-
-## Building the UI
-With the code complete, you can now build the UI for the release notes generator.
-
-### Creating the main steps
-
-Add a Steps component to the Page. This will contain two main steps: "Load a CSV file" and "Release notes".
-
-#### Loading a CSV file step
-First, you'll first build the UI for the "Load a CSV file" step.
-
+### Building the initial release notes UI
+Next, you'll build the UI for the "Release notes" step.
 <Steps>
-  <Step title="Create Step component">
-    Create the first Step component and name it "Load a CSV file". Set IsCompleted to `@{step1.completed}`.
-  </Step>
-  <Step title="Add Message component">
-    Within this Step, add a Message component with the message set to `@{step1.processing-message}`. Scroll down to the Visibility section of the settings. Select "Custom" and set the condition to `step1.processing-message`.
-  </Step>
-  <Step title="Create three-column layout">
-    Add a Column Container component and add three Column components. For the first column, set the width to 0.5. For the third column, set "Content alignment (V)" to "Left" and "Content alignment (H)" to "Bottom."
-  </Step>
-  <Step title="Configure first column">
-    In the middle column, place a File Input component labeled "Please upload your CSV file". Set its `wf-file-change` handler to `onchangefile_handler`. 
-    
-    Below it, add another Message component displaying "+@\{file.name}".
-  </Step>
-  <Step title="Configure second column">
-    In the second column, add a Button labeled "Generate release notes". Set its "Disabled" property to `@{step1.generate-button-state}` and its `wf-click` handler to `handle_generate_button_click`. You can also set the "Icon" property to `laps`.
-  </Step>
-  <Step title="Add Raw CSV section">
-    Under the columns, create a Section component and set the title to "Raw CSV".
-  </Step>
-  <Step title="Add DataFrame component">
-    In this section, add a DataFrame component to display the raw CSV data. Configure its properties to use `@{step1.raw_csv}` as the data source. Toggle "Enable download," "Use Markdown," and "Text wrapping" to "yes". Set the Separator color to `#d4b2f7`.
-  </Step>
-</Steps>
-
-Your application should now look like this:
-
-![Release notes generator UI](/framework/images/tutorial/release_notes/release_gen_4.png)
-
-When using the sample data, the Raw CSV section will display the uploaded CSV file:
-
-![Raw CSV section](/framework/images/tutorial/release_notes/release_gen_5.png)
-
-#### Release notes step
-Next, you'll build the UI for the "Release notes" step. To display the Release notes Step component, you'll need to double-click on it.
-<Steps>
-  <Step title="Create Step component">
-    Create the second Step component and name it "Release notes".
+  <Step title="Select 'Release notes' Step">
+    To display the Release notes Step component, you'll need to double-click on it.
   </Step>
   <Step title="Add Separator">
-    Begin with a Separator component.
+    Inside of the Step component, add a Separator component.
   </Step>
   <Step title="Add Columns components">
-    Follow with a Column Container component and a single Column component.
+    Below the Separator, add a Column Container component and a single Column component.
   </Step>
   <Step title="Add Back button">
     In the column, add a Button. Set its text to "Back" and set its `wf-click handler` to `handle_back_button_click`. Set the "Icon" property to `arrow_back`.
   </Step>
 </Steps>
 
-### Tabs for Release notes display
-
-Below the Back button, add a Tabs component with two tabs: "Formatted release notes" and "Release notes".
+### Buiding tabs for Release notes display
+Below the Back button, add a Tab Container component and two Tab components. Name them "Formatted release notes" and "Release notes".
 
 #### Formatted release notes tab
 In the first tab, you'll display the formatted release notes.
 <Steps>
   <Step title="Add HTML component">
-    In the first tab, add an HTML component. Set the "Element" property `div` and the "Styles" property to the following object:
+    In the first tab, add an HTML Element component. Set the "Element" property `div` and the "Styles" property to the following object:
 
     ```
     {
@@ -364,14 +377,14 @@ In the first tab, you'll display the formatted release notes.
     Finally, set the "HTML inside" property to `@{step2.formatted-release-notes}`.
   </Step>
   <Step title="Create three-column layout">
-    Inside this component, create a three-column layout using a Column Container component and three Column components.
+    Inside thie HTML Element component, create a three-column layout using a Column Container component and three Column components.
   </Step>
   <Step title="Add Metric components">
     In each column, add three Metric components to display new features, caveats, and fixed issues, respectively.
-    Set the values of these components to `@{metrics.new_features}`, `@{metrics.caveats}`, and `@{metrics.fixed_issues}`. Then, set the Note text to "+New Features", "+Caveats", and "+Fixed Issues" respectively. The "+" sign will display styling that indicates a positive message.
+    Set the "Name" of these components to a single space to remove the placeholder text: ` `. Then, set the values of these components to `@{metrics.new_features}`, `@{metrics.caveats}`, and `@{metrics.fixed_issues}`. Finally, set the "Note" text to "+New Features", "+Caveats", and "+Fixed Issues" respectively. The "+" sign will display styling that indicates a positive message.
   </Step>
   <Step title="Add download button">
-    Under the columns, add a "Download HTML" Button with its `wf-click` handler set to `handle_file_download`.
+    Under the columns, add a Button component. Set its "Text" to "Download HTML" and its "Icon" to `download`. Then, set the `wf-click` handler to `handle_file_download`.
   </Step>
 </Steps>
 
@@ -383,7 +396,7 @@ The Formatted release notes tab should look like this when using the sample data
 Finally, you'll add a Dataframe component to the second tab to display the detailed release notes.
 <Steps>
   <Step title="Add Metric component">
-    In the second tab, start with a Metric component to show the total number of release notes generated. Set the "Name" to "Number of release notes generated" and the "Value" to `@{metrics.total}`.
+    In the second tab, start with a Metric component to show the total number of release notes generated. Set the "Name" to "Number of release notes generated" and the "Value" to `@{metrics.total}`. Delete the default value for "Note".
   </Step>
   <Step title="Add DataFrame component">
     Follow this with a DataFrame component to display the detailed release notes, setting the "Data" property to `@{step2.release-notes}`. Configure it for text wrapping, downloading, and searching capabilities. Set the Separator color to `#d4b2f7`. 

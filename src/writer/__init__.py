@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 from writer.core import (
     BytesWrapper,
     Config,
+    EditableDataframe,
     FileWrapper,
     Readable,
     State,

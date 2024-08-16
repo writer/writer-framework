@@ -74,7 +74,6 @@ const fields = inject(injectionKeys.evaluatedFields);
 <style scoped>
 @import "../../renderer/sharedStyles.css";
 .CoreSection {
-	overflow: hidden;
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	box-shadow: var(--containerShadow);

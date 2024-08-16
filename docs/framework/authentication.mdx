@@ -2,9 +2,7 @@
 title: "Authentication"
 ---
 
-The Writer Framework authentication module allows you to restrict access to your application.
-
-Framework will be able to authenticate a user through an identity provider such as Google, Microsoft, Facebook, Github, Auth0, etc.
+The Writer Framework authentication module allows you to restrict access to your application. Framework will be able to authenticate a user through an identity provider such as Google, Microsoft, Facebook, Github, Auth0, etc.
 
 <Warning>
   Authentication is done before accessing the application. It is not possible to
@@ -13,19 +11,13 @@ Framework will be able to authenticate a user through an identity provider such 
 
 ## Use Basic Auth
 
-Basic Auth is a simple authentication method that uses a username and password. Authentication configuration is done in [the `server_setup.py` module](custom-server.md).
+Basic Auth is a simple authentication method that uses a username and password. Authentication configuration is done in the [server_setup.py module](/framework/custom-server).
 
-::: warning Password authentication is not safe for critical application
-Basic Auth authentication is not secure for critical applications.
+<Warning>
+Password authentication and Basic Auth are not sufficiently secure for critical applications. If HTTPS encryption fails, a user could potentially intercept passwords in plaintext. Additionally, these methods are vulnerable to brute force attacks that attempt to crack passwords. To enhance security, it is advisable to implement authentication through trusted identity providers such as Google, Microsoft, Facebook, GitHub, or Auth0.
+</Warning>
 
-A user can intercept the plaintext password if https encryption fails. 
-It may also try to force password using brute force attacks.
-
-For added security, it's recommended to use identity provider (Google, Microsoft, Facebook, Github, Auth0, etc.).
-:::
-
-*server_setup.py*
-```python
+```python server_setup.py
 import os
 import writer.serve
 import writer.auth
@@ -41,12 +33,12 @@ writer.serve.register_auth(auth)
 ### Brute force protection
 
 A simple brute force protection is implemented by default. If a user fails to log in, the IP of this user is blocked.
-Writer framework will ban the IP from either the X-Forwarded-For header or the X-Real-IP header or the client IP address.
+Writer framework will ban the IP from either the `X-Forwarded-For` header or the `X-Real-IP` header or the client IP address.
 
 When a user fails to log in, they wait 1 second before they can try again. This time can be modified by
-modifying the value of delay_after_failure.
+modifying the value of `delay_after_failure`.
 
-<img src="./images/auth_too_many_request.png" style="width: 100%; margin: auto">
+![429](/framework/images/429.png)
 
 ## Use OIDC provider
 
@@ -55,9 +47,7 @@ Here is an example configuration for Google.
 
 ![Authentication OIDC Principle](/framework/images/auth.png)
 
-**server_setup.py**
-
-```python
+```python server_setup.py
 import os
 import writer.serve
 import writer.auth
@@ -88,9 +78,7 @@ The Writer Framework provides pre-configured OIDC providers. You can use them di
 
 You have to register your application into [Google Cloud Console](https://console.cloud.google.com/).
 
-_server_setup.py_
-
-```python
+```python server_setup.py
 import os
 import writer.serve
 import writer.auth
@@ -108,9 +96,7 @@ writer.serve.register_auth(oidc)
 
 You have to register your application into [Github](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)
 
-_server_setup.py_
-
-```python
+```python server_setup.py
 import os
 import writer.serve
 import writer.auth
@@ -128,9 +114,8 @@ writer.serve.register_auth(oidc)
 
 You have to register your application into [Auth0](https://auth0.com/).
 
-_server_setup.py_
 
-```python
+```python server_setup.py
 import os
 import writer.serve
 import writer.auth
@@ -147,12 +132,13 @@ writer.serve.register_auth(oidc)
 
 ### Authentication workflow
 
-<img src="./framework/images/authentication_oidc.png" />
+<img src="/framework/images/authentication_oidc.png" />
 
 ## User information in event handler
 
 When the `user_info` route is configured, user information will be accessible
 in the event handler through the `session` argument.
+
 
 ```python
 def on_page_load(state, session):
@@ -188,8 +174,6 @@ writer.serve.register_auth(oidc, callback=callback)
 The default authentication error page look like this:
 
 <img src="/framework/images/auth_unauthorized_default.png" />
-
-_streamsync.auth.Unauthorized_
 
 | Parameter   | Description            |
 | ----------- | ---------------------- |

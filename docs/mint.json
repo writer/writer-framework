@@ -41,6 +41,7 @@
 				"framework/event-handlers",
 				"framework/builder-basics",
 				"framework/handling-inputs",
+				"framework/dataframe",
 				"framework/backend-driven-ui",
 				"framework/stylesheets",
 				"framework/frontend-scripts",
@@ -60,6 +61,7 @@
 		{
 			"group": "Deployment",
 			"pages": [
+				"framework/cloud-deploy",
 				"framework/deploy-with-docker",
 				"framework/testing"
 			]

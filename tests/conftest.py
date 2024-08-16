@@ -51,3 +51,15 @@ def setup_app_runner():
         finally:
             ar.shut_down()
     return _manage_launch_args
+
+@pytest.fixture(autouse=True)
+def build_app_provisionning():
+    import os
+    import shutil
+
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+
+    if os.path.isdir(os.path.join(root_dir, 'src/writer/app_templates')):
+        shutil.rmtree(os.path.join(root_dir, 'src/writer/app_templates'))
+
+    shutil.copytree( os.path.join(root_dir, 'apps'), os.path.join(root_dir, 'src/writer/app_templates'))

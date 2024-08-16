@@ -34,11 +34,12 @@
 				ref="input"
 				v-capture-tabs
 				class="templateInput"
-				:variant="props.vatiant"
+				:variant="props.variant"
 				:value="props.value"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
+				rows="3"
 				:placeholder="props.placeholder"
 				@input="handleInput"
 			></textarea>
@@ -60,23 +61,36 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, nextTick } from "vue";
-import injectionKeys from "../injectionKeys";
 import Fuse from "fuse.js";
+import { PropType, inject, nextTick, ref } from "vue";
+import injectionKeys from "../injectionKeys";
 
 const emit = defineEmits(["input", "update:value"]);
-const props = defineProps<{
-	inputId?: string;
-	value?: string;
-	multiline?: boolean;
-	variant?: "code" | "text";
-	type?: "state" | "template";
-	options?: Record<string, string>;
-	placeholder?: string;
-}>();
+
+const props = defineProps({
+	inputId: { type: String, required: false, default: undefined },
+	value: { type: String, required: false, default: undefined },
+	multiline: { type: Boolean, required: false },
+	variant: {
+		type: String as PropType<"code" | "text">,
+		required: false,
+		default: undefined,
+	},
+	type: {
+		type: String as PropType<"state" | "template">,
+		required: false,
+		default: undefined,
+	},
+	options: {
+		type: Object as PropType<Record<string, string>>,
+		required: false,
+		default: undefined,
+	},
+	placeholder: { type: String, required: false, default: undefined },
+});
 
 const ss = inject(injectionKeys.core);
-const autocompleteOptions = ref<string[]>([]);
+const autocompleteOptions = ref<{ text: string; type: string }[]>([]);
 const input = ref<HTMLInputElement | null>(null);
 
 defineExpose({
@@ -223,5 +237,9 @@ const handleBlur = () => {
 
 .fieldStateAutocompleteOption:hover {
 	background-color: var(--builderSubtleHighlightColorSolid);
+}
+
+textarea {
+	resize: vertical;
 }
 </style>
