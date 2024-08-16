@@ -34,7 +34,7 @@ export default {
 		category: "Content",
 		fields: {
 			text: {
-				name: "KeyValue",
+				name: "Annotated text",
 				type: FieldType.Object,
 				desc: "Value array with text/annotations. Must be a JSON string or a state reference to an array.",
 				init: `["This ",["is", "Verb"]," some ",["annotated", "Adjective"],    ["text", "Noun"]," for those of ",["you", "Pronoun"]," who ",["like", "Verb"]," this sort of ",["thing", "Noun"],". ","And here's a ",["word", "", "#faf"]," with a fancy background but no label."]`,
