@@ -1,13 +1,13 @@
 import logging
 from datetime import datetime
 from typing import (
+    Dict,
     Generator,
     Iterable,
     List,
     Literal,
     Optional,
     Set,
-    Dict,
     TypedDict,
     Union,
     cast,
@@ -32,8 +32,8 @@ from writerai.types import (
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
-from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.application_generate_content_params import Input
+from writerai.types.chat_chat_params import Message as WriterAIMessage
 
 from writer.core import get_app_process
 

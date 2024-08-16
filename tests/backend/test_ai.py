@@ -55,6 +55,7 @@ from writer.ai import (
     SDKFile,
     SDKGraph,
     WriterAIManager,
+    apps,
     complete,
     create_graph,
     delete_file,
@@ -66,11 +67,16 @@ from writer.ai import (
     retrieve_graph,
     stream_complete,
     upload_file,
-    apps
 )
 from writerai import Writer
 from writerai._streaming import Stream
-from writerai.types import Chat, ChatStreamingData, Completion, StreamingData, ApplicationGenerateContentResponse
+from writerai.types import (
+    ApplicationGenerateContentResponse,
+    Chat,
+    ChatStreamingData,
+    Completion,
+    StreamingData,
+)
 
 # Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
