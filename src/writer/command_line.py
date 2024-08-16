@@ -20,7 +20,7 @@ def main():
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=5000, help="Port to run the app on")
+@click.option('--port', default=3005, help="Port to run the app on")
 @click.argument('path')
 def run(path, host, port):
     """Run the app from PATH folder in run mode."""
@@ -34,7 +34,7 @@ def run(path, host, port):
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=5000, help="Port to run the app on")
+@click.option('--port', default=3006, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
 @click.argument('path')
@@ -63,7 +63,7 @@ def create(path, template):
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=5000, help="Port to run the app on")
+@click.option('--port', default=3006, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 def hello(port, host, enable_remote_edit):
     """Create and run an onboarding 'Hello' app."""
