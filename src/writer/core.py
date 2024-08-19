@@ -4,6 +4,7 @@ import contextlib
 import copy
 import dataclasses
 import datetime
+import functools
 import inspect
 import io
 import json
@@ -14,14 +15,16 @@ import re
 import secrets
 import time
 import traceback
+import types
 import urllib.request
 from abc import ABCMeta
-from functools import wraps
+from contextvars import ContextVar
 from multiprocessing.process import BaseProcess
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
     Dict,
     Generator,
@@ -59,7 +62,30 @@ if TYPE_CHECKING:
     import polars
 
     from writer.app_runner import AppProcess
+    from writer.ss_types import AppProcessServerRequest
 
+@dataclasses.dataclass
+class CurrentRequest:
+    session_id: str
+    request: 'AppProcessServerRequest'
+
+_current_request: ContextVar[Optional[CurrentRequest]] = ContextVar("current_request", default=None)
+
+@contextlib.contextmanager
+def use_request_context(session_id: str, request: 'AppProcessServerRequest'):
+    """
+    Context manager to set the current request context.
+
+    >>> session_id = "xxxxxxxxxxxxxxxxxxxxxxxxx"
+    >>> request = AppProcessServerRequest(type='event', payload=EventPayload(event='my_event'))
+    >>> with use_request_context(session_id, request):
+    >>>     pass
+    """
+    try:
+        _current_request.set(CurrentRequest(session_id, request))
+        yield
+    finally:
+        _current_request.set(None)
 
 def get_app_process() -> 'AppProcess':
     """
@@ -76,7 +102,6 @@ def get_app_process() -> 'AppProcess':
     raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
 
 
-
 def import_failure(rvalue: Any = None):
     """
     This decorator captures the failure to load a volume and returns a value instead.
@@ -91,7 +116,7 @@ def import_failure(rvalue: Any = None):
     :param rvalue: the value to return
     """
     def decorator(func):
-        @wraps(func)
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -107,9 +132,72 @@ class Config:
     mode: str = "run"
     logger: Optional[logging.Logger] = None
 
+@dataclasses.dataclass
+class MutationSubscription:
+    """
+    Describes a subscription to a mutation.
+
+    The path on which this subscription is subscribed and the handler
+    to execute when a mutation takes place on this path.
+
+    >>> def myhandler(state):
+    >>>     state["b"] = state["a"]
+
+    >>> m = MutationSubscription(path="a.c", handler=myhandler)
+    """
+    type: Literal['subscription', 'property']
+    path: str
+    handler: Callable # Handler to execute when mutation happens
+    state: 'State'
+    property_name: Optional[str] = None
+
+    def __post_init__(self):
+        if len(self.path) == 0:
+            raise ValueError("path cannot be empty.")
+        
+        path_parts = parse_state_variable_expression(self.path)
+        for part in path_parts:
+            if len(part) == 0:
+                raise ValueError(f"path {self.path} cannot have empty parts.")
+
+    @property
+    def local_path(self) -> str:
+        """
+        Returns the last part of the key to monitor on the state
+
+        >>> m = MutationSubscription(path="a.c", handler=myhandler)
+        >>> m.local_path
+        >>> "c"
+        """
+        path_parts = parse_state_variable_expression(self.path)
+        return path_parts[-1]
+
+class StateRecursionWatcher():
+    limit = 128
+
+    def __init__(self):
+        self.counter_recursion = 0
+
+_state_recursion_watcher = ContextVar("state_recursion_watcher", default=StateRecursionWatcher())
+
+@contextlib.contextmanager
+def state_recursion_new(key: str):
+    """
+    Context manager to watch the state recursion on mutation subscriptions.
+
+    The context throws a RecursionError exception if more than 128 cascading mutations
+    are performed on the same state
+    """
+    recursion_watcher = _state_recursion_watcher.get()
+    try:
+        recursion_watcher.counter_recursion += 1
+        if recursion_watcher.counter_recursion > recursion_watcher.limit:
+            raise RecursionError(f"State Recursion limit reached {recursion_watcher.limit}.")
+        yield
+    finally:
+        recursion_watcher.counter_recursion -= 1
 
 class FileWrapper:
-
     """
     A wrapper for either a string pointing to a file or a file-like object with a read() method.
     Provides a method for retrieving the data as data URL.
@@ -327,6 +415,7 @@ class StateProxy:
 
     def __init__(self, raw_state: Dict = {}):
         self.state: Dict[str, Any] = {}
+        self.local_mutation_subscriptions: List[MutationSubscription] = []
         self.initial_assignment = True
         self.mutated: Set[str] = set()
         self.ingest(raw_state)
@@ -344,29 +433,54 @@ class StateProxy:
     def items(self) -> Sequence[Tuple[str, Any]]:
         return cast(Sequence[Tuple[str, Any]], self.state.items())
 
-    def get(self, key) -> Any:
+    def get(self, key: str) -> Any:
         return self.state.get(key)
 
-    def __getitem__(self, key) -> Any:
+    def __getitem__(self, key: str) -> Any:
         return self.state.get(key)
 
-    def __setitem__(self, key, raw_value) -> None:
-        if not isinstance(key, str):
-            raise ValueError(
-                f"State keys must be strings. Received {str(key)} ({type(key)}).")
+    def __setitem__(self, key: str, raw_value: Any) -> None:
+        with state_recursion_new(key):
+            if not isinstance(key, str):
+                raise ValueError(
+                    f"State keys must be strings. Received {str(key)} ({type(key)}).")
+            old_value = self.state.get(key)
+            self.state[key] = raw_value
 
-        self.state[key] = raw_value
-        self._apply_raw(f"+{key}")
+            for local_mutation in self.local_mutation_subscriptions:
+                if local_mutation.local_path == key:
+                    if local_mutation.type == 'subscription':
+                        context_data = {
+                            "event": "mutation",
+                            "mutation": local_mutation.path
+                        }
+                        payload = {
+                            "previous_value": old_value,
+                            "new_value": raw_value
+                        }
+
+                        writer_event_handler_invoke(local_mutation.handler, {
+                            "state": local_mutation.state,
+                            "context": context_data,
+                            "payload": payload,
+                            "session": _event_handler_session_info(),
+                            "ui": _event_handler_ui_manager()
+                        })
+                    elif local_mutation.type == 'property':
+                        assert local_mutation.property_name is not None
+                        self[local_mutation.property_name] = local_mutation.handler(local_mutation.state)
+
+            self._apply_raw(f"+{key}")
 
     def __delitem__(self, key: str) -> None:
         if key in self.state:
             del self.state[key]
             self._apply_raw(f"-{key}")  # Using "-" prefix to indicate deletion
 
-    def remove(self, key) -> None:
+    def remove(self, key: str) -> None:
         return self.__delitem__(key)
 
-    def _apply_raw(self, key) -> None:
+    def _apply_raw(self, key: str) -> None:
         self.mutated.add(key)
 
     def apply_mutation_marker(self, key: Optional[str] = None, recursive: bool = False) -> None:
@@ -490,7 +604,6 @@ def get_annotations(instance) -> Dict[str, Any]:
         ann = {}
     return ann
 
-
 class StateMeta(type):
     """
     Constructs a class at runtime that extends WriterState or State
@@ -541,15 +654,17 @@ class StateMeta(type):
                 proxy = DictPropertyProxy("_state_proxy", key)
                 setattr(klass, key, proxy)
 
-
 class State(metaclass=StateMeta):
-    """
-    `State` represents a state of the application.
-    """
 
-    def __init__(self, raw_state: Dict[str, Any] = {}):
-        self._state_proxy: StateProxy = StateProxy(raw_state)
-        self.ingest(raw_state)
+    def __init__(self, raw_state: Optional[Dict[str, Any]] = None):
+        final_raw_state = raw_state if raw_state is not None else {}
+
+        self._state_proxy: StateProxy = StateProxy(final_raw_state)
+        self.ingest(final_raw_state)
+
+        # This step saves the properties associated with the instance
+        for attribute in calculated_properties_per_state_type.get(self.__class__, []):
+            getattr(self, attribute)
 
     def ingest(self, raw_state: Dict[str, Any]) -> None:
         """
@@ -659,6 +774,116 @@ class State(metaclass=StateMeta):
                 self._state_proxy[key] = value
 
 
+    def subscribe_mutation(self,
+                           path: Union[str, List[str]],
+                           handler: Callable[..., Union[None, Awaitable[None]]],
+                           initial_triggered: bool = False) -> None:
+        """
+        Automatically triggers a handler when a mutation occurs in the state.
+
+        >>> def _increment_counter(state):
+        >>>     state['my_counter'] += 1
+        >>>
+        >>> state = WriterState({'a': 1, 'c': {'a': 1, 'b': 3}, 'my_counter': 0})
+        >>> state.subscribe_mutation('a', _increment_counter)
+        >>> state.subscribe_mutation('c.a', _increment_counter)
+        >>> state['a'] = 2 # will trigger _increment_counter
+        >>> state['a'] = 3 # will trigger _increment_counter
+        >>> state['c']['a'] = 2 # will trigger _increment_counter
+
+        subscribe mutation accepts the signature of an event handler.
+
+        >>> def _increment_counter(state, payload, context, session, ui):
+        >>>     state['my_counter'] += 1
+        >>>
+        >>> state = WriterState({'a': 1, 'my_counter': 0})
+        >>> state.subscribe_mutation('a', _increment_counter)
+        >>> state['a'] = 2 # will trigger _increment_counter
+
+        subscribe mutation accepts escaped dot expressions to encode key that contains `dot` separator
+
+        >>> def _increment_counter(state, payload, context, session, ui):
+        >>>     state['my_counter'] += 1
+        >>>
+        >>> state = WriterState({'a.b': 1, 'my_counter': 0})
+        >>> state.subscribe_mutation('a\.b', _increment_counter)
+        >>> state['a.b'] = 2 # will trigger _increment_counter
+
+        :param path: path of mutation to monitor
+        :param func: handler to call when the path is mutated
+        """
+        if isinstance(path, str):
+            path_list = [path]
+        else:
+            path_list = path
+
+        for p in path_list:
+            state_proxy = self._state_proxy
+            path_parts = parse_state_variable_expression(p)
+            for i, path_part in enumerate(path_parts):
+                if i == len(path_parts) - 1:
+                    local_mutation = MutationSubscription('subscription', p, handler, self)
+                    state_proxy.local_mutation_subscriptions.append(local_mutation)
+
+                    # At startup, the application must be informed of the
+                    # existing states. To cause this, we trigger manually
+                    # the handler.
+                    if initial_triggered is True:
+                        writer_event_handler_invoke(handler, {
+                            "state": self,
+                            "context": {"event": "init"},
+                            "payload": {},
+                            "session": {},
+                            "ui": _event_handler_ui_manager()
+                        })
+
+                elif path_part in state_proxy:
+                    state_proxy = state_proxy[path_part]
+                else:
+                    raise ValueError(f"Mutation subscription failed - {p} not found in state")
+
+    def calculated_property(self,
+                            property_name: str,
+                            path: Union[str, List[str]],
+                            handler: Callable[..., Union[None, Awaitable[None]]]) -> None:
+        """
+        Update a calculated property when a mutation triggers
+
+        This method is dedicated to be used through a calculated property. It is not
+        recommended to invoke it directly.
+
+        >>> class MyState(State):
+        >>>     title: str
+        >>>
+        >>>     wf.property('title')
+        >>>     def title_upper(self):
+        >>>         return self.title.upper()
+
+        Usage
+        =====
+
+        >>> state = wf.init_state({'title': 'hello world'})
+        >>> state.calculated_property('title_upper', 'title', lambda state: state.title.upper())
+        """
+        if isinstance(path, str):
+            path_list = [path]
+        else:
+            path_list = path
+
+        for p in path_list:
+            state_proxy = self._state_proxy
+            path_parts = p.split(".")
+            for i, path_part in enumerate(path_parts):
+                if i == len(path_parts) - 1:
+                    local_mutation = MutationSubscription('property', p, handler, self, property_name)
+                    state_proxy.local_mutation_subscriptions.append(local_mutation)
+                    state_proxy[property_name] = handler(self)
+                elif path_part in state_proxy:
+                    state_proxy = state_proxy[path_part]
+                else:
+                    raise ValueError(f"Property subscription failed - {p} not found in state")
+
+
 class WriterState(State):
     """
     Root state. Comprises user configurable state and
@@ -704,7 +929,10 @@ class WriterState(State):
                                            "The state may contain unpickable objects, such as modules.",
                                            traceback.format_exc())
             return substitute_state
-        return self.__class__(cloned_user_state, cloned_mail)
+
+        cloned_state = self.__class__(cloned_user_state, cloned_mail)
+        _clone_mutation_subscriptions(cloned_state, self)
+        return cloned_state
 
     def add_mail(self, type: str, payload: Any) -> None:
         mail_item = {
@@ -849,7 +1077,7 @@ class MiddlewareExecutor():
 
     @contextlib.contextmanager
     def execute(self, args: dict):
-        middleware_args = build_writer_func_arguments(self.middleware, args)
+        middleware_args = writer_event_handler_build_arguments(self.middleware, args)
         it = self.middleware(*middleware_args)
         try:
             yield from it
@@ -873,7 +1101,7 @@ class MiddlewareRegistry:
         Retrieves middlewares prepared for execution
 
         >>> executors = middleware_registry.executors()
-        >>> result = handle_with_middlewares_executor(executors, lambda state: pass, {'state': {}, 'payload': {}})
+        >>> result = writer_event_handler_invoke_with_middlewares(executors, lambda state: pass, {'state': {}, 'payload': {}})
         """
         return self.registry
 
@@ -1476,21 +1704,14 @@ class EventHandler:
             raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
 
         # Preparation of arguments
-        from writer.ui import WriterUIManager
-
         context_data = self.evaluator.get_context_data(instance_path)
         context_data['event'] = event_type
         writer_args = {
             'state': self.session_state,
             'payload': payload,
             'context': context_data,
-            'session': {
-                'id': self.session.session_id,
-                'cookies': self.session.cookies,
-                'headers': self.session.headers,
-                'userinfo': self.session.userinfo or {}
-            },
-            'ui': WriterUIManager()
+            'session':_event_handler_session_info(),
+            'ui': _event_handler_ui_manager()
         }
 
         # Invocation of handler
@@ -1500,7 +1721,7 @@ class EventHandler:
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
 
-            result = handle_with_middlewares_executor(middlewares_executors, callable_handler, writer_args)
+            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, callable_handler, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -2010,6 +2231,74 @@ def new_initial_state(klass: Type[S], raw_state: dict) -> S:
 
     return initial_state
 
+"""
+This variable contains the list of properties calculated for each class 
+that inherits from State.
+
+This mechanic allows Writer Framework to subscribe to mutations that trigger 
+these properties when loading an application.
+"""
+calculated_properties_per_state_type: Dict[Type[State], List[str]] = {}
+
+def writerproperty(path: Union[str, List[str]]):
+    """
+    Mechanism for declaring a calculated property whenever an attribute changes
+    in the state of the Writer Framework application.
+
+    >>> class MyState(wf.WriterState):
+    >>>     counter: int
+    >>>
+    >>>     @wf.property("counter")
+    >>>     def double_counter(self):
+    >>>         return self.counter * 2
+
+    This mechanism also supports a calculated property that depends on several dependencies.
+
+    >>> class MyState(wf.WriterState):
+    >>>     counterA: int
+    >>>     counterB: int
+    >>>
+    >>>     @wf.property(["counterA", "counterB"])
+    >>>     def counter_sum(self):
+    >>>         return self.counterA + self.counterB
+    """
+
+    class Property():
+
+        def __init__(self, func):
+            self.func = func
+            self.initialized = False
+            self.property_name = None
+
+        def __call__(self, *args, **kwargs):
+            return self.func(*args, **kwargs)
+
+        def __set_name__(self, owner: Type[State], name: str):
+            """
+            Saves the calculated properties when loading a State class.
+            """
+            if owner not in calculated_properties_per_state_type:
+                calculated_properties_per_state_type[owner] = []
+
+            calculated_properties_per_state_type[owner].append(name)
+            self.property_name = name
+
+        def __get__(self, instance: State, cls):
+            """
+            This mechanism retrieves the property instance.
+            """
+            args = inspect.getfullargspec(self.func)
+            if len(args.args) > 1:
+                logging.warning(f"Wrong signature for calculated property '{instance.__class__.__name__}:{self.property_name}'. It must declare only self argument.")
+                return None
+
+            if self.initialized is False:
+                instance.calculated_property(property_name=self.property_name, path=path, handler=self.func)
+                self.initialized = True
+
+            return self.func(instance)
+
+    return Property
 
 def session_verifier(func: Callable) -> Callable:
     """
@@ -2022,6 +2311,25 @@ def session_verifier(func: Callable) -> Callable:
     session_manager.add_verifier(func)
     return wrapped
 
+
+def get_session() -> Optional[WriterSession]:
+    """
+    Retrieves the current session.
+
+    This function works exclusively in the context of a request.
+    """
+    req = _current_request.get()
+    if req is None:
+        return None
+
+    session_id = req.session_id
+    session = session_manager.get_session(session_id)
+    if not session:
+        return None
+
+    return session
+
+
 def reset_base_component_tree() -> None:
     """
     Reset the base component tree to zero
@@ -2031,55 +2339,62 @@ def reset_base_component_tree() -> None:
     global base_component_tree
     base_component_tree = core_ui.build_base_component_tree()
 
-
-def handler_executor(callable_handler: Callable, writer_args: dict) -> Any:
+def _clone_mutation_subscriptions(session_state: State, app_state: State, root_state: Optional['State'] = None) -> None:
     """
-    Runs a handler based on its signature.
+    clone subscriptions on mutations between the initial state of the application and the state created for the session
 
-    If the handler is asynchronous, it is executed asynchronously.
-    If the handler only has certain parameters, only these are passed as arguments
+    >>> state = wf.init_state({"counter": 0})
+    >>> state.subscribe_mutation("counter", lambda state: print(state["counter"]))
 
-    >>> def my_handler(state):
-    >>>     state['a'] = 2
-    >>>
-    >>> handler_executor(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    >>> session_state = state.get_clone()
+
+    :param session_state:
+    :param app_state:
+    :param root_state:
     """
-    is_async_handler = inspect.iscoroutinefunction(callable_handler)
-    if (not callable(callable_handler) and not is_async_handler):
-        raise ValueError("Invalid handler. The handler isn't a callable object.")
+    state_proxy_app = app_state._state_proxy
+    state_proxy_session = session_state._state_proxy
 
-    handler_args = build_writer_func_arguments(callable_handler, writer_args)
+    state_proxy_session.local_mutation_subscriptions = []
 
-    if is_async_handler:
-        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
-        result = asyncio.run(async_wrapper)
-    else:
-        result = callable_handler(*handler_args)
+    _root_state = root_state if root_state is not None else session_state
+    for mutation_subscription in state_proxy_app.local_mutation_subscriptions:
+        new_mutation_subscription = copy.copy(mutation_subscription)
+        new_mutation_subscription.state = _root_state if new_mutation_subscription.type == "subscription" else session_state
+        session_state._state_proxy.local_mutation_subscriptions.append(new_mutation_subscription)
 
-    return result
 
-def handle_with_middlewares_executor(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+def parse_state_variable_expression(p: str):
     """
-    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+    Parses a state variable expression into a list of parts.
 
-    :param middlewares_executors: The list of middleware to run
-    :param callable_handler: The target handler
+    >>> parse_state_variable_expression("a.b.c")
+    >>> ["a", "b", "c"]
 
-    >>> @wf.middleware()
-    >>> def my_middleware(state, payload, context, session, ui):
-    >>>     yield
-
-    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
-    >>> handle_with_middlewares_executor([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+    >>> parse_state_variable_expression("a\.b.c")
+    >>> ["a.b", "c"]
     """
-    if len(middlewares_executors) == 0:
-        return handler_executor(callable_handler, writer_args)
-    else:
-        executor = middlewares_executors[0]
-        with executor.execute(writer_args):
-            return handle_with_middlewares_executor(middlewares_executors[1:], callable_handler, writer_args)
+    parts = []
+    it = 0
+    last_split = 0
+    while it < len(p):
+        if p[it] == '\\':
+            it += 2
+        elif p[it] == '.':
+            new_part = p[last_split: it]
+            parts.append(new_part.replace('\\.', '.'))
 
-def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
+            last_split = it + 1
+            it += 1
+        else:
+            it += 1
+
+    new_part = p[last_split: len(p)]
+    parts.append(new_part.replace('\\.', '.'))
+    return parts
+
+
+def writer_event_handler_build_arguments(func: Callable, writer_args: dict) -> List[Any]:
     """
     Constructs the list of arguments based on the signature of the function
     which can be a handler or middleware.
@@ -2087,7 +2402,7 @@ def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
     >>> def my_event_handler(state, context):
     >>>     yield
 
-    >>> args = build_writer_func_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
+    >>> args = writer_event_handler_build_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
     >>> [{}, {"target": '11'}]
 
     :param func: the function that will be called
@@ -2100,6 +2415,54 @@ def build_writer_func_arguments(func: Callable, writer_args: dict) -> List[Any]:
             func_args.append(writer_args[arg])
 
     return func_args
+
+
+def writer_event_handler_invoke(callable_handler: Callable, writer_args: dict) -> Any:
+    """
+    Runs a handler based on its signature.
+
+    If the handler is asynchronous, it is executed asynchronously.
+    If the handler only has certain parameters, only these are passed as arguments
+
+    >>> def my_handler(state):
+    >>>     state['a'] = 2
+    >>>
+    >>> writer_event_handler_invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    """
+    is_async_handler = inspect.iscoroutinefunction(callable_handler)
+    if (not callable(callable_handler) and not is_async_handler):
+        raise ValueError("Invalid handler. The handler isn't a callable object.")
+
+    handler_args = writer_event_handler_build_arguments(callable_handler, writer_args)
+
+    if is_async_handler:
+        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
+        result = asyncio.run(async_wrapper)
+    else:
+        result = callable_handler(*handler_args)
+
+    return result
+
+def writer_event_handler_invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+    """
+    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+
+    :param middlewares_executors: The list of middleware to run
+    :param callable_handler: The target handler
+
+    >>> @wf.middleware()
+    >>> def my_middleware(state, payload, context, session, ui):
+    >>>     yield
+
+    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+    >>> writer_event_handler_invoke_with_middlewares([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+    """
+    if len(middlewares_executors) == 0:
+        return writer_event_handler_invoke(callable_handler, writer_args)
+    else:
+        executor = middlewares_executors[0]
+        with executor.execute(writer_args):
+            return writer_event_handler_invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
 
 
 async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
@@ -2143,6 +2506,27 @@ def _assert_record_match_list_of_records(df: List[Dict[str, Any]], record: Dict[
     columns_record = set(record.keys())
     if columns != columns_record:
         raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
+
+def _event_handler_session_info() -> Dict[str, Any]:
+    """
+    Returns the session information for the current event handler.
+
+    This information is exposed in the session parameter of a handler
+    
+    """
+    current_session = get_session()
+    session_info: Dict[str, Any] = {}
+    if current_session is not None:
+        session_info['id'] = current_session.session_id
+        session_info['cookies'] = current_session.cookies
+        session_info['headers'] = current_session.headers
+        session_info['userinfo'] = current_session.userinfo or {}
+
+    return session_info
+
+def _event_handler_ui_manager():
+    from writer.ui import WriterUIManager
+    return WriterUIManager()
 
 
 def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
