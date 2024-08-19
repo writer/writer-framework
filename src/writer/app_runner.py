@@ -24,6 +24,8 @@ from writer.core import (
     MiddlewareRegistry,
     WriterSession,
     use_request_context,
+    wf_project_migrate_obsolete_ui_json,
+    wf_project_read_files,
     wf_project_write_files,
 )
 from writer.core_ui import ingest_bmc_component_tree
@@ -32,6 +34,7 @@ from writer.ss_types import (
     AppProcessServerRequestPacket,
     AppProcessServerResponse,
     AppProcessServerResponsePacket,
+    ComponentDefinition,
     ComponentUpdateRequest,
     ComponentUpdateRequestPayload,
     EventRequest,
@@ -685,22 +688,15 @@ class AppRunner:
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
             sys.exit(1)
 
-    def _load_persisted_components(self) -> Dict:
-        file_payload: Dict = {}
-        try:
-            with open(os.path.join(self.app_path, "ui.json"), "r") as f:
-                parsed_file = json.load(f)
-                if not isinstance(parsed_file, dict):
-                    raise ValueError("No dictionary found in components file.")
-                file_payload = parsed_file
-        except FileNotFoundError:
-            logging.error(
-                "Couldn't find ui.json in the path provided: %s.", self.app_path)
+    def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
+        if os.path.isfile(os.path.join(self.app_path, "ui.json")):
+            wf_project_migrate_obsolete_ui_json(self.app_path)
+
+        if not os.path.isdir(os.path.join(self.app_path, ".wf")):
+            logging.error("Couldn't find .wf in the path provided: %s.", self.app_path)
             sys.exit(1)
-        components = file_payload.get("components")
-        if components is None:
-            raise ValueError("Components not found in file.")
-        
+
+        _, components = wf_project_read_files(self.app_path)
         components = audit_and_fix.fix_components(components)
         return components
 
@@ -725,15 +721,6 @@ class AppRunner:
         self.bmc_components = payload.components
 
         wf_project_write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
-
-        file_contents = {
-            "metadata": {
-                "writer_version": VERSION
-            },
-            "components": payload.components
-        }
-        with open(os.path.join(self.app_path, "ui.json"), "w") as f:
-            json.dump(file_contents, f, indent=4)
 
         return await self.dispatch_message(session_id, ComponentUpdateRequest(
             type="componentUpdate",

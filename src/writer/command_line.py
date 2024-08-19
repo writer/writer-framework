@@ -7,6 +7,11 @@ from typing import Optional
 import click
 
 import writer.serve
+from writer.core import (
+    wf_project_migrate_obsolete_ui_json,
+    wf_project_read_files,
+    wf_project_write_files,
+)
 from writer.deploy import cloud
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
@@ -71,6 +76,7 @@ def hello(port, host, enable_remote_edit):
     writer.serve.serve("hello", mode="edit",
        port=port, host=host, enable_remote_edit=enable_remote_edit,
        enable_server_setup=False)
+
 
 main.add_command(cloud)
 

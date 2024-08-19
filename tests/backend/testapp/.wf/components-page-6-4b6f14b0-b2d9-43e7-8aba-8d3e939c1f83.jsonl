@@ -1,0 +1,4 @@
+{"id": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83", "type": "page", "content": {}, "isCodeManaged": false, "position": 6, "parentId": "root", "handlers": {}, "visible": true}
+{"id": "0cd59329-29c8-4887-beee-39794065221e", "type": "text", "content": {"text": "The counter is @{counter}"}, "isCodeManaged": false, "position": 0, "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83", "handlers": {}, "visible": true}
+{"id": "f811ca14-8915-443d-8dd3-77ae69fb80f4", "type": "repeater", "content": {"repeaterObject": "@{prog_languages}", "keyVariable": "itemId", "valueVariable": "item"}, "isCodeManaged": false, "position": 1, "parentId": "4b6f14b0-b2d9-43e7-8aba-8d3e939c1f83", "handlers": {}, "visible": true}
+{"id": "2e688107-f865-419b-a07b-95103197e3fd", "type": "text", "content": {"text": "The id is @{itemId} and the name is @{item.name}"}, "isCodeManaged": false, "position": 0, "parentId": "f811ca14-8915-443d-8dd3-77ae69fb80f4", "handlers": {}, "visible": true}

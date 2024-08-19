@@ -1,6 +1,7 @@
 import json
 import math
 import os.path
+import shutil
 import tempfile
 import unittest
 import urllib
@@ -16,6 +17,7 @@ import polars as pl
 import pyarrow as pa
 import pytest
 import writer as wf
+from writer import audit_and_fix
 from writer.core import (
     BytesWrapper,
     Evaluator,
@@ -29,12 +31,14 @@ from writer.core import (
     WriterState,
     import_failure,
     parse_state_variable_expression,
+    wf_project_migrate_obsolete_ui_json,
+    wf_project_read_files,
     wf_project_write_files,
 )
 from writer.core_ui import Component
 from writer.ss_types import ComponentDefinition, WriterEvent
 
-from tests.backend import test_app_dir
+from tests.backend import test_app_dir, testobsoleteapp
 from tests.backend.fixtures import (
     core_ui_fixtures,
     file_fixtures,
@@ -70,9 +74,9 @@ simple_dict = {"items": {
 wf.Config.is_mail_enabled_for_log = True
 wf.init_state(raw_state_dict)
 
-sc = None
-with open(test_app_dir / "ui.json", "r") as f:
-    sc = json.load(f).get("components")
+_, sc = wf_project_read_files(test_app_dir)
+sc = audit_and_fix.fix_components(sc)
+
 session = wf.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
@@ -1790,3 +1794,25 @@ def test_wf_project_write_files_should_write_preserve_page_order_in_wf_directory
         assert os.path.isfile(os.path.join(test_app_dir, '.wf', 'components-page-1-bb4d0e86-619e-4367-a180-be28ab6059f4.jsonl'))
         page_1: List[ComponentDefinition] = file_fixtures.read(os.path.join(test_app_dir, '.wf', 'components-page-1-bb4d0e86-619e-4367-a180-be28ab6059f4.jsonl'))
         assert page_1[0] == components_page_1[0]
+
+
+def test_wf_project_read_files_should_read_files_in_wf_directory():
+    # When
+    metadata, sc = wf_project_read_files(test_app_dir)
+
+    # Then
+    assert 'writer_version' in metadata
+    assert isinstance(sc, dict)
+    assert len(sc) != 0
+
+def test_wf_project_migrate_obsolete_ui_json_should_migrate_ui_json_into_wf_directory():
+    with tempfile.TemporaryDirectory('wf_project_migrate_obsolete_ui_json') as tmp_app_dir:
+        shutil.copytree(testobsoleteapp, tmp_app_dir, dirs_exist_ok=True)
+
+        # When
+        wf_project_migrate_obsolete_ui_json(tmp_app_dir)
+
+        # Then
+        assert not os.path.isfile(os.path.join(tmp_app_dir, 'ui.json'))
+        assert os.path.isfile(os.path.join(tmp_app_dir, '.wf', 'metadata.json'))
+        assert os.path.isfile(os.path.join(tmp_app_dir, '.wf', 'components-root.jsonl'))

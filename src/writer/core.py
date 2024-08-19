@@ -2437,7 +2437,7 @@ def wf_project_write_files(app_path: str, metadata: MetadataDefinition, componen
     if not os.path.exists(wf_directory):
         os.makedirs(wf_directory)
 
-    with open(os.path.join(wf_directory, "metadata.json"), "w") as f:
+    with io.open(os.path.join(wf_directory, "metadata.json"), "w") as f:
         json.dump(metadata, f, indent=4)
 
     root_component = components["root"]
@@ -2450,10 +2450,10 @@ def wf_project_write_files(app_path: str, metadata: MetadataDefinition, componen
             list_pages.append(c["id"])
 
     for position, page_id in enumerate(list_pages):
-        page_components = [components[page_id]]
+        page_components = []
         page_components_ids = {page_id}
         for c in components.values():
-            if c.get("parentId", None) in page_components_ids:
+            if _lookup_page_for_component(components, c['id']) in page_components_ids:
                 page_components.append(c)
                 page_components_ids.add(c["id"])
 
@@ -2461,10 +2461,68 @@ def wf_project_write_files(app_path: str, metadata: MetadataDefinition, componen
             for p in page_components:
                 f.write(json.dumps(p) + "\n")
 
+def wf_project_read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDefinition]]:
+    """
+    Reads project files in the `.wf` folder.
+
+    The components are read in page order.
+
+    >>> metadata, components = wf_project_read_files('app/hello')
+    """
+    components: dict[str, ComponentDefinition] = {}
+
+    meta_data_path = os.path.join(app_path, ".wf", "metadata.json")
+    try:
+        with io.open(meta_data_path, "r") as filep:
+            metadata: MetadataDefinition = json.load(filep)
+    except Exception as e:
+        raise ValueError(f"Error reading metadata file {meta_data_path} : {e}")
+
+    root_component_path = os.path.join(app_path, ".wf", "components-root.jsonl")
+    try:
+        with io.open(root_component_path, "r") as filep:
+            root_component: ComponentDefinition = json.loads(filep.read())
+            components.update({root_component["id"]: root_component})
+    except Exception as e:
+        raise ValueError(f"Error reading root component file {root_component_path} : {e}")
+
+    files = os.listdir(os.path.join(app_path, ".wf"))
+    page_files = [file for file in files if file.startswith("components-page-")]
+    sorted_page_files = sorted(page_files, key=lambda x: int(x.split("-")[2]))
+    for page_file in sorted_page_files:
+        page_file_path = os.path.join(app_path, ".wf", page_file)
+        try:
+            with io.open(page_file_path, "r") as filep:
+                for line in filep:
+                    component: ComponentDefinition = json.loads(line)
+                    components.update({component["id"]: component})
+        except Exception as e:
+            raise ValueError(f"Error reading page component file {page_file_path} : {e}")
+
+    return metadata, components
 
 
-def wf_project_read_files(app_path: str) -> Optional[Tuple[MetadataDefinition, dict[str, ComponentDefinition]]]:
-    pass
+def wf_project_migrate_obsolete_ui_json(app_path: str) -> None:
+    """
+    Migrates a project that uses ui.json file to the current project format
+
+    The ui.json file is removed after the migration.
+    """
+    assert os.path.isfile(os.path.join(app_path, "ui.json")), f"ui.json file required for migration into {app_path}"
+
+    logger = logging.getLogger('writer')
+    with io.open(os.path.join(app_path, "ui.json"), "r") as f:
+        parsed_file = json.load(f)
+
+    if not isinstance(parsed_file, dict):
+        raise ValueError("No dictionary found in components file.")
+
+    file_payload = parsed_file
+    metadata = file_payload.get("metadata", {})
+    components = file_payload.get("components", {})
+    wf_project_write_files(app_path, metadata, components)
+    os.remove(os.path.join(app_path, "ui.json"))
+    logger.warning('project format has changed and has been migrated with success. ui.json file has been removed.')
 
 
 def writer_event_handler_invoke(callable_handler: Callable, writer_args: dict) -> Any:
@@ -2583,6 +2641,29 @@ def _event_handler_ui_manager():
         raise RuntimeError(_get_ui_runtime_error_message())
 
 
+def _lookup_page_for_component(components: dict[str, ComponentDefinition], component_id: str) -> Optional[str]:
+    """
+    Retrieves the page of a component
+
+    >>> _lookup_page_for_component(components, "6a490318-239e-4fe9-a56b-f0f33d628c87")
+    """
+    component = components[component_id]
+    parent_id = component.get("parentId")
+    if parent_id is None:
+        return None
+
+    if component['type'] == "page":
+        return component['id']
+
+    if parent_id in components:
+        if components[parent_id]['type'] == "page":
+            return parent_id
+        else:
+            return _lookup_page_for_component(components, parent_id)
+
+    return None
+
+
 def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
     """
     Separates a record into the record part and the index part to be able to
@@ -2601,6 +2682,7 @@ def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -
             final_record[key] = value
 
     return final_record, tuple(final_index)
+
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()
