@@ -19,7 +19,13 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from writer import VERSION, audit_and_fix
-from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
+from writer.core import (
+    EventHandlerRegistry,
+    MiddlewareRegistry,
+    WriterSession,
+    use_request_context,
+    wf_project_write_files,
+)
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -717,6 +723,9 @@ class AppRunner:
             raise PermissionError(
                 "Cannot update components in non-update mode.")
         self.bmc_components = payload.components
+
+        wf_project_write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
+
         file_contents = {
             "metadata": {
                 "writer_version": VERSION
@@ -725,6 +734,7 @@ class AppRunner:
         }
         with open(os.path.join(self.app_path, "ui.json"), "w") as f:
             json.dump(file_contents, f, indent=4)
+
         return await self.dispatch_message(session_id, ComponentUpdateRequest(
             type="componentUpdate",
             payload=payload

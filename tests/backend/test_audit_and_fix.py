@@ -8,10 +8,9 @@ from backend.fixtures import load_fixture_content
 def test_fix_components_should_fix_visible_fields():
     # Given
     obsolete_components = load_fixture_content('obsoletes/ui_obsolete_visible.json')
-    components = json.loads(obsolete_components)
 
     # When
-    final_components = audit_and_fix.fix_components(components)
+    final_components = audit_and_fix.fix_components(obsolete_components)
 
     # Then
     assert "visible" not in final_components["root"]

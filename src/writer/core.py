@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import multiprocessing
+import os
 import re
 import secrets
 import time
@@ -46,11 +47,13 @@ import pyarrow  # type: ignore
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
+    ComponentDefinition,
     DataframeRecordAdded,
     DataframeRecordRemoved,
     DataframeRecordUpdated,
     InstancePath,
     InstancePathItem,
+    MetadataDefinition,
     Readable,
     WriterEvent,
     WriterEventResult,
@@ -2419,6 +2422,49 @@ def writer_event_handler_build_arguments(func: Callable, writer_args: dict) -> L
             func_args.append(writer_args[arg])
 
     return func_args
+
+def wf_project_write_files(app_path: str, metadata: MetadataDefinition, components: dict[str, ComponentDefinition]) -> None:
+    """
+    Writes the meta data of the WF project to the `.wf` directory (metadata, components, ...).
+
+    * the metadata.json file is written in json format
+    * a file for the root component written in jsonline format
+    * one file per page is created in the form `components-{id}.json` in jsonline format
+
+    >>> wf_project_write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
+    """
+    wf_directory = os.path.join(app_path, ".wf")
+    if not os.path.exists(wf_directory):
+        os.makedirs(wf_directory)
+
+    with open(os.path.join(wf_directory, "metadata.json"), "w") as f:
+        json.dump(metadata, f, indent=4)
+
+    root_component = components["root"]
+    with io.open(os.path.join(wf_directory, "components-root.jsonl"), "w") as f:
+        f.write(json.dumps(root_component))
+
+    list_pages = []
+    for c in components.values():
+        if c["type"] == "page":
+            list_pages.append(c["id"])
+
+    for position, page_id in enumerate(list_pages):
+        page_components = [components[page_id]]
+        page_components_ids = {page_id}
+        for c in components.values():
+            if c.get("parentId", None) in page_components_ids:
+                page_components.append(c)
+                page_components_ids.add(c["id"])
+
+        with io.open(os.path.join(wf_directory, f"components-page-{position}-{page_id}.jsonl"), "w") as f:
+            for p in page_components:
+                f.write(json.dumps(p) + "\n")
+
+
+
+def wf_project_read_files(app_path: str) -> Optional[Tuple[MetadataDefinition, dict[str, ComponentDefinition]]]:
+    pass
 
 
 def writer_event_handler_invoke(callable_handler: Callable, writer_args: dict) -> Any:
