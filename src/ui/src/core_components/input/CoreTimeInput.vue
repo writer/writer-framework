@@ -91,6 +91,7 @@ input {
 	padding: 8.5px 12px 8.5px 12px;
 	font-size: 0.875rem;
 	outline: none;
+	cursor: text;
 }
 
 input:focus {

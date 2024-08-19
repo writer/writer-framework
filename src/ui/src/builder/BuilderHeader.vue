@@ -134,6 +134,7 @@ const customHandlerModalCloseAction: ModalAction = {
 }
 
 .syncHealth {
+	cursor: pointer;
 	background: var(--builderHeaderBackgroundHoleColor);
 	border-radius: 18px;
 	padding-left: 16px;

@@ -17,6 +17,7 @@ select {
 	max-width: 100%;
 	width: fit-content;
 	outline: none;
+	cursor: pointer;
 }
 
 select:focus {

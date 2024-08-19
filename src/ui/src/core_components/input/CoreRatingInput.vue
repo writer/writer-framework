@@ -257,6 +257,7 @@ const feedbackRating = computed(() => {
 	gap: 8px;
 	flex-wrap: nowrap;
 	position: relative;
+	cursor: pointer;
 }
 
 .unit {
