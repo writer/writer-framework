@@ -18,7 +18,7 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION
+from writer import VERSION, audit_and_fix
 from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
@@ -552,7 +552,7 @@ class LogListener(threading.Thread):
             message = self.log_queue.get()
             if message is None:
                 break
-            self.logger.handle(message)            
+            self.logger.handle(message)
 
 
 class AppRunner:
@@ -692,6 +692,8 @@ class AppRunner:
         components = file_payload.get("components")
         if components is None:
             raise ValueError("Components not found in file.")
+        
+        components = audit_and_fix.fix_components(components)
         return components
 
     async def check_session(self, session_id: str) -> bool:
@@ -865,4 +867,3 @@ class AppRunner:
         thread.start()
         thread.join()
         return
-
