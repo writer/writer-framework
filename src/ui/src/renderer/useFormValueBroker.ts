@@ -1,6 +1,6 @@
 import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
-import { Core, InstancePath } from "../writerTypes";
 import { useEvaluator } from "../renderer/useEvaluator";
+import { Core, InstancePath } from "../writerTypes";
 
 /**
  *
@@ -10,14 +10,14 @@ import { useEvaluator } from "../renderer/useEvaluator";
  * @param componentId
  * @returns
  */
-export function useFormValueBroker(
+export function useFormValueBroker<T = any>(
 	wf: Core,
 	instancePath: InstancePath,
 	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
 ) {
-	const formValue: Ref<any> = ref();
+	const formValue: Ref<T> = ref();
 	const isBusy = ref(false);
-	const queuedEvent: Ref<{ eventValue: any; emitEventType: string }> =
+	const queuedEvent: Ref<{ eventValue: T; emitEventType: string }> =
 		ref(null);
 
 	const componentId = instancePath.at(-1).componentId;
@@ -101,7 +101,7 @@ export function useFormValueBroker(
 		() => getBindingValue(),
 		(value) => {
 			if (isBusy.value) return;
-			formValue.value = value;
+			formValue.value = value as T;
 		},
 		{ immediate: true },
 	);
@@ -110,7 +110,7 @@ export function useFormValueBroker(
 		formValue,
 		(newValue) => {
 			if (typeof newValue === "undefined") {
-				formValue.value = "";
+				formValue.value = "" as T;
 			}
 		},
 		{ immediate: true },

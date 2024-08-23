@@ -69,7 +69,6 @@ instanceData.at(-1).value = { activeTab: undefined };
 	border-radius: 8px;
 	box-shadow: var(--containerShadow);
 	border: 1px solid var(--separatorColor);
-	overflow: hidden;
 }
 
 .tabSelector {
@@ -89,6 +88,8 @@ instanceData.at(-1).value = { activeTab: undefined };
 
 .container {
 	background: var(--containerBackgroundColor);
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
 }
 
 .childless > .container {

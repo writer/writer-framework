@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "writer_version": "0.5.0"
+        "writer_version": "0.6.2rc3"
     },
     "components": {
         "root": {
@@ -86,7 +86,12 @@
             },
             "isCodeManaged": false,
             "position": 0,
-            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76"
+            "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "ee919cd6-8153-4f34-8c6a-bfc1153df360": {
             "id": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
@@ -623,7 +628,11 @@
             "position": 0,
             "parentId": "6a490318-239e-4fe9-a56b-f0f33d628c87",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "6d895924-e808-44aa-a119-f4e2d7f394f3": {
             "id": "6d895924-e808-44aa-a119-f4e2d7f394f3",
@@ -661,7 +670,11 @@
             "position": 0,
             "parentId": "feb9ca67-6670-483d-a895-22b031426a13",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f": {
             "id": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
@@ -671,7 +684,11 @@
             "position": 0,
             "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "feb9ca67-6670-483d-a895-22b031426a13": {
             "id": "feb9ca67-6670-483d-a895-22b031426a13",
@@ -683,7 +700,11 @@
             "position": 0,
             "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "3b325899-e560-40ea-ba54-9c55967af1e3": {
             "id": "3b325899-e560-40ea-ba54-9c55967af1e3",
@@ -695,7 +716,11 @@
             "position": 1,
             "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8": {
             "id": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
@@ -707,7 +732,11 @@
             "position": 2,
             "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "5dcd137b-76bd-4a5f-ae5c-5b629035500e": {
             "id": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
@@ -719,7 +748,11 @@
             "position": 3,
             "parentId": "1c05b2e7-3a31-40dd-b6b8-77ded7c6bc0f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "6a81f847-4d1d-4110-9cc1-12c716150e66": {
             "id": "6a81f847-4d1d-4110-9cc1-12c716150e66",
@@ -734,7 +767,11 @@
             "position": 0,
             "parentId": "3b325899-e560-40ea-ba54-9c55967af1e3",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "8e54e9d2-a7c8-4f74-897f-fa5791cd82da": {
             "id": "8e54e9d2-a7c8-4f74-897f-fa5791cd82da",
@@ -749,7 +786,11 @@
             "position": 0,
             "parentId": "a0cd99db-0cbe-40ca-b9cb-b1670ec60dd8",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "07f50628-4679-48a8-9a5d-07dcaf171afb": {
             "id": "07f50628-4679-48a8-9a5d-07dcaf171afb",
@@ -764,7 +805,11 @@
             "position": 0,
             "parentId": "5dcd137b-76bd-4a5f-ae5c-5b629035500e",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "4cca0893-5ad7-4152-b805-5c87babc4dee": {
             "id": "4cca0893-5ad7-4152-b805-5c87babc4dee",
@@ -774,7 +819,11 @@
             "position": 1,
             "parentId": "c6392876-7cfd-4680-8725-b04f43ff294f",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "23bc1387-26ed-4ff2-8565-b027c2960c3c": {
             "id": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
@@ -792,7 +841,11 @@
             "position": 1,
             "parentId": "root",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "1d195388-35a3-43e1-b825-1d263b100a28": {
             "id": "1d195388-35a3-43e1-b825-1d263b100a28",
@@ -804,7 +857,11 @@
             "position": 0,
             "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "771dc336-69b2-400e-9ea3-e881e2332c9d": {
             "id": "771dc336-69b2-400e-9ea3-e881e2332c9d",
@@ -816,7 +873,11 @@
             "position": 0,
             "parentId": "dfaae7f9-db20-4f70-a376-919bdc7b6010",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "9c77aee4-e2a0-4e8b-9c2b-377f939bb51e": {
             "id": "9c77aee4-e2a0-4e8b-9c2b-377f939bb51e",
@@ -841,7 +902,11 @@
             "handlers": {
                 "click": "$goToPage_main"
             },
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05": {
             "id": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
@@ -851,7 +916,11 @@
             "position": 1,
             "parentId": "23bc1387-26ed-4ff2-8565-b027c2960c3c",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "7402263c-cb8b-412d-b170-e6dc6ffcb706": {
             "id": "7402263c-cb8b-412d-b170-e6dc6ffcb706",
@@ -863,7 +932,11 @@
             "position": 1,
             "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "dfaae7f9-db20-4f70-a376-919bdc7b6010": {
             "id": "dfaae7f9-db20-4f70-a376-919bdc7b6010",
@@ -875,7 +948,11 @@
             "position": 0,
             "parentId": "8fe33adf-a5ea-4c7a-8d1d-59cc4dc14f05",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "5bc38721-8b48-43d5-a454-ee5ebe713a4c": {
             "id": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
@@ -908,7 +985,11 @@
             "position": 2,
             "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "03f422ce-bc36-4000-8eb1-da1cc00948c9": {
             "id": "03f422ce-bc36-4000-8eb1-da1cc00948c9",
@@ -923,7 +1004,11 @@
             "handlers": {
                 "click": "$goToPage_story"
             },
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "2df56a4b-b6e7-423d-a7a1-5d23c77f65fa": {
             "id": "2df56a4b-b6e7-423d-a7a1-5d23c77f65fa",
@@ -944,7 +1029,11 @@
             "position": 0,
             "parentId": "771dc336-69b2-400e-9ea3-e881e2332c9d",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "77cb256b-ef12-4a55-a051-500497f41302": {
             "id": "77cb256b-ef12-4a55-a051-500497f41302",
@@ -956,7 +1045,11 @@
             "position": 2,
             "parentId": "5bc38721-8b48-43d5-a454-ee5ebe713a4c",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "ed010441-0cac-4aa5-9e6f-97228e0c3536": {
             "id": "ed010441-0cac-4aa5-9e6f-97228e0c3536",
@@ -971,7 +1064,11 @@
             "handlers": {
                 "click": "handle_story_download"
             },
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "e1ax8ctt8lrao0e4": {
             "id": "e1ax8ctt8lrao0e4",
@@ -983,7 +1080,11 @@
             "position": 3,
             "parentId": "ee919cd6-8153-4f34-8c6a-bfc1153df360",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "j3jkho6tb97u0onr": {
             "id": "j3jkho6tb97u0onr",
@@ -997,7 +1098,11 @@
             "position": 0,
             "parentId": "e1ax8ctt8lrao0e4",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "4wzaubf275w17gac": {
             "id": "4wzaubf275w17gac",
@@ -1010,7 +1115,11 @@
             "position": 0,
             "parentId": "j3jkho6tb97u0onr",
             "handlers": {},
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "19binb4yi70gesho": {
             "id": "19binb4yi70gesho",
@@ -1042,7 +1151,11 @@
                 "wf-change-page": "handle_paginated_members_page_change",
                 "wf-change-page-size": "handle_paginated_members_page_size_change"
             },
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "b27lw9ex8ig3x17p": {
             "id": "b27lw9ex8ig3x17p",
@@ -1054,7 +1167,11 @@
             "isCodeManaged": false,
             "position": 2,
             "parentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76",
-            "visible": true
+            "visible": {
+                "expression": true,
+                "binding": "",
+                "reversed": false
+            }
         },
         "804e15bf-11a7-463d-8082-f46ea3acac1b": {
             "id": "804e15bf-11a7-463d-8082-f46ea3acac1b",

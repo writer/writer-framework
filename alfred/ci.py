@@ -15,13 +15,13 @@ import alfred
 def ci(front, back, e2e, docs):
     no_flags = (not front and not back and not e2e and not docs)
 
+    if front or no_flags:
+        alfred.invoke_command("npm.lint")
+        alfred.invoke_command("npm.build")
     if back or no_flags:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest")
-    if front or no_flags:
-        alfred.invoke_command("npm.lint")
-        alfred.invoke_command("npm.build")
     if docs or no_flags:
         alfred.invoke_command("npm.docs.test")
     if e2e:
@@ -32,8 +32,12 @@ def ci_mypy():
     alfred.run("mypy ./src/writer --exclude app_templates/*")
 
 @alfred.command("ci.ruff", help="linting with ruff")
-def ci_ruff():
-    alfred.run("ruff check")
+@alfred.option('--fix', '-f', help="fix linting errors", is_flag=True, default=False)
+def ci_ruff(fix):
+    if fix:
+        alfred.run("ruff check --fix")
+    else:
+        alfred.run("ruff check")
 
 @alfred.command("ci.pytest", help="run pytest on ./tests")
 def ci_test():

@@ -142,8 +142,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			parentId,
 			content: initContent,
 			handlers: {},
-			position: position ?? getNextInsertionPosition(parentId, type),
-			visible: true,
+			position: position ?? getNextInsertionPosition(parentId, type)
 		};
 
 		return component;
@@ -694,7 +693,9 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	 */
 	function setVisibleValue(
 		componentId: Component["id"],
-		visible: Component["visible"],
+		visible: boolean | string,
+		binding: string = "",
+		reversed: boolean = false,
 	) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
@@ -702,10 +703,22 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Change visibility`, true);
 		ssbm.registerPreMutation(component);
 
-		if (visible === true && typeof component.visible != "undefined") {
-			delete component.visible;
-		} else {
-			component.visible = visible;
+		if (component.visible == null) {
+			component.visible = {
+				expression: true,
+				binding: "",
+				reversed: false,
+			};
+		}
+
+		if (typeof visible == "boolean") {
+			component.visible.expression = visible;
+		} else if (visible == "custom") {
+			component.visible = {
+				expression: "custom",
+				binding: binding,
+				reversed: reversed,
+			};
 		}
 
 		ssbm.registerPostMutation(component);

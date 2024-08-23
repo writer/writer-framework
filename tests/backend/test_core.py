@@ -6,8 +6,10 @@ from typing import Dict
 
 import altair
 import numpy as np
+import pandas
 import pandas as pd
 import plotly.express as px
+import polars
 import polars as pl
 import pyarrow as pa
 import pytest
@@ -17,16 +19,19 @@ from writer.core import (
     Evaluator,
     EventDeserialiser,
     FileWrapper,
+    MutableValue,
     SessionManager,
     State,
     StateSerialiser,
     StateSerialiserException,
     WriterState,
+    import_failure,
+    parse_state_variable_expression,
 )
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
 
-from backend.fixtures import core_ui_fixtures
+from backend.fixtures import core_ui_fixtures, writer_fixtures
 from tests.backend import test_app_dir
 
 raw_state_dict = {
@@ -192,6 +197,70 @@ class TestStateProxy(unittest.TestCase):
         assert self.sp.to_raw_state() == raw_state_dict
         assert self.sp_simple_dict.to_raw_state() == simple_dict
 
+    def test_mutable_value_should_raise_mutation(self) -> None:
+        """
+        Tests that a class that implements MutableValue can be used in a State and throw mutations.
+        """
+        class MyValue(MutableValue):
+
+            def __init__(self):
+                super().__init__()
+                self._value = 0
+
+            def set(self, value):
+                self._value = value
+                self.mutate()
+
+            def to_dict(self):
+                return {"a": self._value}
+
+        s = WriterState({
+            "value": MyValue()
+        })
+        # Reset the mutation after initialisation
+        s._state_proxy.get_mutations_as_dict()
+
+        # When
+        s["value"].set(2)
+        a = s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        assert "+value" in a
+        assert a["+value"] == {"a": 2}
+
+    def test_mutable_value_should_reset_mutation_after_reading_get_mutations(self) -> None:
+        """
+        Tests that after reading the mutations, they are reset to zero
+        with a focus on the MutableValue.
+        """
+        class MyValue(MutableValue):
+
+            def __init__(self):
+                super().__init__()
+                self._value = 0
+
+            def set(self, value):
+                self._value = value
+                self.mutate()
+
+            def to_dict(self):
+                return {"a": self._value}
+
+        s = WriterState({
+            "value": MyValue()
+        })
+        # Reset the mutation after initialisation
+        s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        s["value"].set(2)
+        s._state_proxy.get_mutations_as_dict()
+
+        # Mutation is read a second time
+        a = s._state_proxy.get_mutations_as_dict()
+
+        # Then
+        assert a == {}
 
 
 class TestState:
@@ -325,6 +394,209 @@ class TestState:
         }
         assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
 
+    def test_subscribe_mutation_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that the handler that subscribes to a mutation fires when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_nested_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that a handler that subscribes to a nested mutation triggers when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('c.a', _increment_counter)
+        _state['c']['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_2_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that it is possible to subscribe to 2 mutations simultaneously
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation(['a', 'c.a'], _increment_counter)
+        _state['c']['a'] = 2
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 2
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 2
+
+    def test_subscribe_mutation_should_trigger_cascading_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        def _increment_counter2(state):
+            state['my_counter2'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state.subscribe_mutation('my_counter', _increment_counter2)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+        assert _state['my_counter2'] == 1
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+        assert mutations['+my_counter2'] == 1
+
+    def test_subscribe_mutation_should_work_with_async_event_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        async def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+
+    def test_subscribe_mutation_should_raise_error_on_infinite_cascading(self):
+        """
+        Tests that an infinite recursive loop is detected and an error is raised if mutations cascade
+
+        Python seems to raise a RecursionError by himself, so we just check that the error is raised
+        """
+        try:
+            # Assign
+            def _increment_counter(state):
+                state['my_counter'] += 1
+
+            def _increment_counter2(state):
+                state['my_counter2'] += 1
+
+            _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+            _state.user_state.get_mutations_as_dict()
+
+            # Acts
+            _state.subscribe_mutation('a', _increment_counter)
+            _state.subscribe_mutation('my_counter', _increment_counter2)
+            _state.subscribe_mutation('my_counter2', _increment_counter)
+            _state['a'] = 2
+            pytest.fail("Should raise an error")
+        except RecursionError:
+            assert True
+
+    def test_subscribe_mutation_should_raise_accept_event_handler_as_callback(self):
+        """
+        Tests that the handler that subscribes to a mutation can accept an event as a parameter
+        """
+        # Assign
+        def _increment_counter(state, payload, context: dict, ui):
+            state['my_counter'] += 1
+
+            # Assert
+            assert context['mutation'] == 'a'
+            assert payload['previous_value'] == 1
+            assert payload['new_value'] == 2
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+
+    def test_subscribe_mutation_with_typed_state_should_manage_mutation(self):
+        """
+        Tests that a mutation handler is triggered on a typed state and can use attributes directly.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                total: int
+
+            def cumulative_sum(state: MyState):
+                state.total += state.counter
+
+            initial_state = wf.init_state({
+                "counter": 0,
+                "total": 0
+            }, schema=MyState)
+
+            initial_state.subscribe_mutation('counter', cumulative_sum)
+
+            # Acts
+            initial_state['counter'] = 1
+            initial_state['counter'] = 3
+
+            # Assert
+            assert initial_state['total'] == 4
+
+    def test_subscribe_mutation_should_manage_escaping_in_subscription(self):
+        """
+        Tests that a key that contains a `.` can be used to subscribe to
+        a mutation using the escape character.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            def cumulative_sum(state):
+                state['total'] += state['a.b']
+
+            initial_state = wf.init_state({
+                "a.b": 0,
+                "total": 0
+            })
+
+            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+
+            # Acts
+            initial_state['a.b'] = 1
+            initial_state['a.b'] = 3
+
+            # Assert
+            assert initial_state['total'] == 4
 
 class TestWriterState:
 
@@ -991,3 +1263,444 @@ class TestSessionManager:
             None
         )
         assert s_invalid is None
+
+
+class TestEditableDataframe:
+
+    def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+        assert edf.df is not None
+        assert isinstance(edf.df, pandas.DataFrame)
+
+    def test_editable_dataframe_register_mutation_when_df_is_updated(self) -> None:
+        # Given
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.df.loc[0, "age"] = 26
+        edf.df = edf.df
+
+        # Then
+        assert edf.mutated() is True
+
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index_when_dataframe_has_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        df = df.set_index('name')
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_read_record_as_dict_based_on_record_index_when_dataframe_has_multi_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+        assert r['city'] == 'Paris'
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+        assert edf.df.index.tolist()[3] == 3
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe_with_index(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        df = df.set_index('name')
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_process_new_record_into_dataframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40, "city": "Berlin"}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_update_existing_record_as_dateframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25, "city": "Paris"}})
+
+        # Then
+        assert edf.df.iloc[0]['age'] == 25
+
+    def test_editable_dataframe_should_remove_existing_record_as_dateframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
+
+    def test_editable_dataframe_should_serialize_pandas_dataframe_with_multiindex(self) -> None:
+        df = pandas.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+        df = df.set_index(['name', 'city'])
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3
+
+    def test_editable_dataframe_expose_polar_dataframe_in_df_property(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+        assert edf.df is not None
+        assert isinstance(edf.df, polars.DataFrame)
+
+    def test_editable_dataframe_should_read_record_from_polar_as_dict_based_on_record_index(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+        edf = wf.EditableDataframe(df)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_process_new_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+    def test_editable_dataframe_should_update_existing_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
+
+        # Then
+        assert edf.df[0, "name"] == "Alicia"
+
+    def test_editable_dataframe_should_remove_existing_record_into_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
+
+    def test_editable_dataframe_should_serialize_polar_dataframe(self) -> None:
+        df = polars.DataFrame({
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "city": ["Paris", "London", "New York"]
+        })
+
+        edf = wf.EditableDataframe(df)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3
+
+
+    def test_editable_dataframe_expose_list_of_records_in_df_property(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        assert edf.df is not None
+        assert isinstance(edf.df, list)
+
+    def test_editable_dataframe_should_read_record_from_list_of_record_as_dict_based_on_record_index(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        r = edf.record(0)
+
+        # Then
+        assert r['name'] == 'Alice'
+        assert r['age'] == 25
+
+    def test_editable_dataframe_should_process_new_record_into_list_of_records(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_add({"record": {"name": "David", "age": 40}})
+
+        # Then
+        assert len(edf.df) == 4
+
+
+    def test_editable_dataframe_should_update_existing_record_into_list_of_record(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
+
+        # Then
+        assert edf.df[0]['name'] == "Alicia"
+
+    def test_editable_dataframe_should_remove_existing_record_into_list_of_record(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        edf.record_remove({"record_index": 0})
+
+        # Then
+        assert len(edf.df) == 2
+
+
+    def test_editable_dataframe_should_serialized_list_of_records_into_pyarrow_table(self) -> None:
+        records = [
+            {"name": "Alice", "age": 25},
+            {"name": "Bob", "age": 30},
+            {"name": "Charlie", "age": 35}
+        ]
+
+        edf = wf.EditableDataframe(records)
+
+        # When
+        table = edf.pyarrow_table()
+
+        # Then
+        assert len(table) == 3
+
+
+def test_import_failure_returns_expected_value_when_import_fails():
+    """
+    Test that an import failure returns the expected value
+    """
+    @import_failure(rvalue=False)
+    def myfunc():
+        import yop
+
+    assert myfunc() is False
+
+
+def test_import_failure_do_nothing_when_import_go_well():
+    """
+    Test that the import_failure decorator do nothing when the import is a success
+    """
+    @import_failure(rvalue=False)
+    def myfunc():
+        import math
+        return 2
+
+    assert myfunc() == 2
+
+class TestCalculatedProperty():
+
+    def test_calculated_property_should_be_triggered_when_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counter = 2
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_str' in mutations
+            assert mutations['+counter_str'] == '2'
+
+    def test_calculated_property_should_be_invoked_as_property(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Assert
+            assert state.counter_str == '0'
+
+    def test_calculated_property_should_be_triggered_when_one_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counterA: int
+            counterB: int
+
+            @wf.property(['counterA', 'counterB'])
+            def counter_sum(self) -> int:
+                return self.counterA + self.counterB
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counterA': 2, 'counterB': 4}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counterA = 4
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_sum' in mutations
+            assert mutations['+counter_sum'] == 8
+
+
+def test_parse_state_variable_expression_should_process_expression():
+    """
+    Test that the parse_state_variable_expression function will process
+    the expression correctly
+    """
+    # When
+    assert parse_state_variable_expression('features') == ['features']
+    assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
+    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']

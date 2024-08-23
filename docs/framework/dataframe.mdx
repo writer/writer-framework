@@ -1,0 +1,98 @@
+---
+title: "Dataframe"
+---
+
+**writer framework places the dataframe at the core of the application**. This is a great way for modeling a complex and massive data system.
+it offers components as `dataframe` to manipulate dataframes. These components allow you to visualize and interact with dataframes.
+
+| compatibility      | dataframe                             |
+|--------------------|---------------------------------------|
+| `pandas.DataFrame` | x                                     |
+| `polar.DataFrame`  | x                                     |
+| `list of records`  | x (with `EditableDataframe`)          |
+
+## Use a dataframe
+
+**a dataframe is simply added to the state**. A component like `dataframe` will be able to display it.
+
+```python
+import pandas
+import writer as wf
+
+wf.init_state({
+	'mydf': pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+})
+```
+
+## Prepare a dataframe for editing
+
+**writer provides `EditableDataframe` as a helper to facilitate manipulation**. it makes it easier to write event handlers such as adding a line,
+deleting it or modifying a value, etc...
+
+```python
+import pandas
+import writer as wf
+
+df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+
+wf.init_state({
+	'mydf': wf.EditableDataframe(df)
+})
+```
+
+### Handle events from a dataframe editor
+
+**The dataframe component emits events when an action is performed**. You must subscribe to events to integrate changes to the state of the application.
+
+```python
+import pandas
+import writer as wf
+
+df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+wf.init_state({
+	'mydf': wf.EditableDataframe(df)
+})
+
+# Subscribe this event handler to the `wf-dataframe-add` event
+def on_record_add(state, payload):
+	payload['record']['sales'] = 0 # default value inside the dataframe
+	state['mydf'].record_add(payload)
+
+
+# Subscribe this event handler to the `wf-dataframe-update` event
+def on_record_change(state, payload):
+    state['mydf'].record_update(payload)
+
+
+# Subscribe this event handler to the `wf-dataframe-action` event
+def on_record_action(state, payload):
+	"""
+	This event corresponds to a quick action in the drop-down menu to the left of the dataframe.
+	"""
+	record_index = payload['record_index']
+	if payload.action == 'remove':
+		state['mydf'].record_remove(payload)
+	if payload.action == 'open':
+		state['record'] = state['df'].record(record_index) # dict representation of record
+```
+
+### Datastructures supported by `EditableDataframe`
+
+`EditableDataframe` can be used with a panda dataframe, a polar dataframe and list of records.
+
+```python
+import pandas
+import polars
+
+import writer as wf
+
+panda_df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+polars_df = polars.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+list_of_records = [{'a': 1, 'b': 4}, {'a': 2, 'b': 5}, {'a': 3, 'b': 6}]
+
+wf.init_state({
+	'mypandas': wf.EditableDataframe(panda_df),
+	'mypolars': wf.EditableDataframe(polars_df),
+	'mylistofrecords': wf.EditableDataframe(list_of_records)
+})
+```

@@ -67,10 +67,10 @@ You can push your image using the following commands.
 docker login
 
 # Push the image
-# Replace "my_framework_app" for the tag you've previously chosen
+# Replace "my_writer_app" for the tag you've previously chosen
 # Replace "my_user" for your user on Docker Hub
-docker tag my_framework_app:latest my_user/my_framework_app:latest
-docker push my_user/my_framework_app:latest
+docker tag my_writer_app:latest my_user/my_writer_app:latest
+docker push my_user/my_writer_app:latest
 ```
 
 If your image is public, anyone can now run the following command and start the app. It's important to bind the port to a port in the host machine. The command below binds port 8080 in the Docker image to port 8080 in the host.

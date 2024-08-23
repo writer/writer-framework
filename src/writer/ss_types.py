@@ -161,9 +161,18 @@ class StateEnquiryResponse(AppProcessServerResponse):
     payload: Optional[StateEnquiryResponsePayload]
 
 
-AppProcessServerResponsePacket = Tuple[int,
-                                       Optional[str], AppProcessServerResponse]
+AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerResponse]
 
+
+class DataframeRecordAdded(TypedDict):
+    record: Dict[str, Any]
+
+class DataframeRecordUpdated(TypedDict):
+    record_index: int
+    record: Dict[str, Any]
+
+class DataframeRecordRemoved(TypedDict):
+    record_index: int
 
 class WriterEventResult(TypedDict):
     ok: bool

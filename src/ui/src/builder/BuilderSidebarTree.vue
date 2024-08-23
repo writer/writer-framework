@@ -1,23 +1,11 @@
 <template>
 	<div class="BuilderSidebarTree">
-		<div v-if="!isSearchActive" class="sectionTitle">
-			<i class="material-symbols-outlined"> account_tree </i>
-			<h3>Component Tree</h3>
-			<i
-				title="Search"
-				class="searchIcon material-symbols-outlined"
-				@click="toggleSearch"
-			>
-				search
-			</i>
-		</div>
-		<div v-if="isSearchActive" class="sectionTitle">
-			<input
-				ref="searchInput"
-				v-model="searchQuery"
-				type="text"
-				placeholder="Search..."
-			/>
+		<BuilderSidebarTitleSearch
+			v-model="searchQuery"
+			title="Component Tree"
+			icon="account_tree"
+			:disabled="!matchAvailable"
+		>
 			<i
 				:class="{ disabled: !matchAvailable }"
 				class="searchIcon material-symbols-outlined"
@@ -26,6 +14,8 @@
 						? `Go to match ${previousMatchIndex + 1} of ${matchingComponents.length}`
 						: `Previous match`
 				"
+				tabindex="0"
+				@keydown.enter="goToPreviousMatch"
 				@click="goToPreviousMatch"
 			>
 				navigate_before
@@ -38,19 +28,13 @@
 						? `Go to match ${nextMatchIndex + 1} of ${matchingComponents.length}`
 						: `Next match`
 				"
+				tabindex="0"
+				@keydown.enter="goToNextMatch"
 				@click="goToNextMatch"
 			>
 				navigate_next
 			</i>
-			<i
-				:class="{ disabled: !matchAvailable }"
-				class="searchIcon material-symbols-outlined"
-				title="Close"
-				@click="toggleSearch"
-			>
-				close
-			</i>
-		</div>
+		</BuilderSidebarTitleSearch>
 		<div ref="componentTree" class="components">
 			<div
 				v-for="component in rootComponents"
@@ -79,6 +63,7 @@ import BuilderTreeBranch from "./BuilderTreeBranch.vue";
 import injectionKeys from "../injectionKeys";
 import { Component } from "../writerTypes";
 import { watch } from "vue";
+import BuilderSidebarTitleSearch from "./BuilderSidebarTitleSearch.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -86,23 +71,11 @@ const ssbm = inject(injectionKeys.builderManager);
 const { createAndInsertComponent, goToComponentParentPage } =
 	useComponentActions(wf, ssbm);
 
-const searchInput: Ref<HTMLInputElement> = ref(null);
-const isSearchActive: Ref<boolean> = ref(false);
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
 const rootComponents = computed(() => {
 	return wf.getComponents(null, { sortedByPosition: true });
 });
-
-async function toggleSearch() {
-	isSearchActive.value = !isSearchActive.value;
-	if (isSearchActive.value) {
-		await nextTick();
-		searchInput.value.focus();
-	} else {
-		searchQuery.value = null;
-	}
-}
 
 function determineMatch(component: Component, query: string): boolean {
 	if (component.id.toLocaleLowerCase().includes(query)) return true;
@@ -158,7 +131,6 @@ function goToNextMatch() {
 }
 
 const matchingComponents: ComputedRef<Component[]> = computed(() => {
-	if (!isSearchActive.value) return;
 	if (!searchQuery.value) return;
 	const query = searchQuery.value.toLocaleLowerCase();
 	const components = wf.getComponents();
@@ -192,33 +164,8 @@ async function addPage() {
 	flex-direction: column;
 }
 
-.sectionTitle {
-	background: var(--builderBackgroundColor);
-	padding: 16px;
-	top: 0;
-	position: sticky;
-	font-size: 1rem;
-}
-
-.sectionTitle h3 {
-	font-weight: 500;
-	font-size: 0.875rem;
-	flex-grow: 1;
-}
-
-.sectionTitle .searchIcon {
-	cursor: pointer;
-}
-
-.sectionTitle .searchIcon.disabled {
+.searchIcon.disabled {
 	color: var(--builderDisabledColor);
-}
-
-.sectionTitle input {
-	outline: 0;
-	border: 0;
-	flex-grow: 1;
-	width: 50%;
 }
 
 .components {

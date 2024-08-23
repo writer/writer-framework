@@ -14,8 +14,12 @@ import CoreLink from "../core_components/content/CoreLink.vue";
 import CoreChatbot from "../core_components/content/CoreChatbot.vue";
 import CoreTags from "../core_components/content/CoreTags.vue";
 import CoreAvatar from "../core_components/content/CoreAvatar.vue";
+import CoreAnnotatedText from "../core_components/content/CoreAnnotatedText.vue";
+import CoreJsonViewer from "../core_components/content/CoreJsonViewer.vue";
+
 // input
 import CoreCheckboxInput from "../core_components/input/CoreCheckboxInput.vue";
+import CoreColorInput from "../core_components/input/CoreColorInput.vue";
 import CoreDateInput from "../core_components/input/CoreDateInput.vue";
 import CoreDropdownInput from "../core_components/input/CoreDropdownInput.vue";
 import CoreFileInput from "../core_components/input/CoreFileInput.vue";
@@ -93,6 +97,7 @@ const templateMap = {
 	textareainput: CoreTextareaInput,
 	numberinput: CoreNumberInput,
 	sliderinput: CoreSliderInput,
+	colorinput: CoreColorInput,
 	dateinput: CoreDateInput,
 	timeinput: CoreTimeInput,
 	radioinput: CoreRadioInput,
@@ -115,12 +120,14 @@ const templateMap = {
 	switchinput: CoreSwitchInput,
 	reuse: CoreReuse,
 	avatar: CoreAvatar,
+	annotatedtext: CoreAnnotatedText,
+	jsonviewer: CoreJsonViewer,
 };
 
 if (WRITER_LIVE_CCT === "yes") {
 	/*
 	Assigns the components in custom_components to the template map,
-	allowing for live updates when developing custom component templates. 
+	allowing for live updates when developing custom component templates.
 	*/
 
 	const liveCCT: Record<string, any> = (await import("../custom_components"))

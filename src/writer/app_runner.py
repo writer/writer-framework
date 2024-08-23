@@ -18,8 +18,8 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION
-from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession
+from writer import VERSION, audit_and_fix
+from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -232,71 +232,72 @@ class AppProcess(multiprocessing.Process):
         """
         import writer
 
-        session = None
-        type = request.type
+        with use_request_context(session_id, request):
+            session = None
+            type = request.type
 
-        if type == "sessionInit":
-            si_req_payload = InitSessionRequestPayload.parse_obj(
-                request.payload)
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=self._handle_session_init(si_req_payload)
-            )
+            if type == "sessionInit":
+                si_req_payload = InitSessionRequestPayload.parse_obj(
+                    request.payload)
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=self._handle_session_init(si_req_payload)
+                )
 
-        session = writer.session_manager.get_session(session_id)
-        if not session:
-            raise MessageHandlingException("Session not found.")
-        session.update_last_active_timestamp()
+            session = writer.session_manager.get_session(session_id)
+            if not session:
+                raise MessageHandlingException("Session not found.")
+            session.update_last_active_timestamp()
 
-        if type == "checkSession":
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=None
-            )
+            if type == "checkSession":
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=None
+                )
 
-        if type == "event":
-            ev_req_payload = WriterEvent.parse_obj(request.payload)
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=self._handle_event(session, ev_req_payload)
-            )
-        
-        if type == "stateEnquiry":
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=self._handle_state_enquiry(session)
-            )
+            if type == "event":
+                ev_req_payload = WriterEvent.parse_obj(request.payload)
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=self._handle_event(session, ev_req_payload)
+                )
 
-        if type == "stateContent":
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=self._handle_state_content(session)
-            )
+            if type == "stateEnquiry":
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=self._handle_state_enquiry(session)
+                )
 
-        if type == "setUserinfo":
-            session.userinfo = request.payload
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=None
-            )
+            if type == "stateContent":
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=self._handle_state_content(session)
+                )
 
-        if self.mode == "edit" and type == "componentUpdate":
-            cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
-                request.payload)
-            self._handle_component_update(session, cu_req_payload)
-            return AppProcessServerResponse(
-                status="ok",
-                status_message=None,
-                payload=None
-            )
+            if type == "setUserinfo":
+                session.userinfo = request.payload
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=None
+                )
 
-        raise MessageHandlingException("Invalid event.")
+            if self.mode == "edit" and type == "componentUpdate":
+                cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
+                    request.payload)
+                self._handle_component_update(session, cu_req_payload)
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=None
+                )
+
+            raise MessageHandlingException("Invalid event.")
 
     def _execute_user_code(self) -> None:
         """
@@ -551,7 +552,7 @@ class LogListener(threading.Thread):
             message = self.log_queue.get()
             if message is None:
                 break
-            self.logger.handle(message)            
+            self.logger.handle(message)
 
 
 class AppRunner:
@@ -691,6 +692,8 @@ class AppRunner:
         components = file_payload.get("components")
         if components is None:
             raise ValueError("Components not found in file.")
+        
+        components = audit_and_fix.fix_components(components)
         return components
 
     async def check_session(self, session_id: str) -> bool:
@@ -864,4 +867,3 @@ class AppRunner:
         thread.start()
         thread.join()
         return
-
