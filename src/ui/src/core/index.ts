@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, Ref } from "vue";
+import { readonly, ref, Ref, shallowRef } from "vue";
 import {
 	Component,
 	ComponentMap,
@@ -567,10 +567,6 @@ export function generateCore() {
 
 	function getUserState() {
 		return userState.value;
-	}
-
-	function getFeatureFlags() {
-		return featureFlags.value;
 	}
 
 	const core = {

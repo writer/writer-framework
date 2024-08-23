@@ -83,8 +83,6 @@ const animate = () => {
 
 const syncHealthStatus = () => {
 	let s = "";
-	const featureFlags = wf.getFeatureFlags();
-
 	switch (wf.syncHealth.value) {
 		case "offline":
 			s += "Offline. Not syncing.";
@@ -100,8 +98,8 @@ const syncHealthStatus = () => {
 			break;
 	}
 
-	if (featureFlags.length > 0) {
-		s += ` Feature flags: ${featureFlags.join(", ")}`;
+	if (wf.featureFlags.value.length > 0) {
+		s += ` Feature flags: ${wf.featureFlags.value.join(", ")}`;
 	}
 
 	return s;
