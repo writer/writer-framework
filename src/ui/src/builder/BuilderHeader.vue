@@ -82,16 +82,29 @@ const animate = () => {
 };
 
 const syncHealthStatus = () => {
+	let s = "";
+	const featureFlags = wf.getFeatureFlags();
+
 	switch (wf.syncHealth.value) {
 		case "offline":
-			return "Offline. Not syncing.";
+			s += "Offline. Not syncing.";
+			break;
 		case "connected":
-			return "Online. Syncing...";
+			s += "Online. Syncing...";
+			break;
 		case "idle":
-			return "Sync not initialised.";
+			s += "Sync not initialised.";
+			break;
 		case "suspended":
-			return "Sync suspended.";
+			s += "Sync suspended.";
+			break;
 	}
+
+	if (featureFlags.length > 0) {
+		s += ` Feature flags: ${featureFlags.join(", ")}`;
+	}
+
+	return s;
 };
 
 function showStateExplorer() {

@@ -149,7 +149,8 @@ def get_asgi_app(
             mail=payload.mail,
             components=payload.components,
             userFunctions=payload.userFunctions,
-            extensionPaths=cached_extension_paths
+            extensionPaths=cached_extension_paths,
+            featureFlags=payload.featureFlags
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -163,7 +164,8 @@ def get_asgi_app(
             components=payload.components,
             userFunctions=payload.userFunctions,
             runCode=run_code,
-            extensionPaths=cached_extension_paths
+            extensionPaths=cached_extension_paths,
+            featureFlags=payload.featureFlags
         )
 
     @app.get("/api/health")

@@ -24,6 +24,7 @@ export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
 	const mode: Ref<"run" | "edit"> = ref(null);
+	const featureFlags: Ref<string[]> = ref([]);
 	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
@@ -98,6 +99,7 @@ export function generateCore() {
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
+		featureFlags.value = initData.featureFlags;
 
 		// Only returned for edit (Builder) mode
 
@@ -567,6 +569,10 @@ export function generateCore() {
 		return userState.value;
 	}
 
+	function getFeatureFlags() {
+		return featureFlags.value;
+	}
+
 	const core = {
 		webSocket,
 		syncHealth,
@@ -594,6 +600,7 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
+		getFeatureFlags,
 	};
 
 	return core;
