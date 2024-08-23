@@ -600,7 +600,7 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
-		getFeatureFlags,
+		featureFlags: readonly(featureFlags),
 	};
 
 	return core;
