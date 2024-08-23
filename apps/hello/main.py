@@ -8,9 +8,6 @@ from writer.core import WriterState
 
 # EVENT HANDLERS
 
-wf.Config.feature_flags.append("dog")
-wf.Config.feature_flags.append("duck")
-
 def handle_timer_tick(state: WriterState):
     df = state["random_df"]
     for i in range(5):
