@@ -24,7 +24,7 @@ export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
 	const mode: Ref<"run" | "edit"> = ref(null);
-	const featureFlags: Ref<string[]> = ref([]);
+	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
