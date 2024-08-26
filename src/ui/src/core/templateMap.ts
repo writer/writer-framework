@@ -126,8 +126,6 @@ const templateMap = {
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};
 
-templateMap["sectiondiff"] = CoreSection;
-
 if (WRITER_LIVE_CCT === "yes") {
 	/*
 	Assigns the components in custom_components to the template map,
