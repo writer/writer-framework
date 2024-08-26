@@ -7,6 +7,7 @@ They're used to register new component templates, based on existing frontend tem
 """
 
 from typing import Dict
+
 from writer.ss_types import AbstractTemplate
 
 templates:Dict[str, AbstractTemplate]  = {}
