@@ -17,15 +17,14 @@ import { useEvaluator } from "@/renderer/useEvaluator";
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
 	# The payload is a dictionary with the page key and all the route variables in the URL hash.
-	# For example, if the current URL is
-	# http://localhost:3000/#main/animal=duck&colour=yellow
+	# For example, if the current URL is http://localhost:3000/#main/animal=duck&colour=yellow
 	# you will get the following dictionary
 	# {
-	#	"page_key": "main",
-	#	"route_vars": {
-	#		"animal": "duck",
-	#		"colour": "yellow"
-	#	}
+	#	  "page_key": "main",
+	#	  "route_vars": {
+	#		  "animal": "duck",
+	#		  "colour": "yellow"
+	#	  }
 	# }
 
 	page_key = payload.get("page_key")
@@ -38,6 +37,23 @@ def handle_hashchange(state, payload):
 		state["message"] = "You've navigated to the Duck zone."
 	else:
 		state["message"] = "You're not in the Duck zone.`.trim();
+
+const wfAppOpenStub = `
+def handle_app_open(state):
+	# The payload is a dictionary with the page key and all the route variables in the URL hash.
+	# For example, if the current URL is http://localhost:3000/#/animal=duck&colour=yellow
+	# you will get the following dictionary
+	# {
+	#   "page_key": "main",
+	#	  "route_vars": {
+	#		  "animal": "duck",
+	#		  "colour": "yellow"
+	#	  }
+	# }
+
+	page_key = payload.get("page_key")
+	route_vars = payload.get("route_vars")
+`.trim();
 
 const description =
 	"The root component of the application, which serves as the starting point of the component hierarchy.";
@@ -57,6 +73,10 @@ export default {
 			...sharedStyleFields,
 		},
 		events: {
+			"wf-app-open": {
+				desc: "Captures the first application load, including page key and route vars.",
+				stub: wfAppOpenStub,
+			},
 			"wf-hashchange": {
 				desc: "Capture changes to the URL hash, including page key and route vars.",
 				stub: ssHashChangeStub,
@@ -76,7 +96,7 @@ import {
 	onBeforeMount,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { changePageInHash, getParsedHash } from "@/core/navigation";
+import { changePageInHash, serializeParsedHash } from "@/core/navigation";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -100,7 +120,7 @@ const displayedPageId = computed(() => {
 });
 
 function handleHashChange() {
-	const parsedHash = getParsedHash();
+	const parsedHash = serializeParsedHash();
 	const event = new CustomEvent("wf-hashchange", {
 		detail: {
 			payload: parsedHash,

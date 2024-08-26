@@ -22,13 +22,25 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch, ComputedRef, onBeforeMount } from "vue";
+import {
+	inject,
+	ref,
+	computed,
+	watch,
+	ComputedRef,
+	onBeforeMount,
+	onMounted,
+} from "vue";
 import { Component } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
 import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "./useEvaluator";
-import { changePageInHash, changeRouteVarsInHash } from "@/core/navigation";
+import {
+	changePageInHash,
+	changeRouteVarsInHash,
+	serializeParsedHash,
+} from "@/core/navigation";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -203,8 +215,24 @@ function addMailSubscriptions() {
 	);
 }
 
+function handleAppOpenChange() {
+	const parsedHash = serializeParsedHash();
+	const event = new CustomEvent("wf-app-open", {
+		detail: {
+			payload: parsedHash,
+		},
+	});
+
+	const rootInstance = { componentId: "root", instanceNumber: 0 };
+	wf.forwardEvent(event, [rootInstance], true);
+}
+
 onBeforeMount(() => {
 	addMailSubscriptions();
+});
+
+onMounted(() => {
+	handleAppOpenChange();
 });
 </script>
 
