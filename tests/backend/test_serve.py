@@ -193,11 +193,11 @@ class TestServe:
             }, headers={
                 "Content-Type": "application/json"
             })
-        abstract_templates = res.json().get("abstractTemplates")
-        section_a = abstract_templates.get("sectiona")
-        column_b = abstract_templates.get("columnb")
-        assert section_a.get("writer").get("name") == "Section A"
-        assert column_b.get("writer").get("description") == "Cloned Column component"
+            abstract_templates = res.json().get("abstractTemplates")
+            section_a = abstract_templates.get("sectiona")
+            column_b = abstract_templates.get("columnb")
+            assert section_a.get("writer").get("name") == "Section A"
+            assert column_b.get("writer").get("description") == "Cloned Column component"
           
     def test_feature_flags(self):
         """
@@ -212,5 +212,5 @@ class TestServe:
             }, headers={
                 "Content-Type": "application/json"
             })
-        feature_flags = res.json().get("featureFlags")
-        assert feature_flags == ["flag_one", "flag_two"]
+            feature_flags = res.json().get("featureFlags")
+            assert feature_flags == ["flag_one", "flag_two"]
