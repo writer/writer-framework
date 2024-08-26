@@ -63,7 +63,7 @@ import CoreRoot from "../core_components/root/CoreRoot.vue";
 
 import CoreMapbox from "../core_components/embed/CoreMapbox.vue";
 
-import { WriterComponentDefinition } from "../writerTypes";
+import { AbstractTemplate, WriterComponentDefinition } from "../writerTypes";
 import { h } from "vue";
 
 const templateMap = {
@@ -124,6 +124,10 @@ const templateMap = {
 	jsonviewer: CoreJsonViewer,
 };
 
+const abstractTemplateMap: Record<string, AbstractTemplate> = {};
+
+templateMap["sectiondiff"] = CoreSection;
+
 if (WRITER_LIVE_CCT === "yes") {
 	/*
 	Assigns the components in custom_components to the template map,
@@ -163,8 +167,29 @@ function fallbackTemplate(type: string) {
 	};
 }
 
+function getMergedAbstractTemplate(type: string) {
+	const template = abstractTemplateMap[type];
+	if (!template) return;
+	const baseType = template.baseType;
+	return {
+		...templateMap[baseType],
+		writer: {
+			...templateMap[baseType].writer,
+			...abstractTemplateMap[type].writer,
+			fields: {
+				...templateMap[baseType].writer?.fields,
+				...abstractTemplateMap[type].writer?.fields,
+			},
+		},
+	};
+}
+
 export function getTemplate(type: string) {
-	return templateMap[type] ?? fallbackTemplate(type);
+	return (
+		getMergedAbstractTemplate(type) ??
+		templateMap[type] ??
+		fallbackTemplate(type)
+	);
 }
 
 export function getComponentDefinition(
@@ -174,11 +199,18 @@ export function getComponentDefinition(
 }
 
 export function getSupportedComponentTypes() {
-	return Object.keys(templateMap);
+	return [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
 }
 
 export function registerComponentTemplate(type: string, vueComponent: any) {
 	templateMap[type] = vueComponent;
+}
+
+export function registerAbstractComponentTemplate(
+	type: string,
+	abstractTemplate: AbstractTemplate,
+) {
+	abstractTemplateMap[type] = abstractTemplate;
 }
 
 export default templateMap;

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, Ref } from "vue";
 import {
+	AbstractTemplate,
 	Component,
 	ComponentMap,
 	InstancePath,
@@ -11,6 +12,7 @@ import {
 import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
+	registerAbstractComponentTemplate,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -98,6 +100,7 @@ export function generateCore() {
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
+		loadAbstractTemplates(initData.abstractTemplates);
 
 		// Only returned for edit (Builder) mode
 
@@ -110,6 +113,16 @@ export function generateCore() {
 		const isFixApplied = auditAndFixComponents(initData.components);
 		if (!isFixApplied) return;
 		await sendComponentUpdate();
+	}
+
+	function loadAbstractTemplates(
+		abstractTemplates: Record<string, AbstractTemplate>,
+	) {
+		Object.entries(abstractTemplates ?? {}).forEach(
+			([type, abstractTemplate]) => {
+				registerAbstractComponentTemplate(type, abstractTemplate);
+			},
+		);
 	}
 
 	function getSessionTimestamp() {
