@@ -48,6 +48,7 @@ class InitResponseBody(BaseModel):
     components: Dict
     userFunctions: List[Dict]
     extensionPaths: List
+    featureFlags: List[str]
     abstractTemplates: Dict[str, AbstractTemplate]
 
 
@@ -135,6 +136,7 @@ class InitSessionResponsePayload(BaseModel):
     mail: List
     userFunctions: List[Dict]
     components: Dict
+    featureFlags: List[str]
 
 
 class InitSessionResponse(AppProcessServerResponse):

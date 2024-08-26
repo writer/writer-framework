@@ -187,15 +187,24 @@ class TestServe:
 
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
+        abstract_templates = res.json().get("abstractTemplates")
+        section_a = abstract_templates.get("sectiona")
+        column_b = abstract_templates.get("columnb")
+        assert section_a.get("writer").get("name") == "Section A"
+        assert column_b.get("writer").get("description") == "Cloned Column component"
+          
+    def test_feature_flags(self):
+        """
+        This test verifies that feature flags are carried to the frontend.
 
+        """
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run")
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.post("/api/init", json={
                 "proposedSessionId": None
             }, headers={
                 "Content-Type": "application/json"
             })
-            abstract_templates = res.json().get("abstractTemplates")
-            section_a = abstract_templates.get("sectiona")
-            column_b = abstract_templates.get("columnb")
-            assert section_a.get("writer").get("name") == "Section A"
-            assert column_b.get("writer").get("description") == "Cloned Column component"
+        feature_flags = res.json().get("featureFlags")
+        assert feature_flags == ["flag_one", "flag_two"]

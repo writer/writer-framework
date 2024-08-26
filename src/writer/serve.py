@@ -150,6 +150,7 @@ def get_asgi_app(
             components=payload.components,
             userFunctions=payload.userFunctions,
             extensionPaths=cached_extension_paths,
+            featureFlags=payload.featureFlags
             abstractTemplates=abstract.templates
         )
 
@@ -165,6 +166,7 @@ def get_asgi_app(
             userFunctions=payload.userFunctions,
             runCode=run_code,
             extensionPaths=cached_extension_paths,
+            featureFlags=payload.featureFlags
             abstractTemplates=abstract.templates
         )
 

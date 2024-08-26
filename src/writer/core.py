@@ -131,6 +131,7 @@ class Config:
     is_mail_enabled_for_log: bool = False
     mode: str = "run"
     logger: Optional[logging.Logger] = None
+    feature_flags: list[str] = []
 
 @dataclasses.dataclass
 class MutationSubscription:
