@@ -9,6 +9,8 @@ import plotly.express as px
 import writer as wf
 import writer.core
 
+writer.Config.feature_flags.append("flag_one")
+writer.Config.feature_flags.append("flag_two")
 
 @wf.middleware()
 def my_middleware(state):

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, Ref } from "vue";
+import { readonly, ref, Ref, shallowRef } from "vue";
 import {
 	Component,
 	ComponentMap,
@@ -24,6 +24,7 @@ export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
 	const mode: Ref<"run" | "edit"> = ref(null);
+	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
@@ -98,6 +99,7 @@ export function generateCore() {
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
+		featureFlags.value = initData.featureFlags;
 
 		// Only returned for edit (Builder) mode
 
@@ -594,6 +596,7 @@ export function generateCore() {
 		getSessionTimestamp,
 		getUserState,
 		isChildOf,
+		featureFlags: readonly(featureFlags),
 	};
 
 	return core;

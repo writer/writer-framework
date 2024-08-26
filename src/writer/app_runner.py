@@ -150,7 +150,8 @@ class AppProcess(multiprocessing.Process):
             sessionId=session.session_id,
             mail=session.session_state.mail,
             components=session.session_component_tree.to_dict(),
-            userFunctions=self._get_user_functions()
+            userFunctions=self._get_user_functions(),
+            featureFlags=writer.Config.feature_flags
         )
 
         session.session_state.clear_mail()
