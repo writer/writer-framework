@@ -29,6 +29,7 @@
 
 <script lang="ts">
 import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
+import BaseControlBar from "../base/BaseControlBar.vue";
 export default {
 	writer: {
 		name: "Annotated text",
