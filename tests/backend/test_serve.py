@@ -187,6 +187,12 @@ class TestServe:
 
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.post("/api/init", json={
+                "proposedSessionId": None
+            }, headers={
+                "Content-Type": "application/json"
+            })
         abstract_templates = res.json().get("abstractTemplates")
         section_a = abstract_templates.get("sectiona")
         column_b = abstract_templates.get("columnb")
