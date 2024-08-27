@@ -20,7 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION
+from writer import VERSION, abstract
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -150,7 +150,8 @@ def get_asgi_app(
             components=payload.components,
             userFunctions=payload.userFunctions,
             extensionPaths=cached_extension_paths,
-            featureFlags=payload.featureFlags
+            featureFlags=payload.featureFlags,
+            abstractTemplates=abstract.templates
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -165,7 +166,8 @@ def get_asgi_app(
             userFunctions=payload.userFunctions,
             runCode=run_code,
             extensionPaths=cached_extension_paths,
-            featureFlags=payload.featureFlags
+            featureFlags=payload.featureFlags,
+            abstractTemplates=abstract.templates
         )
 
     @app.get("/api/health")

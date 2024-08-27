@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { readonly, ref, Ref, shallowRef } from "vue";
 import {
+	AbstractTemplate,
 	Component,
 	ComponentMap,
 	InstancePath,
@@ -11,6 +12,7 @@ import {
 import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
+	registerAbstractComponentTemplate,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -100,7 +102,8 @@ export function generateCore() {
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
-
+		loadAbstractTemplates(initData.abstractTemplates);
+    
 		// Only returned for edit (Builder) mode
 
 		userFunctions.value = initData.userFunctions;
@@ -112,6 +115,16 @@ export function generateCore() {
 		const isFixApplied = auditAndFixComponents(initData.components);
 		if (!isFixApplied) return;
 		await sendComponentUpdate();
+	}
+
+	function loadAbstractTemplates(
+		abstractTemplates: Record<string, AbstractTemplate>,
+	) {
+		Object.entries(abstractTemplates ?? {}).forEach(
+			([type, abstractTemplate]) => {
+				registerAbstractComponentTemplate(type, abstractTemplate);
+			},
+		);
 	}
 
 	function getSessionTimestamp() {

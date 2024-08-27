@@ -28,6 +28,11 @@ MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
                       "keepAlive", "stateEnquiry", "setUserinfo", "stateContent"]
 
+
+class AbstractTemplate(BaseModel):
+    baseType: str
+    writer: Dict
+
 # Web server models
 
 
@@ -44,6 +49,7 @@ class InitResponseBody(BaseModel):
     userFunctions: List[Dict]
     extensionPaths: List
     featureFlags: List[str]
+    abstractTemplates: Dict[str, AbstractTemplate]
 
 
 class InitResponseBodyRun(InitResponseBody):
