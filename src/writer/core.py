@@ -1622,16 +1622,19 @@ class SessionManager:
             new_id = self._generate_session_id()
         else:
             new_id = proposed_session_id
-        new_session = WriterSession(
-            new_id, cookies, headers)
+        new_session = WriterSession(new_id, cookies, headers)
         self.sessions[new_id] = new_session
         return new_session
 
-    def get_session(self, session_id: Optional[str]) -> Optional[WriterSession]:
+    def get_session(self, session_id: Optional[str], restore_initial_mail: bool = False) -> Optional[WriterSession]:
         if session_id is None:
             return None
 
-        return self.sessions.get(session_id)
+        session = self.sessions.get(session_id)
+        if session is not None and restore_initial_mail is True:
+            session.session_state.mail = copy.copy(initial_state.mail)
+
+        return session
 
     def _generate_session_id(self) -> str:
         return secrets.token_hex(SessionManager.TOKEN_SIZE_BYTES)
@@ -2552,4 +2555,4 @@ def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -
 state_serialiser = StateSerialiser()
 initial_state = WriterState()
 base_component_tree = core_ui.build_base_component_tree()
-session_manager = SessionManager()
+session_manager: SessionManager = SessionManager()
