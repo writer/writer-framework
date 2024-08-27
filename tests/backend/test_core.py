@@ -26,11 +26,12 @@ from writer.core import (
     StateSerialiserException,
     WriterState,
     import_failure,
+    parse_state_variable_expression,
 )
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
 
-from backend.fixtures import core_ui_fixtures
+from backend.fixtures import core_ui_fixtures, writer_fixtures
 from tests.backend import test_app_dir
 
 raw_state_dict = {
@@ -393,6 +394,209 @@ class TestState:
         }
         assert _state.to_dict() == {"nested": {"a": 1, "b": 2, "c": {"d": 3}}}
 
+    def test_subscribe_mutation_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that the handler that subscribes to a mutation fires when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_nested_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that a handler that subscribes to a nested mutation triggers when the mutation occurs.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('c.a', _increment_counter)
+        _state['c']['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+    def test_subscribe_2_mutation_should_trigger_handler_when_mutation_happen(self):
+        """
+        Tests that it is possible to subscribe to 2 mutations simultaneously
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "c": {"a" : 1}, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation(['a', 'c.a'], _increment_counter)
+        _state['c']['a'] = 2
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 2
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 2
+
+    def test_subscribe_mutation_should_trigger_cascading_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        def _increment_counter(state):
+            state['my_counter'] += 1
+
+        def _increment_counter2(state):
+            state['my_counter2'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state.subscribe_mutation('my_counter', _increment_counter2)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+        assert _state['my_counter2'] == 1
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+        assert mutations['+my_counter2'] == 1
+
+    def test_subscribe_mutation_should_work_with_async_event_handler(self):
+        """
+        Tests that multiple handlers can be triggered in cascade if one of them modifies a value
+        that is listened to by another handler during a mutation.
+        """
+        # Assign
+        async def _increment_counter(state):
+            state['my_counter'] += 1
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+        # Assert
+        assert _state['my_counter'] == 1
+
+        mutations = _state.user_state.get_mutations_as_dict()
+        assert mutations['+my_counter'] == 1
+
+    def test_subscribe_mutation_should_raise_error_on_infinite_cascading(self):
+        """
+        Tests that an infinite recursive loop is detected and an error is raised if mutations cascade
+
+        Python seems to raise a RecursionError by himself, so we just check that the error is raised
+        """
+        try:
+            # Assign
+            def _increment_counter(state):
+                state['my_counter'] += 1
+
+            def _increment_counter2(state):
+                state['my_counter2'] += 1
+
+            _state = WriterState({"a": 1, "my_counter": 0, "my_counter2": 0})
+            _state.user_state.get_mutations_as_dict()
+
+            # Acts
+            _state.subscribe_mutation('a', _increment_counter)
+            _state.subscribe_mutation('my_counter', _increment_counter2)
+            _state.subscribe_mutation('my_counter2', _increment_counter)
+            _state['a'] = 2
+            pytest.fail("Should raise an error")
+        except RecursionError:
+            assert True
+
+    def test_subscribe_mutation_should_raise_accept_event_handler_as_callback(self):
+        """
+        Tests that the handler that subscribes to a mutation can accept an event as a parameter
+        """
+        # Assign
+        def _increment_counter(state, payload, context: dict, ui):
+            state['my_counter'] += 1
+
+            # Assert
+            assert context['mutation'] == 'a'
+            assert payload['previous_value'] == 1
+            assert payload['new_value'] == 2
+
+        _state = WriterState({"a": 1, "my_counter": 0})
+        _state.user_state.get_mutations_as_dict()
+
+        # Acts
+        _state.subscribe_mutation('a', _increment_counter)
+        _state['a'] = 2
+
+
+    def test_subscribe_mutation_with_typed_state_should_manage_mutation(self):
+        """
+        Tests that a mutation handler is triggered on a typed state and can use attributes directly.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                total: int
+
+            def cumulative_sum(state: MyState):
+                state.total += state.counter
+
+            initial_state = wf.init_state({
+                "counter": 0,
+                "total": 0
+            }, schema=MyState)
+
+            initial_state.subscribe_mutation('counter', cumulative_sum)
+
+            # Acts
+            initial_state['counter'] = 1
+            initial_state['counter'] = 3
+
+            # Assert
+            assert initial_state['total'] == 4
+
+    def test_subscribe_mutation_should_manage_escaping_in_subscription(self):
+        """
+        Tests that a key that contains a `.` can be used to subscribe to
+        a mutation using the escape character.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            def cumulative_sum(state):
+                state['total'] += state['a.b']
+
+            initial_state = wf.init_state({
+                "a.b": 0,
+                "total": 0
+            })
+
+            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+
+            # Acts
+            initial_state['a.b'] = 1
+            initial_state['a.b'] = 3
+
+            # Assert
+            assert initial_state['total'] == 4
 
 class TestWriterState:
 
@@ -1060,6 +1264,7 @@ class TestSessionManager:
         )
         assert s_invalid is None
 
+
 class TestEditableDataframe:
 
     def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
@@ -1426,3 +1631,76 @@ def test_import_failure_do_nothing_when_import_go_well():
         return 2
 
     assert myfunc() == 2
+
+class TestCalculatedProperty():
+
+    def test_calculated_property_should_be_triggered_when_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counter = 2
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_str' in mutations
+            assert mutations['+counter_str'] == '2'
+
+    def test_calculated_property_should_be_invoked_as_property(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counter: int
+
+            @wf.property('counter')
+            def counter_str(self) -> str:
+                return str(self.counter)
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counter': 0}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Assert
+            assert state.counter_str == '0'
+
+    def test_calculated_property_should_be_triggered_when_one_dependent_property_is_changing(self):
+        # Assign
+        class MyState(wf.WriterState):
+            counterA: int
+            counterB: int
+
+            @wf.property(['counterA', 'counterB'])
+            def counter_sum(self) -> int:
+                return self.counterA + self.counterB
+
+        with writer_fixtures.new_app_context():
+            state = wf.init_state({'counterA': 2, 'counterB': 4}, MyState)
+            state.user_state.get_mutations_as_dict()
+
+            # Acts
+            state.counterA = 4
+
+            # Assert
+            mutations = state.user_state.get_mutations_as_dict()
+            assert '+counter_sum' in mutations
+            assert mutations['+counter_sum'] == 8
+
+
+def test_parse_state_variable_expression_should_process_expression():
+    """
+    Test that the parse_state_variable_expression function will process
+    the expression correctly
+    """
+    # When
+    assert parse_state_variable_expression('features') == ['features']
+    assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
+    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']

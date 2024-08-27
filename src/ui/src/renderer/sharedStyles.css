@@ -22,7 +22,7 @@ h2 {
 h3 {
 	font-size: 1.25rem;
 	font-weight: 500;
-	line-height: 120%;	
+	line-height: 120%;
 }
 
 h4 {
@@ -53,6 +53,14 @@ label {
 
 code {
 	background-color: var(--separatorColor);
+}
+
+input[type="button"],
+input[type="submit"],
+input[type="radio"],
+input[type="reset"],
+input[type="color"] {
+	cursor: pointer;
 }
 
 .component {
@@ -97,10 +105,9 @@ code {
 	display: block;
 }
 
-[data-writer-container].crackedContainer.horizontal
-	> [data-writer-slot-of-id] {
+[data-writer-container].crackedContainer.horizontal > [data-writer-slot-of-id] {
 	animation: appearHorizontal 0.2s forwards;
-	align-self:center;
+	align-self: center;
 	display: block;
 }
 

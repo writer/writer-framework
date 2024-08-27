@@ -4,9 +4,10 @@ import logging
 import uuid
 from contextvars import ContextVar
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from pydantic import BaseModel, Field
+from typing_extensions import TypedDict
 
 current_parent_container: ContextVar[Union["Component", None]] = \
     ContextVar("current_parent_container")
@@ -35,6 +36,11 @@ class Branch(Enum):
     session_cmc = "session_cmc"
 
 
+class VisibileFields(TypedDict):
+    expression: Union[bool, Literal['custom']]
+    binding: str
+    reversed: bool
+
 class Component(BaseModel):
     id: str = Field(default_factory=generate_component_id)
     type: str
@@ -43,7 +49,7 @@ class Component(BaseModel):
     position: int = 0
     parentId: Optional[str] = None
     handlers: Optional[Dict[str, str]] = None
-    visible: Optional[Union[bool, str]] = None
+    visible: Optional[VisibileFields] = None
     binding: Optional[Dict] = None
 
     def to_dict(self) -> Dict:

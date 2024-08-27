@@ -1,0 +1,36 @@
+{
+  "root": {
+	"id": "root",
+	"type": "root",
+	"content": {
+	  "appName": "Hello",
+	  "emptinessColor": "#ffffff"
+	},
+	"isCodeManaged": false,
+	"position": 0
+  },
+  "bb4d0e86-619e-4367-a180-be28ab6059f4": {
+	"id": "root",
+	"type": "page",
+	"content": {
+		"pageMode": "",
+		"key": "main"
+	},
+	"isCodeManaged": false,
+	"position": 0,
+	"parentId": "root",
+	"visible": true
+  },
+  "bb4d0e86-619e-4367-a180-be28abxxxx": {
+	"id": "root",
+	"type": "page",
+	"content": {
+		"pageMode": "",
+		"key": "main"
+	},
+	"isCodeManaged": false,
+	"position": 0,
+	"parentId": "root",
+	"visible": "value"
+  }
+}

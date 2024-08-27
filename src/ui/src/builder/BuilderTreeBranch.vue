@@ -278,6 +278,7 @@ onMounted(() => {
 	color: rgba(0, 0, 0, 0.5);
 	display: flex;
 	align-items: center;
+	cursor: pointer;
 }
 
 .main.matching {

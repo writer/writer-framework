@@ -1,14 +1,20 @@
-import { generateCore } from "./core"
-import { generateBuilderManager } from "./builder/builderManager"
+import { generateCore } from "./core";
+import { generateBuilderManager } from "./builder/builderManager";
 
-export type Core = ReturnType<typeof generateCore>
+export type Core = ReturnType<typeof generateCore>;
 
-type ComponentId = string
+type ComponentId = string;
 
 /**
  * Basic building block of applications.
  * Multiple instances of a single component can exists. For example, via Repeater.
  */
+
+type VisibleField = {
+	expression: boolean | string; // True | False | 'custom'
+	binding: string; // variable binding when expression is custom
+	reversed: boolean;
+};
 
 export type Component = {
 	id: ComponentId;
@@ -18,7 +24,7 @@ export type Component = {
 	content: Record<string, string>;
 	isCodeManaged?: boolean;
 	handlers?: Record<string, string>;
-	visible?: boolean | string;
+	visible?: VisibleField;
 	binding?: {
 		eventType: string;
 		stateRef: string;
@@ -125,3 +131,8 @@ export type ComponentMap = Record<Component["id"], Component>;
 export type MailItem = { type: string; payload: Record<string, string> };
 
 export type UserFunction = { name: string; args: string[] };
+
+export type AbstractTemplate = {
+	baseType: string;
+	writer: WriterComponentDefinition;
+};

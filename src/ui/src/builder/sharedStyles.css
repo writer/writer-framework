@@ -12,7 +12,7 @@
 	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
 	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
 	--builderSelectedColor: rgba(210, 234, 244, 0.8);
-	--builderIntenseSelectedColor: #6985FF;
+	--builderIntenseSelectedColor: #6985ff;
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
 	--builderSubtleHighlightColorSolid: #f2f2f2;
 	--builderDisabledColor: rgb(180, 180, 180);
@@ -104,6 +104,14 @@ button[variant="subtle"]:focus {
 
 textarea[variant="code"] {
 	font-family: Consolas, monospace;
+}
+
+input[type="button"],
+input[type="submit"],
+input[type="radio"],
+input[type="reset"],
+input[type="color"] {
+	cursor: pointer;
 }
 
 code {

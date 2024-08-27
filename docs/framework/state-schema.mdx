@@ -62,6 +62,30 @@ initial_state = wf.init_state({
 }, schema=AppSchema)
 ```
 
+## Calculated properties
+
+Calculated properties are updated automatically when a dependency changes.
+They can be used to calculate values derived from application state.
+
+```python
+class MyAppState(wf.State):
+  counter: List[int]
+
+class MyState(wf.WriterState):
+  counter: List[int]
+
+  @wf.property(['counter', 'app.counter'])
+  def total_counter(self):
+    return sum(self.counter) + sum(self.app.counter)
+
+initial_state = wf.init_state({
+    "counter": 0,
+    "my_app": {
+        "counter": 0
+    }
+}, schema=MyState)
+```
+
 ## Multi-level dictionary
 
 Some components like _Vega Lite Chart_ require specifying a graph in the form of a multi-level dictionary.

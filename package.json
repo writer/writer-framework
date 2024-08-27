@@ -18,7 +18,7 @@
 		"dev": "npm run -w writer-ui dev",
 		"storybook": "npm run -w writer-ui storybook",
 		"storybook.build": "npm run -w writer-ui storybook.build",
-		"custom.dev": "npm run -w writer-ui dev",
+		"custom.dev": "npm run -w writer-ui custom.dev",
 
 		"cli:test": "pytest tests -o log_cli=true ",
 		"cli:lint": "mypy ./src/writer --exclude app_templates/* && ruff check",
