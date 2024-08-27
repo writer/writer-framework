@@ -26,7 +26,12 @@
 </template>
 
 <script lang="ts">
-import { cssClasses, primaryTextColor } from "../../renderer/sharedStyleFields";
+import {
+	buttonColor,
+	buttonTextColor,
+	cssClasses,
+	primaryTextColor,
+} from "../../renderer/sharedStyleFields";
 import BaseControlBar from "../base/BaseControlBar.vue";
 export default {
 	writer: {
@@ -76,6 +81,8 @@ export default {
 				default: "no",
 				category: FieldCategory.Style,
 			},
+			buttonColor,
+			buttonTextColor,
 			primaryTextColor,
 			cssClasses,
 		},
