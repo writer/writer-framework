@@ -1626,12 +1626,12 @@ class SessionManager:
         self.sessions[new_id] = new_session
         return new_session
 
-    def get_session(self, session_id: Optional[str], restore_intial_mails: bool = False) -> Optional[WriterSession]:
+    def get_session(self, session_id: Optional[str], restore_initial_mail: bool = False) -> Optional[WriterSession]:
         if session_id is None:
             return None
 
         session = self.sessions.get(session_id)
-        if session is not None and restore_intial_mails is True:
+        if session is not None and restore_initial_mail is True:
             session.session_state.mail = copy.copy(initial_state.mail)
 
         return session

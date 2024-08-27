@@ -132,7 +132,7 @@ class AppProcess(multiprocessing.Process):
 
         import writer
 
-        session = writer.session_manager.get_session(payload.proposedSessionId, restore_intial_mails=True)
+        session = writer.session_manager.get_session(payload.proposedSessionId, restore_initial_mail=True)
         if session is None:
             session = writer.session_manager.get_new_session(payload.cookies, payload.headers, payload.proposedSessionId)
 
