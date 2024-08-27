@@ -99,6 +99,9 @@ class BasicAuth(Auth):
                  callback: Optional[Callable[[Request, str, dict], None]] = None,
                  unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None):
 
+        self.unauthorized_action = unauthorized_action
+        self.callback_func = callback
+
         @asgi_app.middleware("http")
         async def basicauth_middleware(request: Request, call_next):
             import base64
@@ -205,6 +208,7 @@ class Oidc(Auth):
             token_endpoint=self.url_oauthtoken,
         )
 
+        self.unauthorized_action = unauthorized_action
         self.callback_func = callback
 
         @asgi_app.middleware("http")

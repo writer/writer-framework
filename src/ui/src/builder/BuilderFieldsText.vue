@@ -8,6 +8,7 @@
 		>
 			<BuilderTemplateInput
 				class="content"
+				:input-id="inputId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:options="options"
@@ -19,6 +20,7 @@
 				multiline
 				variant="text"
 				class="content"
+				:input-id="inputId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				@input="handleInput"
@@ -50,6 +52,8 @@ const templateField = computed(() => {
 	return definition.fields[fieldKey.value];
 });
 
+const inputId = computed(() => `${props.componentId}-${props.fieldKey}`);
+
 const options = computed(() => {
 	const field = templateField.value;
 	if (field.options) {
@@ -57,7 +61,7 @@ const options = computed(() => {
 			? field.options(wf, componentId.value)
 			: field.options;
 	}
-	return [];
+	return {};
 });
 
 const handleInput = (ev: Event) => {
