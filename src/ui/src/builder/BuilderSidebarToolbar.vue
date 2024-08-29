@@ -133,8 +133,7 @@ const definitionsByDisplayCategory = computed(() => {
 	types.map((type) => {
 		const definition = wf.getComponentDefinition(type);
 
-		const isToolkitMatch =
-			(definition.toolkit ?? "default") == toolkit.value;
+		const isToolkitMatch = (definition.toolkit ?? "core") == toolkit.value;
 		if (!isToolkitMatch) return;
 
 		const matchingSearch =
@@ -167,7 +166,7 @@ const toolkit = computed(() => {
 	if (ssbm.getMode() == "workflows") {
 		return "workflows";
 	}
-	return "default";
+	return "core";
 });
 
 const handleDragStart = (ev: DragEvent, type: Component["type"]) => {
