@@ -15,10 +15,11 @@
 			}}</span>
 		</div>
 		<div
+			v-if="isWorkflowsFeatureFlagged"
 			:class="{ active: activeId == 'workflows' }"
 			@click="selectOption('workflows')"
 		>
-			<i class="icon material-symbols-outlined"> code </i>
+			<i class="icon material-symbols-outlined"> linked_services </i>
 			Workflows
 		</div>
 		<div
@@ -34,7 +35,13 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "../injectionKeys";
+
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const isWorkflowsFeatureFlagged = computed(() =>
+	wf.featureFlags.value.includes("workflows"),
+);
 
 let selectedId: Ref<string> = ref(null);
 
