@@ -17,7 +17,7 @@ import {
 	InstancePath,
 	InstancePathItem,
 	UserFunction,
-} from "../writerTypes";
+} from "@/writerTypes";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
@@ -383,5 +383,5 @@ export default {
 };
 </script>
 <style scoped>
-@import "../renderer/sharedStyles.css";
+@import "@/renderer/sharedStyles.css";
 </style>

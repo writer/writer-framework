@@ -86,8 +86,8 @@ import {
 	watch,
 } from "vue";
 import injectionKeys from "../injectionKeys";
-import { useEvaluator } from "../renderer/useEvaluator";
-import type { InstancePath } from "../writerTypes";
+import { useEvaluator } from "@/renderer/useEvaluator";
+import type { InstancePath } from "@/writerTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import { useComponentActions } from "./useComponentActions";

@@ -23,7 +23,8 @@ const __dirname = path.dirname(__filename);
 
 const srcFile = (...args) => path.resolve(__dirname, "..", "src", ...args);
 
-const storyFile = (...args) => srcFile("stories", "core_components", ...args);
+const storyFile = (...args) =>
+	srcFile("stories", "components", "core", ...args);
 
 const relPath = (from, to) => path.relative(path.dirname(from), to);
 

@@ -114,8 +114,8 @@ import {
 	FieldControl,
 	FieldType,
 	WriterComponentDefinition,
-} from "../writerTypes";
-import injectionKeys from "../injectionKeys";
+} from "@/writerTypes";
+import injectionKeys from "@/injectionKeys";
 import { inject, computed, ref, Ref } from "vue";
 
 /* Standard style fields can be imported from "sharedStyleFields" 
@@ -126,7 +126,7 @@ import {
 	cssClasses,
 	primaryTextColor,
 	containerBackgroundColor,
-} from "../renderer/sharedStyleFields";
+} from "@/renderer/sharedStyleFields";
 
 const rootEl: Ref<HTMLElement> = ref(null); // Root element is used to fire events
 

@@ -32,8 +32,8 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { FieldType } from "../writerTypes";
-import injectionKeys from "../injectionKeys";
+import { FieldType } from "@/writerTypes";
+import injectionKeys from "@/injectionKeys";
 import { inject } from "vue";
 
 /*

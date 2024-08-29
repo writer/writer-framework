@@ -67,7 +67,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
-import { Component, WriterComponentDefinition } from "../writerTypes";
+import { Component, WriterComponentDefinition } from "@/writerTypes";
 import BuilderSidebarTitleSearch from "./BuilderSidebarTitleSearch.vue";
 
 const wf = inject(injectionKeys.core);
