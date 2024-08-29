@@ -86,10 +86,10 @@
 import { useComponentActions } from "./useComponentActions";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { computed, inject, nextTick, Ref, ref, toRefs, watch } from "vue";
-import { Component } from "../writerTypes";
+import { Component } from "@/writerTypes";
 import injectionKeys from "../injectionKeys";
 import { onMounted } from "vue";
-import { useEvaluator } from "../renderer/useEvaluator";
+import { useEvaluator } from "@/renderer/useEvaluator";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -1,4 +1,4 @@
-import { FieldCategory, FieldType } from "../writerTypes";
+import { FieldCategory, FieldType } from "@/writerTypes";
 
 export const accentColor = {
 	name: "Accent",

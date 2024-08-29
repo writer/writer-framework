@@ -21,10 +21,10 @@
 
 <script setup lang="ts">
 import { inject, ref, computed, watch } from "vue";
-import { Component, InstancePath } from "../writerTypes";
+import { Component, InstancePath } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "./useEvaluator";
 
 const wf = inject(injectionKeys.core);

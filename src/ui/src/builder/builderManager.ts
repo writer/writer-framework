@@ -1,5 +1,5 @@
 import { ref, Ref } from "vue";
-import { Component, ClipboardOperation } from "../writerTypes";
+import { Component, ClipboardOperation } from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -44,7 +44,7 @@ export function generateBuilderManager() {
 	};
 
 	type State = {
-		mode: "ui" | "code" | "preview";
+		mode: "ui" | "code" | "workflows" | "preview";
 		selection: {
 			componentId: Component["id"];
 			instancePath: string;

@@ -1,6 +1,6 @@
 import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
-import { useEvaluator } from "../renderer/useEvaluator";
-import { Core, InstancePath } from "../writerTypes";
+import { useEvaluator } from "@/renderer/useEvaluator";
+import { Core, InstancePath } from "@/writerTypes";
 
 /**
  *

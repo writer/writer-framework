@@ -2,7 +2,7 @@ import {
 	Component,
 	ComponentMap,
 	WriterComponentDefinition,
-} from "../writerTypes";
+} from "@/writerTypes";
 import { getComponentDefinition } from "./templateMap";
 
 /**

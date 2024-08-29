@@ -2,13 +2,15 @@
 title: "Custom components"
 ---
 
-It's possible to extend Framework with custom component templates. 
+It's possible to extend Framework with custom component templates.
 
 They're developed using Vue 3 and TypeScript. Once transpiled, they can be used by copying them to the `extensions/` folder of any project.
 
-<Note> 
-Custom components behave exactly like built-in ones.
-They are just as performant, can contain other components, and offer the same the Builder experience. They only differ from built-in components in the way that they're bundled and imported.
+<Note>
+	Custom components behave exactly like built-in ones. They are just as
+	performant, can contain other components, and offer the same the Builder
+	experience. They only differ from built-in components in the way that they're
+	bundled and imported.
 </Note>
 
 ## Architecture
@@ -21,7 +23,7 @@ Extensions and custom templates are currently synonyms, but this might change in
 
 ![Custom Components - Architecture](/framework/images/custom-components.architecture.png)
 
-Dependencies are [provided](https://vuejs.org/api/composition-api-dependency-injection.html) using injection symbols and can be _injected_ to be used by the component template. These include `evaluatedFields`, which contain the current values of the editable fields. Injected dependencies are fully typed, making  development easier.
+Dependencies are [provided](https://vuejs.org/api/composition-api-dependency-injection.html) using injection symbols and can be _injected_ to be used by the component template. These include `evaluatedFields`, which contain the current values of the editable fields. Injected dependencies are fully typed, making development easier.
 
 [Rollup's external feature](https://rollupjs.org/configuration-options/#external), invoked via Vite, allows for extensions to be compiled without dependencies and link those during runtime. Therefore, extensions aren't bundled to be standalone, but rather to work as a piece of a puzzle.
 
@@ -35,7 +37,7 @@ Framework component templates are purely front-end. They are Vue 3 templates tha
 
 ### Simple example
 
-This example shows a template for _Bubble Message_, a simple demo component with one editable field, `text`.   
+This example shows a template for _Bubble Message_, a simple demo component with one editable field, `text`.
 
 ```js
 <template>
@@ -44,21 +46,21 @@ This example shows a template for _Bubble Message_, a simple demo component with
         <div class="message">
 
             <!-- Shows the current value of the field "text" -->
-            
+
             {{ fields.text.value }}
         </div>
 	</div>
 </template>
 
 <script lang="ts">
-export default {    
+export default {
     writer: {
 		name: "Bubble Message",
 		description: "Shows a message in the shape of a speech bubble.",
 		category: "Content",
-		
+
         // Fields will be editable via Framework Builder
-        
+
         fields: {
 			text: {
 				name: "Text",
@@ -73,7 +75,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { FieldType } from "../writerTypes";
+import { FieldType } from "@/writerTypes";
 import injectionKeys from "../injectionKeys";
 import { inject } from "vue";
 
@@ -99,38 +101,43 @@ The code above will make Bubble Message available in the Builder.
 ### Run a local server
 
 <Steps>
-  <Step title="Clone the Framework Repository">
-    To get started, clone the [Framework repository](https://github.com/writer/writer-framework) from GitHub.
-  </Step>
-  <Step title="Set Up the Development Environment">
-    To develop custom templates in a developer-friendly way, ensure you have a front-end development server with instant reload capabilities. The front-end code for Framework is located in the `ui` folder. With Node and npm installed on your system, run `npm install` to install dependencies. Then, start the server with support for custom component templates using `npm run custom.dev`.
-    ```sh
-    cd ui
-    npm install
-    # "custom.dev" links templates in "custom_components/"
-    # "dev" runs the server without them 
-    npm run custom.dev
-    ```
-  </Step>
-  <Step title="Start the Back-End Server">
-    The command `npm run custom.dev` starts a front-end server, which requires a back-end to function fully. Start Framework via command line, specifying the option `--port 5000`, to provide a back-end on that port. It's recommended to create a new app for testing the template you're developing.
-    ```sh
-    writer create customtester
-    writer edit customtester --port 5000
-    ```
-  </Step>
-  <Step title="Access Framework and Test Custom Component">
-    You should now be able to access Framework via the URL provided by Vite, e.g. `http://localhost:5174`. In the Builder's _Toolkit_, you should see the sample component, _Balloon Message_. Add it to your tester application.
-  </Step>
+	<Step title="Clone the Framework Repository">
+		To get started, clone the [Framework
+		repository](https://github.com/writer/writer-framework) from GitHub.
+	</Step>
+	<Step title="Set Up the Development Environment">
+		To develop custom templates in a developer-friendly way, ensure you have a
+		front-end development server with instant reload capabilities. The front-end
+		code for Framework is located in the `ui` folder. With Node and npm
+		installed on your system, run `npm install` to install dependencies. Then,
+		start the server with support for custom component templates using `npm run
+		custom.dev`. ```sh cd ui npm install # "custom.dev" links templates in
+		"custom_components/" # "dev" runs the server without them npm run custom.dev
+		```
+	</Step>
+	<Step title="Start the Back-End Server">
+		The command `npm run custom.dev` starts a front-end server, which requires a
+		back-end to function fully. Start Framework via command line, specifying the
+		option `--port 5000`, to provide a back-end on that port. It's recommended
+		to create a new app for testing the template you're developing. ```sh writer
+		create customtester writer edit customtester --port 5000 ```
+	</Step>
+	<Step title="Access Framework and Test Custom Component">
+		You should now be able to access Framework via the URL provided by Vite,
+		e.g. `http://localhost:5174`. In the Builder's _Toolkit_, you should see the
+		sample component, _Balloon Message_. Add it to your tester application.
+	</Step>
 </Steps>
-
 
 ### Create a new component
 
 <Tip>
-You can also have a look at the built-in component templates, since their syntax is equivalent. They can be found in the `ui/src/core_components/` folder.
+	You can also have a look at the built-in component templates, since their
+	syntax is equivalent. They can be found in the `ui/src/components/` folder.
 </Tip>
-Go to `ui/src/custom_components/` and open the Vue single-file components, i.e. the `.vue` files. These files contain comments that will help you get started. Try editing the provided templates, you should see changes reflected.
+Go to `ui/src/custom_components/` and open the Vue single-file components, i.e. the
+`.vue` files. These files contain comments that will help you get started. Try editing
+the provided templates, you should see changes reflected.
 
 You can get started by duplicating one of these examples. Make sure you add the new template to the entrypoint, as discussed below.
 
@@ -141,15 +148,15 @@ For custom component templates to be taken into account, they need to be accessi
 ```ts
 // Import the templates
 
-import BubbleMessage from './BubbleMessage.vue';
-import BubbleMessageAdvanced from './BubbleMessageAdvanced.vue';
+import BubbleMessage from "./BubbleMessage.vue";
+import BubbleMessageAdvanced from "./BubbleMessageAdvanced.vue";
 
 // Export an object with the ids and the templates as default
 
 export default {
-    "bubblemessage": BubbleMessage,
-    "bubblemessageadvanced": BubbleMessageAdvanced
-}
+	bubblemessage: BubbleMessage,
+	bubblemessageadvanced: BubbleMessageAdvanced,
+};
 ```
 
 A single or multiple templates can be specified. Take into account that they will all be exported, and later imported, together.
@@ -160,7 +167,7 @@ Execute `npm run custom.build`, this will generate the output `.js` and `.css` f
 
 ```sh
 # "build" builds the entire front-end
-# "custom.build" only builds the custom templates 
+# "custom.build" only builds the custom templates
 
 npm run custom.build
 ```

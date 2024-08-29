@@ -78,7 +78,7 @@ import {
 	ref,
 	toRefs,
 } from "vue";
-import { Component } from "../writerTypes";
+import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";

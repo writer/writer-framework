@@ -162,7 +162,7 @@ import { computed, ComputedRef, inject, Ref, ref } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import { WriterComponentDefinition } from "../writerTypes";
+import { WriterComponentDefinition } from "@/writerTypes";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -67,7 +67,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import injectionKeys from "../injectionKeys";
-import { Component, WriterComponentDefinition } from "../writerTypes";
+import { Component, WriterComponentDefinition } from "@/writerTypes";
 import BuilderSidebarTitleSearch from "./BuilderSidebarTitleSearch.vue";
 
 const wf = inject(injectionKeys.core);
@@ -133,6 +133,9 @@ const definitionsByDisplayCategory = computed(() => {
 	types.map((type) => {
 		const definition = wf.getComponentDefinition(type);
 
+		const isToolkitMatch = (definition.toolkit ?? "core") == toolkit.value;
+		if (!isToolkitMatch) return;
+
 		const matchingSearch =
 			searchQuery.value === "" ||
 			definition.name
@@ -157,6 +160,13 @@ const definitionsByDisplayCategory = computed(() => {
 	});
 
 	return result;
+});
+
+const toolkit = computed(() => {
+	if (ssbm.getMode() == "workflows") {
+		return "workflows";
+	}
+	return "core";
 });
 
 const handleDragStart = (ev: DragEvent, type: Component["type"]) => {

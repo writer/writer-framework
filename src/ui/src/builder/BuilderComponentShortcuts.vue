@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref, toRefs, watch } from "vue";
 import { useComponentActions } from "./useComponentActions";
-import { Component, WriterComponentDefinition } from "../writerTypes";
+import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
-import { Component } from "../writerTypes";
+import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";

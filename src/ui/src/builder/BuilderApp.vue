@@ -128,7 +128,7 @@ import BuilderHeader from "./BuilderHeader.vue";
 import BuilderSettings from "./BuilderSettings.vue";
 import BuilderEditor from "./BuilderEditor.vue";
 import BuilderSidebar from "./BuilderSidebar.vue";
-import ComponentRenderer from "../renderer/ComponentRenderer.vue";
+import ComponentRenderer from "@/renderer/ComponentRenderer.vue";
 import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 import injectionKeys from "../injectionKeys";
 import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
