@@ -132,9 +132,10 @@ class AppProcess(multiprocessing.Process):
 
         import writer
 
-        session = writer.session_manager.get_session(payload.proposedSessionId)
+        session = writer.session_manager.get_session(payload.proposedSessionId, restore_initial_mail=True)
         if session is None:
             session = writer.session_manager.get_new_session(payload.cookies, payload.headers, payload.proposedSessionId)
+
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
@@ -150,7 +151,8 @@ class AppProcess(multiprocessing.Process):
             sessionId=session.session_id,
             mail=session.session_state.mail,
             components=session.session_component_tree.to_dict(),
-            userFunctions=self._get_user_functions()
+            userFunctions=self._get_user_functions(),
+            featureFlags=writer.Config.feature_flags
         )
 
         session.session_state.clear_mail()

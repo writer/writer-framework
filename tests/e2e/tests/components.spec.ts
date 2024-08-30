@@ -12,6 +12,7 @@ type ComponentTestData = {
 	locator: string;
 	ignore?: boolean;
 	allowedParentTypes?: string[];
+	toolkit: string;
 };
 
 const mapComponents = {
@@ -52,6 +53,7 @@ const tests = components
 
 tests
 	.filter((component: ComponentTestData) => !component.ignore)
+	.filter((component: ComponentTestData) => !component.toolkit || component.toolkit == "core")
 	.forEach((component: ComponentTestData) => {
 		switch(component.test) {
 			case 'basic':

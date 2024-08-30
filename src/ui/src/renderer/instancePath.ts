@@ -1,4 +1,4 @@
-import type { InstancePath } from "../writerTypes";
+import type { InstancePath } from "@/writerTypes";
 
 export function flattenInstancePath(path: InstancePath) {
 	return path.map((ie) => `${ie.componentId}:${ie.instanceNumber}`).join(",");

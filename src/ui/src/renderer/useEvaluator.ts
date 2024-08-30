@@ -1,5 +1,5 @@
 import { ComputedRef, computed } from "vue";
-import { Component, Core, FieldType, InstancePath } from "../writerTypes";
+import { Component, Core, FieldType, InstancePath } from "@/writerTypes";
 
 export function useEvaluator(wf: Core) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;

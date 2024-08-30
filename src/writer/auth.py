@@ -99,6 +99,9 @@ class BasicAuth(Auth):
                  callback: Optional[Callable[[Request, str, dict], None]] = None,
                  unauthorized_action: Optional[Callable[[Request, Unauthorized], Response]] = None):
 
+        self.unauthorized_action = unauthorized_action
+        self.callback_func = callback
+
         @asgi_app.middleware("http")
         async def basicauth_middleware(request: Request, call_next):
             import base64
@@ -188,14 +191,14 @@ class Oidc(Auth):
         redirect_url = urljoin(self.host_url, self.callback_authorize)
         host_url_path = urlpath(self.host_url)
         callback_authorize_path = urljoin(host_url_path, self.callback_authorize)
-        asset_assets_path = urljoin(host_url_path, "assets")
+        static_assets_path = urljoin(host_url_path, "static")
 
         logger.debug(f"[auth] oidc - url redirect: {redirect_url}")
         logger.debug(f"[auth] oidc - endpoint authorize: {self.url_authorize}")
         logger.debug(f"[auth] oidc - endpoint token: {self.url_oauthtoken}")
         logger.debug(f"[auth] oidc - path: {host_url_path}")
         logger.debug(f"[auth] oidc - authorize path: {callback_authorize_path}")
-        logger.debug(f"[auth] oidc - asset path: {asset_assets_path}")
+        logger.debug(f"[auth] oidc - static asset path: {static_assets_path}")
         self.authlib = OAuth2Session(
             client_id=self.client_id,
             client_secret=self.client_secret,
@@ -205,13 +208,14 @@ class Oidc(Auth):
             token_endpoint=self.url_oauthtoken,
         )
 
+        self.unauthorized_action = unauthorized_action
         self.callback_func = callback
 
         @asgi_app.middleware("http")
         async def oidc_middleware(request: Request, call_next):
             session = request.cookies.get('session')
 
-            if session is not None or request.url.path in [callback_authorize_path] or request.url.path.startswith(asset_assets_path):
+            if session is not None or request.url.path in [callback_authorize_path] or request.url.path.startswith(static_assets_path):
                 response: Response = await call_next(request)
                 return response
             else:

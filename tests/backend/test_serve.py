@@ -3,6 +3,7 @@ import mimetypes
 import fastapi
 import fastapi.testclient
 import pytest
+import writer.abstract
 import writer.serve
 from fastapi import FastAPI
 
@@ -169,3 +170,47 @@ class TestServe:
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.get("/probes/healthcheck")
             assert res.status_code == 404
+
+    def test_abstract_components(self):
+        writer.abstract.register_abstract_template("sectiona", {
+            "baseType": "section",
+            "writer": {
+                "name": "Section A"
+            }
+        })
+        writer.abstract.register_abstract_template("columnb", {
+            "baseType": "column",
+            "writer": {
+                "description": "Cloned Column component"
+            }
+        })
+
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.post("/api/init", json={
+                "proposedSessionId": None
+            }, headers={
+                "Content-Type": "application/json"
+            })
+            abstract_templates = res.json().get("abstractTemplates")
+            section_a = abstract_templates.get("sectiona")
+            column_b = abstract_templates.get("columnb")
+            assert section_a.get("writer").get("name") == "Section A"
+            assert column_b.get("writer").get("description") == "Cloned Column component"
+          
+    def test_feature_flags(self):
+        """
+        This test verifies that feature flags are carried to the frontend.
+
+        """
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.post("/api/init", json={
+                "proposedSessionId": None
+            }, headers={
+                "Content-Type": "application/json"
+            })
+            feature_flags = res.json().get("featureFlags")
+            assert feature_flags == ["flag_one", "flag_two"]

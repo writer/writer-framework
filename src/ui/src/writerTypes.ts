@@ -1,9 +1,9 @@
-import { generateCore } from "./core"
-import { generateBuilderManager } from "./builder/builderManager"
+import { generateCore } from "./core";
+import { generateBuilderManager } from "./builder/builderManager";
 
-export type Core = ReturnType<typeof generateCore>
+export type Core = ReturnType<typeof generateCore>;
 
-type ComponentId = string
+type ComponentId = string;
 
 /**
  * Basic building block of applications.
@@ -54,6 +54,7 @@ export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
 	docs?: string; // Collapsible mini-docs
+	toolkit?: "core" | "workflows";
 	category?: string; // Category (Layout, Content, etc)
 	allowedChildrenTypes?: (string | "*" | "inherit")[]; // Which component types are allowed inside (if any)
 	allowedParentTypes?: string[]; // Which component types can contain this type of component
@@ -131,3 +132,8 @@ export type ComponentMap = Record<Component["id"], Component>;
 export type MailItem = { type: string; payload: Record<string, string> };
 
 export type UserFunction = { name: string; args: string[] };
+
+export type AbstractTemplate = {
+	baseType: string;
+	writer: WriterComponentDefinition;
+};

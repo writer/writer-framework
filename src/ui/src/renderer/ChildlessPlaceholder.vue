@@ -8,9 +8,9 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import BaseEmptiness from "../core_components/base/BaseEmptiness.vue";
-import injectionKeys from "../injectionKeys";
-import { Component } from "../writerTypes";
+import BaseEmptiness from "@/components/core/base/BaseEmptiness.vue";
+import injectionKeys from "@/injectionKeys";
+import { Component } from "@/writerTypes";
 
 const ALLOWED_LIST_MAX_LENGTH = 10;
 const wf = inject(injectionKeys.core);

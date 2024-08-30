@@ -120,8 +120,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "../injectionKeys";
-import { parseInstancePathString } from "../renderer/instancePath";
-import { FieldCategory, FieldType, InstancePath } from "../writerTypes";
+import { parseInstancePathString } from "@/renderer/instancePath";
+import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsColor from "./BuilderFieldsColor.vue";
 import BuilderFieldsKeyValue from "./BuilderFieldsKeyValue.vue";

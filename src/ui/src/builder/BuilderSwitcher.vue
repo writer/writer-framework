@@ -15,6 +15,14 @@
 			}}</span>
 		</div>
 		<div
+			v-if="isWorkflowsFeatureFlagged"
+			:class="{ active: activeId == 'workflows' }"
+			@click="selectOption('workflows')"
+		>
+			<i class="icon material-symbols-outlined"> linked_services </i>
+			Workflows
+		</div>
+		<div
 			:class="{ active: activeId == 'preview' }"
 			@click="selectOption('preview')"
 		>
@@ -27,11 +35,17 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "../injectionKeys";
+
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const isWorkflowsFeatureFlagged = computed(() =>
+	wf.featureFlags.value.includes("workflows"),
+);
 
 let selectedId: Ref<string> = ref(null);
 
-const selectOption = (optionId: "ui" | "code" | "preview") => {
+const selectOption = (optionId: "ui" | "code" | "preview" | "workflows") => {
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
 	if (ssbm.getMode() != "preview") return;

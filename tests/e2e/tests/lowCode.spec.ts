@@ -65,7 +65,8 @@ test.describe("low-code UI", () => {
 			await expect(page.locator(`.initialization .wf-type-text`)).toHaveText("Initialization successful!");
 	});
 
-	components.forEach(({ type, name, fields, allowedParentTypes }) => {
+	components.forEach(({ type, name, fields, allowedParentTypes, toolkit }) => {
+		if (toolkit && toolkit !== "core") return;
 		const renderError = type === 'root' || (allowedParentTypes && !allowedParentTypes.includes('section'));
 		const componentName = name.replaceAll(/\s/g, "");
 		test(`create ${type} with ui.${componentName}() inside of section ${renderError ? '- render error' : ''}`, async ({ page }) => {
