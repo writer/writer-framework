@@ -2,7 +2,7 @@
 	<BaseContainer
 		class="CoreHorizontalStack"
 		:content-h-align="fields.contentHAlign.value"
-		content-v-align="center"
+		:content-v-align="fields.contentVAlign.value"
 		:content-padding="fields.contentPadding.value"
 		:is-horizontal="true"
 	>
@@ -13,6 +13,7 @@
 <script lang="ts">
 import {
 	contentHAlign,
+	contentVAlign,
 	contentPadding,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
@@ -32,6 +33,7 @@ export default {
 				default: "0",
 			},
 			contentHAlign,
+			contentVAlign,
 			cssClasses,
 		},
 	},
