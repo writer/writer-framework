@@ -249,7 +249,7 @@ watch(children, async (postChildren, preChildren) => {
 	const preIds = preChildren.map((c) => c.id);
 	const postIds = postChildren.map((c) => c.id);
 	const removedIds = preIds.filter((cId) => !postIds.includes(cId));
-	console.log(removedIds);
+	console.log(preIds, postIds, removedIds);
 	removedIds.forEach((removedId) => {
 		postChildren.forEach((c) => {
 			if (!c.outs || c.outs.length == 0) return;
