@@ -1,0 +1,149 @@
+<template>
+	<div class="WorkflowsNodeBox" :class="props.variant">
+		<div class="title">
+			<i v-if="props.variant == 'tool'" class="material-symbols-outlined"
+				>settings</i
+			>
+			<img
+				v-if="props.variant == 'writer'"
+				src="../assets/logo.svg"
+				alt="Writer Framework logo"
+			/>
+			{{ def.name }}
+		</div>
+		<div class="main">
+			<slot></slot>
+			<div></div>
+		</div>
+		<div class="outputs">
+			<div v-for="(out, outId) in def.outs" :key="outId" class="output">
+				{{ out.name }}
+				<div
+					class="ball"
+					:class="out.style"
+					:data-writer-socket-id="outId"
+					:data-writer-unselectable="true"
+					@click.capture="
+						(ev: DragEvent) => handleOutClick(ev, outId)
+					"
+				></div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { computed, inject } from "vue";
+import { Component } from "../writerTypes";
+import injectionKeys from "../injectionKeys";
+
+const wf = inject(injectionKeys.core);
+
+const props = defineProps<{
+	component: Component;
+	variant?: string;
+}>();
+
+const def = computed(() => {
+	return wf?.getComponentDefinition(props.component.type);
+});
+
+const emit = defineEmits(["outSelect"]);
+
+function handleOutClick(ev: DragEvent, outId: string) {
+	ev.stopPropagation();
+	emit("outSelect", outId);
+}
+</script>
+
+<style scoped>
+@import "../renderer/sharedStyles.css";
+
+.WorkflowsNodeBox {
+	background: var(--builderBackgroundColor);
+	border-radius: 12px;
+	width: 240px;
+	position: absolute;
+	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.03);
+}
+
+.title {
+	display: flex;
+	gap: 12px;
+	padding: 14px 16px 14px 16px;
+	border-radius: 12px 12px 0 0;
+	border-top: 1px solid var(--builderSeparatorColor);
+	border-left: 1px solid var(--builderSeparatorColor);
+	border-right: 1px solid var(--builderSeparatorColor);
+	align-items: center;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 12px;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+}
+
+.title img {
+	width: 18px;
+}
+
+.title i {
+	font-size: 16px;
+}
+
+.WorkflowsNodeBox.writer .title {
+	color: #4f4f4f;
+	background: linear-gradient(264deg, #f6effd 0.71%, #e4e9ff 100%);
+}
+
+.WorkflowsNodeBox.tool .title {
+	background: #4f4f4f;
+	color: #ffffff;
+}
+
+.main {
+	font-size: 14px;
+	padding: 12px 16px 12px 16px;
+	border-left: 1px solid var(--builderSeparatorColor);
+	border-right: 1px solid var(--builderSeparatorColor);
+}
+
+.outputs {
+	border: 1px solid var(--builderSeparatorColor);
+	border-radius: 0 0 12px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px 0 12px 16px;
+}
+
+.output {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	justify-content: right;
+	font-size: 10px;
+	font-style: normal;
+	font-weight: 500;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+}
+
+.output .ball {
+	margin-right: -8px;
+	height: 16px;
+	width: 16px;
+	border-radius: 50%;
+	border: 1px solid var(--builderBackgroundColor);
+	cursor: pointer;
+}
+
+.output .ball.success {
+	background: var(--builderSuccessColor);
+}
+
+.output .ball.error {
+	background: var(--builderErrorColor);
+}
+</style>

@@ -29,6 +29,12 @@ export type Component = {
 		eventType: string;
 		stateRef: string;
 	};
+	x?: number;
+	y?: number;
+	outs?: {
+		outId: string;
+		toNodeId: string;
+	}[];
 };
 
 /**
