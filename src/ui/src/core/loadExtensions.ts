@@ -20,8 +20,14 @@ async function importCustomComponentTemplate(path: string) {
 	await import(/* @vite-ignore */ getRelativeExtensionsPath() + path);
 	Object.entries(window[CUSTOM_COMPONENTS_GLOBAL_VAR])?.forEach(
 		([key, template]) => {
-			console.log(`Registering template for "${key}".`);
-			registerComponentTemplate(`custom_${key}`, template);
+			if (checkComponentKey(key)) {
+				registerComponentTemplate(`custom_${key}`, template);
+				console.log(`Registering template for "${key}".`);
+			} else {
+				console.warn(
+					`custom component '${key}' is ignored. A custom component should be declared using only alphanumeric lowercase and _.`,
+				);
+			}
 		},
 	);
 }
@@ -40,4 +46,19 @@ function getRelativeExtensionsPath() {
 	}
 
 	return `${pathname}extensions/`;
+}
+
+/**
+ * 	Checks that the key contains only alphanumeric characters and underscores without capital letters
+ * 	The clipboard api use in drag and drop doesn't handle uppercase.
+ *
+ * 	mycomponent : valid
+ * 	myComponent : invalid
+ * 	myCOMPONENT : invalid
+ *
+ * 	@see https://github.com/writer/writer-framework/issues/517
+ */
+function checkComponentKey(key: string): boolean {
+	const isValidKey = /^[a-z0-9_]+$/.test(key);
+	return isValidKey;
 }
