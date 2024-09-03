@@ -176,6 +176,7 @@ class Oidc(Auth):
     scope: str = "openid email profile"
     callback_authorize: str = "authorize"
     url_userinfo: Optional[str] = None
+    app_static_public: bool = False
 
     authlib: OAuth2Session = None
     callback_func: Optional[Callable[[Request, str, dict], None]] = None # Callback to validate user authentication
@@ -191,14 +192,25 @@ class Oidc(Auth):
         redirect_url = urljoin(self.host_url, self.callback_authorize)
         host_url_path = urlpath(self.host_url)
         callback_authorize_path = urljoin(host_url_path, self.callback_authorize)
-        static_assets_path = urljoin(host_url_path, "static")
+
+        auth_authorized_prefix_paths = []
+        auth_authorized_routes = [callback_authorize_path]
+
+        for asset_path in writer.serve.wf_root_static_assets():
+            if asset_path.is_file():
+                auth_authorized_routes.append(urljoin(host_url_path, asset_path.name))
+            elif asset_path.is_dir():
+                auth_authorized_prefix_paths.append(urljoin(host_url_path, asset_path.name))
+
+        if self.app_static_public is True:
+            auth_authorized_prefix_paths += [urljoin(host_url_path, "static"), urljoin(host_url_path, "extensions")]
 
         logger.debug(f"[auth] oidc - url redirect: {redirect_url}")
         logger.debug(f"[auth] oidc - endpoint authorize: {self.url_authorize}")
         logger.debug(f"[auth] oidc - endpoint token: {self.url_oauthtoken}")
         logger.debug(f"[auth] oidc - path: {host_url_path}")
-        logger.debug(f"[auth] oidc - authorize path: {callback_authorize_path}")
-        logger.debug(f"[auth] oidc - static asset path: {static_assets_path}")
+        logger.debug(f"[auth] oidc - auth authorized routes: {auth_authorized_routes}")
+        logger.debug(f"[auth] oidc - auth authorized prefix paths: {auth_authorized_prefix_paths}")
         self.authlib = OAuth2Session(
             client_id=self.client_id,
             client_secret=self.client_secret,
@@ -215,7 +227,8 @@ class Oidc(Auth):
         async def oidc_middleware(request: Request, call_next):
             session = request.cookies.get('session')
 
-            if session is not None or request.url.path in [callback_authorize_path] or request.url.path.startswith(static_assets_path):
+            is_one_of_url_prefix_allowed = any(request.url.path.startswith(url_prefix) for url_prefix in auth_authorized_prefix_paths)
+            if session is not None or request.url.path in auth_authorized_routes or is_one_of_url_prefix_allowed:
                 response: Response = await call_next(request)
                 return response
             else:
@@ -259,7 +272,7 @@ class Oidc(Auth):
                     })
 
 
-def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
+def Google(client_id: str, client_secret: str, host_url: str, app_static_public = False) -> Oidc:
     """
     Configure Google Social login configured through Client Id for Web application in Google Cloud Console.
 
@@ -269,6 +282,7 @@ def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
     :param client_id: client id of Web application
     :param client_secret: client secret of Web application
     :param host_url: The URL of the Writer Framework application (for callback)
+    :param app_static_public: authorizes the exposure of the user's static assets (/static and /extensions)
     """
     return Oidc(
         client_id=client_id,
@@ -276,9 +290,11 @@ def Google(client_id: str, client_secret: str, host_url: str) -> Oidc:
         host_url=host_url,
         url_authorize="https://accounts.google.com/o/oauth2/auth",
         url_oauthtoken="https://oauth2.googleapis.com/token",
-        url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json")
+        url_userinfo="https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+        app_static_public=app_static_public
+    )
 
-def Github(client_id: str, client_secret: str, host_url: str) -> Oidc:
+def Github(client_id: str, client_secret: str, host_url: str, app_static_public = False) -> Oidc:
     """
     Configure Github authentication.
 
@@ -288,16 +304,20 @@ def Github(client_id: str, client_secret: str, host_url: str) -> Oidc:
     :param client_id: client id
     :param client_secret: client secret
     :param host_url: The URL of the Writer Framework application (for callback)
+    :param app_static_public: authorizes the exposure of the user's static assets (/static and /extensions)
     """
+
     return Oidc(
         client_id=client_id,
         client_secret=client_secret,
         host_url=host_url,
         url_authorize="https://github.com/login/oauth/authorize",
         url_oauthtoken="https://github.com/login/oauth/access_token",
-        url_userinfo="https://api.github.com/user")
+        url_userinfo="https://api.github.com/user",
+        app_static_public=app_static_public
+    )
 
-def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oidc:
+def Auth0(client_id: str, client_secret: str, domain: str, host_url: str, app_static_public = False) -> Oidc:
     """
     Configure Auth0 application for authentication.
 
@@ -308,14 +328,18 @@ def Auth0(client_id: str, client_secret: str, domain: str, host_url: str) -> Oid
     :param client_secret: client secret
     :param domain: Domain of the Auth0 application
     :param host_url: The URL of the Writer Framework application (for callback)
+    :param app_static_public: authorizes the exposure of the user's static assets (/static and /extensions)
     """
+
     return Oidc(
         client_id=client_id,
         client_secret=client_secret,
         host_url=host_url,
         url_authorize=f"https://{domain}/authorize",
         url_oauthtoken=f"https://{domain}/oauth/token",
-        url_userinfo=f"https://{domain}/userinfo")
+        url_userinfo=f"https://{domain}/userinfo",
+        app_static_public=app_static_public
+    )
 
 def urlpath(url: str):
     """
