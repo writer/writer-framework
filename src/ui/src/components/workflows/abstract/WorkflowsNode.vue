@@ -54,9 +54,11 @@ import { Component } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
+const componentId = inject(injectionKeys.componentId);
 
 const def = computed(() => {
-	return wf?.getComponentDefinition("workflowsnode");
+	const component = wf.getComponentById(componentId);
+	return wf?.getComponentDefinition(component.type);
 });
 
 const emit = defineEmits(["outSelect"]);
@@ -74,5 +76,85 @@ function handleOutClick(ev: DragEvent, outId: string) {
 	width: 240px;
 	position: absolute;
 	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.03);
+}
+
+.title {
+	display: flex;
+	gap: 12px;
+	padding: 14px 16px 14px 16px;
+	border-radius: 12px 12px 0 0;
+	border-top: 1px solid var(--builderSeparatorColor);
+	border-left: 1px solid var(--builderSeparatorColor);
+	border-right: 1px solid var(--builderSeparatorColor);
+	align-items: center;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 12px;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+}
+
+.title img {
+	width: 18px;
+}
+
+.title i {
+	font-size: 16px;
+}
+
+.WorkflowsNodeBox.writer .title {
+	color: #4f4f4f;
+	background: linear-gradient(264deg, #f6effd 0.71%, #e4e9ff 100%);
+}
+
+.WorkflowsNodeBox.tool .title {
+	background: #4f4f4f;
+	color: #ffffff;
+}
+
+.main {
+	font-size: 14px;
+	padding: 12px 16px 12px 16px;
+	border-left: 1px solid var(--builderSeparatorColor);
+	border-right: 1px solid var(--builderSeparatorColor);
+}
+
+.outputs {
+	border: 1px solid var(--builderSeparatorColor);
+	border-radius: 0 0 12px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px 0 12px 16px;
+}
+
+.output {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	justify-content: right;
+	font-size: 10px;
+	font-style: normal;
+	font-weight: 500;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+}
+
+.output .ball {
+	margin-right: -8px;
+	height: 16px;
+	width: 16px;
+	border-radius: 50%;
+	border: 1px solid var(--builderBackgroundColor);
+	cursor: pointer;
+}
+
+.output .ball.success {
+	background: var(--builderSuccessColor);
+}
+
+.output .ball.error {
+	background: var(--builderErrorColor);
 }
 </style>

@@ -74,7 +74,13 @@ const { createAndInsertComponent, goToComponentParentPage } =
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
 const rootComponents = computed(() => {
-	return wf.getComponents(null, { sortedByPosition: true });
+	let targetType = "root";
+	if (ssbm.getMode() == "workflows") {
+		targetType = "workflowsroot";
+	}
+	return wf
+		.getComponents(null, { sortedByPosition: true })
+		.filter((c) => c.type == targetType);
 });
 
 function determineMatch(component: Component, query: string): boolean {

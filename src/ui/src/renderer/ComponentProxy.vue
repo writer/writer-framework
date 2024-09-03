@@ -56,7 +56,7 @@ export default {
 
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
-				? ["root"]
+				? ["root", "workflowsroot"]
 				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};

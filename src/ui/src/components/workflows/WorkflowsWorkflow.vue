@@ -52,7 +52,7 @@ export default {
 		category: "Root",
 		description,
 		allowedChildrenTypes: ["*"],
-		allowedParentTypes: ["root"],
+		allowedParentTypes: ["workflowsroot"],
 		fields: {
 			key: {
 				name: "Workflow key",
@@ -218,7 +218,6 @@ function handleNodeDragend(ev: DragEvent) {
 }
 
 function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
-	console.log("clicko");
 	if (!activeNodeOut.value) return;
 	if (activeNodeOut.value.fromComponentId == componentId) return;
 
@@ -268,7 +267,7 @@ onMounted(() => {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.CoreWorkflow {
+.WorkflowsWorkflow {
 	display: flex;
 	width: 100%;
 	min-height: 100%;
@@ -280,7 +279,7 @@ onMounted(() => {
 	overflow: hidden;
 }
 
-.component.CoreWorkflow.selected {
+.component.WorkflowsWorkflow.selected {
 	background: var(--builderSubtleSeparatorColor);
 }
 </style>

@@ -1,5 +1,6 @@
 <template>
 	<div ref="rootEl" class="CoreRoot" data-writer-container>
+		Standard root: {{ isRootActive }} || {{ activePageId }}
 		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
 			<component
 				:is="vnode"
@@ -48,7 +49,7 @@ export default {
 		name: "Root",
 		category: "Root",
 		description,
-		allowedChildrenTypes: ["page", "workflow"],
+		allowedChildrenTypes: ["page"],
 		fields: {
 			appName: {
 				name: "App name",
@@ -92,8 +93,11 @@ const getFirstPageId = () => {
 const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
 const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
 const activePageId = computed(() => wf.getActivePageId() ?? getFirstPageId());
+const isRootActive = computed(() => wf.isChildOf("root", activePageId.value));
 
 watch(activePageId, (newPageId) => {
+	if (!wf.isChildOf("root", newPageId)) return;
+
 	const page = wf.getComponentById(newPageId);
 	const pageKey = page.content?.["key"];
 	if (ssbm && ssbm.getSelectedId() !== newPageId) {

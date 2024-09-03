@@ -5,13 +5,15 @@
 		:style="rootStyle"
 		:class="{ loadingActive: isMessagePending }"
 	>
+		{{ root.instancePath }}
 		<RendererNotifications class="notifications"></RendererNotifications>
 		<div class="loadingBar"></div>
 		<div class="rootComponentArea">
 			<ComponentProxy
-				v-if="rootComponent"
-				:component-id="rootComponent.id"
-				:instance-path="rootInstancePath"
+				v-if="root.component"
+				:key="root.component.id"
+				:component-id="root.component.id"
+				:instance-path="root.instancePath"
 				:instance-data="rootInstanceData"
 			></ComponentProxy>
 			<slot></slot>
@@ -20,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch } from "vue";
+import { inject, ref, computed, watch, ComputedRef } from "vue";
 import { Component, InstancePath } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
@@ -28,19 +30,35 @@ import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "./useEvaluator";
 
 const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 const templateEvaluator = useEvaluator(wf);
-const rootComponent: Component = wf.getComponentById("root");
 
-if (!rootComponent) {
-	// eslint-disable-next-line no-console
-	console.error("No root component found.");
+function getRelevantRootId() {
+	if (!wfbm) {
+		return "root";
+	}
+	if (wfbm.getMode() == "workflows") {
+		return "workflowsroot";
+	}
+	return "root";
 }
 
-const rootInstancePath: InstancePath = [
-	{ componentId: "root", instanceNumber: 0 },
-];
+const root = computed(() => {
+	return {
+		component: wf.getComponentById(getRelevantRootId()),
+		instancePath: [
+			{
+				componentId: getRelevantRootId(),
+				instanceNumber: 0,
+			},
+		],
+	};
+});
+
 const rootInstanceData = [ref(null)];
-const rootFields = templateEvaluator.getEvaluatedFields(rootInstancePath);
+const rootFields = templateEvaluator.getEvaluatedFields(
+	root.value.instancePath,
+);
 const rootStyle = computed(() => {
 	return {
 		"--accentColor": rootFields.accentColor?.value,
