@@ -8,7 +8,7 @@ import {
 	InstancePath,
 	MailItem,
 	UserFunction,
-} from "../writerTypes";
+} from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
 	getComponentDefinition,

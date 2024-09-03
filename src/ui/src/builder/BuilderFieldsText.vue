@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
-import { Component, FieldControl } from "../writerTypes";
+import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";

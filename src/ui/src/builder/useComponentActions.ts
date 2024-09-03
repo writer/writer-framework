@@ -5,7 +5,7 @@ import {
 	Component,
 	ClipboardOperation,
 	ComponentMap,
-} from "../writerTypes";
+} from "@/writerTypes";
 
 export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function generateNewComponentId() {

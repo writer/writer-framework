@@ -31,7 +31,8 @@
 			"pages": [
 				"framework/introduction",
 				"framework/quickstart",
-				"framework/ai-module"
+				"framework/ai-module",
+				"framework/cloud-deploy"
 			]
 		},
 		{

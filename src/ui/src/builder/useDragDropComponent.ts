@@ -1,5 +1,5 @@
 import { Ref, ref } from "vue";
-import { Core, Component } from "../writerTypes";
+import { Core, Component } from "@/writerTypes";
 import { CANDIDATE_CONFIRMATION_DELAY_MS } from "./builderManager";
 
 /*

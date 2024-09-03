@@ -147,7 +147,7 @@ In addition to `content`, a set of fields which is specific to the component typ
     </Note>
 - **`position: int`**: Determines the display order of the component in relation to its siblings.  
     Position `0` means that the component is the first child of its parent.  
-    Position `-2` is used for components – such as [sidebars](https://dev.writer.com/components/sidebar) – that have a specific reserved position not related to their siblings.
+    Position `-2` is used for components – such as [sidebars](https://dev.writer.com/components/sidebar) – that have a specific reserved position not related to their siblings.  
     ```python
     ui.Text(
         {"text": "Hello Parent, I'm your first child!"}, 
@@ -170,7 +170,7 @@ In addition to `content`, a set of fields which is specific to the component typ
 
     ui.Text({"text": "My visibility depends on the @{my_var}!"}, visible="my_var")
     ```
-- **`handlers: dict[str, callable]`**: Attaches [event handlers](https://dev.writer.com/framework/event-handlersl) to the component. Each dictionary key represents an event, and its value is the corresponding handler.:
+- **`handlers: dict[str, callable]`**: Attaches [event handlers](https://dev.writer.com/framework/event-handlers) to the component. Each dictionary key represents an event, and its value is the corresponding handler.:
     ```python
     def increment(state):
         state["counter"] += 1

@@ -1,4 +1,4 @@
-import { Component, ComponentMap } from "../writerTypes";
+import { Component, ComponentMap } from "@/writerTypes";
 import {
 	getComponentDefinition,
 	getSupportedComponentTypes,
