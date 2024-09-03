@@ -9,7 +9,7 @@ import textwrap
 import typing
 from contextlib import asynccontextmanager
 from importlib.machinery import ModuleSpec
-from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
+from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, cast
 from urllib.parse import urlsplit
 
 import uvicorn
@@ -593,7 +593,7 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
     Writer Framework routes remain priority. A developer cannot come and overload them.
     """
     app.get('/')(lambda: FileResponse(server_static_path.joinpath('index.html')))
-    for f in server_static_path.glob('*'):
+    for f in wf_root_static_assets():
         if f.is_file():
             app.get(f"/{f.name}")(lambda: FileResponse(f))
         if f.is_dir():
@@ -613,3 +613,22 @@ def _execute_server_setup_hook(user_app_path: str) -> None:
 
 def app_runner(asgi_app: WriterFastAPI) -> AppRunner:
     return asgi_app.state.app_runner
+
+
+def wf_root_static_assets() -> List[pathlib.Path]:
+    """
+    Lists the root writer Framework static assets. Some of them are files, some other are directories.
+
+    >>> for f in wf_root_static_assets()
+    >>>     print(f"{f.name}")
+    >>>     # favicon.ico
+    >>>     # assets
+
+    """
+    all_static_assets: List[pathlib.Path] = []
+    server_path = pathlib.Path(__file__)
+    server_static_path = server_path.parent / "static"
+    for f in server_static_path.glob('*'):
+        all_static_assets.append(f)
+
+    return all_static_assets
