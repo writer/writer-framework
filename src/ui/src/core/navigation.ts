@@ -1,6 +1,6 @@
 type ParsedHash = {
 	pageKey?: string;
-	routeVars: Record<string, string>;
+	routeVars: Map<string, string>; // Stored as Map to avoid injection e.g. prototype pollution
 };
 
 const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
@@ -9,13 +9,12 @@ const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
 export function getParsedHash(): ParsedHash {
 	const docHash = document.location.hash.substring(1);
 	const hashMatchGroups = docHash.match(hashRegex)?.groups;
-
-	if (!hashMatchGroups) return { pageKey: undefined, routeVars: {} };
-
-	const routeVars: Record<string, string> = {};
+	const routeVars: Map<string, string> = new Map();
 	const pageKey = hashMatchGroups?.pageKey
 		? decodeURIComponent(hashMatchGroups.pageKey)
 		: undefined;
+
+	if (!hashMatchGroups) return { pageKey, routeVars };
 
 	const routeVarsSegments = hashMatchGroups.routeVars?.split("&") ?? [];
 	routeVarsSegments.forEach((routeVarSegment) => {
@@ -24,7 +23,7 @@ export function getParsedHash(): ParsedHash {
 		const { key, value } = matchGroups;
 		const decodedKey = decodeURIComponent(key);
 		const decodedValue = decodeURIComponent(value);
-		routeVars[decodedKey] = decodedValue;
+		routeVars.set(decodedKey, decodedValue);
 	});
 
 	return { pageKey, routeVars };
@@ -37,9 +36,10 @@ function setHash(parsedHash: ParsedHash) {
 	if (pageKey) {
 		hash += `${encodeURIComponent(pageKey)}`;
 	}
-	if (Object.keys(routeVars).length > 0) {
+
+	if (routeVars.keys.length > 0) {
 		hash += "/";
-		hash += Object.entries(routeVars)
+		hash += Array.from(routeVars.entries())
 			.map(([key, value]) => {
 				// Vars set to null are excluded from the hash
 
@@ -63,6 +63,8 @@ export function changePageInHash(targetPageKey: string) {
 export function changeRouteVarsInHash(targetRouteVars: Record<string, string>) {
 	const parsedHash = getParsedHash();
 	const routeVars = parsedHash?.routeVars ?? {};
-	parsedHash.routeVars = { ...routeVars, ...targetRouteVars };
+	parsedHash.routeVars = new Map(
+		Object.entries({ ...routeVars, ...targetRouteVars }),
+	);
 	setHash(parsedHash);
 }
