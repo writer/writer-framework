@@ -1,10 +1,9 @@
 <template>
 	<div ref="rootEl" class="WorkflowsRoot" data-writer-container>
-		Workflows root: {{ isRootActive }}
 		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
 			<component
 				:is="vnode"
-				v-if="vnode.key === `${activePageId}:0`"
+				v-if="vnode.key === `${displayedWorkflowId}:0`"
 			></component>
 		</template>
 	</div>
@@ -23,42 +22,46 @@ export default {
 		name: "Root (Workflows)",
 		category: "Root",
 		description,
-		allowedChildrenTypes: ["workflow"],
+		allowedChildrenTypes: ["workflows_workflow"],
 		fields: {},
 	},
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, ref, Ref, watch, onBeforeMount } from "vue";
+import { computed, inject, ref, Ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const importedModulesSpecifiers: Record<string, string> = {};
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
-const { isComponentVisible } = useEvaluator(wf);
 
-const activePageId = computed(() => wf.getActivePageId());
-const isRootActive = computed(() => {
-	if (!activePageId.value) return false;
-	return wf.isChildOf("workflowsroot", activePageId.value);
-});
+const displayedWorkflowId = computed(() => {
+	const activePageId = wf.getActivePageId();
+	if (activePageId && wf.isChildOf("workflows_root", activePageId))
+		return activePageId;
 
-watch(activePageId, (newPageId) => {
-	if (!wf.isChildOf("workflowsroot", newPageId)) return;
-
-	const page = wf.getComponentById(newPageId);
-	const pageKey = page.content?.["key"];
-	if (ssbm && ssbm.getSelectedId() !== newPageId) {
-		ssbm.setSelection(null);
-	}
-	nextTick().then(() => {
-		window.scrollTo(0, 0);
-		const rendererEl = document.querySelector(".ComponentRenderer");
-		rendererEl.parentElement.scrollTo(0, 0);
+	const pageComponents = wf.getComponents("workflows_root", {
+		includeBMC: true,
+		includeCMC: true,
+		sortedByPosition: true,
 	});
+	if (pageComponents.length == 0) return null;
+	return pageComponents[0].id;
 });
+
+// watch(activePageId, (newPageId) => {
+// 	const page = wf.getComponentById(newPageId);
+// 	const pageKey = page.content?.["key"];
+// 	if (ssbm && ssbm.getSelectedId() !== newPageId) {
+// 		ssbm.setSelection(null);
+// 	}
+// 	nextTick().then(() => {
+// 		window.scrollTo(0, 0);
+// 		const rendererEl = document.querySelector(".ComponentRenderer");
+// 		rendererEl.parentElement.scrollTo(0, 0);
+// 	});
+// });
 </script>
 
 <style scoped>

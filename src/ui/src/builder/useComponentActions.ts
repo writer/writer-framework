@@ -806,7 +806,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	): Component["id"] {
 		const component = wf.getComponentById(componentId);
 		if (!component || component.type == "root") return null;
-		if (component.type == "page" || component.type == "workflow")
+		if (component.type == "page" || component.type == "workflows_workflow")
 			return componentId;
 		return getContainingPageId(component.parentId);
 	}

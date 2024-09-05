@@ -8,12 +8,12 @@
 		@dragstart="handleDragstart"
 	>
 		<svg width="100%" height="100%">
-			<WorkflowsArrow
+			<WorkflowArrow
 				v-for="(arrow, arrowId) in arrows"
 				:key="arrowId"
 				:arrow="arrow"
 				@click="handleArrowClick"
-			></WorkflowsArrow>
+			></WorkflowArrow>
 		</svg>
 		<template v-for="component in children" :key="component.id">
 			<component
@@ -37,14 +37,11 @@
 
 <script lang="ts">
 import { type Component, FieldType } from "@/writerTypes";
-import WorkflowsNodeBox from "./WorkflowsNodeBox.vue";
-import WorkflowsNodeOuts from "./WorkflowsNodeOuts.vue";
-import WorkflowsArrow from "./WorkflowsArrow.vue";
-import { render } from "vue";
+import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
 
 const description =
-	"A container component representing a single page within the application.";
+	"A container component representing a single workflow within the application.";
 
 export default {
 	writer: {
@@ -52,11 +49,11 @@ export default {
 		category: "Root",
 		description,
 		allowedChildrenTypes: ["*"],
-		allowedParentTypes: ["workflowsroot"],
+		allowedParentTypes: ["workflows_root"],
 		fields: {
 			key: {
 				name: "Workflow key",
-				desc: "Unique identifier. It's needed to enable navigation to this Page.",
+				desc: "Unique identifier. It's needed to enable navigation to this Workflow.",
 				type: FieldType.IdKey,
 			},
 		},
@@ -96,7 +93,9 @@ const activeNodeOut: Ref<{
 function refreshArrows() {
 	const a = [];
 	const canvasCBR = rootEl.value?.getBoundingClientRect();
-	if (!canvasCBR) return;
+	if (!canvasCBR) {
+		return;
+	}
 	const nodes = wf.getComponents(workflowComponentId);
 
 	nodes
@@ -248,7 +247,6 @@ watch(children, async (postChildren, preChildren) => {
 	const preIds = preChildren.map((c) => c.id);
 	const postIds = postChildren.map((c) => c.id);
 	const removedIds = preIds.filter((cId) => !postIds.includes(cId));
-	console.log(preIds, postIds, removedIds);
 	removedIds.forEach((removedId) => {
 		postChildren.forEach((c) => {
 			if (!c.outs || c.outs.length == 0) return;

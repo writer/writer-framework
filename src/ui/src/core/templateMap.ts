@@ -127,9 +127,9 @@ const templateMap = {
 	avatar: CoreAvatar,
 	annotatedtext: CoreAnnotatedText,
 	jsonviewer: CoreJsonViewer,
-	workflowsroot: WorkflowsRoot,
-	workflow: WorkflowsWorkflow,
-	workflowsnode: WorkflowsNode,
+	workflows_root: WorkflowsRoot,
+	workflows_workflow: WorkflowsWorkflow,
+	workflows_node: WorkflowsNode,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};

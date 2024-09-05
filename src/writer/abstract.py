@@ -16,13 +16,13 @@ def register_abstract_template(type: str, abstract_template: AbstractTemplate):
     templates[type] = abstract_template
 
 
-register_abstract_template("wfssetstate", {
-    "baseType": "workflowsnode",
+register_abstract_template("workflows_setstate", {
+    "baseType": "workflows_node",
     "writer": {
         "name": "Set state",
         "description": "Set the value for a state element",
         "category": "Content",
-        "allowedParentTypes": ["workflow"],
+        "allowedParentTypes": ["workflows_workflow"],
         "fields": {
             "element": {
                 "name": "State element",

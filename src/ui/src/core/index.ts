@@ -558,14 +558,6 @@ export function generateCore() {
 		setActivePageId(matches[0].id);
 	}
 
-	function getPageKeys() {
-		const pages = getComponents("root");
-		const pageKeys = pages
-			.map((page) => page.content["key"])
-			.filter((pageKey) => !!pageKey);
-		return pageKeys;
-	}
-
 	function setActivePageId(componentId: Component["id"]) {
 		activePageId.value = componentId;
 	}
@@ -601,7 +593,6 @@ export function generateCore() {
 		getComponents,
 		setActivePageId,
 		getActivePageId,
-		getPageKeys,
 		setActivePageFromKey,
 		getComponentDefinition,
 		getSupportedComponentTypes,
