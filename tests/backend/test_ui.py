@@ -2,8 +2,7 @@ import contextlib
 import json
 
 import writer as wf
-from writer import audit_and_fix, core
-from writer.core import wf_project_read_files
+from writer import audit_and_fix, core, wf_project
 from writer.core_ui import (
     Component,
     UIError,
@@ -17,7 +16,7 @@ from writer.ui import WriterUIManager
 from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
 
-_, sc = wf_project_read_files(test_app_dir)
+_, sc = wf_project.read_files(test_app_dir)
 sc = audit_and_fix.fix_components(sc)
 
 @contextlib.contextmanager

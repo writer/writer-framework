@@ -18,16 +18,8 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix
-from writer.core import (
-    EventHandlerRegistry,
-    MiddlewareRegistry,
-    WriterSession,
-    use_request_context,
-    wf_project_migrate_obsolete_ui_json,
-    wf_project_read_files,
-    wf_project_write_files,
-)
+from writer import VERSION, audit_and_fix, wf_project
+from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -678,25 +670,27 @@ class AppRunner:
         return response
 
     def _load_persisted_script(self) -> str:
+        logger = logging.getLogger('writer')
         try:
             contents = None
             with open(os.path.join(self.app_path, "main.py"), "r", encoding='utf-8') as f:
                 contents = f.read()
             return contents
         except FileNotFoundError:
-            logging.error(
+            logger.error(
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
             sys.exit(1)
 
     def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
+        logger = logging.getLogger('writer')
         if os.path.isfile(os.path.join(self.app_path, "ui.json")):
-            wf_project_migrate_obsolete_ui_json(self.app_path)
+            wf_project.migrate_obsolete_ui_json(self.app_path)
 
         if not os.path.isdir(os.path.join(self.app_path, ".wf")):
-            logging.error("Couldn't find .wf in the path provided: %s.", self.app_path)
+            logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)
             sys.exit(1)
 
-        _, components = wf_project_read_files(self.app_path)
+        _, components = wf_project.read_files(self.app_path)
         components = audit_and_fix.fix_components(components)
         return components
 
@@ -720,7 +714,7 @@ class AppRunner:
                 "Cannot update components in non-update mode.")
         self.bmc_components = payload.components
 
-        wf_project_write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
+        wf_project.write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
 
         return await self.dispatch_message(session_id, ComponentUpdateRequest(
             type="componentUpdate",
