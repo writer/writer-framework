@@ -5,7 +5,8 @@ import alfred
 
 @alfred.command("npm.lint", help="lint check npm packages")
 def npm_lint():
-    alfred.run("npm run ui:lint:ci")
+    alfred.run("npm run ui:lint.ci")
+    alfred.run("npm run ui:custom.check")
 
 @alfred.command("npm.e2e", help="run e2e tests")
 @alfred.option('--browser', '-b', help="run e2e tests on specified browser", default='chromium')

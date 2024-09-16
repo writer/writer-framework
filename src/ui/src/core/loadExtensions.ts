@@ -32,6 +32,21 @@ async function importCustomComponentTemplate(path: string) {
 	);
 }
 
+/**
+ * 	Checks that the key contains only alphanumeric characters and underscores without capital letters
+ * 	The clipboard api use in drag and drop doesn't handle uppercase.
+ *
+ * 	mycomponent : valid
+ * 	myComponent : invalid
+ * 	myCOMPONENT : invalid
+ *
+ * 	@see https://github.com/writer/writer-framework/issues/517
+ */
+export function checkComponentKey(key: string): boolean {
+	const isValidKey = /^[a-z0-9_]+$/.test(key);
+	return isValidKey;
+}
+
 function loadStylesheet(path: string) {
 	const el: HTMLLinkElement = document.createElement("link");
 	el.rel = "stylesheet";
@@ -48,17 +63,4 @@ function getRelativeExtensionsPath() {
 	return `${pathname}extensions/`;
 }
 
-/**
- * 	Checks that the key contains only alphanumeric characters and underscores without capital letters
- * 	The clipboard api use in drag and drop doesn't handle uppercase.
- *
- * 	mycomponent : valid
- * 	myComponent : invalid
- * 	myCOMPONENT : invalid
- *
- * 	@see https://github.com/writer/writer-framework/issues/517
- */
-function checkComponentKey(key: string): boolean {
-	const isValidKey = /^[a-z0-9_]+$/.test(key);
-	return isValidKey;
-}
+

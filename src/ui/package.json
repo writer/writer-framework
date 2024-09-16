@@ -7,10 +7,11 @@
 		"build": "vite build",
 		"preview": "vite preview --port 5050",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../../.gitignore --ignore-path .gitignore",
-		"lint:ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"lint.ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"codegen": "node tools/generator.mjs",
 		"custom.dev": "vite --config vite.config.custom.ts",
 		"custom.build": "vite build --config vite.config.custom.ts",
+		"custom.check": "node tools/custom_check.mjs",
 		"storybook": "storybook dev -p 6006",
 		"storybook.build": "storybook build"
 	},
