@@ -1,4 +1,6 @@
 import importlib.metadata
+import logging
+import textwrap
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
@@ -20,7 +22,26 @@ from writer.core import (
 from writer.core import (
     writerproperty as property,
 )
-from writer.ui import WriterUIManager
+
+try:
+    from writer.ui import WriterUIManager
+    PROPER_UI_INIT = True
+except ModuleNotFoundError:
+    logging.error(
+            textwrap.dedent(
+                """\
+                \x1b[31;20mError: Failed to import `writer.ui` module.
+                This indicates that the Writer Framework was not built properly.
+                Please refer to CONTRIBUTING.md for instructions to resolve this issue.\x1b[0m"""
+            )
+        )
+    PROPER_UI_INIT = False
+
+def _raise_ui_runtime_error():
+    raise RuntimeError(
+            "UI module is unavailable – Writer Framework is not properly built. " +
+            "Please refer to CONTRIBUTING.md for instructions to resolve this issue."
+        )
 
 VERSION = importlib.metadata.version("writer")
 
@@ -72,7 +93,10 @@ def init_ui() -> WriterUIManager:
     >>>     with ui.Page({"key": "hello"}):
     >>>         ui.Text({"text": "Hello pigeons"})
     """
-    return WriterUIManager()
+    if PROPER_UI_INIT:
+        return WriterUIManager()
+    else:
+        _raise_ui_runtime_error()
 
 
 def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, WriterState]:
