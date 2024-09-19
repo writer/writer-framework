@@ -1,5 +1,5 @@
 <template>
-	<g @click="handleClick">
+	<g tabindex="0" @click="handleClick">
 		<path :d="pathD" :style="{ stroke: props.arrow.color }"></path>
 		<path
 			:d="pathD"
