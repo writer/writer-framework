@@ -103,16 +103,6 @@ function handleOutClick(ev: DragEvent, outId: string) {
 	font-size: 16px;
 }
 
-.WorkflowsNodeBox.writer .title {
-	color: #4f4f4f;
-	background: linear-gradient(264deg, #f6effd 0.71%, #e4e9ff 100%);
-}
-
-.WorkflowsNodeBox.tool .title {
-	background: #4f4f4f;
-	color: #ffffff;
-}
-
 .main {
 	font-size: 14px;
 	padding: 12px 16px 12px 16px;
