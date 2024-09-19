@@ -2529,8 +2529,12 @@ def _event_handler_session_info() -> Dict[str, Any]:
     return session_info
 
 def _event_handler_ui_manager():
-    from writer.ui import WriterUIManager
-    return WriterUIManager()
+    from writer import PROPER_UI_INIT, _get_ui_runtime_error_message
+    if PROPER_UI_INIT:
+        from writer.ui import WriterUIManager
+        return WriterUIManager()
+    else:
+        raise RuntimeError(_get_ui_runtime_error_message())
 
 
 def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
