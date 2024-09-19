@@ -779,7 +779,7 @@ class State(metaclass=StateMeta):
                            path: Union[str, List[str]],
                            handler: Callable[..., Union[None, Awaitable[None]]],
                            initial_triggered: bool = False) -> None:
-        """
+        r"""
         Automatically triggers a handler when a mutation occurs in the state.
 
         >>> def _increment_counter(state):
@@ -2369,7 +2369,7 @@ def _clone_mutation_subscriptions(session_state: State, app_state: State, root_s
 
 
 def parse_state_variable_expression(p: str):
-    """
+    r"""
     Parses a state variable expression into a list of parts.
 
     >>> parse_state_variable_expression("a.b.c")
