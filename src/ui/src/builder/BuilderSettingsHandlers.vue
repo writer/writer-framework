@@ -190,7 +190,7 @@ const pageKeys = computed(() => {
 	const pages = wf.getComponents("root");
 	const pageKeys = pages
 		.map((page) => page.content["key"])
-		.filter((pageKey) => !!pageKey);
+		.filter((pageKey) => Boolean(pageKey));
 	return pageKeys;
 });
 
