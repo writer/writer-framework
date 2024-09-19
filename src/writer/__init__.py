@@ -37,11 +37,9 @@ except ModuleNotFoundError:
         )
     PROPER_UI_INIT = False
 
-def _raise_ui_runtime_error():
-    raise RuntimeError(
-            "UI module is unavailable – Writer Framework is not properly built. " +
+def _get_ui_runtime_error_message() -> str:
+    return "UI module is unavailable – Writer Framework is not properly built. " + \
             "Please refer to CONTRIBUTING.md for instructions to resolve this issue."
-        )
 
 VERSION = importlib.metadata.version("writer")
 
@@ -96,7 +94,7 @@ def init_ui() -> WriterUIManager:
     if PROPER_UI_INIT:
         return WriterUIManager()
     else:
-        _raise_ui_runtime_error()
+        raise RuntimeError(_get_ui_runtime_error_message())
 
 
 def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, WriterState]:
