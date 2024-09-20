@@ -119,7 +119,9 @@ watch(displayedPageId, (newPageId) => {
 	}
 	nextTick().then(() => {
 		window.scrollTo(0, 0);
-		document.querySelector(".ComponentRenderer")?.parentElement?.scrollTo(0, 0);
+		document
+			.querySelector(".ComponentRenderer")
+			?.parentElement?.scrollTo(0, 0);
 	});
 	changePageInHash(pageKey);
 });
