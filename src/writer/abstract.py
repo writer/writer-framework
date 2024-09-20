@@ -47,3 +47,42 @@ register_abstract_template("workflows_setstate", {
         },
     }
 })
+
+register_abstract_template("workflows_writercompletion", {
+    "baseType": "workflows_node",
+    "writer": {
+        "name": "Writer Completion",
+        "description": "Set the value for a state element",
+        "category": "Content",
+        "allowedParentTypes": ["workflows_workflow"],
+        "fields": {
+            "element": {
+                "name": "State element",
+                "type": "Text",
+            },
+            "value": {
+                "name": "Value",
+                "type": "Text",
+            },
+            "tools": {
+                "name": "Tools",
+                "type": "Object"
+            }
+        },
+        "outs": {
+            "$": {
+                "field": "tools"
+            },
+            "success": {
+                "name": "Success",
+                "description": "If the function doesn't raise an Exception.",
+                "style": "success",
+            },
+            "error": {
+                "name": "Error",
+                "description": "If the function raises an Exception.",
+                "style": "error",
+            },
+        },
+    }
+})
