@@ -12,7 +12,7 @@
 			<div></div>
 		</div>
 		<div class="outputs">
-			<div v-for="(out, outId) in def.outs" :key="outId" class="output">
+			<div v-for="(out, outId) in outs" :key="outId" class="output">
 				{{ out.name }}
 				<div
 					class="ball"
@@ -55,10 +55,31 @@ import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
+const fields = inject(injectionKeys.evaluatedFields);
 
 const def = computed(() => {
 	const component = wf.getComponentById(componentId);
 	return wf?.getComponentDefinition(component.type);
+});
+
+const outs = computed(() => {
+	const processedOuts = {};
+	Object.entries(def.value.outs).forEach(([outId, out]) => {
+		if (outId !== "$") {
+			processedOuts[outId] = out;
+			return;
+		}
+		const dynamicField = out.field;
+		const dynamicKeys = Object.keys(fields[dynamicField].value ?? {});
+		dynamicKeys.forEach((key) => {
+			processedOuts[key] = {
+				name: key,
+				description: "Dynamically created",
+				style: "success",
+			};
+		});
+	});
+	return processedOuts;
 });
 
 const emit = defineEmits(["outSelect"]);
