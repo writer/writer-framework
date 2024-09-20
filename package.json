@@ -29,8 +29,9 @@
 		"ui:build": "npm run -w writer-ui build",
 		"ui:preview": "npm run -w writer-ui preview",
 		"ui:custom.build": "npm run -w writer-ui custom.build",
+		"ui:custom.check": "npm run -w writer-ui custom.check",
 		"ui:lint": "npm run -w writer-ui lint",
-		"ui:lint:ci": "npm run -w writer-ui lint:ci",
+		"ui:lint.ci": "npm run -w writer-ui lint.ci",
 
 		"docs:codegen": "npm run -w writer-docs codegen",
 		"docs:preview": "npm run -w writer-docs preview",
