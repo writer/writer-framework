@@ -1,6 +1,6 @@
 import os
 
-from writer import wf_project
+from writer import audit_and_fix, wf_project
 
 import alfred
 
@@ -40,5 +40,6 @@ def apps_update(app: str = None):
             print("The app is already up to date")
         else:
             metadata['writer_version'] = writer.VERSION
+            components = audit_and_fix.fix_components(components)
             wf_project.write_files(abs_path, metadata, components)
             print(f"{app} : app is up to date")

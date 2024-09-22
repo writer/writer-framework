@@ -205,3 +205,7 @@ class ComponentDefinition(TypedDict):
     handlers: Optional[Dict[str, str]]
     visible: Optional[Union[bool, str]]
     binding: Optional[Dict]
+    outs: Optional[Dict[str, str]]
+    x: Optional[int]
+    y: Optional[int]
+

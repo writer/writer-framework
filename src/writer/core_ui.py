@@ -386,11 +386,11 @@ def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[st
     component_tree.ingest(components, tree=Branch.bmc)
 
 
-def lookup_page_for_component(components: Dict[str, ComponentDefinition], component_id: str) -> Optional[str]:
+def lookup_parent_type_for_component(components: Dict[str, ComponentDefinition], component_id: str, parent_type: str) -> Optional[str]:
     """
-    Retrieves the page of a component
+    Retrieves the first parent of type {parent_type} for a component.
 
-    >>> lookup_page_for_component(components, "6a490318-239e-4fe9-a56b-f0f33d628c87")
+    >>> lookup_parent_type_for_component(components, "6a490318-239e-4fe9-a56b-f0f33d628c87", "page")
     """
     component: Optional[ComponentDefinition] = components.get(component_id, None)
     if component is None:
@@ -400,14 +400,14 @@ def lookup_page_for_component(components: Dict[str, ComponentDefinition], compon
     if parent_id is None:
         return None
 
-    if component['type'] == "page":
+    if component['type'] == parent_type:
         return component['id']
 
     if parent_id in components:
-        if components[parent_id]['type'] == "page":
+        if components[parent_id]['type'] == parent_type:
             return parent_id
         else:
-            return lookup_page_for_component(components, parent_id)
+            return lookup_parent_type_for_component(components, parent_id, parent_type)
 
     return None
 
