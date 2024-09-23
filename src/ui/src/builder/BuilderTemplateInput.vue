@@ -114,7 +114,9 @@ const handleComplete = (selectedText) => {
 	const full = getPath(text);
 	if (full === null) return;
 	const keyword = full.at(-1);
-	const replaced = text.replace(new RegExp(keyword + "$"), selectedText);
+	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
+	const replaced = text.replace(new RegExp(regexKeyword), selectedText);
+
 	newValue = replaced + newValue.slice(selectionEnd);
 	emit("input", { target: { value: newValue } });
 	emit("update:value", newValue);
@@ -144,6 +146,13 @@ const getPath = (text) => {
 	return raw.split(".");
 };
 
+/**
+ * Escape a key to support the "." and "\" in a state variable
+ */
+const escapeVariable = (key) => {
+	return key.replace("\\", "\\\\").replace(".", "\\.");
+};
+
 const handleInput = (ev) => {
 	emit("input", ev);
 	emit("update:value", ev.target.value);
@@ -168,7 +177,7 @@ const showAutocomplete = () => {
 
 	const allOptions = Object.entries(_get(ss.getUserState(), path) ?? {}).map(
 		([key, val]) => ({
-			text: key,
+			text: escapeVariable(key),
 			type: typeToString(val),
 		}),
 	);
@@ -196,8 +205,9 @@ function closeAutocompletion() {
 	closeAutocompletionJob = setTimeout(() => {
 		autocompleteOptions.value = [];
 		closeAutocompletionJob = null;
-	}, 100);
+	}, 300);
 }
+
 function abortClosingAutocompletion() {
 	if (!closeAutocompletionJob) return;
 	clearTimeout(closeAutocompletionJob);
