@@ -15,7 +15,6 @@ import re
 import secrets
 import time
 import traceback
-import types
 import urllib.request
 from abc import ABCMeta
 from contextvars import ContextVar
@@ -2555,6 +2554,7 @@ def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -
             final_record[key] = value
 
     return final_record, tuple(final_index)
+
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()
