@@ -19,7 +19,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Root (Workflows)",
+		name: "Workflows Root",
 		category: "Root",
 		description,
 		allowedChildrenTypes: ["workflows_workflow"],
