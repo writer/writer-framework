@@ -16,9 +16,9 @@ def register_abstract_template(type: str, abstract_template: AbstractTemplate):
     templates[type] = abstract_template
 
 
-register_abstract_template("workflows_setstate", {
-    "baseType": "workflows_node",
-    "writer": {
+register_abstract_template("workflows_setstate", AbstractTemplate(
+    baseType="workflows_node",
+    writer={
         "name": "Set state",
         "description": "Set the value for a state element",
         "category": "Content",
@@ -46,11 +46,11 @@ register_abstract_template("workflows_setstate", {
             },
         },
     }
-})
+))
 
-register_abstract_template("workflows_writercompletion", {
-    "baseType": "workflows_node",
-    "writer": {
+register_abstract_template("workflows_writercompletion", AbstractTemplate(
+    baseType="workflows_node",
+    writer={
         "name": "Writer Completion",
         "description": "Set the value for a state element",
         "category": "Content",
@@ -81,11 +81,11 @@ register_abstract_template("workflows_writercompletion", {
             },
         },
     }
-})
+))
 
-register_abstract_template("workflows_writerclassification", {
-    "baseType": "workflows_node",
-    "writer": {
+register_abstract_template("workflows_writerclassification", AbstractTemplate(
+    baseType="workflows_node",
+    writer={
         "name": "Writer Classification",
         "description": "Classify a text.",
         "category": "Content",
@@ -116,4 +116,4 @@ register_abstract_template("workflows_writerclassification", {
             },
         },
     }
-})
+))

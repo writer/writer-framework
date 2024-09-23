@@ -1431,7 +1431,7 @@ class Evaluator:
                 print(f"Obtained full match for {field_key}")
                 replaced = replacer(full_match)
 
-            if as_json:
+            if (replaced is not None) and as_json:
                 return json.loads(replaced)
             else:
                 print(f"Returning {field_key} as {type(replaced)}")
