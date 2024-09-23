@@ -186,7 +186,13 @@ const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	});
 
 const userFunctions = computed(() => wf.getUserFunctions());
-const pageKeys = computed(() => wf.getPageKeys());
+const pageKeys = computed(() => {
+	const pages = wf.getComponents("root");
+	const pageKeys = pages
+		.map((page) => page.content["key"])
+		.filter((pageKey) => Boolean(pageKey));
+	return pageKeys;
+});
 
 const isHandlerInvalid = (eventType: string) => {
 	const handlerFunctionName = component.value.handlers?.[eventType];

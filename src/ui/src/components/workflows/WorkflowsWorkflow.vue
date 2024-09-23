@@ -1,0 +1,285 @@
+<template>
+	<div
+		ref="rootEl"
+		class="WorkflowsWorkflow"
+		@dragover="handleDragover"
+		@drop="handleDrop"
+		@drag="handleDrag"
+		@dragstart="handleDragstart"
+	>
+		<svg width="100%" height="100%">
+			<WorkflowArrow
+				v-for="(arrow, arrowId) in arrows"
+				:key="arrowId"
+				:arrow="arrow"
+				@click="handleArrowClick"
+			></WorkflowArrow>
+		</svg>
+		<template v-for="component in children" :key="component.id">
+			<component
+				:is="renderProxiedComponent(component.id)"
+				:data-writer-unselectable="isUnselectable"
+				:style="{
+					top: `${component.y - renderOffset.y}px`,
+					left: `${component.x - renderOffset.x}px`,
+				}"
+				@drag="(ev: DragEvent) => handleNodeDrag(ev, component.id)"
+				@dragstart="(ev: DragEvent) => handleNodeDragStart(ev)"
+				@dragend="handleNodeDragend"
+				@click="(ev: MouseEvent) => handleNodeClick(ev, component.id)"
+				@out-select="
+					(outId: string) => handleNodeOutSelect(component.id, outId)
+				"
+			></component>
+		</template>
+	</div>
+</template>
+
+<script lang="ts">
+import { type Component, FieldType } from "@/writerTypes";
+import WorkflowArrow from "./base/WorkflowArrow.vue";
+import { watch } from "vue";
+
+const description =
+	"A container component representing a single workflow within the application.";
+
+export default {
+	writer: {
+		name: "Workflow",
+		toolkit: "workflows",
+		category: "Root",
+		description,
+		allowedChildrenTypes: ["*"],
+		allowedParentTypes: ["workflows_root"],
+		fields: {
+			key: {
+				name: "Workflow key",
+				desc: "Unique identifier. It's needed to enable navigation to this Workflow.",
+				type: FieldType.IdKey,
+			},
+		},
+		previewField: "key",
+	},
+};
+</script>
+<script setup lang="ts">
+import { Ref, computed, inject, onMounted, ref } from "vue";
+import { useComponentActions } from "@/builder/useComponentActions";
+import { useDragDropComponent } from "@/builder/useDragDropComponent";
+import injectionKeys from "@/injectionKeys";
+const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
+
+const rootEl: Ref<HTMLElement | null> = ref(null);
+const fields = inject(injectionKeys.evaluatedFields);
+const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
+const arrows = ref([]);
+const renderOffset = ref({ x: 0, y: 0 });
+let clickOffset = { x: 0, y: 0 };
+
+const workflowComponentId = inject(injectionKeys.componentId);
+
+const children = computed(() =>
+	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
+);
+
+const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+const { getComponentInfoFromDrag } = useDragDropComponent(wf);
+
+const activeNodeOut: Ref<{
+	fromComponentId: string;
+	outId: string;
+} | null> = ref(null);
+
+function refreshArrows() {
+	const a = [];
+	const canvasCBR = rootEl.value?.getBoundingClientRect();
+	if (!canvasCBR) {
+		return;
+	}
+	const nodes = wf.getComponents(workflowComponentId);
+
+	nodes
+		.filter((node) => node.outs?.length > 0)
+		.forEach((node) => {
+			const fromNodeId = node.id;
+			node.outs.forEach((out) => {
+				const fromEl = document.querySelector(
+					`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${out.outId}"]`,
+				);
+				const toEl = document.querySelector(
+					`[data-writer-id="${out.toNodeId}"]`,
+				);
+				if (!fromEl || !toEl) return;
+				const fromCBR = fromEl.getBoundingClientRect();
+				const toCBR = toEl.getBoundingClientRect();
+				a.push({
+					x1: fromCBR.x - canvasCBR.x + fromCBR.width / 2,
+					y1: fromCBR.y - canvasCBR.y + fromCBR.height / 2,
+					x2: toCBR.x - canvasCBR.x,
+					y2: toCBR.y - canvasCBR.y + toCBR.height / 2,
+					color: getComputedStyle(fromEl).backgroundColor,
+				});
+			});
+		});
+	arrows.value = a;
+}
+
+const isUnselectable = computed(() => {
+	if (activeNodeOut.value === null) return null;
+	return true;
+});
+
+function handleNodeOutSelect(componentId: Component["id"], outId: string) {
+	activeNodeOut.value = {
+		fromComponentId: componentId,
+		outId,
+	};
+}
+
+function getEmptyDragImage() {
+	var img = new Image();
+	img.src =
+		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
+	return img;
+}
+
+function handleDragstart(ev: DragEvent) {
+	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
+	clickOffset = getAdjustedCoordinates(ev);
+}
+
+function handleDrag(ev: DragEvent) {
+	ev.preventDefault();
+	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
+	renderOffset.value.x = Math.max(
+		0,
+		renderOffset.value.x - (x - clickOffset.x),
+	);
+	renderOffset.value.y = Math.max(
+		0,
+		renderOffset.value.y - (y - clickOffset.y),
+	);
+	refreshArrows();
+}
+
+function handleDragover(ev: DragEvent) {
+	ev.preventDefault();
+	ev.stopPropagation();
+}
+
+function getAdjustedCoordinates(ev: DragEvent) {
+	const canvasCBR = rootEl.value.getBoundingClientRect();
+	const x = ev.pageX - canvasCBR.x + renderOffset.value.x;
+	const y = ev.pageY - canvasCBR.y + renderOffset.value.y;
+	return { x, y };
+}
+
+function handleDrop(ev: DragEvent) {
+	ev.preventDefault();
+	ev.stopPropagation();
+	const dropInfo = getComponentInfoFromDrag(ev);
+
+	if (!dropInfo) return;
+	const { draggedType, draggedId } = dropInfo;
+	if (draggedId) return;
+
+	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
+
+	createNode(draggedType, x, y);
+}
+
+function handleArrowClick() {}
+
+function handleNodeDragStart(ev: DragEvent) {
+	ev.stopPropagation();
+	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
+	clickOffset = {
+		x: ev.offsetX,
+		y: ev.offsetY,
+	};
+}
+
+function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
+	ev.preventDefault();
+	ev.stopPropagation();
+	const { x, y } = getAdjustedCoordinates(ev);
+	if (x < 0 || y < 0) return;
+
+	const component = wf.getComponentById(componentId);
+	component.x = x - clickOffset.x;
+	component.y = y - clickOffset.y;
+	refreshArrows();
+}
+
+function handleNodeDragend(ev: DragEvent) {
+	ev.preventDefault();
+}
+
+function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
+	if (!activeNodeOut.value) return;
+	if (activeNodeOut.value.fromComponentId == componentId) return;
+
+	const component = wf.getComponentById(activeNodeOut.value.fromComponentId);
+
+	component.outs = [
+		...(component.outs ?? []),
+		{
+			toNodeId: componentId,
+			outId: activeNodeOut.value.outId,
+		},
+	];
+
+	activeNodeOut.value = null;
+	refreshArrows();
+}
+
+function createNode(type: string, x: number, y: number) {
+	const componentId = createAndInsertComponent(type, workflowComponentId);
+	const component = wf.getComponentById(componentId);
+	component.x = x;
+	component.y = y;
+}
+
+watch(children, async (postChildren, preChildren) => {
+	// Remove references when a node is deleted
+
+	const preIds = preChildren.map((c) => c.id);
+	const postIds = postChildren.map((c) => c.id);
+	const removedIds = preIds.filter((cId) => !postIds.includes(cId));
+	removedIds.forEach((removedId) => {
+		postChildren.forEach((c) => {
+			if (!c.outs || c.outs.length == 0) return;
+			c.outs = c.outs.filter((out) => out.toNodeId !== removedId);
+		});
+	});
+	refreshArrows();
+	await wf.sendComponentUpdate();
+});
+
+onMounted(() => {
+	refreshArrows();
+});
+</script>
+
+<style scoped>
+@import "@/renderer/sharedStyles.css";
+
+.WorkflowsWorkflow {
+	display: flex;
+	width: 100%;
+	min-height: 100%;
+	background: var(--builderSubtleSeparatorColor);
+	flex: 1 0 auto;
+	flex-direction: row;
+	align-items: stretch;
+	position: relative;
+	overflow: hidden;
+}
+
+.component.WorkflowsWorkflow.selected {
+	background: var(--builderSubtleSeparatorColor);
+}
+</style>

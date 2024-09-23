@@ -142,7 +142,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			parentId,
 			content: initContent,
 			handlers: {},
-			position: position ?? getNextInsertionPosition(parentId, type)
+			position: position ?? getNextInsertionPosition(parentId, type),
 		};
 
 		return component;
@@ -806,7 +806,8 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	): Component["id"] {
 		const component = wf.getComponentById(componentId);
 		if (!component || component.type == "root") return null;
-		if (component.type == "page") return componentId;
+		if (component.type == "page" || component.type == "workflows_workflow")
+			return componentId;
 		return getContainingPageId(component.parentId);
 	}
 

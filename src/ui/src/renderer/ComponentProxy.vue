@@ -51,12 +51,13 @@ export default {
 			() =>
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
-				component.value.type !== "root",
+				component.value.type !== "root" &&
+				component.value.type !== "workflows_root",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
-				? ["root"]
+				? ["root", "workflows_root"]
 				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};

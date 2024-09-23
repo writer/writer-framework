@@ -9,10 +9,12 @@
 		<div class="loadingBar"></div>
 		<div class="rootComponentArea">
 			<ComponentProxy
-				v-if="rootComponent"
-				:component-id="rootComponent.id"
-				:instance-path="rootInstancePath"
-				:instance-data="rootInstanceData"
+				:key="activeRootId"
+				:component-id="activeRootId"
+				:instance-path="[
+					{ componentId: activeRootId, instanceNumber: 0 },
+				]"
+				:instance-data="[ref(null)]"
 			></ComponentProxy>
 			<slot></slot>
 		</div>
@@ -20,35 +22,38 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch } from "vue";
-import { Component, InstancePath } from "@/writerTypes";
+import { inject, ref, computed, watch, ComputedRef, onBeforeMount } from "vue";
+import { Component } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
 import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "./useEvaluator";
+import { changePageInHash, changeRouteVarsInHash } from "@/core/navigation";
 
 const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 const templateEvaluator = useEvaluator(wf);
-const rootComponent: Component = wf.getComponentById("root");
+const importedModulesSpecifiers: Record<string, string> = {};
 
-if (!rootComponent) {
-	// eslint-disable-next-line no-console
-	console.error("No root component found.");
-}
+const activeRootId: ComputedRef<Component["id"]> = computed(() => {
+	if (!wfbm) return "root";
+	if (wfbm.getMode() == "workflows") return "workflows_root";
+	return "root";
+});
 
-const rootInstancePath: InstancePath = [
+const coreRootFields = templateEvaluator.getEvaluatedFields([
 	{ componentId: "root", instanceNumber: 0 },
-];
-const rootInstanceData = [ref(null)];
-const rootFields = templateEvaluator.getEvaluatedFields(rootInstancePath);
+]);
+
 const rootStyle = computed(() => {
 	return {
-		"--accentColor": rootFields.accentColor?.value,
-		"--emptinessColor": rootFields.emptinessColor?.value,
-		"--containerBackgroundColor": rootFields.parentIdBackgroundColor?.value,
-		"--primaryTextColor": rootFields.primaryTextColor?.value,
-		"--secondaryTextColor": rootFields.secondaryTextColor?.value,
-		"--separatorColor": rootFields.separatorColor?.value,
+		"--accentColor": coreRootFields.accentColor?.value,
+		"--emptinessColor": coreRootFields.emptinessColor?.value,
+		"--containerBackgroundColor":
+			coreRootFields.parentIdBackgroundColor?.value,
+		"--primaryTextColor": coreRootFields.primaryTextColor?.value,
+		"--secondaryTextColor": coreRootFields.secondaryTextColor?.value,
+		"--separatorColor": coreRootFields.separatorColor?.value,
 	};
 });
 
@@ -58,7 +63,7 @@ const isMessagePending = computed(() => {
 });
 
 watch(
-	() => rootFields.appName?.value,
+	() => coreRootFields.appName?.value,
 	(appName: string) => {
 		updateTitle(appName);
 	},
@@ -79,6 +84,128 @@ function updateTitle(appName: string) {
 	}
 	document.title = title;
 }
+
+async function importStylesheet(stylesheetKey: string, path: string) {
+	const existingEl = document.querySelector(
+		`[data-writer-stylesheet-key="${stylesheetKey}"]`,
+	);
+	existingEl?.remove();
+	const el = document.createElement("link");
+	el.dataset.writerStylesheetKey = stylesheetKey;
+	el.setAttribute("href", path);
+	el.setAttribute("rel", "stylesheet");
+	document.head.appendChild(el);
+}
+
+async function importScript(scriptKey: string, path: string) {
+	const existingEl = document.querySelector(
+		`[data-writer-script-key="${scriptKey}"]`,
+	);
+	existingEl?.remove();
+	const el = document.createElement("script");
+	el.dataset.writerScriptKey = scriptKey;
+	el.src = path;
+	el.setAttribute("rel", "modulepreload");
+	document.head.appendChild(el);
+}
+
+async function importModule(moduleKey: string, specifier: string) {
+	importedModulesSpecifiers[moduleKey] = specifier;
+	await import(/* @vite-ignore */ specifier);
+}
+
+async function handleFunctionCall(
+	moduleKey: string,
+	functionName: string,
+	args: any[],
+) {
+	const specifier = importedModulesSpecifiers[moduleKey];
+	const m = await import(/* @vite-ignore */ specifier);
+
+	if (!m) {
+		// eslint-disable-next-line no-console
+		console.warn(
+			`The module with key "${moduleKey}" cannot be found. Please check that it has been imported.`,
+		);
+		return;
+	}
+	m[functionName](...args);
+}
+
+type FileDownloadMailItemPayload = {
+	data: string;
+	fileName: string;
+};
+
+function addMailSubscriptions() {
+	wf.addMailSubscription(
+		"fileDownload",
+		(mailItem: FileDownloadMailItemPayload) => {
+			const el = document.createElement("a");
+			el.href = mailItem.data;
+			el.download = mailItem.fileName;
+			el.click();
+		},
+	);
+	wf.addMailSubscription("openUrl", (url: string) => {
+		const el = document.createElement("a");
+		el.href = url;
+		el.target = "_blank";
+		el.rel = "noopener noreferrer";
+		el.click();
+	});
+	wf.addMailSubscription("pageChange", (pageKey: string) => {
+		changePageInHash(pageKey);
+	});
+	wf.addMailSubscription(
+		"routeVarsChange",
+		(routeVars: Record<string, string>) => {
+			changeRouteVarsInHash(routeVars);
+		},
+	);
+	wf.addMailSubscription(
+		"importStylesheet",
+		({ stylesheetKey, path }: { stylesheetKey: string; path: string }) => {
+			importStylesheet(stylesheetKey, path);
+		},
+	);
+	wf.addMailSubscription(
+		"importScript",
+		({ scriptKey, path }: { scriptKey: string; path: string }) => {
+			importScript(scriptKey, path);
+		},
+	);
+	wf.addMailSubscription(
+		"importModule",
+		({
+			moduleKey,
+			specifier,
+		}: {
+			moduleKey: string;
+			specifier: string;
+		}) => {
+			importModule(moduleKey, specifier);
+		},
+	);
+	wf.addMailSubscription(
+		"functionCall",
+		({
+			moduleKey,
+			functionName,
+			args,
+		}: {
+			moduleKey: string;
+			functionName: string;
+			args: any[];
+		}) => {
+			handleFunctionCall(moduleKey, functionName, args);
+		},
+	);
+}
+
+onBeforeMount(() => {
+	addMailSubscriptions();
+});
 </script>
 
 <style scoped>
