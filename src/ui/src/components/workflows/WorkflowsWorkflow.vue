@@ -137,11 +137,15 @@ function handleNodeOutSelect(componentId: Component["id"], outId: string) {
 	};
 }
 
-function handleDragstart(ev: DragEvent) {
+function getEmptyDragImage() {
 	var img = new Image();
 	img.src =
 		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
-	ev.dataTransfer.setDragImage(img, 0, 0);
+	return img;
+}
+
+function handleDragstart(ev: DragEvent) {
+	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
 	clickOffset = getAdjustedCoordinates(ev);
 }
 
@@ -191,10 +195,7 @@ function handleArrowClick() {}
 
 function handleNodeDragStart(ev: DragEvent) {
 	ev.stopPropagation();
-	var img = new Image();
-	img.src =
-		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
-	ev.dataTransfer.setDragImage(img, 0, 0);
+	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
 	clickOffset = {
 		x: ev.offsetX,
 		y: ev.offsetY,
