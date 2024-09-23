@@ -8,11 +8,15 @@
 			<i class="material-symbols-outlined">settings</i>
 			{{ def.name }}
 		</div>
-		<div class="main">
+		<div v-if="false" class="main">
 			<div></div>
 		</div>
 		<div class="outputs">
-			<div v-for="(out, outId) in outs" :key="outId" class="output">
+			<div
+				v-for="(out, outId) in { ...dynamicOuts, ...staticOuts }"
+				:key="outId"
+				class="output"
+			>
 				{{ out.name }}
 				<div
 					class="ball"
@@ -37,13 +41,7 @@ export default {
 		description: "A Workflows node.",
 		toolkit: "workflows",
 		category: "Other",
-		fields: {
-			text: {
-				name: "Text",
-				init: "Button Text",
-				type: FieldType.Text,
-			},
-		},
+		fields: {},
 		previewField: "text",
 	},
 };
@@ -62,20 +60,26 @@ const def = computed(() => {
 	return wf?.getComponentDefinition(component.type);
 });
 
-const outs = computed(() => {
+const staticOuts = computed(() => {
 	const processedOuts = {};
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
-		if (outId !== "$") {
-			processedOuts[outId] = out;
-			return;
-		}
+		if (outId === "$dynamic") return;
+		processedOuts[outId] = out;
+	});
+	return processedOuts;
+});
+
+const dynamicOuts = computed(() => {
+	const processedOuts = {};
+	Object.entries(def.value.outs).forEach(([outId, out]) => {
+		if (outId !== "$dynamic") return;
 		const dynamicField = out.field;
 		const dynamicKeys = Object.keys(fields[dynamicField].value ?? {});
 		dynamicKeys.forEach((key) => {
-			processedOuts[key] = {
+			processedOuts[`${outId}_${key}`] = {
 				name: key,
 				description: "Dynamically created",
-				style: "success",
+				style: "dynamic",
 			};
 		});
 	});
@@ -167,5 +171,9 @@ function handleOutClick(ev: DragEvent, outId: string) {
 
 .output .ball.error {
 	background: var(--builderErrorColor);
+}
+
+.output .ball.dynamic {
+	background: #a95ef8;
 }
 </style>

@@ -74,6 +74,10 @@ const pathD = computed(() => {
 .WorkflowsArrow {
 }
 
+g {
+	outline: none;
+}
+
 path {
 	fill: none;
 }

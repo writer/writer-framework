@@ -56,12 +56,8 @@ register_abstract_template("workflows_writercompletion", {
         "category": "Content",
         "allowedParentTypes": ["workflows_workflow"],
         "fields": {
-            "element": {
-                "name": "State element",
-                "type": "Text",
-            },
-            "value": {
-                "name": "Value",
+            "prompt": {
+                "name": "Prompt",
                 "type": "Text",
             },
             "tools": {
@@ -70,13 +66,48 @@ register_abstract_template("workflows_writercompletion", {
             }
         },
         "outs": {
-            "$": {
+            "$tools": {
                 "field": "tools"
             },
             "success": {
                 "name": "Success",
                 "description": "If the function doesn't raise an Exception.",
                 "style": "success",
+            },
+            "error": {
+                "name": "Error",
+                "description": "If the function raises an Exception.",
+                "style": "error",
+            },
+        },
+    }
+})
+
+register_abstract_template("workflows_writerclassification", {
+    "baseType": "workflows_node",
+    "writer": {
+        "name": "Writer Classification",
+        "description": "Classify a text.",
+        "category": "Content",
+        "allowedParentTypes": ["workflows_workflow"],
+        "fields": {
+            "text": {
+                "name": "Text",
+                "type": "Text",
+            },
+            "categories": {
+                "name": "Categories",
+                "type": "Key-Value"
+            },
+            "additionalContext": {
+                "name": "Additional context",
+                "type": "Text",
+                "control": "Textarea"
+            },
+        },
+        "outs": {
+            "$dynamic": {
+                "field": "categories"
             },
             "error": {
                 "name": "Error",

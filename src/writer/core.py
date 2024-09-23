@@ -1441,8 +1441,8 @@ class Evaluator:
             raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
 
 
-    def get_context_data(self, instance_path: InstancePath) -> Dict[str, Any]:
-        context: Dict[str, Any] = {}
+    def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
+        context: Dict[str, Any] = base_context
         for i in range(len(instance_path)):
             path_item = instance_path[i]
             component_id = path_item["componentId"]
