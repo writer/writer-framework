@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
+from writer.ss_types import ComponentDefinition
+
 current_parent_container: ContextVar[Union["Component", None]] = \
     ContextVar("current_parent_container")
 
@@ -385,6 +387,32 @@ def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[st
         "builder managed component tree are frozen and cannot be updated"
 
     component_tree.ingest(components, tree=Branch.bmc)
+
+
+def lookup_parent_type_for_component(components: Dict[str, ComponentDefinition], component_id: str, parent_type: str) -> Optional[str]:
+    """
+    Retrieves the first parent of type {parent_type} for a component.
+
+    >>> lookup_parent_type_for_component(components, "6a490318-239e-4fe9-a56b-f0f33d628c87", "page")
+    """
+    component: Optional[ComponentDefinition] = components.get(component_id, None)
+    if component is None:
+        return None
+
+    parent_id = component.get("parentId")
+    if parent_id is None:
+        return None
+
+    if component['type'] == parent_type:
+        return component['id']
+
+    if parent_id in components:
+        if components[parent_id]['type'] == parent_type:
+            return parent_id
+        else:
+            return lookup_parent_type_for_component(components, parent_id, parent_type)
+
+    return None
 
 
 def cmc_components_list(component_tree: ComponentTree) -> list:

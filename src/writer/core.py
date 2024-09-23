@@ -15,7 +15,6 @@ import re
 import secrets
 import time
 import traceback
-import types
 import urllib.request
 from abc import ABCMeta
 from contextvars import ContextVar
@@ -779,7 +778,7 @@ class State(metaclass=StateMeta):
                            path: Union[str, List[str]],
                            handler: Callable[..., Union[None, Awaitable[None]]],
                            initial_triggered: bool = False) -> None:
-        """
+        r"""
         Automatically triggers a handler when a mutation occurs in the state.
 
         >>> def _increment_counter(state):
@@ -2378,7 +2377,7 @@ def _clone_mutation_subscriptions(session_state: State, app_state: State, root_s
 
 
 def parse_state_variable_expression(p: str):
-    """
+    r"""
     Parses a state variable expression into a list of parts.
 
     >>> parse_state_variable_expression("a.b.c")
@@ -2538,8 +2537,12 @@ def _event_handler_session_info() -> Dict[str, Any]:
     return session_info
 
 def _event_handler_ui_manager():
-    from writer.ui import WriterUIManager
-    return WriterUIManager()
+    from writer import PROPER_UI_INIT, _get_ui_runtime_error_message
+    if PROPER_UI_INIT:
+        from writer.ui import WriterUIManager
+        return WriterUIManager()
+    else:
+        raise RuntimeError(_get_ui_runtime_error_message())
 
 
 def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
@@ -2560,6 +2563,7 @@ def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -
             final_record[key] = value
 
     return final_record, tuple(final_index)
+
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()

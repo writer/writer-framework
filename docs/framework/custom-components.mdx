@@ -7,10 +7,10 @@ It's possible to extend Framework with custom component templates.
 They're developed using Vue 3 and TypeScript. Once transpiled, they can be used by copying them to the `extensions/` folder of any project.
 
 <Note>
-	Custom components behave exactly like built-in ones. They are just as
-	performant, can contain other components, and offer the same the Builder
-	experience. They only differ from built-in components in the way that they're
-	bundled and imported.
+  Custom components behave exactly like built-in ones. They are just as
+  performant, can contain other components, and offer the same the Builder
+  experience. They only differ from built-in components in the way that they're
+  bundled and imported.
 </Note>
 
 ## Architecture
@@ -101,39 +101,41 @@ The code above will make Bubble Message available in the Builder.
 ### Run a local server
 
 <Steps>
-	<Step title="Clone the Framework Repository">
-		To get started, clone the [Framework
-		repository](https://github.com/writer/writer-framework) from GitHub.
-	</Step>
-	<Step title="Set Up the Development Environment">
-		To develop custom templates in a developer-friendly way, ensure you have a
-		front-end development server with instant reload capabilities. The front-end
-		code for Framework is located in the `ui` folder. With Node and npm
-		installed on your system, run `npm install` to install dependencies. Then,
-		start the server with support for custom component templates using `npm run
-		custom.dev`. ```sh cd ui npm install # "custom.dev" links templates in
-		"custom_components/" # "dev" runs the server without them npm run custom.dev
-		```
-	</Step>
-	<Step title="Start the Back-End Server">
-		The command `npm run custom.dev` starts a front-end server, which requires a
-		back-end to function fully. Start Framework via command line, specifying the
-		option `--port 5000`, to provide a back-end on that port. It's recommended
-		to create a new app for testing the template you're developing. ```sh writer
-		create customtester writer edit customtester --port 5000 ```
-	</Step>
-	<Step title="Access Framework and Test Custom Component">
-		You should now be able to access Framework via the URL provided by Vite,
-		e.g. `http://localhost:5174`. In the Builder's _Toolkit_, you should see the
-		sample component, _Balloon Message_. Add it to your tester application.
-	</Step>
+  <Step title="Clone the Framework Repository">
+    To get started, clone the [Framework
+    repository](https://github.com/writer/writer-framework) from GitHub.
+  </Step>
+  <Step title="Set Up the Development Environment">
+    To develop custom templates in a developer-friendly way, ensure you have a
+    front-end development server with instant reload capabilities. The front-end
+    code for Framework is located in the `ui` folder. With Node and npm
+    installed on your system, run `npm install` to install dependencies. Then,
+    start the server with support for custom component templates using `npm run
+    custom.dev`. 
+	
+	```sh cd ui npm install # "custom.dev" links templates in
+    "custom_components/" # "dev" runs the server without them npm run custom.dev
+    ```
+  </Step>
+  <Step title="Start the Back-End Server">
+    The command `npm run custom.dev` starts a front-end server, which requires a
+    back-end to function fully. Start Framework via command line, specifying the
+    option `--port 5000`, to provide a back-end on that port. It's recommended
+    to create a new app for testing the template you're developing. ```sh writer
+    create customtester writer edit customtester --port 5000 ```
+  </Step>
+  <Step title="Access Framework and Test Custom Component">
+    You should now be able to access Framework via the URL provided by Vite,
+    e.g. `http://localhost:5174`. In the Builder's _Toolkit_, you should see the
+    sample component, _Balloon Message_. Add it to your tester application.
+  </Step>
 </Steps>
 
 ### Create a new component
 
 <Tip>
-	You can also have a look at the built-in component templates, since their
-	syntax is equivalent. They can be found in the `ui/src/components/` folder.
+  You can also have a look at the built-in component templates, since their
+  syntax is equivalent. They can be found in the `ui/src/components/` folder.
 </Tip>
 Go to `ui/src/custom_components/` and open the Vue single-file components, i.e. the
 `.vue` files. These files contain comments that will help you get started. Try editing
@@ -154,8 +156,8 @@ import BubbleMessageAdvanced from "./BubbleMessageAdvanced.vue";
 // Export an object with the ids and the templates as default
 
 export default {
-	bubblemessage: BubbleMessage,
-	bubblemessageadvanced: BubbleMessageAdvanced,
+  bubblemessage: BubbleMessage,
+  bubblemessageadvanced: BubbleMessageAdvanced,
 };
 ```
 
@@ -163,13 +165,18 @@ A single or multiple templates can be specified. Take into account that they wil
 
 ## Bundling templates
 
-Execute `npm run custom.build`, this will generate the output `.js` and `.css` files into `ui/custom_components_dist`.
+Execute `npm run custom.build` into `src/ui`, this will generate the output `.js` and `.css` files into `./custom_components_dist`.
 
 ```sh
 # "build" builds the entire front-end
 # "custom.build" only builds the custom templates
 
+npm run custom.check # Optional: checks certain issues on custom components
 npm run custom.build
 ```
 
-Collect the files from `ui/custom_components_dist` and pack them in a folder such as `my_custom_bubbles`. The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Framework project. It'll be automatically detected during server startup.
+Collect the files from `./custom_components_dist` and pack them in a folder such as `my_custom_bubbles`. The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Framework project. It'll be automatically detected during server startup.
+
+<Tip>
+The `custom.check` command is optional, but it's recommended to run it before building the custom components. It checks for common issues in the custom components, such as invalid key declaration, ...
+</Tip>

@@ -28,3 +28,21 @@ export async function loadComponents() {
 
 	return data;
 }
+
+/**
+ * imports a vue-dependent module.
+ */
+export async function importVue(modulePath) {
+	const vite = await createServer({
+		includeWriterComponentPath: true,
+		server: {
+			middlewareMode: true,
+		},
+		appType: "custom",
+	});
+
+	const m = await vite.ssrLoadModule(path.join(__dirname, modulePath));
+	await vite.close();
+
+	return m;
+}

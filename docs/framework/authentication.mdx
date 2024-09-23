@@ -9,6 +9,10 @@ The Writer Framework authentication module allows you to restrict access to your
   trigger authentication for certain pages exclusively.
 </Warning>
 
+<Warning>
+  Static assets from Writer Framework exposed through `/static` and `/extensions` endpoints are not protected behind Authentication.
+</Warning>
+
 ## Use Basic Auth
 
 Basic Auth is a simple authentication method that uses a username and password. Authentication configuration is done in the [server_setup.py module](/framework/custom-server).
@@ -133,6 +137,21 @@ writer.serve.register_auth(oidc)
 ### Authentication workflow
 
 <img src="/framework/images/authentication_oidc.png" />
+
+### App static assets
+
+Static assets in your application are inaccessible. You can use the `app_static_public` parameter to allow their usage.
+When `app_static_public` is set to `True`, the static assets in your application are accessible without authentication.
+
+```python
+oidc = writer.auth.Auth0(
+	client_id="xxxxxxx",
+	client_secret="xxxxxxxxxxxxx",
+	domain="xxx-xxxxx.eu.auth0.com",
+	host_url=os.getenv('HOST_URL', "http://localhost:5000"),
+	app_static_public=True
+)
+```
 
 ## User information in event handler
 

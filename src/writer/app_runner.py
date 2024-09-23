@@ -18,7 +18,7 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix
+from writer import VERSION, audit_and_fix, wf_project
 from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
@@ -26,6 +26,7 @@ from writer.ss_types import (
     AppProcessServerRequestPacket,
     AppProcessServerResponse,
     AppProcessServerResponsePacket,
+    ComponentDefinition,
     ComponentUpdateRequest,
     ComponentUpdateRequestPayload,
     EventRequest,
@@ -669,32 +670,27 @@ class AppRunner:
         return response
 
     def _load_persisted_script(self) -> str:
+        logger = logging.getLogger('writer')
         try:
             contents = None
             with open(os.path.join(self.app_path, "main.py"), "r", encoding='utf-8') as f:
                 contents = f.read()
             return contents
         except FileNotFoundError:
-            logging.error(
+            logger.error(
                 "Couldn't find main.py in the path provided: %s.", self.app_path)
             sys.exit(1)
 
-    def _load_persisted_components(self) -> Dict:
-        file_payload: Dict = {}
-        try:
-            with open(os.path.join(self.app_path, "ui.json"), "r") as f:
-                parsed_file = json.load(f)
-                if not isinstance(parsed_file, dict):
-                    raise ValueError("No dictionary found in components file.")
-                file_payload = parsed_file
-        except FileNotFoundError:
-            logging.error(
-                "Couldn't find ui.json in the path provided: %s.", self.app_path)
+    def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
+        logger = logging.getLogger('writer')
+        if os.path.isfile(os.path.join(self.app_path, "ui.json")):
+            wf_project.migrate_obsolete_ui_json(self.app_path)
+
+        if not os.path.isdir(os.path.join(self.app_path, ".wf")):
+            logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)
             sys.exit(1)
-        components = file_payload.get("components")
-        if components is None:
-            raise ValueError("Components not found in file.")
-        
+
+        _, components = wf_project.read_files(self.app_path)
         components = audit_and_fix.fix_components(components)
         return components
 
@@ -717,14 +713,9 @@ class AppRunner:
             raise PermissionError(
                 "Cannot update components in non-update mode.")
         self.bmc_components = payload.components
-        file_contents = {
-            "metadata": {
-                "writer_version": VERSION
-            },
-            "components": payload.components
-        }
-        with open(os.path.join(self.app_path, "ui.json"), "w") as f:
-            json.dump(file_contents, f, indent=4)
+
+        wf_project.write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
+
         return await self.dispatch_message(session_id, ComponentUpdateRequest(
             type="componentUpdate",
             payload=payload
