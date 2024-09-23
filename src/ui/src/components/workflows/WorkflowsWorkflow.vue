@@ -46,6 +46,7 @@ const description =
 export default {
 	writer: {
 		name: "Workflow",
+		toolkit: "workflows",
 		category: "Root",
 		description,
 		allowedChildrenTypes: ["*"],
