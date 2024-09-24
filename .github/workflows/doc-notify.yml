@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'poetry'
+
+      - name: install python3 environment
+        run: poetry install --with build
+
+      - name: notify slack channel
+        run: poetry run alfred github.notify-changes-doc --slack-webhook ${{ secrets.SLACK_WEBHOOK_DOC }}
+
