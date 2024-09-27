@@ -6,9 +6,8 @@ import writer.core
 def _get_workflow_nodes(component_id):
     return writer.core.base_component_tree.get_descendents(component_id)
 
-def run_workflow_by_key(session, state, workflow_key: str):
-    print("Running workflow by key")
-    print(workflow_key)
+def run_workflow_by_key(session, state: "writer.core.WriterState", workflow_key: str):
+    state.add_log_entry("info", "Workflow", f"""Running workflow "{workflow_key}".""")
 
     # workflows = .get_descendents("workflows_root")
     all_components = writer.core.base_component_tree.components.values()
@@ -18,13 +17,13 @@ def run_workflow_by_key(session, state, workflow_key: str):
     workflow = workflows[0]
 
     run_workflow(session, workflow.id)
+    state.add_log_entry("info", "Workflow", f"""Finished executing workflow "{workflow_key}".""")
 
 
-def run_workflow(session, component_id):
-    print("Workflow successfully executed.")
+def run_workflow(session_info, component_id):
     final_nodes = _get_final_nodes(component_id)
     execution = {}
-    session = writer.core.session_manager.get_session(session.get("id")) 
+    session = writer.core.session_manager.get_session(session_info.get("id")) 
     for node in final_nodes:
         _run_node(node, execution, session)
 

@@ -1427,16 +1427,13 @@ class Evaluator:
             full_match = self.template_regex.fullmatch(field_value)
 
             if full_match is None:
-                print(f"Did not obtain full match for {field_key}")
                 replaced = self.template_regex.sub(lambda m: str(replacer(m)), field_value)
             else:
-                print(f"Obtained full match for {field_key}")
                 replaced = replacer(full_match)
 
             if (replaced is not None) and as_json:
                 return json.loads(replaced)
             else:
-                print(f"Returning {field_key} as {type(replaced)}")
                 return replaced
         else:
             raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")

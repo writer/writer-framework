@@ -29,8 +29,6 @@ class WorkflowBlock:
 
         v = self.evaluator.evaluate_field(self.instance_path, field_key, base_context=base_context, as_json=as_json)
 
-        print(f"Evaluating {field_key} resulted in {repr(v)}, using context {repr(base_context)}")
-
         return v
 
     def run(self):
