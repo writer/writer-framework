@@ -44,6 +44,7 @@ import pyarrow  # type: ignore
 
 from writer import core_ui
 from writer.core_ui import Component
+import writer.workflows
 from writer.ss_types import (
     DataframeRecordAdded,
     DataframeRecordRemoved,
@@ -1167,7 +1168,7 @@ class EventHandlerRegistry:
                 f"Attempted to register a non-module object: {module}"
                 )
 
-    def find_handler(self, handler_name: str) -> Optional[Callable]:
+    def find_handler_callable(self, handler_name: str) -> Optional[Callable]:
         if handler_name not in self.handler_map:
             return None
         handler_entry: EventHandlerRegistry.HandlerEntry = \
@@ -1696,6 +1697,18 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
+    def _get_handler_callable(self, handler: str) -> Callable:
+        if handler.startswith("$runWorkflow_"):
+            workflow_key = handler[13:]
+            fn = lambda session, state: writer.workflows.run_workflow_by_key(session, state, workflow_key)
+            return fn 
+
+        current_app_process = get_app_process()
+        handler_registry = current_app_process.handler_registry
+        callable_handler = handler_registry.find_handler_callable(handler)
+        return callable_handler
+
+
     def _call_handler_callable(
         self,
         event_type: str,
@@ -1703,16 +1716,14 @@ class EventHandler:
         instance_path: List[InstancePathItem],
         payload: Any
     ) -> Any:
-        current_app_process = get_app_process()
-        handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
             return
         handler = target_component.handlers.get(event_type)
         if not handler:
             return
 
-        callable_handler = handler_registry.find_handler(handler)
-        if not callable_handler:
+        handler_callable = self._get_handler_callable(handler)
+        if not handler_callable:
             raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
 
         # Preparation of arguments
@@ -1727,13 +1738,13 @@ class EventHandler:
         }
 
         # Invocation of handler
+        current_app_process = get_app_process()
         result = None
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
-
-            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, callable_handler, writer_args)
+            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
