@@ -44,7 +44,6 @@ import pyarrow  # type: ignore
 
 from writer import core_ui
 from writer.core_ui import Component
-import writer.workflows
 from writer.ss_types import (
     DataframeRecordAdded,
     DataframeRecordRemoved,
@@ -56,6 +55,8 @@ from writer.ss_types import (
     WriterEventResult,
     WriterFileItem,
 )
+
+import writer.workflows
 
 if TYPE_CHECKING:
     import pandas
