@@ -875,6 +875,23 @@ class TestEventDeserialiser:
         self.ed.transform(ev_valid)
         assert ev_valid.payload == "2019-11-23"
 
+    def test_range_change(self) -> None:
+        ev_invalid = WriterEvent(
+            type="wf-range-change",
+            instancePath=self.root_instance_path,
+            payload="virus"
+        )
+        with pytest.raises(RuntimeError):
+            self.ed.transform(ev_invalid)
+
+        ev_valid = WriterEvent(
+            type="wf-range-change",
+            instancePath=self.root_instance_path,
+            payload=[10,42]
+        )
+        self.ed.transform(ev_valid)
+        assert ev_valid.payload == [10, 42]
+
     def test_time_change(self) -> None:
         ev_invalid = WriterEvent(
             type="wf-time-change",
