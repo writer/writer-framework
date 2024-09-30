@@ -9,7 +9,14 @@
 				opacity: isSelected ? `0.2` : `0`,
 			}"
 		></path>
-		<g v-if="isSelected" class="delete" @click="handleDeleteClick">
+		<g
+		  v-if="isSelected"
+		  class="delete"
+		  tabindex="0"
+		  aria-label="Delete relation"
+		  @click="handleDeleteClick"
+		  @keypress.enter="handleDeleteClick"
+		>
 			<circle :cx="points[3].x" :cy="points[3].y" r="12" />
 			<line
 				class="cross"

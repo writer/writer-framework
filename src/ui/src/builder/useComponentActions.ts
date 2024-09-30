@@ -127,7 +127,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		type: string,
 		parentId: Component["id"],
 		position?: number,
-		initProperties?: Partial<Component>,
+		initProperties?: Partial<Omit<Component, 'id' | 'type' | 'parent' | 'content' | 'handlers' | 'position'>>,
 	) {
 		const newId = generateNewComponentId();
 		const definition = wf.getComponentDefinition(type);
@@ -729,11 +729,9 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Edit out`, true);
 		ssbm.registerPreMutation(component);
 
-		component.outs = [
-			...component.outs.filter(
-				(o) => !(out.outId === o.outId && out.toNodeId === o.toNodeId),
-			),
-		];
+		component.outs = component.outs.filter(
+			(o) => !(out.outId === o.outId && out.toNodeId === o.toNodeId),
+		);
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);

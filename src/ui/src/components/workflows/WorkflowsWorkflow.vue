@@ -277,14 +277,12 @@ watch(
 	async (postChildren, preChildren) => {
 		// Remove references when a node is deleted
 
-		const preIds = preChildren.map((c) => c.id);
-		const postIds = postChildren.map((c) => c.id);
-		const removedIds = preIds.filter((cId) => !postIds.includes(cId));
-		removedIds.forEach((removedId) => {
-			postChildren.forEach((c) => {
-				if (!c.outs || c.outs.length == 0) return;
-				c.outs = c.outs.filter((out) => out.toNodeId !== removedId);
-			});
+    const removedIds = new Set(postChildren.map((c) => c.id));
+    preChildren.forEach(c => removedIds.delete(c.id));
+
+    postChildren.forEach((c) => {
+      c.outs = c.outs?.filter((out) => !removedIds.has(out.toNodeId));
+    });
 		});
 
 		// Refresh arrows
