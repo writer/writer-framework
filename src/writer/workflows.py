@@ -1,7 +1,9 @@
 from typing import Dict, List, Tuple
+
+import writer.core
 import writer.workflows_blocks
 from writer.core_ui import Component
-import writer.core
+
 
 def _get_workflow_nodes(component_id):
     return writer.core.base_component_tree.get_descendents(component_id)

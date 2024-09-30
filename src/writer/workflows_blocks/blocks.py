@@ -1,8 +1,9 @@
-from typing import  Dict
-from writer.ss_types import InstancePath
-import writer.workflows_blocks
+from typing import Dict
+
 import writer.core
 import writer.core_ui
+import writer.workflows_blocks
+from writer.ss_types import InstancePath
 
 block_map = {}
 

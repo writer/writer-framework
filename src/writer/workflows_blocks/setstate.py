@@ -2,6 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
+
 class SetState(WorkflowBlock):
 
     @classmethod
@@ -45,5 +46,5 @@ class SetState(WorkflowBlock):
         try:
             self.evaluator.set_state(element, self.instance_path, value)
             self.outcome = "success"
-        except Exception as e:
+        except Exception:
             self.outcome = "error"

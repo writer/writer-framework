@@ -42,6 +42,7 @@ from typing import (
 
 import pyarrow  # type: ignore
 
+import writer.workflows
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
@@ -55,8 +56,6 @@ from writer.ss_types import (
     WriterEventResult,
     WriterFileItem,
 )
-
-import writer.workflows
 
 if TYPE_CHECKING:
     import pandas

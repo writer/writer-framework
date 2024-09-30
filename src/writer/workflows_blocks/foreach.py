@@ -1,7 +1,8 @@
+import writer.workflows
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
-import writer.workflows
+
 
 class ForEach(WorkflowBlock):
 
@@ -59,6 +60,6 @@ class ForEach(WorkflowBlock):
             for item in items:
                 writer.workflows.run_workflow_by_key(self.session, workflow_key)
             self.outcome = "success"
-        except Exception as e:
+        except Exception:
             self.result = "HTTP call failed."
             self.outcome = "connectionError"

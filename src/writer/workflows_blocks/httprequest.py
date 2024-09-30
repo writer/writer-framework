@@ -1,7 +1,9 @@
 import requests
+
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
+
 
 class HTTPRequest(WorkflowBlock):
 
