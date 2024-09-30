@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import Dict
 import writer.workflows_blocks
 from writer.core_ui import Component
 import writer.core
@@ -6,26 +6,25 @@ import writer.core
 def _get_workflow_nodes(component_id):
     return writer.core.base_component_tree.get_descendents(component_id)
 
-def run_workflow_by_key(session, state: "writer.core.WriterState", workflow_key: str):
+def run_workflow_by_key(session, workflow_key: str, execution_env: Dict):
+    state = session.session_state
     state.add_log_entry("info", "Workflow", f"""Running workflow "{workflow_key}".""")
 
-    # workflows = .get_descendents("workflows_root")
     all_components = writer.core.base_component_tree.components.values()
     workflows = list(filter(lambda c: c.type == "workflows_workflow" and c.content.get("key") == workflow_key, all_components))
     if len(workflows) == 0:
         return
     workflow = workflows[0]
 
-    run_workflow(session, workflow.id)
+    run_workflow(session, workflow.id, execution_env)
     state.add_log_entry("info", "Workflow", f"""Finished executing workflow "{workflow_key}".""")
 
 
-def run_workflow(session_info, component_id):
+def run_workflow(session, component_id: "Component", execution_env: Dict):
     final_nodes = _get_final_nodes(component_id)
     execution = {}
-    session = writer.core.session_manager.get_session(session_info.get("id")) 
     for node in final_nodes:
-        _run_node(node, execution, session)
+        _run_node(node, execution, session, execution_env)
 
 
 def _get_final_nodes(component_id):
@@ -53,10 +52,11 @@ def _get_dependencies(target_node: "Component"):
     return dependencies
     
 
-def _run_node(target_node: "Component", execution, session):
+def _run_node(target_node: "Component", execution, session, execution_env: Dict):
     tool_class = writer.workflows_blocks.blocks.block_map.get(target_node.type)
     if not tool_class:
         raise RuntimeError(f"Couldn't find tool for {target_node.type}.")
+    session.session_state.add_log_entry("info", "Workflow", f"""Running node "{target_node.id}".""")
     dependencies = _get_dependencies(target_node)
 
     tool = execution.get(target_node.id)
@@ -66,7 +66,7 @@ def _run_node(target_node: "Component", execution, session):
     result = None
     matched_dependencies = 0
     for node, out_id in dependencies:
-        tool = _run_node(node, execution, session)
+        tool = _run_node(node, execution, session, execution_env)
         if not tool:
             continue
         if tool.outcome == out_id:
@@ -76,7 +76,7 @@ def _run_node(target_node: "Component", execution, session):
     if len(dependencies) > 0 and matched_dependencies == 0:
         return
 
-    tool = tool_class(target_node, execution, session, result)
+    tool = tool_class(target_node, execution, session, (execution_env | {"result": result}))
     tool.run()
     execution[target_node.id] = tool
     return tool

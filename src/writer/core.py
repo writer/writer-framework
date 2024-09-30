@@ -1695,11 +1695,20 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
+    def _get_workflow_callable(self, workflow_key):
+        def fn(payload, context, session):
+            execution_env = {
+                "payload": payload,
+                "context": context,
+                "session": session
+            }
+            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+        return fn
+
     def _get_handler_callable(self, handler: str) -> Callable:
         if handler.startswith("$runWorkflow_"):
-            workflow_key = handler[13:]
-            fn = lambda session, state: writer.workflows.run_workflow_by_key(session, state, workflow_key)
-            return fn 
+            workflow_key = handler[13:] 
+            return self._get_workflow_callable(workflow_key)
 
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
@@ -1723,6 +1732,8 @@ class EventHandler:
         handler_callable = self._get_handler_callable(handler)
         if not handler_callable:
             raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
+
+        print("paylo is " + repr(payload))
 
         # Preparation of arguments
         context_data = self.evaluator.get_context_data(instance_path)
