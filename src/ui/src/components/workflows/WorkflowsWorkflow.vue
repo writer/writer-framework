@@ -275,11 +275,6 @@ async function createNode(type: string, x: number, y: number) {
 watch(
 	children,
 	async (postChildren, preChildren) => {
-		// Refresh arrows
-
-		await nextTick();
-		refreshArrows();
-
 		// Remove references when a node is deleted
 
 		const preIds = preChildren.map((c) => c.id);
@@ -291,6 +286,11 @@ watch(
 				c.outs = c.outs.filter((out) => out.toNodeId !== removedId);
 			});
 		});
+
+		// Refresh arrows
+
+		await nextTick();
+		refreshArrows();
 
 		if (removedIds.length > 0) {
 			wf.sendComponentUpdate();
