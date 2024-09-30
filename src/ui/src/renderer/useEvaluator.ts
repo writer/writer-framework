@@ -174,7 +174,7 @@ export function useEvaluator(wf: Core) {
 			try {
 				parsedValue = JSON.parse(evaluated);
 			} catch {
-				return JSON.parse(defaultValue) ?? null;
+				return JSON.parse(defaultValue ?? null);
 			}
 			return parsedValue;
 		} else if (fieldType == FieldType.Number) {
@@ -183,7 +183,7 @@ export function useEvaluator(wf: Core) {
 			if (isValueEmpty) return floatDefaultValue ?? null;
 
 			const n = parseFloat(evaluated);
-			if (typeof n === undefined || Number.isNaN(n))
+			if (typeof n === "undefined" || Number.isNaN(n))
 				return floatDefaultValue ?? null;
 			return n;
 		} else if (fieldType == FieldType.IdKey) {
