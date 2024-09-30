@@ -23,14 +23,14 @@ class ForEach(WorkflowBlock):
                     },
                     "items": {
                         "name": "Items",
-                        "desc": "The item value will be passed in the execution context and will be available via @{item}.",
+                        "desc": "The item value will be passed in the execution environment and will be available via @{item}.",
                         "default": "{}",
                         "type": "Object",
                         "control": "Textarea"
                     },
-                    "context": {
-                        "name": "Context",
-                        "desc": "You can add other values to the execution context.",
+                    "executionEnv": {
+                        "name": "Execution environment",
+                        "desc": "You can add other values to the execution environment.",
                         "default": "{}",
                         "type": "Object",
                         "control": "Textarea"
@@ -54,11 +54,11 @@ class ForEach(WorkflowBlock):
     def run(self):
         workflow_key = self._get_field("workflowKey")
         items = self._get_field("items")
-        context = self._get_field("context")
+        base_execution_env = self._get_field("executionEnv")
 
         try:
             for item in items:
-                writer.workflows.run_workflow_by_key(self.session, workflow_key)
+                writer.workflows.run_workflow_by_key(self.session, workflow_key, base_execution_env | { "item": item })
             self.outcome = "success"
         except Exception:
             self.result = "HTTP call failed."
