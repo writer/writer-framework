@@ -1,4 +1,5 @@
 from typing import  Dict
+from writer.ss_types import InstancePath
 import writer.workflows_blocks
 import writer.core
 import writer.core_ui
@@ -19,7 +20,7 @@ class WorkflowBlock:
         self.execution_env = execution_env
         self.result = None
         self.evaluator = writer.core.Evaluator(session.session_state, session.session_component_tree)
-        self.instance_path = [{"componentId": self.component.id, "instanceNumber": 0}]
+        self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
 
     def _get_field(self, field_key: str, as_json=False):
         v = self.evaluator.evaluate_field(self.instance_path, field_key, base_context=self.execution_env, as_json=as_json)

@@ -1091,7 +1091,7 @@ class MiddlewareExecutor():
 
 class MiddlewareRegistry:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.registry: List[MiddlewareExecutor] = []
 
     def register(self, middleware: Callable):
@@ -1705,7 +1705,7 @@ class EventHandler:
             writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
         return fn
 
-    def _get_handler_callable(self, handler: str) -> Callable:
+    def _get_handler_callable(self, handler: str) -> Optional[Callable]:
         if handler.startswith("$runWorkflow_"):
             workflow_key = handler[13:] 
             return self._get_workflow_callable(workflow_key)

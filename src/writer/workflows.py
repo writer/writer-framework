@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Tuple
 import writer.workflows_blocks
 from writer.core_ui import Component
 import writer.core
@@ -20,9 +20,9 @@ def run_workflow_by_key(session, workflow_key: str, execution_env: Dict):
     state.add_log_entry("info", "Workflow", f"""Finished executing workflow "{workflow_key}".""")
 
 
-def run_workflow(session, component_id: "Component", execution_env: Dict):
+def run_workflow(session, component_id: str, execution_env: Dict):
     final_nodes = _get_final_nodes(component_id)
-    execution = {}
+    execution: Dict = {}
     for node in final_nodes:
         _run_node(node, execution, session, execution_env)
 
@@ -36,7 +36,7 @@ def _get_final_nodes(component_id):
     return final_nodes
 
 def _get_dependencies(target_node: "Component"):
-    dependencies = []
+    dependencies:List[Tuple] = []
     parent_id = target_node.parentId
     if not parent_id:
         return dependencies
