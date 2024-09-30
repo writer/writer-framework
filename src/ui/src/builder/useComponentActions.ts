@@ -729,11 +729,9 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Edit out`, true);
 		ssbm.registerPreMutation(component);
 
-		component.outs = [
-			...component.outs.filter(
-				(o) => !(out.outId === o.outId && out.toNodeId === o.toNodeId),
-			),
-		];
+		component.outs = component.outs.filter(
+			(o) => !(out.outId === o.outId && out.toNodeId === o.toNodeId),
+		);
 
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
