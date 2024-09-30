@@ -12,7 +12,9 @@
 				v-for="(arrow, arrowId) in arrows"
 				:key="arrowId"
 				:arrow="arrow"
-				@click="handleArrowClick"
+				:is-selected="selectedArrow == arrowId"
+				@click="handleArrowClick($event, arrowId)"
+				@delete="handleDeleteClick($event, arrow)"
 			></WorkflowArrow>
 		</svg>
 		<template v-for="component in children" :key="component.id">
@@ -61,9 +63,19 @@ export default {
 		previewField: "key",
 	},
 };
+
+export type WorkflowArrowData = {
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
+	color: string;
+	fromNodeId: Component["id"];
+	out: Component["outs"][number];
+};
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, onMounted, ref } from "vue";
+import { Ref, computed, inject, nextTick, onMounted, ref } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
@@ -73,9 +85,10 @@ const rootEl: Ref<HTMLElement | null> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const arrows = ref([]);
+const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = ref({ x: 0, y: 0 });
 let clickOffset = { x: 0, y: 0 };
+const selectedArrow = ref(null);
 
 const workflowComponentId = inject(injectionKeys.componentId);
 
@@ -83,7 +96,8 @@ const children = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
 
-const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+const { createAndInsertComponent, addOut, removeOut, changeCoordinates } =
+	useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
 const activeNodeOut: Ref<{
@@ -119,6 +133,8 @@ function refreshArrows() {
 					x2: toCBR.x - canvasCBR.x,
 					y2: toCBR.y - canvasCBR.y + toCBR.height / 2,
 					color: getComputedStyle(fromEl).backgroundColor,
+					fromNodeId,
+					out,
 				});
 			});
 		});
@@ -191,7 +207,17 @@ function handleDrop(ev: DragEvent) {
 	createNode(draggedType, x, y);
 }
 
-function handleArrowClick() {}
+function handleArrowClick(ev: MouseEvent, arrowId: number) {
+	if (selectedArrow.value == arrowId) {
+		selectedArrow.value = null;
+		return;
+	}
+	selectedArrow.value = arrowId;
+}
+
+async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
+	removeOut(arrow.fromNodeId, arrow.out);
+}
 
 function handleNodeDragStart(ev: DragEvent) {
 	ev.stopPropagation();
@@ -209,55 +235,70 @@ function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
 	if (x < 0 || y < 0) return;
 
 	const component = wf.getComponentById(componentId);
-	component.x = x - clickOffset.x;
-	component.y = y - clickOffset.y;
-	refreshArrows();
+
+	const newX = x - clickOffset.x;
+	const newY = y - clickOffset.y;
+
+	if (component.x == newX && component.y == newY) return;
+
+	component.x = newX;
+	component.y = newY;
+
+	setTimeout(() => {
+		// Debouncing
+		if (component.x !== newX) return;
+		if (component.y !== newY) return;
+		changeCoordinates(componentId, newX, newY);
+	}, 200);
 }
 
 function handleNodeDragend(ev: DragEvent) {
 	ev.preventDefault();
 }
 
-function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
+async function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
 	if (!activeNodeOut.value) return;
 	if (activeNodeOut.value.fromComponentId == componentId) return;
 
-	const component = wf.getComponentById(activeNodeOut.value.fromComponentId);
-
-	component.outs = [
-		...(component.outs ?? []),
-		{
-			toNodeId: componentId,
-			outId: activeNodeOut.value.outId,
-		},
-	];
+	addOut(activeNodeOut.value.fromComponentId, {
+		toNodeId: componentId,
+		outId: activeNodeOut.value.outId,
+	});
 
 	activeNodeOut.value = null;
-	refreshArrows();
 }
 
-function createNode(type: string, x: number, y: number) {
-	const componentId = createAndInsertComponent(type, workflowComponentId);
-	const component = wf.getComponentById(componentId);
-	component.x = x;
-	component.y = y;
+async function createNode(type: string, x: number, y: number) {
+	createAndInsertComponent(type, workflowComponentId, undefined, { x, y });
 }
 
-watch(children, async (postChildren, preChildren) => {
-	// Remove references when a node is deleted
+watch(
+	children,
+	async (postChildren, preChildren) => {
+		// Remove references when a node is deleted
 
-	const preIds = preChildren.map((c) => c.id);
-	const postIds = postChildren.map((c) => c.id);
-	const removedIds = preIds.filter((cId) => !postIds.includes(cId));
-	removedIds.forEach((removedId) => {
+		const preIds = new Set(preChildren.map((c) => c.id));
+		const postIds = new Set(postChildren.map((c) => c.id));
+		const removedIds = new Set(
+			[...preIds].filter((cId) => !postIds.has(cId)),
+		);
+
 		postChildren.forEach((c) => {
-			if (!c.outs || c.outs.length == 0) return;
-			c.outs = c.outs.filter((out) => out.toNodeId !== removedId);
+			if (!c.outs || c.outs.length === 0) return;
+			c.outs = c.outs.filter((out) => !removedIds.has(out.toNodeId));
 		});
-	});
-	refreshArrows();
-	await wf.sendComponentUpdate();
-});
+
+		// Refresh arrows
+
+		await nextTick();
+		refreshArrows();
+
+		if (removedIds.size > 0) {
+			wf.sendComponentUpdate();
+		}
+	},
+	{ deep: true },
+);
 
 onMounted(() => {
 	refreshArrows();

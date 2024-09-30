@@ -42,6 +42,7 @@ from typing import (
 
 import pyarrow  # type: ignore
 
+import writer.workflows
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
@@ -1089,7 +1090,7 @@ class MiddlewareExecutor():
 
 class MiddlewareRegistry:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.registry: List[MiddlewareExecutor] = []
 
     def register(self, middleware: Callable):
@@ -1167,7 +1168,7 @@ class EventHandlerRegistry:
                 f"Attempted to register a non-module object: {module}"
                 )
 
-    def find_handler(self, handler_name: str) -> Optional[Callable]:
+    def find_handler_callable(self, handler_name: str) -> Optional[Callable]:
         if handler_name not in self.handler_map:
             return None
         handler_entry: EventHandlerRegistry.HandlerEntry = \
@@ -1425,16 +1426,13 @@ class Evaluator:
             full_match = self.template_regex.fullmatch(field_value)
 
             if full_match is None:
-                print(f"Did not obtain full match for {field_key}")
                 replaced = self.template_regex.sub(lambda m: str(replacer(m)), field_value)
             else:
-                print(f"Obtained full match for {field_key}")
                 replaced = replacer(full_match)
 
             if (replaced is not None) and as_json:
                 return json.loads(replaced)
             else:
-                print(f"Returning {field_key} as {type(replaced)}")
                 return replaced
         else:
             raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
@@ -1696,6 +1694,27 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
+    def _get_workflow_callable(self, workflow_key):
+        def fn(payload, context, session):
+            execution_env = {
+                "payload": payload,
+                "context": context,
+                "session": session
+            }
+            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+        return fn
+
+    def _get_handler_callable(self, handler: str) -> Optional[Callable]:
+        if handler.startswith("$runWorkflow_"):
+            workflow_key = handler[13:] 
+            return self._get_workflow_callable(workflow_key)
+
+        current_app_process = get_app_process()
+        handler_registry = current_app_process.handler_registry
+        callable_handler = handler_registry.find_handler_callable(handler)
+        return callable_handler
+
+
     def _call_handler_callable(
         self,
         event_type: str,
@@ -1703,17 +1722,17 @@ class EventHandler:
         instance_path: List[InstancePathItem],
         payload: Any
     ) -> Any:
-        current_app_process = get_app_process()
-        handler_registry = current_app_process.handler_registry
         if not target_component.handlers:
             return
         handler = target_component.handlers.get(event_type)
         if not handler:
             return
 
-        callable_handler = handler_registry.find_handler(handler)
-        if not callable_handler:
+        handler_callable = self._get_handler_callable(handler)
+        if not handler_callable:
             raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
+
+        print("paylo is " + repr(payload))
 
         # Preparation of arguments
         context_data = self.evaluator.get_context_data(instance_path)
@@ -1727,13 +1746,13 @@ class EventHandler:
         }
 
         # Invocation of handler
+        current_app_process = get_app_process()
         result = None
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
-
-            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, callable_handler, writer_args)
+            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:

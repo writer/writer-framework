@@ -127,6 +127,12 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		type: string,
 		parentId: Component["id"],
 		position?: number,
+		initProperties?: Partial<
+			Omit<
+				Component,
+				"id" | "type" | "parent" | "content" | "handlers" | "position"
+			>
+		>,
 	) {
 		const newId = generateNewComponentId();
 		const definition = wf.getComponentDefinition(type);
@@ -137,6 +143,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		});
 
 		const component = {
+			...(initProperties ?? {}),
 			id: newId,
 			type,
 			parentId,
@@ -160,8 +167,19 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		type: string,
 		parentId: Component["id"],
 		position?: number,
+		initProperties?: Partial<
+			Omit<
+				Component,
+				"id" | "type" | "parent" | "content" | "handlers" | "position"
+			>
+		>,
 	): Component["id"] {
-		const component = createComponent(type, parentId, position);
+		const component = createComponent(
+			type,
+			parentId,
+			position,
+			initProperties,
+		);
 		const transactionId = `create-${component.id}`;
 		ssbm.openMutationTransaction(transactionId, `Create`);
 		wf.addComponent(component);
@@ -689,6 +707,71 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	}
 
 	/**
+	 * Add an out
+	 */
+	function addOut(
+		componentId: Component["id"],
+		out: Component["outs"][number],
+	) {
+		const component = wf.getComponentById(componentId);
+		if (!component) return;
+		const transactionId = `add-${componentId}-out-${out.outId}-${out.toNodeId}`;
+		ssbm.openMutationTransaction(transactionId, `Add out`, true);
+		ssbm.registerPreMutation(component);
+
+		component.outs = [...(component.outs ?? []), out];
+
+		ssbm.registerPostMutation(component);
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+	}
+
+	/**
+	 * Remove an out
+	 */
+	function removeOut(
+		componentId: Component["id"],
+		out: Component["outs"][number],
+	) {
+		const component = wf.getComponentById(componentId);
+		if (!component) return;
+		const transactionId = `edit-${componentId}-out-${out.outId}-${out.toNodeId}`;
+		ssbm.openMutationTransaction(transactionId, `Edit out`, true);
+		ssbm.registerPreMutation(component);
+
+		component.outs = component.outs.filter(
+			(o) => !(out.outId === o.outId && out.toNodeId === o.toNodeId),
+		);
+
+		ssbm.registerPostMutation(component);
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+	}
+
+	/**
+	 * Change coordinates
+	 */
+	function changeCoordinates(
+		componentId: Component["id"],
+		x: number,
+		y: number,
+	) {
+		const component = wf.getComponentById(componentId);
+		if (!component) return;
+
+		const transactionId = `change-${componentId}-coordinates`;
+		ssbm.openMutationTransaction(transactionId, `Change coordinates`, true);
+		ssbm.registerPreMutation(component);
+
+		component.x = Math.floor(x);
+		component.y = Math.floor(y);
+
+		ssbm.registerPostMutation(component);
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+	}
+
+	/**
 	 * Set the value for a component's visibility.
 	 */
 	function setVisibleValue(
@@ -833,6 +916,9 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		undo,
 		redo,
 		setContentValue,
+		addOut,
+		removeOut,
+		changeCoordinates,
 		setVisibleValue,
 		setBinding,
 		getUndoRedoSnapshot,

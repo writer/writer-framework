@@ -30,20 +30,30 @@ function getAllowedSet(
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
 	const supportedTypes = getSupportedComponentTypes().filter(
-		(t) => t !== "root",
+		(t) => t !== "root" && t !== "workflows_root",
 	);
-	const { allowedChildrenTypes } = getComponentDefinition(type);
+	const { allowedChildrenTypes, toolkit } = getComponentDefinition(type);
 	if (!allowedChildrenTypes) return new Set([]);
 
-	let allowed = new Set<string>(allowedChildrenTypes);
+	let allowed: Set<string> = new Set(allowedChildrenTypes);
 	if (allowedChildrenTypes.includes("*")) {
-		return new Set(supportedTypes);
+		allowed = new Set([...allowed, ...supportedTypes]);
 	}
 	if (allowed.delete("inherit")) {
 		if (!parentId) return allowed;
 		const parentContainable = getContainableTypes(components, parentId);
 		allowed = new Set([...allowed, ...parentContainable]);
 	}
+
+	if (toolkit) {
+		allowed = new Set(
+			Array.from(allowed).filter(
+				(childType) =>
+					getComponentDefinition(childType).toolkit == toolkit,
+			),
+		);
+	}
+
 	return allowed;
 }
 
