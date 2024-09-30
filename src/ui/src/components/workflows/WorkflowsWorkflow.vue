@@ -277,12 +277,15 @@ watch(
 	async (postChildren, preChildren) => {
 		// Remove references when a node is deleted
 
-    const removedIds = new Set(postChildren.map((c) => c.id));
-    preChildren.forEach(c => removedIds.delete(c.id));
+		const preIds = new Set(preChildren.map((c) => c.id));
+		const postIds = new Set(postChildren.map((c) => c.id));
+		const removedIds = new Set(
+			[...preIds].filter((cId) => !postIds.has(cId)),
+		);
 
-    postChildren.forEach((c) => {
-      c.outs = c.outs?.filter((out) => !removedIds.has(out.toNodeId));
-    });
+		postChildren.forEach((c) => {
+			if (!c.outs || c.outs.length === 0) return;
+			c.outs = c.outs.filter((out) => !removedIds.has(out.toNodeId));
 		});
 
 		// Refresh arrows
@@ -290,7 +293,7 @@ watch(
 		await nextTick();
 		refreshArrows();
 
-		if (removedIds.length > 0) {
+		if (removedIds.size > 0) {
 			wf.sendComponentUpdate();
 		}
 	},
