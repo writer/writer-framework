@@ -127,7 +127,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		type: string,
 		parentId: Component["id"],
 		position?: number,
-		initProperties?: Partial<Component>,
+		initProperties?: Partial<Omit<Component, 'id' | 'type' | 'parent' | 'content' | 'handlers' | 'position'>>,
 	) {
 		const newId = generateNewComponentId();
 		const definition = wf.getComponentDefinition(type);
