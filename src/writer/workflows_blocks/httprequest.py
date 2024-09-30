@@ -14,7 +14,6 @@ class HTTPRequest(WorkflowBlock):
                 "name": "HTTP Request",
                 "description": "Executes an HTTP request",
                 "category": "Content",
-                "allowedParentTypes": ["workflows_workflow"],
                 "fields": {
                     "method": {
                         "name": "Method",

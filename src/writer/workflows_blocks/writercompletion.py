@@ -13,7 +13,6 @@ class WriterCompletion(WorkflowBlock):
                 "name": "Writer Completion",
                 "description": "Set the value for a state element",
                 "category": "Content",
-                "allowedParentTypes": ["workflows_workflow"],
                 "fields": {
                     "prompt": {
                         "name": "Prompt",

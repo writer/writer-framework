@@ -15,7 +15,6 @@ class WriterClassification(WorkflowBlock):
                 "name": "Writer Classification",
                 "description": "Classify a text.",
                 "category": "Content",
-                "allowedParentTypes": ["workflows_workflow"],
                 "fields": {
                     "text": {
                         "name": "Text",

@@ -13,7 +13,6 @@ class SetState(WorkflowBlock):
                 "name": "Set state",
                 "description": "Set the value for a state element",
                 "category": "Content",
-                "allowedParentTypes": ["workflows_workflow"],
                 "fields": {
                     "element": {
                         "name": "State element",
