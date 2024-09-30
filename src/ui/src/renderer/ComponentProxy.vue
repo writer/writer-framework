@@ -220,6 +220,11 @@ export default {
 					) {
 						includePayload = true;
 					}
+
+					if (handlerFunctionName.startsWith("$runWorkflow_")) {
+						includePayload = true;
+					}
+
 					wf.forwardEvent(ev, instancePath, includePayload);
 				};
 			}
