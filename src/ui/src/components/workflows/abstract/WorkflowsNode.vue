@@ -42,6 +42,7 @@ export default {
 		toolkit: "workflows",
 		category: "Other",
 		fields: {},
+		allowedParentTypes: ["workflows_workflow"],
 		previewField: "text",
 	},
 };
