@@ -1,5 +1,6 @@
 const express = require("express");
-const fs = require("node:fs").promises;
+const fs = require("node:fs/promises");
+const path = require("node:path");
 const { spawn } = require("node:child_process");
 const httpProxy = require("http-proxy");
 
@@ -109,7 +110,7 @@ class WriterProcessPool {
 	async start(preset) {
 		const id = this.genId.next().value;
 		await fs.mkdir(`./runtime/${id}`);
-		await fs.copyFile(`./presets/${preset}/ui.json`, `./runtime/${id}/ui.json`);
+		await fs.cp(`./presets/${preset}/.wf`, `./runtime/${id}/.wf`, { recursive: true });
 		await fs.copyFile(`./presets/${preset}/main.py`, `./runtime/${id}/main.py`);
 		const process = new WriterProcess(`./runtime/${id}`, this.genPort.next().value);
 		await process.start();
@@ -125,6 +126,7 @@ class WriterProcessPool {
 		}
 		await fs.rm(`./runtime/${id}`, { recursive: true });
 	}
+
 
 }
 
