@@ -1,5 +1,6 @@
 import json
 import logging
+import os.path
 from typing import Any, List, Tuple
 
 import requests
@@ -41,7 +42,12 @@ def notify_doc_changes(remote: str, branch: str, commit: str, dry: bool, slack_w
     file_changes: List[Tuple[str, str]] = []
     component_added: List[Tuple[str, str]] = []
     documentation_changes: List[Tuple[str, str]] = []
-    alfred.run(f"git fetch {remote} {branch}")
+
+    _, stdout, _ = alfred.run("git rev-parse --is-shallow-repository")
+    if stdout.strip() == "true":
+        alfred.run(f"git fetch --unshallow {remote} {branch}")
+    else:
+        alfred.run(f"git fetch {remote} {branch}")
 
     for change in all_change_types:
         _, stdout, _ = alfred.run(f"git diff --name-only --diff-filter={change} {commit}^ {commit}")
