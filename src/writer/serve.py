@@ -5,6 +5,7 @@ import mimetypes
 import os
 import os.path
 import pathlib
+import socket
 import textwrap
 import typing
 from contextlib import asynccontextmanager
@@ -500,7 +501,7 @@ def register_auth(
 ):
     auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
-def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, enable_server_setup=False):
+def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False):
     """ Initialises the web server. """
 
     print_init_message()
@@ -513,6 +514,14 @@ def serve(app_path: str, mode: ServeMode, port, host, enable_remote_edit=False, 
     Loading of the server_setup.py is active by default 
     when Writer Framework is launched with the run command.
     """
+    if port is None:
+        mode_allowed_ports = {
+            'run': (3005, 3099),
+            'edit': (4005, 4099)
+        }
+
+        port = _next_localhost_available_port(mode_allowed_ports[mode])
+
     enable_server_setup = mode == "run" or enable_server_setup
     app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
     log_level = "warning"
@@ -599,17 +608,6 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
         if f.is_dir():
             app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
 
-def _execute_server_setup_hook(user_app_path: str) -> None:
-    """
-    Runs the server_setup.py module if present in the application directory.
-
-    """
-    server_setup_path = os.path.join(user_app_path, "server_setup.py")
-    if os.path.isfile(server_setup_path):
-        spec = cast(ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path))
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)  # type: ignore
-
 
 def app_runner(asgi_app: WriterFastAPI) -> AppRunner:
     return asgi_app.state.app_runner
@@ -632,3 +630,34 @@ def wf_root_static_assets() -> List[pathlib.Path]:
         all_static_assets.append(f)
 
     return all_static_assets
+
+
+def _execute_server_setup_hook(user_app_path: str) -> None:
+    """
+    Runs the server_setup.py module if present in the application directory.
+
+    """
+    server_setup_path = os.path.join(user_app_path, "server_setup.py")
+    if os.path.isfile(server_setup_path):
+        spec = cast(ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore
+
+
+def _next_localhost_available_port(port_range: Tuple[int, int]) -> int:
+    """
+    Searches for a free port in a given range on localhost to start the server
+
+    >>> port = _next_localhost_available_port((3005, 3099))
+
+    3005 is the first port to be tested. If it is not available, the port 3006 is tested, and so on.
+    """
+    for port in range(port_range[0], port_range[1]):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('127.0.0.1', port))
+        sock.close()
+        if result != 0:
+            return port
+
+    raise OSError(f"No free port found to start the server between {port_range[0]} and {port_range[1]} .")
