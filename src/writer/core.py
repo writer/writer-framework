@@ -1307,6 +1307,16 @@ class EventDeserialiser:
         payload = str(ev.payload)
         return payload
 
+    def _transform_app_open(self, ev) -> dict:
+        payload = ev.payload
+        page_key = payload.get("pageKey")
+        route_vars = dict(payload.get("routeVars"))
+        tf_payload = {
+            "page_key": page_key,
+            "route_vars": route_vars
+        }
+        return tf_payload
+
     def _transform_chatbot_message(self, ev) -> dict:
         payload = dict(ev.payload)
         return payload

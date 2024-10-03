@@ -3,9 +3,23 @@ type ParsedHash = {
 	routeVars: Map<string, string>; // Stored as Map to avoid injection e.g. prototype pollution
 };
 
+// Use to communicate with the backend
+type SerializedHash = {
+	pageKey?: string;
+	routeVars: Record<string, string>;
+};
+
 const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
 const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
 
+/**
+ * Parses the current URL hash
+ *
+ * * http://x.x.x.x:5000/#main/var1=value1&var2=value2
+ *
+ * pageKey: "main"
+ * routeVars: { var1: "value1", var2: "value2" }
+ */
 export function getParsedHash(): ParsedHash {
 	const docHash = document.location.hash.substring(1);
 	const hashMatchGroups = docHash.match(hashRegex)?.groups;
@@ -27,6 +41,23 @@ export function getParsedHash(): ParsedHash {
 	});
 
 	return { pageKey, routeVars };
+}
+
+/**
+ * Serializes the URL information into a JSON.stringify-compatible object.
+ *
+ * It's used to send the current URL information to the server.
+ *
+ * @example
+ * ```ts
+ * const serializedHash = serializeParsedHash();
+ * const urlinfoString = JSON.stringify(serializedHash);
+ * ```
+ */
+export function serializeParsedHash(): SerializedHash {
+	const parsedHash = getParsedHash();
+	const routeVars = Object.fromEntries(parsedHash.routeVars.entries());
+	return { pageKey: parsedHash.pageKey, routeVars };
 }
 
 function setHash(parsedHash: ParsedHash) {
