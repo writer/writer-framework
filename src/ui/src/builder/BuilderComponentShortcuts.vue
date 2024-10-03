@@ -5,7 +5,7 @@
 		class="BuilderComponentShortcuts"
 		:data-writer-id="componentId"
 	>
-		<div class="type">
+		<div v-if="shortcutsInfo?.toolkit !== 'workflows'" class="type">
 			{{ shortcutsInfo?.componentTypeName }}
 		</div>
 		<template v-if="!isAddMode">
@@ -186,6 +186,7 @@ const isAddMode = ref(false);
 
 const shortcutsInfo: Ref<{
 	componentTypeName: string;
+	toolkit?: WriterComponentDefinition["toolkit"];
 	isAddEnabled: boolean;
 	isMoveUpEnabled: boolean;
 	isMoveDownEnabled: boolean;
@@ -232,6 +233,7 @@ function reprocessShorcutsInfo(): void {
 	shortcutsInfo.value = {
 		isAddEnabled: isAddAllowed(componentId.value),
 		componentTypeName: wf.getComponentDefinition(component.type)?.name,
+		toolkit: wf.getComponentDefinition(component.type)?.toolkit,
 		isMoveUpEnabled,
 		isMoveDownEnabled,
 		isCopyEnabled: isCopyAllowed(componentId.value),
