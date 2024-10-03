@@ -61,6 +61,10 @@ It's not recommended to expose Framework to the Internet. If you need to access 
 If you need to disable this protection, use the flag `--enable-remote-edit`. 
 </Warning>
 
+<Info>
+The editor starts by default on port 4005. If you launch multiple editors in parallel and do not specify a port, Writer Framework will automatically assign the next port until reaching the limit of 4099.
+</Info>
+
 ## Run an app
 
 When your app is ready, execute the `run` command, which will allow others to run, but not edit, your Framework app.
@@ -68,6 +72,10 @@ When your app is ready, execute the `run` command, which will allow others to ru
 ```sh
 writer run my_app
 ```
+
+<Info>
+Your app starts by default on port 3005. If you launch multiple apps in parallel and do not specify a port, Writer Framework will automatically assign the next port until reaching the limit of 3099.
+</Info>
 
 You can specify a port and host. Specifying `--host 0.0.0.0` enables you to share your application in your local network.
 

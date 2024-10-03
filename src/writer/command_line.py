@@ -20,9 +20,9 @@ def main():
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=3005, help="Port to run the app on")
+@click.option('--port', default=None, help="Port to run the app on")
 @click.argument('path')
-def run(path, host, port):
+def run(path: str, host: str, port: Optional[int]):
     """Run the app from PATH folder in run mode."""
 
     abs_path = os.path.abspath(path)
@@ -34,11 +34,11 @@ def run(path, host, port):
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=3006, help="Port to run the app on")
+@click.option('--port', default=None, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
 @click.argument('path')
-def edit(path, port, host, enable_remote_edit, enable_server_setup):
+def edit(path: str, port: Optional[int], host: str, enable_remote_edit: bool, enable_server_setup: bool):
     """Run the app from PATH folder in edit mode."""
 
     abs_path = os.path.abspath(path)
@@ -63,9 +63,9 @@ def create(path, template):
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
-@click.option('--port', default=3006, help="Port to run the app on")
+@click.option('--port', default=None, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
-def hello(port, host, enable_remote_edit):
+def hello(port: Optional[int], host: str, enable_remote_edit):
     """Create and run an onboarding 'Hello' app."""
     create_app("hello", template_name="hello", overwrite=True)
     writer.serve.serve("hello", mode="edit",
