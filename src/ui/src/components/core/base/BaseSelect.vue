@@ -99,7 +99,10 @@ const emit = defineEmits(["change"]);
 
 const props = defineProps({
 	baseId: { type: String, required: true },
-	activeValue: { required: true, validator: () => true },
+	activeValue: {
+		type: [Array, String] as PropType<string[] | string>,
+		required: true,
+	},
 	options: {
 		type: Object as PropType<Record<string, string | number | undefined>>,
 		required: true,
@@ -109,8 +112,13 @@ const props = defineProps({
 	placeholder: { type: String, required: false, default: undefined },
 });
 
-const { baseId, activeValue, options, maximumCount, mode, placeholder } =
-	toRefs(props);
+const { baseId, options, maximumCount, mode, placeholder } = toRefs(props);
+
+const activeValue = computed<string[]>(() =>
+	typeof props.activeValue === "string"
+		? [props.activeValue]
+		: props.activeValue,
+);
 
 const LIST_MAX_HEIGHT_PX = 200;
 const rootEl: Ref<HTMLElement | null> = ref(null);
@@ -152,12 +160,9 @@ const isMaximumCountReached = computed(() => {
 watch(
 	activeValue,
 	() => {
-		selectedOptions.value = [];
-
-		activeValue.value.forEach?.((av: string) => {
-			if (typeof options.value[av] === "undefined") return;
-			selectedOptions.value.push(av);
-		});
+		selectedOptions.value = activeValue.value.filter(
+			(v) => options.value[v] !== undefined,
+		);
 	},
 	{ immediate: true },
 );
