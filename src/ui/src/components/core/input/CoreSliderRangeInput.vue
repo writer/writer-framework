@@ -4,13 +4,13 @@
 		:label="fields.label.value"
 		class="CoreSliderInput"
 	>
-		<BaseInputSlider
+		<BaseInputSliderRange
 			popover-display-mode="always"
-			:value="formValue"
+			:value="formValue || [20, 50]"
 			:min="fields.minValue.value"
 			:max="fields.maxValue.value"
 			:step="fields.stepSize.value"
-			@update:value="handleInput($event, 'wf-number-change')"
+			@update:value="handleInput($event, 'wf-range-change')"
 		/>
 	</BaseInputWrapper>
 </template>
@@ -22,18 +22,18 @@ import { FieldCategory, FieldType } from "@/writerTypes";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
 const description =
-	"A user input component that allows users to select numeric values using a slider with optional constraints like min, max, and step.";
+	"A user input component that allows users to select numeric values range using a range slider with optional constraints like min, max, and step.";
 
 const onChangeHandlerStub = `
 def onchange_handler(state, payload):
 
-	# Set the state variable "new_val" to the new value
-
-	state["new_val"] = payload`;
+	# Set the state variables "from" & "to" to the new range
+	state["from"] = payload[0]
+	state["to"] = payload[1]`;
 
 export default {
 	writer: {
-		name: "Slider Input",
+		name: "Slider Range Input",
 		description,
 		category: "Input",
 		fields: {
@@ -78,7 +78,7 @@ export default {
 			cssClasses,
 		},
 		events: {
-			"wf-number-change": {
+			"wf-range-change": {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
@@ -92,14 +92,14 @@ export default {
 import { inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import BaseInputSlider from "../base/BaseInputSlider.vue";
+import BaseInputSliderRange from "../base/BaseInputSliderRange.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker<number>(
+const { formValue, handleInput } = useFormValueBroker<[number, number]>(
 	wf,
 	instancePath,
 	rootInstance,
