@@ -53,13 +53,14 @@ class ForEach(WorkflowBlock):
 
     def run(self):
         workflow_key = self._get_field("workflowKey")
-        items = self._get_field("items")
-        base_execution_env = self._get_field("executionEnv")
+        items = self._get_field("items", as_json=True)
+        base_execution_env = self._get_field("executionEnv", as_json=True)
 
         try:
             for item in items:
                 writer.workflows.run_workflow_by_key(self.session, workflow_key, base_execution_env | { "item": item })
             self.outcome = "success"
-        except Exception:
+        except BaseException as e:
+            self.session.session_state.add_log_entry("error", "Workflows exception", repr(e))
             self.result = "HTTP call failed."
-            self.outcome = "connectionError"
+            self.outcome = "error"
