@@ -448,7 +448,17 @@ def export_component_tree(component_tree: ComponentTree, mode: ServeMode, only_u
     if only_update is True and component_tree.updated is False:
         return None
 
-    return component_tree.to_dict()
+    roots = ['root']
+    if mode == "edit":
+        roots.append('workflows_root')
+
+    _components: List[Component] = []
+    for root in roots:
+        _root_component = cast(Component, component_tree.get_component(root))
+        _components.append(_root_component)
+        _components += component_tree.get_descendents(root)
+
+    return {c.id: c.to_dict() for c in _components}
 
 class UIError(Exception):
     ...

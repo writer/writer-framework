@@ -19,7 +19,13 @@ from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
 from writer import VERSION, audit_and_fix, core_ui, wf_project
-from writer.core import Config, EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
+from writer.core import (
+    Config,
+    EventHandlerRegistry,
+    MiddlewareRegistry,
+    WriterSession,
+    use_request_context,
+)
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
