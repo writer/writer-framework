@@ -1,19 +1,7 @@
 <template>
-	<div
-		v-show="
-			tabContainerDirectChildInstanceItem?.instanceNumber ==
-				TAB_BIT_INSTANCE_NUMBER ||
-			(tabContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER &&
-				isTabActive)
-		"
-		class="CoreTab"
-	>
+	<div v-show="isVisible" class="CoreTab">
 		<button
-			v-if="
-				tabContainerDirectChildInstanceItem?.instanceNumber ==
-				TAB_BIT_INSTANCE_NUMBER
-			"
+			v-if="isTabBit"
 			class="bit"
 			:class="{ active: isTabActive }"
 			tabindex="0"
@@ -22,10 +10,7 @@
 			{{ fields.name.value }}
 		</button>
 		<BaseContainer
-			v-if="
-				tabContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER
-			"
+			v-if="isContentDisplaying"
 			v-show="isTabActive"
 			class="container"
 			:content-h-align="fields.contentHAlign.value"
@@ -118,6 +103,22 @@ const tabContainerDirectChildInstanceItem = computed(() => {
 	return instancePath.at(i);
 });
 
+const instanceNumber = computed<number | undefined>(
+	() => tabContainerDirectChildInstanceItem?.value.instanceNumber,
+);
+
+const isTabBit = computed(
+	() => instanceNumber.value === TAB_BIT_INSTANCE_NUMBER,
+);
+const isContentDisplaying = computed(
+	() => instanceNumber.value === CONTENT_DISPLAYING_INSTANCE_NUMBER,
+);
+
+const isVisible = computed(() => {
+	if (!isComponentVisible(componentId)) return false;
+	return isTabBit.value || (isContentDisplaying.value && isTabActive.value);
+});
+
 const getTabContainerData = () => {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
@@ -165,10 +166,7 @@ watch(selectedId, (newSelectedId) => {
 
 const isTabActive = computed(() => {
 	let contentDisplayingInstancePath: InstancePath;
-	if (
-		tabContainerDirectChildInstanceItem?.value.instanceNumber ==
-		TAB_BIT_INSTANCE_NUMBER
-	) {
+	if (isTabBit.value) {
 		contentDisplayingInstancePath = getMatchingTabInstancePath();
 	} else {
 		contentDisplayingInstancePath = instancePath;
@@ -182,11 +180,7 @@ const isTabActive = computed(() => {
 });
 
 onBeforeMount(() => {
-	if (
-		tabContainerDirectChildInstanceItem?.value.instanceNumber ==
-		TAB_BIT_INSTANCE_NUMBER
-	)
-		return;
+	if (isTabBit.value) return;
 	const tabContainerData = getTabContainerData();
 	const activeTab = tabContainerData.value?.activeTab;
 	if (activeTab) return;
