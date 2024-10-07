@@ -159,7 +159,7 @@ const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
-const defaultConversation = `[
+const initConversation = `[
   {
   "role": "assistant",
   "content": "How can I help you?"
@@ -238,7 +238,7 @@ export default {
 		fields: {
 			conversation: {
 				name: "Conversation",
-				default: defaultConversation,
+				init: initConversation,
 				desc: "An array with messages or a writer.ai.Conversation object.",
 				type: FieldType.Object,
 			},

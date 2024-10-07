@@ -10,7 +10,7 @@ class WriterClassification(WorkflowBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterClassification, cls).register(type)
-        register_abstract_template("workflows_writerclassification", AbstractTemplate(
+        register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
                 "name": "Writer Classification",
@@ -23,7 +23,8 @@ class WriterClassification(WorkflowBlock):
                     },
                     "categories": {
                         "name": "Categories",
-                        "type": "Key-Value"
+                        "type": "Key-Value",
+                        "default": "{}"
                     },
                     "additionalContext": {
                         "name": "Additional context",

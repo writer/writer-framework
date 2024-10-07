@@ -46,10 +46,17 @@ const isWorkflowsFeatureFlagged = computed(() =>
 let selectedId: Ref<string> = ref(null);
 
 const selectOption = (optionId: "ui" | "code" | "preview" | "workflows") => {
+	const preMode = ssbm.getMode();
+	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
-	if (ssbm.getMode() != "preview") return;
-	ssbm.setSelection(null);
+	if (
+		optionId == "preview" ||
+		preMode == "workflows" ||
+		optionId == "workflows"
+	) {
+		ssbm.setSelection(null);
+	}
 };
 
 const activeId = computed(() => {

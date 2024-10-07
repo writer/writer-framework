@@ -982,7 +982,7 @@ class WriterState(State):
 
         log_method(f"{color}{log_message}\x1b[0m", *log_args)
 
-    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None) -> None:
+    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None, workflow_execution: Optional[List[Dict]] = None) -> None:
         self._log_entry_in_logger(type, title, message, code)
         if not Config.is_mail_enabled_for_log:
             return
@@ -995,7 +995,8 @@ class WriterState(State):
             "type": type,
             "title": title,
             "message": shortened_message,
-            "code": code
+            "code": code,
+            "workflowExecution": workflow_execution
         })
 
     def file_download(self, data: Any, file_name: str):
@@ -1406,7 +1407,7 @@ class Evaluator:
     It allows for the sanitisation of frontend inputs.
     """
 
-    template_regex = re.compile(r"[\\]?@{([^{]*)}")
+    template_regex = re.compile(r"[\\]?@{([^{]*?)}")
 
     def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
         self.wf = session_state
@@ -1422,7 +1423,8 @@ class Evaluator:
             try:
                 if as_json:
                     serialised_value = state_serialiser.serialise(expr_value)
-                    return json.dumps(serialised_value)
+                    serialised_value = json.dumps(serialised_value)
+                    return serialised_value
                 return expr_value
             except BaseException:
                 raise ValueError(
@@ -1441,7 +1443,12 @@ class Evaluator:
                 replaced = replacer(full_match)
 
             if (replaced is not None) and as_json:
-                return json.loads(replaced)
+                replaced_as_json = None
+                try:
+                    replaced_as_json = json.loads(replaced)
+                except json.JSONDecodeError:
+                    replaced_as_json = json.loads(default_field_value)
+                return replaced_as_json
             else:
                 return replaced
         else:
@@ -1704,20 +1711,32 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _get_workflow_callable(self, workflow_key):
+    def _get_workflow_callable(self, workflow_key: Optional[str], workflow_id: Optional[str]):
         def fn(payload, context, session):
             execution_env = {
                 "payload": payload,
                 "context": context,
                 "session": session
             }
-            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+            if workflow_key:
+                writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+            elif workflow_id:
+                writer.workflows.run_workflow(self.session, workflow_id, execution_env)                
         return fn
 
-    def _get_handler_callable(self, handler: str) -> Optional[Callable]:
+    def _get_handler_callable(self, target_component: Component, event_type: str) -> Optional[Callable]:        
+        if event_type == "wf-builtin-run" and Config.mode == "edit":
+            return self._get_workflow_callable(None, target_component.id)
+        
+        if not target_component.handlers:
+            return None
+        handler = target_component.handlers.get(event_type)
+        if not handler:
+            raise ValueError(f"""Invalid handler. Couldn't find the handler for event type "{ event_type }" on component "{ target_component.id }".""")
+
         if handler.startswith("$runWorkflow_"):
             workflow_key = handler[13:] 
-            return self._get_workflow_callable(workflow_key)
+            return self._get_workflow_callable(workflow_key, None)
 
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
@@ -1732,17 +1751,10 @@ class EventHandler:
         instance_path: List[InstancePathItem],
         payload: Any
     ) -> Any:
-        if not target_component.handlers:
-            return
-        handler = target_component.handlers.get(event_type)
-        if not handler:
-            return
-
-        handler_callable = self._get_handler_callable(handler)
+        
+        handler_callable = self._get_handler_callable(target_component, event_type)
         if not handler_callable:
-            raise ValueError(f"""Invalid handler. Couldn't find the handler "{ handler }".""")
-
-        print("paylo is " + repr(payload))
+            return
 
         # Preparation of arguments
         context_data = self.evaluator.get_context_data(instance_path)

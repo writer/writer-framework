@@ -2,6 +2,7 @@
 	<div
 		ref="rootEl"
 		class="WorkflowsWorkflow"
+		@click="handleClick"
 		@dragover="handleDragover"
 		@drop="handleDrop"
 		@drag="handleDrag"
@@ -13,6 +14,11 @@
 				:key="arrowId"
 				:arrow="arrow"
 				:is-selected="selectedArrow == arrowId"
+				:is-engaged="
+					selectedArrow == arrowId ||
+					wfbm.getSelectedId() == arrow.fromNodeId ||
+					wfbm.getSelectedId() == arrow.out.toNodeId
+				"
 				@click="handleArrowClick($event, arrowId)"
 				@delete="handleDeleteClick($event, arrow)"
 			></WorkflowArrow>
@@ -34,6 +40,9 @@
 				"
 			></component>
 		</template>
+		<WdsButton class="runButton" variant="secondary" @click="handleRun">{{
+			isRunning ? "Running..." : "Run"
+		}}</WdsButton>
 	</div>
 </template>
 
@@ -41,6 +50,7 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -72,6 +82,7 @@ export type WorkflowArrowData = {
 	color: string;
 	fromNodeId: Component["id"];
 	out: Component["outs"][number];
+	isEngaged: boolean;
 };
 </script>
 <script setup lang="ts">
@@ -87,8 +98,11 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = ref({ x: 0, y: 0 });
+const isRunning = ref(false);
 let clickOffset = { x: 0, y: 0 };
 const selectedArrow = ref(null);
+const componentId = inject(injectionKeys.componentId);
+const instancePath = inject(injectionKeys.instancePath);
 
 const workflowComponentId = inject(injectionKeys.componentId);
 
@@ -127,6 +141,7 @@ function refreshArrows() {
 				if (!fromEl || !toEl) return;
 				const fromCBR = fromEl.getBoundingClientRect();
 				const toCBR = toEl.getBoundingClientRect();
+
 				a.push({
 					x1: fromCBR.x - canvasCBR.x + fromCBR.width / 2,
 					y1: fromCBR.y - canvasCBR.y + fromCBR.height / 2,
@@ -145,6 +160,26 @@ const isUnselectable = computed(() => {
 	if (activeNodeOut.value === null) return null;
 	return true;
 });
+
+function handleClick() {
+	selectedArrow.value = null;
+}
+
+async function handleRun() {
+	if (isRunning.value) return;
+	isRunning.value = true;
+	await wf.forwardEvent(
+		new CustomEvent("wf-builtin-run", {
+			detail: {
+				callback: () => {
+					isRunning.value = false;
+				},
+			},
+		}),
+		instancePath,
+		false,
+	);
+}
 
 function handleNodeOutSelect(componentId: Component["id"], outId: string) {
 	activeNodeOut.value = {
@@ -212,7 +247,9 @@ function handleArrowClick(ev: MouseEvent, arrowId: number) {
 		selectedArrow.value = null;
 		return;
 	}
+	ev.stopPropagation();
 	selectedArrow.value = arrowId;
+	wfbm.setSelection(null);
 }
 
 async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
@@ -273,6 +310,14 @@ async function createNode(type: string, x: number, y: number) {
 }
 
 watch(
+	() => wfbm.getSelectedId(),
+	(newSelected) => {
+		if (!newSelected) return;
+		selectedArrow.value = null;
+	},
+);
+
+watch(
 	children,
 	async (postChildren, preChildren) => {
 		// Remove references when a node is deleted
@@ -283,24 +328,24 @@ watch(
 			[...preIds].filter((cId) => !postIds.has(cId)),
 		);
 
-		postChildren.forEach((c) => {
-			if (!c.outs || c.outs.length === 0) return;
-			c.outs = c.outs.filter((out) => !removedIds.has(out.toNodeId));
-		});
+		if (removedIds.size > 0) {
+			postChildren.forEach((c) => {
+				if (!c.outs || c.outs.length === 0) return;
+				c.outs = c.outs.filter((out) => !removedIds.has(out.toNodeId));
+			});
+			wf.sendComponentUpdate();
+		}
 
 		// Refresh arrows
 
 		await nextTick();
 		refreshArrows();
-
-		if (removedIds.size > 0) {
-			wf.sendComponentUpdate();
-		}
 	},
 	{ deep: true },
 );
 
-onMounted(() => {
+onMounted(async () => {
+	await nextTick();
 	refreshArrows();
 });
 </script>
@@ -318,6 +363,12 @@ onMounted(() => {
 	align-items: stretch;
 	position: relative;
 	overflow: hidden;
+}
+
+.runButton {
+	position: absolute;
+	right: 32px;
+	top: 32px;
 }
 
 .component.WorkflowsWorkflow.selected {

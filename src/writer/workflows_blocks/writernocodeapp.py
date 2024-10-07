@@ -1,36 +1,36 @@
+import json
+
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class WriterCompletion(WorkflowBlock):
+class WriterNoCodeApp(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(WriterCompletion, cls).register(type)
+        super(WriterNoCodeApp, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer Completion",
-                "description": "Set the value for a state element",
+                "name": "Writer no-code app",
+                "description": "Run a no-code app.",
                 "category": "Content",
                 "fields": {
-                    "prompt": {
-                        "name": "Prompt",
+                    "appId": {
+                        "name": "App Id",
                         "type": "Text",
                     },
-                    "tools": {
-                        "name": "Tools",
-                        "type": "Object"
-                    }
+                    "appInputs": {
+                        "name": "App inputs",
+                        "type": "Key-Value",
+                        "default": "{}"
+                    },
                 },
                 "outs": {
-                    # "$tools": {
-                    #     "field": "tools"
-                    # },
                     "success": {
                         "name": "Success",
-                        "description": "If the function doesn't raise an Exception.",
+                        "description": "If the execution was successful.",
                         "style": "success",
                     },
                     "error": {
@@ -45,15 +45,15 @@ class WriterCompletion(WorkflowBlock):
     def run(self):
         import writer.ai
 
-        prompt = self._get_field("prompt")
-        # model_id = self._get_field("modelId")
+        application_id = self._get_field("appId")
+        app_inputs = self._get_field("appInputs", as_json=True)
 
-        config = {}
+        # config = {}
         # if model_id:
         #     config["model"] = model_id
 
         try:
-            result = writer.ai.complete(prompt, config).strip()
+            result = writer.ai.apps.generate_content(application_id, app_inputs).strip()
             self.result = result
             self.outcome = "success"
         except BaseException:

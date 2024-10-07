@@ -39,7 +39,8 @@ const rootEl: Ref<HTMLElement> = ref(null);
 
 const displayedWorkflowId = computed(() => {
 	const activePageId = wf.getActivePageId();
-	if (activePageId && wf.isChildOf("workflows_root", activePageId))
+	const activePageExists = Boolean(wf.getComponentById(activePageId));
+	if (activePageExists && wf.isChildOf("workflows_root", activePageId))
 		return activePageId;
 
 	const pageComponents = wf.getComponents("workflows_root", {
