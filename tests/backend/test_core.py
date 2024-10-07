@@ -595,7 +595,7 @@ class TestState:
                 "total": 0
             })
 
-            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+            initial_state.subscribe_mutation(r'a\.b', cumulative_sum)
 
             # Acts
             initial_state['a.b'] = 1
@@ -1708,6 +1708,6 @@ def test_parse_state_variable_expression_should_process_expression():
     # When
     assert parse_state_variable_expression('features') == ['features']
     assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
-    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
-    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']
+    assert parse_state_variable_expression(r'features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression(r'features\.eyes.color') == ['features.eyes', 'color']
 
