@@ -1,5 +1,10 @@
 <template>
-	<g class="WorkflowArrow" tabindex="0" data-writer-unselectable="true">
+	<g
+		class="WorkflowArrow"
+		tabindex="0"
+		data-writer-unselectable="true"
+		:class="{ engaged: isEngaged }"
+	>
 		<path :d="pathD" :style="{ stroke: arrow.color }"></path>
 		<path
 			:d="pathD"
@@ -50,6 +55,7 @@ const emit = defineEmits(["delete"]);
 const props = defineProps<{
 	arrow: WorkflowArrowData;
 	isSelected: boolean;
+	isEngaged: boolean;
 }>();
 
 const points = computed(() => {
@@ -98,6 +104,10 @@ function handleDeleteClick() {
 
 <style scoped>
 @import "@/renderer/sharedStyles.css";
+
+.WorkflowArrow:not(.engaged):not(:hover) {
+	filter: grayscale();
+}
 
 g {
 	outline: none;
