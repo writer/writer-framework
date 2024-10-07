@@ -1719,7 +1719,7 @@ class EventHandler:
             return self._get_workflow_callable(None, target_component.id)
         
         if not target_component.handlers:
-            return
+            return None
         handler = target_component.handlers.get(event_type)
         if not handler:
             raise ValueError(f"""Invalid handler. Couldn't find the handler for event type "{ event_type }" on component "{ target_component.id }".""")

@@ -61,7 +61,7 @@ class WriterAddChatMessage(WorkflowBlock):
             
             self.result = "Success"
             self.outcome = "success"
-        except BaseException as e:
+        except BaseException:
             self.result = "Text completion failed"
             self.outcome = "error"
 

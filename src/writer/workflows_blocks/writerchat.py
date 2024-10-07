@@ -58,12 +58,11 @@ class WriterChat(WorkflowBlock):
         if incoming_message:
             conversation += incoming_message
             self.evaluator.set_state(conversation_state_element, self.instance_path, conversation)
-            conversation:writer.ai.Conversation = conversation
             msg = conversation.complete()
             conversation += msg
             self.evaluator.set_state(conversation_state_element, self.instance_path, conversation)
 
-        config = {}
+        # config = {}
         # if model_id:
         #     config["model"] = model_id
 
@@ -71,7 +70,7 @@ class WriterChat(WorkflowBlock):
             
             self.result = "Success"
             self.outcome = "success"
-        except BaseException as e:
+        except BaseException:
             self.result = "Text completion failed"
             self.outcome = "error"
 

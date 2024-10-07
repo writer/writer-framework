@@ -55,7 +55,7 @@ class WriterCompletion(WorkflowBlock):
         try:
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
-            self.outcome = f"success"
-        except BaseException as e:
+            self.outcome = "success"
+        except BaseException:
             self.result = "Text completion failed"
             self.outcome = "error"

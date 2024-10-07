@@ -48,7 +48,7 @@ class WriterNoCodeApp(WorkflowBlock):
         application_id = self._get_field("appId")
         app_inputs = self._get_field("appInputs", as_json=True)
 
-        config = {}
+        # config = {}
         # if model_id:
         #     config["model"] = model_id
 
@@ -56,6 +56,6 @@ class WriterNoCodeApp(WorkflowBlock):
             result = writer.ai.apps.generate_content(application_id, app_inputs).strip()
             self.result = result
             self.outcome = "success"
-        except BaseException as e:
+        except BaseException:
             self.result = "Text completion failed"
             self.outcome = "error"

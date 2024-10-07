@@ -49,6 +49,6 @@ class LogMessage(WorkflowBlock):
             self.session.session_state.add_log_entry(type, "Workflows message", message)
             self.result = None
             self.outcome = "success"
-        except Exception as e:
+        except Exception:
             self.result = "Logging message failed."
             self.outcome = "error"
