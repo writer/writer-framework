@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 import writer as wf
 import writer.core
+from writer import WriterUIManager
 
 writer.Config.feature_flags.append("flag_one")
 writer.Config.feature_flags.append("flag_two")
@@ -50,6 +51,11 @@ def update_cities(state, payload):
             "ln": "London",
             "br": "Bristol"
         }
+
+def create_text_widget(ui: WriterUIManager):
+    with ui.find('bb4d0e86-619e-4367-a180-be28ab6059f4'):
+        ui.Text({"text": "Hello world"})
+
 
 logging.info("VERIFIERS")
 logging.info(writer.core.session_manager.verifiers)
