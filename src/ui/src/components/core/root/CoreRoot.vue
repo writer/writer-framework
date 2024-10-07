@@ -86,7 +86,9 @@ const { isComponentVisible } = useEvaluator(wf);
 
 const displayedPageId = computed(() => {
 	const activePageId = wf.getActivePageId();
-	if (activePageId && wf.isChildOf("root", activePageId)) return activePageId;
+	const activePageExists = Boolean(wf.getComponentById(activePageId));
+	if (activePageExists && wf.isChildOf("root", activePageId))
+		return activePageId;
 
 	const pageComponents = wf.getComponents("root", {
 		includeBMC: true,
