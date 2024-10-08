@@ -1,0 +1,7 @@
+{"id": "qlbz49xq2emx9ip4", "type": "page", "content": {"key": "setup"}, "isCodeManaged": false, "position": 0, "parentId": "root", "handlers": {}, "visible": true}
+{"id": "0jbl2x7sl5gbjdnl", "type": "section", "content": {"title": "Test"}, "isCodeManaged": false, "position": 0, "parentId": "qlbz49xq2emx9ip4", "handlers": {}, "visible": true}
+{"id": "byk3srfwyj1hn4wl", "type": "button", "content": {"text": "Run test", "cssClasses": "TestExec"}, "isCodeManaged": false, "position": 1, "parentId": "0jbl2x7sl5gbjdnl", "handlers": {"wf-click": "execute_test"}, "visible": true}
+{"id": "1ybermv0ttvw4lhk", "type": "textareainput", "content": {"label": "Input Label", "rows": "5", "cssClasses": "TestInput"}, "isCodeManaged": false, "position": 0, "parentId": "0jbl2x7sl5gbjdnl", "handlers": {}, "visible": true, "binding": {"eventType": "wf-change", "stateRef": "code"}}
+{"id": "results", "type": "section", "content": {"title": "Test Results", "cssClasses": "results"}, "isCodeManaged": false, "position": 1, "parentId": "qlbz49xq2emx9ip4", "handlers": {}, "visible": true}
+{"id": "5756wvfy52nzjnrl", "type": "textinput", "parentId": "0jbl2x7sl5gbjdnl", "content": {"label": "Input Label"}, "handlers": {}, "position": 2, "visible": true}
+{"id": "initialization", "type": "section", "parentId": "qlbz49xq2emx9ip4", "content": {"title": "Initialization", "cssClasses": "initialization"}, "handlers": {}, "position": 2, "visible": true}
