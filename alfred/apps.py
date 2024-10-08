@@ -24,6 +24,13 @@ def apps_update(app: str = None):
             'tests/backend/testbasicauth',
             'tests/backend/testmultiapp/app1',
             'tests/backend/testmultiapp/app2',
+            'tests/e2e/presets/2columns',
+            'tests/e2e/presets/2pages',
+            'tests/e2e/presets/empty_page',
+            'tests/e2e/presets/jsonviewer',
+            'tests/e2e/presets/low_code',
+            'tests/e2e/presets/section',
+            'tests/e2e/presets/state',
         ]
 
     for app in apps:
@@ -34,6 +41,9 @@ def apps_update(app: str = None):
         if os.path.isfile(os.path.join(abs_path, "ui.json")):
             print(f'{app} : migrate ui.json')
             wf_project.migrate_obsolete_ui_json(abs_path)
+
+        if not os.path.isfile(os.path.join(abs_path, ".wf", 'components-workflows_root.jsonl')):
+            wf_project.create_default_workflows_root(abs_path)
 
         metadata, components = wf_project.read_files(abs_path)
         if metadata.get('writer_version') == writer.VERSION:
