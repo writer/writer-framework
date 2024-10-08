@@ -37,10 +37,11 @@ function copyToClipboard({ text = "" }: { text?: string }) {
 @import "@/renderer/sharedStyles.css";
 
 .BaseControlBar {
-	margin: 10px 0;
+	margin-top: 8px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
+	gap: 8px;
 }
 
 .control-button {
@@ -50,7 +51,6 @@ function copyToClipboard({ text = "" }: { text?: string }) {
 	color: white;
 	cursor: pointer;
 	font-size: 11px;
-	margin-right: 10px;
 	padding: 4px 8px;
 
 	&:hover {
