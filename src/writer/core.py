@@ -874,7 +874,7 @@ class State(metaclass=StateMeta):
 
         for p in path_list:
             state_proxy = self._state_proxy
-            path_parts = p.split(".")
+            path_parts = parse_state_variable_expression(p)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
                     local_mutation = MutationSubscription('property', p, handler, self, property_name)
@@ -1515,28 +1515,36 @@ class Evaluator:
         s = ""
         level = 0
 
-        for c in expr:
-            if c == ".":
+        i = 0
+        while i < len(expr):
+            character = expr[i]
+            if character == "\\":
+                if i + 1 < len(expr):
+                    s += expr[i + 1]
+                    i += 1
+            elif character == ".":
                 if level == 0:
                     accessors.append(s)
                     s = ""
                 else:
-                    s += c
-            elif c == "[":
+                    s += character
+            elif character == "[":
                 if level == 0:
                     accessors.append(s)
                     s = ""
                 else:
-                    s += c
+                    s += character
                 level += 1
-            elif c == "]":
+            elif character == "]":
                 level -= 1
                 if level == 0:
                     s = str(self.evaluate_expression(s, instance_path))
                 else:
-                    s += c
+                    s += character
             else:
-                s += c
+                s += character
+
+            i += 1
 
         if s:
             accessors.append(s)

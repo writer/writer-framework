@@ -56,7 +56,8 @@ raw_state_dict = {
     "counter": 4,
     "_private": 3,
     # Used as an example of something unserialisable yet pickable
-    "_private_unserialisable": np.array([[1+2j, 2, 3+3j]])
+    "_private_unserialisable": np.array([[1+2j, 2, 3+3j]]),
+    "a.b": 3
 }
 
 simple_dict = {"items": {
@@ -157,7 +158,8 @@ class TestStateProxy(unittest.TestCase):
             '+interests': ['lamps', 'cars'],
             '+name': 'Robert',
             '+state\\.with\\.dots': None,
-            '+utfࠀ': 23
+            '+utfࠀ': 23,
+            '+a\.b': 3
         }
 
         self.sp_simple_dict.apply_mutation_marker()
@@ -1135,6 +1137,7 @@ class TestEvaluator:
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
+        assert e.evaluate_expression("a\.b", instance_path) == 3
 
     def test_get_context_data_should_return_the_target_of_event(self) -> None:
         """
@@ -1185,7 +1188,6 @@ class TestEvaluator:
         assert context.get("target") == "button1"
         assert context.get("item") == "b"
         assert context.get("value") == "B"
-
 
 class TestSessionManager:
 

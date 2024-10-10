@@ -17,9 +17,15 @@ export function useEvaluator(wf: Core) {
 			s = "";
 		let level = 0;
 
-		for (let i = 0; i < expr.length; i++) {
+		let i = 0
+		while (i < expr.length) {
 			const c = expr.charAt(i);
-			if (c == ".") {
+			if (c == "\\") {
+				if (i + 1 < expr.length) {
+					s += expr.charAt(i + 1);
+					i++;
+				}
+			} else if (c == ".") {
 				if (level == 0) {
 					accessors.push(s);
 					s = "";
@@ -44,6 +50,8 @@ export function useEvaluator(wf: Core) {
 			} else {
 				s += c;
 			}
+
+			i++
 		}
 
 		if (s) {
