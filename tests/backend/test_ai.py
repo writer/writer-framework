@@ -73,7 +73,7 @@ from writerai._streaming import Stream
 from writerai.types import (
     ApplicationGenerateContentResponse,
     Chat,
-    ChatStreamingData,
+    ChatCompletionChunk,
     Completion,
     StreamingData,
 )
@@ -112,14 +112,19 @@ def mock_non_streaming_client():
                 choices=[
                     {
                         "finish_reason": "stop",
+                        "index": 0,
+                        "logprobs": {},
                         "message": {
                             "role": "assistant",
-                            "content": "Response"
+                            "content": "Response",
+                            "refusal": "false"
                             }
-                    }
+                    },
+
                 ],
                 created=0,
-                model="test"
+                model="test",
+                object="test"
                 )
         non_streaming_client.completions.create.return_value = \
             Completion(choices=[{"text": test_complete_literal}])
@@ -140,7 +145,7 @@ def mock_streaming_client():
 
         mock_chat_stream = Stream(
             client=original_client,
-            cast_to=ChatStreamingData,
+            cast_to=ChatCompletionChunk,
             response=httpx.Response(
                 status_code=200,
                 content=fake_response_content()
@@ -176,7 +181,8 @@ def sdk_file_mock():
         id="test_file_id",
         created_at=datetime.now(),
         graph_ids=["test_graph_id"],
-        name="test_file"
+        name="test_file",
+        status="test"
     )
 
 

@@ -1,6 +1,9 @@
+import json
 import logging
 from datetime import datetime
 from typing import (
+    Any,
+    Callable,
     Dict,
     Generator,
     Iterable,
@@ -33,7 +36,10 @@ from writerai.types import (
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.application_generate_content_params import Input
+from writerai.types.chat import ChoiceMessage
 from writerai.types.chat_chat_params import Message as WriterAIMessage
+from writerai.types.chat_chat_params import ToolFunctionTool as SDKFunctionTool
+from writerai.types.chat_chat_params import ToolGraphTool as SDKGraphTool
 
 from writer.core import get_app_process
 
@@ -47,6 +53,7 @@ class APIOptions(TypedDict, total=False):
 
 class ChatOptions(APIOptions, total=False):
     model: str
+    tools: Union[Iterable[Union[SDKGraphTool, SDKFunctionTool]], NotGiven]
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
     stop: Union[List[str], str, NotGiven]
@@ -62,7 +69,7 @@ class CreateOptions(APIOptions, total=False):
     stop: Union[List[str], str, NotGiven]
     temperature: Union[float, NotGiven]
     top_p: Union[float, NotGiven]
-    
+
 
 class APIListOptions(APIOptions, total=False):
     after: Union[str, NotGiven]
@@ -70,11 +77,29 @@ class APIListOptions(APIOptions, total=False):
     limit: Union[int, NotGiven]
     order: Union[Literal["asc", "desc"], NotGiven]
 
-logger = logging.Logger(__name__)
+
+class Tool(TypedDict, total=False):
+    type: str
+
+
+class GraphTool(Tool):
+    graph_ids: List[str]
+    subqueries: bool
+
+
+class FunctionTool(Tool):
+    callable: Callable
+    name: str
+    parameters: Dict[str, Dict[str, str]]
+
+
+logger = logging.Logger(__name__, level=logging.DEBUG)
 
 
 def _process_completion_data_chunk(choice: StreamingData) -> str:
     text = choice.value
+    if not text:
+        return ""
     if isinstance(text, str):
         return text
     raise ValueError("Failed to retrieve text from completion stream")
@@ -83,11 +108,20 @@ def _process_completion_data_chunk(choice: StreamingData) -> str:
 def _process_chat_data_chunk(chat_data: Chat) -> dict:
     choices = chat_data.choices
     for entry in choices:
-        dict_entry = cast(dict, entry)
-        message = cast(dict, dict_entry["message"])
-        return message
-    raise ValueError("Failed to retrieve text from chat stream")
+        dict_entry = entry.model_dump()
+        if dict_entry.get("delta"):
+            delta = cast(dict, dict_entry["delta"])
 
+            # Provide content as empty string in case there is no diff
+            delta["content"] = delta["content"] or ""
+            return delta
+        elif dict_entry.get("message"):
+            message = cast(dict, dict_entry["message"])
+
+            # Provide content as empty string in case there is no diff
+            message["content"] = message["content"] or ""
+            return message
+    raise ValueError("Failed to retrieve text from chat stream")
 
 class WriterAIManager:
     """
@@ -708,7 +742,7 @@ class Conversation:
         This would increase the `max_tokens` limit to 150 and adjust the `temperature` to 0.7 for this specific call.
 
     """
-    class Message(TypedDict):
+    class Message(TypedDict, total=False):
         """
         Typed dictionary for conversation messages.
 
@@ -716,9 +750,11 @@ class Conversation:
         :param content: Text content of the message.
         :param actions: Optional dictionary containing actions related to the message.
         """
-        role: Literal["system", "assistant", "user"]
-        content: str
+        role: Literal["system", "assistant", "user", "tool"]
+        content: Union[str, None]
         actions: Optional[dict]
+        name: Optional[str]
+        tool_call_id: Optional[str]
 
     @classmethod
     def validate_message(cls, message):
@@ -732,9 +768,9 @@ class Conversation:
             raise ValueError(f"Attempted to add a non-dict object to the Conversation: {message}")
         if not ("role" in message and "content" in message):
             raise ValueError(f"Improper message format to add to Conversation: {message}")
-        if not (isinstance(message["content"], str)):
+        if not (isinstance(message["content"], str) or message["content"] is None):
             raise ValueError(f"Non-string content in message cannot be added: {message}")
-        if message["role"] not in ["system", "assistant", "user"]:
+        if message["role"] not in ["system", "assistant", "user", "tool"]:
             raise ValueError(f"Unsupported role in message: {message}")
 
     def __init__(self, prompt_or_history: Optional[Union[str, List['Conversation.Message']]] = None, config: Optional[ChatOptions] = None):
@@ -771,6 +807,8 @@ class Conversation:
                 self += message
 
         self.config = config or {}
+        self._callable_registry: Dict = {}
+        self._ongoing_tool_calls: Dict = {}
 
     def _merge_chunk_to_last_message(self, raw_chunk: dict):
         """
@@ -803,7 +841,198 @@ class Conversation:
         """
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
-        return WriterAIMessage(content=message["content"], role=message["role"])
+        sdk_message = WriterAIMessage(
+            content=message["content"],
+            role=message["role"]
+            )
+        if message.get("name"):
+            sdk_message["name"] = message["name"]
+        if message.get("tool_call_id"):
+            sdk_message["tool_call_id"] = message.get("tool_call_id")
+        return sdk_message
+
+    def _register_callable(
+            self,
+            callable_to_register: Callable,
+            name: str,
+            parameters: Dict[str, Dict[str, str]]
+    ):
+        """
+        Internal helper function to store a provided callable for function call,
+        to retrieve it when processing LLM response
+        """
+        if not callable(callable_to_register):
+            raise ValueError(
+                f"Expected `{name}` to be callable " +
+                f"but got {type(callable_to_register)}"
+                )
+        self._callable_registry[name] = \
+            {
+                "callable": callable_to_register,
+                "parameters": parameters
+            }
+
+    def _clear_callable_registry(self):
+        """
+        Clear callable registry after LLM response
+        """
+        self._callable_registry = {}
+
+    def _clear_ongoing_tool_calls(self):
+        self._ongoing_tool_calls = {}
+
+    def _clear_tool_calls_helpers(self):
+        self._clear_callable_registry()
+        self._clear_ongoing_tool_calls()
+
+    @property
+    def _tool_calls_ready(self):
+        calls_map = {
+            index: "res" in ongoing_tool_call
+            for index, ongoing_tool_call
+            in self._ongoing_tool_calls.items()
+            }
+        return all(calls_map.values()) if calls_map else False
+
+    def _gather_tool_calls_messages(self):
+        return {
+            index: ongoing_tool_call.get("res")
+            for index, ongoing_tool_call
+            in self._ongoing_tool_calls.items()
+            }
+
+    def _prepare_tool(
+            self,
+            tool_instance: Union['Graph', GraphTool, FunctionTool]
+            ) -> Union[SDKGraphTool, SDKFunctionTool]:
+        """
+        Internal helper function to process a tool instance into the required format.
+        """
+        def validate_parameters(parameters: Dict[str, Dict[str, str]]) -> bool:
+            """
+            Validates the `parameters` dictionary to ensure that each key is a parameter name, 
+            and each value is a dictionary containing at least a `type` field, and optionally a `description`.
+
+            :param parameters: The parameters dictionary to validate.
+            :return: True if valid, raises ValueError if invalid.
+            """
+            if not isinstance(parameters, dict):
+                raise ValueError("`parameters` must be a dictionary")
+
+            for param_name, param_info in parameters.items():
+                if not isinstance(param_info, dict):
+                    raise ValueError(f"Parameter '{param_name}' must be a dictionary")
+
+                if "type" not in param_info:
+                    raise ValueError(f"Parameter '{param_name}' must include a 'type' field")
+
+                if not isinstance(param_info["type"], str):
+                    raise ValueError(f"'type' for parameter '{param_name}' must be a string")
+
+                # Optional 'description' validation (if provided)
+                if "description" in param_info and not isinstance(param_info["description"], str):
+                    raise ValueError(f"'description' for parameter '{param_name}' must be a string if provided")
+
+            return True
+
+        def validate_graph_ids(graph_ids: List[str]) -> bool:
+            """
+            Validates that `graph_ids` is a list of strings.
+
+            :param graph_ids: The list of graph IDs to validate.
+            :return: True if valid, raises ValueError if invalid.
+            """
+            if not isinstance(graph_ids, list):
+                raise ValueError("`graph_ids` must be a list")
+
+            for graph_id in graph_ids:
+                if not isinstance(graph_id, str):
+                    raise ValueError(f"Graph ID '{graph_id}' must be a string")
+
+            return True
+
+        if isinstance(tool_instance, Graph):
+            # Prepare a single graph tool
+            return cast(
+                SDKGraphTool,
+                {
+                    "type": "graph",
+                    "function": {
+                        "graph_ids": [tool_instance.id],
+                        "subqueries": True
+                    }
+                }
+            )
+
+        elif isinstance(tool_instance, dict):
+            # Handle a dictionary (either a graph or a function)
+            if "type" not in tool_instance:
+                raise ValueError("Invalid tool definition: 'type' field is missing")
+
+            tool_type = tool_instance["type"]
+
+            if tool_type == "graph":
+                tool_instance = cast(GraphTool, tool_instance)
+                if "graph_ids" not in tool_instance:
+                    raise ValueError("Graph tool must include 'graph_ids'")
+                # Return graph tool JSON
+
+                graph_ids_valid = validate_graph_ids(tool_instance["graph_ids"])
+                if graph_ids_valid:
+                    return cast(
+                        SDKGraphTool,
+                        {
+                            "type": "graph",
+                            "function": {
+                                "graph_ids": tool_instance["graph_ids"],
+                                "subqueries": tool_instance.get(
+                                    "subqueries", False
+                                    )
+                            }
+                        }
+                    )
+                else:
+                    raise ValueError(
+                        "Invalid Graph IDs provided: " +
+                        f"{tool_instance['graph_ids']}"
+                        )
+
+            elif tool_type == "function":
+                tool_instance = cast(FunctionTool, tool_instance)
+                if "callable" not in tool_instance:
+                    raise ValueError("Function tool missing `callable`")
+                if "name" not in tool_instance or "parameters" not in tool_instance:
+                    raise ValueError("Function tool must include 'name' and 'parameters'")
+
+                parameters_valid = validate_parameters(tool_instance["parameters"])
+                # Return function tool JSON
+                if parameters_valid:
+                    self._register_callable(
+                        tool_instance["callable"],
+                        tool_instance["name"],
+                        tool_instance["parameters"]
+                        )
+                    return cast(
+                        SDKFunctionTool,
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": tool_instance["name"],
+                                "parameters": tool_instance["parameters"]
+                                }
+                        }
+                    )
+                else:
+                    raise ValueError(
+                        "Invalid parameters for function " +
+                        f"`{tool_instance['name']}`"
+                        )
+
+            else:
+                raise ValueError(f"Unsupported tool type: {tool_type}")
+
+        else:
+            raise ValueError(f"Invalid tool input: {tool_instance}")
 
     def __add__(self, chunk_or_message: Union['Conversation.Message', dict]):
         """
@@ -824,7 +1053,11 @@ class Conversation:
             self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
         return self
 
-    def add(self, role: str, message: str):
+    def add(
+            self,
+            role: Literal["system", "assistant", "user", "tool"],
+            message: str
+            ):
         """
         Adds a new message to the conversation.
 
@@ -833,7 +1066,320 @@ class Conversation:
         """
         self.__add__({"role": role, "content": message})
 
-    def complete(self, config: Optional['ChatOptions'] = None) -> 'Conversation.Message':
+    def _send_chat_request(
+            self,
+            passed_messages: Iterable[WriterAIMessage],
+            request_model: str,
+            request_data: ChatOptions,
+            stream: bool = False
+    ) -> Union[Stream, Chat]:
+        """
+        Helper function to send a chat request to the LLM.
+
+        :param passed_messages: Messages to send in the request.
+        :param request_model: Model to use for the chat.
+        :param request_data: Configuration settings for the chat request.
+        :param stream: Whether to use streaming mode.
+        :return: The response from the LLM, either as a Stream or a Chat object.
+        """
+        client = WriterAIManager.acquire_client()
+        logger.debug(
+            "Attempting to request a message from LLM: " +
+            f"passed_messages – {passed_messages}, " +
+            f"request_data – {request_data}"
+            )
+        return client.chat.chat(
+            messages=passed_messages,
+            model=request_model,
+            stream=stream,
+            tools=request_data.get('tools', NotGiven()),
+            max_tokens=request_data.get('max_tokens', NotGiven()),
+            n=request_data.get('n', NotGiven()),
+            stop=request_data.get('stop', NotGiven()),
+            temperature=request_data.get('temperature', NotGiven()),
+            top_p=request_data.get('top_p', NotGiven()),
+            extra_headers=request_data.get('extra_headers'),
+            extra_query=request_data.get('extra_query'),
+            extra_body=request_data.get('extra_body'),
+            timeout=request_data.get('timeout', NotGiven()),
+        )
+
+    def _convert_argument_to_type(self, value: Any, target_type: str) -> Any:
+        """
+        Converts the argument to the specified target type.
+
+        :param value: The value to convert.
+        :param target_type: The target type as a string.
+        :return: The converted value.
+        :raises ValueError: If the value cannot be converted to the target type.
+        """
+        if target_type == "string":
+            return str(value)
+        elif target_type == "integer":
+            return int(value)
+        elif target_type == "float":
+            return float(value)
+        elif target_type == "boolean":
+            if isinstance(value, str):
+                return value.lower() in ["true", "1"]
+            return bool(value)
+        elif target_type == "array":
+            if isinstance(value, str):
+                return json.loads(value)  # Assuming JSON string for arrays
+            elif isinstance(value, list):
+                return value
+            else:
+                raise ValueError(f"Cannot convert {value} to list.")
+        elif target_type == "object":
+            if isinstance(value, str):
+                return json.loads(value)  # Assuming JSON string for objects
+            elif isinstance(value, dict):
+                return value
+            else:
+                raise ValueError(f"Cannot convert {value} to dict.")
+        else:
+            raise ValueError(f"Unsupported target type: {target_type}")
+
+    def _execute_function_tool_call(self, index: int) -> dict:
+        """
+        Executes the function call for the specified tool call index.
+
+        :param index: The index of the tool call in _ongoing_tool_calls.
+        :return: The follow-up message to be sent to the LLM.
+        """
+        function_name = self._ongoing_tool_calls[index]["name"]
+        arguments = self._ongoing_tool_calls[index]["arguments"]
+        tool_call_id = self._ongoing_tool_calls[index]["tool_call_id"]
+
+        # Parse arguments and execute callable
+        try:
+            parsed_arguments = json.loads(arguments)
+            callable_entry = self._callable_registry.get(function_name)
+
+            if callable_entry:
+                func = callable_entry.get("callable")
+                if not func:
+                    raise ValueError(f"Misconfigured function {function_name}: no callable provided")
+                param_specs = callable_entry["parameters"]
+
+                # Convert arguments based on registered parameter types
+                converted_arguments = {}
+                for param_name, param_info in param_specs.items():
+                    if param_name in parsed_arguments:
+                        target_type = param_info["type"]
+                        value = parsed_arguments[param_name]
+                        converted_arguments[param_name] = self._convert_argument_to_type(value, target_type)
+                    else:
+                        raise ValueError(f"Missing required parameter: {param_name}")
+
+                # Call the function with converted arguments
+                try:
+                    func_result = func(**converted_arguments)
+                except Exception as e:
+                    logger.error(
+                        f"An error occured during the execution of function `{function_name}`: {e}"
+                    )
+                    func_result = "Function call failed"
+
+                # Prepare follow-up message with the function call result
+                follow_up_message = {
+                    "role": "tool",
+                    "name": function_name,
+                    "tool_call_id": tool_call_id,
+                    "content": func_result
+                }
+
+                return follow_up_message
+
+        except json.JSONDecodeError:
+            logger.error("Failed to parse arguments for tool call")
+
+        return {
+                    "role": "tool",
+                    "name": function_name,
+                    "tool_call_id": tool_call_id,
+                    "content": "Failed to parse arguments for tool call"
+                }
+
+    def _process_tool_call(self, index, tool_call_id, tool_call_name, tool_call_arguments):
+        if index not in self._ongoing_tool_calls:
+            self._ongoing_tool_calls[index] = {
+                "name": None, "arguments": "", "tool_call_id": None
+            }
+
+        # Capture `tool_call_id` from the message
+        if tool_call_id is not None:
+            self._ongoing_tool_calls[index]["tool_call_id"] = tool_call_id
+
+        # Capture `name` for function call
+        if tool_call_name is not None:
+            self._ongoing_tool_calls[index]["name"] = tool_call_name
+
+        # Accumulate arguments across chunks
+        if tool_call_arguments is not None:
+            self._ongoing_tool_calls[index]["arguments"] += tool_call_arguments
+
+        # Check if we have all necessary data to execute the function
+        if (
+            self._ongoing_tool_calls[index]["name"] is not None
+            and self._ongoing_tool_calls[index]["arguments"].endswith("}")
+        ):
+            follow_up_message = self._execute_function_tool_call(index)
+            if follow_up_message:
+                self._ongoing_tool_calls[index]["res"] = follow_up_message
+
+    def _process_tool_calls(self, message: ChoiceMessage):
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                index = tool_call.index
+                tool_call_id = tool_call.id
+                tool_call_name = tool_call.function.name
+                tool_call_arguments = tool_call.function.arguments
+
+                self._process_tool_call(
+                    index,
+                    tool_call_id,
+                    tool_call_name,
+                    tool_call_arguments
+                )
+
+    def _process_streaming_tool_calls(self, chunk: Dict):
+        tool_calls = chunk["tool_calls"]
+        if isinstance(tool_calls, list):
+            for tool_call in tool_calls:
+                index = tool_call["index"]
+                tool_call_id = tool_call["id"]
+                tool_call_name = tool_call["function"]["name"]
+                tool_call_arguments = tool_call["function"]["arguments"]
+
+                self._process_tool_call(
+                    index,
+                    tool_call_id,
+                    tool_call_name,
+                    tool_call_arguments
+                )
+
+    def _process_response_data(
+            self,
+            response_data: Chat,
+            passed_messages: List[WriterAIMessage],
+            request_model: str,
+            request_data: ChatOptions,
+            depth=1
+            ) -> 'Conversation.Message':
+        if depth > 3:
+            raise RuntimeError("Reached maximum depth when processing response data tool calls.")
+        for entry in response_data.choices:
+            message = entry.message
+            if message:
+                # Handling tool call fragments
+                logger.debug(f"Received message – {message}")
+                if message.tool_calls is not None:
+                    logger.debug(f"Message has tool calls - {message.tool_calls}")
+                    self._process_tool_calls(message)
+                    # Send follow-up call to LLM
+                    logger.debug("Sending a request to LLM")
+                    finalized_messages = passed_messages + [
+                                self._prepare_message(message)
+                                for message in self._gather_tool_calls_messages().values()
+                                ]
+                    follow_up_response = cast(
+                        Chat,
+                        self._send_chat_request(
+                            passed_messages=finalized_messages,
+                            request_model=request_model,
+                            request_data=request_data
+                        )
+                    )
+                    logger.debug(f"Received response – {follow_up_response}")
+
+                    # Clear buffer and callable registry for the completed tool call
+                    self._clear_tool_calls_helpers()
+
+                    # Call the function recursively to either process a new tool call
+                    # or return the message if no tool calls are requested
+                    return self._process_response_data(
+                        follow_up_response,
+                        passed_messages=passed_messages,
+                        request_model=request_model,
+                        request_data=request_data,
+                        depth=depth+1
+                        )
+                else:
+                    return cast(Conversation.Message, message.model_dump())
+        raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+
+    def _process_stream_response(
+            self,
+            response: Stream,
+            passed_messages: List[WriterAIMessage],
+            request_model: str,
+            request_data: ChatOptions,
+            depth=1,
+            flag_chunks=False
+    ) -> Generator[dict, None, None]:
+        if depth > 3:
+            raise RuntimeError("Reached maximum depth when processing response data tool calls.")
+        # We avoid flagging first chunk
+        # to trigger creating a message
+        # to append chunks to
+
+        for line in response:
+            chunk = _process_chat_data_chunk(line)
+
+            # Handling tool call fragments
+            if chunk.get("tool_calls") is not None:
+                self._process_streaming_tool_calls(chunk)
+                if self._tool_calls_ready:
+                    # Send follow-up call to LLM
+                    passed_messages = passed_messages + [
+                            self._prepare_message(message)
+                            for message in self._gather_tool_calls_messages().values()
+                            ]
+                    follow_up_response = cast(
+                        Stream,
+                        self._send_chat_request(
+                            passed_messages=passed_messages,
+                            request_model=request_model,
+                            request_data=request_data,
+                            stream=True
+                        )
+                    )
+
+                    # Clear buffer and callable registry for the completed tool call
+                    try:
+                        self._clear_tool_calls_helpers()
+                        yield from self._process_stream_response(
+                            response=follow_up_response,
+                            passed_messages=passed_messages,
+                            request_model=request_model,
+                            request_data=request_data,
+                            depth=depth+1,
+                            flag_chunks=True
+                        )
+                    finally:
+                        follow_up_response.close()
+
+            else:
+                # Handle regular message chunks
+                if flag_chunks is True:
+                    chunk |= {"chunk": True}
+                if flag_chunks is False:
+                    flag_chunks = True
+                yield chunk
+
+    def complete(
+            self,
+            config: Optional['ChatOptions'] = None,
+            tools: Optional[
+                Union[
+                    Graph,
+                    GraphTool,
+                    FunctionTool,
+                    List[Union[Graph, GraphTool, FunctionTool]]
+                    ]  # can be an instance of tool or a list of instances
+                ] = None
+            ) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
@@ -842,34 +1388,48 @@ class Conversation:
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted to retrieve model text.
         """
-        config = config or {'max_tokens': 2048}
+        config = config or {'max_tokens': 1024}
+        if tools is not None and not isinstance(tools, list):
+            tools = [tools]
 
-        client = WriterAIManager.acquire_client()
-        passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
+        prepared_tools = [
+            self._prepare_tool(tool_instance) for tool_instance in (tools or [])
+            ]
+
+        passed_messages: List[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**config, **self.config}
+        if prepared_tools:
+            request_data |= {"tools": prepared_tools}
         request_model = request_data.get("model") or WriterAIManager.use_chat_model()
 
-        response_data: Chat = client.chat.chat(
-            messages=passed_messages,
-            model=request_model,
-            max_tokens=request_data.get('max_tokens', NotGiven()),
-            n=request_data.get('n', NotGiven()),
-            stop=request_data.get('stop', NotGiven()),
-            temperature=request_data.get('temperature', NotGiven()),
-            top_p=request_data.get('top_p', NotGiven()),
-            extra_headers=request_data.get('extra_headers'),
-            extra_query=request_data.get('extra_query'),
-            extra_body=request_data.get('extra_body'),
-            timeout=request_data.get('timeout', NotGiven())
+        response_data: Chat = cast(
+                Chat,
+                self._send_chat_request(
+                    passed_messages=passed_messages,
+                    request_model=request_model,
+                    request_data=request_data
+                )
             )
 
-        for entry in response_data.choices:
-            message = entry.message
-            if message:
-                return cast(Conversation.Message, message.model_dump())
-        raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+        return self._process_response_data(
+            response_data,
+            passed_messages=passed_messages,
+            request_model=request_model,
+            request_data=request_data
+            )
 
-    def stream_complete(self, config: Optional['ChatOptions'] = None) -> Generator[dict, None, None]:
+    def stream_complete(
+            self,
+            config: Optional['ChatOptions'] = None,
+            tools: Optional[
+                Union[
+                    Graph,
+                    GraphTool,
+                    FunctionTool,
+                    List[Union[Graph, GraphTool, FunctionTool]]
+                    ]  # can be an instance of tool or a list of instances
+                ] = None
+            ) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
         Note: this method only produces AI model output and does not attach the result to the existing conversation history.
@@ -877,42 +1437,41 @@ class Conversation:
         :param config: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
         """
-        config = config or {'max_tokens': 2048}
+        config = config or {}
+        if tools is not None and not isinstance(tools, list):
+            tools = [tools]
 
-        client = WriterAIManager.acquire_client()
-        passed_messages: Iterable[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
+        prepared_tools = [
+            self._prepare_tool(tool_instance)
+            for tool_instance in (tools or [])
+            ]
+
+        passed_messages: List[WriterAIMessage] = \
+            [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**config, **self.config}
-        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
+        if prepared_tools:
+            request_data |= {"tools": prepared_tools}
+        request_model = \
+            request_data.get("model") or WriterAIManager.use_chat_model()
 
-        response: Stream = client.chat.chat(
-            messages=passed_messages,
-            model=request_model,
-            stream=True,
-            max_tokens=request_data.get('max_tokens', NotGiven()),
-            n=request_data.get('n', NotGiven()),
-            stop=request_data.get('stop', NotGiven()),
-            temperature=request_data.get('temperature', NotGiven()),
-            top_p=request_data.get('top_p', NotGiven()),
-            extra_headers=request_data.get('extra_headers'),
-            extra_query=request_data.get('extra_query'),
-            extra_body=request_data.get('extra_body'),
-            timeout=request_data.get('timeout'),
+        response: Stream = cast(
+            Stream,
+            self._send_chat_request(
+                passed_messages=passed_messages,
+                request_model=request_model,
+                request_data=request_data,
+                stream=True
             )
+        )
 
-        # We avoid flagging first chunk
-        # to trigger creating a message
-        # to append chunks to
-        flag_chunks = False
+        yield from self._process_stream_response(
+            response=response,
+            passed_messages=passed_messages,
+            request_model=request_model,
+            request_data=request_data
+        )
 
-        for line in response:
-            chunk = _process_chat_data_chunk(line)
-            if flag_chunks is True:
-                chunk |= {"chunk": True}
-            if flag_chunks is False:
-                flag_chunks = True
-            yield chunk
-        else:
-            response.close()
+        response.close()
 
     @property
     def serialized_messages(self) -> List['Message']:
@@ -923,12 +1482,16 @@ class Conversation:
         """
         # Excluding system messages for privacy & security reasons
         serialized_messages = \
-            [message for message in self.messages if message["role"] != "system"]
+            [message for message in self.messages if message["role"] not in ["system", "tool"]]
         return serialized_messages
 
 
 class Apps:
-    def generate_content(self, application_id: str, input_dict: Dict[str, str] = {}, config: Optional[APIOptions] = None) -> str:
+    def generate_content(
+            self,
+            application_id: str,
+            input_dict: Optional[Dict[str, str]] = None,
+            config: Optional[APIOptions] = None) -> str:
         """
         Generates output based on an existing AI Studio no-code application.
 
@@ -940,6 +1503,7 @@ class Apps:
 
         client = WriterAIManager.acquire_client()
         config = config or {}
+        input_dict = input_dict or {}
         inputs = []
 
         for k, v in input_dict.items():
@@ -948,15 +1512,26 @@ class Apps:
                 "value": v if isinstance(v, list) else [v]
             }))
 
-        response_data = client.applications.generate_content(application_id=application_id, inputs=inputs, **config)
+        response_data = client.applications.generate_content(
+            application_id=application_id,
+            inputs=inputs,
+            **config
+            )
 
         text = response_data.suggestion
         if text:
             return text
 
-        raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+        raise RuntimeError(
+            "Failed to acquire proper response for completion from data: " +
+            f"{response_data}"
+            )
 
-def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str:
+
+def complete(
+        initial_text: str,
+        config: Optional['CreateOptions'] = None
+        ) -> str:
     """
     Completes the input text using the given data and returns the first resulting text choice.
 
@@ -968,7 +1543,8 @@ def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str
     config = config or {}
 
     client = WriterAIManager.acquire_client()
-    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
+    request_model = \
+        config.get("model", None) or WriterAIManager.use_completion_model()
 
     response_data: Completion = client.completions.create(
         model=request_model,
@@ -990,10 +1566,15 @@ def complete(initial_text: str, config: Optional['CreateOptions'] = None) -> str
         if text:
             return text
 
-    raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+    raise RuntimeError(
+        "Failed to acquire proper response for completion from data: " +
+        f"{response_data}")
 
 
-def stream_complete(initial_text: str, config: Optional['CreateOptions'] = None) -> Generator[str, None, None]:
+def stream_complete(
+        initial_text: str,
+        config: Optional['CreateOptions'] = None
+        ) -> Generator[str, None, None]:
     """
     Streams completion results from an initial text prompt, yielding each piece of text as it is received.
 
@@ -1001,11 +1582,11 @@ def stream_complete(initial_text: str, config: Optional['CreateOptions'] = None)
     :param config: Optional dictionary containing parameters for the stream completion call.
     :yields: Each text completion as it arrives from the stream.
     """
-    if not config:
-        config = {"max_tokens": 2048}
+    config = config or {}
 
     client = WriterAIManager.acquire_client()
-    request_model = config.get("model", None) or WriterAIManager.use_completion_model()
+    request_model = \
+        config.get("model", None) or WriterAIManager.use_completion_model()
 
     response: Stream = client.completions.create(
         model=request_model,
@@ -1039,5 +1620,6 @@ def init(token: Optional[str] = None):
     :return: An instance of WriterAIManager.
     """
     return WriterAIManager(token=token)
+
 
 apps = Apps()
