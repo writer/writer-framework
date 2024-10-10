@@ -36,7 +36,7 @@ globalThis.core = wf;
 
 async function load() {
 	await wf.init();
-	const mode = wf.getMode();
+	const mode = wf.mode.value;
 	const ssbm = mode == "edit" ? generateBuilderManager() : undefined;
 
 	if (ssbm) {

@@ -69,7 +69,7 @@ const areChildrenVisible: Ref<boolean> = ref(
 );
 
 function getStateValue(accessors: string[]) {
-	let state = wf.getUserState();
+	let state = wf.userState.value;
 	accessors.forEach((accessor) => {
 		state = state[accessor];
 	});

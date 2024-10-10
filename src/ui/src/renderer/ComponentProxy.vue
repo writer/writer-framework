@@ -1,23 +1,8 @@
 <script lang="ts">
-import {
-	PropType,
-	Ref,
-	VNode,
-	computed,
-	h,
-	inject,
-	provide,
-	ref,
-	watch,
-} from "vue";
+import { PropType, VNode, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
 import injectionKeys from "../injectionKeys";
-import {
-	Component,
-	InstancePath,
-	InstancePathItem,
-	UserFunction,
-} from "@/writerTypes";
+import { Component, InstancePath, InstancePathItem } from "@/writerTypes";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
@@ -63,9 +48,6 @@ export default {
 		};
 
 		const isDisabled = ref(false);
-		const userFunctions: Ref<UserFunction[]> = computed(() =>
-			wf.getUserFunctions(),
-		);
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -212,7 +194,7 @@ export default {
 					let includePayload = false;
 
 					if (
-						userFunctions.value.some(
+						wf.userFunctions.value.some(
 							(uf) =>
 								uf.name == handlerFunctionName &&
 								uf.args.includes("payload"),
