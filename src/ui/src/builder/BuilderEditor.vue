@@ -124,6 +124,11 @@
 							<div v-if="logEntry.code" class="codeContainer">
 								<code>{{ logEntry.code }}</code>
 							</div>
+							<BuilderLogWorkflowExecution
+								v-if="logEntry.workflowExecution"
+								:execution-log="logEntry.workflowExecution"
+							>
+							</BuilderLogWorkflowExecution>
 						</div>
 					</div>
 				</div>
@@ -148,6 +153,7 @@ import {
 } from "vue";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
+import BuilderLogWorkflowExecution from "./BuilderLogWorkflowExecution.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -101,9 +101,7 @@ const renderOffset = ref({ x: 0, y: 0 });
 const isRunning = ref(false);
 let clickOffset = { x: 0, y: 0 };
 const selectedArrow = ref(null);
-const componentId = inject(injectionKeys.componentId);
 const instancePath = inject(injectionKeys.instancePath);
-
 const workflowComponentId = inject(injectionKeys.componentId);
 
 const children = computed(() =>
@@ -309,11 +307,31 @@ async function createNode(type: string, x: number, y: number) {
 	createAndInsertComponent(type, workflowComponentId, undefined, { x, y });
 }
 
+async function findAndCenterBlock(componentId: Component["id"]) {
+	const el = rootEl.value.querySelector(`[data-writer-id="${componentId}"]`);
+	const canvasCBR = rootEl.value?.getBoundingClientRect();
+	if (!el || !canvasCBR) return;
+	const { width, height } = el.getBoundingClientRect();
+	const component = wf.getComponentById(componentId);
+	if (!component) return;
+	renderOffset.value = {
+		x: Math.max(0, component.x - canvasCBR.width / 2 + width / 2),
+		y: Math.max(0, component.y - canvasCBR.height / 2 + height / 2),
+	};
+	await nextTick();
+	refreshArrows();
+}
+
 watch(
-	() => wfbm.getSelectedId(),
-	(newSelected) => {
-		if (!newSelected) return;
+	() => wfbm.getSelection(),
+	(newSelection) => {
+		if (!newSelection) return;
 		selectedArrow.value = null;
+		if (!wf.isChildOf(workflowComponentId, newSelection.componentId))
+			return;
+		if (newSelection.source !== "click") {
+			findAndCenterBlock(newSelection.componentId);
+		}
 	},
 );
 
@@ -365,7 +383,7 @@ onMounted(async () => {
 	overflow: hidden;
 }
 
-.runButton {
+button.runButton {
 	position: absolute;
 	right: 32px;
 	top: 32px;

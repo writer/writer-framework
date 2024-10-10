@@ -51,19 +51,6 @@ const displayedWorkflowId = computed(() => {
 	if (pageComponents.length == 0) return null;
 	return pageComponents[0].id;
 });
-
-// watch(activePageId, (newPageId) => {
-// 	const page = wf.getComponentById(newPageId);
-// 	const pageKey = page.content?.["key"];
-// 	if (ssbm && ssbm.getSelectedId() !== newPageId) {
-// 		ssbm.setSelection(null);
-// 	}
-// 	nextTick().then(() => {
-// 		window.scrollTo(0, 0);
-// 		const rendererEl = document.querySelector(".ComponentRenderer");
-// 		rendererEl.parentElement.scrollTo(0, 0);
-// 	});
-// });
 </script>
 
 <style scoped>

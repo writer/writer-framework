@@ -191,8 +191,4 @@ watch(isEngaged, () => {
 	border: 2px solid #6985ff;
 	background: var(--builderBackgroundColor);
 }
-
-.WorkflowsNode:not(.selected) .output .ball {
-	filter: grayscale();
-}
 </style>

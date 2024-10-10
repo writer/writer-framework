@@ -1,5 +1,9 @@
 import { ref, Ref } from "vue";
-import { Component, ClipboardOperation } from "@/writerTypes";
+import {
+	Component,
+	ClipboardOperation,
+	WriterComponentDefinition,
+} from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -14,53 +18,62 @@ transactions.
 const MUTATIONTRANSACTION_DEBOUNCE_MS = 1000;
 const MAX_LOG_ENTRIES = 100;
 
+export type WorkflowExecutionLog = {
+	componentId: Component["id"];
+	outcome: string;
+	component?: Component;
+	componentDef?: WriterComponentDefinition;
+}[];
+
+type ComponentMutationTransaction = {
+	id: string;
+	desc: string;
+	timestamp: number;
+	enableDebounce: boolean;
+	mutations: Record<Component["id"], { jsonPre?: string; jsonPost?: string }>;
+};
+
+type LogEntryContents = {
+	type: string;
+	title: string;
+	message: string;
+	code?: string;
+	workflowExecution?: WorkflowExecutionLog;
+};
+
+type LogEntry = {
+	type: string;
+	title: string;
+	message: string;
+	code?: string;
+	workflowExecution?: WorkflowExecutionLog;
+	timestampReceived: Date;
+	fingerprint: string;
+	repeated: number;
+};
+
+type SelectionSource = "click" | "tree" | "log";
+
+type State = {
+	mode: "ui" | "code" | "workflows" | "preview";
+	selection: {
+		componentId: Component["id"];
+		instancePath: string;
+		source: SelectionSource;
+	};
+	settingsBarCollapsed: boolean;
+	clipboard: {
+		operation: ClipboardOperation;
+		jsonSubtree: string;
+	};
+	mutationTransactionsSnapshot: {
+		undo: ComponentMutationTransaction;
+		redo: ComponentMutationTransaction;
+	};
+	logEntries: LogEntry[];
+};
+
 export function generateBuilderManager() {
-	type ComponentMutationTransaction = {
-		id: string;
-		desc: string;
-		timestamp: number;
-		enableDebounce: boolean;
-		mutations: Record<
-			Component["id"],
-			{ jsonPre?: string; jsonPost?: string }
-		>;
-	};
-
-	type LogEntryContents = {
-		type: string;
-		title: string;
-		message: string;
-		code?: string;
-	};
-
-	type LogEntry = {
-		type: string;
-		title: string;
-		message: string;
-		code?: string;
-		timestampReceived: Date;
-		fingerprint: string;
-		repeated: number;
-	};
-
-	type State = {
-		mode: "ui" | "code" | "workflows" | "preview";
-		selection: {
-			componentId: Component["id"];
-			instancePath: string;
-		};
-		settingsBarCollapsed: boolean;
-		clipboard: {
-			operation: ClipboardOperation;
-			jsonSubtree: string;
-		};
-		mutationTransactionsSnapshot: {
-			undo: ComponentMutationTransaction;
-			redo: ComponentMutationTransaction;
-		};
-		logEntries: LogEntry[];
-	};
-
 	const initState: State = {
 		mode: "ui",
 		settingsBarCollapsed: false,
@@ -89,6 +102,7 @@ export function generateBuilderManager() {
 	const setSelection = (
 		componentId: Component["id"],
 		instancePath?: string,
+		source?: SelectionSource,
 	) => {
 		if (componentId === null) {
 			state.value.selection = null;
@@ -106,6 +120,7 @@ export function generateBuilderManager() {
 		state.value.selection = {
 			componentId,
 			instancePath: resolvedInstancePath,
+			source,
 		};
 	};
 
@@ -255,7 +270,8 @@ export function generateBuilderManager() {
 	}
 
 	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
-		const { type, title, message, code } = logEntryContents;
+		const { type, title, message, code, workflowExecution } =
+			logEntryContents;
 		const fingerprint = await hashLogEntryContents(logEntryContents);
 		const matchingEntry = state.value.logEntries.find(
 			(le) => le.fingerprint === fingerprint,
@@ -274,6 +290,7 @@ export function generateBuilderManager() {
 			title,
 			message,
 			code,
+			workflowExecution,
 			timestampReceived: new Date(),
 			fingerprint,
 			repeated: 0,

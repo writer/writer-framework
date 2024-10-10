@@ -112,7 +112,7 @@ async function selectMatch() {
 	if (!component) return;
 	goToComponentParentPage(component.id);
 	await nextTick();
-	ssbm.setSelection(component.id);
+	ssbm.setSelection(component.id, undefined, "tree");
 }
 
 const previousMatchIndex = computed(() => {
@@ -163,7 +163,7 @@ async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
 	wf.setActivePageId(pageId);
 	await nextTick();
-	ssbm.setSelection(pageId);
+	ssbm.setSelection(pageId, undefined, "tree");
 }
 
 async function addWorkflow() {
@@ -173,7 +173,7 @@ async function addWorkflow() {
 	);
 	wf.setActivePageId(pageId);
 	await nextTick();
-	ssbm.setSelection(pageId);
+	ssbm.setSelection(pageId, undefined, "tree");
 }
 </script>
 

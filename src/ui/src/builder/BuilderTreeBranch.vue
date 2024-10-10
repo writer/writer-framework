@@ -182,7 +182,7 @@ const toggleChildrenVisible = () => {
 async function selfSelectComponent() {
 	goToComponentParentPage(componentId.value);
 	await nextTick();
-	ssbm.setSelection(componentId.value);
+	ssbm.setSelection(componentId.value, undefined, "tree");
 	isSelectedBySelf.value = true;
 }
 
