@@ -135,3 +135,9 @@ def migrate_obsolete_ui_json(app_path: str) -> None:
     os.remove(os.path.join(app_path, "ui.json"))
     logger.warning('project format has changed and has been migrated with success. ui.json file has been removed.')
 
+
+def create_default_workflows_root(abs_path: str) -> None:
+    with io.open(os.path.join(abs_path, '.wf', 'components-workflows_root.jsonl'), 'w') as f:
+        f.write('{"id": "workflows_root", "type": "workflows_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
+        logger = logging.getLogger('writer')
+        logger.warning('project format has changed and has been migrated with success. components-workflows_root.jsonl has been added.')

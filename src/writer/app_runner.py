@@ -18,8 +18,14 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix, wf_project
-from writer.core import EventHandlerRegistry, MiddlewareRegistry, WriterSession, use_request_context
+from writer import VERSION, audit_and_fix, core_ui, wf_project
+from writer.core import (
+    Config,
+    EventHandlerRegistry,
+    MiddlewareRegistry,
+    WriterSession,
+    use_request_context,
+)
 from writer.core_ui import ingest_bmc_component_tree
 from writer.ss_types import (
     AppProcessServerRequest,
@@ -34,6 +40,7 @@ from writer.ss_types import (
     InitSessionRequest,
     InitSessionRequestPayload,
     InitSessionResponsePayload,
+    ServeMode,
     StateContentRequest,
     StateContentResponsePayload,
     StateEnquiryRequest,
@@ -83,7 +90,7 @@ class AppProcess(multiprocessing.Process):
                  client_conn: multiprocessing.connection.Connection,
                  server_conn: multiprocessing.connection.Connection,
                  app_path: str,
-                 mode: str,
+                 mode: ServeMode,
                  run_code: str,
                  bmc_components: Dict,
                  is_app_process_server_ready: multiprocessing.synchronize.Event,
@@ -147,11 +154,14 @@ class AppProcess(multiprocessing.Process):
             session.session_state.add_log_entry(
                 "error", "Serialisation error", tb.format_exc())
 
+        ui_component_tree = core_ui.export_component_tree(
+            session.session_component_tree, mode=writer.Config.mode)
+
         res_payload = InitSessionResponsePayload(
             userState=user_state,
             sessionId=session.session_id,
             mail=session.session_state.mail,
-            components=session.session_component_tree.to_dict(),
+            components=ui_component_tree,
             userFunctions=self._get_user_functions(),
             featureFlags=writer.Config.feature_flags
         )
@@ -177,10 +187,13 @@ class AppProcess(multiprocessing.Process):
 
         mail = session.session_state.mail
 
+        ui_component_tree = core_ui.export_component_tree(
+            session.session_component_tree, mode=Config.mode, only_update=True)
+
         res_payload = EventResponsePayload(
             result=result,
             mutations=mutations,
-            components=session.session_component_tree.fetch_updates(),
+            components=ui_component_tree,
             mail=mail
         )
         session.session_state.clear_mail()
@@ -591,7 +604,7 @@ class AppRunner:
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
 
-        self.mode = mode
+        self.mode = cast(ServeMode, mode)
         self._set_logger()
 
     def hook_to_running_event_loop(self):
@@ -685,6 +698,9 @@ class AppRunner:
         logger = logging.getLogger('writer')
         if os.path.isfile(os.path.join(self.app_path, "ui.json")):
             wf_project.migrate_obsolete_ui_json(self.app_path)
+
+        if not os.path.isfile(os.path.join(self.app_path, ".wf", 'components-workflows_root.jsonl')):
+            wf_project.create_default_workflows_root(self.app_path)
 
         if not os.path.isdir(os.path.join(self.app_path, ".wf")):
             logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)

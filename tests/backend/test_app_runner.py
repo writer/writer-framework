@@ -47,6 +47,78 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
+    async def test_init_should_not_load_workflow_component_in_run_mode(self, setup_app_runner) -> None:
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            response = await ar.init_session(InitSessionRequestPayload(
+                cookies={},
+                headers={},
+                proposedSessionId=self.proposed_session_id
+            ))
+
+            assert response.payload.components.get("workflows_root") is None
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_init_should_load_workflow_component_in_edit_mode(self, setup_app_runner) -> None:
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, "edit", load = True) as ar:
+            response = await ar.init_session(InitSessionRequestPayload(
+                cookies={},
+                headers={},
+                proposedSessionId=self.proposed_session_id
+            ))
+
+            assert response.payload.components.get("workflows_root") is not None
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_backend_ui_event_should_not_load_workflow_component_in_run_mode(self, setup_app_runner) -> None:
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
+
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-click",
+                instancePath=[
+                    {"componentId": "root", "instanceNumber": 0},
+                    {"componentId": "bb4d0e86-619e-4367-a180-be28ab6059f4", "instanceNumber": 0},
+                    {"componentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5", "instanceNumber": 0},
+                    {"componentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5", "instanceNumber": 0},
+                    {"componentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76", "instanceNumber": 0},
+                    {"componentId": "8ykyk5avd9ioyr6l", "instanceNumber": 0},
+                ],
+                payload={}
+            ))
+
+            rev = await ar.dispatch_message(self.proposed_session_id, ev_req)
+            assert rev.payload.components.get("workflows_root") is None
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_backend_ui_event_should_load_workflow_component_in_edit_mode(self, setup_app_runner) -> None:
+        ar: AppRunner
+        with setup_app_runner(test_app_dir, "edit", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
+
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-click",
+                instancePath=[
+                    {"componentId": "root", "instanceNumber": 0},
+                    {"componentId": "bb4d0e86-619e-4367-a180-be28ab6059f4", "instanceNumber": 0},
+                    {"componentId": "92a2c0c8-7ab4-4865-b7eb-ed437408c8f5", "instanceNumber": 0},
+                    {"componentId": "d1e01ce1-fab1-4a6e-91a1-1f45f9e57aa5", "instanceNumber": 0},
+                    {"componentId": "9c30af6d-4ee5-4782-9169-0f361d67fa76", "instanceNumber": 0},
+                    {"componentId": "8ykyk5avd9ioyr6l", "instanceNumber": 0},
+                ],
+                payload={}
+            ))
+
+            rev = await ar.dispatch_message(self.proposed_session_id, ev_req)
+            assert rev.payload.components.get("workflows_root") is not None
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
     async def test_pre_session(self, setup_app_runner) -> None:
         with setup_app_runner(test_app_dir, "run", load = True) as ar:
             er = EventRequest(

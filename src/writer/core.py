@@ -52,6 +52,7 @@ from writer.ss_types import (
     InstancePath,
     InstancePathItem,
     Readable,
+    ServeMode,
     WriterEvent,
     WriterEventResult,
     WriterFileItem,
@@ -129,7 +130,7 @@ def import_failure(rvalue: Any = None):
 class Config:
 
     is_mail_enabled_for_log: bool = False
-    mode: str = "run"
+    mode: ServeMode = "run"
     logger: Optional[logging.Logger] = None
     feature_flags: list[str] = []
 
