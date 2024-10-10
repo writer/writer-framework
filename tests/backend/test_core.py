@@ -14,6 +14,7 @@ import polars as pl
 import pyarrow as pa
 import pytest
 import writer as wf
+from writer import audit_and_fix, wf_project
 from writer.core import (
     BytesWrapper,
     Evaluator,
@@ -31,8 +32,13 @@ from writer.core import (
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
 
-from backend.fixtures import core_ui_fixtures, writer_fixtures
 from tests.backend import test_app_dir
+from tests.backend.fixtures import (
+    core_ui_fixtures,
+    file_fixtures,
+    load_fixture_content,
+    writer_fixtures,
+)
 
 raw_state_dict = {
     "name": "Robert",
@@ -62,9 +68,9 @@ simple_dict = {"items": {
 wf.Config.is_mail_enabled_for_log = True
 wf.init_state(raw_state_dict)
 
-sc = None
-with open(test_app_dir / "ui.json", "r") as f:
-    sc = json.load(f).get("components")
+_, sc = wf_project.read_files(test_app_dir)
+sc = audit_and_fix.fix_components(sc)
+
 session = wf.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
@@ -589,7 +595,7 @@ class TestState:
                 "total": 0
             })
 
-            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+            initial_state.subscribe_mutation(r'a\.b', cumulative_sum)
 
             # Acts
             initial_state['a.b'] = 1
@@ -1702,5 +1708,6 @@ def test_parse_state_variable_expression_should_process_expression():
     # When
     assert parse_state_variable_expression('features') == ['features']
     assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
-    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
-    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']
+    assert parse_state_variable_expression(r'features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression(r'features\.eyes.color') == ['features.eyes', 'color']
+

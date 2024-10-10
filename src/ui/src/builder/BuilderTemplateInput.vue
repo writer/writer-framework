@@ -12,7 +12,7 @@
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
 				@input="handleInput"
-				@blur="handleBlur"
+				@blur="closeAutocompletion"
 			/>
 			<datalist v-if="props.options" :id="`list-${props.inputId}`">
 				<option
@@ -45,24 +45,30 @@
 			></textarea>
 		</template>
 
-		<div v-if="autocompleteOptions.length" class="fieldStateAutocomplete">
-			<div
+		<div
+			v-if="autocompleteOptions.length"
+			class="fieldStateAutocomplete"
+			tabindex="-1"
+		>
+			<button
 				v-for="(option, optionKey) in autocompleteOptions"
 				:key="optionKey"
 				class="fieldStateAutocompleteOption"
 				:value="optionKey"
+				@focusout="closeAutocompletion"
+				@focusin="abortClosingAutocompletion"
 				@click="() => handleComplete(option.text)"
 			>
 				<span class="prop">{{ option.text }}</span
 				><span class="type">{{ option.type }}</span>
-			</div>
+			</button>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import { PropType, inject, nextTick, ref } from "vue";
+import { PropType, inject, nextTick, ref, shallowRef } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const emit = defineEmits(["input", "update:value"]);
@@ -90,7 +96,7 @@ const props = defineProps({
 });
 
 const ss = inject(injectionKeys.core);
-const autocompleteOptions = ref<{ text: string; type: string }[]>([]);
+const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
 const input = ref<HTMLInputElement | null>(null);
 
 defineExpose({
@@ -183,11 +189,20 @@ const showAutocomplete = () => {
 	});
 };
 
-const handleBlur = () => {
-	setTimeout(() => {
+let closeAutocompletionJob: ReturnType<typeof setTimeout> | null;
+
+function closeAutocompletion() {
+	// let some time in case user focused on an autocomplete field
+	closeAutocompletionJob = setTimeout(() => {
 		autocompleteOptions.value = [];
+		closeAutocompletionJob = null;
 	}, 100);
-};
+}
+function abortClosingAutocompletion() {
+	if (!closeAutocompletionJob) return;
+	clearTimeout(closeAutocompletionJob);
+	closeAutocompletionJob = null;
+}
 </script>
 
 <style scoped>
@@ -212,6 +227,13 @@ const handleBlur = () => {
 }
 
 .fieldStateAutocompleteOption {
+	/* reset button style */
+	background-color: inherit;
+	border: none;
+	width: 100%;
+	text-align: left;
+	border-radius: 0;
+
 	padding: 8px 12px;
 	cursor: pointer;
 	display: flex;
@@ -236,6 +258,7 @@ const handleBlur = () => {
 }
 
 .fieldStateAutocompleteOption:hover {
+	color: inherit;
 	background-color: var(--builderSubtleHighlightColorSolid);
 }
 

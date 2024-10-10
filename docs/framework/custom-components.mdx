@@ -165,13 +165,18 @@ A single or multiple templates can be specified. Take into account that they wil
 
 ## Bundling templates
 
-Execute `npm run custom.build`, this will generate the output `.js` and `.css` files into `ui/custom_components_dist`.
+Execute `npm run custom.build` into `src/ui`, this will generate the output `.js` and `.css` files into `./custom_components_dist`.
 
 ```sh
 # "build" builds the entire front-end
 # "custom.build" only builds the custom templates
 
+npm run custom.check # Optional: checks certain issues on custom components
 npm run custom.build
 ```
 
-Collect the files from `ui/custom_components_dist` and pack them in a folder such as `my_custom_bubbles`. The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Framework project. It'll be automatically detected during server startup.
+Collect the files from `./custom_components_dist` and pack them in a folder such as `my_custom_bubbles`. The folder containing the generated files, e.g. `my_custom_bubbles`, can now be placed in the `extensions/` folder of any Framework project. It'll be automatically detected during server startup.
+
+<Tip>
+The `custom.check` command is optional, but it's recommended to run it before building the custom components. It checks for common issues in the custom components, such as invalid key declaration, ...
+</Tip>

@@ -51,12 +51,13 @@ export default {
 			() =>
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
-				component.value.type !== "root",
+				component.value.type !== "root" &&
+				component.value.type !== "workflows_root",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
-				? ["root"]
+				? ["root", "workflows_root"]
 				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};
@@ -202,7 +203,8 @@ export default {
 			handlerFunctionName: string,
 			isBinding: boolean,
 		) => {
-			const isForwardable = !handlerFunctionName.startsWith("$");
+			const isForwardable = !handlerFunctionName.startsWith("$goToPage_");
+
 			if (isForwardable && !isBinding) {
 				return (ev: Event) => {
 					// Only include payload if there's a function waiting for it on the other side
@@ -218,6 +220,11 @@ export default {
 					) {
 						includePayload = true;
 					}
+
+					if (handlerFunctionName.startsWith("$runWorkflow_")) {
+						includePayload = true;
+					}
+
 					wf.forwardEvent(ev, instancePath, includePayload);
 				};
 			}

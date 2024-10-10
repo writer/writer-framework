@@ -39,6 +39,13 @@
 							>
 								Go to page "{{ pageKey }}"
 							</option>
+							<option
+								v-for="workflowKey in workflowKeys"
+								:key="`$runWorkflow_${workflowKey}`"
+								:value="`$runWorkflow_${workflowKey}`"
+							>
+								Run workflow "{{ workflowKey }}"
+							</option>
 							<template v-if="isHandlerInvalid(eventType)">
 								<option
 									:value="component.handlers?.[eventType]"
@@ -140,6 +147,13 @@
 							>
 								Go to page "{{ pageKey }}"
 							</option>
+							<option
+								v-for="workflowKey in workflowKeys"
+								:key="`$runWorkflow_${workflowKey}`"
+								:value="`$runWorkflow_${workflowKey}`"
+							>
+								Run workflow "{{ workflowKey }}"
+							</option>
 						</select>
 						<span class="desc"
 							>The function that will handle the event.</span
@@ -186,7 +200,24 @@ const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	});
 
 const userFunctions = computed(() => wf.getUserFunctions());
-const pageKeys = computed(() => wf.getPageKeys());
+
+const pageKeys = computed(() => {
+	const pages = wf.getComponents("root");
+	const pageKeys = pages
+		.filter((page) => page.type == "page")
+		.map((page) => page.content["key"])
+		.filter((pageKey) => Boolean(pageKey));
+	return pageKeys;
+});
+
+const workflowKeys = computed(() => {
+	const workflows = wf.getComponents("workflows_root");
+	const workflowKeys = workflows
+		.filter((workflow) => workflow.type == "workflows_workflow")
+		.map((workflow) => workflow.content["key"])
+		.filter((workflowKey) => Boolean(workflowKey));
+	return workflowKeys;
+});
 
 const isHandlerInvalid = (eventType: string) => {
 	const handlerFunctionName = component.value.handlers?.[eventType];

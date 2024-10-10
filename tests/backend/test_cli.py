@@ -23,7 +23,7 @@ def test_create_default():
         print(result.output)
         assert result.exit_code == 0
         assert os.path.exists('./my_app')
-        assert os.path.exists('./my_app/ui.json')
+        assert os.path.exists('./my_app/.wf')
         assert os.path.exists('./my_app/main.py')
         with open('./my_app/pyproject.toml') as f:
             content = f.read()
@@ -36,7 +36,7 @@ def test_create_specific_template():
         print(result.output)
         assert result.exit_code == 0
         assert os.path.exists('./my_app')
-        assert os.path.exists('./my_app/ui.json')
+        assert os.path.exists('./my_app/.wf')
         assert os.path.exists('./my_app/main.py')
         with open('./my_app/pyproject.toml') as f:
             content = f.read()

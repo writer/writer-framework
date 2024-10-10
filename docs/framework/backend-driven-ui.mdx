@@ -4,7 +4,7 @@ title: "Backend-driven UI"
 
 Framework facilitates backend-initiated user interface modifications. These changes are made possible through **Code-Managed Components** (CMCs), distinct from the *Builder-Managed Components* (BMCs). 
 
-CMCs, unlike BMCs, are dynamically created and modified via back-end code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's `ui.json` file and exist only during the application runtime, supporting dynamic UI adjustments.
+CMCs, unlike BMCs, are dynamically created and modified via back-end code, and cannot be edited (but still can be viewed) within the application builder. It's important to also note that CMCs do not persist in your application's files and exist only during the application runtime, supporting dynamic UI adjustments.
 
 <Note> 
 To summarise:
@@ -12,12 +12,12 @@ To summarise:
 **CMC** – Code-Managed Component 
 - created via **application back-end**;
 - **cannot be edited** in builder;
-- is **not saved** to `ui.json`.
+- is **not saved** to `.wf/components-*.jsonl`.
 
 **BMC** – Builder-Managed Component 
 - created via **builder**; 
 - **can be edited** in builder;
-- is **saved** to `ui.json`.
+- is **saved** to `.wf/components-*.jsonl`.
 </Note>
 
 ## UI manager

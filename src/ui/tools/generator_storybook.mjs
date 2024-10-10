@@ -16,6 +16,7 @@ const IGNORE_COMPONENT_TYPES = [
 	"steps",
 	"html",
 	"repeater",
+	"workflowsnode",
 ];
 
 const __filename = fileURLToPath(import.meta.url);

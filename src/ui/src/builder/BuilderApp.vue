@@ -253,6 +253,11 @@ function handleRendererDrop(ev: DragEvent) {
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
+	const unselectableEl: HTMLElement = (ev.target as HTMLElement).closest(
+		"[data-writer-unselectable]",
+	);
+	if (unselectableEl) return;
+
 	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
 		"[data-writer-id]",
 	);

@@ -32,7 +32,8 @@
 				"framework/introduction",
 				"framework/quickstart",
 				"framework/ai-module",
-				"framework/cloud-deploy"
+				"framework/cloud-deploy",
+				"framework/sample-apps"
 			]
 		},
 		{
