@@ -183,10 +183,16 @@ const wf = inject(injectionKeys.core);
 const rootEl: Ref<HTMLElement> = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue: pageValue, handleInput: handlePageInput } =
-	useFormValueBroker(wf, instancePath, rootEl);
-const { formValue: pageSizeValue, handleInput: handlePageSizeInput } =
-	useFormValueBroker(wf, instancePath, rootEl);
+const { handleInput: handlePageInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootEl,
+);
+const { handleInput: handlePageSizeInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootEl,
+);
 const pagesizeEnabled = computed(
 	() =>
 		fields.pageSizeOptions.value !== "" ||

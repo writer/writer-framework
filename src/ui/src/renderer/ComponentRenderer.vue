@@ -129,7 +129,7 @@ async function importModule(moduleKey: string, specifier: string) {
 async function handleFunctionCall(
 	moduleKey: string,
 	functionName: string,
-	args: any[],
+	args: unknown[],
 ) {
 	const specifier = importedModulesSpecifiers[moduleKey];
 	const m = await import(/* @vite-ignore */ specifier);
@@ -208,7 +208,7 @@ function addMailSubscriptions() {
 		}: {
 			moduleKey: string;
 			functionName: string;
-			args: any[];
+			args: unknown[];
 		}) => {
 			handleFunctionCall(moduleKey, functionName, args);
 		},

@@ -121,7 +121,7 @@ const initMap = async () => {
 		mapId: fields.mapId.value,
 	});
 
-	map.addListener("click", (e: any) => {
+	map.addListener("click", (e) => {
 		const event = new CustomEvent("gmap-click", {
 			detail: {
 				payload: e.latLng.toJSON(),
