@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { computed, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {

@@ -93,7 +93,6 @@ import injectionKeys from "@/injectionKeys";
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
-const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
@@ -101,7 +100,6 @@ const renderOffset = ref({ x: 0, y: 0 });
 const isRunning = ref(false);
 let clickOffset = { x: 0, y: 0 };
 const selectedArrow = ref(null);
-const componentId = inject(injectionKeys.componentId);
 const instancePath = inject(injectionKeys.instancePath);
 
 const workflowComponentId = inject(injectionKeys.componentId);

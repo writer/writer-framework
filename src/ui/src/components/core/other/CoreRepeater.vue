@@ -40,7 +40,7 @@ export default {
 			},
 		},
 	},
-	setup(props, { slots }) {
+	setup(_, { slots }) {
 		const wf = inject(injectionKeys.core);
 		const componentId = inject(injectionKeys.componentId);
 		const fields = inject(injectionKeys.evaluatedFields);
@@ -59,7 +59,7 @@ export default {
 
 			const repeatedChildrenVNodes = Object.values(
 				fields.repeaterObject.value,
-			).map((item, itemIndex) =>
+			).map((_item, itemIndex) =>
 				children.value.map((childComponent) =>
 					renderProxiedComponent(childComponent.id, itemIndex),
 				),

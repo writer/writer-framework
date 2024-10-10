@@ -143,8 +143,6 @@ import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import BuilderSelect from "./BuilderSelect.vue";
-import { languages } from "monaco-editor";
-import css = languages.css;
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -378,14 +376,6 @@ const handleInputs = (ev: Event, subMode: SubMode, inputType?: string) => {
 			partCssValues.join(" "),
 		);
 	}
-};
-
-const handleInputXYsides = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value + "px",
-	);
 };
 
 onMounted(() => {
