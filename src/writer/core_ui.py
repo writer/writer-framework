@@ -388,31 +388,25 @@ def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[st
 
     component_tree.ingest(components, tree=Branch.bmc)
 
-
-def lookup_parent_type_for_component(components: Dict[str, ComponentDefinition], component_id: str, parent_type: str) -> Optional[str]:
+def filter_components_by(components: Dict[str, ComponentDefinition], parent: Optional[str] = None) -> Dict[str, ComponentDefinition]:
     """
-    Retrieves the first parent of type {parent_type} for a component.
+    Filters tree components whose parent is {parent_id}, parent included
 
-    >>> lookup_parent_type_for_component(components, "6a490318-239e-4fe9-a56b-f0f33d628c87", "page")
+    >>> filtered_components = filter_components_by(components, parent="6a490318-239e-4fe9-a56b-f0f33d628c87")
     """
-    component: Optional[ComponentDefinition] = components.get(component_id, None)
-    if component is None:
-        return None
 
-    parent_id = component.get("parentId")
-    if parent_id is None:
-        return None
+    if parent is not None:
+        parent_list = {parent}
+        target_components: Dict[str, ComponentDefinition] = {}
+        for c in components.values():
+            if c.get('id') == parent:
+                target_components[c['id']] = c
+            elif c.get('parentId', None) in parent_list:
+                target_components[c['id']] = c
+                parent_list.add(c['id'])
+        components = target_components
 
-    if component['type'] == parent_type:
-        return component['id']
-
-    if parent_id in components:
-        if components[parent_id]['type'] == parent_type:
-            return parent_id
-        else:
-            return lookup_parent_type_for_component(components, parent_id, parent_type)
-
-    return None
+    return components
 
 
 def cmc_components_list(component_tree: ComponentTree) -> list:
