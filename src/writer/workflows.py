@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Tuple
 
 import writer.core
@@ -20,9 +21,8 @@ def run_workflow_by_key(session, workflow_key: str, execution_env: Dict):
 
 
 def run_workflow(session, component_id: str, execution_env: Dict):
-    final_nodes = _get_final_nodes(component_id)
     execution: Dict[str, WorkflowBlock] = {}
-    for node in final_nodes:
+    for node in _get_origin_nodes(component_id):
         _run_node(node, execution, session, execution_env)
     _generate_run_log(session, execution)
 
@@ -30,62 +30,52 @@ def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str,
     msg = """Workflow executed
 
 """
+    exec_log = []
     for component_id, tool in execution.items():
-        msg += f"Id: {component_id}. Outcome: {tool.outcome}.\n"
+        exec_log.append({
+            "componentId": component_id,
+            "outcome": tool.outcome
+        })
     state = session.session_state
-    state.add_log_entry("info", "Workflow", msg)
-    
+    state.add_log_entry("info", "Workflow", msg, workflow_execution=exec_log)
 
 
-def _get_final_nodes(component_id):
-    final_nodes = []
+def _get_origin_nodes(component_id):
     nodes = _get_workflow_nodes(component_id)
-    for node in nodes:
-        if not node.outs:
-            final_nodes.append(node)
-    return final_nodes
+    # called_nodes_ids contains the ids of all the nodes that are considered dependencies by one or more nodes
+    called_nodes_ids = [out.get("toNodeId") for node in nodes if node.outs for out in node.outs if out.get("toNodeId")]
+    origin_nodes = [node for node in nodes if node.id not in called_nodes_ids]
+    return origin_nodes
 
-def _get_dependencies(target_node: "Component"):
-    dependencies:List[Tuple] = []
-    parent_id = target_node.parentId
-    if not parent_id:
-        return dependencies
-    nodes = _get_workflow_nodes(parent_id)
-    for node in nodes:
-        if not node.outs:
-            continue
-        for out in node.outs:
-            to_node_id = out.get("toNodeId")
-            out_id = out.get("outId")
-            if to_node_id == target_node.id:
-                dependencies.append((node, out_id))
-    return dependencies
-    
 
 def _run_node(target_node: "Component", execution, session, execution_env: Dict):
     tool_class = writer.workflows_blocks.blocks.block_map.get(target_node.type)
     if not tool_class:
         raise RuntimeError(f"Couldn't find tool for {target_node.type}.")
-    dependencies = _get_dependencies(target_node)
 
     tool = execution.get(target_node.id)
     if tool:
-        return tool 
+        return tool
+    outcome_handled = False
+    stored_exception = None
+    
+    tool = tool_class(target_node, execution, session, execution_env)
 
-    result = None
-    matched_dependencies = 0
-    for node, out_id in dependencies:
-        tool = _run_node(node, execution, session, execution_env)
-        if not tool:
-            continue
-        if tool.outcome == out_id:
-            matched_dependencies += 1
-        result = tool.result
+    try:
+        tool.run()
+    except BaseException as e:
+        stored_exception = e
 
-    if len(dependencies) > 0 and matched_dependencies == 0:
-        return
-
-    tool = tool_class(target_node, execution, session, (execution_env | {"result": result}))
-    tool.run()
     execution[target_node.id] = tool
+
+    for out in target_node.outs if target_node.outs else []:
+        if tool.outcome != out.get("outId"):
+            continue
+        outcome_handled = True
+        node = writer.core.base_component_tree.get_component(out.get("toNodeId"))
+        _run_node(node, execution, session, (execution_env | {"result": tool.result} ))
+    
+    if stored_exception and not outcome_handled:
+        raise stored_exception 
+
     return tool
