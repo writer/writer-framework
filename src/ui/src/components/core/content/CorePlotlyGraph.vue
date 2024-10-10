@@ -121,7 +121,7 @@ function bindPlotlyEvents() {
 	);
 }
 
-function extractKeyInfoFromPoint(point: any) {
+function extractKeyInfoFromPoint(point) {
 	return {
 		curveNumber: point.curveNumber,
 		pointNumber: point.pointNumber,
@@ -142,10 +142,10 @@ function extractKeyInfoFromPoint(point: any) {
 }
 
 function getPlotlyEventHandler(eventType: string) {
-	return (plotlyEventData: any) => {
+	return (plotlyEventData) => {
 		const event = new CustomEvent(eventType, {
 			detail: {
-				payload: plotlyEventData?.points?.map((p: any) =>
+				payload: plotlyEventData?.points?.map((p) =>
 					extractKeyInfoFromPoint(p),
 				),
 			},
