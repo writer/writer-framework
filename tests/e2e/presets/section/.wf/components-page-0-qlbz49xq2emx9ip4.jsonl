@@ -1,2 +1,2 @@
-{"id": "qlbz49xq2emx9ip4", "type": "page", "content": {}, "parentId": "root", "position": 0, "handlers": {}, "visible": true}
-{"id": "3fzi2hkb6fzfgf40", "type": "section", "parentId": "qlbz49xq2emx9ip4", "content": {"title": ""}, "handlers": {}, "position": 0, "visible": true}
+{"id": "qlbz49xq2emx9ip4", "type": "page", "content": {}, "parentId": "root", "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}
+{"id": "3fzi2hkb6fzfgf40", "type": "section", "parentId": "qlbz49xq2emx9ip4", "content": {"title": ""}, "handlers": {}, "position": 0, "visible": {"expression": true, "binding": "", "reversed": false}}
