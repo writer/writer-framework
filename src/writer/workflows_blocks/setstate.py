@@ -12,7 +12,7 @@ class SetState(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Set state",
-                "description": "Set the value for a state element",
+                "description": "Set the value for a state element.",
                 "category": "Content",
                 "fields": {
                     "element": {

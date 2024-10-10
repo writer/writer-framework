@@ -13,7 +13,7 @@ class RunWorkflow(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Run workflow",
-                "description": "Executes a workflow",
+                "description": "Executes a workflow with a given key.",
                 "category": "Content",
                 "fields": {
                     "workflowKey": {

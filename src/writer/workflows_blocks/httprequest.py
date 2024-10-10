@@ -14,7 +14,7 @@ class HTTPRequest(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "HTTP Request",
-                "description": "Executes an HTTP request",
+                "description": "Executes an HTTP request.",
                 "category": "Content",
                 "fields": {
                     "method": {
@@ -69,7 +69,7 @@ class HTTPRequest(WorkflowBlock):
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
-        except Exception as e:
-            print(e)
-            self.result = "HTTP call failed."
+        except BaseException as e:
+            self.result = "HTTP call failed.\n "
             self.outcome = "connectionError"
+            raise e
