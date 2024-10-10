@@ -12,7 +12,7 @@ class WriterCompletion(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Writer Completion",
-                "description": "Set the value for a state element",
+                "description": "Handles text completions.",
                 "category": "Content",
                 "fields": {
                     "prompt": {

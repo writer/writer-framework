@@ -13,7 +13,7 @@ class LogMessage(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Log message",
-                "description": "Adds a message to the log.",
+                "description": "Appends a message to the log.",
                 "category": "Content",
                 "fields": {
                     "type": {
