@@ -166,13 +166,21 @@ def _remove_obsolete_component_files(wf_directory: str, components: Dict[str, Co
         os.remove(os.path.join(wf_directory, f))
 
 
-def _sort_wf_component_keys(obj: ComponentDefinition) -> typing.OrderedDict[Any, Any]:
+def _sort_wf_component_keys(obj: typing.Union[ComponentDefinition, dict]) -> Any:
     """
-    Sorts the keys of the object to have a consistent order in the json file.
+    Sorts the keys of the object recursively to have a consistent order in the json file.
 
-    Id and type attribute first, then use alphabetical order.
+    Id and type attributes first, then use alphabetical order.
     """
-    return OrderedDict(sorted(obj.items(), key=lambda x: x[0].replace("id", "0_id").replace("type", "1_type")))
+    if not isinstance(obj, dict):
+        return obj
+
+    def sort_key(item):
+        return item[0].replace("id", "0_id").replace("type", "1_type")
+
+    sorted_items = sorted(obj.items(), key=sort_key)
+    return OrderedDict((k, _sort_wf_component_keys(v)) for k, v in sorted_items)
+
 
 def _write_component_files(wf_directory: str, components: Dict[str, ComponentDefinition]) -> None:
     """
@@ -184,7 +192,7 @@ def _write_component_files(wf_directory: str, components: Dict[str, ComponentDef
         filtered_components = core_ui.filter_components_by(components, parent=component_id)
 
         with io.open(os.path.join(wf_directory, filename), "w") as f:
-            for p in filtered_components.values():
+            for p in _order_components(filtered_components):
                 f.write(json.dumps(_sort_wf_component_keys(p)) + "\n")
 
 
@@ -195,4 +203,21 @@ def _write_root_files(wf_directory, components):
             with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
                 f.write(json.dumps(_sort_wf_component_keys(root_component)))
 
+
+def _order_components(components: Dict[str, ComponentDefinition]) -> List[ComponentDefinition]:
+    """
+    Orders the components by their position attribute
+
+    >>> ordered_components = _order_components(components)
+    """
+
+    def _hierarchical_position(components, c):
+        p = [c['position']]
+        while c['parentId'] is not None and c['parentId'] in components:
+            c = components[c['parentId']]
+            p.append(c['position'])
+
+        return list(reversed(p))
+
+    return sorted(components.values(), key=lambda c: _hierarchical_position(components, c))
 

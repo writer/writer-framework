@@ -398,12 +398,21 @@ def filter_components_by(components: Dict[str, ComponentDefinition], parent: Opt
     if parent is not None:
         parent_list = {parent}
         target_components: Dict[str, ComponentDefinition] = {}
-        for c in components.values():
-            if c.get('id') == parent:
-                target_components[c['id']] = c
-            elif c.get('parentId', None) in parent_list:
-                target_components[c['id']] = c
-                parent_list.add(c['id'])
+        has_changed = True
+        # in some cases, the order requires to loops few times
+        while True:
+            if has_changed is False:
+                break
+
+            has_changed = False
+            for c in components.values():
+                if c['id'] == parent and c['id'] not in target_components:
+                    target_components[c['id']] = c
+                elif c.get('parentId', None) in parent_list and c['id'] not in target_components:
+                    target_components[c['id']] = c
+                    parent_list.add(c['id'])
+                    has_changed = True
+
         components = target_components
 
     return components
