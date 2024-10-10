@@ -9,7 +9,9 @@ import io
 import json
 import logging
 import os
-from typing import Dict, List, Tuple
+import typing
+from collections import OrderedDict
+from typing import Any, Dict, List, Tuple
 
 from writer import core_ui
 from writer.ss_types import ComponentDefinition, MetadataDefinition
@@ -164,6 +166,14 @@ def _remove_obsolete_component_files(wf_directory: str, components: Dict[str, Co
         os.remove(os.path.join(wf_directory, f))
 
 
+def _sort_wf_component_keys(obj: ComponentDefinition) -> typing.OrderedDict[Any, Any]:
+    """
+    Sorts the keys of the object to have a consistent order in the json file.
+
+    Id and type attribute first, then use alphabetical order.
+    """
+    return OrderedDict(sorted(obj.items(), key=lambda x: x[0].replace("id", "0_id").replace("type", "1_type")))
+
 def _write_component_files(wf_directory: str, components: Dict[str, ComponentDefinition]) -> None:
     """
     Writes the component files in the .wf folder. It preserve obsolete files.
@@ -175,7 +185,7 @@ def _write_component_files(wf_directory: str, components: Dict[str, ComponentDef
 
         with io.open(os.path.join(wf_directory, filename), "w") as f:
             for p in filtered_components.values():
-                f.write(json.dumps(p) + "\n")
+                f.write(json.dumps(_sort_wf_component_keys(p)) + "\n")
 
 
 def _write_root_files(wf_directory, components):
@@ -183,5 +193,6 @@ def _write_root_files(wf_directory, components):
         root_component = components.get(root, None)
         if root_component:
             with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
-                f.write(json.dumps(root_component))
+                f.write(json.dumps(_sort_wf_component_keys(root_component)))
+
 
