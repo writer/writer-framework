@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from typing import List
 
-from writer import wf_project
+from writer import core_ui, wf_project
 from writer.ss_types import ComponentDefinition
 
 from tests.backend import test_app_dir, testobsoleteapp
@@ -96,6 +96,24 @@ def test_wf_project_read_files_should_read_files_in_wf_directory():
     assert 'writer_version' in metadata
     assert isinstance(sc, dict)
     assert len(sc) != 0
+
+
+def test_wf_project_should_remove_obsolete_pages_in_wf_directory():
+    # When
+    with tempfile.TemporaryDirectory('test_wf_project_write_files') as _test_app_dir:
+        shutil.copytree(test_app_dir, _test_app_dir, dirs_exist_ok=True)
+        assert os.path.isfile(os.path.join(test_app_dir, '.wf', 'components-page-0-bb4d0e86-619e-4367-a180-be28ab6059f4.jsonl')) is True
+        metadata, sc = wf_project.read_files(test_app_dir)
+
+        removed_components = core_ui.filter_components_by(sc, 'bb4d0e86-619e-4367-a180-be28ab6059f4')
+        for rc in removed_components.values():
+            del sc[rc['id']]
+
+        wf_project.write_files(_test_app_dir, metadata=metadata, components=sc)
+
+        # Then
+        assert os.path.isfile(os.path.join(_test_app_dir, '.wf', 'components-page-0-bb4d0e86-619e-4367-a180-be28ab6059f4.jsonl')) is False
+
 
 def test_wf_project_migrate_obsolete_ui_json_should_migrate_ui_json_into_wf_directory():
     with tempfile.TemporaryDirectory('wf_project_migrate_obsolete_ui_json') as tmp_app_dir:

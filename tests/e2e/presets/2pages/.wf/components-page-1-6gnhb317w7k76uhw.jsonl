@@ -1,1 +1,1 @@
-{"id": "6gnhb317w7k76uhw", "type": "page", "parentId": "root", "content": {"key": "page2"}, "handlers": {}, "position": 1, "visible": true}
+{"id": "6gnhb317w7k76uhw", "type": "page", "content": {"key": "page2"}, "handlers": {}, "parentId": "root", "position": 1, "visible": {"binding": "", "expression": true, "reversed": false}}

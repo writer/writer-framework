@@ -9,13 +9,17 @@ import io
 import json
 import logging
 import os
-from typing import Tuple
+import typing
+from collections import OrderedDict
+from typing import Any, Dict, List, Tuple
 
 from writer import core_ui
 from writer.ss_types import ComponentDefinition, MetadataDefinition
 
+ROOTS = ['root', 'workflows_root']
+COMPONENT_ROOTS = ['page', 'workflows_workflow']
 
-def write_files(app_path: str, metadata: MetadataDefinition, components: dict[str, ComponentDefinition]) -> None:
+def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
     """
     Writes the meta data of the WF project to the `.wf` directory (metadata, components, ...).
 
@@ -27,9 +31,6 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: dict[st
 
     >>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
     """
-    roots = ['root', 'workflows_root']
-    components_parts_root = ['page', 'workflows_workflow']
-
     wf_directory = os.path.join(app_path, ".wf")
     if not os.path.exists(wf_directory):
         os.makedirs(wf_directory)
@@ -37,29 +38,9 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: dict[st
     with io.open(os.path.join(wf_directory, "metadata.json"), "w") as f:
         json.dump(metadata, f, indent=4)
 
-    for root in roots:
-        root_component = components.get(root, None)
-        if root_component:
-            with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
-                f.write(json.dumps(root_component))
-
-    for part_root_type in components_parts_root:
-        list_parts_root = []
-        for c in components.values():
-            if c["type"] == part_root_type:
-                list_parts_root.append(c["id"])
-
-        for position, component_id in enumerate(list_parts_root):
-            part_components = []
-            part_components_ids = {component_id}
-            for c in components.values():
-                if core_ui.lookup_parent_type_for_component(components, c['id'], parent_type=part_root_type) in part_components_ids:
-                    part_components.append(c)
-                    part_components_ids.add(c["id"])
-
-            with io.open(os.path.join(wf_directory, f"components-{part_root_type}-{position}-{component_id}.jsonl"), "w") as f:
-                for p in part_components:
-                    f.write(json.dumps(p) + "\n")
+    _write_root_files(wf_directory, components)
+    _write_component_files(wf_directory, components)
+    _remove_obsolete_component_files(wf_directory, components)
 
 
 def read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDefinition]]:
@@ -141,3 +122,102 @@ def create_default_workflows_root(abs_path: str) -> None:
         f.write('{"id": "workflows_root", "type": "workflows_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
         logger = logging.getLogger('writer')
         logger.warning('project format has changed and has been migrated with success. components-workflows_root.jsonl has been added.')
+
+
+def _expected_component_fileinfos(components: dict[str, ComponentDefinition]) -> List[Tuple[str, str]]:
+    """
+    Returns the list of component file information to write (id, filename).
+
+    >>> component_files = expected_component_files(components)
+    >>> for component_id, filename in component_files:
+    >>>     print(f"Components that depends on {component_id} will be written in {filename}")
+    """
+    expected_component_files = []
+    for component_file_root in COMPONENT_ROOTS:
+        position = 0
+        for c in components.values():
+            if c["type"] == component_file_root:
+                filename = f"components-{ component_file_root }-{position}-{c['id']}.jsonl"
+                expected_component_files.append((c["id"], filename))
+                position += 1
+
+    return expected_component_files
+
+
+def _list_component_files(wf_directory: str) -> List[str]:
+    """
+    List the component files of the .wf folder.
+
+    The component files are of the form `components-{type}-....jsonl`
+    """
+    patterns = [f"components-{cr}-" for cr in COMPONENT_ROOTS]
+    return [f for f in os.listdir(wf_directory) if any(p in f for p in patterns)]
+
+
+def _remove_obsolete_component_files(wf_directory: str, components: Dict[str, ComponentDefinition]):
+    """
+    Remove the obsolete component files in the .wf folder.
+    """
+    expected_component_files = {f for cid, f in _expected_component_fileinfos(components)}
+    list_component_files = set(_list_component_files(wf_directory))
+
+    obsolete_components_files = list_component_files - expected_component_files
+    for f in obsolete_components_files:
+        os.remove(os.path.join(wf_directory, f))
+
+
+def _sort_wf_component_keys(obj: typing.Union[ComponentDefinition, dict]) -> Any:
+    """
+    Sorts the keys of the object recursively to have a consistent order in the json file.
+
+    Id and type attributes first, then use alphabetical order.
+    """
+    if not isinstance(obj, dict):
+        return obj
+
+    def sort_key(item):
+        return item[0].replace("id", "0_id").replace("type", "1_type")
+
+    sorted_items = sorted(obj.items(), key=sort_key)
+    return OrderedDict((k, _sort_wf_component_keys(v)) for k, v in sorted_items)
+
+
+def _write_component_files(wf_directory: str, components: Dict[str, ComponentDefinition]) -> None:
+    """
+    Writes the component files in the .wf folder. It preserve obsolete files.
+
+    The components are written in the form `components-{type}-{position}-{id}.jsonl`
+    """
+    for component_id, filename in _expected_component_fileinfos(components):
+        filtered_components = core_ui.filter_components_by(components, parent=component_id)
+
+        with io.open(os.path.join(wf_directory, filename), "w") as f:
+            for p in _order_components(filtered_components):
+                f.write(json.dumps(_sort_wf_component_keys(p)) + "\n")
+
+
+def _write_root_files(wf_directory, components):
+    for root in ROOTS:
+        root_component = components.get(root, None)
+        if root_component:
+            with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
+                f.write(json.dumps(_sort_wf_component_keys(root_component)))
+
+
+def _order_components(components: Dict[str, ComponentDefinition]) -> List[ComponentDefinition]:
+    """
+    Orders the components by their position attribute
+
+    >>> ordered_components = _order_components(components)
+    """
+
+    def _hierarchical_position(components, c):
+        p = [c['position']]
+        while c['parentId'] is not None and c['parentId'] in components:
+            c = components[c['parentId']]
+            p.append(c['position'])
+
+        return list(reversed(p))
+
+    return sorted(components.values(), key=lambda c: _hierarchical_position(components, c))
+
