@@ -150,7 +150,7 @@ const getPath = (text) => {
  * Escape a key to support the "." and "\" in a state variable
  */
 const escapeVariable = (key) => {
-	return key.replace("\\", "\\\\").replace(".", "\\.");
+	return key.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
 };
 
 const handleInput = (ev) => {
