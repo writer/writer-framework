@@ -42,6 +42,7 @@ const enrichedExecutionLog = computed(() => {
 	const elog = [...props.executionLog];
 	elog.map((e) => {
 		e.component = wf.getComponentById(e.componentId);
+		if (!e.component) return;
 		e.componentDef = wf.getComponentDefinition(e.component.type);
 	});
 	return elog;
