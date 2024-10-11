@@ -40,9 +40,10 @@
 				"
 			></component>
 		</template>
-		<WdsButton class="runButton" variant="secondary" @click="handleRun">{{
-			isRunning ? "Running..." : "Run"
-		}}</WdsButton>
+		<WdsButton class="runButton" variant="secondary" @click="handleRun">
+			<i class="material-symbols-outlined">play_arrow</i>
+			{{ isRunning ? "Running..." : "Run" }}</WdsButton
+		>
 	</div>
 </template>
 
