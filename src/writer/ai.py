@@ -751,7 +751,7 @@ class Conversation:
         :param actions: Optional dictionary containing actions related to the message.
         """
         role: Literal["system", "assistant", "user", "tool"]
-        content: Union[str, None]
+        content: str
         actions: Optional[dict]
         name: Optional[str]
         tool_call_id: Optional[str]
@@ -846,9 +846,9 @@ class Conversation:
             role=message["role"]
             )
         if message.get("name"):
-            sdk_message["name"] = message["name"]
+            sdk_message["name"] = cast(str, message["name"])
         if message.get("tool_call_id"):
-            sdk_message["tool_call_id"] = message.get("tool_call_id")
+            sdk_message["tool_call_id"] = cast(str, message["tool_call_id"])
         return sdk_message
 
     def _register_callable(
@@ -1157,11 +1157,7 @@ class Conversation:
             callable_entry = self._callable_registry.get(function_name)
 
             if callable_entry:
-                func = callable_entry.get("callable")
-                if not func:
-                    raise ValueError(f"Misconfigured function {function_name}: no callable provided")
                 param_specs = callable_entry["parameters"]
-
                 # Convert arguments based on registered parameter types
                 converted_arguments = {}
                 for param_name, param_info in param_specs.items():
@@ -1171,6 +1167,10 @@ class Conversation:
                         converted_arguments[param_name] = self._convert_argument_to_type(value, target_type)
                     else:
                         raise ValueError(f"Missing required parameter: {param_name}")
+
+                func = callable_entry.get("callable")
+                if not func:
+                    raise ValueError(f"Misconfigured function {function_name}: no callable provided")
 
                 # Call the function with converted arguments
                 try:
@@ -1190,6 +1190,8 @@ class Conversation:
                 }
 
                 return follow_up_message
+            else:
+                raise ValueError(f"`{function_name}` is not present in callable registry")
 
         except json.JSONDecodeError:
             logger.error("Failed to parse arguments for tool call")
