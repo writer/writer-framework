@@ -1,7 +1,3 @@
-<docs lang="md">
-    Represents a node in Writer Framework Workflows.
-</docs>
-
 <template>
 	<div class="WorkflowsNode">
 		<div class="title">
