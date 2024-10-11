@@ -48,7 +48,7 @@ def _get_origin_nodes(component_id):
     return origin_nodes
 
 
-def _run_node(target_node: "Component", execution, session, execution_env: Dict):
+def _run_node(target_node: "Component", execution: Dict, session: "writer.core.WriterSession", execution_env: Dict):
     tool_class = writer.workflows_blocks.blocks.block_map.get(target_node.type)
     if not tool_class:
         raise RuntimeError(f"Couldn't find tool for {target_node.type}.")
@@ -74,7 +74,12 @@ def _run_node(target_node: "Component", execution, session, execution_env: Dict)
         if tool.outcome != out.get("outId"):
             continue
         outcome_handled = True
-        node = writer.core.base_component_tree.get_component(out.get("toNodeId"))
+        to_node_id = out.get("toNodeId")
+        node = writer.core.base_component_tree.get_component(to_node_id)
+        if not node:
+            state = session.session_state
+            state.add_log_entry("error", "Missing node in workflow", f"Missing node {to_node_id}")
+            continue
         _run_node(node, execution, session, (execution_env | {"result": tool.result} ))
     
     if stored_exception and not outcome_handled:
