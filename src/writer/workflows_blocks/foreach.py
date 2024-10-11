@@ -23,7 +23,7 @@ class ForEach(WorkflowBlock):
                     },
                     "items": {
                         "name": "Items",
-                        "desc": "The item value will be passed in the execution environment and will be available via @{item}.",
+                        "desc": "The item value will be passed in the execution environment and will be available at @{item}, its id at @{itemId}.",
                         "default": "{}",
                         "type": "Object",
                         "control": "Textarea"
@@ -52,15 +52,18 @@ class ForEach(WorkflowBlock):
         ))
 
     def run(self):
-        workflow_key = self._get_field("workflowKey")
-        items = self._get_field("items", as_json=True)
-        base_execution_env = self._get_field("executionEnv", as_json=True)
-
         try:
-            for item in items:
-                writer.workflows.run_workflow_by_key(self.session, workflow_key, base_execution_env | { "item": item })
+            workflow_key = self._get_field("workflowKey")
+            items = self._get_field("items", as_json=True)
+            base_execution_env = self._get_field("executionEnv", as_json=True)
+            std_items = items
+            if isinstance(items, list):
+                std_items = enumerate(std_items, 0)
+            elif isinstance(items, dict):
+                std_items = items.items()
+            for item_id, item in std_items:
+                writer.workflows.run_workflow_by_key(self.session, workflow_key, base_execution_env | { "itemId": item_id, "item": item })
             self.outcome = "success"
         except BaseException as e:
-            self.session.session_state.add_log_entry("error", "Workflows exception", repr(e))
-            self.result = "HTTP call failed."
             self.outcome = "error"
+            raise e

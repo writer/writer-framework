@@ -20,9 +20,9 @@ class RunWorkflow(WorkflowBlock):
                         "name": "Workflow key",
                         "type": "Text",
                     },
-                    "context": {
-                        "name": "Context",
-                        "desc": "Values passed in the context will be available using the template syntax i.e. @{my_context_var}",
+                    "executionEnv": {
+                        "name": "Execution environment",
+                        "desc": "Values passed in the context will be available using the template syntax i.e. @{my_var}",
                         "default": "{}",
                         "type": "Object",
                         "control": "Textarea"
@@ -44,13 +44,12 @@ class RunWorkflow(WorkflowBlock):
         ))
 
     def run(self):
-        workflow_key = self._get_field("workflowKey")
-        context = self._get_field("context", as_json=True)
-
         try:
-            writer.workflows.run_workflow_by_key(self.session, workflow_key, context)
+            workflow_key = self._get_field("workflowKey")
+            execution_env = self._get_field("executionEnv", as_json=True)
+
+            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
             self.outcome = "success"
-        except Exception as e:
-            print("running the other workflow " + repr(e))
-            self.result = "Running workflow failed."
+        except BaseException as e:
             self.outcome = "error"
+            raise e

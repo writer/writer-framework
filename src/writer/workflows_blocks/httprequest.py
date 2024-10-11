@@ -20,6 +20,14 @@ class HTTPRequest(WorkflowBlock):
                     "method": {
                         "name": "Method",
                         "type": "Text",
+                        "options": {
+                            "get": "GET",
+                            "post": "POST",
+                            "put": "PUT",
+                            "patch": "PATCH",
+                            "delete": "DELETE"
+                        },
+                        "default": "get"
                     },
                     "url": {
                         "name": "URL",
@@ -57,12 +65,11 @@ class HTTPRequest(WorkflowBlock):
         ))
 
     def run(self):
-        method = self._get_field("method")
-        url = self._get_field("url")
-        headers = self._get_field("headers")
-        body = self._get_field("body")
-
         try:
+            method = self._get_field("method", False, "get")
+            url = self._get_field("url")
+            headers = self._get_field("headers")
+            body = self._get_field("body")
             req = requests.request(method, url, headers=headers, data=body)
             self.result = req.text
             if req.ok:
@@ -70,6 +77,5 @@ class HTTPRequest(WorkflowBlock):
             else:
                 self.outcome = "responseError"
         except BaseException as e:
-            self.result = "HTTP call failed.\n "
             self.outcome = "connectionError"
             raise e

@@ -46,18 +46,18 @@ class WriterClassification(WorkflowBlock):
         ))
 
     def run(self):
-        import writer.ai
-
-        text = self._get_field("text")
-        additional_context = self._get_field("additionalContext")
-        categories = self._get_field("categories", as_json=True)
-        # model_id = self._get_field("modelId")
-
-        config = {}
-        # if model_id:
-        #     config["model"] = model_id
-
         try:
+            import writer.ai
+
+            text = self._get_field("text")
+            additional_context = self._get_field("additionalContext")
+            categories = self._get_field("categories", as_json=True)
+            # model_id = self._get_field("modelId")
+
+            config = {}
+            # if model_id:
+            #     config["model"] = model_id
+
             prompt = f"""
 Classify the text under “CONTENT” into one of the following categories:
 
@@ -76,10 +76,6 @@ CONTENT:
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
             self.outcome = f"$dynamic_{result}"
-            print("result is")
-            print(self.result)
-            print(self.outcome)
         except BaseException as e:
-            raise e
-            self.result = "Text completion failed"
             self.outcome = "error"
+            raise e
