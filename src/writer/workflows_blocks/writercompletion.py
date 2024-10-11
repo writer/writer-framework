@@ -12,22 +12,15 @@ class WriterCompletion(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Writer Completion",
-                "description": "Set the value for a state element",
+                "description": "Handles text completions.",
                 "category": "Content",
                 "fields": {
                     "prompt": {
                         "name": "Prompt",
                         "type": "Text",
-                    },
-                    "tools": {
-                        "name": "Tools",
-                        "type": "Object"
                     }
                 },
                 "outs": {
-                    # "$tools": {
-                    #     "field": "tools"
-                    # },
                     "success": {
                         "name": "Success",
                         "description": "If the function doesn't raise an Exception.",
@@ -43,19 +36,18 @@ class WriterCompletion(WorkflowBlock):
         ))
 
     def run(self):
-        import writer.ai
-
-        prompt = self._get_field("prompt")
-        # model_id = self._get_field("modelId")
-
-        config = {}
-        # if model_id:
-        #     config["model"] = model_id
-
         try:
+            import writer.ai
+
+            prompt = self._get_field("prompt")
+            # model_id = self._get_field("modelId")
+
+            config = {}
+            # if model_id:
+            #     config["model"] = model_id
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
             self.outcome = "success"
-        except BaseException:
-            self.result = "Text completion failed"
+        except BaseException as e:
             self.outcome = "error"
+            raise e

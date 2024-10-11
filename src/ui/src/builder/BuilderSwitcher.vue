@@ -59,11 +59,7 @@ const selectOption = (optionId: "ui" | "code" | "preview" | "workflows") => {
 	}
 };
 
-const activeId = computed(() => {
-	if (selectedId.value) return selectedId.value;
-	const first = "ui";
-	return first;
-});
+const activeId = computed(() => ssbm.getMode());
 
 const logEntryCount = computed(() => {
 	return ssbm.getLogEntryCount();

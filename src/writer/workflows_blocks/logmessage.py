@@ -13,12 +13,17 @@ class LogMessage(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Log message",
-                "description": "Adds a message to the log.",
+                "description": "Appends a message to the log.",
                 "category": "Content",
                 "fields": {
                     "type": {
                         "name": "Type",
-                        "type": "Text"
+                        "type": "Text",
+                        "options": {
+                            "info": "Info",
+                            "error": "Error"
+                        },
+                        "default": "info"
                     },
                     "message": {
                         "name": "Message",
@@ -42,13 +47,13 @@ class LogMessage(WorkflowBlock):
         ))
 
     def run(self):
-        type = self._get_field("type")
-        message = self._get_field("message")
-
         try:
+            type = self._get_field("type", False, "info")
+            message = self._get_field("message")
+
             self.session.session_state.add_log_entry(type, "Workflows message", message)
             self.result = None
             self.outcome = "success"
-        except Exception:
-            self.result = "Logging message failed."
+        except BaseException as e:
             self.outcome = "error"
+            raise e

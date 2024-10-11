@@ -1,7 +1,3 @@
-<docs lang="md">
-    Represents a node in Writer Framework Workflows.
-</docs>
-
 <template>
 	<div class="WorkflowsNode">
 		<div class="title">
@@ -190,9 +186,5 @@ watch(isEngaged, () => {
 .WorkflowsNode.selected.component {
 	border: 2px solid #6985ff;
 	background: var(--builderBackgroundColor);
-}
-
-.WorkflowsNode:not(.selected) .output .ball {
-	filter: grayscale();
 }
 </style>

@@ -14,12 +14,20 @@ class HTTPRequest(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "HTTP Request",
-                "description": "Executes an HTTP request",
+                "description": "Executes an HTTP request.",
                 "category": "Content",
                 "fields": {
                     "method": {
                         "name": "Method",
                         "type": "Text",
+                        "options": {
+                            "get": "GET",
+                            "post": "POST",
+                            "put": "PUT",
+                            "patch": "PATCH",
+                            "delete": "DELETE"
+                        },
+                        "default": "get"
                     },
                     "url": {
                         "name": "URL",
@@ -57,19 +65,17 @@ class HTTPRequest(WorkflowBlock):
         ))
 
     def run(self):
-        method = self._get_field("method")
-        url = self._get_field("url")
-        headers = self._get_field("headers")
-        body = self._get_field("body")
-
         try:
+            method = self._get_field("method", False, "get")
+            url = self._get_field("url")
+            headers = self._get_field("headers")
+            body = self._get_field("body")
             req = requests.request(method, url, headers=headers, data=body)
             self.result = req.text
             if req.ok:
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
-        except Exception as e:
-            print(e)
-            self.result = "HTTP call failed."
+        except BaseException as e:
             self.outcome = "connectionError"
+            raise e

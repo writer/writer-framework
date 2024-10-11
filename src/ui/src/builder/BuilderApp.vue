@@ -267,7 +267,7 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (targetId !== ssbm.getSelectedId()) {
 		ev.preventDefault();
 		ev.stopPropagation();
-		ssbm.setSelection(targetId, targetInstancePath);
+		ssbm.setSelection(targetId, targetInstancePath, "click");
 	}
 }
 

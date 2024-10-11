@@ -20,6 +20,7 @@ class WriterNoCodeApp(WorkflowBlock):
                     "appId": {
                         "name": "App Id",
                         "type": "Text",
+                        "desc": "The app id can be found in the app's URL. It has a UUID format."
                     },
                     "appInputs": {
                         "name": "App inputs",
@@ -43,19 +44,19 @@ class WriterNoCodeApp(WorkflowBlock):
         ))
 
     def run(self):
-        import writer.ai
-
-        application_id = self._get_field("appId")
-        app_inputs = self._get_field("appInputs", as_json=True)
-
-        # config = {}
-        # if model_id:
-        #     config["model"] = model_id
-
         try:
+            import writer.ai
+
+            application_id = self._get_field("appId")
+            app_inputs = self._get_field("appInputs", as_json=True)
+
+            # config = {}
+            # if model_id:
+            #     config["model"] = model_id
+
             result = writer.ai.apps.generate_content(application_id, app_inputs).strip()
             self.result = result
             self.outcome = "success"
-        except BaseException:
-            self.result = "Text completion failed"
+        except BaseException as e:
             self.outcome = "error"
+            raise e

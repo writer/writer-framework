@@ -12,16 +12,17 @@ class SetState(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Set state",
-                "description": "Set the value for a state element",
+                "description": "Set the value for a state element.",
                 "category": "Content",
                 "fields": {
                     "element": {
                         "name": "State element",
-                        "type": "Text",
+                        "type": "Text"
                     },
                     "value": {
                         "name": "Value",
                         "type": "Text",
+                        "control": "Textarea"
                     },
                 },
                 "outs": {
@@ -40,11 +41,11 @@ class SetState(WorkflowBlock):
         ))
 
     def run(self):
-        element = self._get_field("element")
-        value = self._get_field("value")
-
         try:
-            self.evaluator.set_state(element, self.instance_path, value)
+            element = self._get_field("element")
+            value = self._get_field("value")
+            self.evaluator.set_state(element, self.instance_path, value, base_context=self.execution_env)
             self.outcome = "success"
-        except Exception:
+        except BaseException as e:
             self.outcome = "error"
+            raise e

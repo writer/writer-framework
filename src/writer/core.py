@@ -1495,19 +1495,29 @@ class Evaluator:
 
         return context
 
-    def set_state(self, expr: str, instance_path: InstancePath, value: Any) -> None:
-        accessors = self.parse_expression(expr, instance_path)
+    def set_state(self, expr: str, instance_path: InstancePath, value: Any, base_context = {}) -> None:
+        accessors = self.parse_expression(expr, instance_path, base_context)
         state_ref: StateProxy = self.wf.user_state
-        for accessor in accessors[:-1]:
-            state_ref = state_ref[accessor]
+        # leaf_state_ref: StateProxy = state_ref
 
-        if not isinstance(state_ref, StateProxy):
+        for accessor in accessors[:-1]:
+            if isinstance(state_ref, StateProxy):
+                # leaf_state_ref = state_ref
+                pass
+
+            if isinstance(state_ref, list):
+                state_ref = state_ref[int(accessor)]
+            else:
+                state_ref = state_ref[accessor]
+
+        if not isinstance(state_ref, (StateProxy, dict)):
             raise ValueError(
-                f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy.")
+                f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy or dict.")
 
         state_ref[accessors[-1]] = value
+        # leaf_state_ref.apply_mutation_marker()
 
-    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None) -> List[str]:
+    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> List[str]:
 
         """ Returns a list of accessors from an expression. """
 
@@ -1538,7 +1548,7 @@ class Evaluator:
             elif character == "]":
                 level -= 1
                 if level == 0:
-                    s = str(self.evaluate_expression(s, instance_path))
+                    s = str(self.evaluate_expression(s, instance_path, base_context))
                 else:
                     s += character
             else:
@@ -1559,16 +1569,16 @@ class Evaluator:
             context_data = self.get_context_data(instance_path, base_context)
         context_ref: Any = context_data
         state_ref: Any = self.wf.user_state.state
-        accessors: List[str] = self.parse_expression(expr, instance_path)
+        accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
 
         for accessor in accessors:
-            if isinstance(state_ref, (StateProxy, dict)) and state_ref.get(accessor):
+            if isinstance(state_ref, (StateProxy, dict)) and accessor in state_ref:
                 state_ref = state_ref.get(accessor)
                 result = state_ref
             elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
                 state_ref = state_ref[int(accessor)]
                 result = state_ref
-            elif isinstance(context_ref, dict) and context_ref.get(accessor):
+            elif isinstance(context_ref, dict) and accessor in context_ref:
                 context_ref = context_ref.get(accessor)
                 result = context_ref
 

@@ -1,30 +1,27 @@
-import writer.workflows
+import json
+
+import requests
+
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class RunWorkflow(WorkflowBlock):
+class ParseJSON(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(RunWorkflow, cls).register(type)
+        super(ParseJSON, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Run workflow",
-                "description": "Executes a workflow with a given key.",
+                "name": "Parse JSON",
+                "description": "Parses a JSON string.",
                 "category": "Content",
                 "fields": {
-                    "workflowKey": {
-                        "name": "Workflow key",
+                    "plainText": {
+                        "name": "Plain text",
                         "type": "Text",
-                    },
-                    "executionEnv": {
-                        "name": "Execution environment",
-                        "desc": "Values passed in the context will be available using the template syntax i.e. @{my_var}",
-                        "default": "{}",
-                        "type": "Object",
                         "control": "Textarea"
                     },
                 },
@@ -36,7 +33,7 @@ class RunWorkflow(WorkflowBlock):
                     },
                     "error": {
                         "name": "Error",
-                        "description": "The workflow was executed successfully.",
+                        "description": "The text provided couldn't be parsed.",
                         "style": "error",
                     },
                 },
@@ -45,10 +42,8 @@ class RunWorkflow(WorkflowBlock):
 
     def run(self):
         try:
-            workflow_key = self._get_field("workflowKey")
-            execution_env = self._get_field("executionEnv", as_json=True)
-
-            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+            plain_text = self._get_field("plainText")
+            self.result = json.loads(plain_text)
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
