@@ -27,7 +27,11 @@ export async function generate() {
 		fs.mkdirSync(componentsDirectory);
 	}
 
-	components.map((component) => {
+	components.forEach((component) => {
+		if ('toolkit' in component && component.toolkit !== 'core') {
+			return
+		}
+
 		// eslint-disable-next-line prettier/prettier
 		const componentPageTemplate = path.resolve(componentsDirectory, "component_page.mdx.tpl");
 		const page = fs.readFileSync(componentPageTemplate, "utf8");

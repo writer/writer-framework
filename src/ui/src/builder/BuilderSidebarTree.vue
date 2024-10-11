@@ -47,10 +47,14 @@
 				></BuilderTreeBranch>
 			</div>
 		</div>
-		<div class="addPage">
-			<button @click="addPage">
+		<div class="add">
+			<button v-if="rootType == 'root'" @click="addPage">
 				<i class="material-symbols-outlined"> add </i>
 				Add Page
+			</button>
+			<button v-if="rootType == 'workflows_root'" @click="addWorkflow">
+				<i class="material-symbols-outlined"> add </i>
+				Add Workflow
 			</button>
 		</div>
 	</div>
@@ -73,8 +77,17 @@ const { createAndInsertComponent, goToComponentParentPage } =
 
 const searchQuery: Ref<string> = ref(null);
 const matchIndex: Ref<number> = ref(-1);
+const rootType = computed(() => {
+	let targetType = "root";
+	if (ssbm.getMode() == "workflows") {
+		targetType = "workflows_root";
+	}
+	return targetType;
+});
 const rootComponents = computed(() => {
-	return wf.getComponents(null, { sortedByPosition: true });
+	return wf
+		.getComponents(null, { sortedByPosition: true })
+		.filter((c) => c.type == rootType.value);
 });
 
 function determineMatch(component: Component, query: string): boolean {
@@ -99,7 +112,7 @@ async function selectMatch() {
 	if (!component) return;
 	goToComponentParentPage(component.id);
 	await nextTick();
-	ssbm.setSelection(component.id);
+	ssbm.setSelection(component.id, undefined, "tree");
 }
 
 const previousMatchIndex = computed(() => {
@@ -150,7 +163,17 @@ async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
 	wf.setActivePageId(pageId);
 	await nextTick();
-	ssbm.setSelection(pageId);
+	ssbm.setSelection(pageId, undefined, "tree");
+}
+
+async function addWorkflow() {
+	const pageId = createAndInsertComponent(
+		"workflows_workflow",
+		"workflows_root",
+	);
+	wf.setActivePageId(pageId);
+	await nextTick();
+	ssbm.setSelection(pageId, undefined, "tree");
 }
 </script>
 
@@ -172,7 +195,7 @@ async function addPage() {
 	padding: 0 12px 12px 12px;
 }
 
-.addPage {
+.add {
 	margin-top: auto;
 	padding: 0 16px 16px 16px;
 }

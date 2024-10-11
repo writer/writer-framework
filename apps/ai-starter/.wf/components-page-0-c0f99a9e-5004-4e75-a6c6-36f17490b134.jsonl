@@ -1,0 +1,3 @@
+{"id": "c0f99a9e-5004-4e75-a6c6-36f17490b134", "type": "page", "content": {"pageMode": "compact"}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 0, "visible": {"binding": "", "expression": true, "reversed": false}}
+{"id": "bebc5fe9-63a7-46a7-b0fa-62303555cfaf", "type": "header", "content": {"text": "@{my_app.title}"}, "handlers": {}, "isCodeManaged": false, "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134", "position": 0, "visible": {"binding": "", "expression": true, "reversed": false}}
+{"id": "ejpasds0o8qyjs1n", "type": "section", "content": {"title": "Section Title"}, "handlers": {}, "isCodeManaged": false, "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134", "position": 1, "visible": {"binding": "", "expression": true, "reversed": false}}

@@ -64,7 +64,9 @@ import CoreMapbox from "../components/core/embed/CoreMapbox.vue";
 
 // WORKFLOWS
 
+import WorkflowsWorkflow from "../components/workflows/WorkflowsWorkflow.vue";
 import WorkflowsNode from "../components/workflows/abstract/WorkflowsNode.vue";
+import WorkflowsRoot from "@/components/workflows/WorkflowsRoot.vue";
 
 import { AbstractTemplate, WriterComponentDefinition } from "@/writerTypes";
 import { h } from "vue";
@@ -125,7 +127,9 @@ const templateMap = {
 	avatar: CoreAvatar,
 	annotatedtext: CoreAnnotatedText,
 	jsonviewer: CoreJsonViewer,
-	workflowsnode: WorkflowsNode,
+	workflows_root: WorkflowsRoot,
+	workflows_workflow: WorkflowsWorkflow,
+	workflows_node: WorkflowsNode,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};

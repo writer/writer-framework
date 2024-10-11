@@ -12,7 +12,7 @@
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
 				@input="handleInput"
-				@blur="handleBlur"
+				@blur="closeAutocompletion"
 			/>
 			<datalist v-if="props.options" :id="`list-${props.inputId}`">
 				<option
@@ -45,24 +45,30 @@
 			></textarea>
 		</template>
 
-		<div v-if="autocompleteOptions.length" class="fieldStateAutocomplete">
-			<div
+		<div
+			v-if="autocompleteOptions.length"
+			class="fieldStateAutocomplete"
+			tabindex="-1"
+		>
+			<button
 				v-for="(option, optionKey) in autocompleteOptions"
 				:key="optionKey"
 				class="fieldStateAutocompleteOption"
 				:value="optionKey"
+				@focusout="closeAutocompletion"
+				@focusin="abortClosingAutocompletion"
 				@click="() => handleComplete(option.text)"
 			>
 				<span class="prop">{{ option.text }}</span
 				><span class="type">{{ option.type }}</span>
-			</div>
+			</button>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import { PropType, inject, nextTick, ref } from "vue";
+import { PropType, inject, nextTick, ref, shallowRef } from "vue";
 import injectionKeys from "../injectionKeys";
 
 const emit = defineEmits(["input", "update:value"]);
@@ -90,7 +96,7 @@ const props = defineProps({
 });
 
 const ss = inject(injectionKeys.core);
-const autocompleteOptions = ref<{ text: string; type: string }[]>([]);
+const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
 const input = ref<HTMLInputElement | null>(null);
 
 defineExpose({
@@ -108,7 +114,9 @@ const handleComplete = (selectedText) => {
 	const full = getPath(text);
 	if (full === null) return;
 	const keyword = full.at(-1);
-	const replaced = text.replace(new RegExp(keyword + "$"), selectedText);
+	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
+	const replaced = text.replace(new RegExp(regexKeyword), selectedText);
+
 	newValue = replaced + newValue.slice(selectionEnd);
 	emit("input", { target: { value: newValue } });
 	emit("update:value", newValue);
@@ -138,6 +146,13 @@ const getPath = (text) => {
 	return raw.split(".");
 };
 
+/**
+ * Escape a key to support the "." and "\" in a state variable
+ */
+const escapeVariable = (key) => {
+	return key.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
+};
+
 const handleInput = (ev) => {
 	emit("input", ev);
 	emit("update:value", ev.target.value);
@@ -162,7 +177,7 @@ const showAutocomplete = () => {
 
 	const allOptions = Object.entries(_get(ss.getUserState(), path) ?? {}).map(
 		([key, val]) => ({
-			text: key,
+			text: escapeVariable(key),
 			type: typeToString(val),
 		}),
 	);
@@ -183,11 +198,21 @@ const showAutocomplete = () => {
 	});
 };
 
-const handleBlur = () => {
-	setTimeout(() => {
+let closeAutocompletionJob: ReturnType<typeof setTimeout> | null;
+
+function closeAutocompletion() {
+	// let some time in case user focused on an autocomplete field
+	closeAutocompletionJob = setTimeout(() => {
 		autocompleteOptions.value = [];
-	}, 100);
-};
+		closeAutocompletionJob = null;
+	}, 300);
+}
+
+function abortClosingAutocompletion() {
+	if (!closeAutocompletionJob) return;
+	clearTimeout(closeAutocompletionJob);
+	closeAutocompletionJob = null;
+}
 </script>
 
 <style scoped>
@@ -212,6 +237,13 @@ const handleBlur = () => {
 }
 
 .fieldStateAutocompleteOption {
+	/* reset button style */
+	background-color: inherit;
+	border: none;
+	width: 100%;
+	text-align: left;
+	border-radius: 0;
+
 	padding: 8px 12px;
 	cursor: pointer;
 	display: flex;
@@ -236,6 +268,7 @@ const handleBlur = () => {
 }
 
 .fieldStateAutocompleteOption:hover {
+	color: inherit;
 	background-color: var(--builderSubtleHighlightColorSolid);
 }
 

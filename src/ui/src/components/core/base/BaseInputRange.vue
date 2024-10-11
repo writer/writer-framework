@@ -4,7 +4,7 @@
 		:aria-valuemin="min"
 		:aria-valuemax="max"
 		:aria-valuenow="value"
-		:aria-valuetext="`${value} (${Math.round(progress)}%)`"
+		:aria-valuetext="`${displayValue} (${Math.round(progress)}%)`"
 		class="BaseInputRange"
 		:class="{
 			'BaseInputRange--popover-always-visible':
@@ -18,7 +18,7 @@
 				:style="{ left: popoverLeft }"
 			>
 				<span class="BaseInputRange__popover__content">
-					{{ value }}
+					{{ displayValue }}
 				</span>
 			</div>
 		</transition>
@@ -65,6 +65,9 @@ const thumbRadius = 9;
 const thumb = ref<HTMLElement>();
 const slider = ref<HTMLElement>();
 
+const precision = computed(() => Math.ceil(-Math.log10(props.step)));
+const displayValue = computed(() => model.value.toFixed(precision.value));
+
 const progress = computed(() => {
 	if (typeof model.value !== "number") return 50;
 	return ((model.value - props.min) / (props.max - props.min)) * 100;
@@ -93,15 +96,8 @@ function displayPopover() {
 }
 
 // clamp(0px, calc(62% - 9px), calc(100% - 18px))
-const thumbLeft = computed(
-	() => `clamp(
-		0px,
-		calc(${progress.value}% - ${thumbRadius}px),
-		calc(100% - ${thumbRadius * 2}px)
-	)`,
-);
-
-const popoverLeft = computed(() => `calc(${thumbLeft.value} - 3px)`);
+const thumbLeft = computed(() => `${progress.value}%`);
+const popoverLeft = computed(() => `${progress.value}%`);
 
 function updateValue(value: number) {
 	displayPopover();
@@ -132,9 +128,7 @@ function handleMouseDown(initialEvent: MouseEvent) {
 
 		if (progress > 1 || progress < 0) return;
 
-		const value = Math.round(
-			(props.max - props.min) * progress + props.min,
-		);
+		const value = (props.max - props.min) * progress + props.min;
 		updateValue(value);
 	}
 
@@ -190,6 +184,7 @@ function handleMouseDown(initialEvent: MouseEvent) {
 	top: 0;
 
 	transition: box-shadow ease-in-out 0.5s;
+	transform: translateX(-50%);
 }
 
 .BaseInputRange__thumb:active {
@@ -212,14 +207,14 @@ function handleMouseDown(initialEvent: MouseEvent) {
 
 	background: var(--popover-bg-color);
 	height: 18px;
-	width: 24px;
-	max-width: 24px;
 
 	border-radius: 4px;
 
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	padding: 0 4px;
+	transform: translateX(-50%);
 }
 
 .BaseInputRange__popover::after {

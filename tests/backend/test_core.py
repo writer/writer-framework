@@ -14,6 +14,7 @@ import polars as pl
 import pyarrow as pa
 import pytest
 import writer as wf
+from writer import audit_and_fix, wf_project
 from writer.core import (
     BytesWrapper,
     Evaluator,
@@ -31,8 +32,13 @@ from writer.core import (
 from writer.core_ui import Component
 from writer.ss_types import WriterEvent
 
-from backend.fixtures import core_ui_fixtures, writer_fixtures
 from tests.backend import test_app_dir
+from tests.backend.fixtures import (
+    core_ui_fixtures,
+    file_fixtures,
+    load_fixture_content,
+    writer_fixtures,
+)
 
 raw_state_dict = {
     "name": "Robert",
@@ -50,7 +56,8 @@ raw_state_dict = {
     "counter": 4,
     "_private": 3,
     # Used as an example of something unserialisable yet pickable
-    "_private_unserialisable": np.array([[1+2j, 2, 3+3j]])
+    "_private_unserialisable": np.array([[1+2j, 2, 3+3j]]),
+    "a.b": 3
 }
 
 simple_dict = {"items": {
@@ -62,9 +69,9 @@ simple_dict = {"items": {
 wf.Config.is_mail_enabled_for_log = True
 wf.init_state(raw_state_dict)
 
-sc = None
-with open(test_app_dir / "ui.json", "r") as f:
-    sc = json.load(f).get("components")
+_, sc = wf_project.read_files(test_app_dir)
+sc = audit_and_fix.fix_components(sc)
+
 session = wf.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
@@ -151,7 +158,8 @@ class TestStateProxy(unittest.TestCase):
             '+interests': ['lamps', 'cars'],
             '+name': 'Robert',
             '+state\\.with\\.dots': None,
-            '+utfࠀ': 23
+            '+utfࠀ': 23,
+            '+a\.b': 3
         }
 
         self.sp_simple_dict.apply_mutation_marker()
@@ -589,7 +597,7 @@ class TestState:
                 "total": 0
             })
 
-            initial_state.subscribe_mutation('a\.b', cumulative_sum)
+            initial_state.subscribe_mutation(r'a\.b', cumulative_sum)
 
             # Acts
             initial_state['a.b'] = 1
@@ -1129,6 +1137,7 @@ class TestEvaluator:
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
+        assert e.evaluate_expression("a\.b", instance_path) == 3
 
     def test_get_context_data_should_return_the_target_of_event(self) -> None:
         """
@@ -1179,7 +1188,6 @@ class TestEvaluator:
         assert context.get("target") == "button1"
         assert context.get("item") == "b"
         assert context.get("value") == "B"
-
 
 class TestSessionManager:
 
@@ -1702,5 +1710,6 @@ def test_parse_state_variable_expression_should_process_expression():
     # When
     assert parse_state_variable_expression('features') == ['features']
     assert parse_state_variable_expression('features.eyes') == ['features', 'eyes']
-    assert parse_state_variable_expression('features\.eyes') == ['features.eyes']
-    assert parse_state_variable_expression('features\.eyes.color') == ['features.eyes', 'color']
+    assert parse_state_variable_expression(r'features\.eyes') == ['features.eyes']
+    assert parse_state_variable_expression(r'features\.eyes.color') == ['features.eyes', 'color']
+

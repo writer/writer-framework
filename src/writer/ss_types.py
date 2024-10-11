@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Protocol, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
 
 from pydantic import BaseModel
 from typing_extensions import Literal, TypedDict
@@ -185,3 +185,27 @@ class DataframeRecordRemoved(TypedDict):
 class WriterEventResult(TypedDict):
     ok: bool
     result: Any
+
+class MetadataDefinition(TypedDict):
+    """
+    Declarative definition of meta for auto-completion
+    """
+    writer_version: str
+
+class ComponentDefinition(TypedDict):
+    """
+    Declarative definition of a component for auto-completion
+    """
+    id: str
+    type: str
+    content: Dict[str, Any]
+    isCodeManaged: Optional[bool]
+    position: int
+    parentId: Optional[str]
+    handlers: Optional[Dict[str, str]]
+    visible: Optional[Union[bool, str]]
+    binding: Optional[Dict]
+    outs: Optional[Dict[str, str]]
+    x: Optional[int]
+    y: Optional[int]
+

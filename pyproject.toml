@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "0.7.5"
+version = "0.8.0rc1"
 description = "An open-source, Python framework for building feature-rich apps that are fully integrated with the Writer platform."
 authors = ["Writer, Inc."]
 readme = "README.md"
@@ -46,8 +46,7 @@ requests = "^2.31.0"
 uvicorn = ">= 0.20.0, < 1"
 watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
-writer-sdk = ">= 0.6.0, < 1"
-yfinance = "^0.2.40"
+writer-sdk = ">= 1.2.0, < 2"
 python-multipart = ">=0.0.7, < 1"
 
 

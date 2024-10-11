@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
+from writer.ss_types import ComponentDefinition, ServeMode
+
 current_parent_container: ContextVar[Union["Component", None]] = \
     ContextVar("current_parent_container")
 
@@ -51,6 +53,9 @@ class Component(BaseModel):
     handlers: Optional[Dict[str, str]] = None
     visible: Optional[VisibileFields] = None
     binding: Optional[Dict] = None
+    outs: Optional[Any] = None
+    x: Optional[int] = None
+    y: Optional[int] = None
 
     def to_dict(self) -> Dict:
         """
@@ -383,6 +388,35 @@ def ingest_bmc_component_tree(component_tree: ComponentTree, components: Dict[st
 
     component_tree.ingest(components, tree=Branch.bmc)
 
+def filter_components_by(components: Dict[str, ComponentDefinition], parent: Optional[str] = None) -> Dict[str, ComponentDefinition]:
+    """
+    Filters tree components whose parent is {parent_id}, parent included
+
+    >>> filtered_components = filter_components_by(components, parent="6a490318-239e-4fe9-a56b-f0f33d628c87")
+    """
+
+    if parent is not None:
+        parent_list = {parent}
+        target_components: Dict[str, ComponentDefinition] = {}
+        has_changed = True
+        # in some cases, the order requires to loops few times
+        while True:
+            if has_changed is False:
+                break
+
+            has_changed = False
+            for c in components.values():
+                if c['id'] == parent and c['id'] not in target_components:
+                    target_components[c['id']] = c
+                elif c.get('parentId', None) in parent_list and c['id'] not in target_components:
+                    target_components[c['id']] = c
+                    parent_list.add(c['id'])
+                    has_changed = True
+
+        components = target_components
+
+    return components
+
 
 def cmc_components_list(component_tree: ComponentTree) -> list:
     """
@@ -401,6 +435,33 @@ def session_components_list(component_tree: ComponentTree) -> list:
    """
     return list(component_tree.branch(Branch.session_cmc).components.values())
 
+def export_component_tree(component_tree: ComponentTree, mode: ServeMode, only_update=False) -> Optional[Dict]:
+    """
+    Exports the component tree to the ui.
+
+    >>> filtered_component_tree = core_ui.export_component_tree(session.session_component_tree, mode=writer.Config.mode)
+
+    This function filters artifacts that should be hidden from the user, for example workflows in run mode.
+
+    :param component_tree: the full component tree
+    :param mode: the mode of the application (edit, run)
+    :param updated: return something only if component tree has been updated
+    :return: a dictionary representing the component tree
+    """
+    if only_update is True and component_tree.updated is False:
+        return None
+
+    roots = ['root']
+    if mode == "edit":
+        roots.append('workflows_root')
+
+    _components: List[Component] = []
+    for root in roots:
+        _root_component = cast(Component, component_tree.get_component(root))
+        _components.append(_root_component)
+        _components += component_tree.get_descendents(root)
+
+    return {c.id: c.to_dict() for c in _components}
 
 class UIError(Exception):
     ...

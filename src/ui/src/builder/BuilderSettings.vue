@@ -1,9 +1,7 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettings">
 		<div class="windowBar">
-			<div class="title">
-				{{ componentDefinition.name }}
-			</div>
+			<div class="title">{{ componentDefinition.name }}</div>
 			<button
 				v-if="description || docsString"
 				class="windowAction"
@@ -46,9 +44,18 @@
 
 		<div class="sections" :inert="readonly">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
-			<BuilderSettingsBinding v-if="isBindable"></BuilderSettingsBinding>
-			<BuilderSettingsHandlers></BuilderSettingsHandlers>
-			<BuilderSettingsVisibility></BuilderSettingsVisibility>
+			<template
+				v-if="
+					!componentDefinition.toolkit ||
+					componentDefinition.toolkit == 'core'
+				"
+			>
+				<BuilderSettingsBinding
+					v-if="isBindable"
+				></BuilderSettingsBinding>
+				<BuilderSettingsHandlers></BuilderSettingsHandlers>
+				<BuilderSettingsVisibility></BuilderSettingsVisibility>
+			</template>
 		</div>
 
 		<div class="debug">
