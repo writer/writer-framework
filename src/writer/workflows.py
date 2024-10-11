@@ -64,6 +64,8 @@ def _run_node(target_node: "Component", execution, session, execution_env: Dict)
     try:
         tool.run()
     except BaseException as e:
+        if not tool.result:
+            tool.result = repr(e)
         stored_exception = e
 
     execution[target_node.id] = tool
