@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from typing import List
 
-from writer import core_ui, wf_project
+from writer import VERSION, core_ui, wf_project
 from writer.ss_types import ComponentDefinition
 
 from tests.backend import test_app_dir, testobsoleteapp
@@ -120,7 +120,7 @@ def test_wf_project_migrate_obsolete_ui_json_should_migrate_ui_json_into_wf_dire
         shutil.copytree(testobsoleteapp, tmp_app_dir, dirs_exist_ok=True)
 
         # When
-        wf_project.migrate_obsolete_ui_json(tmp_app_dir)
+        wf_project.migrate_obsolete_ui_json(tmp_app_dir, {"writer_version": VERSION})
 
         # Then
         assert not os.path.isfile(os.path.join(tmp_app_dir, 'ui.json'))

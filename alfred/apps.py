@@ -1,6 +1,6 @@
 import os
 
-from writer import audit_and_fix, wf_project
+from writer import VERSION, audit_and_fix, wf_project
 
 import alfred
 
@@ -40,7 +40,7 @@ def apps_update(app: str = None):
 
         if os.path.isfile(os.path.join(abs_path, "ui.json")):
             print(f'{app} : migrate ui.json')
-            wf_project.migrate_obsolete_ui_json(abs_path)
+            wf_project.migrate_obsolete_ui_json(abs_path, {"writer_version": VERSION})
 
         if not os.path.isfile(os.path.join(abs_path, ".wf", 'components-workflows_root.jsonl')):
             wf_project.create_default_workflows_root(abs_path)
