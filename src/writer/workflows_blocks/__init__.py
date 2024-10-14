@@ -1,3 +1,5 @@
+from writer.workflows_blocks.addtostatelist import AddToStateList
+from writer.workflows_blocks.calleventhandler import CallEventHandler
 from writer.workflows_blocks.foreach import ForEach
 from writer.workflows_blocks.httprequest import HTTPRequest
 from writer.workflows_blocks.logmessage import LogMessage
@@ -9,8 +11,6 @@ from writer.workflows_blocks.writerchat import WriterChat
 from writer.workflows_blocks.writerclassification import WriterClassification
 from writer.workflows_blocks.writercompletion import WriterCompletion
 from writer.workflows_blocks.writernocodeapp import WriterNoCodeApp
-from writer.workflows_blocks.calleventhandler import CallEventHandler
-from writer.workflows_blocks.addtostatelist import AddToStateList
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
