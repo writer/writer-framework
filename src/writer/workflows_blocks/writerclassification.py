@@ -13,9 +13,9 @@ class WriterClassification(WorkflowBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer Classification",
+                "name": "Classification",
                 "description": "Classify a text.",
-                "category": "Content",
+                "category": "Writer",
                 "fields": {
                     "text": {
                         "name": "Text",

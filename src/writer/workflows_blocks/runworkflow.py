@@ -14,7 +14,7 @@ class RunWorkflow(WorkflowBlock):
             writer={
                 "name": "Run workflow",
                 "description": "Executes a workflow with a given key.",
-                "category": "Content",
+                "category": "Logic",
                 "fields": {
                     "workflowKey": {
                         "name": "Workflow key",

@@ -2,6 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
+DEFAULT_MODEL = "palmyra-x-003-instruct"
 
 class WriterCompletion(WorkflowBlock):
 
@@ -11,13 +12,24 @@ class WriterCompletion(WorkflowBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer Completion",
+                "name": "Completion",
                 "description": "Handles text completions.",
-                "category": "Content",
+                "category": "Writer",
                 "fields": {
                     "prompt": {
                         "name": "Prompt",
                         "type": "Text",
+                        "control": "Textarea"
+                    },
+                    "modelId": {
+                        "name": "Model id",
+                        "type": "Text",
+                        "default": DEFAULT_MODEL
+                    },
+                    "temperature": {
+                        "name": "Temperature",
+                        "type": "Number",
+                        "default": "0.7"
                     }
                 },
                 "outs": {
@@ -40,11 +52,9 @@ class WriterCompletion(WorkflowBlock):
             import writer.ai
 
             prompt = self._get_field("prompt")
-            # model_id = self._get_field("modelId")
-
-            config = {}
-            # if model_id:
-            #     config["model"] = model_id
+            temperature = float(self._get_field("temperature", False, "0.7"))
+            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
+            config = { "temperature": temperature, "model": model_id}
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
             self.outcome = "success"

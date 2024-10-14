@@ -9,6 +9,8 @@ from writer.workflows_blocks.writerchat import WriterChat
 from writer.workflows_blocks.writerclassification import WriterClassification
 from writer.workflows_blocks.writercompletion import WriterCompletion
 from writer.workflows_blocks.writernocodeapp import WriterNoCodeApp
+from writer.workflows_blocks.calleventhandler import CallEventHandler
+from writer.workflows_blocks.addtostatelist import AddToStateList
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
@@ -21,3 +23,5 @@ LogMessage.register("workflows_logmessage")
 WriterChat.register("workflows_writerchat")
 WriterAddChatMessage.register("workflows_writeraddchatmessage")
 ParseJSON.register("workflows_parsejson")
+CallEventHandler.register("workflows_calleventhandler")
+AddToStateList.register("workflows_addtostatelist")

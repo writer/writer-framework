@@ -3,7 +3,6 @@ from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
-
 class ForEach(WorkflowBlock):
 
     @classmethod
@@ -14,7 +13,7 @@ class ForEach(WorkflowBlock):
             writer={
                 "name": "For-each loop",
                 "description": "Executes a workflow repeatedly, based on the items provided.",
-                "category": "Content",
+                "category": "Logic",
                 "fields": {
                     "workflowKey": {
                         "name": "Workflow key",
@@ -25,6 +24,7 @@ class ForEach(WorkflowBlock):
                         "name": "Items",
                         "desc": "The item value will be passed in the execution environment and will be available at @{item}, its id at @{itemId}.",
                         "default": "{}",
+                        "init": '{ "fr": "France", "pl": "Poland" }',
                         "type": "Object",
                         "control": "Textarea"
                     },
@@ -39,7 +39,7 @@ class ForEach(WorkflowBlock):
                 "outs": {
                     "success": {
                         "name": "Success",
-                        "description": "The workflow wasn't executed successfully.",
+                        "description": "The workflow executed successfully.",
                         "style": "success",
                     },
                     "error": {

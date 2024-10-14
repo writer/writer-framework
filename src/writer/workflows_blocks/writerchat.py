@@ -2,6 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
+DEFAULT_MODEL = "palmyra-x-004"
 
 class WriterChat(WorkflowBlock):
 
@@ -11,19 +12,24 @@ class WriterChat(WorkflowBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer Chat",
+                "name": "Chat completion",
                 "description": "Handles chat completions.",
-                "category": "Content",
+                "category": "Writer",
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",
                         "desc": "Where the conversation will be stored",
                         "type": "Text",
                     },
-                    "incomingMessage": {
-                        "name": "Incoming message",
-                        "type": "Object",
-                        "default": "{}"
+                    "modelId": {
+                        "name": "Model id",
+                        "type": "Text",
+                        "default": DEFAULT_MODEL
+                    },
+                    "temperature": {
+                        "name": "Temperature",
+                        "type": "Number",
+                        "default": "0.7"
                     }
                 },
                 "outs": {
@@ -46,28 +52,25 @@ class WriterChat(WorkflowBlock):
             import writer.ai
 
             conversation_state_element = self._get_field("conversationStateElement")
-            incoming_message = self._get_field("incomingMessage", as_json=True)
-            # model_id = self._get_field("modelId")
+            temperature = float(self._get_field("temperature", False, "0.7"))
+            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
+            config = { "temperature": temperature, "model": model_id}
+
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
 
             if not conversation:
-                conversation = writer.ai.Conversation()
+                conversation = writer.ai.Conversation(config=config)
                 self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
 
-            incoming_message = self._get_field("incomingMessage")
+            # for chunk in conversation.stream_complete():
+            #     if chunk.get("content") is None:
+            #         chunk["content"] = ""
+            #     conversation += chunk
 
-            if incoming_message:
-                conversation += incoming_message
-                self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
-                msg = conversation.complete()
-                conversation += msg
-                self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
-
-            # config = {}
-            # if model_id:
-            #     config["model"] = model_id
-            
-            self.result = "Success"
+            msg = conversation.complete()
+            conversation += msg
+            self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)            
+            self.result = msg
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
