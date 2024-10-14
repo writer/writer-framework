@@ -104,6 +104,14 @@ const categoriesData: Ref<Record<CategoryId, CategoryData>> = ref({
 		icon: "integration_instructions",
 		isCollapsed: false,
 	},
+	Writer: {
+		icon: "Notes",
+		isCollapsed: false,
+	},
+	Logic: {
+		icon: "Laps",
+		isCollapsed: false,
+	},
 	Other: {
 		icon: "dynamic_feed",
 		isCollapsed: false,
