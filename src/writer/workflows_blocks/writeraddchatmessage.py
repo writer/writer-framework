@@ -11,9 +11,9 @@ class WriterAddChatMessage(WorkflowBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer Add Chat Message",
+                "name": "Add chat message",
                 "description": "Add a message to a conversation.",
-                "category": "Content",
+                "category": "Writer",
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",

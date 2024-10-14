@@ -13,9 +13,9 @@ class WriterNoCodeApp(WorkflowBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Writer no-code app",
+                "name": "No-code app",
                 "description": "Run a no-code app.",
-                "category": "Content",
+                "category": "Writer",
                 "fields": {
                     "appId": {
                         "name": "App Id",

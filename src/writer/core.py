@@ -1498,12 +1498,11 @@ class Evaluator:
     def set_state(self, expr: str, instance_path: InstancePath, value: Any, base_context = {}) -> None:
         accessors = self.parse_expression(expr, instance_path, base_context)
         state_ref: StateProxy = self.wf.user_state
-        # leaf_state_ref: StateProxy = state_ref
+        leaf_state_ref: StateProxy = state_ref
 
         for accessor in accessors[:-1]:
             if isinstance(state_ref, StateProxy):
-                # leaf_state_ref = state_ref
-                pass
+                leaf_state_ref = state_ref
 
             if isinstance(state_ref, list):
                 state_ref = state_ref[int(accessor)]
@@ -1515,7 +1514,7 @@ class Evaluator:
                 f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy or dict.")
 
         state_ref[accessors[-1]] = value
-        # leaf_state_ref.apply_mutation_marker()
+        leaf_state_ref.apply_mutation_marker(recursive=True)
 
     def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> List[str]:
 

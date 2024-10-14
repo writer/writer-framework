@@ -5,7 +5,7 @@
 		multiline
 		variant="code"
 		:value="component.content[fieldKey]"
-		:placeholder="templateField.placeholder"
+		:placeholder="templateField?.default"
 		@input="
 			(ev: Event) =>
 				formatAndSetContentValue((ev.target as HTMLInputElement).value)

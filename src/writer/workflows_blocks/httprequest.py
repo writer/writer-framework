@@ -15,7 +15,7 @@ class HTTPRequest(WorkflowBlock):
             writer={
                 "name": "HTTP Request",
                 "description": "Executes an HTTP request.",
-                "category": "Content",
+                "category": "Other",
                 "fields": {
                     "method": {
                         "name": "Method",
@@ -71,7 +71,11 @@ class HTTPRequest(WorkflowBlock):
             headers = self._get_field("headers")
             body = self._get_field("body")
             req = requests.request(method, url, headers=headers, data=body)
-            self.result = req.text
+            self.result = {
+                "headers": dict(req.headers),
+                "status_code": req.status_code,
+                "body": req.text
+            }
             if req.ok:
                 self.outcome = "success"
             else:
