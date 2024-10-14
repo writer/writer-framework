@@ -244,6 +244,12 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		return subtree;
 	}
 
+	function getNodeDependencies(componentId: Component["id"]): Component[] {
+		return wf
+			.getComponents()
+			.filter((c) => c.outs?.find((out) => out.toNodeId == componentId));
+	}
+
 	/**
 	 * Removes a component and all its descendents
 	 *
@@ -259,8 +265,12 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (parentId) {
 			repositionHigherSiblings(component.id, -1);
 		}
+		const dependencies = getNodeDependencies(componentId);
+		dependencies.map((c) => {
+			ssbm.registerPreMutation(c);
+			c.outs = [...c.outs.filter((out) => out.toNodeId !== componentId)];
+		});
 		const subtree = getFlatComponentSubtree(componentId);
-		subtree.map((c) => wf.deleteComponent(c.id));
 		subtree.map((c) => {
 			ssbm.registerPreMutation(c);
 			wf.deleteComponent(c.id);
