@@ -3,16 +3,16 @@ from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class SetState(WorkflowBlock):
+class AddToStateList(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(SetState, cls).register(type)
+        super(AddToStateList, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Set state",
-                "description": "Set the value for a state element.",
+                "name": "Add to state list",
+                "description": "Adds a value to a list in state, creating a new one if it doesn't exist.",
                 "category": "Other",
                 "fields": {
                     "element": {
@@ -42,9 +42,18 @@ class SetState(WorkflowBlock):
 
     def run(self):
         try:
-            element = self._get_field("element")
+            element_expr = self._get_field("element")
             value = self._get_field("value")
-            self.evaluator.set_state(element, self.instance_path, value, base_context=self.execution_env)
+
+            element = self.evaluator.evaluate_expression(element_expr, self.instance_path, self.execution_env)
+
+            if not element:
+                element = []
+            elif not isinstance(element, list):
+                element = [element]
+
+            element.append(value)
+            self.evaluator.set_state(element_expr, self.instance_path, element, base_context=self.execution_env)
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

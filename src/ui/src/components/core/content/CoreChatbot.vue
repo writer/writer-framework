@@ -387,6 +387,7 @@ const isUploadSizeExceeded = computed(() => {
 });
 
 function handleMessageSent() {
+	if (isResponsePending.value) return;
 	isResponsePending.value = true;
 	const event = new CustomEvent("wf-chatbot-message", {
 		detail: {

@@ -27,8 +27,8 @@ import writer.serve
 import writer.auth
 
 auth = writer.auth.BasicAuth(
-    login=os.get('LOGIN'),
-    password=os.get('PASSWORD'),
+    login=os.getenv('LOGIN'),
+    password=os.getenv('PASSWORD'),
 )
 
 writer.serve.register_auth(auth)

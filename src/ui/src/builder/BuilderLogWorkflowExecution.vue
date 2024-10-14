@@ -7,7 +7,7 @@
 				<th>Time</th>
 			</tr>
 			<tr v-for="(entry, entryId) in enrichedExecutionLog" :key="entryId">
-				<td @click="selectBlock(entry.componentId)">
+				<td class="name" @click="selectBlock(entry.componentId)">
 					{{ entry.componentDef.name }}
 				</td>
 				<td>
@@ -42,6 +42,7 @@ const enrichedExecutionLog = computed(() => {
 	const elog = [...props.executionLog];
 	elog.map((e) => {
 		e.component = wf.getComponentById(e.componentId);
+		if (!e.component) return;
 		e.componentDef = wf.getComponentDefinition(e.component.type);
 	});
 	return elog;
@@ -77,5 +78,13 @@ td {
 	border: 1px solid var(--builderSeparatorColor);
 	margin: 0;
 	padding: 4px;
+}
+
+td.name {
+	cursor: pointer;
+}
+
+td.name:hover {
+	background: var(--builderSubtleSeparatorColor);
 }
 </style>

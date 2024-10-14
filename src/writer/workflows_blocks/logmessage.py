@@ -14,7 +14,7 @@ class LogMessage(WorkflowBlock):
             writer={
                 "name": "Log message",
                 "description": "Appends a message to the log.",
-                "category": "Content",
+                "category": "Other",
                 "fields": {
                     "type": {
                         "name": "Type",

@@ -129,7 +129,6 @@ const templateMap = {
 	jsonviewer: CoreJsonViewer,
 	workflows_root: WorkflowsRoot,
 	workflows_workflow: WorkflowsWorkflow,
-	workflows_node: WorkflowsNode,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};
@@ -174,16 +173,19 @@ function fallbackTemplate(type: string) {
 }
 
 function getMergedAbstractTemplate(type: string) {
+	const abstractBaseTemplateMap = {
+		workflows_node: WorkflowsNode,
+	};
 	const template = abstractTemplateMap[type];
 	if (!template) return;
 	const baseType = template.baseType;
 	return {
-		...templateMap[baseType],
+		...abstractBaseTemplateMap[baseType],
 		writer: {
-			...templateMap[baseType].writer,
+			...abstractBaseTemplateMap[baseType].writer,
 			...abstractTemplateMap[type].writer,
 			fields: {
-				...templateMap[baseType].writer?.fields,
+				...abstractBaseTemplateMap[baseType].writer?.fields,
 				...abstractTemplateMap[type].writer?.fields,
 			},
 		},

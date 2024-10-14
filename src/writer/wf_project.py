@@ -92,7 +92,7 @@ def read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDe
     return metadata, components
 
 
-def migrate_obsolete_ui_json(app_path: str) -> None:
+def migrate_obsolete_ui_json(app_path: str, metadata: MetadataDefinition) -> None:
     """
     Migrates a project that uses ui.json file to the current project format
 
@@ -110,7 +110,7 @@ def migrate_obsolete_ui_json(app_path: str) -> None:
         raise ValueError("No dictionary found in components file.")
 
     file_payload = parsed_file
-    metadata = file_payload.get("metadata", {})
+    # metadata = file_payload.get("metadata", {})
     components = file_payload.get("components", {})
     write_files(app_path, metadata, components)
     os.remove(os.path.join(app_path, "ui.json"))

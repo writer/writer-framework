@@ -65,8 +65,11 @@ const thumbRadius = 9;
 const thumb = ref<HTMLElement>();
 const slider = ref<HTMLElement>();
 
-const precision = computed(() => Math.ceil(-Math.log10(props.step)));
-const displayValue = computed(() => model.value.toFixed(precision.value));
+const precision = computed(() => String(props.step).split(".")[1]?.length ?? 0);
+const displayValue = computed(() => {
+	if (typeof model.value !== "number") return "";
+	return Number(model.value).toFixed(precision.value);
+});
 
 const progress = computed(() => {
 	if (typeof model.value !== "number") return 50;
@@ -215,6 +218,8 @@ function handleMouseDown(initialEvent: MouseEvent) {
 	justify-content: center;
 	padding: 0 4px;
 	transform: translateX(-50%);
+
+	min-width: 12px;
 }
 
 .BaseInputRange__popover::after {
