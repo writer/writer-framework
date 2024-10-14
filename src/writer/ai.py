@@ -1115,6 +1115,8 @@ class Conversation:
         """
         if target_type == "string":
             return str(value)
+        elif target_type == "number":
+            return float(value)  # as float is more specific
         elif target_type == "integer":
             return int(value)
         elif target_type == "float":
@@ -1137,6 +1139,8 @@ class Conversation:
                 return value
             else:
                 raise ValueError(f"Cannot convert {value} to dict.")
+        elif target_type == "null":
+            return None
         else:
             raise ValueError(f"Unsupported target type: {target_type}")
 
@@ -1179,14 +1183,14 @@ class Conversation:
                     logger.error(
                         f"An error occured during the execution of function `{function_name}`: {e}"
                     )
-                    func_result = "Function call failed"
+                    func_result = "Function call failed due to an exception – please DO NOT RETRY the call and inform the user about the error"
 
                 # Prepare follow-up message with the function call result
                 follow_up_message = {
                     "role": "tool",
                     "name": function_name,
                     "tool_call_id": tool_call_id,
-                    "content": func_result
+                    "content": f"{function_name}: {func_result}"
                 }
 
                 return follow_up_message
@@ -1194,13 +1198,13 @@ class Conversation:
                 raise ValueError(f"`{function_name}` is not present in callable registry")
 
         except json.JSONDecodeError:
-            logger.error("Failed to parse arguments for tool call")
+            logger.error(f"Failed to parse arguments for tool call: {arguments}")
 
         return {
                     "role": "tool",
                     "name": function_name,
                     "tool_call_id": tool_call_id,
-                    "content": "Failed to parse arguments for tool call"
+                    "content": "Failed to parse provided arguments for tool call – please DO NOT RETRY the function call and inform the user about the error."
                 }
 
     def _process_tool_call(self, index, tool_call_id, tool_call_name, tool_call_arguments):
