@@ -8,42 +8,51 @@
 		@drag="handleDrag"
 		@dragstart="handleDragstart"
 	>
-		<svg width="100%" height="100%">
-			<WorkflowArrow
-				v-for="(arrow, arrowId) in arrows"
-				:key="arrowId"
-				:arrow="arrow"
-				:is-selected="selectedArrow == arrowId"
-				:is-engaged="
-					selectedArrow == arrowId ||
-					wfbm.getSelectedId() == arrow.fromNodeId ||
-					wfbm.getSelectedId() == arrow.out.toNodeId
-				"
-				@click="handleArrowClick($event, arrowId)"
-				@delete="handleDeleteClick($event, arrow)"
-			></WorkflowArrow>
-		</svg>
-		<template v-for="component in children" :key="component.id">
-			<component
-				:is="renderProxiedComponent(component.id)"
-				:data-writer-unselectable="isUnselectable"
-				:style="{
-					top: `${component.y - renderOffset.y}px`,
-					left: `${component.x - renderOffset.x}px`,
-				}"
-				@drag="(ev: DragEvent) => handleNodeDrag(ev, component.id)"
-				@dragstart="(ev: DragEvent) => handleNodeDragStart(ev)"
-				@dragend="handleNodeDragend"
-				@click="(ev: MouseEvent) => handleNodeClick(ev, component.id)"
-				@out-select="
-					(outId: string) => handleNodeOutSelect(component.id, outId)
-				"
-			></component>
-		</template>
+		<div ref="nodeContainerEl" class="nodeContainer">
+			<svg>
+				<WorkflowArrow
+					v-for="(arrow, arrowId) in arrows"
+					:key="arrowId"
+					:arrow="arrow"
+					:is-selected="selectedArrow == arrowId"
+					:is-engaged="
+						selectedArrow == arrowId ||
+						wfbm.getSelectedId() == arrow.fromNodeId ||
+						wfbm.getSelectedId() == arrow.out.toNodeId
+					"
+					@click="handleArrowClick($event, arrowId)"
+					@delete="handleDeleteClick($event, arrow)"
+				></WorkflowArrow>
+			</svg>
+			<template v-for="node in nodes" :key="node.id">
+				<component
+					:is="renderProxiedComponent(node.id)"
+					:data-writer-unselectable="isUnselectable"
+					:style="{
+						top: `${node.y - renderOffset.y}px`,
+						left: `${node.x - renderOffset.x}px`,
+					}"
+					@drag="(ev: DragEvent) => handleNodeDrag(ev, node.id)"
+					@dragstart="(ev: DragEvent) => handleNodeDragStart(ev)"
+					@dragend="handleNodeDragend"
+					@click="(ev: MouseEvent) => handleNodeClick(ev, node.id)"
+					@out-select="
+						(outId: string) => handleNodeOutSelect(node.id, outId)
+					"
+				></component>
+			</template>
+		</div>
 		<WdsButton class="runButton" variant="secondary" @click="handleRun">
 			<i class="material-symbols-outlined">play_arrow</i>
 			{{ isRunning ? "Running..." : "Run" }}</WdsButton
 		>
+		<WorkflowMiniMap
+			v-if="nodeContainerEl"
+			:node-container-el="nodeContainerEl"
+			:render-offset="renderOffset"
+			class="miniMap"
+			@change-render-offset="handleChangeRenderOffset"
+		></WorkflowMiniMap>
 	</div>
 </template>
 
@@ -52,6 +61,7 @@ import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WorkflowMiniMap from "./base/WorkflowMiniMap.vue";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -94,6 +104,7 @@ import injectionKeys from "@/injectionKeys";
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
+const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -105,7 +116,7 @@ const selectedArrow = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 const workflowComponentId = inject(injectionKeys.componentId);
 
-const children = computed(() =>
+const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
 
@@ -124,9 +135,10 @@ function refreshArrows() {
 	if (!canvasCBR) {
 		return;
 	}
-	const nodes = wf.getComponents(workflowComponentId);
 
-	nodes
+	const arrowSlot: Record<Component["id"], number> = {};
+
+	nodes.value
 		.filter((node) => node.outs?.length > 0)
 		.forEach((node) => {
 			const fromNodeId = node.id;
@@ -305,7 +317,10 @@ async function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
 }
 
 async function createNode(type: string, x: number, y: number) {
-	createAndInsertComponent(type, workflowComponentId, undefined, { x, y });
+	createAndInsertComponent(type, workflowComponentId, undefined, {
+		x: Math.floor(x),
+		y: Math.floor(y),
+	});
 }
 
 async function findAndCenterBlock(componentId: Component["id"]) {
@@ -318,6 +333,15 @@ async function findAndCenterBlock(componentId: Component["id"]) {
 	renderOffset.value = {
 		x: Math.max(0, component.x - canvasCBR.width / 2 + width / 2),
 		y: Math.max(0, component.y - canvasCBR.height / 2 + height / 2),
+	};
+	await nextTick();
+	refreshArrows();
+}
+
+async function handleChangeRenderOffset(payload) {
+	renderOffset.value = {
+		x: payload.x,
+		y: payload.y,
 	};
 	await nextTick();
 	refreshArrows();
@@ -337,24 +361,8 @@ watch(
 );
 
 watch(
-	children,
-	async (postChildren, preChildren) => {
-		// Remove references when a node is deleted
-
-		const preIds = new Set(preChildren.map((c) => c.id));
-		const postIds = new Set(postChildren.map((c) => c.id));
-		const removedIds = new Set(
-			[...preIds].filter((cId) => !postIds.has(cId)),
-		);
-
-		if (removedIds.size > 0) {
-			postChildren.forEach((c) => {
-				if (!c.outs || c.outs.length === 0) return;
-				c.outs = c.outs.filter((out) => !removedIds.has(out.toNodeId));
-			});
-			wf.sendComponentUpdate();
-		}
-
+	nodes,
+	async () => {
 		// Refresh arrows
 
 		await nextTick();
@@ -392,5 +400,28 @@ button.runButton {
 
 .component.WorkflowsWorkflow.selected {
 	background: var(--builderSubtleSeparatorColor);
+}
+
+.miniMap {
+	position: absolute;
+	bottom: 32px;
+	left: 32px;
+}
+
+.nodeContainer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }
 </style>
