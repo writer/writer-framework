@@ -102,7 +102,7 @@ def _run_node(target_node: "Component", execution: Dict, session: "writer.core.W
     except BaseException as e:
         if tool and not tool.result:
             tool.result = repr(e)
-        if not _is_outcome_managed(target_node, tool.outcome):
+        if not tool.outcome or not _is_outcome_managed(target_node, tool.outcome):
             raise e
     finally:
         execution[target_node.id] = tool
