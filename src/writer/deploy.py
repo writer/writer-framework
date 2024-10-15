@@ -37,6 +37,11 @@ def cloud():
 def deploy(path, api_key, env, verbose, force):
     """Deploy the app from PATH folder."""
 
+    deploy_app(path, api_key, env, verbose, force)
+
+def deploy_app(path, api_key, env, verbose, force):
+    """Deploy the app from PATH folder."""
+
     deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
     sleep_interval = int(os.getenv("WRITER_DEPLOY_SLEEP_INTERVAL", '5'))
 

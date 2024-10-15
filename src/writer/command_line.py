@@ -7,7 +7,7 @@ from typing import Optional
 import click
 
 import writer.serve
-from writer.deploy import cloud
+from writer.deploy import cloud, deploy_app
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
 @click.group(
@@ -72,6 +72,23 @@ def hello(port: Optional[int], host: str, enable_remote_edit):
        port=port, host=host, enable_remote_edit=enable_remote_edit,
        enable_server_setup=False)
 
+
+@main.command()
+@click.option('--api-key',
+    default=lambda: os.environ.get("WRITER_API_KEY", None),
+    allow_from_autoenv=True,
+    show_envvar=True,
+    envvar='WRITER_API_KEY',
+    prompt="Enter your API key",
+    hide_input=True, help="Writer API key"
+)
+@click.option('--env', '-e', multiple=True, default=[], help="Environment to deploy the app to")
+@click.option('--force', '-f', default=False, is_flag=True, help="Ignores warnings and overwrites the app")
+@click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
+@click.argument('path')
+def deploy(path, api_key, env, verbose, force):
+    """Deploy the app from PATH folder."""
+    deploy_app(path, api_key, env, verbose, force)
 
 main.add_command(cloud)
 
