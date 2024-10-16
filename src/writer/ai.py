@@ -90,7 +90,24 @@ class GraphTool(Tool):
 class FunctionTool(Tool):
     callable: Callable
     name: str
+    description: Optional[str]
     parameters: Dict[str, Dict[str, str]]
+
+
+def create_function_tool(
+    callable: Callable,
+    name: str,
+    parameters: Optional[Dict[str, Dict[str, str]]],
+    description: Optional[str] = None
+) -> FunctionTool:
+    parameters = parameters or {}
+    return FunctionTool(
+        type="function",
+        callable=callable,
+        name=name,
+        description=description,
+        parameters=parameters
+    )
 
 
 logger = logging.Logger(__name__, level=logging.DEBUG)
@@ -1190,7 +1207,7 @@ class Conversation:
                     "role": "tool",
                     "name": function_name,
                     "tool_call_id": tool_call_id,
-                    "content": f"{function_name}: {func_result}"
+                    "content": f"{func_result}"
                 }
 
                 return follow_up_message
@@ -1223,7 +1240,18 @@ class Conversation:
 
         # Accumulate arguments across chunks
         if tool_call_arguments is not None:
-            self._ongoing_tool_calls[index]["arguments"] += tool_call_arguments
+            if (
+                tool_call_arguments.startswith("{")
+                and tool_call_arguments.endswith("}")
+            ):
+                # For cases when LLM "bugs" and returns
+                # the whole arguments string as a last chunk
+                fixed_chunk = tool_call_arguments.rsplit("{")[-1]
+                self._ongoing_tool_calls[index]["arguments"] = \
+                    "{" + fixed_chunk
+            else:
+                # Process normally
+                self._ongoing_tool_calls[index]["arguments"] += tool_call_arguments
 
         # Check if we have all necessary data to execute the function
         if (
@@ -1271,9 +1299,10 @@ class Conversation:
             passed_messages: List[WriterAIMessage],
             request_model: str,
             request_data: ChatOptions,
-            depth=1
+            depth=1,
+            max_depth=3
             ) -> 'Conversation.Message':
-        if depth > 3:
+        if depth > max_depth:
             raise RuntimeError("Reached maximum depth when processing response data tool calls.")
         for entry in response_data.choices:
             message = entry.message
@@ -1322,9 +1351,10 @@ class Conversation:
             request_model: str,
             request_data: ChatOptions,
             depth=1,
+            max_depth=3,
             flag_chunks=False
     ) -> Generator[dict, None, None]:
-        if depth > 3:
+        if depth > max_depth:
             raise RuntimeError("Reached maximum depth when processing response data tool calls.")
         # We avoid flagging first chunk
         # to trigger creating a message
@@ -1361,6 +1391,7 @@ class Conversation:
                             request_model=request_model,
                             request_data=request_data,
                             depth=depth+1,
+                            max_depth=max_depth,
                             flag_chunks=True
                         )
                     finally:
@@ -1384,7 +1415,8 @@ class Conversation:
                     FunctionTool,
                     List[Union[Graph, GraphTool, FunctionTool]]
                     ]  # can be an instance of tool or a list of instances
-                ] = None
+                ] = None,
+            max_tool_depth: int = 3,
             ) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional data to generate a response.
@@ -1421,7 +1453,8 @@ class Conversation:
             response_data,
             passed_messages=passed_messages,
             request_model=request_model,
-            request_data=request_data
+            request_data=request_data,
+            max_depth=max_tool_depth
             )
 
     def stream_complete(
@@ -1434,7 +1467,8 @@ class Conversation:
                     FunctionTool,
                     List[Union[Graph, GraphTool, FunctionTool]]
                     ]  # can be an instance of tool or a list of instances
-                ] = None
+                ] = None,
+            max_tool_depth: int = 3
             ) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
@@ -1474,7 +1508,8 @@ class Conversation:
             response=response,
             passed_messages=passed_messages,
             request_model=request_model,
-            request_data=request_data
+            request_data=request_data,
+            max_depth=max_tool_depth
         )
 
         response.close()
