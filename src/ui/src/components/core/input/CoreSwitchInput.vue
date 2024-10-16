@@ -7,10 +7,10 @@
 	>
 		<div
 			class="switch"
-			:class="{ on: toggleValue }"
+			:class="{ on: !!formValue }"
 			tabindex="0"
 			role="switch"
-			:aria-checked="toggleValue"
+			:aria-checked="!!formValue"
 			@click="handleToggle"
 			@keydown.enter.space.prevent="handleToggle"
 		>
@@ -29,7 +29,6 @@ import {
 	separatorColor,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
-import { onMounted } from "vue";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
 
@@ -82,24 +81,15 @@ const { formValue, handleInput } = useFormValueBroker(
 	instancePath,
 	rootInstance,
 );
-const toggleValue = ref(false);
 
 function handleToggle() {
-	toggleValue.value = !toggleValue.value;
-	handleInput(toggleValue.value, "wf-toggle");
+	handleInput(!formValue.value, "wf-toggle");
 }
-
-onMounted(() => {
-	toggleValue.value = !!formValue.value;
-});
 </script>
 
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 @import "@/renderer/colorTransformations.css";
-
-.CoreSwitchInput {
-}
 
 .switch {
 	background: var(--separatorColor);
