@@ -45,6 +45,7 @@ class SetState(WorkflowBlock):
             element = self._get_field("element")
             value = self._get_field("value")
             self.evaluator.set_state(element, self.instance_path, value, base_context=self.execution_env)
+            self.result = value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
