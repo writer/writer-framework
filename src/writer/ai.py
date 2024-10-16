@@ -896,6 +896,9 @@ class Conversation:
         self._callable_registry = {}
 
     def _clear_ongoing_tool_calls(self):
+        """
+        Clear ongoing tool calls after they've been processed
+        """
         self._ongoing_tool_calls = {}
 
     def _clear_tool_calls_helpers(self):
@@ -1328,11 +1331,10 @@ class Conversation:
                     )
                     logger.debug(f"Received response – {follow_up_response}")
 
-                    # Clear buffer and callable registry for the completed tool call
-                    self._clear_tool_calls_helpers()
-
                     # Call the function recursively to either process a new tool call
                     # or return the message if no tool calls are requested
+
+                    self._clear_ongoing_tool_calls()
                     return self._process_response_data(
                         follow_up_response,
                         passed_messages=passed_messages,
@@ -1382,9 +1384,8 @@ class Conversation:
                         )
                     )
 
-                    # Clear buffer and callable registry for the completed tool call
                     try:
-                        self._clear_tool_calls_helpers()
+                        self._clear_ongoing_tool_calls()
                         yield from self._process_stream_response(
                             response=follow_up_response,
                             passed_messages=passed_messages,
@@ -1449,13 +1450,18 @@ class Conversation:
                 )
             )
 
-        return self._process_response_data(
+        response = self._process_response_data(
             response_data,
             passed_messages=passed_messages,
             request_model=request_model,
             request_data=request_data,
             max_depth=max_tool_depth
             )
+
+        # Clear buffer and callable registry for the completed tool call
+        self._clear_tool_calls_helpers()
+
+        return response
 
     def stream_complete(
             self,
@@ -1512,6 +1518,8 @@ class Conversation:
             max_depth=max_tool_depth
         )
 
+        # Clear buffer and callable registry for the completed tool call
+        self._clear_tool_calls_helpers()
         response.close()
 
     @property
