@@ -173,13 +173,13 @@ Framework allows you to register Python functions that can be called automatical
 
 Function tools are defined using either a Python class or a JSON configuration.
 ```python
-from writer.ai import FunctionTool
+from writer.ai import create_function_tool
 
 # Define a function tool with Python callable
 def calculate_interest(principal: float, rate: float, time: float):
     return principal * rate * time
 
-tool = FunctionTool(
+tool = create_function_tool(
     name="calculate_interest",
     callable=calculate_interest,
     parameters={
@@ -216,6 +216,12 @@ Function tools require the following properties:
 #### Automated Function Calling
 
 When a conversation involves a tool (either a graph or a function), Framework automatically handles the requests from LLM to use the tools during interactions. If the tool needs multiple steps (for example, querying data and processing it), Framework will handle those steps recursively, calling functions as needed until the final result is returned.
+
+By default, to prevent endless recursion, Framework will only handle 3 consecutive tool calls. You can expand it in case it doesn't suit your case – both `complete()` and `stream_complete()` accept a `max_tool_depth` parameter, which configures the maximum allowed recursion depth:
+
+```python
+response = conversation.complete(tools=tool, max_tool_depth=7)
+```
 
 ### Providing a Tool or a List of Tools
 
