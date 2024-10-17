@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ComponentInstance, computed, PropType, ref, toRef } from "vue";
+import { ComponentInstance, computed, PropType, ref, toRef, watch } from "vue";
 import BaseInputRangeThumb from "./BaseInputSliderThumb.vue";
 import { useBoundingClientRect } from "@/composables/useBoundingClientRect";
 import BaseInputSliderLayout from "./BaseInputSliderLayout.vue";
@@ -99,4 +99,22 @@ const progress = computed(() => {
 });
 
 const sliderBoundingRect = useBoundingClientRect(slider);
+
+// update the `value` if the `min` or `max` change and `value` is outside of the range
+watch(
+	() => props.min,
+	() => {
+		if (!model.value.some((v) => v < props.min)) return;
+		model.value = model.value.map((v) => (v < props.min ? props.min : v));
+	},
+	{ immediate: true },
+);
+watch(
+	() => props.max,
+	() => {
+		if (!model.value.some((v) => v > props.max)) return;
+		model.value = model.value.map((v) => (v > props.max ? props.max : v));
+	},
+	{ immediate: true },
+);
 </script>
