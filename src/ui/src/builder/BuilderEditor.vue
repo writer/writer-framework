@@ -169,9 +169,6 @@ const theme: Ref<string> = ref(
 );
 
 const isLogActive: Ref<boolean> = ref(ssbm.getLogEntryCount() > 0);
-const sessionTimestamp: ComputedRef<number> = computed(() =>
-	wf.getSessionTimestamp(),
-);
 
 type StatusMessage = {
 	ok: boolean | "processing";
@@ -217,7 +214,7 @@ onMounted(() => {
 	wf.addMailSubscription("logEntry", handleLogEntry);
 	const targetEl = editorContainer.value;
 	editor = monaco.editor.create(targetEl, {
-		value: wf.getRunCode(),
+		value: wf.runCode.value,
 		language: "python",
 		theme: theme.value,
 	});
@@ -232,12 +229,9 @@ onUnmounted(() => {
 	window.removeEventListener("resize", updateDimensions.bind(this));
 });
 
-watch(
-	() => wf.getRunCode(),
-	(newRunCode) => {
-		editor.getModel().setValue(newRunCode);
-	},
-);
+watch(wf.runCode, (newRunCode) => {
+	editor.getModel().setValue(newRunCode);
+});
 
 watch(
 	() => ssbm.getMode(),
@@ -249,7 +243,7 @@ watch(
 	},
 );
 
-watch(sessionTimestamp, () => {
+watch(wf.sessionTimestamp, () => {
 	enableEditor();
 });
 

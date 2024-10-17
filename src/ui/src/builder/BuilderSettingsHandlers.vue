@@ -199,7 +199,7 @@ const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 		return recEvents;
 	});
 
-const userFunctions = computed(() => wf.getUserFunctions());
+const userFunctions = wf.userFunctions;
 
 const pageKeys = computed(() => {
 	const pages = wf.getComponents("root");

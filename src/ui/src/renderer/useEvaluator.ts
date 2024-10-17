@@ -66,7 +66,7 @@ export function useEvaluator(wf: Core) {
 			? getContextData(instancePath)
 			: undefined;
 		let contextRef = contextData;
-		let stateRef = wf.getUserState();
+		let stateRef = wf.userState.value;
 		const accessors = parseExpression(expr, instancePath);
 
 		for (let i = 0; i < accessors.length; i++) {

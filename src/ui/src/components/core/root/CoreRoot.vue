@@ -105,7 +105,7 @@ const rootEl: Ref<HTMLElement> = ref(null);
 const { isComponentVisible } = useEvaluator(wf);
 
 const displayedPageId = computed(() => {
-	const activePageId = wf.getActivePageId();
+	const activePageId = wf.activePageId.value;
 	const activePageExists = Boolean(wf.getComponentById(activePageId));
 	if (activePageExists && wf.isChildOf("root", activePageId))
 		return activePageId;
