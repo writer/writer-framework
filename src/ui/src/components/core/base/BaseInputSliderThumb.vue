@@ -1,75 +1,52 @@
 <template>
-	<div
-		role="slider"
-		:aria-valuemin="min"
-		:aria-valuemax="max"
-		:aria-valuenow="value"
-		:aria-valuetext="`${displayValue} (${Math.round(progress)}%)`"
-		class="BaseInputRange"
-		:class="{
-			'BaseInputRange--popover-always-visible':
-				popoverDisplayMode === 'always',
-		}"
-	>
-		<transition>
-			<div
-				v-show="isPopoverDisplayed"
-				class="BaseInputRange__popover"
-				:style="{ left: popoverLeft }"
-			>
-				<span class="BaseInputRange__popover__content">
-					{{ displayValue }}
-				</span>
-			</div>
-		</transition>
+	<transition>
 		<div
-			ref="slider"
-			class="BaseInputRange__slider"
-			@mousedown="handleMouseDown"
+			v-show="isPopoverDisplayed"
+			class="BaseInputRange__popover"
+			:style="{ left: popoverLeft }"
 		>
-			<div
-				class="BaseInputRange__slider__progress"
-				:style="{ width: `calc(${progress}% + ${thumbRadius}px)` }"
-			></div>
+			<span class="BaseInputRange__popover__content">
+				{{ displayValue }}
+			</span>
 		</div>
-		<button
-			ref="thumb"
-			type="button"
-			class="BaseInputRange__thumb"
-			:style="{ left: thumbLeft }"
-			aria-label="Use the arrow keys to increase or decrease the value."
-			@keydown.left="updateValue(+model - step)"
-			@keydown.right="updateValue(+model + step)"
-			@mousedown="handleMouseDown"
-		></button>
-	</div>
+	</transition>
+	<button
+		ref="thumb"
+		type="button"
+		class="BaseInputRange__thumb"
+		:style="{ left: thumbLeft }"
+		aria-label="Use the arrow keys to increase or decrease the value."
+		@keydown.left="updateValue(+model - step)"
+		@keydown.right="updateValue(+model + step)"
+		@mousedown="handleMouseDown"
+	></button>
 </template>
 
 <script setup lang="ts">
 import { computed, PropType, ref, toRef, watch } from "vue";
+import { useNumberFormatByStep } from "./BaseInputSlider.utils";
 
 const props = defineProps({
 	min: { type: Number, default: 0 },
 	max: { type: Number, default: 100 },
 	step: { type: Number, default: 1 },
+	sliderBoundingRect: {
+		type: Object as PropType<DOMRect>,
+		default: undefined,
+	},
 	popoverDisplayMode: {
 		type: String as PropType<"always" | "onChange">,
 		default: "onChange",
 	},
 });
 
+defineExpose({ handleMouseDown, getOffsetLeft });
+
 const model = defineModel("value", { type: Number, default: 50 });
 
-const thumbRadius = 9;
-
 const thumb = ref<HTMLElement>();
-const slider = ref<HTMLElement>();
 
-const precision = computed(() => String(props.step).split(".")[1]?.length ?? 0);
-const displayValue = computed(() => {
-	if (typeof model.value !== "number") return "";
-	return Number(model.value).toFixed(precision.value);
-});
+const displayValue = useNumberFormatByStep(model, toRef(props, "step"));
 
 const progress = computed(() => {
 	if (typeof model.value !== "number") return 50;
@@ -119,7 +96,7 @@ function handleMouseDown(initialEvent: MouseEvent) {
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 
-	const sliderBoundingRect = slider.value.getBoundingClientRect();
+	const sliderBoundingRect = props.sliderBoundingRect;
 
 	// trigger immediate value update to handle user click
 	onMouseMove(initialEvent);
@@ -140,41 +117,13 @@ function handleMouseDown(initialEvent: MouseEvent) {
 		document.removeEventListener("mousemove", onMouseMove);
 	}
 }
+
+function getOffsetLeft() {
+	return thumb.value.offsetLeft;
+}
 </script>
 
 <style scoped>
-.BaseInputRange {
-	--thumb-color: var(--accentColor);
-	--thumb-shadow-color: rgba(228, 231, 237, 0.4);
-	--slider-color: var(--softenedAccentColor);
-	--slider-bg-color: var(--separatorColor);
-	--popover-bg-color: var(--popoverBackgroundColor, rgba(0, 0, 0, 1));
-	width: 100%;
-
-	position: relative;
-	padding-top: 5px;
-	padding-bottom: 5px;
-}
-
-.BaseInputRange--popover-always-visible {
-	/* add extra margin to make sure the popover does not overflow on something */
-	margin-top: 24px;
-}
-
-.BaseInputRange__slider {
-	height: 8px;
-	width: 100%;
-	border-radius: 4px;
-	background-color: var(--slider-bg-color);
-}
-
-.BaseInputRange__slider__progress {
-	height: 100%;
-	max-width: 100%;
-	border-radius: 4px;
-	background-color: var(--slider-color);
-}
-
 .BaseInputRange__thumb {
 	border: none;
 

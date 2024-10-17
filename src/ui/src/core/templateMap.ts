@@ -28,6 +28,7 @@ import CoreNumberInput from "../components/core/input/CoreNumberInput.vue";
 import CoreRadioInput from "../components/core/input/CoreRadioInput.vue";
 import CoreSelectInput from "../components/core/input/CoreSelectInput.vue";
 import CoreSliderInput from "../components/core/input/CoreSliderInput.vue";
+import CoreSliderRangeInput from "../components/core/input/CoreSliderRangeInput.vue";
 import CoreTextInput from "../components/core/input/CoreTextInput.vue";
 import CoreTextareaInput from "../components/core/input/CoreTextareaInput.vue";
 import CoreTimeInput from "../components/core/input/CoreTimeInput.vue";
@@ -102,6 +103,7 @@ const templateMap = {
 	textareainput: CoreTextareaInput,
 	numberinput: CoreNumberInput,
 	sliderinput: CoreSliderInput,
+	rangeinput: CoreSliderRangeInput,
 	colorinput: CoreColorInput,
 	dateinput: CoreDateInput,
 	timeinput: CoreTimeInput,

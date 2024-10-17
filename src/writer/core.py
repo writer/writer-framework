@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import multiprocessing
+import numbers
 import re
 import secrets
 import time
@@ -1385,6 +1386,26 @@ class EventDeserialiser:
         except ValueError:
             raise ValueError(
                 "Time must be in hh:mm format (in 24-hour format that includes leading zeros).")
+
+        return payload
+
+    def _transform_range_change(self, ev) -> list[int]:
+        payload = ev.payload
+
+        if not isinstance(payload, list):
+            raise ValueError("Range must be an array.")
+
+        if len(payload) != 2:
+            raise ValueError("Range must contains exactly two values.")
+
+        if not isinstance(payload[0], numbers.Real):
+            raise ValueError("First item is not a number.")
+
+        if not isinstance(payload[1], numbers.Real):
+            raise ValueError("Second item is not a number.")
+
+        if payload[0] > payload[1]:
+            raise ValueError("First item is higher than second.")
 
         return payload
 
