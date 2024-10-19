@@ -56,6 +56,28 @@ export type InstancePath = InstancePathItem[];
  * Defines component structure and behaviour. Included in Component templates.
  */
 
+export type WriterComponentDefinitionField = {
+	/** Display name */
+	name: string;
+	/** Initial value */
+	init?: string;
+	/** Description */
+	desc?: string;
+	/** Value used if the field is empty, e.g. "(No text)" */
+	default?: string;
+	/** Which control (text, textarea, etc) to use if not the default for the type */
+	control?: FieldControl;
+	options?:
+		| Record<string, string>
+		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
+	/** Data type for the field */
+	type: FieldType;
+	/** Category (Layout, Content, etc) */
+	category?: FieldCategory;
+	/** Use the value of this field as a CSS variable */
+	applyStyleVariable?: boolean;
+};
+
 export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
@@ -67,22 +89,7 @@ export type WriterComponentDefinition = {
 	slot?: string; // In which slot component should render whgen "*" is used it will render in all slots
 	fields?: Record<
 		string, // Id for the field
-		{
-			name: string; // Display name
-			init?: string; // Initial value
-			desc?: string; // Description
-			default?: string; // Value used if the field is empty, e.g. "(No text)"
-			control?: FieldControl; // Which control (text, textarea, etc) to use if not the default for the type
-			options?:
-				| Record<string, string>
-				| ((
-						wf?: Core,
-						componentId?: ComponentId,
-				  ) => Record<string, string>); // List of values to be provided as autocomplete options
-			type: FieldType; // Data type for the field
-			category?: FieldCategory; // Category (Layout, Content, etc)
-			applyStyleVariable?: boolean; // Use the value of this field as a CSS variable
-		}
+		WriterComponentDefinitionField
 	>;
 	events?: Record<
 		string, // Event type

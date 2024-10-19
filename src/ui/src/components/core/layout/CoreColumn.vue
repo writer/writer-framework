@@ -13,8 +13,9 @@
 			<div v-if="!isCollapsed" class="titleContainer">
 				<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 			</div>
-			<div
+			<button
 				v-if="isCollapsible"
+				role="button"
 				class="collapser"
 				@click="toggleCollapsed"
 			>
@@ -22,7 +23,7 @@
 					class="collapserArrow"
 					icon-key="collapseArrow"
 				></IconGen>
-			</div>
+			</button>
 		</div>
 		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
 			<div class="transformed">
@@ -31,6 +32,7 @@
 		</div>
 		<BaseContainer
 			class="container"
+			:aria-expanded="isCollapsible ? 'true' : null"
 			:content-h-align="fields.contentHAlign.value"
 			:content-v-align="fields.contentVAlign.value"
 			:content-padding="fields.contentPadding.value"
@@ -48,6 +50,8 @@ import {
 	contentVAlign,
 	cssClasses,
 	separatorColor,
+	startCollapsed,
+	isCollapsible as isCollapsibleField,
 } from "@/renderer/sharedStyleFields";
 
 const description =
@@ -83,25 +87,9 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			isCollapsible: {
-				name: "Collapsible",
-				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
-				category: FieldCategory.Style,
-			},
+			isCollapsible: isCollapsibleField,
 			startCollapsed: {
-				name: "Start collapsed",
-				type: FieldType.Text,
-				category: FieldCategory.Style,
-				default: "no",
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
+				...startCollapsed,
 				desc: "Only applied when the column is collapsible.",
 			},
 			separatorColor,
@@ -230,15 +218,19 @@ watch(
 }
 
 .CoreColumn > .header > .collapser {
+	border: none;
 	order: 2;
 	flex: 0 0 32px;
-	border-radius: 16px;
+	border-radius: 50%;
 	padding: 4px;
 	background: var(--separatorColor);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	stroke: var(--primaryTextColor);
+	height: 32px;
+	width: 32px;
+	cursor: pointer;
 }
 
 .CoreColumn > .header > .collapser > .collapserArrow {

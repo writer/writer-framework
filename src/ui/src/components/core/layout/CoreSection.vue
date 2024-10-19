@@ -1,9 +1,30 @@
 <template>
-	<section class="CoreSection">
-		<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
+	<section
+		class="CoreSection"
+		:class="{ 'CoreSection--collapsible': isCollapsible }"
+	>
+		<div
+			v-if="fields.title.value || isCollapsible"
+			class="CoreSection__title"
+			:class="{
+				'CoreSection__title--collapsed': isCollapsible && isCollapsed,
+			}"
+		>
+			<h3>{{ fields.title.value }}</h3>
+			<button
+				v-if="isCollapsible"
+				role="button"
+				class="CoreSection__title__collapser"
+				@click="isCollapsed = !isCollapsed"
+			>
+				<i class="material-symbols-outlined">keyboard_arrow_up</i>
+			</button>
+		</div>
 		<BaseContainer
+			v-if="!isCollapsed"
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
+			:aria-expanded="isCollapsible ? 'true' : null"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -25,6 +46,8 @@ import {
 	cssClasses,
 	contentHAlign,
 	contentPadding,
+	isCollapsible as isCollapsibleField,
+	startCollapsed,
 } from "@/renderer/sharedStyleFields";
 
 const description =
@@ -43,6 +66,8 @@ export default {
 				desc: "Leave blank to hide.",
 				type: FieldType.Text,
 			},
+			isCollapsible: isCollapsibleField,
+			startCollapsed,
 			accentColor,
 			primaryTextColor,
 			secondaryTextColor,
@@ -64,11 +89,16 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseContainer from "../base/BaseContainer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
+const isCollapsible = computed(() => fields.isCollapsible.value === "yes");
+const isCollapsed = ref<boolean>(
+	isCollapsible.value && fields.startCollapsed.value === "yes",
+);
 </script>
 
 <style scoped>
@@ -80,7 +110,35 @@ const fields = inject(injectionKeys.evaluatedFields);
 	background-color: var(--containerBackgroundColor);
 }
 
-h3 {
+.CoreSection__title {
 	margin: 16px 16px 0 16px;
+	display: grid;
+	grid-template-columns: 1fr auto;
+}
+.CoreSection__title--collapsed {
+	margin: 16px;
+}
+
+.CoreSection__title--collapsed .CoreSection__title__collapser {
+	transform: rotate(180deg);
+}
+
+.CoreSection__title__collapser {
+	border: none;
+	border-radius: 50%;
+	padding: 4px;
+	background: var(--separatorColor);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	height: 24px;
+	width: 24px;
+	cursor: pointer;
+}
+
+.CoreSection__title__collapser {
+	transition: all 0.3s ease-in-out;
+	transform: rotate(0deg);
 }
 </style>

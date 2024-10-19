@@ -33,6 +33,7 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
+	startCollapsed,
 } from "@/renderer/sharedStyleFields";
 
 const description =
@@ -49,14 +50,8 @@ export default {
 		category: "Layout",
 		fields: {
 			startCollapsed: {
-				name: "Start collapsed",
-				type: FieldType.Text,
-				category: FieldCategory.Style,
-				default: "no",
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
+				...startCollapsed,
+				desc: undefined,
 			},
 			sidebarBackgroundColor: {
 				name: "Background",
