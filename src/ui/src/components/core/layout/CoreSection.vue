@@ -11,20 +11,17 @@
 			}"
 		>
 			<h3>{{ fields.title.value }}</h3>
-			<button
+			<BaseCollapseButton
 				v-if="isCollapsible"
-				role="button"
-				class="CoreSection__title__collapser"
-				@click="isCollapsed = !isCollapsed"
-			>
-				<i class="material-symbols-outlined">keyboard_arrow_up</i>
-			</button>
+				v-model="isCollapsed"
+				direction="top-bottom"
+			/>
 		</div>
 		<BaseContainer
 			v-if="!isCollapsed"
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
-			:aria-expanded="isCollapsible ? 'true' : null"
+			:aria-expanded="isCollapsible ? isCollapsed : null"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -92,6 +89,7 @@ export default {
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseContainer from "../base/BaseContainer.vue";
+import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -117,28 +115,5 @@ const isCollapsed = ref<boolean>(
 }
 .CoreSection__title--collapsed {
 	margin: 16px;
-}
-
-.CoreSection__title--collapsed .CoreSection__title__collapser {
-	transform: rotate(180deg);
-}
-
-.CoreSection__title__collapser {
-	border: none;
-	border-radius: 50%;
-	padding: 4px;
-	background: var(--separatorColor);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	height: 24px;
-	width: 24px;
-	cursor: pointer;
-}
-
-.CoreSection__title__collapser {
-	transition: all 0.3s ease-in-out;
-	transform: rotate(0deg);
 }
 </style>

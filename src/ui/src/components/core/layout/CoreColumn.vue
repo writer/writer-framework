@@ -13,17 +13,12 @@
 			<div v-if="!isCollapsed" class="titleContainer">
 				<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 			</div>
-			<button
+			<BaseCollapseButton
 				v-if="isCollapsible"
-				role="button"
+				v-model="isCollapsed"
 				class="collapser"
-				@click="toggleCollapsed"
-			>
-				<IconGen
-					class="collapserArrow"
-					icon-key="collapseArrow"
-				></IconGen>
-			</button>
+				direction="left-right"
+			/>
 		</div>
 		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
 			<div class="transformed">
@@ -32,7 +27,7 @@
 		</div>
 		<BaseContainer
 			class="container"
-			:aria-expanded="isCollapsible ? 'true' : null"
+			:aria-expanded="isCollapsible ? isCollapsed : null"
 			:content-h-align="fields.contentHAlign.value"
 			:content-v-align="fields.contentVAlign.value"
 			:content-padding="fields.contentPadding.value"
@@ -53,6 +48,7 @@ import {
 	startCollapsed,
 	isCollapsible as isCollapsibleField,
 } from "@/renderer/sharedStyleFields";
+import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -99,13 +95,11 @@ export default {
 			cssClasses,
 		},
 	},
-	components: { IconGen },
 };
 </script>
 <script setup lang="ts">
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import IconGen from "@/renderer/IconGen.vue";
 import BaseContainer from "../base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
@@ -131,10 +125,6 @@ const rootStyle = computed(() => {
 	};
 	return style;
 });
-
-const toggleCollapsed = () => {
-	isCollapsed.value = !isCollapsed.value;
-};
 
 /* Collapsing direction
 The minimum non-collapsible column position (mnccp) determines how other columns collapse.
@@ -218,19 +208,8 @@ watch(
 }
 
 .CoreColumn > .header > .collapser {
-	border: none;
 	order: 2;
 	flex: 0 0 32px;
-	border-radius: 50%;
-	padding: 4px;
-	background: var(--separatorColor);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	stroke: var(--primaryTextColor);
-	height: 32px;
-	width: 32px;
-	cursor: pointer;
 }
 
 .CoreColumn > .header > .collapser > .collapserArrow {
