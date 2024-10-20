@@ -11,6 +11,7 @@
 					ref="fileEl"
 					type="file"
 					:multiple="allowMultipleFilesFlag"
+					:accept="allowFileTypes"
 					@change="fileChange($event as InputEvent)"
 				/>
 				<div>
@@ -80,6 +81,18 @@ export default {
 				init: "Input Label",
 				type: FieldType.Text,
 			},
+			allowFileTypes: {
+				name: "Allowed file types",
+				type: FieldType.Text,
+				init: [
+					".pdf",
+					".txt",
+					".doc",
+					"application/msword",
+					"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				].join(", "),
+				desc: "Provides hints for browsers to select the correct file types. You can specify extensions and MIME types separated by comma, or leave empty to accept any file.",
+			},
 			allowMultipleFiles: {
 				name: "Allow multiple files",
 				default: "no",
@@ -128,6 +141,8 @@ const { formValue, handleInput } = useFormValueBroker(
 const selectedFiles = computed<SavedFile[]>(() =>
 	Array.isArray(formValue.value) ? formValue.value : [],
 );
+
+const allowFileTypes = computed(() => fields.allowFileTypes?.value ?? "");
 
 const allowMultipleFilesFlag = computed(() => {
 	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
