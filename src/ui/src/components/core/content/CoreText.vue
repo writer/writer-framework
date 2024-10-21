@@ -100,7 +100,8 @@ const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
 
 const rootStyle = computed(() => {
 	const component = wf.getComponentById(componentId);
-	const isClickHandled = typeof component.handlers?.["click"] !== "undefined";
+	const isClickHandled =
+		typeof component.handlers?.["wf-click"] !== "undefined";
 
 	return {
 		cursor: isClickHandled ? "pointer" : "unset",
