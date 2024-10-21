@@ -30,16 +30,11 @@ def cloud():
     prompt="Enter your API key",
     hide_input=True, help="Writer API key"
 )
-@click.option('--env', '-e', multiple=True, default=[], help="Environment to deploy the app to")
+@click.option('--env', '-e', multiple=True, default=[], help="Environment variable to deploy the app to")
 @click.option('--force', '-f', default=False, is_flag=True, help="Ignores warnings and overwrites the app")
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 @click.argument('path')
 def deploy(path, api_key, env, verbose, force):
-    """Deploy the app from PATH folder."""
-
-    deploy_app(path, api_key, env, verbose, force)
-
-def deploy_app(path, api_key, env, verbose, force):
     """Deploy the app from PATH folder."""
 
     deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
