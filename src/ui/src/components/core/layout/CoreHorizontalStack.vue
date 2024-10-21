@@ -54,4 +54,8 @@ const fields = inject(injectionKeys.evaluatedFields);
 	width: 100%;
 	flex-wrap: wrap;
 }
+.CoreHorizontalStack > ::v-deep(*) {
+	/* override `width: 100%` of child elements to force horizontal stack */
+	width: auto !important;
+}
 </style>
