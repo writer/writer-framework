@@ -556,6 +556,70 @@ async def lifespan(app: FastAPI):
     async with _lifespan_invoke(writer_lifespans, app):
         yield
 
+def configure_page_head(
+    title: Union[str, Callable[[], str]] = "Writer Framework",
+    meta: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None,
+    opengraph_tags: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None
+):
+    """
+    Configures the page header for SEO and social networks.
+
+    >>> writer.serve.configure_page_head(
+    >>>     title="my App",
+    >>>     meta={
+    >>>         "description": "my amazing app",
+    >>>         "keywords": "WF, Amazing, AI App",
+    >>>         "author": "Amazing company"
+    >>>     }
+    >>>)
+
+    Meta will accept description, keywords, author. Other meta tags as view port won't be supported.
+
+    Settings accept functions to adapt content based on application data.
+
+    >>> def generated_title():
+    >>>     return "My App" # load title using info from database
+
+    >>> def generated_meta_tags():
+    >>>     {
+    >>>         "description": "my amazing app",
+    >>>         "keywords": "WF, Amazing, AI App",
+    >>>         "author": "Amazing company"
+    >>>     }
+
+    >>> writer.serve.configure_page_head(
+    >>>     title=generated_title
+    >>>     meta=generated_meta_tags
+    >>> )
+
+    OpenGraph tags are used by social networks to display information about the page. WF support them.
+
+    >>> writer.serve.configure_page_head(
+    >>>     title=generated_title
+    >>>     opengraph_tags= {
+    >>>         "og:title": "My App",
+    >>>         "og:description": "My amazing app",
+    >>>         "og:image": "https://myapp.com/logo.png",
+    >>>         "og:url": "https://myapp.com"
+    >>>     }
+    >>> )
+
+    >>> def generated_opengraph_tags():
+    >>>     return {
+    >>>         "og:title": "My App",
+    >>>         "og:description": "My amazing app",
+    >>>     }
+
+    >>> writer.serve.configure_page_head(
+    >>>     title=generated_title
+    >>>     opengraph_tags= generated_opengraph_tags
+    >>> )
+
+    :param title: The title of the page.
+    :param meta: A list of meta tags.
+    :param opengraph_tags: A dictionary of OpenGraph tags.
+    """
+    pass
 
 @asynccontextmanager
 async def _lifespan_invoke(context: list, app: FastAPI):
