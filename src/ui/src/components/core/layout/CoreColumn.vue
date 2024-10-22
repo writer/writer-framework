@@ -13,16 +13,12 @@
 			<div v-if="!isCollapsed" class="titleContainer">
 				<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
 			</div>
-			<div
+			<BaseCollapseButton
 				v-if="isCollapsible"
+				v-model="isCollapsed"
 				class="collapser"
-				@click="toggleCollapsed"
-			>
-				<IconGen
-					class="collapserArrow"
-					icon-key="collapseArrow"
-				></IconGen>
-			</div>
+				direction="left-right"
+			/>
 		</div>
 		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
 			<div class="transformed">
@@ -31,6 +27,7 @@
 		</div>
 		<BaseContainer
 			class="container"
+			:aria-expanded="isCollapsible ? isCollapsed : null"
 			:content-h-align="fields.contentHAlign.value"
 			:content-v-align="fields.contentVAlign.value"
 			:content-padding="fields.contentPadding.value"
@@ -48,7 +45,10 @@ import {
 	contentVAlign,
 	cssClasses,
 	separatorColor,
+	startCollapsed,
+	isCollapsible as isCollapsibleField,
 } from "@/renderer/sharedStyleFields";
+import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
 	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
@@ -83,25 +83,9 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			isCollapsible: {
-				name: "Collapsible",
-				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
-				category: FieldCategory.Style,
-			},
+			isCollapsible: isCollapsibleField,
 			startCollapsed: {
-				name: "Start collapsed",
-				type: FieldType.Text,
-				category: FieldCategory.Style,
-				default: "no",
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
+				...startCollapsed,
 				desc: "Only applied when the column is collapsible.",
 			},
 			separatorColor,
@@ -111,13 +95,11 @@ export default {
 			cssClasses,
 		},
 	},
-	components: { IconGen },
 };
 </script>
 <script setup lang="ts">
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import IconGen from "@/renderer/IconGen.vue";
 import BaseContainer from "../base/BaseContainer.vue";
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
@@ -143,10 +125,6 @@ const rootStyle = computed(() => {
 	};
 	return style;
 });
-
-const toggleCollapsed = () => {
-	isCollapsed.value = !isCollapsed.value;
-};
 
 /* Collapsing direction
 The minimum non-collapsible column position (mnccp) determines how other columns collapse.
@@ -232,13 +210,6 @@ watch(
 .CoreColumn > .header > .collapser {
 	order: 2;
 	flex: 0 0 32px;
-	border-radius: 16px;
-	padding: 4px;
-	background: var(--separatorColor);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	stroke: var(--primaryTextColor);
 }
 
 .CoreColumn > .header > .collapser > .collapserArrow {

@@ -7,12 +7,7 @@
 		}"
 	>
 		<div class="collapserContainer">
-			<div class="collapser" @click="toggleCollapsed">
-				<IconGen
-					class="collapserArrow"
-					icon-key="collapseArrow"
-				></IconGen>
-			</div>
+			<BaseCollapseButton v-model="isCollapsed" direction="left-right" />
 		</div>
 		<div class="container" data-writer-container>
 			<slot></slot>
@@ -33,7 +28,9 @@ import {
 	buttonTextColor,
 	buttonShadow,
 	cssClasses,
+	startCollapsed,
 } from "@/renderer/sharedStyleFields";
+import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
 	"A container component that organises its children in a sidebar. Its parent must be a Page component.";
@@ -49,14 +46,8 @@ export default {
 		category: "Layout",
 		fields: {
 			startCollapsed: {
-				name: "Start collapsed",
-				type: FieldType.Text,
-				category: FieldCategory.Style,
-				default: "no",
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
+				...startCollapsed,
+				desc: undefined,
 			},
 			sidebarBackgroundColor: {
 				name: "Background",
@@ -82,7 +73,6 @@ export default {
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import IconGen from "@/renderer/IconGen.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
@@ -90,10 +80,6 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const selectedId = computed(() => ssbm?.getSelectedId());
-
-const toggleCollapsed = () => {
-	isCollapsed.value = !isCollapsed.value;
-};
 
 const rendererTop = ref(0);
 
@@ -153,15 +139,6 @@ onMounted(() => {
 
 .collapserContainer > .collapser {
 	flex: 0 0 32px;
-	min-width: 32px;
-	border-radius: 16px;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	stroke: var(--primaryTextColor);
-	border: 1px solid var(--separatorColor);
-	pointer: cursor;
 }
 
 .collapserContainer .collapserArrow {
