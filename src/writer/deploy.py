@@ -149,8 +149,12 @@ def pack_project(path):
     def match(file_path) -> bool: return False
     if os.path.exists(os.path.join(path, ".gitignore")):
         match = parse_gitignore(os.path.join(path, ".gitignore"))
-    for root, dirs, filenames in os.walk(path):
+    for root, dirs, filenames in os.walk(path, followlinks=False):
         for filename in filenames:
+            is_symlink = os.path.islink(os.path.relpath(os.path.join(root, filename), path))
+            if is_symlink:
+                print(f"[WARNING] Ignoring symlink: {os.path.relpath(os.path.join(root, filename), path)}")
+                continue
             if ".git" in root.split(os.path.sep):
                 continue
             if root == path and filename == "Dockerfile":
