@@ -155,6 +155,8 @@ def pack_project(path):
             if is_symlink:
                 print(f"[WARNING] Ignoring symlink: {os.path.relpath(os.path.join(root, filename), path)}")
                 continue
+            if "__pycache__" in root.split(os.path.sep):
+                continue
             if ".git" in root.split(os.path.sep):
                 continue
             if root == path and filename == "Dockerfile":
