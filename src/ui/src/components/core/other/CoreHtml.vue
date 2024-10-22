@@ -59,7 +59,7 @@ export default {
 			cssClasses,
 		},
 	},
-	setup(props, { slots }) {
+	setup(_, { slots }) {
 		const fields = inject(injectionKeys.evaluatedFields);
 		return () => {
 			let insideHtmlNode = undefined;

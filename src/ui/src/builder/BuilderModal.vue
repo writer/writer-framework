@@ -37,7 +37,7 @@ import { toRefs } from "vue";
 
 export type ModalAction = {
 	desc: string;
-	fn: Function;
+	fn: (..._args: unknown[]) => unknown;
 };
 
 const props = defineProps<{
