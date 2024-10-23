@@ -23,6 +23,17 @@ class WorkflowBlock:
         self.evaluator = writer.core.Evaluator(session.session_state, session.session_component_tree)
         self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
 
+    def _get_nodes_at_outcome(self, target_outcome: str):
+        outs = self.component.outs
+        nodes = []
+        if not outs:
+            return nodes
+        for out in outs:
+            if out.get("outId") == target_outcome:
+                component_id = out.get("toNodeId")
+                nodes.append(writer.core.base_component_tree.get_component(component_id))
+        return nodes
+
     def _get_field(self, field_key: str, as_json=False, default_field_value=None):
         if default_field_value is None:
             if as_json:
