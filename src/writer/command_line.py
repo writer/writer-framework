@@ -7,7 +7,7 @@ from typing import Optional
 import click
 
 import writer.serve
-from writer.deploy import cloud
+from writer.deploy import cloud, deploy
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
 @click.group(
@@ -73,6 +73,7 @@ def hello(port: Optional[int], host: str, enable_remote_edit):
        enable_server_setup=False)
 
 
+main.add_command(deploy, name="deploy")
 main.add_command(cloud)
 
 def create_app(app_path: str, template_name: Optional[str], overwrite=False):
