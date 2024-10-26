@@ -1,9 +1,27 @@
 <template>
-	<section class="CoreSection">
-		<h3 v-if="fields.title.value">{{ fields.title.value }}</h3>
+	<section
+		class="CoreSection"
+		:class="{ 'CoreSection--collapsible': isCollapsible }"
+	>
+		<div
+			v-if="fields.title.value || isCollapsible"
+			class="CoreSection__title"
+			:class="{
+				'CoreSection__title--collapsed': isCollapsible && isCollapsed,
+			}"
+		>
+			<h3>{{ fields.title.value }}</h3>
+			<BaseCollapseButton
+				v-if="isCollapsible"
+				v-model="isCollapsed"
+				direction="top-bottom"
+			/>
+		</div>
 		<BaseContainer
+			v-if="!isCollapsed"
 			:content-h-align="fields.contentHAlign.value"
 			:content-padding="fields.contentPadding.value"
+			:aria-expanded="isCollapsible ? isCollapsed : null"
 		>
 			<slot></slot>
 		</BaseContainer>
@@ -25,6 +43,8 @@ import {
 	cssClasses,
 	contentHAlign,
 	contentPadding,
+	isCollapsible as isCollapsibleField,
+	startCollapsed,
 } from "@/renderer/sharedStyleFields";
 
 const description =
@@ -43,6 +63,8 @@ export default {
 				desc: "Leave blank to hide.",
 				type: FieldType.Text,
 			},
+			isCollapsible: isCollapsibleField,
+			startCollapsed,
 			accentColor,
 			primaryTextColor,
 			secondaryTextColor,
@@ -64,11 +86,17 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseContainer from "../base/BaseContainer.vue";
+import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
+
+const isCollapsible = computed(() => fields.isCollapsible.value === "yes");
+const isCollapsed = ref<boolean>(
+	isCollapsible.value && fields.startCollapsed.value === "yes",
+);
 </script>
 
 <style scoped>
@@ -80,7 +108,12 @@ const fields = inject(injectionKeys.evaluatedFields);
 	background-color: var(--containerBackgroundColor);
 }
 
-h3 {
+.CoreSection__title {
 	margin: 16px 16px 0 16px;
+	display: grid;
+	grid-template-columns: 1fr auto;
+}
+.CoreSection__title--collapsed {
+	margin: 16px;
 }
 </style>
