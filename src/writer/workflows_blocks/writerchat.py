@@ -68,7 +68,7 @@ class WriterChat(WorkflowBlock):
 
     def run_branch(self, outcome: str, **args):
         branch_root_nodes = self._get_nodes_at_outcome(outcome)
-        result = None
+        return_value = None
         for branch_root_node in branch_root_nodes:
             branch_nodes = writer.workflows.get_branch_nodes(branch_root_node.id)
 
@@ -76,10 +76,10 @@ class WriterChat(WorkflowBlock):
 
             for terminal_node in terminal_nodes:
                 tool = writer.workflows.run_node(terminal_node, branch_nodes, self.execution, self.session, self.execution_env | args)
-                if tool:
-                    result = tool.result
+                if tool and tool.return_value:
+                    return_value = tool.return_value
 
-        return repr(result)
+        return repr(return_value)
 
     def _make_callable(self, tool_name: str):
         def callable(**args):

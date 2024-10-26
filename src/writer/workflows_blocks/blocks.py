@@ -20,6 +20,7 @@ class WorkflowBlock:
         self.session = session
         self.execution_env = execution_env
         self.result = None
+        self.return_value = None
         self.evaluator = writer.core.Evaluator(session.session_state, session.session_component_tree)
         self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
 

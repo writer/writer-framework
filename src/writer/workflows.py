@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import writer.core
 import writer.workflows_blocks
@@ -22,23 +22,27 @@ def run_workflow_by_key(session, workflow_key: str, execution_env: Dict):
 def run_workflow(session, component_id: str, execution_env: Dict):
     execution: Dict[str, WorkflowBlock] = {}
     nodes = _get_workflow_nodes(component_id)
+    return_value = None
     try:
         for node in get_terminal_nodes(nodes):
-            run_node(node, nodes, execution, session, execution_env)
+            tool = run_node(node, nodes, execution, session, execution_env)
+        for component_id, tool in execution.items():
+            if tool and tool.return_value:
+                return_value = tool.return_value
     except BaseException as e:
         _generate_run_log(session, execution, "error")
         raise e
     else:
-        _generate_run_log(session, execution, "info")
+        _generate_run_log(session, execution, "info", return_value)
 
-def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str, WorkflowBlock], entry_type: Literal["info", "error"]):
-    msg = ""
+def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str, WorkflowBlock], entry_type: Literal["info", "error"], return_value: Optional[Any] = None):
     exec_log = []
     for component_id, tool in execution.items():
         exec_log.append({
             "componentId": component_id,
-            "outcome": tool.outcome
+            "outcome": tool.outcome + repr(tool.return_value) + repr(tool.result)
         })
+    msg = f"Execution finished with value {repr(return_value)}"
     state = session.session_state
     state.add_log_entry(entry_type, "Workflow execution", msg, workflow_execution=exec_log)
 
