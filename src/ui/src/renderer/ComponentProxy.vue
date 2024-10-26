@@ -52,7 +52,9 @@ export default {
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
 				component.value.type !== "root" &&
-				component.value.type !== "workflows_root",
+				component.value.type !== "workflows_root" &&
+				wf.getComponentDefinition(component.value.type)?.toolkit !==
+					"workflows",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
