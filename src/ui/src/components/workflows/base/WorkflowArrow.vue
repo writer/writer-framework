@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { type WorkflowArrowData } from "../WorkflowsWorkflow.vue";
 
 const PROTRUSION_LENGTH = 30;
@@ -105,8 +105,13 @@ function handleDeleteClick() {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
+.WorkflowArrow {
+	filter: saturate(100%);
+	transition: 0.2s filter ease-in-out;
+}
+
 .WorkflowArrow:not(.engaged):not(:hover) {
-	filter: grayscale();
+	filter: saturate(0%);
 }
 
 g {
