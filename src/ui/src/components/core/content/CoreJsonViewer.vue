@@ -6,6 +6,10 @@
 			:initial-depth="initialDepth"
 		/>
 		<BaseJsonViewerChildrenCounter v-else :data="{}" />
+		<BaseControlBar
+			v-if="fields.copy.value === 'yes'"
+			:copy-structured-content="dataAsString"
+		/>
 	</div>
 </template>
 
@@ -55,6 +59,17 @@ const definition: WriterComponentDefinition = {
 			type: FieldType.Number,
 			init: "0",
 		},
+		copy: {
+			name: "Copy",
+			desc: "If active, adds a control bar with copy JSON button.",
+			type: FieldType.Text,
+			options: {
+				yes: "yes",
+				no: "no",
+			},
+			default: "no",
+			category: FieldCategory.Style,
+		},
 		jsonViewerIndentationSpacing: {
 			name: "JSON indentation",
 			type: FieldType.Width,
@@ -75,13 +90,15 @@ export default { writer: definition };
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
-import type { JsonData } from "../base/BaseJsonViewer.vue";
-import BaseJsonViewer from "../base/BaseJsonViewer.vue";
-import BaseJsonViewerChildrenCounter from "../base/BaseJsonViewerChildrenCounter.vue";
+import type { JsonData } from "@/components/core/base/BaseJsonViewer.vue";
+import BaseJsonViewer from "@/components/core/base/BaseJsonViewer.vue";
+import BaseJsonViewerChildrenCounter from "@/components/core/base/BaseJsonViewerChildrenCounter.vue";
+import BaseControlBar from "@/components/core/base/BaseControlBar.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
 const data = computed(() => fields.data.value as JsonData);
+const dataAsString = computed(() => JSON.stringify(data.value));
 
 const initialDepth = computed(() => Number(fields.initialDepth.value) || 0);
 </script>

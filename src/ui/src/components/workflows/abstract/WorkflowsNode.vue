@@ -32,8 +32,6 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "@/writerTypes";
-
 export default {
 	writer: {
 		name: "Node",
@@ -48,7 +46,6 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject, watch } from "vue";
-import { Component } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 
 const emit = defineEmits(["outMousedown", "engaged"]);

@@ -118,7 +118,6 @@ const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
-const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
@@ -156,7 +155,6 @@ const activeCanvasMove: Ref<{
 
 function refreshArrows() {
 	const a = [];
-
 	nodes.value
 		.filter((node) => node.outs?.length > 0)
 		.forEach((node) => {

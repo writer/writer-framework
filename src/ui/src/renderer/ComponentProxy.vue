@@ -28,7 +28,7 @@ export default {
 	props: {
 		componentId: { type: String, required: true },
 		instancePath: { type: Array as PropType<InstancePath>, required: true },
-		instanceData: { validator: () => true, required: true },
+		instanceData: { type: Array, required: true },
 	},
 	setup(props) {
 		const wf = inject(injectionKeys.core);
@@ -113,7 +113,7 @@ export default {
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
 			slotName: string = "default",
-			componentFilter: (c: Component) => boolean = () => true,
+			componentFilter: (_c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
 			const renderInsertionSlot = (position: number): VNode[] => {
@@ -165,7 +165,7 @@ export default {
 		provide(injectionKeys.isBeingEdited, isBeingEdited);
 		provide(injectionKeys.isDisabled, isDisabled);
 		provide(injectionKeys.instancePath, instancePath);
-		provide(injectionKeys.instanceData, instanceData as any);
+		provide(injectionKeys.instanceData, instanceData);
 		provide(injectionKeys.renderProxiedComponent, renderProxiedComponent);
 		provide(injectionKeys.getChildrenVNodes, getChildrenVNodes);
 		provide(injectionKeys.flattenedInstancePath, flattenedInstancePath);
@@ -234,7 +234,7 @@ export default {
 				const pageKey = handlerFunctionName.substring(
 					"$goToPage_".length,
 				);
-				return (ev: Event) => wf.setActivePageFromKey(pageKey);
+				return (_ev: Event) => wf.setActivePageFromKey(pageKey);
 			}
 			return null;
 		};
@@ -353,7 +353,7 @@ export default {
 			}: {
 				instanceNumber: number;
 				slotName: string;
-				componentFilter: (c: Component) => boolean;
+				componentFilter: (_c: Component) => boolean;
 				positionlessSlot: boolean;
 			}) => {
 				if (isChildless.value) {
