@@ -79,7 +79,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-			ext: { class?: string; contextSlot?: string } = {},
+			ext?: { class?: string[]; contextSlot?: string },
 		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -92,7 +92,7 @@ export default {
 					},
 				],
 				instanceData: [...instanceData, ref(null)],
-				...ext,
+				...(ext ?? {}),
 			});
 			return vnode;
 		};
