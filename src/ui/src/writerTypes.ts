@@ -125,11 +125,13 @@ export const enum FieldType {
 	HAlign = "Align (H)",
 	VAlign = "Align (V)",
 	Padding = "Padding",
+	Tools = "Tools",
 }
 
 export const enum FieldCategory {
 	General = "General",
 	Style = "Style",
+	Tools = "Tools",
 }
 
 /**
