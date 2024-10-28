@@ -35,7 +35,7 @@
 			</svg>
 			<template v-for="node in nodes" :key="node.id">
 				<component
-					:is="renderProxiedComponent(node.id)"
+					:is="renderProxiedComponent(node.id, 0)"
 					:style="{
 						top: `${node.y - renderOffset.y}px`,
 						left: `${node.x - renderOffset.x}px`,
