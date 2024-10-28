@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
+import time
 import writer.core
 import writer.workflows_blocks
 from writer.core_ui import Component
@@ -40,7 +41,9 @@ def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str,
     for component_id, tool in execution.items():
         exec_log.append({
             "componentId": component_id,
-            "outcome": tool.outcome + repr(tool.return_value) + repr(tool.result)
+            "outcome": tool.outcome,
+            # "outcome": tool.outcome + repr(tool.return_value) + repr(tool.result),
+            "executionTimeInSeconds": tool.execution_time_in_seconds 
         })
     msg = f"Execution finished with value {repr(return_value)}"
     state = session.session_state
@@ -111,7 +114,9 @@ def run_node(target_node: "Component", nodes: List["Component"], execution: Dict
     tool = tool_class(target_node, execution, session, execution_env | {"result": result})
     
     try:
+        start_time = time.time()
         tool.run()
+        tool.execution_time_in_seconds = time.time() - start_time
     except BaseException as e:
         if tool and not tool.result:
             tool.result = repr(e)
