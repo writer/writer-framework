@@ -271,11 +271,16 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
         print("Deployment successful")
         print(f"URL: {url}")
         sys.exit(0)
+    elif status == "FAILED":
+        print("Deployment failed")
+        print(f"URL: {url}")
+        sys.exit(1)
     else:
         time.sleep(sleep_interval)
         check_service_status(deploy_url, token, build_id, build_time, start_time, datetime.now(pytz.timezone('UTC')), status)
-        print("Deployment failed")
-        sys.exit(1)
+        print("Deployment status timeout")
+        print(f"URL: {url}")
+        sys.exit(2)
 
 def on_error_print_and_raise(resp, verbose=False):
     try:
