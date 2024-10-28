@@ -1,6 +1,6 @@
+import time
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
-import time
 import writer.core
 import writer.workflows_blocks
 from writer.core_ui import Component
@@ -69,8 +69,10 @@ def _get_node_dependencies(target_node: "Component", nodes: List["Component"]):
     return dependencies
     
 
-def get_branch_nodes(root_node_id: "Component"):
+def get_branch_nodes(root_node_id: str):
     root_node = writer.core.base_component_tree.get_component(root_node_id)
+    if not root_node:
+        return []
     branch_nodes = [root_node]
     if not root_node.outs:
         return branch_nodes

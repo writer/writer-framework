@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import writer.core
 import writer.core_ui
@@ -17,7 +17,7 @@ class WorkflowBlock:
         self.outcome = None
         self.component = component
         self.execution = execution
-        self.execution_time_in_seconds = -1
+        self.execution_time_in_seconds = -1.0
         self.session = session
         self.execution_env = execution_env
         self.result = None
@@ -27,13 +27,16 @@ class WorkflowBlock:
 
     def _get_nodes_at_outcome(self, target_outcome: str):
         outs = self.component.outs
-        nodes = []
+        nodes:List["writer.core_ui.Component"] = []
         if not outs:
             return nodes
         for out in outs:
             if out.get("outId") == target_outcome:
                 component_id = out.get("toNodeId")
-                nodes.append(writer.core.base_component_tree.get_component(component_id))
+                component = writer.core.base_component_tree.get_component(component_id)
+                if not component:
+                    continue
+                nodes.append(component)
         return nodes
 
     def _get_field(self, field_key: str, as_json=False, default_field_value=None):
