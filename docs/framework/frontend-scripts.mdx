@@ -94,7 +94,7 @@ You can access Framework's front-end core via `globalThis.core`, unlocking all s
 
 ```js
 export function alertHueRotationValue() {
-    const state = globalThis.core.getUserState();
+    const state = globalThis.core.userState.value.
     console.log("State is", state);
 }
 ```

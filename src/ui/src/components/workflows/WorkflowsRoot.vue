@@ -33,7 +33,7 @@ const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
 
 const displayedWorkflowId = computed(() => {
-	const activePageId = wf.getActivePageId();
+	const activePageId = wf.activePageId.value;
 	const activePageExists = Boolean(wf.getComponentById(activePageId));
 	if (activePageExists && wf.isChildOf("workflows_root", activePageId))
 		return activePageId;
