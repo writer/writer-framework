@@ -46,6 +46,12 @@ class WriterChat(WorkflowBlock):
                         "type": "Object",
                         "default": "{}",
                         "init": function_tools_init
+                    },
+                    "tools": {
+                        "name": "Tools",
+                        "type": "Tools",
+                        "default": "{}",
+                        "category": "Tools"
                     }
                 },
                 "outs": {
@@ -106,11 +112,6 @@ class WriterChat(WorkflowBlock):
                     parameters=tool_raw.get("parameters")
                 )
                 tools.append(tool)
-
-            # tools.append({
-            #     "type": "graph",
-            #     "graph_ids": ["ddf83cb3-da4e-4bbd-b721-19a62c8f0ef8"]
-            # })
 
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
 
