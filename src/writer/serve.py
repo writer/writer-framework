@@ -50,6 +50,9 @@ class WriterState(typing.Protocol):
     app_runner: AppRunner
     writer_app: bool
     is_server_static_mounted: bool
+    meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # meta tags for SEO
+    opengraph_tags: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # opengraph tags for social networks integration (facebook, discord)
+    title: Union[str, Callable[[], str]] # title of the page, default: "Writer Framework"
 
 class WriterAsgi(typing.Protocol):
     state: WriterState
@@ -562,7 +565,7 @@ def configure_page_head(
     opengraph_tags: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None
 ):
     """
-    Configures the page header for SEO and social networks.
+    Configures the page header for SEO and social networks from `server_setup` module.
 
     >>> writer.serve.configure_page_head(
     >>>     title="my App",
@@ -615,11 +618,19 @@ def configure_page_head(
     >>>     opengraph_tags= generated_opengraph_tags
     >>> )
 
-    :param title: The title of the page.
-    :param meta: A list of meta tags.
-    :param opengraph_tags: A dictionary of OpenGraph tags.
+    ---
+
+    WF replaces the placeholders <!-- {{ meta }} -->, <!-- {{ opengraph_tags }} -->
+    and the <title>Writer framework<title> tag in the index.html file.
+
+    :param title: The title of the page. Default: "Writer Framework"
+    :param meta: A list of meta tags. Default: {}
+    :param opengraph_tags: A dictionary of OpenGraph tags. Default: {}
     """
-    pass
+    app.state.title = title
+    app.state.meta = meta if meta is not None else {}
+    app.state.opengraph_tags = opengraph_tags if opengraph_tags is not None else {}
+
 
 @asynccontextmanager
 async def _lifespan_invoke(context: list, app: FastAPI):
