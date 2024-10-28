@@ -17,6 +17,7 @@ class WorkflowBlock:
         self.outcome = None
         self.component = component
         self.execution = execution
+        self.execution_time_in_seconds = -1
         self.session = session
         self.execution_env = execution_env
         self.result = None
