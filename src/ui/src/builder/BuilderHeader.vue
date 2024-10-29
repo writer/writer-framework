@@ -45,6 +45,12 @@
 			</BuilderModal>
 		</div>
 		<div class="gap"></div>
+		<button type="button" @click="() => ssbm.openPanels.add('code')">
+			Code
+		</button>
+		<button type="button" @click="() => ssbm.openPanels.add('log')">
+			Log
+		</button>
 		<div
 			class="syncHealth"
 			:class="wf.syncHealth.value"

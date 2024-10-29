@@ -1,58 +1,49 @@
 <template>
-	<div ref="builderEditor" class="BuilderEmbeddedCodeEditor">
-		<div ref="editorContainer" class="editorContainer"></div>
+	<div class="BuilderEmbeddedCodeEditor">
+		<div ref="editorContainerEl" class="editorContainer"></div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { inject, onMounted, onUnmounted, Ref, ref, toRefs, watch } from "vue";
-import injectionKeys from "../injectionKeys";
+import { onMounted, onUnmounted, ref, toRefs } from "vue";
 
-const wf = inject(injectionKeys.core);
-const wfbm = inject(injectionKeys.builderManager);
-
-const builderEditor: Ref<HTMLElement> = ref(null);
-const editorContainer: Ref<HTMLElement> = ref(null);
+const editorContainerEl = ref<HTMLElement>(null);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
-// const editorCode = editor.getValue();
-
-// <input
-//     :value="props.modelValue"
-//     @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-//   />
-
 const props = defineProps<{
+	language: string;
+	variant: "full" | "minimal";
 	modelValue: string;
 }>();
 
 const { modelValue } = toRefs(props);
-
 const emit = defineEmits(["update:modelValue"]);
 
-// watch(modelValue, (newCode) => {
-//     const currentCode =
-// 	editor.setValue(newCode);
-// });
-
-onMounted(() => {
-	const targetEl = editorContainer.value;
-	editor = monaco.editor.create(targetEl, {
-		value: modelValue.value,
-		language: "json",
+const VARIANTS_SETTINGS: Record<
+	string,
+	Partial<monaco.editor.IStandaloneEditorConstructionOptions>
+> = {
+	full: {
+		minimap: {
+			enabled: false,
+		},
+	},
+	minimal: {
 		minimap: {
 			enabled: false,
 		},
 		lineNumbers: "off",
-		scrollbar: {
-			vertical: "auto",
-			horizontal: "auto",
-		},
-		fontSize: 12,
 		folding: false,
-		// theme: "",
+	},
+};
+
+onMounted(() => {
+	editor = monaco.editor.create(editorContainerEl.value, {
+		value: modelValue.value,
+		language: props.language,
+		...VARIANTS_SETTINGS[props.variant],
 	});
 	editor.getModel().onDidChangeContent(() => {
 		const newCode = editor.getValue();
@@ -74,10 +65,13 @@ onUnmounted(() => {
 <style scoped>
 @import "./sharedStyles.css";
 
-.BuilderEditor {
+.BuilderEmbeddedCodeEditor {
+	height: 100%;
+	width: 100%;
 }
 
 .editorContainer {
-	height: 200px;
+	width: 100%;
+	height: 100%;
 }
 </style>

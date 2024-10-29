@@ -34,6 +34,8 @@
 			<WdsTextInput v-model="toolForm.name"></WdsTextInput>
 			<template v-if="toolForm.type == 'function'">
 				<BuilderEmbeddedCodeEditor
+					variant="minimal"
+					language="json"
 					v-model="toolForm.code"
 				></BuilderEmbeddedCodeEditor>
 			</template>

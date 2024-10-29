@@ -69,9 +69,13 @@
 				</div>
 			</div>
 		</div>
-		<div class="builderPanels">
-			<BuilderCodePanel></BuilderCodePanel>
-			<BuilderCodePanel></BuilderCodePanel>
+		<div v-if="builderMode !== 'preview'" class="builderPanels">
+			<BuilderCodePanel
+				v-if="ssbm.openPanels.has('code')"
+			></BuilderCodePanel>
+			<BuilderLogPanel
+				v-if="ssbm.openPanels.has('log')"
+			></BuilderLogPanel>
 		</div>
 		<!-- INSTANCE TRACKERS -->
 
@@ -139,6 +143,7 @@ import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
 import BuilderCodePanel from "./BuilderCodePanel.vue";
+import BuilderLogPanel from "./BuilderLogPanel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
 
 const wf = inject(injectionKeys.core);
@@ -357,6 +362,7 @@ onMounted(() => {
 .sidebar {
 	grid-column: 1;
 	grid-row: 2;
+	height: v-bind("ssbm.openPanels.size > 0 ? 'calc(100% - 50vh)' : '100%'");
 	min-height: 0;
 	border-right: 1px solid var(--builderAreaSeparatorColor);
 }
@@ -482,15 +488,13 @@ onMounted(() => {
 	height: 50vh;
 	width: 100%;
 	bottom: 0;
-	display: flex;
+	display: grid;
+	grid-template-columns: repeat(v-bind("ssbm.openPanels.size"), 1fr);
+	grid-template-rows: 1fr;
 }
 
-.builderPanels > * {
-	flex: 1 0 auto;
-}
-
-.builderPanels > *:not(:first-child) {
-	border-left: 1px solid var(--builderSeparatorColor);
+.builderPanels:empty {
+	display: none;
 }
 
 .shortcutsTracker,

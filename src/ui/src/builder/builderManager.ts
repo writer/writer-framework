@@ -57,6 +57,7 @@ type SelectionSource = "click" | "tree" | "log";
 
 type State = {
 	mode: "ui" | "code" | "workflows" | "preview";
+	openPanels: Set<"log" | "code">;
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
@@ -77,6 +78,7 @@ type State = {
 export function generateBuilderManager() {
 	const initState: State = {
 		mode: "ui",
+		openPanels: new Set(),
 		settingsBarCollapsed: false,
 		selection: null,
 		clipboard: null,
@@ -314,6 +316,7 @@ export function generateBuilderManager() {
 	const builder = {
 		setMode,
 		getMode,
+		openPanels: state.value.openPanels,
 		setSettingsBarCollapsed,
 		isSettingsBarCollapsed,
 		isSelectionActive,
