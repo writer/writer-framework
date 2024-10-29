@@ -10,6 +10,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Required,
     Set,
     TypedDict,
     Union,
@@ -36,7 +37,11 @@ from writerai.types import (
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.application_generate_content_params import Input
-from writerai.types.chat import ChoiceMessage
+from writerai.types.chat import (
+    ChoiceMessage,
+    ChoiceMessageGraphData,
+    ChoiceMessageToolCall
+    )
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_chat_params import ToolFunctionTool as SDKFunctionTool
 from writerai.types.chat_chat_params import ToolGraphTool as SDKGraphTool
@@ -94,6 +99,22 @@ class FunctionTool(Tool):
     parameters: Dict[str, Dict[str, str]]
 
 
+class PreparedAPIMessage(TypedDict, total=False):
+    role: Required[Literal["user", "assistant", "system", "tool"]]
+
+    content: Union[str, None]
+
+    name: Optional[str]
+
+    tool_call_id: Optional[str]
+
+    tool_calls: Optional[List[ChoiceMessageToolCall]]
+
+    graph_data: Optional[ChoiceMessageGraphData]
+
+    refusal: Optional[str]
+
+
 def create_function_tool(
     callable: Callable,
     name: str,
@@ -110,9 +131,6 @@ def create_function_tool(
     )
 
 
-logger = logging.Logger(__name__, level=logging.DEBUG)
-
-
 def _process_completion_data_chunk(choice: StreamingData) -> str:
     text = choice.value
     if not text:
@@ -122,7 +140,7 @@ def _process_completion_data_chunk(choice: StreamingData) -> str:
     raise ValueError("Failed to retrieve text from completion stream")
 
 
-def _process_chat_data_chunk(chat_data: Chat) -> dict:
+def _process_chat_data_chunk(chat_data: Chat) -> tuple[dict, dict]:
     choices = chat_data.choices
     for entry in choices:
         dict_entry = entry.model_dump()
@@ -131,14 +149,15 @@ def _process_chat_data_chunk(chat_data: Chat) -> dict:
 
             # Provide content as empty string in case there is no diff
             delta["content"] = delta["content"] or ""
-            return delta
+            return dict_entry, delta
         elif dict_entry.get("message"):
             message = cast(dict, dict_entry["message"])
 
             # Provide content as empty string in case there is no diff
             message["content"] = message["content"] or ""
-            return message
+            return dict_entry, message
     raise ValueError("Failed to retrieve text from chat stream")
+
 
 class WriterAIManager:
     """
@@ -152,8 +171,10 @@ class WriterAIManager:
         Initializes a WriterAIManager instance.
 
 
-        :param token: Optional; the default token for API authentication used if WRITER_API_KEY environment variable is not set up.
-        :raises RuntimeError: If an API key was not provided to initialize SDK client properly.
+        :param token: Optional; the default token for API authentication used
+        if WRITER_API_KEY environment variable is not set up.
+        :raises RuntimeError: If an API key was not provided to initialize
+        SDK client properly.
         """
         try:
             self.client = Writer(
@@ -173,8 +194,10 @@ class WriterAIManager:
     @classmethod
     def acquire_instance(cls) -> 'WriterAIManager':
         """
-        Retrieve the existing instance of WriterAIManager from the current app process.
-        If no instance was previously initialized, creates a new one and attaches it to the current app process.
+        Retrieve the existing instance of WriterAIManager from
+        the current app process.
+        If no instance was previously initialized, creates a new one and
+        attaches it to the current app process.
 
         :returns: The current instance of the manager.
         """
@@ -192,7 +215,8 @@ class WriterAIManager:
     def authorize(cls, token: str):
         """
         Authorize the WriterAIManager with a new token.
-        This can be done as an alternative to setting up an environment variable, or to override the token that was already provided before.
+        This can be done as an alternative to setting up an environment
+        variable, or to override the token that was already provided before.
 
         :param token: The new token to use for authentication.
         """
@@ -245,7 +269,8 @@ class SDKWrapper:
             return getattr(self._wrapped, property_name)
         except AttributeError:
             raise AttributeError(
-                f"type object '{self.__class__}' has no attribute {property_name}"
+                f"type object '{self.__class__}' " +
+                f"has no attribute {property_name}"
                 ) from None
 
 
@@ -275,7 +300,8 @@ class Graph(SDKWrapper):
     @staticmethod
     def _retrieve_graphs_accessor() -> GraphsResource:
         """
-        Acquires the graphs accessor from the WriterAIManager singleton instance.
+        Acquires the graphs accessor from the WriterAIManager
+        singleton instance.
 
         :returns: The graphs accessor instance.
         :rtype: GraphsResource
@@ -334,10 +360,14 @@ class Graph(SDKWrapper):
         :rtype: GraphUpdateResponse
 
         The `config` dictionary can include the following keys:
-        - `extra_headers` (Optional[Headers]): Additional headers for the request.
-        - `extra_query` (Optional[Query]): Additional query parameters for the request.
-        - `extra_body` (Optional[Body]): Additional body parameters for the request.
-        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request.
         """
         config = config or {}
 
@@ -368,13 +398,18 @@ class Graph(SDKWrapper):
         :type config: Optional[APIOptions]
         :returns: The added file object.
         :rtype: File
-        :raises ValueError: If the input is neither a File object nor a file ID string.
+        :raises ValueError: If the input is neither a File object
+        nor a file ID string.
 
         The `config` dictionary can include the following keys:
-        - `extra_headers` (Optional[Headers]): Additional headers for the request.
-        - `extra_query` (Optional[Query]): Additional query parameters for the request.
-        - `extra_body` (Optional[Body]): Additional body parameters for the request.
-        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request.
         """
         config = config or {}
         file_id = None
@@ -410,13 +445,18 @@ class Graph(SDKWrapper):
         :type config: Optional[APIOptions]
         :returns: The response from the remove operation.
         :rtype: Optional[GraphRemoveFileFromGraphResponse]
-        :raises ValueError: If the input is neither a File object nor a file ID string.
+        :raises ValueError: If the input is neither a File object
+        nor a file ID string.
 
         The `config` dictionary can include the following keys:
-        - `extra_headers` (Optional[Headers]): Additional headers for the request.
-        - `extra_query` (Optional[Query]): Additional query parameters for the request.
-        - `extra_body` (Optional[Body]): Additional body parameters for the request.
-        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request.
         """
         config = config or {}
         file_id = None
@@ -456,14 +496,22 @@ def create_graph(
     :rtype: Graph
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
     """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
-    graph_object = graphs.create(name=name, description=description or NotGiven(), **config)
+    graph_object = graphs.create(
+        name=name,
+        description=description or NotGiven(),
+        **config
+        )
     converted_object = cast(SDKGraph, graph_object)
     graph = Graph(converted_object)
     return graph
@@ -484,10 +532,14 @@ def retrieve_graph(
     :rtype: Graph
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
     """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
@@ -506,14 +558,22 @@ def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
     :rtype: List[Graph]
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
-    - `after` (Union[str, NotGiven]): Filter to retrieve items created after a specific cursor.
-    - `before` (Union[str, NotGiven]): Filter to retrieve items created before a specific cursor.
-    - `limit` (Union[int, NotGiven]): The number of items to retrieve.
-    - `order` (Union[Literal["asc", "desc"], NotGiven]): The order in which to retrieve items.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
+    - `after` (Union[str, NotGiven]):
+    Filter to retrieve items created after a specific cursor.
+    - `before` (Union[str, NotGiven]):
+    Filter to retrieve items created before a specific cursor.
+    - `limit` (Union[int, NotGiven]):
+    The number of items to retrieve.
+    - `order` (Union[Literal["asc", "desc"], NotGiven]):
+    The order in which to retrieve items.
     """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
@@ -529,7 +589,8 @@ def delete_graph(graph_id_or_graph: Union[Graph, str]) -> GraphDeleteResponse:
     :type graph_id_or_graph: Union[Graph, str]
     :returns: The response from the delete operation.
     :rtype: GraphDeleteResponse
-    :raises ValueError: If the input is neither a Graph object nor a graph ID string.
+    :raises ValueError: If the input is neither a Graph object
+    nor a graph ID string.
     """
     graph_id = None
     if isinstance(graph_id_or_graph, Graph):
@@ -612,10 +673,14 @@ def retrieve_file(file_id: str, config: Optional[APIOptions] = None) -> File:
     :rtype: writerai.types.File
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
     """
     config = config or {}
     files = File._retrieve_files_accessor()
@@ -634,14 +699,22 @@ def list_files(config: Optional[APIListOptions] = None) -> List[File]:
     :rtype: List[File]
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
-    - `after` (Union[str, NotGiven]): Filter to retrieve items created after a specific cursor.
-    - `before` (Union[str, NotGiven]): Filter to retrieve items created before a specific cursor.
-    - `limit` (Union[int, NotGiven]): The number of items to retrieve.
-    - `order` (Union[Literal["asc", "desc"], NotGiven]): The order in which to retrieve items.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
+    - `after` (Union[str, NotGiven]):
+    Filter to retrieve items created after a specific cursor.
+    - `before` (Union[str, NotGiven]):
+    Filter to retrieve items created before a specific cursor.
+    - `limit` (Union[int, NotGiven]):
+    The number of items to retrieve.
+    - `order` (Union[Literal["asc", "desc"], NotGiven]):
+    The order in which to retrieve items.
     """
     config = config or {}
     files = File._retrieve_files_accessor()
@@ -670,10 +743,14 @@ def upload_file(
     :rtype: writerai.types.File
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
     """
     config = config or {}
     files = File._retrieve_files_accessor()
@@ -703,13 +780,18 @@ def delete_file(
     :type config: Optional[APIOptions]
     :returns: The response from the delete operation.
     :rtype: FileDeleteResponse
-    :raises ValueError: If the input is neither a File object nor a file ID string.
+    :raises ValueError: If the input is neither a File object
+    nor a file ID string.
 
     The `config` dictionary can include the following keys:
-    - `extra_headers` (Optional[Headers]): Additional headers for the request.
-    - `extra_query` (Optional[Query]): Additional query parameters for the request.
-    - `extra_body` (Optional[Body]): Additional body parameters for the request.
-    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]): Timeout for the request.
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request.
     """
     config = config or {}
     file_id = None
@@ -729,34 +811,65 @@ def delete_file(
 
 class Conversation:
     """
-    Manages messages within a conversation flow with an AI system, including message validation,
-    history management, and communication with an AI model.
+    Manages messages within a conversation flow with an AI system,
+    including message validation, history management, and communication
+    with an AI model.
 
     The Conversation class can be initialized in two ways:
-    1. By providing an initial system prompt as a string. This starts a new conversation, adding a system message with the provided prompt.
+    1. By providing an initial system prompt as a string. This starts a new
+       conversation, adding a system message with the provided prompt.
        Example:
-           >>> conversation = Conversation("You are a social media expert in the financial industry")
-    2. By providing a history of messages as a list. This initializes the conversation with existing message data.
+
+        >>> conversation = Conversation(
+        ...         "You are a social media expert in the financial industry"
+        ...         )
+
+    2. By providing a history of messages as a list. This initializes
+       the conversation with existing message data.
        Example:
-           >>> history = [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi, how can I help?"}]
-           >>> conversation = Conversation(history)
 
-    The class supports both class-wide configuration, which affects the entire conversation, and call-specific configuration,
-    which can override or complement the class-wide settings for specific method calls.
+        >>> history = [
+        ...         {"role": "user", "content": "Hello"},
+        ...         {"role": "assistant", "content": "Hi, how can I help?"}
+        ...         ]
+        >>> conversation = Conversation(history)
 
-    :param prompt_or_history: Initial system prompt as a string, or history of messages as a list, used to start a new conversation or to load an existing one.
-    :param config: Configuration settings for the conversation. These settings can include parameters such as `max_tokens`, `temperature`, and `timeout`,
-                   which affect the behavior and performance of the conversation operations. This configuration provides a default context for all operations,
-                   but can be overridden or extended by additional configurations passed directly to specific methods.
+    The class supports both class-wide configuration, which affects
+    the entire conversation, and call-specific configuration,
+    which can override or complement the class-wide settings
+    for specific method calls.
 
-    Configuration Example:
-        When initializing, you might provide a general configuration:
-            >>> config = {'max_tokens': 100, 'temperature': 0.5}
-            >>> conversation = Conversation("Initial prompt", config=config)
+    :param prompt_or_history: Initial system prompt as a string, or
+                              history of messages as a list, used to start
+                              a new conversation or to load an existing one.
+    :param config: Configuration settings for the conversation. These settings
+                   can include parameters such as `max_tokens`, `temperature`,
+                   and `timeout`, which affect the behavior and performance
+                   of the conversation operations. This configuration provides
+                   a default context for all operations, but can be overridden
+                   or extended by additional configurations passed directly
+                   to specific methods.
 
-        Later, when calling `complete` or `stream_complete`, you can override or extend the initial configuration:
-            >>> response = conversation.complete(data={'max_tokens': 150, 'temperature': 0.7})
-        This would increase the `max_tokens` limit to 150 and adjust the `temperature` to 0.7 for this specific call.
+    **Configuration Example:**
+
+    When initializing, you might provide a general configuration:
+
+    >>> config = {'max_tokens': 100, 'temperature': 0.5}
+
+    >>> conversation = Conversation("Initial prompt", config=config)
+
+    Later, when calling `complete` or `stream_complete`, you can override
+    or extend the initial configuration:
+
+    >>> response = conversation.complete(
+    ...             data={
+    ...                 'max_tokens': 150,
+    ...                 'temperature': 0.7
+    ...                 }
+    ...             )
+
+    This would increase the `max_tokens` limit to 150 and adjust
+    the `temperature` to 0.7 for this specific call.
 
     """
     class Message(TypedDict, total=False):
@@ -765,50 +878,81 @@ class Conversation:
 
         :param role: Specifies the sender role.
         :param content: Text content of the message.
-        :param actions: Optional dictionary containing actions related to the message.
+        :param actions: Optional dictionary containing actions
+        related to the message.
         """
         role: Literal["system", "assistant", "user", "tool"]
         content: str
         actions: Optional[dict]
         name: Optional[str]
         tool_call_id: Optional[str]
+        tool_calls: Optional[List[Dict[str, Union[int, Dict]]]]
 
     @classmethod
     def validate_message(cls, message):
         """
-        Validates if the provided message dictionary matches the required structure and values.
+        Validates if the provided message dictionary matches
+        the required structure and values.
 
         :param message: The message to validate.
-        :raises ValueError: If the message structure is incorrect or values are inappropriate.
+        :raises ValueError: If the message structure is incorrect
+        or values are inappropriate.
         """
         if not isinstance(message, dict):
-            raise ValueError(f"Attempted to add a non-dict object to the Conversation: {message}")
+            raise ValueError(
+                "Attempted to add a non-dict object" +
+                f"to the Conversation: {message}"
+                )
+
         if not ("role" in message and "content" in message):
-            raise ValueError(f"Improper message format to add to Conversation: {message}")
-        if not (isinstance(message["content"], str) or message["content"] is None):
-            raise ValueError(f"Non-string content in message cannot be added: {message}")
+            raise ValueError(
+                f"Improper message format to add to Conversation: {message}"
+                )
+
+        if not (
+            isinstance(message["content"], str)
+            or
+            message["content"] is None
+        ):
+            raise ValueError(
+                f"Non-string content in message cannot be added: {message}"
+                )
+
         if message["role"] not in ["system", "assistant", "user", "tool"]:
             raise ValueError(f"Unsupported role in message: {message}")
 
-    def __init__(self, prompt_or_history: Optional[Union[str, List['Conversation.Message']]] = None, config: Optional[ChatOptions] = None):
+    def __init__(
+            self,
+            prompt_or_history: Optional[
+                Union[str, List['Conversation.Message']]
+                ] = None,
+            config: Optional[ChatOptions] = None
+            ):
         """
         Initializes a new conversation. Two options are possible:
 
         1. With a system prompt.
 
-        :param system_prompt: The initial message from the system to start the conversation.
+        :param system_prompt: The initial message from the system
+        to start the conversation.
         :param config: Optional configuration settings for the conversation.
 
         Example:
-        >>> conversation = Conversation("You are a social media expert in the financial industry")
+        >>> conversation = Conversation(
+        ...     "You are a social media expert in the financial industry"
+        ...     )
 
         2. With a history of past messages.
 
-        :param history_import: A list of messages that form the history of the conversation.
+        :param history_import: A list of messages that form the history
+        of the conversation.
         :param config: Optional configuration settings for the conversation.
 
         Example:
-        >>> history = [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi, how can I help?"}]
+        >>> history = [
+        ...     {"role": "user", "content": "Hello"},
+        ...     {"role": "assistant", "content": "Hi, how can I help?"}
+        ...     ]
         >>> conversation = Conversation(history)
         """
         self.messages: List['Conversation.Message'] = []
@@ -831,41 +975,108 @@ class Conversation:
         """
         Merge a chunk of data into the last message in the conversation.
 
-        This method takes a chunk of data and integrates it into the content of the
-        last message of the conversation. It appends additional content if present,
-        and merges other key-value pairs into the last message's dictionary.
+        This method takes a chunk of data and integrates it into the content
+        of the last message of the conversation. It appends additional content
+        if present, and merges other key-value pairs into the last message's
+        dictionary.
 
-        :param raw_chunk: A dictionary containing the chunk of data to be merged.
-        :raises ValueError: If the Conversation's `messages` list is empty, indicating there is no message to merge the chunk with.
+        :param raw_chunk: A dictionary containing the chunk of data
+        to be merged.
+        :raises ValueError: If the Conversation's `messages` list is empty,
+        indicating there is no message to merge the chunk with.
         """
         def _clear_chunk_flag(chunk):
-            return {key: value for key, value in chunk.items() if key != "chunk"}
+            return {
+                key: value
+                for key, value in chunk.items()
+                if key != "chunk"
+                }
+
         if not self.messages:
             raise ValueError("No message to merge chunk with")
         clear_chunk = _clear_chunk_flag(raw_chunk)
         updated_last_message: 'Conversation.Message' = self.messages[-1]
         if "content" in clear_chunk:
-            updated_last_message["content"] += clear_chunk.pop("content")
+            updated_last_message["content"] += clear_chunk.pop("content") or ""
+
+        if "tool_calls" in clear_chunk:
+            # Ensure 'tool_calls' exists in updated_last_message as list
+            if (
+                "tool_calls" not in updated_last_message
+                or updated_last_message["tool_calls"] is None
+            ):
+                updated_last_message["tool_calls"] = []
+            # Get the list of new tool calls
+            new_tool_calls = clear_chunk.pop("tool_calls", []) or []
+
+            for new_call in new_tool_calls:
+                index = new_call.get("index", 0)
+                last_message_tool_calls = \
+                    cast(list, updated_last_message["tool_calls"])
+                if index < len(last_message_tool_calls):
+                    # If there's an existing call at this index, update it
+                    existing_call = last_message_tool_calls[index]
+                    for key, value in new_call.items():
+                        if key == "function":
+                            if key not in existing_call:
+                                existing_call[key] = {}
+                            call_function = existing_call[key]
+                            # Iterate over function keys and values
+                            for fkey, fvalue in value.items():
+                                if fkey == "arguments":
+                                    # Ensure "arguments" are present
+                                    # in existing call as string
+                                    if (
+                                        fkey not in call_function
+                                        or
+                                        call_function[fkey] is None
+                                    ):
+                                        call_function[fkey] = ""
+
+                                    # Append the arguments value
+                                    # or an empty string
+                                    # to existing arguments
+                                    call_function[fkey] += \
+                                        fvalue or ""
+                                elif fvalue is not None:
+                                    call_function[fkey] = fvalue
+                        elif value is not None:
+                            existing_call[key] = value
+                else:
+                    # If no existing call, append the new call
+                    last_message_tool_calls.append(new_call)
+
         updated_last_message |= clear_chunk
 
     @staticmethod
-    def _prepare_message(message: 'Conversation.Message') -> WriterAIMessage:
+    def _prepare_message(message: 'Conversation.Message') -> PreparedAPIMessage:
         """
-        Converts a message object stored in Conversation to a Writer AI SDK `Message` model, suitable for calls to API.
+        Converts a message object stored in Conversation to a Writer AI SDK
+        `Message` model, suitable for calls to API.
 
         :param raw_chunk: The data to be merged into the last message.
-        :raises ValueError: If there are no messages in the conversation to merge with.
+        :raises ValueError: If there are no messages in the conversation
+        to merge with.
         """
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
-        sdk_message = WriterAIMessage(
-            content=message["content"],
+        sdk_message = PreparedAPIMessage(
+            content=message["content"] or None,
             role=message["role"]
             )
-        if message.get("name"):
-            sdk_message["name"] = cast(str, message["name"])
-        if message.get("tool_call_id"):
-            sdk_message["tool_call_id"] = cast(str, message["tool_call_id"])
+        if msg_name := message.get("name"):
+            sdk_message["name"] = cast(str, msg_name)
+        if msg_tool_call_id := message.get("tool_call_id"):
+            sdk_message["tool_call_id"] = cast(str, msg_tool_call_id)
+        if msg_tool_calls := message.get("tool_calls"):
+            sdk_message["tool_calls"] = cast(list, msg_tool_calls)
+        if msg_graph_data := message.get("graph_data"):
+            sdk_message["graph_data"] = cast(
+                ChoiceMessageGraphData,
+                msg_graph_data
+                )
+        if msg_refusal := message.get("refusal"):
+            sdk_message["refusal"] = cast(str, msg_refusal)
         return sdk_message
 
     def _register_callable(
@@ -875,8 +1086,8 @@ class Conversation:
             parameters: Dict[str, Dict[str, str]]
     ):
         """
-        Internal helper function to store a provided callable for function call,
-        to retrieve it when processing LLM response
+        Internal helper function to store a provided callable
+        for function call, to retrieve it when processing LLM response
         """
         if not callable(callable_to_register):
             raise ValueError(
@@ -921,17 +1132,22 @@ class Conversation:
             in self._ongoing_tool_calls.items()
             }
 
+    def _gather_tool_calls_results(self):
+        return list(self._gather_tool_calls_messages().values())
+
     def _prepare_tool(
             self,
             tool_instance: Union['Graph', GraphTool, FunctionTool]
             ) -> Union[SDKGraphTool, SDKFunctionTool]:
         """
-        Internal helper function to process a tool instance into the required format.
+        Internal helper function to process a tool instance
+        into the required format.
         """
         def validate_parameters(parameters: Dict[str, Dict[str, str]]) -> bool:
             """
-            Validates the `parameters` dictionary to ensure that each key is a parameter name, 
-            and each value is a dictionary containing at least a `type` field, and optionally a `description`.
+            Validates the `parameters` dictionary to ensure that each key
+            is a parameter name, and each value is a dictionary containing
+            at least a `type` field, and optionally a `description`.
 
             :param parameters: The parameters dictionary to validate.
             :return: True if valid, raises ValueError if invalid.
@@ -941,17 +1157,30 @@ class Conversation:
 
             for param_name, param_info in parameters.items():
                 if not isinstance(param_info, dict):
-                    raise ValueError(f"Parameter '{param_name}' must be a dictionary")
+                    raise ValueError(
+                        f"Parameter '{param_name}' must be a dictionary"
+                        )
 
                 if "type" not in param_info:
-                    raise ValueError(f"Parameter '{param_name}' must include a 'type' field")
+                    raise ValueError(
+                        f"Parameter '{param_name}' must include a 'type' field"
+                        )
 
                 if not isinstance(param_info["type"], str):
-                    raise ValueError(f"'type' for parameter '{param_name}' must be a string")
+                    raise ValueError(
+                        f"'type' for parameter '{param_name}' must be a string"
+                        )
 
                 # Optional 'description' validation (if provided)
-                if "description" in param_info and not isinstance(param_info["description"], str):
-                    raise ValueError(f"'description' for parameter '{param_name}' must be a string if provided")
+                if (
+                    "description" in param_info
+                    and
+                    not isinstance(param_info["description"], str)
+                ):
+                    raise ValueError(
+                        f"'description' for parameter '{param_name}' " +
+                        "must be a string if provided"
+                        )
 
             return True
 
@@ -987,7 +1216,9 @@ class Conversation:
         elif isinstance(tool_instance, dict):
             # Handle a dictionary (either a graph or a function)
             if "type" not in tool_instance:
-                raise ValueError("Invalid tool definition: 'type' field is missing")
+                raise ValueError(
+                    "Invalid tool definition: 'type' field is missing"
+                    )
 
             tool_type = tool_instance["type"]
 
@@ -997,7 +1228,8 @@ class Conversation:
                     raise ValueError("Graph tool must include 'graph_ids'")
                 # Return graph tool JSON
 
-                graph_ids_valid = validate_graph_ids(tool_instance["graph_ids"])
+                graph_ids_valid = \
+                    validate_graph_ids(tool_instance["graph_ids"])
                 if graph_ids_valid:
                     return cast(
                         SDKGraphTool,
@@ -1021,10 +1253,17 @@ class Conversation:
                 tool_instance = cast(FunctionTool, tool_instance)
                 if "callable" not in tool_instance:
                     raise ValueError("Function tool missing `callable`")
-                if "name" not in tool_instance or "parameters" not in tool_instance:
-                    raise ValueError("Function tool must include 'name' and 'parameters'")
+                if (
+                    "name" not in tool_instance
+                    or
+                    "parameters" not in tool_instance
+                ):
+                    raise ValueError(
+                        "Function tool must include 'name' and 'parameters'"
+                        )
 
-                parameters_valid = validate_parameters(tool_instance["parameters"])
+                parameters_valid = \
+                    validate_parameters(tool_instance["parameters"])
                 # Return function tool JSON
                 if parameters_valid:
                     self._register_callable(
@@ -1056,21 +1295,35 @@ class Conversation:
 
     def __add__(self, chunk_or_message: Union['Conversation.Message', dict]):
         """
-        Adds a message or appends a chunk to the last message in the conversation.
+        Adds a message or appends a chunk to the last message
+        in the conversation.
 
-        :param chunk_or_message: Dictionary representation of a message or chunk to add.
+        :param chunk_or_message: Dictionary representation of a message
+        or chunk to add.
         :raises TypeError: If passed chunk_or_message is not a dictionary.
-        :raises ValueError: If chunk_or_message is not a proper message with "role" and "content".
+        :raises ValueError: If chunk_or_message is not a proper message
+        with "role" and "content".
         """
         if not isinstance(chunk_or_message, dict):
-            raise TypeError("Conversation only supports dict operands for addition")
+            raise TypeError(
+                "Conversation only supports dict operands for addition"
+                )
         if chunk_or_message.get("chunk") is True:
             chunk = chunk_or_message
             self._merge_chunk_to_last_message(cast(dict, chunk))
         else:
             message = chunk_or_message
             self.validate_message(message)
-            self.messages.append({"role": message["role"], "content": message["content"], "actions": message.get("actions")})
+            message_to_append = {
+                "role": message["role"],
+                "content": message["content"],
+                "actions": message.get("actions")
+                }
+            if "tool_calls" in message:
+                message_to_append["tool_calls"] = message["tool_calls"]
+            if "tool_call_id" in message and message["role"] == "tool":
+                message_to_append["tool_call_id"] = message["tool_call_id"]
+            self.messages.append(cast(Conversation.Message, message_to_append))
         return self
 
     def add(
@@ -1088,7 +1341,6 @@ class Conversation:
 
     def _send_chat_request(
             self,
-            passed_messages: Iterable[WriterAIMessage],
             request_model: str,
             request_data: ChatOptions,
             stream: bool = False
@@ -1096,20 +1348,27 @@ class Conversation:
         """
         Helper function to send a chat request to the LLM.
 
-        :param passed_messages: Messages to send in the request.
         :param request_model: Model to use for the chat.
         :param request_data: Configuration settings for the chat request.
         :param stream: Whether to use streaming mode.
-        :return: The response from the LLM, either as a Stream or a Chat object.
+        :return: The response from the LLM, either as
+        a Stream or a Chat object.
         """
         client = WriterAIManager.acquire_client()
-        logger.debug(
+        prepared_messages = cast(
+            Iterable[WriterAIMessage],
+            [
+                self._prepare_message(message)
+                for message in self.messages
+            ]
+        )
+        logging.debug(
             "Attempting to request a message from LLM: " +
-            f"passed_messages – {passed_messages}, " +
+            f"prepared messages – {prepared_messages}, " +
             f"request_data – {request_data}"
             )
         return client.chat.chat(
-            messages=passed_messages,
+            messages=prepared_messages,
             model=request_model,
             stream=stream,
             tools=request_data.get('tools', NotGiven()),
@@ -1131,7 +1390,8 @@ class Conversation:
         :param value: The value to convert.
         :param target_type: The target type as a string.
         :return: The converted value.
-        :raises ValueError: If the value cannot be converted to the target type.
+        :raises ValueError: If the value cannot be converted
+        to the target type.
         """
         if target_type == "string":
             return str(value)
@@ -1184,26 +1444,39 @@ class Conversation:
                 param_specs = callable_entry["parameters"]
                 # Convert arguments based on registered parameter types
                 converted_arguments = {}
-                for param_name, param_info in param_specs.items():
-                    if param_name in parsed_arguments:
-                        target_type = param_info["type"]
-                        value = parsed_arguments[param_name]
-                        converted_arguments[param_name] = self._convert_argument_to_type(value, target_type)
-                    else:
-                        raise ValueError(f"Missing required parameter: {param_name}")
-
-                func = callable_entry.get("callable")
-                if not func:
-                    raise ValueError(f"Misconfigured function {function_name}: no callable provided")
-
-                # Call the function with converted arguments
                 try:
+                    for param_name, param_info in param_specs.items():
+                        if param_name in parsed_arguments:
+                            target_type = param_info["type"]
+                            value = parsed_arguments[param_name]
+                            converted_arguments[param_name] = \
+                                self._convert_argument_to_type(
+                                    value,
+                                    target_type
+                                    )
+                        else:
+                            raise ValueError(
+                                f"Missing required parameter: {param_name}"
+                                )
+
+                    func = callable_entry.get("callable")
+                    if not func:
+                        raise ValueError(
+                            f"Misconfigured function {function_name}: " +
+                            "no callable provided"
+                            )
+
+                    # Call the function with converted arguments
                     func_result = func(**converted_arguments)
                 except Exception as e:
-                    logger.error(
-                        f"An error occured during the execution of function `{function_name}`: {e}"
+                    logging.error(
+                        "An error occured during the execution of function " +
+                        f"`{function_name}`: {e}"
                     )
-                    func_result = "Function call failed due to an exception – please DO NOT RETRY the call and inform the user about the error"
+                    func_result = \
+                        "Function call failed due to an exception – " + \
+                        "please DO NOT RETRY the call and inform the user " + \
+                        "about the error"
 
                 # Prepare follow-up message with the function call result
                 follow_up_message = {
@@ -1215,22 +1488,38 @@ class Conversation:
 
                 return follow_up_message
             else:
-                raise ValueError(f"`{function_name}` is not present in callable registry")
+                raise ValueError(
+                    f"`{function_name}` is not present in callable registry"
+                    )
 
         except json.JSONDecodeError:
-            logger.error(f"Failed to parse arguments for tool call: {arguments}")
+            logging.error(
+                f"Failed to parse arguments for tool call: {arguments}"
+                )
 
         return {
                     "role": "tool",
                     "name": function_name,
                     "tool_call_id": tool_call_id,
-                    "content": "Failed to parse provided arguments for tool call – please DO NOT RETRY the function call and inform the user about the error."
+                    "content":
+                            "Failed to parse provided arguments " +
+                            "for tool call – please DO NOT RETRY " +
+                            "the function call and inform the user " +
+                            "about the error."
                 }
 
-    def _process_tool_call(self, index, tool_call_id, tool_call_name, tool_call_arguments):
+    def _process_tool_call(
+            self,
+            index,
+            tool_call_id,
+            tool_call_name,
+            tool_call_arguments
+            ):
         if index not in self._ongoing_tool_calls:
             self._ongoing_tool_calls[index] = {
-                "name": None, "arguments": "", "tool_call_id": None
+                "name": None,
+                "arguments": "",
+                "tool_call_id": None
             }
 
         # Capture `tool_call_id` from the message
@@ -1254,12 +1543,16 @@ class Conversation:
                     "{" + fixed_chunk
             else:
                 # Process normally
-                self._ongoing_tool_calls[index]["arguments"] += tool_call_arguments
+                self._ongoing_tool_calls[index]["arguments"] += \
+                    tool_call_arguments
 
         # Check if we have all necessary data to execute the function
         if (
+            self._ongoing_tool_calls[index]["tool_call_id"] is not None
+            and
             self._ongoing_tool_calls[index]["name"] is not None
-            and self._ongoing_tool_calls[index]["arguments"].endswith("}")
+            and
+            self._ongoing_tool_calls[index]["arguments"].endswith("}")
         ):
             follow_up_message = self._execute_function_tool_call(index)
             if follow_up_message:
@@ -1267,8 +1560,8 @@ class Conversation:
 
     def _process_tool_calls(self, message: ChoiceMessage):
         if message.tool_calls:
-            for tool_call in message.tool_calls:
-                index = tool_call.index
+            for helper_index, tool_call in enumerate(message.tool_calls):
+                index = tool_call.index or helper_index
                 tool_call_id = tool_call.id
                 tool_call_name = tool_call.function.name
                 tool_call_arguments = tool_call.function.arguments
@@ -1299,85 +1592,91 @@ class Conversation:
     def _process_response_data(
             self,
             response_data: Chat,
-            passed_messages: List[WriterAIMessage],
             request_model: str,
             request_data: ChatOptions,
             depth=1,
-            max_depth=3
+            max_depth=5
             ) -> 'Conversation.Message':
         if depth > max_depth:
-            raise RuntimeError("Reached maximum depth when processing response data tool calls.")
+            raise RuntimeError(
+                "Reached maximum depth " +
+                "when processing response data tool calls."
+                )
         for entry in response_data.choices:
             message = entry.message
             if message:
                 # Handling tool call fragments
-                logger.debug(f"Received message – {message}")
+                logging.debug(f"Received message – {message}")
                 if message.tool_calls is not None:
-                    logger.debug(f"Message has tool calls - {message.tool_calls}")
+                    logging.debug(
+                        f"Message has tool calls - {message.tool_calls}"
+                        )
+                    self += message.model_dump()
                     self._process_tool_calls(message)
+                    self.messages += self._gather_tool_calls_results()
                     # Send follow-up call to LLM
-                    logger.debug("Sending a request to LLM")
-                    finalized_messages = passed_messages + [
-                                self._prepare_message(message)
-                                for message in self._gather_tool_calls_messages().values()
-                                ]
+                    logging.debug("Sending a request to LLM")
                     follow_up_response = cast(
                         Chat,
                         self._send_chat_request(
-                            passed_messages=finalized_messages,
                             request_model=request_model,
                             request_data=request_data
                         )
                     )
-                    logger.debug(f"Received response – {follow_up_response}")
+                    logging.debug(f"Received response – {follow_up_response}")
 
-                    # Call the function recursively to either process a new tool call
+                    # Call the function recursively
+                    # to either process a new tool call
                     # or return the message if no tool calls are requested
 
                     self._clear_ongoing_tool_calls()
                     return self._process_response_data(
                         follow_up_response,
-                        passed_messages=passed_messages,
                         request_model=request_model,
                         request_data=request_data,
                         depth=depth+1
                         )
                 else:
                     return cast(Conversation.Message, message.model_dump())
-        raise RuntimeError(f"Failed to acquire proper response for completion from data: {response_data}")
+        raise RuntimeError(
+            "Failed to acquire proper response " +
+            f"for completion from data: {response_data}"
+            )
 
     def _process_stream_response(
             self,
             response: Stream,
-            passed_messages: List[WriterAIMessage],
             request_model: str,
             request_data: ChatOptions,
             depth=1,
-            max_depth=3,
+            max_depth=5,
             flag_chunks=False
     ) -> Generator[dict, None, None]:
         if depth > max_depth:
-            raise RuntimeError("Reached maximum depth when processing response data tool calls.")
-        # We avoid flagging first chunk
-        # to trigger creating a message
-        # to append chunks to
+            raise RuntimeError(
+                "Reached maximum depth " +
+                "when processing response data tool calls."
+                )
 
         for line in response:
-            chunk = _process_chat_data_chunk(line)
+            chunk_data, chunk = _process_chat_data_chunk(line)
+
+            if flag_chunks is True:
+                # We avoid flagging first chunk
+                # to trigger creating a message
+                # to append chunks to
+                chunk |= {"chunk": True}
 
             # Handling tool call fragments
             if chunk.get("tool_calls") is not None:
+                self += chunk
                 self._process_streaming_tool_calls(chunk)
-                if self._tool_calls_ready:
+                if chunk_data.get("finish_reason") == "tool_calls":
                     # Send follow-up call to LLM
-                    passed_messages = passed_messages + [
-                            self._prepare_message(message)
-                            for message in self._gather_tool_calls_messages().values()
-                            ]
+                    self.messages += self._gather_tool_calls_results()
                     follow_up_response = cast(
                         Stream,
                         self._send_chat_request(
-                            passed_messages=passed_messages,
                             request_model=request_model,
                             request_data=request_data,
                             stream=True
@@ -1388,23 +1687,21 @@ class Conversation:
                         self._clear_ongoing_tool_calls()
                         yield from self._process_stream_response(
                             response=follow_up_response,
-                            passed_messages=passed_messages,
                             request_model=request_model,
                             request_data=request_data,
                             depth=depth+1,
                             max_depth=max_depth,
-                            flag_chunks=True
+                            flag_chunks=False
                         )
                     finally:
                         follow_up_response.close()
 
             else:
                 # Handle regular message chunks
-                if flag_chunks is True:
-                    chunk |= {"chunk": True}
-                if flag_chunks is False:
-                    flag_chunks = True
-                yield chunk
+                if chunk.get("content") is not None:
+                    if flag_chunks is False:
+                        flag_chunks = True
+                    yield chunk
 
     def complete(
             self,
@@ -1417,34 +1714,37 @@ class Conversation:
                     List[Union[Graph, GraphTool, FunctionTool]]
                     ]  # can be an instance of tool or a list of instances
                 ] = None,
-            max_tool_depth: int = 3,
+            max_tool_depth: int = 5,
             ) -> 'Conversation.Message':
         """
-        Processes the conversation with the current messages and additional data to generate a response.
-        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
+        Processes the conversation with the current messages and additional
+        data to generate a response.
+        Note: this method only produces AI model output and does not attach the
+        result to the existing conversation history.
 
         :param config: Optional parameters to pass for processing.
         :return: Generated message.
-        :raises RuntimeError: If response data was not properly formatted to retrieve model text.
+        :raises RuntimeError: If response data was not properly formatted
+        to retrieve model text.
         """
         config = config or {'max_tokens': 1024}
         if tools is not None and not isinstance(tools, list):
             tools = [tools]
 
         prepared_tools = [
-            self._prepare_tool(tool_instance) for tool_instance in (tools or [])
+            self._prepare_tool(tool_instance)
+            for tool_instance in (tools or [])
             ]
 
-        passed_messages: List[WriterAIMessage] = [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**config, **self.config}
         if prepared_tools:
             request_data |= {"tools": prepared_tools}
-        request_model = request_data.get("model") or WriterAIManager.use_chat_model()
+        request_model = \
+            request_data.get("model") or WriterAIManager.use_chat_model()
 
         response_data: Chat = cast(
                 Chat,
                 self._send_chat_request(
-                    passed_messages=passed_messages,
                     request_model=request_model,
                     request_data=request_data
                 )
@@ -1452,7 +1752,6 @@ class Conversation:
 
         response = self._process_response_data(
             response_data,
-            passed_messages=passed_messages,
             request_model=request_model,
             request_data=request_data,
             max_depth=max_tool_depth
@@ -1474,11 +1773,12 @@ class Conversation:
                     List[Union[Graph, GraphTool, FunctionTool]]
                     ]  # can be an instance of tool or a list of instances
                 ] = None,
-            max_tool_depth: int = 3
+            max_tool_depth: int = 5
             ) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
-        Note: this method only produces AI model output and does not attach the result to the existing conversation history.
+        Note: this method only produces AI model output and does not attach
+        the result to the existing conversation history.
 
         :param config: Optional parameters to pass for processing.
         :yields: Model response chunks as they arrive from the stream.
@@ -1492,8 +1792,6 @@ class Conversation:
             for tool_instance in (tools or [])
             ]
 
-        passed_messages: List[WriterAIMessage] = \
-            [self._prepare_message(message) for message in self.messages]
         request_data: ChatOptions = {**config, **self.config}
         if prepared_tools:
             request_data |= {"tools": prepared_tools}
@@ -1503,7 +1801,6 @@ class Conversation:
         response: Stream = cast(
             Stream,
             self._send_chat_request(
-                passed_messages=passed_messages,
                 request_model=request_model,
                 request_data=request_data,
                 stream=True
@@ -1512,7 +1809,6 @@ class Conversation:
 
         yield from self._process_stream_response(
             response=response,
-            passed_messages=passed_messages,
             request_model=request_model,
             request_data=request_data,
             max_depth=max_tool_depth
@@ -1522,16 +1818,44 @@ class Conversation:
         self._clear_tool_calls_helpers()
         response.close()
 
-    @property
-    def serialized_messages(self) -> List['Message']:
+    def _is_serialized(self, message: 'Conversation.Message') -> bool:
         """
-        Returns a representation of the conversation, excluding system messages.
+        Function to verify whether the message should be serializable.
+
+        :return: Boolean that indicates
+        """
+        if message["role"] in ["system", "tool"]:
+            return False
+        elif message.get("tool_call_id") is not None:
+            return False
+        tool_calls = message.get("tool_calls")
+        if tool_calls is not None and tool_calls != []:
+            return False
+
+        return True
+
+    def _serialize_message(self, message: 'Conversation.Message'):
+        return {
+            "role": message["role"],
+            "content": message["content"],
+            "actions": message["actions"]
+            }
+
+    @property
+    def serialized_messages(self) -> List['Conversation.Message']:
+        """
+        Returns a representation of the conversation, excluding system
+        messages.
 
         :return: List of messages without system messages.
         """
         # Excluding system messages for privacy & security reasons
         serialized_messages = \
-            [message for message in self.messages if message["role"] not in ["system", "tool"]]
+            [
+                self._serialize_message(message)
+                for message in self.messages
+                if self._is_serialized(message)
+            ]
         return serialized_messages
 
 
@@ -1544,10 +1868,13 @@ class Apps:
         """
         Generates output based on an existing AI Studio no-code application.
 
-        :param application_id: The id for the application, which can be obtained on AI Studio.
-        :param input_dict: Optional dictionary containing parameters for the generation call.
+        :param application_id: The id for the application, which can be
+        obtained on AI Studio.
+        :param input_dict: Optional dictionary containing parameters for
+        the generation call.
         :return: The generated text.
-        :raises RuntimeError: If response data was not properly formatted to retrieve model text.
+        :raises RuntimeError: If response data was not properly formatted
+        to retrieve model text.
         """
 
         client = WriterAIManager.acquire_client()
@@ -1582,12 +1909,15 @@ def complete(
         config: Optional['CreateOptions'] = None
         ) -> str:
     """
-    Completes the input text using the given data and returns the first resulting text choice.
+    Completes the input text using the given data and returns the first
+    resulting text choice.
 
     :param initial_text: The initial text prompt for the completion.
-    :param config: Optional dictionary containing parameters for the completion call.
+    :param config: Optional dictionary containing parameters
+    for the completion call.
     :return: The text of the first choice from the completion response.
-    :raises RuntimeError: If response data was not properly formatted to retrieve model text.
+    :raises RuntimeError: If response data was not properly formatted
+    to retrieve model text.
     """
     config = config or {}
 
@@ -1625,10 +1955,12 @@ def stream_complete(
         config: Optional['CreateOptions'] = None
         ) -> Generator[str, None, None]:
     """
-    Streams completion results from an initial text prompt, yielding each piece of text as it is received.
+    Streams completion results from an initial text prompt, yielding
+    each piece of text as it is received.
 
     :param initial_text: The initial text prompt for the stream completion.
-    :param config: Optional dictionary containing parameters for the stream completion call.
+    :param config: Optional dictionary containing parameters
+    for the stream completion call.
     :yields: Each text completion as it arrives from the stream.
     """
     config = config or {}
