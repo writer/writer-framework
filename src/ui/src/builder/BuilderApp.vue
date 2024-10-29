@@ -69,6 +69,10 @@
 				</div>
 			</div>
 		</div>
+		<div class="builderPanels">
+			<BuilderCodePanel></BuilderCodePanel>
+			<BuilderCodePanel></BuilderCodePanel>
+		</div>
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
@@ -134,6 +138,7 @@ import injectionKeys from "../injectionKeys";
 import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
 import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
+import BuilderCodePanel from "./BuilderCodePanel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
 
 const wf = inject(injectionKeys.core);
@@ -470,6 +475,22 @@ onMounted(() => {
 	.settingsBar.collapsed {
 		display: block;
 	}
+}
+
+.builderPanels {
+	position: absolute;
+	height: 50vh;
+	width: 100%;
+	bottom: 0;
+	display: flex;
+}
+
+.builderPanels > * {
+	flex: 1 0 auto;
+}
+
+.builderPanels > *:not(:first-child) {
+	border-left: 1px solid var(--builderSeparatorColor);
 }
 
 .shortcutsTracker,

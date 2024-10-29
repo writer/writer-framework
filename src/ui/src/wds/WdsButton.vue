@@ -8,10 +8,10 @@
 import { computed, PropType } from "vue";
 
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonVariant = "primary" | "secondary" | "tertiary";
+type WdsButtonVariant = "primary" | "secondary" | "tertiary" | "neutral";
 
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonSize = "big" | "small";
+type WdsButtonSize = "big" | "small" | "unpadded";
 
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
@@ -99,6 +99,24 @@ const className = computed(() => [
 	opacity: 50%;
 }
 
+/* VARIANTS -- neutral */
+
+.WdsButton--neutral {
+	border: none;
+	box-shadow: none;
+	background: unset;
+	margin: 0;
+	padding: 0;
+}
+
+.WdsButton--neutral:hover,
+.WdsButton--neutral:focus {
+	color: unset;
+	border: none;
+	box-shadow: none;
+	background: unset;
+}
+
 /* SIZES */
 
 .WdsButton--big {
@@ -107,5 +125,9 @@ const className = computed(() => [
 
 .WdsButton--small {
 	padding: 10px 16px 10px 16px;
+}
+
+.WdsButton--unpadded {
+	padding: 0;
 }
 </style>
