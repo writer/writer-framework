@@ -173,7 +173,7 @@ export function useEvaluator(wf: Core) {
 			typeof evaluated == "undefined" ||
 			evaluated === null ||
 			evaluated === "";
-		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue) {
+		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue || fieldType == FieldType.Tools) {
 			if (!evaluated) {
 				return JSON.parse(defaultValue ?? null);
 			}

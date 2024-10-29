@@ -20,7 +20,8 @@ export default {
 	renderProxiedComponent: Symbol() as InjectionKey<
 		(
 			componentId: Component["id"],
-			instanceNumber?: InstancePathItem["instanceNumber"],
+			instanceNumber: InstancePathItem["instanceNumber"],
+			ext?: { class?: string[]; contextSlot?: string },
 		) => VNode
 	>,
 	instancePath: Symbol() as InjectionKey<InstancePath>,

@@ -37,7 +37,9 @@ export default {
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
 				component.value.type !== "root" &&
-				component.value.type !== "workflows_root",
+				component.value.type !== "workflows_root" &&
+				wf.getComponentDefinition(component.value.type)?.toolkit !==
+					"workflows",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
@@ -59,7 +61,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-			ext: { class?: string; contextSlot?: string } = {},
+			ext?: { class?: string[]; contextSlot?: string },
 		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -72,7 +74,7 @@ export default {
 					},
 				],
 				instanceData: [...instanceData, ref(null)],
-				...ext,
+				...(ext ?? {}),
 			});
 			return vnode;
 		};

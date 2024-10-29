@@ -42,12 +42,10 @@ const shouldRender = ref(true);
 const proxyType = computed(
 	() => wf.getComponentById(fields.proxyId.value)?.type,
 );
-const parentType = computed(() => wf.getComponentById(parentId)?.type);
 
 const proxyDefinition = computed(() =>
 	proxyType.value ? wf.getComponentDefinition(proxyType.value) : null,
 );
-const parentDef = computed(() => wf.getComponentDefinition(parentType.value));
 
 function renderError(message: string, cls: string) {
 	shouldRender.value = props.contextSlot === "default";
@@ -55,20 +53,6 @@ function renderError(message: string, cls: string) {
 		"div",
 		{ class: ["CoreReuse", cls] },
 		isBeingEdited.value ? message : "",
-	);
-}
-
-function isAllowedChildType(type) {
-	return (
-		parentDef.value.allowedChildrenTypes?.includes(type) ||
-		parentDef.value.allowedChildrenTypes?.includes("*")
-	);
-}
-
-function isAllowedParentType(type) {
-	return (
-		!proxyDefinition.value.allowedParentTypes ||
-		proxyDefinition.value.allowedParentTypes?.includes(type)
 	);
 }
 
@@ -83,10 +67,7 @@ function render() {
 		);
 	}
 
-	if (
-		!isAllowedChildType(proxyType.value) ||
-		!isAllowedParentType(parentType.value)
-	) {
+	if (!wf.getContainableTypes(parentId).includes(proxyType.value)) {
 		return renderError(
 			`The component cannot be reused here.`,
 			"invalid-context",

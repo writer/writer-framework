@@ -21,6 +21,7 @@ const MAX_LOG_ENTRIES = 100;
 export type WorkflowExecutionLog = {
 	componentId: Component["id"];
 	outcome: string;
+	executionTimeInSeconds: number;
 	component?: Component;
 	componentDef?: WriterComponentDefinition;
 }[];

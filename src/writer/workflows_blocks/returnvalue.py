@@ -1,24 +1,21 @@
+import writer.workflows
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class SetState(WorkflowBlock):
+class ReturnValue(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(SetState, cls).register(type)
+        super(ReturnValue, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Set state",
-                "description": "Set the value for a state element.",
-                "category": "Other",
+                "name": "Return value",
+                "description": "Returns a value from a workflow or sub-workflow.",
+                "category": "Writer",
                 "fields": {
-                    "element": {
-                        "name": "State element",
-                        "type": "Text"
-                    },
                     "value": {
                         "name": "Value",
                         "type": "Text",
@@ -42,10 +39,9 @@ class SetState(WorkflowBlock):
 
     def run(self):
         try:
-            element = self._get_field("element")
             value = self._get_field("value")
-            self.evaluator.set_state(element, self.instance_path, value, base_context=self.execution_env)
             self.result = value
+            self.return_value = value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

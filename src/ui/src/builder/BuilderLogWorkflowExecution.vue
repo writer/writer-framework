@@ -16,7 +16,7 @@
 						entry.outcome
 					}}
 				</td>
-				<td>1s</td>
+				<td>{{ formatExecutionTime(entry.executionTimeInSeconds) }}</td>
 			</tr>
 		</table>
 	</div>
@@ -54,6 +54,16 @@ async function selectBlock(componentId: Component["id"]) {
 	goToComponentParentPage(componentId);
 	await nextTick();
 	wfbm.setSelection(componentId, undefined, "log");
+}
+
+function formatExecutionTime(timeInSeconds: number): string {
+	if (timeInSeconds < 0) {
+		return "N/A";
+	}
+	if (timeInSeconds < 0.1) {
+		return "< 0.1s";
+	}
+	return `${timeInSeconds.toFixed(2)}s`;
 }
 </script>
 
