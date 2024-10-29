@@ -213,7 +213,7 @@ const validChildrenTypes = computed(() => {
 function addComponent(event: Event) {
 	const definitionName = (event.target as HTMLInputElement).value;
 	const matchingTypes = Object.entries(validChildrenTypes.value).filter(
-		([type, definition]) => {
+		([_, definition]) => {
 			if (definition.name == definitionName) return true;
 			return false;
 		},

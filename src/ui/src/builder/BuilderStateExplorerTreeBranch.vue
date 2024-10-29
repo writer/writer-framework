@@ -69,7 +69,7 @@ const areChildrenVisible: Ref<boolean> = ref(
 );
 
 function getStateValue(accessors: string[]) {
-	let state = wf.getUserState();
+	let state = wf.userState.value;
 	accessors.forEach((accessor) => {
 		state = state[accessor];
 	});
@@ -80,7 +80,7 @@ const rootValue = computed(() => {
 	return getStateValue(rootAccessors.value);
 });
 
-function isStateObject(v: any) {
+function isStateObject(v: unknown): v is Record<string, unknown> {
 	return typeof v == "object" && v !== null && !Array.isArray(v);
 }
 

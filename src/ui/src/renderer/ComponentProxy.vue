@@ -1,23 +1,8 @@
 <script lang="ts">
-import {
-	PropType,
-	Ref,
-	VNode,
-	computed,
-	h,
-	inject,
-	provide,
-	ref,
-	watch,
-} from "vue";
+import { PropType, VNode, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "../core/templateMap";
 import injectionKeys from "../injectionKeys";
-import {
-	Component,
-	InstancePath,
-	InstancePathItem,
-	UserFunction,
-} from "@/writerTypes";
+import { Component, InstancePath, InstancePathItem } from "@/writerTypes";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
@@ -28,7 +13,7 @@ export default {
 	props: {
 		componentId: { type: String, required: true },
 		instancePath: { type: Array as PropType<InstancePath>, required: true },
-		instanceData: { validator: () => true, required: true },
+		instanceData: { type: Array, required: true },
 	},
 	setup(props) {
 		const wf = inject(injectionKeys.core);
@@ -52,7 +37,9 @@ export default {
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
 				component.value.type !== "root" &&
-				component.value.type !== "workflows_root",
+				component.value.type !== "workflows_root" &&
+				wf.getComponentDefinition(component.value.type)?.toolkit !==
+					"workflows",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
@@ -63,9 +50,6 @@ export default {
 		};
 
 		const isDisabled = ref(false);
-		const userFunctions: Ref<UserFunction[]> = computed(() =>
-			wf.getUserFunctions(),
-		);
 
 		const getChildlessPlaceholderVNode = (): VNode => {
 			if (children.value.length > 0) return;
@@ -77,7 +61,7 @@ export default {
 		const renderProxiedComponent = (
 			componentId: Component["id"],
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
-			ext: { class?: string; contextSlot?: string } = {},
+			ext?: { class?: string[]; contextSlot?: string },
 		): VNode => {
 			const vnode = h(ComponentProxy, {
 				componentId,
@@ -90,7 +74,7 @@ export default {
 					},
 				],
 				instanceData: [...instanceData, ref(null)],
-				...ext,
+				...(ext ?? {}),
 			});
 			return vnode;
 		};
@@ -111,7 +95,7 @@ export default {
 		const getChildrenVNodes = (
 			instanceNumber: InstancePathItem["instanceNumber"] = 0,
 			slotName: string = "default",
-			componentFilter: (c: Component) => boolean = () => true,
+			componentFilter: (_c: Component) => boolean = () => true,
 			positionlessSlot: boolean = false,
 		): VNode[] => {
 			const renderInsertionSlot = (position: number): VNode[] => {
@@ -163,7 +147,7 @@ export default {
 		provide(injectionKeys.isBeingEdited, isBeingEdited);
 		provide(injectionKeys.isDisabled, isDisabled);
 		provide(injectionKeys.instancePath, instancePath);
-		provide(injectionKeys.instanceData, instanceData as any);
+		provide(injectionKeys.instanceData, instanceData);
 		provide(injectionKeys.renderProxiedComponent, renderProxiedComponent);
 		provide(injectionKeys.getChildrenVNodes, getChildrenVNodes);
 		provide(injectionKeys.flattenedInstancePath, flattenedInstancePath);
@@ -212,7 +196,7 @@ export default {
 					let includePayload = false;
 
 					if (
-						userFunctions.value.some(
+						wf.userFunctions.value.some(
 							(uf) =>
 								uf.name == handlerFunctionName &&
 								uf.args.includes("payload"),
@@ -232,7 +216,7 @@ export default {
 				const pageKey = handlerFunctionName.substring(
 					"$goToPage_".length,
 				);
-				return (ev: Event) => wf.setActivePageFromKey(pageKey);
+				return (_ev: Event) => wf.setActivePageFromKey(pageKey);
 			}
 			return null;
 		};
@@ -351,7 +335,7 @@ export default {
 			}: {
 				instanceNumber: number;
 				slotName: string;
-				componentFilter: (c: Component) => boolean;
+				componentFilter: (_c: Component) => boolean;
 				positionlessSlot: boolean;
 			}) => {
 				if (isChildless.value) {

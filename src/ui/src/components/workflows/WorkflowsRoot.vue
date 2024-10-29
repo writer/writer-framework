@@ -10,10 +10,6 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "@/writerTypes";
-import { nextTick } from "vue";
-import { useEvaluator } from "@/renderer/useEvaluator";
-
 const description =
 	"The root component of the application, which serves as the starting point of the component hierarchy.";
 
@@ -33,12 +29,11 @@ import { computed, inject, ref, Ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl: Ref<HTMLElement> = ref(null);
 
 const displayedWorkflowId = computed(() => {
-	const activePageId = wf.getActivePageId();
+	const activePageId = wf.activePageId.value;
 	const activePageExists = Boolean(wf.getComponentById(activePageId));
 	if (activePageExists && wf.isChildOf("workflows_root", activePageId))
 		return activePageId;

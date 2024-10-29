@@ -69,10 +69,7 @@ const rootStyle = computed(() => {
 	};
 });
 
-const isMessagePending = computed(() => {
-	const frontendMessageMap = wf.getFrontendMessageMap();
-	return frontendMessageMap.size > 0;
-});
+const isMessagePending = computed(() => wf.frontendMessageMap.value.size > 0);
 
 watch(
 	() => coreRootFields.appName?.value,
@@ -83,7 +80,7 @@ watch(
 );
 
 function updateTitle(appName: string) {
-	const mode = wf.getMode();
+	const mode = wf.mode.value;
 	let title: string;
 	if (appName && mode == "edit") {
 		title = `${appName} | Writer Framework | Builder`;
@@ -129,7 +126,7 @@ async function importModule(moduleKey: string, specifier: string) {
 async function handleFunctionCall(
 	moduleKey: string,
 	functionName: string,
-	args: any[],
+	args: unknown[],
 ) {
 	const specifier = importedModulesSpecifiers[moduleKey];
 	const m = await import(/* @vite-ignore */ specifier);
@@ -208,7 +205,7 @@ function addMailSubscriptions() {
 		}: {
 			moduleKey: string;
 			functionName: string;
-			args: any[];
+			args: unknown[];
 		}) => {
 			handleFunctionCall(moduleKey, functionName, args);
 		},

@@ -15,7 +15,7 @@ jobs:
           github-token: ${{ secrets.DOCS_WORKFLOW_TOKEN }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
-              owner: 'anant-writer',
+              owner: 'WriterInternal',
               repo: 'docs',
               workflow_id: 'mintlify-action.yml',
               ref: 'main',

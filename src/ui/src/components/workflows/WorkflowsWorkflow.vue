@@ -2,11 +2,13 @@
 	<div
 		ref="rootEl"
 		class="WorkflowsWorkflow"
+		:data-writer-unselectable="isUnselectable"
 		@click="handleClick"
 		@dragover="handleDragover"
 		@drop="handleDrop"
-		@drag="handleDrag"
-		@dragstart="handleDragstart"
+		@mousemove="handleMousemove"
+		@mousedown="handleMousedown"
+		@mouseup="handleMouseup"
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
@@ -18,26 +20,36 @@
 					:is-engaged="
 						selectedArrow == arrowId ||
 						wfbm.getSelectedId() == arrow.fromNodeId ||
-						wfbm.getSelectedId() == arrow.out.toNodeId
+						wfbm.getSelectedId() == arrow.toNodeId
 					"
 					@click="handleArrowClick($event, arrowId)"
 					@delete="handleDeleteClick($event, arrow)"
 				></WorkflowArrow>
+				<WorkflowArrow
+					v-if="activeConnection?.liveArrow"
+					key="liveArrow"
+					:arrow="activeConnection.liveArrow"
+					:is-selected="false"
+					:is-engaged="true"
+				></WorkflowArrow>
 			</svg>
 			<template v-for="node in nodes" :key="node.id">
 				<component
-					:is="renderProxiedComponent(node.id)"
-					:data-writer-unselectable="isUnselectable"
+					:is="renderProxiedComponent(node.id, 0)"
 					:style="{
 						top: `${node.y - renderOffset.y}px`,
 						left: `${node.x - renderOffset.x}px`,
+						'border-color':
+							activeConnection?.liveArrow?.toNodeId == node.id
+								? activeConnection?.liveArrow?.color
+								: undefined,
 					}"
-					@drag="(ev: DragEvent) => handleNodeDrag(ev, node.id)"
-					@dragstart="(ev: DragEvent) => handleNodeDragStart(ev)"
-					@dragend="handleNodeDragend"
-					@click="(ev: MouseEvent) => handleNodeClick(ev, node.id)"
-					@out-select="
-						(outId: string) => handleNodeOutSelect(node.id, outId)
+					@mousedown.stop="
+						(ev: MouseEvent) => handleNodeMousedown(ev, node.id)
+					"
+					@out-mousedown="
+						(outId: string) =>
+							handleNodeOutMousedown(node.id, outId)
 					"
 				></component>
 			</template>
@@ -92,8 +104,9 @@ export type WorkflowArrowData = {
 	y2: number;
 	color: string;
 	fromNodeId: Component["id"];
-	out: Component["outs"][number];
-	isEngaged: boolean;
+	fromOutId: Component["outs"][number]["outId"];
+	toNodeId?: Component["id"];
+	isEngaged?: boolean;
 };
 </script>
 <script setup lang="ts">
@@ -105,7 +118,6 @@ const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
-const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
@@ -124,51 +136,50 @@ const { createAndInsertComponent, addOut, removeOut, changeCoordinates } =
 	useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
-const activeNodeOut: Ref<{
-	fromComponentId: string;
-	outId: string;
+const activeConnection: Ref<{
+	fromNodeId: Component["id"];
+	fromOutId: Component["outs"][number]["outId"];
+	liveArrow?: WorkflowArrowData;
+} | null> = ref(null);
+
+const activeNodeMove: Ref<{
+	nodeId: Component["id"];
+	offset: { x: number; y: number };
+	isPerfected: boolean;
+} | null> = ref(null);
+
+const activeCanvasMove: Ref<{
+	offset: { x: number; y: number };
+	isPerfected: boolean;
 } | null> = ref(null);
 
 function refreshArrows() {
-	const a = [];
-	const canvasCBR = rootEl.value?.getBoundingClientRect();
-	if (!canvasCBR) {
-		return;
-	}
-
-	const arrowSlot: Record<Component["id"], number> = {};
-
+	const newArrows = [];
 	nodes.value
 		.filter((node) => node.outs?.length > 0)
 		.forEach((node) => {
 			const fromNodeId = node.id;
 			node.outs.forEach((out) => {
-				const fromEl = document.querySelector(
-					`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${out.outId}"]`,
-				);
-				const toEl = document.querySelector(
-					`[data-writer-id="${out.toNodeId}"]`,
-				);
-				if (!fromEl || !toEl) return;
-				const fromCBR = fromEl.getBoundingClientRect();
-				const toCBR = toEl.getBoundingClientRect();
-
-				a.push({
-					x1: fromCBR.x - canvasCBR.x + fromCBR.width / 2,
-					y1: fromCBR.y - canvasCBR.y + fromCBR.height / 2,
-					x2: toCBR.x - canvasCBR.x,
-					y2: toCBR.y - canvasCBR.y + toCBR.height / 2,
-					color: getComputedStyle(fromEl).backgroundColor,
+				const arrow = calculateArrow(
 					fromNodeId,
-					out,
-				});
+					out.outId,
+					undefined,
+					out.toNodeId,
+				);
+				if (!arrow) return;
+				newArrows.push(arrow);
 			});
 		});
-	arrows.value = a;
+	arrows.value = newArrows;
 }
 
 const isUnselectable = computed(() => {
-	if (activeNodeOut.value === null) return null;
+	if (
+		activeConnection.value === null &&
+		!activeNodeMove.value?.isPerfected &&
+		!activeCanvasMove.value?.isPerfected
+	)
+		return null;
 	return true;
 });
 
@@ -192,10 +203,28 @@ async function handleRun() {
 	);
 }
 
-function handleNodeOutSelect(componentId: Component["id"], outId: string) {
-	activeNodeOut.value = {
-		fromComponentId: componentId,
-		outId,
+function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
+	clearActiveOperations();
+	const nodeEl = document.querySelector(`[data-writer-id="${nodeId}"]`);
+	const nodeCBR = nodeEl.getBoundingClientRect();
+
+	activeNodeMove.value = {
+		nodeId,
+		offset: {
+			x: ev.pageX - nodeCBR.x,
+			y: ev.pageY - nodeCBR.y,
+		},
+		isPerfected: false,
+	};
+}
+
+function handleNodeOutMousedown(
+	fromNodeId: Component["id"],
+	fromOutId: string,
+) {
+	activeConnection.value = {
+		fromNodeId,
+		fromOutId,
 	};
 }
 
@@ -231,7 +260,7 @@ function handleDragover(ev: DragEvent) {
 	ev.stopPropagation();
 }
 
-function getAdjustedCoordinates(ev: DragEvent) {
+function getAdjustedCoordinates(ev: MouseEvent) {
 	const canvasCBR = rootEl.value.getBoundingClientRect();
 	const x = ev.pageX - canvasCBR.x + renderOffset.value.x;
 	const y = ev.pageY - canvasCBR.y + renderOffset.value.y;
@@ -264,7 +293,12 @@ function handleArrowClick(ev: MouseEvent, arrowId: number) {
 }
 
 async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
-	removeOut(arrow.fromNodeId, arrow.out);
+	if (!arrow.toNodeId) return;
+	const out = {
+		outId: arrow.fromOutId,
+		toNodeId: arrow.toNodeId,
+	};
+	removeOut(arrow.fromNodeId, out);
 }
 
 function handleNodeDragStart(ev: DragEvent) {
@@ -300,20 +334,159 @@ function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
 	}, 200);
 }
 
-function handleNodeDragend(ev: DragEvent) {
-	ev.preventDefault();
+function calculateArrow(
+	fromNodeId: Component["id"],
+	fromOutId: string,
+	toCoordinates?: { x: number; y: number },
+	toNodeId?: Component["id"],
+): WorkflowArrowData {
+	let x1: number, y1: number, x2: number, y2: number;
+	const canvasCBR = rootEl.value?.getBoundingClientRect();
+	if (!canvasCBR) {
+		return;
+	}
+	x2 = toCoordinates?.x - canvasCBR.x;
+	y2 = toCoordinates?.y - canvasCBR.y;
+	const fromEl = document.querySelector(
+		`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${fromOutId}"]`,
+	);
+	if (!fromEl) return;
+	const fromCBR = fromEl.getBoundingClientRect();
+	x1 = fromCBR.x - canvasCBR.x + fromCBR.width / 2;
+	y1 = fromCBR.y - canvasCBR.y + fromCBR.height / 2;
+	if (!fromEl) return;
+	if (typeof toNodeId !== "undefined") {
+		const toEl = document.querySelector(`[data-writer-id="${toNodeId}"]`);
+		const toCBR = toEl.getBoundingClientRect();
+		x2 = toCBR.x - canvasCBR.x;
+		y2 = toCBR.y - canvasCBR.y + toCBR.height / 2;
+	}
+
+	return {
+		x1,
+		y1,
+		x2,
+		y2,
+		color: getComputedStyle(fromEl).backgroundColor,
+		fromNodeId,
+		fromOutId,
+		toNodeId,
+	};
 }
 
-async function handleNodeClick(ev: MouseEvent, componentId: Component["id"]) {
-	if (!activeNodeOut.value) return;
-	if (activeNodeOut.value.fromComponentId == componentId) return;
+function getHoveredNodeId(ev: MouseEvent) {
+	const targetEl = ev.target as HTMLElement;
+	const toNodeEl = targetEl.closest(
+		".WorkflowsWorkflow [data-writer-id]",
+	) as HTMLElement;
+	return toNodeEl?.dataset.writerId;
+}
 
-	addOut(activeNodeOut.value.fromComponentId, {
-		toNodeId: componentId,
-		outId: activeNodeOut.value.outId,
+function refreshLiveArrow(ev: MouseEvent) {
+	let toCoordinates: { x: number; y: number }, toNodeId: Component["id"];
+
+	toNodeId = getHoveredNodeId(ev);
+	if (typeof toNodeId == "undefined") {
+		toCoordinates = { x: ev.pageX, y: ev.pageY };
+	}
+	const { fromNodeId, fromOutId } = activeConnection.value;
+	if (toNodeId == fromNodeId) return;
+
+	activeConnection.value.liveArrow = calculateArrow(
+		fromNodeId,
+		fromOutId,
+		toCoordinates,
+		toNodeId,
+	);
+}
+
+function clearActiveOperations() {
+	activeCanvasMove.value = null;
+	activeConnection.value = null;
+	activeNodeMove.value = null;
+}
+
+function moveNode(ev: MouseEvent) {
+	const { nodeId, offset } = activeNodeMove.value;
+	activeNodeMove.value.isPerfected = true;
+	const component = wf.getComponentById(nodeId);
+	const { x, y } = getAdjustedCoordinates(ev);
+
+	const newX = x - offset.x;
+	const newY = y - offset.y;
+
+	if (component.x == newX && component.y == newY) return;
+
+	component.x = newX;
+	component.y = newY;
+}
+
+async function moveCanvas(ev: MouseEvent) {
+	const canvasCBR = rootEl.value.getBoundingClientRect();
+	const x = ev.pageX - canvasCBR.x;
+	const y = ev.pageY - canvasCBR.y;
+	const { x: prevX, y: prevY } = activeCanvasMove.value.offset;
+	activeCanvasMove.value.isPerfected = true;
+
+	renderOffset.value = {
+		x: Math.max(0, renderOffset.value.x + (prevX - x) * 1),
+		y: Math.max(0, renderOffset.value.y + (prevY - y) * 1),
+	};
+	activeCanvasMove.value.offset = { x, y };
+	await nextTick();
+	refreshArrows();
+}
+
+function handleMousemove(ev: MouseEvent) {
+	if (ev.buttons != 1) return;
+
+	if (activeConnection.value) {
+		refreshLiveArrow(ev);
+		return;
+	}
+	if (activeNodeMove.value) {
+		moveNode(ev);
+		return;
+	}
+	if (activeCanvasMove.value) {
+		moveCanvas(ev);
+		return;
+	}
+}
+
+function handleMousedown(ev: MouseEvent) {
+	clearActiveOperations();
+	if (ev.buttons != 1) return;
+
+	const canvasCBR = rootEl.value.getBoundingClientRect();
+	const x = ev.pageX - canvasCBR.x;
+	const y = ev.pageY - canvasCBR.y;
+
+	activeCanvasMove.value = {
+		offset: { x, y },
+		isPerfected: false,
+	};
+}
+
+async function handleMouseup(ev: MouseEvent) {
+	if (activeConnection.value === null) {
+		return;
+	}
+	const hoveredId = getHoveredNodeId(ev);
+	if (!hoveredId) {
+		activeConnection.value = null;
+		return;
+	}
+	const { fromNodeId, fromOutId } = activeConnection.value;
+	if (fromNodeId == hoveredId) {
+		activeConnection.value = null;
+		return;
+	}
+
+	addOut(activeConnection.value.fromNodeId, {
+		toNodeId: hoveredId,
+		outId: fromOutId,
 	});
-
-	activeNodeOut.value = null;
 }
 
 async function createNode(type: string, x: number, y: number) {

@@ -21,8 +21,9 @@
 					:class="out.style"
 					:data-writer-socket-id="outId"
 					:data-writer-unselectable="true"
-					@click.capture="
-						(ev: DragEvent) => handleOutClick(ev, outId)
+					@click.capture.stop
+					@mousedown.capture="
+						(ev: DragEvent) => handleOutMousedown(ev, outId)
 					"
 				></div>
 			</div>
@@ -31,8 +32,6 @@
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "@/writerTypes";
-
 export default {
 	writer: {
 		name: "Node",
@@ -47,10 +46,9 @@ export default {
 </script>
 <script setup lang="ts">
 import { computed, inject, watch } from "vue";
-import { Component } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 
-const emit = defineEmits(["outSelect", "engaged"]);
+const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
@@ -92,9 +90,14 @@ const dynamicOuts = computed(() => {
 	return processedOuts;
 });
 
-function handleOutClick(ev: DragEvent, outId: string) {
+function handleOutMousedown(ev: DragEvent, outId: string) {
 	ev.stopPropagation();
-	emit("outSelect", outId);
+	emit("outMousedown", outId);
+}
+
+function handleOutMouseup(ev: DragEvent, outId: string) {
+	ev.stopPropagation();
+	emit("outMouseup", outId);
 }
 
 watch(isEngaged, () => {
@@ -110,6 +113,11 @@ watch(isEngaged, () => {
 	width: 240px;
 	position: absolute;
 	box-shadow: 0px 2px 0px 0px #f3f3f3;
+	user-select: none;
+}
+
+.WorkflowsNode:not(.selected) {
+	transition: border-color 0.2s ease-in-out;
 }
 
 .WorkflowsNode:hover {

@@ -30,7 +30,7 @@ def cloud():
     prompt="Enter your API key",
     hide_input=True, help="Writer API key"
 )
-@click.option('--env', '-e', multiple=True, default=[], help="Environment to deploy the app to")
+@click.option('--env', '-e', multiple=True, default=[], help="Set environment variables for the app (e.g., --env KEY=VALUE)")
 @click.option('--force', '-f', default=False, is_flag=True, help="Ignores warnings and overwrites the app")
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 @click.argument('path')
@@ -149,8 +149,14 @@ def pack_project(path):
     def match(file_path) -> bool: return False
     if os.path.exists(os.path.join(path, ".gitignore")):
         match = parse_gitignore(os.path.join(path, ".gitignore"))
-    for root, dirs, filenames in os.walk(path):
+    for root, dirs, filenames in os.walk(path, followlinks=False):
         for filename in filenames:
+            is_symlink = os.path.islink(os.path.relpath(os.path.join(root, filename), path))
+            if is_symlink:
+                print(f"[WARNING] Ignoring symlink: {os.path.relpath(os.path.join(root, filename), path)}")
+                continue
+            if "__pycache__" in root.split(os.path.sep):
+                continue
             if ".git" in root.split(os.path.sep):
                 continue
             if root == path and filename == "Dockerfile":
@@ -265,11 +271,16 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
         print("Deployment successful")
         print(f"URL: {url}")
         sys.exit(0)
+    elif status == "FAILED":
+        print("Deployment failed")
+        print(f"URL: {url}")
+        sys.exit(1)
     else:
         time.sleep(sleep_interval)
         check_service_status(deploy_url, token, build_id, build_time, start_time, datetime.now(pytz.timezone('UTC')), status)
-        print("Deployment failed")
-        sys.exit(1)
+        print("Deployment status timeout")
+        print(f"URL: {url}")
+        sys.exit(2)
 
 def on_error_print_and_raise(resp, verbose=False):
     try:

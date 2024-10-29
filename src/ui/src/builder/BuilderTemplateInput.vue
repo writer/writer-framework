@@ -175,7 +175,7 @@ const showAutocomplete = () => {
 	const keyword = full.at(-1);
 	const path = full.slice(0, -1);
 
-	const allOptions = Object.entries(_get(ss.getUserState(), path) ?? {}).map(
+	const allOptions = Object.entries(_get(ss.userState.value, path) ?? {}).map(
 		([key, val]) => ({
 			text: escapeVariable(key),
 			type: typeToString(val),

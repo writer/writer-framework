@@ -4,6 +4,7 @@ from writer.workflows_blocks.foreach import ForEach
 from writer.workflows_blocks.httprequest import HTTPRequest
 from writer.workflows_blocks.logmessage import LogMessage
 from writer.workflows_blocks.parsejson import ParseJSON
+from writer.workflows_blocks.returnvalue import ReturnValue
 from writer.workflows_blocks.runworkflow import RunWorkflow
 from writer.workflows_blocks.setstate import SetState
 from writer.workflows_blocks.writeraddchatmessage import WriterAddChatMessage
@@ -25,3 +26,4 @@ WriterAddChatMessage.register("workflows_writeraddchatmessage")
 ParseJSON.register("workflows_parsejson")
 CallEventHandler.register("workflows_calleventhandler")
 AddToStateList.register("workflows_addtostatelist")
+ReturnValue.register("workflows_returnvalue")

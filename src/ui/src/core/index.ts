@@ -25,6 +25,12 @@ const KEEP_ALIVE_DELAY_MS = 60000;
 export function generateCore() {
 	let sessionId: string = null;
 	const sessionTimestamp: Ref<number> = ref(null);
+	/**
+	 * Whether Writer Framework is running as builder or runner.
+	 * The mode is enforced in the backend and used in the frontend for presentation purposes only.
+	 *
+	 * @returns
+	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
@@ -41,20 +47,6 @@ export function generateCore() {
 	let mailInbox: MailItem[] = [];
 	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
-
-	function getFrontendMessageMap() {
-		return frontendMessageMap.value;
-	}
-
-	/**
-	 * Whether Writer Framework is running as builder or runner.
-	 * The mode is enforced in the backend and used in the frontend for presentation purposes only.
-	 *
-	 * @returns
-	 */
-	function getMode() {
-		return mode.value;
-	}
 
 	/**
 	 * Initialise the core.
@@ -103,7 +95,7 @@ export function generateCore() {
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
 		loadAbstractTemplates(initData.abstractTemplates);
-    
+
 		// Only returned for edit (Builder) mode
 
 		userFunctions.value = initData.userFunctions;
@@ -125,10 +117,6 @@ export function generateCore() {
 				registerAbstractComponentTemplate(type, abstractTemplate);
 			},
 		);
-	}
-
-	function getSessionTimestamp() {
-		return sessionTimestamp.value;
 	}
 
 	function sendKeepAliveMessage() {
@@ -381,10 +369,6 @@ export function generateCore() {
 		sendFrontendMessage("stateEnquiry", {}, callback, true);
 	}
 
-	function getRunCode() {
-		return runCode.value;
-	}
-
 	function setupMessageFollowUp(trackingId: number) {
 		const INITIAL_FOLLOWUP_MS = 150;
 		const SUBSEQUENT_FOLLOWUPS_MS = 150;
@@ -489,10 +473,6 @@ export function generateCore() {
 		});
 	}
 
-	function getUserFunctions() {
-		return userFunctions.value;
-	}
-
 	function getComponentById(componentId: Component["id"]): Component {
 		return components.value[componentId];
 	}
@@ -562,28 +542,20 @@ export function generateCore() {
 		activePageId.value = componentId;
 	}
 
-	function getActivePageId(): Component["id"] {
-		return activePageId.value;
-	}
-
 	function getContainableTypes(componentId: Component["id"]) {
 		return typeHierarchy.getContainableTypes(components.value, componentId);
-	}
-
-	function getUserState() {
-		return userState.value;
 	}
 
 	const core = {
 		webSocket,
 		syncHealth,
-		getFrontendMessageMap,
-		getMode,
-		getUserFunctions,
+		frontendMessageMap: readonly(frontendMessageMap),
+		mode: readonly(mode),
+		userFunctions: readonly(userFunctions),
 		addMailSubscription,
 		init,
 		forwardEvent,
-		getRunCode,
+		runCode: readonly(runCode),
 		sendCodeSaveRequest,
 		sendCodeUpdate,
 		sendComponentUpdate,
@@ -592,13 +564,13 @@ export function generateCore() {
 		getComponentById,
 		getComponents,
 		setActivePageId,
-		getActivePageId,
+		activePageId: readonly(activePageId),
 		setActivePageFromKey,
 		getComponentDefinition,
 		getSupportedComponentTypes,
 		getContainableTypes,
-		getSessionTimestamp,
-		getUserState,
+		sessionTimestamp: readonly(sessionTimestamp),
+		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
 	};

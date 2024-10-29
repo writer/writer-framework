@@ -319,8 +319,8 @@ onMounted(() => {
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
 	--builderSubtleHighlightColorSolid: #f2f2f2;
 	--builderDisabledColor: rgb(180, 180, 180);
-	--builderSidebarWidth: max(265px, 27vh);
-	--builderSettingsWidth: max(265px, 27vh);
+	--builderSidebarWidth: 265px;
+	--builderSettingsWidth: 265px;
 	--builderActionOngoingColor: #333333;
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;

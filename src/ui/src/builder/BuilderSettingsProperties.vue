@@ -26,10 +26,11 @@
 					:key="fieldKey"
 				>
 					<div class="fieldWrapper">
-						<div class="name">
+						<div v-if="propertyCategory != 'Tools'" class="name">
 							{{ fieldValue.name ?? fieldKey
 							}}<span class="type"> : {{ fieldValue.type }}</span>
 						</div>
+
 						<BuilderFieldsColor
 							v-if="fieldValue.type == FieldType.Color"
 							class="content"
@@ -107,6 +108,13 @@
 							:component-id="selectedComponent.id"
 						></BuilderFieldsPadding>
 
+						<BuilderFieldsTools
+							v-if="fieldValue.type == FieldType.Tools"
+							:field-key="fieldKey"
+							:component-id="selectedComponent.id"
+						>
+						</BuilderFieldsTools>
+
 						<div v-if="fieldValue.desc" class="desc">
 							{{ fieldValue.desc }}
 						</div>
@@ -130,6 +138,7 @@ import BuilderFieldsPadding from "./BuilderFieldsPadding.vue";
 import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
+import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -148,7 +157,11 @@ const fields = computed(() => {
 	return definition.fields;
 });
 
-const fieldCategories = [FieldCategory.General, FieldCategory.Style];
+const fieldCategories = [
+	FieldCategory.General,
+	FieldCategory.Style,
+	FieldCategory.Tools,
+];
 
 const fieldsByCategory = computed(() => {
 	const entries = Object.entries(fields.value);
@@ -160,6 +173,9 @@ const fieldsByCategory = computed(() => {
 		),
 		[FieldCategory.Style]: entries.filter(
 			([_, fieldValue]) => fieldValue.category == FieldCategory.Style,
+		),
+		[FieldCategory.Tools]: entries.filter(
+			([_, fieldValue]) => fieldValue.category == FieldCategory.Tools,
 		),
 	};
 	return result;

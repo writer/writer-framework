@@ -489,6 +489,11 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 					if (nc.parentId == c.id) {
 						nc.parentId = newId;
 					}
+					nc.outs?.forEach((out) => {
+						if (out.toNodeId == c.id) {
+							out.toNodeId = newId;
+						}
+					});
 				});
 			c.id = newId;
 		});
@@ -524,6 +529,15 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (clipboard === null) return;
 		const { operation, jsonSubtree } = clipboard;
 		const subtree = JSON.parse(jsonSubtree);
+
+		const rootComponent = subtree[0];
+		if (
+			typeof rootComponent.outs !== "undefined" &&
+			rootComponent.parentId !== targetParentId
+		) {
+			rootComponent.outs = [];
+		}
+
 		if (operation == ClipboardOperation.Cut)
 			return pasteCutComponent(targetParentId, subtree);
 		if (operation == ClipboardOperation.Copy)
@@ -541,6 +555,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 
 		ssbm.setClipboard(null);
 		const rootComponent = subtree[0];
+
 		rootComponent.parentId = targetParentId;
 		rootComponent.position = getNextInsertionPosition(
 			targetParentId,
