@@ -37,11 +37,7 @@ from writerai.types import (
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.application_generate_content_params import Input
-from writerai.types.chat import (
-    ChoiceMessage,
-    ChoiceMessageGraphData,
-    ChoiceMessageToolCall
-    )
+from writerai.types.chat import ChoiceMessage, ChoiceMessageGraphData, ChoiceMessageToolCall
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_chat_params import ToolFunctionTool as SDKFunctionTool
 from writerai.types.chat_chat_params import ToolGraphTool as SDKGraphTool
