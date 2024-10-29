@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref, Ref } from "vue";
+import { toRefs, inject, computed, ref } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
@@ -108,7 +108,7 @@ const toolFormInitValue = {
 	graphId: "999-999",
 };
 
-const toolForm: Ref<ToolForm> = ref(toolFormInitValue);
+const toolForm = ref<ToolForm>(toolFormInitValue);
 
 const props = defineProps<{
 	componentId: Component["id"];
