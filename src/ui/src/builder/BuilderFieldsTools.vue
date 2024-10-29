@@ -122,14 +122,12 @@ const props = defineProps<{
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const tools: ComputedRef<Record<string, Tool>> = computed(() => {
-	let value = {};
+const tools = computed<Record<string, Tool>>(() => {
 	try {
-		value = JSON.parse(component.value.content[fieldKey.value]);
+		return JSON.parse(component.value.content[fieldKey.value]);
 	} catch {
-		value = {};
+		return {};
 	}
-	return value;
 });
 
 function resetAndShowToolFormModal() {
