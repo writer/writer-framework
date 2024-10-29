@@ -40,8 +40,11 @@ class WriterChat(WorkflowBlock):
                     }
                 },
                 "outs": {
-                    "$dynamic": {
-                        "field": "tools"
+                    "tools": {
+                        "name": "Tools",
+                        "field": "tools",
+                        "description": "Run associated tools.",
+                        "style": "dynamic"
                     },
                     "success": {
                         "name": "Success",

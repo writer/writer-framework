@@ -9,12 +9,25 @@
 		<div v-if="false" class="main">
 			<div></div>
 		</div>
+		<div class="outputs" v-for="(outs, fieldKey) in dynamicOuts">
+			<h4>{{ def.fields[fieldKey].name }}</h4>
+			<div v-for="(out, outId) in outs" :key="outId" class="output">
+				{{ out.name }}
+				<div
+					class="ball"
+					:class="out.style"
+					:data-writer-socket-id="outId"
+					:data-writer-unselectable="true"
+					@click.capture.stop
+					@mousedown.capture="
+						(ev: DragEvent) => handleOutMousedown(ev, outId)
+					"
+				></div>
+			</div>
+			<div v-if="Object.keys(outs).length == 0">None configured.</div>
+		</div>
 		<div class="outputs">
-			<div
-				v-for="(out, outId) in { ...dynamicOuts, ...staticOuts }"
-				:key="outId"
-				class="output"
-			>
+			<div v-for="(out, outId) in staticOuts" :key="outId" class="output">
 				{{ out.name }}
 				<div
 					class="ball"
@@ -47,6 +60,7 @@ export default {
 <script setup lang="ts">
 import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
+import { Component, FieldType, WriterComponentDefinition } from "@/writerTypes";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -64,23 +78,39 @@ const isEngaged = computed(() => {
 	return isSelected;
 });
 
-const staticOuts = computed(() => {
+const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const processedOuts = {};
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
-		if (outId === "$dynamic") return;
+		if (out.field) return;
 		processedOuts[outId] = out;
 	});
 	return processedOuts;
 });
 
-const dynamicOuts = computed(() => {
+function getDynamicKeysFromField(fieldKey: string) {
+	const fieldType = def.value.fields[fieldKey].type;
+	const isToolsField = fieldType == FieldType.Tools;
+	const keys = Object.keys(fields[fieldKey].value ?? {});
+	if (!isToolsField) return keys;
+	const functionCallKeys = keys.filter(
+		(k) => fields[fieldKey].value[k]?.type == "function",
+	);
+	return functionCallKeys;
+}
+
+const dynamicOuts = computed<
+	Record<
+		keyof WriterComponentDefinition["fields"],
+		WriterComponentDefinition["outs"]
+	>
+>(() => {
 	const processedOuts = {};
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
-		if (outId !== "$dynamic") return;
-		const dynamicField = out.field;
-		const dynamicKeys = Object.keys(fields[dynamicField].value ?? {});
+		if (!out.field) return;
+		processedOuts[out.field] = {};
+		const dynamicKeys = getDynamicKeysFromField(out.field);
 		dynamicKeys.forEach((key) => {
-			processedOuts[`${outId}_${key}`] = {
+			processedOuts[out.field][`${outId}_${key}`] = {
 				name: key,
 				description: "Dynamically created",
 				style: "dynamic",
@@ -93,11 +123,6 @@ const dynamicOuts = computed(() => {
 function handleOutMousedown(ev: DragEvent, outId: string) {
 	ev.stopPropagation();
 	emit("outMousedown", outId);
-}
-
-function handleOutMouseup(ev: DragEvent, outId: string) {
-	ev.stopPropagation();
-	emit("outMouseup", outId);
 }
 
 watch(isEngaged, () => {
@@ -116,10 +141,6 @@ watch(isEngaged, () => {
 	user-select: none;
 }
 
-.WorkflowsNode:not(.selected) {
-	transition: border-color 0.2s ease-in-out;
-}
-
 .WorkflowsNode:hover {
 	border: 2px solid #e4e9ff;
 }
@@ -134,7 +155,6 @@ watch(isEngaged, () => {
 	font-style: normal;
 	font-weight: 500;
 	line-height: 140%;
-	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 
 .title img {
@@ -152,6 +172,8 @@ watch(isEngaged, () => {
 	flex-direction: column;
 	gap: 8px;
 	padding: 12px 0 12px 16px;
+	border-top: 1px solid var(--builderSeparatorColor);
+	font-size: 12px;
 }
 
 .output {
