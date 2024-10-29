@@ -154,23 +154,23 @@ const activeCanvasMove: Ref<{
 } | null> = ref(null);
 
 function refreshArrows() {
-	const a = [];
+	const newArrows = [];
 	nodes.value
 		.filter((node) => node.outs?.length > 0)
 		.forEach((node) => {
 			const fromNodeId = node.id;
 			node.outs.forEach((out) => {
-				a.push(
-					calculateArrow(
-						fromNodeId,
-						out.outId,
-						undefined,
-						out.toNodeId,
-					),
+				const arrow = calculateArrow(
+					fromNodeId,
+					out.outId,
+					undefined,
+					out.toNodeId,
 				);
+				if (!arrow) return;
+				newArrows.push(arrow);
 			});
 		});
-	arrows.value = a;
+	arrows.value = newArrows;
 }
 
 const isUnselectable = computed(() => {

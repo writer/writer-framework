@@ -5,15 +5,6 @@ from writer.workflows_blocks.blocks import WorkflowBlock
 
 DEFAULT_MODEL = "palmyra-x-004"
 
-function_tools_init = """{
-  "get_employee_info": {
-    "parameters": {
-      "id": {"type": "float", "description": "Id of the employee"},
-    }
-  }
-
-}"""
-
 class WriterChat(WorkflowBlock):
 
     @classmethod
@@ -41,12 +32,6 @@ class WriterChat(WorkflowBlock):
                         "type": "Number",
                         "default": "0.7"
                     },
-                    "functionTools": {
-                        "name": "Function tools",
-                        "type": "Object",
-                        "default": "{}",
-                        "init": function_tools_init
-                    },
                     "tools": {
                         "name": "Tools",
                         "type": "Tools",
@@ -56,7 +41,7 @@ class WriterChat(WorkflowBlock):
                 },
                 "outs": {
                     "$dynamic": {
-                        "field": "functionTools"
+                        "field": "tools"
                     },
                     "success": {
                         "name": "Success",
@@ -100,17 +85,27 @@ class WriterChat(WorkflowBlock):
             temperature = float(self._get_field("temperature", False, "0.7"))
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
-            function_tools_raw = self._get_field("functionTools", True)
+            tools_raw = self._get_field("tools", True)
             tools = []
 
-            for tool_name, tool_raw in function_tools_raw.items():
-                tool = writer.ai.FunctionTool(
-                    type="function",
-                    name=tool_name,
-                    description=tool_raw.get("description"),
-                    callable=self._make_callable(tool_name),
-                    parameters=tool_raw.get("parameters")
-                )
+            for tool_name, tool_raw in tools_raw.items():
+                tool_type = tool_raw.get("type")
+                tool = None
+                if tool_type == "function":
+                    tool = writer.ai.FunctionTool(
+                        type="function",
+                        name=tool_name,
+                        description=tool_raw.get("description"),
+                        callable=self._make_callable(tool_name),
+                        parameters=tool_raw.get("parameters")
+                    )
+                elif tool_type == "graph":
+                    tool = {
+                        "type": "graph",
+                        "graph_ids": tool_raw.get("graph_ids")
+                    }
+                else:
+                    continue
                 tools.append(tool)
 
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)

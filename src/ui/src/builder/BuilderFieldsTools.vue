@@ -17,11 +17,7 @@
 			</div>
 		</div>
 
-		<WdsButton
-			variant="builder"
-			size="small"
-			@click="resetAndShowToolFormModal"
-		>
+		<WdsButton size="small" @click="resetAndShowToolFormModal">
 			<i class="material-symbols-outlined">add</i>
 			Add tool</WdsButton
 		>
@@ -45,16 +41,14 @@
 				<WdsTextInput v-model="toolForm.graphId"></WdsTextInput>
 			</template>
 			<div>
-				<WdsButton variant="builder" @click="saveToolForm"
-					>Save</WdsButton
-				>
+				<WdsButton @click="saveToolForm">Save</WdsButton>
 			</div>
 		</BuilderModal>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref, Ref, ComputedRef } from "vue";
+import { toRefs, inject, computed, ref, Ref } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
@@ -87,6 +81,7 @@ type Tool = FunctionTool | GraphTool;
 type ToolForm = {
 	isShown: boolean;
 	type: "function" | "graph";
+	originalName?: string;
 	name: string;
 	code: string;
 	graphId: string;
@@ -98,10 +93,10 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 
 const initFunctionToolCode = `
 {
-	"description": "An example tool",
-	"parameters": {
-		"city": string
-	}
+	"description": "Gets info for an employee, given an employee id",
+    "parameters": {
+      "id": {"type": "string", "description": "Id of the employee"}
+    }
 }
 `.trim();
 
@@ -122,7 +117,7 @@ const props = defineProps<{
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const tools: ComputedRef<Record<string, Tool>> = computed(() => {
+const tools = computed<Record<string, Tool>>(() => {
 	let value = {};
 	try {
 		value = JSON.parse(component.value.content[fieldKey.value]);
@@ -158,11 +153,14 @@ function getToolFromForm(): Tool {
 
 function validateToolForm(form: ToolForm): string[] {
 	let errors = [];
-	const { name } = form;
+	const { originalName, name } = form;
 	if (!name) {
 		errors.push("The name cannot be empty.");
 	}
-	if (Object.keys(tools.value).includes(name)) {
+	if (
+		Object.keys(tools.value).includes(name) &&
+		!(originalName || originalName == name)
+	) {
 		errors.push("An existing tool with the specified name already exists.");
 	}
 	return errors;
@@ -183,6 +181,9 @@ function saveToolForm() {
 	}
 	const newFieldValue = JSON.stringify({
 		...tools.value,
+		...(toolForm.value.originalName
+			? { [toolForm.value.originalName]: undefined }
+			: {}),
 		[toolForm.value.name]: toolFromForm,
 	});
 	setContentValue(component.value.id, fieldKey.value, newFieldValue);
@@ -195,6 +196,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 		return {
 			isShown: true,
 			type: "function",
+			originalName: toolName,
 			name: toolName,
 			graphId: "",
 			code: JSON.stringify(tool, undefined, 2),
@@ -204,6 +206,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 		return {
 			isShown: true,
 			type: "graph",
+			originalName: toolName,
 			name: toolName,
 			graphId: tool.graph_ids?.[0],
 			code: "",
@@ -234,10 +237,12 @@ const customHandlerModalCloseAction: ModalAction = {
 };
 </script>
 
-<style>
-@import "@/renderer/colorTransformations.css";
+<style scoped>
+@import "./sharedStyles.css";
 
-.BuilderFieldsTool {
+.BuilderFieldsTools {
+	--separatorColor: var(--builderSeparatorColor);
+	--intensifiedButtonColor: red;
 }
 
 .tools {
