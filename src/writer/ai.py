@@ -10,7 +10,6 @@ from typing import (
     List,
     Literal,
     Optional,
-    Required,
     Set,
     TypedDict,
     Union,
@@ -96,7 +95,7 @@ class FunctionTool(Tool):
 
 
 class PreparedAPIMessage(TypedDict, total=False):
-    role: Required[Literal["user", "assistant", "system", "tool"]]
+    role: Literal["user", "assistant", "system", "tool"]
 
     content: Union[str, None]
 
