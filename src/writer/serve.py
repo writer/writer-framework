@@ -1,5 +1,6 @@
 import asyncio
 import importlib.util
+import io
 import logging
 import mimetypes
 import os
@@ -68,7 +69,7 @@ def get_asgi_app(
         enable_remote_edit: bool = False,
         enable_server_setup: bool = True,
         on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None,
+        on_shutdown: Optional[Callable] = None
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -437,17 +438,16 @@ def get_asgi_app(
 
     user_app_static_path = pathlib.Path(user_app_path) / "static"
     if user_app_static_path.exists():
-        app.mount(
-            "/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
+        app.mount("/static", StaticFiles(directory=str(user_app_static_path)), name="user_static")
 
     user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
     if user_app_extensions_path.exists():
-        app.mount(
-            "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
+        app.mount("/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
 
     server_path = pathlib.Path(__file__)
     server_static_path = server_path.parent / "static"
     if server_static_path.exists():
+        _mount_render_index_html(app, server_static_path)
         _mount_server_static_path(app, server_static_path)
         app.state.is_server_static_mounted = True
     else:
@@ -676,13 +676,43 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
 
     Writer Framework routes remain priority. A developer cannot come and overload them.
     """
-    app.get('/')(lambda: FileResponse(server_static_path.joinpath('index.html')))
     for f in wf_root_static_assets():
         if f.is_file():
             app.get(f"/{f.name}")(lambda: FileResponse(f))
         if f.is_dir():
             app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
 
+def _mount_render_index_html(app: FastAPI, server_static_path: pathlib.Path):
+    """
+    Serves the main page with the title that has been configured.
+
+    :param app:
+    :param server_static_path:
+    :return:
+    """
+    def _render_index_html():
+        with io.open(server_static_path.joinpath('index.html'), 'r', encoding='utf-8') as f:
+            index_html = f.read()
+            if hasattr(app.state, "title"):
+                index_html = index_html.replace("<title>Writer Framework</title>", f"<title>{app.state.title}</title>")
+
+            if hasattr(app.state, "meta"):
+                meta = app.state.meta() if callable(app.state.meta) else app.state.meta
+                meta_tags = "\n".join([f'<meta name="{k}" content="{v}">' for k, v in meta.items()])
+                index_html = index_html.replace("<!-- {{ meta }} -->", meta_tags)
+            else:
+                index_html = index_html.replace("<!-- {{ meta }} -->", "")
+
+            if hasattr(app.state, "opengraph_tags"):
+                opengraph_tags = app.state.opengraph_tags() if callable(app.state.opengraph_tags) else app.state.opengraph_tags
+                opengraph_tags = "\n".join([f'<meta property="{k}" content="{v}">' for k, v in opengraph_tags.items()])
+                index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", opengraph_tags)
+            else:
+                index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", "")
+
+        return Response(content=index_html, media_type="text/html")
+
+    return app.get('/')(_render_index_html)
 
 def app_runner(asgi_app: WriterFastAPI) -> AppRunner:
     return asgi_app.state.app_runner
