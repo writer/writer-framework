@@ -66,7 +66,7 @@ function updateDimensions() {
 }
 
 onUnmounted(() => {
-    editor.dispose();
+	editor.dispose();
 	window.removeEventListener("resize", updateDimensions.bind(this));
 });
 </script>
