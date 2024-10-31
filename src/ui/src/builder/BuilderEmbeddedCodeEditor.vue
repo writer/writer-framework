@@ -7,11 +7,7 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { inject, onMounted, onUnmounted, Ref, ref, toRefs, watch } from "vue";
-import injectionKeys from "../injectionKeys";
-
-const wf = inject(injectionKeys.core);
-const wfbm = inject(injectionKeys.builderManager);
+import { onMounted, onUnmounted, Ref, ref, toRefs } from "vue";
 
 const builderEditor: Ref<HTMLElement> = ref(null);
 const editorContainer: Ref<HTMLElement> = ref(null);
@@ -73,9 +69,6 @@ onUnmounted(() => {
 
 <style scoped>
 @import "./sharedStyles.css";
-
-.BuilderEditor {
-}
 
 .editorContainer {
 	height: 200px;

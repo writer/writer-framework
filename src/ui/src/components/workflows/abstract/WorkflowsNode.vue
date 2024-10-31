@@ -95,11 +95,6 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	emit("outMousedown", outId);
 }
 
-function handleOutMouseup(ev: DragEvent, outId: string) {
-	ev.stopPropagation();
-	emit("outMouseup", outId);
-}
-
 watch(isEngaged, () => {
 	emit("engaged");
 });

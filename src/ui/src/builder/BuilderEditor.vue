@@ -149,7 +149,6 @@ import {
 	watch,
 	nextTick,
 	computed,
-	ComputedRef,
 } from "vue";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";

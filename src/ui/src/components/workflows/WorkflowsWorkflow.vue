@@ -123,7 +123,6 @@ const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = ref({ x: 0, y: 0 });
 const isRunning = ref(false);
-let clickOffset = { x: 0, y: 0 };
 const selectedArrow = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 const workflowComponentId = inject(injectionKeys.componentId);
@@ -132,8 +131,10 @@ const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
 
-const { createAndInsertComponent, addOut, removeOut, changeCoordinates } =
-	useComponentActions(wf, wfbm);
+const { createAndInsertComponent, addOut, removeOut } = useComponentActions(
+	wf,
+	wfbm,
+);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
 const activeConnection: Ref<{
@@ -228,33 +229,6 @@ function handleNodeOutMousedown(
 	};
 }
 
-function getEmptyDragImage() {
-	var img = new Image();
-	img.src =
-		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
-	return img;
-}
-
-function handleDragstart(ev: DragEvent) {
-	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
-	clickOffset = getAdjustedCoordinates(ev);
-}
-
-function handleDrag(ev: DragEvent) {
-	ev.preventDefault();
-	const { x, y } = getAdjustedCoordinates(ev);
-	if (x < 0 || y < 0) return;
-	renderOffset.value.x = Math.max(
-		0,
-		renderOffset.value.x - (x - clickOffset.x),
-	);
-	renderOffset.value.y = Math.max(
-		0,
-		renderOffset.value.y - (y - clickOffset.y),
-	);
-	refreshArrows();
-}
-
 function handleDragover(ev: DragEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
@@ -292,46 +266,13 @@ function handleArrowClick(ev: MouseEvent, arrowId: number) {
 	wfbm.setSelection(null);
 }
 
-async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
+async function handleDeleteClick(_ev: MouseEvent, arrow: WorkflowArrowData) {
 	if (!arrow.toNodeId) return;
 	const out = {
 		outId: arrow.fromOutId,
 		toNodeId: arrow.toNodeId,
 	};
 	removeOut(arrow.fromNodeId, out);
-}
-
-function handleNodeDragStart(ev: DragEvent) {
-	ev.stopPropagation();
-	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
-	clickOffset = {
-		x: ev.offsetX,
-		y: ev.offsetY,
-	};
-}
-
-function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
-	ev.preventDefault();
-	ev.stopPropagation();
-	const { x, y } = getAdjustedCoordinates(ev);
-	if (x < 0 || y < 0) return;
-
-	const component = wf.getComponentById(componentId);
-
-	const newX = x - clickOffset.x;
-	const newY = y - clickOffset.y;
-
-	if (component.x == newX && component.y == newY) return;
-
-	component.x = newX;
-	component.y = newY;
-
-	setTimeout(() => {
-		// Debouncing
-		if (component.x !== newX) return;
-		if (component.y !== newY) return;
-		changeCoordinates(componentId, newX, newY);
-	}, 200);
 }
 
 function calculateArrow(
