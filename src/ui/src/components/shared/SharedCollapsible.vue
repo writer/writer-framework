@@ -1,6 +1,6 @@
 <template>
 	<details
-		class="collapsible"
+		class="SharedCollapsible"
 		:open="open"
 		:disabled="disabled"
 		@toggle="onToggle"

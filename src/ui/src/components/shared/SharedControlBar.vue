@@ -1,5 +1,5 @@
 <template>
-	<div class="BaseControlBar">
+	<div class="SharedControlBar">
 		<button
 			v-if="props.copyStructuredContent"
 			class="control-button"
@@ -34,9 +34,7 @@ function copyToClipboard({ text = "" }: { text?: string }) {
 </script>
 
 <style scoped>
-@import "@/renderer/sharedStyles.css";
-
-.BaseControlBar {
+.SharedControlBar {
 	margin-top: 8px;
 	display: flex;
 	flex-direction: row;

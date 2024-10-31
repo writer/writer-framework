@@ -1,28 +1,28 @@
 <template>
-	<BaseCollapsible
+	<SharedCollapsible
 		:open="open"
 		:disabled="disabled"
 		@toggle="$emit('toggle', $event)"
 	>
 		<template #title>
-			<div class="BaseJsonViewerCollapsible__title">
+			<div class="SharedJsonViewerCollapsible__title">
 				<span v-if="title">{{ title }}</span>
-				<BaseJsonViewerChildrenCounter v-if="data" :data="data" />
+				<SharedJsonViewerChildrenCounter v-if="data" :data="data" />
 			</div>
 		</template>
 		<template #content>
-			<div class="BaseJsonViewerCollapsible__content">
+			<div class="SharedJsonViewerCollapsible__content">
 				<slot />
 			</div>
 		</template>
-	</BaseCollapsible>
+	</SharedCollapsible>
 </template>
 
 <script setup lang="ts">
 import type { PropType } from "vue";
-import BaseCollapsible from "./BaseCollapsible.vue";
-import type { JsonData } from "./BaseJsonViewer.vue";
-import BaseJsonViewerChildrenCounter from "./BaseJsonViewerChildrenCounter.vue";
+import SharedCollapsible from "../SharedCollapsible.vue";
+import type { JsonData } from "./SharedJsonViewer.vue";
+import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
 
 defineProps({
 	open: { type: Boolean, required: false },
@@ -41,14 +41,14 @@ defineEmits({
 </script>
 
 <style scoped>
-.BaseJsonViewerCollapsible__title {
+.SharedJsonViewerCollapsible__title {
 	font-family: monospace;
 	font-size: 12px;
 	display: flex;
 	gap: 8px;
 }
 
-.BaseJsonViewerCollapsible__content {
+.SharedJsonViewerCollapsible__content {
 	margin-left: 7px;
 	padding-left: var(--jsonViewerIndentationSpacing, 8px);
 	padding-top: 4px;
