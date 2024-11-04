@@ -107,7 +107,7 @@ const toolFormInitValue = {
 	type: "function" as "function" | "graph",
 	name: "new_tool",
 	code: initFunctionToolCode,
-	graphId: "999-999",
+	graphId: "6029b226-1ee0-4239-a1b0-cdeebfa3ad5a",
 };
 
 const toolForm = ref<ToolForm>(toolFormInitValue);
