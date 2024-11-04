@@ -11,9 +11,9 @@ test.describe("Reuse component", () => {
 	}
 
 	const dragNewComponent = async (page: Page, type: string, where = ".CoreSection") => {
-			await page
-				.locator(`div.component.button[data-component-type="${type}"]`)
-				.dragTo(page.locator(where));
+		await page
+			.locator(`div.component.button[data-component-type="${type}"]`)
+			.dragTo(page.locator(where));
 	}
 
 	const getSelectedComponentId = async (page: Page): Promise<string> => {
@@ -50,6 +50,7 @@ test.describe("Reuse component", () => {
 
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
+		await closeSettingsBar(page);
 		await page.locator(selector).click();
 		await page
 			.locator(
@@ -70,13 +71,13 @@ test.describe("Reuse component", () => {
 
 	test.describe("basic", () => {
 		let url: string;
-		test.beforeAll(async ({request}) => {
+		test.beforeAll(async ({ request }) => {
 			const response = await request.post(`/preset/section`);
 			expect(response.ok()).toBeTruthy();
-			({url} = await response.json());
+			({ url } = await response.json());
 		});
 
-		test.afterAll(async ({request}) => {
+		test.afterAll(async ({ request }) => {
 			await request.delete(url);
 		});
 
@@ -88,7 +89,7 @@ test.describe("Reuse component", () => {
 			await removeComponent(page, '.CoreReuse');
 		});
 
-		test("empty info", async ({page}) => {
+		test("empty info", async ({ page }) => {
 			await createReuseable(page);
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/empty/);
 		});
@@ -101,31 +102,33 @@ test.describe("Reuse component", () => {
 			await expect(page.locator('.CoreReuse.CoreText.component')).toHaveCount(1);
 		});
 
-		test("self-referencing", async ({page}) => {
+		test("self-referencing", async ({ page }) => {
 			const id = await createReuseable(page);
 			await setReuseTarget(page, id);
 			await expect(page.locator('.CoreReuse.component')).toHaveClass(/invalid-value/);
 		});
 
-		test("reuse in incorect context", async ({page}) => {
+		test("reuse in incorect context", async ({ page }) => {
 			const id = await createSidebar(page);
-			await createReuseable(page);
-			await setReuseTarget(page, id);
-			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
 			await closeSettingsBar(page);
+			await createReuseable(page);
+			await closeSettingsBar(page);
+			await setReuseTarget(page, id);
+			await closeSettingsBar(page);
+			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
 		});
 	});
 
 	test.describe("between pages", () => {
 		let url: string;
 
-		test.beforeAll(async ({request}) => {
+		test.beforeAll(async ({ request }) => {
 			const response = await request.post(`/preset/2pages`);
 			expect(response.ok()).toBeTruthy();
-			({url} = await response.json());
+			({ url } = await response.json());
 		});
 
-		test.afterAll(async ({request}) => {
+		test.afterAll(async ({ request }) => {
 			await request.delete(url);
 		});
 
@@ -134,28 +137,28 @@ test.describe("Reuse component", () => {
 		});
 
 		test.afterEach(async ({ page }) => {
-			await page.goto(url+"#page2");
+			await page.goto(url + "#page2");
 			await removeComponent(page, ".CoreReuse");
-			await page.goto(url+"#page1");
+			await page.goto(url + "#page1");
 			const c = await page.locator('.CoreSidebar').count();
 			if (c > 0) {
 				await removeComponent(page, '.CoreSidebar');
 			}
 		});
 
-		test("reuse sloted component", async ({page}) => {
-			await page.goto(url+"#page1");
+		test("reuse sloted component", async ({ page }) => {
+			await page.goto(url + "#page1");
 			const id = await createSidebar(page);
-			await page.goto(url+"#page2");
+			await page.goto(url + "#page2");
 			await createReuseable(page, ".CorePage");
 			await setReuseTarget(page, id);
 			await expect(page.locator('.sidebarContainer .CoreReuse.CoreSidebar')).toHaveCount(1);
 		});
 
-		test("dynamic slot change", async ({page}) => {
-			await page.goto(url+"#page1");
+		test("dynamic slot change", async ({ page }) => {
+			await page.goto(url + "#page1");
 			const sidebarId = await createSidebar(page);
-			await page.goto(url+"#page2");
+			await page.goto(url + "#page2");
 			await createReuseable(page, ".CorePage");
 			await setReuseTarget(page, sidebarId);
 			await expect(page.locator('.sidebarContainer .CoreReuse.CoreSidebar')).toHaveCount(1);
@@ -165,15 +168,15 @@ test.describe("Reuse component", () => {
 			expect(page.locator('.main .CoreReuse.CoreText')).toHaveCount(1);
 		});
 
-		test("target component deleted", async ({page}) => {
-			await page.goto(url+"#page1");
+		test("target component deleted", async ({ page }) => {
+			await page.goto(url + "#page1");
 			const sidebarId = await createSidebar(page);
-			await page.goto(url+"#page2");
+			await page.goto(url + "#page2");
 			await createReuseable(page, ".CorePage");
 			await setReuseTarget(page, sidebarId);
-			await page.goto(url+"#page1");
+			await page.goto(url + "#page1");
 			await removeComponent(page, '.CoreSidebar');
-			await page.goto(url+"#page2");
+			await page.goto(url + "#page2");
 			await expect(page.locator('.CoreReuse.component')).toHaveClass(/invalid-value/);
 		});
 	});
@@ -185,13 +188,13 @@ test.describe("Reuse component", () => {
 		const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
 		let url: string;
 
-		test.beforeAll(async ({request}) => {
+		test.beforeAll(async ({ request }) => {
 			const response = await request.post(`/preset/2columns`);
 			expect(response.ok()).toBeTruthy();
-			({url} = await response.json());
+			({ url } = await response.json());
 		});
 
-		test.afterAll(async ({request}) => {
+		test.afterAll(async ({ request }) => {
 			await request.delete(url);
 		});
 
@@ -201,6 +204,7 @@ test.describe("Reuse component", () => {
 
 		test("create, drag and drop and remove", async ({ page }) => {
 			await createReuseable(page, COLUMN1);
+			await closeSettingsBar(page);
 			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
 		});
@@ -209,6 +213,7 @@ test.describe("Reuse component", () => {
 			const id = await createText(page, '.CorePage');
 			await createReuseable(page, COLUMN1);
 			await setReuseTarget(page, id);
+			await closeSettingsBar(page);
 			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
 			await removeComponent(page, '.CoreText');
