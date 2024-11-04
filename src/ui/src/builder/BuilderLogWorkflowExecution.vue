@@ -36,7 +36,7 @@
 						icon="find_in_page"
 						modal-title="Result"
 					>
-						<BaseJsonViewer
+						<SharedJsonViewer
 							v-if="displayedResult"
 							:data="displayedResult"
 							:initial-depth="1"
@@ -66,7 +66,7 @@ import { WorkflowExecutionLog } from "./builderManager";
 import { computed, inject, nextTick, ref } from "vue";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
-import BaseJsonViewer from "@/components/core/base/BaseJsonViewer.vue";
+import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal from "./BuilderModal.vue";
 
