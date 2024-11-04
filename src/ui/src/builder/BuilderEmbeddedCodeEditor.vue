@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { onMounted, onUnmounted, ref, toRefs } from "vue";
+import { onMounted, onUnmounted, ref, toRefs, watch } from "vue";
 
 const editorContainerEl = ref<HTMLElement>(null);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
@@ -16,9 +16,10 @@ const props = defineProps<{
 	language: string;
 	variant: "full" | "minimal";
 	modelValue: string;
+	disabled?: boolean;
 }>();
 
-const { modelValue } = toRefs(props);
+const { modelValue, disabled } = toRefs(props);
 const emit = defineEmits(["update:modelValue"]);
 
 const VARIANTS_SETTINGS: Record<
@@ -38,6 +39,19 @@ const VARIANTS_SETTINGS: Record<
 		folding: false,
 	},
 };
+
+watch(disabled, (isNewDisabled) => {
+	if (isNewDisabled) {
+		editor.updateOptions({ readOnly: true });
+		return;
+	}
+	editor.updateOptions({ readOnly: false });
+});
+
+watch(modelValue, (newCode) => {
+	if (editor.getValue() == newCode) return;
+	editor.getModel().setValue(newCode);
+});
 
 onMounted(() => {
 	editor = monaco.editor.create(editorContainerEl.value, {
@@ -68,9 +82,11 @@ onUnmounted(() => {
 .BuilderEmbeddedCodeEditor {
 	height: 100%;
 	width: 100%;
+	min-height: 200px;
 }
 
 .editorContainer {
+	min-height: 200px;
 	width: 100%;
 	height: 100%;
 }
