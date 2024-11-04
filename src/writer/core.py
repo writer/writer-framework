@@ -12,6 +12,7 @@ import logging
 import math
 import multiprocessing
 import numbers
+import os
 import re
 import secrets
 import time
@@ -1445,7 +1446,8 @@ class Evaluator:
             try:
                 if as_json:
                     serialised_value = state_serialiser.serialise(expr_value)
-                    serialised_value = json.dumps(serialised_value)
+                    if not isinstance(serialised_value, str):
+                        serialised_value = json.dumps(serialised_value)
                     return serialised_value
                 return expr_value
             except BaseException:
@@ -1581,6 +1583,8 @@ class Evaluator:
 
         return accessors
 
+    def get_env_variable_value(self, expr: str):
+        return os.getenv(expr[1:])
 
     def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
         context_data = base_context
@@ -1604,6 +1608,9 @@ class Evaluator:
 
         if isinstance(result, StateProxy):
             return result.to_dict()
+
+        if result is None and expr.startswith("$"):
+            return self.get_env_variable_value(expr)
 
         return result
 
