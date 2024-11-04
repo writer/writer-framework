@@ -68,7 +68,7 @@ class HTTPRequest(WorkflowBlock):
         try:
             method = self._get_field("method", False, "get")
             url = self._get_field("url")
-            headers = self._get_field("headers")
+            headers = self._get_field("headers", True)
             body = self._get_field("body")
             req = requests.request(method, url, headers=headers, data=body)
             self.result = {
@@ -80,6 +80,7 @@ class HTTPRequest(WorkflowBlock):
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
+                raise RuntimeError("HTTP response with code " + req.status_code)
         except BaseException as e:
             self.outcome = "connectionError"
             raise e
