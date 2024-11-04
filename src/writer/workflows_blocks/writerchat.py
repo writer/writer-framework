@@ -5,6 +5,7 @@ from writer.workflows_blocks.blocks import WorkflowBlock
 
 DEFAULT_MODEL = "palmyra-x-004"
 
+
 class WriterChat(WorkflowBlock):
 
     @classmethod
@@ -77,7 +78,7 @@ class WriterChat(WorkflowBlock):
 
     def _make_callable(self, tool_name: str):
         def callable(**args):
-            return self.run_branch(f"$dynamic_{tool_name}", **args)
+            return self.run_branch(f"tools_{tool_name}", **args)
         return callable
 
     def run(self):
