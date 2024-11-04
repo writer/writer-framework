@@ -80,7 +80,7 @@ class HTTPRequest(WorkflowBlock):
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
-                raise RuntimeError("HTTP response with code " + req.status_code)
+                raise RuntimeError("HTTP response with code " + str(req.status_code))
         except BaseException as e:
             self.outcome = "connectionError"
             raise e
