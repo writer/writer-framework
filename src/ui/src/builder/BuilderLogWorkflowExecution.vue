@@ -57,22 +57,6 @@
 				</div>
 			</div>
 		</div>
-		<!-- <table>
-			<tr>
-				<th></th>
-				<th>Outcome</th>
-				<th>Time</th>
-			</tr>
-			<tr>
-				<td class="name">
-					
-				</td>
-				<td>
-					
-				</td>
-				<td></td>
-			</tr>
-		</table> -->
 	</div>
 </template>
 
@@ -94,7 +78,7 @@ const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 const props = defineProps<{
 	executionLog: WorkflowExecutionLog;
 }>();
-const displayedResult = ref<any>(null);
+const displayedResult = ref(null);
 
 type EnrichedExecutionLog = WorkflowExecutionLog &
 	{

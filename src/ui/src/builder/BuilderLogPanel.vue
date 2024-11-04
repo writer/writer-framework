@@ -17,7 +17,7 @@
 							class="material-symbols-outlined"
 							>error</i
 						>
-						<i class="material-symbols-outlined" v-else>info</i>
+						<i v-else class="material-symbols-outlined">info</i>
 					</div>
 					<div class="title">
 						{{ logEntry.title
@@ -72,13 +72,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
 import BuilderLogWorkflowExecution from "./BuilderLogWorkflowExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
-
-const wf = inject(injectionKeys.core);
 
 const wfbm = inject(injectionKeys.builderManager);
 

@@ -30,15 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	computed,
-	PropType,
-	ref,
-	ComponentInstance,
-	toRef,
-	watch,
-	ComputedRef,
-} from "vue";
+import { computed, PropType, ref, ComponentInstance, toRef, watch } from "vue";
 import BaseInputRangeThumb from "./BaseInputSliderThumb.vue";
 import BaseInputSliderLayout from "./BaseInputSliderLayout.vue";
 import { useBoundingClientRect } from "@/composables/useBoundingClientRect";

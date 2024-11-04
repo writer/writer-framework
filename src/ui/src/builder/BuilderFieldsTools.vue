@@ -34,9 +34,9 @@
 			<WdsTextInput v-model="toolForm.name"></WdsTextInput>
 			<template v-if="toolForm.type == 'function'">
 				<BuilderEmbeddedCodeEditor
+					v-model="toolForm.code"
 					variant="minimal"
 					language="json"
-					v-model="toolForm.code"
 				></BuilderEmbeddedCodeEditor>
 			</template>
 			<template v-if="toolForm.type == 'graph'">
@@ -51,12 +51,11 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed, ref } from "vue";
-import { Component, FieldControl } from "@/writerTypes";
+import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import BuilderEmbeddedCodeEditor from "./BuilderEmbeddedCodeEditor.vue";

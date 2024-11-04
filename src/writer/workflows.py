@@ -47,7 +47,7 @@ def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str,
             "result": tool.result,
             "executionTimeInSeconds": tool.execution_time_in_seconds 
         })
-    msg = f"Execution finished."
+    msg = "Execution finished."
     state = session.session_state
     state.add_log_entry(entry_type, title, msg, workflow_execution=exec_log)
 

@@ -9,7 +9,11 @@
 		<div v-if="false" class="main">
 			<div></div>
 		</div>
-		<div class="outputs" v-for="(outs, fieldKey) in dynamicOuts">
+		<div
+			v-for="(outs, fieldKey) in dynamicOuts"
+			:key="fieldKey"
+			class="outputs"
+		>
 			<h4>{{ def.fields[fieldKey].name }}</h4>
 			<div v-for="(out, outId) in outs" :key="outId" class="output">
 				{{ out.name }}
@@ -60,7 +64,7 @@ export default {
 <script setup lang="ts">
 import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { Component, FieldType, WriterComponentDefinition } from "@/writerTypes";
+import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
