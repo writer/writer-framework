@@ -1,5 +1,5 @@
 <template>
-	<button class="WdsButton" :class="className">
+	<button class="WdsButton colorTransformer" :class="className">
 		<slot></slot>
 	</button>
 </template>
@@ -26,6 +26,8 @@ const className = computed(() => [
 </script>
 
 <style scoped>
+@import "@/renderer/colorTransformations.css";
+
 .WdsButton {
 	width: fit-content;
 	max-width: 100%;
@@ -117,6 +119,11 @@ const className = computed(() => [
 	background: unset;
 }
 
+.WdsButton--neutral:disabled {
+	color: #828282;
+	opacity: 50%;
+}
+
 /* SIZES */
 
 .WdsButton--big {
@@ -124,6 +131,7 @@ const className = computed(() => [
 }
 
 .WdsButton--small {
+	height: 32px;
 	padding: 10px 16px 10px 16px;
 }
 
