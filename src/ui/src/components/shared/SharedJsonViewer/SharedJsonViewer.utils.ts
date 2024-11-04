@@ -2,7 +2,7 @@ import type {
 	JsonData,
 	JsonValue,
 	JsonViewerTogglePayload,
-} from "./BaseJsonViewer.vue";
+} from "./SharedJsonViewer.vue";
 
 export function isJSONValue(data: JsonData): data is JsonValue {
 	if (["string", "number", "boolean"].includes(typeof data)) return true;

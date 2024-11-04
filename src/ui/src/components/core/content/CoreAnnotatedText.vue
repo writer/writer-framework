@@ -17,7 +17,7 @@
 			</span>
 		</span>
 		<template v-if="fields.copyButtons.value === 'yes'">
-			<BaseControlBar
+			<SharedControlBar
 				:copy-raw-content="textToString(safeText)"
 				:copy-structured-content="stringifyData(safeText)"
 			/>
@@ -32,7 +32,7 @@ import {
 	cssClasses,
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
-import BaseControlBar from "../base/BaseControlBar.vue";
+import SharedControlBar from "@/components/shared/SharedControlBar.vue";
 export default {
 	writer: {
 		name: "Annotated text",

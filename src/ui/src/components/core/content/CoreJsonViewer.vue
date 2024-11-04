@@ -1,14 +1,9 @@
 <template>
 	<div class="CoreJsonViewer">
-		<BaseJsonViewer
-			v-if="data"
-			:data="data"
+		<SharedJsonViewer
+			:data="data ?? {}"
 			:initial-depth="initialDepth"
-		/>
-		<BaseJsonViewerChildrenCounter v-else :data="{}" />
-		<BaseControlBar
-			v-if="fields.copy.value === 'yes'"
-			:copy-structured-content="dataAsString"
+			:enable-copy-to-json="fields.copy.value === 'yes'"
 		/>
 	</div>
 </template>
@@ -90,21 +85,12 @@ export default { writer: definition };
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
-import type { JsonData } from "@/components/core/base/BaseJsonViewer.vue";
-import BaseJsonViewer from "@/components/core/base/BaseJsonViewer.vue";
-import BaseJsonViewerChildrenCounter from "@/components/core/base/BaseJsonViewerChildrenCounter.vue";
-import BaseControlBar from "@/components/core/base/BaseControlBar.vue";
+import type { JsonData } from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
+import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
 const data = computed(() => fields.data.value as JsonData);
-const dataAsString = computed(() => JSON.stringify(data.value));
 
 const initialDepth = computed(() => Number(fields.initialDepth.value) || 0);
 </script>
-
-<style scoped>
-.error {
-	color: #ffcfc2;
-}
-</style>

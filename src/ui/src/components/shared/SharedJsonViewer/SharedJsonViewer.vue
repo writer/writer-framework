@@ -1,19 +1,19 @@
 <template>
 	<template v-if="isJSONObject(data) || isJSONArray(data)">
-		<BaseJsonViewerCollapsible
+		<SharedJsonViewerCollapsible
 			v-if="isRoot"
 			:open="isRootOpen"
 			:data="data"
 			@toggle="$emit('toggle', { path: [], open: $event })"
 		>
-			<BaseJsonViewerObject
+			<SharedJsonViewerObject
 				:data="data"
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
 			/>
-		</BaseJsonViewerCollapsible>
-		<BaseJsonViewerObject
+		</SharedJsonViewerCollapsible>
+		<SharedJsonViewerObject
 			v-else
 			:data="data"
 			:path="path"
@@ -21,7 +21,12 @@
 			@toggle="$emit('toggle', $event)"
 		/>
 	</template>
-	<BaseJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
+	<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
+	<SharedJsonViewerChildrenCounter v-else :data="{}" />
+	<SharedControlBar
+		v-if="enableCopyToJson"
+		:copy-structured-content="dataAsString"
+	/>
 </template>
 
 <script lang="ts">
@@ -44,10 +49,12 @@ import {
 	isJSONObject,
 	isJSONValue,
 	jsonViewerToggleEmitDefinition,
-} from "./BaseJsonViewer.utils";
-import BaseJsonViewerCollapsible from "./BaseJsonViewerCollapsible.vue";
-import BaseJsonViewerObject from "./BaseJsonViewerObject.vue";
-import BaseJsonViewerValue from "./BaseJsonViewerValue.vue";
+} from "./SharedJsonViewer.utils";
+import SharedJsonViewerCollapsible from "./SharedJsonViewerCollapsible.vue";
+import SharedJsonViewerObject from "./SharedJsonViewerObject.vue";
+import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
+import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
+import SharedControlBar from "../SharedControlBar.vue";
 
 const props = defineProps({
 	data: {
@@ -59,6 +66,7 @@ const props = defineProps({
 		default: () => [],
 	},
 	initialDepth: { type: Number, default: 0 },
+	enableCopyToJson: { type: Boolean, required: false },
 });
 
 defineEmits({
@@ -69,4 +77,5 @@ const isRoot = computed(() => props.path.length === 0);
 const isRootOpen = computed(
 	() => props.initialDepth === -1 || props.initialDepth > 0,
 );
+const dataAsString = computed(() => JSON.stringify(props.data ?? "{}"));
 </script>

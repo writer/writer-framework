@@ -8,8 +8,8 @@ import {
 	getJSONLength,
 	isJSONArray,
 	isJSONObject,
-} from "./BaseJsonViewer.utils";
-import type { JsonData } from "./BaseJsonViewer.vue";
+} from "./SharedJsonViewer.utils";
+import type { JsonData } from "./SharedJsonViewer.vue";
 
 const props = defineProps({
 	data: {
