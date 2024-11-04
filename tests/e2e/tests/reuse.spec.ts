@@ -44,6 +44,10 @@ test.describe("Reuse component", () => {
 		return await getSelectedComponentId(page);
 	};
 
+	const closeSettingsBar = async (page: Page) => {
+		await page.locator('.BuilderSettings button[data-automation-action="close"]').click();
+	}
+
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
 		await page.locator(selector).click();
@@ -108,6 +112,7 @@ test.describe("Reuse component", () => {
 			await createReuseable(page);
 			await setReuseTarget(page, id);
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
+			await closeSettingsBar(page);
 		});
 	});
 
