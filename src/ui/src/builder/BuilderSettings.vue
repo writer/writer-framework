@@ -19,6 +19,7 @@
 				class="windowAction"
 				tabindex="0"
 				title="Close (Esc)"
+				data-automation-action="close"
 				@click="closeSettings"
 			>
 				<i class="material-symbols-outlined">close</i>

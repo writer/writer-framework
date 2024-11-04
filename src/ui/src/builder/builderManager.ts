@@ -1,9 +1,5 @@
 import { ref, Ref } from "vue";
-import {
-	Component,
-	ClipboardOperation,
-	WriterComponentDefinition,
-} from "@/writerTypes";
+import { Component, ClipboardOperation } from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -22,8 +18,7 @@ export type WorkflowExecutionLog = {
 	componentId: Component["id"];
 	outcome: string;
 	executionTimeInSeconds: number;
-	component?: Component;
-	componentDef?: WriterComponentDefinition;
+	result: any;
 }[];
 
 type ComponentMutationTransaction = {
@@ -56,13 +51,13 @@ type LogEntry = {
 type SelectionSource = "click" | "tree" | "log";
 
 type State = {
-	mode: "ui" | "code" | "workflows" | "preview";
+	mode: "ui" | "workflows" | "preview";
+	openPanels: Set<"log" | "code">;
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
 		source: SelectionSource;
 	};
-	settingsBarCollapsed: boolean;
 	clipboard: {
 		operation: ClipboardOperation;
 		jsonSubtree: string;
@@ -77,7 +72,7 @@ type State = {
 export function generateBuilderManager() {
 	const initState: State = {
 		mode: "ui",
-		settingsBarCollapsed: false,
+		openPanels: new Set(),
 		selection: null,
 		clipboard: null,
 		mutationTransactionsSnapshot: {
@@ -143,14 +138,6 @@ export function generateBuilderManager() {
 
 	const getClipboard = () => {
 		return state.value.clipboard;
-	};
-
-	const setSettingsBarCollapsed = (newCollapsed: boolean) => {
-		state.value.settingsBarCollapsed = newCollapsed;
-	};
-
-	const isSettingsBarCollapsed = (): boolean => {
-		return state.value.settingsBarCollapsed;
 	};
 
 	const openMutationTransaction = (
@@ -314,8 +301,7 @@ export function generateBuilderManager() {
 	const builder = {
 		setMode,
 		getMode,
-		setSettingsBarCollapsed,
-		isSettingsBarCollapsed,
+		openPanels: state.value.openPanels,
 		isSelectionActive,
 		setSelection,
 		getSelection,

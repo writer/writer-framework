@@ -35,6 +35,8 @@
 			<template v-if="toolForm.type == 'function'">
 				<BuilderEmbeddedCodeEditor
 					v-model="toolForm.code"
+					variant="minimal"
+					language="json"
 				></BuilderEmbeddedCodeEditor>
 			</template>
 			<template v-if="toolForm.type == 'graph'">
@@ -49,12 +51,11 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed, ref } from "vue";
-import { Component, FieldControl } from "@/writerTypes";
+import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import BuilderEmbeddedCodeEditor from "./BuilderEmbeddedCodeEditor.vue";
@@ -105,7 +106,7 @@ const toolFormInitValue = {
 	type: "function" as "function" | "graph",
 	name: "new_tool",
 	code: initFunctionToolCode,
-	graphId: "999-999",
+	graphId: "6029b226-1ee0-4239-a1b0-cdeebfa3ad5a",
 };
 
 const toolForm = ref<ToolForm>(toolFormInitValue);

@@ -43,10 +43,6 @@ const trackElement = (el: HTMLElement) => {
 	const { clientWidth: rendererWidth } = rendererEl;
 	const { left: rendererX } = rendererEl.getBoundingClientRect();
 	const settingsEl = document.querySelector(".BuilderSettings");
-	const hiderTabEl = document.querySelector(".settingsHiderTab");
-	const hiderWidth = hiderTabEl?.clientWidth || 0;
-	const { clientWidth: settingsWidth } = settingsEl || { clientWidth: 0 };
-	const fullSettingsWidth = settingsWidth + hiderWidth;
 	const { left: settingsLeft } = settingsEl?.getBoundingClientRect() || {
 		left: Infinity,
 	};
@@ -71,11 +67,8 @@ const trackElement = (el: HTMLElement) => {
 
 	if (preventSettingsBarOverlap.value) {
 		let correction = 0;
-		if (settingsLeft < rendererX + rendererWidth) {
-			const trackerEnd = trackerX + contentsWidth;
-			const rendererEnd = rendererX + rendererWidth;
-			const distanceToRight = Math.max(rendererEnd - trackerEnd, 0);
-			correction = Math.max(fullSettingsWidth - distanceToRight, 0);
+		if (trackerX + contentsWidth > settingsLeft) {
+			correction = Math.max(trackerX - (settingsLeft - contentsWidth), 0);
 		}
 
 		trackerX -= correction;

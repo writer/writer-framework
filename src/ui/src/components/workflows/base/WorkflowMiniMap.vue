@@ -48,7 +48,8 @@ import { inject, nextTick, onMounted, onUnmounted, ref } from "vue";
 const wfbm = inject(injectionKeys.builderManager);
 const rootEl = ref(null);
 const emit = defineEmits(["changeRenderOffset"]);
-const observer = new MutationObserver(render);
+const resizeObserver = new ResizeObserver(render);
+const mutationObserver = new MutationObserver(render);
 
 const scale = ref(0.2);
 
@@ -169,8 +170,8 @@ function handleClick(ev: MouseEvent) {
 }
 
 onMounted(async () => {
-	window.addEventListener("resize", render);
-	observer.observe(props.nodeContainerEl, {
+	resizeObserver.observe(props.nodeContainerEl);
+	mutationObserver.observe(props.nodeContainerEl, {
 		subtree: true,
 		childList: true,
 		attributes: true,
@@ -181,8 +182,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-	window.removeEventListener("resize", render);
-	observer.disconnect();
+	resizeObserver.disconnect();
+	mutationObserver.disconnect();
 });
 </script>
 

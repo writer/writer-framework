@@ -31,23 +31,25 @@ def run_workflow(session, component_id: str, execution_env: Dict):
             if tool and tool.return_value:
                 return_value = tool.return_value
     except BaseException as e:
-        _generate_run_log(session, execution, "error")
+        _generate_run_log(session, execution, "Failed workflow execution", "error")
         raise e
     else:
-        _generate_run_log(session, execution, "info", return_value)
+        _generate_run_log(session, execution, "Workflow execution", "info", return_value)
 
-def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str, WorkflowBlock], entry_type: Literal["info", "error"], return_value: Optional[Any] = None):
+def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str, WorkflowBlock], title: str, entry_type: Literal["info", "error"], return_value: Optional[Any] = None):
+    if not writer.core.Config.is_mail_enabled_for_log:
+        return
     exec_log = []
     for component_id, tool in execution.items():
         exec_log.append({
             "componentId": component_id,
             "outcome": tool.outcome,
-            # "outcome": tool.outcome + repr(tool.return_value) + repr(tool.result),
+            "result": tool.result,
             "executionTimeInSeconds": tool.execution_time_in_seconds 
         })
-    msg = f"Execution finished with value {repr(return_value)}"
+    msg = "Execution finished."
     state = session.session_state
-    state.add_log_entry(entry_type, "Workflow execution", msg, workflow_execution=exec_log)
+    state.add_log_entry(entry_type, title, msg, workflow_execution=exec_log)
 
 
 def get_terminal_nodes(nodes):

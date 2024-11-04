@@ -11,7 +11,8 @@
     "e2e:chromium": "playwright test --project=chromium",
     "e2e:firefox": "playwright test --project=firefox",
     "e2e:webkit": "playwright test --project=webkit",
-    "e2e:ui": "playwright test --project=chromium --ui"
+    "e2e:ui": "playwright test --project=chromium --ui",
+    "e2e:grep": "playwright test --project=chromium --grep "
   },
   "dependencies": {
     "writer-ui": "*",

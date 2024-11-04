@@ -54,9 +54,15 @@
 				></component>
 			</template>
 		</div>
-		<WdsButton class="runButton" variant="secondary" @click="handleRun">
+		<WdsButton
+			class="runButton"
+			variant="secondary"
+			size="small"
+			:data-writer-unselectable="true"
+			@click="handleRun"
+		>
 			<i class="material-symbols-outlined">play_arrow</i>
-			{{ isRunning ? "Running..." : "Run" }}</WdsButton
+			{{ isRunning ? "Running..." : "Run workflow" }}</WdsButton
 		>
 		<WorkflowMiniMap
 			v-if="nodeContainerEl"
@@ -123,7 +129,6 @@ const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = ref({ x: 0, y: 0 });
 const isRunning = ref(false);
-let clickOffset = { x: 0, y: 0 };
 const selectedArrow = ref(null);
 const instancePath = inject(injectionKeys.instancePath);
 const workflowComponentId = inject(injectionKeys.componentId);
@@ -235,26 +240,6 @@ function getEmptyDragImage() {
 	return img;
 }
 
-function handleDragstart(ev: DragEvent) {
-	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
-	clickOffset = getAdjustedCoordinates(ev);
-}
-
-function handleDrag(ev: DragEvent) {
-	ev.preventDefault();
-	const { x, y } = getAdjustedCoordinates(ev);
-	if (x < 0 || y < 0) return;
-	renderOffset.value.x = Math.max(
-		0,
-		renderOffset.value.x - (x - clickOffset.x),
-	);
-	renderOffset.value.y = Math.max(
-		0,
-		renderOffset.value.y - (y - clickOffset.y),
-	);
-	refreshArrows();
-}
-
 function handleDragover(ev: DragEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
@@ -299,39 +284,6 @@ async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
 		toNodeId: arrow.toNodeId,
 	};
 	removeOut(arrow.fromNodeId, out);
-}
-
-function handleNodeDragStart(ev: DragEvent) {
-	ev.stopPropagation();
-	ev.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
-	clickOffset = {
-		x: ev.offsetX,
-		y: ev.offsetY,
-	};
-}
-
-function handleNodeDrag(ev: DragEvent, componentId: Component["id"]) {
-	ev.preventDefault();
-	ev.stopPropagation();
-	const { x, y } = getAdjustedCoordinates(ev);
-	if (x < 0 || y < 0) return;
-
-	const component = wf.getComponentById(componentId);
-
-	const newX = x - clickOffset.x;
-	const newY = y - clickOffset.y;
-
-	if (component.x == newX && component.y == newY) return;
-
-	component.x = newX;
-	component.y = newY;
-
-	setTimeout(() => {
-		// Debouncing
-		if (component.x !== newX) return;
-		if (component.y !== newY) return;
-		changeCoordinates(componentId, newX, newY);
-	}, 200);
 }
 
 function calculateArrow(
@@ -568,7 +520,7 @@ onMounted(async () => {
 button.runButton {
 	position: absolute;
 	right: 32px;
-	top: 32px;
+	top: 20px;
 }
 
 .component.WorkflowsWorkflow.selected {
