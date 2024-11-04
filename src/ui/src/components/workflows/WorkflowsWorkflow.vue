@@ -54,9 +54,15 @@
 				></component>
 			</template>
 		</div>
-		<WdsButton class="runButton" variant="secondary" @click="handleRun">
+		<WdsButton
+			class="runButton"
+			variant="secondary"
+			size="small"
+			:data-writer-unselectable="true"
+			@click="handleRun"
+		>
 			<i class="material-symbols-outlined">play_arrow</i>
-			{{ isRunning ? "Running..." : "Run" }}</WdsButton
+			{{ isRunning ? "Running..." : "Run workflow" }}</WdsButton
 		>
 		<WorkflowMiniMap
 			v-if="nodeContainerEl"
@@ -568,7 +574,7 @@ onMounted(async () => {
 button.runButton {
 	position: absolute;
 	right: 32px;
-	top: 32px;
+	top: 20px;
 }
 
 .component.WorkflowsWorkflow.selected {
