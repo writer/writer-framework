@@ -5,20 +5,12 @@
 			<div v-if="builderMode !== 'preview'" class="sidebar">
 				<BuilderSidebar></BuilderSidebar>
 			</div>
-			<div
-				class="builderMain"
-				:class="{
-					buildMode: builderMode !== 'preview',
-					previewMode: builderMode === 'preview',
-				}"
-			>
+			<div class="builderMain">
 				<div class="rendererWrapper">
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
-							settingsOpen:
-								ssbm.isSelectionActive() &&
-								!ssbm.isSettingsBarCollapsed(),
+							settingsOpen: ssbm.isSelectionActive(),
 						}"
 						@dragover="handleRendererDragover"
 						@dragstart="handleRendererDragStart"
@@ -29,54 +21,26 @@
 					</ComponentRenderer>
 				</div>
 
-				<div class="floatingContainer">
-					<div class="floatingSticky">
-						<div
-							v-if="ssbm.isSelectionActive()"
-							class="settingsHiderTab"
-							@click="
-								ssbm.setSettingsBarCollapsed(
-									!ssbm.isSettingsBarCollapsed(),
-								)
-							"
-						>
-							<i
-								v-if="ssbm.isSettingsBarCollapsed()"
-								class="material-symbols-outlined"
-								>settings</i
-							>
-							<i
-								v-if="!ssbm.isSettingsBarCollapsed()"
-								class="material-symbols-outlined"
-								>arrow_right</i
-							>
-						</div>
-						<div
-							v-if="ssbm.isSelectionActive()"
-							:key="selectedId ?? 'noneSelected'"
-							class="settingsBar"
-							:class="{
-								collapsed: ssbm.isSettingsBarCollapsed(),
-							}"
-						>
-							<BuilderSettings></BuilderSettings>
-						</div>
-
-						<div v-show="builderMode == 'code'" class="codeBar">
-							<BuilderEditor></BuilderEditor>
-						</div>
+				<div
+					v-if="ssbm.isSelectionActive()"
+					:key="selectedId ?? 'noneSelected'"
+					class="settingsBar"
+				>
+					<div>
+						<BuilderSettings></BuilderSettings>
 					</div>
 				</div>
 			</div>
+			<div class="builderPanels">
+				<BuilderCodePanel
+					v-if="ssbm.openPanels.has('code')"
+				></BuilderCodePanel>
+				<BuilderLogPanel
+					v-if="ssbm.openPanels.has('log')"
+				></BuilderLogPanel>
+			</div>
 		</div>
-		<div v-if="builderMode !== 'preview'" class="builderPanels">
-			<BuilderCodePanel
-				v-if="ssbm.openPanels.has('code')"
-			></BuilderCodePanel>
-			<BuilderLogPanel
-				v-if="ssbm.openPanels.has('log')"
-			></BuilderLogPanel>
-		</div>
+
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
@@ -134,7 +98,6 @@ import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderSettings from "./BuilderSettings.vue";
-import BuilderEditor from "./BuilderEditor.vue";
 import BuilderSidebar from "./BuilderSidebar.vue";
 import ComponentRenderer from "@/renderer/ComponentRenderer.vue";
 import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
@@ -180,6 +143,7 @@ const builderMode = computed(() => ssbm.getMode());
 
 const selectedId = computed(() => ssbm.getSelection()?.componentId);
 const selectedInstancePath = computed(() => ssbm.getSelection()?.instancePath);
+const openPanelCount = computed<number>(() => ssbm.openPanels.size);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -330,11 +294,16 @@ onMounted(() => {
 	--builderSubtleHighlightColorSolid: #f2f2f2;
 	--builderDisabledColor: rgb(180, 180, 180);
 	--builderSidebarWidth: 265px;
-	--builderSettingsWidth: 265px;
+	--builderSettingsWidth: 450px;
 	--builderActionOngoingColor: #333333;
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
 	--builderWarningColor: #ff3d00;
+	--builderPanelHeight: 50vh;
+
+	--buttonColor: #5551ff;
+	--buttonTextColor: white;
+
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
 	font-family: "Poppins", "Helvetica Neue", "Lucida Grande", sans-serif;
@@ -348,8 +317,14 @@ onMounted(() => {
 .mainGrid {
 	width: 100vw;
 	height: 100vh;
-	grid-template-columns: var(--builderSidebarWidth) 1fr;
-	grid-template-rows: var(--builderTopBarHeight) 1fr;
+	grid-template-columns:
+		v-bind(
+			"ssbm.getMode() !== 'preview' ? 'var(--builderSidebarWidth)' : '0px'"
+		)
+		1fr;
+	grid-template-rows: var(--builderTopBarHeight) 1fr v-bind(
+			"openPanelCount > 0 ? 'var(--builderPanelHeight)' : '0px'"
+		);
 	display: grid;
 }
 
@@ -360,9 +335,8 @@ onMounted(() => {
 }
 
 .sidebar {
-	grid-column: 1;
+	grid-column: 1 / 2;
 	grid-row: 2;
-	height: v-bind("ssbm.openPanels.size > 0 ? 'calc(100% - 50vh)' : '100%'");
 	min-height: 0;
 	border-right: 1px solid var(--builderAreaSeparatorColor);
 }
@@ -371,16 +345,7 @@ onMounted(() => {
 	background: var(--builderBackgroundColor);
 	overflow: hidden;
 	position: relative;
-}
-
-.builderMain.buildMode {
-	grid-column: 2;
-	grid-row: 2;
-}
-
-.builderMain.previewMode {
-	grid-column-start: 1;
-	grid-column-end: 3;
+	grid-column: 2 / 3;
 	grid-row: 2;
 }
 
@@ -399,98 +364,32 @@ onMounted(() => {
 .componentRenderer.settingsOpen {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
 }
-.floatingContainer {
-	position: absolute;
-	z-index: 4;
-	right: 0;
-	top: 0;
-	height: 100%;
-	border-top: 1px solid var(--builderSeparatorColor);
-	background: var(--builderBackgroundColor);
-	box-shadow: 0 0 16px 0px rgba(0, 0, 0, 0.1);
-}
-
-.floatingSticky {
-	position: sticky;
-	top: 0;
-	right: 0;
-	display: flex;
-	height: calc(100vh - 48px);
-}
-
-.settingsHiderTab {
-	position: absolute;
-	left: -23px;
-	top: 108px;
-	background: var(--builderBackgroundColor);
-	padding-left: 2px;
-	width: 24px;
-	height: 48px;
-	border-radius: 8px 0 0 8px;
-	border-left: 1px solid var(--builderAreaSeparatorColor);
-	border-top: 1px solid var(--builderAreaSeparatorColor);
-	border-bottom: 1px solid var(--builderAreaSeparatorColor);
-	border-right: 1px solid var(--builderSeparatorColor);
-	box-shadow: 0px 0 16px 0px rgba(0, 0, 0, 0.1);
-	z-index: 1;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	cursor: pointer;
-	font-size: 0.875rem;
-}
-
-.settingsHiderTab:hover {
-	background: var(--builderSubtleHighlightColorSolid);
-}
 
 .settingsBar {
+	position: absolute;
+	right: 32px;
+	top: v-bind("ssbm.getMode() == 'workflows' ? '72px' : '20px'");
 	z-index: 4;
 	width: var(--builderSettingsWidth);
-	min-height: 100%;
-	overflow-y: auto;
-	border-left: 1px solid var(--builderAreaSeparatorColor);
+	bottom: 20px;
+	overflow: hidden;
+	border: 1px solid var(--builderAreaSeparatorColor);
 	background: var(--builderBackgroundColor);
+	box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.04);
+	border-radius: 12px;
 }
 
-.settingsBar.collapsed {
-	display: none;
-}
-
-.codeBar {
-	width: 50vw;
+.settingsBar > div {
+	overflow-y: auto;
 	height: 100%;
-	border-left: 1px solid var(--builderAreaSeparatorColor);
-}
-
-@media (min-width: 1600px) {
-	.buildMode .componentRenderer {
-		width: calc(
-			100vw - var(--builderSettingsWidth) - var(--builderSidebarWidth)
-		);
-	}
-
-	.componentRenderer.settingsOpen {
-		--notificationsDisplacement: 0;
-	}
-
-	.settingsHiderTab {
-		display: none;
-	}
-
-	.settingsBar.collapsed {
-		display: block;
-	}
 }
 
 .builderPanels {
-	position: absolute;
-	height: 50vh;
-	width: 100%;
-	bottom: 0;
+	grid-column: 1 / 3;
+	grid-row: 3;
 	display: grid;
-	grid-template-columns: repeat(v-bind("ssbm.openPanels.size"), 1fr);
-	grid-template-rows: 1fr;
+	grid-template-columns: repeat(v-bind("openPanelCount"), 1fr);
+	grid-template-rows: 100%;
 }
 
 .builderPanels:empty {
