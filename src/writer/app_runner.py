@@ -337,7 +337,7 @@ class AppProcess(multiprocessing.Process):
 
         if captured_stdout:
             writer.core.initial_state.add_log_entry(
-                "info", "Stdout message during initialisation", captured_stdout)
+                "info", "Stdout message during initialization", captured_stdout)
 
         # Register non-private functions as handlers
         self.handler_registry.register_module(writeruserapp)
