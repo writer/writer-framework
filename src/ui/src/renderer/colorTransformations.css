@@ -6,7 +6,7 @@
     --intensifiedSeparatorColor: var(--separatorColor);
 }
 
-@supports (color: hsl(from red h s calc(l - 0.2))) {
+@supports (color: hsl(from red h s calc(l - 20))) {
 	.component, .colorTransformer {
 		--softenedAccentColor: hsl(
 			from var(--accentColor) calc(h - 12) calc(s + 0) calc(l + 0.21)
@@ -15,7 +15,7 @@
 			from var(--accentColor) calc(h + 1) calc(s - 0.33) calc(l - 0.1)
 		);
 		--intensifiedButtonColor: hsl(
-			from var(--buttonColor) calc(h + 1) calc(s - 0.33) calc(l - 0.1)
+			from var(--buttonColor) calc(h + 1) calc(s - 33) calc(l - 10)
 		);
 		--softenedSeparatorColor: hsl(
 			from var(--separatorColor) calc(h - 0) calc(s + 0.05) calc(l + 0.06)

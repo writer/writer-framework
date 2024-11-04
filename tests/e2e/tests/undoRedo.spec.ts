@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 test.describe('undo and redo', () => {
 	const TYPE = 'button';
@@ -7,13 +7,17 @@ test.describe('undo and redo', () => {
 	const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
 	let url: string;
 
-	test.beforeAll(async ({request}) => {
+	const closeSettingsBar = async (page: Page) => {
+		await page.locator('.BuilderSettings button[data-automation-action="close"]').click();
+	}
+
+	test.beforeAll(async ({ request }) => {
 		const response = await request.post(`/preset/2columns`);
 		expect(response.ok()).toBeTruthy();
-		({url} = await response.json());
+		({ url } = await response.json());
 	});
 
-	test.afterAll(async ({request}) => {
+	test.afterAll(async ({ request }) => {
 		await request.delete(url);
 	});
 
@@ -50,6 +54,7 @@ test.describe('undo and redo', () => {
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill('cool text');
+		await closeSettingsBar(page);
 		await page.locator("button.undo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
 		await page.locator("button.redo").click();

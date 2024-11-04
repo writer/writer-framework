@@ -71,6 +71,7 @@ const handleKeydown = (ev: KeyboardEvent) => {
 .main {
 	background: white;
 	width: 80%;
+	overflow: hidden;
 	max-width: 120ch;
 	border-radius: 8px;
 	box-shadow: 0 0 16px 4px rgba(0, 0, 0, 0.3);
@@ -78,14 +79,11 @@ const handleKeydown = (ev: KeyboardEvent) => {
 
 .titleContainer {
 	border-bottom: 1px solid var(--builderSubtleSeparatorColor);
-	padding: 16px;
+	padding: 10px 10px 10px 16px;
+	gap: 16px;
 	display: flex;
 	align-items: center;
 	font-size: 1rem;
-}
-
-.titleContainer > i {
-	margin-right: 8px;
 }
 
 .titleContainer button {
@@ -94,6 +92,8 @@ const handleKeydown = (ev: KeyboardEvent) => {
 
 .slotContainer {
 	padding: 16px;
+	max-height: 60vh;
+	overflow: auto;
 }
 
 .actionContainer {

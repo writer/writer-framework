@@ -45,11 +45,32 @@
 			</BuilderModal>
 		</div>
 		<div class="gap"></div>
+		<WdsButton
+			variant="primary"
+			size="small"
+			class="panelToggler"
+			title="Toggle Code panel"
+			:class="{ active: ssbm.openPanels.has('code') }"
+			@click="togglePanel('code')"
+		>
+			<i class="material-symbols-outlined"> code </i>
+			Code
+		</WdsButton>
+		<WdsButton
+			variant="primary"
+			size="small"
+			class="panelToggler"
+			title="Toggle Log panel"
+			:class="{ active: ssbm.openPanels.has('log') }"
+			@click="togglePanel('log')"
+		>
+			Log
+			<BuilderLogIndicator class="indicator"></BuilderLogIndicator>
+		</WdsButton>
 		<div
 			class="syncHealth"
 			:class="wf.syncHealth.value"
 			:title="syncHealthStatus()"
-			@click="animate"
 		>
 			<i ref="syncHealthIcon" class="material-symbols-outlined icon"
 				>sync</i
@@ -65,6 +86,8 @@ import { useComponentActions } from "./useComponentActions";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import injectionKeys from "../injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
+import WdsButton from "@/wds/WdsButton.vue";
+import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 
 const syncHealthIcon = ref(null);
 const wf = inject(injectionKeys.core);
@@ -73,13 +96,6 @@ const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
-
-const animate = () => {
-	const iconEl: HTMLElement = syncHealthIcon.value;
-	iconEl.classList.remove("beingAnimated");
-	iconEl.offsetWidth;
-	iconEl.classList.add("beingAnimated");
-};
 
 const syncHealthStatus = () => {
 	let s = "";
@@ -107,6 +123,16 @@ const syncHealthStatus = () => {
 
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
+}
+
+function togglePanel(
+	panelId: typeof ssbm.openPanels extends Set<infer T> ? T : never,
+) {
+	if (ssbm.openPanels.has(panelId)) {
+		ssbm.openPanels.delete(panelId);
+		return;
+	}
+	ssbm.openPanels.add(panelId);
 }
 
 const customHandlerModalCloseAction: ModalAction = {
@@ -144,8 +170,33 @@ const customHandlerModalCloseAction: ModalAction = {
 	flex: 1 0 auto;
 }
 
+.panelToggler,
+.panelToggler:hover {
+	font-size: 12px;
+	--buttonColor: black;
+	--builderSeparatorColor: #303030;
+	--buttonTextColor: white;
+}
+
+.panelToggler:focus {
+	outline: 1px solid #606060;
+	background: var(--buttonColor);
+}
+
+.panelToggler.active,
+.panelToggler.active:focus {
+	--buttonColor: white;
+	--buttonTextColor: black;
+	--builderSeparatorColor: unset;
+	background: var(--buttonColor);
+	color: var(--buttonTextColor);
+}
+
+.panelToggler .indicator {
+	margin-right: -12px;
+}
+
 .syncHealth {
-	cursor: pointer;
 	background: var(--builderHeaderBackgroundHoleColor);
 	border-radius: 18px;
 	padding-left: 16px;

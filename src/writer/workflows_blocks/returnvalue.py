@@ -14,7 +14,7 @@ class ReturnValue(WorkflowBlock):
             writer={
                 "name": "Return value",
                 "description": "Returns a value from a workflow or sub-workflow.",
-                "category": "Writer",
+                "category": "Logic",
                 "fields": {
                     "value": {
                         "name": "Value",

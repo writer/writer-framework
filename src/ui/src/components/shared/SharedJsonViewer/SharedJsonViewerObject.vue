@@ -1,5 +1,5 @@
 <template>
-	<div class="WdsJsonViewerObject">
+	<div class="SharedJsonViewerObject">
 		<template
 			v-for="([key, value], index) in Object.entries(data)"
 			:key="index"
@@ -7,28 +7,28 @@
 			<!-- This is a single value, we display it as plain key/value text -->
 			<div
 				v-if="isJSONValue(value) || getJSONLength(value) === 0"
-				class="WdsJsonViewerObject__value"
+				class="SharedJsonViewerObject__value"
 			>
 				<span>{{ key }}</span
 				>:
-				<BaseJsonViewerValue :data="value" />
+				<SharedJsonViewerValue :data="value" />
 			</div>
 			<!-- This is a an object -->
-			<BaseJsonViewerCollapsible
+			<SharedJsonViewerCollapsible
 				v-else
 				:open="isOpen(key)"
 				:title="key"
 				:data="value"
 				@toggle="toggleOpenedKey(key, $event)"
 			>
-				<BaseJsonViewer
+				<SharedJsonViewer
 					v-if="isOpen(key)"
 					:data="value"
 					:path="[...path, key]"
 					:initial-depth="initialDepth"
 					@toggle="$emit('toggle', $event)"
 				/>
-			</BaseJsonViewerCollapsible>
+			</SharedJsonViewerCollapsible>
 		</template>
 	</div>
 </template>
@@ -39,11 +39,11 @@ import {
 	getJSONLength,
 	isJSONValue,
 	jsonViewerToggleEmitDefinition,
-} from "./BaseJsonViewer.utils";
-import type { JsonData, JsonPath } from "./BaseJsonViewer.vue";
-import BaseJsonViewer from "./BaseJsonViewer.vue";
-import BaseJsonViewerCollapsible from "./BaseJsonViewerCollapsible.vue";
-import BaseJsonViewerValue from "./BaseJsonViewerValue.vue";
+} from "./SharedJsonViewer.utils";
+import type { JsonData, JsonPath } from "./SharedJsonViewer.vue";
+import SharedJsonViewer from "./SharedJsonViewer.vue";
+import SharedJsonViewerCollapsible from "./SharedJsonViewerCollapsible.vue";
+import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 
 const props = defineProps({
 	data: {
@@ -106,13 +106,13 @@ function isOpen(key: string) {
 </script>
 
 <style scoped>
-.WdsJsonViewerObject {
+.SharedJsonViewerObject {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
 
-.WdsJsonViewerObject__value {
+.SharedJsonViewerObject__value {
 	font-family: monospace;
 	font-size: 12px;
 	padding-left: 16px;

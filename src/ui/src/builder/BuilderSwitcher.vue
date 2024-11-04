@@ -2,17 +2,7 @@
 	<div class="BuilderSwitcher">
 		<div :class="{ active: activeId == 'ui' }" @click="selectOption('ui')">
 			<i class="icon material-symbols-outlined"> brush </i>
-			User Interface
-		</div>
-		<div
-			:class="{ active: activeId == 'code' }"
-			@click="selectOption('code')"
-		>
-			<i class="icon material-symbols-outlined"> code </i>
-			Code
-			<span v-show="logEntryCount > 0" class="countLabel">{{
-				logEntryCount
-			}}</span>
+			UI
 		</div>
 		<div
 			v-if="isWorkflowsFeatureFlagged"
@@ -45,11 +35,14 @@ const isWorkflowsFeatureFlagged = computed(() =>
 
 let selectedId: Ref<string> = ref(null);
 
-const selectOption = (optionId: "ui" | "code" | "preview" | "workflows") => {
+const selectOption = (optionId: "ui" | "preview" | "workflows") => {
 	const preMode = ssbm.getMode();
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
+	if (optionId == "preview") {
+		ssbm.openPanels.clear();
+	}
 	if (
 		optionId == "preview" ||
 		preMode == "workflows" ||
@@ -60,10 +53,6 @@ const selectOption = (optionId: "ui" | "code" | "preview" | "workflows") => {
 };
 
 const activeId = computed(() => ssbm.getMode());
-
-const logEntryCount = computed(() => {
-	return ssbm.getLogEntryCount();
-});
 </script>
 
 <style scoped>
