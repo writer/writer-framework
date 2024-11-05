@@ -14,7 +14,7 @@ export default defineConfig({
 	publicDir: false,
 	build: {
 		lib: {
-			entry: ["./src/custom_components"],
+			entry: ["./src/components/custom"],
 			formats: ["umd"],
 			name: "WriterCustomComponentTemplates",
 			fileName: (format, entryalias: string): string => {

@@ -135,9 +135,9 @@ The code above will make Bubble Message available in the Builder.
 
 <Tip>
   You can also have a look at the built-in component templates, since their
-  syntax is equivalent. They can be found in the `ui/src/components/` folder.
+  syntax is equivalent. They can be found in the `ui/src/components/core` folder.
 </Tip>
-Go to `ui/src/custom_components/` and open the Vue single-file components, i.e. the
+Go to `ui/src/components/custom` and open the Vue single-file components, i.e. the
 `.vue` files. These files contain comments that will help you get started. Try editing
 the provided templates, you should see changes reflected.
 
@@ -145,7 +145,7 @@ You can get started by duplicating one of these examples. Make sure you add the 
 
 ### Define entrypoint
 
-For custom component templates to be taken into account, they need to be accessible from the entrypoint. Edit `ui/src/custom_components/index.ts` to define which templates you wish to export and under which identifiers.
+For custom component templates to be taken into account, they need to be accessible from the entrypoint. Edit `ui/src/components/custom/index.ts` to define which templates you wish to export and under which identifiers.
 
 ```ts
 // Import the templates
