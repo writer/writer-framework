@@ -11,9 +11,14 @@
 				@click="editTool(toolName)"
 			>
 				<div class="toolName">{{ toolName }}</div>
-				<button class="delete" @click.stop="deleteTool(toolName)">
+				<WdsButton
+					variant="primary"
+					size="small"
+					class="delete"
+					@click.stop="deleteTool(toolName)"
+				>
 					<i class="material-symbols-outlined">delete</i>
-				</button>
+				</WdsButton>
 			</div>
 		</div>
 
@@ -27,22 +32,38 @@
 			icon="add"
 			modal-title="Add tool"
 		>
-			<WdsDropdownInput v-model="toolForm.type">
-				<option value="function">Function</option>
-				<option value="graph">Knowledge graph</option>
-			</WdsDropdownInput>
-			<WdsTextInput v-model="toolForm.name"></WdsTextInput>
-			<template v-if="toolForm.type == 'function'">
-				<BuilderEmbeddedCodeEditor
-					v-model="toolForm.code"
-					variant="minimal"
-					language="json"
-				></BuilderEmbeddedCodeEditor>
-			</template>
-			<template v-if="toolForm.type == 'graph'">
-				<WdsTextInput v-model="toolForm.graphId"></WdsTextInput>
-			</template>
-			<div>
+			<div class="addToolForm">
+				<WdsFieldWrapper label="Tool type">
+					<WdsDropdownInput v-model="toolForm.type">
+						<option value="function">Function</option>
+						<option value="graph">Knowledge graph</option>
+					</WdsDropdownInput>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper label="Tool name">
+					<WdsTextInput v-model="toolForm.name"></WdsTextInput>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					v-if="toolForm.type == 'function'"
+					:frame-slot="true"
+					label="Function tool definition"
+				>
+					<BuilderEmbeddedCodeEditor
+						v-model="toolForm.code"
+						variant="minimal"
+						language="json"
+					></BuilderEmbeddedCodeEditor>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					v-if="toolForm.type == 'graph'"
+					label="Graph id(s)"
+					hint="Specify the id of the knowledge graph you want to use. If multiple, separate the ids using commas."
+				>
+					<WdsTextareaInput
+						v-model="toolForm.graphIds"
+					></WdsTextareaInput>
+				</WdsFieldWrapper>
+			</div>
+			<div class="addToolFormActions">
 				<WdsButton @click="saveToolForm">Save</WdsButton>
 			</div>
 		</BuilderModal>
@@ -57,8 +78,10 @@ import injectionKeys from "../injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import BuilderEmbeddedCodeEditor from "./BuilderEmbeddedCodeEditor.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 
 type FunctionTool = {
 	type: "function";
@@ -85,7 +108,7 @@ type ToolForm = {
 	originalName?: string;
 	name: string;
 	code: string;
-	graphId: string;
+	graphIds: string;
 };
 
 const wf = inject(injectionKeys.core);
@@ -106,7 +129,7 @@ const toolFormInitValue = {
 	type: "function" as "function" | "graph",
 	name: "new_tool",
 	code: initFunctionToolCode,
-	graphId: "6029b226-1ee0-4239-a1b0-cdeebfa3ad5a",
+	graphIds: "6029b226-1ee0-4239-a1b0-cdeebfa3ad5a",
 };
 
 const toolForm = ref<ToolForm>(toolFormInitValue);
@@ -136,7 +159,7 @@ function resetAndShowToolFormModal() {
 }
 
 function getToolFromForm(): Tool {
-	const { type, code, graphId } = toolForm.value;
+	const { type, code, graphIds } = toolForm.value;
 	if (type == "function") {
 		return {
 			...JSON.parse(code),
@@ -144,9 +167,10 @@ function getToolFromForm(): Tool {
 		};
 	}
 	if (type == "graph") {
+		const graphArr = graphIds.split(",").map((gId) => gId.trim());
 		return {
 			type,
-			graph_ids: [graphId],
+			graph_ids: graphArr,
 		};
 	}
 	throw "Unexpected tool type.";
@@ -199,7 +223,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 			type: "function",
 			originalName: toolName,
 			name: toolName,
-			graphId: "",
+			graphIds: "",
 			code: JSON.stringify(tool, undefined, 2),
 		};
 	}
@@ -209,7 +233,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 			type: "graph",
 			originalName: toolName,
 			name: toolName,
-			graphId: tool.graph_ids?.[0],
+			graphIds: tool.graph_ids?.join(","),
 			code: "",
 		};
 	}
@@ -269,17 +293,25 @@ const customHandlerModalCloseAction: ModalAction = {
 
 .tool .delete {
 	display: none;
-	background: var(--builderBackgroundColor);
-	padding: 2px 4px 2px 4px;
-	font-size: 1.1rem;
 }
 
 .tool:hover .delete {
-	display: block;
+	display: unset;
 }
 
-.addToolTextarea {
-	font-family: monospace;
+.addToolForm {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: auto;
+	gap: 16px;
+}
+
+.addToolForm > :nth-child(n + 3) {
+	grid-column: span 2;
+}
+
+.addToolFormActions {
+	margin-top: 16px;
 }
 </style>
 

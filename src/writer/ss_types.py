@@ -209,3 +209,5 @@ class ComponentDefinition(TypedDict):
     x: Optional[int]
     y: Optional[int]
 
+class WorkflowExecutionLog(BaseModel):
+    summary: List[Dict]
