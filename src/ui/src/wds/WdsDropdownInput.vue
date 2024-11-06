@@ -1,5 +1,5 @@
 <template>
-	<select v-model="model">
+	<select v-model="model" class="WdsDropdownInput colorTransformer">
 		<slot></slot>
 	</select>
 </template>
@@ -9,6 +9,8 @@ const model = defineModel<string>();
 </script>
 
 <style scoped>
+@import "@/renderer/colorTransformations.css";
+
 select {
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;

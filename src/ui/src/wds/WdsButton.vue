@@ -132,7 +132,7 @@ const className = computed(() => [
 
 .WdsButton--small {
 	height: 32px;
-	padding: 10px 16px 10px 16px;
+	padding: 4px 16px 4px 16px;
 }
 
 .WdsButton--unpadded {
