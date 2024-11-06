@@ -15,11 +15,18 @@ const MUTATIONTRANSACTION_DEBOUNCE_MS = 1000;
 const MAX_LOG_ENTRIES = 100;
 
 export type WorkflowExecutionLog = {
-	componentId: Component["id"];
-	outcome: string;
-	executionTimeInSeconds: number;
-	result: any;
-}[];
+	summary: {
+		componentId: Component["id"];
+		outcome: string;
+		executionTimeInSeconds: number;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		result: any;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		returnValue: any;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		executionEnvironment: Record<string, any>;
+	}[];
+};
 
 type ComponentMutationTransaction = {
 	id: string;

@@ -233,13 +233,6 @@ function handleNodeOutMousedown(
 	};
 }
 
-function getEmptyDragImage() {
-	var img = new Image();
-	img.src =
-		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
-	return img;
-}
-
 function handleDragover(ev: DragEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
@@ -371,6 +364,13 @@ function moveNode(ev: MouseEvent) {
 
 	component.x = newX;
 	component.y = newY;
+
+	setTimeout(() => {
+		// Debouncing
+		if (component.x !== newX) return;
+		if (component.y !== newY) return;
+		changeCoordinates(component.id, newX, newY);
+	}, 200);
 }
 
 async function moveCanvas(ev: MouseEvent) {

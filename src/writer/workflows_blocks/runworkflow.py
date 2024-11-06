@@ -22,7 +22,7 @@ class RunWorkflow(WorkflowBlock):
                     },
                     "executionEnv": {
                         "name": "Execution environment",
-                        "desc": "Values passed in the context will be available using the template syntax i.e. @{my_var}",
+                        "desc": "Values passed will be available using the template syntax i.e. @{my_var}",
                         "default": "{}",
                         "type": "Object",
                         "control": "Textarea"
@@ -48,7 +48,8 @@ class RunWorkflow(WorkflowBlock):
             workflow_key = self._get_field("workflowKey")
             execution_env = self._get_field("executionEnv", as_json=True)
 
-            writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+            return_value = writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+            self.result = return_value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

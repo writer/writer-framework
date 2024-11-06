@@ -1,25 +1,28 @@
 <template>
 	<div class="BuilderLogWorkflowExecution">
 		<div
-			v-for="(item, itemId) in enrichedExecutionLog"
+			v-for="(item, itemId) in enrichedExecutionLog.summary"
 			:key="itemId"
 			class="row"
 		>
 			<div class="marker top"></div>
 			<div class="marker bottom"></div>
 			<div class="item">
-				<div
-					class="name"
-					tabindex="0"
-					@keydown.enter="selectBlock(item.componentId)"
-					@click="selectBlock(item.componentId)"
-				>
+				<div class="name">
 					{{ item.componentDef.name }}
+					<WdsButton
+						variant="neutral"
+						size="unpadded"
+						title="Go to node"
+						@click="selectBlock(item.componentId)"
+					>
+						<i class="material-symbols-outlined">jump_to_element</i>
+					</WdsButton>
 				</div>
 				<div class="outcome">
 					<div
 						class="ball"
-						:class="item.componentDef.outs[item.outcome].style"
+						:class="item.componentDef.outs[item.outcome]?.style"
 					></div>
 					{{
 						item.componentDef.outs[item.outcome]?.name ??
@@ -28,28 +31,98 @@
 				</div>
 				<div class="result">
 					<BuilderModal
-						v-if="displayedResult !== null"
+						v-if="displayedDetails !== null"
 						:close-action="{
 							desc: 'Close',
-							fn: () => (displayedResult = null),
+							fn: () => (displayedDetails = null),
 						}"
 						icon="find_in_page"
-						modal-title="Result"
+						modal-title="Details"
 					>
-						<SharedJsonViewer
-							v-if="displayedResult"
-							:data="displayedResult"
-							:initial-depth="1"
-						/>
+						<div class="detailsModalContent">
+							<div>
+								<h2>Result</h2>
+								<p>
+									The value resulting of the execution of this
+									block. This value is added to the execution
+									environment of the direct dependents of this
+									block. There, it's accessible via @{result}.
+								</p>
+								<div class="data">
+									<SharedJsonViewer
+										v-if="displayedDetails?.result"
+										:data="displayedDetails.result"
+										:initial-depth="1"
+										class="data"
+									/>
+									<div v-else class="nothing">No result.</div>
+								</div>
+							</div>
+							<div>
+								<h2>Execution environment</h2>
+								<p>
+									The following values were made available to
+									this block during execution time. These
+									values are accessible via the same template
+									syntax i.e. @{my_var}, as state elements.
+								</p>
+								<div class="data">
+									<SharedJsonViewer
+										v-if="
+											displayedDetails?.executionEnvironment
+										"
+										:data="
+											displayedDetails.executionEnvironment
+										"
+										:initial-depth="1"
+										class="data"
+									/>
+									<div v-else class="nothing">
+										Empty execution environment.
+									</div>
+								</div>
+							</div>
+							<div>
+								<h2>Return value</h2>
+								<p>
+									The value being returned, which is used to
+									determine the result of 'Run workflow'
+									blocks and 'Chat completion' tool calls.
+								</p>
+								<div class="data">
+									<SharedJsonViewer
+										v-if="displayedDetails?.returnValue"
+										:data="displayedDetails.returnValue"
+										:initial-depth="1"
+										class="data"
+									/>
+									<template v-else>
+										No return value.
+									</template>
+								</div>
+							</div>
+						</div>
 					</BuilderModal>
 					<WdsButton
-						v-if="item.result"
+						v-if="
+							item.result ||
+							item.returnValue ||
+							item.executionEnvironment
+						"
 						variant="secondary"
 						size="small"
-						@click="() => (displayedResult = item.result)"
+						@click="
+							() =>
+								(displayedDetails = {
+									executionEnvironment:
+										item.executionEnvironment,
+									result: item.result,
+									returnValue: item.returnValue,
+								})
+						"
 					>
 						<i class="material-symbols-outlined">find_in_page</i>
-						View result
+						Details
 					</WdsButton>
 				</div>
 				<div class="time">
@@ -78,26 +151,29 @@ const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 const props = defineProps<{
 	executionLog: WorkflowExecutionLog;
 }>();
-const displayedResult = ref(null);
+const displayedDetails = ref(null);
 
-type EnrichedExecutionLog = WorkflowExecutionLog &
-	{
+type EnrichedExecutionLog = WorkflowExecutionLog & {
+	summary: {
 		component?: Component;
 		componentDef?: WriterComponentDefinition;
 	}[];
+};
 
 const enrichedExecutionLog = computed(() => {
-	const eLog: EnrichedExecutionLog = [
-		...props.executionLog.map((item) => ({
-			...item,
-			component: wf.getComponentById(item.componentId),
-			componentDef: wf.getComponentById(item.componentId)
-				? wf.getComponentDefinition(
-						wf.getComponentById(item.componentId).type,
-					)
-				: undefined,
-		})),
-	];
+	const eLog: EnrichedExecutionLog = {
+		summary: [
+			...props.executionLog.summary.map((item) => ({
+				...item,
+				component: wf.getComponentById(item.componentId),
+				componentDef: wf.getComponentById(item.componentId)
+					? wf.getComponentDefinition(
+							wf.getComponentById(item.componentId).type,
+						)
+					: undefined,
+			})),
+		],
+	};
 	return eLog;
 });
 
@@ -173,7 +249,9 @@ function formatExecutionTime(timeInSeconds: number): string {
 .item .name {
 	grid-column: 1 / 2;
 	grid-row: 1 / 2;
-	cursor: pointer;
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 .item .outcome {
@@ -210,5 +288,24 @@ function formatExecutionTime(timeInSeconds: number): string {
 .item .time {
 	grid-column: 4 / 5;
 	grid-row: 1 / 2;
+}
+
+.detailsModalContent {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.detailsModalContent div:not(:first-of-type) {
+	padding-top: 16px;
+	border-top: 1px solid var(--builderSeparatorColor);
+}
+
+.detailsModalContent .data {
+	background-color: var(--builderSubtleSeparatorColor);
+	padding: 8px;
+	border-radius: 8px;
+	margin-top: 8px;
+	font-size: 14px;
 }
 </style>

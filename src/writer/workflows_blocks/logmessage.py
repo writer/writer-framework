@@ -51,6 +51,10 @@ class LogMessage(WorkflowBlock):
             type = self._get_field("type", False, "info")
             message = self._get_field("message")
 
+            if message is None:
+                self.result = "Message cannot be empty."
+                self.outcome = "error"
+
             self.session.session_state.add_log_entry(type, "Workflows message", message)
             self.result = None
             self.outcome = "success"

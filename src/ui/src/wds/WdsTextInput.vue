@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="leftIcon"
-		class="WdsTextInput WdsTextInput--leftIcon"
+		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
 		@click="input.focus()"
 	>
 		<i class="material-symbols-outlined">{{ leftIcon }}</i>
@@ -12,7 +12,12 @@
 			:placeholder="placeholder"
 		/>
 	</div>
-	<input v-else v-model="model" type="text" class="WdsTextInput" />
+	<input
+		v-else
+		v-model="model"
+		type="text"
+		class="WdsTextInput colorTransformer"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -29,6 +34,8 @@ const input = ref();
 </script>
 
 <style scoped>
+@import "@/renderer/colorTransformations.css";
+
 .WdsTextInput {
 	width: 100%;
 	margin: 0;

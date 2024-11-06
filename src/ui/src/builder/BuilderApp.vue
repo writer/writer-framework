@@ -303,6 +303,10 @@ onMounted(() => {
 
 	--buttonColor: #5551ff;
 	--buttonTextColor: white;
+	--accentColor: var(--builderAccentColor);
+	--primaryTextColor: var(--builderPrimaryTextColor);
+	--separatorColor: var(--builderSeparatorColor);
+	--secondaryTextColor: var(--builderSecondaryTextColor);
 
 	font-size: 0.8rem;
 	color: var(--builderPrimaryTextColor);
