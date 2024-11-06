@@ -58,6 +58,7 @@ from writer.ss_types import (
     WriterEvent,
     WriterEventResult,
     WriterFileItem,
+    WorkflowExecutionLog
 )
 
 if TYPE_CHECKING:
@@ -985,7 +986,7 @@ class WriterState(State):
 
         log_method(f"{color}{log_message}\x1b[0m", *log_args)
 
-    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None, workflow_execution: Optional[List[Dict]] = None) -> None:
+    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None, workflow_execution: Optional[WorkflowExecutionLog] = None) -> None:
         self._log_entry_in_logger(type, title, message, code)
         if not Config.is_mail_enabled_for_log:
             return
