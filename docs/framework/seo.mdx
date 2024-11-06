@@ -1,0 +1,84 @@
+---
+title: "SEO"
+mode: "wide"
+---
+
+Writer Framework offers you the possibility of optimizing metadata to optimize your SEO and the sharing of information on social networks.
+
+### Configure page title
+
+The page title is editable for web crawlers. This title is a key element for the SEO of your application. A bot will not load the app. It will see `Writer Framework` by default.
+
+```python
+writer.serve.configure_page_head(title="My amazing app")
+```
+
+If you need dynamic title,you can use a function instead of a hard coded parameter. The title will be evaluated when the Robot loads the page.
+
+```python
+def _title():
+	last_news = db.get_last_news()
+	return f"Last news: {last_news.title}"
+
+writer.serve.configure_page_head(title=_title)
+```
+
+### Configure meta tags
+
+Les entêtes http sont essentiels. Ils permettent de spécifier un titre, une description et des mots clés.
+
+*./server_setup.py*
+```python
+writer.serve.configure_page_head(
+	title="My amazing app",
+    meta={
+    	"description": "my amazing app",
+    	"keywords": "WF, Amazing, AI App",
+    	"author": "Amazing company"
+    }
+)
+```
+
+You can also use a function to generate the meta tags dynamically.
+
+```python
+def _meta():
+	last_news = db.get_last_news()
+	return {
+		"description": f"Last news: {last_news.title}",
+		"keywords": f"{last_news.keywords}",
+		"author": "Amazing company"
+	}
+
+writer.serve.configure_page_head(meta=_meta)
+```
+
+### Configure social networks
+
+When you share a link on social networks, they will try to fetch the metadata of the page to display a preview.
+
+```python
+writer.serve.configure_page_head(
+    opengraph_tags= {
+    	"og:title": "My App",
+    	"og:description": "My amazing app",
+    	"og:image": "https://myapp.com/logo.png",
+    	"og:url": "https://myapp.com"
+    }
+)
+
+You can also use a function to generate the opengraph tags dynamically.
+
+```python
+def _opengraph_tags():
+	last_news = db.get_last_news()
+	return {
+		"og:title": f"Last news: {last_news.title}",
+		"og:description": f"{last_news.description}",
+		"og:image": f"{last_news.image}",
+		"og:url": f"https://myapp.com/news/{last_news.id}"
+	}
+
+writer.serve.configure_page_head(opengraph_tags=_opengraph_tags)
+```
+
