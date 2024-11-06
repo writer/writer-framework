@@ -55,10 +55,10 @@ from writer.ss_types import (
     InstancePathItem,
     Readable,
     ServeMode,
+    WorkflowExecutionLog,
     WriterEvent,
     WriterEventResult,
     WriterFileItem,
-    WorkflowExecutionLog
 )
 
 if TYPE_CHECKING:

@@ -2,9 +2,9 @@ import time
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import writer.core
-from writer.ss_types import WorkflowExecutionLog
 import writer.workflows_blocks
 from writer.core_ui import Component
+from writer.ss_types import WorkflowExecutionLog
 from writer.workflows_blocks.blocks import WorkflowBlock
 
 
@@ -41,11 +41,9 @@ def run_workflow(session, component_id: str, execution_env: Dict):
 def _generate_run_log(session: "writer.core.WriterSession", execution: Dict[str, WorkflowBlock], title: str, entry_type: Literal["info", "error"], return_value: Optional[Any] = None):
     if not writer.core.Config.is_mail_enabled_for_log:
         return
-    exec_log:WorkflowExecutionLog = {
-        "summary": []
-    }
+    exec_log:WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
     for component_id, tool in execution.items():
-        exec_log["summary"].append({
+        exec_log.summary.append({
             "componentId": component_id,
             "outcome": tool.outcome,
             "result": tool.result,

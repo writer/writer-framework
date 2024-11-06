@@ -11,8 +11,8 @@ from writer.workflows_blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.workflows_blocks.writerchat import WriterChat
 from writer.workflows_blocks.writerclassification import WriterClassification
 from writer.workflows_blocks.writercompletion import WriterCompletion
-from writer.workflows_blocks.writernocodeapp import WriterNoCodeApp
 from writer.workflows_blocks.writerinitchat import WriterInitChat
+from writer.workflows_blocks.writernocodeapp import WriterNoCodeApp
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")

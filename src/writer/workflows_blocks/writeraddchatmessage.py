@@ -50,7 +50,7 @@ class WriterAddChatMessage(WorkflowBlock):
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
-                self.result = f"The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
+                self.result = "The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
                 self.outcome = "error"
                 return
 
