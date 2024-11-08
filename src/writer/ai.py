@@ -1824,7 +1824,18 @@ class Conversation:
         elif message.get("tool_call_id") is not None:
             return False
         tool_calls = message.get("tool_calls")
-        if tool_calls is not None and tool_calls != []:
+        if (
+            (
+                tool_calls is not None
+                and
+                tool_calls != []
+            )
+            and
+            not message.get("content")
+        ):
+            # If tool call request message
+            # doesn't have meaningful content,
+            # we don't serialize it
             return False
 
         return True
