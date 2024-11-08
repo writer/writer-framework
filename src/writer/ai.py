@@ -234,7 +234,7 @@ class WriterAIManager:
 
         :returns: Name for the completion model.
         """
-        return "palmyra-x-003-instruct"
+        return "palmyra-x-004"
 
     @classmethod
     def acquire_client(cls) -> Writer:
