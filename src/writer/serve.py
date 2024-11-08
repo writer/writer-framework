@@ -1,4 +1,5 @@
 import asyncio
+import html
 import importlib.util
 import io
 import logging
@@ -694,18 +695,18 @@ def _mount_render_index_html(app: FastAPI, server_static_path: pathlib.Path):
         with io.open(server_static_path.joinpath('index.html'), 'r', encoding='utf-8') as f:
             index_html = f.read()
             if hasattr(app.state, "title"):
-                index_html = index_html.replace("<title>Writer Framework</title>", f"<title>{app.state.title}</title>")
+                index_html = index_html.replace("<title>Writer Framework</title>", f"<title>{html.escape(app.state.title)}</title>")
 
             if hasattr(app.state, "meta"):
                 meta = app.state.meta() if callable(app.state.meta) else app.state.meta
-                meta_tags = "\n".join([f'<meta name="{k}" content="{v}">' for k, v in meta.items()])
+                meta_tags = "\n".join([f'<meta name="{k}" content="{html.escape(v)}">' for k, v in meta.items()])
                 index_html = index_html.replace("<!-- {{ meta }} -->", meta_tags)
             else:
                 index_html = index_html.replace("<!-- {{ meta }} -->", "")
 
             if hasattr(app.state, "opengraph_tags"):
                 opengraph_tags = app.state.opengraph_tags() if callable(app.state.opengraph_tags) else app.state.opengraph_tags
-                opengraph_tags = "\n".join([f'<meta property="{k}" content="{v}">' for k, v in opengraph_tags.items()])
+                opengraph_tags = "\n".join([f'<meta property="{k}" content="{html.escape(v)}">' for k, v in opengraph_tags.items()])
                 index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", opengraph_tags)
             else:
                 index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", "")
