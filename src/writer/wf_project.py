@@ -1,9 +1,19 @@
 """
-This module manipulates the folder of a wf project stored into `wf`.
+This module manages the characteristics of the project :
+
+* the .wf folder that contains the metadata, ui definition and workflow definition
+* the migration of previous project architecture (using ui.json) into new one (using .wf folder)
+* the writer version used during development and locked into dependencies
 
 >>> wf_project.write_files_async('app/hello', metadata={"writer_version": "0.1" }, components=...)
 
+>>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
+
 >>> metadata, components = wf_project.read_files('app/hello')
+
+>>> wf_project.use_poetry('app/hello')
+>>> wf_project.use_requirement('app/hello')
+>>> v = wf_project.poetry_locked_version('app/hello')
 """
 import dataclasses
 import io
@@ -17,6 +27,9 @@ import typing
 from collections import OrderedDict
 from multiprocessing import Queue
 from typing import Any, Dict, List, Tuple
+
+import toml
+from packaging.version import Version
 
 from writer import core_ui
 from writer.ss_types import ComponentDefinition, MetadataDefinition
@@ -43,6 +56,7 @@ def write_files_async(context: WfProjectContext, metadata: MetadataDefinition, c
     >>> wf_project.write_files_async('app/hello', metadata={"writer_version": "0.1" }, components=...)
     """
     context.write_files_async_queue.put((context.app_path, metadata, components))
+
 
 def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
     """
@@ -172,11 +186,100 @@ def migrate_obsolete_ui_json(app_path: str, metadata: MetadataDefinition) -> Non
     logger.warning('project format has changed and has been migrated with success. ui.json file has been removed.')
 
 
-def create_default_workflows_root(abs_path: str) -> None:
-    with io.open(os.path.join(abs_path, '.wf', 'components-workflows_root.jsonl'), 'w') as f:
+def create_default_workflows_root(app_path: str) -> None:
+    """
+    Creates .wf/components-workflows_root.jsonl. This file should be present for the project to be valid.
+
+    >>> wf_project.create_default_workflows_root('app/hello')
+    """
+    with io.open(os.path.join(app_path, '.wf', 'components-workflows_root.jsonl'), 'w') as f:
         f.write('{"id": "workflows_root", "type": "workflows_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
         logger = logging.getLogger('writer')
         logger.warning('project format has changed and has been migrated with success. components-workflows_root.jsonl has been added.')
+
+
+def writer_version(app_path: str) -> typing.Optional[Version]:
+    """
+    Retrieves the writer version used during development
+
+    >>> v = writer_version('app/hello')
+    """
+    meta, _ = read_files(app_path)
+    writer_version = meta.get('writer_version', None)
+    if writer_version:
+        return Version(writer_version)
+
+    return None
+
+
+def poetry_locked_version(app_path: str) -> typing.Optional[Version]:
+    """
+    Retrieves the version fixed in the poetry.lock file for Writer
+
+    If the application does not have a poetry.lock file, the function returns None
+
+    :param app_path: absolute path of the application
+    :return: the version of writer freezed in the poetry.lock file
+    """
+    poetry_lock_path = os.path.join(app_path, 'poetry.lock')
+    if not os.path.isfile(poetry_lock_path):
+        return None
+
+    if os.path.isfile(poetry_lock_path):
+        with open(poetry_lock_path) as f:
+            poetry_lock = toml.load(f)
+            for package in poetry_lock['package']:
+                if package['name'] == 'writer':
+                    locked_version = package['version']
+                    return Version(locked_version)
+
+    return None
+
+
+def use_poetry(app_path: str) -> bool:
+    """
+    Checks if the application uses poetry. Checks if the pyproject.tml file and if the build system is that of poetry.
+
+    >>> if wf_project.use_poetry('app/hello'):
+    >>>    print('The dependency manager is poetry')
+
+    :param app_path: path of the application
+    :return: True if the application uses poetry
+    """
+    pyproject_path = os.path.join(app_path, 'pyproject.toml')
+    has_pyproject = os.path.isfile(pyproject_path)
+    if not has_pyproject:
+        return False
+
+    with io.open(pyproject_path, 'r') as f:
+        pyproject = toml.load(f)
+        build_system = pyproject.get('build-system', {}).get('build-backend', None)
+        if build_system == 'poetry.core.masonry.api':
+            return True
+
+        return False
+
+
+def use_pyproject(app_path: str) -> bool:
+    """
+    Checks if the application uses pyproject.toml.
+
+    >>> if wf_project.use_pyproject('app/hello'):
+    >>>    print('The dependency are managed with pyproject.toml')
+    """
+    pyproject_path = os.path.join(app_path, 'pyproject.toml')
+    return os.path.isfile(pyproject_path)
+
+
+def use_requirement(app_path: str):
+    """
+    Checks if the application uses requirements.txt.
+
+    >>> if wf_project.use_requirement('app/hello'):
+    >>>    print('The dependency manager is pip')
+    """
+    requirements_path = os.path.join(app_path, 'requirements.txt')
+    return os.path.isfile(requirements_path)
 
 
 def _expected_component_fileinfos(components: dict[str, ComponentDefinition]) -> List[Tuple[str, str]]:
@@ -278,6 +381,7 @@ def _order_components(components: Dict[str, ComponentDefinition]) -> List[Compon
 
 
 def _start_process_write_files_async_process(context: WfProjectContext, save_interval, stop_event):
+
     while True:
         if stop_event.is_set():
             break

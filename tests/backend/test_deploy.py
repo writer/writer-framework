@@ -4,6 +4,7 @@ import re
 from click.testing import CliRunner
 from writer.command_line import main
 
+from backend import testmorerecentapp_dir
 from backend.fixtures.cloud_deploy_fixtures import use_fake_cloud_deploy_server
 
 
@@ -31,6 +32,7 @@ def test_deploy():
         result = runner.invoke(main, ['cloud', 'deploy', './my_app'], env={
             'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
             'WRITER_API_KEY': 'test',
+            'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
         }, input='y\n')
         print(result.output)
         assert result.exit_code == 0
@@ -46,6 +48,7 @@ def test_deploy_force_flag():
         result = runner.invoke(main, ['cloud', 'deploy', './my_app', '--force'], env={
             'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
             'WRITER_API_KEY': 'test',
+            'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
         })
         print(result.output)
         assert result.exit_code == 0
@@ -62,6 +65,7 @@ def test_deploy_api_key_option():
         result = runner.invoke(main, ['cloud', 'deploy', './my_app', '--api-key', 'test'], env={
             'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
             'WRITER_API_KEY': 'fail',
+            'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
         }, input='y\n')
         print(result.output)
         assert result.exit_code == 0
@@ -76,6 +80,7 @@ def test_deploy_api_key_prompt():
         assert result.exit_code == 0
         result = runner.invoke(main, ['cloud', 'deploy', './my_app'], env={
             'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
+            'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
         }, input='test\ny\n')
         print(result.output)
         assert result.exit_code == 0
@@ -91,6 +96,7 @@ def test_deploy_warning():
         result = runner.invoke(main, ['cloud', 'deploy', './my_app'], env={
             'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
             'WRITER_API_KEY': 'test',
+            'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
         })
         print(result.output)
         assert result.exit_code == 1
@@ -109,7 +115,8 @@ def test_deploy_env():
             env={
                 'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
                 'WRITER_API_KEY': 'test',
-                'WRITER_DEPLOY_SLEEP_INTERVAL': '0'
+                'WRITER_DEPLOY_SLEEP_INTERVAL': '0',
+                'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
             },
             input='y\n'
         )
@@ -134,7 +141,8 @@ def test_deploy_full_flow():
             env={
                 'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
                 'WRITER_API_KEY': 'full',
-                'WRITER_DEPLOY_SLEEP_INTERVAL': '0'
+                'WRITER_DEPLOY_SLEEP_INTERVAL': '0',
+                'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
             },
         )
         print(result.output)
@@ -161,10 +169,22 @@ def test_undeploy():
             env={
                 'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
                 'WRITER_API_KEY': 'full',
-                'WRITER_DEPLOY_SLEEP_INTERVAL': '0'
+                'WRITER_DEPLOY_SLEEP_INTERVAL': '0',
+                'WF_WRITER_IGNORE_POETRY_VERSION_CHECK': '1'
             },
         )
         print(result.output)
         assert re.search("App undeployed", result.output)
         assert result.exit_code == 0
 
+
+def test_deploy_should_alert_user_when_poetry_locked_version_is_not_consistent():
+    with use_fake_cloud_deploy_server():
+        runner = CliRunner(mix_stderr=False)
+        result = runner.invoke(main,['deploy', str(testmorerecentapp_dir)], env={
+            'WRITER_DEPLOY_URL': 'http://localhost:8888/deploy',
+            'WRITER_API_KEY': 'test',
+        }, input='y\n')
+
+        assert result.exit_code == 1
+        assert 'Error: locked version in poetry.lock does not match the project version use in .wf, pin a new version `poetry add writer@^999.0.0' in result.stderr

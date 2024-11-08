@@ -14,6 +14,9 @@ import dateutil.parser
 import pytz
 import requests
 from gitignore_parser import parse_gitignore
+from packaging.version import Version
+
+from writer import wf_project
 
 DEPLOY_TIMEOUT = int(os.getenv("WRITER_DEPLOY_TIMEOUT", 20))
 
@@ -22,15 +25,16 @@ def cloud():
     """A group of commands to deploy the app on writer cloud"""
     pass
 
+
 @cloud.command()
 @click.option('--api-key',
-    default=lambda: os.environ.get("WRITER_API_KEY", None),
-    allow_from_autoenv=True,
-    show_envvar=True,
-    envvar='WRITER_API_KEY',
-    prompt="Enter your API key",
-    hide_input=True, help="Writer API key"
-)
+              default=lambda: os.environ.get("WRITER_API_KEY", None),
+              allow_from_autoenv=True,
+              show_envvar=True,
+              envvar='WRITER_API_KEY',
+              prompt="Enter your API key",
+              hide_input=True, help="Writer API key"
+              )
 @click.option('--env', '-e', multiple=True, default=[], help="Set environment variables for the app (e.g., --env KEY=VALUE)")
 @click.option('--force', '-f', default=False, is_flag=True, help="Ignores warnings and overwrites the app")
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
@@ -48,6 +52,16 @@ def deploy(path, api_key, env, verbose, force):
     if not os.path.isdir(abs_path):
         raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer cloud deploy my_app")
 
+    ignore_poetry_version_check = int(os.getenv("WF_WRITER_IGNORE_POETRY_VERSION_CHECK", '0')) == 1
+    if wf_project.use_poetry(abs_path) and ignore_poetry_version_check is False:
+        poetry_locked_version = wf_project.poetry_locked_version(abs_path)
+        if poetry_locked_version is None:
+            raise click.ClickException("The application does not have a poetry.lock file. Please run `poetry install` to generate it.")
+
+        writer_version = wf_project.writer_version(abs_path)
+        if poetry_locked_version < writer_version:
+            raise click.ClickException(f"locked version in poetry.lock does not match the project version use in .wf, pin a new version `poetry add writer@^{writer_version}")
+
     env = _validate_env_vars(env)
     tar = pack_project(abs_path)
     try:
@@ -58,11 +72,10 @@ def deploy(path, api_key, env, verbose, force):
         else:
             on_error_print_and_raise(e.response, verbose=verbose)
     except Exception as e:
-        print(e)
-        print("Error deploying app")
-        sys.exit(1)
+        raise click.ClickException(f"Error deploying app - {e}")
     finally:
         tar.close()
+
 
 def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
     if env is None:
@@ -74,15 +87,16 @@ def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
             sys.exit(1)
     return env
 
+
 @cloud.command()
 @click.option('--api-key',
-    default=lambda: os.environ.get("WRITER_API_KEY", None),
-    allow_from_autoenv=True,
-    show_envvar=True,
-    envvar='WRITER_API_KEY',
-    prompt="Enter your API key",
-    hide_input=True, help="Writer API key"
-)
+              default=lambda: os.environ.get("WRITER_API_KEY", None),
+              allow_from_autoenv=True,
+              show_envvar=True,
+              envvar='WRITER_API_KEY',
+              prompt="Enter your API key",
+              hide_input=True, help="Writer API key"
+              )
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 def undeploy(api_key, verbose):
     """Stop the app, app would not be available anymore."""
@@ -98,15 +112,16 @@ def undeploy(api_key, verbose):
         print(e)
         sys.exit(1)
 
+
 @cloud.command()
 @click.option('--api-key',
-    default=lambda: os.environ.get("WRITER_API_KEY", None),
-    allow_from_autoenv=True,
-    show_envvar=True,
-    envvar='WRITER_API_KEY',
-    prompt="Enter your API key",
-    hide_input=True, help="Writer API key"
-)
+              default=lambda: os.environ.get("WRITER_API_KEY", None),
+              allow_from_autoenv=True,
+              show_envvar=True,
+              envvar='WRITER_API_KEY',
+              prompt="Enter your API key",
+              hide_input=True, help="Writer API key"
+              )
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 def logs(api_key, verbose):
     """Fetch logs from the deployed app."""
@@ -114,7 +129,7 @@ def logs(api_key, verbose):
     deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
     sleep_interval = int(os.getenv("WRITER_DEPLOY_SLEEP_INTERVAL", '5'))
 
-    try: 
+    try:
         build_time = datetime.now(pytz.timezone('UTC')) - timedelta(days=4)
         start_time = build_time
         while True:
@@ -143,11 +158,15 @@ def logs(api_key, verbose):
     except KeyboardInterrupt:
         sys.exit(0)
 
+
 def pack_project(path):
     print(f"Creating deployment package from path: {path}")
 
     files = []
-    def match(file_path) -> bool: return False
+
+    def match(file_path) -> bool:
+        return False
+
     if os.path.exists(os.path.join(path, ".gitignore")):
         match = parse_gitignore(os.path.join(path, ".gitignore"))
     for root, dirs, filenames in os.walk(path, followlinks=False):
@@ -179,6 +198,7 @@ def pack_project(path):
 
     return f
 
+
 def check_app(deploy_url, token):
     url = _get_app_url(deploy_url, token)
     if url:
@@ -187,6 +207,7 @@ def check_app(deploy_url, token):
         print("[WARNING] If looking to deploy to a different URL, use a different API key. ")
         if input("[WARNING] Are you sure you want to overwrite? (y/N)").lower() != "y":
             sys.exit(1)
+
 
 def _get_app_url(deploy_url: str, token: str) -> Union[str, None]:
     with requests.get(deploy_url, params={"lineLimit": 1}, headers={"Authorization": f"Bearer {token}"}) as resp:
@@ -199,8 +220,9 @@ def _get_app_url(deploy_url: str, token: str) -> Union[str, None]:
         data = resp.json()
     return data['status']['url']
 
+
 def get_logs(deploy_url, token, params, verbose=False):
-    with requests.get(deploy_url, params = params, headers={"Authorization": f"Bearer {token}"}) as resp:
+    with requests.get(deploy_url, params=params, headers={"Authorization": f"Bearer {token}"}) as resp:
         on_error_print_and_raise(resp, verbose=verbose)
         data = resp.json()
 
@@ -212,6 +234,7 @@ def get_logs(deploy_url, token, params, verbose=False):
             logs.append((parsed_date, msg))
         logs.sort(key=lambda x: x[0])
         return {"status": data["status"], "logs": logs}
+
 
 def check_service_status(deploy_url, token, build_id, build_time, start_time, end_time, last_status):
     data = get_logs(deploy_url, token, {
@@ -227,6 +250,7 @@ def check_service_status(deploy_url, token, build_id, build_time, start_time, en
     for log in data.get("logs", []):
         print(log[0], log[1])
     return status, url
+
 
 def dictFromEnv(env: List[str]) -> dict:
     env_dict = {}
@@ -248,8 +272,8 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
     build_time = start_time
 
     with requests.post(
-        url = deploy_url, 
-        headers = {
+        url=deploy_url,
+        headers={
             "Authorization": f"Bearer {token}",
         },
         files=files,
@@ -268,6 +292,8 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
         time.sleep(sleep_interval)
         start_time = end_time
 
+    _check_version_integrity(deploy_url)
+
     if status == "COMPLETED":
         print("Deployment successful")
         print(f"URL: {url}")
@@ -283,6 +309,7 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
         print(f"URL: {url}")
         sys.exit(2)
 
+
 def on_error_print_and_raise(resp, verbose=False):
     try:
         resp.raise_for_status()
@@ -291,7 +318,22 @@ def on_error_print_and_raise(resp, verbose=False):
             print(resp.json())
         raise e
 
+
 def unauthorized_error():
     print("Unauthorized. Please check your API key.")
     sys.exit(1)
 
+
+def _check_version_integrity(app_url: str):
+    """
+    Check if the writer version in the deployment package is newer than the writer version running on the server.
+
+    """
+    with requests.get(f"{app_url}/_meta") as resp:
+        data = resp.json()
+        if "writer_version_dev" not in data or "writer_version_run" not in data:
+            return
+
+        if Version(data["writer_version_dev"]) > Version(data["writer_version_run"]):
+            print(f"[WARNING] The writer version in the deployment package ({data['writer_version_dev']}) is newer than the writer version running on the server ({data['writer_version_run']}).")
+            return

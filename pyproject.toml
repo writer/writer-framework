@@ -48,6 +48,8 @@ watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
 writer-sdk = ">= 1.5.0, < 2"
 python-multipart = ">=0.0.7, < 1"
+toml = "^0.10.2"
+packaging = "^24.2"
 
 [tool.poetry.group.build]
 optional = true
@@ -75,6 +77,7 @@ redis = "^5.2.1"
 
 [tool.poetry.group.dev.dependencies]
 types-python-dateutil = "^2.9.0.20240316"
+types-toml = "^0.10.8.20240310"
 
 [tool.poetry.scripts]
 writer = 'writer.command_line:main'
