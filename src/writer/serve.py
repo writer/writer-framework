@@ -22,10 +22,12 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
+from packaging.version import Version
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract, crypto
+
+from writer import VERSION, abstract, wf_project, crypto
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -181,6 +183,7 @@ def get_asgi_app(
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
 
+    _warn_about_version_consistency(serve_mode, user_app_path)
     _fix_mimetype()
     app_runner = AppRunner(user_app_path, serve_mode)
 
@@ -964,6 +967,35 @@ def wf_root_static_assets() -> List[pathlib.Path]:
 
     return all_static_assets
 
+
+def _warn_about_version_consistency(mode: ServeMode, app_path: str) -> None:
+    """
+    Checks that the version of the writer package used to run the app is equivalent
+    to or newer than the version used during development.
+
+    If it is not the case, a warning message is displayed.
+    """
+    logger = logging.getLogger("writer")
+    dev_version = wf_project.writer_version(app_path)
+    if dev_version is None:
+        return
+
+    run_version = Version(VERSION)
+    if run_version < dev_version:
+        if mode == "run":
+            logger.warning(f"The version {run_version}, used to run the app, is older than the version {dev_version} used during development.")
+
+            if wf_project.use_pyproject(app_path):
+                logger.warning("You should update the version of writer in the pyproject.toml.")
+            elif wf_project.use_requirement(app_path):
+                logger.warning("You should update the version of writer in the requirements.txt.")
+            else:
+                logger.warning("You should update the version of writer.")
+
+        if mode == "edit":
+            logger.warning(f"The version {VERSION}, used to edit the app, is older than the version {dev_version} used in previous development.")
+
+        logger.warning("")
 
 def _execute_server_setup_hook(user_app_path: str) -> None:
     """
