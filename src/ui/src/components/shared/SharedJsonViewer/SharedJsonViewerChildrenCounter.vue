@@ -13,7 +13,14 @@ import type { JsonData } from "./SharedJsonViewer.vue";
 
 const props = defineProps({
 	data: {
-		type: Object as PropType<JsonData>,
+		type: [
+			String,
+			Number,
+			Boolean,
+			Object,
+			Array,
+			null,
+		] as PropType<JsonData>,
 		required: true,
 	},
 });
