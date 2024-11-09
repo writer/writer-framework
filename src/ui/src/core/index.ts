@@ -13,6 +13,7 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
+	registerComponentTemplate,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -96,6 +97,16 @@ export function generateCore() {
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
 		loadAbstractTemplates(initData.abstractTemplates);
+
+		// put some components behind feature flag
+
+		if (featureFlags.value.includes("dataframeEditor")) {
+			const component = await import(
+				"@/components/core/content/CoreDataframe.vue"
+			).then((m) => m.default);
+
+			registerComponentTemplate("dataframe", component);
+		}
 
 		// Only returned for edit (Builder) mode
 
