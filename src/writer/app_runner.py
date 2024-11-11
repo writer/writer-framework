@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
 import importlib.util
-import json
 import logging
 import logging.handlers
 import multiprocessing
@@ -47,6 +46,7 @@ from writer.ss_types import (
     StateEnquiryResponsePayload,
     WriterEvent,
 )
+from writer.wf_project import WfProjectContext
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -580,6 +580,7 @@ class AppRunner:
     """
 
     UPDATE_CHECK_INTERVAL_SECONDS = 0.2
+    WF_PROJECT_SAVE_INTERVAL = 0.2
     MAX_WAIT_NOTIFY_SECONDS = 10
 
     def __init__(self, app_path: str, mode: str):
@@ -600,6 +601,7 @@ class AppRunner:
         self.log_listener: Optional[LogListener] = None
         self.code_update_loop: Optional[asyncio.AbstractEventLoop] = None
         self.code_update_condition: Optional[asyncio.Condition] = None
+        self.wf_project_context = WfProjectContext(app_path=app_path)
 
         if mode not in ("edit", "run"):
             raise ValueError("Invalid mode.")
@@ -623,10 +625,13 @@ class AppRunner:
         self.log_listener = LogListener(self.log_queue)
         self.log_listener.start()
 
-    def _set_observer(self):
+    def _start_fs_observer(self):
         self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
         self.observer.schedule(FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
         self.observer.start()
+
+    def _start_wf_project_process_write_files(self):
+        wf_project.start_process_write_files_async(self.wf_project_context, AppRunner.WF_PROJECT_SAVE_INTERVAL)
 
     def load(self) -> None:
         def signal_handler(sig, frame):
@@ -644,7 +649,8 @@ class AppRunner:
         self.bmc_components = self._load_persisted_components()
 
         if self.mode == "edit":
-            self._set_observer()
+            self._start_wf_project_process_write_files()
+            self._start_fs_observer()
 
         self._start_app_process()
 
@@ -730,7 +736,7 @@ class AppRunner:
                 "Cannot update components in non-update mode.")
         self.bmc_components = payload.components
 
-        wf_project.write_files(self.app_path, metadata={"writer_version": VERSION}, components=payload.components)
+        wf_project.write_files_async(self.wf_project_context, metadata={"writer_version": VERSION}, components=payload.components)
 
         return await self.dispatch_message(session_id, ComponentUpdateRequest(
             type="componentUpdate",
@@ -796,6 +802,9 @@ class AppRunner:
         self.log_queue.put(None)
         if self.log_listener is not None:
             self.log_listener.join()
+
+        wf_project.shutdown_process_write_files_async(self.wf_project_context)
+
         self._clean_process()
 
     def _start_app_process(self) -> None:
