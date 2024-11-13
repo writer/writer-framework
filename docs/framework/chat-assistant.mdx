@@ -2,153 +2,325 @@
 title: "Chat assistant"
 ---
 
-In this introductory tutorial, you'll use the Writer Framework to build an AI chat assistant.
+In this tutorial, you'll create a simple yet powerful chat assistant using the Writer Framework.
+
+You'll build an AI-powered chatbot that can engage in conversations on various topics, provide answers to your questions, and maybe even help you when you're experiencing writer's block! You'll do this in minutes using a drag-and-drop visual editor to build the user interface and Python for the back-end code.
+
+Here's what the finished project will look like:
 
 ![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_1.png)
 
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- **A Writer account:** Create a free account at [writer.com](https://writer.com).
+- **Python 3.7+**: Use the installer from [python.org](https://www.python.org/downloads/).
+- **pip:** This command-line application comes with Python and is used for installing Python packages, including those from Writer.
+- **Your favorite code editor:** You'll need one — such as Visual Studio Code, Notepad++, Vim, Emacs, or any text editor made for programming — to write the back-end code behind the user interface.
+- **A basic understanding of Python:** You should be familiar with the basics of the language.
+
+
 ## Setting up your project
 
-### Creating a Writer app and getting your API key
+### Create a Writer app and get its API key
 
-From the Home screen, click on **Build an app**.
-
-![Writer home screen](/framework/images/tutorial/chat/chat_assistant_2.png)
-
-Select Framework as the app type you’d like to create, enabling you to generate keys and build your app with the Writer Framework.
-
-![App type selection](/framework/images/tutorial/chat/chat_assistant_3.png)
-
-On the next screen, you can edit your Writer application name in the upper left. Underneath “Authenticate with an API key,” click on **Reveal** to see and copy your API key.
-
-
-### Creating the application
-
-Next, open your terminal and navigate to the directory where you want to create your application directory.
+First, you'll need to create a new app within Writer. 
 
 <Steps>
-  <Step title="Set the API key environment variable">
-    To pass your API key to the Writer Framework, you need to set an environment variable called `WRITER_API_KEY`. One simple way to do this is by exporting the variable for your terminal session.
+  <Step title="Create the app in Writer">
+  Log into Writer. From the Home screen, click on the **Build an app** button.
 
-    <CodeGroup>
-    ```sh On macOS/Linux
-    export WRITER_API_KEY=[key]
-    ```
+  ![Writer home screen](/framework/images/tutorial/chat/chat_assistant_2.png)
 
-    ```sh On Windows
-    set WRITER_API_KEY=[key]
-    ```
-    </CodeGroup>
+  The **Start building** menu will appear, presenting options for the types of apps you can create.
+
+  Select **Framework**, located under **Developer tools**. This will create a brand new app based on Writer Framework.
+
+  !["Start building" menu](/framework/images/tutorial/chat/chat_assistant_3.png)
   </Step>
-  <Step title="Create the application">
-    Run the following command to create your application, replacing `chat-assistant` with your desired project name and `ai-starter` with the template you want to use:
 
-    ```bash
-    writer create chat-assistant --template=ai-starter
-    ```
+  <Step title="Copy your app's API key">
+  On the next screen, titled **How to deploy an application**, you can get the API key for the app by clicking on the **Reveal key** button, located under the text **Authenticate with an API key**. Your complete API key will be displayed, and a "copy" button will appear, enabling you to copy the key.
 
-    This command sets up a new project called `chat-assistant` in the specified directory.
+  !["How to deploy an application" page](/framework/images/tutorial/chat/chat_assistant_2a.png)
   </Step>
-  <Step title="Edit your project">
-    To edit your project, run the below commands. This will bring up the console, where Framework-wide messages and errors will appear, including logs from the API. By default, the Writer Framework Builder is accessible at `localhost:4005`. If that port is in use, you can specify a different port. Open this address in your browser to view your default application setup.
+</Steps>
 
-    <CodeGroup>
-    ```bash Standard port
-    writer edit chat-assistant
-    ```
+### Set up your computer and create the app's project
 
-    ```bash Custom port
-    writer edit chat-assistant –port=3007
-    ```
-    </CodeGroup>
+The next step is to set up the Writer Framework environment on your computer. You'll do this by creating a directory for the project, installing dependencies, and creating the project for the application using a template.
 
+<Steps>
+  <Step title="Open your terminal application">
+  Open your terminal application. On macOS and Linux, this application goes by the name _Terminal_; on Windows, you can use either _Windows PowerShell_ or _Command Prompt_.
+  </Step>
+
+  <Step title="Install the dependencies">
+  <Note>If you already have the `writer` and `python-dotenv` packages installed on your computer, you can skip this step.</Note>
+
+  Install the `writer` and `python-dotenv` packages by entering the following commands in your terminal application:
+
+  ```
+  pip install writer python-dotenv
+  ```
+
+  This command tells `pip`, the Python package installer, to install two packages:
+
+  - `writer`, which provides some command-line commands and enables Python code to interact with Writer and the Writer Framework.
+  - `python-dotenv`, which makes it easy to manage environment variables by loading them from a `.env` file.
+  </Step>
+
+  <Step title="Create the project directory">
+  Enter the following commands into your terminal application:
+
+  ```
+  mkdir chat-assistant
+  cd chat-assistant
+  ```
+
+  These commands will create a new directory named `chat-assistant` (the directory for your project) and put you in that directory.
+  </Step>
+
+  <Step title="Create a .env file">
+  Using your code editor, create a new file and enter the following into it, `[your_api_key]` with the API key you copied earlier:
+
+  ```
+  WRITER_API_KEY=[your_api_key]
+  ```
+  
+  Save the file with the name `.env` in your project directory. Its name is short for "environment," and it's where the application will get the values for its environment variables.
+
+  <Note>On macOS, you might be presented with a pop-up asking **Are you sure you want to use a name that begins with a period "."? — you do, so select the **Use "."** button.</Note>
+
+  The chat assistant app will read the API key from this file and use it to access the Writer Framework. Don't forget to save the file!
+  </Step>
+
+  <Step title="Create the project">
+  Go back to your terminal application and create the project by entering this command:
+
+  ```
+  writer create chat-assistant --template=ai-starter
+  ```
+  
+  This command sets up a new project called `chat-assistant` using a starter template called `ai-starter` so that you're not starting "from scratch."
   </Step>
 </Steps>
 
 
+## Build the UI
 
-## Creating the UI
+Now that you've created the project, it's time to define the UI. The Writer Framework's drag-and-drop capabilities make it easy — even if you haven't done much UI work before!
 
-The Writer Framework lets you set up any layout according to your preferences with a fast drag-and-drop UI. 
+The project editor is a web application that runs on your computer and enables you to define and edit your app's user interface. Launch it by typing the following into your terminal application:
 
-To rename this application and update the Header component, open the code editor and update `my_app.title` in `wf.init_state`:
-
-```python
-wf.init_state({
-    "my_app": {
-        "title": "CHAT ASSISTANT"
-    }
-})
+```
+writer edit chat-assistant
 ```
 
-Click the provided Section component to open its Component settings and clear out the default title. If you’d like to provide any other instructions or context to the user, you can also drag a Text component into the section.
+You'll be presented with the URL for the project editor. Control-click the link (command-click on macOS) to open the project editor, or copy the URL and paste it into the address bar of a browser window.
 
-Finally, drag a Chatbot component into the Section beneath the Text box. 
+You'll be presented with the project editor:
 
-![Initial UI with text and chatbot](/framework/images/tutorial/chat/chat_assistant_4.png)
+![Project editor](/framework/images/tutorial/chat/chat_assistant_2b.png)
 
+You'll see the following: 
 
-## Updating the code
+- The **canvas** is in the center. It displays the app's user interface. 
+- The column on the left contains:
+  - The **Toolkit**, which contains all the UI components. You define the user interface by dragging components from the Toolkit and placing them on the canvas.
+  - The **Component tree**, which shows the arrangement of the UI components on the canvas. It's also useful for selecting items on the canvas, especially when it has a lot of UI components.
 
-With the UI built, you can now update your code to add chat functionality.
+It's time to build the UI!
 
 <Steps>
-  <Step title="Initialize your application state">
-    First, clear any default-generated state and add a `conversation` property set to `writer.ai.Conversation()`. Update your `initial_state` as follows:
+  <Step title="Examine the header">
+  Select the **Header** component by clicking it — it's the component at the top, containing the title **AI STARTER** and a gray area labeled **Empty Header**.
 
-    ```python
-    wf.init_state({
-        // Other state elements above
-        "conversation": writer.ai.Conversation()
-    })
-    ```
+  When you click it, you'll see the **Properties** panel appear on the right side of the page. This lets you view and edit the properties of the selected component.
 
-    The `Conversation` method can optionally accept a dictionary or a content prompt (e.g., “You are a social media expert in the financial services industry”), but it can also be left empty to use the defaults.
+  The first property you'll see in the panel is the **Text** property, which defines the text that appears as the header's title. It should contain the value `@{my_app.title}`. The `@{` and `}` indicate that `my_app.title` is a variable and that its contents should be the text displayed instead of the literal text "my_app.title". You'll set the value of this variable soon.
   </Step>
-  <Step title="Create a handler for the Chatbot component">
-    Next, create a handler for incoming messages by adding the `handle_simple_message` handler. This method will manage the chat interactions:
 
-    ```python
-    def handle_simple_message(state, payload):
-        state["conversation"] += payload
-        
-        for chunk in state["conversation"].stream_complete():
+  <Step title="Clear the Section's default title">
+  Select the **Section** component by clicking it — it's just below the **Header** component and contains the title **Section Title** and a gray area labeled **Empty Section**.
+
+  In the **Properties** panel, clear out the value of the **Title** property. This will remove the **Section**'s default title.
+  </Step>
+
+  <Step title="Add a Text component to the Section">
+  Drag a **Text** component from the **Toolkit** panel on the left (it's under **Content**, and you may need to scroll down a little to find it) and into the *Section*. Sections can act as containers for other components.
+
+  Select the **Text** component. In the **Properties** panel, set the **Text** property to provide instructions or context for your chat assistant. Here's an example: `Welcome to the Chat Assistant. Ask me anything!`
+  </Step>
+
+  <Step title="Add a Chatbot component to the Section">
+  The heart of this app is the **Chatbot** component, a pre-built component that displays the conversation between the LLM and the user and provides a text field where the user can enter prompts.
+
+  Drag a **Chatbot** component from the **Toolkit** panel (it's under **Content**) into the *Section*, just below the Text box.
+  </Step>
+</Steps>
+
+The project editor should now look like this:
+
+![Project editor with components laid out](/framework/images/tutorial/chat/chat_assistant_2c.png)
+
+
+## Add the back-end code
+
+With the UI laid out, it's time to work on the logic behind it. 
+
+Switch to your code editor and open the `main.py` file in your project's directory. This file was automatically generated; you'll update the code in it to define the behavior of your app.
+
+<Steps>
+  <Step title="Import libraries and load the Writer Framework API key">
+  You should see the following at the start of the file:
+
+  ```python
+  import writer as wf
+  import writer.ai
+  ```
+
+  Replace that code with the following:
+
+  ```python
+  import os
+  from dotenv import load_dotenv
+  import writer as wf
+  import writer.ai
+
+  # Load environment variables from .env file
+  load_dotenv()
+
+  # Set the API key
+  wf.api_key = os.getenv("WRITER_API_KEY")
+  ```
+  
+  This code imports the libraries that the application will need and then reads your Writer Framework API key from the `.env` file in your project's directory.
+  </Step>
+
+  <Step title="Initialize the application">
+  The next step is to set the application's initial state. Find this code...
+
+  ```python
+  # Welcome to Writer Framework! 
+  # This template is a starting point for your AI apps.
+  # More documentation is available at https://dev.writer.com/framework
+
+
+  # Initialise the state
+  wf.init_state({
+      "my_app": {
+          "title": "AI STARTER"
+      },
+  })
+  ```
+
+  ...and replace it with the following:
+
+  ```python
+  # Initialize the state
+  wf.init_state({
+      "conversation": writer.ai.Conversation(),
+      "my_app": {
+          "title": "CHAT ASSISTANT"
+      },
+  })
+  ```
+
+  The Writer Framework's `init_state()` method sets the initial value of `state`, a dictionary containing values that define the state of the application. The key-value pairs in `state` are how you store values used by your app and how you pass data between the back-end code and the UI.
+
+  The code above sets the initial value of `state` so that it has two key-value pairs:
+
+  - `conversation`: An object that keeps a record of the conversation that the user is having with the LLM. You'll bind its value to the **Chatbot** component soon.
+  - `my_app`: A dictionary containing values that define the application's appearance. This dictionary has a single key-value pair, `title`, which defines the text that appears as the application's title in the **Header**.
+  </Step>
+
+  <Step title="Create a handler to respond to the user's input">
+  The application needs a function to handle incoming chat messages. Add the following to the end of `main.py`:
+
+  ```python
+  def generate_completion(state, payload):
+    print(f"Here's what the user entered: {payload['content']}")
+    state["conversation"] += payload
+    print(f"Conversation: {state['conversation'].messages}")
+    try:
+        for index, chunk in enumerate(state["conversation"].stream_complete()):
+            print(f"Chunk {index}: {chunk}")
+            if not chunk.get("content"):
+                chunk["content"] = ""
             state["conversation"] += chunk
+            
+        print(f"state['conversation']:\n{state['conversation'].messages}")
+    except Exception as e:
+        print(f"Error during stream_complete: {e}")
     ```
 
-    This code uses the streaming function of the `Conversation` method, which is a wrapper for the `chat` API endpoint. Each chunk returned from the stream is added to the `conversation` variable in the application state.
+    The `generate_completion()` function will be called when the user enters a prompt, which is contained in the `payload` object. The `payload` object is  added to the `conversation` object contained in the application's `state`, which adds the user's prompt to the record of the conversation between the user and the LLM.
+
+    After adding the user's prompt to the conversational record, `generate_completion()` calls the `conversation` object's `stream_complete()` method, which generates an LLM completion based on the conversation so far. As its name implies, `stream_complete()` returns the completion as a stream of text chunks, which are captured and added to the `conversation` object.
   </Step>
 </Steps>
 
 
+## Bind the UI to the back-end code
 
-## Binding to the UI
+You've built the UI and written the code behind it. Let's connect the two! Go back to the browser window with the project editor and do the following:
 
-Click on the **chatbot component** to open up the Component settings panel. Bind this chatbot to a conversation variable by adding `@{conversation}` in the Conversation Object property under General. This variable will reference the Writer AI SDK. You can also update properties such as the assistant's initials, the user's initials, and whether the chat uses markdown.
+<Steps>
+  <Step title="Observe that the heading at the top of the app is now 'CHATBOT ASSISTANT'">
+  Earlier, you saw that the **Header** component's **Text** property was set to `@{my_app.title}`, a value in the app's `state` variable. You changed this value when you update the call to the Writer Framework's `init_state()` method.
+  </Step>
 
-![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_5.png)
+  <Step title="Bind the Chatbot component to the 'state' variable's 'conversation' key">
+  Recall that the `conversation` object contained within the `state` variable contains the record of the conversation that the user is having with the LLM. Binding the **Chatbot** component to this object allows it to display the conversation to the user.
 
-Finally, attach the handler to the chatbot. In the User Interface, click on the **chatbot component** to bring up the Component settings panel. Scroll to the Events section towards the bottom of the pane and choose the `handle_simple_message` handler for the `wf-chatbot-message` event.
+  Select the **Chatbot** component. In the **Properties** panel, find the **Conversation** property and set its value to `@{conversation}`.
 
-![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_6.png)
+  The value `@{conversation}` specifies that the **Chatbot** component should get its information from the value corresponding to the `conversation` key in the application's `state` variable.
+  </Step>
 
-After saving and running your code, click the preview button and type something into your chat assistant. You should see the response appear on the screen as it comes back from the assistant. Congratulations!
+  <Step title="Specify the Chatbot component's event handler">
+  You need to specify that the **Chatbot** component should call the `generate_completion()` function when the user enters a prompt. 
+  
+  Do this by scrolling down the **Properties** panel to the **Events** section until you see a property called **`wf_chatbot_message`**. Select **`generate_completion`** from its menu.
+  </Step>
+</Steps>
 
-![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_7.png)
+
+## Run the application locally
+
+The application is ready to run locally!
+
+Switch back your terminal application. Stop the editor with ctrl-c, then run the application by entering the following command in your project directory:
+
+```
+writer run chat-assistant
+```
+
+This will start the application, which you can access with your browser at the URL that appears on the command line.
+
+<Note>The Writer editor, which you launched with `writer edit chat-assistant`, and your application, which you launched with `writer run chat-assistant`, run  on the same URL, but on different *ports* (specified by the number after the `:` character at the end of the URL).</Note>
 
 
-## Deploying the application
+## Deploy the app to the Writer Cloud (optional)
 
-To deploy the application to the Writer cloud, either terminate your current Writer Framework process or open a new terminal session and run the following command:
+Right now, the app will only run on your computer. To make it available online, you'll need to deploy it to the Writer Cloud.
 
+In your terminal application, stop your app with ctrl-c, then deploy your application by entering the following command:
 
 ```
 writer deploy chat-assistant
 ```
 
+You'll be asked to enter your app's API key. Once you do that, the Writer command-line application will start deploying your application to the Writer Cloud. The process should take a couple of minutes.
 
-Once the application is deployed, the CLI will return with the URL of your live application.
+Once the app has been deployed to the Writer Cloud, you'll be shown the URL for your application, which you can use to access it online.
 
 
 ## Conclusion
 
-That's all it takes to set up a basic application with the Writer Framework. This setup not only demonstrates the platform's capabilities, but also provides a foundation on which you can build more complex applications. To learn more, explore the rest of the Writer Framework documentation and the API documentation. 
+That's it — you've built a functional chat assistant using the Writer Framework! 
+
+Feel free to modify this project! The Writer platform is flexible enough for you to customize, extend, and evolve your application into something completely different! To find out what else you can do, check out the documentation for [Writer Framework](https://dev.writer.com/framework/introduction) and the [Writer API](https://dev.writer.com/api-guides/introduction).
