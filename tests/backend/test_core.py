@@ -909,6 +909,66 @@ class TestEventDeserialiser:
         self.ed.transform(ev_valid)
         assert ev_valid.payload == "23:59"
 
+    def test_dataframe_update(self) -> None:
+
+        """
+        Test that a dataframe update event should decode big int format from frontend
+        """
+        ev = WriterEvent(
+            type="wf-dataframe-update",
+            instancePath=self.root_instance_path,
+            payload={
+                "record": {
+                    "number": 1,
+                    "text": "one",
+                    "empty_text": ""
+                }
+            }
+        )
+
+        self.ed.transform(ev)
+
+        assert ev.payload['record']['number'] == 1
+        assert ev.payload['record']['text'] == "one"
+
+        """
+        Test that a dataframe update event should decode big int format from frontend
+        """
+        ev = WriterEvent(
+            type="wf-dataframe-update",
+            instancePath=self.root_instance_path,
+            payload={
+                "record": {
+                    "number": "1n",
+                    "text": "one"
+                }
+            }
+        )
+
+        self.ed.transform(ev)
+
+        assert ev.payload['record']['number'] == 1
+        assert ev.payload['record']['text'] == "one"
+
+        """
+        Test that a dataframe update event should decode big int format from frontend
+        """
+        ev = WriterEvent(
+            type="wf-dataframe-update",
+            instancePath=self.root_instance_path,
+            payload={
+                "record": {
+                    "number": r"1\n",
+                    "text": "one"
+                }
+            }
+        )
+
+        self.ed.transform(ev)
+
+        assert ev.payload['record']['number'] == "1n"
+        assert ev.payload['record']['text'] == "one"
+
 
 class TestFileWrapper():
 

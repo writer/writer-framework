@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="CoreDataframe" :aria-busy="isBusy">
+	<div ref="rootEl" class="CoreDataframe">
 		<div ref="toolsEl" class="tools">
 			<div v-if="fields.enableSearch.value === 'yes'">
 				<WdsTextInput
@@ -15,7 +15,7 @@
 				class="download"
 				@click="download"
 			>
-				<i class="material-symbols-outlined">download</i>
+				<i class="material-symbols-outlined"> download </i>
 			</WdsControl>
 		</div>
 		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">
@@ -28,77 +28,76 @@
 				}"
 			>
 				<div
-					:style="{
-						display: 'grid',
-						'grid-template-columns': gridTemplateColumns,
-					}"
+					v-if="isIndexShown"
+					data-writer-grid-col="0"
+					class="cell headerCell indexCell"
 				>
-					<div v-if="hasActions"></div>
-
-					<div
-						v-if="isIndexShown"
-						data-writer-grid-col="0"
-						class="cell headerCell indexCell"
-					>
-						<div class="name"></div>
-						<div class="widthAdjuster"></div>
-					</div>
-					<div
-						v-for="(columnName, columnPosition) in shownColumnNames"
-						:key="columnName"
-						:data-writer-grid-col="
-							columnPosition + (isIndexShown ? 1 : 0)
-						"
-						class="cell headerCell"
-						@click="handleSetOrder($event, columnName)"
-					>
-						<div class="name">
-							{{ columnName }}
-						</div>
-						<div
-							v-show="orderSetting?.columnName == columnName"
-							class="icon"
-						>
-							<span class="material-symbols-outlined">{{
-								orderSetting?.descending
-									? "arrow_upward"
-									: "arrow_downward"
-							}}</span>
-						</div>
-						<div class="widthAdjuster"></div>
-					</div>
+					<div class="name"></div>
+					<div class="widthAdjuster"></div>
 				</div>
-
-				<CoreDataframeRow
+				<div
+					v-for="(columnName, columnPosition) in shownColumnNames"
+					:key="columnName"
+					:data-writer-grid-col="
+						columnPosition + (isIndexShown ? 1 : 0)
+					"
+					class="cell headerCell"
+					@click="handleSetOrder($event, columnName)"
+				>
+					<div class="name">
+						{{ columnName }}
+					</div>
+					<div
+						class="icon"
+						:style="{
+							visibility:
+								orderSetting?.columnName == columnName
+									? 'visible'
+									: 'hidden',
+						}"
+					>
+						<span
+							v-show="!orderSetting?.descending"
+							class="material-symbols-outlined"
+						>
+							arrow_downward
+						</span>
+						<span
+							v-show="orderSetting?.descending"
+							class="material-symbols-outlined"
+						>
+							arrow_upward
+						</span>
+					</div>
+					<div class="widthAdjuster"></div>
+				</div>
+				<template
 					v-for="(row, rowNumber) in slicedTable?.data"
 					:key="rowNumber"
-					:style="{
-						'grid-template-columns': gridTemplateColumns,
-					}"
-					:row="row"
-					:actions="actions"
-					:use-markdown="useMarkdown"
-					:editable="enableRecordUpdate && !isBusy"
-					:columns="shownColumnNames"
-					:show-index="isIndexShown"
-					:index-text="
-						slicedTable.indices[rowNumber] ??
-						indexColumnNames.map((c) => row[c]).join(', ')
-					"
-					@action="handleActionRow"
-					@change="handleUpdateCell"
-				/>
-				<div v-if="enableRecordAdd" class="CoreDataframe__newRow cell">
-					<WdsButton
-						aria-label="Create a new row at the end"
-						size="small"
-						variant="tertiary"
-						@click="handleAddRow"
+				>
+					<div v-if="isIndexShown" class="cell indexCell">
+						<template v-if="tableIndex.length == 0">
+							{{ slicedTable.indices[rowNumber] }}
+						</template>
+						<template v-else>
+							{{ indexColumnNames.map((c) => row[c]).join(", ") }}
+						</template>
+					</div>
+					<div
+						v-for="columnName in shownColumnNames"
+						:key="columnName"
+						class="cell"
 					>
-						<i class="material-symbols-outlined">add</i>
-						Add a row
-					</WdsButton>
-				</div>
+						<BaseMarkdown
+							v-if="fields.useMarkdown.value == 'yes'"
+							:raw-text="row[columnName]"
+						>
+						</BaseMarkdown>
+						<template v-else>
+							{{ row[columnName] }}
+						</template>
+					</div>
+				</template>
 			</div>
 			<div
 				v-if="isRowCountMassive"
@@ -110,14 +109,12 @@
 </template>
 
 <script lang="ts">
-import { computed, inject, ref, shallowRef } from "vue";
+import { Ref, computed, inject, ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
-import CoreDataframeRow from "./CoreDataframe/CoreDataframeRow.vue";
 import {
 	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
-	accentColor,
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import { onMounted } from "vue";
@@ -127,61 +124,22 @@ import { ComputedRef } from "vue";
 import { onUnmounted } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsControl from "@/wds/WdsControl.vue";
-import { useDataFrameValueBroker } from "./CoreDataframe/useDataframeValueBroker";
-import {
-	ARQUERO_INTERNAL_ID,
-	DEFAULT_DATA_FRAME,
-	UNNAMED_INDEX_COLUMN_PATTERN,
-} from "./CoreDataframe/constants";
-import WdsButton from "@/wds/WdsButton.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const description = "A component to display Pandas DataFrames.";
-
-const dataFrameUpdateHandlerStub = `
-# Subscribe this event handler to the \`wf-dataframe-update\` event
-def on_record_change(state, payload):
-    state['mydf'].record_update(payload)`;
-
-const dataFrameAddHandlerStub = `
-# Subscribe this event handler to the \`wf-dataframe-add\` event
-def on_record_add(state, payload):
-	payload['record']['sales'] = 0 # default value inside the dataframe
-	state['mydf'].record_add(payload)`;
-
-const dataFrameActionHandlerStub = `
-# Subscribe this event handler to the \`wf-dataframe-action\` event
-def on_record_action(state, payload):
-	record_index = payload['record_index']
-	if payload['action'] == 'remove':
-		state['mydf'].record_remove(payload)
-	if payload['action'] == 'open':
-		state['record'] = state['df'].record(record_index) # dict representation of record`;
+const defaultDataframe = `data:application/vnd.apache.arrow.file;base64,QVJST1cxAAD/////iAMAABAAAAAAAAoADgAGAAUACAAKAAAAAAEEABAAAAAAAAoADAAAAAQACAAKAAAAlAIAAAQAAAABAAAADAAAAAgADAAEAAgACAAAAGwCAAAEAAAAXwIAAHsiaW5kZXhfY29sdW1ucyI6IFsiX19pbmRleF9sZXZlbF8wX18iXSwgImNvbHVtbl9pbmRleGVzIjogW3sibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogbnVsbCwgInBhbmRhc190eXBlIjogInVuaWNvZGUiLCAibnVtcHlfdHlwZSI6ICJvYmplY3QiLCAibWV0YWRhdGEiOiB7ImVuY29kaW5nIjogIlVURi04In19XSwgImNvbHVtbnMiOiBbeyJuYW1lIjogImNvbF9hIiwgImZpZWxkX25hbWUiOiAiY29sX2EiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiY29sX2IiLCAiZmllbGRfbmFtZSI6ICJjb2xfYiIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6IG51bGwsICJmaWVsZF9uYW1lIjogIl9faW5kZXhfbGV2ZWxfMF9fIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxMi4wLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjEuNS4zIn0ABgAAAHBhbmRhcwAAAwAAAIgAAABEAAAABAAAAJT///8AAAECEAAAACQAAAAEAAAAAAAAABEAAABfX2luZGV4X2xldmVsXzBfXwAAAJD///8AAAABQAAAAND///8AAAECEAAAABgAAAAEAAAAAAAAAAUAAABjb2xfYgAAAMD///8AAAABQAAAABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAhAAAAAgAAAABAAAAAAAAAAFAAAAY29sX2EAAAAIAAwACAAHAAgAAAAAAAABQAAAAAAAAAD/////6AAAABQAAAAAAAAADAAWAAYABQAIAAwADAAAAAADBAAYAAAAMAAAAAAAAAAAAAoAGAAMAAQACAAKAAAAfAAAABAAAAACAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAAAAAAAMAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD/////AAAAABAAAAAMABQABgAIAAwAEAAMAAAAAAAEADwAAAAoAAAABAAAAAEAAACYAwAAAAAAAPAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAACgAMAAAABAAIAAoAAACUAgAABAAAAAEAAAAMAAAACAAMAAQACAAIAAAAbAIAAAQAAABfAgAAeyJpbmRleF9jb2x1bW5zIjogWyJfX2luZGV4X2xldmVsXzBfXyJdLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAiY29sX2EiLCAiZmllbGRfbmFtZSI6ICJjb2xfYSIsICJwYW5kYXNfdHlwZSI6ICJpbnQ2NCIsICJudW1weV90eXBlIjogImludDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJjb2xfYiIsICJmaWVsZF9uYW1lIjogImNvbF9iIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiAiX19pbmRleF9sZXZlbF8wX18iLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjEyLjAuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMS41LjMifQAGAAAAcGFuZGFzAAADAAAAiAAAAEQAAAAEAAAAlP///wAAAQIQAAAAJAAAAAQAAAAAAAAAEQAAAF9faW5kZXhfbGV2ZWxfMF9fAAAAkP///wAAAAFAAAAA0P///wAAAQIQAAAAGAAAAAQAAAAAAAAABQAAAGNvbF9iAAAAwP///wAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAECEAAAACAAAAAEAAAAAAAAAAUAAABjb2xfYQAAAAgADAAIAAcACAAAAAAAAAFAAAAAsAMAAEFSUk9XMQ==`;
 
 export default {
 	writer: {
 		name: "DataFrame",
 		description,
 		category: "Content",
-		events: {
-			"wf-dataframe-add": {
-				desc: "Capture adding a row.",
-				stub: dataFrameAddHandlerStub.trim(),
-			},
-			"wf-dataframe-update": {
-				desc: "Capture a cell change.",
-				stub: dataFrameUpdateHandlerStub.trim(),
-			},
-			"wf-dataframe-action": {
-				desc: "Remove or open a row.",
-				stub: dataFrameActionHandlerStub.trim(),
-			},
-		},
 		fields: {
 			dataframe: {
 				name: "Data",
 				desc: "Must be a state reference to a Pandas dataframe or PyArrow table. Alternatively, a URL for an Arrow IPC file.",
 				type: FieldType.Text,
-				default: DEFAULT_DATA_FRAME,
+				default: defaultDataframe,
 			},
 			showIndex: {
 				name: "Show index",
@@ -202,24 +160,6 @@ export default {
 					no: "no",
 				},
 			},
-			enableRecordAdd: {
-				name: "Enable adding a record",
-				type: FieldType.Text,
-				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
-			},
-			enableRecordUpdate: {
-				name: "Enable updating a record",
-				type: FieldType.Text,
-				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
-			},
 			enableDownload: {
 				name: "Enable download",
 				desc: "Allows the user to download the data as CSV.",
@@ -229,12 +169,6 @@ export default {
 					yes: "yes",
 					no: "no",
 				},
-			},
-			actions: {
-				name: "Actions",
-				desc: "Define rows actions",
-				type: FieldType.KeyValue,
-				default: JSON.stringify({ remove: "Remove", open: "Open" }),
 			},
 			useMarkdown: {
 				name: "Use Markdown",
@@ -266,7 +200,6 @@ export default {
 			},
 			primaryTextColor,
 			secondaryTextColor,
-			accentColor,
 			separatorColor,
 			dataframeBackgroundColor: {
 				name: "Background",
@@ -290,7 +223,6 @@ export default {
 	},
 };
 </script>
-
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import type * as aq from "arquero";
@@ -302,9 +234,9 @@ import type { Table } from "apache-arrow";
  */
 const MASSIVE_ROW_COUNT = 1000;
 const ROW_HEIGHT_PX = 36; // Must match CSS
-const ROW_ADD_RECORD_HEIGHT_PX = 58;
 const MIN_COLUMN_WIDTH_PX = 80;
 const MAX_COLUMN_AUTO_WIDTH_PX = 300;
+const UNNAMED_INDEX_COLUMN_PATTERN = /^__index_level_[0-9]+__$/;
 
 type OrderSetting = {
 	columnName: string;
@@ -312,30 +244,17 @@ type OrderSetting = {
 };
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref<HTMLElement>();
-const toolsEl = ref<HTMLElement>();
-const gridContainerEl = ref<HTMLElement>();
+const rootEl: Ref<HTMLElement> = ref();
+const toolsEl: Ref<HTMLElement> = ref();
+const gridContainerEl: Ref<HTMLElement> = ref();
 let baseTable: aq.internal.ColumnTable = null;
-const table = shallowRef<aq.internal.ColumnTable | null>(null);
-const tableIndex = shallowRef([]);
+const table: Ref<aq.internal.ColumnTable> = ref(null);
+const tableIndex = ref([]);
 const isIndexShown = computed(() => fields.showIndex.value == "yes");
-const actions = computed<Record<string, string>>(() => fields.actions.value);
-const orderSetting = shallowRef<OrderSetting | null>(null);
-const relativePosition = ref(0);
-const columnWidths = ref<number[]>([]);
+const orderSetting: Ref<OrderSetting> = ref(null);
+const relativePosition: Ref<number> = ref(0);
+const columnWidths: Ref<number[]> = ref([]);
 let columnBeingWidthAdjusted: number = null;
-
-const wf = inject(injectionKeys.core);
-const instancePath = inject(injectionKeys.instancePath);
-
-const {
-	handleUpdateCell,
-	handleAddRow,
-	handleActionRow,
-	isBusy: isUpdatingBusy,
-} = useDataFrameValueBroker(wf, instancePath, rootEl, table);
-
-const isBusy = computed(() => isLoadingData.value || isUpdatingBusy.value);
 
 const columnNames: ComputedRef<string[]> = computed(() => {
 	if (!table.value) {
@@ -348,7 +267,6 @@ const indexColumnNames = computed(() =>
 );
 const shownColumnNames = computed(() => {
 	const cols = columnNames.value.filter((c) => {
-		if (c === ARQUERO_INTERNAL_ID) return false;
 		const isIndex = tableIndex.value.includes(c);
 		const isUnnamed = UNNAMED_INDEX_COLUMN_PATTERN.test(c);
 		return !(isIndex && isUnnamed);
@@ -364,16 +282,6 @@ const isRowCountMassive = computed(() => rowCount.value > MASSIVE_ROW_COUNT);
 const displayRowCount = computed(() =>
 	Math.min(fields.displayRowCount.value, rowCount.value),
 );
-
-const hasActions = computed(
-	() => Object.keys(fields.actions.value || {}).length > 0,
-);
-const useMarkdown = computed(() => fields.useMarkdown.value == "yes");
-const enableRecordUpdate = computed(
-	() => fields.enableRecordUpdate.value == "yes",
-);
-const enableRecordAdd = computed(() => fields.enableRecordAdd.value == "yes");
-
 const rowOffset = computed(() => {
 	let maxOffset: number;
 	if (fields.wrapText.value == "yes") {
@@ -394,36 +302,37 @@ const slicedTable = computed(() => {
 	const limit = isRowCountMassive.value
 		? displayRowCount.value
 		: MASSIVE_ROW_COUNT;
-	const data = table.value.objects({ offset, limit });
+	const data = table.value.objects({
+		offset,
+		limit,
+	});
 	const indices = table.value
 		.indices()
 		.slice(rowOffset.value, rowOffset.value + displayRowCount.value);
-
-	return { data, indices };
-});
-
-const gridTemplateColumns = computed(() => {
-	let columns = hasActions.value ? "16px " : "";
-
-	if (columnWidths.value.length == 0) {
-		columns += `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
-	} else {
-		columns += columnWidths.value
-			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px`)
-			.join(" ");
-	}
-
-	return columns;
+	return {
+		data,
+		indices,
+	};
 });
 
 const gridStyle = computed(() => {
 	const fontStyle = fields.fontStyle.value;
+	let templateColumns: string;
+
+	if (columnWidths.value.length == 0) {
+		templateColumns = `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
+	} else {
+		templateColumns = columnWidths.value
+			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px`)
+			.join(" ");
+	}
 
 	return {
-		"min-height": `${(1 + fields.displayRowCount.value + Number(enableRecordAdd.value ?? false)) * ROW_HEIGHT_PX}px`,
-		"max-height": `${(displayRowCount.value + 1 + Number(enableRecordAdd.value ?? false)) * ROW_HEIGHT_PX}px`,
+		"min-height": `${ROW_HEIGHT_PX * (1 + fields.displayRowCount.value)}px`,
+		"max-height": `${(displayRowCount.value + 1) * ROW_HEIGHT_PX}px`,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
-		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content) ${ROW_ADD_RECORD_HEIGHT_PX}px`,
+		"grid-template-columns": templateColumns,
+		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
 	};
 });
 
@@ -494,10 +403,7 @@ function getIndexFromArrowTable(table: Table) {
 	return pandasMetadata.index_columns;
 }
 
-const isLoadingData = ref(false);
-
 async function loadData() {
-	isLoadingData.value = true;
 	const aq = await import("arquero");
 	const { tableFromIPC } = await import("apache-arrow");
 	const url = fields.dataframe.value;
@@ -510,21 +416,15 @@ async function loadData() {
 		tableIndex.value = getIndexFromArrowTable(arrowTable);
 		const aqTable = aq.fromArrow(arrowTable);
 		baseTable = aqTable;
-		// add a unique ID to each row to be allow to edit a specific cell
-		table.value = baseTable.derive({
-			[ARQUERO_INTERNAL_ID]: () => aq.op.row_number(),
-		});
+		table.value = baseTable;
 	} catch (e) {
 		// eslint-disable-next-line no-console
 		console.error("Couldn't load dataframe from Arrow URL.", e);
-	} finally {
-		isLoadingData.value = false;
 	}
 }
 
-async function download() {
-	const aq = await import("arquero");
-	const csv = table.value.select(aq.not(ARQUERO_INTERNAL_ID)).toCSV();
+function download() {
+	const csv = table.value.toCSV();
 	const el = document.createElement("a");
 
 	const blob = new Blob([csv], { type: "text/csv" });
@@ -565,12 +465,7 @@ async function handleSearchChange(ev: InputEvent) {
 			columnNames
 				.map((c) => `aq.op.match(d.${c}, $.pattern) !== null`)
 				.join(" || ");
-
-		const aq = await import("arquero");
-		table.value = baseTable
-			.params({ pattern, filterS })
-			.filter(filterS)
-			.derive({ [ARQUERO_INTERNAL_ID]: () => aq.op.row_number() });
+		table.value = baseTable.params({ pattern, filterS }).filter(filterS);
 	}
 	await nextTick();
 	resetScroll();
@@ -652,24 +547,6 @@ onUnmounted(() => {
 	width: 100%;
 }
 
-.CoreDataframe__newRow {
-	display: flex;
-	align-self: center;
-	justify-content: center;
-}
-.CoreDataframe__newRow__btn {
-	cursor: pointer;
-
-	background-color: var(--separatorColor);
-	border: 1px solid var(--emptinessColor);
-	height: 16px;
-	width: 16px;
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .tools {
 	display: flex;
 	gap: 16px;
@@ -703,15 +580,6 @@ onUnmounted(() => {
 	display: grid;
 }
 
-.endpoint {
-	position: absolute;
-	height: 1px;
-	width: 1px;
-	background: red;
-}
-</style>
-
-<style>
 .cell {
 	min-height: 36px;
 	padding: 8px;
@@ -774,5 +642,12 @@ onUnmounted(() => {
 
 .indexCell {
 	color: var(--secondaryTextColor);
+}
+
+.endpoint {
+	position: absolute;
+	height: 1px;
+	width: 1px;
+	background: red;
 }
 </style>

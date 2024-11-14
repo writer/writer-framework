@@ -13,11 +13,13 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
+	registerComponentTemplate,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
+import { bigIntReplacer } from "./serializer";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -95,6 +97,16 @@ export function generateCore() {
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
 		loadAbstractTemplates(initData.abstractTemplates);
+
+		// put some components behind feature flag
+
+		if (featureFlags.value.includes("dataframeEditor")) {
+			const component = await import(
+				"@/components/core/content/CoreDataframe.vue"
+			).then((m) => m.default);
+
+			registerComponentTemplate("dataframe", component);
+		}
 
 		// Only returned for edit (Builder) mode
 
@@ -422,8 +434,10 @@ export function generateCore() {
 			if (webSocket.readyState !== webSocket.OPEN) {
 				throw "Connection lost.";
 			}
-			webSocket.send(JSON.stringify(wsData));
-		} catch {
+			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+		} catch (error) {
+			// eslint-disable-next-line no-console
+			console.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
 		}
 	}
