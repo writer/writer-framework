@@ -27,9 +27,9 @@ def run_workflow(session, component_id: str, execution_env: Dict):
     return_value = None
     try:
         for node in get_terminal_nodes(nodes):
-            tool = run_node(node, nodes, execution, session, execution_env)
+            run_node(node, nodes, execution, session, execution_env)
         for component_id, tool in execution.items():
-            if tool and tool.return_value:
+            if tool and tool.return_value is not None:
                 return_value = tool.return_value
     except BaseException as e:
         _generate_run_log(session, execution, "Failed workflow execution", "error")
@@ -115,11 +115,17 @@ def run_node(target_node: "Component", nodes: List["Component"], execution: Dict
         if tool.outcome == out_id:
             matched_dependencies += 1
         result = tool.result
+        if tool.return_value is not None:
+            return
 
     if len(dependencies) > 0 and matched_dependencies == 0:
         return
 
-    tool = tool_class(target_node, execution, session, execution_env | {"result": result})
+    results = {
+        "result": result,
+        "results": { k:v.result for k,v in execution.items() }
+    }
+    tool = tool_class(target_node, execution, session, execution_env | results)
     
     try:
         start_time = time.time()
