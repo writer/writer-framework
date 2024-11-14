@@ -1,3 +1,4 @@
+import type { Component as VueComponent } from "vue";
 // Maps Writer Framework component types to renderable Vue components
 // content
 import CoreDataframe from "../components/core/content/CoreDataframeLegacy.vue";
@@ -69,10 +70,14 @@ import WorkflowsWorkflow from "../components/workflows/WorkflowsWorkflow.vue";
 import WorkflowsNode from "../components/workflows/abstract/WorkflowsNode.vue";
 import WorkflowsRoot from "@/components/workflows/WorkflowsRoot.vue";
 
-import { AbstractTemplate, WriterComponentDefinition } from "@/writerTypes";
+import type {
+	AbstractTemplate,
+	TemplateMap,
+	WriterComponentDefinition,
+} from "@/writerTypes";
 import { h } from "vue";
 
-const templateMap = {
+const templateMap: TemplateMap = {
 	root: CoreRoot,
 	page: CorePage,
 	sidebar: CoreSidebar,
@@ -135,14 +140,14 @@ const templateMap = {
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};
 
+// eslint-disable-next-line no-undef
 if (WRITER_LIVE_CCT === "yes") {
 	/*
-	Assigns the components in custom_components to the template map,
+	Assigns the components in `components/custom` to the template map,
 	allowing for live updates when developing custom component templates.
 	*/
 
-	const liveCCT: Record<string, any> = (await import("../custom_components"))
-		.default;
+	const liveCCT = (await import("../components/custom")).default;
 	Object.entries(liveCCT).forEach(([componentType, template]) => {
 		templateMap[`custom_${componentType}`] = template;
 	});
@@ -157,7 +162,7 @@ function fallbackTemplate(type: string) {
 			description: message,
 			category: "Fallback",
 		},
-		setup(props, { slots }) {
+		setup(_props: never, { slots }) {
 			return () => {
 				return h(
 					"div",
@@ -212,7 +217,10 @@ export function getSupportedComponentTypes() {
 	return [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
 }
 
-export function registerComponentTemplate(type: string, vueComponent: any) {
+export function registerComponentTemplate(
+	type: string,
+	vueComponent: VueComponent,
+) {
 	templateMap[type] = vueComponent;
 }
 
