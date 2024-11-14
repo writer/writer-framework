@@ -92,8 +92,6 @@ const component = computed(() => {
 	return component;
 });
 
-const alias = ref(component.value.content["alias"]);
-
 const def = computed(() => {
 	return wf?.getComponentDefinition(component.value?.type);
 });
@@ -155,10 +153,6 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	ev.stopPropagation();
 	emit("outMousedown", outId);
 }
-
-watch(alias, () => {
-	setContent;
-});
 
 watch(isEngaged, () => {
 	emit("engaged");

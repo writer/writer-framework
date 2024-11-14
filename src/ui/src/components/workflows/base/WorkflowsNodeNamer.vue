@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, ref } from "vue";
+import { computed, inject, nextTick, ref } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { Component } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";

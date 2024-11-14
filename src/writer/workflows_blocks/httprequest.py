@@ -4,6 +4,7 @@ from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
 from writer.workflows_blocks.blocks import WorkflowBlock
 
+
 class HTTPRequest(WorkflowBlock):
 
     @classmethod
@@ -86,7 +87,7 @@ class HTTPRequest(WorkflowBlock):
             else:
                 self.outcome = "responseError"
                 raise RuntimeError("HTTP response with code " + str(req.status_code))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             self.result = "JSON decode error. The response contains invalid JSON."
             self.outcome = "responseError"
         except BaseException as e:
