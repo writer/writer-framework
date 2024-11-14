@@ -17,7 +17,7 @@ test.describe("Reuse component", () => {
 	}
 
 	const getSelectedComponentId = async (page: Page): Promise<string> => {
-		return await page.locator('.BuilderSettings .copyText').innerText();
+		return await page.locator('.BuilderSettings .BuilderCopyText').innerText();
 	}
 
 	const setReuseTarget = async (page: Page, id: string) => {

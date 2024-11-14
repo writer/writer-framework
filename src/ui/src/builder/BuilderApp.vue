@@ -89,6 +89,10 @@
 		<!-- MODAL -->
 
 		<div id="modal"></div>
+
+		<!-- TOOLTIP -->
+
+		<BuilderTooltip id="tooltip"></BuilderTooltip>
 	</div>
 </template>
 
@@ -99,6 +103,7 @@ import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
+import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 
 const BuilderSettings = defineAsyncComponent(
@@ -278,13 +283,13 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	);
 };
 
-const handleRendererDragEnd = (ev: DragEvent) => {
+function handleRendererDragEnd(ev: DragEvent) {
 	ssbm.setSelection(null);
 	removeInsertionCandidacy(ev);
-};
+}
 
 onMounted(() => {
-	document.addEventListener("keydown", (ev) => handleKeydown(ev));
+	document.addEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -388,11 +393,11 @@ onMounted(() => {
 
 .settingsBar {
 	position: absolute;
-	right: 32px;
+	right: 24px;
 	top: v-bind("ssbm.getMode() == 'workflows' ? '72px' : '20px'");
 	z-index: 4;
 	width: var(--builderSettingsWidth);
-	bottom: 20px;
+	bottom: 24px;
 	overflow: hidden;
 	border: 1px solid var(--builderAreaSeparatorColor);
 	background: var(--builderBackgroundColor);
@@ -431,5 +436,10 @@ onMounted(() => {
 	top: 0;
 	left: 0;
 	z-index: 10;
+}
+
+#tooltip {
+	position: absolute;
+	z-index: 11;
 }
 </style>

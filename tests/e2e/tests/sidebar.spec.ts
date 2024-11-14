@@ -23,7 +23,7 @@ test.describe("sidebar", () => {
 			// click on icon to begin search
 			await page
 				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch i[title="Search"]`,
+					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="search"]`,
 				)
 				.click();
 
@@ -40,7 +40,7 @@ test.describe("sidebar", () => {
 			// close search
 			await page
 				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch i[title="Close"]`,
+					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="close"]`,
 				)
 				.click();
 
@@ -54,7 +54,7 @@ test.describe("sidebar", () => {
 			// click on icon to begin search
 			await page
 				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch i[title="Search"]`,
+					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="search"]`,
 				)
 				.click();
 

@@ -106,6 +106,7 @@ const className = computed(() => [
 .WdsButton--neutral {
 	border: none;
 	box-shadow: none;
+	height: fit-content;
 	background: unset;
 	margin: 0;
 	padding: 0;
@@ -116,7 +117,7 @@ const className = computed(() => [
 	color: unset;
 	border: none;
 	box-shadow: none;
-	background: unset;
+	background: var(--builderSeparatorColor);
 }
 
 .WdsButton--neutral:disabled {

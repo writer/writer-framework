@@ -89,7 +89,7 @@ const actions: BuilderPanelAction[] = [
 		},
 		keyboardShortcut: {
 			modifierKey: true,
-			key: "l",
+			key: "L",
 		},
 	},
 	{

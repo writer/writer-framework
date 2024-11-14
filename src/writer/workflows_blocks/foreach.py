@@ -61,7 +61,7 @@ class ForEach(WorkflowBlock):
             items = self._get_field("items", as_json=True)
             base_execution_env = self._get_field("executionEnv", as_json=True)
             std_items = items
-            
+            result = None
             if isinstance(items, list):
                 std_items = enumerate(std_items, 0)
                 result = [self._run_workflow_for_item(workflow_key, base_execution_env, item_id, item) for item_id, item in std_items]

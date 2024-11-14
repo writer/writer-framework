@@ -52,7 +52,7 @@ class HTTPRequest(WorkflowBlock):
                     },
                     "responseError": {
                         "name": "Response error",
-                        "description": "The connection was established successfully but an error response code was received.",
+                        "description": "The connection was established successfully but an error response code was received or the response was invalid.",
                         "style": "error",
                     },
                     "connectionError": {
@@ -65,22 +65,31 @@ class HTTPRequest(WorkflowBlock):
         ))
 
     def run(self):
+        import json
+
         try:
             method = self._get_field("method", False, "get")
             url = self._get_field("url")
             headers = self._get_field("headers", True)
             body = self._get_field("body")
             req = requests.request(method, url, headers=headers, data=body)
+            
+            content_type = req.headers.get("Content-Type")
+            is_json = content_type and "application/json" in content_type
+            
             self.result = {
                 "headers": dict(req.headers),
                 "status_code": req.status_code,
-                "body": req.text
+                "body": req.json() if is_json else req.text
             }
             if req.ok:
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
                 raise RuntimeError("HTTP response with code " + str(req.status_code))
+        except json.JSONDecodeError:
+            self.result = "JSON decode error. The response contains invalid JSON."
+            self.outcome = "responseError"
         except BaseException as e:
             self.outcome = "connectionError"
             raise e

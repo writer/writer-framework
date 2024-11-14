@@ -1,32 +1,16 @@
 import * as vue from "vue";
-import { App, createApp } from "vue";
+import { createApp } from "vue";
 import VueDOMPurifyHTML from "vue-dompurify-html";
 import { generateBuilderManager } from "./builder/builderManager.js";
 import { generateCore } from "./core";
 import "./fonts";
 import injectionKeys from "./injectionKeys";
+import { setCaptureTabsDirective } from "./directives.js";
 
 /**
  * RemixIcon by remixicon.com
  */
 import "remixicon/fonts/remixicon.css";
-
-function setCaptureTabsDirective(app: App<Element>) {
-	app.directive("capture-tabs", {
-		mounted: (el: HTMLTextAreaElement) => {
-			el.addEventListener("keydown", (ev) => {
-				if (ev.key != "Tab") return;
-				ev.preventDefault();
-				el.setRangeText(
-					"  ",
-					el.selectionStart,
-					el.selectionStart,
-					"end",
-				);
-			});
-		},
-	});
-}
 
 const wf = generateCore();
 

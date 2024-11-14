@@ -2,7 +2,6 @@
 	<div
 		ref="rootEl"
 		class="WorkflowMiniMap"
-		data-writer-unselectable="true"
 		@mouseenter="handleMouseenter"
 		@mouseleave="handleMouseleave"
 		@mousemove="handleMousemove"
@@ -59,16 +58,16 @@ const miniMap = ref({
 });
 
 const selector = ref({
-	width: 166,
-	height: 100,
+	width: 230,
+	height: 1,
 	top: 0,
 	left: 0,
 	isDisplayed: false,
 });
 
 const selectedArea = ref({
-	width: 166,
-	height: 100,
+	width: 1,
+	height: 1,
 	top: 0,
 	left: 0,
 });
@@ -76,6 +75,7 @@ const selectedArea = ref({
 const props = defineProps<{
 	nodeContainerEl: HTMLElement;
 	renderOffset: { x: number; y: number };
+	zoomLevel: number;
 }>();
 const miniNodes = ref([]);
 
@@ -86,42 +86,63 @@ function render() {
 		props.nodeContainerEl.querySelectorAll("[data-writer-id]"),
 	) as HTMLElement[];
 
-	const cbr = props.nodeContainerEl.getBoundingClientRect();
+	const nodeContainerBCR = props.nodeContainerEl.getBoundingClientRect();
 	let maxX = 0,
 		maxY = 0;
 
 	miniNodes.value = nodeEls.map((nodeEl) => {
-		const nodeCbr = nodeEl.getBoundingClientRect();
-		maxX = Math.max(maxX, nodeCbr.right + props.renderOffset.x - cbr.left);
-		maxY = Math.max(maxY, nodeCbr.bottom + props.renderOffset.y - cbr.top);
+		const nodeBCR = nodeEl.getBoundingClientRect();
+		maxX = Math.max(
+			maxX,
+			nodeBCR.right +
+				props.renderOffset.x * props.zoomLevel -
+				nodeContainerBCR.left,
+		);
+		maxY = Math.max(
+			maxY,
+			nodeBCR.bottom +
+				props.renderOffset.y * props.zoomLevel -
+				nodeContainerBCR.top,
+		);
 		return {
 			id: nodeEl.dataset.writerId,
-			width: nodeCbr.width,
-			height: nodeCbr.height,
-			top: nodeCbr.top + props.renderOffset.y - cbr.top,
-			left: nodeCbr.left + props.renderOffset.x - cbr.left,
+			width: nodeBCR.width,
+			height: nodeBCR.height,
+			top:
+				nodeBCR.top +
+				props.renderOffset.y * props.zoomLevel -
+				nodeContainerBCR.top,
+			left:
+				nodeBCR.left +
+				props.renderOffset.x * props.zoomLevel -
+				nodeContainerBCR.left,
 		};
 	});
 
 	miniMap.value = {
-		width: cbr.width / 7,
-		height: ((cbr.height / cbr.width) * cbr.width) / 7,
+		width: 230,
+		height:
+			((nodeContainerBCR.height / nodeContainerBCR.width) *
+				nodeContainerBCR.width) /
+			7,
 	};
 
 	scale.value = Math.min(
-		miniMap.value.width / (cbr.width + 300),
-		miniMap.value.height / (cbr.height + 300),
+		miniMap.value.width / (nodeContainerBCR.width + 300),
+		miniMap.value.height / (nodeContainerBCR.height + 300),
 		miniMap.value.width / (maxX + 300),
 		miniMap.value.height / (maxY + 300),
-		miniMap.value.width / (props.renderOffset.x + cbr.width),
-		miniMap.value.height / (props.renderOffset.y + cbr.height),
+		miniMap.value.width /
+			(props.renderOffset.x * props.zoomLevel + nodeContainerBCR.width),
+		miniMap.value.height /
+			(props.renderOffset.y * props.zoomLevel + nodeContainerBCR.height),
 	);
 
 	selectedArea.value = {
-		top: props.renderOffset.y,
-		left: props.renderOffset.x,
-		width: cbr.width,
-		height: cbr.height,
+		top: props.renderOffset.y * props.zoomLevel,
+		left: props.renderOffset.x * props.zoomLevel,
+		width: nodeContainerBCR.width,
+		height: nodeContainerBCR.height,
 	};
 
 	selector.value = {
@@ -131,23 +152,25 @@ function render() {
 }
 
 function handleMousemove(ev: MouseEvent) {
-	const cbr = props.nodeContainerEl.getBoundingClientRect();
-	const rootElCbr = rootEl.value.getBoundingClientRect();
+	const nodeContainerBCR = props.nodeContainerEl.getBoundingClientRect();
+	const rootBCR = rootEl.value.getBoundingClientRect();
 	selector.value = {
 		...selector.value,
 		top: Math.min(
 			Math.max(
 				0,
-				(ev.pageY - rootElCbr.top) * (1 / scale.value) - cbr.height / 2,
+				(ev.pageY - rootBCR.top) * (1 / scale.value) -
+					nodeContainerBCR.height / 2,
 			),
-			rootElCbr.height * (1 / scale.value) - cbr.height,
+			rootBCR.height * (1 / scale.value) - nodeContainerBCR.height,
 		),
 		left: Math.min(
 			Math.max(
 				0,
-				(ev.pageX - rootElCbr.left) * (1 / scale.value) - cbr.width / 2,
+				(ev.pageX - rootBCR.left) * (1 / scale.value) -
+					nodeContainerBCR.width / 2,
 			),
-			rootElCbr.width * (1 / scale.value) - cbr.width,
+			rootBCR.width * (1 / scale.value) - nodeContainerBCR.width,
 		),
 	};
 }
@@ -164,8 +187,8 @@ function handleClick(ev: MouseEvent) {
 	ev.stopPropagation();
 	wfbm.setSelection(null);
 	emit("changeRenderOffset", {
-		x: selector.value.left,
-		y: selector.value.top,
+		x: selector.value.left * (1 / props.zoomLevel),
+		y: selector.value.top * (1 / props.zoomLevel),
 	});
 }
 
@@ -195,7 +218,6 @@ onUnmounted(() => {
 	height: v-bind("`${miniMap.height}px`");
 	background: var(--builderSeparatorColor);
 	position: relative;
-	border-radius: 4px;
 	overflow: hidden;
 }
 
