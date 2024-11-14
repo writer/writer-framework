@@ -70,7 +70,7 @@ Additional context:
 { additional_context }
 
 CONTENT:
-
+------
 { text }
 """
             result = writer.ai.complete(prompt, config).strip()
