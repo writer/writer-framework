@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref } from "vue";
+import { toRefs, inject, computed, ref, defineAsyncComponent } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
@@ -80,8 +80,11 @@ import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
-import BuilderEmbeddedCodeEditor from "./BuilderEmbeddedCodeEditor.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+
+const BuilderEmbeddedCodeEditor = defineAsyncComponent(
+	() => import("./BuilderEmbeddedCodeEditor.vue"),
+);
 
 type FunctionTool = {
 	type: "function";
