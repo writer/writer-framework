@@ -13,6 +13,7 @@
 			data-writer-tooltip="Close"
 			data-writer-tooltip-placement="bottom"
 			tabindex="0"
+			data-automation-action="close"
 			@keydown.enter="toggleSearch"
 			@click="toggleSearch"
 		>
@@ -27,6 +28,7 @@
 			data-writer-tooltip-placement="bottom"
 			class="searchIcon material-symbols-outlined"
 			tabindex="0"
+			data-automation-action="search"
 			@keydown.enter="toggleSearch"
 			@click="toggleSearch"
 		>
