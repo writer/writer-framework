@@ -11,7 +11,8 @@
 		<template v-if="!isAddMode">
 			<div
 				class="actionButton"
-				title="Add child"
+				data-writer-tooltip="Add child"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isAddEnabled,
 				}"
@@ -25,7 +26,8 @@
 			</div>
 			<div
 				class="actionButton"
-				:title="`Move up (${modifierKeyName}+↑)`"
+				data-writer-tooltip-gap="-4"
+				:data-writer-tooltip="`Move up (${getModifierKeyName()}↑)`"
 				:class="{
 					enabled: shortcutsInfo?.isMoveUpEnabled,
 				}"
@@ -39,7 +41,8 @@
 			</div>
 			<div
 				class="actionButton"
-				:title="`Move down (${modifierKeyName}+↓)`"
+				:data-writer-tooltip="`Move down (${getModifierKeyName()}↓)`"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isMoveDownEnabled,
 				}"
@@ -54,7 +57,8 @@
 
 			<div
 				class="actionButton"
-				:title="`Cut (${modifierKeyName}+X)`"
+				:data-writer-tooltip="`Cut (${getModifierKeyName()}X)`"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isCutEnabled,
 				}"
@@ -68,7 +72,8 @@
 			</div>
 			<div
 				class="actionButton"
-				:title="`Copy (${modifierKeyName}+C)`"
+				:data-writer-tooltip="`Copy (${getModifierKeyName()}C)`"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isCopyEnabled,
 				}"
@@ -82,7 +87,8 @@
 			</div>
 			<div
 				class="actionButton"
-				:title="`Paste (${modifierKeyName}+V)`"
+				:data-writer-tooltip="`Paste (${getModifierKeyName()}V)`"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isPasteEnabled,
 				}"
@@ -96,7 +102,8 @@
 			</div>
 			<div
 				class="actionButton"
-				:title="`Go to parent (${modifierKeyName}+Shift+↑)`"
+				:data-writer-tooltip="`Go to parent (${getModifierKeyName()}Shift ↑)`"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isGoToParentEnabled,
 				}"
@@ -111,7 +118,8 @@
 			<div
 				class="actionButton delete"
 				data-automation-action="delete"
-				title="Delete (Del)"
+				data-writer-tooltip="Delete (Del)"
+				data-writer-tooltip-gap="-4"
 				:class="{
 					enabled: shortcutsInfo?.isDeleteEnabled,
 				}"
@@ -151,7 +159,7 @@ import { computed, inject, onMounted, Ref, ref, toRefs, watch } from "vue";
 import { useComponentActions } from "./useComponentActions";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "../injectionKeys";
-import { isPlatformMac } from "../core/detectPlatform";
+import { getModifierKeyName } from "../core/detectPlatform";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -253,8 +261,6 @@ watch(
 	},
 	{ flush: "post" },
 );
-
-const modifierKeyName = isPlatformMac() ? "⌘ Cmd" : "Ctrl";
 
 onMounted(() => {
 	reprocessShorcutsInfo();

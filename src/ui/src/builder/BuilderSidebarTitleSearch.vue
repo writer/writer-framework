@@ -10,7 +10,8 @@
 		<i
 			:class="{ disabled: disabled }"
 			class="searchIcon material-symbols-outlined"
-			title="Close"
+			data-writer-tooltip="Close"
+			data-writer-tooltip-placement="bottom"
 			tabindex="0"
 			@keydown.enter="toggleSearch"
 			@click="toggleSearch"
@@ -22,7 +23,8 @@
 		<i class="material-symbols-outlined">{{ icon }}</i>
 		<h3>{{ title }}</h3>
 		<i
-			title="Search"
+			data-writer-tooltip="Search"
+			data-writer-tooltip-placement="bottom"
 			class="searchIcon material-symbols-outlined"
 			tabindex="0"
 			@keydown.enter="toggleSearch"

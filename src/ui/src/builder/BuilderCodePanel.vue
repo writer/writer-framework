@@ -38,7 +38,7 @@ const actions = computed<BuilderPanelAction[]>(() => [
 		name: "Save and run",
 		keyboardShortcut: {
 			modifierKey: true,
-			key: "s",
+			key: "S",
 		},
 		callback: () => {
 			save();

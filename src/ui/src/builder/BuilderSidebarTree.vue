@@ -9,11 +9,12 @@
 			<i
 				:class="{ disabled: !matchAvailable }"
 				class="searchIcon material-symbols-outlined"
-				:title="
+				:data-writer-tooltip="
 					matchAvailable
 						? `Go to match ${previousMatchIndex + 1} of ${matchingComponents.length}`
 						: `Previous match`
 				"
+				data-writer-tooltip-placement="bottom"
 				tabindex="0"
 				@keydown.enter="goToPreviousMatch"
 				@click="goToPreviousMatch"
@@ -23,11 +24,12 @@
 			<i
 				:class="{ disabled: !matchAvailable }"
 				class="searchIcon material-symbols-outlined"
-				:title="
+				:data-writer-tooltip="
 					matchAvailable
 						? `Go to match ${nextMatchIndex + 1} of ${matchingComponents.length}`
 						: `Next match`
 				"
+				data-writer-tooltip-placement="bottom"
 				tabindex="0"
 				@keydown.enter="goToNextMatch"
 				@click="goToNextMatch"
