@@ -103,6 +103,7 @@ import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
+import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 
 const BuilderSettings = defineAsyncComponent(
