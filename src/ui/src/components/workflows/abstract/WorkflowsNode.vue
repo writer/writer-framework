@@ -2,9 +2,17 @@
 	<div class="WorkflowsNode">
 		<div class="title">
 			<img
-				src="data:image/png;base64,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"
+				:src="`./../../../../components/${component.type}.svg`"
+				@error="
+					(ev) =>
+						!isImageFallback ? handleImageError(ev) : undefined
+				"
 			/>
-			{{ def.name }}
+			<WorkflowsNodeNamer
+				:component-id="componentId"
+				class="nodeNamer"
+				:block-name="def.name"
+			></WorkflowsNodeNamer>
 		</div>
 		<div v-if="false" class="main">
 			<div></div>
@@ -55,26 +63,39 @@ export default {
 		description: "A Workflows node.",
 		toolkit: "workflows",
 		category: "Other",
-		fields: {},
+		fields: {
+			alias: {
+				name: "Alias",
+				type: FieldType.Text,
+			},
+		},
 		allowedParentTypes: ["workflows_workflow"],
 		previewField: "text",
 	},
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
+import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
+const isImageFallback = ref(false);
+
+const component = computed(() => {
+	const component = wf.getComponentById(componentId);
+	return component;
+});
+
+const alias = ref(component.value.content["alias"]);
 
 const def = computed(() => {
-	const component = wf.getComponentById(componentId);
-	return wf?.getComponentDefinition(component.type);
+	return wf?.getComponentDefinition(component.value?.type);
 });
 
 const isEngaged = computed(() => {
@@ -90,6 +111,12 @@ const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	});
 	return processedOuts;
 });
+
+function handleImageError(ev: Event) {
+	const imageEl = ev.target as HTMLImageElement;
+	imageEl.src = `./../../../../components/workflows_category_${def.value.category}.svg`;
+	isImageFallback.value = true;
+}
 
 function getDynamicKeysFromField(fieldKey: string) {
 	const fieldType = def.value.fields[fieldKey].type;
@@ -129,6 +156,10 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	emit("outMousedown", outId);
 }
 
+watch(alias, () => {
+	setContent;
+});
+
 watch(isEngaged, () => {
 	emit("engaged");
 });
@@ -151,18 +182,23 @@ watch(isEngaged, () => {
 
 .title {
 	display: flex;
-	gap: 12px;
+	gap: 10px;
 	padding: 12px;
 	border-radius: 12px 12px 0 0;
 	align-items: center;
-	font-size: 14px;
-	font-style: normal;
-	font-weight: 500;
-	line-height: 140%;
 }
 
 .title img {
-	width: 30px;
+	width: 24px;
+	height: 24px;
+}
+
+.WorkflowsNode:hover .nodeNamer :deep(.blockName) {
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.WorkflowsNode:hover .nodeNamer :deep(.aliasEditor) {
+	background: var(--builderSubtleSeparatorColor);
 }
 
 .main {
