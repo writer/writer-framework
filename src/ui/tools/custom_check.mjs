@@ -2,7 +2,7 @@ import { importVue } from "./core.mjs";
 
 async function checkDeclarationKey() {
 	let hasFailed = false;
-	const module = await importVue("../src/custom_components/index.ts");
+	const module = await importVue("../src/components/custom/index.ts");
 	const { checkComponentKey } = await importVue(
 		"../src/core/loadExtensions.ts",
 	);
@@ -17,7 +17,7 @@ async function checkDeclarationKey() {
 	if (invalidCustomComponentKeys.length !== 0) {
 		// eslint-disable-next-line no-console
 		console.error(
-			`ERROR: Invalid component declaration: ${invalidCustomComponentKeys} into 'src/custom_components/index.ts'. Their key must be declared using only lowercase and alphanumeric characters.`,
+			`ERROR: Invalid component declaration: ${invalidCustomComponentKeys} into 'src/components/custom/index.ts'. Their key must be declared using only lowercase and alphanumeric characters.`,
 		);
 	}
 	return hasFailed;

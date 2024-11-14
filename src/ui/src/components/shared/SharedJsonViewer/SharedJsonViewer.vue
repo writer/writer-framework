@@ -58,12 +58,23 @@ import SharedControlBar from "../SharedControlBar.vue";
 
 const props = defineProps({
 	data: {
-		type: Object as PropType<JsonData>,
+		type: [
+			String,
+			Number,
+			Boolean,
+			Object,
+			Array,
+			null,
+		] as PropType<JsonData>,
 		required: true,
 	},
 	path: {
 		type: Array as PropType<JsonPath>,
 		default: () => [],
+	},
+	hideRoot: {
+		type: Boolean,
+		required: false,
 	},
 	initialDepth: { type: Number, default: 0 },
 	enableCopyToJson: { type: Boolean, required: false },
@@ -73,9 +84,12 @@ defineEmits({
 	toggle: jsonViewerToggleEmitDefinition,
 });
 
-const isRoot = computed(() => props.path.length === 0);
+const isRoot = computed(() => props.path.length === 0 && !props.hideRoot);
 const isRootOpen = computed(
 	() => props.initialDepth === -1 || props.initialDepth > 0,
 );
-const dataAsString = computed(() => JSON.stringify(props.data ?? "{}"));
+const dataAsString = computed(() => {
+	if (props.data === undefined) return JSON.stringify(null);
+	return JSON.stringify(props.data);
+});
 </script>

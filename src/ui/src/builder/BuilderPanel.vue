@@ -12,10 +12,11 @@
 			<WdsButton
 				v-for="(action, actionKey) in actions"
 				:key="actionKey"
-				:title="
+				:data-writer-tooltip="
 					action.name +
 					getKeyboardShortcutDescription(action.keyboardShortcut)
 				"
+				data-writer-tooltip-placement="left"
 				variant="neutral"
 				size="unpadded"
 				:disabled="action.isDisabled"
@@ -55,7 +56,7 @@ function handleKeydown(ev: KeyboardEvent) {
 	props.actions.forEach((action) => {
 		if (!action.keyboardShortcut) return;
 		const { key, modifierKey } = action.keyboardShortcut;
-		if (key != ev.key) return;
+		if (key.toLowerCase() != ev.key) return;
 		if (!isMod && modifierKey) return;
 		ev.preventDefault();
 		action.callback();
@@ -68,7 +69,7 @@ function getKeyboardShortcutDescription(
 	if (!shortcut) return "";
 	let s = " (";
 	if (shortcut.modifierKey) {
-		s += getModifierKeyName() + "+";
+		s += getModifierKeyName();
 	}
 	s += shortcut.key;
 	s += ")";

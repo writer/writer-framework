@@ -40,6 +40,8 @@ class ReturnValue(WorkflowBlock):
     def run(self):
         try:
             value = self._get_field("value")
+            if value is None:
+                raise ValueError("Return value cannot be empty or None.")
             self.result = value
             self.return_value = value
             self.outcome = "success"

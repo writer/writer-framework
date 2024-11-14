@@ -29,7 +29,14 @@ defineProps({
 	disabled: { type: Boolean, required: false },
 	title: { type: String, required: false, default: undefined },
 	data: {
-		type: [Object, Array] as PropType<JsonData>,
+		type: [
+			String,
+			Number,
+			Boolean,
+			Object,
+			Array,
+			null,
+		] as PropType<JsonData>,
 		required: false,
 		default: undefined,
 	},
