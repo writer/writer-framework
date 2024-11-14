@@ -1423,6 +1423,30 @@ class EventDeserialiser:
         except ValueError:
             return None
 
+    def _transform_dataframe_update(self, ev: WriterEvent) -> Optional[Dict]:
+        payload = ev.payload
+        if not isinstance(payload, dict):
+            return None
+        
+        payload = _deserialize_bigint_format(payload)
+        return payload
+
+    def _transform_dataframe_add(self, ev: WriterEvent) -> Optional[Dict]:
+        payload = ev.payload
+        if not isinstance(payload, dict):
+            return None
+
+        payload = _deserialize_bigint_format(payload)
+        return payload
+
+    def _transform_dataframe_action(self, ev: WriterEvent) -> Optional[Dict]:
+        payload = ev.payload
+        if not isinstance(payload, dict):
+            return None
+
+        payload = _deserialize_bigint_format(payload)
+        return payload
+
 
 class Evaluator:
 
@@ -2040,17 +2064,22 @@ class PandasRecordProcessor(DataframeRecordProcessor):
         >>> edf = EditableDataframe(df)
         >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
         """
+        import pandas
+
         _assert_record_match_pandas_df(df, payload['record'])
 
         record: dict
         record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
 
         record_index = payload['record_index']
-        df.iloc[record_index] = record  # type: ignore
 
-        index_list = df.index.tolist()
-        index_list[record_index] = index
-        df.index = index_list  # type: ignore
+        if isinstance(df.index, pandas.RangeIndex):
+            df.iloc[record_index] = record  # type: ignore
+        else:
+            df.iloc[record_index] = record  # type: ignore
+            index_list = df.index.tolist()
+            index_list[record_index] = index
+            df.index = index_list  # type: ignore
 
         return df
 
@@ -2652,6 +2681,79 @@ def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -
 
     return final_record, tuple(final_index)
 
+def _deserialize_bigint_format(payload: Optional[Union[dict, list]]):
+    """
+    Decodes the payload of a big int serialization
+
+    >>> _deserialize_bigint_format({"bigint": "12345678901234567890n"})
+    >>> {"bigint" : 12345678901234567890}
+
+    It support escape character on bigint matching format.
+
+    >>> _deserialize_bigint_format({"bigint": '12345678901234567890\n'})
+    >>> {"bigint" : "12345678901234567890n"}
+
+    It support nested structure
+
+    >>> _deserialize_bigint_format({
+    >>>     "record": {
+    >>>         "bigint": '12345678901234567890n'
+    >>>     }
+    >>> })
+    >>> {
+    >>>     "record": {
+    >>>         "bigint": '12345678901234567890'
+    >>>     }
+    >>> }
+    :param payload:
+    :return:
+    """
+    if isinstance(payload, dict):
+        for elt in payload.keys():
+            if isinstance(payload[elt], str) and len(payload[elt]) > 0 and payload[elt][-1] == "n":
+                if payload[elt][:-1].isdigit():
+                    payload[elt] = int(payload[elt][:-1])
+                else:
+                    unescape_payload = unescape_bigint_matching_string(payload[elt])
+                    payload[elt] = unescape_payload
+
+            if isinstance(payload[elt], dict) or isinstance(payload[elt], list):
+                _deserialize_bigint_format(payload[elt])
+    elif isinstance(payload, list):
+        for elt in range(len(payload)):
+            if isinstance(payload[elt], str) and payload[elt][-1] == "n":
+                if payload[elt][:-1].isdigit():
+                    payload[elt] = int(payload[elt][:-1])
+                else:
+                    unescape_payload = unescape_bigint_matching_string(payload[elt])
+                    payload[elt] = unescape_payload
+            if isinstance(payload[elt], dict) or isinstance(payload[elt], list):
+                _deserialize_bigint_format(payload[elt])
+
+    return payload
+
+def unescape_bigint_matching_string(string: str) -> str:
+    """
+    Unescapes a string
+
+    >>> unescape_bigint_matching_string(r"13456\n")
+    >>> r"13456n"
+    """
+    if len(string) == 0:
+        return string
+
+    if re.match(r"^\d+\\*n$", string) is None:
+        return string
+
+    result = ""
+    for i in range(len(string)):
+        c = string[-i]
+        if c == "\\":
+            i += 1
+            continue
+        result += c
+
+    return result
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()

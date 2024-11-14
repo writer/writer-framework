@@ -97,22 +97,38 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted } from "vue";
+import { computed, defineAsyncComponent, inject, onMounted } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
-import BuilderHeader from "./BuilderHeader.vue";
-import BuilderSettings from "./BuilderSettings.vue";
-import BuilderSidebar from "./BuilderSidebar.vue";
-import ComponentRenderer from "@/renderer/ComponentRenderer.vue";
-import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 import injectionKeys from "../injectionKeys";
-import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
-import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
-import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
-import BuilderCodePanel from "./BuilderCodePanel.vue";
-import BuilderLogPanel from "./BuilderLogPanel.vue";
-import BuilderTooltip from "./BuilderTooltip.vue";
 import { isPlatformMac } from "../core/detectPlatform";
+import BuilderHeader from "./BuilderHeader.vue";
+import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
+
+const BuilderSettings = defineAsyncComponent(
+	() => import("./BuilderSettings.vue"),
+);
+const BuilderSidebar = defineAsyncComponent(
+	() => import("./BuilderSidebar.vue"),
+);
+const ComponentRenderer = defineAsyncComponent(
+	() => import("@/renderer/ComponentRenderer.vue"),
+);
+const BuilderInstanceTracker = defineAsyncComponent(
+	() => import("./BuilderInstanceTracker.vue"),
+);
+const BuilderInsertionOverlay = defineAsyncComponent(
+	() => import("./BuilderInsertionOverlay.vue"),
+);
+const BuilderInsertionLabel = defineAsyncComponent(
+	() => import("./BuilderInsertionLabel.vue"),
+);
+const BuilderCodePanel = defineAsyncComponent(
+	() => import("./BuilderCodePanel.vue"),
+);
+const BuilderLogPanel = defineAsyncComponent(
+	() => import("./BuilderLogPanel.vue"),
+);
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
