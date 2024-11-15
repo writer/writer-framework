@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "0.8.0rc6"
+version = "0.8.0rc7"
 description = "An open-source, Python framework for building feature-rich apps that are fully integrated with the Writer platform."
 authors = ["Writer, Inc."]
 readme = "README.md"

@@ -21,13 +21,13 @@ class HTTPRequest(WorkflowBlock):
                         "name": "Method",
                         "type": "Text",
                         "options": {
-                            "get": "GET",
-                            "post": "POST",
-                            "put": "PUT",
-                            "patch": "PATCH",
-                            "delete": "DELETE"
+                            "GET": "GET",
+                            "POST": "POST",
+                            "PUT": "PUT",
+                            "PATCH": "PATCH",
+                            "DELETE": "DELETE"
                         },
-                        "default": "get"
+                        "default": "GET"
                     },
                     "url": {
                         "name": "URL",

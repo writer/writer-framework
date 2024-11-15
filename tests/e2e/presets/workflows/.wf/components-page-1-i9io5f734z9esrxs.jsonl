@@ -1,0 +1,2 @@
+{"id": "i9io5f734z9esrxs", "type": "page", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 1}
+{"id": "16eeo21o6k8tcxf7", "type": "chatbot", "content": {"conversation": "@{convo}"}, "handlers": {"wf-chatbot-message": "$runWorkflow_handle_object"}, "isCodeManaged": false, "parentId": "i9io5f734z9esrxs", "position": 0}
