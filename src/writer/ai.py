@@ -95,7 +95,7 @@ class FunctionTool(Tool):
 
 
 class PreparedAPIMessage(TypedDict, total=False):
-    role: Literal["user", "assistant", "system", "tool"]
+    role: Literal["user", "assistant", "system", "tool", "thought_process"]
 
     content: Union[str, None]
 
@@ -876,7 +876,7 @@ class Conversation:
         :param actions: Optional dictionary containing actions
         related to the message.
         """
-        role: Literal["system", "assistant", "user", "tool"]
+        role: Literal["system", "assistant", "user", "tool", "thought_process"]
         content: str
         actions: Optional[dict]
         name: Optional[str]
@@ -907,13 +907,15 @@ class Conversation:
         if not (
             isinstance(message["content"], str)
             or
+            type(message["content"]) in (tuple, list)
+            or
             message["content"] is None
         ):
             raise ValueError(
                 f"Non-string content in message cannot be added: {message}"
                 )
 
-        if message["role"] not in ["system", "assistant", "user", "tool"]:
+        if message["role"] not in ["system", "assistant", "user", "tool", "thought_process"]:
             raise ValueError(f"Unsupported role in message: {message}")
 
     def __init__(
@@ -1312,7 +1314,7 @@ class Conversation:
             message_to_append = {
                 "role": message["role"],
                 "content": message["content"],
-                "actions": message.get("actions")
+                "actions": message.get("actions"),
                 }
             if "tool_calls" in message:
                 message_to_append["tool_calls"] = message["tool_calls"]
@@ -1355,6 +1357,7 @@ class Conversation:
             [
                 self._prepare_message(message)
                 for message in self.messages
+                if message["role"] != "thought_process"
             ]
         )
         logging.debug(
@@ -1837,7 +1840,7 @@ class Conversation:
         return {
             "role": message["role"],
             "content": message["content"],
-            "actions": message["actions"]
+            "actions": message["actions"],
             }
 
     @property
