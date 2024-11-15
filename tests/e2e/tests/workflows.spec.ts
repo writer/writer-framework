@@ -1,4 +1,3 @@
-/*
 import { test, expect } from "@playwright/test";
 
 const setTextField = async (page, text) => {
@@ -8,7 +7,7 @@ const setTextField = async (page, text) => {
 		.fill(text);
 }
 
-test.describe("state autocompletion", () => {
+test.describe("Workflows", () => {
 	let url: string;
 
 	test.beforeAll(async ({request}) => {
@@ -25,13 +24,14 @@ test.describe("state autocompletion", () => {
 		await page.goto(url);
 	});
 
-	test.describe("text", () => {
+	test.describe("Payload and context", () => {
+
+		const instancePaths = ["root:0,c0f99a9e-5004-4e75-a6c6-36f17490b134:0,ixxb26ukbvr0sknw:0,iftqnmjw8ipaknex:0,7no34ag7gmwgm1rd:0", "root:0,c0f99a9e-5004-4e75-a6c6-36f17490b134:0,ixxb26ukbvr0sknw:0,iftqnmjw8ipaknex:0,7no34ag7gmwgm1rd:0"];
+
 		test("completion", async ({ page }) => {
-			
-			const instancePaths = ["root:0,c0f99a9e-5004-4e75-a6c6-36f17490b134:0,ixxb26ukbvr0sknw:0,iftqnmjw8ipaknex:0,7no34ag7gmwgm1rd:0", "root:0,c0f99a9e-5004-4e75-a6c6-36f17490b134:0,ixxb26ukbvr0sknw:0,iftqnmjw8ipaknex:0,7no34ag7gmwgm1rd:0"];
+			page.locator('.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")').click();
 			
 			await setTextField(page, "@{types.");
-			page.locator('.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")').click();
 			await expect(page
 				.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput'))
 				.toHaveValue("@{types.string");
@@ -40,4 +40,3 @@ test.describe("state autocompletion", () => {
 	});
 
 });
-*/
