@@ -159,7 +159,7 @@ watch(zoomLevel, (newZoomLevel) => {
 });
 
 function handleKeydown(ev: KeyboardEvent) {
-	if (!isModifierKeyActive) return;
+	if (isModifierKeyActive(ev) === false) return;
 
 	let newZoomLevel = zoomLevel.value;
 	if (ev.key == "+" || ev.key == "=") {
