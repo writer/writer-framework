@@ -21,6 +21,15 @@ class WriterChat(WorkflowBlock):
                         "desc": "Where the conversation will be stored",
                         "type": "Text",
                     },
+                    "useStreaming": {
+                        "name": "Use streaming",
+                        "type": "Text",
+                        "default": "yes",
+                        "options": {
+                            "yes": "Yes",
+                            "no": "No"
+                        }
+                    },
                     "tools": {
                         "name": "Tools",
                         "type": "Tools",
@@ -78,6 +87,7 @@ class WriterChat(WorkflowBlock):
             import writer.ai
 
             conversation_state_element = self._get_field("conversationStateElement")
+            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
             tools_raw = self._get_field("tools", True)
             tools = []
 
@@ -110,12 +120,17 @@ class WriterChat(WorkflowBlock):
 
             try:
                 msg = ""
-                for chunk in conversation.stream_complete(tools=tools):
-                    if chunk.get("content") is None:
-                        chunk["content"] = ""
-                    msg += chunk.get("content")
-                    conversation += chunk
+                if not use_streaming:
+                    msg = conversation.complete(tools=tools)
+                    conversation += msg
                     self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
+                else:
+                    for chunk in conversation.stream_complete(tools=tools):
+                        if chunk.get("content") is None:
+                            chunk["content"] = ""
+                        msg += chunk.get("content")
+                        conversation += chunk
+                        self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
             except BaseException:
                 msg = {
                     "role": "assistant",
