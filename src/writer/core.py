@@ -464,7 +464,7 @@ class StateProxy:
                             "new_value": raw_value
                         }
 
-                        writer_event_handler_invoke(local_mutation.handler, {
+                        EventHandlerExecutor.invoke(local_mutation.handler, {
                             "state": local_mutation.state,
                             "context": context_data,
                             "payload": payload,
@@ -834,7 +834,7 @@ class State(metaclass=StateMeta):
                     # existing states. To cause this, we trigger manually
                     # the handler.
                     if initial_triggered is True:
-                        writer_event_handler_invoke(handler, {
+                        EventHandlerExecutor.invoke(handler, {
                             "state": self,
                             "context": {"event": "init"},
                             "payload": {},
@@ -1083,7 +1083,7 @@ class MiddlewareExecutor():
 
     @contextlib.contextmanager
     def execute(self, args: dict):
-        middleware_args = writer_event_handler_build_arguments(self.middleware, args)
+        middleware_args = EventHandlerExecutor.build_arguments(self.middleware, args)
         it = self.middleware(*middleware_args)
         try:
             yield from it
@@ -1845,7 +1845,7 @@ class EventHandler:
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
-            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
+            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -1885,6 +1885,80 @@ class EventHandler:
                                              f"A runtime exception was raised when processing event '{ ev.type }'.", traceback.format_exc())
 
         return {"ok": ok, "result": result}
+
+class EventHandlerExecutor:
+
+    @staticmethod
+    def build_arguments(func: Callable, writer_args: dict) -> List[Any]:
+        """
+        Constructs the list of arguments based on the signature of the function
+        which can be a handler or middleware.
+
+        >>> def my_event_handler(state, context):
+        >>>     yield
+
+        >>> args = EventHandlerExecutor.build_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
+        >>> [{}, {"target": '11'}]
+
+        :param func: the function that will be called
+        :param writer_args: the possible arguments in writer (state, payload, ...)
+        """
+        handler_args = inspect.getfullargspec(func).args
+        func_args = []
+        for arg in handler_args:
+            if arg in writer_args:
+                func_args.append(writer_args[arg])
+
+        return func_args
+
+    @staticmethod
+    def invoke(callable_handler: Callable, writer_args: dict) -> Any:
+        """
+        Runs a handler based on its signature.
+
+        If the handler is asynchronous, it is executed asynchronously.
+        If the handler only has certain parameters, only these are passed as arguments
+
+        >>> def my_handler(state):
+        >>>     state['a'] = 2
+        >>>
+        >>> EventHandlerExecutor.invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+        """
+        is_async_handler = inspect.iscoroutinefunction(callable_handler)
+        if (not callable(callable_handler) and not is_async_handler):
+            raise ValueError("Invalid handler. The handler isn't a callable object.")
+
+        handler_args = EventHandlerExecutor.build_arguments(callable_handler, writer_args)
+
+        if is_async_handler:
+            async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
+            result = asyncio.run(async_wrapper)
+        else:
+            result = callable_handler(*handler_args)
+
+        return result
+
+    @staticmethod
+    def invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+        """
+        Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+
+        :param middlewares_executors: The list of middleware to run
+        :param callable_handler: The target handler
+
+        >>> @wf.middleware()
+        >>> def my_middleware(state, payload, context, session, ui):
+        >>>     yield
+
+        >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+        >>> EventHandlerExecutor.invoke_with_middlewares([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+        """
+        if len(middlewares_executors) == 0:
+            return EventHandlerExecutor.invoke(callable_handler, writer_args)
+        else:
+            executor = middlewares_executors[0]
+            with executor.execute(writer_args):
+                return EventHandlerExecutor.invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
 
 
 class DictPropertyProxy:
@@ -2521,77 +2595,6 @@ def parse_state_variable_expression(p: str):
     new_part = p[last_split: len(p)]
     parts.append(new_part.replace('\\.', '.'))
     return parts
-
-
-def writer_event_handler_build_arguments(func: Callable, writer_args: dict) -> List[Any]:
-    """
-    Constructs the list of arguments based on the signature of the function
-    which can be a handler or middleware.
-
-    >>> def my_event_handler(state, context):
-    >>>     yield
-
-    >>> args = writer_event_handler_build_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
-    >>> [{}, {"target": '11'}]
-
-    :param func: the function that will be called
-    :param writer_args: the possible arguments in writer (state, payload, ...)
-    """
-    handler_args = inspect.getfullargspec(func).args
-    func_args = []
-    for arg in handler_args:
-        if arg in writer_args:
-            func_args.append(writer_args[arg])
-
-    return func_args
-
-
-def writer_event_handler_invoke(callable_handler: Callable, writer_args: dict) -> Any:
-    """
-    Runs a handler based on its signature.
-
-    If the handler is asynchronous, it is executed asynchronously.
-    If the handler only has certain parameters, only these are passed as arguments
-
-    >>> def my_handler(state):
-    >>>     state['a'] = 2
-    >>>
-    >>> writer_event_handler_invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
-    """
-    is_async_handler = inspect.iscoroutinefunction(callable_handler)
-    if (not callable(callable_handler) and not is_async_handler):
-        raise ValueError("Invalid handler. The handler isn't a callable object.")
-
-    handler_args = writer_event_handler_build_arguments(callable_handler, writer_args)
-
-    if is_async_handler:
-        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
-        result = asyncio.run(async_wrapper)
-    else:
-        result = callable_handler(*handler_args)
-
-    return result
-
-def writer_event_handler_invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
-    """
-    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
-
-    :param middlewares_executors: The list of middleware to run
-    :param callable_handler: The target handler
-
-    >>> @wf.middleware()
-    >>> def my_middleware(state, payload, context, session, ui):
-    >>>     yield
-
-    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
-    >>> writer_event_handler_invoke_with_middlewares([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
-    """
-    if len(middlewares_executors) == 0:
-        return writer_event_handler_invoke(callable_handler, writer_args)
-    else:
-        executor = middlewares_executors[0]
-        with executor.execute(writer_args):
-            return writer_event_handler_invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
 
 
 async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
