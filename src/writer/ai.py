@@ -1817,7 +1817,8 @@ class Conversation:
         """
         Function to verify whether the message should be serializable.
 
-        :return: Boolean that indicates
+        :return: Boolean indicating if the message meets 
+        the criteria for serialization.
         """
         if message["role"] in ["system", "tool"]:
             # Prevent serialization of messages
