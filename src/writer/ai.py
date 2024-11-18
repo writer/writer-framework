@@ -1824,7 +1824,7 @@ class Conversation:
             # Prevent serialization of messages
             # not intended for user display
             return False
-        elif message.get("content") is None:
+        elif not message.get("content"):
             # Prevent serialization for messages
             # without meaningful content
             return False
