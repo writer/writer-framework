@@ -1820,22 +1820,12 @@ class Conversation:
         :return: Boolean that indicates
         """
         if message["role"] in ["system", "tool"]:
+            # Prevent serialization of messages
+            # not intended for user display
             return False
-        elif message.get("tool_call_id") is not None:
-            return False
-        tool_calls = message.get("tool_calls")
-        if (
-            (
-                tool_calls is not None
-                and
-                tool_calls != []
-            )
-            and
-            not message.get("content")
-        ):
-            # If tool call request message
-            # doesn't have meaningful content,
-            # we don't serialize it
+        elif message.get("content") is None:
+            # Prevent serialization for messages
+            # without meaningful content
             return False
 
         return True
