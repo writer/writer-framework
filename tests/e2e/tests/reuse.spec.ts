@@ -45,7 +45,7 @@ test.describe("Reuse component", () => {
 	};
 
 	const closeSettingsBar = async (page: Page) => {
-		await page.locator('.BuilderSettings button[data-automation-action="close"]').click();
+		await page.locator('[data-automation-action="close-settings"]').click();
 	}
 
 	const removeComponent = async (page: Page, selector: string) => {

@@ -1,7 +1,6 @@
-import writer.workflows
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class LogMessage(WorkflowBlock):
@@ -54,8 +53,11 @@ class LogMessage(WorkflowBlock):
             if message is None:
                 self.result = "Message cannot be empty."
                 self.outcome = "error"
+                return
 
-            self.session.session_state.add_log_entry(type, "Workflows message", message)
+            self.runner.state.add_log_entry(type, "Workflows message", message)
+            import time
+            self.runner.state.add_log_entry("error", "Workflows message", f"gato {time.time()}")
             self.result = None
             self.outcome = "success"
         except BaseException as e:

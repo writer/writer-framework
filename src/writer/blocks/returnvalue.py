@@ -1,24 +1,20 @@
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class AddToStateList(WorkflowBlock):
+class ReturnValue(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(AddToStateList, cls).register(type)
+        super(ReturnValue, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Add to state list",
-                "description": "Adds a value to a list in state, creating a new one if it doesn't exist.",
-                "category": "Other",
+                "name": "Return value",
+                "description": "Returns a value from a workflow or sub-workflow.",
+                "category": "Logic",
                 "fields": {
-                    "element": {
-                        "name": "State element",
-                        "type": "Text"
-                    },
                     "value": {
                         "name": "Value",
                         "type": "Text",
@@ -42,18 +38,11 @@ class AddToStateList(WorkflowBlock):
 
     def run(self):
         try:
-            element_expr = self._get_field("element")
             value = self._get_field("value")
-
-            element = self.evaluator.evaluate_expression(element_expr, self.instance_path, self.execution_env)
-
-            if not element:
-                element = []
-            elif not isinstance(element, list):
-                element = [element]
-
-            element.append(value)
-            self.evaluator.set_state(element_expr, self.instance_path, element, base_context=self.execution_env)
+            if value is None:
+                raise ValueError("Return value cannot be empty or None.")
+            self.result = value
+            self.return_value = value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

@@ -31,10 +31,10 @@
 				</div>
 				<div class="result">
 					<BuilderModal
-						v-if="displayedDetails !== null"
+						v-if="displayedItemId == itemId"
 						:close-action="{
 							desc: 'Close',
-							fn: () => (displayedDetails = null),
+							fn: () => (displayedItemId = null),
 						}"
 						icon="find_in_page"
 						modal-title="Details"
@@ -48,10 +48,10 @@
 									environment of the direct dependents of this
 									block. There, it's accessible via @{result}.
 								</p>
-								<div class="data">
+								<div class="data" data-automation-key="result">
 									<SharedJsonViewer
-										v-if="displayedDetails?.result"
-										:data="displayedDetails.result"
+										v-if="item?.result"
+										:data="item.result"
 										:initial-depth="1"
 										class="data"
 									/>
@@ -68,12 +68,8 @@
 								</p>
 								<div class="data">
 									<SharedJsonViewer
-										v-if="
-											displayedDetails?.executionEnvironment
-										"
-										:data="
-											displayedDetails.executionEnvironment
-										"
+										v-if="item?.executionEnvironment"
+										:data="item.executionEnvironment"
 										:initial-depth="1"
 										class="data"
 									/>
@@ -89,10 +85,13 @@
 									determine the result of 'Run workflow'
 									blocks and 'Chat completion' tool calls.
 								</p>
-								<div class="data">
+								<div
+									class="data"
+									data-automation-key="return-value"
+								>
 									<SharedJsonViewer
-										v-if="displayedDetails?.returnValue"
-										:data="displayedDetails.returnValue"
+										v-if="item?.returnValue"
+										:data="item.returnValue"
 										:initial-depth="1"
 										class="data"
 									/>
@@ -111,15 +110,7 @@
 						"
 						variant="secondary"
 						size="small"
-						@click="
-							() =>
-								(displayedDetails = {
-									executionEnvironment:
-										item.executionEnvironment,
-									result: item.result,
-									returnValue: item.returnValue,
-								})
-						"
+						@click="() => (displayedItemId = itemId)"
 					>
 						<i class="material-symbols-outlined">find_in_page</i>
 						Details
@@ -151,7 +142,7 @@ const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 const props = defineProps<{
 	executionLog: WorkflowExecutionLog;
 }>();
-const displayedDetails = ref(null);
+const displayedItemId = ref<number | null>(null);
 
 type EnrichedExecutionLog = WorkflowExecutionLog & {
 	summary: {

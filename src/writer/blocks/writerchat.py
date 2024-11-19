@@ -1,7 +1,6 @@
-import writer.workflows
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class WriterChat(WorkflowBlock):
@@ -58,28 +57,17 @@ class WriterChat(WorkflowBlock):
             }
         ))
 
-    def run_branch(self, outcome: str, **args):
-        branch_root_nodes = self._get_nodes_at_outcome(outcome)
-        return_value = None
-        for branch_root_node in branch_root_nodes:
-            branch_nodes = writer.workflows.get_branch_nodes(branch_root_node.id)
-            terminal_nodes = writer.workflows.get_terminal_nodes(branch_nodes)
-
-            for terminal_node in terminal_nodes:
-                tool = writer.workflows.run_node(terminal_node, branch_nodes, self.execution, self.session, self.execution_env | args)
-                if tool and tool.return_value:
-                    return_value = tool.return_value
-
-        if return_value is None:
-            self.result = f"No value has been returned for the outcome branch '{outcome}'. Use the block 'Return value' to specify one."
-            self.outcome = "error"
-            raise ValueError("No value available")
-
-        return repr(return_value)
-
     def _make_callable(self, tool_name: str):
         def callable(**args):
-            return self.run_branch(f"tools_{tool_name}", **args)
+            expanded_execution_environment = self.execution_environment | args
+            return_value = self.run_branch(self.component.id, f"tools_{tool_name}", expanded_execution_environment)
+
+            if return_value is None:
+                self.result = f'No value has been returned for the outcome branch "{tool_name}". Use the block "Return value" to specify one.'
+                self.outcome = "error"
+                raise ValueError(f'No value has been returned for the outcome branch "{tool_name}".')
+
+            return return_value
         return callable
 
     def run(self):
@@ -111,7 +99,7 @@ class WriterChat(WorkflowBlock):
                     continue
                 tools.append(tool)
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
+            conversation = self.runner.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
                 self.result = "The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
@@ -123,21 +111,21 @@ class WriterChat(WorkflowBlock):
                 if not use_streaming:
                     msg = conversation.complete(tools=tools)
                     conversation += msg
-                    self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
+                    self._set_state(conversation_state_element, conversation)
                 else:
                     for chunk in conversation.stream_complete(tools=tools):
                         if chunk.get("content") is None:
                             chunk["content"] = ""
                         msg += chunk.get("content")
                         conversation += chunk
-                        self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
+                        self._set_state(conversation_state_element, conversation)
             except BaseException:
                 msg = {
                     "role": "assistant",
                     "content": "Couldn't process the request."
                 }
                 conversation += msg
-                self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
+                self._set_state(conversation_state_element, conversation)
             
             if not self.outcome:
                 self.result = msg

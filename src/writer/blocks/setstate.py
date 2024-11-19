@@ -1,21 +1,24 @@
-import writer.workflows
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class ReturnValue(WorkflowBlock):
+class SetState(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(ReturnValue, cls).register(type)
+        super(SetState, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Return value",
-                "description": "Returns a value from a workflow or sub-workflow.",
-                "category": "Logic",
+                "name": "Set state",
+                "description": "Set the value for a state element.",
+                "category": "Other",
                 "fields": {
+                    "element": {
+                        "name": "State element",
+                        "type": "Text"
+                    },
                     "value": {
                         "name": "Value",
                         "type": "Text",
@@ -39,11 +42,10 @@ class ReturnValue(WorkflowBlock):
 
     def run(self):
         try:
+            element = self._get_field("element")
             value = self._get_field("value")
-            if value is None:
-                raise ValueError("Return value cannot be empty or None.")
+            self._set_state(element, value)
             self.result = value
-            self.return_value = value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

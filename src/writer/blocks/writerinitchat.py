@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 DEFAULT_MODEL = "palmyra-x-004"
 
@@ -14,7 +14,7 @@ class WriterInitChat(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Initialize chat",
-                "description": "If it doesn't already exist, initializes a conversation for Chat Completion",
+                "description": "If it doesn't already exist, initializes a conversation for Chat completion",
                 "category": "Writer",
                 "fields": {
                     "conversationStateElement": {
@@ -57,10 +57,10 @@ class WriterInitChat(WorkflowBlock):
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
+            conversation = self.runner.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 
             if conversation is not None and not isinstance(conversation, writer.ai.Conversation):
-                self.result = f"The state element specified doesn't contain a Conversation. A value of type {type(conversation)} was found."
+                self.result = f'The state element specified does not contain a Conversation. A value of type "{type(conversation)}" was found.'
                 self.outcome = "error"
                 return
             elif conversation is not None:
@@ -69,7 +69,7 @@ class WriterInitChat(WorkflowBlock):
                 return
 
             conversation = writer.ai.Conversation(config=config)
-            self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
+            self._set_state(conversation_state_element, conversation)
             self.result = None
             self.outcome = "success"
         except BaseException as e:

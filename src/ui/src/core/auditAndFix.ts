@@ -57,6 +57,7 @@ function auditOrphanComponents(components: ComponentMap) {
 		Object.entries(components).map(([componentId]) => [componentId, false]),
 	);
 	traverseComponentTree("root", components, visited);
+	traverseComponentTree("workflows_root", components, visited);
 	Object.entries(visited).forEach(([componentId, isVisited]) => {
 		if (!isVisited) {
 			console.warn(

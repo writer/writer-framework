@@ -1,7 +1,6 @@
-import writer.workflows
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class ForEach(WorkflowBlock):
@@ -52,22 +51,23 @@ class ForEach(WorkflowBlock):
             }
         ))
 
-    def _run_workflow_for_item(self, workflow_key, base_execution_env, item_id, item):
-        return writer.workflows.run_workflow_by_key(self.session, workflow_key, base_execution_env | { "itemId": item_id, "item": item })
+    def _run_workflow_for_item(self, workflow_key, base_execution_environment, item_id, item):
+        expanded_execution_environment = base_execution_environment | { "itemId": item_id, "item": item }
+        return self.runner.run_workflow_by_key(workflow_key, expanded_execution_environment)
 
     def run(self):
         try:
             workflow_key = self._get_field("workflowKey")
             items = self._get_field("items", as_json=True)
-            base_execution_env = self._get_field("executionEnv", as_json=True)
+            base_execution_environment = self._get_field("executionEnv", as_json=True)
             std_items = items
             result = None
             if isinstance(items, list):
                 std_items = enumerate(std_items, 0)
-                result = [self._run_workflow_for_item(workflow_key, base_execution_env, item_id, item) for item_id, item in std_items]
+                result = [self._run_workflow_for_item(workflow_key, base_execution_environment, item_id, item) for item_id, item in std_items]
             elif isinstance(items, dict):
                 std_items = items.items()
-                result = {item_id:self._run_workflow_for_item(workflow_key, base_execution_env, item_id, item) for item_id, item in std_items}
+                result = {item_id:self._run_workflow_for_item(workflow_key, base_execution_environment, item_id, item) for item_id, item in std_items}
 
             self.result = result
             self.outcome = "success"

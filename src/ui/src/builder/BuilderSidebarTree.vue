@@ -50,11 +50,19 @@
 			</div>
 		</div>
 		<div class="add">
-			<button v-if="rootType == 'root'" @click="addPage">
+			<button
+				v-if="rootType == 'root'"
+				data-automation-action="add-page"
+				@click="addPage"
+			>
 				<i class="material-symbols-outlined"> add </i>
 				Add Page
 			</button>
-			<button v-if="rootType == 'workflows_root'" @click="addWorkflow">
+			<button
+				v-if="rootType == 'workflows_root'"
+				data-automation-action="add-workflow"
+				@click="addWorkflow"
+			>
 				<i class="material-symbols-outlined"> add </i>
 				Add Workflow
 			</button>
