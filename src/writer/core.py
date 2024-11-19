@@ -7,12 +7,10 @@ import datetime
 import functools
 import inspect
 import io
-import json
 import logging
 import math
 import multiprocessing
 import numbers
-import os
 import re
 import secrets
 import time
@@ -45,14 +43,13 @@ from typing import (
 import pyarrow  # type: ignore
 
 import writer.workflows
-from writer import core_ui
+from writer import core_ui, evaluator
 from writer.core_ui import Component
 from writer.ss_types import (
     DataframeRecordAdded,
     DataframeRecordRemoved,
     DataframeRecordUpdated,
     InstancePath,
-    InstancePathItem,
     Readable,
     ServeMode,
     WorkflowExecutionLog,
@@ -1203,8 +1200,8 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
-        self.evaluator = Evaluator(session_state, session_component_tree)
+    def __init__(self, session: "WriterSession"):
+        self.evaluator = evaluator.Evaluator(session)
 
     def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
@@ -1448,198 +1445,6 @@ class EventDeserialiser:
         return payload
 
 
-class Evaluator:
-
-    """
-    Evaluates templates and expressions in the backend.
-    It allows for the sanitisation of frontend inputs.
-    """
-
-    template_regex = re.compile(r"[\\]?@{([^{]*?)}")
-
-    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
-        self.wf = session_state
-        self.ct = session_component_tree
-
-    def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
-        def replacer(matched):
-            if matched.string[0] == "\\":  # Escaped @, don't evaluate
-                return matched.string
-            expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, instance_path, base_context)
-
-            try:
-                if as_json:
-                    serialised_value = state_serialiser.serialise(expr_value)
-                    if not isinstance(serialised_value, str):
-                        serialised_value = json.dumps(serialised_value)
-                    return serialised_value
-                return expr_value
-            except BaseException:
-                raise ValueError(
-                    f"""Couldn't serialise value of type "{ type(expr_value) }" when evaluating field "{ field_key }".""")
-
-        component_id = instance_path[-1]["componentId"]
-        component = self.ct.get_component(component_id)
-        if component:
-            field_value = component.content.get(field_key) or default_field_value
-            replaced = None
-            full_match = self.template_regex.fullmatch(field_value)
-
-            if full_match is None:
-                replaced = self.template_regex.sub(lambda m: str(replacer(m)), field_value)
-            else:
-                replaced = replacer(full_match)
-
-            if (replaced is not None) and as_json:
-                replaced_as_json = None
-                try:
-                    replaced_as_json = json.loads(replaced)
-                except json.JSONDecodeError:
-                    replaced_as_json = json.loads(default_field_value)
-                return replaced_as_json
-            else:
-                return replaced
-        else:
-            raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
-
-
-    def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
-        context: Dict[str, Any] = base_context
-        for i in range(len(instance_path)):
-            path_item = instance_path[i]
-            component_id = path_item["componentId"]
-            component = self.ct.get_component(component_id)
-            if not component:
-                continue
-            if component.type != "repeater":
-                continue
-            if i + 1 >= len(instance_path):
-                continue
-            repeater_instance_path = instance_path[0:i+1]
-            next_instance_path = instance_path[0:i+2]
-            instance_number = next_instance_path[-1]["instanceNumber"]
-            repeater_object = self.evaluate_field(
-                repeater_instance_path, "repeaterObject", True, """{ "a": { "desc": "Option A" }, "b": { "desc": "Option B" } }""")
-            key_variable = self.evaluate_field(
-                repeater_instance_path, "keyVariable", False, "itemId")
-            value_variable = self.evaluate_field(
-                repeater_instance_path, "valueVariable", False, "item")
-
-            repeater_items: List[Tuple[Any, Any]] = []
-            if isinstance(repeater_object, dict):
-                repeater_items = list(repeater_object.items())
-            elif isinstance(repeater_object, list):
-                repeater_items = list(enumerate(repeater_object))
-            else:
-                raise ValueError(
-                    "Cannot produce context. Repeater object must evaluate to a dictionary.")
-
-            context[key_variable] = repeater_items[instance_number][0]
-            context[value_variable] = repeater_items[instance_number][1]
-
-        if len(instance_path) > 0:
-            context['target'] = instance_path[-1]['componentId']
-
-        return context
-
-    def set_state(self, expr: str, instance_path: InstancePath, value: Any, base_context = {}) -> None:
-        accessors = self.parse_expression(expr, instance_path, base_context)
-        state_ref: StateProxy = self.wf.user_state
-        leaf_state_ref: StateProxy = state_ref
-
-        for accessor in accessors[:-1]:
-            if isinstance(state_ref, StateProxy):
-                leaf_state_ref = state_ref
-
-            if isinstance(state_ref, list):
-                state_ref = state_ref[int(accessor)]
-            else:
-                state_ref = state_ref[accessor]
-
-        if not isinstance(state_ref, (StateProxy, dict)):
-            raise ValueError(
-                f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy or dict.")
-
-        state_ref[accessors[-1]] = value
-        leaf_state_ref.apply_mutation_marker(recursive=True)
-
-    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> List[str]:
-
-        """ Returns a list of accessors from an expression. """
-
-        accessors: List[str] = []
-        s = ""
-        level = 0
-
-        i = 0
-        while i < len(expr):
-            character = expr[i]
-            if character == "\\":
-                if i + 1 < len(expr):
-                    s += expr[i + 1]
-                    i += 1
-            elif character == ".":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-            elif character == "[":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-                level += 1
-            elif character == "]":
-                level -= 1
-                if level == 0:
-                    s = str(self.evaluate_expression(s, instance_path, base_context))
-                else:
-                    s += character
-            else:
-                s += character
-
-            i += 1
-
-        if s:
-            accessors.append(s)
-
-        return accessors
-
-    def get_env_variable_value(self, expr: str):
-        return os.getenv(expr[1:])
-
-    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
-        context_data = base_context
-        result = None
-        if instance_path:
-            context_data = self.get_context_data(instance_path, base_context)
-        context_ref: Any = context_data
-        state_ref: Any = self.wf.user_state.state
-        accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
-
-        for accessor in accessors:
-            if isinstance(state_ref, (StateProxy, dict)) and accessor in state_ref:
-                state_ref = state_ref.get(accessor)
-                result = state_ref
-            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
-                state_ref = state_ref[int(accessor)]
-                result = state_ref
-            elif isinstance(context_ref, dict) and accessor in context_ref:
-                context_ref = context_ref.get(accessor)
-                result = context_ref
-
-        if isinstance(result, StateProxy):
-            return result.to_dict()
-
-        if result is None and expr.startswith("$"):
-            return self.get_env_variable_value(expr)
-
-        return result
-
-
 class WriterSession:
 
     """
@@ -1770,8 +1575,9 @@ class EventHandler:
         self.session = session
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
-        self.deser = EventDeserialiser(self.session_state, self.session_component_tree)
-        self.evaluator = Evaluator(self.session_state, self.session_component_tree)
+        self.deser = EventDeserialiser(session)
+        self.evaluator = evaluator.Evaluator(session)
+        self.workflow_runner = writer.workflows.WorkflowRunner(session)
 
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
@@ -1784,15 +1590,15 @@ class EventHandler:
 
     def _get_workflow_callable(self, workflow_key: Optional[str], workflow_id: Optional[str]):
         def fn(payload, context, session):
-            execution_env = {
+            execution_environment = {
                 "payload": payload,
                 "context": context,
                 "session": session
             }
             if workflow_key:
-                writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+                self.workflow_runner.run_workflow_by_key( workflow_key, execution_environment)
             elif workflow_id:
-                writer.workflows.run_workflow(self.session, workflow_id, execution_env)                
+                self.workflow_runner.run_workflow(workflow_id, execution_environment)                
         return fn
 
     def _get_handler_callable(self, target_component: Component, event_type: str) -> Optional[Callable]:        
@@ -1819,7 +1625,7 @@ class EventHandler:
         self,
         event_type: str,
         target_component: Component,
-        instance_path: List[InstancePathItem],
+        instance_path: InstancePath,
         payload: Any
     ) -> Any:
         
