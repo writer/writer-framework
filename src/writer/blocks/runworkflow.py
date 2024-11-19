@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
-from writer.ss_types import AbstractTemplate
 from writer.blocks.base_block import WorkflowBlock
+from writer.ss_types import AbstractTemplate
 
 
 class RunWorkflow(WorkflowBlock):
@@ -44,6 +44,8 @@ class RunWorkflow(WorkflowBlock):
 
     def run(self):
         try:
+            import writer.workflows
+
             workflow_key = self._get_field("workflowKey")
             execution_environment = self._get_field("executionEnv", as_json=True)
 

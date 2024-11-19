@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type
 
 import writer.blocks
 import writer.blocks.base_block
@@ -7,14 +7,16 @@ import writer.core
 import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog
 
+if TYPE_CHECKING:
+    from writer.evaluator import Evaluator
 
 class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):
-        self.execution: Dict[str, writer.blocks.WorkflowBlock] = {}
+        self.execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         self.state = session.session_state
         self.component_tree = session.session_component_tree
-        self.evaluator = writer.evaluator.Evaluator(session)
+        self.evaluator:Evaluator = writer.evaluator.Evaluator(session)
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.component_tree.components.values()
@@ -53,7 +55,7 @@ class WorkflowRunner():
         return self.run_nodes(nodes, execution_environment)
 
     def run_nodes(self, nodes: List[writer.core_ui.Component], execution_environment: Dict):
-        execution: Dict[str, writer.blocks.WorkflowBlock] = {}
+        execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         return_value = None
         try:
             for node in self.get_terminal_nodes(nodes):

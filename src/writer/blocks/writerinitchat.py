@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
-from writer.ss_types import AbstractTemplate
 from writer.blocks.base_block import WorkflowBlock
+from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x-004"
 

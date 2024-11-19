@@ -41,6 +41,7 @@ from typing import (
 
 import pyarrow  # type: ignore
 
+import writer.blocks
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
@@ -52,7 +53,6 @@ from writer.ss_types import (
     WriterEventResult,
     WriterFileItem,
 )
-import writer.blocks
 
 if TYPE_CHECKING:
     import pandas
