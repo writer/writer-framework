@@ -8,7 +8,7 @@ test.describe('undo and redo', () => {
 	let url: string;
 
 	const closeSettingsBar = async (page: Page) => {
-		await page.locator('.BuilderSettings button[data-automation-action="close"]').click();
+		await page.locator('.BuilderSettings button[data-automation-action="close-settings"]').click();
 	}
 
 	test.beforeAll(async ({ request }) => {

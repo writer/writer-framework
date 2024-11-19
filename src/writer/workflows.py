@@ -12,7 +12,6 @@ class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
-        self.execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         self.state = session.session_state
         self.component_tree = session.session_component_tree
 
@@ -57,22 +56,26 @@ class WorkflowRunner():
         return_value = None
         try:
             for node in self.get_terminal_nodes(nodes):
-                self.run_node(node, nodes, execution_environment)
+                self.run_node(node, nodes, execution_environment, execution)
             for tool in execution.values():
                 if tool and tool.return_value is not None:
                     return_value = tool.return_value
         except BaseException as e:
-            self._generate_run_log("Failed workflow execution", "error")
+            self._generate_run_log(execution, "Failed workflow execution", "error")
             raise e
         else:
-            self._generate_run_log("Workflow execution", "info", return_value)
+            self._generate_run_log(execution, "Workflow execution", "info", return_value)
         return return_value
 
-    def _generate_run_log(self, title: str, entry_type: Literal["info", "error"], return_value: Optional[Any] = None):
+    def _generate_run_log(self,
+                          execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+                          title: str,
+                          entry_type: Literal["info", "error"],
+                          return_value: Optional[Any] = None):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
         exec_log:WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
-        for component_id, tool in self.execution.items():
+        for component_id, tool in execution.items():
             exec_log.summary.append({
                 "componentId": component_id,
                 "outcome": tool.outcome,
@@ -111,13 +114,13 @@ class WorkflowRunner():
                 return True
         return False
 
-    def run_node(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component], execution_environment: Dict):
+    def run_node(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component], execution_environment: Dict, execution: Dict[str, writer.blocks.base_block.WorkflowBlock]):
         tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
             raise RuntimeError(f'Could not find tool for "{target_node.type}".')
         dependencies = self._get_node_dependencies(target_node, nodes)
 
-        tool = self.execution.get(target_node.id)
+        tool = execution.get(target_node.id)
         if tool:
             return tool
 
@@ -138,7 +141,7 @@ class WorkflowRunner():
 
         expanded_execution_environment = execution_environment | {
             "result": result,
-            "results": { k:v.result for k,v in self.execution.items() }
+            "results": { k:v.result for k,v in execution.items() }
         }
         tool = tool_class(target_node, self, expanded_execution_environment)
         
@@ -152,6 +155,6 @@ class WorkflowRunner():
             if not tool.outcome or not self._is_outcome_managed(target_node, tool.outcome):
                 raise e
         finally:
-            self.execution[target_node.id] = tool
+            execution[target_node.id] = tool
         
         return tool

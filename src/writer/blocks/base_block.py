@@ -25,7 +25,6 @@ class WorkflowBlock:
         self.result = None
         self.return_value = None
         self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
-        self.session = runner.session
         self.evaluator = writer.evaluator.Evaluator(runner.session.session_state, runner.session.session_component_tree)
 
     def _get_field(self, field_key: str, as_json=False, default_field_value=None):
