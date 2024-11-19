@@ -59,11 +59,10 @@ class TestEvaluator:
             {"componentId": "0cd59329-29c8-4887-beee-39794065221e", "instanceNumber": 0}
 
         ]
-        st = WriterState({
+        session.session_state = WriterState({
             "counter": 8
         })
-        ct = session.session_component_tree
-        e = evaluator.Evaluator(st, ct)
+        e = evaluator.Evaluator(session)
         evaluated = e.evaluate_field(instance_path, "text")
         assert evaluated == "The counter is 8"
 
@@ -79,7 +78,7 @@ class TestEvaluator:
         instance_path_2 = instance_path_base + [
             {"componentId": "2e688107-f865-419b-a07b-95103197e3fd", "instanceNumber": 2}
         ]
-        st = WriterState({
+        session.session_state = WriterState({
             "prog_languages": {
                 "c": "C",
                 "py": "Python",
@@ -87,8 +86,7 @@ class TestEvaluator:
                 "ts": "TypeScript"
             }
         })
-        ct = session.session_component_tree
-        e = evaluator.Evaluator(st, ct)
+        e = evaluator.Evaluator(session)
         assert e.evaluate_field(
             instance_path_0, "text") == "The id is c and the name is C"
         assert e.evaluate_field(
@@ -98,24 +96,22 @@ class TestEvaluator:
         instance_path = [
             {"componentId": "root", "instanceNumber": 0}
         ]
-        st = WriterState(raw_state_dict)
-        ct = session.session_component_tree
-        e = evaluator.Evaluator(st, ct)
+        session.session_state = WriterState(raw_state_dict)
+        e = evaluator.Evaluator(session)
         e.set_state("name", instance_path, "Roger")
         e.set_state("dynamic_prop", instance_path, "height")
         e.set_state("features[dynamic_prop]", instance_path, "toddler height")
         e.set_state("features.new_feature", instance_path, "blue")
-        assert st["name"] == "Roger"
-        assert st["features"]["height"] == "toddler height"
-        assert st["features"]["new_feature"] == "blue"
+        assert session.session_state["name"] == "Roger"
+        assert session.session_state["features"]["height"] == "toddler height"
+        assert session.session_state["features"]["new_feature"] == "blue"
 
     def test_evaluate_expression(self) -> None:
         instance_path = [
             {"componentId": "root", "instanceNumber": 0}
         ]
-        st = WriterState(raw_state_dict)
-        ct = session.session_component_tree
-        e = evaluator.Evaluator(st, ct)
+        session.session_state = WriterState(raw_state_dict)
+        e = evaluator.Evaluator(session)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
@@ -128,12 +124,12 @@ class TestEvaluator:
         Here we reproduce a click on a button
         """
         # Given
-        st = WriterState({})
-        ct = core_ui_fixtures.build_fake_component_tree([
+
+        session.session_component_tree = core_ui_fixtures.build_fake_component_tree([
             Component(id="button1", parentId="root", type="button")
         ], init_root=True)
 
-        e = evaluator.Evaluator(st, ct)
+        e = evaluator.Evaluator(session)
 
         # When
         context = e.get_context_data([
@@ -152,12 +148,12 @@ class TestEvaluator:
         """
         # Given
         st = WriterState({})
-        ct = core_ui_fixtures.build_fake_component_tree([
+        session.session_component_tree = core_ui_fixtures.build_fake_component_tree([
             Component(id="repeater1", parentId="root", type="repeater", content={'keyVariable': 'item', 'valueVariable': 'value', 'repeaterObject': json.dumps({'a': 'A', 'b': 'B'})}),
             Component(id="button1", parentId="repeater1", type="button")
         ], init_root=True)
 
-        e = evaluator.Evaluator(st, ct)
+        e = evaluator.Evaluator(session)
 
         # When
         context = e.get_context_data([

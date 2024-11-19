@@ -681,9 +681,8 @@ class TestWriterState:
 class TestEventDeserialiser:
 
     root_instance_path = [{"componentId": "root", "instanceNumber": 0}]
-    session_state = WriterState(raw_state_dict)
-    component_tree = session.session_component_tree
-    ed = EventDeserialiser(session_state, component_tree)
+    session.session_state = WriterState(raw_state_dict)
+    ed = EventDeserialiser(session)
 
     def test_unknown_no_payload(self) -> None:
         ev = WriterEvent(
