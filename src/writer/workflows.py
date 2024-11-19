@@ -1,20 +1,17 @@
 import time
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
+import writer.blocks
+import writer.blocks.base_block
 import writer.core
-from writer.core import Component, WriterSession
-from writer.ss_types import InstancePath, WorkflowExecutionLog
-
-WorkflowBlock_T = Type["WorkflowBlock"]
-block_map:Dict[str, WorkflowBlock_T] = {}
+import writer.core_ui
+from writer.ss_types import WorkflowExecutionLog
 
 
 class WorkflowRunner():
 
-    def __init__(self, session: WriterSession):
-        import writer.blocks
-
-        self.execution: Dict[str, WorkflowBlock] = {}
+    def __init__(self, session: writer.core.WriterSession):
+        self.execution: Dict[str, writer.blocks.WorkflowBlock] = {}
         self.state = session.session_state
         self.component_tree = session.session_component_tree
         self.evaluator = writer.evaluator.Evaluator(session)
@@ -35,7 +32,7 @@ class WorkflowRunner():
         if not base_component:
             raise RuntimeError(f'Cannot obtain branch. Could not find component "{base_component_id}".')
         outs = base_component.outs
-        nodes:List["Component"] = []
+        nodes:List[writer.core_ui.Component] = []
         if not outs:
             return nodes
         for out in outs:
@@ -55,8 +52,8 @@ class WorkflowRunner():
         nodes = self._get_workflow_nodes(component_id)
         return self.run_nodes(nodes, execution_environment)
 
-    def run_nodes(self, nodes: List["Component"], execution_environment: Dict):
-        execution: Dict[str, WorkflowBlock] = {}
+    def run_nodes(self, nodes: List[writer.core_ui.Component], execution_environment: Dict):
+        execution: Dict[str, writer.blocks.WorkflowBlock] = {}
         return_value = None
         try:
             for node in self.get_terminal_nodes(nodes):
@@ -91,7 +88,7 @@ class WorkflowRunner():
     def get_terminal_nodes(self, nodes):
         return [node for node in nodes if not node.outs]
 
-    def _get_node_dependencies(self, target_node: "Component", nodes: List["Component"]):
+    def _get_node_dependencies(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component]):
         dependencies:List[Tuple] = []
         parent_id = target_node.parentId
         if not parent_id:
@@ -106,7 +103,7 @@ class WorkflowRunner():
                     dependencies.append((node, out_id))
         return dependencies
 
-    def _is_outcome_managed(self, target_node: "Component", target_out_id: str):
+    def _is_outcome_managed(self, target_node: writer.core_ui.Component, target_out_id: str):
         if not target_node.outs:
             return False
         for out in target_node.outs:
@@ -114,8 +111,8 @@ class WorkflowRunner():
                 return True
         return False
 
-    def run_node(self, target_node: "Component", nodes: List["Component"], execution_environment: Dict):
-        tool_class = block_map.get(target_node.type)
+    def run_node(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component], execution_environment: Dict):
+        tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
             raise RuntimeError(f'Could not find tool for "{target_node.type}".')
         dependencies = self._get_node_dependencies(target_node, nodes)
@@ -158,34 +155,3 @@ class WorkflowRunner():
             self.execution[target_node.id] = tool
         
         return tool
-
-class WorkflowBlock:
-    
-    @classmethod
-    def register(cls, type: str):
-        block_map[type] = cls
-
-    def __init__(self, component: "Component", runner: WorkflowRunner, execution_environment: Dict):
-        self.outcome = None
-        self.component = component
-        self.runner = runner
-        self.execution_time_in_seconds = -1.0
-        self.execution_environment = execution_environment
-        self.result:Any = None
-        self.return_value = None
-        self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
-
-    def _get_field(self, field_key: str, as_json=False, default_field_value=None):
-        if default_field_value is None:
-            if as_json:
-                default_field_value = "{}"
-            else:
-                default_field_value = ""
-        value = self.runner.evaluator.evaluate_field(self.instance_path, field_key, as_json, default_field_value, self.execution_environment)
-        return value
-
-    def _set_state(self, expr: str, value: Any):
-        self.runner.evaluator.set_state(expr, self.instance_path, value, base_context=self.execution_environment)
-
-    def run(self):
-        pass

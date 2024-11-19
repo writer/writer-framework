@@ -52,6 +52,7 @@ from writer.ss_types import (
     WriterEventResult,
     WriterFileItem,
 )
+import writer.blocks
 
 if TYPE_CHECKING:
     import pandas
