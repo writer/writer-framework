@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from writer.ss_types import (
     InstancePath,
@@ -9,9 +9,7 @@ from writer.ss_types import (
 
 
 import writer.core
-
-if TYPE_CHECKING:
-    from writer.core import WriterSession
+from writer.core import WriterSession
 
 class Evaluator:
 

@@ -1,7 +1,6 @@
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
-import writer.core
 from writer.ss_types import WorkflowExecutionLog
 from typing import Dict, List
 from writer.ss_types import InstancePath
@@ -9,12 +8,12 @@ from writer.ss_types import InstancePath
 WorkflowBlock_T = Type["WorkflowBlock"]
 block_map:Dict[str, WorkflowBlock_T] = {}
 
-if TYPE_CHECKING:
-    from writer.core import WriterSession, Component, Config
+import writer.core
+from writer.core import WriterSession, Component
 
 class WorkflowRunner():
 
-    def __init__(self, session: "WriterSession"):
+    def __init__(self, session: WriterSession):
         import writer.blocks
 
         self.execution: Dict[str, WorkflowBlock] = {}
