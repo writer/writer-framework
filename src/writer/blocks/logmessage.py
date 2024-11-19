@@ -56,8 +56,6 @@ class LogMessage(WorkflowBlock):
                 return
 
             self.runner.state.add_log_entry(type, "Workflows message", message)
-            import time
-            self.runner.state.add_log_entry("error", "Workflows message", f"gato {time.time()}")
             self.result = None
             self.outcome = "success"
         except BaseException as e:
