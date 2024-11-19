@@ -7,12 +7,11 @@ from writer.ss_types import (
     InstancePath,
 )
 
+
 import writer.core
 
 if TYPE_CHECKING:
-    from writer.core import WriterState, WriterSession
-    from writer.core_ui import ComponentTree
-
+    from writer.core import WriterSession
 
 class Evaluator:
 
@@ -25,7 +24,7 @@ class Evaluator:
 
     def __init__(self, session: "WriterSession"):
         self.state = session.session_state
-        self.component_tree = session.component_tree
+        self.component_tree = session.session_component_tree
         self.serializer = writer.core.StateSerialiser()
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
