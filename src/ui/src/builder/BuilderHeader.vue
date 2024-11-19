@@ -49,7 +49,7 @@
 			variant="primary"
 			size="small"
 			class="panelToggler"
-			title="Toggle Code panel"
+			data-automation-action="toggle-code-panel"
 			:class="{ active: ssbm.openPanels.has('code') }"
 			@click="togglePanel('code')"
 		>
@@ -60,6 +60,7 @@
 			variant="primary"
 			size="small"
 			class="panelToggler"
+			data-automation-action="toggle-log-panel"
 			title="Toggle Log panel"
 			:class="{ active: ssbm.openPanels.has('log') }"
 			@click="togglePanel('log')"

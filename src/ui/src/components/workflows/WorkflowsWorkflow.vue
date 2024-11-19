@@ -59,6 +59,7 @@
 				variant="secondary"
 				size="small"
 				:data-writer-unselectable="true"
+				data-automation-action="run-workflow"
 				@click="handleRun"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
