@@ -42,6 +42,7 @@ from typing import (
 import pyarrow  # type: ignore
 
 import writer.blocks
+import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
@@ -1198,9 +1199,7 @@ class EventDeserialiser:
     applying sanitisation of inputs where relevant."""
 
     def __init__(self, session: "WriterSession"):
-        import writer.evaluator
-
-        self.evaluator = writer.evaluator.Evaluator(session)
+        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
 
     def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
@@ -1571,14 +1570,13 @@ class EventHandler:
     """
 
     def __init__(self, session: WriterSession) -> None:
-        import writer.evaluator
         import writer.workflows
 
         self.session = session
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
         self.deser = EventDeserialiser(session)
-        self.evaluator = writer.evaluator.Evaluator(session)
+        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
         self.workflow_runner = writer.workflows.WorkflowRunner(session)
 
 

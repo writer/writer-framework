@@ -61,7 +61,7 @@ class TestEvaluator:
         session.session_state = WriterState({
             "counter": 8
         })
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
         evaluated = e.evaluate_field(instance_path, "text")
         assert evaluated == "The counter is 8"
 
@@ -85,7 +85,7 @@ class TestEvaluator:
                 "ts": "TypeScript"
             }
         })
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
         assert e.evaluate_field(
             instance_path_0, "text") == "The id is c and the name is C"
         assert e.evaluate_field(
@@ -96,7 +96,7 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         session.session_state = WriterState(raw_state_dict)
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
         e.set_state("name", instance_path, "Roger")
         e.set_state("dynamic_prop", instance_path, "height")
         e.set_state("features[dynamic_prop]", instance_path, "toddler height")
@@ -110,7 +110,7 @@ class TestEvaluator:
             {"componentId": "root", "instanceNumber": 0}
         ]
         session.session_state = WriterState(raw_state_dict)
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
         assert e.evaluate_expression("features.eyes", instance_path) == "green"
         assert e.evaluate_expression("best_feature", instance_path) == "eyes"
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
@@ -128,7 +128,7 @@ class TestEvaluator:
             Component(id="button1", parentId="root", type="button")
         ], init_root=True)
 
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
 
         # When
         context = e.get_context_data([
@@ -151,7 +151,7 @@ class TestEvaluator:
             Component(id="button1", parentId="repeater1", type="button")
         ], init_root=True)
 
-        e = evaluator.Evaluator(session)
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
 
         # When
         context = e.get_context_data([

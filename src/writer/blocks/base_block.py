@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Any, Dict, Type
+import writer.evaluator
 
 if TYPE_CHECKING:
+    from writer.core import WriterSession
     from writer.core_ui import Component
     from writer.ss_types import InstancePath
     from writer.workflows import WorkflowRunner
@@ -14,15 +16,17 @@ class WorkflowBlock:
     def register(cls, type: str):
         block_map[type] = cls
 
-    def __init__(self, component: "Component", runner: "WorkflowRunner", execution_environment: Dict):
+    def __init__(self, component: "Component", runner: "WorkflowRunner", execution_environment: Dict, session: "WriterSession"):
         self.outcome = None
         self.component = component
         self.runner = runner
         self.execution_time_in_seconds = -1.0
         self.execution_environment = execution_environment
-        self.result:Any = None
+        self.result = None
         self.return_value = None
         self.instance_path: InstancePath = [{"componentId": self.component.id, "instanceNumber": 0}]
+        self.session = session
+        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
 
     def _get_field(self, field_key: str, as_json=False, default_field_value=None):
         if default_field_value is None:

@@ -7,16 +7,13 @@ import writer.core
 import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog
 
-if TYPE_CHECKING:
-    from writer.evaluator import Evaluator
-
 class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):
+        self.session = session
         self.execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         self.state = session.session_state
         self.component_tree = session.session_component_tree
-        self.evaluator:Evaluator = writer.evaluator.Evaluator(session)
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.component_tree.components.values()
@@ -50,7 +47,7 @@ class WorkflowRunner():
         nodes = self._get_branch_nodes(base_component_id, base_outcome)
         return self.run_nodes(nodes, execution_environment)
 
-    def run_workflow(self, component_id: str, execution_environment):
+    def run_workflow(self, component_id: str, execution_environment: Dict):
         nodes = self._get_workflow_nodes(component_id)
         return self.run_nodes(nodes, execution_environment)
 

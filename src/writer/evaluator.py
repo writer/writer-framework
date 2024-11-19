@@ -1,13 +1,17 @@
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import writer.core
-from writer.core import WriterSession
+import writer.core_ui
 from writer.ss_types import (
     InstancePath,
 )
+
+if TYPE_CHECKING:
+    from writer.core import WriterState
+    from writer.core_ui import ComponentTree
 
 
 class Evaluator:
@@ -19,9 +23,9 @@ class Evaluator:
 
     TEMPLATE_REGEX = re.compile(r"[\\]?@{([^{]*?)}")
 
-    def __init__(self, session: "WriterSession"):
-        self.state = session.session_state
-        self.component_tree = session.session_component_tree
+    def __init__(self, state: "WriterState", component_tree: "ComponentTree"):
+        self.state = state
+        self.component_tree = component_tree
         self.serializer = writer.core.StateSerialiser()
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
