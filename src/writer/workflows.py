@@ -7,6 +7,7 @@ import writer.core
 import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog
 
+
 class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):

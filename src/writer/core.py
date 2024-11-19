@@ -130,6 +130,29 @@ class Config:
     logger: Optional[logging.Logger] = None
     feature_flags: list[str] = []
 
+
+class WriterSession:
+
+    """
+    Represents a session.
+    """
+
+    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
+        self.session_id = session_id
+        self.cookies = cookies
+        self.headers = headers
+        self.last_active_timestamp: int = int(time.time())
+        new_state = WriterState.get_new()
+        new_state.user_state.mutated = set()
+        self.session_state = new_state
+        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
+        self.event_handler = EventHandler(self)
+        self.userinfo: Optional[dict] = None
+
+    def update_last_active_timestamp(self) -> None:
+        self.last_active_timestamp = int(time.time())
+
+
 @dataclasses.dataclass
 class MutationSubscription:
     """
@@ -1441,28 +1464,6 @@ class EventDeserialiser:
 
         payload = _deserialize_bigint_format(payload)
         return payload
-
-
-class WriterSession:
-
-    """
-    Represents a session.
-    """
-
-    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
-        self.session_id = session_id
-        self.cookies = cookies
-        self.headers = headers
-        self.last_active_timestamp: int = int(time.time())
-        new_state = WriterState.get_new()
-        new_state.user_state.mutated = set()
-        self.session_state = new_state
-        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
-        self.event_handler = EventHandler(self)
-        self.userinfo: Optional[dict] = None
-
-    def update_last_active_timestamp(self) -> None:
-        self.last_active_timestamp = int(time.time())
 
 
 class SessionManager:
