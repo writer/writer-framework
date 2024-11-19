@@ -127,7 +127,7 @@ class WorkflowRunner():
         result = None
         matched_dependencies = 0
         for node, out_id in dependencies:
-            tool = self.run_node(node, nodes, execution_environment)
+            tool = self.run_node(node, nodes, execution_environment, execution)
             if not tool:
                 continue
             if tool.outcome == out_id:
