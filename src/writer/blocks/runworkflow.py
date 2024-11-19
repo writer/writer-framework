@@ -44,12 +44,10 @@ class RunWorkflow(WorkflowBlock):
 
     def run(self):
         try:
-            import writer.workflows
-
             workflow_key = self._get_field("workflowKey")
             execution_environment = self._get_field("executionEnv", as_json=True)
 
-            return_value = writer.workflows.run_workflow_by_key(workflow_key, execution_environment)
+            return_value = self.runner.run_workflow_by_key(workflow_key, execution_environment)
             self.result = return_value
             self.outcome = "success"
         except BaseException as e:
