@@ -1570,8 +1570,8 @@ class EventHandler:
     """
 
     def __init__(self, session: WriterSession) -> None:
-        import writer.workflows
         import writer.evaluator
+        import writer.workflows
 
         self.session = session
         self.session_state = session.session_state

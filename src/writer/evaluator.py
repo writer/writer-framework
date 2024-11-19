@@ -3,13 +3,12 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+import writer.core
+from writer.core import WriterSession
 from writer.ss_types import (
     InstancePath,
 )
 
-
-import writer.core
-from writer.core import WriterSession
 
 class Evaluator:
 

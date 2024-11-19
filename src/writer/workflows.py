@@ -1,15 +1,13 @@
 import time
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
-from writer.ss_types import WorkflowExecutionLog
-from typing import Dict, List
-from writer.ss_types import InstancePath
+import writer.core
+from writer.core import Component, WriterSession
+from writer.ss_types import InstancePath, WorkflowExecutionLog
 
 WorkflowBlock_T = Type["WorkflowBlock"]
 block_map:Dict[str, WorkflowBlock_T] = {}
 
-import writer.core
-from writer.core import WriterSession, Component
 
 class WorkflowRunner():
 

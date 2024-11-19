@@ -2,8 +2,7 @@ import json
 
 import numpy as np
 import writer as wf
-from writer import audit_and_fix, wf_project
-from writer import evaluator
+from writer import audit_and_fix, evaluator, wf_project
 from writer.core import (
     WriterState,
 )
@@ -147,7 +146,6 @@ class TestEvaluator:
         Here we reproduce a click on a button
         """
         # Given
-        st = WriterState({})
         session.session_component_tree = core_ui_fixtures.build_fake_component_tree([
             Component(id="repeater1", parentId="root", type="repeater", content={'keyVariable': 'item', 'valueVariable': 'value', 'repeaterObject': json.dumps({'a': 'A', 'b': 'B'})}),
             Component(id="button1", parentId="repeater1", type="button")
