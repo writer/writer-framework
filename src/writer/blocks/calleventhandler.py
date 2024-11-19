@@ -4,7 +4,7 @@ import writer.core
 import writer.workflows
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
+from writer.workflows import WorkflowBlock
 
 
 class CallEventHandler(WorkflowBlock):
@@ -58,7 +58,7 @@ class CallEventHandler(WorkflowBlock):
 
             args = {
                 "state": self.session.session_state,
-                "context": self.execution_env,
+                "context": self.execution_environment,
                 "session": writer.core._event_handler_session_info(),
             } | additional_args
 

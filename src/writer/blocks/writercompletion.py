@@ -1,26 +1,25 @@
 from writer.abstract import register_abstract_template
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
+from writer.workflows import WorkflowBlock
 
-DEFAULT_MODEL = "palmyra-x-004"
+DEFAULT_MODEL = "palmyra-x-003-instruct"
 
-
-class WriterInitChat(WorkflowBlock):
+class WriterCompletion(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(WriterInitChat, cls).register(type)
+        super(WriterCompletion, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Initialize chat",
-                "description": "If it doesn't already exist, initializes a conversation for Chat Completion",
+                "name": "Completion",
+                "description": "Handles text completions.",
                 "category": "Writer",
                 "fields": {
-                    "conversationStateElement": {
-                        "name": "Conversation state element",
-                        "desc": "If not empty, the conversation will be stored in this state element. Specify the state element directly, without the template syntax.",
+                    "prompt": {
+                        "name": "Prompt",
                         "type": "Text",
+                        "control": "Textarea"
                     },
                     "modelId": {
                         "name": "Model id",
@@ -52,28 +51,13 @@ class WriterInitChat(WorkflowBlock):
         try:
             import writer.ai
 
-            conversation_state_element = self._get_field("conversationStateElement")
+            prompt = self._get_field("prompt")
             temperature = float(self._get_field("temperature", False, "0.7"))
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
-
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_env)
-
-            if conversation is not None and not isinstance(conversation, writer.ai.Conversation):
-                self.result = f"The state element specified doesn't contain a Conversation. A value of type {type(conversation)} was found."
-                self.outcome = "error"
-                return
-            elif conversation is not None:
-                self.result = "The conversation already exists."
-                self.outcome = "success"
-                return
-
-            conversation = writer.ai.Conversation(config=config)
-            self.evaluator.set_state(conversation_state_element, self.instance_path, conversation, base_context=self.execution_env)
-            self.result = None
+            result = writer.ai.complete(prompt, config).strip()
+            self.result = result
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
             raise e
-
-    
