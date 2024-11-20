@@ -105,31 +105,34 @@ import { isPlatformMac } from "../core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
+import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
+import BuilderCodePanel from "./BuilderCodePanel.vue";
+import BuilderLogPanel from "./BuilderLogPanel.vue";
 
-const BuilderSettings = defineAsyncComponent(
-	() => import("./BuilderSettings.vue"),
-);
-const BuilderSidebar = defineAsyncComponent(
-	() => import("./BuilderSidebar.vue"),
-);
-const ComponentRenderer = defineAsyncComponent(
-	() => import("@/renderer/ComponentRenderer.vue"),
-);
-const BuilderInstanceTracker = defineAsyncComponent(
-	() => import("./BuilderInstanceTracker.vue"),
-);
-const BuilderInsertionOverlay = defineAsyncComponent(
-	() => import("./BuilderInsertionOverlay.vue"),
-);
-const BuilderInsertionLabel = defineAsyncComponent(
-	() => import("./BuilderInsertionLabel.vue"),
-);
-const BuilderCodePanel = defineAsyncComponent(
-	() => import("./BuilderCodePanel.vue"),
-);
-const BuilderLogPanel = defineAsyncComponent(
-	() => import("./BuilderLogPanel.vue"),
-);
+const BuilderSettings = defineAsyncComponent({
+	loader: () => import("./BuilderSettings.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderSidebar = defineAsyncComponent({
+	loader: () => import("./BuilderSidebar.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const ComponentRenderer = defineAsyncComponent({
+	loader: () => import("@/renderer/ComponentRenderer.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInstanceTracker = defineAsyncComponent({
+	loader: () => import("./BuilderInstanceTracker.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInsertionOverlay = defineAsyncComponent({
+	loader: () => import("./BuilderInsertionOverlay.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInsertionLabel = defineAsyncComponent({
+	loader: () => import("./BuilderInsertionLabel.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

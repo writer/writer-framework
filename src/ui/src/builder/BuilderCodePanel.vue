@@ -17,10 +17,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
-import BuilderEmbeddedCodeEditor from "./BuilderEmbeddedCodeEditor.vue";
+import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
+import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import injectionKeys from "@/injectionKeys";
+
+const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+	loader: () => import("./BuilderEmbeddedCodeEditor.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 
