@@ -1,7 +1,9 @@
 import json
+
 import pytest
-from writer.blocks.writerclassification import WriterClassification
 import writer.ai
+from writer.blocks.writerclassification import WriterClassification
+
 
 def fake_complete(prompt, config):
     additional_context = "It's about animal classification."

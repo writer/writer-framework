@@ -87,7 +87,7 @@ class HTTPRequest(WorkflowBlock):
             else:
                 self.outcome = "responseError"
                 raise RuntimeError("HTTP response with code " + str(req.status_code))
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             self.outcome = "responseError"
             raise e
         except BaseException as e:

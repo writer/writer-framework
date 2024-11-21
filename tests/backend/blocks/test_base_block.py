@@ -21,7 +21,7 @@ def test_get_field(session, runner):
     assert {} == block._get_field("ghost_field", as_json=True)
     assert "ok" == block._get_field("ghost_field_json", as_json=True, default_field_value='{ "ok": "ok" }').get("ok")
     block.run()
-    assert block.outcome == None
+    assert block.outcome is None
 
 
 def test_set_state(session, runner):
@@ -41,4 +41,4 @@ def test_set_state(session, runner):
     assert session.session_state["my_list"] == [1, 2]
     assert session.session_state["my_dict"]["animal"] == "cat"
     assert session.session_state["unchanged"] == "unchanged"
-    assert block.outcome == None
+    assert block.outcome is None

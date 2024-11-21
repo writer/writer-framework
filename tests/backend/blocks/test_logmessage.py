@@ -1,7 +1,7 @@
+import pytest
+import writer.core
 from writer.blocks.logmessage import LogMessage
 from writer.core import WriterState
-import writer.core
-import pytest
 
 
 def test_log_message(session, runner):

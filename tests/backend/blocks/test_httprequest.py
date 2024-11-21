@@ -1,4 +1,5 @@
 import json
+
 import pytest
 import requests
 from writer.blocks.httprequest import HTTPRequest

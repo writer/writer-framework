@@ -1,6 +1,6 @@
 import pytest
-from writer.blocks.writerinitchat import WriterInitChat
 from writer.ai import Conversation
+from writer.blocks.writerinitchat import WriterInitChat
 
 
 def test_init_chat_already_initialized(session, runner):

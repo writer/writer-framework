@@ -1,5 +1,5 @@
-from writer.blocks.writercompletion import WriterCompletion
 import writer.ai
+from writer.blocks.writercompletion import WriterCompletion
 
 
 def test_complete(session, runner):

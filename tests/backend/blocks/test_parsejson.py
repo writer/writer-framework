@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from writer.blocks.parsejson import ParseJSON
 from writer.workflows import WorkflowRunner

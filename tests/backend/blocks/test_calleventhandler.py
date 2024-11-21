@@ -1,6 +1,6 @@
 import pytest
-from writer.blocks.calleventhandler import CallEventHandler
 import writer.core
+from writer.blocks.calleventhandler import CallEventHandler
 
 
 def valid_handler(state):

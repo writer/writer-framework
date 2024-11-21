@@ -1,7 +1,8 @@
 import json
+
 import pytest
-from writer.blocks.writerchat import WriterChat
 from writer.ai import Conversation
+from writer.blocks.writerchat import WriterChat
 
 
 class MockConversation(Conversation):

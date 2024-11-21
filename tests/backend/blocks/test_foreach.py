@@ -1,6 +1,7 @@
 import pytest
 from writer.blocks.foreach import ForEach
 
+
 def test_basic_list(session, runner):
     session.add_fake_component({
         "workflowKey": "workflow1",

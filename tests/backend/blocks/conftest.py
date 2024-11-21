@@ -1,4 +1,5 @@
 from typing import Dict
+
 import pytest
 from writer.core import WriterSession, WriterState
 from writer.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch

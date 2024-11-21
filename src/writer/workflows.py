@@ -30,13 +30,15 @@ class WorkflowRunner():
             raise RuntimeError(f'Cannot obtain branch. Could not find component "{base_component_id}".')
         if not root_node:
             return []
-        branch_nodes = []
+        branch_nodes: List[writer.core_ui.Component] = []
         if not root_node.outs:
             return branch_nodes
         for out in root_node.outs:
             if base_outcome is not None and base_outcome != out.get("outId"):
                 continue
             branch_root_node = self.session.session_component_tree.get_component(out.get("toNodeId"))
+            if not branch_root_node:
+                continue
             branch_nodes.append(branch_root_node)
             branch_nodes += self._get_branch_nodes(out.get("toNodeId"), base_outcome=None)
         return branch_nodes
@@ -58,7 +60,7 @@ class WorkflowRunner():
             for tool in execution.values():
                 if tool and tool.return_value is not None:
                     return_value = tool.return_value
-        except WriterConfigurationError as e:
+        except WriterConfigurationError:
             self._generate_run_log(execution, title, "error")
             # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
         except BaseException as e:
@@ -153,11 +155,13 @@ class WorkflowRunner():
             tool.run()
             tool.execution_time_in_seconds = time.time() - start_time
         except BaseException as e:
-            if tool and not tool.outcome:
+            if not tool:
+                raise e
+            if not tool.outcome:
                 tool.outcome = "error"
-            if tool and isinstance(e, WriterConfigurationError):
+            if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
-            if not self._is_outcome_managed(target_node, tool.outcome):
+            if not tool.outcome or not self._is_outcome_managed(target_node, tool.outcome):
                 raise e
         finally:
             execution[target_node.id] = tool

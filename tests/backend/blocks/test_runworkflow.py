@@ -1,6 +1,7 @@
 import pytest
 from writer.blocks.runworkflow import RunWorkflow
 
+
 def test_workflow_that_does_not_exist(session, runner):
     session.add_fake_component({
         "workflowKey": "workflowThatDoesNotExist",

@@ -1,7 +1,9 @@
 import json
+
 import pytest
-from writer.blocks.writernocodeapp import WriterNoCodeApp
 import writer.ai
+from writer.blocks.writernocodeapp import WriterNoCodeApp
+
 
 def fake_generate_content(application_id, app_inputs):
     assert application_id == "123"

@@ -2,6 +2,7 @@ import pytest
 from writer.blocks.returnvalue import ReturnValue
 from writer.core import WriterState
 
+
 def test_basic_return(session, runner):
     session.session_state = WriterState({
         "animal": "marmot",

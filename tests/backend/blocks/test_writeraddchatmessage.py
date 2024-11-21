@@ -1,6 +1,6 @@
 import pytest
-from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 import writer.ai
+from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 
 
 def test_add_chat_message(session, runner):
