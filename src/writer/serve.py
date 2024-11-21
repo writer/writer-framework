@@ -560,7 +560,7 @@ async def lifespan(app: FastAPI):
     async with _lifespan_invoke(writer_lifespans, app):
         yield
 
-def configure_page_head(
+def configure_webpage_metadata(
     title: Union[str, Callable[[], str]] = "Writer Framework",
     meta: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None,
     opengraph_tags: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None
@@ -568,7 +568,7 @@ def configure_page_head(
     """
     Configures the page header for SEO and social networks from `server_setup` module.
 
-    >>> writer.serve.configure_page_head(
+    >>> writer.serve.configure_webpage_metadata(
     >>>     title="my App",
     >>>     meta={
     >>>         "description": "my amazing app",
@@ -591,14 +591,14 @@ def configure_page_head(
     >>>         "author": "Amazing company"
     >>>     }
 
-    >>> writer.serve.configure_page_head(
+    >>> writer.serve.configure_webpage_metadata(
     >>>     title=generated_title
     >>>     meta=generated_meta_tags
     >>> )
 
     OpenGraph tags are used by social networks to display information about the page. WF support them.
 
-    >>> writer.serve.configure_page_head(
+    >>> writer.serve.configure_webpage_metadata(
     >>>     title=generated_title
     >>>     opengraph_tags= {
     >>>         "og:title": "My App",
@@ -614,7 +614,7 @@ def configure_page_head(
     >>>         "og:description": "My amazing app",
     >>>     }
 
-    >>> writer.serve.configure_page_head(
+    >>> writer.serve.configure_webpage_metadata(
     >>>     title=generated_title
     >>>     opengraph_tags= generated_opengraph_tags
     >>> )
