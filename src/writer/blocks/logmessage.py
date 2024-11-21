@@ -48,16 +48,9 @@ class LogMessage(WorkflowBlock):
     def run(self):
         try:
             type = self._get_field("type", False, "info")
-            message = self._get_field("message")
+            message = self._get_field("message", required=True)
 
-            if message is None:
-                self.result = "Message cannot be empty."
-                self.outcome = "error"
-                return
-
-            self.runner.state.add_log_entry(type, "Workflows message", message)
-            import time
-            self.runner.state.add_log_entry("error", "Workflows message", f"gato {time.time()}")
+            self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
             self.result = None
             self.outcome = "success"
         except BaseException as e:

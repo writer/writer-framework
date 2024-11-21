@@ -42,8 +42,9 @@ class SetState(WorkflowBlock):
 
     def run(self):
         try:
-            element = self._get_field("element")
+            element = self._get_field("element", required=True)
             value = self._get_field("value")
+
             self._set_state(element, value)
             self.result = value
             self.outcome = "success"

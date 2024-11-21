@@ -1597,9 +1597,9 @@ class EventHandler:
                 "session": session
             }
             if workflow_key:
-                self.workflow_runner.run_workflow_by_key( workflow_key, execution_environment)
+                self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
             elif workflow_id:
-                self.workflow_runner.run_workflow(workflow_id, execution_environment)
+                self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
         return fn
 
     def _get_handler_callable(self, target_component: Component, event_type: str) -> Optional[Callable]:        

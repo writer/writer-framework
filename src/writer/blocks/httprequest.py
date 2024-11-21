@@ -68,7 +68,7 @@ class HTTPRequest(WorkflowBlock):
         import json
 
         try:
-            method = self._get_field("method", False, "get")
+            method = self._get_field("method", False, "GET")
             url = self._get_field("url")
             headers = self._get_field("headers", True)
             body = self._get_field("body")
@@ -87,9 +87,10 @@ class HTTPRequest(WorkflowBlock):
             else:
                 self.outcome = "responseError"
                 raise RuntimeError("HTTP response with code " + str(req.status_code))
-        except json.JSONDecodeError:
-            self.result = "JSON decode error. The response contains invalid JSON."
+        except json.JSONDecodeError as e:
             self.outcome = "responseError"
+            raise e
         except BaseException as e:
-            self.outcome = "connectionError"
+            if not self.outcome:
+                self.outcome = "connectionError"
             raise e

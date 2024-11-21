@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
-from writer.ss_types import AbstractTemplate
+from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 DEFAULT_MODEL = "palmyra-x-004"
 
@@ -57,14 +57,12 @@ class WriterInitChat(WorkflowBlock):
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
 
-            conversation = self.runner.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 
             if conversation is not None and not isinstance(conversation, writer.ai.Conversation):
-                self.result = f'The state element specified does not contain a Conversation. A value of type "{type(conversation)}" was found.'
-                self.outcome = "error"
-                return
+                raise WriterConfigurationError(f'The state element specified does not contain a Conversation. A value of type "{type(conversation)}" was found.')
             elif conversation is not None:
-                self.result = "The conversation already exists."
+                self.result = "The conversation already exists. It will not be overwritten."
                 self.outcome = "success"
                 return
 

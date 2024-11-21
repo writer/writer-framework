@@ -56,7 +56,7 @@ class CallEventHandler(WorkflowBlock):
             callable_handler = handler_registry.find_handler_callable(handler_name)
 
             args = {
-                "state": self.session.session_state,
+                "state": self.runner.session.session_state,
                 "context": self.execution_environment,
                 "session": writer.core._event_handler_session_info(),
             } | additional_args
