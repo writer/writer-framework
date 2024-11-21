@@ -634,17 +634,6 @@ class AppRunner:
         wf_project.start_process_write_files_async(self.wf_project_context, AppRunner.WF_PROJECT_SAVE_INTERVAL)
 
     def load(self) -> None:
-        def signal_handler(sig, frame):
-            self.shut_down()
-            sys.exit(0)
-
-        try:
-            signal.signal(signal.SIGINT, signal_handler)
-            signal.signal(signal.SIGTERM, signal_handler)
-        except ValueError:
-            # No need to handle signal as not main thread
-            pass
-
         self.run_code = self._load_persisted_script()
         self.bmc_components = self._load_persisted_components()
 
@@ -653,6 +642,13 @@ class AppRunner:
             self._start_fs_observer()
 
         self._start_app_process()
+
+        # We have to create new processes as wf_projet_process before subscribing to signal.
+        # When a new process is create, the parent process is fork. The child would also subscribe to signal.
+        #
+        # When signal happen, both process will answer and one of them raise error due to mismatch between
+        # parent pid and pid.
+        self._subscribe_terminal_signal()
 
     async def dispatch_message(self, session_id: Optional[str], request: AppProcessServerRequest) -> AppProcessServerResponse:
 
@@ -885,3 +881,15 @@ class AppRunner:
         thread.start()
         thread.join()
         return
+
+    def _subscribe_terminal_signal(self):
+        def signal_handler(sig, frame):
+            self.shut_down()
+            sys.exit(0)
+
+        try:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+        except ValueError:
+            # No need to handle signal as not main thread
+            pass
