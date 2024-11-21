@@ -18,6 +18,7 @@ export type WorkflowExecutionLog = {
 	summary: {
 		componentId: Component["id"];
 		outcome: string;
+		message?: string;
 		executionTimeInSeconds: number;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		result: any;

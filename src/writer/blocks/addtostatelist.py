@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
-from writer.ss_types import AbstractTemplate
+from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
 class AddToStateList(WorkflowBlock):
@@ -45,12 +45,12 @@ class AddToStateList(WorkflowBlock):
             element_expr = self._get_field("element")
             value = self._get_field("value")
 
-            element = self.runner.evaluator.evaluate_expression(element_expr, self.instance_path, self.execution_environment)
+            element = self.evaluator.evaluate_expression(element_expr, self.instance_path, self.execution_environment)
 
             if not element:
                 element = []
             elif not isinstance(element, list):
-                element = [element]
+                raise WriterConfigurationError(f'The state element must be a list. A value of type "{type(element)}" was found.')
 
             element.append(value)
             self._set_state(element_expr, element)

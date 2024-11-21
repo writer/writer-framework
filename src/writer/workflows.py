@@ -5,53 +5,51 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
-from writer.ss_types import WorkflowExecutionLog
+from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 
 
 class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
-        self.state = session.session_state
-        self.component_tree = session.session_component_tree
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
-        all_components = self.component_tree.components.values()
+        all_components = self.session.session_component_tree.components.values()
         workflows = list(filter(lambda c: c.type == "workflows_workflow" and c.content.get("key") == workflow_key, all_components))
         if len(workflows) == 0:
             raise ValueError(f'Workflow with key "{workflow_key}" not found.')
         workflow = workflows[0]
-        return self.run_workflow(workflow.id, execution_environment)
+        return self.run_workflow(workflow.id, execution_environment, f"Workflow execution ({workflow_key})")
 
     def _get_workflow_nodes(self, component_id):
-        return self.component_tree.get_descendents(component_id)
+        return self.session.session_component_tree.get_descendents(component_id)
 
-    def _get_branch_nodes(self, base_component_id: str, base_outcome: str):
-        base_component = self.component_tree.get_component(base_component_id)
-        if not base_component:
+    def _get_branch_nodes(self, base_component_id: str, base_outcome: Optional[str]=None):
+        root_node = self.session.session_component_tree.get_component(base_component_id)
+        if not root_node:
             raise RuntimeError(f'Cannot obtain branch. Could not find component "{base_component_id}".')
-        outs = base_component.outs
-        nodes:List[writer.core_ui.Component] = []
-        if not outs:
-            return nodes
-        for out in outs:
-            if out.get("outId") == base_outcome:
-                component_id = out.get("toNodeId")
-                component = self.component_tree.get_component(component_id)
-                if not component:
-                    continue
-                nodes.append(component)
-        return nodes
+        if not root_node:
+            return []
+        branch_nodes = []
+        if not root_node.outs:
+            return branch_nodes
+        for out in root_node.outs:
+            if base_outcome is not None and base_outcome != out.get("outId"):
+                continue
+            branch_root_node = self.session.session_component_tree.get_component(out.get("toNodeId"))
+            branch_nodes.append(branch_root_node)
+            branch_nodes += self._get_branch_nodes(out.get("toNodeId"), base_outcome=None)
+        return branch_nodes
 
-    def run_branch(self, base_component_id: str, base_outcome: str, execution_environment: Dict):
+    def run_branch(self, base_component_id: str, base_outcome: str, execution_environment: Dict, title: str = "Branch execution"):
         nodes = self._get_branch_nodes(base_component_id, base_outcome)
-        return self.run_nodes(nodes, execution_environment)
+        return self.run_nodes(nodes, execution_environment, title)
 
-    def run_workflow(self, component_id: str, execution_environment: Dict):
+    def run_workflow(self, component_id: str, execution_environment: Dict, title="Workflow execution"):
         nodes = self._get_workflow_nodes(component_id)
-        return self.run_nodes(nodes, execution_environment)
+        return self.run_nodes(nodes, execution_environment, title)
 
-    def run_nodes(self, nodes: List[writer.core_ui.Component], execution_environment: Dict):
+    def run_nodes(self, nodes: List[writer.core_ui.Component], execution_environment: Dict, title: str = "Workflow execution"):
         execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         return_value = None
         try:
@@ -60,11 +58,14 @@ class WorkflowRunner():
             for tool in execution.values():
                 if tool and tool.return_value is not None:
                     return_value = tool.return_value
+        except WriterConfigurationError as e:
+            self._generate_run_log(execution, title, "error")
+            # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
         except BaseException as e:
-            self._generate_run_log(execution, "Failed workflow execution", "error")
+            self._generate_run_log(execution, title, "error")
             raise e
         else:
-            self._generate_run_log(execution, "Workflow execution", "info", return_value)
+            self._generate_run_log(execution, title, "info", return_value)
         return return_value
 
     def _generate_run_log(self,
@@ -79,13 +80,15 @@ class WorkflowRunner():
             exec_log.summary.append({
                 "componentId": component_id,
                 "outcome": tool.outcome,
+                "message": tool.message,
                 "result": tool.result,
                 "returnValue": tool.return_value,
                 "executionEnvironment": tool.execution_environment,
                 "executionTimeInSeconds": tool.execution_time_in_seconds 
             })
         msg = "Execution finished."
-        self.state.add_log_entry(entry_type, title, msg, workflow_execution=exec_log)
+        
+        self.session.session_state.add_log_entry(entry_type, title, msg, workflow_execution=exec_log)
 
 
     def get_terminal_nodes(self, nodes):
@@ -143,16 +146,18 @@ class WorkflowRunner():
             "result": result,
             "results": { k:v.result for k,v in execution.items() }
         }
-        tool = tool_class(target_node, self, expanded_execution_environment)
+        tool = tool_class(target_node.id, self, expanded_execution_environment)
         
         try:
             start_time = time.time()
             tool.run()
             tool.execution_time_in_seconds = time.time() - start_time
         except BaseException as e:
-            if tool and not tool.result:
-                tool.result = repr(e)
-            if not tool.outcome or not self._is_outcome_managed(target_node, tool.outcome):
+            if tool and not tool.outcome:
+                tool.outcome = "error"
+            if tool and isinstance(e, WriterConfigurationError):
+                tool.message = str(e)
+            if not self._is_outcome_managed(target_node, tool.outcome):
                 raise e
         finally:
             execution[target_node.id] = tool

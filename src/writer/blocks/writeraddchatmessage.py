@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
-from writer.ss_types import AbstractTemplate
+from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
 class WriterAddChatMessage(WorkflowBlock):
@@ -45,33 +45,19 @@ class WriterAddChatMessage(WorkflowBlock):
         try:
             import writer.ai
 
-            conversation_state_element = self._get_field("conversationStateElement")
-            message = self._get_field("message", as_json=True)
-            conversation = self.runner.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation_state_element = self._get_field("conversationStateElement", required=True)
+            message = self._get_field("message", as_json=True, required=True)
+
+            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
-                self.result = "The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
-                self.outcome = "error"
-                return
-
-            if message is None:
-                self.result = "No message has been specified."
-                self.outcome = "error"
-                return
+                raise WriterConfigurationError("The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'.")
             
-            try:
-                writer.ai.Conversation.validate_message(message)
-            except ValueError:
-                self.result = "Invalid message."
-                self.outcome = "error"
-            finally:
-                if self.outcome:
-                    return            
-
+            writer.ai.Conversation.validate_message(message)
             conversation += message
 
             self._set_state(conversation_state_element, conversation)            
-            self.result = "Success"
+            self.result = None
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

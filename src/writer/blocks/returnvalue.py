@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
-from writer.ss_types import AbstractTemplate
+from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
 class ReturnValue(WorkflowBlock):
@@ -40,7 +40,7 @@ class ReturnValue(WorkflowBlock):
         try:
             value = self._get_field("value")
             if value is None:
-                raise ValueError("Return value cannot be empty or None.")
+                raise WriterConfigurationError("Return value cannot be empty or None.")
             self.result = value
             self.return_value = value
             self.outcome = "success"
