@@ -13,6 +13,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.writeraddtokg import WriterAddToKG
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
@@ -29,3 +30,4 @@ CallEventHandler.register("workflows_calleventhandler")
 AddToStateList.register("workflows_addtostatelist")
 ReturnValue.register("workflows_returnvalue")
 WriterInitChat.register("workflows_writerinitchat")
+WriterAddToKG.register("workflows_writeraddtokg")
