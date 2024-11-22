@@ -1,4 +1,5 @@
 from typing import Any
+
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
@@ -47,7 +48,7 @@ class WriterAddToKG(WorkflowBlock):
         if not isinstance(raw_file, dict):
             raise WriterConfigurationError("Files must be dictionaries and contain `data`, `type` and `name` attributes.")
 
-        if not "data" in raw_file or not "type" in raw_file or not "name" in raw_file:
+        if "data" not in raw_file or "type" not in raw_file or "name" not in raw_file:
             raise WriterConfigurationError("A file specified as a dictionary must contain `data`, `type` and `name` attributes.")
 
         return raw_file
