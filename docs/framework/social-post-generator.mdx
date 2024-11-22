@@ -2,9 +2,9 @@
 title: "Social post generator"
 ---
 
-In this tutorial, you'll create a social post generator using the Writer Framework.
+In this tutorial, you'll use the Writer Framework to build an AI-powered tool for generating social media posts and tags based on the input you provide!
 
-You'll build an AI-powered tool for generating social media posts and tags based on the input you provide! You'll do this in minutes using a drag-and-drop visual editor to build the user interface and Python for the back-end code.
+The process will take only minutes using a drag-and-drop visual editor to build the user interface and Python for the back-end code.
 
 Here's what the finished project will look like:
 
@@ -15,8 +15,8 @@ Here's what the finished project will look like:
 
 Before starting, ensure you have:
 
-- **A Writer account:** Create a free account at [writer.com](https://writer.com).
-- **Python 3.7+**: Use the installer from [python.org](https://www.python.org/downloads/).
+- **A Writer account:** You'll need an account to use Writer Framework, and [you can sign up for a free one](https://app.writer.com/aistudio/signup).
+- **Python 3.9.2 or later**: Use the installer from [python.org](https://www.python.org/downloads/).
 - **pip:** This command-line application comes with Python and is used for installing Python packages, including those from Writer.
 - **A basic understanding of Python:** You should be familiar with the basics of the language.
 - **Your favorite code editor (optional):** There's a code editor built into Writer for writing back-end code, but you can also use Visual Studio Code, Notepad++, Vim, Emacs, or any text editor made for programming if you prefer.
@@ -42,7 +42,7 @@ First, you'll need to create a new app within Writer.
   </Step>
 
   <Step title="Copy your app's API key">
-  On the next screen, titled **How to deploy an application**, you can get the API key for the app by clicking on the **Reveal key** button, located under the text **Authenticate with an API key**. Your complete API key will be displayed, and a "copy" button will appear, enabling you to copy the key.
+  On the next screen, titled **How to deploy an application**, you can get the API key for the app by clicking on the **Reveal key** button, located under the text **Authenticate with an API key**. Your complete API key will be displayed, and a "copy" button will appear. Click this button to copy the key; you'll use it in the next step.
 
   !["How to deploy an application" page](/framework/images/tutorial/social_post/sp_gen_2a.png)
   </Step>
@@ -54,7 +54,7 @@ The next step is to set up the Writer Framework environment on your computer. Yo
 
 <Steps>
   <Step title="Open your terminal application">
-  Open your terminal application. On macOS and Linux, this application goes by the name _Terminal_; on Windows, you can use either _Windows PowerShell_ or _Command Prompt_.
+  Open your terminal application. On macOS and Linux, this application goes by the name _Terminal_; on Windows, you can use either _Windows PowerShell_ (which is preferred) or _Command Prompt_.
   </Step>
 
   <Step title="Install the dependencies">
@@ -69,36 +69,33 @@ The next step is to set up the Writer Framework environment on your computer. Yo
   This command tells `pip`, the Python package installer, to install two packages:
 
   - `writer`, which provides some command-line commands and enables Python code to interact with Writer and the Writer Framework.
-  - `python-dotenv`, which makes it easy to manage environment variables by loading them from a `.env` file.
+  - `python-dotenv`, which makes it easy to manage environment variables by loading them from a `.env` file. This one is optional for this exercise, but you might find it useful when working on larger projects.
   </Step>
 
-  <Step title="Create the project directory">
-  Enter the following commands into your terminal application:
+  <Step title="Set the API key environment variable">
+    To pass your API key to the Writer Framework, you need to set an environment variable called `WRITER_API_KEY`.
 
-  ```
-  mkdir social-post-generator
-  cd social-post-generator
-  ```
+    Select your operating system and terminal application below, then copy and paste the command into your terminal application, replacing `[your_api_key]` with the API key you copied earlier:
 
-  These commands will create a new directory named `social-post-generator` (the directory for your project) and put you in that directory.
-  </Step>
+    <CodeGroup>
+    ```sh macOS/Linux (Terminal)
+    export WRITER_API_KEY=[your_api_key]
+    ```
 
-  <Step title="Create a .env file">
-  Using your code editor, create a new file and enter the following into it, `[your_api_key]` with the API key you copied earlier:
+    ```sh On Windows (Windows PowerShell)
+    $env:WRITER_API_KEY=[your_api_key]
+    ```
 
-  ```
-  WRITER_API_KEY=[your_api_key]
-  ```
-  
-  Save the file with the name `.env` in your project directory. Its name is short for "environment," and it's where the application will get the values for its environment variables.
+    ```sh On Windows (Command Prompt)
+    set WRITER_API_KEY=[your_api_key]
+    ```
+    </CodeGroup>
 
-  <Note>On macOS, you might be presented with a pop-up asking **Are you sure you want to use a name that begins with a period "."? — you do, so select the **Use "."** button.</Note>
-
-  The chat assistant app will read the API key from this file and use it to access the Writer Framework. Don't forget to save the file!
+  The `WRITER_API_KEY` environment variable will remain defined as long your terminal session is open (that is, until you close your terminal application’s window).
   </Step>
 
   <Step title="Create the project">
-  Go back to your terminal application and create the project by entering this command:
+  Create the project by entering this command into your terminal application:
 
   ```
   writer create social-post-generator --template=ai-starter
@@ -154,6 +151,8 @@ It's time to build the UI!
   
   Drag a **Text Input** component from the **Toolkit** panel on the left (it's under **Input**, and you may need to scroll down a little to find it) and into the **Section**. Sections can act as containers for other components.
 
+  <Note>You can search for a specific component by clicking on the magnifying glass icon at the top right of the **Toolkit** panel.</Note>
+
   Select the **Text Input** component. In the **Properties** panel:
 
   - Find the **Label** property and set its value to `Topic for social posts and tags`.
@@ -177,11 +176,8 @@ It's time to build the UI!
   Select the **Message** component. In the **Properties** panel:
 
   - Scroll down to the **Style** section and look for the **Loading** property, which sets the color of the **Message** component when it's loading.
-  - Click its **Pick** button, which will cause a color strip to appear.
-  - Click the color strip to enter the following values:
-      - **R**: 212
-      - **G**: 255
-      - **B**: 242
+  - Click its **CSS** button, which will cause a text field to appear below it.
+  - Enter this color value into the text field: `#D4FFF2`.
   </Step>
 
   <Step title="Add a new Section">
@@ -195,11 +191,8 @@ It's time to build the UI!
 
   - Find the **Title** property and clear it its value to remove the **Section**'s title.
   - Scroll down to the **Style** section and look for the **Container background** property, which sets the **Section**'s background color. 
-  - Click its **Pick** button, which will cause a color strip to appear.
-  - Click the color strip to enter the following values:
-      - **R**: 246
-      - **G**: 239
-      - **B**: 253
+  - Click its **CSS** button, which will cause a text field to appear below it.
+  - Enter this color value into the text field: `#F6EFFD`.
   </Step>
 
   <Step title="Add a Tags component">
@@ -226,7 +219,14 @@ The project editor should now look like this:
 
 With the UI laid out, it's time to work on the logic behind it. 
 
-Switch to your code editor and open the `main.py` file in your project's directory. This file was automatically generated; you'll update the code in it to define the behavior of your app.
+The logic behind the user interface is defined in a file named `main.py`, which is in your project's directory. This file was automatically generated; you'll update the code in it to define the behavior of your app.
+
+There are two ways to edit `main.py`:
+
+1. **In your browser.** Click on the **Code** button near the top right corner of the project editor page. A pane with the name **Code**  will appear at the bottom half of the screen, displaying and allowing you to edit the contents of `main.py`.
+2. **Using your favorite code editor.** If you'd rather use a code editor instead of coding in the browser, use it to open the `main.py` file in your project's directory.
+
+Choose your preferred way, then follow the steps below:
 
 <Steps>
   <Step title="Import libraries and load the Writer Framework API key">
@@ -242,29 +242,67 @@ Switch to your code editor and open the `main.py` file in your project's directo
   ```python
   import os
   import re
-  from dotenv import load_dotenv
   import writer as wf
   import writer.ai
-
-  # Load environment variables from .env file
-  load_dotenv()
 
   # Set the API key
   wf.api_key = os.getenv("WRITER_API_KEY")
   ```
   
-  This code imports the libraries that the application will need and then reads your Writer Framework API key from the `.env` file in your project's directory.
+  This code imports the libraries that the application will need and then reads your Writer Framework API key in the `WRITER_API_KEY` environment variable.
   </Step>
 
-  <Step title="Initialize the application">
-  The next step is to set the application's initial state. Find this code...
+  <Step title="Create a handler to respond to the user's input">
+  When the user presses the app's **Button**, the app needs to call a function to generate and display the social media posts and tags. Find these comments in the code...
 
   ```python
   # Welcome to Writer Framework! 
   # This template is a starting point for your AI apps.
   # More documentation is available at https://dev.writer.com/framework
+  ```
 
+  ...and replace them with the following function:
 
+  ```python
+  def generate_and_display_posts_and_tags(state):
+      print(f"Here's what the user entered: {state['topic']}")
+
+      # Display message
+      state["message"] = "% Generating social media posts and tags for you..."
+
+      # Generate and display social posts
+      prompt = f"You are a social media expert. Generate 5 engaging social media posts about {state['topic']}. Include emojis, and put a blank line between each post."
+      state["posts"] = writer.ai.complete(prompt)
+      print(f"Posts: {state['posts']}")
+
+      # Generate and display hashtags
+      prompt = f"You are a social media expert. Generate around 5 hashtags about {state['topic']}, delimited by spaces. For example, #dogs #cats #ducks #elephants #badgers"
+      pattern = r"#\w+"
+      hashtags = re.findall(pattern, writer.ai.complete(prompt))
+      state["tags"] = {item: item for item in hashtags}
+      print(f"Tags: {state['tags']}")
+
+      # Hide message
+      state["message"] = ""
+  ```
+
+  The `%` at the start of the string being assigned to `state["message"]` will be replaced by a “spinning circle” progress indicator graphic in the _Message_ component.
+  
+  The `pattern` variable in the `# Generate and display hashtags` section defines a regular expression pattern to search for words that begin with the `#` character. The `r` in front of the opening quote specifies that the string is a _raw string_, which means that the `\` character should be treated as a literal backslash and not as the start of an escape character sequence.
+
+  Note that `generate_and_display_posts_and_tags()` uses `print()` functions for debugging purposes, and you can use them to get a better idea of what's happening in the function. You'll see their output in both your terminal application and in the project editor's 'log' pane (which will be covered shortly) as you use the chat assistant. This output will include:
+    
+    - The topic the user entered
+    - The posts generated by the LLM
+    - The hashtags generated by the LLM
+    
+    The `print()` functions don't affect the operation of the chat assistant in any way, and you can remove them if you wish.
+  </Step>
+
+  <Step title="Initialize the application">
+  The final step is to set the application's initial state. Find this code, which should be just after the `generate_and_display_posts_and_tags()` function...
+
+  ```python
   # Initialise the state
   wf.init_state({
       "my_app": {
@@ -273,7 +311,7 @@ Switch to your code editor and open the `main.py` file in your project's directo
   })
   ```
 
-  ...and replace it with the following:
+  ...and replace it with this:
 
   ```python
   # Initialize the state
@@ -297,34 +335,12 @@ Switch to your code editor and open the `main.py` file in your project's directo
   - `tags`: A list containing the hashtags generated by the LLM. You'll bind its value to the **Tags** component.
   - `posts`: A string containing the social media posts generated by the LLM. You'll bind its value to the **Text** component.
   - `my_app`: A dictionary containing values that define the application's appearance. This dictionary has a single key-value pair, `title`, which defines the text that appears as the application's title.
+
+  <Note>For more details about the `state` variable, see our [_Application state_](https://dev.writer.com/framework/application-state#application-state) page.</Note>
   </Step>
 
-  <Step title="Create a handler to respond to the user's input">
-  When the user presses the app's **Button**, the app needs to call a function to generate and display the social media posts and tags. Add the following to the end of `main.py`:
-
-  ```python
-  def generate_and_display_posts_and_tags(state):
-      # Display message
-      state["message"] = "% Generating social media posts and tags for you..."
-
-      # Generate and display social posts
-      prompt = f"You are a social media expert. Generate 5 engaging social media posts about {state['topic']}. Include emojis, and put a blank line between each post."
-      state["posts"] = writer.ai.complete(prompt)
-
-      # Generate and display hashtags
-      prompt = f"You are a social media expert. Generate around 5 hashtags about {state['topic']}, delimited by spaces. For example, #dogs #cats #ducks #elephants #badgers"
-      pattern = r"#\w+"
-      hashtags = re.findall(pattern, writer.ai.complete(prompt))
-      state["tags"] = {item: item for item in hashtags}
-
-      # Hide message
-      state["message"] = ""
-  ```
-
-  Some notes about this function:
-
-  - The `%` at the start of the string being assigned to `state["message"]` will be replaced by a “spinning circle” progress indicator graphic in the _Message_ component.
-  - The `pattern` variable in the `# Generate and display hashtags` section defines a regular expression pattern to search for words that begin with the `#` character. The `r` in front of the opening quote specifies that the string is a _raw string_, which means that the `\` character should be treated as a literal backslash and not as the start of an escape character sequence. 
+  <Step title="Save the updated code">
+  If you edited the `main.py` code in the browser, the “save” button is near the top right corner of the code editor.
   </Step>
 </Steps>
 
@@ -374,17 +390,39 @@ You've built the UI and written the code behind it. Let's connect the two! Go ba
   </Step>
 </Steps>
 
+
+## Test the application
+
+You've completed all the steps to make a working social post generator, and you can try using it right now, even while editing the user interface!
+
+Enter a topic into the **Topic for social posts and tags** text field, then click the **Generate Posts** button* _twice_ — the first time will cause the **Properties** panel to appear, and the second click will register as a click. You'll know that you've clicked the button when you see the **Message** component display the text “Generating social media posts and tags for you...”
+
+![The working social post generator, with the project editor in "UI" mode](/framework/images/tutorial/social_post/sp_gen_2e.png)
+
+To get a better sense of what the experience will be like for the user, switch to the preview by changing the edit mode (located near the upper left corner of the page) from _UI_ mode to _Preview_ mode by selecting the **Preview** option:
+
+![The working social post generator, with the project editor in "Preview" mode](/framework/images/tutorial/social_post/sp_gen_2f.png)
+
+You can see the output of any `print()` functions and error messages by clicking on the **Log** button located near the upper right corner of the page:
+
+![The working social post generator, with the project editor in "Preview" mode and the log pane displayed](/framework/images/tutorial/chat/chat_assistant_2g.png)
+
+It's very helpful to be able to test the application while editing it. As you continue to work with Writer Framework, you'll find yourself alternating between making changes to your application and testing those changes without having to leave the project editor.
+
+
 ## Run the application locally
 
-The application is ready to run locally!
+Once you've tested the application, it's time to run it locally.
 
-Switch back your terminal application. Stop the editor with ctrl-c, then run the application by entering the following command in your project directory:
+Switch back to your terminal application. Stop the editor with ctrl-c, then run the application by entering the following command:
 
 ```
 writer run social-post-generator
 ```
 
-This will start the application, which you can access with your browser at the URL that appears on the command line.
+Note that the command starts with `writer run` as opposed to `writer edit`. This launches the application as your users will see it, without any of the editing tools. Even though you can preview your applications in the project editor, it's still a good idea to test it by running it on your computer, outside the project editor, before deploying it.
+
+You'll be able to access the application with your browser at the URL that appears on the command line.
 
 <Note>The Writer editor, which you launched with `writer edit social-post-generator`, and your application, which you launched with `writer run social-post-generator`, run  on the same URL, but on different *ports* (specified by the number after the `:` character at the end of the URL).</Note>
 
