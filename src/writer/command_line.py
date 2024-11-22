@@ -3,11 +3,11 @@ import os
 import shutil
 import sys
 from typing import Optional
-from writer import VERSION
 
 import click
 
 import writer.serve
+from writer import VERSION
 from writer.deploy import cloud, deploy
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
