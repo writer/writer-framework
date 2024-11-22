@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 from typing import Optional
+from writer import VERSION
 
 import click
 
@@ -95,6 +96,11 @@ def create_app(app_path: str, template_name: Optional[str], overwrite=False):
         sys.exit(1)
 
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
+    # create/update requirements.txt and add writer to it
+    requirements_path = os.path.join(app_path, "requirements.txt")
+    with open(requirements_path, "a") as f:
+        f.write(f"writer=={VERSION}\n")
+
 
 if __name__ == "__main__":
     main()
