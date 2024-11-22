@@ -1,3 +1,4 @@
+import json
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type
 
@@ -70,6 +71,19 @@ class WorkflowRunner():
             self._generate_run_log(execution, title, "info", return_value)
         return return_value
 
+    def _summarize_data_for_log(self, data):
+        if isinstance(data, list):
+            return [self._summarize_data_for_log(item) for item in data]
+        if isinstance(data, dict):
+            return {k : self._summarize_data_for_log(v) for k, v in data.items()}
+        if isinstance(data, (str, int, float, bool, type(None))):
+            return data
+        try:
+            return json.loads(json.dumps(data))
+        except (TypeError, OverflowError):
+            return f"Can't be displayed in the log. Value of type: {str(type(data))}."
+
+
     def _generate_run_log(self,
                           execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
                           title: str,
@@ -83,9 +97,9 @@ class WorkflowRunner():
                 "componentId": component_id,
                 "outcome": tool.outcome,
                 "message": tool.message,
-                "result": tool.result,
-                "returnValue": tool.return_value,
-                "executionEnvironment": tool.execution_environment,
+                "result": self._summarize_data_for_log(tool.result),
+                "returnValue": self._summarize_data_for_log(tool.return_value),
+                "executionEnvironment": self._summarize_data_for_log(tool.execution_environment),
                 "executionTimeInSeconds": tool.execution_time_in_seconds 
             })
         msg = "Execution finished."
