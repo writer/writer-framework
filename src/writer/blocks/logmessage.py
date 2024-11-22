@@ -1,30 +1,32 @@
-import writer.workflows
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
-class RunWorkflow(WorkflowBlock):
+class LogMessage(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(RunWorkflow, cls).register(type)
+        super(LogMessage, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Run workflow",
-                "description": "Executes a workflow with a given key.",
-                "category": "Logic",
+                "name": "Log message",
+                "description": "Appends a message to the log.",
+                "category": "Other",
                 "fields": {
-                    "workflowKey": {
-                        "name": "Workflow key",
+                    "type": {
+                        "name": "Type",
                         "type": "Text",
+                        "options": {
+                            "info": "Info",
+                            "error": "Error"
+                        },
+                        "default": "info"
                     },
-                    "executionEnv": {
-                        "name": "Execution environment",
-                        "desc": "Values passed will be available using the template syntax i.e. @{my_var}",
-                        "default": "{}",
-                        "type": "Object",
+                    "message": {
+                        "name": "Message",
+                        "type": "Text",
                         "control": "Textarea"
                     },
                 },
@@ -45,11 +47,11 @@ class RunWorkflow(WorkflowBlock):
 
     def run(self):
         try:
-            workflow_key = self._get_field("workflowKey")
-            execution_env = self._get_field("executionEnv", as_json=True)
+            type = self._get_field("type", False, "info")
+            message = self._get_field("message", required=True)
 
-            return_value = writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
-            self.result = return_value
+            self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
+            self.result = None
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

@@ -1,16 +1,21 @@
 """
 This module manipulates the folder of a wf project stored into `wf`.
 
->>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
+>>> wf_project.write_files_async('app/hello', metadata={"writer_version": "0.1" }, components=...)
 
 >>> metadata, components = wf_project.read_files('app/hello')
 """
+import dataclasses
 import io
 import json
 import logging
+import multiprocessing
 import os
+import queue
+import time
 import typing
 from collections import OrderedDict
+from multiprocessing import Queue
 from typing import Any, Dict, List, Tuple
 
 from writer import core_ui
@@ -18,6 +23,26 @@ from writer.ss_types import ComponentDefinition, MetadataDefinition
 
 ROOTS = ['root', 'workflows_root']
 COMPONENT_ROOTS = ['page', 'workflows_workflow']
+
+shared_queue_write_files: typing.Optional[Queue] = None
+
+@dataclasses.dataclass
+class WfProjectContext:
+    app_path: str
+    write_files_async_queue: Queue = Queue()
+    write_files_async_process: typing.Optional[multiprocessing.Process] = None
+    write_files_async_stop: Any = multiprocessing.Event() # Note: Event is a function, not a class in python, it can't be typed
+
+
+def write_files_async(context: WfProjectContext, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
+    """
+    This operation is asynchrone. It's managed in wf_project.process_write_files_async.
+
+    see wf_project.write_files for description
+
+    >>> wf_project.write_files_async('app/hello', metadata={"writer_version": "0.1" }, components=...)
+    """
+    context.write_files_async_queue.put((context.app_path, metadata, components))
 
 def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
     """
@@ -31,6 +56,7 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
 
     >>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
     """
+
     wf_directory = os.path.join(app_path, ".wf")
     if not os.path.exists(wf_directory):
         os.makedirs(wf_directory)
@@ -42,6 +68,35 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
     _write_component_files(wf_directory, components)
     _remove_obsolete_component_files(wf_directory, components)
 
+
+def start_process_write_files_async(context: WfProjectContext, save_interval: float) -> None:
+    """
+    Creates a process that writes the .wf/ files
+
+    This agent allows you to process the backup of .wf files in the background
+    without blocking application requests.
+
+    :param wf_project_save_interval: the interval in seconds to save the project files
+    :return:
+    """
+    p = multiprocessing.Process(
+        target=_start_process_write_files_async_process,
+        args=(context, save_interval, context.write_files_async_stop)
+    )
+    context.write_files_async_process = p
+    p.start()
+
+
+def shutdown_process_write_files_async(context: WfProjectContext) -> None:
+    """
+    Shutdown the process that writes the .wf/ files
+    """
+    if context.write_files_async_process is not None and \
+        context.write_files_async_process.is_alive():
+        context.write_files_async_stop.set()
+        context.write_files_async_process.join()
+        context.write_files_async_process = None
+        context.write_files_async_stop.clear()
 
 def read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDefinition]]:
     """
@@ -221,3 +276,19 @@ def _order_components(components: Dict[str, ComponentDefinition]) -> List[Compon
 
     return sorted(components.values(), key=lambda c: _hierarchical_position(components, c))
 
+
+def _start_process_write_files_async_process(context: WfProjectContext, save_interval, stop_event):
+    while True:
+        if stop_event.is_set():
+            break
+
+        try:
+            obj = context.write_files_async_queue.get(block=False)
+        except queue.Empty:
+            obj = None
+
+        if obj is not None:
+            app_path, metadata, components = obj
+            write_files(app_path, metadata, components)
+
+        time.sleep(save_interval)

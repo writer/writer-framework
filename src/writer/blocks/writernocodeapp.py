@@ -1,8 +1,6 @@
-import json
-
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class WriterNoCodeApp(WorkflowBlock):
@@ -47,7 +45,7 @@ class WriterNoCodeApp(WorkflowBlock):
         try:
             import writer.ai
 
-            application_id = self._get_field("appId")
+            application_id = self._get_field("appId", required=True)
             app_inputs = self._get_field("appInputs", as_json=True)
 
             # config = {}

@@ -19,7 +19,7 @@
 				class="windowAction"
 				tabindex="0"
 				title="Close (Esc)"
-				data-automation-action="close"
+				data-automation-action="close-settings"
 				@click="closeSettings"
 			>
 				<i class="material-symbols-outlined">close</i>
@@ -68,14 +68,19 @@
 
 <script setup lang="ts">
 import { marked } from "marked";
-import { inject, computed, ref, watch } from "vue";
+import { inject, computed, ref, watch, defineAsyncComponent } from "vue";
 import injectionKeys from "../injectionKeys";
 
-import BuilderSettingsHandlers from "./BuilderSettingsHandlers.vue";
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
 import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "./BuilderCopyText.vue";
+import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
+
+const BuilderSettingsHandlers = defineAsyncComponent({
+	loader: () => import("./BuilderSettingsHandlers.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

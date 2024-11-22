@@ -1,24 +1,22 @@
-import json
-
 from writer.abstract import register_abstract_template
-from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
+from writer.blocks.base_block import WorkflowBlock
+from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
-class ParseJSON(WorkflowBlock):
+class ReturnValue(WorkflowBlock):
 
     @classmethod
     def register(cls, type: str):
-        super(ParseJSON, cls).register(type)
+        super(ReturnValue, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="workflows_node",
             writer={
-                "name": "Parse JSON",
-                "description": "Parses a JSON string.",
-                "category": "Other",
+                "name": "Return value",
+                "description": "Returns a value from a workflow or sub-workflow.",
+                "category": "Logic",
                 "fields": {
-                    "plainText": {
-                        "name": "Plain text",
+                    "value": {
+                        "name": "Value",
                         "type": "Text",
                         "control": "Textarea"
                     },
@@ -26,12 +24,12 @@ class ParseJSON(WorkflowBlock):
                 "outs": {
                     "success": {
                         "name": "Success",
-                        "description": "The request was successful.",
+                        "description": "If the function doesn't raise an Exception.",
                         "style": "success",
                     },
                     "error": {
                         "name": "Error",
-                        "description": "The text provided couldn't be parsed.",
+                        "description": "If the function raises an Exception.",
                         "style": "error",
                     },
                 },
@@ -40,8 +38,11 @@ class ParseJSON(WorkflowBlock):
 
     def run(self):
         try:
-            plain_text = self._get_field("plainText")
-            self.result = json.loads(plain_text)
+            value = self._get_field("value")
+            if value is None:
+                raise WriterConfigurationError("Return value cannot be empty or None.")
+            self.result = value
+            self.return_value = value
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

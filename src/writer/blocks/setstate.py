@@ -1,6 +1,6 @@
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class SetState(WorkflowBlock):
@@ -42,9 +42,10 @@ class SetState(WorkflowBlock):
 
     def run(self):
         try:
-            element = self._get_field("element")
+            element = self._get_field("element", required=True)
             value = self._get_field("value")
-            self.evaluator.set_state(element, self.instance_path, value, base_context=self.execution_env)
+
+            self._set_state(element, value)
             self.result = value
             self.outcome = "success"
         except BaseException as e:

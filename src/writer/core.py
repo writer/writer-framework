@@ -7,18 +7,15 @@ import datetime
 import functools
 import inspect
 import io
-import json
 import logging
 import math
 import multiprocessing
 import numbers
-import os
 import re
 import secrets
 import time
 import traceback
 import urllib.request
-from abc import ABCMeta
 from contextvars import ContextVar
 from multiprocessing.process import BaseProcess
 from types import ModuleType
@@ -44,15 +41,12 @@ from typing import (
 
 import pyarrow  # type: ignore
 
-import writer.workflows
+import writer.blocks
+import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
-    DataframeRecordAdded,
-    DataframeRecordRemoved,
-    DataframeRecordUpdated,
     InstancePath,
-    InstancePathItem,
     Readable,
     ServeMode,
     WorkflowExecutionLog,
@@ -63,7 +57,6 @@ from writer.ss_types import (
 
 if TYPE_CHECKING:
     import pandas
-    import polars
 
     from writer.app_runner import AppProcess
     from writer.ss_types import AppProcessServerRequest
@@ -136,6 +129,29 @@ class Config:
     mode: ServeMode = "run"
     logger: Optional[logging.Logger] = None
     feature_flags: list[str] = []
+
+
+class WriterSession:
+
+    """
+    Represents a session.
+    """
+
+    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
+        self.session_id = session_id
+        self.cookies = cookies
+        self.headers = headers
+        self.last_active_timestamp: int = int(time.time())
+        new_state = WriterState.get_new()
+        new_state.user_state.mutated = set()
+        self.session_state = new_state
+        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
+        self.event_handler = EventHandler(self)
+        self.userinfo: Optional[dict] = None
+
+    def update_last_active_timestamp(self) -> None:
+        self.last_active_timestamp = int(time.time())
+
 
 @dataclasses.dataclass
 class MutationSubscription:
@@ -264,6 +280,8 @@ class StateSerialiser:
     """
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
         from writer.ai import Conversation
+        from writer.core_df import EditableDataframe
+
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
         if isinstance(v, Conversation):
@@ -464,7 +482,7 @@ class StateProxy:
                             "new_value": raw_value
                         }
 
-                        writer_event_handler_invoke(local_mutation.handler, {
+                        EventHandlerExecutor.invoke(local_mutation.handler, {
                             "state": local_mutation.state,
                             "context": context_data,
                             "payload": payload,
@@ -834,7 +852,7 @@ class State(metaclass=StateMeta):
                     # existing states. To cause this, we trigger manually
                     # the handler.
                     if initial_triggered is True:
-                        writer_event_handler_invoke(handler, {
+                        EventHandlerExecutor.invoke(handler, {
                             "state": self,
                             "context": {"event": "init"},
                             "payload": {},
@@ -1083,7 +1101,7 @@ class MiddlewareExecutor():
 
     @contextlib.contextmanager
     def execute(self, args: dict):
-        middleware_args = writer_event_handler_build_arguments(self.middleware, args)
+        middleware_args = EventHandlerExecutor.build_arguments(self.middleware, args)
         it = self.middleware(*middleware_args)
         try:
             yield from it
@@ -1203,8 +1221,8 @@ class EventDeserialiser:
     Its main goal is to deserialise incoming content in a controlled and predictable way,
     applying sanitisation of inputs where relevant."""
 
-    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
-        self.evaluator = Evaluator(session_state, session_component_tree)
+    def __init__(self, session: "WriterSession"):
+        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
 
     def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
@@ -1448,220 +1466,6 @@ class EventDeserialiser:
         return payload
 
 
-class Evaluator:
-
-    """
-    Evaluates templates and expressions in the backend.
-    It allows for the sanitisation of frontend inputs.
-    """
-
-    template_regex = re.compile(r"[\\]?@{([^{]*?)}")
-
-    def __init__(self, session_state: WriterState, session_component_tree: core_ui.ComponentTree):
-        self.wf = session_state
-        self.ct = session_component_tree
-
-    def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
-        def replacer(matched):
-            if matched.string[0] == "\\":  # Escaped @, don't evaluate
-                return matched.string
-            expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, instance_path, base_context)
-
-            try:
-                if as_json:
-                    serialised_value = state_serialiser.serialise(expr_value)
-                    if not isinstance(serialised_value, str):
-                        serialised_value = json.dumps(serialised_value)
-                    return serialised_value
-                return expr_value
-            except BaseException:
-                raise ValueError(
-                    f"""Couldn't serialise value of type "{ type(expr_value) }" when evaluating field "{ field_key }".""")
-
-        component_id = instance_path[-1]["componentId"]
-        component = self.ct.get_component(component_id)
-        if component:
-            field_value = component.content.get(field_key) or default_field_value
-            replaced = None
-            full_match = self.template_regex.fullmatch(field_value)
-
-            if full_match is None:
-                replaced = self.template_regex.sub(lambda m: str(replacer(m)), field_value)
-            else:
-                replaced = replacer(full_match)
-
-            if (replaced is not None) and as_json:
-                replaced_as_json = None
-                try:
-                    replaced_as_json = json.loads(replaced)
-                except json.JSONDecodeError:
-                    replaced_as_json = json.loads(default_field_value)
-                return replaced_as_json
-            else:
-                return replaced
-        else:
-            raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
-
-
-    def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
-        context: Dict[str, Any] = base_context
-        for i in range(len(instance_path)):
-            path_item = instance_path[i]
-            component_id = path_item["componentId"]
-            component = self.ct.get_component(component_id)
-            if not component:
-                continue
-            if component.type != "repeater":
-                continue
-            if i + 1 >= len(instance_path):
-                continue
-            repeater_instance_path = instance_path[0:i+1]
-            next_instance_path = instance_path[0:i+2]
-            instance_number = next_instance_path[-1]["instanceNumber"]
-            repeater_object = self.evaluate_field(
-                repeater_instance_path, "repeaterObject", True, """{ "a": { "desc": "Option A" }, "b": { "desc": "Option B" } }""")
-            key_variable = self.evaluate_field(
-                repeater_instance_path, "keyVariable", False, "itemId")
-            value_variable = self.evaluate_field(
-                repeater_instance_path, "valueVariable", False, "item")
-
-            repeater_items: List[Tuple[Any, Any]] = []
-            if isinstance(repeater_object, dict):
-                repeater_items = list(repeater_object.items())
-            elif isinstance(repeater_object, list):
-                repeater_items = list(enumerate(repeater_object))
-            else:
-                raise ValueError(
-                    "Cannot produce context. Repeater object must evaluate to a dictionary.")
-
-            context[key_variable] = repeater_items[instance_number][0]
-            context[value_variable] = repeater_items[instance_number][1]
-
-        if len(instance_path) > 0:
-            context['target'] = instance_path[-1]['componentId']
-
-        return context
-
-    def set_state(self, expr: str, instance_path: InstancePath, value: Any, base_context = {}) -> None:
-        accessors = self.parse_expression(expr, instance_path, base_context)
-        state_ref: StateProxy = self.wf.user_state
-        leaf_state_ref: StateProxy = state_ref
-
-        for accessor in accessors[:-1]:
-            if isinstance(state_ref, StateProxy):
-                leaf_state_ref = state_ref
-
-            if isinstance(state_ref, list):
-                state_ref = state_ref[int(accessor)]
-            else:
-                state_ref = state_ref[accessor]
-
-        if not isinstance(state_ref, (StateProxy, dict)):
-            raise ValueError(
-                f"Incorrect state reference. Reference \"{expr}\" isn't part of a StateProxy or dict.")
-
-        state_ref[accessors[-1]] = value
-        leaf_state_ref.apply_mutation_marker(recursive=True)
-
-    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> List[str]:
-
-        """ Returns a list of accessors from an expression. """
-
-        accessors: List[str] = []
-        s = ""
-        level = 0
-
-        i = 0
-        while i < len(expr):
-            character = expr[i]
-            if character == "\\":
-                if i + 1 < len(expr):
-                    s += expr[i + 1]
-                    i += 1
-            elif character == ".":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-            elif character == "[":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-                level += 1
-            elif character == "]":
-                level -= 1
-                if level == 0:
-                    s = str(self.evaluate_expression(s, instance_path, base_context))
-                else:
-                    s += character
-            else:
-                s += character
-
-            i += 1
-
-        if s:
-            accessors.append(s)
-
-        return accessors
-
-    def get_env_variable_value(self, expr: str):
-        return os.getenv(expr[1:])
-
-    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
-        context_data = base_context
-        result = None
-        if instance_path:
-            context_data = self.get_context_data(instance_path, base_context)
-        context_ref: Any = context_data
-        state_ref: Any = self.wf.user_state.state
-        accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
-
-        for accessor in accessors:
-            if isinstance(state_ref, (StateProxy, dict)) and accessor in state_ref:
-                state_ref = state_ref.get(accessor)
-                result = state_ref
-            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
-                state_ref = state_ref[int(accessor)]
-                result = state_ref
-            elif isinstance(context_ref, dict) and accessor in context_ref:
-                context_ref = context_ref.get(accessor)
-                result = context_ref
-
-        if isinstance(result, StateProxy):
-            return result.to_dict()
-
-        if result is None and expr.startswith("$"):
-            return self.get_env_variable_value(expr)
-
-        return result
-
-
-class WriterSession:
-
-    """
-    Represents a session.
-    """
-
-    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
-        self.session_id = session_id
-        self.cookies = cookies
-        self.headers = headers
-        self.last_active_timestamp: int = int(time.time())
-        new_state = WriterState.get_new()
-        new_state.user_state.mutated = set()
-        self.session_state = new_state
-        self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
-        self.event_handler = EventHandler(self)
-        self.userinfo: Optional[dict] = None
-
-    def update_last_active_timestamp(self) -> None:
-        self.last_active_timestamp = int(time.time())
-
-
 class SessionManager:
 
     """
@@ -1767,11 +1571,14 @@ class EventHandler:
     """
 
     def __init__(self, session: WriterSession) -> None:
+        import writer.workflows
+
         self.session = session
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
-        self.deser = EventDeserialiser(self.session_state, self.session_component_tree)
-        self.evaluator = Evaluator(self.session_state, self.session_component_tree)
+        self.deser = EventDeserialiser(session)
+        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
+        self.workflow_runner = writer.workflows.WorkflowRunner(session)
 
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
@@ -1784,15 +1591,15 @@ class EventHandler:
 
     def _get_workflow_callable(self, workflow_key: Optional[str], workflow_id: Optional[str]):
         def fn(payload, context, session):
-            execution_env = {
+            execution_environment = {
                 "payload": payload,
                 "context": context,
                 "session": session
             }
             if workflow_key:
-                writer.workflows.run_workflow_by_key(self.session, workflow_key, execution_env)
+                self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
             elif workflow_id:
-                writer.workflows.run_workflow(self.session, workflow_id, execution_env)                
+                self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
         return fn
 
     def _get_handler_callable(self, target_component: Component, event_type: str) -> Optional[Callable]:        
@@ -1819,7 +1626,7 @@ class EventHandler:
         self,
         event_type: str,
         target_component: Component,
-        instance_path: List[InstancePathItem],
+        instance_path: InstancePath,
         payload: Any
     ) -> Any:
         
@@ -1845,7 +1652,7 @@ class EventHandler:
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
-            result = writer_event_handler_invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
+            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -1885,6 +1692,80 @@ class EventHandler:
                                              f"A runtime exception was raised when processing event '{ ev.type }'.", traceback.format_exc())
 
         return {"ok": ok, "result": result}
+
+class EventHandlerExecutor:
+
+    @staticmethod
+    def build_arguments(func: Callable, writer_args: dict) -> List[Any]:
+        """
+        Constructs the list of arguments based on the signature of the function
+        which can be a handler or middleware.
+
+        >>> def my_event_handler(state, context):
+        >>>     yield
+
+        >>> args = EventHandlerExecutor.build_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
+        >>> [{}, {"target": '11'}]
+
+        :param func: the function that will be called
+        :param writer_args: the possible arguments in writer (state, payload, ...)
+        """
+        handler_args = inspect.getfullargspec(func).args
+        func_args = []
+        for arg in handler_args:
+            if arg in writer_args:
+                func_args.append(writer_args[arg])
+
+        return func_args
+
+    @staticmethod
+    def invoke(callable_handler: Callable, writer_args: dict) -> Any:
+        """
+        Runs a handler based on its signature.
+
+        If the handler is asynchronous, it is executed asynchronously.
+        If the handler only has certain parameters, only these are passed as arguments
+
+        >>> def my_handler(state):
+        >>>     state['a'] = 2
+        >>>
+        >>> EventHandlerExecutor.invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+        """
+        is_async_handler = inspect.iscoroutinefunction(callable_handler)
+        if (not callable(callable_handler) and not is_async_handler):
+            raise ValueError("Invalid handler. The handler isn't a callable object.")
+
+        handler_args = EventHandlerExecutor.build_arguments(callable_handler, writer_args)
+
+        if is_async_handler:
+            async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
+            result = asyncio.run(async_wrapper)
+        else:
+            result = callable_handler(*handler_args)
+
+        return result
+
+    @staticmethod
+    def invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+        """
+        Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
+
+        :param middlewares_executors: The list of middleware to run
+        :param callable_handler: The target handler
+
+        >>> @wf.middleware()
+        >>> def my_middleware(state, payload, context, session, ui):
+        >>>     yield
+
+        >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
+        >>> EventHandlerExecutor.invoke_with_middlewares([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
+        """
+        if len(middlewares_executors) == 0:
+            return EventHandlerExecutor.invoke(callable_handler, writer_args)
+        else:
+            executor = middlewares_executors[0]
+            with executor.execute(writer_args):
+                return EventHandlerExecutor.invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
 
 
 class DictPropertyProxy:
@@ -1932,412 +1813,6 @@ class DictPropertyProxy:
         proxy = getattr(instance, self.objectName)
         proxy[self.key] = value
 
-
-class DataframeRecordRemove:
-    pass
-
-
-class DataframeRecordProcessor():
-    """
-    This interface defines the signature of the methods to process the events of a
-    dataframe compatible with EditableDataframe.
-
-    A Dataframe can be any structure composed of tabular data.
-
-    This class defines the signature of the methods to be implemented.
-    """
-    __metaclass__ = ABCMeta
-
-    @staticmethod
-    def match(df: Any) -> bool:
-        """
-        This method checks if the dataframe is compatible with the processor.
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def record(df: Any, record_index: int) -> dict:
-        """
-        This method read a record at the given line and get it back as dictionary
-
-        >>> edf = EditableDataframe(df)
-        >>> r = edf.record(1)
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def record_add(df: Any, payload: DataframeRecordAdded) -> Any:
-        """
-        signature of the methods to be implemented to process wf-dataframe-add event
-
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_add({"record": {"a": 1, "b": 2}})
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def record_update(df: Any, payload: DataframeRecordUpdated) -> Any:
-        """
-        signature of the methods to be implemented to process wf-dataframe-update event
-
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def record_remove(df: Any, payload: DataframeRecordRemoved) -> Any:
-        """
-        signature of the methods to be implemented to process wf-dataframe-action event
-
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_remove({"record_index": 12})
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def pyarrow_table(df: Any) -> pyarrow.Table:
-        """
-        Serializes the dataframe into a pyarrow table
-        """
-        raise NotImplementedError
-
-
-class PandasRecordProcessor(DataframeRecordProcessor):
-    """
-    PandasRecordProcessor processes records from a pandas dataframe saved into an EditableDataframe
-
-    >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-    >>> edf = EditableDataframe(df)
-    >>> edf.record_add({"a": 1, "b": 2})
-    """
-
-    @staticmethod
-    @import_failure(rvalue=False)
-    def match(df: Any) -> bool:
-        import pandas
-        return True if isinstance(df, pandas.DataFrame) else False
-
-    @staticmethod
-    def record(df: 'pandas.DataFrame', record_index: int) -> dict:
-        """
-
-        >>> edf = EditableDataframe(df)
-        >>> r = edf.record(1)
-        """
-        import pandas
-
-        record = df.iloc[record_index]
-        if not isinstance(df.index, pandas.RangeIndex):
-            index_list = df.index.tolist()
-            record_index_content = index_list[record_index]
-            if isinstance(record_index_content, tuple):
-                for i, n in enumerate(df.index.names):
-                    record[n] = record_index_content[i]
-            else:
-                record[df.index.names[0]] = record_index_content
-
-        return dict(record)
-
-    @staticmethod
-    def record_add(df: 'pandas.DataFrame', payload: DataframeRecordAdded) -> 'pandas.DataFrame':
-        """
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_add({"record": {"a": 1, "b": 2}})
-        """
-        import pandas
-
-        _assert_record_match_pandas_df(df, payload['record'])
-
-        record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
-
-        if isinstance(df.index, pandas.RangeIndex):
-            new_df = pandas.DataFrame([record])
-            return pandas.concat([df, new_df], ignore_index=True)
-        else:
-            new_df = pandas.DataFrame([record], index=[index])
-            return pandas.concat([df, new_df])
-
-    @staticmethod
-    def record_update(df: 'pandas.DataFrame', payload: DataframeRecordUpdated) -> 'pandas.DataFrame':
-        """
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
-        """
-        import pandas
-
-        _assert_record_match_pandas_df(df, payload['record'])
-
-        record: dict
-        record, index = _split_record_as_pandas_record_and_index(payload['record'], df.index.names)
-
-        record_index = payload['record_index']
-
-        if isinstance(df.index, pandas.RangeIndex):
-            df.iloc[record_index] = record  # type: ignore
-        else:
-            df.iloc[record_index] = record  # type: ignore
-            index_list = df.index.tolist()
-            index_list[record_index] = index
-            df.index = index_list  # type: ignore
-
-        return df
-
-    @staticmethod
-    def record_remove(df: 'pandas.DataFrame', payload: DataframeRecordRemoved) -> 'pandas.DataFrame':
-        """
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_remove({"record_index": 12})
-        """
-        record_index: int = payload['record_index']
-        idx = df.index[record_index]
-        df = df.drop(idx)
-
-        return df
-
-    @staticmethod
-    def pyarrow_table(df: 'pandas.DataFrame') -> pyarrow.Table:
-        """
-        Serializes the dataframe into a pyarrow table
-        """
-        table = pyarrow.Table.from_pandas(df=df)
-        return table
-
-
-class PolarRecordProcessor(DataframeRecordProcessor):
-    """
-    PolarRecordProcessor processes records from a polar dataframe saved into an EditableDataframe
-
-    >>> df = polars.DataFrame({"a": [1, 2], "b": [3, 4]})
-    >>> edf = EditableDataframe(df)
-    >>> edf.record_add({"record": {"a": 1, "b": 2}})
-    """
-
-    @staticmethod
-    @import_failure(rvalue=False)
-    def match(df: Any) -> bool:
-        import polars
-        return True if isinstance(df, polars.DataFrame) else False
-
-    @staticmethod
-    def record(df: 'polars.DataFrame', record_index: int) -> dict:
-        """
-
-        >>> edf = EditableDataframe(df)
-        >>> r = edf.record(1)
-        """
-        record = {}
-        r = df[record_index]
-        for c in r.columns:
-            record[c] = df[record_index, c]
-
-        return record
-
-
-    @staticmethod
-    def record_add(df: 'polars.DataFrame', payload: DataframeRecordAdded) -> 'polars.DataFrame':
-        _assert_record_match_polar_df(df, payload['record'])
-
-        import polars
-        new_df = polars.DataFrame([payload['record']])
-        return polars.concat([df, new_df])
-
-    @staticmethod
-    def record_update(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
-        # This implementation works but is not optimal.
-        # I didn't find a better way to update a record in polars
-        #
-        # https://github.com/pola-rs/polars/issues/5973
-        _assert_record_match_polar_df(df, payload['record'])
-
-        record = payload['record']
-        record_index = payload['record_index']
-        for r in record:
-            df[record_index, r] = record[r]
-
-        return df
-
-    @staticmethod
-    def record_remove(df: 'polars.DataFrame', payload: DataframeRecordRemoved) -> 'polars.DataFrame':
-        import polars
-
-        record_index: int = payload['record_index']
-        df_filtered = polars.concat([df[:record_index], df[record_index + 1:]])
-        return df_filtered
-
-    @staticmethod
-    def pyarrow_table(df: 'polars.DataFrame') -> pyarrow.Table:
-        """
-        Serializes the dataframe into a pyarrow table
-        """
-        import pyarrow.interchange
-        table: pyarrow.Table = pyarrow.interchange.from_dataframe(df)
-        return table
-
-class RecordListRecordProcessor(DataframeRecordProcessor):
-    """
-    RecordListRecordProcessor processes records from a list of record saved into an EditableDataframe
-
-    >>> df = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
-    >>> edf = EditableDataframe(df)
-    >>> edf.record_add({"record": {"a": 1, "b": 2}})
-    """
-
-    @staticmethod
-    def match(df: Any) -> bool:
-        return True if isinstance(df, list) else False
-
-
-    @staticmethod
-    def record(df: List[Dict[str, Any]], record_index: int) -> dict:
-        """
-
-        >>> edf = EditableDataframe(df)
-        >>> r = edf.record(1)
-        """
-        r = df[record_index]
-        return copy.copy(r)
-
-    @staticmethod
-    def record_add(df: List[Dict[str, Any]], payload: DataframeRecordAdded) -> List[Dict[str, Any]]:
-        _assert_record_match_list_of_records(df, payload['record'])
-        df.append(payload['record'])
-        return df
-
-    @staticmethod
-    def record_update(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
-        _assert_record_match_list_of_records(df, payload['record'])
-
-        record_index = payload['record_index']
-        record = payload['record']
-
-        df[record_index] = record
-        return df
-
-    @staticmethod
-    def record_remove(df: List[Dict[str, Any]], payload: DataframeRecordRemoved) -> List[Dict[str, Any]]:
-        del(df[payload['record_index']])
-        return df
-
-    @staticmethod
-    def pyarrow_table(df: List[Dict[str, Any]]) -> pyarrow.Table:
-        """
-        Serializes the dataframe into a pyarrow table
-        """
-        column_names = list(df[0].keys())
-        columns = {key: [record[key] for record in df] for key in column_names}
-
-        pyarrow_columns = {key: pyarrow.array(values) for key, values in columns.items()}
-        schema = pyarrow.schema([(key, pyarrow_columns[key].type) for key in pyarrow_columns])
-        table = pyarrow.Table.from_arrays(
-            [pyarrow_columns[key] for key in column_names],
-            schema=schema
-        )
-
-        return table
-
-class EditableDataframe(MutableValue):
-    """
-    Editable Dataframe makes it easier to process events from components
-    that modify a dataframe like the dataframe editor.
-
-    >>> initial_state = wf.init_state({
-    >>>    "df": wf.EditableDataframe(df)
-    >>> })
-
-    Editable Dataframe is compatible with a pandas, thrillers or record list dataframe
-    """
-    processors = [PandasRecordProcessor, PolarRecordProcessor, RecordListRecordProcessor]
-
-    def __init__(self, df: Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]):
-        super().__init__()
-        self._df = df
-        self.processor: Type[DataframeRecordProcessor]
-        for processor in self.processors:
-            if processor.match(self.df):
-                self.processor = processor
-                break
-
-        if self.processor is None:
-            raise ValueError("The dataframe must be a pandas, polar Dataframe or a list of record")
-
-    @property
-    def df(self) -> Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]:
-        return self._df
-
-    @df.setter
-    def df(self, value: Union['pandas.DataFrame', 'polars.DataFrame', List[dict]]) -> None:
-        self._df = value
-        self.mutate()
-
-    def record_add(self, payload: DataframeRecordAdded) -> None:
-        """
-        Adds a record to the dataframe
-
-        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_add({"record": {"a": 1, "b": 2}})
-        """
-        assert self.processor is not None
-
-        self._df = self.processor.record_add(self.df, payload)
-        self.mutate()
-
-    def record_update(self, payload: DataframeRecordUpdated) -> None:
-        """
-        Updates a record in the dataframe
-
-        The record must be complete otherwise an error is raised (ValueError).
-        It must a value for each index / column.
-
-        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_update({"record_index": 0, "record": {"a": 2, "b": 2}})
-        """
-        assert self.processor is not None
-
-        self._df = self.processor.record_update(self.df, payload)
-        self.mutate()
-
-    def record_remove(self, payload: DataframeRecordRemoved) -> None:
-        """
-        Removes a record from the dataframe
-
-        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
-        >>> edf.record_remove({"record_index": 0})
-        """
-        assert self.processor is not None
-
-        self._df = self.processor.record_remove(self.df, payload)
-        self.mutate()
-
-    def pyarrow_table(self) -> pyarrow.Table:
-        """
-        Serializes the dataframe into a pyarrow table
-
-        This mechanism is used for serializing data for transmission to the frontend.
-
-        >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
-        >>> pa_table = edf.pyarrow_table()
-        """
-        assert self.processor is not None
-
-        pa_table = self.processor.pyarrow_table(self.df)
-        return pa_table
-
-    def record(self, record_index: int):
-        """
-        Retrieves a specific record in dictionary form.
-
-        :param record_index:
-        :return:
-        """
-        assert self.processor is not None
-
-        record = self.processor.record(self.df, record_index)
-        return record
 
 S = TypeVar("S", bound=WriterState)
 
@@ -2523,118 +1998,9 @@ def parse_state_variable_expression(p: str):
     return parts
 
 
-def writer_event_handler_build_arguments(func: Callable, writer_args: dict) -> List[Any]:
-    """
-    Constructs the list of arguments based on the signature of the function
-    which can be a handler or middleware.
-
-    >>> def my_event_handler(state, context):
-    >>>     yield
-
-    >>> args = writer_event_handler_build_arguments(my_event_handler, {'state': {}, 'payload': {}, 'context': {"target": '11'}, 'session': None, 'ui': None})
-    >>> [{}, {"target": '11'}]
-
-    :param func: the function that will be called
-    :param writer_args: the possible arguments in writer (state, payload, ...)
-    """
-    handler_args = inspect.getfullargspec(func).args
-    func_args = []
-    for arg in handler_args:
-        if arg in writer_args:
-            func_args.append(writer_args[arg])
-
-    return func_args
-
-
-def writer_event_handler_invoke(callable_handler: Callable, writer_args: dict) -> Any:
-    """
-    Runs a handler based on its signature.
-
-    If the handler is asynchronous, it is executed asynchronously.
-    If the handler only has certain parameters, only these are passed as arguments
-
-    >>> def my_handler(state):
-    >>>     state['a'] = 2
-    >>>
-    >>> writer_event_handler_invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
-    """
-    is_async_handler = inspect.iscoroutinefunction(callable_handler)
-    if (not callable(callable_handler) and not is_async_handler):
-        raise ValueError("Invalid handler. The handler isn't a callable object.")
-
-    handler_args = writer_event_handler_build_arguments(callable_handler, writer_args)
-
-    if is_async_handler:
-        async_wrapper = _async_wrapper_internal(callable_handler, handler_args)
-        result = asyncio.run(async_wrapper)
-    else:
-        result = callable_handler(*handler_args)
-
-    return result
-
-def writer_event_handler_invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
-    """
-    Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
-
-    :param middlewares_executors: The list of middleware to run
-    :param callable_handler: The target handler
-
-    >>> @wf.middleware()
-    >>> def my_middleware(state, payload, context, session, ui):
-    >>>     yield
-
-    >>> executor = MiddlewareExecutor(my_middleware, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None})
-    >>> writer_event_handler_invoke_with_middlewares([executor], my_handler, {'state': {}, 'payload': None, 'context': None, 'session': None, 'ui': None}
-    """
-    if len(middlewares_executors) == 0:
-        return writer_event_handler_invoke(callable_handler, writer_args)
-    else:
-        executor = middlewares_executors[0]
-        with executor.execute(writer_args):
-            return writer_event_handler_invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
-
-
 async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[Any]) -> Any:
     result = await callable_handler(*arg_values)
     return result
-
-def _assert_record_match_pandas_df(df: 'pandas.DataFrame', record: Dict[str, Any]) -> None:
-    """
-    Asserts that the record matches the dataframe columns & index
-
-    >>> _assert_record_match_pandas_df(pandas.DataFrame({"a": [1, 2], "b": [3, 4]}), {"a": 1, "b": 2})
-    """
-    import pandas
-
-    columns = set(list(df.columns.values) + df.index.names) if isinstance(df.index, pandas.RangeIndex) is False else set(df.columns.values)
-    columns_record = set(record.keys())
-    if columns != columns_record:
-        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
-
-def _assert_record_match_polar_df(df: 'polars.DataFrame', record: Dict[str, Any]) -> None:
-    """
-    Asserts that the record matches the columns of polar dataframe
-
-    >>> _assert_record_match_pandas_df(polars.DataFrame({"a": [1, 2], "b": [3, 4]}), {"a": 1, "b": 2})
-    """
-    columns = set(df.columns)
-    columns_record = set(record.keys())
-    if columns != columns_record:
-        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
-
-def _assert_record_match_list_of_records(df: List[Dict[str, Any]], record: Dict[str, Any]) -> None:
-    """
-    Asserts that the record matches the key in the record list (it use the first record to check)
-
-    >>> _assert_record_match_list_of_records([{"a": 1, "b": 2}, {"a": 3, "b": 4}], {"a": 1, "b": 2})
-    """
-    if len(df) == 0:
-        return
-
-    columns = set(df[0].keys())
-    columns_record = set(record.keys())
-    if columns != columns_record:
-        raise ValueError(f"Columns mismatch. Expected {columns}, got {columns_record}")
 
 def _event_handler_session_info() -> Dict[str, Any]:
     """
@@ -2660,26 +2026,6 @@ def _event_handler_ui_manager():
         return WriterUIManager()
     else:
         raise RuntimeError(_get_ui_runtime_error_message())
-
-
-def _split_record_as_pandas_record_and_index(param: dict, index_columns: list) -> Tuple[dict, tuple]:
-    """
-    Separates a record into the record part and the index part to be able to
-    create or update a row in a dataframe.
-
-    >>> record, index = _split_record_as_pandas_record_and_index({"a": 1, "b": 2}, ["a"])
-    >>> print(record) # {"b": 2}
-    >>> print(index) # (1,)
-    """
-    final_record = {}
-    final_index = []
-    for key, value in param.items():
-        if key in index_columns:
-            final_index.append(value)
-        else:
-            final_record[key] = value
-
-    return final_record, tuple(final_index)
 
 def _deserialize_bigint_format(payload: Optional[Union[dict, list]]):
     """

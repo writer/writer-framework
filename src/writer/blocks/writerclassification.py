@@ -1,8 +1,8 @@
 import json
 
 from writer.abstract import register_abstract_template
+from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
-from writer.workflows_blocks.blocks import WorkflowBlock
 
 
 class WriterClassification(WorkflowBlock):
@@ -33,8 +33,9 @@ class WriterClassification(WorkflowBlock):
                     },
                 },
                 "outs": {
-                    "$dynamic": {
-                        "field": "categories"
+                    "category": {
+                        "field": "categories",
+                        "style": "dynamic"
                     },
                     "error": {
                         "name": "Error",
@@ -49,14 +50,11 @@ class WriterClassification(WorkflowBlock):
         try:
             import writer.ai
 
-            text = self._get_field("text")
+            text = self._get_field("text", required=True)
             additional_context = self._get_field("additionalContext")
-            categories = self._get_field("categories", as_json=True)
-            # model_id = self._get_field("modelId")
+            categories = self._get_field("categories", as_json=True, required=True)
 
             config = {}
-            # if model_id:
-            #     config["model"] = model_id
 
             prompt = f"""
 Classify the text under “CONTENT” into one of the following categories:
@@ -75,7 +73,7 @@ CONTENT:
 """
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
-            self.outcome = f"$dynamic_{result}"
+            self.outcome = f"category_{result}"
         except BaseException as e:
             self.outcome = "error"
             raise e

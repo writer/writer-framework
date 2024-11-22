@@ -9,55 +9,24 @@ See the stubs for more details.
 	<div ref="rootEl" class="CoreChatbot">
 		<div ref="messageAreaEl" class="messageArea">
 			<div ref="messagesEl" class="messages">
-				<div
+				<CoreChatbotMessage
 					v-for="(message, messageId) in messages"
 					:key="messageId"
-					class="message"
-					:class="message.role"
-				>
-					<div class="avatar">
-						{{
-							message.role == "assistant"
-								? fields.assistantInitials.value
-								: fields.userInitials.value
-						}}
-					</div>
-					<div class="content">
-						<div class="text">
-							<BaseMarkdown
-								v-if="fields.useMarkdown.value == 'yes'"
-								:raw-text="message.content?.trim()"
-							>
-							</BaseMarkdown>
-							<template v-else>
-								{{ message.content?.trim() }}
-							</template>
-						</div>
-						<div v-if="message.actions" class="actions">
-							<button
-								v-for="(action, actionIndex) in message.actions"
-								:key="actionIndex"
-								class="action"
-								@click="handleActionClick(action)"
-							>
-								<div
-									v-if="action.subheading"
-									class="subheading"
-								>
-									{{ action.subheading }}
-								</div>
-								<h3 class="name">{{ action.name }}</h3>
-								<div v-if="action.desc" class="desc">
-									{{ action.desc }}
-								</div>
-							</button>
-						</div>
-					</div>
-				</div>
-				<div v-if="isResponsePending" class="loadingContainer">
-					<LoadingSymbol class="loadingSymbol"></LoadingSymbol
-					>Loading...
-				</div>
+					:message="message"
+					:use-markdown="fields.useMarkdown.value == 'yes'"
+					:assistant-role-color="fields.assistantRoleColor.value"
+					:initials="
+						message.role === 'assistant'
+							? fields.assistantInitials.value
+							: fields.userInitials.value
+					"
+					@action-click="handleActionClick($event)"
+				/>
+				<CoreChatbotMessage
+					v-if="displayExtraLoader"
+					is-loading
+					:initials="fields.assistantInitials.value"
+				/>
 			</div>
 		</div>
 		<template v-if="files.length > 0">
@@ -112,18 +81,7 @@ See the stubs for more details.
 				title="Send message"
 				@click="handleMessageSent"
 			>
-				<svg
-					width="15"
-					height="12"
-					viewBox="0 0 15 12"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						d="M14.0712 4.50295C14.2882 4.72002 14.2882 5.07197 14.0712 5.28905L10.5337 8.8265C10.3166 9.04357 9.96468 9.04357 9.7476 8.8265C9.53052 8.60942 9.53052 8.25747 9.7476 8.0404L12.892 4.896L9.7476 1.7516C9.53052 1.53452 9.53052 1.18257 9.7476 0.965495C9.96467 0.74842 10.3166 0.74842 10.5337 0.965495L14.0712 4.50295ZM13.6781 5.45185L3.67268 5.45185L3.67268 4.34014L13.6781 4.34014L13.6781 5.45185ZM2.00511 7.11942L2.00511 8.23114L0.893394 8.23114L0.893394 7.11942L2.00511 7.11942ZM3.67268 9.89871L5.52553 9.89871L5.52553 11.0104L3.67268 11.0104L3.67268 9.89871ZM2.00511 8.23114C2.00511 9.15211 2.7517 9.89871 3.67268 9.89871L3.67268 11.0104C2.13772 11.0104 0.893394 9.76609 0.893394 8.23114L2.00511 8.23114ZM3.67268 5.45185C2.7517 5.45185 2.00511 6.19845 2.00511 7.11942L0.893394 7.11942C0.893394 5.58447 2.13772 4.34014 3.67268 4.34014L3.67268 5.45185Z"
-						fill="currentColor"
-					/>
-				</svg>
+				<CoreChatbotSentMessageIcon />
 			</WdsControl>
 			<WdsControl
 				v-if="fields.enableFileUpload.value != 'no'"
@@ -138,8 +96,6 @@ See the stubs for more details.
 </template>
 
 <script lang="ts">
-import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
-import BaseMarkdown from "../base/BaseMarkdown.vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	accentColor,
@@ -348,25 +304,14 @@ import {
 	ComputedRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
-
-type Action = {
-	subheading?: string;
-	name: string;
-	desc?: string;
-	data?: string;
-};
-
-type Message = {
-	role: string;
-	pending: boolean;
-	content: string;
-	actions?: Action[];
-};
+import CoreChatbotSentMessageIcon from "./CoreChatBot/CoreChatbotSentMessageIcon.vue";
+import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
+import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const messageAreaEl: Ref<HTMLElement> = ref(null);
 const messagesEl: Ref<HTMLElement> = ref(null);
-const isResponsePending: Ref<boolean> = ref(false);
+const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
 const files: Ref<File[]> = shallowRef([]);
 const isUploadingFiles = ref(false);
@@ -386,9 +331,14 @@ const isUploadSizeExceeded = computed(() => {
 	return filesSize >= MAX_FILE_SIZE;
 });
 
+const displayExtraLoader = computed(() => {
+	if (messageIndexLoading.value === undefined) return false;
+	return messageIndexLoading.value >= messages.value.length;
+});
+
 function handleMessageSent() {
-	if (isResponsePending.value) return;
-	isResponsePending.value = true;
+	if (messageIndexLoading.value) return;
+	messageIndexLoading.value = messages.value.length + 1;
 	const event = new CustomEvent("wf-chatbot-message", {
 		detail: {
 			payload: {
@@ -396,7 +346,7 @@ function handleMessageSent() {
 				content: outgoingMessage.value,
 			},
 			callback: () => {
-				isResponsePending.value = false;
+				messageIndexLoading.value = undefined;
 			},
 		},
 	});
@@ -551,90 +501,6 @@ onBeforeUnmount(() => {
 	display: flex;
 	gap: 16px;
 	flex-direction: column;
-}
-
-.message {
-	display: flex;
-	gap: 8px;
-}
-
-.message .avatar {
-	border-radius: 50%;
-	background: var(--avatarBackgroundColor);
-	color: var(--avatarTextColor);
-	margin-top: 6px;
-	height: 32px;
-	width: 32px;
-	flex: 0 0 32px;
-	display: flex;
-	font-weight: 500;
-	font-size: 0.75rem;
-	align-items: center;
-	justify-content: center;
-	overflow: hidden;
-	text-transform: uppercase;
-}
-
-.message .content {
-	border-radius: 8px;
-	width: fit-content;
-	flex: 0 1 auto;
-	color: var(--primaryTextColor);
-	white-space: pre-wrap;
-}
-
-.message.assistant .content {
-	background: v-bind(
-		"fields.assistantRoleColor.value ? fields.assistantRoleColor.value : 'linear-gradient(264deg, #f5ebff 0.71%, #eef1ff 100%)'"
-	);
-}
-
-.message.user .content {
-	background: var(--userRoleColor);
-}
-
-.content .text {
-	line-height: 2;
-	padding: 12px 16px 12px 16px;
-}
-
-.content .actions {
-	padding: 16px;
-	background: rgba(0, 0, 0, 0.02);
-	display: flex;
-	gap: 12px;
-	flex-wrap: wrap;
-}
-
-.content .actions .action {
-	padding: 12px;
-	border-radius: 4px;
-	background: var(--containerBackgroundColor);
-	overflow: hidden;
-	line-height: normal;
-	display: flex;
-	gap: 4px;
-	flex-direction: column;
-	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
-	cursor: pointer;
-	border: 0;
-}
-
-.action .subheading {
-	color: var(--secondaryTextColor);
-	font-size: 0.7rem;
-}
-
-.action .desc {
-	font-size: 0.7rem;
-}
-
-.loadingContainer {
-	padding: 16px;
-	display: flex;
-	gap: 16px;
-	align-items: center;
-	justify-content: center;
 }
 
 .filesArea {
