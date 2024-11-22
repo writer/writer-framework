@@ -7,6 +7,7 @@ import writer.core
 import writer.core_ui
 from writer.ss_types import (
     InstancePath,
+    WriterConfigurationError,
 )
 
 if TYPE_CHECKING:
@@ -29,46 +30,39 @@ class Evaluator:
         self.serializer = writer.core.StateSerialiser()
 
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
+        def decode_json(text):
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError as exception:
+                raise WriterConfigurationError("Error decoding JSON. " + str(exception)) from exception
+
         def replacer(matched):
             if matched.string[0] == "\\":  # Escaped @, don't evaluate
                 return matched.string
             expr = matched.group(1).strip()
             expr_value = self.evaluate_expression(expr, instance_path, base_context)
 
-            try:
-                if as_json:
-                    serialized_value = self.serializer.serialise(expr_value)
-                    if not isinstance(serialized_value, str):
-                        serialized_value = json.dumps(serialized_value)
-                    return serialized_value
-                return expr_value
-            except BaseException:
-                raise ValueError(
-                    f"""Couldn't serialize value of type "{ type(expr_value) }" when evaluating field "{ field_key }".""")
+            return expr_value
 
         component_id = instance_path[-1]["componentId"]
         component = self.component_tree.get_component(component_id)
-        if component:
-            field_value = component.content.get(field_key) or default_field_value
-            replaced = None
-            full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
+        if not component:
+            raise ValueError(f'Component with id "{component_id}" not found.')
 
-            if full_match is None:
-                replaced = self.TEMPLATE_REGEX.sub(lambda m: str(replacer(m)), field_value)
-            else:
-                replaced = replacer(full_match)
+        field_value = component.content.get(field_key) or default_field_value
+        replaced = None
+        full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
-            if (replaced is not None) and as_json:
-                replaced_as_json = None
-                try:
-                    replaced_as_json = json.loads(replaced)
-                except json.JSONDecodeError:
-                    replaced_as_json = json.loads(default_field_value)
-                return replaced_as_json
-            else:
-                return replaced
+        if full_match is None:
+            replaced = self.TEMPLATE_REGEX.sub(lambda m: str(replacer(m)), field_value)
+            if as_json:
+                replaced = decode_json(replaced)
         else:
-            raise ValueError(f"Couldn't acquire a component by ID '{component_id}'")
+            replaced = replacer(full_match)
+            if as_json and isinstance(replaced, str):
+                replaced = decode_json(replaced)
+
+        return replaced
 
 
     def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
