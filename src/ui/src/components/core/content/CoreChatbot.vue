@@ -15,6 +15,10 @@ See the stubs for more details.
 					:message="message"
 					:use-markdown="fields.useMarkdown.value == 'yes'"
 					:assistant-role-color="fields.assistantRoleColor.value"
+					:pending="
+						message.role === 'thought_process' &&
+						messageIndexLoading === messageId
+					"
 					:initials="
 						message.role === 'assistant'
 							? fields.assistantInitials.value

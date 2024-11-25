@@ -1,11 +1,17 @@
 <template>
 	<div class="CoreChatbotMessage" :aria-busy="isLoading">
-		<CoreChatbotAvatar :initials="initials" />
+		<CoreChatbotAvatar v-if="displayInitials" :initials="initials" />
+		<div v-else></div>
 		<div
 			class="CoreChatbotMessage__content"
 			:style="{ background: contentBgColor }"
 		>
 			<CoreChatbotLoader v-if="displayLoader" />
+			<CoreChatbotMessageContentThoughtProcess
+				v-else-if="message.role === 'thought_process'"
+				:content="message.content"
+				:pending="pending"
+			/>
 			<div v-else class="CoreChatbotMessage__content__text">
 				<BaseMarkdown v-if="useMarkdown" :raw-text="content">
 				</BaseMarkdown>
@@ -44,10 +50,12 @@ export type Action = {
 	data?: string;
 };
 
+type ValueOrArray<T> = T | ValueOrArray<T>[];
+type NestedStringArray = ValueOrArray<string>;
+
 export type Message = {
 	role: string;
-	pending: boolean;
-	content: string;
+	content?: NestedStringArray;
 	actions?: Action[];
 };
 </script>
@@ -55,6 +63,10 @@ export type Message = {
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, PropType } from "vue";
 import CoreChatbotAvatar from "./CoreChatbotAvatar.vue";
+
+const CoreChatbotMessageContentThoughtProcess = defineAsyncComponent(
+	() => import("./ThoughtProcess/ThoughtProcess.vue"),
+);
 
 const BaseMarkdown = defineAsyncComponent(
 	() => import("../../base/BaseMarkdown.vue"),
@@ -73,6 +85,7 @@ const props = defineProps({
 	},
 	assistantRoleColor: { type: String, required: false, default: "" },
 	isLoading: { type: Boolean, required: false },
+	pending: { type: Boolean },
 });
 
 defineEmits({
@@ -91,7 +104,22 @@ const role = computed(() => {
 	return props.message?.role ?? "";
 });
 
-const content = computed(() => props.message?.content.trim() ?? "");
+const isThoughtProcess = computed(
+	() => props.message?.role === "thought_process",
+);
+
+const displayInitials = computed(() => {
+	if (!isThoughtProcess.value) return true;
+	return !!props.pending;
+});
+
+const content = computed(() => {
+	if (typeof props.message?.content === "string")
+		return props.message.content;
+	if (Array.isArray(props.message?.content))
+		return props.message.content.join("\n");
+	return "";
+});
 
 const contentBgColor = computed(() => {
 	switch (role.value) {
@@ -110,8 +138,9 @@ const contentBgColor = computed(() => {
 
 <style scoped>
 .CoreChatbotMessage {
-	display: flex;
+	display: grid;
 	gap: 8px;
+	grid-template-columns: 32px auto;
 }
 
 .CoreChatbotMessage__content {
