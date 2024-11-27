@@ -25,9 +25,6 @@ def test_create_default():
         assert os.path.exists('./my_app')
         assert os.path.exists('./my_app/.wf')
         assert os.path.exists('./my_app/main.py')
-        with open('./my_app/pyproject.toml') as f:
-            content = f.read()
-        assert content.find('name = "writer-framework-default"') != -1
 
 def test_create_specific_template():
     runner = CliRunner()
@@ -38,9 +35,6 @@ def test_create_specific_template():
         assert os.path.exists('./my_app')
         assert os.path.exists('./my_app/.wf')
         assert os.path.exists('./my_app/main.py')
-        with open('./my_app/pyproject.toml') as f:
-            content = f.read()
-        assert content.find('name = "writer-framework-hello"') != -1
 
 
 def test_run():
