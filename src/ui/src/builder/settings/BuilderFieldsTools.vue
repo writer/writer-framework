@@ -5,7 +5,7 @@
 	>
 		<div class="tools">
 			<div
-				v-for="(tool, toolName) in tools"
+				v-for="(_tool, toolName) in tools"
 				:key="toolName"
 				class="tool"
 				@click="editTool(toolName)"
@@ -73,17 +73,17 @@
 <script setup lang="ts">
 import { toRefs, inject, computed, ref, defineAsyncComponent } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderModal, { ModalAction } from "./BuilderModal.vue";
+import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent(
-	() => import("./BuilderEmbeddedCodeEditor.vue"),
+	() => import("../BuilderEmbeddedCodeEditor.vue"),
 );
 
 type FunctionTool = {
@@ -266,7 +266,7 @@ const customHandlerModalCloseAction: ModalAction = {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .BuilderFieldsTools {
 	--separatorColor: var(--builderSeparatorColor);
@@ -316,8 +316,4 @@ const customHandlerModalCloseAction: ModalAction = {
 .addToolFormActions {
 	margin-top: 16px;
 }
-</style>
-
-<style scoped>
-@import "./sharedStyles.css";
 </style>

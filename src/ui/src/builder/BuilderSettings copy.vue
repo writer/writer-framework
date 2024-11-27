@@ -71,14 +71,14 @@ import { marked } from "marked";
 import { inject, computed, ref, watch, defineAsyncComponent } from "vue";
 import injectionKeys from "../injectionKeys";
 
-import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
-import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
-import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
+import BuilderSettingsProperties from "./settings/BuilderSettingsProperties.vue";
+import BuilderSettingsBinding from "./settings/BuilderSettingsBinding.vue";
+import BuilderSettingsVisibility from "./settings/BuilderSettingsVisibility.vue";
 import BuilderCopyText from "./BuilderCopyText.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 
 const BuilderSettingsHandlers = defineAsyncComponent({
-	loader: () => import("./BuilderSettingsHandlers.vue"),
+	loader: () => import("./settings/BuilderSettingsHandlers.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 

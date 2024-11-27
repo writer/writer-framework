@@ -16,8 +16,8 @@
 <script setup lang="ts">
 import { toRefs, inject, computed } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -43,7 +43,7 @@ const templateField = computed(() => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .BuilderFieldsObject {
 	padding: 16px 12px 12px 12px;

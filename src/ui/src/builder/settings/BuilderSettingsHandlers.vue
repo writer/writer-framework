@@ -173,9 +173,9 @@
 import * as monaco from "monaco-editor";
 
 import { computed, ComputedRef, inject, Ref, ref } from "vue";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
-import BuilderModal, { ModalAction } from "./BuilderModal.vue";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "@/injectionKeys";
+import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import { WriterComponentDefinition } from "@/writerTypes";
 
 const wf = inject(injectionKeys.core);
@@ -349,11 +349,8 @@ const copyToClipboard = (text: string) => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
-.BuilderSettingsHandlers {
-	padding: 24px;
-}
 .list {
 	border-radius: 4px;
 	overflow: hidden;

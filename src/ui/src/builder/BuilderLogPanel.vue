@@ -1,5 +1,6 @@
 <template>
 	<BuilderPanel
+		panel-id="log"
 		name="Log"
 		:actions="actions"
 		tabindex="0"
@@ -90,17 +91,6 @@ const actions: BuilderPanelAction[] = [
 		keyboardShortcut: {
 			modifierKey: true,
 			key: "L",
-		},
-	},
-	{
-		icon: "close",
-		name: "Close",
-		callback: () => {
-			wfbm.openPanels.delete("log");
-		},
-		keyboardShortcut: {
-			modifierKey: false,
-			key: "Escape",
 		},
 	},
 ];

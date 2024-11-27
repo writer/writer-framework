@@ -39,6 +39,8 @@ const entryCountByType = computed(() => {
 	font-size: 14px;
 	font-weight: 400;
 	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 	align-items: center;
 	gap: 4px;
 }

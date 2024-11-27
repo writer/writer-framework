@@ -45,29 +45,6 @@
 			</BuilderModal>
 		</div>
 		<div class="gap"></div>
-		<WdsButton
-			variant="primary"
-			size="small"
-			class="panelToggler"
-			data-automation-action="toggle-code-panel"
-			:class="{ active: ssbm.openPanels.has('code') }"
-			@click="togglePanel('code')"
-		>
-			<i class="material-symbols-outlined"> code </i>
-			Code
-		</WdsButton>
-		<WdsButton
-			variant="primary"
-			size="small"
-			class="panelToggler"
-			data-automation-action="toggle-log-panel"
-			title="Toggle Log panel"
-			:class="{ active: ssbm.openPanels.has('log') }"
-			@click="togglePanel('log')"
-		>
-			Log
-			<BuilderLogIndicator class="indicator"></BuilderLogIndicator>
-		</WdsButton>
 		<div
 			class="syncHealth"
 			:class="wf.syncHealth.value"
@@ -124,16 +101,6 @@ const syncHealthStatus = () => {
 
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
-}
-
-function togglePanel(
-	panelId: typeof ssbm.openPanels extends Set<infer T> ? T : never,
-) {
-	if (ssbm.openPanels.has(panelId)) {
-		ssbm.openPanels.delete(panelId);
-		return;
-	}
-	ssbm.openPanels.add(panelId);
 }
 
 const customHandlerModalCloseAction: ModalAction = {

@@ -1,7 +1,11 @@
 <template>
-	<BuilderPanel name="Code" :actions="actions" class="BuilderCodePanel">
+	<BuilderPanel
+		panel-id="code"
+		name="Code"
+		:actions="actions"
+		class="BuilderCodePanel"
+	>
 		<BuilderEmbeddedCodeEditor
-			:key="Array.from(wfbm.openPanels).join('-')"
 			v-model="code"
 			variant="full"
 			language="python"
@@ -49,17 +53,6 @@ const actions = computed<BuilderPanelAction[]>(() => [
 			save();
 		},
 		isDisabled: isDisabled.value,
-	},
-	{
-		icon: "close",
-		name: "Close",
-		keyboardShortcut: {
-			modifierKey: false,
-			key: "Escape",
-		},
-		callback: () => {
-			wfbm.openPanels.delete("code");
-		},
 	},
 ]);
 

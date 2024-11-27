@@ -71,8 +71,8 @@ import {
 	toRefs,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "../../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .chipStackContainer {
 	padding: 12px;

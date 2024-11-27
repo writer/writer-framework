@@ -11,7 +11,7 @@ import { computed, PropType } from "vue";
 type WdsButtonVariant = "primary" | "secondary" | "tertiary" | "neutral";
 
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonSize = "big" | "small" | "unpadded";
+type WdsButtonSize = "big" | "small" | "icon" | "unpadded";
 
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
@@ -33,10 +33,10 @@ const className = computed(() => [
 	max-width: 100%;
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 8px;
 	border-radius: 300px;
 	font-weight: 600;
-	line-height: 20px;
 	font-size: 0.875rem;
 	cursor: pointer;
 	box-shadow: var(--buttonShadow);
@@ -112,12 +112,18 @@ const className = computed(() => [
 	padding: 0;
 }
 
-.WdsButton--neutral:hover,
 .WdsButton--neutral:focus {
 	color: unset;
 	border: none;
 	box-shadow: none;
 	background: var(--builderSeparatorColor);
+}
+
+.WdsButton--neutral:hover {
+	background: unset;
+	color: unset;
+	border: none;
+	box-shadow: none;
 }
 
 .WdsButton--neutral:disabled {
@@ -134,6 +140,12 @@ const className = computed(() => [
 .WdsButton--small {
 	height: 32px;
 	padding: 4px 16px 4px 16px;
+}
+
+.WdsButton--icon {
+	height: 32px;
+	width: 32px;
+	padding: 4px;
 }
 
 .WdsButton--unpadded {

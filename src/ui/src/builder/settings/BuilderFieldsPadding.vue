@@ -140,9 +140,9 @@ import {
 	toRefs,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
-import BuilderSelect from "./BuilderSelect.vue";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "@/injectionKeys";
+import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -388,8 +388,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-@import "./ico.css";
+@import "../sharedStyles.css";
+@import "../ico.css";
 
 .chipStackContainer {
 	padding: 12px;

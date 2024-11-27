@@ -20,15 +20,15 @@ import BuilderSidebarTree from "./BuilderSidebarTree.vue";
 }
 
 .toolbar {
+	flex: 0 0 50%;
 	position: relative;
-	height: 50%;
 	display: flex;
 	flex-direction: column;
 	overflow-y: scroll;
 }
 
 .tree {
-	height: 50%;
+	flex: 0 0 50%;
 	overflow-y: auto;
 	border-top: 1px solid var(--builderSeparatorColor);
 }

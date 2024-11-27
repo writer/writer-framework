@@ -32,8 +32,8 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
+import { useComponentActions } from "../useComponentActions";
+import injectionKeys from "../../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -44,7 +44,7 @@ const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .BuilderSettingsBinding {
 	padding: 24px;

@@ -69,7 +69,7 @@
 <script setup lang="ts">
 import Fuse from "fuse.js";
 import { PropType, inject, nextTick, ref, shallowRef } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 
 const emit = defineEmits(["input", "update:value"]);
 
@@ -216,7 +216,7 @@ function abortClosingAutocompletion() {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .BuilderTemplateInput {
 	position: relative;

@@ -85,12 +85,12 @@ import {
 	toRefs,
 	watch,
 } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import type { InstancePath } from "@/writerTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import { useComponentActions } from "./useComponentActions";
+import { useComponentActions } from "../useComponentActions";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -189,7 +189,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
+@import "../sharedStyles.css";
 
 .chipStackContainer {
 	padding: 12px;

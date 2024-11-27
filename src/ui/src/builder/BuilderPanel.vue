@@ -1,6 +1,21 @@
 <template>
-	<div class="BuilderPanel" @keydown="handleKeydown">
+	<div
+		class="BuilderPanel"
+		:class="{ collapsed, allPanelsCollapsed }"
+		@keydown="handleKeydown"
+	>
 		<div class="header">
+			<div class="collapser">
+				<WdsButton
+					variant="neutral"
+					size="icon"
+					@click="togglePanel(panelId)"
+				>
+					<i class="material-symbols-outlined">
+						{{ collapserIcon }}
+					</i>
+				</WdsButton>
+			</div>
 			<div class="title">{{ name }}</div>
 			<div class="titleCompanion">
 				<slot name="titleCompanion"></slot>
@@ -26,14 +41,11 @@
 				}}</i></WdsButton
 			>
 		</div>
-		<div class="content"><slot></slot></div>
+		<div v-if="!collapsed" class="content"><slot></slot></div>
 	</div>
 </template>
 
-<script setup lang="ts">
-import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
-import WdsButton from "@/wds/WdsButton.vue";
-
+<script lang="ts">
 export type BuilderPanelAction = {
 	icon: string;
 	name: string;
@@ -44,11 +56,52 @@ export type BuilderPanelAction = {
 		key: string;
 	};
 };
+</script>
+
+<script setup lang="ts">
+import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
+import injectionKeys from "@/injectionKeys";
+import WdsButton from "@/wds/WdsButton.vue";
+import { computed, inject } from "vue";
+
+const wfbm = inject(injectionKeys.builderManager);
+
+const panelIds: ("code" | "log")[] = ["code", "log"];
 
 const props = defineProps<{
+	panelId: (typeof panelIds)[number];
 	name: string;
 	actions: BuilderPanelAction[];
 }>();
+
+const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));
+const allPanelsCollapsed = computed(() => wfbm.openPanels.value.size == 0);
+
+const collapserIcon = computed(() => {
+	function getIcons() {
+		const openPanelCount = wfbm.openPanels.value.size;
+		if (openPanelCount == 0) {
+			return ["expand_less", "expand_less"];
+		}
+		if (openPanelCount == panelIds.length) {
+			return ["chevron_left", "chevron_right"];
+		}
+		if (wfbm.openPanels.value.has(panelIds[0])) {
+			return ["expand_more", "chevron_left"];
+		}
+		return ["chevron_right", "expand_more"];
+	}
+
+	return getIcons()[panelIds.indexOf(props.panelId)];
+});
+
+function togglePanel(panelId: typeof props.panelId) {
+	if (wfbm.openPanels.value.has(panelId)) {
+		wfbm.openPanels.value.delete(panelId);
+		return;
+	}
+	wfbm.openPanels.value.add(panelId);
+}
 
 function handleKeydown(ev: KeyboardEvent) {
 	const isMod = isModifierKeyActive(ev);
@@ -81,12 +134,24 @@ function getKeyboardShortcutDescription(
 @import "./sharedStyles.css";
 
 .BuilderPanel {
-	border-top: 1px solid var(--builderSeparatorColor);
+	flex: 1 1 50%;
+	border-top: 1px solid var(--builderIntenseSeparatorColor);
 	display: grid;
 	background: var(--builderBackgroundColor);
-	grid-template-rows: 36px 1fr;
+	grid-template-rows: 48px 1fr;
 	grid-template-columns: 1fr;
-	height: 100%;
+}
+
+.BuilderPanel.allPanelsCollapsed {
+	grid-template-rows: 1fr;
+}
+
+.BuilderPanel.collapsed {
+	flex: 0 1 96px;
+}
+
+.BuilderPanel.allPanelsCollapsed:last-child {
+	flex: 1 0 96px;
 }
 
 .BuilderPanel:not(:first-child) {
@@ -98,9 +163,19 @@ function getKeyboardShortcutDescription(
 	grid-row: 1 / 2;
 	display: flex;
 	align-items: center;
-	padding: 8px 8px 8px 20px;
+	padding: 8px;
+	gap: 8px;
+	flex-direction: row;
+}
+
+.BuilderPanel:not(.collapsed) .header {
 	border-bottom: 1px solid var(--builderSeparatorColor);
-	gap: 12px;
+}
+
+.BuilderPanel.collapsed:not(.allPanelsCollapsed) .header {
+	flex-direction: column;
+	grid-template-rows: 1fr;
+	height: 100%;
 }
 
 .header .title {
@@ -110,14 +185,8 @@ function getKeyboardShortcutDescription(
 	line-height: 140%;
 }
 
-.header .titleCompanion {
-}
-
 .header .gap {
 	flex: 1 0 auto;
-}
-
-.header .actionsCompanion {
 }
 
 .header .actions {
@@ -129,5 +198,6 @@ function getKeyboardShortcutDescription(
 	grid-column: 1 / 2;
 	grid-row: 2 / 3;
 	overflow: auto;
+	width: 100%;
 }
 </style>
