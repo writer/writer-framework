@@ -83,7 +83,7 @@ test.describe("Workflows", () => {
 			}
 		};
 		await page.locator(`.BuilderFieldsObject[data-automation-key="executionEnv"] textarea`).fill(JSON.stringify(executionEnv));
-		await page.locator(`[data-automation-action="close-settings"]`).click();
+		await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
 		await runWorkflowBlock.locator(".ball.success").dragTo(returnValueBlock);
 

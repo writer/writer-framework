@@ -7,8 +7,8 @@ test.describe('undo and redo', () => {
 	const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
 	let url: string;
 
-	const closeSettingsBar = async (page: Page) => {
-		await page.locator('.BuilderSettings button[data-automation-action="close-settings"]').click();
+	const collapseSettingsBar = async (page: Page) => {
+		await page.locator('.BuilderSettings button[data-automation-action="collapse-settings"]').click();
 	}
 
 	test.beforeAll(async ({ request }) => {
@@ -54,7 +54,7 @@ test.describe('undo and redo', () => {
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill('cool text');
-		await closeSettingsBar(page);
+		await collapseSettingsBar(page);
 		await page.locator("button.undo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
 		await page.locator("button.redo").click();
