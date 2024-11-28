@@ -2,8 +2,8 @@
 	<BuilderPanel
 		panel-id="log"
 		name="Log"
+		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
-		tabindex="0"
 		class="BuilderLogPanel"
 	>
 		<template #titleCompanion>
@@ -79,6 +79,10 @@ import BuilderLogWorkflowExecution from "./BuilderLogWorkflowExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 
+defineProps<{
+	contentsTeleportEl: HTMLElement;
+}>();
+
 const wfbm = inject(injectionKeys.builderManager);
 
 const actions: BuilderPanelAction[] = [
@@ -103,16 +107,13 @@ const logEntries = computed(() => {
 <style scoped>
 @import "./sharedStyles.css";
 
-.BuilderLogPanel {
-	font-size: 14px;
-	font-weight: 400;
-	line-height: 140%;
-}
-
 .entries {
 	padding: 20px;
 	display: flex;
 	flex-direction: column;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 140%;
 }
 
 .entry {

@@ -2,6 +2,7 @@
 	<BuilderPanel
 		panel-id="code"
 		name="Code"
+		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
 		class="BuilderCodePanel"
 	>
@@ -25,6 +26,10 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import injectionKeys from "@/injectionKeys";
+
+defineProps<{
+	contentsTeleportEl: HTMLElement;
+}>();
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("./BuilderEmbeddedCodeEditor.vue"),
@@ -98,8 +103,6 @@ async function save() {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-
 .status {
 	padding: 2px 12px 2px 12px;
 	border-radius: 16px;

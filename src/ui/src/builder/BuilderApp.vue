@@ -29,10 +29,9 @@
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>
-			<div class="builderPanels">
-				<BuilderCodePanel></BuilderCodePanel>
-				<BuilderLogPanel></BuilderLogPanel>
-			</div>
+			<BuilderPanelSwitcher
+				class="builderPanelSwitcher"
+			></BuilderPanelSwitcher>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -83,8 +82,7 @@ import { isPlatformMac } from "../core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
-import BuilderCodePanel from "./BuilderCodePanel.vue";
-import BuilderLogPanel from "./BuilderLogPanel.vue";
+import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -298,7 +296,8 @@ onMounted(() => {
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
 	--builderWarningColor: #ff3d00;
-	--builderPanelHeight: 50vh;
+	--builderPanelSwitcherHeight: 48px;
+	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 
 	--buttonColor: #5551ff;
 	--buttonTextColor: white;
@@ -325,14 +324,18 @@ onMounted(() => {
 			"ssbm.getMode() !== 'preview' ? 'var(--builderSidebarWidth)' : '0px'"
 		)
 		1fr;
-	grid-template-rows: var(--builderTopBarHeight) 1fr 48px;
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherHeight);
 	display: grid;
 }
 
 .mainGrid.openPanels {
-	grid-template-rows: var(--builderTopBarHeight) 1fr calc(
-			(100vh - var(--builderTopBarHeight)) * 0.5
-		);
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherExpandedHeight);
 }
 
 .builderHeader {
@@ -343,7 +346,7 @@ onMounted(() => {
 
 .sidebar {
 	grid-column: 1 / 2;
-	grid-row: 2 / 4;
+	grid-row: 2 / 5;
 	min-height: 0;
 	border-right: 1px solid var(--builderAreaSeparatorColor);
 }
@@ -372,10 +375,9 @@ onMounted(() => {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
 }
 
-.builderPanels {
+.builderPanelSwitcher {
 	grid-column: 2 / 3;
 	grid-row: 3;
-	display: flex;
 }
 
 .shortcutsTracker,
