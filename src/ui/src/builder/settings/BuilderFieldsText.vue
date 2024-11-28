@@ -75,7 +75,6 @@ const handleInput = (ev: Event) => {
 
 <style>
 .BuilderFieldsText .content {
-	padding: 16px 12px 12px 12px;
 	width: 100%;
 }
 </style>

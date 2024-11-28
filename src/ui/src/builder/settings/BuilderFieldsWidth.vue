@@ -47,11 +47,11 @@
 					@update:model-value="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
-					<input
+					<WdsTextInput
 						ref="fixedEl"
-						type="text"
-						:value="valuePickFixed"
-						@input="handleInputFixed"
+						type="number"
+						:model-value="valuePickFixed"
+						@update:model-value="handleInputFixed"
 					/>
 					<div>px</div>
 				</div>
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import {
+	ComponentInstance,
 	computed,
 	inject,
 	nextTick,
@@ -83,6 +84,7 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "../../injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -90,7 +92,7 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
-const fixedEl: Ref<HTMLInputElement> = ref(null);
+const fixedEl = ref<ComponentInstance<typeof WdsTextInput>>(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
 
 type Mode = "pick" | "css" | "default";
@@ -239,12 +241,8 @@ const handleInputCss = (ev: Event) => {
 	);
 };
 
-const handleInputFixed = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value + "px",
-	);
+const handleInputFixed = (ev: string) => {
+	setContentValue(component.value.id, fieldKey.value, `${ev}px`);
 };
 
 onMounted(() => {
@@ -260,19 +258,17 @@ onBeforeUnmount(() => {
 @import "../sharedStyles.css";
 
 .chipStackContainer {
-	padding: 12px;
 	margin-top: 4px;
-	padding-bottom: 12px;
 }
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
 }
 
 .fixedContainer {
+	margin-top: 8px;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	gap: 8px;
-	padding: 8px;
 }
 </style>

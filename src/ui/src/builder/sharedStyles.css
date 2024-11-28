@@ -119,61 +119,6 @@ code {
 	padding: 2px;
 }
 
-.sectionTitle {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	font-size: 1rem;
-}
-
-.fieldWrapper {
-	position: relative;
-	width: 100%;
-	margin-top: 16px;
-}
-
-:is(.fieldWrapper, .fieldWrapperMain) > .name {
-	position: absolute;
-	top: 0;
-	left: 8px;
-	background: var(--builderBackgroundColor);
-	padding: 0 4px 4px 4px;
-	font-size: 0.7rem;
-	z-index: 1;
-}
-
-:is(.fieldWrapper, .fieldWrapperMain) .name .type {
-	color: var(--builderSecondaryTextColor);
-}
-
-:is(.fieldWrapper, .fieldWrapperMain) .content {
-	position: relative;
-	top: 6px;
-	margin-bottom: 14px;
-	width: 100%;
-	border-radius: 4px;
-	border: 1px solid var(--builderSeparatorColor);
-	font-size: 0.75rem;
-	background: var(--builderBackgroundColor);
-	outline: none;
-}
-
-:is(.fieldWrapper, .fieldWrapperMain) .content:focus-within {
-	border: 1px solid var(--builderPrimaryTextColor);
-}
-
-:is(.fieldWrapper, .fieldWrapperMain) .content textarea,
-:is(.fieldWrapper, .fieldWrapperMain) .content input {
-	border: 0;
-	outline: none;
-	width: 100%;
-}
-
-.fieldWrapper > .desc {
-	color: var(--builderSecondaryTextColor);
-	font-size: 0.7rem;
-}
-
 .chipStack {
 	display: flex;
 	flex-direction: row;
@@ -200,19 +145,4 @@ code {
 
 .chip.active {
 	background: var(--builderSubtleSeparatorColor);
-}
-
-.countLabel {
-	background: var(--builderIntenseSelectedColor);
-	display: inline-flex;
-	color: var(--builderBackgroundColor);
-	align-items: center;
-	justify-content: center;
-	padding-left: 4px;
-	padding-right: 4px;
-	min-width: 20px;
-	height: 20px;
-	border-radius: 10px;
-	margin-left: 8px;
-	font-size: 0.7rem;
 }

@@ -46,75 +46,75 @@
 					:options="selectOptions"
 					@update:model-value="handleInputSelect"
 				/>
-				<div v-if="subMode == SubMode.all_sides" class="row">
-					<i>All</i>
-					<input
-						ref="fixedEl"
-						type="text"
-						:value="valuePadding[0]"
-						@input="handleInputs($event, subMode)"
-					/>
-					<div>px</div>
-				</div>
-				<div v-if="subMode == SubMode.xy_sides">
-					<div class="row">
+				<div class="BuilderFieldsPadding__options">
+					<template v-if="subMode == SubMode.all_sides">
+						<i>All</i>
+						<WdsTextInput
+							ref="fixedEl"
+							type="number"
+							:model-value="valuePadding[0]"
+							@update:model-value="handleInputs($event, subMode)"
+						/>
+						<div>px</div>
+					</template>
+					<template v-if="subMode == SubMode.xy_sides">
 						<i>X</i>
-						<input
-							ref="fixedEl"
-							type="text"
-							:value="valuePadding[0]"
-							@input="handleInputs($event, subMode, 'x')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[0]"
+							@update:model-value="
+								handleInputs($event, subMode, 'x')
+							"
 						/>
 						<div>px</div>
-					</div>
-					<div class="row">
 						<i>Y</i>
-						<input
-							type="text"
-							:value="valuePadding[2]"
-							@input="handleInputs($event, subMode, 'y')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[2]"
+							@update:model-value="
+								handleInputs($event, subMode, 'y')
+							"
 						/>
 						<div>px</div>
-					</div>
-				</div>
-				<div v-if="subMode == SubMode.per_side">
-					<div class="row">
+					</template>
+					<template v-if="subMode == SubMode.per_side">
 						<i>Left</i>
-						<input
-							ref="fixedEl"
-							type="text"
-							:value="valuePadding[0]"
-							@input="handleInputs($event, subMode, 'left')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[0]"
+							@update:model-value="
+								handleInputs($event, subMode, 'left')
+							"
 						/>
 						<div>px</div>
-					</div>
-					<div class="row">
 						<i>Right</i>
-						<input
-							type="text"
-							:value="valuePadding[1]"
-							@input="handleInputs($event, subMode, 'right')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[1]"
+							@update:model-value="
+								handleInputs($event, subMode, 'right')
+							"
 						/>
 						<div>px</div>
-					</div>
-					<div class="row">
 						<i>Top</i>
-						<input
-							type="text"
-							:value="valuePadding[2]"
-							@input="handleInputs($event, subMode, 'top')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[2]"
+							@update:model-value="
+								handleInputs($event, subMode, 'top')
+							"
 						/>
 						<div>px</div>
-					</div>
-					<div class="row">
 						<i>Bottom</i>
-						<input
-							type="text"
-							:value="valuePadding[3]"
-							@input="handleInputs($event, subMode, 'bottom')"
+						<WdsTextInput
+							type="number"
+							:model-value="valuePadding[3]"
+							@update:model-value="
+								handleInputs($event, subMode, 'bottom')
+							"
 						/>
 						<div>px</div>
-					</div>
+					</template>
 				</div>
 			</div>
 
@@ -130,6 +130,7 @@
 
 <script setup lang="ts">
 import {
+	ComponentInstance,
 	computed,
 	inject,
 	nextTick,
@@ -144,6 +145,7 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -151,7 +153,7 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
-const fixedEl: Ref<HTMLInputElement> = ref(null);
+const fixedEl = ref<ComponentInstance<typeof WdsTextInput>>(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
 
 type Mode = "pick" | "css" | "default";
@@ -327,7 +329,7 @@ const handleInputSelect = (select: string) => {
 	}
 
 	nextTick(() => {
-		fixedEl.value.focus();
+		fixedEl.value?.focus();
 	});
 };
 
@@ -339,8 +341,8 @@ const handleInputCss = (ev: Event) => {
 	);
 };
 
-const handleInputs = (ev: Event, subMode: SubMode, inputType?: string) => {
-	const value = (ev.target as HTMLInputElement).value;
+const handleInputs = (ev: string, subMode: SubMode, inputType?: string) => {
+	const value = Number(ev);
 	const cssValue = component.value.content[fieldKey.value];
 
 	if (subMode == SubMode.all_sides) {
@@ -392,26 +394,22 @@ onBeforeUnmount(() => {
 @import "../ico.css";
 
 .chipStackContainer {
-	padding: 12px;
 	margin-top: 4px;
-	padding-bottom: 12px;
 }
 
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
 }
 
-.row {
-	display: flex;
-	flex-direction: row;
+.BuilderFieldsPadding__options {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: auto minmax(0, 100%) auto;
 	gap: 8px;
-	padding: 8px;
 	align-items: baseline;
+	width: 100%;
 }
-
-.row input {
-	width: calc(100% - 32px) !important;
+.BuilderFieldsPadding__options input {
 	text-align: right;
 }
 </style>

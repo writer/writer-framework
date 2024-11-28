@@ -145,12 +145,18 @@ onBeforeUnmount(() => {
 @import "../sharedStyles.css";
 
 .chipStackContainer {
-	padding: 12px;
 	margin-top: 4px;
-	padding-bottom: 12px;
 }
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
+}
+input[type="color"] {
+	width: 100%;
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid var(--separatorColor);
+
+	display: block;
+	height: 40px;
 }
 </style>
