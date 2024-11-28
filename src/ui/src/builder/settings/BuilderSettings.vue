@@ -22,6 +22,7 @@
 				variant="neutral"
 				data-writer-tooltip-placement="left"
 				data-writer-tooltip="Collapse settings"
+				data-automation-action="collapse-settings"
 				@click="toggleSettings"
 				><i class="material-symbols-outlined"
 					>double_arrow</i

@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
-import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import injectionKeys from "@/injectionKeys";
 
 defineProps<{
@@ -32,13 +32,12 @@ defineProps<{
 }>();
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
-	loader: () => import("./BuilderEmbeddedCodeEditor.vue"),
+	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 
 const wf = inject(injectionKeys.core);
 
-const wfbm = inject(injectionKeys.builderManager);
 const code = ref<string>(wf.runCode.value);
 const status = ref<null | {
 	type: "error" | "success" | "neutral";

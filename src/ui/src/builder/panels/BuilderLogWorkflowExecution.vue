@@ -132,13 +132,13 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import injectionKeys from "@/injectionKeys";
-import { WorkflowExecutionLog } from "./builderManager";
+import { WorkflowExecutionLog } from "../builderManager";
 import { computed, inject, nextTick, ref } from "vue";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
-import { useComponentActions } from "./useComponentActions";
+import { useComponentActions } from "../useComponentActions";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderModal from "./BuilderModal.vue";
+import BuilderModal from "../BuilderModal.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -194,8 +194,6 @@ function formatExecutionTime(timeInSeconds: number): string {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-
 .BuilderLogWorkflowExecution {
 	display: flex;
 	flex-direction: column;

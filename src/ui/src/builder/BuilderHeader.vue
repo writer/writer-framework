@@ -64,8 +64,6 @@ import { useComponentActions } from "./useComponentActions";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import injectionKeys from "../injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
-import WdsButton from "@/wds/WdsButton.vue";
-import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 
 const syncHealthIcon = ref(null);
 const wf = inject(injectionKeys.core);

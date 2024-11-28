@@ -29,8 +29,8 @@ export type BuilderPanelAction = {
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { inject, ref } from "vue";
-import BuilderCodePanel from "../BuilderCodePanel.vue";
-import BuilderLogPanel from "../BuilderLogPanel.vue";
+import BuilderCodePanel from "./BuilderCodePanel.vue";
+import BuilderLogPanel from "./BuilderLogPanel.vue";
 
 const wfbm = inject(injectionKeys.builderManager);
 

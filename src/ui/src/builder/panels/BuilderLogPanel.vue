@@ -105,8 +105,6 @@ const logEntries = computed(() => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-
 .entries {
 	padding: 20px;
 	display: flex;

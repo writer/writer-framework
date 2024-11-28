@@ -33,8 +33,6 @@ const entryCountByType = computed(() => {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-
 .BuilderLogIndicator {
 	font-size: 14px;
 	font-weight: 400;
