@@ -13,7 +13,9 @@
 		"custom.build": "vite build --config vite.config.custom.ts",
 		"custom.check": "node tools/custom_check.mjs",
 		"storybook": "storybook dev -p 6006",
-		"storybook.build": "storybook build"
+		"storybook.build": "storybook build",
+		"test": "vitest run",
+		"test.watch": "vitest dev"
 	},
 	"dependencies": {
 		"@apache-arrow/ts": "^15.0.2",
@@ -60,6 +62,7 @@
 		"prettier": "3.2.5",
 		"storybook": "8.0.5",
 		"vite": "^5.2.7",
+		"vitest": "^2.1.6",
 		"volar-service-vetur": "*"
 	}
 }
