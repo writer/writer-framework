@@ -91,7 +91,7 @@ const BuilderSettings = defineAsyncComponent({
 	loadingComponent: BuilderAsyncLoader,
 });
 const BuilderSidebar = defineAsyncComponent({
-	loader: () => import("./BuilderSidebar.vue"),
+	loader: () => import("./sidebar/BuilderSidebar.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 const ComponentRenderer = defineAsyncComponent({

@@ -70,7 +70,7 @@ export default {
 			},
 		},
 		allowedParentTypes: ["workflows_workflow"],
-		previewField: "text",
+		previewField: "alias",
 	},
 };
 </script>

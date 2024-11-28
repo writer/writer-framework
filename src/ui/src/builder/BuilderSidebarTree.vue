@@ -72,9 +72,9 @@
 
 <script setup lang="ts">
 import { inject, computed, nextTick, ref, Ref, ComputedRef } from "vue";
-import { useComponentActions } from "./useComponentActions";
+import { useComponentActions } from "../useComponentActions";
 import BuilderTreeBranch from "./BuilderTreeBranch.vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "../../injectionKeys";
 import { Component } from "@/writerTypes";
 import { watch } from "vue";
 import BuilderSidebarTitleSearch from "./BuilderSidebarTitleSearch.vue";
