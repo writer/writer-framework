@@ -28,7 +28,8 @@ defineProps<{
 	flex-direction: column;
 	height: 100%;
 	position: relative;
-	overflow: auto;
+	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
 .inputContainer {
@@ -45,6 +46,7 @@ defineProps<{
 
 .main {
 	display: flex;
+	flex: 1 0 auto;
 	padding: 16px;
 	gap: 16px;
 	flex-direction: column;

@@ -24,7 +24,5 @@ import BuilderSidebarComponentTree from "./BuilderSidebarComponentTree.vue";
 
 .BuilderSidebar > * {
 	flex: 0 0 50%;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 </style>

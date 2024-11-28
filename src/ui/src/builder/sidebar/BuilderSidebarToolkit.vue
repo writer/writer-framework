@@ -108,14 +108,14 @@ function handleImageError(ev: Event, categoryId: string) {
 	imageEl.src = `./../../../../components/category_${categoryId}.svg`;
 }
 
-const handleDragStart = (ev: DragEvent, type: Component["type"]) => {
+function handleDragStart(ev: DragEvent, type: Component["type"]) {
 	wfbm.setSelection(null);
 	ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
-};
+}
 
-const handleDragEnd = (ev: DragEvent) => {
+function handleDragEnd(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
-};
+}
 
 watch(activeToolkit, () => {
 	query.value = "";
