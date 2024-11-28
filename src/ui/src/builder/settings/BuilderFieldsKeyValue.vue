@@ -192,9 +192,6 @@ onMounted(async () => {
 @import "../sharedStyles.css";
 
 .chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
 	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 

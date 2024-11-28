@@ -126,6 +126,7 @@ code {
 	font-size: 1rem;
 }
 
+/*
 .fieldWrapper {
 	position: relative;
 	width: 100%;
@@ -168,6 +169,7 @@ code {
 	outline: none;
 	width: 100%;
 }
+*/
 
 .fieldWrapper > .desc {
 	color: var(--builderSecondaryTextColor);
