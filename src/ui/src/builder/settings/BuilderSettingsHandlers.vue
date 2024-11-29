@@ -148,8 +148,8 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import { WriterComponentDefinition } from "@/writerTypes";
-import BuilderSelect from "./BuilderSelect.vue";
-import type { Option } from "./BuilderSelect.vue";
+import BuilderSelect from "../BuilderSelect.vue";
+import type { Option } from "../BuilderSelect.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
