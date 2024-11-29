@@ -124,7 +124,7 @@ def mock_non_streaming_client():
                 ],
                 created=0,
                 model="test",
-                object="test"
+                object="chat.completion"
                 )
         non_streaming_client.completions.create.return_value = \
             Completion(choices=[{"text": test_complete_literal}])
