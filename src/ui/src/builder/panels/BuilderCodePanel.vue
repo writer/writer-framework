@@ -5,6 +5,7 @@
 		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
 		:scrollable="false"
+		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
 	>
 		<BuilderEmbeddedCodeEditor
