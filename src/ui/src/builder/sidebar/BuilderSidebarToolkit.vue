@@ -25,7 +25,15 @@
 				>
 					<img
 						:src="`./../../../../components/${tool.type}.svg`"
-						@error="handleImageError($event, tool.category)"
+						@error="
+							!isImageFallback[tool.type]
+								? handleImageError(
+										$event,
+										tool.type,
+										tool.category,
+									)
+								: undefined
+						"
 					/>
 					<div class="name">{{ tool.name }}</div>
 				</div>
@@ -49,6 +57,7 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
+const isImageFallback = ref<Record<Component["type"], boolean>>({});
 
 const displayedCategories = [
 	"Layout",
@@ -103,7 +112,12 @@ function getRelevantToolsInCategory(categoryId: string) {
 	return queryApplied;
 }
 
-function handleImageError(ev: Event, categoryId: string) {
+function handleImageError(
+	ev: Event,
+	type: Component["type"],
+	categoryId: string,
+) {
+	isImageFallback.value[type] = true; // Prevent calling more than once
 	const imageEl = ev.target as HTMLImageElement;
 	imageEl.src = `./../../../../components/category_${categoryId}.svg`;
 }
