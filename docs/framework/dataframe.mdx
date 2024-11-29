@@ -70,9 +70,9 @@ def on_record_action(state, payload):
 	This event corresponds to a quick action in the drop-down menu to the left of the dataframe.
 	"""
 	record_index = payload['record_index']
-	if payload.action == 'remove':
+	if payload['action'] == 'remove':
 		state['mydf'].record_remove(payload)
-	if payload.action == 'open':
+	if payload['action'] == 'open':
 		state['record'] = state['df'].record(record_index) # dict representation of record
 ```
 

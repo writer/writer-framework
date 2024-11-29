@@ -5,10 +5,10 @@ function getPlatform() {
 }
 
 export function getModifierKeyName() {
-	return isPlatformMac() ? "⌘ Cmd" : "Ctrl";
+	return isPlatformMac() ? "⌘ " : "Ctrl+";
 }
 
-export function isModifierKeyActive(ev: KeyboardEvent) {
+export function isModifierKeyActive(ev: KeyboardEvent | MouseEvent) {
 	return isPlatformMac() ? ev.metaKey : ev.ctrlKey;
 }
 

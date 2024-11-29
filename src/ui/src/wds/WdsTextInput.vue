@@ -42,7 +42,7 @@ const input = ref();
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	padding: 8.5px 12px 8.5px 12px;
-	font-size: 0.875rem;
+	font-size: 14px;
 	outline: none;
 	color: var(--primaryTextColor);
 	background: transparent;
@@ -57,6 +57,7 @@ const input = ref();
 .WdsTextInput--leftIcon {
 	cursor: pointer;
 	display: flex;
+	align-items: center;
 	gap: 8px;
 }
 
@@ -65,7 +66,9 @@ const input = ref();
 }
 
 .WdsTextInput--leftIcon input {
+	font-size: 14px;
 	border: none;
+	background: transparent;
 }
 .WdsTextInput--leftIcon input:focus {
 	border: none;

@@ -4,11 +4,18 @@
 
 <script setup lang="ts">
 import { PropType, computed } from "vue";
-import type { JsonValue } from "./SharedJsonViewer.vue";
+import type { JsonData } from "./SharedJsonViewer.vue";
 
 const props = defineProps({
 	data: {
-		type: [Object, String, Number] as PropType<JsonValue>,
+		type: [
+			String,
+			Number,
+			Boolean,
+			Object,
+			Array,
+			null,
+		] as PropType<JsonData>,
 		required: true,
 	},
 });

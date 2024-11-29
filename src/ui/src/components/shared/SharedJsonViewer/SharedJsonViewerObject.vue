@@ -47,7 +47,7 @@ import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 
 const props = defineProps({
 	data: {
-		type: Object as PropType<{ [x: string]: JsonData } | JsonData>,
+		type: [Object, Array] as PropType<JsonData>,
 		required: true,
 	},
 	path: {

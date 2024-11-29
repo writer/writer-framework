@@ -4,6 +4,7 @@
 			:data="data ?? {}"
 			:initial-depth="initialDepth"
 			:enable-copy-to-json="fields.copy.value === 'yes'"
+			:hide-root="fields.hideRoot.value === 'yes'"
 		/>
 	</div>
 </template>
@@ -53,6 +54,17 @@ const definition: WriterComponentDefinition = {
 			desc: "Sets the initial viewing depth of the JSON tree hierarchy. Use -1 to display the full hierarchy.",
 			type: FieldType.Number,
 			init: "0",
+		},
+		hideRoot: {
+			name: "Hide root",
+			desc: "Don't show the type of the root node when it's an Object or an Array.",
+			type: FieldType.Text,
+			options: {
+				yes: "yes",
+				no: "no",
+			},
+			default: "no",
+			category: FieldCategory.Style,
 		},
 		copy: {
 			name: "Copy",

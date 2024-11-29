@@ -23,7 +23,7 @@
 						wfbm.getSelectedId() == arrow.toNodeId
 					"
 					@click="handleArrowClick($event, arrowId)"
-					@delete="handleDeleteClick($event, arrow)"
+					@delete="handleArrowDeleteClick(arrow)"
 				></WorkflowArrow>
 				<WorkflowArrow
 					v-if="activeConnection?.liveArrow"
@@ -54,23 +54,28 @@
 				></component>
 			</template>
 		</div>
-		<WdsButton
-			class="runButton"
-			variant="secondary"
-			size="small"
-			:data-writer-unselectable="true"
-			@click="handleRun"
-		>
-			<i class="material-symbols-outlined">play_arrow</i>
-			{{ isRunning ? "Running..." : "Run workflow" }}</WdsButton
-		>
-		<WorkflowMiniMap
+		<div class="workflowsToolbar">
+			<WdsButton
+				variant="secondary"
+				size="small"
+				:data-writer-unselectable="true"
+				data-automation-action="run-workflow"
+				@click="handleRun"
+			>
+				<i class="material-symbols-outlined">play_arrow</i>
+				{{ isRunning ? "Running..." : "Run workflow" }}
+			</WdsButton>
+		</div>
+		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
 			:render-offset="renderOffset"
-			class="miniMap"
+			:zoom-level="zoomLevel"
+			class="navigator"
 			@change-render-offset="handleChangeRenderOffset"
-		></WorkflowMiniMap>
+			@change-zoom-level="handleChangeZoomLevel"
+			@reset-zoom="resetZoom"
+		></WorkflowNavigator>
 	</div>
 </template>
 
@@ -79,7 +84,8 @@ import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import WorkflowMiniMap from "./base/WorkflowMiniMap.vue";
+import WorkflowNavigator from "./base/WorkflowNavigator.vue";
+import { isModifierKeyActive } from "@/core/detectPlatform";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -99,7 +105,6 @@ export default {
 				type: FieldType.IdKey,
 			},
 		},
-		previewField: "key",
 	},
 };
 
@@ -114,13 +119,31 @@ export type WorkflowArrowData = {
 	toNodeId?: Component["id"];
 	isEngaged?: boolean;
 };
+
+export const ZOOM_SETTINGS = {
+	minLevel: 0.2,
+	maxLevel: 1,
+	step: 0.25,
+	initialLevel: 1,
+};
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, nextTick, onMounted, ref } from "vue";
+import {
+	Ref,
+	computed,
+	inject,
+	nextTick,
+	onMounted,
+	onUnmounted,
+	ref,
+} from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
+const instancePath = inject(injectionKeys.instancePath);
+const workflowComponentId = inject(injectionKeys.componentId);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
 const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
@@ -130,8 +153,8 @@ const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = ref({ x: 0, y: 0 });
 const isRunning = ref(false);
 const selectedArrow = ref(null);
-const instancePath = inject(injectionKeys.instancePath);
-const workflowComponentId = inject(injectionKeys.componentId);
+const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
+const arrowRefresherObserver = new MutationObserver(refreshArrows);
 
 const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
@@ -211,14 +234,14 @@ async function handleRun() {
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
 	const nodeEl = document.querySelector(`[data-writer-id="${nodeId}"]`);
-	const nodeCBR = nodeEl.getBoundingClientRect();
+	const nodeBCR = nodeEl.getBoundingClientRect();
+
+	const x = (ev.pageX - nodeBCR.x) * (1 / zoomLevel.value);
+	const y = (ev.pageY - nodeBCR.y) * (1 / zoomLevel.value);
 
 	activeNodeMove.value = {
 		nodeId,
-		offset: {
-			x: ev.pageX - nodeCBR.x,
-			y: ev.pageY - nodeCBR.y,
-		},
+		offset: { x, y },
 		isPerfected: false,
 	};
 }
@@ -239,9 +262,11 @@ function handleDragover(ev: DragEvent) {
 }
 
 function getAdjustedCoordinates(ev: MouseEvent) {
-	const canvasCBR = rootEl.value.getBoundingClientRect();
-	const x = ev.pageX - canvasCBR.x + renderOffset.value.x;
-	const y = ev.pageY - canvasCBR.y + renderOffset.value.y;
+	const canvasBCR = rootEl.value.getBoundingClientRect();
+	const x =
+		renderOffset.value.x + (ev.pageX - canvasBCR.x) * (1 / zoomLevel.value);
+	const y =
+		renderOffset.value.y + (ev.pageY - canvasBCR.y) * (1 / zoomLevel.value);
 	return { x, y };
 }
 
@@ -270,7 +295,7 @@ function handleArrowClick(ev: MouseEvent, arrowId: number) {
 	wfbm.setSelection(null);
 }
 
-async function handleDeleteClick(ev: MouseEvent, arrow: WorkflowArrowData) {
+async function handleArrowDeleteClick(arrow: WorkflowArrowData) {
 	if (!arrow.toNodeId) return;
 	const out = {
 		outId: arrow.fromOutId,
@@ -286,25 +311,25 @@ function calculateArrow(
 	toNodeId?: Component["id"],
 ): WorkflowArrowData {
 	let x1: number, y1: number, x2: number, y2: number;
-	const canvasCBR = rootEl.value?.getBoundingClientRect();
-	if (!canvasCBR) {
+	const canvasBCR = rootEl.value?.getBoundingClientRect();
+	if (!canvasBCR) {
 		return;
 	}
-	x2 = toCoordinates?.x - canvasCBR.x;
-	y2 = toCoordinates?.y - canvasCBR.y;
+	x2 = (toCoordinates?.x - canvasBCR.x) * (1 / zoomLevel.value);
+	y2 = (toCoordinates?.y - canvasBCR.y) * (1 / zoomLevel.value);
 	const fromEl = document.querySelector(
 		`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${fromOutId}"]`,
 	);
 	if (!fromEl) return;
-	const fromCBR = fromEl.getBoundingClientRect();
-	x1 = fromCBR.x - canvasCBR.x + fromCBR.width / 2;
-	y1 = fromCBR.y - canvasCBR.y + fromCBR.height / 2;
+	const fromBCR = fromEl.getBoundingClientRect();
+	x1 = (fromBCR.x - canvasBCR.x + fromBCR.width / 2) * (1 / zoomLevel.value);
+	y1 = (fromBCR.y - canvasBCR.y + fromBCR.height / 2) * (1 / zoomLevel.value);
 	if (!fromEl) return;
 	if (typeof toNodeId !== "undefined") {
 		const toEl = document.querySelector(`[data-writer-id="${toNodeId}"]`);
-		const toCBR = toEl.getBoundingClientRect();
-		x2 = toCBR.x - canvasCBR.x;
-		y2 = toCBR.y - canvasCBR.y + toCBR.height / 2;
+		const toBCR = toEl.getBoundingClientRect();
+		x2 = (toBCR.x - canvasBCR.x) * (1 / zoomLevel.value);
+		y2 = (toBCR.y - canvasBCR.y + toBCR.height / 2) * (1 / zoomLevel.value);
 	}
 
 	return {
@@ -373,20 +398,18 @@ function moveNode(ev: MouseEvent) {
 	}, 200);
 }
 
-async function moveCanvas(ev: MouseEvent) {
-	const canvasCBR = rootEl.value.getBoundingClientRect();
-	const x = ev.pageX - canvasCBR.x;
-	const y = ev.pageY - canvasCBR.y;
+function moveCanvas(ev: MouseEvent) {
+	const canvasBCR = rootEl.value.getBoundingClientRect();
+	const x = ev.pageX - canvasBCR.x;
+	const y = ev.pageY - canvasBCR.y;
 	const { x: prevX, y: prevY } = activeCanvasMove.value.offset;
 	activeCanvasMove.value.isPerfected = true;
 
-	renderOffset.value = {
-		x: Math.max(0, renderOffset.value.x + (prevX - x) * 1),
-		y: Math.max(0, renderOffset.value.y + (prevY - y) * 1),
-	};
 	activeCanvasMove.value.offset = { x, y };
-	await nextTick();
-	refreshArrows();
+	changeRenderOffset(
+		renderOffset.value.x + (prevX - x) * 1 * (1 / zoomLevel.value),
+		renderOffset.value.y + (prevY - y) * 1 * (1 / zoomLevel.value),
+	);
 }
 
 function handleMousemove(ev: MouseEvent) {
@@ -410,9 +433,9 @@ function handleMousedown(ev: MouseEvent) {
 	clearActiveOperations();
 	if (ev.buttons != 1) return;
 
-	const canvasCBR = rootEl.value.getBoundingClientRect();
-	const x = ev.pageX - canvasCBR.x;
-	const y = ev.pageY - canvasCBR.y;
+	const canvasBCR = rootEl.value.getBoundingClientRect();
+	const x = ev.pageX - canvasBCR.x;
+	const y = ev.pageY - canvasBCR.y;
 
 	activeCanvasMove.value = {
 		offset: { x, y },
@@ -441,35 +464,142 @@ async function handleMouseup(ev: MouseEvent) {
 	});
 }
 
-async function createNode(type: string, x: number, y: number) {
+function createNode(type: string, x: number, y: number) {
 	createAndInsertComponent(type, workflowComponentId, undefined, {
 		x: Math.floor(x),
 		y: Math.floor(y),
 	});
 }
 
-async function findAndCenterBlock(componentId: Component["id"]) {
+function findAndCenterBlock(componentId: Component["id"]) {
 	const el = rootEl.value.querySelector(`[data-writer-id="${componentId}"]`);
-	const canvasCBR = rootEl.value?.getBoundingClientRect();
-	if (!el || !canvasCBR) return;
+	const canvasBCR = rootEl.value?.getBoundingClientRect();
+	if (!el || !canvasBCR) return;
 	const { width, height } = el.getBoundingClientRect();
 	const component = wf.getComponentById(componentId);
 	if (!component) return;
-	renderOffset.value = {
-		x: Math.max(0, component.x - canvasCBR.width / 2 + width / 2),
-		y: Math.max(0, component.y - canvasCBR.height / 2 + height / 2),
-	};
-	await nextTick();
-	refreshArrows();
+
+	changeRenderOffset(
+		component.x - canvasBCR.width / 2 + width / 2,
+		component.y - canvasBCR.height / 2 + height / 2,
+	);
 }
 
-async function handleChangeRenderOffset(payload) {
+async function handleChangeRenderOffset(payload: { x: number; y: number }) {
+	await changeRenderOffset(payload.x, payload.y);
+}
+
+function setZoomLevel(level: number) {
+	zoomLevel.value = Math.max(
+		Math.min(ZOOM_SETTINGS.maxLevel, level),
+		ZOOM_SETTINGS.minLevel,
+	);
+}
+
+function handleChangeZoomLevel(payload: number) {
+	setZoomLevel(payload);
+}
+
+function changeRenderOffset(x: number, y: number) {
 	renderOffset.value = {
-		x: payload.x,
-		y: payload.y,
+		x: Math.max(0, x),
+		y: Math.max(0, y),
 	};
-	await nextTick();
-	refreshArrows();
+}
+
+function handleWheelScroll(ev: WheelEvent) {
+	changeRenderOffset(
+		renderOffset.value.x + ev.deltaX * (1 / zoomLevel.value),
+		renderOffset.value.y + ev.deltaY * (1 / zoomLevel.value),
+	);
+}
+
+function handleWheelZoom(ev: WheelEvent) {
+	const WHEEL_ATENUATOR = 1 / 150; // Determines sensitivity of zoom
+	const canvasBCR = rootEl.value.getBoundingClientRect();
+	const preZoom = zoomLevel.value;
+
+	// Calculate new zoom level
+
+	zoomLevel.value = Math.min(
+		Math.max(
+			zoomLevel.value - ev.deltaY * WHEEL_ATENUATOR,
+			ZOOM_SETTINGS.minLevel,
+		),
+		ZOOM_SETTINGS.maxLevel,
+	);
+
+	// Calculate how big the change was in terms of displayed surface
+
+	const sizeDelta = {
+		w:
+			canvasBCR.width *
+			(1 / preZoom) *
+			(1 / zoomLevel.value) *
+			(zoomLevel.value - preZoom),
+		h:
+			canvasBCR.height *
+			(1 / preZoom) *
+			(1 / zoomLevel.value) *
+			(zoomLevel.value - preZoom),
+	};
+
+	/*
+	Based on cursor position, determine where to focus the zoom action by
+	distributing the space that was gained or lost.
+	*/
+
+	const correction = {
+		x: (ev.pageX - canvasBCR.x) / canvasBCR.width,
+		y: (ev.pageY - canvasBCR.y) / canvasBCR.height,
+	};
+
+	changeRenderOffset(
+		renderOffset.value.x + sizeDelta.w * correction.x,
+		renderOffset.value.y + sizeDelta.h * correction.y,
+	);
+}
+
+async function handleWheel(ev: WheelEvent) {
+	ev.preventDefault();
+
+	if (!ev.ctrlKey && !isModifierKeyActive(ev)) {
+		handleWheelScroll(ev);
+		return;
+	}
+	handleWheelZoom(ev);
+}
+
+async function resetZoom() {
+	const GAP_PX = 48;
+	const { width, height, x, y } = rootEl.value.getBoundingClientRect();
+	const nodes = nodeContainerEl.value.querySelectorAll("[data-writer-id]");
+	const { maxX, maxY } = Array.from(nodes).reduce(
+		(acc, node) => {
+			const rect = node.getBoundingClientRect();
+			return {
+				maxY: Math.max(
+					acc.maxY,
+					(rect.bottom - y) * (1 / zoomLevel.value) +
+						renderOffset.value.y,
+				),
+				maxX: Math.max(
+					acc.maxX,
+					(rect.right - x) * (1 / zoomLevel.value) +
+						renderOffset.value.x,
+				),
+			};
+		},
+		{ maxY: 0, maxX: 0 },
+	);
+
+	const newZoomLevel = Math.min(
+		(width - GAP_PX) / maxX,
+		(height - GAP_PX) / maxY,
+	);
+
+	setZoomLevel(newZoomLevel);
+	changeRenderOffset(0, 0);
 }
 
 watch(
@@ -485,20 +615,23 @@ watch(
 	},
 );
 
-watch(
-	nodes,
-	async () => {
-		// Refresh arrows
-
-		await nextTick();
-		refreshArrows();
-	},
-	{ deep: true },
-);
-
 onMounted(async () => {
+	await resetZoom();
 	await nextTick();
 	refreshArrows();
+	rootEl.value?.addEventListener("wheel", handleWheel);
+	arrowRefresherObserver.observe(nodeContainerEl.value, {
+		attributes: true,
+		attributeFilter: ["style"],
+		childList: true,
+		subtree: true,
+		characterData: true,
+	});
+});
+
+onUnmounted(() => {
+	rootEl.value?.removeEventListener("wheel", handleWheel);
+	arrowRefresherObserver.disconnect();
 });
 </script>
 
@@ -517,9 +650,11 @@ onMounted(async () => {
 	overflow: hidden;
 }
 
-button.runButton {
+.workflowsToolbar {
 	position: absolute;
-	right: 32px;
+	display: flex;
+	gap: 8px;
+	right: 24px;
 	top: 20px;
 }
 
@@ -527,10 +662,12 @@ button.runButton {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.miniMap {
+.navigator {
 	position: absolute;
-	bottom: 32px;
-	left: 32px;
+	bottom: 24px;
+	left: 24px;
+	border-radius: 20px;
+	overflow: hidden;
 }
 
 .nodeContainer {
@@ -538,8 +675,10 @@ button.runButton {
 	top: 0;
 	left: 0;
 	overflow: hidden;
-	width: 100%;
-	height: 100%;
+	width: calc(100% * 1 / v-bind("zoomLevel"));
+	height: calc(100% * 1 / v-bind("zoomLevel"));
+	transform-origin: top left;
+	transform: scale(v-bind("zoomLevel"));
 }
 
 svg {

@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 from writer.core import (
     BytesWrapper,
     Config,
-    EditableDataframe,
     FileWrapper,
     Readable,
     State,
@@ -22,6 +21,7 @@ from writer.core import (
 from writer.core import (
     writerproperty as property,
 )
+from writer.core_df import EditableDataframe
 
 try:
     from writer.ui import WriterUIManager

@@ -1,6 +1,6 @@
 <template>
 	<div ref="rootEl" class="WorkflowsRoot" data-writer-container>
-		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
+		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
 				v-if="vnode.key === `${displayedWorkflowId}:0`"
@@ -40,10 +40,11 @@ const displayedWorkflowId = computed(() => {
 
 	const pageComponents = wf.getComponents("workflows_root", {
 		includeBMC: true,
-		includeCMC: true,
+		includeCMC: false,
 		sortedByPosition: true,
 	});
 	if (pageComponents.length == 0) return null;
+
 	return pageComponents[0].id;
 });
 </script>

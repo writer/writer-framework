@@ -1,11 +1,16 @@
 <template>
 	<div class="BuilderSwitcher">
-		<div :class="{ active: activeId == 'ui' }" @click="selectOption('ui')">
+		<div
+			data-automation-action="set-mode-ui"
+			:class="{ active: activeId == 'ui' }"
+			@click="selectOption('ui')"
+		>
 			<i class="icon material-symbols-outlined"> brush </i>
 			UI
 		</div>
 		<div
 			v-if="isWorkflowsFeatureFlagged"
+			data-automation-action="set-mode-workflows"
 			:class="{ active: activeId == 'workflows' }"
 			@click="selectOption('workflows')"
 		>
@@ -14,6 +19,7 @@
 		</div>
 		<div
 			:class="{ active: activeId == 'preview' }"
+			data-automation-action="set-mode-preview"
 			@click="selectOption('preview')"
 		>
 			<i class="icon material-symbols-outlined"> preview </i>
@@ -40,9 +46,6 @@ const selectOption = (optionId: "ui" | "preview" | "workflows") => {
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
-	if (optionId == "preview") {
-		ssbm.openPanels.clear();
-	}
 	if (
 		optionId == "preview" ||
 		preMode == "workflows" ||

@@ -7,8 +7,8 @@ test.describe('undo and redo', () => {
 	const COLUMN2 = ".CoreColumns .CoreColumn:nth-child(2 of .CoreColumn)";
 	let url: string;
 
-	const closeSettingsBar = async (page: Page) => {
-		await page.locator('.BuilderSettings button[data-automation-action="close"]').click();
+	const collapseSettingsBar = async (page: Page) => {
+		await page.locator('.BuilderSettings button[data-automation-action="collapse-settings"]').click();
 	}
 
 	test.beforeAll(async ({ request }) => {
@@ -22,12 +22,12 @@ test.describe('undo and redo', () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("create, drag and drop, property change and remove", async ({ page }) => {
 		await page
-			.locator(`div.component.button[data-component-type="${TYPE}"]`)
+			.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 			.dragTo(page.locator(COLUMN1));
 		await page.locator("button.undo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0)
@@ -54,7 +54,7 @@ test.describe('undo and redo', () => {
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill('cool text');
-		await closeSettingsBar(page);
+		await collapseSettingsBar(page);
 		await page.locator("button.undo").click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
 		await page.locator("button.redo").click();
@@ -63,7 +63,7 @@ test.describe('undo and redo', () => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator(
-				'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
+				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 			)
 			.click();
 		await page.locator("button.undo").click();

@@ -1,6 +1,6 @@
 <template>
 	<div ref="rootEl" class="CoreRoot" data-writer-container>
-		<template v-for="(vnode, index) in getChildrenVNodes()" :key="index">
+		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
 				v-if="vnode.key === `${displayedPageId}:0`"

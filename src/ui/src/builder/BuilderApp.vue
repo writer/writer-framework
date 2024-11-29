@@ -1,6 +1,9 @@
 <template>
 	<div class="BuilderApp" tabindex="-1">
-		<div class="mainGrid">
+		<div
+			class="mainGrid"
+			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
+		>
 			<BuilderHeader class="builderHeader"></BuilderHeader>
 			<div v-if="builderMode !== 'preview'" class="sidebar">
 				<BuilderSidebar></BuilderSidebar>
@@ -21,45 +24,19 @@
 					</ComponentRenderer>
 				</div>
 
-				<div
+				<BuilderSettings
 					v-if="ssbm.isSelectionActive()"
 					:key="selectedId ?? 'noneSelected'"
-					class="settingsBar"
-				>
-					<div>
-						<BuilderSettings></BuilderSettings>
-					</div>
-				</div>
+				></BuilderSettings>
 			</div>
-			<div class="builderPanels">
-				<BuilderCodePanel
-					v-if="ssbm.openPanels.has('code')"
-				></BuilderCodePanel>
-				<BuilderLogPanel
-					v-if="ssbm.openPanels.has('log')"
-				></BuilderLogPanel>
-			</div>
+			<BuilderPanelSwitcher
+				class="builderPanelSwitcher"
+			></BuilderPanelSwitcher>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
-			<BuilderInstanceTracker
-				v-if="ssbm.isSelectionActive()"
-				:key="selectedInstancePath"
-				class="shortcutsTracker"
-				:prevent-settings-bar-overlap="true"
-				:instance-path="selectedInstancePath"
-				:vertical-offset-pixels="-48"
-				data-writer-cage
-				@dragstart="handleRendererDragStart"
-				@dragend="handleRendererDragEnd"
-			>
-				<BuilderComponentShortcuts
-					:component-id="selectedId"
-					:instance-path="selectedInstancePath"
-				></BuilderComponentShortcuts>
-			</BuilderInstanceTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -89,25 +66,48 @@
 		<!-- MODAL -->
 
 		<div id="modal"></div>
+
+		<!-- TOOLTIP -->
+
+		<BuilderTooltip id="tooltip"></BuilderTooltip>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted } from "vue";
+import { computed, defineAsyncComponent, inject, onMounted } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
-import BuilderHeader from "./BuilderHeader.vue";
-import BuilderSettings from "./BuilderSettings.vue";
-import BuilderSidebar from "./BuilderSidebar.vue";
-import ComponentRenderer from "@/renderer/ComponentRenderer.vue";
-import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 import injectionKeys from "../injectionKeys";
-import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
-import BuilderInsertionOverlay from "./BuilderInsertionOverlay.vue";
-import BuilderInsertionLabel from "./BuilderInsertionLabel.vue";
-import BuilderCodePanel from "./BuilderCodePanel.vue";
-import BuilderLogPanel from "./BuilderLogPanel.vue";
 import { isPlatformMac } from "../core/detectPlatform";
+import BuilderHeader from "./BuilderHeader.vue";
+import BuilderTooltip from "./BuilderTooltip.vue";
+import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
+import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
+
+const BuilderSettings = defineAsyncComponent({
+	loader: () => import("./settings/BuilderSettings.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderSidebar = defineAsyncComponent({
+	loader: () => import("./sidebar/BuilderSidebar.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const ComponentRenderer = defineAsyncComponent({
+	loader: () => import("@/renderer/ComponentRenderer.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInstanceTracker = defineAsyncComponent({
+	loader: () => import("./BuilderInstanceTracker.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInsertionOverlay = defineAsyncComponent({
+	loader: () => import("./BuilderInsertionOverlay.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderInsertionLabel = defineAsyncComponent({
+	loader: () => import("./BuilderInsertionLabel.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -140,10 +140,7 @@ const {
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
-
 const selectedId = computed(() => ssbm.getSelection()?.componentId);
-const selectedInstancePath = computed(() => ssbm.getSelection()?.instancePath);
-const openPanelCount = computed<number>(() => ssbm.openPanels.size);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -261,13 +258,13 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	);
 };
 
-const handleRendererDragEnd = (ev: DragEvent) => {
+function handleRendererDragEnd(ev: DragEvent) {
 	ssbm.setSelection(null);
 	removeInsertionCandidacy(ev);
-};
+}
 
 onMounted(() => {
-	document.addEventListener("keydown", (ev) => handleKeydown(ev));
+	document.addEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -299,7 +296,8 @@ onMounted(() => {
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
 	--builderWarningColor: #ff3d00;
-	--builderPanelHeight: 50vh;
+	--builderPanelSwitcherHeight: 48px;
+	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 
 	--buttonColor: #5551ff;
 	--buttonTextColor: white;
@@ -326,10 +324,18 @@ onMounted(() => {
 			"ssbm.getMode() !== 'preview' ? 'var(--builderSidebarWidth)' : '0px'"
 		)
 		1fr;
-	grid-template-rows: var(--builderTopBarHeight) 1fr v-bind(
-			"openPanelCount > 0 ? 'var(--builderPanelHeight)' : '0px'"
-		);
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherHeight);
 	display: grid;
+}
+
+.mainGrid.openPanels {
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherExpandedHeight);
 }
 
 .builderHeader {
@@ -340,7 +346,7 @@ onMounted(() => {
 
 .sidebar {
 	grid-column: 1 / 2;
-	grid-row: 2;
+	grid-row: 2 / 5;
 	min-height: 0;
 	border-right: 1px solid var(--builderAreaSeparatorColor);
 }
@@ -369,35 +375,9 @@ onMounted(() => {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
 }
 
-.settingsBar {
-	position: absolute;
-	right: 32px;
-	top: v-bind("ssbm.getMode() == 'workflows' ? '72px' : '20px'");
-	z-index: 4;
-	width: var(--builderSettingsWidth);
-	bottom: 20px;
-	overflow: hidden;
-	border: 1px solid var(--builderAreaSeparatorColor);
-	background: var(--builderBackgroundColor);
-	box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.04);
-	border-radius: 12px;
-}
-
-.settingsBar > div {
-	overflow-y: auto;
-	height: 100%;
-}
-
-.builderPanels {
-	grid-column: 1 / 3;
+.builderPanelSwitcher {
+	grid-column: 2 / 3;
 	grid-row: 3;
-	display: grid;
-	grid-template-columns: repeat(v-bind("openPanelCount"), 1fr);
-	grid-template-rows: 100%;
-}
-
-.builderPanels:empty {
-	display: none;
 }
 
 .shortcutsTracker,
@@ -414,5 +394,10 @@ onMounted(() => {
 	top: 0;
 	left: 0;
 	z-index: 10;
+}
+
+#tooltip {
+	position: absolute;
+	z-index: 11;
 }
 </style>

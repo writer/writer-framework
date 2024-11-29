@@ -7,6 +7,7 @@ from typing import Optional
 import click
 
 import writer.serve
+from writer import VERSION
 from writer.deploy import cloud, deploy
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
@@ -95,6 +96,11 @@ def create_app(app_path: str, template_name: Optional[str], overwrite=False):
         sys.exit(1)
 
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
+    # create/update requirements.txt and add writer to it
+    requirements_path = os.path.join(app_path, "requirements.txt")
+    with open(requirements_path, "a") as f:
+        f.write(f"writer=={VERSION}\n")
+
 
 if __name__ == "__main__":
     main()

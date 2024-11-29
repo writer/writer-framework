@@ -51,7 +51,7 @@ import {
 import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
-	"A layout component that organises its child components in columns. Must be inside a Column Container component.";
+	"A layout component that organizes its child components in columns. Must be inside a Column Container component.";
 
 export default {
 	writer: {

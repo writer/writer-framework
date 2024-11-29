@@ -58,7 +58,7 @@ test.describe("low-code UI", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("init_ui -  ui initialization" , async ({ page }) => {
@@ -93,8 +93,8 @@ with ui.find('results'):
 	});
 	test("settings should be enabled for bmc", async ({ page }) => {
 			await page.locator(`.results`).click({force: true});
-			await expect(page.locator(`.BuilderSettings > .sections`)).not.toHaveAttribute("inert");
-			await expect(page.locator(`.BuilderSettings > .cmc-warning`)).toHaveCount(0);
+			await expect(page.locator(`.BuilderSettingsMain > .sections:not(.debug)`)).not.toHaveAttribute("inert");
+			await expect(page.locator(`.BuilderSettingsMain > .cmc-warning`)).toHaveCount(0);
 	});
 
 	test("settings should be disabled for cmc", async ({ page }) => {
@@ -104,8 +104,8 @@ with ui.find('results'):
 			`);
 			await execute(page);
 			await page.locator(`.results .wf-type-text.component.out`).click({force: true});
-			await expect(page.locator(`.BuilderSettings > .sections`)).toHaveAttribute("inert");
-			await expect(page.locator(`.BuilderSettings > .cmc-warning`)).toHaveCount(1);
+			await expect(page.locator(`.BuilderSettingsMain > .sections:not(.debug)`)).toHaveAttribute("inert");
+			await expect(page.locator(`.BuilderSettingsMain > .cmc-warning`)).toHaveCount(1);
 	});
 
 	test("create nested components", async ({ page }) => {

@@ -219,7 +219,7 @@ class WriterAIManager:
 
         :returns: Name for the completion model.
         """
-        return "palmyra-x-003-instruct"
+        return "palmyra-x-004"
 
     @classmethod
     def acquire_client(cls) -> Writer:
@@ -1645,10 +1645,15 @@ class Conversation:
                 chunk |= {"chunk": True}
 
             # Handling tool call fragments
-            if chunk.get("tool_calls") is not None:
-                self += chunk
-                self._process_streaming_tool_calls(chunk)
-                if chunk_data.get("finish_reason") == "tool_calls":
+            tool_calls_present = chunk.get("tool_calls") is not None
+            tool_calls_need_processing = \
+                chunk_data.get("finish_reason") == "tool_calls"
+            if tool_calls_present or tool_calls_need_processing:
+                # Handle tool calls chunks
+                if tool_calls_present:
+                    self += chunk
+                    self._process_streaming_tool_calls(chunk)
+                if tool_calls_need_processing:
                     # Send follow-up call to LLM
                     self.messages += self._gather_tool_calls_results()
                     follow_up_response = cast(
@@ -1672,7 +1677,6 @@ class Conversation:
                         )
                     finally:
                         follow_up_response.close()
-
             else:
                 # Handle regular message chunks
                 if chunk.get("content") is not None:
@@ -1799,14 +1803,16 @@ class Conversation:
         """
         Function to verify whether the message should be serializable.
 
-        :return: Boolean that indicates
+        :return: Boolean indicating if the message meets 
+        the criteria for serialization.
         """
         if message["role"] in ["system", "tool"]:
+            # Prevent serialization of messages
+            # not intended for user display
             return False
-        elif message.get("tool_call_id") is not None:
-            return False
-        tool_calls = message.get("tool_calls")
-        if tool_calls is not None and tool_calls != []:
+        elif not message.get("content"):
+            # Prevent serialization for messages
+            # without meaningful content
             return False
 
         return True
