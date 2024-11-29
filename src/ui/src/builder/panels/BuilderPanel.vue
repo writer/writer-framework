@@ -1,11 +1,12 @@
 <template>
-	<div class="BuilderPanel" :class="{ collapsed }" @keydown="handleKeydown">
+	<div class="BuilderPanel" :class="{ collapsed }">
 		<div class="collapser">
 			<WdsButton
 				variant="neutral"
 				size="smallIcon"
 				data-automation-action="toggle-panel"
 				:data-automation-key="panelId"
+				:data-writer-tooltip="`Toggle ${name} (${getModifierKeyName()}${keyboardShortcutKey})`"
 				@click="togglePanel(panelId)"
 			>
 				<i class="material-symbols-outlined">{{
@@ -69,7 +70,7 @@ export type BuilderPanelAction = {
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onMounted, onUnmounted } from "vue";
 
 const wfbm = inject(injectionKeys.builderManager);
 
@@ -81,6 +82,7 @@ const props = defineProps<{
 	actions: BuilderPanelAction[];
 	contentsTeleportEl: HTMLElement;
 	scrollable: boolean;
+	keyboardShortcutKey: string;
 }>();
 
 const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));
@@ -96,6 +98,11 @@ function togglePanel(panelId: typeof props.panelId) {
 
 function handleKeydown(ev: KeyboardEvent) {
 	const isMod = isModifierKeyActive(ev);
+
+	if (isMod && ev.key == props.keyboardShortcutKey.toLowerCase()) {
+		togglePanel(props.panelId);
+		return;
+	}
 
 	props.actions.forEach((action) => {
 		if (!action.keyboardShortcut) return;
@@ -119,6 +126,14 @@ function getKeyboardShortcutDescription(
 	s += ")";
 	return s;
 }
+
+onMounted(async () => {
+	document.addEventListener("keydown", handleKeydown);
+});
+
+onUnmounted(() => {
+	document.removeEventListener("keydown", handleKeydown);
+});
 </script>
 
 <style scoped>

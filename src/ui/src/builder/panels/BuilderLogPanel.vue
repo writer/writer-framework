@@ -5,6 +5,7 @@
 		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
 		:scrollable="true"
+		keyboard-shortcut-key="K"
 		class="BuilderLogPanel"
 	>
 		<template #titleCompanion>
