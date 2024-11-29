@@ -7,11 +7,11 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     strategy:
       matrix:
         browser: [ "chromium", "firefox", "webkit" ]
-    steps: 
+    steps:
       - uses: actions/checkout@v4
 
       - name: Install poetry
