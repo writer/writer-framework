@@ -3,18 +3,24 @@ import json
 import pytest
 import writer.ai
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
-def fake_generate_content(application_id, app_inputs):
-    assert application_id == "123"
+@pytest.fixture
+def mock_app_content_generation():
+    with patch('writer.ai.apps.generate_content') as mock_generate_content:
+        def fake_generate_content(application_id, app_inputs):
+            assert application_id == "123"
 
-    name = app_inputs.get("name")
-    animal = app_inputs.get("animal")
+            name = app_inputs.get("name")
+            animal = app_inputs.get("animal")
 
-    return f"{name} the {animal}  "
+            return f"{name} the {animal}  "
+        mock_generate_content.side_effect = fake_generate_content
 
-def test_call_nocode_app(session, runner):
-    writer.ai.apps.generate_content = fake_generate_content
+        yield mock_generate_content
+
+def test_call_nocode_app(mock_app_content_generation, session, runner):
     session.add_fake_component({
         "appId": "123",
         "appInputs": json.dumps({
@@ -28,8 +34,7 @@ def test_call_nocode_app(session, runner):
     assert block.outcome == "success"
 
 
-def test_call_nocode_app_missing_appid(session, runner):
-    writer.ai.apps.generate_content = fake_generate_content
+def test_call_nocode_app_missing_appid(mock_app_content_generation, session, runner):
     session.add_fake_component({
         "appId": "",
         "appInputs": json.dumps({
