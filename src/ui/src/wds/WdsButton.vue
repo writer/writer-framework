@@ -8,10 +8,15 @@
 import { computed, PropType } from "vue";
 
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonVariant = "primary" | "secondary" | "tertiary" | "neutral";
+type WdsButtonVariant =
+	| "primary"
+	| "secondary"
+	| "tertiary"
+	| "special"
+	| "neutral";
 
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonSize = "big" | "small" | "unpadded";
+type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
@@ -33,10 +38,10 @@ const className = computed(() => [
 	max-width: 100%;
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 8px;
 	border-radius: 300px;
 	font-weight: 600;
-	line-height: 20px;
 	font-size: 0.875rem;
 	cursor: pointer;
 	box-shadow: var(--buttonShadow);
@@ -101,7 +106,26 @@ const className = computed(() => [
 	opacity: 50%;
 }
 
-/* VARIANTS -- neutral */
+/* VARIANTS -- special */
+
+.WdsButton--special {
+	color: #5551ff;
+	background: #e4e9ff;
+	border-color: #e4e9ff;
+}
+
+.WdsButton--special:hover,
+.WdsButton--special:focus {
+	border-color: #bfcbff;
+	background: #bfcbff;
+}
+.WdsButton--special:disabled {
+	border-color: #e4e9ff;
+	background-color: #e4e9ff;
+	opacity: 0.4;
+}
+
+/* VARIANTS -- neutral (WDS "White" equivalent) */
 
 .WdsButton--neutral {
 	border: none;
@@ -112,17 +136,16 @@ const className = computed(() => [
 	padding: 0;
 }
 
-.WdsButton--neutral:hover,
-.WdsButton--neutral:focus {
+.WdsButton--neutral:focus,
+.WdsButton--neutral:hover {
 	color: unset;
 	border: none;
 	box-shadow: none;
-	background: var(--builderSeparatorColor);
+	background: var(--builderSubtleSeparatorColor);
 }
 
 .WdsButton--neutral:disabled {
-	color: #828282;
-	opacity: 50%;
+	opacity: 0.4;
 }
 
 /* SIZES */
@@ -136,7 +159,13 @@ const className = computed(() => [
 	padding: 4px 16px 4px 16px;
 }
 
-.WdsButton--unpadded {
-	padding: 0;
+.WdsButton--icon {
+	height: 40px;
+	width: 40px;
+}
+
+.WdsButton--smallIcon {
+	height: 32px;
+	width: 32px;
 }
 </style>

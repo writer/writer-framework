@@ -1612,7 +1612,7 @@ class EventHandler:
             return None
         handler = target_component.handlers.get(event_type)
         if not handler:
-            raise ValueError(f"""Invalid handler. Couldn't find the handler for event type "{ event_type }" on component "{ target_component.id }".""")
+            return None
 
         if handler.startswith("$runWorkflow_"):
             workflow_key = handler[13:] 
