@@ -29,7 +29,7 @@ test.describe("Workflows", () => {
 			await page.getByPlaceholder(object).fill(color);
 			await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 			const rowLocator = page
-				.locator(".BuilderLogPanel div.row")
+				.locator(".BuilderPanelSwitcher div.row")
 				.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Details" }).click();
 			const resultsLocator = page.locator(
@@ -94,7 +94,7 @@ test.describe("Workflows", () => {
 
 		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 		const rowLocator = page
-			.locator(".BuilderLogPanel div.row")
+			.locator(".BuilderPanelSwitcher div.row")
 			.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
 		const returnValueLocator = page.locator(
