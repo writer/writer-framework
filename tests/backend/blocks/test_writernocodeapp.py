@@ -1,9 +1,9 @@
 import json
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import writer.ai
 from writer.blocks.writernocodeapp import WriterNoCodeApp
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 @pytest.fixture
