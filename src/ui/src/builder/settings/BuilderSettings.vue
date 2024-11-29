@@ -12,6 +12,7 @@
 				variant="neutral"
 				data-writer-tooltip-placement="left"
 				data-writer-tooltip="Expand settings"
+				data-automation-action="expand-settings"
 				@click="toggleSettings"
 				><i class="material-symbols-outlined">settings</i></WdsButton
 			>

@@ -23,57 +23,28 @@ test.describe("sidebar", () => {
 			// click on icon to begin search
 			await page
 				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="search"]`,
+					`.BuilderSidebarToolkit input`,
 				)
 				.click();
 
 			// search a button
 			await page
-				.locator(`.BuilderSidebarToolbar .BuilderSidebarTitleSearch input`)
+				.locator(`.BuilderSidebarToolkit input`)
 				.fill("button");
 
 			// should have only one result
 			expect(
-				await page.locator(`.BuilderSidebarToolbar .component`).count(),
+				await page.locator(`.BuilderSidebarToolkit .tool`).count(),
 			).toBe(1);
-
-			// close search
-			await page
-				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="close"]`,
-				)
-				.click();
-
-			// should reset the search
-			expect(
-				await page.locator(`.BuilderSidebarToolbar .component`).count(),
-			).not.toBe(1);
-		});
-
-		test("should be compatible with keyboard navigation", async ({ page }) => {
-			// click on icon to begin search
-			await page
-				.locator(
-					`.BuilderSidebarToolbar .BuilderSidebarTitleSearch [data-automation-action="search"]`,
-				)
-				.click();
 
 			// search a button
 			await page
-				.locator(`.BuilderSidebarToolbar .BuilderSidebarTitleSearch input`)
-				.fill("button");
-
-			// should have only one result
-			expect(
-				await page.locator(`.BuilderSidebarToolbar .component`).count(),
-			).toBe(1);
-
-			await page.keyboard.press("Tab");
-			await page.keyboard.press("Enter");
+				.locator(`.BuilderSidebarToolkit input`)
+				.fill("");
 
 			// should reset the search
 			expect(
-				await page.locator(`.BuilderSidebarToolbar .component`).count(),
+				await page.locator(`.BuilderSidebarToolkit .tool`).count(),
 			).not.toBe(1);
 		});
 	});

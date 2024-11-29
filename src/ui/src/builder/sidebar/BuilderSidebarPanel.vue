@@ -5,6 +5,7 @@
 				v-model="model"
 				class="searchInput"
 				left-icon="search"
+				data-automation-action="search"
 				:placeholder="placeholder"
 			></WdsTextInput>
 		</div>

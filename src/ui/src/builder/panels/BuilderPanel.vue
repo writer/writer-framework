@@ -4,6 +4,8 @@
 			<WdsButton
 				variant="neutral"
 				size="icon"
+				data-automation-action="toggle-panel"
+				:data-automation-key="panelId"
 				@click="togglePanel(panelId)"
 			>
 				<i class="material-symbols-outlined">{{

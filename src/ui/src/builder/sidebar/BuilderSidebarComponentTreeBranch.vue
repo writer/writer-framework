@@ -5,6 +5,7 @@
 			:class="{ selected, notMatched, childless }"
 			tabindex="0"
 			:draggable="isDraggingAllowed(componentId)"
+			:data-automation-key="component.type"
 			@click="select"
 			@keydown.enter="select"
 			@dragover="handleDragOver"

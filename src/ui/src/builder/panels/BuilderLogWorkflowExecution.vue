@@ -194,6 +194,8 @@ function formatExecutionTime(timeInSeconds: number): string {
 </script>
 
 <style scoped>
+@import "../sharedStyles.css";
+
 .BuilderLogWorkflowExecution {
 	display: flex;
 	flex-direction: column;

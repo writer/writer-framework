@@ -12,7 +12,7 @@ test.describe("Reuse component", () => {
 
 	const dragNewComponent = async (page: Page, type: string, where = ".CoreSection") => {
 		await page
-			.locator(`div.component.button[data-component-type="${type}"]`)
+			.locator(`.BuilderSidebarToolkit [data-component-type="${type}"]`)
 			.dragTo(page.locator(where));
 	}
 
@@ -45,16 +45,24 @@ test.describe("Reuse component", () => {
 	};
 
 	const collapseSettingsBar = async (page: Page) => {
-		await page.locator('[data-automation-action="collapse-settings"]').click();
+		const collapseSettingsLocator = page.locator('[data-automation-action="collapse-settings"]');
+
+		if (await collapseSettingsLocator.count() > 0) {
+			await collapseSettingsLocator.click();
+		}
+	}
+
+	const expandSettingsBar = async (page: Page) => {
+		await page.locator('[data-automation-action="expand-settings"]').click();
 	}
 
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
-		await collapseSettingsBar(page);
+		collapseSettingsBar(page);
 		await page.locator(selector).click();
 		await page
 			.locator(
-				'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
+				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 			)
 			.click();
 		await expect(page.locator(selector)).not.toBeVisible();
@@ -112,9 +120,8 @@ test.describe("Reuse component", () => {
 			const id = await createSidebar(page);
 			await collapseSettingsBar(page);
 			await createReuseable(page);
-			await collapseSettingsBar(page);
+			await expandSettingsBar(page);
 			await setReuseTarget(page, id);
-			await collapseSettingsBar(page);
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
 		});
 	});

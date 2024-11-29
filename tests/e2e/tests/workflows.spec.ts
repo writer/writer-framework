@@ -27,7 +27,7 @@ test.describe("Workflows", () => {
 			page,
 		}) => {
 			await page.getByPlaceholder(object).fill(color);
-			await page.locator(`[data-automation-action="toggle-log-panel"]`).click();
+			await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 			const rowLocator = page
 				.locator(".BuilderLogPanel div.row")
 				.filter({ hasText: "Return value" });
@@ -56,7 +56,7 @@ test.describe("Workflows", () => {
 
 		await page
 			.locator(
-				`div.component.button[data-component-type="workflows_runworkflow"]`,
+				`.BuilderSidebarToolkit [data-component-type="workflows_runworkflow"]`,
 			)
 			.dragTo(page.locator(".WorkflowsWorkflow"), {
 				targetPosition: { x: 100, y: 100 },
@@ -65,7 +65,7 @@ test.describe("Workflows", () => {
 
 		await page
 			.locator(
-				`div.component.button[data-component-type="workflows_returnvalue"]`,
+				`.BuilderSidebarToolkit [data-component-type="workflows_returnvalue"]`,
 			)
 			.dragTo(page.locator(".WorkflowsWorkflow"), {
 				targetPosition: { x: 400, y: 100 },
@@ -92,7 +92,7 @@ test.describe("Workflows", () => {
 
 		await page.locator(`[data-automation-action="run-workflow"]`).click();
 
-		await page.locator(`[data-automation-action="toggle-log-panel"]`).click();
+		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 		const rowLocator = page
 			.locator(".BuilderLogPanel div.row")
 			.filter({ hasText: "Return value" }).first();;

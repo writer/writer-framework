@@ -52,23 +52,6 @@
 				entries.
 			</div>
 		</div>
-		<!-- <div v-for="(logEntry, index) in logEntries" :key="index" class="entry">
-			<div class="icon" :class="logEntry.type"></div>
-			<div class="content">
-				<div class="header">
-					<span class="title"
-						></span
-					>
-					<span class="time"></span>
-				</div>
-				<div class="message">
-					{{ logEntry.message }}
-					<div v-if="logEntry.code" class="codeContainer">
-						<code>{{ logEntry.code }}</code>
-					</div>
-				</div>
-			</div>
-		</div> -->
 	</BuilderPanel>
 </template>
 

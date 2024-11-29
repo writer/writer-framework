@@ -101,7 +101,7 @@ function fullTest({type, locator}: ComponentTestData) {
 
 		test("create, drag and drop and remove", async ({ page }) => {
 			await page
-				.locator(`div.component.button[data-component-type="${TYPE}"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 				.dragTo(page.locator(COLUMN1));
 			await expect(
 				page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
@@ -121,7 +121,7 @@ function fullTest({type, locator}: ComponentTestData) {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(
-					'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
+					'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 				)
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).not.toBeVisible();
@@ -153,7 +153,7 @@ function basicTest({type, locator}: ComponentTestData) {
 
 		test("create and remove", async ({ page }) => {
 			await page
-				.locator(`div.component.button[data-component-type="${TYPE}"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 				.dragTo(page.locator(TARGET));
 			await expect(
 				page.locator(TARGET + " " + COMPONENT_LOCATOR),
@@ -162,7 +162,7 @@ function basicTest({type, locator}: ComponentTestData) {
 			await page.locator(COMPONENT_LOCATOR).click();
 			await page
 				.locator(
-					'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
+					'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 				)
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0);
