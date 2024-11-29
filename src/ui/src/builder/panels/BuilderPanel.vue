@@ -100,6 +100,7 @@ function handleKeydown(ev: KeyboardEvent) {
 	const isMod = isModifierKeyActive(ev);
 
 	if (isMod && ev.key == props.keyboardShortcutKey.toLowerCase()) {
+		ev.preventDefault();
 		togglePanel(props.panelId);
 		return;
 	}
