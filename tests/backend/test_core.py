@@ -1,8 +1,9 @@
 import json
 import math
+import typing
 import unittest
 import urllib
-from typing import Dict
+from typing import Any, Dict
 
 import altair
 import numpy as np
@@ -268,7 +269,7 @@ class TestStateProxy(unittest.TestCase):
 
 class TestState:
 
-    def test_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+    def test_state_shema_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
         """
         Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
         triggers mutations to update the interface
@@ -287,7 +288,7 @@ class TestState:
             r"+new\.state\.with\.dots.test": "test"
         }
 
-    def test_set_dictionary_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+    def test_state_shema_set_dictionary_in_a_state_with_schema_should_keep_as_dict(self):
         class SimpleSchema(State):
             app: dict
 
@@ -600,6 +601,79 @@ class TestState:
 
             # Assert
             assert initial_state['total'] == 4
+
+    def test_state_shema_should_accept_Dict_generic_typing_for_dict(self):
+        """
+        A schema must accept a generic typed dictionary for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: Dict[str, Any]
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['counter'], int)
+            assert isinstance(initial_state['record'], dict)
+            assert initial_state['record'] == {}
+
+    def test_state_shema_should_accept_DictTyped_typing_for_dict(self):
+        """
+        A schema must accept a dictionary typed for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        class SpecificDictTyped(typing.TypedDict):
+            a: str
+            b: str
+
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: SpecificDictTyped
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['counter'], int)
+            assert isinstance(initial_state['record'], dict)
+            assert initial_state['record'] == {}
+
+    def test_state_shema_should_support_convert_dict_into_state_by_default(self):
+        """
+        A schema must accept a dictionary typed for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        class Substate(State):
+            a: str
+            b: str
+
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: Substate
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['record'], Substate)
+
 
 class TestWriterState:
 

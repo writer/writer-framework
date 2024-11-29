@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderEmbeddedCodeEditor">
+	<div ref="rootEl" class="BuilderEmbeddedCodeEditor">
 		<div ref="editorContainerEl" class="editorContainer"></div>
 	</div>
 </template>
@@ -9,7 +9,9 @@ import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
 import { onMounted, onUnmounted, ref, toRefs, watch } from "vue";
 
+const rootEl = ref<HTMLElement>(null);
 const editorContainerEl = ref<HTMLElement>(null);
+const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
 const props = defineProps<{
@@ -63,7 +65,7 @@ onMounted(() => {
 		const newCode = editor.getValue();
 		emit("update:modelValue", newCode);
 	});
-	window.addEventListener("resize", updateDimensions.bind(this));
+	resizeObserver.observe(rootEl.value);
 });
 
 function updateDimensions() {
@@ -72,7 +74,7 @@ function updateDimensions() {
 
 onUnmounted(() => {
 	editor.dispose();
-	window.removeEventListener("resize", updateDimensions.bind(this));
+	resizeObserver.disconnect();
 });
 </script>
 
@@ -89,5 +91,6 @@ onUnmounted(() => {
 	min-height: 200px;
 	width: 100%;
 	height: 100%;
+	overflow: hidden;
 }
 </style>

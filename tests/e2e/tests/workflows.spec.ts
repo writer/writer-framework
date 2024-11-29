@@ -14,7 +14,7 @@ test.describe("Workflows", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	const inputData = [
@@ -27,9 +27,9 @@ test.describe("Workflows", () => {
 			page,
 		}) => {
 			await page.getByPlaceholder(object).fill(color);
-			await page.locator(`[data-automation-action="toggle-log-panel"]`).click();
+			await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 			const rowLocator = page
-				.locator(".BuilderLogPanel div.row")
+				.locator(".BuilderPanelSwitcher div.row")
 				.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Details" }).click();
 			const resultsLocator = page.locator(
@@ -56,7 +56,7 @@ test.describe("Workflows", () => {
 
 		await page
 			.locator(
-				`div.component.button[data-component-type="workflows_runworkflow"]`,
+				`.BuilderSidebarToolkit [data-component-type="workflows_runworkflow"]`,
 			)
 			.dragTo(page.locator(".WorkflowsWorkflow"), {
 				targetPosition: { x: 100, y: 100 },
@@ -65,7 +65,7 @@ test.describe("Workflows", () => {
 
 		await page
 			.locator(
-				`div.component.button[data-component-type="workflows_returnvalue"]`,
+				`.BuilderSidebarToolkit [data-component-type="workflows_returnvalue"]`,
 			)
 			.dragTo(page.locator(".WorkflowsWorkflow"), {
 				targetPosition: { x: 400, y: 100 },
@@ -83,7 +83,7 @@ test.describe("Workflows", () => {
 			}
 		};
 		await page.locator(`.BuilderFieldsObject[data-automation-key="executionEnv"] textarea`).fill(JSON.stringify(executionEnv));
-		await page.locator(`[data-automation-action="close-settings"]`).click();
+		await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
 		await runWorkflowBlock.locator(".ball.success").dragTo(returnValueBlock);
 
@@ -92,9 +92,9 @@ test.describe("Workflows", () => {
 
 		await page.locator(`[data-automation-action="run-workflow"]`).click();
 
-		await page.locator(`[data-automation-action="toggle-log-panel"]`).click();
+		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 		const rowLocator = page
-			.locator(".BuilderLogPanel div.row")
+			.locator(".BuilderPanelSwitcher div.row")
 			.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
 		const returnValueLocator = page.locator(

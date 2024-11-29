@@ -33,7 +33,7 @@ import {
 import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
-	"A container component that organises its children in a sidebar. Its parent must be a Page component.";
+	"A container component that organizes its children in a sidebar. Its parent must be a Page component.";
 
 export default {
 	writer: {

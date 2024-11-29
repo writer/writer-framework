@@ -46,9 +46,6 @@ const selectOption = (optionId: "ui" | "preview" | "workflows") => {
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
-	if (optionId == "preview") {
-		ssbm.openPanels.clear();
-	}
 	if (
 		optionId == "preview" ||
 		preMode == "workflows" ||
