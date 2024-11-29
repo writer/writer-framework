@@ -12,8 +12,8 @@
 					{{ item.componentDef.name }}
 					<WdsButton
 						variant="neutral"
-						size="unpadded"
-						title="Go to node"
+						size="smallIcon"
+						data-writer-tooltip="Jump to this block"
 						@click="selectBlock(item.componentId)"
 					>
 						<i class="material-symbols-outlined">jump_to_element</i>
@@ -108,7 +108,7 @@
 							item.returnValue ||
 							item.executionEnvironment
 						"
-						variant="secondary"
+						variant="special"
 						size="small"
 						@click="() => (displayedItemId = itemId)"
 					>
@@ -235,8 +235,9 @@ function formatExecutionTime(timeInSeconds: number): string {
 	grid-column: 2 / 3;
 	grid-row: 1 / 3;
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 80px;
+	grid-template-columns: 1fr 0.5fr 120px 80px;
 	grid-template-rows: 1fr auto;
+	column-gap: 16px;
 	align-items: center;
 	padding: 8px;
 	border-radius: 6px;

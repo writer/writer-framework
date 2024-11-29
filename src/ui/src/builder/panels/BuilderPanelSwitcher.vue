@@ -63,7 +63,6 @@ const screenEl = ref(null);
 .screen:deep(> *) {
 	border-left: 1px solid var(--builderSeparatorColor);
 	border-top: 1px solid var(--builderIntenseSeparatorColor);
-	overflow: hidden;
 }
 
 .screen:deep(> *:first-child:last-child) {

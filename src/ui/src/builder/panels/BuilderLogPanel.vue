@@ -4,6 +4,7 @@
 		name="Log"
 		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
+		:scrollable="true"
 		class="BuilderLogPanel"
 	>
 		<template #titleCompanion>

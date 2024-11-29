@@ -10,7 +10,7 @@
 			data-writer-tooltip="Add child"
 			data-writer-tooltip-placement="left"
 			variant="neutral"
-			size="small"
+			size="smallIcon"
 			class="actionButton"
 			:disabled="!shortcutsInfo?.isAddEnabled"
 			@click="
@@ -285,15 +285,6 @@ onMounted(() => {
 
 .BuilderSettingsActions.collapsed {
 	gap: 0;
-}
-
-.actionButton {
-	height: 34px;
-	width: 34px;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 .type {

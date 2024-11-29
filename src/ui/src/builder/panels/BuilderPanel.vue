@@ -3,7 +3,7 @@
 		<div class="collapser">
 			<WdsButton
 				variant="neutral"
-				size="icon"
+				size="smallIcon"
 				data-automation-action="toggle-panel"
 				:data-automation-key="panelId"
 				@click="togglePanel(panelId)"
@@ -19,7 +19,7 @@
 		</div>
 		<template v-if="!collapsed">
 			<Teleport :to="contentsTeleportEl">
-				<div :style="{ order }" :data-order="order">
+				<div :style="{ order }" :data-order="order" class="contents">
 					<div class="actions">
 						<div class="actionsCompanion">
 							<slot name="actionsCompanion"></slot>
@@ -35,7 +35,7 @@
 							"
 							data-writer-tooltip-placement="left"
 							variant="neutral"
-							size="unpadded"
+							size="smallIcon"
 							:disabled="action.isDisabled"
 							@click="action.callback"
 							><i class="material-symbols-outlined">{{
@@ -43,7 +43,7 @@
 							}}</i></WdsButton
 						>
 					</div>
-					<div class="contents">
+					<div class="mainContents">
 						<slot></slot>
 					</div>
 				</div>
@@ -80,6 +80,7 @@ const props = defineProps<{
 	name: string;
 	actions: BuilderPanelAction[];
 	contentsTeleportEl: HTMLElement;
+	scrollable: boolean;
 }>();
 
 const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));
@@ -139,17 +140,25 @@ function getKeyboardShortcutDescription(
 	margin-left: 8px;
 }
 
+.contents {
+	display: grid;
+	height: 100%;
+	grid-template-rows: 36px 1fr;
+	grid-template-columns: 1fr;
+	overflow: hidden;
+}
+
 .actions {
 	display: flex;
 	justify-content: right;
-	height: 36px;
 	align-items: center;
 	padding: 0 8px 0 8px;
 	gap: 8px;
 	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 
-.contents {
-	height: 100%;
+.mainContents {
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 </style>

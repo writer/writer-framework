@@ -4,6 +4,7 @@
 		name="Code"
 		:contents-teleport-el="contentsTeleportEl"
 		:actions="actions"
+		:scrollable="false"
 		class="BuilderCodePanel"
 	>
 		<BuilderEmbeddedCodeEditor

@@ -8,7 +8,7 @@
 			<WdsButton
 				v-if="collapsed"
 				class="collapserButton"
-				size="small"
+				size="smallIcon"
 				variant="neutral"
 				data-writer-tooltip-placement="left"
 				data-writer-tooltip="Expand settings"
@@ -19,7 +19,7 @@
 			<WdsButton
 				v-else
 				class="collapserButton"
-				size="small"
+				size="smallIcon"
 				variant="neutral"
 				data-writer-tooltip-placement="left"
 				data-writer-tooltip="Collapse settings"
@@ -138,13 +138,8 @@ const toggleMiniDocs = () => {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.collapserButton {
-	height: 34px;
-	width: 34px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
+.collapserButton:focus {
+	border: 1px solid var(--builderSeparatorColor);
 }
 
 .titleBar {
