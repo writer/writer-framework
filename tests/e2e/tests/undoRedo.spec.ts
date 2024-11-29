@@ -22,7 +22,7 @@ test.describe('undo and redo', () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("create, drag and drop, property change and remove", async ({ page }) => {

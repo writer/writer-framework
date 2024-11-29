@@ -14,7 +14,7 @@ test.describe("Workflows", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	const inputData = [

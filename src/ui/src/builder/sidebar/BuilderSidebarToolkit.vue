@@ -24,6 +24,7 @@
 					@dragstart="handleDragStart($event, tool.type)"
 				>
 					<img
+						:alt="`(Icon for ${tool.name})`"
 						:src="`./../../../../components/${tool.type}.svg`"
 						@error="
 							!isImageFallback[tool.type]
@@ -164,7 +165,8 @@ watch(activeToolkit, () => {
 }
 
 .tool img {
-	width: 18px;
+	max-width: 18px;
+	max-height: 18px;
 	aspect-ratio: 1 / 1;
 }
 

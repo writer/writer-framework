@@ -16,7 +16,7 @@ test.describe("image", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("configure", async ({ page }) => {

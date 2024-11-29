@@ -58,7 +58,6 @@ test.describe("Reuse component", () => {
 
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
-		collapseSettingsBar(page);
 		await page.locator(selector).click();
 		await page
 			.locator(
@@ -90,7 +89,7 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test.afterEach(async ({ page }) => {
@@ -123,6 +122,7 @@ test.describe("Reuse component", () => {
 			await expandSettingsBar(page);
 			await setReuseTarget(page, id);
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
+			collapseSettingsBar(page);
 		});
 	});
 
@@ -140,7 +140,7 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test.afterEach(async ({ page }) => {
@@ -206,7 +206,7 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test("create, drag and drop and remove", async ({ page }) => {
