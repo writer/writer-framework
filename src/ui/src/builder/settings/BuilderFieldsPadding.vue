@@ -42,9 +42,9 @@
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<BuilderSelect
-					:default-value="subMode"
+					:model-value="subMode"
 					:options="selectOptions"
-					@select="handleInputSelect"
+					@update:model-value="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.all_sides" class="row">
 					<i>All</i>

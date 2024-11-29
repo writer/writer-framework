@@ -13,48 +13,19 @@
 				<div class="columns">
 					<div class="fieldWrapperMain">
 						<span class="name">{{ eventType }}</span>
-						<select
-							class="content"
-							:value="component.handlers?.[eventType]"
-							@input="handleHandlerChange($event, eventType)"
-						>
-							<option
-								key="No handler"
-								value=""
-								:selected="!component.handlers?.[eventType]"
-							>
-								(No handler)
-							</option>
-							<option
-								v-for="userFunction in userFunctions"
-								:key="userFunction.name"
-								:value="userFunction.name"
-							>
-								{{ userFunction.name }}
-							</option>
-							<option
-								v-for="pageKey in pageKeys"
-								:key="`$goToPage_${pageKey}`"
-								:value="`$goToPage_${pageKey}`"
-							>
-								Go to page "{{ pageKey }}"
-							</option>
-							<option
-								v-for="workflowKey in workflowKeys"
-								:key="`$runWorkflow_${workflowKey}`"
-								:value="`$runWorkflow_${workflowKey}`"
-							>
-								Run workflow "{{ workflowKey }}"
-							</option>
-							<template v-if="isHandlerInvalid(eventType)">
-								<option
-									:value="component.handlers?.[eventType]"
-								>
-									{{ component.handlers?.[eventType] }} (Not
-									Found)
-								</option>
-							</template>
-						</select>
+						<div class="content">
+							<BuilderSelect
+								:model-value="
+									component.handlers?.[eventType] ?? ''
+								"
+								:options="getOptions(eventType)"
+								variant="embedded"
+								enable-search
+								@update:model-value="
+									handleHandlerChange($event, eventType)
+								"
+							/>
+						</div>
 					</div>
 					<div class="fieldActions">
 						<button
@@ -177,12 +148,52 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import { WriterComponentDefinition } from "@/writerTypes";
+import BuilderSelect from "./BuilderSelect.vue";
+import type { Option } from "./BuilderSelect.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const { setHandlerValue } = useComponentActions(wf, ssbm);
 const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+
+const options = computed<Option[]>(() => {
+	const userFunctionsOptions: Option[] = userFunctions.value
+		.map((v) => v.name)
+		.map((v) => ({ value: v, label: v, icon: "function" }));
+
+	const pageKeyOptions: Option[] = pageKeys.value
+		.map((v) => `$goToPage_${v}`)
+		.map((v) => ({
+			icon: "link",
+			value: v,
+			label: v,
+		}));
+
+	const workflowKeyOptions: Option[] = workflowKeys.value.map((v) => ({
+		label: `$runWorkflow_${v}`,
+		value: `Run workflow "${v}"`,
+		icon: "move_down",
+	}));
+
+	return [
+		{ label: "(No handler)", value: "", icon: "block" },
+		...userFunctionsOptions,
+		...pageKeyOptions,
+		...workflowKeyOptions,
+	];
+});
+
+function getOptions(eventType: string): Option[] {
+	if (!isHandlerInvalid(eventType)) return options.value;
+
+	const handler = component.value.handlers?.[eventType];
+
+	return [
+		...options.value,
+		{ value: handler, label: `${handler} (Not found)` },
+	];
+}
 
 const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	computed(() => {
@@ -233,9 +244,8 @@ const isHandlerInvalid = (eventType: string) => {
 	return true;
 };
 
-const handleHandlerChange = (ev: Event, eventType: string) => {
-	const handlerFunctionName = (ev.target as HTMLInputElement).value;
-	setHandlerValue(component.value.id, eventType, handlerFunctionName);
+const handleHandlerChange = (functionName: string, eventType: string) => {
+	setHandlerValue(component.value.id, eventType, functionName);
 };
 
 type StubModal = {
@@ -353,19 +363,27 @@ const copyToClipboard = (text: string) => {
 
 .list {
 	border-radius: 4px;
-	overflow: hidden;
 }
 
 .fieldWrapper .columns {
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 100%) auto;
 	gap: 12px;
 	align-items: center;
 	max-width: 100%;
 }
 
+.fieldWrapperMain {
+	width: 100%;
+}
+
 .fieldWrapper .content {
 	padding: 16px 8px 12px 8px;
 	width: 100%;
+}
+.fieldWrapper .content .select {
+	padding: 0;
+	height: auto;
 }
 
 .fieldActions > button {
