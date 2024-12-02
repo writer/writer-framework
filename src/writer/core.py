@@ -15,6 +15,7 @@ import re
 import secrets
 import time
 import traceback
+import typing
 import urllib.request
 from contextvars import ContextVar
 from multiprocessing.process import BaseProcess
@@ -677,6 +678,7 @@ class StateMeta(type):
                 proxy = DictPropertyProxy("_state_proxy", key)
                 setattr(klass, key, proxy)
 
+
 class State(metaclass=StateMeta):
 
     def __init__(self, raw_state: Optional[Dict[str, Any]] = None):
@@ -776,7 +778,7 @@ class State(metaclass=StateMeta):
         """
         annotations = get_annotations(self)
         expected_type = annotations.get(key, None)
-        expect_dict = expected_type is not None and inspect.isclass(expected_type) and issubclass(expected_type, dict)
+        expect_dict = _type_match_dict(expected_type)
         if isinstance(value, dict) and not expect_dict:
             """
             When the value is a dictionary and the attribute does not explicitly 
@@ -1610,7 +1612,7 @@ class EventHandler:
             return None
         handler = target_component.handlers.get(event_type)
         if not handler:
-            raise ValueError(f"""Invalid handler. Couldn't find the handler for event type "{ event_type }" on component "{ target_component.id }".""")
+            return None
 
         if handler.startswith("$runWorkflow_"):
             workflow_key = handler[13:] 
@@ -2077,6 +2079,32 @@ def _deserialize_bigint_format(payload: Optional[Union[dict, list]]):
                 _deserialize_bigint_format(payload[elt])
 
     return payload
+
+
+def _type_match_dict(expected_type: Type):
+    """
+    Checks if the expected type expect a dictionary type
+
+    >>> _type_match_dict(dict) # True
+    >>> _type_match_dict(int) # False
+    >>> _type_match_dict(Dict[str, Any]) # True
+
+    >>> class SpecifcDict(TypedDict):
+    >>>     a: str
+    >>>     b: str
+    >>>
+    >>> _type_match_dict(SpecifcDict) # True
+    """
+    if expected_type is not None and \
+        inspect.isclass(expected_type) and \
+        issubclass(expected_type, dict):
+        return True
+
+    if typing.get_origin(expected_type) == dict:
+        return True
+
+    return False
+
 
 def unescape_bigint_matching_string(string: str) -> str:
     """

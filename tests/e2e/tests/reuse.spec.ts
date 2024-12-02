@@ -12,7 +12,7 @@ test.describe("Reuse component", () => {
 
 	const dragNewComponent = async (page: Page, type: string, where = ".CoreSection") => {
 		await page
-			.locator(`div.component.button[data-component-type="${type}"]`)
+			.locator(`.BuilderSidebarToolkit [data-component-type="${type}"]`)
 			.dragTo(page.locator(where));
 	}
 
@@ -44,17 +44,24 @@ test.describe("Reuse component", () => {
 		return await getSelectedComponentId(page);
 	};
 
-	const closeSettingsBar = async (page: Page) => {
-		await page.locator('[data-automation-action="close-settings"]').click();
+	const collapseSettingsBar = async (page: Page) => {
+		const collapseSettingsLocator = page.locator('[data-automation-action="collapse-settings"]');
+
+		if (await collapseSettingsLocator.count() > 0) {
+			await collapseSettingsLocator.click();
+		}
+	}
+
+	const expandSettingsBar = async (page: Page) => {
+		await page.locator('[data-automation-action="expand-settings"]').click();
 	}
 
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
-		await closeSettingsBar(page);
 		await page.locator(selector).click();
 		await page
 			.locator(
-				'.BuilderComponentShortcuts .actionButton[data-automation-action="delete"]',
+				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 			)
 			.click();
 		await expect(page.locator(selector)).not.toBeVisible();
@@ -82,7 +89,7 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test.afterEach(async ({ page }) => {
@@ -110,12 +117,12 @@ test.describe("Reuse component", () => {
 
 		test("reuse in incorect context", async ({ page }) => {
 			const id = await createSidebar(page);
-			await closeSettingsBar(page);
+			await collapseSettingsBar(page);
 			await createReuseable(page);
-			await closeSettingsBar(page);
+			await expandSettingsBar(page);
 			await setReuseTarget(page, id);
-			await closeSettingsBar(page);
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(/invalid-context/);
+			collapseSettingsBar(page);
 		});
 	});
 
@@ -133,7 +140,7 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test.afterEach(async ({ page }) => {
@@ -199,12 +206,12 @@ test.describe("Reuse component", () => {
 		});
 
 		test.beforeEach(async ({ page }) => {
-			await page.goto(url);
+			await page.goto(url, {waitUntil: "domcontentloaded"});
 		});
 
 		test("create, drag and drop and remove", async ({ page }) => {
 			await createReuseable(page, COLUMN1);
-			await closeSettingsBar(page);
+			await collapseSettingsBar(page);
 			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
 		});
@@ -213,7 +220,7 @@ test.describe("Reuse component", () => {
 			const id = await createText(page, '.CorePage');
 			await createReuseable(page, COLUMN1);
 			await setReuseTarget(page, id);
-			await closeSettingsBar(page);
+			await collapseSettingsBar(page);
 			await moveFromTo(page, COMPONENT_LOCATOR, COLUMN1, COLUMN2);
 			await removeComponent(page, COMPONENT_LOCATOR);
 			await removeComponent(page, '.CoreText');

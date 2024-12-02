@@ -105,7 +105,6 @@ export default {
 				type: FieldType.IdKey,
 			},
 		},
-		previewField: "key",
 	},
 };
 

@@ -17,7 +17,7 @@
 			<div class="zoomer">
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						zoomLevel > ZOOM_SETTINGS.minLevel
 							? `Zoom out (${getModifierKeyName()}-)`
@@ -36,7 +36,7 @@
 				></WdsTextInput>
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						zoomLevel < ZOOM_SETTINGS.maxLevel
 							? `Zoom in (${getModifierKeyName()}+)`
@@ -49,7 +49,7 @@
 				</WdsButton>
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					data-writer-tooltip="Reset zoom"
 					data-writer-tooltip-placement="right"
 					@click="handleResetZoom"
@@ -60,7 +60,7 @@
 			<div class="miniMapCollapser">
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						isMiniMapShown ? `Close minimap` : `Open minimap`
 					"
@@ -201,8 +201,8 @@ onUnmounted(() => {
 .zoomer {
 	flex: 1 0 auto;
 	display: flex;
-	padding: 6px 12px 6px 12px;
-	gap: 12px;
+	padding: 4px;
+	gap: 4px;
 	align-items: center;
 }
 

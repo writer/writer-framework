@@ -16,12 +16,12 @@ test.describe("image", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("configure", async ({ page }) => {
 		await page
-			.locator(`div.component.button[data-component-type="${TYPE}"]`)
+			.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 			.dragTo(page.locator(".CoreSection .ChildlessPlaceholder"));
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page

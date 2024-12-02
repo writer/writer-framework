@@ -1,46 +1,37 @@
-type ParsedHash = {
+export type ParsedHash = {
 	pageKey?: string;
 	routeVars: Map<string, string>; // Stored as Map to avoid injection e.g. prototype pollution
 };
 
 // Use to communicate with the backend
-type SerializedHash = {
+export type SerializedHash = {
 	pageKey?: string;
 	routeVars: Record<string, string>;
 };
 
 const hashRegex = /^((?<pageKey>[^/]*))?(\/(?<routeVars>.*))?$/;
-const routeVarRegex = /^(?<key>[^=]+)=(?<value>.*)$/;
 
 /**
  * Parses the current URL hash
  *
- * * http://x.x.x.x:5000/#main/var1=value1&var2=value2
- *
- * pageKey: "main"
- * routeVars: { var1: "value1", var2: "value2" }
+ * @example
+ * ```js
+ * getParsedHash('#main/var1=value1&var2=value2')
+ * // => { routeVars: new Map([ ["var1", "value1"], ["var2", "value2"], ]), pageKey: "main" }
+ * ```
  */
-export function getParsedHash(): ParsedHash {
-	const docHash = document.location.hash.substring(1);
+export function getParsedHash(hash = document.location.hash): ParsedHash {
+	const docHash = hash.substring(1);
 	const hashMatchGroups = docHash.match(hashRegex)?.groups;
-	const routeVars: Map<string, string> = new Map();
 	const pageKey = hashMatchGroups?.pageKey
 		? decodeURIComponent(hashMatchGroups.pageKey)
 		: undefined;
 
-	if (!hashMatchGroups) return { pageKey, routeVars };
+	if (!hashMatchGroups) return { pageKey, routeVars: new Map() };
 
-	const routeVarsSegments = hashMatchGroups.routeVars?.split("&") ?? [];
-	routeVarsSegments.forEach((routeVarSegment) => {
-		const matchGroups = routeVarSegment.match(routeVarRegex)?.groups;
-		if (!matchGroups) return;
-		const { key, value } = matchGroups;
-		const decodedKey = decodeURIComponent(key);
-		const decodedValue = decodeURIComponent(value);
-		routeVars.set(decodedKey, decodedValue);
-	});
+	const params = new URLSearchParams(hashMatchGroups.routeVars);
 
-	return { pageKey, routeVars };
+	return { pageKey, routeVars: new Map(params.entries()) };
 }
 
 /**
@@ -60,7 +51,7 @@ export function serializeParsedHash(): SerializedHash {
 	return { pageKey: parsedHash.pageKey, routeVars };
 }
 
-function setHash(parsedHash: ParsedHash) {
+export function serializeParsedHashAsString(parsedHash: ParsedHash) {
 	const { pageKey, routeVars } = parsedHash;
 
 	let hash = "";
@@ -68,21 +59,15 @@ function setHash(parsedHash: ParsedHash) {
 		hash += `${encodeURIComponent(pageKey)}`;
 	}
 
-	if (routeVars.keys.length > 0) {
-		hash += "/";
-		hash += Array.from(routeVars.entries())
-			.map(([key, value]) => {
-				// Vars set to null are excluded from the hash
-
-				if (value === null) return null;
-				return `${encodeURIComponent(key)}=${encodeURIComponent(
-					value,
-				)}`;
-			})
-			.filter((segment) => segment)
-			.join("&");
+	if (routeVars.size > 0) {
+		const params = new URLSearchParams([...routeVars.entries()]);
+		hash += `/${params.toString()}`;
 	}
-	document.location.hash = hash;
+	return hash;
+}
+
+function setHash(parsedHash: ParsedHash) {
+	document.location.hash = serializeParsedHashAsString(parsedHash);
 }
 
 export function changePageInHash(targetPageKey: string) {

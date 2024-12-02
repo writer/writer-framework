@@ -21,7 +21,7 @@ test.describe("state autocompletion", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test.describe("text", () => {
@@ -66,7 +66,7 @@ test.describe("state autocompletion", () => {
 		test("Static List - completion", async ({ page }) => {
 			const FIELD = `.BuilderFieldsOptions[data-automation-key="options"]`;
 			await page
-				.locator(`div.component.button[data-component-type="radioinput"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
 			await page.locator('div.CoreRadioInput.component > label').click();
@@ -97,7 +97,7 @@ test.describe("state autocompletion", () => {
 		test("JSON - completion", async ({ page }) => {
 			const FIELD = `.BuilderFieldsOptions[data-automation-key="options"]`;
 			await page
-				.locator(`div.component.button[data-component-type="radioinput"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
 			await page.locator('div.CoreRadioInput.component > label').click();
@@ -137,8 +137,8 @@ test.describe("state autocompletion", () => {
 	}
 
 	testFieldType("BuilderFieldsColor", "primaryTextColor", 'div.CoreText.component');
-	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderTreeBranch [data-branch-component-type="root"]');
+	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
 });

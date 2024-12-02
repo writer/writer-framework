@@ -35,7 +35,7 @@ test.describe("state", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("increment number", async ({ page }) => {

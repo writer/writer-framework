@@ -74,7 +74,9 @@ const isMessagePending = computed(() => wf.frontendMessageMap.value.size > 0);
 watch(
 	() => coreRootFields.appName?.value,
 	(appName: string) => {
-		updateTitle(appName);
+		if (appName != "") {
+			updateTitle(appName);
+		}
 	},
 	{ immediate: true },
 );

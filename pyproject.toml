@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "0.8.0rc8"
+version = "0.8.1"
 description = "An open-source, Python framework for building feature-rich apps that are fully integrated with the Writer platform."
 authors = ["Writer, Inc."]
 readme = "README.md"
@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Development Status :: 4 - Beta"
+    "Development Status :: 5 - Production/Stable"
 ]
 packages = [
     { include = "writer", from = "src" }
@@ -36,7 +36,7 @@ fastapi = ">= 0.89.1, < 1"
 gitignore-parser = "^0.1.11"
 jinja2 = "^3.1.4"
 pandas = ">= 2.2.0, < 3"
-plotly = ">= 5.18.0, < 6"
+plotly = "^5.24.1"
 pyarrow = ">= 15.0.0, < 16.0.0"
 pydantic = ">= 2.6.0, < 3"
 python = ">=3.9.2, <4.0"
@@ -46,7 +46,7 @@ requests = "^2.31.0"
 uvicorn = ">= 0.20.0, < 1"
 watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
-writer-sdk = ">= 1.2.0, < 2"
+writer-sdk = ">= 1.5.0, < 2"
 python-multipart = ">=0.0.7, < 1"
 
 
