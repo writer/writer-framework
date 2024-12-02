@@ -162,17 +162,15 @@ const options = computed<Option[]>(() => {
 		.map((v) => v.name)
 		.map((v) => ({ value: v, label: v, icon: "function" }));
 
-	const pageKeyOptions: Option[] = pageKeys.value
-		.map((v) => `$goToPage_${v}`)
-		.map((v) => ({
-			icon: "link",
-			value: v,
-			label: v,
-		}));
+	const pageKeyOptions: Option[] = pageKeys.value.map((v) => ({
+		icon: "link",
+		value: `$goToPage_${v}`,
+		label: `Go to page "${v}"`,
+	}));
 
 	const workflowKeyOptions: Option[] = workflowKeys.value.map((v) => ({
-		label: `$runWorkflow_${v}`,
-		value: `Run workflow "${v}"`,
+		value: `$runWorkflow_${v}`,
+		label: `Run workflow "${v}"`,
 		icon: "move_down",
 	}));
 
