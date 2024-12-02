@@ -14,8 +14,8 @@ def fake_complete(prompt, config):
     return "other"
 
 
-def test_classify(session, runner):
-    writer.ai.complete = fake_complete
+def test_classify(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.complete", fake_complete)
     session.add_fake_component({
         "text": "canine",
         "categories": json.dumps({
@@ -30,8 +30,8 @@ def test_classify(session, runner):
     assert block.outcome == "category_dog"
 
 
-def test_classify_missing_categories(session, runner):
-    writer.ai.complete = fake_complete
+def test_classify_missing_categories(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.complete", fake_complete)
     session.add_fake_component({
         "text": "canine",
         "categories": json.dumps({})
