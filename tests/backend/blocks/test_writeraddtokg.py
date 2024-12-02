@@ -23,9 +23,10 @@ def mock_upload_file(data, type, name):
     return MockFile()
 
 
-def test_add_to_kg(session, runner):
-    writer.ai.retrieve_graph = mock_retrieve_graph
-    writer.ai.upload_file = mock_upload_file
+def test_add_to_kg(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
+    monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
+
     session.session_state["my_files"] = [
         {
             "data": b"123",
@@ -47,9 +48,10 @@ def test_add_to_kg(session, runner):
     assert block.outcome == "success"
 
 
-def test_add_to_kg_missing_type(session, runner):
-    writer.ai.retrieve_graph = mock_retrieve_graph
-    writer.ai.upload_file = mock_upload_file
+def test_add_to_kg_missing_type(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
+    monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
+
     session.session_state["my_files"] = [
         {
             "data": b"123",
@@ -65,9 +67,10 @@ def test_add_to_kg_missing_type(session, runner):
     with pytest.raises(WriterConfigurationError):
         block.run()
 
-def test_add_to_kg_wrong_type(session, runner):
-    writer.ai.retrieve_graph = mock_retrieve_graph
-    writer.ai.upload_file = mock_upload_file
+def test_add_to_kg_wrong_type(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
+    monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
+
     session.session_state["my_files"] = "should be list"
     session.add_fake_component({
         "graphId": "abc123",
