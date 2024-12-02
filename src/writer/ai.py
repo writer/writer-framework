@@ -41,6 +41,8 @@ from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_chat_params import MessageGraphData
 from writerai.types.chat_chat_params import ToolFunctionTool as SDKFunctionTool
 from writerai.types.chat_chat_params import ToolGraphTool as SDKGraphTool
+from writerai.types.question import Question
+from writerai.types.question_response_chunk import QuestionResponseChunk
 
 from writer.core import get_app_process
 
@@ -289,6 +291,10 @@ class Graph(SDKWrapper):
         return WriterAIManager.acquire_client().graphs
 
     @property
+    def is_stale(self):
+        return self.id in Graph.stale_ids
+
+    @property
     def id(self) -> str:
         return self._get_property('id')
 
@@ -296,14 +302,18 @@ class Graph(SDKWrapper):
     def created_at(self) -> datetime:
         return self._get_property('created_at')
 
-    def _fetch_object_updates(self):
+    def _fetch_object_updates(self, force=False):
         """
         Fetches updates for the graph object if it is stale.
         """
-        if self.id in Graph.stale_ids:
+        def _get_fresh_object():
             graphs = self._retrieve_graphs_accessor()
             fresh_object = graphs.retrieve(self.id)
             self._wrapped = fresh_object
+
+        if self.is_stale or force is True:
+            _get_fresh_object()
+        if self.is_stale:
             Graph.stale_ids.remove(self.id)
 
     @property
@@ -318,7 +328,7 @@ class Graph(SDKWrapper):
 
     @property
     def file_status(self):
-        self._fetch_object_updates()
+        self._fetch_object_updates(force=True)
         return self._wrapped.file_status
 
     def update(
@@ -452,10 +462,133 @@ class Graph(SDKWrapper):
         graphs = self._retrieve_graphs_accessor()
         response = graphs.remove_file_from_graph(
             graph_id=self.id,
-            file_id=file_id
+            file_id=file_id,
+            **config
             )
         Graph.stale_ids.add(self.id)
         return response
+
+    def _question(
+        self,
+        question: str,
+        stream: bool = True,
+        subqueries: bool = False,
+        config: Optional[APIOptions] = None
+    ):
+        if question == "":
+            logging.warning(
+                'Using empty `question` string ' +
+                'against `graphs.question` resource. ' +
+                'The model is not likely to produce a meaningful response.'
+                )
+        config = config or {}
+        graphs = self._retrieve_graphs_accessor()
+        response = graphs.question(
+                graph_ids=[self.id,],
+                question=question,
+                subqueries=subqueries,
+                stream=stream,
+                **config
+            )
+        return response
+
+    def stream_ask(
+            self,
+            question: str,
+            subqueries: bool = False,
+            config: Optional[APIOptions] = None
+    ) -> Generator[str, None, None]:
+        """
+        Streams response for a question posed to the graph.
+
+        This method returns incremental chunks of the response, ideal for long 
+        responses or when reduced latency is needed.
+
+        :param question: The query or question to be answered by the graph.
+        :param subqueries: Enables subquery generation if set to True, 
+        enhancing the result.
+        :param config: Optional dictionary for additional API 
+        configuration settings. 
+        The configuration can include:
+            - ``extra_headers`` (Optional[Headers]): Additional headers.
+            - ``extra_query`` (Optional[Query]): Extra query parameters.
+            - ``extra_body`` (Optional[Body]): Additional body data.
+            - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+
+        :yields: Incremental chunks of the answer to the question.
+
+        :raises ValueError: If an invalid graph or graph ID
+        is provided in `graphs_or_graph_ids`.
+
+        **Example Usage**:
+
+        >>> for chunk in graph.stream_ask(
+        ...     question="What are the benefits of renewable energy?"
+        ... ):
+        ...     print(chunk)
+        ...
+        """
+        
+        response = cast(
+                Stream[QuestionResponseChunk],
+                self._question(
+                    question=question,
+                    subqueries=subqueries,
+                    stream=True,
+                    config=config
+                )
+            )
+        for chunk in response._iter_events():
+            raw_data = chunk.data
+            answer = ""
+            try:
+                data = json.loads(raw_data)
+                answer = data.get("answer", "")
+            except json.JSONDecodeError:
+                logging.error(
+                    "Couldn't parse chunk data during `question` streaming"
+                    )
+            yield answer
+
+    def ask(
+            self,
+            question: str,
+            subqueries: bool = False,
+            config: Optional[APIOptions] = None
+    ):
+        """
+        Sends a question to the graph and retrieves 
+        a single response.
+
+        :param question: The query or question to be answered by the graph.
+        :param subqueries: Enables subquery generation if set to True, 
+        enhancing the result.
+        :param config: Optional dictionary for additional API 
+        configuration settings.
+        The configuration can include:
+            - ``extra_headers`` (Optional[Headers]): Additional headers.
+            - ``extra_query`` (Optional[Query]): Extra query parameters.
+            - ``extra_body`` (Optional[Body]): Additional body data.
+            - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+
+        :return: The answer to the question from the graph(s).
+
+        **Example Usage**:
+
+        >>> response = graph.ask(
+        ...     question="What is the capital of France?",
+        ... )
+        """
+        response = cast(
+            Question,
+            self._question(
+                question=question,
+                subqueries=subqueries,
+                stream=False,
+                config=config
+                )
+            )
+        return response.answer
 
 
 def create_graph(
@@ -1974,6 +2107,143 @@ def stream_complete(
             yield processed_line
     else:
         response.close()
+
+
+def _gather_graph_ids(graphs_or_graph_ids: list) -> List[str]:
+    graph_ids = []
+    for item in graphs_or_graph_ids:
+        if isinstance(item, Graph):
+            graph_ids.append(item.id)
+        elif isinstance(item, str):
+            graph_ids.append(item)
+        else:
+            raise ValueError(
+                f"Invalid item in graphs_or_graph_ids list: {type(item)}"
+                )
+
+    return graph_ids
+
+
+def ask(
+    question: str,
+    graphs_or_graph_ids: List[Union[Graph, str]],
+    subqueries: bool = False,
+    config: Optional[APIOptions] = None
+):
+    """
+    Sends a question to the specified graph(s) and retrieves 
+    a single response.
+
+    :param question: The query or question to be answered by the graph(s).
+    :param graphs_or_graph_ids: A list of `Graph` objects or graph IDs that 
+    should be queried.
+    :param subqueries: Enables subquery generation if set to True, 
+    enhancing the result.
+    :param config: Optional dictionary for additional API 
+    configuration settings.
+    The configuration can include:
+        - ``extra_headers`` (Optional[Headers]): Additional headers.
+        - ``extra_query`` (Optional[Query]): Extra query parameters.
+        - ``extra_body`` (Optional[Body]): Additional body data.
+        - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+
+    :return: The answer to the question from the graph(s).
+
+    :raises ValueError: If an invalid graph or graph ID is provided
+    in `graphs_or_graph_ids`.
+    :raises RuntimeError: If the API response is improperly formatted
+    or the answer cannot be retrieved.
+
+    **Example Usage**:
+
+    >>> response = ask(
+    ...     question="What is the capital of France?",
+    ...     graphs_or_graph_ids=["graph_id_1", "graph_id_2"]
+    ... )
+    """
+    config = config or {}
+    client = WriterAIManager.acquire_client()
+    graph_ids = _gather_graph_ids(graphs_or_graph_ids)
+
+    response = cast(
+        Question,
+        client.graphs.question(
+            graph_ids=graph_ids,
+            question=question,
+            stream=False,
+            subqueries=subqueries,
+            **config
+        )
+    )
+
+    return response.answer
+
+
+def stream_ask(
+    question: str,
+    graphs_or_graph_ids: List[Union[Graph, str]],
+    subqueries: bool = False,
+    config: Optional[APIOptions] = None
+) -> Generator[str, None, None]:
+    """
+    Streams response for a question posed to the specified graph(s).
+
+    This method returns incremental chunks of the response, ideal for long 
+    responses or when reduced latency is needed.
+
+    :param question: The query or question to be answered by the graph(s).
+    :param graphs_or_graph_ids: A list of Graph objects or graph IDs that 
+    should be queried.
+    :param subqueries: Enables subquery generation if set to True, 
+    enhancing the result.
+    :param config: Optional dictionary for additional API 
+    configuration settings. 
+    The configuration can include:
+        - ``extra_headers`` (Optional[Headers]): Additional headers.
+        - ``extra_query`` (Optional[Query]): Extra query parameters.
+        - ``extra_body`` (Optional[Body]): Additional body data.
+        - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+
+    :yields: Incremental chunks of the answer to the question.
+
+    :raises ValueError: If an invalid graph or graph ID
+    is provided in `graphs_or_graph_ids`.
+
+    **Example Usage**:
+
+    >>> for chunk in stream_ask(
+    ...     question="What are the benefits of renewable energy?",
+    ...     graphs_or_graph_ids=["graph_id_1"]
+    ... ):
+    ...     print(chunk)
+    ...
+    """
+    config = config or {}
+    client = WriterAIManager.acquire_client()
+    graph_ids = _gather_graph_ids(graphs_or_graph_ids)
+
+    response = cast(
+        Stream[QuestionResponseChunk],
+        client.graphs.question(
+            graph_ids=graph_ids,
+            question=question,
+            stream=True,
+            subqueries=subqueries,
+            **config
+        )
+    )
+
+    for chunk in response._iter_events():
+        raw_data = chunk.data
+        answer = ""
+        try:
+            data = json.loads(raw_data)
+            answer = data.get("answer", "")
+        except json.JSONDecodeError:
+            logging.error(
+                "Couldn't parse chunk data during `question` streaming"
+                )
+        yield answer
 
 
 def init(token: Optional[str] = None):
