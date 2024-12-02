@@ -1,4 +1,5 @@
 import json
+
 import pytest
 import writer.ai
 from writer.blocks.writernocodeapp import WriterNoCodeApp
