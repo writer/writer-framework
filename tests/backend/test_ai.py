@@ -40,6 +40,7 @@ pytest ./tests/backend/test_ai.py --full-run
 ```
 """
 
+import time
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -56,6 +57,7 @@ from writer.ai import (
     SDKGraph,
     WriterAIManager,
     apps,
+    ask,
     complete,
     create_graph,
     delete_file,
@@ -65,6 +67,7 @@ from writer.ai import (
     list_graphs,
     retrieve_file,
     retrieve_graph,
+    stream_ask,
     stream_complete,
     upload_file,
 )
@@ -129,6 +132,9 @@ def mock_non_streaming_client():
         non_streaming_client.completions.create.return_value = \
             Completion(choices=[{"text": test_complete_literal}])
 
+        non_streaming_client.graphs.question.return_value = \
+            MagicMock(answer="Mocked Answer")
+
         yield non_streaming_client
 
 
@@ -159,7 +165,16 @@ def mock_streaming_client():
             StreamingData(value="part1"),
             StreamingData(value=" part2")
         ])
-        streaming_client.completions.create.return_value = mock_completion_stream
+        streaming_client.completions.create.return_value = \
+            mock_completion_stream
+
+        # Mock question streaming
+        mock_graph_stream = MagicMock()
+        mock_graph_stream._iter_events.return_value = iter([
+            MagicMock(data='{"answer": "Part 1"}'),
+            MagicMock(data='{"answer": "Part 2"}'),
+        ])
+        streaming_client.graphs.question.return_value = mock_graph_stream
 
         yield streaming_client
 
@@ -507,6 +522,74 @@ def test_delete_file(mock_files_accessor):
     assert response.deleted is True
 
 
+@pytest.mark.set_token("fake_token")
+def test_ask(mock_non_streaming_client):
+    question = "What is the capital of France?"
+    graphs_or_graph_ids = ["graph_id_1"]
+
+    response = ask(question, graphs_or_graph_ids)
+
+    # Assert response and ensure proper method calls
+    assert response == "Mocked Answer"
+    mock_non_streaming_client.graphs.question.assert_called_once_with(
+        graph_ids=["graph_id_1"],
+        question=question,
+        stream=False,
+        subqueries=False
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_stream_ask(mock_streaming_client):
+    question = "Test question"
+    graphs_or_graph_ids = ["graph_id_1"]
+
+    response_chunks = list(stream_ask(question, graphs_or_graph_ids))
+
+    # Assert response and ensure proper method calls
+    assert response_chunks == ["Part 1", "Part 2"]
+    mock_streaming_client.graphs.question.assert_called_once_with(
+        graph_ids=["graph_id_1"],
+        question=question,
+        stream=True,
+        subqueries=False
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_ask_graph_class(mock_non_streaming_client):
+    question = "Test question"
+    graph_object = Graph(MagicMock(id="test_graph_id"))
+
+    response = graph_object.ask(question)
+
+    # Assert response and ensure proper method calls
+    assert response == "Mocked Answer"
+    mock_non_streaming_client.graphs.question.assert_called_once_with(
+        graph_ids=["test_graph_id"],
+        question=question,
+        stream=False,
+        subqueries=False
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_stream_ask_graph_class(mock_streaming_client):
+    question = "Test question"
+    graph_object = Graph(MagicMock(id="test_graph_id"))
+
+    response_chunks = list(graph_object.stream_ask(question))
+
+    # Assert response and ensure proper method calls
+    assert response_chunks == ["Part 1", "Part 2"]
+    mock_streaming_client.graphs.question.assert_called_once_with(
+        graph_ids=["test_graph_id"],
+        question=question,
+        stream=True,
+        subqueries=False
+    )
+
+
 @explicit
 def test_explicit_conversation_complete(emulate_app_process):
     conversation = Conversation()
@@ -640,6 +723,182 @@ def test_explicit_delete_file(emulate_app_process, created_files):
     created_files.remove(uploaded_file)
 
     assert response.deleted is True
+
+
+@explicit
+def test_explicit_ask_graph_class(
+    emulate_app_process,
+    created_graphs,
+    created_files
+):
+    uploaded_file = upload_file(
+        data=b"Source word is PARIS",
+        type="text/plain",
+        name="code_words"
+        )
+    created_files.append(uploaded_file)
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
+    created_graphs.append(graph)
+    graph.add_file(uploaded_file)
+
+    # Await file processing
+    while True:
+        try:
+            file_status = graph.file_status
+        except AttributeError:
+            continue
+
+        if file_status.in_progress == 1:
+            # File still being processed
+            time.sleep(5)
+            continue
+        else:
+            # File is ready
+            break
+
+    answer = graph.ask(
+        "What is the source word? Name only the word and nothing else"
+        )
+
+    assert isinstance(answer, str)
+    assert answer == " PARIS"
+
+
+@explicit
+def test_explicit_stream_ask_graph_class(
+    emulate_app_process,
+    created_graphs,
+    created_files
+):
+    uploaded_file = upload_file(
+        data=b"Source word is PARIS",
+        type="text/plain",
+        name="code_words"
+        )
+    created_files.append(uploaded_file)
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
+    created_graphs.append(graph)
+    graph.add_file(uploaded_file)
+
+    # Await file processing
+    while True:
+        try:
+            file_status = graph.file_status
+        except AttributeError:
+            continue
+
+        if file_status.in_progress == 1:
+            # File still being processed
+            time.sleep(5)
+            continue
+        else:
+            # File is ready
+            break
+
+    answer = ""
+    stream = graph.stream_ask(
+        "What is the source word? Name only the word and nothing else"
+        )
+    for chunk in stream:
+        answer += chunk
+
+    assert isinstance(answer, str)
+    assert answer == " PARIS"
+
+
+@explicit
+def test_explicit_ask(
+    emulate_app_process,
+    created_graphs,
+    created_files
+):
+    uploaded_file = upload_file(
+        data=b"Source word is PARIS",
+        type="text/plain",
+        name="code_words"
+        )
+    created_files.append(uploaded_file)
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
+    created_graphs.append(graph)
+    graph.add_file(uploaded_file)
+
+    # Await file processing
+    while True:
+        try:
+            file_status = graph.file_status
+        except AttributeError:
+            continue
+
+        if file_status.in_progress == 1:
+            # File still being processed
+            time.sleep(5)
+            continue
+        else:
+            # File is ready
+            break
+
+    answer = ask(
+        question="What is the source word? Name only the word and nothing else",
+        graphs_or_graph_ids=[graph]
+        )
+
+    assert isinstance(answer, str)
+    assert answer == " PARIS"
+
+
+@explicit
+def test_explicit_stream_ask(
+    emulate_app_process,
+    created_graphs,
+    created_files
+):
+    uploaded_file = upload_file(
+        data=b"Source word is PARIS",
+        type="text/plain",
+        name="code_words"
+        )
+    created_files.append(uploaded_file)
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
+    created_graphs.append(graph)
+    graph.add_file(uploaded_file)
+
+    # Await file processing
+    while True:
+        try:
+            file_status = graph.file_status
+        except AttributeError:
+            continue
+
+        if file_status.in_progress == 1:
+            # File still being processed
+            time.sleep(5)
+            continue
+        else:
+            # File is ready
+            break
+
+    answer = ""
+    stream = stream_ask(
+        question="What is the source word? Name only the word and nothing else",
+        graphs_or_graph_ids=[graph]
+        )
+    for chunk in stream:
+        answer += chunk
+
+    assert isinstance(answer, str)
+    assert answer == " PARIS"
 
 # For doing a explicit test of apps.generate_content() we need a no-code app that
 # nobody will touch. That is a challenge.

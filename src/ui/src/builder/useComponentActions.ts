@@ -496,6 +496,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 					});
 				});
 			c.id = newId;
+			if (typeof c.x !== "undefined" && typeof c.y !== "undefined") {
+				c.x += 36;
+				c.y += 36;
+			}
 		});
 		return deepCopiedSubtree;
 	}

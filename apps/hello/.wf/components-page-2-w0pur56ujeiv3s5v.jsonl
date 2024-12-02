@@ -1,0 +1,7 @@
+{"id": "w0pur56ujeiv3s5v", "type": "page", "content": {}, "handlers": {}, "parentId": "root", "position": 2}
+{"id": "tj5rln4r1dxr4t9y", "type": "section", "content": {"isCollapsible": "yes", "title": "Section Title"}, "handlers": {}, "parentId": "w0pur56ujeiv3s5v", "position": 0}
+{"id": "1h2u1o63xfedkjgu", "type": "text", "content": {"text": "Text"}, "handlers": {}, "parentId": "tj5rln4r1dxr4t9y", "position": 0}
+{"id": "o76ltlj9uym0f3p3", "type": "section", "content": {"isCollapsible": "yes", "startCollapsed": "yes", "title": "Section Title"}, "handlers": {}, "parentId": "w0pur56ujeiv3s5v", "position": 1}
+{"id": "44o2mezeegspifl3", "type": "text", "content": {"text": "Text"}, "handlers": {}, "parentId": "o76ltlj9uym0f3p3", "position": 0}
+{"id": "4go1gvv5s6pus80p", "type": "section", "content": {"isCollapsible": "yes", "title": "Section Title"}, "handlers": {}, "parentId": "w0pur56ujeiv3s5v", "position": 2}
+{"id": "nwmweasodpa9sr9w", "type": "text", "content": {"text": "Text"}, "handlers": {}, "parentId": "4go1gvv5s6pus80p", "position": 0}

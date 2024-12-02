@@ -51,7 +51,12 @@ function renderError(message: string, cls: string) {
 	shouldRender.value = props.contextSlot === "default";
 	vnode.value = h(
 		"div",
-		{ class: ["CoreReuse", cls] },
+		{
+			class: ["CoreReuse", cls],
+			style: {
+				color: "var(--primaryTextColor)",
+			},
+		},
 		isBeingEdited.value ? message : "",
 	);
 }
