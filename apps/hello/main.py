@@ -170,7 +170,7 @@ initial_state = wf.init_state({
     "editable_df_open_text": "<none>",
     "highlighted_members": _get_highlighted_members(),
     "random_df": _generate_random_df(),
-    "hue_rotation": 26,
+    "hue_rotation": 180,
     "paginated_members": _get_paginated_members(0, 2),
     "paginated_members_page": 1,
     "paginated_members_total_items": len(_get_main_df()),
