@@ -23,14 +23,14 @@ def increment(state):
     print("The counter has been incremented.")
     _update_message(state)
     
-# Initialise the state
+# Initialize the state
 
-# "_my_private_element" won't be serialised or sent to the frontend,
+# "_my_private_element" won't be serialized or sent to the frontend,
 # because it starts with an underscore
 
 initial_state = wf.init_state({
     "my_app": {
-        "title": "MY APP"
+        "title": "My app"
     },
     "_my_private_element": 1337,
     "message": None,
