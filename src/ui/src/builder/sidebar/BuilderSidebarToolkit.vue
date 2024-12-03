@@ -26,6 +26,7 @@
 					<img
 						:alt="`(Icon for ${tool.name})`"
 						:src="`./../../../../components/${tool.type}.svg`"
+						draggable="false"
 						@error="
 							!isImageFallback[tool.type]
 								? handleImageError(
