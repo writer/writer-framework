@@ -33,6 +33,7 @@ test.describe("Workflows", () => {
 			await expect(rowsLocator).toHaveCount(3);
 			const rowLocator = rowsLocator.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Details" }).click();
+			await expect(".BuilderModal").toBeVisible();
 			const resultsLocator = page.locator(
 				`.BuilderModal [data-automation-key="result"]`,
 			);
@@ -98,6 +99,7 @@ test.describe("Workflows", () => {
 		await expect(rowsLocator).toHaveCount(5);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
+		await expect(".BuilderModal").toBeVisible();
 		const returnValueLocator = page.locator(
 			`.BuilderModal [data-automation-key="return-value"]`,
 		);
