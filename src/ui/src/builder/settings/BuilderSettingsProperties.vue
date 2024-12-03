@@ -3,10 +3,6 @@
 		v-if="ssbm.isSelectionActive() && fields"
 		class="BuilderSettingsProperties"
 	>
-		<div class="sectionTitle">
-			<span class="material-symbols-outlined"> tune </span>
-			<h3>Properties</h3>
-		</div>
 		<div
 			v-for="propertyCategory in fieldCategories"
 			:key="propertyCategory"
@@ -191,7 +187,7 @@ const fieldsByCategory = computed(() => {
 }
 
 .BuilderSettingsProperties__category__title {
-	color: #828282;
+	color: var(--builderSecondaryTextColor);
 	font-weight: 500;
 	font-size: 12px;
 }
