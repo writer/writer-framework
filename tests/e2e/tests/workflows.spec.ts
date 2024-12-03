@@ -95,7 +95,7 @@ test.describe("Workflows", () => {
 
 		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
-		await expect(rowsLocator).toHaveCount(3);
+		await expect(rowsLocator).toHaveCount(5);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
 		const returnValueLocator = page.locator(
