@@ -15,7 +15,7 @@ Here's what the finished project will look like:
 
 Before starting, ensure you have:
 
-- **A Writer account:** You'll need an account to use Writer Framework, and [you can sign up for a free one](https://app.writer.com/aistudio/signup).
+- **A Writer account:** You don't need an account to use Writer Framework, but you'll need one to use the AI module. [Fortunately, you can sign up for an account for free!](https://app.writer.com/aistudio/signup)
 - **Python 3.9.2 or later**: Use the installer from [python.org](https://www.python.org/downloads/).
 - **pip:** This command-line application comes with Python and is used for installing Python packages, including those from Writer.
 - **A basic understanding of Python:** You should be familiar with the basics of the language.
@@ -116,9 +116,9 @@ The project editor is a web application that runs on your computer and enables y
 writer edit chat-assistant
 ```
 
-You'll be presented with the URL for the project editor. Control-click the link (command-click on macOS) to open the project editor, or copy the URL and paste it into the address bar of a browser window.
+You'll see a URL. Control-click it (command-click on macOS) to open it, or copy the URL and paste it into the address bar of a browser window.
 
-You'll be presented with the project editor:
+The browser window will contain the project editor, which will look like this:
 
 ![Project editor](/framework/images/tutorial/chat/chat_assistant_2b.png)
 
@@ -126,7 +126,7 @@ You'll see the following:
 
 - The **canvas** is in the center. It displays the app's user interface. 
 - The column on the left contains:
-  - The **Toolkit**, which contains all the UI components. You define the user interface by dragging components from the Toolkit and placing them on the canvas.
+  - The **Core toolkit**, which contains all the UI components. You define the user interface by dragging components from the Toolkit and placing them on the canvas.
   - The **Component tree**, which shows the arrangement of the UI components on the canvas. It's also useful for selecting items on the canvas, especially when it has a lot of UI components.
 
 It's time to build the UI!
@@ -135,7 +135,9 @@ It's time to build the UI!
   <Step title="Examine the header">
   Select the **Header** component by clicking it — it's the component at the top, containing the title **AI STARTER** and a gray area labeled **Empty Header**.
 
-  When you click it, you'll see the **Properties** panel appear on the right side of the page. This lets you view and edit the properties of the selected component.
+  When you click it, you'll see the **properties** panel appear on the right side of the page. This lets you view and edit the properties of the selected component.
+
+  ![The selected header and its properties panel](/framework/images/tutorial/chat/chat_assistant_2c.png)
 
   The first property you'll see in the panel is the **Text** property, which defines the text that appears as the header's title. It should contain the value `@{my_app.title}`. The `@{` and `}` indicate that `my_app.title` is a variable and that its contents should be the text displayed instead of the literal text "my_app.title". You'll set the value of this variable soon.
   </Step>
@@ -143,27 +145,29 @@ It's time to build the UI!
   <Step title="Clear the Section's default title">
   Select the **Section** component by clicking it — it's just below the **Header** component and contains the title **Section Title** and a gray area labeled **Empty Section**.
 
-  In the **Properties** panel, clear out the value of the **Title** property. This will remove the **Section**'s default title.
+  In the **properties** panel, clear out the value of the **Title** property. This will remove the **Section**'s default title.
+
+  ![The selected section and its properties panel](/framework/images/tutorial/chat/chat_assistant_2d.png)
   </Step>
 
   <Step title="Add a Text component to the Section">
-  Drag a **Text** component from the **Toolkit** panel on the left (it's under **Content**, and you may need to scroll down a little to find it) and into the *Section*. Sections can act as containers for other components.
+  Drag a **Text** component from the **Core toolkit** panel on the left (it's under **Content**, and you may need to scroll down a little to find it) and into the *Section*. Sections can act as containers for other components.
 
-  <Note>You can search for a specific component by clicking on the magnifying glass icon at the top right of the **Toolkit** panel.</Note>
+  <Note>You can search for a specific component by using the search bar at the top of the **Core toolkit** panel.</Note>
 
-  Select the **Text** component. In the **Properties** panel, set the **Text** property to provide instructions or context for your chat assistant. Here's an example: `Welcome to the Chat Assistant. Ask me anything!`
+  Select the **Text** component. In the **properties** panel, set the **Text** property to provide instructions or context for your chat assistant. Here's an example: `Welcome to the Chat Assistant. Ask me anything!`
+
+  ![The text component and its properties panel](/framework/images/tutorial/chat/chat_assistant_2e.png)
   </Step>
 
   <Step title="Add a Chatbot component to the Section">
   The heart of this app is the **Chatbot** component, a pre-built component that displays the conversation between the LLM and the user and provides a text field where the user can enter prompts.
 
-  Drag a **Chatbot** component from the **Toolkit** panel (it's under **Content**) into the *Section*, just below the Text box.
+  Drag a **Chatbot** component from the **Core toolkit** panel (it's under **Content**) into the *Section*, just below the Text box.
+
+  ![The chatbot component](/framework/images/tutorial/chat/chat_assistant_2f.png)
   </Step>
 </Steps>
-
-The project editor should now look like this:
-
-![Project editor with components laid out](/framework/images/tutorial/chat/chat_assistant_2c.png)
 
 
 ## Add the back-end code
@@ -172,12 +176,17 @@ With the UI laid out, it's time to work on the logic behind it.
 
 The logic behind the user interface is defined in a file named `main.py`, which is in your project's directory. This file was automatically generated; you'll update the code in it to define the behavior of your app.
 
-There are two ways to edit `main.py`:
+The simplest way to edit `main.py` is within the project editor. Click on the "toggle code" button (beside the word **Code**) near the lower left corner of the project editor page. 
 
-1. **In your browser.** Click on the **Code** button near the top right corner of the project editor page. A pane with the name **Code** ill appear at the bottom half of the screen, displaying and allowing you to edit the contents of `main.py`.
-2. **Using your favorite code editor.** If you'd rather use a code editor instead of coding in the browser, use it to open the `main.py` file in your project's directory.
+![Project editor with arrow pointing to toggle code button](/framework/images/tutorial/chat/chat_assistant_2g.png)
 
-Choose your preferred way, then follow the steps below:
+A pane with the name **Code** will appear at the bottom half of the screen, displaying an editor for the the contents of `main.py`.
+
+![Project editor with the code editor displayed](/framework/images/tutorial/chat/chat_assistant_2h.png)
+
+<Note>If you'd rather use a code editor instead of coding in the browser, use it to open the `main.py` file in your project's directory.</Note>
+
+Now follow these steps:
 
 <Steps>
   <Step title="Import libraries and load the Writer Framework API key">
@@ -279,8 +288,12 @@ Choose your preferred way, then follow the steps below:
   <Note>For more details about the `state` variable, see our [_Application state_](https://dev.writer.com/framework/application-state#application-state) page.</Note>
   </Step>
 
-  <Step title="Save the updated code">
-  If you edited the `main.py` code in the browser, the “save” button is near the top right corner of the code editor.
+  <Step title="Save the updated code and hide the code editor">
+  That’s all the code. If you edited the code in the browser, save it by clicking the “save” button near the top right corner of the code editor.
+
+  ![Project editor and code editor, with arrow pointing to save button](/framework/images/tutorial/chat/chat_assistant_2i.png)
+
+  Click the "toggle code" button to hide the code editor.
   </Step>
 </Steps>
 
@@ -297,7 +310,9 @@ You've built the UI and written the code behind it. Let's connect the two! Go ba
   <Step title="Bind the Chatbot component to the 'state' variable's 'conversation' key">
   Recall that the `conversation` object contained within the `state` variable contains the record of the conversation that the user is having with the LLM. Binding the **Chatbot** component to this object allows it to display the conversation to the user.
 
-  Select the **Chatbot** component. In the **Properties** panel, find the **Conversation** property and set its value to `@{conversation}`.
+  Select the **Chatbot** component. In the **properties** panel, find the **Conversation** property and set its value to `@{conversation}`.
+
+  ![Updating the Chatbot's conversation property](/framework/images/tutorial/chat/chat_assistant_2j.png)
 
   The value `@{conversation}` specifies that the **Chatbot** component should get its information from the value corresponding to the `conversation` key in the application's `state` variable.
   </Step>
@@ -305,7 +320,9 @@ You've built the UI and written the code behind it. Let's connect the two! Go ba
   <Step title="Specify the Chatbot component's event handler">
   You need to specify that the **Chatbot** component should call the `generate_completion()` function when the user enters a prompt. 
   
-  Do this by scrolling down the **Properties** panel to the **Events** section until you see a property called **`wf_chatbot_message`**. Select **`generate_completion`** from its menu.
+  Do this by scrolling down the **properties** panel to the **Events** section until you see a property called **`wf_chatbot_message`**. Select **`generate_completion`** from its menu.
+
+  ![Updating the Chatbot's wf_chatbot_message property](/framework/images/tutorial/chat/chat_assistant_2k.png)
   </Step>
 </Steps>
 
@@ -316,15 +333,23 @@ You've completed all the steps to make a working chat assistant, and you can try
 
 Try entering some prompts into the text entry at the bottom of the **Chatbot** component. The LLM should respond accordingly:
 
-![The working chat assistant, with the project editor in "UI" mode](/framework/images/tutorial/chat/chat_assistant_2d.png)
+![The chat assistant, with the project editor in "UI" mode](/framework/images/tutorial/chat/chat_assistant_2l.png)
 
 To get a better sense of what the experience will be like for the user, switch to the preview by changing the edit mode (located near the upper left corner of the page) from _UI_ mode to _Preview_ mode by selecting the **Preview** option:
 
-![The working chat assistant, with the project editor in "Preview" mode](/framework/images/tutorial/chat/chat_assistant_2e.png)
+![The project editor with an arrow pointing to the Preview button](/framework/images/tutorial/chat/chat_assistant_2m.png)
+
+Here’s what the app looks like in _Preview_ mode:
+
+![The chat assistant, with the project editor in "Preview" mode](/framework/images/tutorial/chat/chat_assistant_2n.png)
 
 You can see the output of any `print()` functions and error messages by clicking on the **Log** button located near the upper right corner of the page:
 
-![The working chat assistant, with the project editor in "Preview" mode and the log pane displayed](/framework/images/tutorial/chat/chat_assistant_2f.png)
+![The chat assistant with an arrow pointing to the Log button](/framework/images/tutorial/chat/chat_assistant_2o.png)
+
+Here’s what the app looks like when displaying the log:
+
+![The working chat assistant, with the log pane displayed](/framework/images/tutorial/chat/chat_assistant_2p.png)
 
 It's very helpful to be able to test the application while editing it. As you continue to work with Writer Framework, you'll find yourself alternating between making changes to your application and testing those changes without having to leave the project editor.
 
@@ -333,7 +358,7 @@ It's very helpful to be able to test the application while editing it. As you co
 
 Once you've tested the application, it's time to run it locally.
 
-Switch back to your terminal application. Stop the editor with ctrl-c, then run the application by entering the following command:
+Switch back to your terminal application. Stop the project editor with ctrl-c, then run the application by entering the following command:
 
 ```
 writer run chat-assistant
@@ -341,7 +366,9 @@ writer run chat-assistant
 
 Note that the command starts with `writer run` as opposed to `writer edit`. This launches the application as your users will see it, without any of the editing tools. Even though you can preview your applications in the project editor, it's still a good idea to test it by running it on your computer, outside the project editor, before deploying it.
 
-You'll be able to access the application with your browser at the URL that appears on the command line.
+You'll be able to access the application with your browser at the URL that appears on the command line. It should look like this:
+
+![Finished chat assistant project](/framework/images/tutorial/chat/chat_assistant_1.png)
 
 <Note>The Writer editor, which you launched with `writer edit chat-assistant`, and your application, which you launched with `writer run chat-assistant`, run  on the same URL, but on different *ports* (specified by the number after the `:` character at the end of the URL).</Note>
 
