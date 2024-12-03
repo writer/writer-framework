@@ -28,9 +28,10 @@ test.describe("Workflows", () => {
 		}) => {
 			await page.getByPlaceholder(object).fill(color);
 			await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
-			const rowLocator = page
-				.locator(".BuilderPanelSwitcher div.row")
-				.filter({ hasText: "Return value" });
+			const rowsLocator = page
+				.locator(".BuilderPanelSwitcher div.row");
+			await expect(rowsLocator).toHaveCount(3);
+			const rowLocator = rowsLocator.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Details" }).click();
 			const resultsLocator = page.locator(
 				`.BuilderModal [data-automation-key="result"]`,
@@ -93,9 +94,9 @@ test.describe("Workflows", () => {
 		await page.locator(`[data-automation-action="run-workflow"]`).click();
 
 		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
-		const rowLocator = page
-			.locator(".BuilderPanelSwitcher div.row")
-			.filter({ hasText: "Return value" }).first();;
+		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
+		await expect(rowsLocator).toHaveCount(3);
+		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
 		const returnValueLocator = page.locator(
 			`.BuilderModal [data-automation-key="return-value"]`,
