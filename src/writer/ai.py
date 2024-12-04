@@ -1240,7 +1240,17 @@ class Conversation:
 
     def _gather_tool_calls_messages(self):
         return {
-            index: ongoing_tool_call.get("res")
+            index: ongoing_tool_call.get(
+                "res",
+                {
+                    "role": "tool",
+                    "content": "ERROR: Failed to get function call result – " +
+                    "the function was never called. The most likely reason " +
+                    "is LLM never issuing a `finish_reason: 'tool_calls'`. " +
+                    "Please DO NOT RETRY the function call and inform " +
+                    "the user about the error."
+                }
+            )
             for index, ongoing_tool_call
             in self._ongoing_tool_calls.items()
             }
@@ -1534,6 +1544,14 @@ class Conversation:
         else:
             raise ValueError(f"Unsupported target type: {target_type}")
 
+    def _check_if_arguments_are_required(self, function_name: str) -> bool:
+        callable_entry = self._callable_registry.get(function_name)
+        callable_parameters = callable_entry.get("parameters")
+        return \
+            callable_parameters is not None \
+            and \
+            callable_parameters != {}
+
     def _execute_function_tool_call(self, index: int) -> dict:
         """
         Executes the function call for the specified tool call index.
@@ -1547,7 +1565,14 @@ class Conversation:
 
         # Parse arguments and execute callable
         try:
-            parsed_arguments = json.loads(arguments)
+            if (
+                not arguments
+                and
+                not self._check_if_arguments_are_required(function_name)
+            ):
+                parsed_arguments = {}
+            else:
+                parsed_arguments = json.loads(arguments)
             callable_entry = self._callable_registry.get(function_name)
 
             if callable_entry:
@@ -1657,12 +1682,41 @@ class Conversation:
                     tool_call_arguments
 
         # Check if we have all necessary data to execute the function
+        tool_call_id, tool_call_name, tool_call_arguments = \
+            self._ongoing_tool_calls[index]["tool_call_id"], \
+            self._ongoing_tool_calls[index]["name"], \
+            self._ongoing_tool_calls[index]["arguments"]
+
+        tool_call_id_ready = tool_call_id is not None
+        tool_call_name_ready = tool_call_name is not None
+        tool_call_arguments_ready = \
+            (
+                tool_call_name_ready
+                and
+                (
+                    (
+                        not tool_call_arguments
+                        and
+                        not self._check_if_arguments_are_required(
+                            tool_call_name
+                        )
+                    )
+                    or
+                    (
+                        isinstance(
+                            tool_call_arguments, str
+                        )
+                        and
+                        tool_call_arguments.endswith("}")
+                    )
+                )
+            )
         if (
-            self._ongoing_tool_calls[index]["tool_call_id"] is not None
+            tool_call_id_ready
             and
-            self._ongoing_tool_calls[index]["name"] is not None
+            tool_call_name_ready
             and
-            self._ongoing_tool_calls[index]["arguments"].endswith("}")
+            tool_call_arguments_ready
         ):
             follow_up_message = self._execute_function_tool_call(index)
             if follow_up_message:
