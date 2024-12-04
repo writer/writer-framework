@@ -100,7 +100,7 @@ class FunctionTool(Tool):
 def create_function_tool(
     callable: Callable,
     name: str,
-    parameters: Optional[Dict[str, Dict[str, str]]],
+    parameters: Optional[Dict[str, Dict[str, str]]] = None,
     description: Optional[str] = None
 ) -> FunctionTool:
     parameters = parameters or {}
