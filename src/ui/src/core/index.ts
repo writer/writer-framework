@@ -316,14 +316,17 @@ export function generateCore() {
 			? getPayloadFromEvent(event)
 			: null;
 		let callback: Function;
+		let handler: string;
 
 		if (event instanceof CustomEvent) {
 			callback = event.detail?.callback;
+			handler = event.detail?.handler;
 		}
 
 		const messagePayload = async () => ({
 			type: event.type,
 			instancePath,
+			handler,
 			payload: await eventPayload,
 		});
 

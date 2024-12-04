@@ -48,9 +48,26 @@ MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
 logging.getLogger().setLevel(logging.INFO)
 
 
+class JobVault:
+
+    def __init__(self):
+        self.counter = 0
+        self.vault = {}
+
+    def generate_job_id(self):
+        self.counter += 1
+        return self.counter
+
+    def set(self, job_id: str, value: Any):
+        self.vault[job_id] = value
+    
+    def get(self, job_id: str):
+        return self.vault.get(job_id)
+
 class WriterState(typing.Protocol):
     app_runner: AppRunner
     writer_app: bool
+    job_vault: JobVault
     is_server_static_mounted: bool
     meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # meta tags for SEO
     opengraph_tags: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # opengraph tags for social networks integration (facebook, discord)
@@ -122,6 +139,7 @@ def get_asgi_app(
     """
     app.state.writer_app = True
     app.state.app_runner = app_runner
+    app.state.job_vault = JobVault()
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -310,13 +328,19 @@ def get_asgi_app(
             trackingId=req_message.trackingId,
             payload=None
         )
+
+        # Allows for global events if in edit mode (such as "Run workflow" for previewing a workflow)
+
+        is_safe = serve_mode == "edit"
         res_payload: Optional[Dict[str, Any]] = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_event(
             session_id, WriterEvent(
-                type=req_message.payload["type"],
-                instancePath=req_message.payload["instancePath"],
-                payload=req_message.payload["payload"]
+                type=req_message.payload.get("type"),
+                handler=req_message.payload.get("handler"),
+                isSafe=is_safe,
+                instancePath=req_message.payload.get("instancePath"),
+                payload=req_message.payload.get("payload")
             ))
         if apsr is not None and apsr.payload is not None:
             res_payload = typing.cast(

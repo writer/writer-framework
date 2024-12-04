@@ -209,6 +209,37 @@ class TestAppRunner:
             assert ev_res.status == "ok"
             assert not ev_res.payload.result.get("ok")
 
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_unsafe_event(self, setup_app_runner) -> None:
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-built-run",
+                handler="nineninenine",
+                instancePath=None,
+                payload=None
+            ))
+            ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
+            assert ev_res.status == "ok"
+            assert not ev_res.payload.result.get("ok")
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("setup_app_runner")
+    async def test_safe_global_event(self, setup_app_runner) -> None:
+        with setup_app_runner(test_app_dir, "run", load = True) as ar:
+            await init_app_session(ar, session_id=self.proposed_session_id)
+            ev_req = EventRequest(type="event", payload=WriterEvent(
+                type="wf-built-run",
+                isSafe=True,
+                handler="nineninenine",
+                instancePath=None,
+                payload=None
+            ))
+            ev_res = await ar.dispatch_message(self.proposed_session_id, ev_req)
+            assert ev_res.status == "ok"
+            assert ev_res.payload.result.get("result") == 999
+
     @pytest.mark.usefixtures("setup_app_runner")
     def test_run_code_edit(self, setup_app_runner) -> None:
         with setup_app_runner(test_app_dir, "run") as ar:
