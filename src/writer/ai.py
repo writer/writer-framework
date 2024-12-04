@@ -1546,6 +1546,11 @@ class Conversation:
 
     def _check_if_arguments_are_required(self, function_name: str) -> bool:
         callable_entry = self._callable_registry.get(function_name)
+        if not callable_entry:
+            raise RuntimeError(
+                f"Tried to check arguments of function {function_name} " +
+                "which is not present in the conversation's callable registry."
+                )
         callable_parameters = callable_entry.get("parameters")
         return \
             callable_parameters is not None \
