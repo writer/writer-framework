@@ -1689,28 +1689,35 @@ class Conversation:
 
         tool_call_id_ready = tool_call_id is not None
         tool_call_name_ready = tool_call_name is not None
-        tool_call_arguments_ready = \
-            (
-                tool_call_name_ready
-                and
+
+        # Check whether the arguments are prepared properly -
+        # either present in correct format
+        # or should not be used due to not being required for the function
+        if tool_call_name_ready:
+            # Function name is needed to check the function for params
+            tool_call_arguments_not_required = \
                 (
-                    (
-                        not tool_call_arguments
-                        and
-                        not self._check_if_arguments_are_required(
-                            tool_call_name
-                        )
-                    )
-                    or
-                    (
-                        isinstance(
-                            tool_call_arguments, str
-                        )
-                        and
-                        tool_call_arguments.endswith("}")
+                    not tool_call_arguments
+                    and
+                    not self._check_if_arguments_are_required(
+                        tool_call_name
                     )
                 )
-            )
+            tool_call_arguments_formatted_properly = \
+                (
+                    isinstance(
+                        tool_call_arguments, str
+                    )
+                    and
+                    tool_call_arguments.endswith("}")
+                )
+            tool_call_arguments_ready = \
+                tool_call_arguments_not_required \
+                or \
+                tool_call_arguments_formatted_properly
+        else:
+            tool_call_arguments_ready = False
+
         if (
             tool_call_id_ready
             and
