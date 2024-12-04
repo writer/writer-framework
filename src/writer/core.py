@@ -1255,6 +1255,8 @@ class EventDeserialiser:
     def _transform_tag_click(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "tags", True, "{ }")
         if not isinstance(options, dict):
@@ -1266,6 +1268,8 @@ class EventDeserialiser:
     def _transform_option_change(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
         if not isinstance(options, dict):
@@ -1277,6 +1281,8 @@ class EventDeserialiser:
     def _transform_options_change(self, ev: WriterEvent) -> Optional[List[str]]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
         if not isinstance(options, dict):
@@ -1666,12 +1672,16 @@ class EventHandler:
         if not ev.handler:
             raise ValueError("Handler not specified when attempting to execute global event.")
         handler_callable = self._get_handler_callable(ev.handler)
+        if not handler_callable:
+            return
         calling_arguments = self._get_calling_arguments(ev, instance_path=None)
         return self._call_handler_callable(handler_callable, calling_arguments)
 
     def _handle_component_event(self, ev: WriterEvent):
         instance_path = ev.instancePath
         try:
+            if not instance_path:
+                raise ValueError("Component event must specify an instance path.")
             target_id = instance_path[-1]["componentId"]
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
@@ -1681,6 +1691,8 @@ class EventHandler:
             if not handler:
                 return None
             handler_callable = self._get_handler_callable(handler)
+            if not handler_callable:
+                return
             calling_arguments = self._get_calling_arguments(ev, instance_path)
             return self._call_handler_callable(handler_callable, calling_arguments)
         except BaseException as e:
