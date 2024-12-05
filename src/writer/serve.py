@@ -2,13 +2,16 @@ import asyncio
 import html
 import importlib.util
 import io
+import json
 import logging
 import mimetypes
+import redis
 import os
 import os.path
 import pathlib
 import socket
 import textwrap
+import time
 import typing
 from contextlib import asynccontextmanager
 from importlib.machinery import ModuleSpec
@@ -17,13 +20,13 @@ from urllib.parse import urlsplit
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract
+from writer import VERSION, abstract, crypto
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -56,13 +59,46 @@ class JobVault:
 
     def generate_job_id(self):
         self.counter += 1
-        return self.counter
+        return str(self.counter)
 
     def set(self, job_id: str, value: Any):
         self.vault[job_id] = value
     
     def get(self, job_id: str):
         return self.vault.get(job_id)
+
+    @classmethod
+    def create_vault(cls):
+        redis_connection_string = os.getenv("WRITER_CONNECTION_STRING_REDIS")
+        if redis_connection_string:
+            return RedisJobVault()
+        else:
+            return cls()
+
+
+class RedisJobVault(JobVault):
+
+    def __init__(self):
+        super().__init__()
+        redis_connection_string = os.getenv("WRITER_CONNECTION_STRING_REDIS")
+        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True)
+        self.counter_key = "job_counter"
+        if not self.redis_client.exists(self.counter_key):
+            self.redis_client.set(self.counter_key, 0)
+
+    def generate_job_id(self):
+        job_id = self.redis_client.incr(self.counter_key)
+        return str(job_id)
+
+    def set(self, job_id: str, value: Any):
+        json_str = json.dumps(value)
+        self.redis_client.set(f"job:{job_id}", json_str)
+
+    def get(self, job_id: str):
+        json_str = self.redis_client.get(f"job:{job_id}")
+        return json.loads(json_str)
+
+
 
 class WriterState(typing.Protocol):
     app_runner: AppRunner
@@ -139,7 +175,7 @@ def get_asgi_app(
     """
     app.state.writer_app = True
     app.state.app_runner = app_runner
-    app.state.job_vault = JobVault()
+    app.state.job_vault = JobVault.create_vault()
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -242,6 +278,94 @@ def get_asgi_app(
         if serve_mode == "edit":
             return _get_edit_starter_pack(app_response.payload)
 
+    # Jobs
+
+    @app.post("/api/job/workflow/{workflow_key}")
+    async def create_workflow_job(workflow_key: str, request: Request, response: Response):
+        crypto.verify_hash_in_request(f"create_job_{workflow_key}", request)
+
+        def serialize_result(data):
+            if isinstance(data, list):
+                return [serialize_result(item) for item in data]
+            if isinstance(data, dict):
+                return {k : serialize_result(v) for k, v in data.items()}
+            if isinstance(data, (str, int, float, bool, type(None))):
+                return data
+            try:
+                return json.loads(json.dumps(data))
+            except (TypeError, OverflowError):
+                return f"Can't be displayed. Value of type: {str(type(data))}."
+
+        def update_job(job_id: str, job_info: dict):
+            current_job_info = app.state.job_vault.get(job_id)
+            if not current_job_info:
+                raise RuntimeError("Job not found.")
+            merged_info = current_job_info | { "finished_at": int(time.time()) } | job_info
+            app.state.job_vault.set(job_id, merged_info)
+
+        def job_done_callback(task, job_id: str):
+            try:
+                apsr: Optional[AppProcessServerResponse] = None
+                apsr = task.result()
+                if apsr.status != "ok":
+                    update_job(job_id, {"status": "error"})
+                    return
+                result = apsr.payload.result.get("result")
+                update_job(job_id, {
+                    "status": "complete",
+                    "result": serialize_result(result)
+                })
+            except Exception as e:
+                update_job(job_id, {"status": "error"})
+                raise e
+
+        app_response = await app_runner.init_session(InitSessionRequestPayload(
+            cookies=dict(request.cookies),
+            headers=dict(request.headers),
+            proposedSessionId=None
+        ))
+
+        session_id = app_response.payload.sessionId
+        is_session_ok = await app_runner.check_session(session_id)
+        if not is_session_ok:
+            return
+
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(app_runner.handle_event(
+            session_id, WriterEvent(
+                type="wf-builtin-run",
+                isSafe=True,
+                handler=f"$runWorkflow_{workflow_key}"
+            )))
+
+        job_id = app.state.job_vault.generate_job_id()
+        app.state.job_vault.set(job_id, {
+            "id": job_id,
+            "status": "in progress",
+            "created_at": int(time.time())
+        })
+        task.add_done_callback(lambda t: job_done_callback(t, job_id))
+        return {
+            "id": job_id,
+            "token": crypto.get_hash(f"get_job_{job_id}")
+        }
+
+    @app.get("/api/job/{job_id}")
+    async def get_workflow_job(job_id: str, request: Request, response: Response):
+        crypto.verify_hash_in_request(f"get_job_{job_id}", request)
+        job = app.state.job_vault.get(job_id)
+
+        if not job:
+            return JSONResponse(status_code=404, content={
+                "id": job_id,
+                "status": "not found"
+            })
+
+        status_code = 200
+        if job.get("status") == "error":
+            status_code = 400
+        
+        return JSONResponse(status_code=status_code, content=job)
 
     # Streaming
 
