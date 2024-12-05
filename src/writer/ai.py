@@ -90,17 +90,31 @@ class GraphTool(Tool):
     subqueries: bool
 
 
+class FunctionToolParameterMeta(TypedDict):
+    type: Union[
+        Literal["string"],
+        Literal["number"],
+        Literal["integer"],
+        Literal["float"],
+        Literal["boolean"],
+        Literal["array"],
+        Literal["object"],
+        Literal["null"]
+        ]
+    description: str
+
+
 class FunctionTool(Tool):
     callable: Callable
     name: str
     description: Optional[str]
-    parameters: Dict[str, Dict[str, str]]
+    parameters: Dict[str, FunctionToolParameterMeta]
 
 
 def create_function_tool(
     callable: Callable,
     name: str,
-    parameters: Optional[Dict[str, Dict[str, str]]] = None,
+    parameters: Optional[Dict[str, FunctionToolParameterMeta]] = None,
     description: Optional[str] = None
 ) -> FunctionTool:
     parameters = parameters or {}
