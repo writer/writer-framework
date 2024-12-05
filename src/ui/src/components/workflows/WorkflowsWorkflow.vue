@@ -142,7 +142,6 @@ import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
 
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
-const instancePath = inject(injectionKeys.instancePath);
 const workflowComponentId = inject(injectionKeys.componentId);
 
 const rootEl: Ref<HTMLElement | null> = ref(null);
@@ -224,9 +223,10 @@ async function handleRun() {
 				callback: () => {
 					isRunning.value = false;
 				},
+				handler: `$runWorkflowById_${workflowComponentId}`,
 			},
 		}),
-		instancePath,
+		null,
 		false,
 	);
 }
