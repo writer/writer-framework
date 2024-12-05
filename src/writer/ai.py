@@ -1210,7 +1210,7 @@ class Conversation:
             self,
             callable_to_register: Callable,
             name: str,
-            parameters: Dict[str, Dict[str, str]]
+            parameters: Dict[str, FunctionToolParameterMeta]
     ):
         """
         Internal helper function to store a provided callable
@@ -1280,7 +1280,9 @@ class Conversation:
         Internal helper function to process a tool instance
         into the required format.
         """
-        def validate_parameters(parameters: Dict[str, Dict[str, str]]) -> bool:
+        def validate_parameters(
+                parameters: Dict[str, FunctionToolParameterMeta]
+        ) -> bool:
             """
             Validates the `parameters` dictionary to ensure that each key
             is a parameter name, and each value is a dictionary containing
