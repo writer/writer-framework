@@ -17,7 +17,7 @@
 				v-if="isCollapsible"
 				v-model="isCollapsed"
 				class="collapser"
-				direction="left-right"
+				direction="top-bottom"
 			/>
 		</div>
 		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
@@ -210,25 +210,6 @@ watch(
 .CoreColumn > .header > .collapser {
 	order: 2;
 	flex: 0 0 32px;
-}
-
-.CoreColumn > .header > .collapser > .collapserArrow {
-	transition: all 0.5s ease-in-out;
-	transform: rotate(0deg);
-}
-
-.CoreColumn:not(.collapsibleToRight).collapsed
-	> .header
-	> .collapser
-	> .collapserArrow {
-	transform: rotate(180deg);
-}
-
-.CoreColumn.collapsibleToRight:not(.collapsed)
-	> .header
-	> .collapser
-	> .collapserArrow {
-	transform: rotate(180deg);
 }
 
 .CoreColumn.collapsibleToRight > .header {
