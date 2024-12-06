@@ -17,6 +17,7 @@ import CoreTags from "../components/core/content/CoreTags.vue";
 import CoreAvatar from "../components/core/content/CoreAvatar.vue";
 import CoreAnnotatedText from "../components/core/content/CoreAnnotatedText.vue";
 import CoreJsonViewer from "../components/core/content/CoreJsonViewer.vue";
+import CoreProgressBar from "../components/core/content/CoreProgressBar.vue";
 
 // input
 import CoreCheckboxInput from "../components/core/input/CoreCheckboxInput.vue";
@@ -136,6 +137,7 @@ const templateMap: TemplateMap = {
 	jsonviewer: CoreJsonViewer,
 	workflows_root: WorkflowsRoot,
 	workflows_workflow: WorkflowsWorkflow,
+	progressbar: CoreProgressBar,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};
