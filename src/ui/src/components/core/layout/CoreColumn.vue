@@ -17,7 +17,7 @@
 				v-if="isCollapsible"
 				v-model="isCollapsed"
 				class="collapser"
-				direction="top-bottom"
+				:direction="collapseDirection"
 			/>
 		</div>
 		<div v-if="isCollapsed && fields.title.value" class="collapsedTitle">
@@ -48,7 +48,6 @@ import {
 	startCollapsed,
 	isCollapsible as isCollapsibleField,
 } from "@/renderer/sharedStyleFields";
-import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const description =
 	"A layout component that organizes its child components in columns. Must be inside a Column Container component.";
@@ -100,7 +99,10 @@ export default {
 <script setup lang="ts">
 import { computed, ComputedRef, inject, Ref, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import BaseContainer from "../base/BaseContainer.vue";
+import BaseContainer from "@/components/core/base/BaseContainer.vue";
+import BaseCollapseButton from "@/components/core/base/BaseCollapseButton.vue";
+import type { Direction } from "@/components/core/base/BaseCollapseButton.vue";
+
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
 const wf = inject(injectionKeys.core);
@@ -136,6 +138,10 @@ const isCollapsibleToRight = computed(
 	() =>
 		position.value >=
 		columnsData.value?.value?.minimumNonCollapsiblePosition,
+);
+
+const collapseDirection = computed<Direction>(() =>
+	isCollapsibleToRight.value ? "right-left" : "left-right",
 );
 
 const columnsData: ComputedRef<Ref> = computed(() => {
