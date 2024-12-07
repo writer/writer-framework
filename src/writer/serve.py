@@ -32,6 +32,8 @@ from writer.ss_types import (
     AppProcessServerResponse,
     ComponentUpdateRequestPayload,
     EventResponsePayload,
+    HashRequestPayload,
+    HashRequestResponsePayload,
     InitRequestBody,
     InitResponseBodyEdit,
     InitResponseBodyRun,
@@ -69,19 +71,25 @@ class JobVault:
 
     @classmethod
     def create_vault(cls):
-        redis_connection_string = os.getenv("WRITER_CONNECTION_STRING_REDIS")
-        if redis_connection_string:
-            return RedisJobVault()
-        else:
+        redis_connection_string = os.getenv("WRITER_REDIS")
+        if not redis_connection_string:
+            return cls()
+        try:
+            redis_vault = RedisJobVault()
+            return redis_vault
+        except Exception as e:
+            logging.error(f"There was an error connecting to Redis. Falling back to in-memory JobVault. {repr(e)}")
             return cls()
 
 
 class RedisJobVault(JobVault):
 
+    DEFAULT_TTL = 86400
+
     def __init__(self):
         super().__init__()
-        redis_connection_string = os.getenv("WRITER_CONNECTION_STRING_REDIS")
-        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True)
+        redis_connection_string = os.getenv("WRITER_REDIS")
+        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
         self.counter_key = "job_counter"
         if not self.redis_client.exists(self.counter_key):
             self.redis_client.set(self.counter_key, 0)
@@ -91,11 +99,14 @@ class RedisJobVault(JobVault):
         return str(job_id)
 
     def set(self, job_id: str, value: Any):
+        ttl = int(os.getenv("WRITER_REDIS_TTL")) if os.getenv("WRITER_REDIS_TTL") else RedisJobVault.DEFAULT_TTL 
         json_str = json.dumps(value)
-        self.redis_client.set(f"job:{job_id}", json_str)
+        self.redis_client.set(f"job:{job_id}", json_str, ex=ttl)
 
     def get(self, job_id: str):
         json_str = self.redis_client.get(f"job:{job_id}")
+        if not json_str:
+            return None
         return json.loads(json_str)
 
 
@@ -425,6 +436,9 @@ def get_asgi_app(
                 elif req_message.type == "stateEnquiry":
                     new_task = asyncio.create_task(
                         _handle_state_enquiry_message(websocket, session_id, req_message))
+                elif serve_mode == "edit" and req_message.type == "hashRequest":
+                    new_task = asyncio.create_task(
+                        _handle_hash_request(websocket, session_id, req_message))
                 elif serve_mode == "edit":
                     new_task = asyncio.create_task(
                         _handle_incoming_edit_message(websocket, session_id, req_message))
@@ -512,6 +526,24 @@ def get_asgi_app(
         if apsr is not None and apsr.payload is not None:
             res_payload = typing.cast(
                 StateEnquiryResponsePayload, apsr.payload).model_dump()
+        if res_payload is not None:
+            response.payload = res_payload
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_hash_request(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        res_payload: str = None
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_hash_request(session_id, HashRequestPayload(
+            message=req_message.payload.get("message", "")
+        ))
+        if apsr is not None and apsr.payload is not None:
+            res_payload = typing.cast(
+                HashRequestResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
         await websocket.send_json(response.model_dump())

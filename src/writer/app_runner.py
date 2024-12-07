@@ -17,7 +17,7 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix, core_ui, wf_project
+from writer import VERSION, audit_and_fix, core_ui, crypto, wf_project
 from writer.core import (
     Config,
     EventHandlerRegistry,
@@ -36,6 +36,9 @@ from writer.ss_types import (
     ComponentUpdateRequestPayload,
     EventRequest,
     EventResponsePayload,
+    HashRequest,
+    HashRequestPayload,
+    HashRequestResponsePayload,
     InitSessionRequest,
     InitSessionRequestPayload,
     InitSessionResponsePayload,
@@ -199,7 +202,7 @@ class AppProcess(multiprocessing.Process):
         session.session_state.clear_mail()
 
         return res_payload
-    
+
     def _handle_state_enquiry(self, session: WriterSession) -> StateEnquiryResponsePayload:
         import traceback as tb
 
@@ -236,7 +239,13 @@ class AppProcess(multiprocessing.Process):
                                                 tb.format_exc())
 
         return StateContentResponsePayload(state=serialized_state)
-    
+
+    def _handle_hash_request(self, req_payload: HashRequestPayload) -> HashRequestResponsePayload:
+        res_payload = HashRequestResponsePayload(
+            message=crypto.get_hash(req_payload.message)
+        )
+        return res_payload
+
     def _handle_component_update(self, session: WriterSession, payload: ComponentUpdateRequestPayload) -> None:
         import writer
         ingest_bmc_component_tree(writer.base_component_tree, payload.components)
@@ -301,6 +310,13 @@ class AppProcess(multiprocessing.Process):
                     status="ok",
                     status_message=None,
                     payload=None
+                )
+
+            if self.mode == "edit" and type == "hashRequest":
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=self._handle_hash_request(request.payload)
                 )
 
             if self.mode == "edit" and type == "componentUpdate":
@@ -743,6 +759,12 @@ class AppRunner:
         return await self.dispatch_message(session_id, EventRequest(
             type="event",
             payload=event
+        ))
+
+    async def handle_hash_request(self, session_id: str, payload: HashRequestPayload) -> AppProcessServerResponse:
+        return await self.dispatch_message(session_id, HashRequest(
+            type="hashRequest",
+            payload=payload
         ))
 
     async def handle_state_enquiry(self, session_id: str) -> AppProcessServerResponse:

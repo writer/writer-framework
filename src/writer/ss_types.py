@@ -120,6 +120,13 @@ class StateContentRequest(AppProcessServerRequest):
     type: Literal["stateContent"]
 
 
+class HashRequestPayload(BaseModel):
+    message: str
+
+class HashRequest(AppProcessServerRequest):
+    type: Literal["hashRequest"]
+    payload: HashRequestPayload
+
 AppProcessServerRequestPacket = Tuple[int,
                                       Optional[str], AppProcessServerRequest]
 
@@ -170,6 +177,13 @@ class StateEnquiryResponse(AppProcessServerResponse):
     type: Literal["stateEnquiry"]
     payload: Optional[StateEnquiryResponsePayload]
 
+
+class HashRequestResponsePayload(BaseModel):
+    message: str
+
+class HashRequestResponse(AppProcessServerRequest):
+    type: Literal["hashRequest"]
+    payload: HashRequestResponsePayload
 
 AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerResponse]
 
