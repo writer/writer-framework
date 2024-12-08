@@ -291,7 +291,7 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
         time.sleep(sleep_interval)
         start_time = end_time
 
-    _check_version_integrity(deploy_url)
+    _check_version_integrity(deploy_url, token)
 
     if status == "COMPLETED":
         print("Deployment successful")
@@ -323,12 +323,18 @@ def unauthorized_error():
     sys.exit(1)
 
 
-def _check_version_integrity(app_url: str):
+def _check_version_integrity(app_url: str, token: str):
     """
     Check if the writer version in the deployment package is newer than the writer version running on the server.
 
+    >>> _check_version_integrity("https://xxxxxxxxxxxxxxxx.ai.writer.build", "xxxxxxxxxxxxxxxxxxxxxxxxxx")
     """
-    with requests.get(f"{app_url}/_meta") as resp:
+    with requests.get(
+        f"{app_url}/_meta",
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    ) as resp:
         data = resp.json()
         if "writer_version_dev" not in data or "writer_version_run" not in data:
             return
