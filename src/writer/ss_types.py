@@ -214,6 +214,7 @@ class ComponentDefinition(TypedDict):
 class WorkflowExecutionLog(BaseModel):
     summary: List[Dict]
 
-
 class WriterConfigurationError(ValueError):
     pass
+
+
