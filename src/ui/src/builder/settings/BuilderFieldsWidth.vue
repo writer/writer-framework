@@ -5,38 +5,36 @@
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
-		<div class="chipStackContainer">
-			<div class="chipStack">
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'default' }"
-					@click="
-						() => {
-							setMode('default');
-							setContentValue(component.id, fieldKey, undefined);
-						}
-					"
-				>
-					Default
-				</button>
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'css' }"
-					@click="setMode('css')"
-				>
-					CSS
-				</button>
-				<button
-					class="chip"
-					:class="{ active: mode == 'pick' }"
-					tabindex="0"
-					@click="setMode('pick')"
-				>
-					Pick
-				</button>
-			</div>
+		<div class="chipStack">
+			<button
+				class="chip"
+				tabindex="0"
+				:class="{ active: mode == 'default' }"
+				@click="
+					() => {
+						setMode('default');
+						setContentValue(component.id, fieldKey, undefined);
+					}
+				"
+			>
+				Default
+			</button>
+			<button
+				class="chip"
+				tabindex="0"
+				:class="{ active: mode == 'css' }"
+				@click="setMode('css')"
+			>
+				CSS
+			</button>
+			<button
+				class="chip"
+				:class="{ active: mode == 'pick' }"
+				tabindex="0"
+				@click="setMode('pick')"
+			>
+				Pick
+			</button>
 		</div>
 
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
@@ -259,11 +257,6 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
-}
 .main {
 	border-top: 1px solid var(--builderSeparatorColor);
 	padding: 12px;
