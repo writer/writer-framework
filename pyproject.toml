@@ -48,6 +48,7 @@ watchdog = ">= 3.0.0, < 4"
 websockets = ">= 12, < 13"
 writer-sdk = ">= 1.5.0, < 2"
 python-multipart = ">=0.0.7, < 1"
+redis = "^5.2.1"
 
 
 [tool.poetry.group.build]
