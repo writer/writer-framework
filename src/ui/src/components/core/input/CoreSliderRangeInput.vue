@@ -6,7 +6,7 @@
 	>
 		<BaseInputSliderRange
 			popover-display-mode="always"
-			:value="formValue || [20, 50]"
+			:value="formValue"
 			:min="fields.minValue.value"
 			:max="fields.maxValue.value"
 			:step="fields.stepSize.value"
@@ -103,6 +103,7 @@ const { formValue, handleInput } = useFormValueBroker<[number, number]>(
 	wf,
 	instancePath,
 	rootInstance,
+	[20, 50],
 );
 </script>
 
