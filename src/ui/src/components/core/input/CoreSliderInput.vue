@@ -103,6 +103,7 @@ const { formValue, handleInput } = useFormValueBroker<number>(
 	wf,
 	instancePath,
 	rootInstance,
+	50,
 );
 </script>
 
