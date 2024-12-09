@@ -80,7 +80,7 @@ class HTTPRequest(WorkflowBlock):
             self.result = {
                 "headers": dict(req.headers),
                 "status_code": req.status_code,
-                "body": req.json() if is_json else req.text
+                "body": req.json(strict=False) if is_json else req.text
             }
             if req.ok:
                 self.outcome = "success"
