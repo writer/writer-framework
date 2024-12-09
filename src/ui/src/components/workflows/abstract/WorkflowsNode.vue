@@ -1,13 +1,7 @@
 <template>
 	<div class="WorkflowsNode">
 		<div class="title">
-			<img
-				:src="`./../../../../components/${component.type}.svg`"
-				@error="
-					(ev) =>
-						!isImageFallback ? handleImageError(ev) : undefined
-				"
-			/>
+			<img :src="imagePath" />
 			<WorkflowsNodeNamer
 				:component-id="componentId"
 				class="nodeNamer"
@@ -75,7 +69,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
@@ -85,7 +79,7 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-const isImageFallback = ref(false);
+const imagePath = ref<string>(null);
 
 const component = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -109,12 +103,6 @@ const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	});
 	return processedOuts;
 });
-
-function handleImageError(ev: Event) {
-	const imageEl = ev.target as HTMLImageElement;
-	imageEl.src = `./../../../../components/workflows_category_${def.value.category}.svg`;
-	isImageFallback.value = true;
-}
 
 function getDynamicKeysFromField(fieldKey: string) {
 	const fieldType = def.value.fields[fieldKey].type;
@@ -153,6 +141,40 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	ev.stopPropagation();
 	emit("outMousedown", outId);
 }
+
+async function checkIfUrlExists(url: string) {
+	try {
+		const response = await fetch(url, { method: "HEAD" });
+		return response.ok;
+	} catch {
+		return false;
+	}
+}
+
+async function getBestAvailableImagePath() {
+	const paths = [
+		`./../../../../components/${component.value.type}.svg`,
+		`./../../../../components/workflows_category_${def.value.category}.svg`,
+	];
+
+	if (wf.featureFlags.value.includes("custom_block_icons")) {
+		paths.unshift(
+			`./../../../../static/components/${component.value.id}.svg`,
+		);
+	}
+
+	for (let i = 0; i < paths.length; i++) {
+		const path = paths[i];
+		if (await checkIfUrlExists(path)) {
+			return path;
+		}
+	}
+	return "";
+}
+
+onMounted(async () => {
+	imagePath.value = await getBestAvailableImagePath();
+});
 
 watch(isEngaged, () => {
 	emit("engaged");
