@@ -4,6 +4,8 @@ import { Component, Core, FieldType, InstancePath } from "@/writerTypes";
 export function useEvaluator(wf: Core) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;
 
+	const expressionsTemplateRegex = /\{\{(.*?)\}\}/g;
+
 	/**
 	 * Returns the expression as an array of static accessors.
 	 * For example, turns a.b.c into ["a", "b", "c"].
@@ -119,7 +121,7 @@ export function useEvaluator(wf: Core) {
 		instancePath: InstancePath,
 	): string {
 		if (template === undefined || template === null) return "";
-		const evaluatedTemplate = template.replace(
+		let evaluatedTemplate = template.replace(
 			templateRegex,
 			(match, captured) => {
 				if (match.charAt(0) == "\\") return match.substring(1); // Escaped @, don't evaluate, return without \
@@ -138,6 +140,25 @@ export function useEvaluator(wf: Core) {
 				return exprValue.toString();
 			},
 		);
+
+		evaluatedTemplate = evaluatedTemplate.replaceAll(expressionsTemplateRegex, (match, captured) => {
+			if (match.charAt(0) == "\\") return match.substring(1);
+
+
+			const expr = captured.trim();
+			if (!expr) return "";
+
+			const exprValue = wf.evaluatedExpressions.value[expr];
+
+			if (typeof exprValue == "undefined") {
+				return "";
+			} else if (typeof exprValue == "object") {
+				return JSON.stringify(exprValue);
+			}
+
+			return exprValue.toString();
+
+		});
 
 		return evaluatedTemplate;
 	}

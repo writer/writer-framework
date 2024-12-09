@@ -149,6 +149,7 @@ class InitSessionResponse(AppProcessServerResponse):
 class EventResponsePayload(BaseModel):
     result: Any
     mutations: Dict[str, Any]
+    evaluatedExpressions: Dict[str, Any]
     mail: List
     components: Optional[Dict] = None
 

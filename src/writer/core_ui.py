@@ -1,6 +1,7 @@
 import contextlib
 import copy
 import logging
+import re
 import uuid
 from contextvars import ContextVar
 from enum import Enum
@@ -250,6 +251,20 @@ class ComponentTree():
             components.update(tree.to_dict())
 
         return components
+
+    def scan_expressions(self) -> List:
+        pattern = re.compile(r"\{\{(.*?)\}\}")
+        trees = reversed(self.tree_branches)
+        expressions = []
+        for tree in trees:
+            all_components = tree.components.values()
+            for component in all_components:
+                for field_value in component.content.values():
+                    matches = pattern.findall(field_value)
+                    for match in matches:
+                        expressions.append(match.strip())
+        return expressions
+
 
     def next_page_id(self) -> str:
         return f"page-{self.page_counter}"

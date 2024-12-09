@@ -39,6 +39,7 @@ export function generateCore() {
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
+	const evaluatedExpressions: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline" | "suspended"> =
 		ref("idle");
@@ -146,7 +147,7 @@ export function generateCore() {
 			*/
 
 			const mutationFlag = key.charAt(0);
-			const accessor = parseAccessor(key.substring(1));
+			const accessor = parseAccessor(key.substring(0));
 			const lastElementIndex = accessor.length - 1;
 			let stateRef = userState.value;
 
@@ -217,6 +218,7 @@ export function generateCore() {
 				message.messageType == "eventResponse" ||
 				message.messageType == "stateEnquiryResponse"
 			) {
+				evaluatedExpressions.value = message.payload?.evaluatedExpressions;
 				ingestMutations(message.payload?.mutations);
 				collateMail(message.payload?.mail);
 				ingestComponents(message.payload?.components);
@@ -567,6 +569,7 @@ export function generateCore() {
 		webSocket,
 		syncHealth,
 		frontendMessageMap: readonly(frontendMessageMap),
+		evaluatedExpressions: readonly(evaluatedExpressions),
 		mode: readonly(mode),
 		userFunctions: readonly(userFunctions),
 		addMailSubscription,
