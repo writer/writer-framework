@@ -112,6 +112,7 @@ const isCollapsed = ref<boolean>(
 	margin: 16px 16px 0 16px;
 	display: grid;
 	grid-template-columns: 1fr auto;
+	align-items: center;
 }
 .CoreSection__title--collapsed {
 	margin: 16px;

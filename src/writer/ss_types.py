@@ -101,7 +101,9 @@ class ComponentUpdateRequest(AppProcessServerRequest):
 
 class WriterEvent(BaseModel):
     type: str
-    instancePath: InstancePath
+    isSafe: Optional[bool] = False
+    handler: Optional[str] = None 
+    instancePath: Optional[InstancePath] = None
     payload: Optional[Any] = None
 
 

@@ -52,6 +52,11 @@ def update_cities(state, payload):
             "br": "Bristol"
         }
 
+
+def nineninenine():
+    return 999
+
+
 def create_text_widget(ui: WriterUIManager):
     with ui.find('bb4d0e86-619e-4367-a180-be28ab6059f4'):
         ui.Text({"text": "Hello world"})

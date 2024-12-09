@@ -1255,6 +1255,8 @@ class EventDeserialiser:
     def _transform_tag_click(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "tags", True, "{ }")
         if not isinstance(options, dict):
@@ -1266,6 +1268,8 @@ class EventDeserialiser:
     def _transform_option_change(self, ev: WriterEvent) -> Optional[str]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
         if not isinstance(options, dict):
@@ -1277,6 +1281,8 @@ class EventDeserialiser:
     def _transform_options_change(self, ev: WriterEvent) -> Optional[List[str]]:
         payload = ev.payload
         instance_path = ev.instancePath
+        if not instance_path:
+            raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
             instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
         if not isinstance(options, dict):
@@ -1591,7 +1597,7 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _get_workflow_callable(self, workflow_key: Optional[str], workflow_id: Optional[str]):
+    def _get_workflow_callable(self, workflow_key: Optional[str] = None, workflow_id: Optional[str] = None):
         def fn(payload, context, session):
             execution_environment = {
                 "payload": payload,
@@ -1604,96 +1610,110 @@ class EventHandler:
                 self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
         return fn
 
-    def _get_handler_callable(self, target_component: Component, event_type: str) -> Optional[Callable]:        
-        if event_type == "wf-builtin-run" and Config.mode == "edit":
-            return self._get_workflow_callable(None, target_component.id)
-        
-        if not target_component.handlers:
-            return None
-        handler = target_component.handlers.get(event_type)
-        if not handler:
-            return None
-
+    def _get_handler_callable(self, handler: str) -> Optional[Callable]:
         if handler.startswith("$runWorkflow_"):
             workflow_key = handler[13:] 
-            return self._get_workflow_callable(workflow_key, None)
+            return self._get_workflow_callable(workflow_key=workflow_key)
+
+        if handler.startswith("$runWorkflowById_"):
+            workflow_id = handler[17:]
+            return self._get_workflow_callable(workflow_id=workflow_id)
 
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
         callable_handler = handler_registry.find_handler_callable(handler)
         return callable_handler
 
+    def _get_calling_arguments(self, ev: WriterEvent, instance_path: Optional[InstancePath] = None):
+        context_data = self.evaluator.get_context_data(instance_path) if instance_path else {}
+        context_data["event"] = ev.type
+        return {
+            "state": self.session_state,
+            "payload": ev.payload,
+            "context": context_data,
+            "session":_event_handler_session_info(),
+            "ui": _event_handler_ui_manager()
+        }
 
     def _call_handler_callable(
         self,
-        event_type: str,
-        target_component: Component,
-        instance_path: InstancePath,
-        payload: Any
-    ) -> Any:
-        
-        handler_callable = self._get_handler_callable(target_component, event_type)
-        if not handler_callable:
-            return
-
-        # Preparation of arguments
-        context_data = self.evaluator.get_context_data(instance_path)
-        context_data['event'] = event_type
-        writer_args = {
-            'state': self.session_state,
-            'payload': payload,
-            'context': context_data,
-            'session':_event_handler_session_info(),
-            'ui': _event_handler_ui_manager()
-        }
-
-        # Invocation of handler
+        handler_callable: Callable,
+        calling_arguments: Dict
+    ) -> Any:        
         current_app_process = get_app_process()
         result = None
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
             middlewares_executors = current_app_process.middleware_registry.executors()
-            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, writer_args)
+            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
-            self.session_state.add_log_entry(
-                "info",
-                "Stdout message",
-                captured_stdout
-            )
+            self.session_state.add_log_entry("info", "Stdout message", captured_stdout)
 
         return result
 
-    def handle(self, ev: WriterEvent) -> WriterEventResult:
-        ok = True
-
+    def _deserialize(self, ev: WriterEvent):
         try:
             self.deser.transform(ev)
-        except BaseException:
-            ok = False
+        except BaseException as e: 
             self.session_state.add_notification(
-                "error", "Error", f"A deserialisation error occurred when handling event '{ ev.type }'.")
-            self.session_state.add_log_entry("error", "Deserialisation Failed",
-                                             f"The data sent might be corrupt. A runtime exception was raised when deserialising event '{ ev.type }'.", traceback.format_exc())
+                "error", "Error", f"A deserialization error occurred when handling event '{ ev.type }'.")
+            self.session_state.add_log_entry("error", "Deserialization Failed",
+                                             f"The data sent might be corrupt. A runtime exception was raised when deserializing event '{ ev.type }'.", traceback.format_exc())
+            raise e
 
-        result = None
+    def _handle_global_event(self, ev: WriterEvent):
+        if not ev.isSafe:
+            error_message = "Attempted executing a global event in an unsafe context."
+            self.session_state.add_log_entry("error", "Forbidden operation", error_message, traceback.format_exc())
+            raise PermissionError(error_message)
+        if not ev.handler:
+            raise ValueError("Handler not specified when attempting to execute global event.")
+        handler_callable = self._get_handler_callable(ev.handler)
+        if not handler_callable:
+            return
+        calling_arguments = self._get_calling_arguments(ev, instance_path=None)
+        return self._call_handler_callable(handler_callable, calling_arguments)
+
+    def _handle_component_event(self, ev: WriterEvent):
+        instance_path = ev.instancePath
         try:
-            instance_path = ev.instancePath
+            if not instance_path:
+                raise ValueError("Component event must specify an instance path.")
             target_id = instance_path[-1]["componentId"]
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
-
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
-            result = self._call_handler_callable(ev.type, target_component, instance_path, ev.payload)
-        except BaseException:
-            ok = False
+            if not target_component.handlers:
+                return None
+            handler = target_component.handlers.get(ev.type)
+            if not handler:
+                return None
+            handler_callable = self._get_handler_callable(handler)
+            if not handler_callable:
+                return
+            calling_arguments = self._get_calling_arguments(ev, instance_path)
+            return self._call_handler_callable(handler_callable, calling_arguments)
+        except BaseException as e:
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
                                                 )
             self.session_state.add_log_entry("error", "Runtime Exception",
                                              f"A runtime exception was raised when processing event '{ ev.type }'.", traceback.format_exc())
+            raise e
 
-        return {"ok": ok, "result": result}
+    def handle(self, ev: WriterEvent) -> WriterEventResult:
+        try:
+            if not ev.isSafe and ev.handler is not None:
+                raise PermissionError("Unexpected handler set on event.")
+            self._deserialize(ev)
+            if not ev.instancePath:
+                return {"ok": True, "result": self._handle_global_event(ev)}
+            else:
+                return {"ok": True, "result": self._handle_component_event(ev)}
+        except BaseException as e:
+            return {"ok": False, "result": str(e)}
+
 
 class EventHandlerExecutor:
 

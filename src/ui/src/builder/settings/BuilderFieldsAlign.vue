@@ -42,9 +42,9 @@
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<BuilderSelect
-					:value="subMode"
+					:model-value="subMode"
 					:options="selectOptions"
-					@input="handleInputSelect"
+					@update:model-value="handleInputSelect"
 				/>
 			</div>
 

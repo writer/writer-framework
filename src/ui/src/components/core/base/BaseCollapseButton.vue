@@ -9,21 +9,37 @@
 	</button>
 </template>
 
+<script lang="ts">
+export type Direction =
+	| "left-right"
+	| "top-bottom"
+	| "bottom-top"
+	| "right-left";
+</script>
+
 <script setup lang="ts">
 import { computed, PropType } from "vue";
 
 const props = defineProps({
-	direction: {
-		type: String as PropType<"left-right" | "top-bottom">,
-		required: true,
-	},
+	direction: { type: String as PropType<Direction>, required: true },
 });
 
 const isCollapsed = defineModel({ type: Boolean, required: true });
 
-const icon = computed(() =>
-	props.direction === "left-right" ? "chevron_left" : "keyboard_arrow_up",
-);
+const icon = computed(() => {
+	switch (props.direction) {
+		case "left-right":
+			return "chevron_left";
+		case "top-bottom":
+			return "keyboard_arrow_up";
+		case "right-left":
+			return "chevron_right";
+		case "bottom-top":
+			return "keyboard_arrow_down";
+		default:
+			return "keyboard_arrow_up";
+	}
+});
 </script>
 
 <style scoped>

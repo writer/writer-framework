@@ -29,9 +29,7 @@
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>
-			<BuilderPanelSwitcher
-				class="builderPanelSwitcher"
-			></BuilderPanelSwitcher>
+			<BuilderPanelSwitcher class="panelSwitcher"></BuilderPanelSwitcher>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -375,7 +373,7 @@ onMounted(() => {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
 }
 
-.builderPanelSwitcher {
+.panelSwitcher {
 	grid-column: 2 / 3;
 	grid-row: 3;
 }
