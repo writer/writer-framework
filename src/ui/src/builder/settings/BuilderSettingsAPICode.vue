@@ -37,8 +37,16 @@
 				>
 			</template>
 			<template v-else>
-				You need to specify a workflow key before this workflow can be
-				used in the UI or called via API.
+				<WdsButton
+					:disabled="true"
+					variant="tertiary"
+					size="small"
+					data-writer-tooltip="You need to specify a workflow key before this workflow can be
+				used in the UI or called via API."
+				>
+					<i class="material-symbols-outlined"> code </i> Call via
+					API</WdsButton
+				>
 			</template>
 		</div>
 	</span>
