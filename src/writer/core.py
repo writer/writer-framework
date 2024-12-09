@@ -144,14 +144,32 @@ class WriterSession:
         self.headers = headers
         self.last_active_timestamp: int = int(time.time())
         new_state = WriterState.get_new()
-        new_state.user_state.mutated = set()
         self.session_state = new_state
         self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
+        self.globals = {}
         self.event_handler = EventHandler(self)
         self.userinfo: Optional[dict] = None
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
+
+    def get_serialized_evaluated_expressions(self):
+        serializer = StateSerialiser()
+        evaluated_expressions = {}
+        expressions = self.session_component_tree.scan_expressions()
+        for expression in (expressions or {}):
+            print(f"evaluating {expression}")
+            try:
+                evaluated_expressions[expression] = serializer.serialise(eval(expression, self.globals))
+            except Exception as e:
+                evaluated_expressions[expression] = None
+        return evaluated_expressions
+
+    def get_serialized_globals(self):
+        serializer = StateSerialiser()
+        globals_excluding_builtins = {k: v for k, v in self.globals.items() if k != "__builtins__"}
+
+        return serializer.serialise(globals_excluding_builtins)
 
 
 @dataclasses.dataclass
@@ -338,8 +356,10 @@ class StateSerialiser:
             # Covers Altair charts, Plotly graphs
             return self._serialise_dict_recursively(v.to_dict())
 
-        raise StateSerialiserException(
-            f"Object of type { type(v) } (MRO: {v_mro}) cannot be serialised.")
+        return f"Object of type { type(v) } (MRO: {v_mro}) cannot be serialised."
+
+        # raise StateSerialiserException(
+        #     f"Object of type { type(v) } (MRO: {v_mro}) cannot be serialised.")
 
     def _serialise_dict_recursively(self, d: Dict) -> Dict:
         return {str(k): self.serialise(v) for k, v in d.items()}
@@ -1619,9 +1639,11 @@ class EventHandler:
             workflow_id = handler[17:]
             return self._get_workflow_callable(workflow_id=workflow_id)
 
-        current_app_process = get_app_process()
-        handler_registry = current_app_process.handler_registry
-        callable_handler = handler_registry.find_handler_callable(handler)
+        callable_handler = self.session.globals[handler]
+
+        # current_app_process = get_app_process()
+        # handler_registry = current_app_process.handler_registry
+        # callable_handler = handler_registry.find_handler_callable(handler)
         return callable_handler
 
     def _get_calling_arguments(self, ev: WriterEvent, instance_path: Optional[InstancePath] = None):
@@ -1645,8 +1667,9 @@ class EventHandler:
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
-            middlewares_executors = current_app_process.middleware_registry.executors()
-            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
+            handler_callable()
+            # middlewares_executors = current_app_process.middleware_registry.executors()
+            # result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
             captured_stdout = f.getvalue()
 
         if captured_stdout:

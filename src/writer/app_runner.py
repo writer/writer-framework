@@ -154,11 +154,13 @@ class AppProcess(multiprocessing.Process):
             session.session_state.add_log_entry(
                 "error", "Serialisation error", tb.format_exc())
 
+        self._execute_user_app_code(session.globals)
+
         ui_component_tree = core_ui.export_component_tree(
             session.session_component_tree, mode=writer.Config.mode)
 
         res_payload = InitSessionResponsePayload(
-            userState=user_state,
+            userState=session.get_serialized_globals(),
             sessionId=session.session_id,
             mail=session.session_state.mail,
             components=ui_component_tree,
@@ -176,6 +178,7 @@ class AppProcess(multiprocessing.Process):
         result = session.event_handler.handle(event)
 
         mutations = {}
+        session.session_state.user_state.apply_mutation_marker(recursive=True)
 
         try:
             mutations = session.session_state.user_state.get_mutations_as_dict()
@@ -192,7 +195,8 @@ class AppProcess(multiprocessing.Process):
 
         res_payload = EventResponsePayload(
             result=result,
-            mutations=mutations,
+            mutations=session.get_serialized_globals(),
+            evaluatedExpressions=session.get_serialized_evaluated_expressions(),
             components=ui_component_tree,
             mail=mail
         )
@@ -314,6 +318,12 @@ class AppProcess(multiprocessing.Process):
                 )
 
             raise MessageHandlingException("Invalid event.")
+
+    def _execute_user_app_code(self, session_globals) -> Dict:
+        code_path = os.path.join(self.app_path, "main.py")
+        code = compile(self.run_code, code_path, "exec")
+        exec(code, session_globals)
+        return session_globals
 
     def _execute_user_code(self) -> None:
         """
