@@ -38,6 +38,7 @@ class AbstractTemplate(BaseModel):
 
 class InitRequestBody(BaseModel):
     proposedSessionId: Optional[str] = None
+    localStorage: Optional[Dict[str, Any]] = None
 
 
 class InitResponseBody(BaseModel):
@@ -83,6 +84,7 @@ class AppProcessServerRequest(BaseModel):
 class InitSessionRequestPayload(BaseModel):
     cookies: Optional[Dict[str, str]] = None
     headers: Optional[Dict[str, str]] = None
+    localStorage: Optional[Dict[str, Any]] = None
     proposedSessionId: Optional[str] = None
 
 class InitSessionRequest(AppProcessServerRequest):

@@ -293,7 +293,8 @@ def get_asgi_app(
         app_response = await app_runner.init_session(InitSessionRequestPayload(
             cookies=dict(request.cookies),
             headers=dict(request.headers),
-            proposedSessionId=initBody.proposedSessionId
+            proposedSessionId=initBody.proposedSessionId,
+            localStorage=initBody.localStorage,
         ))
 
         status = app_response.status
