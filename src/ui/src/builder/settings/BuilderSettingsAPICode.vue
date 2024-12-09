@@ -18,7 +18,8 @@
 					></BuilderEmbeddedCodeEditor>
 				</div>
 				Using the job ID and token obtained in the previous call, check
-				the status of the job.
+				the status of the job. You can use the code below, after
+				replacing JOB_ID and JOB_TOKEN for the right values.
 				<div class="codeContainer">
 					<BuilderEmbeddedCodeEditor
 						v-model="codePost"
@@ -101,8 +102,8 @@ curl --location --request POST '${baseURL}api/job/workflow/${workflowKey.value}'
     "my_var": 1
 }'`.trim();
 	codePost.value = `
-curl --location '${baseURL}api/job/[JOB_ID]' \\
---header 'Authorization: Bearer [JOB_TOKEN]'`.trim();
+curl --location '${baseURL}api/job/JOB_ID' \\
+--header 'Authorization: Bearer JOB_TOKEN'`.trim();
 }
 </script>
 
