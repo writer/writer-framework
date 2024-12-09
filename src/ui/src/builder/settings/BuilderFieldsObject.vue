@@ -46,7 +46,6 @@ const templateField = computed(() => {
 @import "../sharedStyles.css";
 
 .BuilderFieldsObject {
-	padding: 16px 12px 12px 12px;
 	font-size: inherit;
 }
 </style>
