@@ -291,6 +291,17 @@ def get_asgi_app(
 
     # Jobs
 
+    async def _get_payload_as_json(request: Request):
+        payload = None
+        body = await request.body()        
+        if not body:
+            return None
+        try:
+            payload = await request.json()
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Cannot parse the payload.")
+        return payload
+
     @app.post("/api/job/workflow/{workflow_key}")
     async def create_workflow_job(workflow_key: str, request: Request, response: Response):
         crypto.verify_hash_in_request(f"create_job_{workflow_key}", request)
@@ -346,7 +357,8 @@ def get_asgi_app(
             session_id, WriterEvent(
                 type="wf-builtin-run",
                 isSafe=True,
-                handler=f"$runWorkflow_{workflow_key}"
+                handler=f"$runWorkflow_{workflow_key}",
+                payload=await _get_payload_as_json(request)
             )))
 
         job_id = app.state.job_vault.generate_job_id()
