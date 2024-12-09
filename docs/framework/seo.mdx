@@ -1,5 +1,5 @@
 ---
-title: "SEO"
+title: "Seo and social sharing"
 mode: "wide"
 ---
 
@@ -41,6 +41,7 @@ writer.serve.configure_webpage_metadata(
 
 You can also use a function to generate the meta tags dynamically.
 
+*./server_setup.py*
 ```python
 def _meta():
 	last_news = db.get_last_news()
@@ -57,6 +58,7 @@ writer.serve.configure_webpage_metadata(meta=_meta)
 
 When you share a link on social networks, they will try to fetch the metadata of the page to display a preview.
 
+*./server_setup.py*
 ```python
 writer.serve.configure_webpage_metadata(
     opengraph_tags= {
@@ -66,9 +68,11 @@ writer.serve.configure_webpage_metadata(
     	"og:url": "https://myapp.com"
     }
 )
+```
 
 You can also use a function to generate the opengraph tags dynamically.
 
+*./server_setup.py*
 ```python
 def _opengraph_tags():
 	last_news = db.get_last_news()
