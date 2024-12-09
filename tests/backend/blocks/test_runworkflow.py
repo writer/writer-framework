@@ -14,7 +14,7 @@ def test_workflow_that_does_not_exist(session, runner):
 def test_duplicator(session, runner):
     session.add_fake_component({
         "workflowKey": "duplicator",
-        "executionEnv": '{"item": 23}'
+        "payload": '{"item": 23}'
     })
     block = RunWorkflow("fake_id", runner, {})
     block.run()

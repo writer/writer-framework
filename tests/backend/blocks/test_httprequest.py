@@ -71,8 +71,8 @@ def test_actual_request_with_bad_path(session, runner):
     assert block.outcome == "responseError"
 
 
-def test_patched_request(session, runner):
-    requests.request = fake_request
+def test_patched_request(session, runner, monkeypatch):
+    monkeypatch.setattr("requests.request", fake_request)
     session.add_fake_component({
         "url": "https://www.duck.com"
     })
@@ -82,8 +82,8 @@ def test_patched_request(session, runner):
     assert block.result.get("body") == "Ducks are birds."
 
 
-def test_patched_request_to_nowhere(session, runner):
-    requests.request = fake_request
+def test_patched_request_to_nowhere(session, runner, monkeypatch):
+    monkeypatch.setattr("requests.request", fake_request)
     session.add_fake_component({
         "url": "https://www.cat.com"
     })
@@ -93,8 +93,8 @@ def test_patched_request_to_nowhere(session, runner):
     assert block.outcome == "connectionError"
 
 
-def test_patched_request_with_json(session, runner):
-    requests.request = fake_request
+def test_patched_request_with_json(session, runner, monkeypatch):
+    monkeypatch.setattr("requests.request", fake_request)
     session.add_fake_component({
         "url": "https://www.elephant.com",
         "method": "POST",
@@ -107,8 +107,8 @@ def test_patched_request_with_json(session, runner):
     assert block.result.get("body").get("request_body") == "Posting the elephant."
 
 
-def test_patched_request_with_json_and_bad_path(session, runner):
-    requests.request = fake_request
+def test_patched_request_with_json_and_bad_path(session, runner, monkeypatch):
+    monkeypatch.setattr("requests.request", fake_request)
     session.add_fake_component({
         "url": "https://www.elephant.com/history",
         "method": "POST",
