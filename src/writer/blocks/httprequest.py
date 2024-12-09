@@ -80,9 +80,8 @@ class HTTPRequest(WorkflowBlock):
             method = self._get_field("method", False, "GET")
             url = self._get_field("url")
             headers = self._get_field("headers", True)
-            body = self._get_field("body")
-            clean_body = self._clean_json_string(body)
-            req = requests.request(method, url, headers=headers, data=clean_body)
+            body = self._clean_json_string(self._get_field("body"))
+            req = requests.request(method, url, headers=headers, data=body)
             
             content_type = req.headers.get("Content-Type")
             is_json = content_type and "application/json" in content_type
@@ -90,7 +89,7 @@ class HTTPRequest(WorkflowBlock):
             self.result = {
                 "headers": dict(req.headers),
                 "status_code": req.status_code,
-                "body": req.json(strict=False) if is_json else req.text
+                "body": req.json() if is_json else req.text
             }
             if req.ok:
                 self.outcome = "success"
