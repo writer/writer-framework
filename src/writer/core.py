@@ -1240,6 +1240,8 @@ class EventDeserialiser:
         custom_event_name = ev.type[3:]
         func_name = "_transform_" + custom_event_name.replace("-", "_")
         if not hasattr(self, func_name):
+            if ev.isSafe:
+                return
             ev.payload = {}
             raise ValueError(
                 "No payload transformer available for custom event type.")
