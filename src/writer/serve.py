@@ -325,7 +325,7 @@ def get_asgi_app(
             merged_info = current_job_info | { "finished_at": int(time.time()) } | job_info
             app.state.job_vault.set(job_id, merged_info)
 
-        def job_done_callback(task, job_id: str):
+        def job_done_callback(task: asyncio.Task, job_id: str):
             try:
                 apsr: Optional[AppProcessServerResponse] = None
                 apsr = task.result()
