@@ -1,4 +1,7 @@
-export function getClick(ev: MouseEvent): CustomEvent {
+/**
+ * @param ev event from a mouse click, or a keyboard click (using tab navigation, then click with `Enter`)
+ */
+export function getClick(ev: MouseEvent | KeyboardEvent): CustomEvent {
 	const payload = {
 		ctrlKey: ev.ctrlKey,
 		shiftKey: ev.shiftKey,
