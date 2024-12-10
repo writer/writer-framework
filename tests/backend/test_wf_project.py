@@ -4,6 +4,7 @@ import shutil
 import tempfile
 from typing import List
 
+from packaging.version import Version
 from writer import VERSION, core_ui, wf_project
 from writer.ss_types import ComponentDefinition
 
@@ -187,3 +188,24 @@ def test_wf_project_can_create_project_on_empty_directory():
         # Then
         assert is_wf_project is False
         assert can_create_wf_project is True
+
+
+def test_packaging_Version_should_compare_verson():
+    """
+    Integration test that validate the behavior of packaging.version.Version
+    """
+    # When
+    # Version1 > Version 2
+    assert Version("0.0.0") > Version("0.0.0rc1")
+    assert Version("0.0.0rc5") > Version("0.0.0rc3")
+    assert Version("0.0.2") > Version("0.0.0")
+
+    # Version1 == Version 2
+    assert Version("0.0.0") == Version("0.0.0")
+    assert Version("0.0.0rc4") == Version("0.0.0rc4")
+
+    # Version1 < Version 2
+    assert Version("0.0.0") < Version("1.0.0")
+    assert Version("0.0.0rc8") < Version("1.0.0")
+    assert Version("1.0.0rc1") < Version("1.0.0rc2")
+
