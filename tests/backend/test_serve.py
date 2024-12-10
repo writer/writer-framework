@@ -1,8 +1,10 @@
 import mimetypes
+import os
 
 import fastapi
 import fastapi.testclient
 import pytest
+from writer import crypto
 import writer.abstract
 import writer.serve
 from fastapi import FastAPI
@@ -214,3 +216,27 @@ class TestServe:
             })
             feature_flags = res.json().get("featureFlags")
             assert feature_flags == ["flag_one", "flag_two"]
+
+    # def test_create_workflow_job_api(self):
+    #     asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+    #         test_app_dir, "run")
+    #     os.environ["WRITER_BASE_HASH"] = "abc"
+    #     workflow_key = "workflow2"
+        
+    #     with fastapi.testclient.TestClient(asgi_app) as client:
+    #         create_job_token = crypto.get_hash(f"create_job_{workflow_key}")
+    #         res = client.post(f"/api/job/workflow/{workflow_key}", json={
+    #             "proposedSessionId": None
+    #         }, headers={
+    #             "Content-Type": "application/json",
+    #             "Authorization": f"Bearer {create_job_token}"
+    #         })
+    #         job_id = res.json().get("id")
+    #         get_job_token = res.json().get("token")
+    #         res = client.get(f"/api/job/{job_id}", headers={
+    #             "Authorization": f"Bearer {get_job_token}"
+    #         })
+    #         assert res.json().get("result") == 987127
+
+    #     os.environ["WRITER_BASE_HASH"] = ""
+
