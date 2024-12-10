@@ -1,7 +1,12 @@
 <!-- eslint-disable @typescript-eslint/ban-types -->
 <template>
 	<Teleport to="#modal">
-		<div class="BuilderModal" tabindex="-1" @keydown="handleKeydown">
+		<div
+			class="BuilderModal"
+			:class="{ 'BuilderModal--overflow': allowOverflow }"
+			tabindex="-1"
+			@keydown="handleKeydown"
+		>
 			<div class="main">
 				<div class="titleContainer">
 					<i v-if="icon" class="material-symbols-outlined">{{
@@ -38,19 +43,24 @@
 
 <script setup lang="ts">
 import WdsButton from "@/wds/WdsButton.vue";
-import { toRefs } from "vue";
+import { PropType, toRefs } from "vue";
 
 export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
 };
 
-const props = defineProps<{
-	modalTitle: string;
-	icon?: string;
-	closeAction: ModalAction;
-	menuActions?: ModalAction[];
-}>();
+const props = defineProps({
+	modalTitle: { type: String, required: true },
+	icon: { type: String, required: false, default: undefined },
+	closeAction: { type: Object as PropType<ModalAction>, required: true },
+	menuActions: {
+		type: Array as PropType<ModalAction[]>,
+		required: false,
+		default: undefined,
+	},
+	allowOverflow: { type: Boolean, required: false },
+});
 
 const { modalTitle, icon, closeAction, menuActions } = toRefs(props);
 
@@ -82,6 +92,10 @@ const handleKeydown = (ev: KeyboardEvent) => {
 	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
 }
 
+.BuilderModal--overflow .main {
+	overflow: unset;
+}
+
 .titleContainer {
 	border-bottom: 1px solid var(--builderSubtleSeparatorColor);
 	padding: 8px 8px 8px 16px;
@@ -99,6 +113,9 @@ const handleKeydown = (ev: KeyboardEvent) => {
 	padding: 16px;
 	max-height: 60vh;
 	overflow: auto;
+}
+.BuilderModal--overflow .slotContainer {
+	overflow: unset;
 }
 
 .actionContainer {

@@ -192,15 +192,13 @@ onMounted(async () => {
 @import "../sharedStyles.css";
 
 .chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
-	border-bottom: 1px solid var(--builderSeparatorColor);
+	margin-bottom: 8px;
 }
 
 .staticList {
-	padding: 12px;
-	border-bottom: 1px solid var(--builderSeparatorColor);
+	padding: 8.5px 12px 8.5px 12px;
+	border: 1px solid var(--builderSeparatorColor);
+	border-radius: 8px;
 }
 
 .staticList:empty::before {
@@ -227,7 +225,7 @@ onMounted(async () => {
 }
 
 .formAdd {
-	padding: 12px;
+	margin-top: 8px;
 }
 
 .BuilderTemplateInput {

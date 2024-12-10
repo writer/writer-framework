@@ -1,9 +1,39 @@
 <template>
-	<textarea v-model="model"></textarea>
+	<textarea ref="input" v-model="model"></textarea>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+
 const model = defineModel<string>();
+
+defineExpose({
+	focus,
+	getSelection,
+	value: model,
+	setSelectionEnd,
+	setSelectionStart,
+});
+
+const input = ref<HTMLTextAreaElement>();
+
+function setSelectionStart(value: number) {
+	if (input.value) input.value.selectionStart = value;
+}
+function setSelectionEnd(value: number) {
+	if (input.value) input.value.selectionEnd = value;
+}
+
+function getSelection() {
+	return {
+		selectionStart: input.value?.selectionStart,
+		selectionEnd: input.value?.selectionEnd,
+	};
+}
+
+function focus() {
+	input.value?.focus();
+}
 </script>
 
 <style scoped>

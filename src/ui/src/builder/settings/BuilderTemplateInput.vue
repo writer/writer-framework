@@ -1,11 +1,9 @@
 <template>
 	<div class="BuilderTemplateInput">
 		<template v-if="!props.multiline">
-			<input
+			<WdsTextInput
 				ref="input"
-				class="templateInput"
-				type="text"
-				:value="props.value"
+				:model-value="props.value"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
@@ -30,19 +28,18 @@
 		</template>
 
 		<template v-if="props.multiline">
-			<textarea
+			<WdsTextareaInput
 				ref="input"
 				v-capture-tabs
-				class="templateInput"
 				:variant="props.variant"
-				:value="props.value"
+				:model-value="props.value"
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
 				rows="3"
 				:placeholder="props.placeholder"
 				@input="handleInput"
-			></textarea>
+			/>
 		</template>
 
 		<div
@@ -68,8 +65,17 @@
 
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import { PropType, inject, nextTick, ref, shallowRef } from "vue";
 import injectionKeys from "../../injectionKeys";
+import {
+	PropType,
+	inject,
+	nextTick,
+	ref,
+	shallowRef,
+	ComponentInstance,
+} from "vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
 const emit = defineEmits(["input", "update:value"]);
 
@@ -97,7 +103,7 @@ const props = defineProps({
 
 const ss = inject(injectionKeys.core);
 const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
-const input = ref<HTMLInputElement | null>(null);
+const input = ref<ComponentInstance<typeof WdsTextInput> | null>(null);
 
 defineExpose({
 	focus: () => input.value?.focus(),
@@ -107,24 +113,23 @@ function _get(object: object, path: string[]) {
 	return path.reduce((acc, key) => acc?.[key], object);
 }
 
-const handleComplete = (selectedText) => {
+const handleComplete = (selectedText: string) => {
 	let newValue = input.value?.value ?? "";
-	const { selectionStart, selectionEnd } = input.value ?? {};
+	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const text = newValue.slice(0, selectionStart);
 	const full = getPath(text);
 	if (full === null) return;
 	const keyword = full.at(-1);
 	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
 	const replaced = text.replace(new RegExp(regexKeyword), selectedText);
-
 	newValue = replaced + newValue.slice(selectionEnd);
 	emit("input", { target: { value: newValue } });
 	emit("update:value", newValue);
 	autocompleteOptions.value = [];
 	input.value.focus();
 	nextTick(() => {
-		input.value.selectionEnd = replaced.length;
-		input.value.selectionStart = replaced.length;
+		input.value.setSelectionEnd(replaced.length);
+		input.value.setSelectionStart(replaced.length);
 	});
 };
 
@@ -160,7 +165,8 @@ const handleInput = (ev) => {
 };
 
 const showAutocomplete = () => {
-	const { selectionStart, selectionEnd, value: newValue } = input.value ?? {};
+	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
+	const newValue = input.value?.value;
 	const collapsed = selectionStart === selectionEnd;
 	if (!collapsed) {
 		autocompleteOptions.value = [];

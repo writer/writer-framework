@@ -237,24 +237,21 @@ onBeforeUnmount(() => {
 @import "../sharedStyles.css";
 
 .chipStackContainer {
-	padding: 12px;
 	margin-top: 4px;
-	padding-bottom: 12px;
 }
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
 }
 
 .pickerContainer {
 	display: flex;
-	gap: 8px;
+	gap: 4px;
 	flex-direction: column;
 }
 
 .param > .header {
 	display: flex;
-	margin-bottom: 8px;
+	margin-bottom: 4px;
 }
 
 .param > .header > .name {
@@ -263,5 +260,18 @@ onBeforeUnmount(() => {
 
 .param > .header > .value {
 	margin-left: auto;
+}
+.param input[type="range"] {
+	width: 100%;
+}
+
+input[type="color"] {
+	width: 100%;
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid var(--separatorColor);
+
+	display: block;
+	height: 40px;
 }
 </style>
