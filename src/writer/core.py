@@ -139,6 +139,9 @@ class WriterSession:
     """
 
     def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]], local_storage: Optional[Dict[str, Any]]) -> None:
+        if local_storage is None:
+            local_storage = {}
+
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
@@ -1079,16 +1082,45 @@ class WriterState(State):
             "args": args
         })
 
-    def local_storage_set_item(self, key: str, value: Any) -> None:
+    def local_storage_set_item(self, key: str, value: str) -> None:
+        """
+        Saves a value to the browser's local storage.
+
+        >>> state.local_storage_set_item("my_key", "value")
+
+        The value must be a string. If it is another type, it will be converted to a character string without serialization.
+        The browser's local storage values as text.
+
+        It is recommended to serialize the data upstream, for example in JSON.
+
+        >>> state.local_storage_set_item("my_key", json.dumps({"value": 1}))
+        """
+        if not isinstance(value, str):
+            value = str(value)
+
         self.add_mail("localStorageSetItem", {
             "key": key,
             "value": value
         })
 
-    def local_storage_remove_item(self, key: str, value: Any) -> None:
+        _session = get_session()
+        assert _session is not None, "local_storage_set_item must be used within a user request."
+        _session.local_storage[key] = value
+
+    def local_storage_remove_item(self, key: str) -> None:
+        """
+        Removes a value from the browser's local storage.
+
+        >>> state.local_storage_remove_item("my_key")
+        """
         self.add_mail("localStorageRemoveItem", {
             "key": key
         })
+
+        _session = get_session()
+        assert _session is not None, "local_storage_remove_item must be used within a user request."
+        if key in _session.local_storage:
+            del _session.local_storage[key]
 
 class MiddlewareExecutor():
     """

@@ -177,7 +177,6 @@ class AppProcess(multiprocessing.Process):
         import traceback as tb
 
         result = session.event_handler.handle(event)
-
         mutations = {}
 
         try:

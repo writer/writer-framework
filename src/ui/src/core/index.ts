@@ -60,12 +60,20 @@ export function generateCore() {
 		addMailSubscription("pageChange", (pageKey: string) => {
 			setActivePageFromKey(pageKey);
 		});
-		addMailSubscription("localStorageSetItem", (event) => {
-			localStorage.setItem("wf." + event.key, JSON.stringify(event.value));
-		});
-		addMailSubscription("localStorageRemoveItem", (event) => {
-			localStorage.removeItem("wf." + event.key);
-		});
+		addMailSubscription(
+			"localStorageSetItem",
+			(event: LocalStorageSetItemEvent) => {
+				localStorage.setItem(event.key, event.value);
+			},
+		);
+
+		addMailSubscription(
+			"localStorageRemoveItem",
+			(event: LocalStorageRemoveItemEvent) => {
+				localStorage.removeItem(event.key);
+			},
+		);
+
 		sendKeepAliveMessage();
 		if (mode.value != "edit") return;
 	}
@@ -79,10 +87,7 @@ export function generateCore() {
 		const localStorageItems = {};
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
-			if (key.startsWith("wf.")) {
-				const value = localStorage.getItem(key);
-				localStorageItems[key.replace("wf.", "")] = JSON.parse(value);
-			}
+			localStorageItems[key] = localStorage.getItem(key);
 		}
 
 		const response = await fetch("./api/init", {
