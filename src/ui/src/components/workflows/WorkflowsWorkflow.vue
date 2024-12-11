@@ -382,8 +382,8 @@ function moveNode(ev: MouseEvent) {
 	const component = wf.getComponentById(nodeId);
 	const { x, y } = getAdjustedCoordinates(ev);
 
-	const newX = x - offset.x;
-	const newY = y - offset.y;
+	const newX = Math.floor(x - offset.x);
+	const newY = Math.floor(y - offset.y);
 
 	if (component.x == newX && component.y == newY) return;
 
