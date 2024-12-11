@@ -139,6 +139,9 @@ class WriterSession:
     """
 
     def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]], local_storage: Optional[Dict[str, Any]]) -> None:
+        if local_storage is None:
+            local_storage = {}
+
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
@@ -153,6 +156,19 @@ class WriterSession:
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
+
+    def process_local_storage_changes(self) -> None:
+        """
+        Processes the local storage changes.
+
+        Changes to local storage are propagated by the mail protocol.
+        It process the mail messages to keep the representation of local storage in a consistent session
+        """
+        for m in self.session_state.mail:
+            if m["type"] == "localStorageSetItem":
+                self.local_storage[m['payload']['key']] = m['payload']['value']
+            elif m["type"] == "localStorageRemoveItem":
+                self.local_storage.pop(m['payload']['key'], None)
 
 
 @dataclasses.dataclass

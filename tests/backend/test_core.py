@@ -1222,6 +1222,7 @@ class TestSessionManager:
         self.sm.get_new_session(
             {"testCookie": "yes"},
             {"origin": "example.com"},
+            {},
             self.proposed_session_id
         )
         self.sm.get_session(self.proposed_session_id)
