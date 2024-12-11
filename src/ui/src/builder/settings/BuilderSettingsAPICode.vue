@@ -1,5 +1,5 @@
 <template>
-	<span class="BuilderSettingsAPICode" v-if="isWorkflow">
+	<div v-if="isWorkflow" class="BuilderSettingsAPICode">
 		<BuilderModal
 			v-if="isModalVisible"
 			:close-action="modalCloseAction"
@@ -7,50 +7,54 @@
 			modal-title="API Code"
 		>
 			<div class="modalContents">
-				The following call will create the job and provide you with a
-				job ID and a job token.
-				<div class="codeContainer">
-					<BuilderEmbeddedCodeEditor
-						v-model="code"
-						class="editor"
-						variant="minimal"
-						language="shell"
-					></BuilderEmbeddedCodeEditor>
-				</div>
-				Using the job ID and token obtained in the previous call, check
-				the status of the job. You can use the code below, after
-				replacing JOB_ID and JOB_TOKEN for the right values.
-				<div class="codeContainer">
-					<BuilderEmbeddedCodeEditor
-						v-model="codePost"
-						class="editor"
-						variant="minimal"
-						language="shell"
-					></BuilderEmbeddedCodeEditor>
-				</div>
+				<template v-if="isHashAvailable">
+					The following call will create the job and provide you with
+					a job ID and a job token.
+					<div class="codeContainer">
+						<BuilderEmbeddedCodeEditor
+							v-model="code"
+							class="editor"
+							variant="minimal"
+							language="shell"
+						></BuilderEmbeddedCodeEditor>
+					</div>
+					Using the job ID and token obtained in the previous call,
+					check the status of the job. You can use the code below,
+					after replacing JOB_ID and JOB_TOKEN for the right values.
+					<div class="codeContainer">
+						<BuilderEmbeddedCodeEditor
+							v-model="codePost"
+							class="editor"
+							variant="minimal"
+							language="shell"
+						></BuilderEmbeddedCodeEditor>
+					</div>
+				</template>
+				<template v-else>
+					API code cannot be generated. Please make sure the
+					environment variable WRITER_BASE_HASH has been set up.
+				</template>
 			</div>
 		</BuilderModal>
-		<div class="">
-			<template v-if="workflowKey">
-				<WdsButton variant="tertiary" size="small" @click="showCode">
-					<i class="material-symbols-outlined"> code </i> Call via
-					API</WdsButton
-				>
-			</template>
-			<template v-else>
-				<WdsButton
-					:disabled="true"
-					variant="tertiary"
-					size="small"
-					data-writer-tooltip="You need to specify a workflow key before this workflow can be
+		<template v-if="workflowKey">
+			<WdsButton variant="tertiary" size="small" @click="showCode">
+				<i class="material-symbols-outlined"> code </i> Call via
+				API</WdsButton
+			>
+		</template>
+		<template v-else>
+			<WdsButton
+				:disabled="true"
+				variant="tertiary"
+				size="small"
+				data-writer-tooltip="You need to specify a workflow key before this workflow can be
 				used in the UI or called via API."
-				>
-					<i class="material-symbols-outlined"> code </i> Call via
-					API</WdsButton
-				>
-			</template>
-		</div>
-	</span>
+			>
+				<i class="material-symbols-outlined"> code </i> Call via
+				API</WdsButton
+			>
+		</template>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -78,6 +82,7 @@ const isModalVisible = ref(false);
 
 const code = ref("");
 const codePost = ref("");
+const isHashAvailable = ref(false);
 
 const modalCloseAction: ModalAction = {
 	desc: "Close",
@@ -93,6 +98,9 @@ function showCode() {
 
 async function generateCode() {
 	const bearerToken = await wf.hashMessage(`create_job_${workflowKey.value}`);
+	isHashAvailable.value = Boolean(bearerToken);
+	if (!isHashAvailable.value) return;
+
 	const baseURL = window.location.origin + window.location.pathname;
 	code.value = `
 curl --location --request POST '${baseURL}api/job/workflow/${workflowKey.value}' \\
