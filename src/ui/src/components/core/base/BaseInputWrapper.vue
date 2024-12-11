@@ -4,16 +4,16 @@
 		class="BaseInputWrapper"
 		:class="{ horizontal: isHorizontal }"
 	>
-		<label v-if="props.label">{{ props.label }}</label>
+		<label v-if="label">{{ label }}</label>
 		<slot></slot>
 	</div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-	label: string;
-	isHorizontal?: boolean;
-}>();
+defineProps({
+	label: { type: String, required: false, default: undefined },
+	isHorizontal: { type: Boolean, required: false },
+});
 </script>
 
 <style scoped>

@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, validator
 from typing_extensions import TypedDict
 
 from writer.ss_types import ComponentDefinition, ServeMode
@@ -56,6 +56,12 @@ class Component(BaseModel):
     outs: Optional[Any] = None
     x: Optional[int] = None
     y: Optional[int] = None
+
+    @field_validator("x", "y", mode="before")
+    def cast_float_to_int(cls, v):
+        if isinstance(v, float):
+            return int(v)
+        return v
 
     def to_dict(self) -> Dict:
         """
