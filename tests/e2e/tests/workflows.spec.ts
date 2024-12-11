@@ -22,7 +22,7 @@ test.describe("Workflows", () => {
 		{ object: "cup", color: "pink" },
 	];
 
-	inputData.forEach(({ object, color }) => {
+	for (const { object, color } of inputData) {
 		test(`Test context and payload in Workflows for ${object} ${color}`, async ({
 			page,
 		}) => {
@@ -41,16 +41,14 @@ test.describe("Workflows", () => {
 				`.BuilderModal [data-automation-key="return-value"]`,
 			);
 			const expectedTexts = ["color", color, "object", object];
-			expectedTexts.forEach(
-				async (text) => await expect(resultsLocator).toContainText(text),
-			);
-			expectedTexts.forEach(
-				async (text) => await expect(returnValueLocator).toContainText(text),
-			);
+			for (const text of expectedTexts) {
+				await expect(resultsLocator).toContainText(text);
+				await expect(returnValueLocator).toContainText(text);
+			}
 		});
-	});
+	}
 
-	test("Create workflow and run workflow handle_object from it", async ({
+	test("Create workflow and run workflow repeat_payload from it", async ({
 		page,
 	}) => {
 		await page.locator(`[data-automation-action="set-mode-workflows"]`).click();
@@ -75,16 +73,9 @@ test.describe("Workflows", () => {
 		const returnValueBlock = page.locator(`.WorkflowsNode.wf-type-workflows_returnvalue`);
 
 		await runWorkflowBlock.click();
-		await page.locator(`.BuilderFieldsText[data-automation-key="workflowKey"] input`).fill("handle_object");
-		const executionEnv = {
-			"payload": "blue",
-			"context": {
-				"item": {
-					"object": "bottle"
-				}
-			}
-		};
-		await page.locator(`.BuilderFieldsObject[data-automation-key="executionEnv"] textarea`).fill(JSON.stringify(executionEnv));
+		await page.locator(`.BuilderFieldsText[data-automation-key="workflowKey"] input`).fill("repeat_payload");
+		const payload = "blue";
+		await page.locator(`.BuilderFieldsText[data-automation-key="payload"] textarea`).fill(payload);
 		await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
 		await runWorkflowBlock.locator(".ball.success").dragTo(returnValueBlock);
@@ -96,16 +87,13 @@ test.describe("Workflows", () => {
 
 		await page.locator(`[data-automation-action="toggle-panel"][data-automation-key="log"]`).click();
 		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
-		await expect(rowsLocator).toHaveCount(5);
+		await expect(rowsLocator).toHaveCount(3);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();;
 		await rowLocator.getByRole("button", { name: "Details" }).click();
 		await expect(page.locator(".BuilderModal")).toBeVisible();
 		const returnValueLocator = page.locator(
 			`.BuilderModal [data-automation-key="return-value"]`,
 		);
-		const expectedTexts = ["color", "blue", "object", "bottle"];
-		expectedTexts.forEach(
-			async (text) => await expect(returnValueLocator).toContainText(text),
-		);
+		await expect(returnValueLocator).toContainText("blue");
 	});
 });

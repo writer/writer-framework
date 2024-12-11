@@ -4,10 +4,10 @@ import time
 import fastapi
 import fastapi.testclient
 import pytest
-from writer import crypto
 import writer.abstract
 import writer.serve
 from fastapi import FastAPI
+from writer import crypto
 
 from tests.backend import test_app_dir, test_multiapp_dir
 
@@ -246,7 +246,7 @@ class TestServe:
         workflow_key = "workflow2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"not_the_right_message")
+            create_job_token = crypto.get_hash("not_the_right_message")
             res = client.post(f"/api/job/workflow/{workflow_key}", json={
                 "proposedSessionId": None
             }, headers={
@@ -262,7 +262,7 @@ class TestServe:
         workflow_key = "workflow2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"not_the_right_message")
+            create_job_token = crypto.get_hash("not_the_right_message")
             res = client.post(f"/api/job/workflow/{workflow_key}", json={
                 "proposedSessionId": None
             }, headers={

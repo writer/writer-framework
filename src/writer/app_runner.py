@@ -313,10 +313,11 @@ class AppProcess(multiprocessing.Process):
                 )
 
             if self.mode == "edit" and type == "hashRequest":
+                hash_request_payload = HashRequestPayload.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
-                    payload=self._handle_hash_request(request.payload)
+                    payload=self._handle_hash_request(hash_request_payload)
                 )
 
             if self.mode == "edit" and type == "componentUpdate":

@@ -18,6 +18,6 @@ def get_hash(message: str):
 def verify_hash_in_request(message: str, request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
-        raise HTTPException(status_code=401, detail=f"Unauthorized. Token not specified.")
+        raise HTTPException(status_code=401, detail="Unauthorized. Token not specified.")
     if auth_header != f"Bearer {get_hash(message)}":
-        raise HTTPException(status_code=403, detail=f"Forbidden. Incorrect token.")
+        raise HTTPException(status_code=403, detail="Forbidden. Incorrect token.")

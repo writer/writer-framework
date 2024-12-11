@@ -10,7 +10,6 @@ import writer as wf
 import writer.core
 from writer import WriterUIManager
 
-
 writer.Config.feature_flags.append("workflows")
 writer.Config.feature_flags.append("flag_one")
 writer.Config.feature_flags.append("flag_two")

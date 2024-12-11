@@ -5,7 +5,6 @@ import io
 import json
 import logging
 import mimetypes
-import redis
 import os
 import os.path
 import pathlib
@@ -18,6 +17,7 @@ from importlib.machinery import ModuleSpec
 from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, cast
 from urllib.parse import urlsplit
 
+import redis
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -99,7 +99,10 @@ class RedisJobVault(JobVault):
         return str(job_id)
 
     def set(self, job_id: str, value: Any):
-        ttl = int(os.getenv("WRITER_REDIS_TTL")) if os.getenv("WRITER_REDIS_TTL") else RedisJobVault.DEFAULT_TTL 
+        ttl = RedisJobVault.DEFAULT_TTL
+        env_ttl = os.getenv("WRITER_REDIS_TTL")
+        if env_ttl is not None:
+            ttl = int(env_ttl)
         json_str = json.dumps(value)
         self.redis_client.set(f"job:{job_id}", json_str, ex=ttl)
 
@@ -327,12 +330,13 @@ def get_asgi_app(
 
         def job_done_callback(task: asyncio.Task, job_id: str):
             try:
-                apsr: Optional[AppProcessServerResponse] = None
-                apsr = task.result()
-                if apsr.status != "ok":
+                apsr: Optional[AppProcessServerResponse] = task.result()
+                if apsr is None or apsr.status != "ok":
                     update_job(job_id, {"status": "error"})
                     return
-                result = apsr.payload.result.get("result")
+                result = None
+                if apsr.payload and apsr.payload.result:
+                    result = apsr.payload.result.get("result")
                 update_job(job_id, {
                     "status": "complete",
                     "result": serialize_result(result)
@@ -347,10 +351,12 @@ def get_asgi_app(
             proposedSessionId=None
         ))
 
+        if not app_response or not app_response.payload:
+            raise HTTPException(status_code=500, detail="Cannot initialize session.")
         session_id = app_response.payload.sessionId
         is_session_ok = await app_runner.check_session(session_id)
         if not is_session_ok:
-            return
+            raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
         loop = asyncio.get_running_loop()
         task = loop.create_task(app_runner.handle_event(
@@ -548,16 +554,13 @@ def get_asgi_app(
             trackingId=req_message.trackingId,
             payload=None
         )
-        res_payload: str = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_hash_request(session_id, HashRequestPayload(
             message=req_message.payload.get("message", "")
         ))
         if apsr is not None and apsr.payload is not None:
-            res_payload = typing.cast(
+            response.payload = typing.cast(
                 HashRequestResponsePayload, apsr.payload).model_dump()
-        if res_payload is not None:
-            response.payload = res_payload
         await websocket.send_json(response.model_dump())
 
     async def _stream_outgoing_announcements(websocket: WebSocket):

@@ -1,4 +1,5 @@
 import re
+
 import requests
 
 from writer.abstract import register_abstract_template

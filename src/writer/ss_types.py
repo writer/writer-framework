@@ -26,7 +26,7 @@ class Readable(Protocol):
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent"]
+                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest"]
 
 
 class AbstractTemplate(BaseModel):
