@@ -164,3 +164,12 @@ export type AbstractTemplate = {
 };
 
 export type TemplateMap = Record<string, VueComponent>;
+
+export type LocalStorageSetItemEvent = {
+	key: string;
+	value: string;
+};
+
+export type LocalStorageRemoveItemEvent = {
+	key: string;
+};

@@ -138,10 +138,14 @@ class WriterSession:
     Represents a session.
     """
 
-    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
+    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]], local_storage: Optional[Dict[str, Any]]) -> None:
+        if local_storage is None:
+            local_storage = {}
+
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
+        self.local_storage = local_storage
         self.last_active_timestamp: int = int(time.time())
         new_state = WriterState.get_new()
         new_state.user_state.mutated = set()
@@ -152,6 +156,19 @@ class WriterSession:
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
+
+    def process_local_storage_changes(self) -> None:
+        """
+        Processes the local storage changes.
+
+        Changes to local storage are propagated by the mail protocol.
+        It process the mail messages to keep the representation of local storage in a consistent session
+        """
+        for m in self.session_state.mail:
+            if m["type"] == "localStorageSetItem":
+                self.local_storage[m['payload']['key']] = m['payload']['value']
+            elif m["type"] == "localStorageRemoveItem":
+                self.local_storage.pop(m['payload']['key'], None)
 
 
 @dataclasses.dataclass
@@ -1078,6 +1095,17 @@ class WriterState(State):
             "args": args
         })
 
+    def local_storage_set_item(self, key: str, value: Any) -> None:
+        self.add_mail("localStorageSetItem", {
+            "key": key,
+            "value": value
+        })
+
+    def local_storage_remove_item(self, key: str, value: Any) -> None:
+        self.add_mail("localStorageRemoveItem", {
+            "key": key
+        })
+
 class MiddlewareExecutor():
     """
     A MiddlewareExecutor executes middleware in a controlled context. It allows writer framework
@@ -1518,7 +1546,7 @@ class SessionManager:
             return True
         return False
 
-    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[WriterSession]:
+    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, local_storage: Optional[Dict[str, Any]] = None, proposed_session_id: Optional[str] = None) -> Optional[WriterSession]:
         if not self._check_proposed_session_id(proposed_session_id):
             return None
         if not self._verify_before_new_session(cookies, headers):
@@ -1528,7 +1556,7 @@ class SessionManager:
             new_id = self._generate_session_id()
         else:
             new_id = proposed_session_id
-        new_session = WriterSession(new_id, cookies, headers)
+        new_session = WriterSession(new_id, cookies, headers, local_storage)
         self.sessions[new_id] = new_session
         return new_session
 
@@ -2038,6 +2066,7 @@ def _event_handler_session_info() -> Dict[str, Any]:
         session_info['cookies'] = current_session.cookies
         session_info['headers'] = current_session.headers
         session_info['userinfo'] = current_session.userinfo or {}
+        session_info['local_storage'] = current_session.local_storage or {}
 
     return session_info
 
