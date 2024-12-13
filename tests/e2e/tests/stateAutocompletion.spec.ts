@@ -71,7 +71,7 @@ test.describe("state autocompletion", () => {
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("Static List")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("Static List")`)
 				.click();
 			await page
 				.locator(`${FIELD} .inputKey input`)
@@ -102,7 +102,7 @@ test.describe("state autocompletion", () => {
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("JSON")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("JSON")`)
 				.click();
 			await page
 				.locator(`${FIELD} textarea`)
@@ -122,7 +122,7 @@ test.describe("state autocompletion", () => {
 			const FIELD = `.${type}[data-automation-key="${key}"]`; 
 			await page.locator(componentSelector).click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("CSS")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("CSS")`)
 				.click();
 			await page
 				.locator(`${FIELD} .BuilderTemplateInput input`)

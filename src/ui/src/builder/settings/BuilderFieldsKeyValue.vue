@@ -5,26 +5,12 @@
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
-		<div class="chipStackContainer">
-			<div class="chipStack">
-				<button
-					class="chip"
-					:class="{ active: mode == 'assisted' }"
-					tabindex="0"
-					@click="setMode('assisted')"
-				>
-					Static List
-				</button>
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'freehand' }"
-					@click="setMode('freehand')"
-				>
-					JSON
-				</button>
-			</div>
-		</div>
+		<WdsTabs
+			class="BuilderFieldsOptions__tabs"
+			:tabs="tabs"
+			:model-value="mode"
+			@update:model-value="setMode"
+		/>
 
 		<template v-if="mode == 'assisted'">
 			<div class="staticList">
@@ -91,6 +77,7 @@ import type { InstancePath } from "@/writerTypes";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import { useComponentActions } from "../useComponentActions";
+import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -114,6 +101,11 @@ const formAdd: Ref<{ key: string; value: string }> = ref({
 	key: "",
 	value: "",
 });
+
+const tabs: WdsTabOptions<Mode>[] = [
+	{ label: "Static List", value: "assisted" },
+	{ label: "JSON", value: "freehand" },
+];
 
 const { getEvaluatedFields } = useEvaluator(wf);
 
@@ -191,7 +183,7 @@ onMounted(async () => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.chipStackContainer {
+.BuilderFieldsOptions__tabs {
 	margin-bottom: 8px;
 }
 

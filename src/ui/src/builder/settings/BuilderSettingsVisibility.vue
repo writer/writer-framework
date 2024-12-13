@@ -2,43 +2,7 @@
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsVisibility">
 		<BuilderSectionTitle icon="visibility" label="Visibility" />
 		<div class="main">
-			<div class="chipStack">
-				<div
-					class="chip"
-					:class="{
-						active:
-							typeof component.visible == 'undefined' ||
-							component.visible.expression === true,
-					}"
-					@click="() => setVisibleValue(component.id, true)"
-				>
-					Yes
-				</div>
-				<div
-					class="chip"
-					:class="{ active: component.visible?.expression === false }"
-					@click="() => setVisibleValue(component.id, false)"
-				>
-					No
-				</div>
-				<div
-					class="chip"
-					:class="{
-						active: component.visible?.expression === 'custom',
-					}"
-					@click="
-						() =>
-							setVisibleValue(
-								component.id,
-								'custom',
-								component.visible?.binding,
-								component.visible?.reversed,
-							)
-					"
-				>
-					Custom
-				</div>
-			</div>
+			<WdsTabs v-model="tab" :tabs="tabs" />
 			<WdsFieldWrapper
 				v-if="
 					typeof component.visible != 'undefined' &&
@@ -87,6 +51,38 @@ import injectionKeys from "../../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderSectionTitle from "./BuilderSectionTitle.vue";
+import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
+
+type Mode = "yes" | "no" | "custom";
+
+const tabs: WdsTabOptions<Mode>[] = [
+	{ label: "Yes", value: "yes" },
+	{ label: "No", value: "no" },
+	{ label: "Custom", value: "custom" },
+];
+
+const tab = computed<Mode>({
+	get() {
+		const visible = component.value.visible;
+		if (visible?.expression === "custom") return "custom";
+
+		return visible === undefined || visible.expression === true
+			? "yes"
+			: "no";
+	},
+	set(value: Mode) {
+		if (value === "custom") {
+			setVisibleValue(
+				component.value.id,
+				"custom",
+				component.value.visible?.binding,
+				component.value.visible?.reversed,
+			);
+		} else {
+			setVisibleValue(component.value.id, value === "yes");
+		}
+	},
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -103,6 +99,9 @@ const hint =
 
 .main {
 	margin-top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .flexRow {

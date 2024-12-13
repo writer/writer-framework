@@ -118,31 +118,3 @@ code {
 	background-color: var(--builderSubtleSeparatorColor);
 	padding: 2px;
 }
-
-.chipStack {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 4px;
-}
-
-.chip {
-	font-size: 0.75rem;
-	border-radius: 16px;
-	padding: 8px 12px 8px 12px;
-	cursor: pointer;
-	outline: none;
-	background: var(--builderBackgroundColor);
-}
-
-.chip:focus,
-.chip.active:focus,
-.chip:hover,
-.chip.active:hover {
-	color: var(--builderBackgroundColor);
-	background: var(--builderActionOngoingColor);
-}
-
-.chip.active {
-	background: var(--builderSubtleSeparatorColor);
-}
