@@ -114,7 +114,11 @@ import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "../../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import {
+	BuilderFieldCssMode as Mode,
+	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
+} from "./constants/builderFieldsCssTabs";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -127,23 +131,6 @@ const paramOffsetYEl: Ref<HTMLInputElement> = ref(null);
 const paramBlurRadiusEl: Ref<HTMLInputElement> = ref(null);
 const paramSpreadRadiusEl: Ref<HTMLInputElement> = ref(null);
 const paramColorEl: Ref<HTMLInputElement> = ref(null);
-
-type Mode = "pick" | "css" | "default";
-
-const tabs: WdsTabOptions<Mode>[] = [
-	{
-		label: "Default",
-		value: "default",
-	},
-	{
-		label: "CSS",
-		value: "css",
-	},
-	{
-		label: "Pick",
-		value: "pick",
-	},
-];
 
 const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	pick: paramOffsetXEl,

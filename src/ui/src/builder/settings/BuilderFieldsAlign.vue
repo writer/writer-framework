@@ -47,7 +47,11 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import {
+	BuilderFieldCssMode as Mode,
+	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
+} from "./constants/builderFieldsCssTabs";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -56,23 +60,6 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
-
-type Mode = "pick" | "css" | "default";
-
-const tabs: WdsTabOptions<Mode>[] = [
-	{
-		label: "Default",
-		value: "default",
-	},
-	{
-		label: "CSS",
-		value: "css",
-	},
-	{
-		label: "Pick",
-		value: "pick",
-	},
-];
 
 enum SubMode {
 	hleft = "start",
