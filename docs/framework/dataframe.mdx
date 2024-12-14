@@ -10,9 +10,9 @@ title: "Dataframe"
 To present a data table in Writer Framework, you create a `DataFrame` data structure in your code and then bind it to a UI Dataframe.
 
 
-## Displaying a static data table using a DataFrame
+## Displaying a static DataFrame
 
-A static table is one whose content does not change. The user can change its sort order, but the data within the table remains constant.
+A static DataFrame is one whose content does not change. The user can change its sort order, but the data within the DataFrame remains constant.
 
 <Steps>
 	<Step title="Create a DataFrame data structure">
@@ -68,9 +68,9 @@ A static table is one whose content does not change. The user can change its sor
 </Steps>
 
 
-## Displaying a dynamic data table using a DataFrame
+## Displaying an editable DataFrame
 
-A dynamic table is one whose content can change. Like static tables, dynamic tables use the **DataFrame** UI component. Unlike static tables, the DataFrame UI component is bound to an instance of `EditableDataframe`, a class provided by the Writer library. Changes to a  `EditableDataframe` object will be immediately reflected in the DataFrame UI component that it is bound to.
+A editable DataFrame is one whose content can change. Like static DataFrames, editable DataFrames use the **DataFrame** UI component. Unlike static tables, the DataFrame UI component is bound to an instance of `EditableDataframe`, a class provided by the Writer library. Changes to a  `EditableDataframe` object will be immediately reflected in the DataFrame UI component that it is bound to.
 
 <Note>Note that the "f" in `EditableDataframe` is _not_ capitalized — it’s `EditableDataframe`, not `EditableDataFrame`!</Note>
 
@@ -147,100 +147,60 @@ A dynamic table is one whose content can change. Like static tables, dynamic tab
 	</Step>
 </Steps>
 
-### Updating an EditableDataframe
+## Updating an editable DataFrame
 
+Editable DataFrames are updated by updating the `EditableDataframe` object they are bound to, which is done using `EditableDataframe`'s methods.
 
-**writer framework places the dataframe at the core of the application**. This is a great way for modeling a complex and massive data system.
-it offers components as `dataframe` to manipulate dataframes. These components allow you to visualize and interact with dataframes.
+### `record_add`: Add a new row
 
-| compatibility      | dataframe                             |
-|--------------------|---------------------------------------|
-| `pandas.DataFrame` | x                                     |
-| `polar.DataFrame`  | x                                     |
-| `list of records`  | x (with `EditableDataframe`)          |
-
-## Use a dataframe
-
-**a dataframe is simply added to the state**. A component like `dataframe` will be able to display it.
+`record_add()` adds a new row to an `EditableDataframe`. It takes a dictionary with the following structure...
 
 ```python
-import pandas
-import writer as wf
+{"record": new_row}
+```
 
-wf.init_state({
-	'mydf': pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+...where `new_row` is a dictionary containing the data for the row to be added.
+
+In the code example above, you would add a new row to the DataFrame with the following code:
+
+```python
+state["mydf"].record_add({"record": {"rank": 6, "flavor": "Birthday cake", "favorite": 0.01}})
+```
+
+### `record_update`: Change an existing row
+
+`record_update()` replaces an existing row in an `EditableDataframe` with a new one. It takes a dictionary with the following structure...
+
+```python
+{
+	"record_index": index,
+	"record": row_to_update
+}
+```
+
+...where `index` is an integer specifying which row should be updated and `row_to_update` is a dictionary containing the updated row data.
+
+In the code example above, you would update the row at index 0 with the following code:
+
+```python
+state["mydf"].record_update({
+	"record_index": 0,
+	"record": {"rank": 6, "flavor": "Bubble gum", "favorite": 0.08}
 })
 ```
 
-## Prepare a dataframe for editing
+### `record_remove`: Delete an existing row
 
-**writer provides `EditableDataframe` as a helper to facilitate manipulation**. it makes it easier to write event handlers such as adding a line,
-deleting it or modifying a value, etc...
+`record_remove()` removes an existing row from an `EditableDataframe`. It takes a dictionary with the following structure...
 
 ```python
-import pandas
-import writer as wf
-
-df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-
-wf.init_state({
-	'mydf': wf.EditableDataframe(df)
-})
+{"record_index": index}
 ```
 
-### Handle events from a dataframe editor
+...where `index` is an integer specifying which row should be deleted.
 
-**The dataframe component emits events when an action is performed**. You must subscribe to events to integrate changes to the state of the application.
-
-```python
-import pandas
-import writer as wf
-
-df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-wf.init_state({
-	'mydf': wf.EditableDataframe(df)
-})
-
-# Subscribe this event handler to the `wf-dataframe-add` event
-def on_record_add(state, payload):
-	payload['record']['sales'] = 0 # default value inside the dataframe
-	state['mydf'].record_add(payload)
-
-
-# Subscribe this event handler to the `wf-dataframe-update` event
-def on_record_change(state, payload):
-    state['mydf'].record_update(payload)
-
-
-# Subscribe this event handler to the `wf-dataframe-action` event
-def on_record_action(state, payload):
-	"""
-	This event corresponds to a quick action in the drop-down menu to the left of the dataframe.
-	"""
-	record_index = payload['record_index']
-	if payload['action'] == 'remove':
-		state['mydf'].record_remove(payload)
-	if payload['action'] == 'open':
-		state['record'] = state['df'].record(record_index) # dict representation of record
-```
-
-### Datastructures supported by `EditableDataframe`
-
-`EditableDataframe` can be used with a panda dataframe, a polar dataframe and list of records.
+In the code example above, you would delete the row at index 2 with the following code:
 
 ```python
-import pandas
-import polars
-
-import writer as wf
-
-panda_df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-polars_df = polars.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-list_of_records = [{'a': 1, 'b': 4}, {'a': 2, 'b': 5}, {'a': 3, 'b': 6}]
-
-wf.init_state({
-	'mypandas': wf.EditableDataframe(panda_df),
-	'mypolars': wf.EditableDataframe(polars_df),
-	'mylistofrecords': wf.EditableDataframe(list_of_records)
-})
+state["mydf"].record_remove({"record_index": 0})
 ```
