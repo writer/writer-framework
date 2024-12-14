@@ -2,6 +2,154 @@
 title: "Dataframe"
 ---
 
+**Writer Framework has two objects with the name _DataFrame_:**
+
+1. **Code Dataframe:** In code that you write for a Writer Framework application, `DataFrame` refers to a **_data structure_** that stores data in rows and columns in a way similar to a spreadsheet or SQL table.
+2. **UI DataFrame:** In Writer Framework's UI, "DataFrame" refers to a **_user interface component_** that displays data in rows and columns in a way similar to a spreadsheet or SQL table. 
+
+To present a data table in Writer Framework, you create a `DataFrame` data structure in your code and then bind it to a UI Dataframe.
+
+
+## Displaying a static data table using a DataFrame
+
+A static table is one whose content does not change. The user can change its sort order, but the data within the table remains constant.
+
+<Steps>
+	<Step title="Create a DataFrame data structure">
+		Writer Framework supports both [pandas](https://pandas.pydata.org/) and [Polars](https://pola.rs/) `DataFrame` data structures. Create a `DataFrame`, assign its value to a variable, then assign make that variable a value in the `state` dictionary:
+
+		<CodeGroup>
+			```sh pandas
+			import writer as wf
+			import pandas as pd
+
+			data = [
+				{"rank": 1, "flavor": "Vanilla", "favorite": 0.11},
+				{"rank": 2, "flavor": "Chocolate", "favorite": 0.1},
+				{"rank": 3, "flavor": "Cookies and cream", "favorite": 0.07},
+				{"rank": 4, "flavor": "Strawberry", "favorite": 0.06},
+				{"rank": 5, "flavor": "Chocolate chip", "favorite": 0.02},
+			]
+			df = pd.DataFrame(data)
+
+			wf.init_state({
+				"mydf": df
+			})
+			```
+
+			```sh Polars
+			import writer as wf
+			import polars as pl
+
+			data = [
+				{"rank": 1, "flavor": "Vanilla", "favorite": 0.11},
+				{"rank": 2, "flavor": "Chocolate", "favorite": 0.1},
+				{"rank": 3, "flavor": "Cookies and cream", "favorite": 0.07},
+				{"rank": 4, "flavor": "Strawberry", "favorite": 0.06},
+				{"rank": 5, "flavor": "Chocolate chip", "favorite": 0.02},
+			]
+			df = pl.DataFrame(data)
+
+			wf.init_state({
+				"mydf": df
+			})
+			```
+		</CodeGroup>
+
+		The call to `wf.init_state()` adds the `DataFrame` to the application's `state` variable as the value of the `mydf` key. 
+	</Step>
+	<Step title="Add a DataFrame component to the UI and bind it to the DataFrame data structure">
+		Add a DataFrame UI component to the user interface, then set its **Data** property to `@{`_dataframe_key_`}`, where _dataframe_key_ is the `state` variable key whose value refers to the `DataFrame` data structure.
+
+		In the case of this example, `mydf` is the `state` variable key referring to the `DataFrame`, so set the **Data** property to `@{mydf}`.
+
+		![DataFrame for static table example with properties panel open](images/dataframe_static_table_1.png)
+	</Step>
+</Steps>
+
+
+## Displaying a dynamic data table using a DataFrame
+
+A dynamic table is one whose content can change. Like static tables, dynamic tables use the **DataFrame** UI component. Unlike static tables, the DataFrame UI component is bound to an instance of `EditableDataframe`, a class provided by the Writer library. Changes to a  `EditableDataframe` object will be immediately reflected in the DataFrame UI component that it is bound to.
+
+<Note>Note that the "f" in `EditableDataframe` is _not_ capitalized — it’s `EditableDataframe`, not `EditableDataFrame`!</Note>
+
+<Steps>
+	<Step title="Create an EditableDataframe data structure">
+		An `EditableDataframe` object can be instantiated from any of the following:
+		
+		1. A pandas `DataFrame`
+		2. A Polars `DataFrame`
+		3. A list of dictionaries
+
+		<CodeGroup>
+			```sh pandas
+			import writer as wf
+			import pandas as pd
+
+			data = [
+				{"rank": 1, "flavor": "Vanilla", "favorite": 0.11},
+				{"rank": 2, "flavor": "Chocolate", "favorite": 0.1},
+				{"rank": 3, "flavor": "Cookies and cream", "favorite": 0.07},
+				{"rank": 4, "flavor": "Strawberry", "favorite": 0.06},
+				{"rank": 5, "flavor": "Chocolate chip", "favorite": 0.02},
+			]
+			df = pd.DataFrame(data)
+
+			wf.init_state({
+				"mydf": wf.EditableDataframe(df)
+			})
+			```
+
+			```sh Polars
+			import writer as wf
+			import polars as pl
+
+			data = [
+				{"rank": 1, "flavor": "Vanilla", "favorite": 0.11},
+				{"rank": 2, "flavor": "Chocolate", "favorite": 0.1},
+				{"rank": 3, "flavor": "Cookies and cream", "favorite": 0.07},
+				{"rank": 4, "flavor": "Strawberry", "favorite": 0.06},
+				{"rank": 5, "flavor": "Chocolate chip", "favorite": 0.02},
+			]
+			df = pl.DataFrame(data)
+
+			wf.init_state({
+				"mydf": wf.EditableDataframe(df)
+			})
+			```
+
+			```sh List of dictionaries
+			import writer as wf
+
+			data = [
+				{"rank": 1, "flavor": "Vanilla", "favorite": 0.11},
+				{"rank": 2, "flavor": "Chocolate", "favorite": 0.1},
+				{"rank": 3, "flavor": "Cookies and cream", "favorite": 0.07},
+				{"rank": 4, "flavor": "Strawberry", "favorite": 0.06},
+				{"rank": 5, "flavor": "Chocolate chip", "favorite": 0.02},
+			]
+			
+			wf.init_state({
+				"mydf": wf.EditableDataframe(data)
+			})
+			```
+		</CodeGroup>
+
+		The call to `wf.init_state()` adds the `DataFrame` to the application's `state` variable as the value of the `mydf` key. 
+	</Step>
+	<Step title="Add a DataFrame component to the UI and bind it to the DataFrame data structure">
+		Add a **DataFrame** component to the user interface, then set its **Data** property to `@{`_dataframe_key_`}`, where _dataframe_key_ is the `state` variable key whose value refers to the `DataFrame` data structure.
+
+		In the case of this example, `mydf` is the `state` variable key referring to the `DataFrame`, so set the **Data** property to `@{mydf}`.
+
+		![DataFrame for dynamic table example with properties panel open](images/dataframe_dynamic_table_1.png)
+	</Step>
+</Steps>
+
+### Updating an EditableDataframe
+
+
 **writer framework places the dataframe at the core of the application**. This is a great way for modeling a complex and massive data system.
 it offers components as `dataframe` to manipulate dataframes. These components allow you to visualize and interact with dataframes.
 
