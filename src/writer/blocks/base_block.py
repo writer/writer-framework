@@ -27,7 +27,7 @@ class WorkflowBlock:
         self.result = None
         self.return_value = None
         self.instance_path: InstancePath = [{"componentId": component_id, "instanceNumber": 0}]
-        self.evaluator = writer.evaluator.Evaluator(runner.session.session_state, runner.session.session_component_tree)
+        self.evaluator = writer.evaluator.Evaluator(runner.session.globals, runner.session.session_component_tree)
 
     def _handle_missing_field(self, field_key):
         component_tree = self.runner.session.session_component_tree

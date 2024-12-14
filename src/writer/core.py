@@ -1667,9 +1667,8 @@ class EventHandler:
         captured_stdout = None
         with core_ui.use_component_tree(self.session.session_component_tree), \
             contextlib.redirect_stdout(io.StringIO()) as f:
-            handler_callable()
-            # middlewares_executors = current_app_process.middleware_registry.executors()
-            # result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
+            middlewares_executors = current_app_process.middleware_registry.executors()
+            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -1735,6 +1734,7 @@ class EventHandler:
             else:
                 return {"ok": True, "result": self._handle_component_event(ev)}
         except BaseException as e:
+            raise e
             return {"ok": False, "result": str(e)}
 
 
