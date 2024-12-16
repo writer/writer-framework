@@ -165,6 +165,16 @@ In the code example above, you would add a new row to the DataFrame with the fol
 state["mydf"].record_add({"record": {"rank": 6, "flavor": "Birthday cake", "favorite": 0.01}})
 ```
 
+### `record`: Read the contents of a row
+
+`record()` returns a row in an `EditableDataFrame`. It takes an integer specifying the index of the row.
+
+In the code example above, you would retrieve the record at row 1 with the following code:
+
+```python
+record = state["mydf"].record(1)
+```
+
 ### `record_update`: Change an existing row
 
 `record_update()` replaces an existing row in an `EditableDataFrame` with a new one. It takes a dictionary with the following structure...
