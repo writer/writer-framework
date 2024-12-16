@@ -28,7 +28,7 @@
 							: fieldValue.name ?? fieldKey
 					"
 					:hint="fieldValue.desc"
-					:type="fieldValue.type"
+					:unit="fieldValue.type"
 				>
 					<BuilderFieldsColor
 						v-if="fieldValue.type == FieldType.Color"
