@@ -15,7 +15,7 @@ def get_hash(message: str):
     combined = base_hash + HASH_SALT + message
     return hashlib.sha256(combined.encode()).hexdigest()
 
-def verify_hash_in_request(message: str, request: Request):
+def verify_message_authorization_signature(message: str, request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Unauthorized. Token not specified.")

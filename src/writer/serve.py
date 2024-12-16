@@ -328,7 +328,7 @@ def get_asgi_app(
 
     @app.post("/api/job/workflow/{workflow_key}")
     async def create_workflow_job(workflow_key: str, request: Request, response: Response):
-        crypto.verify_hash_in_request(f"create_job_{workflow_key}", request)
+        crypto.verify_message_authorization_signature(f"create_job_{workflow_key}", request)
 
         def serialize_result(data):
             if isinstance(data, list):
@@ -402,7 +402,7 @@ def get_asgi_app(
 
     @app.get("/api/job/{job_id}")
     async def get_workflow_job(job_id: str, request: Request, response: Response):
-        crypto.verify_hash_in_request(f"get_job_{job_id}", request)
+        crypto.verify_message_authorization_signature(f"get_job_{job_id}", request)
         job = app.state.job_vault.get(job_id)
 
         if not job:
