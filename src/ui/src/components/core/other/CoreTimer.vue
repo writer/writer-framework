@@ -94,7 +94,7 @@ watch(isTickHandlerSet, async (newIsTickHandlerSet) => {
 });
 
 let animationTriggeredTime: number = 0;
-let activeTimerId: number = null;
+let activeTimerId: ReturnType<typeof setTimeout> = null;
 
 function clearActiveTimer() {
 	clearTimeout(activeTimerId);
@@ -134,6 +134,7 @@ onMounted(() => {
 <style scoped>
 .CoreTimer {
 	width: 12px;
+	min-width: 12px;
 	height: 12px;
 	background: var(--accentColor);
 	border-radius: 50%;
