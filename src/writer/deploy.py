@@ -15,6 +15,7 @@ import pytz
 import requests
 from gitignore_parser import parse_gitignore
 
+DEPLOY_TIMEOUT = int(os.getenv("WRITER_DEPLOY_TIMEOUT", 20))
 
 @click.group()
 def cloud():
@@ -261,7 +262,7 @@ def upload_package(deploy_url, tar, token, env, verbose=False, sleep_interval=5)
     print("Package uploaded. Building...")
     status = "WAITING"
     url = ""
-    while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < build_time + timedelta(minutes=5):
+    while status not in ["COMPLETED", "FAILED"] and datetime.now(pytz.timezone('UTC')) < build_time + timedelta(minutes=DEPLOY_TIMEOUT):
         end_time = datetime.now(pytz.timezone('UTC'))
         status, url = check_service_status(deploy_url, token, build_id, build_time, start_time, end_time, status)
         time.sleep(sleep_interval)
