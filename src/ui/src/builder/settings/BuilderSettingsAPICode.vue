@@ -29,6 +29,10 @@
 							language="shell"
 						></BuilderEmbeddedCodeEditor>
 					</div>
+					<strong
+						>Note: For API calls to work, the --enable-jobs-api flag
+						must be active.</strong
+					>
 				</template>
 				<template v-else>
 					API code cannot be generated. Please make sure the
