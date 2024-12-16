@@ -109,7 +109,7 @@ class RedisJobVault(JobVault):
     DEFAULT_TTL = 86400
 
     def __init__(self):
-        import redis # type: ignore
+        import redis  # type: ignore
         super().__init__()
         redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
         self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
