@@ -14,10 +14,9 @@ import time
 import typing
 from contextlib import asynccontextmanager
 from importlib.machinery import ModuleSpec
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 from urllib.parse import urlsplit
 
-import redis
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -55,6 +54,9 @@ logging.getLogger().setLevel(logging.INFO)
 
 class JobVault:
 
+    SCHEMES:List[str] = []
+    job_vault_implementations: List[Type["JobVault"]] = []
+
     def __init__(self):
         self.counter = 0
         self.vault = {}
@@ -70,25 +72,46 @@ class JobVault:
         return self.vault.get(job_id)
 
     @classmethod
+    def register(cls, klass: Type["JobVault"]):
+        cls.job_vault_implementations.insert(0, klass)
+
+    @classmethod
+    def _get_matching_implementation(cls, connection_string):
+        for job_vault_implementation in cls.job_vault_implementations:
+            for scheme in job_vault_implementation.SCHEMES:
+                if connection_string.startswith(scheme):
+                    return job_vault_implementation
+
+    @classmethod
     def create_vault(cls):
-        redis_connection_string = os.getenv("WRITER_REDIS")
-        if not redis_connection_string:
+        connection_string = os.getenv("WRITER_PERSISTENT_STORE")
+        if not connection_string:
             return cls()
+
+        matching_implementation = cls._get_matching_implementation(connection_string)
+        if not matching_implementation:
+            supported_schemes = [scheme for implementation in JobVault.job_vault_implementations for scheme in implementation.SCHEMES]
+            supported_schemes_msg = ", ".join(supported_schemes)
+            logging.error(f"No matching implementation found for { connection_string }. Falling back to in-memory JobVault. \
+                          Supported schemes: {supported_schemes_msg}.")
+            return cls()
+
         try:
-            redis_vault = RedisJobVault()
-            return redis_vault
+            return matching_implementation()
         except Exception as e:
-            logging.error(f"There was an error connecting to Redis. Falling back to in-memory JobVault. {repr(e)}")
+            logging.error(f"There was an error connecting to { connection_string }. Falling back to in-memory JobVault. {repr(e)}")
             return cls()
 
 
 class RedisJobVault(JobVault):
 
+    SCHEMES = ["redis://", "rediss://", "redis-socket://", "redis-sentinel://"]
     DEFAULT_TTL = 86400
 
     def __init__(self):
+        import redis
         super().__init__()
-        redis_connection_string = os.getenv("WRITER_REDIS")
+        redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
         self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
         self.counter_key = "job_counter"
         if not self.redis_client.exists(self.counter_key):
@@ -100,7 +123,7 @@ class RedisJobVault(JobVault):
 
     def set(self, job_id: str, value: Any):
         ttl = RedisJobVault.DEFAULT_TTL
-        env_ttl = os.getenv("WRITER_REDIS_TTL")
+        env_ttl = os.getenv("WRITER_PERSISTENT_STORE_TTL")
         if env_ttl is not None:
             ttl = int(env_ttl)
         json_str = json.dumps(value)
@@ -111,7 +134,6 @@ class RedisJobVault(JobVault):
         if not json_str:
             return None
         return json.loads(json_str)
-
 
 
 class WriterState(typing.Protocol):
@@ -189,7 +211,6 @@ def get_asgi_app(
     """
     app.state.writer_app = True
     app.state.app_runner = app_runner
-    app.state.job_vault = JobVault.create_vault()
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -660,9 +681,13 @@ def get_asgi_app(
             )
         )
 
+    JobVault.register(RedisJobVault)
+
     # Return
     if enable_server_setup is True:
         _execute_server_setup_hook(user_app_path)
+
+    app.state.job_vault = JobVault.create_vault()
 
     return app
 

@@ -1,5 +1,6 @@
 import mimetypes
 import time
+from typing import Any
 
 import fastapi
 import fastapi.testclient
@@ -276,3 +277,36 @@ class TestServe:
                 "Authorization": f"Bearer {get_job_token}"
             })
             assert res.status_code == 403
+
+
+    def test_create_workflow_job_api_custom_job_vault(self, monkeypatch):
+        monkeypatch.setenv("WRITER_BASE_HASH", "abc")
+        monkeypatch.setenv("WRITER_PERSISTENT_STORE", "testjobvault://doesn'tmatter")
+        workflow_key = "workflow2"
+
+        class TestJobVault(writer.serve.JobVault):
+            SCHEMES = ["testjobvault://"]
+            def get(self, job_id: str):
+                value = self.vault[job_id]
+                if "result" in value:
+                    value["result"] = "Powered by TestJobVault - " + str(value["result"])
+                return value
+
+        writer.serve.JobVault.register(TestJobVault)
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            create_job_token = crypto.get_hash(f"create_job_{workflow_key}")
+            res = client.post(f"/api/job/workflow/{workflow_key}", json={
+                "proposedSessionId": None
+            }, headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {create_job_token}"
+            })
+            time.sleep(1)
+            job_id = res.json().get("id")
+            get_job_token = res.json().get("token")
+            res = client.get(f"/api/job/{job_id}", headers={
+                "Authorization": f"Bearer {get_job_token}"
+            })
+            assert res.json().get("result") == "Powered by TestJobVault - 987127"
