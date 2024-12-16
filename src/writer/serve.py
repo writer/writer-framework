@@ -112,7 +112,7 @@ class RedisJobVault(JobVault):
         import redis
         super().__init__()
         redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
-        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
+        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30) # type: ignore
         self.counter_key = "job_counter"
         if not self.redis_client.exists(self.counter_key):
             self.redis_client.set(self.counter_key, 0)
