@@ -87,7 +87,7 @@ function focus() {
 }
 
 .WdsTextInput--leftIcon i {
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 }
 
 .WdsTextInput--leftIcon input {

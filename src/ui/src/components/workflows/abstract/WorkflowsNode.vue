@@ -242,7 +242,7 @@ watch(isEngaged, () => {
 	font-weight: 400;
 	/* letter-spacing: 1.3px; */
 	/* text-transform: uppercase; */
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 	font-feature-settings:
 		"liga" off,
 		"clig" off;
@@ -258,19 +258,19 @@ watch(isEngaged, () => {
 }
 
 .output .ball.success {
-	background: #3bdcab;
+	background: var(--wdsColorGreen5);
 }
 
 .output .ball.error {
-	background: #ff643c;
+	background: var(--wdsColorOrange5);
 }
 
 .output .ball.dynamic {
-	background: #a95ef8;
+	background: var(--wdsColorPurple4);
 }
 
 .WorkflowsNode.selected.component {
-	border: 2px solid #6985ff;
+	border: 2px solid var(--wdsColorBlue4);
 	background: var(--builderBackgroundColor);
 }
 </style>

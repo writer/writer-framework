@@ -128,11 +128,11 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 .WdsDropdownMenu__item:hover {
 	cursor: pointer;
-	background-color: #f3f5ff;
+	background-color: var(--wdsColorBlue1);
 }
 
 .WdsDropdownMenu__item--selected {
-	background-color: #e4e9ff;
+	background-color: var(--wdsColorBlue2);
 }
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
@@ -164,7 +164,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__search:focus-within {
 	background-color: white;
-	outline: 4px solid #f3f5ff;
+	outline: 4px solid var(--wdsColorBlue1);
 }
 
 .WdsDropdownMenu__search__input {

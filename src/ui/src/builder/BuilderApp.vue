@@ -270,19 +270,19 @@ onMounted(() => {
 @import "./sharedStyles.css";
 
 .BuilderApp {
-	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #5551ff;
+	--builderBackgroundColor: var(--wdsColorWhite);
+	--builderAccentColor: var(--wdsColorBlue5);
 	--builderSuccessColor: #3be19b;
 	--builderErrorColor: #ff3d00;
-	--builderHeaderBackgroundColor: #333333;
-	--builderHeaderBackgroundHoleColor: #000000;
+	--builderHeaderBackgroundColor: var(--wdsColorGray6);
+	--builderHeaderBackgroundHoleColor: var(--wdsColorBlack);
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
 	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSeparatorColor: #e4e7ed;
-	--builderSubtleSeparatorColor: #f5f5f9;
-	--builderIntenseSeparatorColor: #d2d4d7;
-	--builderSelectedColor: #e4e9ff;
+	--builderSeparatorColor: var(--wdsColorGray2);
+	--builderSubtleSeparatorColor: var(--wdsColorGray1);
+	--builderIntenseSeparatorColor: var(--wdsColorGray3);
+	--builderSelectedColor: var(--wdsColorBlue2);
 	--builderMatchingColor: #f8dccc;
 	--builderIntenseSelectedColor: #0094d1;
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
@@ -290,14 +290,14 @@ onMounted(() => {
 	--builderDisabledColor: rgb(180, 180, 180);
 	--builderSidebarWidth: 265px;
 	--builderSettingsWidth: 450px;
-	--builderActionOngoingColor: #333333;
+	--builderActionOngoingColor: var(--wdsColorGray6);
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
 	--builderWarningColor: #ff3d00;
 	--builderPanelSwitcherHeight: 48px;
 	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 
-	--buttonColor: #5551ff;
+	--buttonColor: var(--wdsColorBlue5);
 	--buttonTextColor: white;
 	--accentColor: var(--builderAccentColor);
 	--primaryTextColor: var(--builderPrimaryTextColor);

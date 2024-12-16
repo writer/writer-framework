@@ -32,7 +32,7 @@ const definition = computed(() =>
 
 .BaseEmptiness {
 	background: #e4e7ed;
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 	padding: 16px;
 	display: flex;
 	align-items: center;
@@ -46,7 +46,7 @@ const definition = computed(() =>
 }
 
 .title > h3 {
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 }
 
 .message {

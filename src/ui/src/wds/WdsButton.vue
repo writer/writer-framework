@@ -66,16 +66,16 @@ const className = computed(() => [
 	background: var(--intensifiedButtonColor);
 }
 .WdsButton--primary:disabled {
-	border-color: #4a46da;
-	background-color: #4a46da;
+	border-color: var(--wdsColorBlue6);
+	background-color: var(--wdsColorBlue6);
 }
 
 /* VARIANTS -- secondary */
 
 .WdsButton--secondary {
 	color: var(--buttonTextColor);
-	background: #000000;
-	border-color: #000000;
+	background: var(--wdsColorBlack);
+	border-color: var(--wdsColorBlack);
 }
 
 .WdsButton--secondary:hover,
@@ -92,36 +92,36 @@ const className = computed(() => [
 /* VARIANTS -- tertiary */
 
 .WdsButton--tertiary {
-	color: #000000;
-	background: #ffffff;
+	color: var(--wdsColorBlack);
+	background: var(--wdsColorWhite);
 	border-color: #e4e7ed;
 }
 
 .WdsButton--tertiary:hover,
 .WdsButton--tertiary:focus {
-	color: #828282;
+	color: var(--wdsColorGray4);
 }
 .WdsButton--tertiary:disabled {
-	color: #828282;
+	color: var(--wdsColorGray4);
 	opacity: 50%;
 }
 
 /* VARIANTS -- special */
 
 .WdsButton--special {
-	color: #5551ff;
-	background: #e4e9ff;
-	border-color: #e4e9ff;
+	color: var(--wdsColorBlue5);
+	background: var(--wdsColorBlue2);
+	border-color: var(--wdsColorBlue2);
 }
 
 .WdsButton--special:hover,
 .WdsButton--special:focus {
-	border-color: #bfcbff;
-	background: #bfcbff;
+	border-color: var(--wdsColorBlue3);
+	background: var(--wdsColorBlue3);
 }
 .WdsButton--special:disabled {
-	border-color: #e4e9ff;
-	background-color: #e4e9ff;
+	border-color: var(--wdsColorBlue2);
+	background-color: var(--wdsColorBlue2);
 	opacity: 0.4;
 }
 

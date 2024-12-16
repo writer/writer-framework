@@ -30,6 +30,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
+import { WdsColor } from "@/wds/tokens";
 
 const description =
 	"A user input component that allows users to select multiple values from a searchable list of options.";
@@ -76,7 +77,7 @@ export default {
 			chipTextColor: {
 				name: "Chip text",
 				type: FieldType.Color,
-				default: "#ffffff",
+				default: WdsColor.White,
 				desc: "The colour of the text in the chips.",
 				category: FieldCategory.Style,
 				applyStyleVariable: true,

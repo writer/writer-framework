@@ -1,6 +1,6 @@
 .BuilderApp {
-	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #5551ff;
+	--builderBackgroundColor: var(--wdsColorWhite);
+	--builderAccentColor: var(--wdsColorBlue5);
 	--builderSuccessColor: #29cf00;
 	--builderErrorColor: #ff3d00;
 	--builderHeaderBackgroundColor: #353535;
@@ -12,7 +12,7 @@
 	--builderSubtleSeparatorColor: rgba(0, 0, 0, 0.05);
 	--builderIntenseSeparatorColor: rgba(0, 0, 0, 0.2);
 	--builderSelectedColor: rgba(210, 234, 244, 0.8);
-	--builderIntenseSelectedColor: #6985ff;
+	--builderIntenseSelectedColor: var(--wdsColorBlue4);
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
 	--builderSubtleHighlightColorSolid: #f2f2f2;
 	--builderDisabledColor: rgb(180, 180, 180);
