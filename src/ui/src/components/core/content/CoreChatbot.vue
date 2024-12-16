@@ -249,7 +249,7 @@ export default {
 			},
 			avatarBackgroundColor: {
 				name: "Avatar",
-				default: "#2C2D30",
+				default: WdsColor.Gray6,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				applyStyleVariable: true,

@@ -272,8 +272,8 @@ onMounted(() => {
 .BuilderApp {
 	--builderBackgroundColor: var(--wdsColorWhite);
 	--builderAccentColor: var(--wdsColorBlue5);
-	--builderSuccessColor: #3be19b;
-	--builderErrorColor: #ff3d00;
+	--builderSuccessColor: var(--wdsColorGreen5);
+	--builderErrorColor: var(--wdsColorOrange5);
 	--builderHeaderBackgroundColor: var(--wdsColorGray6);
 	--builderHeaderBackgroundHoleColor: var(--wdsColorBlack);
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
@@ -283,17 +283,16 @@ onMounted(() => {
 	--builderSubtleSeparatorColor: var(--wdsColorGray1);
 	--builderIntenseSeparatorColor: var(--wdsColorGray3);
 	--builderSelectedColor: var(--wdsColorBlue2);
-	--builderMatchingColor: #f8dccc;
-	--builderIntenseSelectedColor: #0094d1;
+	--builderMatchingColor: var(--wdsColorOrange2);
+	--builderIntenseSelectedColor: var(--wdsColorBlue4);
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
-	--builderSubtleHighlightColorSolid: #f2f2f2;
-	--builderDisabledColor: rgb(180, 180, 180);
+	--builderSubtleHighlightColorSolid: var(--wdsColorGray1);
 	--builderSidebarWidth: 265px;
 	--builderSettingsWidth: 450px;
 	--builderActionOngoingColor: var(--wdsColorGray6);
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
-	--builderWarningColor: #ff3d00;
+	--builderWarningColor: var(--wdsColorOrange5);
 	--builderPanelSwitcherHeight: 48px;
 	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 

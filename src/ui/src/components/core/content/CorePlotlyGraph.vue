@@ -67,7 +67,12 @@ const spec = computed(() => fields.spec.value);
 const defaultLayout = {
 	paper_bgcolor: WdsColor.White,
 	plot_bgcolor: WdsColor.Gray1,
-	colorway: [WdsColor.Blue4, WdsColor.Blue4, "#F86", WdsColor.Green5],
+	colorway: [
+		WdsColor.Blue4,
+		WdsColor.Blue4,
+		WdsColor.Orange4,
+		WdsColor.Green5,
+	],
 	font: {
 		family: "Poppins, sans-serif",
 		size: 12,

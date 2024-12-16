@@ -2,8 +2,8 @@
 	--builderBackgroundColor: var(--wdsColorWhite);
 	--builderAccentColor: var(--wdsColorBlue5);
 	--builderSuccessColor: #29cf00;
-	--builderErrorColor: #ff3d00;
-	--builderHeaderBackgroundColor: #353535;
+	--builderErrorColor: var(--wdsColorOrange5);
+	--builderHeaderBackgroundColor: var(--wdsColorGray6);
 	--builderHeaderBackgroundHoleColor: #202020;
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
@@ -14,8 +14,7 @@
 	--builderSelectedColor: rgba(210, 234, 244, 0.8);
 	--builderIntenseSelectedColor: var(--wdsColorBlue4);
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
-	--builderSubtleHighlightColorSolid: #f2f2f2;
-	--builderDisabledColor: rgb(180, 180, 180);
+	--builderSubtleHighlightColorSolid: var(--wdsColorGray1);
 	--builderSidebarWidth: max(265px, 27vh);
 	--builderSettingsWidth: max(265px, 27vh);
 	--builderActionOngoingColor: rgba(0, 0, 0, 0.7);

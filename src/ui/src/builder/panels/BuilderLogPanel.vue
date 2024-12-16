@@ -113,7 +113,7 @@ const logEntries = computed(() => {
 }
 
 .entry.error {
-	border: 1px solid #ffcfc2;
+	border: 1px solid var(--wdsColorOrange2);
 	background: var(--wdsColorOrange1);
 }
 

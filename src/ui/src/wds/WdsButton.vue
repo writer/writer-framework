@@ -80,12 +80,12 @@ const className = computed(() => [
 
 .WdsButton--secondary:hover,
 .WdsButton--secondary:focus {
-	border-color: #333333;
-	background: #333333;
+	border-color: var(--wdsColorGray6);
+	background: var(--wdsColorGray6);
 }
 .WdsButton--secondary:disabled {
-	border-color: #333333;
-	background: #333333;
+	border-color: var(--wdsColorGray6);
+	background: var(--wdsColorGray6);
 	opacity: 40%;
 }
 
@@ -94,7 +94,7 @@ const className = computed(() => [
 .WdsButton--tertiary {
 	color: var(--wdsColorBlack);
 	background: var(--wdsColorWhite);
-	border-color: #e4e7ed;
+	border-color: var(--wdsColorGray2);
 }
 
 .WdsButton--tertiary:hover,

@@ -193,7 +193,7 @@ watch(isEngaged, () => {
 }
 
 .WorkflowsNode:hover {
-	border: 2px solid #e4e9ff;
+	border: 2px solid var(--wdsColorBlue2);
 }
 
 .title {

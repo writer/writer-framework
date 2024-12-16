@@ -31,7 +31,7 @@ const definition = computed(() =>
 @import "@/renderer/sharedStyles.css";
 
 .BaseEmptiness {
-	background: #e4e7ed;
+	background: var(--wdsColorGray2);
 	color: var(--wdsColorGray5);
 	padding: 16px;
 	display: flex;

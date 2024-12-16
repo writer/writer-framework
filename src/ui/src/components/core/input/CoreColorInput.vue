@@ -48,9 +48,9 @@ const definition = {
 			init: JSON.stringify([
 				WdsColor.Blue5,
 				WdsColor.Green5,
-				"#ff3d00",
+				WdsColor.Orange5,
 				WdsColor.Gray6,
-				"#0094d1",
+				WdsColor.Blue4,
 			]),
 		},
 		cssClasses,

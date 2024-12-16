@@ -1,3 +1,6 @@
+/**
+ * Colors from [Writer's design system](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=1-2)
+ */
 export const enum WdsColor {
 	White = "#ffffff",
 	Black = "#000000",
