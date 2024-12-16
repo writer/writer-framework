@@ -33,4 +33,8 @@
 	--wdsColorGreen3: #a9f9e1;
 	--wdsColorGreen5: #3bdcab;
 	--wdsColorGreen6: #078660;
+
+	--wdsShadowBox: 0px 2px 0px 0px #f3f3f3;
+	--wdsShadowMenu: 0px 1px 8px 0px #bfcbff40;
+	--wdsShadowLarge: 0px 3px 40px 0px #acb9dc66;
 }

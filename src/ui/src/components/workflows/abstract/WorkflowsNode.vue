@@ -188,7 +188,7 @@ watch(isEngaged, () => {
 	border-radius: 8px;
 	width: 240px;
 	position: absolute;
-	box-shadow: 0px 2px 0px 0px #f3f3f3;
+	box-shadow: var(--wdsShadowBox);
 	user-select: none;
 }
 

@@ -114,7 +114,7 @@ const toggleMiniDocs = () => {
 	overflow: hidden;
 	border-width: 1px solid var(--builderAreaSeparatorColor);
 	background: var(--builderBackgroundColor);
-	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
+	box-shadow: var(--wdsShadowLarge);
 	border-radius: 12px;
 	top: v-bind("ssbm.getMode() == `workflows` ? `72px` : `20px`");
 }

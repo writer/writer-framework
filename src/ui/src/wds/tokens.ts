@@ -37,3 +37,12 @@ export const enum WdsColor {
 	Green5 = "#3bdcab",
 	Green6 = "#078660",
 }
+
+/**
+ * Shadows from [Writer's design system](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=1-14)
+ */
+export const enum WdsShadow {
+	Box = "0px 2px 0px 0px #f3f3f3",
+	Menu = "0px 1px 8px 0px #bfcbff40",
+	Large = "0px 3px 40px 0px #acb9dc66",
+}

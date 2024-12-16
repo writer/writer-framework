@@ -97,7 +97,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 	padding: 8px 10px;
 
-	box-shadow: 0px 1px 8px 0px #bfcbff40;
+	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
 }
 .WdsDropdownMenu:has(.WdsDropdownMenu__search) {
