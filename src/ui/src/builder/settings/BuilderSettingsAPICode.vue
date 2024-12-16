@@ -32,7 +32,7 @@
 				</template>
 				<template v-else>
 					API code cannot be generated. Please make sure the
-					environment variable WRITER_BASE_HASH has been set up.
+					environment variable WRITER_SECRET_KEY has been set up.
 				</template>
 			</div>
 		</BuilderModal>

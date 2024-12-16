@@ -7,9 +7,9 @@ from fastapi import HTTPException, Request
 HASH_SALT = "a9zHYfIeL0"
 
 def get_hash(message: str):
-    base_hash = os.getenv("WRITER_BASE_HASH")
+    base_hash = os.getenv("WRITER_SECRET_KEY")
     if not base_hash:
-        raise ValueError("Environment variable WRITER_BASE_HASH needs to be set up in" + \
+        raise ValueError("Environment variable WRITER_SECRET_KEY needs to be set up in" + \
                             "order to enable operations which require hash generation, such as creating async jobs.")
     assert HASH_SALT
     combined = base_hash + HASH_SALT + message

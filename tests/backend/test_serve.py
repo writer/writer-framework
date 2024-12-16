@@ -221,7 +221,7 @@ class TestServe:
     def test_create_workflow_job_api(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
-        monkeypatch.setenv("WRITER_BASE_HASH", "abc")
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
@@ -243,7 +243,7 @@ class TestServe:
     def test_create_workflow_job_api_incorrect_token(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
-        monkeypatch.setenv("WRITER_BASE_HASH", "abc")
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
@@ -259,7 +259,7 @@ class TestServe:
     def test_create_workflow_job_api_incorrect_token_for_get(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run")
-        monkeypatch.setenv("WRITER_BASE_HASH", "abc")
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
@@ -280,7 +280,7 @@ class TestServe:
 
 
     def test_create_workflow_job_api_custom_job_vault(self, monkeypatch):
-        monkeypatch.setenv("WRITER_BASE_HASH", "abc")
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         monkeypatch.setenv("WRITER_PERSISTENT_STORE", "testjobvault://doesn'tmatter")
         workflow_key = "workflow2"
 
