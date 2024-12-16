@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderApp" tabindex="-1">
+	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
 		<div
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
@@ -81,6 +81,7 @@ import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
+import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),

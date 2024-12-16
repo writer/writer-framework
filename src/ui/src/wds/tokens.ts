@@ -1,7 +1,9 @@
+import type { CSSProperties } from "vue";
+
 /**
  * Colors from [Writer's design system](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=1-2)
  */
-export const enum WdsColor {
+export enum WdsColor {
 	White = "#ffffff",
 	Black = "#000000",
 
@@ -41,8 +43,21 @@ export const enum WdsColor {
 /**
  * Shadows from [Writer's design system](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=1-14)
  */
-export const enum WdsShadow {
+export enum WdsShadow {
 	Box = "0px 2px 0px 0px #f3f3f3",
 	Menu = "0px 1px 8px 0px #bfcbff40",
 	Large = "0px 3px 40px 0px #acb9dc66",
 }
+
+export const WDS_CSS_PROPERTIES = Object.freeze<CSSProperties>(
+	Object.fromEntries([
+		...Object.entries(WdsColor).map(([key, value]) => [
+			`--wdsColor${key}`,
+			value,
+		]),
+		...Object.entries(WdsShadow).map(([key, value]) => [
+			`--wdsShadow${key}`,
+			value,
+		]),
+	]),
+);

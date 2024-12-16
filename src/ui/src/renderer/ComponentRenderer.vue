@@ -41,6 +41,7 @@ import {
 	changeRouteVarsInHash,
 	serializeParsedHash,
 } from "@/core/navigation";
+import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -59,6 +60,7 @@ const coreRootFields = templateEvaluator.getEvaluatedFields([
 
 const rootStyle = computed(() => {
 	return {
+		...WDS_CSS_PROPERTIES,
 		"--accentColor": coreRootFields.accentColor?.value,
 		"--emptinessColor": coreRootFields.emptinessColor?.value,
 		"--containerBackgroundColor":

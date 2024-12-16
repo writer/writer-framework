@@ -4,7 +4,6 @@ import VueDOMPurifyHTML from "vue-dompurify-html";
 import { generateBuilderManager } from "./builder/builderManager.js";
 import { generateCore } from "./core";
 import "./fonts";
-import "./wds/tokens.css";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 
