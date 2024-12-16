@@ -49,7 +49,6 @@ websockets = ">= 12, < 13"
 writer-sdk = ">= 1.5.0, < 2"
 python-multipart = ">=0.0.7, < 1"
 
-
 [tool.poetry.group.build]
 optional = true
 
@@ -68,6 +67,11 @@ pytest-asyncio = ">= 0.23.4, < 1"
 ruff = "^0.3.4"
 types-requests = "^2.31.0.20240406"
 
+[tool.poetry.group.redis]
+optional = true
+
+[tool.poetry.group.redis.dependencies]
+redis = "^5.2.1"
 
 [tool.poetry.group.dev.dependencies]
 types-python-dateutil = "^2.9.0.20240316"
@@ -75,6 +79,8 @@ types-python-dateutil = "^2.9.0.20240316"
 [tool.poetry.scripts]
 writer = 'writer.command_line:main'
 
+[tool.poetry.extras]
+redis = ["redis"]
 
 [tool.ruff]
 exclude = [

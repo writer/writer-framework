@@ -15,7 +15,6 @@ def fake_generate_content(application_id, app_inputs):
 
 def test_call_nocode_app(monkeypatch, session, runner):
     monkeypatch.setattr("writer.ai.apps.generate_content", fake_generate_content)
-    writer.ai.apps.generate_content = fake_generate_content
     session.add_fake_component({
         "appId": "123",
         "appInputs": json.dumps({

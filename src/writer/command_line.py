@@ -21,8 +21,9 @@ def main():
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=None, help="Port to run the app on")
+@click.option("--enable-jobs-api", help="Set this flag to enable the Jobs API, allowing you to execute jobs without user interaction.", is_flag=True)
 @click.argument('path')
-def run(path: str, host: str, port: Optional[int]):
+def run(path: str, host: str, port: Optional[int], enable_jobs_api: bool):
     """Run the app from PATH folder in run mode."""
 
     abs_path = os.path.abspath(path)
@@ -35,7 +36,7 @@ def run(path: str, host: str, port: Optional[int]):
         raise click.ClickException(f"There’s no Writer Framework project at this location : {abs_path}")
 
     writer.serve.serve(
-        abs_path, mode="run", port=port, host=host, enable_server_setup=True)
+        abs_path, mode="run", port=port, host=host, enable_server_setup=True, enable_jobs_api=enable_jobs_api)
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
@@ -43,6 +44,7 @@ def run(path: str, host: str, port: Optional[int]):
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
 @click.option("--no-interactive", help="Set the flask to ask the app to run without asking anything to the user", is_flag=True)
+@click.option("--enable-jobs-api", help="Set this flag to enable the Jobs API, allowing you to execute jobs without user interaction.", is_flag=True)
 @click.argument('path')
 def edit(
     path: str,
@@ -50,7 +52,8 @@ def edit(
     host: str,
     enable_remote_edit: bool,
     enable_server_setup: bool,
-    no_interactive: bool
+    no_interactive: bool,
+    enable_jobs_api: bool,
 ):
     """Run the app from PATH folder in edit mode."""
     abs_path = os.path.abspath(path)
@@ -70,7 +73,7 @@ def edit(
 
     writer.serve.serve(
         abs_path, mode="edit", port=port, host=host,
-        enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
+        enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
 
 @main.command()
 @click.argument('path')

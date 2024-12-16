@@ -141,7 +141,7 @@ const name = computed(() => {
 		return component.value.content?.["element"];
 	}
 	if (type == "workflows_workflow") {
-		return component.value.content?.["key"] ?? "Workflow";
+		return component.value.content?.["key"] || "Workflow";
 	}
 	return def.value?.name ?? `Unknown (${component.value.type})`;
 });

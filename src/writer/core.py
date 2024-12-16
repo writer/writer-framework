@@ -1240,6 +1240,8 @@ class EventDeserialiser:
         custom_event_name = ev.type[3:]
         func_name = "_transform_" + custom_event_name.replace("-", "_")
         if not hasattr(self, func_name):
+            if ev.isSafe:
+                return
             ev.payload = {}
             raise ValueError(
                 "No payload transformer available for custom event type.")
@@ -1605,9 +1607,9 @@ class EventHandler:
                 "session": session
             }
             if workflow_key:
-                self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
+                return self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
             elif workflow_id:
-                self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
+                return self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
         return fn
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
