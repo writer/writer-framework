@@ -2,20 +2,17 @@
 	<div
 		v-if="leftIcon"
 		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
+		v-bind="$attrs"
 		@click="input.focus()"
 	>
 		<i class="material-symbols-outlined">{{ leftIcon }}</i>
-		<input
-			ref="input"
-			v-model="model"
-			type="text"
-			:placeholder="placeholder"
-		/>
+		<input ref="input" v-model="model" v-bind="$attrs" />
 	</div>
 	<input
 		v-else
+		v-bind="$attrs"
+		ref="input"
 		v-model="model"
-		type="text"
 		class="WdsTextInput colorTransformer"
 	/>
 </template>
@@ -25,12 +22,40 @@ import { ref } from "vue";
 
 const model = defineModel({ type: String });
 
+// disable attributes inheritance to apply attr to nested input
+defineOptions({ inheritAttrs: false });
+
 defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
-	placeholder: { type: String, required: false, default: undefined },
 });
 
-const input = ref();
+defineExpose({
+	focus,
+	getSelection,
+	value: model,
+	setSelectionEnd,
+	setSelectionStart,
+});
+
+const input = ref<HTMLInputElement>();
+
+function setSelectionStart(value: number) {
+	if (input.value) input.value.selectionStart = value;
+}
+function setSelectionEnd(value: number) {
+	if (input.value) input.value.selectionEnd = value;
+}
+
+function getSelection() {
+	return {
+		selectionStart: input.value?.selectionStart,
+		selectionEnd: input.value?.selectionEnd,
+	};
+}
+
+function focus() {
+	input.value?.focus();
+}
 </script>
 
 <style scoped>

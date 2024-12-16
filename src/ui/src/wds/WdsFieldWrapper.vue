@@ -1,17 +1,38 @@
 <template>
 	<div class="WdsFieldWrapper colorTransformer">
-		<label>{{ label }}</label>
-		<div class="slotContainer" :class="{ frameSlot }"><slot></slot></div>
-		<div v-if="hint" class="hint">{{ hint }}</div>
+		<div v-if="label || helpButton" class="WdsFieldWrapper__title">
+			<label v-if="label" class="WdsFieldWrapper__title__label">{{
+				label
+			}}</label>
+			<button
+				v-if="helpButton"
+				class="WdsFieldWrapper__title__help"
+				variant="subtle"
+				:title="typeof helpButton === 'string' ? helpButton : undefined"
+				@click="$emit('helpClick')"
+			>
+				<i class="material-symbols-outlined">help</i>
+			</button>
+		</div>
+		<div class="WdsFieldWrapper__slot"><slot></slot></div>
+		<div v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-	label: string;
-	hint?: string;
-	frameSlot?: boolean;
-}>();
+defineProps({
+	label: { type: String, required: false, default: undefined },
+	hint: { type: String, required: false, default: undefined },
+	helpButton: {
+		type: [String, Boolean],
+		required: false,
+		default: undefined,
+	},
+});
+
+defineEmits({
+	helpClick: () => true,
+});
 </script>
 
 <style scoped>
@@ -23,26 +44,34 @@ defineProps<{
 	gap: 4px;
 }
 
-label {
+.WdsFieldWrapper__title {
 	color: var(--primaryTextColor);
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.WdsFieldWrapper__title__help {
+	background-color: transparent;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+.WdsFieldWrapper__title__help:hover {
+	color: var(--primaryColor);
+}
+
+.WdsFieldWrapper__title__label {
 	font-size: 14px;
 	font-weight: 400;
 	line-height: 20px;
 }
 
-.slotContainer.frameSlot {
-	border-radius: 8px;
-	padding: 8.5px 12px 8.5px 12px;
-	font-size: 0.875rem;
-	border: 1px solid var(--separatorColor);
-}
-
-.slotContainer.frameSlot:focus-within {
-	border: 1px solid var(--softenedAccentColor);
-	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
-}
-
-.hint {
+.WdsFieldWrapper__hint {
 	color: var(--secondaryTextColor);
 	margin-top: 4px;
 	font-family: Poppins;
