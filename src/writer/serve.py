@@ -159,7 +159,8 @@ def get_asgi_app(
         enable_remote_edit: bool = False,
         enable_server_setup: bool = True,
         on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None
+        on_shutdown: Optional[Callable] = None,
+        enable_jobs_api: bool = False
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -328,6 +329,9 @@ def get_asgi_app(
 
     @app.post("/api/job/workflow/{workflow_key}")
     async def create_workflow_job(workflow_key: str, request: Request, response: Response):
+        if not enable_jobs_api:
+            raise HTTPException(status_code=404)
+
         crypto.verify_message_authorization_signature(f"create_job_{workflow_key}", request)
 
         def serialize_result(data):
@@ -402,6 +406,9 @@ def get_asgi_app(
 
     @app.get("/api/job/{job_id}")
     async def get_workflow_job(job_id: str, request: Request, response: Response):
+        if not enable_jobs_api:
+            raise HTTPException(status_code=404)
+
         crypto.verify_message_authorization_signature(f"get_job_{job_id}", request)
         job = app.state.job_vault.get(job_id)
 
@@ -725,7 +732,7 @@ def register_auth(
 ):
     auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
-def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False):
+def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False, enable_jobs_api=False):
     """ Initialises the web server. """
 
     print_init_message()
@@ -747,7 +754,7 @@ def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remo
         port = _next_localhost_available_port(mode_allowed_ports[mode])
 
     enable_server_setup = mode == "run" or enable_server_setup
-    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
+    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
     log_level = "warning"
     uvicorn.run(app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
 

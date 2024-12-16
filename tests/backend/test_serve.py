@@ -220,7 +220,7 @@ class TestServe:
 
     def test_create_workflow_job_api(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run")
+            test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
@@ -242,7 +242,7 @@ class TestServe:
 
     def test_create_workflow_job_api_incorrect_token(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run")
+            test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
@@ -258,7 +258,7 @@ class TestServe:
 
     def test_create_workflow_job_api_incorrect_token_for_get(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run")
+            test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         workflow_key = "workflow2"
         
@@ -294,7 +294,7 @@ class TestServe:
 
         writer.serve.JobVault.register(TestJobVault)
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run")
+            test_app_dir, "run", enable_jobs_api=True)
         with fastapi.testclient.TestClient(asgi_app) as client:
             create_job_token = crypto.get_hash(f"create_job_{workflow_key}")
             res = client.post(f"/api/job/workflow/{workflow_key}", json={
