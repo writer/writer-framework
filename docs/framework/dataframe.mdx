@@ -70,13 +70,11 @@ A static DataFrame is one whose content does not change. The user can change its
 
 ## Displaying an editable DataFrame
 
-A editable DataFrame is one whose content can change. Like static DataFrames, editable DataFrames use the **DataFrame** UI component. Unlike static tables, the DataFrame UI component is bound to an instance of `EditableDataframe`, a class provided by the Writer library. Changes to a  `EditableDataframe` object will be immediately reflected in the DataFrame UI component that it is bound to.
-
-<Note>Note that the "f" in `EditableDataframe` is _not_ capitalized — it’s `EditableDataframe`, not `EditableDataFrame`!</Note>
+A editable DataFrame is one whose content can change. Like static DataFrames, editable DataFrames use the **DataFrame** UI component. Unlike static tables, the DataFrame UI component is bound to an instance of `EditableDataFrame`, a class provided by the Writer library. Changes to a  `EditableDataFrame` object will be immediately reflected in the DataFrame UI component that it is bound to.
 
 <Steps>
-	<Step title="Create an EditableDataframe data structure">
-		An `EditableDataframe` object can be instantiated from any of the following:
+	<Step title="Create an EditableDataFrame data structure">
+		An `EditableDataFrame` object can be instantiated from any of the following:
 		
 		1. A pandas `DataFrame`
 		2. A Polars `DataFrame`
@@ -97,7 +95,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 			df = pd.DataFrame(data)
 
 			wf.init_state({
-				"mydf": wf.EditableDataframe(df)
+				"mydf": wf.EditableDataFrame(df)
 			})
 			```
 
@@ -115,7 +113,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 			df = pl.DataFrame(data)
 
 			wf.init_state({
-				"mydf": wf.EditableDataframe(df)
+				"mydf": wf.EditableDataFrame(df)
 			})
 			```
 
@@ -131,7 +129,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 			]
 			
 			wf.init_state({
-				"mydf": wf.EditableDataframe(data)
+				"mydf": wf.EditableDataFrame(data)
 			})
 			```
 		</CodeGroup>
@@ -149,11 +147,11 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 
 ## Updating an editable DataFrame
 
-Editable DataFrames are updated by updating the `EditableDataframe` object they are bound to, which is done using `EditableDataframe`'s methods.
+Editable DataFrames are updated by updating the `EditableDataFrame` object they are bound to, which is done using `EditableDataFrame`'s methods.
 
 ### `record_add`: Add a new row
 
-`record_add()` adds a new row to an `EditableDataframe`. It takes a dictionary with the following structure...
+`record_add()` adds a new row to an `EditableDataFrame`. It takes a dictionary with the following structure...
 
 ```python
 {"record": new_row}
@@ -169,7 +167,7 @@ state["mydf"].record_add({"record": {"rank": 6, "flavor": "Birthday cake", "favo
 
 ### `record_update`: Change an existing row
 
-`record_update()` replaces an existing row in an `EditableDataframe` with a new one. It takes a dictionary with the following structure...
+`record_update()` replaces an existing row in an `EditableDataFrame` with a new one. It takes a dictionary with the following structure...
 
 ```python
 {
@@ -191,7 +189,7 @@ state["mydf"].record_update({
 
 ### `record_remove`: Delete an existing row
 
-`record_remove()` removes an existing row from an `EditableDataframe`. It takes a dictionary with the following structure...
+`record_remove()` removes an existing row from an `EditableDataFrame`. It takes a dictionary with the following structure...
 
 ```python
 {"record_index": index}
