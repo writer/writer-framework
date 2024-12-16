@@ -56,6 +56,16 @@
 		</div>
 		<div class="workflowsToolbar">
 			<WdsButton
+				variant="special"
+				size="small"
+				:data-writer-unselectable="true"
+				data-writer-tooltip="Auto-arrange nodes"
+				data-automation-action="autoarrange"
+				@click="handleAutoarrange"
+			>
+				<i class="material-symbols-outlined">view_column</i>
+			</WdsButton>
+			<WdsButton
 				variant="secondary"
 				size="small"
 				:data-writer-unselectable="true"
@@ -155,6 +165,9 @@ const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 
+const AUTOARRANGE_ROW_GAP_PX = 96;
+const AUTOARRANGE_COLUMN_GAP_PX = 128;
+
 const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
@@ -212,6 +225,99 @@ const isUnselectable = computed(() => {
 
 function handleClick() {
 	selectedArrow.value = null;
+}
+
+function organizeNodesInColumns() {
+	const columns: Map<number, Set<Component>> = new Map();
+
+	function scan(node: Component, layer: number) {
+		columns.forEach((column) => {
+			if (column.has(node)) {
+				column.delete(node);
+			}
+		});
+		if (!columns.has(layer)) {
+			columns.set(layer, new Set());
+		}
+		const column = columns.get(layer);
+		column.add(node);
+		node.outs?.forEach((out) => {
+			const outNode = wf.getComponentById(out.toNodeId);
+			scan(outNode, layer + 1);
+		});
+	}
+
+	const dependencies: Map<Component["id"], Set<Component["id"]>> = new Map();
+
+	nodes.value.forEach((node) => {
+		node.outs?.forEach((outNode) => {
+			if (!dependencies.has(outNode.toNodeId)) {
+				dependencies.set(outNode.toNodeId, new Set());
+			}
+			dependencies.get(outNode.toNodeId).add(node.id);
+		});
+	});
+
+	nodes.value
+		.filter((node) => !dependencies.has(node.id))
+		.forEach((startNode) => {
+			scan(startNode, 0);
+		});
+
+	return columns;
+}
+
+function calculateAutoarrangeDimensions(columns: Map<number, Set<Component>>) {
+	const columnDimensions: Map<number, { height: number; width: number }> =
+		new Map();
+	const nodeDimensions: Map<Component["id"], { height: number }> = new Map();
+	columns.forEach((nodes, layer) => {
+		let height = 0;
+		let width = 0;
+		nodes.forEach((node) => {
+			const nodeEl = nodeContainerEl.value.querySelector(
+				`[data-writer-id="${node.id}"]`,
+			);
+			if (!nodeEl) return;
+			const nodeBCR = nodeEl.getBoundingClientRect();
+			nodeDimensions.set(node.id, {
+				height: nodeBCR.height * (1 / zoomLevel.value),
+			});
+			height +=
+				nodeBCR.height * (1 / zoomLevel.value) + AUTOARRANGE_ROW_GAP_PX;
+			width = Math.max(width, nodeBCR.width * (1 / zoomLevel.value));
+		});
+		columnDimensions.set(layer, {
+			height: height - AUTOARRANGE_ROW_GAP_PX,
+			width,
+		});
+	});
+	return { columnDimensions, nodeDimensions };
+}
+
+function handleAutoarrange() {
+	const columns = organizeNodesInColumns();
+	const { columnDimensions, nodeDimensions } =
+		calculateAutoarrangeDimensions(columns);
+	const maxColumnHeight = Math.max(
+		...Array.from(columnDimensions.values()).map(
+			(dimensions) => dimensions.height,
+		),
+	);
+
+	let x = AUTOARRANGE_COLUMN_GAP_PX;
+	for (let i = 0; i < columns.size; i++) {
+		const nodes = Array.from(columns.get(i)).sort((a, b) =>
+			a.y > b.y ? 1 : -1,
+		);
+		const { width, height } = columnDimensions.get(i);
+		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
+		nodes.forEach((node) => {
+			changeCoordinates(node.id, x, y);
+			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
+		});
+		x += width + AUTOARRANGE_COLUMN_GAP_PX;
+	}
 }
 
 async function handleRun() {
