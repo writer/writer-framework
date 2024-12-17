@@ -7,15 +7,18 @@
 					>&nbsp;:&nbsp;{{ unit }}</span
 				>
 			</label>
-			<button
+			<WdsButton
 				v-if="helpButton"
 				class="WdsFieldWrapper__title__help"
-				variant="subtle"
-				:title="typeof helpButton === 'string' ? helpButton : undefined"
+				variant="neutral"
+				size="smallIcon"
+				:data-writer-tooltip="
+					typeof helpButton === 'string' ? helpButton : undefined
+				"
 				@click="$emit('helpClick')"
 			>
 				<i class="material-symbols-outlined">help</i>
-			</button>
+			</WdsButton>
 		</div>
 		<div class="WdsFieldWrapper__slot"><slot></slot></div>
 		<div v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</div>
@@ -23,6 +26,8 @@
 </template>
 
 <script setup lang="ts">
+import WdsButton from "./WdsButton.vue";
+
 defineProps({
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
@@ -57,17 +62,17 @@ defineEmits({
 	gap: 8px;
 }
 
-.WdsFieldWrapper__title__help {
-	background-color: transparent;
-	border: none;
-	border-radius: 50%;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-}
-.WdsFieldWrapper__title__help:hover {
-	color: var(--primaryColor);
-}
+/* .WdsFieldWrapper__title__help { */
+/* 	background-color: transparent; */
+/* 	border: none; */
+/* 	border-radius: 50%; */
+/* 	cursor: pointer; */
+/* 	display: flex; */
+/* 	align-items: center; */
+/* } */
+/* .WdsFieldWrapper__title__help:hover { */
+/* 	color: var(--primaryColor); */
+/* } */
 
 .WdsFieldWrapper__title__label {
 	font-size: 14px;
