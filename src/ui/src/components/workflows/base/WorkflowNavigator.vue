@@ -14,6 +14,17 @@
 			@change-render-offset="handleRenderOffsetChange"
 		></WorkflowMiniMap>
 		<div class="bar">
+			<div class="autoArranger">
+				<WdsButton
+					variant="neutral"
+					size="smallIcon"
+					data-writer-tooltip="Auto arrange blocks"
+					data-writer-tooltip-placement="left"
+					@click="handleAutoArrange"
+				>
+					<i class="material-symbols-outlined">apps</i>
+				</WdsButton>
+			</div>
 			<div class="zoomer">
 				<WdsButton
 					variant="neutral"
@@ -99,6 +110,7 @@ const emit = defineEmits([
 	"changeRenderOffset",
 	"changeZoomLevel",
 	"resetZoom",
+	"autoArrange",
 ]);
 const isMiniMapShown = ref(true);
 const zoomLevelAsText = ref<string>(
@@ -111,6 +123,11 @@ function convertNumericZoomLevelToText(zoomLevel: number) {
 
 function toggleMiniMap() {
 	isMiniMapShown.value = !isMiniMapShown.value;
+}
+
+function handleAutoArrange(ev: MouseEvent) {
+	emit("autoArrange");
+	(ev.target as HTMLElement).closest("button").blur();
 }
 
 function handleRenderOffsetChange(offset: typeof props.renderOffset) {
@@ -190,12 +207,22 @@ onUnmounted(() => {
 	overflow: hidden;
 	color: var(--builderSecondaryTextColor);
 	border: 1px solid var(--builderSeparatorColor);
-	width: 230px;
+	width: 260px;
 }
 
 .bar {
 	display: flex;
 	background: var(--builderBackgroundColor);
+}
+
+.autoArranger {
+	min-height: 36px;
+	min-width: 40px;
+	flex: 0 0 40px;
+	display: flex;
+	border-right: 1px solid var(--builderSeparatorColor);
+	align-items: center;
+	justify-content: center;
 }
 
 .zoomer {
@@ -204,6 +231,7 @@ onUnmounted(() => {
 	padding: 4px;
 	gap: 4px;
 	align-items: center;
+	justify-content: center;
 }
 
 .zoomer .zoomLevelInput {

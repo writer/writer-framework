@@ -58,7 +58,7 @@ const miniMap = ref({
 });
 
 const selector = ref({
-	width: 230,
+	width: 260,
 	height: 1,
 	top: 0,
 	left: 0,
@@ -120,7 +120,7 @@ function render() {
 	});
 
 	miniMap.value = {
-		width: 230,
+		width: 260,
 		height:
 			((nodeContainerBCR.height / nodeContainerBCR.width) *
 				nodeContainerBCR.width) /

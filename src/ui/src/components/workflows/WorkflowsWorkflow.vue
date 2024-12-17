@@ -56,16 +56,6 @@
 		</div>
 		<div class="workflowsToolbar">
 			<WdsButton
-				variant="special"
-				size="small"
-				:data-writer-unselectable="true"
-				data-writer-tooltip="Auto-arrange nodes"
-				data-automation-action="autoarrange"
-				@click="handleAutoarrange"
-			>
-				<i class="material-symbols-outlined">view_column</i>
-			</WdsButton>
-			<WdsButton
 				variant="secondary"
 				size="small"
 				:data-writer-unselectable="true"
@@ -82,6 +72,7 @@
 			:render-offset="renderOffset"
 			:zoom-level="zoomLevel"
 			class="navigator"
+			@auto-arrange="handleAutoArrange"
 			@change-render-offset="handleChangeRenderOffset"
 			@change-zoom-level="handleChangeZoomLevel"
 			@reset-zoom="resetZoom"
@@ -172,8 +163,13 @@ const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
 
-const { createAndInsertComponent, addOut, removeOut, changeCoordinates } =
-	useComponentActions(wf, wfbm);
+const {
+	createAndInsertComponent,
+	addOut,
+	removeOut,
+	changeCoordinates,
+	changeCoordinatesMultiple,
+} = useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
 const activeConnection: Ref<{
@@ -267,7 +263,7 @@ function organizeNodesInColumns() {
 	return columns;
 }
 
-function calculateAutoarrangeDimensions(columns: Map<number, Set<Component>>) {
+function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 	const columnDimensions: Map<number, { height: number; width: number }> =
 		new Map();
 	const nodeDimensions: Map<Component["id"], { height: number }> = new Map();
@@ -295,16 +291,17 @@ function calculateAutoarrangeDimensions(columns: Map<number, Set<Component>>) {
 	return { columnDimensions, nodeDimensions };
 }
 
-function handleAutoarrange() {
+function handleAutoArrange() {
 	const columns = organizeNodesInColumns();
 	const { columnDimensions, nodeDimensions } =
-		calculateAutoarrangeDimensions(columns);
+		calculateAutoArrangeDimensions(columns);
 	const maxColumnHeight = Math.max(
 		...Array.from(columnDimensions.values()).map(
 			(dimensions) => dimensions.height,
 		),
 	);
 
+	const coordinates = {};
 	let x = AUTOARRANGE_COLUMN_GAP_PX;
 	for (let i = 0; i < columns.size; i++) {
 		const nodes = Array.from(columns.get(i)).sort((a, b) =>
@@ -313,11 +310,12 @@ function handleAutoarrange() {
 		const { width, height } = columnDimensions.get(i);
 		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
 		nodes.forEach((node) => {
-			changeCoordinates(node.id, x, y);
+			coordinates[node.id] = { x, y };
 			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
 		});
 		x += width + AUTOARRANGE_COLUMN_GAP_PX;
 	}
+	changeCoordinatesMultiple(coordinates);
 }
 
 async function handleRun() {
