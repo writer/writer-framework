@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 from typing import Optional
 
 import click
@@ -28,11 +27,11 @@ def run(path: str, host: str, port: Optional[int]):
     abs_path = os.path.abspath(path)
     if wf_project.is_project(path) is False and \
         wf_project.can_create_project(path) is True:
-        raise click.ClickException(f"There’s no Writer Framework project at this location, create a new one with `writer create {path}`")
+        raise click.ClickException(f"There's no Writer Framework project at this location, create a new one with `writer create {path}`")
 
     if wf_project.is_project(path) is False and \
         wf_project.can_create_project(path) is False:
-        raise click.ClickException(f"There’s no Writer Framework project at this location : {abs_path}")
+        raise click.ClickException(f"There's no Writer Framework project at this location : {abs_path}")
 
     writer.serve.serve(
         abs_path, mode="run", port=port, host=host, enable_server_setup=True)
@@ -42,7 +41,7 @@ def run(path: str, host: str, port: Optional[int]):
 @click.option('--port', default=None, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
-@click.option("--no-interactive", help="Set the flask to ask the app to run without asking anything to the user", is_flag=True)
+@click.option("--no-interactive", help="Set this flag to run the app without asking anything to the user.", is_flag=True)
 @click.argument('path')
 def edit(
     path: str,
