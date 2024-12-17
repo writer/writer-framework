@@ -9,7 +9,7 @@ it offers components as `dataframe` to manipulate dataframes. These components a
 |--------------------|---------------------------------------|
 | `pandas.DataFrame` | x                                     |
 | `polar.DataFrame`  | x                                     |
-| `list of records`  | x (with `EditableDataframe`)          |
+| `list of records`  | x (with `EditableDataFrame`)          |
 
 ## Use a dataframe
 
@@ -26,7 +26,7 @@ wf.init_state({
 
 ## Prepare a dataframe for editing
 
-**writer provides `EditableDataframe` as a helper to facilitate manipulation**. it makes it easier to write event handlers such as adding a line,
+**writer provides `EditableDataFrame` as a helper to facilitate manipulation**. it makes it easier to write event handlers such as adding a line,
 deleting it or modifying a value, etc...
 
 ```python
@@ -36,7 +36,7 @@ import writer as wf
 df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
 
 wf.init_state({
-	'mydf': wf.EditableDataframe(df)
+	'mydf': wf.EditableDataFrame(df)
 })
 ```
 
@@ -50,7 +50,7 @@ import writer as wf
 
 df = pandas.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
 wf.init_state({
-	'mydf': wf.EditableDataframe(df)
+	'mydf': wf.EditableDataFrame(df)
 })
 
 # Subscribe this event handler to the `wf-dataframe-add` event
@@ -76,9 +76,9 @@ def on_record_action(state, payload):
 		state['record'] = state['df'].record(record_index) # dict representation of record
 ```
 
-### Datastructures supported by `EditableDataframe`
+### Datastructures supported by `EditableDataFrame`
 
-`EditableDataframe` can be used with a panda dataframe, a polar dataframe and list of records.
+`EditableDataFrame` can be used with a panda dataframe, a polar dataframe and list of records.
 
 ```python
 import pandas
@@ -91,8 +91,8 @@ polars_df = polars.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
 list_of_records = [{'a': 1, 'b': 4}, {'a': 2, 'b': 5}, {'a': 3, 'b': 6}]
 
 wf.init_state({
-	'mypandas': wf.EditableDataframe(panda_df),
-	'mypolars': wf.EditableDataframe(polars_df),
-	'mylistofrecords': wf.EditableDataframe(list_of_records)
+	'mypandas': wf.EditableDataFrame(panda_df),
+	'mypolars': wf.EditableDataFrame(polars_df),
+	'mylistofrecords': wf.EditableDataFrame(list_of_records)
 })
 ```

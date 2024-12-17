@@ -281,7 +281,7 @@ class StateSerialiser:
     """
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
         from writer.ai import Conversation
-        from writer.core_df import EditableDataframe
+        from writer.core_df import EditableDataFrame
 
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
@@ -299,7 +299,7 @@ class StateSerialiser:
             return self._serialise_list_recursively(v)
         if isinstance(v, (str, bool)):
             return v
-        if isinstance(v, EditableDataframe):
+        if isinstance(v, EditableDataFrame):
             table = v.pyarrow_table()
             return self._serialise_pyarrow_table(table)
         if v is None:

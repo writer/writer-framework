@@ -38,7 +38,7 @@ class DataframeRecordProcessor():
         """
         This method read a record at the given line and get it back as dictionary
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> r = edf.record(1)
         """
         raise NotImplementedError
@@ -48,7 +48,7 @@ class DataframeRecordProcessor():
         """
         signature of the methods to be implemented to process wf-dataframe-add event
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
         """
         raise NotImplementedError
@@ -58,7 +58,7 @@ class DataframeRecordProcessor():
         """
         signature of the methods to be implemented to process wf-dataframe-update event
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
         """
         raise NotImplementedError
@@ -68,7 +68,7 @@ class DataframeRecordProcessor():
         """
         signature of the methods to be implemented to process wf-dataframe-action event
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_remove({"record_index": 12})
         """
         raise NotImplementedError
@@ -86,7 +86,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     PandasRecordProcessor processes records from a pandas dataframe saved into an EditableDataframe
 
     >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-    >>> edf = EditableDataframe(df)
+    >>> edf = EditableDataFrame(df)
     >>> edf.record_add({"a": 1, "b": 2})
     """
 
@@ -100,7 +100,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     def record(df: 'pandas.DataFrame', record_index: int) -> dict:
         """
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> r = edf.record(1)
         """
         import pandas
@@ -120,7 +120,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     @staticmethod
     def record_add(df: 'pandas.DataFrame', payload: DataframeRecordAdded) -> 'pandas.DataFrame':
         """
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
         """
         import pandas
@@ -139,7 +139,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     @staticmethod
     def record_update(df: 'pandas.DataFrame', payload: DataframeRecordUpdated) -> 'pandas.DataFrame':
         """
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
         """
         import pandas
@@ -164,7 +164,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
     @staticmethod
     def record_remove(df: 'pandas.DataFrame', payload: DataframeRecordRemoved) -> 'pandas.DataFrame':
         """
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_remove({"record_index": 12})
         """
         record_index: int = payload['record_index']
@@ -187,7 +187,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
     PolarRecordProcessor processes records from a polar dataframe saved into an EditableDataframe
 
     >>> df = polars.DataFrame({"a": [1, 2], "b": [3, 4]})
-    >>> edf = EditableDataframe(df)
+    >>> edf = EditableDataFrame(df)
     >>> edf.record_add({"record": {"a": 1, "b": 2}})
     """
 
@@ -201,7 +201,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
     def record(df: 'polars.DataFrame', record_index: int) -> dict:
         """
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> r = edf.record(1)
         """
         record = {}
@@ -257,7 +257,7 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
     RecordListRecordProcessor processes records from a list of record saved into an EditableDataframe
 
     >>> df = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
-    >>> edf = EditableDataframe(df)
+    >>> edf = EditableDataFrame(df)
     >>> edf.record_add({"record": {"a": 1, "b": 2}})
     """
 
@@ -270,7 +270,7 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
     def record(df: List[Dict[str, Any]], record_index: int) -> dict:
         """
 
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> r = edf.record(1)
         """
         r = df[record_index]
@@ -314,13 +314,13 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
 
         return table
 
-class EditableDataframe(MutableValue):
+class EditableDataFrame(MutableValue):
     """
     Editable Dataframe makes it easier to process events from components
     that modify a dataframe like the dataframe editor.
 
     >>> initial_state = wf.init_state({
-    >>>    "df": wf.EditableDataframe(df)
+    >>>    "df": wf.EditableDataFrame(df)
     >>> })
 
     Editable Dataframe is compatible with a pandas, thrillers or record list dataframe
@@ -353,7 +353,7 @@ class EditableDataframe(MutableValue):
         Adds a record to the dataframe
 
         >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
         """
         assert self.processor is not None
@@ -369,7 +369,7 @@ class EditableDataframe(MutableValue):
         It must a value for each index / column.
 
         >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_update({"record_index": 0, "record": {"a": 2, "b": 2}})
         """
         assert self.processor is not None
@@ -382,7 +382,7 @@ class EditableDataframe(MutableValue):
         Removes a record from the dataframe
 
         >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> edf.record_remove({"record_index": 0})
         """
         assert self.processor is not None
@@ -397,7 +397,7 @@ class EditableDataframe(MutableValue):
         This mechanism is used for serializing data for transmission to the frontend.
 
         >>> df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        >>> edf = EditableDataframe(df)
+        >>> edf = EditableDataFrame(df)
         >>> pa_table = edf.pyarrow_table()
         """
         assert self.processor is not None
