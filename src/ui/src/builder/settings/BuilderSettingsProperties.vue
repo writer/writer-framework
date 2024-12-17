@@ -145,9 +145,6 @@ const fields = computed(() => {
 });
 
 const fieldCategories = computed(() => {
-	const categories = new Set(
-		Object.values(fields.value).map((field) => field.category),
-	);
 	return [
 		FieldCategory.General,
 		FieldCategory.Style,

@@ -62,18 +62,6 @@ defineEmits({
 	gap: 8px;
 }
 
-/* .WdsFieldWrapper__title__help { */
-/* 	background-color: transparent; */
-/* 	border: none; */
-/* 	border-radius: 50%; */
-/* 	cursor: pointer; */
-/* 	display: flex; */
-/* 	align-items: center; */
-/* } */
-/* .WdsFieldWrapper__title__help:hover { */
-/* 	color: var(--primaryColor); */
-/* } */
-
 .WdsFieldWrapper__title__label {
 	font-size: 14px;
 	font-weight: 400;
