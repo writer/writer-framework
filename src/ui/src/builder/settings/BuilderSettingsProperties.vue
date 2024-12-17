@@ -144,11 +144,16 @@ const fields = computed(() => {
 	return definition.fields;
 });
 
-const fieldCategories = [
-	FieldCategory.General,
-	FieldCategory.Style,
-	FieldCategory.Tools,
-];
+const fieldCategories = computed(() => {
+	const categories = new Set(
+		Object.values(fields.value).map((field) => field.category),
+	);
+	return [
+		FieldCategory.General,
+		FieldCategory.Style,
+		FieldCategory.Tools,
+	].filter((c) => fieldsByCategory.value[c]?.length);
+});
 
 const fieldsByCategory = computed(() => {
 	const entries = Object.entries(fields.value);
