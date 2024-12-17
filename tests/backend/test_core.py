@@ -1297,7 +1297,7 @@ class TestSessionManager:
         assert s_invalid is None
 
 
-class TestEditableDataframe:
+class TestEditableDataFrame:
 
     def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
         df = pandas.DataFrame({

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type, Union
 import pyarrow  # type: ignore
 
 from .core import MutableValue, import_failure
-from .ss_types import DataframeRecordAdded, DataframeRecordRemoved, DataframeRecordUpdated
+from .ss_types import DataFrameRecordAdded, DataFrameRecordRemoved, DataFrameRecordUpdated
 
 if TYPE_CHECKING:
     import pandas
@@ -44,7 +44,7 @@ class DataframeRecordProcessor():
         raise NotImplementedError
 
     @staticmethod
-    def record_add(df: Any, payload: DataframeRecordAdded) -> Any:
+    def record_add(df: Any, payload: DataFrameRecordAdded) -> Any:
         """
         signature of the methods to be implemented to process wf-dataframe-add event
 
@@ -54,7 +54,7 @@ class DataframeRecordProcessor():
         raise NotImplementedError
 
     @staticmethod
-    def record_update(df: Any, payload: DataframeRecordUpdated) -> Any:
+    def record_update(df: Any, payload: DataFrameRecordUpdated) -> Any:
         """
         signature of the methods to be implemented to process wf-dataframe-update event
 
@@ -64,7 +64,7 @@ class DataframeRecordProcessor():
         raise NotImplementedError
 
     @staticmethod
-    def record_remove(df: Any, payload: DataframeRecordRemoved) -> Any:
+    def record_remove(df: Any, payload: DataFrameRecordRemoved) -> Any:
         """
         signature of the methods to be implemented to process wf-dataframe-action event
 
@@ -118,7 +118,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
         return dict(record)
 
     @staticmethod
-    def record_add(df: 'pandas.DataFrame', payload: DataframeRecordAdded) -> 'pandas.DataFrame':
+    def record_add(df: 'pandas.DataFrame', payload: DataFrameRecordAdded) -> 'pandas.DataFrame':
         """
         >>> edf = EditableDataFrame(df)
         >>> edf.record_add({"record": {"a": 1, "b": 2}})
@@ -137,7 +137,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
             return pandas.concat([df, new_df])
 
     @staticmethod
-    def record_update(df: 'pandas.DataFrame', payload: DataframeRecordUpdated) -> 'pandas.DataFrame':
+    def record_update(df: 'pandas.DataFrame', payload: DataFrameRecordUpdated) -> 'pandas.DataFrame':
         """
         >>> edf = EditableDataFrame(df)
         >>> edf.record_update({"record_index": 12, "record": {"a": 1, "b": 2}})
@@ -162,7 +162,7 @@ class PandasRecordProcessor(DataframeRecordProcessor):
         return df
 
     @staticmethod
-    def record_remove(df: 'pandas.DataFrame', payload: DataframeRecordRemoved) -> 'pandas.DataFrame':
+    def record_remove(df: 'pandas.DataFrame', payload: DataFrameRecordRemoved) -> 'pandas.DataFrame':
         """
         >>> edf = EditableDataFrame(df)
         >>> edf.record_remove({"record_index": 12})
@@ -213,7 +213,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
 
 
     @staticmethod
-    def record_add(df: 'polars.DataFrame', payload: DataframeRecordAdded) -> 'polars.DataFrame':
+    def record_add(df: 'polars.DataFrame', payload: DataFrameRecordAdded) -> 'polars.DataFrame':
         _assert_record_match_polar_df(df, payload['record'])
 
         import polars
@@ -221,7 +221,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
         return polars.concat([df, new_df])
 
     @staticmethod
-    def record_update(df: 'polars.DataFrame', payload: DataframeRecordUpdated) -> 'polars.DataFrame':
+    def record_update(df: 'polars.DataFrame', payload: DataFrameRecordUpdated) -> 'polars.DataFrame':
         # This implementation works but is not optimal.
         # I didn't find a better way to update a record in polars
         #
@@ -236,7 +236,7 @@ class PolarRecordProcessor(DataframeRecordProcessor):
         return df
 
     @staticmethod
-    def record_remove(df: 'polars.DataFrame', payload: DataframeRecordRemoved) -> 'polars.DataFrame':
+    def record_remove(df: 'polars.DataFrame', payload: DataFrameRecordRemoved) -> 'polars.DataFrame':
         import polars
 
         record_index: int = payload['record_index']
@@ -277,13 +277,13 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
         return copy.copy(r)
 
     @staticmethod
-    def record_add(df: List[Dict[str, Any]], payload: DataframeRecordAdded) -> List[Dict[str, Any]]:
+    def record_add(df: List[Dict[str, Any]], payload: DataFrameRecordAdded) -> List[Dict[str, Any]]:
         _assert_record_match_list_of_records(df, payload['record'])
         df.append(payload['record'])
         return df
 
     @staticmethod
-    def record_update(df: List[Dict[str, Any]], payload: DataframeRecordUpdated) -> List[Dict[str, Any]]:
+    def record_update(df: List[Dict[str, Any]], payload: DataFrameRecordUpdated) -> List[Dict[str, Any]]:
         _assert_record_match_list_of_records(df, payload['record'])
 
         record_index = payload['record_index']
@@ -293,7 +293,7 @@ class RecordListRecordProcessor(DataframeRecordProcessor):
         return df
 
     @staticmethod
-    def record_remove(df: List[Dict[str, Any]], payload: DataframeRecordRemoved) -> List[Dict[str, Any]]:
+    def record_remove(df: List[Dict[str, Any]], payload: DataFrameRecordRemoved) -> List[Dict[str, Any]]:
         del(df[payload['record_index']])
         return df
 
@@ -348,7 +348,7 @@ class EditableDataFrame(MutableValue):
         self._df = value
         self.mutate()
 
-    def record_add(self, payload: DataframeRecordAdded) -> None:
+    def record_add(self, payload: DataFrameRecordAdded) -> None:
         """
         Adds a record to the dataframe
 
@@ -361,7 +361,7 @@ class EditableDataFrame(MutableValue):
         self._df = self.processor.record_add(self.df, payload)
         self.mutate()
 
-    def record_update(self, payload: DataframeRecordUpdated) -> None:
+    def record_update(self, payload: DataFrameRecordUpdated) -> None:
         """
         Updates a record in the dataframe
 
@@ -377,7 +377,7 @@ class EditableDataFrame(MutableValue):
         self._df = self.processor.record_update(self.df, payload)
         self.mutate()
 
-    def record_remove(self, payload: DataframeRecordRemoved) -> None:
+    def record_remove(self, payload: DataFrameRecordRemoved) -> None:
         """
         Removes a record from the dataframe
 
