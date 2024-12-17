@@ -65,7 +65,7 @@ const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	dropdown,
 	{
 		placement: "bottom",
-		middleware: [autoPlacement()],
+		middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
 	},
 );
 
