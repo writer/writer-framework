@@ -232,7 +232,7 @@ onUnmounted(() => {
 }
 
 .node.selected {
-	background: #6985ff;
+	background: var(--wdsColorBlue4);
 }
 
 .selectedArea {
@@ -248,7 +248,7 @@ onUnmounted(() => {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	border: 1px solid #6985ff;
+	border: 1px solid var(--wdsColorBlue4);
 	border-radius: 4px;
 	pointer-events: none;
 	display: v-bind("selector.isDisplayed ? '' : 'none'");

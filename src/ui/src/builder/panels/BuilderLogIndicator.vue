@@ -64,10 +64,10 @@ const entryCountByType = computed(() => {
 }
 
 .number.error .icon {
-	background: #ff643c;
+	background: var(--wdsColorOrange5);
 }
 
 .number.info .icon {
-	background: #6985ff;
+	background: var(--wdsColorBlue4);
 }
 </style>

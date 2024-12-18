@@ -188,12 +188,12 @@ watch(isEngaged, () => {
 	border-radius: 8px;
 	width: 240px;
 	position: absolute;
-	box-shadow: 0px 2px 0px 0px #f3f3f3;
+	box-shadow: var(--wdsShadowBox);
 	user-select: none;
 }
 
 .WorkflowsNode:hover {
-	border: 2px solid #e4e9ff;
+	border: 2px solid var(--wdsColorBlue2);
 }
 
 .title {
@@ -242,7 +242,7 @@ watch(isEngaged, () => {
 	font-weight: 400;
 	/* letter-spacing: 1.3px; */
 	/* text-transform: uppercase; */
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 	font-feature-settings:
 		"liga" off,
 		"clig" off;
@@ -258,19 +258,19 @@ watch(isEngaged, () => {
 }
 
 .output .ball.success {
-	background: #3bdcab;
+	background: var(--wdsColorGreen5);
 }
 
 .output .ball.error {
-	background: #ff643c;
+	background: var(--wdsColorOrange5);
 }
 
 .output .ball.dynamic {
-	background: #a95ef8;
+	background: var(--wdsColorPurple4);
 }
 
 .WorkflowsNode.selected.component {
-	border: 2px solid #6985ff;
+	border: 2px solid var(--wdsColorBlue4);
 	background: var(--builderBackgroundColor);
 }
 </style>

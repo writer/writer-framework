@@ -149,7 +149,6 @@ function onSelect(value: string) {
 	align-items: center;
 	justify-content: space-between;
 	font-weight: 300;
-	color: #000000e6;
 	cursor: pointer;
 }
 </style>

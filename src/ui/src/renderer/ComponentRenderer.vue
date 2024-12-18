@@ -41,6 +41,7 @@ import {
 	changeRouteVarsInHash,
 	serializeParsedHash,
 } from "@/core/navigation";
+import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -59,6 +60,7 @@ const coreRootFields = templateEvaluator.getEvaluatedFields([
 
 const rootStyle = computed(() => {
 	return {
+		...WDS_CSS_PROPERTIES,
 		"--accentColor": coreRootFields.accentColor?.value,
 		"--emptinessColor": coreRootFields.emptinessColor?.value,
 		"--containerBackgroundColor":
@@ -239,14 +241,14 @@ onMounted(() => {
 @import "./sharedStyles.css";
 
 .ComponentRenderer {
-	--accentColor: #5551ff;
-	--buttonColor: #5551ff;
-	--emptinessColor: #ffffff;
-	--separatorColor: #e4e7ed;
-	--primaryTextColor: #000000;
-	--buttonTextColor: #ffffff;
-	--secondaryTextColor: #828282;
-	--containerBackgroundColor: #ffffff;
+	--accentColor: var(--wdsColorBlue5);
+	--buttonColor: var(--wdsColorBlue5);
+	--emptinessColor: var(--wdsColorWhite);
+	--separatorColor: var(--wdsColorGray2);
+	--primaryTextColor: var(--wdsColorBlack);
+	--buttonTextColor: var(--wdsColorWhite);
+	--secondaryTextColor: var(--wdsColorGray4);
+	--containerBackgroundColor: var(--wdsColorWhite);
 	--containerShadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
 	width: 100%;
 	outline: none;

@@ -134,6 +134,7 @@ import {
 	UNNAMED_INDEX_COLUMN_PATTERN,
 } from "./CoreDataframe/constants";
 import WdsButton from "@/wds/WdsButton.vue";
+import { WdsColor } from "@/wds/tokens";
 
 const description = "A component to display Pandas DataFrames.";
 
@@ -279,7 +280,7 @@ export default {
 				name: "Background",
 				type: FieldType.Color,
 				category: FieldCategory.Style,
-				default: "#ffffff",
+				default: WdsColor.White,
 				applyStyleVariable: true,
 			},
 			fontStyle: {

@@ -267,15 +267,15 @@ function formatExecutionTime(timeInSeconds: number): string {
 }
 
 .item .outcome .ball.success {
-	background: #3bdcab;
+	background: var(--wdsColorGreen5);
 }
 
 .item .outcome .ball.error {
-	background: #ff643c;
+	background: var(--wdsColorOrange5);
 }
 
 .item .outcome .ball.dynamic {
-	background: #a95ef8;
+	background: var(--wdsColorPurple4);
 }
 
 .item .result {

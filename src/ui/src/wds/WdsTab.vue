@@ -32,17 +32,15 @@ defineEmits({
 	border-radius: 8px;
 }
 
-/* TODO: use color tokens */
-
 .WdsTab:hover {
-	background-color: #f3f5ff;
+	background-color: var(--wdsColorBlue1);
 }
 
 .WdsTab--disabled {
-	color: #828282;
+	color: var(--wdsColorGray4);
 }
 
 .WdsTab--selected {
-	background-color: #e4e9ff;
+	background-color: var(--wdsColorBlue2);
 }
 </style>
