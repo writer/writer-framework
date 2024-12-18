@@ -21,7 +21,7 @@ from writer.core import (
 from writer.core import (
     writerproperty as property,
 )
-from writer.core_df import EditableDataframe
+from writer.core_df import EditableDataFrame
 
 try:
     from writer.ui import WriterUIManager

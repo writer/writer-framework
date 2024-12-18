@@ -45,13 +45,13 @@ import {
 } from "@/renderer/sharedStyleFields";
 
 const clickHandlerStub = `
-def handle_avatar_click():
-	print("The avatar was clicked")`;
+def handle_progress_bar_click():
+	print("The progress bar was clicked")`;
 
 const description = "A component to display a progression.";
 
 const definition: WriterComponentDefinition = {
-	name: "ProgressBar",
+	name: "Progress Bar",
 	description,
 	category: "Content",
 	allowedChildrenTypes: ["*"],
@@ -67,7 +67,7 @@ const definition: WriterComponentDefinition = {
 			default: "0.25",
 		},
 		min: {
-			name: "Mininimum value",
+			name: "Minimum value",
 			type: FieldType.Number,
 			default: "0",
 		},
@@ -93,7 +93,7 @@ const definition: WriterComponentDefinition = {
 	},
 	events: {
 		"wf-click": {
-			desc: "Triggered when the avatar is clicked.",
+			desc: "Triggered when the progress bar is clicked.",
 			stub: clickHandlerStub.trim(),
 		},
 	},

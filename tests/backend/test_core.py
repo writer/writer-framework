@@ -1297,7 +1297,7 @@ class TestSessionManager:
         assert s_invalid is None
 
 
-class TestEditableDataframe:
+class TestEditableDataFrame:
 
     def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
         df = pandas.DataFrame({
@@ -1305,7 +1305,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
         assert edf.df is not None
         assert isinstance(edf.df, pandas.DataFrame)
 
@@ -1316,7 +1316,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.df.loc[0, "age"] = 26
@@ -1330,7 +1330,7 @@ class TestEditableDataframe:
             "name": ["Alice", "Bob", "Charlie"],
             "age": [25, 30, 35]
         })
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1346,7 +1346,7 @@ class TestEditableDataframe:
         })
         df = df.set_index('name')
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1363,7 +1363,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1379,7 +1379,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1395,7 +1395,7 @@ class TestEditableDataframe:
         })
         df = df.set_index('name')
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1411,7 +1411,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40, "city": "Berlin"}})
@@ -1428,7 +1428,7 @@ class TestEditableDataframe:
 
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25, "city": "Paris"}})
@@ -1445,7 +1445,7 @@ class TestEditableDataframe:
 
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1461,7 +1461,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         table = edf.pyarrow_table()
@@ -1475,7 +1475,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
         assert edf.df is not None
         assert isinstance(edf.df, polars.DataFrame)
 
@@ -1484,7 +1484,7 @@ class TestEditableDataframe:
             "name": ["Alice", "Bob", "Charlie"],
             "age": [25, 30, 35]
         })
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1499,7 +1499,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1513,7 +1513,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
@@ -1527,7 +1527,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1542,7 +1542,7 @@ class TestEditableDataframe:
             "city": ["Paris", "London", "New York"]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         table = edf.pyarrow_table()
@@ -1558,7 +1558,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         assert edf.df is not None
         assert isinstance(edf.df, list)
@@ -1570,7 +1570,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         r = edf.record(0)
@@ -1586,7 +1586,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1602,7 +1602,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
@@ -1617,7 +1617,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1633,7 +1633,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         table = edf.pyarrow_table()

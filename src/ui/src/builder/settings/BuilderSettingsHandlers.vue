@@ -1,47 +1,39 @@
 <template>
 	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsHandlers">
-		<div class="sectionTitle">
+		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">bolt</i>
 			<h3>Events</h3>
 		</div>
-		<div class="list">
+		<div class="BuilderSettingsHandlers__list">
 			<div
 				v-for="(eventInfo, eventType) in recognisedEvents"
 				:key="eventType"
-				class="fieldWrapper"
 			>
 				<div class="columns">
-					<div class="fieldWrapperMain">
-						<span class="name">{{ eventType }}</span>
-						<div class="content">
-							<BuilderSelect
-								:model-value="
-									component.handlers?.[eventType] ?? ''
-								"
-								:options="getOptions(eventType)"
-								variant="embedded"
-								enable-search
-								@update:model-value="
-									handleHandlerChange($event, eventType)
-								"
-							/>
-						</div>
-					</div>
-					<div class="fieldActions">
-						<button
-							v-if="getStubCode(eventType)"
-							variant="subtle"
-							title="Show event handler stub"
-							@click="showStub(eventType)"
-						>
-							<i class="material-symbols-outlined">help</i>
-						</button>
-					</div>
-				</div>
-				<div v-if="eventInfo?.desc" class="desc">
-					{{ eventInfo.desc }}
+					<WdsFieldWrapper
+						:label="eventType"
+						:hint="eventInfo?.desc"
+						:help-button="
+							getStubCode(eventType)
+								? 'Show event handler stub'
+								: false
+						"
+						@help-click="showStub(eventType)"
+					>
+						<BuilderSelect
+							:model-value="component.handlers?.[eventType] ?? ''"
+							:options="getOptions(eventType)"
+							enable-search
+							@update:model-value="
+								handleHandlerChange($event, eventType)
+							"
+						/>
+					</WdsFieldWrapper>
 				</div>
 			</div>
+			<WdsButton variant="tertiary" @click="showCustomHandlerModal">
+				<i class="material-symbols-outlined">add</i>Add custom handler
+			</WdsButton>
 		</div>
 		<BuilderModal
 			v-if="stubModal"
@@ -56,87 +48,57 @@
 			<div class="codeContainer">
 				<code v-dompurify-html="stubModal.highlightedCodeHtml"> </code>
 			</div>
-			<button @click="copyToClipboard(stubModal.code)">
-				<i class="material-symbols-outlined"> content_copy </i>
+			<WdsButton
+				variant="tertiary"
+				@click="copyToClipboard(stubModal.code)"
+			>
+				<i class="material-symbols-outlined">content_copy</i>
 				Copy code to clipboard
-			</button>
+			</WdsButton>
 		</BuilderModal>
-		<div class="customHandler">
-			<button
-				title="Add a custom event handler"
-				@click="showCustomHandlerModal"
-			>
-				<i class="material-symbols-outlined">add</i>Add custom handler
-			</button>
-			<BuilderModal
-				v-if="customHandlerModal"
-				:close-action="customHandlerModalCloseAction"
-				icon="bolt"
-				modal-title="Add Custom Event Handler"
-			>
-				<div class="customHandlerModalForm">
-					<div class="fieldWrapper">
-						<div class="fieldWrapperMain">
-							<span class="name">Event type</span>
-							<input
-								v-model="customHandlerModal.eventType"
-								class="content"
-								type="text"
-								list="commonEventTypes"
-							/>
-							<datalist id="commonEventTypes">
-								<option
-									v-for="commonEventType in commonEventTypes"
-									:key="commonEventType"
-									:value="commonEventType"
-								>
-									{{ commonEventType }}
-								</option>
-							</datalist>
-						</div>
-						<span class="desc">Can be any event type.</span>
-					</div>
-					<div class="fieldWrapper">
-						<div class="fieldWrapperMain">
-							<span class="name">Handler function</span>
-						</div>
-						<select
-							v-model="customHandlerModal.handlerFunctionName"
-							class="content"
+		<BuilderModal
+			v-if="customHandlerModal"
+			:close-action="customHandlerModalCloseAction"
+			icon="bolt"
+			modal-title="Add Custom Event Handler"
+			allow-overflow
+		>
+			<div class="customHandlerModalForm">
+				<WdsFieldWrapper
+					label="Event type"
+					hint="Can be any event type."
+				>
+					<WdsTextInput
+						v-model="customHandlerModal.eventType"
+						type="text"
+						list="commonEventTypes"
+					/>
+					<datalist id="commonEventTypes">
+						<option
+							v-for="commonEventType in commonEventTypes"
+							:key="commonEventType"
+							:value="commonEventType"
 						>
-							<option
-								v-for="userFunction in userFunctions"
-								:key="userFunction.name"
-								:value="userFunction.name"
-							>
-								{{ userFunction.name }}
-							</option>
-							<option
-								v-for="pageKey in pageKeys"
-								:key="`$goToPage_${pageKey}`"
-								:value="`$goToPage_${pageKey}`"
-							>
-								Go to page "{{ pageKey }}"
-							</option>
-							<option
-								v-for="workflowKey in workflowKeys"
-								:key="`$runWorkflow_${workflowKey}`"
-								:value="`$runWorkflow_${workflowKey}`"
-							>
-								Run workflow "{{ workflowKey }}"
-							</option>
-						</select>
-						<span class="desc"
-							>The function that will handle the event.</span
-						>
-					</div>
-				</div>
+							{{ commonEventType }}
+						</option>
+					</datalist>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					label="Handler function"
+					hint="The function that will handle the event."
+				>
+					<BuilderSelect
+						v-model="customHandlerModal.handlerFunctionName"
+						:options="options"
+						enable-search
+					/>
+				</WdsFieldWrapper>
+			</div>
 
-				<button @click="addCustomEventHandler()">
-					<i class="material-symbols-outlined">add</i>Add
-				</button>
-			</BuilderModal>
-		</div>
+			<WdsButton variant="tertiary" @click="addCustomEventHandler()">
+				<i class="material-symbols-outlined">add</i>Add
+			</WdsButton>
+		</BuilderModal>
 	</div>
 </template>
 
@@ -150,6 +112,9 @@ import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import { WriterComponentDefinition } from "@/writerTypes";
 import BuilderSelect from "../BuilderSelect.vue";
 import type { Option } from "../BuilderSelect.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -182,7 +147,7 @@ const options = computed<Option[]>(() => {
 	];
 });
 
-function getOptions(eventType: string): Option[] {
+function getOptions(eventType?: string): Option[] {
 	if (!isHandlerInvalid(eventType)) return options.value;
 
 	const handler = component.value.handlers?.[eventType];
@@ -359,38 +324,22 @@ const copyToClipboard = (text: string) => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.list {
-	border-radius: 4px;
+.BuilderSettingsHandlers {
+	padding: 24px;
 }
 
-.fieldWrapper .columns {
-	display: grid;
-	grid-template-columns: minmax(0, 100%) auto;
-	gap: 12px;
+.BuilderSettingsHandlers__title {
+	padding-bottom: 24px;
+	display: flex;
+	gap: 8px;
 	align-items: center;
-	max-width: 100%;
+	font-size: 1rem;
 }
 
-.fieldWrapperMain {
-	width: 100%;
-}
-
-.fieldWrapper .content {
-	padding: 16px 8px 12px 8px;
-	width: 100%;
-}
-.fieldWrapper .content .select {
-	padding: 0;
-	height: auto;
-}
-
-.fieldActions > button {
-	border-radius: 16px;
-	font-size: 0.875rem;
-}
-
-.customHandler {
-	margin-top: 24px;
+.BuilderSettingsHandlers__list {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
 }
 
 .addHandler .fields {
@@ -421,14 +370,10 @@ const copyToClipboard = (text: string) => {
 }
 
 .customHandlerModalForm {
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	align-items: center;
 	gap: 16px;
 	margin-bottom: 16px;
-}
-
-.customHandlerModalForm .fieldWrapper {
-	flex: 1 1 auto;
-	margin-top: 0;
 }
 </style>

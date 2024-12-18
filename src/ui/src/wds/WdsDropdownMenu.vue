@@ -1,15 +1,17 @@
 <template>
 	<div class="WdsDropdownMenu">
-		<div v-if="enableSearch" class="WdsDropdownMenu__search">
-			<i class="material-symbols-outlined">search</i>
-			<input
-				ref="searchInput"
-				v-model="searchTerm"
-				class="WdsDropdownMenu__search__input"
-				type="text"
-				placeholder="Search"
-				autocomplete="off"
-			/>
+		<div v-if="enableSearch" class="WdsDropdownMenu__search-wrapper">
+			<div class="WdsDropdownMenu__search">
+				<i class="material-symbols-outlined">search</i>
+				<input
+					ref="searchInput"
+					v-model="searchTerm"
+					class="WdsDropdownMenu__search__input"
+					type="text"
+					placeholder="Search"
+					autocomplete="off"
+				/>
+			</div>
 		</div>
 		<button
 			v-for="option in optionsFiltered"
@@ -86,7 +88,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 <style scoped>
 .WdsDropdownMenu {
 	position: absolute;
-	border: 1px solid #394a6d;
+	border: 1px solid var(--wdsColorGray2);
 	border: none;
 	background: #fff;
 	z-index: 2;
@@ -97,10 +99,10 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 	padding: 8px 10px;
 
-	box-shadow: 0px 1px 8px 0px #bfcbff40;
+	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
 }
-.WdsDropdownMenu:has(.WdsDropdownMenu__search) {
+.WdsDropdownMenu:has(.WdsDropdownMenu__search-wrapper) {
 	padding-top: 0px;
 }
 
@@ -120,7 +122,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	padding: 8px;
 	font-weight: 400;
 	font-size: 0.75rem;
-	color: #000000e6;
+	color: var(--wdsColorGray6);
 	cursor: pointer;
 	transition: all 0.2s;
 	pointer-events: all;
@@ -128,25 +130,30 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 .WdsDropdownMenu__item:hover {
 	cursor: pointer;
-	background-color: #f3f5ff;
+	background-color: var(--wdsColorBlue1);
 }
 
 .WdsDropdownMenu__item--selected {
-	background-color: #e4e9ff;
+	background-color: var(--wdsColorBlue2);
 }
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	text-align: left;
 }
+.WdsDropdownMenu__search-wrapper {
+	position: sticky;
+	top: 0px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	background: #fff;
+}
 
 .WdsDropdownMenu__search {
-	background-color: #fafafa;
+	background-color: var(--wdsColorGray1);
 	border-radius: 4px;
 	height: 36px;
 	width: 100%;
-
-	margin-bottom: 8px;
 
 	display: flex;
 	align-items: center;
@@ -154,17 +161,16 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	gap: 4px;
 
 	padding: 8px;
-	padding-top: 16px;
 	border: 1px solid transparent;
 
 	color: currentcolor;
 }
 .WdsDropdownMenu__search:hover {
-	border-color: #bfcbff;
+	border-color: var(--wdsColorBlue1);
 }
 .WdsDropdownMenu__search:focus-within {
 	background-color: white;
-	outline: 4px solid #f3f5ff;
+	outline: 4px solid var(--wdsColorBlue1);
 }
 
 .WdsDropdownMenu__search__input {

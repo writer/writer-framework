@@ -37,7 +37,9 @@ const position = ref<{
 }>({ top: 0, left: 0 });
 
 async function setUpAndShowTooltip() {
+	if (!trackedElement) return;
 	tooltipText.value = trackedElement.dataset.writerTooltip;
+	if (!tooltipText.value) return;
 	const gapPx = trackedElement.dataset.writerTooltipGap
 		? parseInt(trackedElement.dataset.writerTooltipGap)
 		: DEFAULT_GAP_PX;

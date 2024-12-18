@@ -32,7 +32,7 @@ class Evaluator:
     def evaluate_field(self, instance_path: InstancePath, field_key: str, as_json=False, default_field_value="", base_context={}) -> Any:
         def decode_json(text):
             try:
-                return json.loads(text)
+                return json.loads(text, strict=False)
             except json.JSONDecodeError as exception:
                 raise WriterConfigurationError("Error decoding JSON. " + str(exception)) from exception
 

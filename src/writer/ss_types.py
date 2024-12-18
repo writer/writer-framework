@@ -26,7 +26,7 @@ class Readable(Protocol):
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent"]
+                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest"]
 
 
 class AbstractTemplate(BaseModel):
@@ -120,6 +120,13 @@ class StateContentRequest(AppProcessServerRequest):
     type: Literal["stateContent"]
 
 
+class HashRequestPayload(BaseModel):
+    message: str
+
+class HashRequest(AppProcessServerRequest):
+    type: Literal["hashRequest"]
+    payload: HashRequestPayload
+
 AppProcessServerRequestPacket = Tuple[int,
                                       Optional[str], AppProcessServerRequest]
 
@@ -171,17 +178,24 @@ class StateEnquiryResponse(AppProcessServerResponse):
     payload: Optional[StateEnquiryResponsePayload]
 
 
+class HashRequestResponsePayload(BaseModel):
+    message: str
+
+class HashRequestResponse(AppProcessServerRequest):
+    type: Literal["hashRequest"]
+    payload: HashRequestResponsePayload
+
 AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerResponse]
 
 
-class DataframeRecordAdded(TypedDict):
+class DataFrameRecordAdded(TypedDict):
     record: Dict[str, Any]
 
-class DataframeRecordUpdated(TypedDict):
+class DataFrameRecordUpdated(TypedDict):
     record_index: int
     record: Dict[str, Any]
 
-class DataframeRecordRemoved(TypedDict):
+class DataFrameRecordRemoved(TypedDict):
     record_index: int
 
 class WriterEventResult(TypedDict):

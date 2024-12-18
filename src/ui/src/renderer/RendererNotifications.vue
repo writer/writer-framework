@@ -103,7 +103,7 @@ const clearAll = () => {
 	max-width: 70ch;
 	width: 40vw;
 	z-index: 3;
-	--buttonColor: #5551ff;
+	--buttonColor: var(--wdsColorBlue5);
 }
 
 .balloonFlash {

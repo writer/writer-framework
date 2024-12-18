@@ -22,19 +22,12 @@ class ForEach(WorkflowBlock):
                     },
                     "items": {
                         "name": "Items",
-                        "desc": "The item value will be passed in the execution environment and will be available at @{item}, its id at @{itemId}.",
+                        "desc": "The item value will be passed in the execution environment and will be available at @{payload.item}, its id at @{payload.itemId}.",
                         "default": "{}",
                         "init": '{ "fr": "France", "pl": "Poland" }',
                         "type": "Object",
                         "control": "Textarea"
-                    },
-                    "executionEnv": {
-                        "name": "Execution environment",
-                        "desc": "You can add other values to the execution environment.",
-                        "default": "{}",
-                        "type": "Object",
-                        "control": "Textarea"
-                    },
+                    }
                 },
                 "outs": {
                     "success": {
@@ -52,14 +45,20 @@ class ForEach(WorkflowBlock):
         ))
 
     def _run_workflow_for_item(self, workflow_key, base_execution_environment, item_id, item):
-        expanded_execution_environment = base_execution_environment | { "itemId": item_id, "item": item }
+        expanded_execution_environment = base_execution_environment | { 
+            "payload": {
+                "itemId": item_id,
+                "item": item
+            }
+        }
         return self.runner.run_workflow_by_key(workflow_key, expanded_execution_environment)
 
     def run(self):
         try:
             workflow_key = self._get_field("workflowKey")
             items = self._get_field("items", as_json=True)
-            base_execution_environment = self._get_field("executionEnv", as_json=True)
+            base_execution_environment = self.execution_environment
+
             std_items = items
             result = None
             if isinstance(items, list):

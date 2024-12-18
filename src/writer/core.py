@@ -281,7 +281,7 @@ class StateSerialiser:
     """
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
         from writer.ai import Conversation
-        from writer.core_df import EditableDataframe
+        from writer.core_df import EditableDataFrame
 
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
@@ -299,7 +299,7 @@ class StateSerialiser:
             return self._serialise_list_recursively(v)
         if isinstance(v, (str, bool)):
             return v
-        if isinstance(v, EditableDataframe):
+        if isinstance(v, EditableDataFrame):
             table = v.pyarrow_table()
             return self._serialise_pyarrow_table(table)
         if v is None:
@@ -1240,6 +1240,8 @@ class EventDeserialiser:
         custom_event_name = ev.type[3:]
         func_name = "_transform_" + custom_event_name.replace("-", "_")
         if not hasattr(self, func_name):
+            if ev.isSafe:
+                return
             ev.payload = {}
             raise ValueError(
                 "No payload transformer available for custom event type.")
@@ -1605,9 +1607,9 @@ class EventHandler:
                 "session": session
             }
             if workflow_key:
-                self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
+                return self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
             elif workflow_id:
-                self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
+                return self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
         return fn
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:

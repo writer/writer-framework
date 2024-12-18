@@ -142,7 +142,7 @@ const customHandlerModalCloseAction: ModalAction = {
 .panelToggler:hover {
 	font-size: 12px;
 	--buttonColor: black;
-	--builderSeparatorColor: #303030;
+	--builderSeparatorColor: var(--wdsColorGray6);
 	--buttonTextColor: white;
 }
 

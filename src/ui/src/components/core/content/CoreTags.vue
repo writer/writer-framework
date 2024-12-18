@@ -26,6 +26,7 @@
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
 import { cssClasses, primaryTextColor } from "@/renderer/sharedStyleFields";
+import { WdsColor } from "@/wds/tokens";
 
 const clickHandlerStub = `
 def handle_tag_click(state, payload):
@@ -49,7 +50,7 @@ export default {
 				name: "Reference",
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
-				default: "#5551FF",
+				default: WdsColor.Blue5,
 				category: FieldCategory.Style,
 			},
 			seed: {
