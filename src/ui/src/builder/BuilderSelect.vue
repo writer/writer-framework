@@ -65,7 +65,7 @@ const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	dropdown,
 	{
 		placement: "bottom",
-		middleware: [autoPlacement()],
+		middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
 	},
 );
 
@@ -130,6 +130,11 @@ function onSelect(value: string) {
 	background: transparent;
 
 	cursor: pointer;
+}
+.BuilderSelect__trigger:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+	outline: none;
 }
 .BuilderSelect__trigger__label {
 	text-overflow: ellipsis;

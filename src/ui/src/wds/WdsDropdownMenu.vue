@@ -1,15 +1,17 @@
 <template>
 	<div class="WdsDropdownMenu">
-		<div v-if="enableSearch" class="WdsDropdownMenu__search">
-			<i class="material-symbols-outlined">search</i>
-			<input
-				ref="searchInput"
-				v-model="searchTerm"
-				class="WdsDropdownMenu__search__input"
-				type="text"
-				placeholder="Search"
-				autocomplete="off"
-			/>
+		<div v-if="enableSearch" class="WdsDropdownMenu__search-wrapper">
+			<div class="WdsDropdownMenu__search">
+				<i class="material-symbols-outlined">search</i>
+				<input
+					ref="searchInput"
+					v-model="searchTerm"
+					class="WdsDropdownMenu__search__input"
+					type="text"
+					placeholder="Search"
+					autocomplete="off"
+				/>
+			</div>
 		</div>
 		<button
 			v-for="option in optionsFiltered"
@@ -100,7 +102,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	box-shadow: 0px 1px 8px 0px #bfcbff40;
 	box-sizing: border-box;
 }
-.WdsDropdownMenu:has(.WdsDropdownMenu__search) {
+.WdsDropdownMenu:has(.WdsDropdownMenu__search-wrapper) {
 	padding-top: 0px;
 }
 
@@ -139,6 +141,13 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	overflow: hidden;
 	text-align: left;
 }
+.WdsDropdownMenu__search-wrapper {
+	position: sticky;
+	top: 0px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	background: #fff;
+}
 
 .WdsDropdownMenu__search {
 	background-color: #fafafa;
@@ -146,15 +155,12 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	height: 36px;
 	width: 100%;
 
-	margin-bottom: 8px;
-
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 4px;
 
 	padding: 8px;
-	padding-top: 16px;
 	border: 1px solid transparent;
 
 	color: currentcolor;
