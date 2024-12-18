@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import { useLogger } from "@/composables/useLogger";
+
 const props = defineProps<{
 	copyRawContent?: string;
 	copyStructuredContent?: string;
@@ -27,8 +29,7 @@ function copyToClipboard({ text = "" }: { text?: string }) {
 	try {
 		navigator.clipboard.writeText(text);
 	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error(error);
+		useLogger().error(error);
 	}
 }
 </script>

@@ -38,6 +38,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
+import { useLogger } from "@/composables/useLogger";
 
 const description =
 	"A user input component that allows users to capture images using their webcam.";
@@ -105,6 +106,8 @@ const videoEl: Ref<HTMLVideoElement> = ref(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const videoDevices: Ref<MediaDeviceInfo[]> = ref(null);
 const preferredDeviceId: Ref<MediaDeviceInfo["deviceId"]> = ref(null);
+
+const logger = useLogger();
 
 onMounted(async () => {
 	videoDevices.value = await getVideoDevices();
@@ -174,8 +177,7 @@ const startCapture = async (): Promise<void> => {
 	videoEl.value.style.display = "";
 	return new Promise((resolve, reject) => {
 		if (!navigator.mediaDevices.getUserMedia) {
-			// eslint-disable-next-line no-console
-			console.error("This browser doesn't support webcam connection.");
+			logger.error("This browser doesn't support webcam connection.");
 			reject();
 		}
 
@@ -201,8 +203,7 @@ const startCapture = async (): Promise<void> => {
 				resolve();
 			})
 			.catch((error) => {
-				// eslint-disable-next-line no-console
-				console.error(
+				logger.error(
 					"An error occurred when trying to use the webcam.",
 					error,
 				);

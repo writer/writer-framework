@@ -135,6 +135,7 @@ import {
 } from "./CoreDataframe/constants";
 import WdsButton from "@/wds/WdsButton.vue";
 import { WdsColor } from "@/wds/tokens";
+import { useLogger } from "@/composables/useLogger";
 
 const description = "A component to display Pandas DataFrames.";
 
@@ -523,8 +524,7 @@ async function loadData() {
 			[ARQUERO_INTERNAL_ID]: () => aq.op.row_number(),
 		});
 	} catch (e) {
-		// eslint-disable-next-line no-console
-		console.error("Couldn't load dataframe from Arrow URL.", e);
+		useLogger().error("Couldn't load dataframe from Arrow URL.", e);
 	} finally {
 		isLoadingData.value = false;
 	}

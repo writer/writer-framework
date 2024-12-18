@@ -12,6 +12,7 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { useLogger } from "@/composables/useLogger";
 
 const markersDefaultData = [
 	{ lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker" },
@@ -137,8 +138,7 @@ const initMap = async () => {
 			map.value.on("load", renderMarkers);
 		}
 	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error(error);
+		useLogger().error(error);
 	}
 };
 

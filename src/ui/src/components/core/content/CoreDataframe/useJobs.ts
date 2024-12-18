@@ -1,3 +1,4 @@
+import { useLogger } from "@/composables/useLogger";
 import { shallowRef, ref, readonly } from "vue";
 
 /**
@@ -6,6 +7,7 @@ import { shallowRef, ref, readonly } from "vue";
 export function useJobs<T>(handler: (value: T) => Promise<void>) {
 	const jobs = shallowRef<T[]>([]);
 	const isRunning = ref(false);
+	const logger = useLogger();
 
 	async function run() {
 		if (isRunning.value) return;
@@ -18,8 +20,7 @@ export function useJobs<T>(handler: (value: T) => Promise<void>) {
 			try {
 				await handler(job);
 			} catch (error) {
-				// eslint-disable-next-line no-console
-				console.error("Error during handling job", job, error);
+				logger.error("Error during handling job", job, error);
 			} finally {
 				jobs.value = rest;
 			}
