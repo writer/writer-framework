@@ -1,12 +1,15 @@
 <template>
-	<button
-		role="button"
+	<WdsButton
 		class="BaseCollapseIcon"
 		:class="{ 'BaseCollapseIcon--collapsed': isCollapsed }"
+		variant="tertiary"
+		size="icon"
 		@click="isCollapsed = !isCollapsed"
 	>
-		<i class="material-symbols-outlined">{{ icon }}</i>
-	</button>
+		<i class="BaseCollapseIcon__icon material-symbols-outlined">{{
+			icon
+		}}</i>
+	</WdsButton>
 </template>
 
 <script lang="ts">
@@ -18,6 +21,7 @@ export type Direction =
 </script>
 
 <script setup lang="ts">
+import WdsButton from "@/wds/WdsButton.vue";
 import { computed, PropType } from "vue";
 
 const props = defineProps({
@@ -44,28 +48,15 @@ const icon = computed(() => {
 
 <style scoped>
 .BaseCollapseIcon {
-	border: none;
-	border-radius: 50%;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: transparent;
+	border-color: var(--separatorColor);
+}
 
-	height: 32px;
-	width: 32px;
-	cursor: pointer;
-
+.BaseCollapseIcon__icon {
 	transition: all 0.3s ease-in-out;
 	transform: rotate(0deg);
-
-	border: 1px solid var(--separatorColor);
-}
-.BaseCollapseIcon:hover {
-	background: var(--separatorColor);
 }
 
-.BaseCollapseIcon--collapsed {
+.BaseCollapseIcon--collapsed .BaseCollapseIcon__icon {
 	transform: rotate(180deg);
 }
 </style>
