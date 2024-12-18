@@ -59,6 +59,7 @@ onMounted(() => {
 	editor = monaco.editor.create(editorContainerEl.value, {
 		value: modelValue.value,
 		language: props.language,
+		readOnly: props.disabled,
 		...VARIANTS_SETTINGS[props.variant],
 	});
 	editor.getModel().onDidChangeContent(() => {
@@ -84,11 +85,11 @@ onUnmounted(() => {
 .BuilderEmbeddedCodeEditor {
 	height: 100%;
 	width: 100%;
-	min-height: 200px;
+	min-height: 100px;
 }
 
 .editorContainer {
-	min-height: 200px;
+	min-height: 100px;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;

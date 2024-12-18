@@ -19,11 +19,11 @@ class RunWorkflow(WorkflowBlock):
                         "name": "Workflow key",
                         "type": "Text",
                     },
-                    "executionEnv": {
-                        "name": "Execution environment",
-                        "desc": "Values passed will be available using the template syntax i.e. @{my_var}",
+                    "payload": {
+                        "name": "Payload",
+                        "desc": "The value specified will be available using the template syntax i.e. @{payload}",
                         "default": "{}",
-                        "type": "Object",
+                        "type": "Text",
                         "control": "Textarea"
                     },
                 },
@@ -45,9 +45,9 @@ class RunWorkflow(WorkflowBlock):
     def run(self):
         try:
             workflow_key = self._get_field("workflowKey")
-            execution_environment = self._get_field("executionEnv", as_json=True)
-
-            return_value = self.runner.run_workflow_by_key(workflow_key, execution_environment)
+            payload = self._get_field("payload")
+            expanded_execution_environment = self.execution_environment | { "payload": payload }
+            return_value = self.runner.run_workflow_by_key(workflow_key, expanded_execution_environment)
             self.result = return_value
             self.outcome = "success"
         except BaseException as e:

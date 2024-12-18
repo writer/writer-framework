@@ -5,40 +5,11 @@
 		tabindex="-1"
 		:data-automation-key="fieldKey"
 	>
-		<div class="chipStackContainer">
-			<div class="chipStack">
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'default' }"
-					@click="
-						() => {
-							setMode('default');
-							setContentValue(component.id, fieldKey, undefined);
-						}
-					"
-				>
-					Default
-				</button>
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'css' }"
-					@click="setMode('css')"
-				>
-					CSS
-				</button>
-				<button
-					class="chip"
-					:class="{ active: mode == 'pick' }"
-					tabindex="0"
-					@click="setMode('pick')"
-				>
-					Pick
-				</button>
-			</div>
-		</div>
-
+		<WdsTabs
+			:tabs="tabs"
+			:model-value="mode"
+			@update:model-value="setMode"
+		/>
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<input
@@ -74,6 +45,11 @@ import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "../../injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import {
+	BuilderFieldCssMode as Mode,
+	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
+} from "./constants/builderFieldsCssTabs";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -82,8 +58,6 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
-
-type Mode = "pick" | "css" | "default";
 
 const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	pick: pickerEl,
@@ -123,6 +97,10 @@ const setMode = async (newMode: Mode) => {
 	mode.value = newMode;
 	await nextTick();
 	autofocus();
+
+	if (newMode === "default") {
+		setContentValue(component.value.id, fieldKey.value, undefined);
+	}
 };
 
 const handleInput = (ev: Event) =>
@@ -144,13 +122,16 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
-}
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
+}
+input[type="color"] {
+	width: 100%;
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid var(--separatorColor);
+
+	display: block;
+	height: 40px;
 }
 </style>

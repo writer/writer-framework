@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 const setTextField = async (page, text) => {
 	await page.locator('div.CoreText.component').click();
 	await page
-		.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput')
+		.locator('.BuilderFieldsText[data-automation-key="text"] textarea')
 		.fill(text);
 }
 
@@ -29,7 +29,7 @@ test.describe("state autocompletion", () => {
 			await setTextField(page, "@{types.");
 			page.locator('.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")').click();
 			await expect(page
-				.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput'))
+				.locator('.BuilderFieldsText[data-automation-key="text"] textarea'))
 				.toHaveValue("@{types.string");
 		});
 		test("counter", async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe("state autocompletion", () => {
 		test("options should show on focus", async ({ page }) => {
 			await page.locator('div.CoreText.component').click();
 			await page
-				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] .templateInput')
+				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] input')
 				.focus();
 			await expect(page.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="yes"]')).toHaveCount(1);
 			await expect(page.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="no"]')).toHaveCount(1);
@@ -71,25 +71,25 @@ test.describe("state autocompletion", () => {
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("Static List")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("Static List")`)
 				.click();
 			await page
-				.locator(`${FIELD} .inputKey .templateInput`)
+				.locator(`${FIELD} .inputKey input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .inputKey .templateInput`))
+				.locator(`${FIELD} .inputKey input`))
 				.toHaveValue("@{types.string");
 			await page
-				.locator(`${FIELD} .inputValue .templateInput`)
+				.locator(`${FIELD} .inputValue input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .inputValue .templateInput`))
+				.locator(`${FIELD} .inputValue input`))
 				.toHaveValue("@{types.string");
 			await page.locator('[data-automation-action="delete"]').click();
 		});
@@ -102,16 +102,16 @@ test.describe("state autocompletion", () => {
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("JSON")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("JSON")`)
 				.click();
 			await page
-				.locator(`${FIELD} .templateInput`)
+				.locator(`${FIELD} textarea`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .templateInput`))
+				.locator(`${FIELD} textarea`))
 				.toHaveValue("@{types.string");
 			await page.locator('[data-automation-action="delete"]').click();
 		});
@@ -122,16 +122,16 @@ test.describe("state autocompletion", () => {
 			const FIELD = `.${type}[data-automation-key="${key}"]`; 
 			await page.locator(componentSelector).click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("CSS")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("CSS")`)
 				.click();
 			await page
-				.locator(`${FIELD} .templateInput`)
+				.locator(`${FIELD} .BuilderTemplateInput input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .templateInput`))
+				.locator(`${FIELD} .BuilderTemplateInput input`))
 				.toHaveValue("@{types.string");
 		});
 	}

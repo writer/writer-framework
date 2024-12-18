@@ -2,6 +2,7 @@ import asyncio
 import html
 import importlib.util
 import io
+import json
 import logging
 import mimetypes
 import os
@@ -9,26 +10,29 @@ import os.path
 import pathlib
 import socket
 import textwrap
+import time
 import typing
 from contextlib import asynccontextmanager
 from importlib.machinery import ModuleSpec
-from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 from urllib.parse import urlsplit
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract
+from writer import VERSION, abstract, crypto
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
     ComponentUpdateRequestPayload,
     EventResponsePayload,
+    HashRequestPayload,
+    HashRequestResponsePayload,
     InitRequestBody,
     InitResponseBodyEdit,
     InitResponseBodyRun,
@@ -50,19 +54,87 @@ logging.getLogger().setLevel(logging.INFO)
 
 class JobVault:
 
+    SCHEMES:List[str] = []
+    job_vault_implementations: List[Type["JobVault"]] = []
+
     def __init__(self):
         self.counter = 0
         self.vault = {}
 
     def generate_job_id(self):
         self.counter += 1
-        return self.counter
+        return str(self.counter)
 
     def set(self, job_id: str, value: Any):
         self.vault[job_id] = value
     
     def get(self, job_id: str):
         return self.vault.get(job_id)
+
+    @classmethod
+    def register(cls, klass: Type["JobVault"]):
+        cls.job_vault_implementations.insert(0, klass)
+
+    @classmethod
+    def _get_matching_implementation(cls, connection_string):
+        for job_vault_implementation in cls.job_vault_implementations:
+            for scheme in job_vault_implementation.SCHEMES:
+                if connection_string.startswith(scheme):
+                    return job_vault_implementation
+
+    @classmethod
+    def create_vault(cls):
+        connection_string = os.getenv("WRITER_PERSISTENT_STORE")
+        if not connection_string:
+            return cls()
+
+        matching_implementation = cls._get_matching_implementation(connection_string)
+        if not matching_implementation:
+            supported_schemes = [scheme for implementation in JobVault.job_vault_implementations for scheme in implementation.SCHEMES]
+            supported_schemes_msg = ", ".join(supported_schemes)
+            logging.error(f"No matching implementation found for { connection_string }. Falling back to in-memory JobVault. \
+                          Supported schemes: {supported_schemes_msg}.")
+            return cls()
+
+        try:
+            return matching_implementation()
+        except Exception as e:
+            logging.error(f"There was an error connecting to { connection_string }. Falling back to in-memory JobVault. {repr(e)}")
+            return cls()
+
+
+class RedisJobVault(JobVault):
+
+    SCHEMES = ["redis://", "rediss://", "redis-socket://", "redis-sentinel://"]
+    DEFAULT_TTL = 86400
+
+    def __init__(self):
+        import redis  # type: ignore
+        super().__init__()
+        redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
+        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
+        self.counter_key = "job_counter"
+        if not self.redis_client.exists(self.counter_key):
+            self.redis_client.set(self.counter_key, 0)
+
+    def generate_job_id(self):
+        job_id = self.redis_client.incr(self.counter_key)
+        return str(job_id)
+
+    def set(self, job_id: str, value: Any):
+        ttl = RedisJobVault.DEFAULT_TTL
+        env_ttl = os.getenv("WRITER_PERSISTENT_STORE_TTL")
+        if env_ttl is not None:
+            ttl = int(env_ttl)
+        json_str = json.dumps(value)
+        self.redis_client.set(f"job:{job_id}", json_str, ex=ttl)
+
+    def get(self, job_id: str):
+        json_str = self.redis_client.get(f"job:{job_id}")
+        if not json_str:
+            return None
+        return json.loads(json_str)
+
 
 class WriterState(typing.Protocol):
     app_runner: AppRunner
@@ -87,7 +159,8 @@ def get_asgi_app(
         enable_remote_edit: bool = False,
         enable_server_setup: bool = True,
         on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None
+        on_shutdown: Optional[Callable] = None,
+        enable_jobs_api: bool = False
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -139,7 +212,6 @@ def get_asgi_app(
     """
     app.state.writer_app = True
     app.state.app_runner = app_runner
-    app.state.job_vault = JobVault()
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -242,6 +314,115 @@ def get_asgi_app(
         if serve_mode == "edit":
             return _get_edit_starter_pack(app_response.payload)
 
+    # Jobs
+
+    async def _get_payload_as_json(request: Request):
+        payload = None
+        body = await request.body()        
+        if not body:
+            return None
+        try:
+            payload = await request.json()
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Cannot parse the payload.")
+        return payload
+
+    @app.post("/api/job/workflow/{workflow_key}")
+    async def create_workflow_job(workflow_key: str, request: Request, response: Response):
+        if not enable_jobs_api:
+            raise HTTPException(status_code=404)
+
+        crypto.verify_message_authorization_signature(f"create_job_{workflow_key}", request)
+
+        def serialize_result(data):
+            if isinstance(data, list):
+                return [serialize_result(item) for item in data]
+            if isinstance(data, dict):
+                return {k : serialize_result(v) for k, v in data.items()}
+            if isinstance(data, (str, int, float, bool, type(None))):
+                return data
+            try:
+                return json.loads(json.dumps(data))
+            except (TypeError, OverflowError):
+                return f"Can't be displayed. Value of type: {str(type(data))}."
+
+        def update_job(job_id: str, job_info: dict):
+            current_job_info = app.state.job_vault.get(job_id)
+            if not current_job_info:
+                raise RuntimeError("Job not found.")
+            merged_info = current_job_info | { "finished_at": int(time.time()) } | job_info
+            app.state.job_vault.set(job_id, merged_info)
+
+        def job_done_callback(task: asyncio.Task, job_id: str):
+            try:
+                apsr: Optional[AppProcessServerResponse] = task.result()
+                if apsr is None or apsr.status != "ok":
+                    update_job(job_id, {"status": "error"})
+                    return
+                result = None
+                if apsr.payload and apsr.payload.result:
+                    result = apsr.payload.result.get("result")
+                update_job(job_id, {
+                    "status": "complete",
+                    "result": serialize_result(result)
+                })
+            except Exception as e:
+                update_job(job_id, {"status": "error"})
+                raise e
+
+        app_response = await app_runner.init_session(InitSessionRequestPayload(
+            cookies=dict(request.cookies),
+            headers=dict(request.headers),
+            proposedSessionId=None
+        ))
+
+        if not app_response or not app_response.payload:
+            raise HTTPException(status_code=500, detail="Cannot initialize session.")
+        session_id = app_response.payload.sessionId
+        is_session_ok = await app_runner.check_session(session_id)
+        if not is_session_ok:
+            raise HTTPException(status_code=500, detail="Cannot initialize session.")
+
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(app_runner.handle_event(
+            session_id, WriterEvent(
+                type="wf-builtin-run",
+                isSafe=True,
+                handler=f"$runWorkflow_{workflow_key}",
+                payload=await _get_payload_as_json(request)
+            )))
+
+        job_id = app.state.job_vault.generate_job_id()
+        app.state.job_vault.set(job_id, {
+            "id": job_id,
+            "status": "in progress",
+            "created_at": int(time.time())
+        })
+        task.add_done_callback(lambda t: job_done_callback(t, job_id))
+        return {
+            "id": job_id,
+            "token": crypto.get_hash(f"get_job_{job_id}")
+        }
+
+    @app.get("/api/job/{job_id}")
+    async def get_workflow_job(job_id: str, request: Request, response: Response):
+        if not enable_jobs_api:
+            raise HTTPException(status_code=404)
+
+        crypto.verify_message_authorization_signature(f"get_job_{job_id}", request)
+        job = app.state.job_vault.get(job_id)
+
+        if not job:
+            return JSONResponse(status_code=404, content={
+                "id": job_id,
+                "status": "not found"
+            })
+
+        status_code = 200
+        if job.get("status") == "error":
+            status_code = 400
+        
+        return JSONResponse(status_code=status_code, content=job)
 
     # Streaming
 
@@ -301,6 +482,9 @@ def get_asgi_app(
                 elif req_message.type == "stateEnquiry":
                     new_task = asyncio.create_task(
                         _handle_state_enquiry_message(websocket, session_id, req_message))
+                elif serve_mode == "edit" and req_message.type == "hashRequest":
+                    new_task = asyncio.create_task(
+                        _handle_hash_request(websocket, session_id, req_message))
                 elif serve_mode == "edit":
                     new_task = asyncio.create_task(
                         _handle_incoming_edit_message(websocket, session_id, req_message))
@@ -390,6 +574,21 @@ def get_asgi_app(
                 StateEnquiryResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
+        await websocket.send_json(response.model_dump())
+
+    async def _handle_hash_request(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+        response = WriterWebsocketOutgoing(
+            messageType=f"{req_message.type}Response",
+            trackingId=req_message.trackingId,
+            payload=None
+        )
+        apsr: Optional[AppProcessServerResponse] = None
+        apsr = await app_runner.handle_hash_request(session_id, HashRequestPayload(
+            message=req_message.payload.get("message", "")
+        ))
+        if apsr is not None and apsr.payload is not None:
+            response.payload = typing.cast(
+                HashRequestResponsePayload, apsr.payload).model_dump()
         await websocket.send_json(response.model_dump())
 
     async def _stream_outgoing_announcements(websocket: WebSocket):
@@ -489,9 +688,13 @@ def get_asgi_app(
             )
         )
 
+    JobVault.register(RedisJobVault)
+
     # Return
     if enable_server_setup is True:
         _execute_server_setup_hook(user_app_path)
+
+    app.state.job_vault = JobVault.create_vault()
 
     return app
 
@@ -529,7 +732,7 @@ def register_auth(
 ):
     auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
-def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False):
+def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False, enable_jobs_api=False):
     """ Initialises the web server. """
 
     print_init_message()
@@ -551,7 +754,7 @@ def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remo
         port = _next_localhost_available_port(mode_allowed_ports[mode])
 
     enable_server_setup = mode == "run" or enable_server_setup
-    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup)
+    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
     log_level = "warning"
     uvicorn.run(app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
 

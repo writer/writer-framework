@@ -31,6 +31,7 @@ else:
 <script lang="ts">
 import { cssClasses, primaryTextColor } from "@/renderer/sharedStyleFields";
 import { FieldCategory, FieldType } from "@/writerTypes";
+import { WdsColor } from "@/wds/tokens";
 
 const description =
 	"A component that displays a message in various styles, including success, error, warning, and informational.";
@@ -48,13 +49,13 @@ export default {
 			},
 			successColor: {
 				name: "Success",
-				default: "#A9F9E1",
+				default: WdsColor.Green3,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			errorColor: {
 				name: "Error",
-				default: "#FFCFC2",
+				default: WdsColor.Orange2,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
@@ -66,13 +67,13 @@ export default {
 			},
 			infoColor: {
 				name: "Info",
-				default: "#E4E9FF",
+				default: WdsColor.Blue2,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
 			loadingColor: {
 				name: "Loading",
-				default: "#E4E9FF",
+				default: WdsColor.Blue2,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
