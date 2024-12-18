@@ -131,6 +131,7 @@ onUnmounted(() => {
 	display: content;
 	max-width: 260px;
 	filter: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.16));
+	word-break: break-all;
 }
 
 .arrow {

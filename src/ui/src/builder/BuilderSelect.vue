@@ -3,6 +3,7 @@
 		<button
 			class="BuilderSelect__trigger"
 			role="button"
+			:data-writer-tooltip="currentLabel"
 			@click="isOpen = !isOpen"
 		>
 			<i v-if="!hideIcons" class="material-symbols-outlined">{{
@@ -141,6 +142,7 @@ function onSelect(value: string) {
 	overflow: hidden;
 	flex-grow: 1;
 	text-align: left;
+	white-space: nowrap;
 }
 .BuilderSelect__trigger__arrow {
 	border: none;
