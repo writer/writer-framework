@@ -138,6 +138,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
+	white-space: nowrap;
 	overflow: hidden;
 	text-align: left;
 }
