@@ -139,23 +139,30 @@ const description = "A component to display Pandas DataFrames.";
 
 const dataFrameUpdateHandlerStub = `
 # Subscribe this event handler to the \`wf-dataframe-update\` event
+#
+# more on : https://dev.writer.com/framework/dataframe
 def on_record_change(state, payload):
-    state['mydf'].record_update(payload)`;
+    state['mydf'].record_update(payload) # should contain an EditableDataFrame instance`;
 
 const dataFrameAddHandlerStub = `
 # Subscribe this event handler to the \`wf-dataframe-add\` event
+#
+# more on : https://dev.writer.com/framework/dataframe
 def on_record_add(state, payload):
 	payload['record']['sales'] = 0 # default value inside the dataframe
-	state['mydf'].record_add(payload)`;
+	state['mydf'].record_add(payload) # should contain an EditableDataFrame instance`;
 
 const dataFrameActionHandlerStub = `
 # Subscribe this event handler to the \`wf-dataframe-action\` event
+#
+# more on : https://dev.writer.com/framework/dataframe
 def on_record_action(state, payload):
+	# state['mydf'] should contains an EditableDataFrame instance
 	record_index = payload['record_index']
 	if payload['action'] == 'remove':
-		state['mydf'].record_remove(payload)
+		state['mydf'].record_remove(payload) # should contain an EditableDataFrame instance
 	if payload['action'] == 'open':
-		state['record'] = state['df'].record(record_index) # dict representation of record`;
+		state['record'] = state['mydf'].record(record_index) # dict representation of record`;
 
 export default {
 	writer: {

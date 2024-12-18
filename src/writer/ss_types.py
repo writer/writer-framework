@@ -188,14 +188,14 @@ class HashRequestResponse(AppProcessServerRequest):
 AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerResponse]
 
 
-class DataframeRecordAdded(TypedDict):
+class DataFrameRecordAdded(TypedDict):
     record: Dict[str, Any]
 
-class DataframeRecordUpdated(TypedDict):
+class DataFrameRecordUpdated(TypedDict):
     record_index: int
     record: Dict[str, Any]
 
-class DataframeRecordRemoved(TypedDict):
+class DataFrameRecordRemoved(TypedDict):
     record_index: int
 
 class WriterEventResult(TypedDict):
