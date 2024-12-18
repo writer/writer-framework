@@ -703,6 +703,11 @@ onUnmounted(() => {
 	max-height: 90vh;
 }
 
+/* remove the background if the dataframe is being selected in builder mode */
+.CoreDataframe.selected .gridContainer {
+	background: unset;
+}
+
 .grid {
 	margin-bottom: -1px;
 	position: v-bind("isRowCountMassive ? 'sticky': 'unset'");
