@@ -20,6 +20,7 @@ import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
+import { useLogger } from "@/composables/useLogger";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -191,6 +192,8 @@ export function generateCore() {
 	async function startSync(): Promise<void> {
 		if (webSocket) return; // Open WebSocket exists
 
+		const logger = useLogger();
+
 		const url = new URL("./api/stream", window.location.href);
 		url.protocol = url.protocol.replace("https", "wss");
 		url.protocol = url.protocol.replace("http", "ws");
@@ -199,7 +202,7 @@ export function generateCore() {
 		webSocket.onopen = () => {
 			clearFrontendMap();
 			syncHealth.value = "connected";
-			console.log("WebSocket connected. Initialising stream...");
+			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
 		};
 
@@ -236,7 +239,7 @@ export function generateCore() {
 				// Connection established correctly but closed due to invalid session.
 				// Do not attempt to reconnect, the session will remain invalid. Initialise a new session.
 
-				console.error("Invalid session. Reinitialising...");
+				logger.error("Invalid session. Reinitialising...");
 
 				// Take care of pending event resolutions and fail them.
 				await initSession();
@@ -245,12 +248,12 @@ export function generateCore() {
 
 			// Connection lost due to some other reason. Try to reconnect.
 
-			console.error("WebSocket closed. Attempting to reconnect...");
+			logger.error("WebSocket closed. Attempting to reconnect...");
 			setTimeout(async () => {
 				try {
 					await startSync();
 				} catch {
-					console.error("Couldn't reconnect.");
+					logger.error("Couldn't reconnect.");
 				}
 			}, RECONNECT_DELAY_MS);
 		};
@@ -336,11 +339,11 @@ export function generateCore() {
 	/**
 	 * Sends a message to be hashed in the backend using the relevant keys.
 	 * Due to security reasons, it works only in edit mode.
-	 * 
+	 *
 	 * @param message Messaged to be hashed
 	 * @returns The hashed message
 	 */
-	async function hashMessage(message: string):Promise<string> {
+	async function hashMessage(message: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
@@ -353,13 +356,8 @@ export function generateCore() {
 				resolve(r.payload?.message);
 			};
 
-			sendFrontendMessage(
-				"hashRequest",
-				{ message },
-				messageCallback,
-			);
+			sendFrontendMessage("hashRequest", { message }, messageCallback);
 		});
-
 	}
 
 	async function sendCodeSaveRequest(newCode: string): Promise<void> {
@@ -440,6 +438,7 @@ export function generateCore() {
 			callback?.({ ok: false });
 			return;
 		}
+		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {
@@ -468,8 +467,7 @@ export function generateCore() {
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
 		} catch (error) {
-			// eslint-disable-next-line no-console
-			console.error("sendFrontendMessage error", error);
+			logger.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
 		}
 	}
