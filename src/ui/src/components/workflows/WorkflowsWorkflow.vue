@@ -37,8 +37,8 @@
 				<component
 					:is="renderProxiedComponent(node.id, 0)"
 					:style="{
-						top: `${node.y - renderOffset.y}px`,
-						left: `${node.x - renderOffset.x}px`,
+						top: `${(temporaryNodeCoordinates?.[node.id]?.y ?? node.y) - renderOffset.y}px`,
+						left: `${(temporaryNodeCoordinates?.[node.id]?.x ?? node.x) - renderOffset.x}px`,
 						'border-color':
 							activeConnection?.liveArrow?.toNodeId == node.id
 								? activeConnection?.liveArrow?.color
@@ -72,6 +72,7 @@
 			:render-offset="renderOffset"
 			:zoom-level="zoomLevel"
 			class="navigator"
+			@auto-arrange="handleAutoArrange"
 			@change-render-offset="handleChangeRenderOffset"
 			@change-zoom-level="handleChangeZoomLevel"
 			@reset-zoom="resetZoom"
@@ -154,13 +155,24 @@ const isRunning = ref(false);
 const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
+const temporaryNodeCoordinates = ref<
+	Record<Component["id"], { x: number; y: number }>
+>({});
+
+const AUTOARRANGE_ROW_GAP_PX = 96;
+const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
 
-const { createAndInsertComponent, addOut, removeOut, changeCoordinates } =
-	useComponentActions(wf, wfbm);
+const {
+	createAndInsertComponent,
+	addOut,
+	removeOut,
+	changeCoordinates,
+	changeCoordinatesMultiple,
+} = useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
 const activeConnection: Ref<{
@@ -212,6 +224,101 @@ const isUnselectable = computed(() => {
 
 function handleClick() {
 	selectedArrow.value = null;
+}
+
+function organizeNodesInColumns() {
+	const columns: Map<number, Set<Component>> = new Map();
+
+	function scan(node: Component, layer: number) {
+		columns.forEach((column) => {
+			if (column.has(node)) {
+				column.delete(node);
+			}
+		});
+		if (!columns.has(layer)) {
+			columns.set(layer, new Set());
+		}
+		const column = columns.get(layer);
+		column.add(node);
+		node.outs?.forEach((out) => {
+			const outNode = wf.getComponentById(out.toNodeId);
+			scan(outNode, layer + 1);
+		});
+	}
+
+	const dependencies: Map<Component["id"], Set<Component["id"]>> = new Map();
+
+	nodes.value.forEach((node) => {
+		node.outs?.forEach((outNode) => {
+			if (!dependencies.has(outNode.toNodeId)) {
+				dependencies.set(outNode.toNodeId, new Set());
+			}
+			dependencies.get(outNode.toNodeId).add(node.id);
+		});
+	});
+
+	nodes.value
+		.filter((node) => !dependencies.has(node.id))
+		.forEach((startNode) => {
+			scan(startNode, 0);
+		});
+
+	return columns;
+}
+
+function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
+	const columnDimensions: Map<number, { height: number; width: number }> =
+		new Map();
+	const nodeDimensions: Map<Component["id"], { height: number }> = new Map();
+	columns.forEach((nodes, layer) => {
+		let height = 0;
+		let width = 0;
+		nodes.forEach((node) => {
+			const nodeEl = nodeContainerEl.value.querySelector(
+				`[data-writer-id="${node.id}"]`,
+			);
+			if (!nodeEl) return;
+			const nodeBCR = nodeEl.getBoundingClientRect();
+			nodeDimensions.set(node.id, {
+				height: nodeBCR.height * (1 / zoomLevel.value),
+			});
+			height +=
+				nodeBCR.height * (1 / zoomLevel.value) + AUTOARRANGE_ROW_GAP_PX;
+			width = Math.max(width, nodeBCR.width * (1 / zoomLevel.value));
+		});
+		columnDimensions.set(layer, {
+			height: height - AUTOARRANGE_ROW_GAP_PX,
+			width,
+		});
+	});
+	return { columnDimensions, nodeDimensions };
+}
+
+function handleAutoArrange() {
+	const columns = organizeNodesInColumns();
+	const { columnDimensions, nodeDimensions } =
+		calculateAutoArrangeDimensions(columns);
+	const maxColumnHeight = Math.max(
+		...Array.from(columnDimensions.values()).map(
+			(dimensions) => dimensions.height,
+		),
+	);
+
+	const coordinates = {};
+	let x = AUTOARRANGE_COLUMN_GAP_PX;
+	for (let i = 0; i < columns.size; i++) {
+		const nodes = Array.from(columns.get(i)).sort((a, b) =>
+			a.y > b.y ? 1 : -1,
+		);
+		const { width, height } = columnDimensions.get(i);
+		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
+		nodes.forEach((node) => {
+			coordinates[node.id] = { x, y };
+			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
+		});
+		x += width + AUTOARRANGE_COLUMN_GAP_PX;
+	}
+	changeCoordinatesMultiple(coordinates);
 }
 
 async function handleRun() {
@@ -376,26 +483,27 @@ function clearActiveOperations() {
 	activeNodeMove.value = null;
 }
 
+function saveNodeMove() {
+	const { nodeId } = activeNodeMove.value;
+	const tempXY = temporaryNodeCoordinates.value?.[nodeId];
+	if (!tempXY) return;
+	const { x, y } = tempXY;
+	changeCoordinates(nodeId, x, y);
+	temporaryNodeCoordinates.value[nodeId] = null;
+}
+
 function moveNode(ev: MouseEvent) {
 	const { nodeId, offset } = activeNodeMove.value;
 	activeNodeMove.value.isPerfected = true;
-	const component = wf.getComponentById(nodeId);
 	const { x, y } = getAdjustedCoordinates(ev);
 
 	const newX = Math.floor(x - offset.x);
 	const newY = Math.floor(y - offset.y);
 
-	if (component.x == newX && component.y == newY) return;
-
-	component.x = newX;
-	component.y = newY;
-
-	setTimeout(() => {
-		// Debouncing
-		if (component.x !== newX) return;
-		if (component.y !== newY) return;
-		changeCoordinates(component.id, newX, newY);
-	}, 200);
+	temporaryNodeCoordinates.value[nodeId] = {
+		x: newX,
+		y: newY,
+	};
 }
 
 function moveCanvas(ev: MouseEvent) {
@@ -444,6 +552,9 @@ function handleMousedown(ev: MouseEvent) {
 }
 
 async function handleMouseup(ev: MouseEvent) {
+	if (activeNodeMove.value) {
+		saveNodeMove();
+	}
 	if (activeConnection.value === null) {
 		return;
 	}

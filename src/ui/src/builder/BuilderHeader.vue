@@ -5,12 +5,13 @@
 		<div class="undoRedo">
 			<button
 				class="undo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
-						? `Undo ${undoRedoSnapshot.undoDesc}`
+						? `Undo: ${undoRedoSnapshot.undoDesc}`
 						: 'Nothing to undo'
 				"
 				:disabled="!undoRedoSnapshot.isUndoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="undo()"
 			>
 				<i class="material-symbols-outlined"> undo </i>
@@ -18,12 +19,13 @@
 			</button>
 			<button
 				class="redo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
-						? `Redo ${undoRedoSnapshot.redoDesc}`
+						? `Redo: ${undoRedoSnapshot.redoDesc}`
 						: 'Nothing to redo'
 				"
 				:disabled="!undoRedoSnapshot.isRedoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="redo()"
 			>
 				<i class="material-symbols-outlined"> redo </i>

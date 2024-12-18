@@ -765,7 +765,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const transactionId = `edit-${componentId}-out-${out.outId}-${out.toNodeId}`;
-		ssbm.openMutationTransaction(transactionId, `Edit out`, true);
+		ssbm.openMutationTransaction(transactionId, "Edit out", true);
 		ssbm.registerPreMutation(component);
 
 		component.outs = component.outs.filter(
@@ -789,13 +789,37 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 
 		const transactionId = `change-${componentId}-coordinates`;
-		ssbm.openMutationTransaction(transactionId, `Change coordinates`, true);
+		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
 		ssbm.registerPreMutation(component);
 
 		component.x = Math.floor(x);
 		component.y = Math.floor(y);
 
 		ssbm.registerPostMutation(component);
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+	}
+
+	/***
+	 * Change the coordinates of multiple components.
+	 */
+	function changeCoordinatesMultiple(
+		coordinates: Record<Component["id"], {x: number, y: number}>
+	) {
+		const transactionId = "change-multiple-coordinates";
+		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
+
+		const entries = Object.entries(coordinates); 
+		if (entries.length == 0) return;
+		entries.forEach(([componentId, {x, y}]) => {
+			const component = wf.getComponentById(componentId);
+			if (!component) return;
+			ssbm.registerPreMutation(component);
+			component.x = Math.floor(x);
+			component.y = Math.floor(y);
+			ssbm.registerPostMutation(component);
+		});
+
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
 	}
@@ -948,6 +972,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		addOut,
 		removeOut,
 		changeCoordinates,
+		changeCoordinatesMultiple,
 		setVisibleValue,
 		setBinding,
 		getUndoRedoSnapshot,
