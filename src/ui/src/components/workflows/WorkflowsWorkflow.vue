@@ -37,8 +37,8 @@
 				<component
 					:is="renderProxiedComponent(node.id, 0)"
 					:style="{
-						top: `${node.y - renderOffset.y}px`,
-						left: `${node.x - renderOffset.x}px`,
+						top: `${(temporaryNodeCoordinates?.[node.id]?.y ?? node.y) - renderOffset.y}px`,
+						left: `${(temporaryNodeCoordinates?.[node.id]?.x ?? node.x) - renderOffset.x}px`,
 						'border-color':
 							activeConnection?.liveArrow?.toNodeId == node.id
 								? activeConnection?.liveArrow?.color
@@ -155,6 +155,9 @@ const isRunning = ref(false);
 const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
+const temporaryNodeCoordinates = ref<
+	Record<Component["id"], { x: number; y: number }>
+>({});
 
 const AUTOARRANGE_ROW_GAP_PX = 96;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
@@ -480,26 +483,27 @@ function clearActiveOperations() {
 	activeNodeMove.value = null;
 }
 
+function saveNodeMove() {
+	const { nodeId } = activeNodeMove.value;
+	const tempXY = temporaryNodeCoordinates.value?.[nodeId];
+	if (!tempXY) return;
+	const { x, y } = tempXY;
+	changeCoordinates(nodeId, x, y);
+	temporaryNodeCoordinates.value[nodeId] = null;
+}
+
 function moveNode(ev: MouseEvent) {
 	const { nodeId, offset } = activeNodeMove.value;
 	activeNodeMove.value.isPerfected = true;
-	const component = wf.getComponentById(nodeId);
 	const { x, y } = getAdjustedCoordinates(ev);
 
 	const newX = Math.floor(x - offset.x);
 	const newY = Math.floor(y - offset.y);
 
-	if (component.x == newX && component.y == newY) return;
-
-	component.x = newX;
-	component.y = newY;
-
-	setTimeout(() => {
-		// Debouncing
-		if (component.x !== newX) return;
-		if (component.y !== newY) return;
-		changeCoordinates(component.id, newX, newY);
-	}, 200);
+	temporaryNodeCoordinates.value[nodeId] = {
+		x: newX,
+		y: newY,
+	};
 }
 
 function moveCanvas(ev: MouseEvent) {
@@ -548,6 +552,9 @@ function handleMousedown(ev: MouseEvent) {
 }
 
 async function handleMouseup(ev: MouseEvent) {
+	if (activeNodeMove.value) {
+		saveNodeMove();
+	}
 	if (activeConnection.value === null) {
 		return;
 	}

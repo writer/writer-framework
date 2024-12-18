@@ -127,7 +127,6 @@ function toggleMiniMap() {
 
 function handleAutoArrange(ev: MouseEvent) {
 	emit("autoArrange");
-	(ev.target as HTMLElement).closest("button").blur();
 }
 
 function handleRenderOffsetChange(offset: typeof props.renderOffset) {

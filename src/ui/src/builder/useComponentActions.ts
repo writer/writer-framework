@@ -789,7 +789,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 
 		const transactionId = `change-${componentId}-coordinates`;
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", true);
+		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
 		ssbm.registerPreMutation(component);
 
 		component.x = Math.floor(x);
@@ -807,7 +807,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		coordinates: Record<Component["id"], {x: number, y: number}>
 	) {
 		const transactionId = "change-multiple-coordinates";
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", true);
+		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
 
 		const entries = Object.entries(coordinates); 
 		if (entries.length == 0) return;
