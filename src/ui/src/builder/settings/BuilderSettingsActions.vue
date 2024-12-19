@@ -193,7 +193,7 @@ const {
 	isPasteAllowed,
 	isDeleteAllowed,
 	getEnabledMoves,
-	removeComponentSubtree,
+	removeComponentsSubtree,
 	goToParent,
 } = useComponentActions(wf, ssbm);
 
@@ -201,10 +201,9 @@ function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;
 
 	// TODO: do one transaction
-	for (const { componentId } of ssbm.getSelection()) {
-		removeComponentSubtree(componentId);
-	}
-	ssbm.setSelection(null);
+	const componentIds = ssbm.getSelection().map((c) => c.componentId);
+	if (componentIds.length === 0) return;
+	removeComponentsSubtree(...componentIds);
 }
 
 const selectedId = ssbm.firstSelectedId;
@@ -238,10 +237,6 @@ const validChildrenTypes = computed(() => {
 
 	return result;
 });
-
-function clearSelection() {
-	ssbm.setSelection(null);
-}
 
 function addComponent(event: Event) {
 	const definitionName = (event.target as HTMLInputElement).value;
