@@ -22,10 +22,10 @@ class Evaluator:
     It allows for the sanitisation of frontend inputs.
     """
 
-    TEMPLATE_REGEX = re.compile(r"[\\]?@{([^{]*?)}")
+    EXPRESSIONS_TEMPLATE_REGEX = re.compile(r"\{\{(.*?)\}\}")
 
-    def __init__(self, state: "WriterState", component_tree: "ComponentTree"):
-        self.state = state
+    def __init__(self, globals: Dict, component_tree: "ComponentTree"):
+        self.globals = globals
         self.component_tree = component_tree
         self.serializer = writer.core.StateSerialiser()
 
@@ -40,7 +40,7 @@ class Evaluator:
             if matched.string[0] == "\\":  # Escaped @, don't evaluate
                 return matched.string
             expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, instance_path, base_context)
+            expr_value = eval(expr, self.globals)
 
             return expr_value
 
@@ -51,10 +51,10 @@ class Evaluator:
 
         field_value = component.content.get(field_key) or default_field_value
         replaced = None
-        full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
+        full_match = self.EXPRESSIONS_TEMPLATE_REGEX.fullmatch(field_value)
 
         if full_match is None:
-            replaced = self.TEMPLATE_REGEX.sub(lambda m: str(replacer(m)), field_value)
+            replaced = self.EXPRESSIONS_TEMPLATE_REGEX.sub(lambda m: str(replacer(m)), field_value)
             if as_json:
                 replaced = decode_json(replaced)
         else:
@@ -119,81 +119,3 @@ class Evaluator:
                 f'Reference "{expr}" cannot be translated to state. Found value of type "{type(state_ref)}".')
 
         state_ref[accessors[-1]] = value        
-
-    def parse_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> List[str]:
-
-        """ Returns a list of accessors from an expression. """
-
-        if not isinstance(expr, str):
-            raise ValueError(f'Expression must be of type string. Value of type "{ type(expr) }" found.')
-
-        accessors: List[str] = []
-        s = ""
-        level = 0
-
-        i = 0
-        while i < len(expr):
-            character = expr[i]
-            if character == "\\":
-                if i + 1 < len(expr):
-                    s += expr[i + 1]
-                    i += 1
-            elif character == ".":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-            elif character == "[":
-                if level == 0:
-                    accessors.append(s)
-                    s = ""
-                else:
-                    s += character
-                level += 1
-            elif character == "]":
-                level -= 1
-                if level == 0:
-                    s = str(self.evaluate_expression(s, instance_path, base_context))
-                else:
-                    s += character
-            else:
-                s += character
-
-            i += 1
-
-        if s:
-            accessors.append(s)
-
-        return accessors
-
-    def get_env_variable_value(self, expr: str):
-        return os.getenv(expr[1:])
-
-    def evaluate_expression(self, expr: str, instance_path: Optional[InstancePath] = None, base_context = {}) -> Any:
-        context_data = base_context
-        result = None
-        if instance_path:
-            context_data = self.get_context_data(instance_path, base_context)
-        context_ref: Any = context_data
-        state_ref: Any = self.state.user_state
-        accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
-
-        for accessor in accessors:
-            if isinstance(state_ref, (writer.core.StateProxy, dict)) and accessor in state_ref:
-                state_ref = state_ref.get(accessor)
-                result = state_ref
-            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
-                state_ref = state_ref[int(accessor)]
-                result = state_ref
-            elif isinstance(context_ref, dict) and accessor in context_ref:
-                context_ref = context_ref.get(accessor)
-                result = context_ref
-
-        if isinstance(result, writer.core.StateProxy):
-            return result.to_dict()
-
-        if result is None and expr.startswith("$"):
-            return self.get_env_variable_value(expr)
-
-        return result
