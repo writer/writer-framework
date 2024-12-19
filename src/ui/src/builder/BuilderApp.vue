@@ -251,10 +251,14 @@ function handleRendererClick(ev: PointerEvent): void {
 	ev.preventDefault();
 	ev.stopPropagation();
 
-	if (ev.shiftKey || ev.ctrlKey) {
-		ssbm.appendSelection(targetId, targetInstancePath, "click");
+	if (!ev.shiftKey && !ev.ctrlKey) {
+		return ssbm.setSelection(targetId, targetInstancePath, "click");
+	}
+
+	if (ssbm.isComponentIdSelected(targetId)) {
+		ssbm.removeSelectedComponentId(targetId);
 	} else {
-		ssbm.setSelection(targetId, targetInstancePath, "click");
+		ssbm.appendSelection(targetId, targetInstancePath, "click");
 	}
 }
 
