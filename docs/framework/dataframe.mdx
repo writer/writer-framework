@@ -2,10 +2,28 @@
 title: "Dataframe"
 ---
 
+## DataFrames
+
+If your application needs to present data as a table, it should use a **DataFrame**. DataFrames provide a simple way to present data in a grid format, require only a couple of lines of code to set up, and provide an interface that users expect from modern data applications. 
+
+![DataFrame showing a table of popular ice cream flavors](/framework/images/dataframe.png)
+
+DataFrames built-in features that users expect, such as headers that can be clicked to change the sort order and resizable columns...
+
+![DataFrame with arrows pointing to the re-sort and resizing features](/framework/images/dataframe_resort_resize.png)
+
+...and with the simple change of a parameter, you can enable features such as the Search field, which lets the user find the data they’re looking for (or filter out unwanted data), and the Download button, which downloads the data currently being displayed as a .csv file:
+
+![DataFrame with arrows pointing to the Search field and Download button](/framework/images/dataframe_search_download.png)
+
+You can find the full list of DataFrame properties and fields on the [_DataFrame_ component page](/components/dataframe).
+
+### “DataFrame” has multiple meanings
+
 **Writer Framework has two objects with the name _DataFrame_:**
 
-1. **Code Dataframe:** In code that you write for a Writer Framework application, `DataFrame` refers to a **_data structure_** that stores data in rows and columns in a way similar to a spreadsheet or SQL table.
-2. **UI DataFrame:** In Writer Framework's UI, "DataFrame" refers to a **_user interface component_** that displays data in rows and columns in a way similar to a spreadsheet or SQL table. 
+1. **UI DataFrame:** In Writer Framework's UI, "DataFrame" refers to a **_user interface component_** that displays data in rows and columns in a way similar to a spreadsheet or SQL table. 
+2. **Code Dataframe:** In code that you write for a Writer Framework application, `DataFrame` refers to a **_data structure_** that stores data in rows and columns in a way similar to a spreadsheet or SQL table.
 
 To present a data table in Writer Framework, you create a `DataFrame` data structure in your code and then bind it to a UI Dataframe.
 
@@ -63,7 +81,7 @@ A static DataFrame is one whose content does not change. The user can change its
 
 		In the case of this example, `mydf` is the `state` variable key referring to the `DataFrame`, so set the **Data** property to `@{mydf}`.
 
-		![DataFrame for static table example with properties panel open](images/dataframe_static_table_1.png)
+		![DataFrame for static table example with properties panel open](/framework/images/dataframe_static_table_1.png)
 	</Step>
 </Steps>
 
@@ -99,7 +117,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 			})
 			```
 
-			```sh Polars
+			```python Polars
 			import writer as wf
 			import polars as pl
 
@@ -117,7 +135,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 			})
 			```
 
-			```sh List of dictionaries
+			```python List of dictionaries
 			import writer as wf
 
 			data = [
@@ -141,7 +159,7 @@ A editable DataFrame is one whose content can change. Like static DataFrames, ed
 
 		In the case of this example, `mydf` is the `state` variable key referring to the `DataFrame`, so set the **Data** property to `@{mydf}`.
 
-		![DataFrame for dynamic table example with properties panel open](images/dataframe_dynamic_table_1.png)
+		![DataFrame for dynamic table example with properties panel open](/framework/images/dataframe_dynamic_table_1.png)
 	</Step>
 </Steps>
 
@@ -212,3 +230,26 @@ In the code example above, you would delete the row at index 2 with the followin
 ```python
 state["mydf"].record_remove({"record_index": 2})
 ```
+
+
+## Enabling additional features
+
+The DataFrame component has these “always-on” features:
+
+1. **Sorting:** Clicking a column header sorts the entire DataFrame based on that column's values. The first click sorts that DataFrame in ascending order, a second click changes it to descending order, and a third click restores the DataFrame to its original sort order.
+2. **Column resizing:** Click and drag the dividing line on the right edge of a column header to adjust its width.
+
+DataFrames have other features that you need to activate, which are listed below.
+
+### Search field
+
+To enable the Search field, select the DataFrame, open the Component settings panel, and set **Enable search** to **yes**.
+
+![Enabling the Search field in a DataFrame](/framework/images/dataframe_enable_search.png)
+
+### Download button
+
+To enable the Download button, select the DataFrame, open the Component settings panel, and set **Enable download** to **yes**.
+
+![Enabling the Download button in a DataFrame](/framework/images/dataframe_enable_download.png)
+
