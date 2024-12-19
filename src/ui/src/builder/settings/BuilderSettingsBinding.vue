@@ -1,5 +1,8 @@
 <template>
-	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
+	<div
+		v-if="ssbm.isSingleSelectionActive.value"
+		class="BuilderSettingsBinding"
+	>
 		<BuilderSectionTitle icon="link" label="Binding" />
 		<div class="main">
 			<WdsFieldWrapper label="State element" :hint="hint">

@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="ssbm.isSingleSelectionActive && fields"
+		v-if="ssbm.isSingleSelectionActive.value && fields"
 		class="BuilderSettingsProperties"
 	>
 		<div

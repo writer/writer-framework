@@ -150,6 +150,7 @@ async function select(ev: MouseEvent | KeyboardEvent) {
 	goToComponentParentPage(props.componentId);
 	await nextTick();
 
+	// TODO: refactor this
 	if (!ev.shiftKey && !ev.ctrlKey) {
 		return wfbm.setSelection(props.componentId, undefined, "tree");
 	}

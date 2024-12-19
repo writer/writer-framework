@@ -33,7 +33,7 @@
 				></WdsButton
 			>
 		</div>
-		<div v-if="ssbm.isSingleSelectionActive" class="titleBar">
+		<div v-if="ssbm.isSingleSelectionActive.value" class="titleBar">
 			<div>{{ componentDefinition.name }}</div>
 			<WdsButton
 				v-if="Boolean(rawMiniDocs)"

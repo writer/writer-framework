@@ -13,7 +13,7 @@
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
-							settingsOpen: ssbm.isSingleSelectionActive,
+							settingsOpen: ssbm.isSingleSelectionActive.value,
 						}"
 						@dragover="handleRendererDragover"
 						@dragstart="handleRendererDragStart"
@@ -25,7 +25,7 @@
 				</div>
 
 				<BuilderSettings
-					v-if="ssbm.isSingleSelectionActive"
+					v-if="ssbm.isSingleSelectionActive.value"
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>

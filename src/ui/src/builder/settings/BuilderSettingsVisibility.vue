@@ -1,5 +1,8 @@
 <template>
-	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsVisibility">
+	<div
+		v-if="ssbm.isSingleSelectionActive.value"
+		class="BuilderSettingsVisibility"
+	>
 		<BuilderSectionTitle icon="visibility" label="Visibility" />
 		<div class="main">
 			<WdsTabs v-model="tab" :tabs="tabs" />
