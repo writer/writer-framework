@@ -152,6 +152,14 @@ export function generateBuilderManager() {
 		return state.value.selection.some((s) => s.componentId === componentId);
 	};
 
+	const removeSelectedComponentId = (componentId: string) => {
+		const newSelection = state.value.selection.filter(
+			(c) => c.componentId === componentId,
+		);
+		if (newSelection.length === state.value.selection.length) return;
+		state.value.selection = newSelection;
+	};
+
 	/** @deprecated use `selectionStatus` instead */
 	const isSelectionActive = () => {
 		return state.value.selection.length > 0;
@@ -358,6 +366,7 @@ export function generateBuilderManager() {
 		firstSelectedId,
 		firstSelectedItem,
 		isSelectionActive,
+		removeSelectedComponentId,
 		setSelection,
 		appendSelection,
 		getSelection,
