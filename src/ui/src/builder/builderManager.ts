@@ -154,7 +154,7 @@ export function generateBuilderManager() {
 
 	const removeSelectedComponentId = (componentId: string) => {
 		const newSelection = state.value.selection.filter(
-			(c) => c.componentId === componentId,
+			(c) => c.componentId !== componentId,
 		);
 		if (newSelection.length === state.value.selection.length) return;
 		state.value.selection = newSelection;

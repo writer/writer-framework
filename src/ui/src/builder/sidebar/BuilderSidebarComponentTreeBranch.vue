@@ -149,11 +149,17 @@ const name = computed(() => {
 async function select(ev: MouseEvent | KeyboardEvent) {
 	goToComponentParentPage(props.componentId);
 	await nextTick();
-	if (ev.ctrlKey || ev.shiftKey) {
-		wfbm.appendSelection(props.componentId, undefined, "tree");
-	} else {
-		wfbm.setSelection(props.componentId, undefined, "tree");
+
+	if (!ev.shiftKey && !ev.ctrlKey) {
+		return wfbm.setSelection(props.componentId, undefined, "tree");
 	}
+
+	if (wfbm.isComponentIdSelected(props.componentId)) {
+		wfbm.removeSelectedComponentId(props.componentId);
+	} else {
+		wfbm.appendSelection(props.componentId, undefined, "tree");
+	}
+
 	expand();
 }
 
