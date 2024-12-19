@@ -182,8 +182,10 @@ const {
 	goToParent,
 } = useComponentActions(wf, ssbm);
 
-const selectedId = computed(() => ssbm.getSelection()?.componentId);
-const selectedInstancePath = computed(() => ssbm.getSelection()?.instancePath);
+const selectedId = ssbm.firstSelectedId;
+const selectedInstancePath = computed(
+	() => ssbm.firstSelectedItem.value?.instancePath,
+);
 
 const isAddModalOpen = ref(false);
 

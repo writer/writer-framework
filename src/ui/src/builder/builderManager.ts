@@ -1,4 +1,4 @@
-import { ref, Ref } from "vue";
+import { computed, ref, Ref, watch } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
@@ -61,13 +61,19 @@ type LogEntry = {
 
 type SelectionSource = "click" | "tree" | "log";
 
+export const enum SelectionStatus {
+	None = 0,
+	Single = 1,
+	Multiple = 2,
+}
+
 type State = {
 	mode: "ui" | "workflows" | "preview";
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
 		source: SelectionSource;
-	};
+	}[];
 	clipboard: {
 		operation: ClipboardOperation;
 		jsonSubtree: string;
@@ -82,7 +88,7 @@ type State = {
 export function generateBuilderManager() {
 	const initState: State = {
 		mode: "ui",
-		selection: null,
+		selection: [],
 		clipboard: null,
 		mutationTransactionsSnapshot: {
 			undo: null,
@@ -105,14 +111,27 @@ export function generateBuilderManager() {
 	};
 
 	const setSelection = (
-		componentId: Component["id"],
+		componentId: Component["id"] | null,
 		instancePath?: string,
 		source?: SelectionSource,
 	) => {
 		if (componentId === null) {
-			state.value.selection = null;
+			state.value.selection = [];
 			return;
 		}
+
+		if (state.value.selection.length !== 0) {
+			state.value.selection = [];
+		}
+
+		appendSelection(componentId, instancePath, source);
+	};
+
+	const appendSelection = (
+		componentId: Component["id"],
+		instancePath?: string,
+		source?: SelectionSource,
+	) => {
 		let resolvedInstancePath = instancePath;
 		if (typeof resolvedInstancePath == "undefined") {
 			const componentFirstElement: HTMLElement = document.querySelector(
@@ -122,24 +141,45 @@ export function generateBuilderManager() {
 				componentFirstElement?.dataset.writerInstancePath;
 		}
 
-		state.value.selection = {
+		state.value.selection.push({
 			componentId,
 			instancePath: resolvedInstancePath,
 			source,
-		};
+		});
 	};
 
-	const isSelectionActive = () => {
-		return state.value.selection !== null;
+	const isComponentIdSelected = (componentId: string) => {
+		return state.value.selection.some((s) => s.componentId === componentId);
 	};
+
+	/** @deprecated use `selectionStatus` instead */
+	const isSelectionActive = () => {
+		return state.value.selection.length > 0;
+	};
+
+	const selectionStatus = computed<SelectionStatus>(() => {
+		if (state.value.selection.length === 0) return SelectionStatus.None;
+		if (state.value.selection.length === 1) return SelectionStatus.Single;
+		return SelectionStatus.Multiple;
+	});
+	const isSingleSelectionActive = computed(
+		() => selectionStatus.value === SelectionStatus.Single,
+	);
 
 	const getSelection = () => {
 		return state.value.selection;
 	};
 
+	/** @deprecated use `firstSelectedId` instead */
 	const getSelectedId = () => {
-		return state.value.selection?.componentId;
+		return state.value.selection[0]?.componentId;
 	};
+
+	const firstSelectedItem = computed(() => state.value.selection[0]);
+
+	const firstSelectedId = computed(
+		() => state.value.selection[0]?.componentId,
+	);
 
 	const setClipboard = (clipboard: State["clipboard"]) => {
 		state.value.clipboard = clipboard;
@@ -312,8 +352,14 @@ export function generateBuilderManager() {
 		getMode,
 		openPanels: ref(new Set<"code" | "log">()),
 		isSettingsBarCollapsed: ref(false),
+		isComponentIdSelected,
+		selectionStatus,
+		isSingleSelectionActive,
+		firstSelectedId,
+		firstSelectedItem,
 		isSelectionActive,
 		setSelection,
+		appendSelection,
 		getSelection,
 		getSelectedId,
 		setClipboard,

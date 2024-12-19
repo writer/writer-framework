@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="ssbm.isSelectionActive()"
+		v-if="ssbm.isSingleSelectionActive.value"
 		class="BuilderSettings"
 		:class="{ collapsed, miniDocsActive }"
 	>
@@ -70,7 +70,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const miniDocsActive = ref(false);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 const collapsed = computed(() => ssbm.isSettingsBarCollapsed.value);
 
 function toggleSettings() {

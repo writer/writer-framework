@@ -71,7 +71,9 @@ import WdsButton from "@/wds/WdsButton.vue";
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
-const component = computed(() => wf.getComponentById(wfbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(wfbm.firstSelectedId.value),
+);
 
 const isWorkflow = computed(
 	() => component.value?.type === "workflows_workflow",

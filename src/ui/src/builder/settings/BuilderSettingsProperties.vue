@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="ssbm.isSelectionActive() && fields"
+		v-if="ssbm.isSingleSelectionActive && fields"
 		class="BuilderSettingsProperties"
 	>
 		<div
@@ -131,11 +131,11 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const selectedInstancePath = computed<InstancePath>(() =>
-	parseInstancePathString(ssbm.getSelection()?.instancePath),
+	parseInstancePathString(ssbm.firstSelectedItem?.value?.instancePath),
 );
 
 const selectedComponent = computed(() => {
-	return wf.getComponentById(ssbm.getSelectedId());
+	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
 const fields = computed(() => {
