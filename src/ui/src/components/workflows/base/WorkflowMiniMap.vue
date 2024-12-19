@@ -29,7 +29,7 @@
 			v-for="miniNode in miniNodes"
 			:key="miniNode.id"
 			class="node"
-			:class="{ selected: wfbm.getSelectedId() == miniNode.id }"
+			:class="{ selected: wfbm.firstSelectedId == miniNode.id }"
 			:style="{
 				top: `${miniNode.top * scale}px`,
 				left: `${miniNode.left * scale}px`,

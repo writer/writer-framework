@@ -13,7 +13,7 @@
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
-							settingsOpen: ssbm.isSelectionActive(),
+							settingsOpen: ssbm.isSingleSelectionActive.value,
 						}"
 						@dragover="handleRendererDragover"
 						@dragstart="handleRendererDragStart"
@@ -25,7 +25,7 @@
 				</div>
 
 				<BuilderSettings
-					v-if="ssbm.isSelectionActive()"
+					v-if="ssbm.isSingleSelectionActive.value"
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>
@@ -82,6 +82,7 @@ import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
+import { SelectionStatus } from "./builderManager";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -139,7 +140,7 @@ const {
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
-const selectedId = computed(() => ssbm.getSelection()?.componentId);
+const selectedId = computed(() => ssbm.firstSelectedId.value);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -162,9 +163,12 @@ function handleKeydown(ev: KeyboardEvent): void {
 		return;
 	}
 
-	if (!ssbm.isSelectionActive()) return;
+	if (!ssbm.isSingleSelectionActive.value || !ssbm.firstSelectedItem.value) {
+		return;
+	}
+
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
-		ssbm.getSelection();
+		ssbm.firstSelectedItem.value;
 
 	if (ev.key == "Delete") {
 		if (!isDeleteAllowed(selectedId)) return;
@@ -234,10 +238,27 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (!targetEl) return;
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
-	if (targetId !== ssbm.getSelectedId()) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		ssbm.setSelection(targetId, targetInstancePath, "click");
+
+	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
+
+	if (
+		isAlreadySelected &&
+		ssbm.selectionStatus.value !== SelectionStatus.Multiple
+	) {
+		return;
+	}
+
+	ev.preventDefault();
+	ev.stopPropagation();
+
+	if (!ev.shiftKey && !ev.ctrlKey) {
+		return ssbm.setSelection(targetId, targetInstancePath, "click");
+	}
+
+	if (ssbm.isComponentIdSelected(targetId)) {
+		ssbm.removeSelectedComponentId(targetId);
+	} else {
+		ssbm.appendSelection(targetId, targetInstancePath, "click");
 	}
 }
 

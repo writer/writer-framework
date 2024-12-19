@@ -1,5 +1,8 @@
 <template>
-	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
+	<div
+		v-if="ssbm.isSingleSelectionActive.value"
+		class="BuilderSettingsBinding"
+	>
 		<BuilderSectionTitle icon="link" label="Binding" />
 		<div class="main">
 			<WdsFieldWrapper label="State element" :hint="hint">
@@ -34,7 +37,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setBinding } = useComponentActions(wf, ssbm);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 </script>
 
 <style scoped>
