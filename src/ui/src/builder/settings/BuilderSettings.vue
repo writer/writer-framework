@@ -1,10 +1,13 @@
 <template>
 	<div
-		v-if="ssbm.isSingleSelectionActive.value"
+		v-if="ssbm.selectionStatus.value !== SelectionStatus.None"
 		class="BuilderSettings"
-		:class="{ collapsed, miniDocsActive }"
+		:class="{
+			'BuilderSettings--collapsed': collapsed,
+			'BuilderSettings--miniDocActive': miniDocsActive,
+		}"
 	>
-		<div class="collapser">
+		<div v-if="ssbm.isSingleSelectionActive.value" class="collapser">
 			<WdsButton
 				v-if="collapsed"
 				class="collapserButton"
@@ -30,7 +33,7 @@
 				></WdsButton
 			>
 		</div>
-		<div class="titleBar">
+		<div v-if="ssbm.isSingleSelectionActive" class="titleBar">
 			<div>{{ componentDefinition.name }}</div>
 			<WdsButton
 				v-if="Boolean(rawMiniDocs)"
@@ -43,6 +46,14 @@
 				@click="toggleMiniDocs"
 				><i class="material-symbols-outlined">info</i></WdsButton
 			>
+		</div>
+		<div
+			v-if="ssbm.selectionStatus.value === SelectionStatus.Multiple"
+			class="BuilderSettings__selectionCount"
+			data-writer-tooltip-placement="left"
+			:data-writer-tooltip="`${selectionCount} components selected`"
+		>
+			<p>{{ selectionCount }}</p>
 		</div>
 		<BuilderSettingsMiniDocs
 			v-if="miniDocsActive && rawMiniDocs && !collapsed"
@@ -65,6 +76,7 @@ import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
 import BuilderSettingsMiniDocs from "./BuilderSettingsMiniDocs.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import { SelectionStatus } from "../builderManager";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -73,7 +85,13 @@ const miniDocsActive = ref(false);
 const component = computed(() =>
 	wf.getComponentById(ssbm.firstSelectedId.value),
 );
-const collapsed = computed(() => ssbm.isSettingsBarCollapsed.value);
+
+const collapsed = computed(() => {
+	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) return true;
+	return ssbm.isSettingsBarCollapsed.value;
+});
+
+const selectionCount = computed(() => ssbm.getSelection().length);
 
 function toggleSettings() {
 	ssbm.isSettingsBarCollapsed.value = !ssbm.isSettingsBarCollapsed.value;
@@ -121,13 +139,24 @@ const toggleMiniDocs = () => {
 	top: v-bind("ssbm.getMode() == `workflows` ? `72px` : `20px`");
 }
 
-.BuilderSettings.collapsed {
+.BuilderSettings--collapsed {
 	margin-right: -357px;
 	max-height: 340px;
+	bottom: unset;
 }
 
-.BuilderSettings:not(.miniDocsActive) {
+.BuilderSettings:not(.BuilderSettings--miniDocActive) {
 	grid-template-rows: min-content 0 auto;
+}
+
+.BuilderSettings__selectionCount {
+	background-color: var(--wdsColorBlue3);
+	color: var(--wdsColorBlue5);
+	font-weight: 700;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .collapser {
@@ -192,7 +221,7 @@ const toggleMiniDocs = () => {
 	transition: 0.2s margin linear;
 }
 
-.BuilderSettings.collapsed .main {
+.BuilderSettings--collapsed .main {
 	overflow: hidden;
 	max-height: 400px;
 	margin-top: -400px;
