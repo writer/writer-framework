@@ -1,5 +1,5 @@
 <template>
-	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsHandlers">
+	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsHandlers">
 		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">bolt</i>
 			<h3>Events</h3>
@@ -120,7 +120,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const { setHandlerValue } = useComponentActions(wf, ssbm);
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 
 const options = computed<Option[]>(() => {
 	const userFunctionsOptions: Option[] = userFunctions.value

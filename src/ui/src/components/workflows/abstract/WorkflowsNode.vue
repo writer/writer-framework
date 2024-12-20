@@ -91,7 +91,7 @@ const def = computed(() => {
 });
 
 const isEngaged = computed(() => {
-	const isSelected = wfbm.getSelectedId() == componentId;
+	const isSelected = wfbm.isComponentIdSelected(componentId);
 	return isSelected;
 });
 

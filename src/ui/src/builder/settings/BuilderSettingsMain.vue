@@ -10,12 +10,7 @@
 
 		<div class="sections" :inert="isReadOnly">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
-			<template
-				v-if="
-					!componentDefinition.toolkit ||
-					componentDefinition.toolkit == 'core'
-				"
-			>
+			<template v-if="displaySettings">
 				<BuilderSettingsBinding
 					v-if="isBindable"
 				></BuilderSettingsBinding>
@@ -28,7 +23,9 @@
 		<div class="sections debug">
 			<div>
 				Component id:
-				<BuilderCopyText>{{ ssbm.getSelectedId() }}</BuilderCopyText>
+				<BuilderCopyText>{{
+					ssbm.firstSelectedId.value
+				}}</BuilderCopyText>
 			</div>
 		</div>
 	</div>
@@ -53,8 +50,19 @@ const BuilderSettingsHandlers = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 const isReadOnly = computed(() => component.value.isCodeManaged);
+
+const displaySettings = computed(() => {
+	if (!ssbm.isSingleSelectionActive.value) return false;
+
+	return (
+		!componentDefinition.value.toolkit ||
+		componentDefinition.value.toolkit == "core"
+	);
+});
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;

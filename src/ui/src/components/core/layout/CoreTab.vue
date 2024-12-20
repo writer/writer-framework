@@ -86,7 +86,7 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const { isComponentVisible } = useEvaluator(wf);
-const selectedId = computed(() => ssbm?.getSelectedId());
+const selectedId = computed(() => ssbm?.firstSelectedId.value);
 
 const getDirectChildInstanceNegativeIndex = () => {
 	for (let i = -2; i > -1 * instancePath.length; i--) {

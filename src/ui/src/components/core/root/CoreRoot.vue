@@ -136,7 +136,7 @@ function handleHashChange() {
 watch(displayedPageId, (newPageId) => {
 	const page = wf.getComponentById(newPageId);
 	const pageKey = page.content?.["key"];
-	if (ssbm && ssbm.getSelectedId() !== newPageId) {
+	if (ssbm && !ssbm.isComponentIdSelected(newPageId)) {
 		ssbm.setSelection(null);
 	}
 	nextTick().then(() => {
