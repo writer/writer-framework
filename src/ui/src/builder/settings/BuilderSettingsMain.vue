@@ -23,7 +23,9 @@
 		<div class="sections debug">
 			<div>
 				Component id:
-				<BuilderCopyText>{{ ssbm.firstSelectedId }}</BuilderCopyText>
+				<BuilderCopyText>{{
+					ssbm.firstSelectedId.value
+				}}</BuilderCopyText>
 			</div>
 		</div>
 	</div>

@@ -19,8 +19,8 @@
 					:is-selected="selectedArrow == arrowId"
 					:is-engaged="
 						selectedArrow == arrowId ||
-						wfbm.getSelectedId() == arrow.fromNodeId ||
-						wfbm.getSelectedId() == arrow.toNodeId
+						wfbm.isComponentIdSelected(arrow.fromNodeId) ||
+						wfbm.isComponentIdSelected(arrow.toNodeId)
 					"
 					@click="handleArrowClick($event, arrowId)"
 					@delete="handleArrowDeleteClick(arrow)"
