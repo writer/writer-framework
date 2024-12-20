@@ -51,5 +51,30 @@ describe(generateBuilderManager.name, () => {
 			expect(isComponentIdSelected("componentId")).toBeFalsy();
 			expect(selectionStatus.value).toBe(SelectionStatus.None);
 		});
+
+		it("should handle click events", () => {
+			const {
+				handleSelectionFromEvent,
+				isComponentIdSelected,
+				selectionStatus,
+			} = generateBuilderManager();
+
+			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "1");
+
+			expect(selectionStatus.value).toBe(SelectionStatus.Single);
+			expect(isComponentIdSelected("1")).toBeTruthy();
+
+			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "2");
+
+			expect(selectionStatus.value).toBe(SelectionStatus.Multiple);
+			expect(isComponentIdSelected("1")).toBeTruthy();
+			expect(isComponentIdSelected("2")).toBeTruthy();
+
+			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "2");
+
+			expect(selectionStatus.value).toBe(SelectionStatus.Single);
+			expect(isComponentIdSelected("1")).toBeTruthy();
+			expect(isComponentIdSelected("2")).toBeFalsy();
+		});
 	});
 });

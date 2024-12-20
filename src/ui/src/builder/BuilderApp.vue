@@ -251,15 +251,7 @@ function handleRendererClick(ev: PointerEvent): void {
 	ev.preventDefault();
 	ev.stopPropagation();
 
-	if (!ev.shiftKey && !ev.ctrlKey) {
-		return ssbm.setSelection(targetId, targetInstancePath, "click");
-	}
-
-	if (ssbm.isComponentIdSelected(targetId)) {
-		ssbm.removeSelectedComponentId(targetId);
-	} else {
-		ssbm.appendSelection(targetId, targetInstancePath, "click");
-	}
+	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {

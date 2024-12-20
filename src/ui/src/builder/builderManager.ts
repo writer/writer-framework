@@ -148,6 +148,23 @@ export function generateBuilderManager() {
 		});
 	};
 
+	const handleSelectionFromEvent = (
+		ev: MouseEvent | KeyboardEvent,
+		componentId: Component["id"],
+		instancePath?: string,
+		source?: SelectionSource,
+	) => {
+		if (!ev.shiftKey && !ev.ctrlKey) {
+			return setSelection(componentId, instancePath, source);
+		}
+
+		if (isComponentIdSelected(componentId)) {
+			removeSelectedComponentId(componentId);
+		} else {
+			appendSelection(componentId, instancePath, source);
+		}
+	};
+
 	const isComponentIdSelected = (componentId: string) => {
 		return state.value.selection.some((s) => s.componentId === componentId);
 	};
@@ -369,6 +386,7 @@ export function generateBuilderManager() {
 		removeSelectedComponentId,
 		setSelection,
 		appendSelection,
+		handleSelectionFromEvent,
 		getSelection,
 		getSelectedId,
 		setClipboard,
