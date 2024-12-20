@@ -19,8 +19,8 @@
 					:is-selected="selectedArrow == arrowId"
 					:is-engaged="
 						selectedArrow == arrowId ||
-						wfbm.isComponentIdSelected(arrow.fromNodeId) ||
-						wfbm.isComponentIdSelected(arrow.toNodeId)
+						wfbm.getSelectedId() == arrow.fromNodeId ||
+						wfbm.getSelectedId() == arrow.toNodeId
 					"
 					@click="handleArrowClick($event, arrowId)"
 					@delete="handleArrowDeleteClick(arrow)"
@@ -137,6 +137,7 @@ import {
 	onMounted,
 	onUnmounted,
 	ref,
+	shallowRef,
 } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
@@ -170,7 +171,6 @@ const {
 	createAndInsertComponent,
 	addOut,
 	removeOut,
-	changeCoordinates,
 	changeCoordinatesMultiple,
 } = useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
@@ -484,12 +484,8 @@ function clearActiveOperations() {
 }
 
 function saveNodeMove() {
-	const { nodeId } = activeNodeMove.value;
-	const tempXY = temporaryNodeCoordinates.value?.[nodeId];
-	if (!tempXY) return;
-	const { x, y } = tempXY;
-	changeCoordinates(nodeId, x, y);
-	temporaryNodeCoordinates.value[nodeId] = null;
+	changeCoordinatesMultiple(temporaryNodeCoordinates.value);
+	temporaryNodeCoordinates.value = {};
 }
 
 function moveNode(ev: MouseEvent) {
@@ -500,9 +496,30 @@ function moveNode(ev: MouseEvent) {
 	const newX = Math.floor(x - offset.x);
 	const newY = Math.floor(y - offset.y);
 
-	temporaryNodeCoordinates.value[nodeId] = {
-		x: newX,
-		y: newY,
+	const component = wf.getComponentById(nodeId);
+
+	const translationX = newX - component.x;
+	const translationY = newY - component.y;
+
+	// apply the same vector to other selected components
+	const otherSelectedComponents = wfbm
+		.getSelection()
+		.map((c) => wf.getComponentById(c.componentId))
+		.filter(
+			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
+		)
+		.reduce<Record<string, { x: number; y: number }>>((acc, component) => {
+			acc[component.id] = {
+				x: component.x + translationX,
+				y: component.y + translationY,
+			};
+			return acc;
+		}, {});
+
+	temporaryNodeCoordinates.value = {
+		...temporaryNodeCoordinates.value,
+		...otherSelectedComponents,
+		[nodeId]: { x: newX, y: newY },
 	};
 }
 

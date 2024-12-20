@@ -806,7 +806,11 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 
 		const transactionId = `change-${componentId}-coordinates`;
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
+		ssbm.openMutationTransaction(
+			transactionId,
+			"Change coordinates",
+			false,
+		);
 		ssbm.registerPreMutation(component);
 
 		component.x = Math.floor(x);
@@ -821,14 +825,18 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	 * Change the coordinates of multiple components.
 	 */
 	function changeCoordinatesMultiple(
-		coordinates: Record<Component["id"], {x: number, y: number}>
+		coordinates: Record<Component["id"], { x: number; y: number }>,
 	) {
 		const transactionId = "change-multiple-coordinates";
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
+		ssbm.openMutationTransaction(
+			transactionId,
+			"Change coordinates",
+			false,
+		);
 
-		const entries = Object.entries(coordinates); 
+		const entries = Object.entries(coordinates);
 		if (entries.length == 0) return;
-		entries.forEach(([componentId, {x, y}]) => {
+		entries.forEach(([componentId, { x, y }]) => {
 			const component = wf.getComponentById(componentId);
 			if (!component) return;
 			ssbm.registerPreMutation(component);

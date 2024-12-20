@@ -1,4 +1,4 @@
-import { computed, ref, Ref, watch } from "vue";
+import { computed, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
