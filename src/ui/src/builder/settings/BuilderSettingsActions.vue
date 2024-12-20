@@ -121,6 +121,7 @@
 			class="actionButton"
 			variant="neutral"
 			size="small"
+			data-automation-action="clear-selection"
 			data-writer-tooltip="Clear selection"
 			data-writer-tooltip-placement="left"
 			@click="ssbm.setSelection(null)"
