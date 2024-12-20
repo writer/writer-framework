@@ -151,12 +151,12 @@ const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
-const renderOffset = ref({ x: 0, y: 0 });
+const renderOffset = shallowRef({ x: 0, y: 0 });
 const isRunning = ref(false);
 const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
-const temporaryNodeCoordinates = ref<
+const temporaryNodeCoordinates = shallowRef<
 	Record<Component["id"], { x: number; y: number }>
 >({});
 
