@@ -59,18 +59,30 @@ describe(generateBuilderManager.name, () => {
 				selectionStatus,
 			} = generateBuilderManager();
 
-			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "1");
+			handleSelectionFromEvent(
+				{ ctrlKey: true } as KeyboardEvent,
+				"1",
+				"path",
+			);
 
 			expect(selectionStatus.value).toBe(SelectionStatus.Single);
 			expect(isComponentIdSelected("1")).toBeTruthy();
 
-			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "2");
+			handleSelectionFromEvent(
+				{ ctrlKey: true } as KeyboardEvent,
+				"2",
+				"path",
+			);
 
 			expect(selectionStatus.value).toBe(SelectionStatus.Multiple);
 			expect(isComponentIdSelected("1")).toBeTruthy();
 			expect(isComponentIdSelected("2")).toBeTruthy();
 
-			handleSelectionFromEvent({ ctrlKey: true } as KeyboardEvent, "2");
+			handleSelectionFromEvent(
+				{ ctrlKey: true } as KeyboardEvent,
+				"2",
+				"path",
+			);
 
 			expect(selectionStatus.value).toBe(SelectionStatus.Single);
 			expect(isComponentIdSelected("1")).toBeTruthy();
