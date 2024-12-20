@@ -502,8 +502,7 @@ function moveNode(ev: MouseEvent) {
 	const translationY = newY - component.y;
 
 	// apply the same vector to other selected components
-	const otherSelectedComponents = wfbm
-		.getSelection()
+	const otherSelectedComponents = wfbm.selection.value
 		.map((c) => wf.getComponentById(c.componentId))
 		.filter(
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,

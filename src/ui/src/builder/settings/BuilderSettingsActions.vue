@@ -199,9 +199,7 @@ const {
 
 function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;
-
-	// TODO: do one transaction
-	const componentIds = ssbm.getSelection().map((c) => c.componentId);
+	const componentIds = ssbm.selection.value.map((c) => c.componentId);
 	if (componentIds.length === 0) return;
 	removeComponentsSubtree(...componentIds);
 }

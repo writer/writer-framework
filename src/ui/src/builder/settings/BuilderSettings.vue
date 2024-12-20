@@ -91,7 +91,7 @@ const collapsed = computed(() => {
 	return ssbm.isSettingsBarCollapsed.value;
 });
 
-const selectionCount = computed(() => ssbm.getSelection().length);
+const selectionCount = computed(() => ssbm.selection.value.length);
 
 function toggleSettings() {
 	ssbm.isSettingsBarCollapsed.value = !ssbm.isSettingsBarCollapsed.value;

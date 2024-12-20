@@ -177,11 +177,6 @@ export function generateBuilderManager() {
 		state.value.selection = newSelection;
 	};
 
-	/** @deprecated use `selectionStatus` instead */
-	const isSelectionActive = () => {
-		return state.value.selection.length > 0;
-	};
-
 	const selectionStatus = computed<SelectionStatus>(() => {
 		if (state.value.selection.length === 0) return SelectionStatus.None;
 		if (state.value.selection.length === 1) return SelectionStatus.Single;
@@ -190,15 +185,6 @@ export function generateBuilderManager() {
 	const isSingleSelectionActive = computed(
 		() => selectionStatus.value === SelectionStatus.Single,
 	);
-
-	const getSelection = () => {
-		return state.value.selection;
-	};
-
-	/** @deprecated use `firstSelectedId` instead */
-	const getSelectedId = () => {
-		return state.value.selection[0]?.componentId;
-	};
 
 	const firstSelectedItem = computed(() => state.value.selection[0]);
 
@@ -382,13 +368,11 @@ export function generateBuilderManager() {
 		isSingleSelectionActive,
 		firstSelectedId,
 		firstSelectedItem,
-		isSelectionActive,
 		removeSelectedComponentId,
 		setSelection,
 		appendSelection,
 		handleSelectionFromEvent,
-		getSelection,
-		getSelectedId,
+		selection: computed(() => state.value.selection),
 		setClipboard,
 		getClipboard,
 		openMutationTransaction,
