@@ -12,7 +12,7 @@ Framework Builder has two modes:
 
 ![Framework Builder in UI mode](/framework/images/builder-basics.ui-mode.png)
 
-2. **Preview mode:** This mode lets you preview the application, experiencing it as your end users would. The tool overlay is hidden, but you can still edit the app’s code and view its log in this mode.
+2. **Preview mode:** This mode lets you preview the application, experiencing it almost as your end users would. The tool overlay is hidden, but you can still edit the app’s code and view its log in this mode.
 
 ![Framework Builder in Preview mode](/framework/images/builder-basics.preview-mode.png)
 
@@ -21,13 +21,13 @@ You can switch between UI mode and Preview mode by using the **UI**/**Preview** 
 ![Framework Builder’s UI/Preview selector](/framework/images/builder-basics.ui-preview-selector.png)
 
 
-## Building your application in UI mode
+## Building your app in UI mode
 
 ### The different areas of UI mode
 
 In UI mode, Framework Builder’s page is divided into these areas:
 
-![Framework Builder in UI mode](/framework/images/builder-basics.ui-mode-with-labels.png)
+![Framework Builder in UI mode, with indivdual areas labeled](/framework/images/builder-basics.ui-mode-with-labels.png)
 
 1. **Canvas:** This is where you lay out components to build your app’s user interface. It displays the UI as your users will see it.
 2. **Core toolkit:** A “palette” of UI components that can be added to your app’s user interface. To add a component to your app’s UI, drag it onto the Canvas or into the Component tree.
@@ -36,135 +36,29 @@ In UI mode, Framework Builder’s page is divided into these areas:
 5. **Top bar:** Contains the “high level” editing controls: switching between UI and Preview mode, undoing and redoing the most recent change to the UI, and viewing the application’s state.
 6. **Bottom bar:** Contains the “low level” editing controls, which toggle the Code and Log panels.
 
-### Building the UI with components
+### Defining your app’s user interface
 
-You add new components to your app by dragging UI components from the Core toolkit and dropping them either onto the Canvas or into the Component tree (remember, the Canvas and Component tree provide two different ways to look at your app’s user interface).
+Framework Builder provides a selection of over 50 UI components that you can use to build your app’s user interface:
 
-![](/framework/images/builder-basics.drag-drop-components.png)
+![Visual catalog of all the components in the Core toolkit](/framework/images/builder-basics.components.png)
 
-![](/framework/images/builder-basics.component-search.png)
+You define your app’s user interface by dragging components from the Core toolkit and dropping them either onto the Canvas or into the Component tree (remember, the Canvas and Component tree provide different ways to look at your app’s user interface). If you simply drag and drop a UI component onto an empty spot on the Canvas, it will be placed at the “end,” below all other UI components in the user interface. To place a UI component at a specific location, drag them over the desired location or parent component until you see the insertion lines.
 
-![](/framework/images/builder-basics.tree-search.png)
+![Framework Builder with diagram showing how to drag and drop components from Core toolkit](/framework/images/builder-basics.drag-drop-components.png)
 
-Some UI components, such as Section, can act as “parents,” which are UI components that can contain other UI components. Others, such as Text, cannot. Additionally, certain components have placement restrictions — for instance, a Column must be added to a Column Container, and a Sidebar can only be added to a Page. 
+It can sometimes be difficult to find the component you’re looking for, so the Core toolkit has a search field. You can use it to find the narrow down the list of components or find a specific one.
 
-If you simply drag and drop a UI component onto an empty spot on the Canvas, it will be placed at the “end,” below all other UI components in the user interface. To place a UI component at a specific location, drag them over the desired location or parent component until you see the insertion lines. 
+![Close-up of Core toolkit with instructions for using its Search text field](/framework/images/builder-basics.component-search.png)
+
+Some UI components, such as Section, can act as “parents,” which are UI components that can contain other UI components. Others, such as Text, cannot. Additionally, certain components have placement restrictions — for instance, a Column must be added to a Column Container, and a Sidebar can only be added to a Page.
+
+![Framework builder, showing parent-child relationship between a Section and the Text Input and Button components it contains](/framework/images/builder-basics.parent-components.png)
+
+The Component tree provides a hierarchical view of your app’s user interface. It shows the top-down layout of UI components in your app, as well as the parent-child relationships between components, making it easier to understand your app’s structure and ensure that components are correctly nested.
 
 You will find the Component tree useful when trying to reorganize the order of components in the UI, especially those located inside a parent UI component. For more flexibility and finer control, you can use the Component tree as a source or a destination for your drag and drop actions.
 
-
-### Code
-
-![Framework Builder - Mode: Code](/framework/images/builder-basics.code.png)
-
-This mode displays the **code editor** and the **application log**, while still allowing you to access the _Component Tree_ and _Settings_.
-
-<AccordionGroup>
-  <Accordion title="Code editor">
-    <Tip>
-      Code changes are automatically detected. The application will reload whenever a change to a `.py` file inside the app folder is detected. This feature only works in Framework Builder i.e. `edit` mode, not when running the app in `run` mode.
-    </Tip>
-    The built-in code editor for `main.py`, the entry point of your application. This editor is provided for convenience and is ideal for quick edits — but you don't need to rely on it. If you need a more powerful editor or if your codebase is distributed across several files, use a local editor.
-  </Accordion>
-  <Accordion title="Application log">
-    Exceptions raised by your application are shown here, as log entries. Standard output from your application is also captured and displayed as log entries.
-  </Accordion>
-</AccordionGroup>
-
-
-### Preview
-
-![Framework Builder - Mode: Preview](/framework/images/builder-basics.preview.png)
-
-The _Preview_ mode shows the application exactly like the user will see it. It allocates the whole width of the viewport to the app.
-
-## Adding and moving components
-
-
-## Selecting a component
-Select a component by clicking on it. If you click on a component that's already selected, the click will be treated as an interaction with the app. Two things will happen when a component is selected:
-
-<Steps>
-  <Step title="Open component settings">
-    The _Component Settings_ panel will open on the right. Depending on available screen real estate, the panel may open on top of the app or next to it.
-  </Step>
-  <Step title="Access component shortcuts">
-    A set of component-specific actions, _Component Shortcuts_, will be displayed on top of the component.
-  </Step>
-</Steps>
-
-## Component settings
-
-Settings are divided into the following sections. Changes to settings can be undone and redone using the buttons on the top bar.
-
-![Framework Builder - Component settings](/framework/images/builder-basics.component-settings.png)
-
-<AccordionGroup>
-  <Accordion title="Properties">
-    Divided into _General_ and _Style_ categories. Values can include:
-    1. Literals, e.g. `monkey`
-    2. References to application state using the template syntax `@{}`, e.g. `@{my_favourite_animal}`.
-    3. A combination of both, e.g. `My favourite animal is @{my_favourite_animal}`.
-    4. Nested states can be accessed with `.` (dot), e.g. `@{building.height}`.
-    5. Nested elements can be dynamically accessed with `[]`, e.g. `@{building[dynamic_prop]}` will be equivalent to `@{building.height}` when `dynamic_prop` equals `height`.
-    Properties are of different types, such as _Text_, _Color_ and _Number_. All property values are stored as text values, then casted when being evaluated.
-  </Accordion>
-  <Accordion title="Binding">
-    ![Framework Builder - Binding](/framework/images/builder-basics.binding.png)
-    Input components can be bound, in a two-way fashion, to a state element.
-    For example, a _Slider Input_ component can be bound to `my_var`. If the value of the slider changes, so does the value of `my_var`. Similarly, if the value of `my_var` changes, the slider is moved automatically to reflect the change.
-    To bind an input component, specify the state element. For example, `my_var` or `building.height`. Note that this field should not contain the template syntax, e.g. `my_var` and not `@{my_var}`.
-  </Accordion>
-  <Accordion title="Events">
-    The events generated by this component, with the option of setting event handlers for those. Event handlers are explained in more detail in a separate section of this guide.
-  </Accordion>
-  <Accordion title="Visibility">
-    Whether the component should be displayed. There are three visibility options:
-    1. Yes. The component is displayed.
-    2. No. The component isn't displayed. Note that hidden components are still part of the HTML code but aren't shown.
-    3. Custom. Whether the component is displayed or not depends on the value of a state or context element. For example, if set to `my_var`, visibility will depend on the value of the `my_var` state element. Note that this field, similarly to Binding, should only contain the state element, e.g. `my_var` and not `@{my_var}`.
-  </Accordion>
-</AccordionGroup>
-
-Changes to the user interface are automatically saved into `.wf/` folders.
-
-## Component shortcuts
-
-Perform a variety of operations on existing components. Options will be grayed out when they're not applicable to the relevant component. Most shortcuts can be triggered using the keyboard; hover on them to show the appropriate combination.
-
-![Framework Builder - Component shortcuts](/framework/images/builder-basics.component-shortcuts.png)
-
-<AccordionGroup>
-  <Accordion title="Add">
-    Adds a child of a specified type to this component.
-  </Accordion>
-  <Accordion title="Move Up">
-    Decrements the position index of the component, used to sort children within the parent container.
-  </Accordion>
-  <Accordion title="Move Down">
-    Increments the position index of the component.
-  </Accordion>
-  <Accordion title="Cut">
-    Cuts the component and places it into Builder’s internal clipboard.
-  </Accordion>
-  <Accordion title="Copy">
-    Copies the component and places it into the internal clipboard.
-  </Accordion>
-  <Accordion title="Paste">
-    Pastes the content of the internal clipboard using the selected component as a parent.
-  </Accordion>
-  <Accordion title="Go to Parent">
-    Selects the parent of the selected component.
-  </Accordion>
-  <Accordion title="Delete">
-    Deletes this component.
-  </Accordion>
-</AccordionGroup>
-
-
-Just like with changes to settings, these operations can be undone and redone.
-
-## Discovering components
+### Discovering components
 
 The Builder is designed to allow easy discoverability of components. Rather than scouring specifications every time you need to use a component, you can rely on the visual editor to guide you.
 
@@ -172,3 +66,114 @@ The Builder is designed to allow easy discoverability of components. Rather than
 2. **Available properties and events:** Looking at _Settings_ will allow you to see which of its properties are configurable.
 3. **Built-in docs:** Components have short docs built into them. You can expand it by clicking the help icon in Settings.
 4. **Event handler stub code:** Different events need to be handled differently. The built-in stub handlers, which can be found next to each event, can help you get started when writing event handlers.
+
+### Selecting and editing components
+
+To move or edit a component in your UI, you need to select it first. You can do this by clicking on the component either in the Canvas or in the Component tree. The selected component will be highlighted in both the Canvas and Component tree.
+
+![Framework Builder, with instructions to select a component by clicking on it either on the Canvas or in the Component tree](/framework/images/builder-basics.select-components.png)
+
+Selecting a UI component will allow you to view and edit its settings in the Component settings panel on the right side of the page.
+
+![Framework Builder, with Component settings panel on display, and instructions to hide the panel](/framework/images/builder-basics.component-settings.png)
+
+To hide the Component settings panel to get a better view of the Canvas, click on **»** in the button bar. To show the panel, click on **⚙** in the button bar.
+
+![Framework Builder, with Component settings panel hidden, and instructions to show the panel](/framework/images/builder-basics.component-settings-show.png)
+
+The settings in the Component settings panel are divided into the following sections:
+
+<AccordionGroup>
+  <Accordion title="Basic settings">
+    ![Component settings panel, with basic settings highlighted](/framework/images/builder-basics.basic-settings.png)
+
+    These settings are divided into two categores:
+    
+    1. **General**, which specifies the component’s content
+    2. **Style**, which defines the component’s appearance.
+    
+    Values for these settings can include:
+    1. Literals, e.g. `monkey`
+    2. References to application state using the template syntax `@{}`, e.g. `@{my_favourite_animal}`.
+    3. A combination of both, e.g. `My favourite animal is @{my_favourite_animal}`.
+    4. Nested states can be accessed with `.` (dot), e.g. `@{building.height}`.
+    5. Nested elements can be dynamically accessed with `[]`, e.g. `@{building[dynamic_prop]}` will be equivalent to `@{building.height}` when `dynamic_prop` equals `height`.
+    
+    The values for these settings can be of different types, such as _Text_, _Color_ and _Number_. The values are stored as text and are cast to the correct type when evaluated.
+  </Accordion>
+  <Accordion title="Binding">
+    ![Component settings panel, with Binding settings highlighted](/framework/images/builder-basics.binding.png)
+    
+    Only input components have a **Binding** section, whose settings are used to bind the component to a variable in the application’s state. The binding is two-way; if the user changes the component’s value, the state variable will change to match, and any change the code makes to the bound state variable will also change the component’s value.
+    
+    For example, a _Slider Input_ component can be bound to a state variable `my_var`. If the value of the slider changes, so does the value of `my_var`. Similarly, if the value of `my_var` changes, the slider is moved automatically to reflect the change.
+
+    To bind an input component, specify the state element. For example, `my_var` or `building.height`. Note that this field should not contain the template syntax, e.g. `my_var` and not `@{my_var}`.
+  </Accordion>
+  <Accordion title="Events">
+    ![Component settings panel, with Events settings highlighted](/framework/images/builder-basics.events.png)
+
+    The **Events** section lists all the events generated by the selected component, with the option of setting event handlers for them. For example, one of the events that the Text Input component generates is the `wf-change` event, which occurs whenever the user changes the contents of the component. 
+    
+    For more about event handlers, consult the [_Event handlers_](/framework/event-handlers) section of the Framework documentation.
+  </Accordion>
+  <Accordion title="Visibility">
+    ![Component settings panel, with Visibility settings highlighted](/framework/images/builder-basics.visibility.png)
+
+    The **Visibility** settings control Whether the component should be displayed. There are three visibility options:
+
+    1. **Yes**: The component is displayed.
+    2. **No**: The component is _not_ displayed. Note that hidden components are still part of the HTML code but aren't shown.
+    3. **Custom**: The component’s visibility depends on the value of a given state or context element. For example, if set to `my_var`, visibility will depend on the value of the `my_var` state element. Note that this field, similarly to Binding, should only contain the state element, e.g. `my_var` and not `@{my_var}`.
+  </Accordion>
+</AccordionGroup>
+
+### Component shortcuts
+
+The Component shortcuts bar contains a set of options to perform various operations that are often performed on components. 
+
+![Component settings panel, with Component shortcuts bar highlighted](/framework/images/builder-basics.component-shortcuts.png)
+
+Options will be grayed out when they're not applicable to the relevant component. Most shortcuts can also be activated using the keyboard; hover the cursor over a shortcut to see its keyboard shortcut.
+
+The shortcuts are:
+
+![The Component shortcuts bar, with labels](/framework/images/builder-basics.component-shortcuts-guide.png)
+
+- **Add**: Adds a child of a specified type to the selected component.
+- **Move up**: Decrements the position index of the selected component, used to sort children within the parent container.
+- **Move down**: Increments the position index of the selected component.
+- **Cut**: Cuts the selected component and places it in the clipboard.
+- **Copy**: Copies the selected component to the clipboard.
+- **Paste**: Pastes the content of the internal clipboard using the selected component as a parent.
+- **Go to parent**: Selects the parent of the selected component.
+- **Delete**: Deletes the selected component.
+
+### The Code editor and the Log
+
+Framework Builder provides a built-in Code editor for the `main.py` file, which defines the behavior of the app. You can toggle the Code panel by clicking the **Code** control near the lower left corner of the page:
+
+![Framework Builder, with the Code editor displayed](/framework/images/builder-basics.code.png)
+
+Any changes made to the code do not take effect until you click the **Save and run** button, located at the upper right corner of the code editor.
+
+The log is a useful debugging tool that displays any messages sent to standard output via the `print()` function, as well as any error messages. You can toggle the Log panel by clicking the **Log** control near the lower right corner of the page:
+
+![Framework Builder, with the Log editor displayed](/framework/images/builder-basics.log.png)
+
+Note that both the Code editor and Log panes can be displayed at the same time:
+
+![Framework Builder, with the Code editor and Log displayed at the same time](/framework/images/builder-basics.code-and-log.png)
+
+
+## Testing your app in Preview mode
+
+In Preview mode, the overlays that let you build the user interface — the Core toolkit, Component tree, and Component settings — are invisible and unavailable. You see the app _almost_ as your users would see it; the Top bar and Bottom bar, which your users would not see, are still available to you in Preview mode.
+
+![Framework Builder in preview mode](/framework/images/builder-basics.preview.png)
+
+You can still use the Code editor and Log in Preview mode:
+
+![Framework Builder in preview mod, with the Code editor and Log displayed at the same time](/framework/images/builder-basics.preview-code-and-log.png)
+
+
