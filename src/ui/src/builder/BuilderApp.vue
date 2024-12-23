@@ -264,6 +264,12 @@ const handleRendererDragStart = (ev: DragEvent) => {
 	const componentId = targetEl.dataset.writerId;
 	const { type } = wf.getComponentById(componentId);
 
+	// we don't support yet dragginfg multiple components in UI. If drag is starting with multiple selections, we select only one component
+	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) {
+		ssbm.setSelection(componentId, undefined, "click");
+		ssbm.isSettingsBarCollapsed.value = true;
+	}
+
 	ev.dataTransfer.setData(
 		`application/json;writer=${type},${componentId}`,
 		"{}",
