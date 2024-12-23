@@ -401,7 +401,7 @@ function scrollToBottom() {
 }
 
 const encodeFile = async (file: File) => {
-	var reader = new FileReader();
+	const reader = new FileReader();
 	reader.readAsDataURL(file);
 
 	return new Promise((resolve, reject) => {

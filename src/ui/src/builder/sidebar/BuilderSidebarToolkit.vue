@@ -23,19 +23,10 @@
 					@dragend="handleDragEnd($event)"
 					@dragstart="handleDragStart($event, tool.type)"
 				>
-					<img
+					<SharedImgWithFallback
 						:alt="`(Icon for ${tool.name})`"
-						:src="`./../../../../components/${tool.type}.svg`"
 						draggable="false"
-						@error="
-							!isImageFallback[tool.type]
-								? handleImageError(
-										$event,
-										tool.type,
-										tool.category,
-									)
-								: undefined
-						"
+						:urls="getToolIcons(tool)"
 					/>
 					<div class="name">{{ tool.name }}</div>
 				</div>
@@ -54,12 +45,13 @@ import {
 import injectionKeys from "@/injectionKeys";
 import { useDragDropComponent } from "../useDragDropComponent";
 import { Component } from "@/writerTypes";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
-const isImageFallback = ref<Record<Component["type"], boolean>>({});
 
 const displayedCategories = [
 	"Layout",
@@ -114,16 +106,6 @@ function getRelevantToolsInCategory(categoryId: string) {
 	return queryApplied;
 }
 
-function handleImageError(
-	ev: Event,
-	type: Component["type"],
-	categoryId: string,
-) {
-	isImageFallback.value[type] = true; // Prevent calling more than once
-	const imageEl = ev.target as HTMLImageElement;
-	imageEl.src = `./../../../../components/category_${categoryId}.svg`;
-}
-
 function handleDragStart(ev: DragEvent, type: Component["type"]) {
 	wfbm.setSelection(null);
 	ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
@@ -131,6 +113,13 @@ function handleDragStart(ev: DragEvent, type: Component["type"]) {
 
 function handleDragEnd(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
+}
+
+function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
+	return [
+		`/components/${tool.type}.svg`,
+		`/components/category_${tool.category}.svg`,
+	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 
 watch(activeToolkit, () => {
