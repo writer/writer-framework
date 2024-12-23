@@ -154,7 +154,7 @@ export function generateBuilderManager() {
 		instancePath?: string,
 		source?: SelectionSource,
 	) => {
-		if (!ev.shiftKey && !ev.ctrlKey) {
+		if (!ev.shiftKey && !ev.ctrlKey && !ev.metaKey) {
 			return setSelection(componentId, instancePath, source);
 		}
 

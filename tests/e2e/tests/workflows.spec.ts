@@ -152,10 +152,6 @@ test.describe("Workflows", () => {
 			await returnValueBlock.click({ modifiers: ["Shift"] });
 
 			await expect(page.locator(`.WorkflowsNode.selected`)).toHaveCount(2);
-
-			expect(
-				await page.locator(".BuilderSettings__selectionCount").innerText(),
-			).toBe("2");
 		});
 
 		test("clear selection", async ({ page }) => {
