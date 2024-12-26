@@ -4,10 +4,11 @@
 		class="CoreProgressBar"
 		:class="{ 'CoreProgressBar--clickable': isClickable }"
 		role="progressbar"
-		:aria-valuetext="progressionText"
+		:aria-valuetext="progression === undefined ? null : progressionText"
 		:aria-valuemin="min"
 		:aria-valuemax="max"
-		:aria-valuenow="value"
+		:aria-valuenow="progression === undefined ? null : value"
+		:aria-busy="progression < 1 || progression === undefined"
 		:tabindex="isClickable ? '0' : null"
 		@keydown.enter="handleClick"
 		@click="handleClick"
@@ -25,6 +26,10 @@
 		<div class="CoreProgressBar__bar">
 			<div
 				class="CoreProgressBar__bar__value"
+				:class="{
+					'CoreProgressBar__bar__value--indeterminate':
+						progression === undefined,
+				}"
 				:style="progressValueStyle"
 			></div>
 		</div>
@@ -64,7 +69,6 @@ const definition: WriterComponentDefinition = {
 		value: {
 			name: "Value",
 			type: FieldType.Number,
-			default: "0.25",
 		},
 		min: {
 			name: "Minimum value",
@@ -120,14 +124,20 @@ const min = computed(() => Number(fields.min.value));
 const max = computed(() => Number(fields.max.value));
 const displayPercentage = useFieldValueAsYesNo(fields, "displayPercentage");
 
-const progression = computed(
-	() => (value.value - min.value) / (max.value - min.value),
-);
+const progression = computed<number | undefined>(() => {
+	if (value.value === undefined || Number.isNaN(value.value)) {
+		return undefined;
+	}
+	return (value.value - min.value) / (max.value - min.value);
+});
 
 const progressionText = usePercentageFormatter(progression);
 
 const progressValueStyle = computed<CSSProperties>(() => ({
-	width: `${progression.value * 100}%`,
+	width:
+		progression.value === undefined
+			? undefined
+			: `${progression.value * 100}%`,
 }));
 
 const isClickable = computed(() => {
@@ -184,5 +194,26 @@ function handleClick(ev: MouseEvent | KeyboardEvent) {
 }
 .CoreProgressBar__title__progress {
 	text-align: right;
+}
+
+.CoreProgressBar__bar__value--indeterminate {
+	position: absolute;
+	animation: indeterminateAnimation 2s ease-in-out infinite;
+	width: 25%;
+}
+
+@keyframes indeterminateAnimation {
+	0% {
+		left: -25%;
+		right: 100%;
+	}
+	60% {
+		left: 100%;
+		right: -25%;
+	}
+	100% {
+		left: 100%;
+		right: -25%;
+	}
 }
 </style>
