@@ -25,7 +25,11 @@
 			<i v-if="!hideIcons" class="material-symbols-outlined">{{
 				getOptionIcon(option)
 			}}</i>
-			<div class="WdsDropdownMenu__item__label">
+			<div
+				class="WdsDropdownMenu__item__label"
+				:data-writer-tooltip="option.label"
+				data-writer-tooltip-strategy="overflow"
+			>
 				{{ option.label }}
 			</div>
 			<i

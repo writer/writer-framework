@@ -43,7 +43,8 @@ async function setUpAndShowTooltip() {
 	const gapPx = trackedElement.dataset.writerTooltipGap
 		? parseInt(trackedElement.dataset.writerTooltipGap)
 		: DEFAULT_GAP_PX;
-	isActive.value = true;
+	isActive.value = canBeActive(trackedElement);
+	if (!isActive.value) return;
 	await nextTick();
 	const { x, y, width, height } = trackedElement.getBoundingClientRect();
 	const { width: tooltipWidth, height: tooltipHeight } =
@@ -67,6 +68,12 @@ async function setUpAndShowTooltip() {
 			position.value.left = x + width / 2 - tooltipWidth / 2;
 			break;
 	}
+}
+
+function canBeActive(el: HTMLElement) {
+	const strategy = el.getAttribute("data-writer-tooltip-strategy");
+	if (strategy === "overflow") return el.scrollWidth > el.clientWidth;
+	return true;
 }
 
 function handleMouseover(ev: MouseEvent) {
@@ -98,6 +105,7 @@ async function confirmTooltip(el: HTMLElement) {
 		attributeFilter: [
 			"data-writer-tooltip",
 			"data-writer-tooltip-placement",
+			"data-writer-tooltip-strategy",
 		],
 	});
 	setUpAndShowTooltip();
