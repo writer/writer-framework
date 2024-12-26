@@ -8,7 +8,7 @@ Sessions are designed for advanced use cases, being most relevant when Framework
 
 You can access the session's unique id, HTTP headers and cookies from event handlers via the `session` argument —similarly to how `state` and `payload` are accessed. The data made available here is captured in the HTTP request that initialised the session.
 
-The `session` argument will contain a dictionary with the following keys: `id`, `cookies` and `headers`. Values for the last two are themselves dictionaries.
+The `session` argument will contain a dictionary with the following keys: `id`, `cookies`, `headers` and `local_storage`. Values for the last three are themselves dictionaries.
 
 ```py
 # The following will output a dictionary
