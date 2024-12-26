@@ -2,7 +2,12 @@
 import { PropType, VNode, computed, h, inject, provide, ref, watch } from "vue";
 import { getTemplate } from "@/core/templateMap";
 import injectionKeys from "@/injectionKeys";
-import { Component, InstancePath, InstancePathItem } from "@/writerTypes";
+import {
+	Component,
+	FieldCategory,
+	InstancePath,
+	InstancePathItem,
+} from "@/writerTypes";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
@@ -38,8 +43,7 @@ export default {
 				!component.value.isCodeManaged &&
 				component.value.type !== "root" &&
 				component.value.type !== "workflows_root" &&
-				wf.getComponentDefinition(component.value.type)?.toolkit !==
-					"workflows",
+				componentDefinition.value?.toolkit !== "workflows",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
@@ -157,6 +161,13 @@ export default {
 			"data-writer-instance-path": flattenedInstancePath,
 		};
 
+		const componentDefinition = computed(() =>
+			wf.getComponentDefinition(component.value.type),
+		);
+		const componentDefinitionFields = computed(
+			() => componentDefinition.value?.fields,
+		);
+
 		/*
 		Selected stylesheet class is removed if changes are made,
 		for the developer to appreciate the changes. Particularly important
@@ -170,13 +181,17 @@ export default {
 				isSelected.value = isNowSelected;
 			},
 		);
-		watch(
-			() => evaluatedFields,
-			() => {
-				isSelected.value = false;
-			},
-			{ deep: true },
-		);
+
+		// keep track on style fields changed to remove the "selected" state if a style change (it helps the user to see his modifications)
+		const styleFields = computed(() => {
+			return Object.entries(componentDefinitionFields.value)
+				.filter(([, value]) => value.category === FieldCategory.Style)
+				.reduce<Record<string, unknown>>((acc, [key]) => {
+					acc[key] = evaluatedFields[key].value;
+					return acc;
+				}, {});
+		});
+		watch(styleFields, () => (isSelected.value = false));
 
 		const isChildless = computed(() => children.value.length == 0);
 		const isVisible = computed(() =>
@@ -258,9 +273,7 @@ export default {
 		});
 
 		const fieldBasedStyleVars = computed(() => {
-			const fields = wf.getComponentDefinition(
-				component.value.type,
-			)?.fields;
+			const fields = componentDefinitionFields.value;
 			if (!fields) return;
 			const styleVars = {};
 			Object.keys(fields).forEach((key) => {
@@ -273,16 +286,14 @@ export default {
 
 		const fieldBasedCssClasses = computed(() => {
 			const CSS_CLASSES_FIELD_KEY = "cssClasses";
-			const fields = wf.getComponentDefinition(
-				component.value.type,
-			)?.fields;
+			const fields = componentDefinitionFields.value;
 			if (!fields) return;
 			if (
 				!fields[CSS_CLASSES_FIELD_KEY] ||
 				!evaluatedFields[CSS_CLASSES_FIELD_KEY]
 			)
 				return;
-			const cssStr: string = evaluatedFields[CSS_CLASSES_FIELD_KEY].value;
+			const cssStr = String(evaluatedFields[CSS_CLASSES_FIELD_KEY].value);
 			const cssClassesArr = cssStr?.split(" ").map((s) => s.trim());
 			const cssClasses = {};
 			cssClassesArr.forEach((key) => {
