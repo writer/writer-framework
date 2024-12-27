@@ -58,14 +58,22 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, Ref, ref, watch } from "vue";
+import {
+	computed,
+	inject,
+	nextTick,
+	onMounted,
+	ref,
+	useTemplateRef,
+	watch,
+} from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 
 const intervalMs = computed(() => fields.intervalMs.value);
 const isActive = computed(() => fields.isActive.value == "yes");

@@ -97,10 +97,10 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { CSSProperties, Ref, computed, inject, ref } from "vue";
+import { CSSProperties, computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);

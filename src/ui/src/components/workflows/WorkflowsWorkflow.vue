@@ -138,6 +138,7 @@ import {
 	onUnmounted,
 	ref,
 	shallowRef,
+	useTemplateRef,
 } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
@@ -146,8 +147,8 @@ import injectionKeys from "@/injectionKeys";
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
 
-const rootEl: Ref<HTMLElement | null> = ref(null);
-const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const nodeContainerEl = useTemplateRef("nodeContainerEl");
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);

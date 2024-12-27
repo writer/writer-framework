@@ -14,6 +14,7 @@
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<BuilderSelect
+					ref="pickerEl"
 					:model-value="subMode"
 					:options="selectOptions"
 					@update:model-value="handleInputSelect"
@@ -103,7 +104,6 @@
 
 <script setup lang="ts">
 import {
-	ComponentInstance,
 	computed,
 	inject,
 	nextTick,
@@ -113,6 +113,7 @@ import {
 	Ref,
 	ref,
 	toRefs,
+	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
@@ -130,10 +131,10 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const pickerEl: Ref<HTMLInputElement> = ref(null);
-const fixedEl = ref<ComponentInstance<typeof WdsTextInput>>(null);
-const freehandInputEl: Ref<HTMLInputElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const pickerEl = useTemplateRef("pickerEl");
+const freehandInputEl = useTemplateRef("freehandInputEl");
+const fixedEl = useTemplateRef("fixedEl");
 
 enum SubMode {
 	all_sides = "all_sides",
@@ -179,7 +180,7 @@ const subModes: Array<{
 	},
 ];
 
-const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
+const focusEls = {
 	pick: pickerEl,
 	css: freehandInputEl,
 	default: null,

@@ -93,7 +93,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, PropType, Ref, ref, toRefs, watch } from "vue";
+import {
+	computed,
+	nextTick,
+	PropType,
+	Ref,
+	ref,
+	toRefs,
+	useTemplateRef,
+	watch,
+} from "vue";
 
 const emit = defineEmits(["change"]);
 
@@ -121,10 +130,10 @@ const activeValue = computed<string[]>(() =>
 );
 
 const LIST_MAX_HEIGHT_PX = 200;
-const rootEl: Ref<HTMLElement | null> = ref(null);
-const inputEl: Ref<HTMLElement | null> = ref(null);
-const selectedOptionsEl: Ref<HTMLElement | null> = ref(null);
-const listEl: Ref<HTMLElement | null> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const inputEl = useTemplateRef("inputEl");
+const selectedOptionsEl = useTemplateRef("selectedOptionsEl");
+const listEl = useTemplateRef("listEl");
 const activeText: Ref<string> = ref("");
 const highlightedOffset: Ref<number | null> = ref(null);
 const selectedOptions: Ref<string[]> = ref([]);

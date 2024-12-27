@@ -73,6 +73,7 @@ import {
 	onMounted,
 	ref,
 	toRefs,
+	useTemplateRef,
 	watch,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
@@ -97,8 +98,8 @@ const props = defineProps({
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const assistedKeyEl: Ref<HTMLInputElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const assistedKeyEl = useTemplateRef("assistedKeyEl");
 type Mode = "assisted" | "freehand";
 const mode: Ref<Mode> = ref(null);
 const assistedEntries: Ref<Record<string, string | number | null>> = ref({});

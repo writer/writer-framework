@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { Ref, computed, inject, ref, useTemplateRef } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	cssClasses,
@@ -248,9 +248,9 @@ type OrderSetting = {
 };
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl: Ref<HTMLElement> = ref();
-const toolsEl: Ref<HTMLElement> = ref();
-const gridContainerEl: Ref<HTMLElement> = ref();
+const rootEl = useTemplateRef("rootEl");
+const toolsEl = useTemplateRef("toolsEl");
+const gridContainerEl = useTemplateRef("gridContainerEl");
 let baseTable: aq.internal.ColumnTable = null;
 const table: Ref<aq.internal.ColumnTable> = ref(null);
 const tableIndex = ref([]);

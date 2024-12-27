@@ -14,6 +14,7 @@
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<BuilderSelect
+					ref="pickerEl"
 					:model-value="subMode"
 					:options="selectOptions"
 					@update:model-value="handleInputSelect"
@@ -43,6 +44,7 @@ import {
 	Ref,
 	ref,
 	toRefs,
+	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
@@ -59,9 +61,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const pickerEl: Ref<HTMLInputElement> = ref(null);
-const freehandInputEl: Ref<HTMLInputElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const pickerEl = useTemplateRef("pickerEl");
+const freehandInputEl = useTemplateRef("freehandInputEl");
 
 enum SubMode {
 	hleft = "start",
@@ -131,7 +133,7 @@ const verticalSubmodes: SubModes = [
 	},
 ];
 
-const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
+const focusEls = {
 	pick: pickerEl,
 	css: freehandInputEl,
 	default: null,

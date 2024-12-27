@@ -116,7 +116,7 @@ import {
 	WriterComponentDefinition,
 } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
-import { inject, computed, ref, Ref } from "vue";
+import { inject, computed, useTemplateRef } from "vue";
 
 /* Standard style fields can be imported from "sharedStyleFields" 
 to avoid repetition. */
@@ -128,7 +128,7 @@ import {
 	containerBackgroundColor,
 } from "@/renderer/sharedStyleFields";
 
-const rootEl: Ref<HTMLElement> = ref(null); // Root element is used to fire events
+const rootEl = useTemplateRef("rootEl"); // Root element is used to fire events
 
 /*
 The values for the fields defined earlier in the custom option

@@ -42,6 +42,7 @@ import {
 	ref,
 	toRefs,
 	PropType,
+	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
@@ -57,11 +58,11 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const pickerEl: Ref<HTMLInputElement> = ref(null);
-const freehandInputEl: Ref<HTMLInputElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const pickerEl = useTemplateRef("pickerEl");
+const freehandInputEl = useTemplateRef("freehandInputEl");
 
-const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
+const focusEls = {
 	pick: pickerEl,
 	css: freehandInputEl,
 	default: null,
