@@ -84,13 +84,11 @@ from writerai.types import (
     Chat,
     ChatCompletionChunk,
     Completion,
+    StreamingData,
     ToolContextAwareSplittingResponse,
     ToolParsePdfResponse,
-    StreamingData,
 )
-from writerai.types.tools import (
-    ComprehendMedicalResponse
-)
+from writerai.types.tools import ComprehendMedicalResponse
 
 # Decorator to mark tests as explicit,
 # i.e. that they only to be run on direct demand
