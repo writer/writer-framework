@@ -26,6 +26,7 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderSectionTitle from "./BuilderSectionTitle.vue";
 
 const hint =
 	'Links this component to a state element, in a two-way fashion. Reference the state element directly, i.e. use "my_var" instead of "@{my_var}".';

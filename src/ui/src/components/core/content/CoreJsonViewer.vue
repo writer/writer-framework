@@ -21,6 +21,10 @@ import {
 	FieldType,
 	WriterComponentDefinition,
 } from "@/writerTypes";
+import {
+	validatorCssSize,
+	validatorPositiveNumber,
+} from "@/constants/validators";
 
 const description = "A component to explore JSON data as a hierarchy.";
 
@@ -54,6 +58,7 @@ const definition: WriterComponentDefinition = {
 			desc: "Sets the initial viewing depth of the JSON tree hierarchy. Use -1 to display the full hierarchy.",
 			type: FieldType.Number,
 			init: "0",
+			validator: validatorPositiveNumber,
 		},
 		hideRoot: {
 			name: "Hide root",
@@ -82,6 +87,7 @@ const definition: WriterComponentDefinition = {
 			type: FieldType.Width,
 			category: FieldCategory.Style,
 			applyStyleVariable: true,
+			validator: validatorCssSize,
 		},
 		accentColor,
 		secondaryTextColor,

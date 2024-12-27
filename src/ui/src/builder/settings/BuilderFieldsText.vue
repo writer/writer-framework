@@ -12,6 +12,7 @@
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:options="options"
+				:error="error"
 				@input="handleInput"
 			/>
 		</template>
@@ -23,6 +24,7 @@
 				:input-id="inputId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
+				:error="error"
 				@input="handleInput"
 			/>
 		</template>
@@ -30,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed } from "vue";
+import { toRefs, inject, computed, PropType } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
@@ -40,10 +42,11 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const props = defineProps<{
-	componentId: Component["id"];
-	fieldKey: string;
-}>();
+const props = defineProps({
+	componentId: { type: String as PropType<Component["id"]>, required: true },
+	fieldKey: { type: String, required: true },
+	error: { type: String, required: false, default: undefined },
+});
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 const templateField = computed(() => {

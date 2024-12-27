@@ -29,17 +29,20 @@
 					"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
 				>
 					<BuilderFieldsColor
 						v-if="fieldValue.type == FieldType.Color"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsColor>
 
 					<BuilderFieldsShadow
 						v-if="fieldValue.type == FieldType.Shadow"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsShadow>
 
 					<BuilderFieldsKeyValue
@@ -47,36 +50,42 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:instance-path="selectedInstancePath"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsKeyValue>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Text"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Number"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.IdKey"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsObject
 						v-if="fieldValue.type == FieldType.Object"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsObject>
 
 					<BuilderFieldsWidth
 						v-if="fieldValue.type == FieldType.Width"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsWidth>
 
 					<BuilderFieldsAlign
@@ -84,6 +93,7 @@
 						direction="horizontal"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsAlign>
 
 					<BuilderFieldsAlign
@@ -91,12 +101,14 @@
 						direction="vertical"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsAlign>
 
 					<BuilderFieldsPadding
 						v-if="fieldValue.type == FieldType.Padding"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsPadding>
 
 					<BuilderFieldsTools
@@ -126,6 +138,7 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -138,11 +151,15 @@ const selectedComponent = computed(() => {
 	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
-const fields = computed(() => {
+const componentDefinition = computed(() => {
 	const { type } = selectedComponent.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition.fields;
+	return wf.getComponentDefinition(type);
 });
+const fields = computed(() => {
+	return componentDefinition.value?.fields;
+});
+
+const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
 
 const fieldCategories = computed(() => {
 	return [

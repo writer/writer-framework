@@ -20,6 +20,7 @@ import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BaseInputColor from "../base/BaseInputColor.vue";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { WdsColor } from "@/wds/tokens";
+import { validatorArrayOfString } from "@/constants/validators";
 
 const description =
 	"A user input component that allows users to select a color using a color picker interface.";
@@ -52,6 +53,7 @@ const definition = {
 				WdsColor.Gray6,
 				WdsColor.Blue4,
 			]),
+			validator: validatorArrayOfString,
 		},
 		cssClasses,
 	},

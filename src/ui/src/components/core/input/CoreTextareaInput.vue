@@ -31,6 +31,7 @@ import { FieldControl, FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
+import { validatorPositiveNumber } from "@/constants/validators";
 
 const description =
 	"A user input component that allows users to enter multi-line text values.";
@@ -63,6 +64,7 @@ export default {
 				type: FieldType.Number,
 				init: "5",
 				default: "5",
+				validator: validatorPositiveNumber,
 			},
 			cssClasses,
 		},

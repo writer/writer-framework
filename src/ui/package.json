@@ -25,6 +25,7 @@
 		"@googlemaps/js-api-loader": "^1.16.6",
 		"@monaco-editor/loader": "^1.3.3",
 		"@tato30/vue-pdf": "^1.9.6",
+		"ajv": "^8.17.1",
 		"arquero": "^5.2.0",
 		"chroma-js": "^2.4.2",
 		"fuse.js": "7.0.0",

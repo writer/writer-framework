@@ -18,6 +18,10 @@ class RunWorkflow(WorkflowBlock):
                     "workflowKey": {
                         "name": "Workflow key",
                         "type": "Text",
+                        "validator": {
+                            "type": "string",
+                            "format": "writer#workflowKey",
+                        }
                     },
                     "payload": {
                         "name": "Payload",

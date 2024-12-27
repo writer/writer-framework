@@ -26,6 +26,7 @@ Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { validatorUri } from "@/constants/validators";
 
 const description =
 	"A video player component that can play various video formats.";
@@ -41,6 +42,7 @@ export default {
 				desc: "The URL of the video file. Alternatively, you can pass a file via state.",
 				default: "",
 				type: FieldType.Text,
+				validator: validatorUri,
 			},
 			controls: {
 				name: "Controls",

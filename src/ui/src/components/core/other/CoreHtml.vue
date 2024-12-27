@@ -10,6 +10,7 @@ import { h, inject } from "vue";
 import { FieldControl, FieldType } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { validatorObjectRecordNotNested } from "@/constants/validators";
 
 const defaultStyle = {
 	padding: "16px",
@@ -42,12 +43,14 @@ export default {
 				init: JSON.stringify(defaultStyle, null, 2),
 				type: FieldType.Object,
 				desc: "Define the CSS styles to apply to the HTML element using a JSON object or a state reference to a dictionary.",
+				validator: validatorObjectRecordNotNested,
 			},
 			attrs: {
 				name: "Attributes",
 				default: null,
 				type: FieldType.Object,
 				desc: "Set additional HTML attributes for the element using a JSON object or a dictionary via a state reference.",
+				validator: validatorObjectRecordNotNested,
 			},
 			htmlInside: {
 				name: "HTML inside",

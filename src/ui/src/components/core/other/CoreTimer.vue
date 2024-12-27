@@ -10,6 +10,7 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { accentColor, cssClasses } from "@/renderer/sharedStyleFields";
+import { validatorPositiveNumber } from "@/constants/validators";
 const description =
 	"A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.";
 
@@ -31,6 +32,7 @@ export default {
 				desc: "How much time to wait between ticks. A tick is considered finished when its event is handled.",
 				default: "200",
 				type: FieldType.Number,
+				validator: validatorPositiveNumber,
 			},
 			isActive: {
 				name: "Active",
