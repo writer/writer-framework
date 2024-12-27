@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, computed, inject, ref } from "vue";
+import { PropType, computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const props = defineProps({
@@ -27,7 +27,7 @@ const emit = defineEmits({
 	change: (value: string) => typeof value === "string",
 });
 
-const pickerEl = ref<HTMLInputElement | undefined>();
+const pickerEl = useTemplateRef("pickerEl");
 
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 

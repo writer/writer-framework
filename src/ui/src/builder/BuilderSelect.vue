@@ -43,6 +43,7 @@ import {
 	nextTick,
 	PropType,
 	ref,
+	useTemplateRef,
 	watch,
 } from "vue";
 import { useFloating, autoPlacement } from "@floating-ui/vue";
@@ -63,8 +64,8 @@ const props = defineProps({
 
 const currentValue = defineModel({ type: String, required: false });
 const isOpen = ref(false);
-const trigger = ref<HTMLElement>();
-const dropdown = ref<HTMLElement>();
+const trigger = useTemplateRef("trigger");
+const dropdown = useTemplateRef("dropdown");
 
 const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	trigger,

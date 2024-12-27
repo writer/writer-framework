@@ -110,7 +110,7 @@
 </template>
 
 <script lang="ts">
-import { computed, inject, ref, shallowRef } from "vue";
+import { computed, inject, ref, shallowRef, useTemplateRef } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import CoreDataframeRow from "./CoreDataframe/CoreDataframeRow.vue";
 import {
@@ -327,9 +327,9 @@ type OrderSetting = {
 };
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref<HTMLElement>();
-const toolsEl = ref<HTMLElement>();
-const gridContainerEl = ref<HTMLElement>();
+const rootEl = useTemplateRef("rootEl");
+const toolsEl = useTemplateRef("toolsEl");
+const gridContainerEl = useTemplateRef("gridContainerEl");
 let baseTable: aq.internal.ColumnTable = null;
 const table = shallowRef<aq.internal.ColumnTable | null>(null);
 const tableIndex = shallowRef([]);

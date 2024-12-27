@@ -1,7 +1,14 @@
 <script setup lang="ts">
 // TODO(WF-154): to be move in shared
 import { useFocusWithin } from "@/composables/useFocusWithin";
-import { onMounted, onUnmounted, PropType, ref, watch } from "vue";
+import {
+	onMounted,
+	onUnmounted,
+	PropType,
+	ref,
+	useTemplateRef,
+	watch,
+} from "vue";
 
 defineProps({
 	options: {
@@ -14,8 +21,8 @@ const emits = defineEmits({
 	selected: (key: string) => typeof key === "string",
 });
 
-const root = ref<HTMLDivElement>();
-const trigger = ref<HTMLDivElement>();
+const root = useTemplateRef("root");
+const trigger = useTemplateRef("trigger");
 const isOpen = ref(false);
 
 const popoverTop = ref("unset");
@@ -31,6 +38,7 @@ function closePopover() {
 }
 
 function openPopover() {
+	if (!trigger.value) return;
 	const boundingRect = trigger.value.getBoundingClientRect();
 	popoverTop.value = `${boundingRect.top + boundingRect.height + 4 + window.pageYOffset}px`;
 	popoverLeft.value = `${boundingRect.left + window.pageXOffset}px`;
