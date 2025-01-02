@@ -106,7 +106,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref, watch, computed, onMounted } from "vue";
+import { inject, ref, watch, computed, onMounted, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import "@tato30/vue-pdf/style.css";
 
@@ -131,8 +131,8 @@ const scale = ref(1);
 const page = ref(1);
 const matches = ref<MatchType[]>([]);
 const currentMatch = ref(0);
-const rootEl = ref(null);
-const viewerEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const viewerEl = useTemplateRef("viewerEl");
 const loading = ref(false);
 
 const pagesLoaded = ref(0);

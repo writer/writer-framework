@@ -94,13 +94,13 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootInstance = ref<ComponentPublicInstance | null>(null);
-const inputEl = ref(null);
+const rootInstance = useTemplateRef("rootInstance");
+const inputEl = useTemplateRef("inputEl");
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 

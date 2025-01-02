@@ -93,12 +93,12 @@ export default {
 
 <script setup lang="ts">
 import "mapbox-gl/dist/mapbox-gl.css";
-import { inject, ref, watch, computed } from "vue";
+import { inject, ref, watch, computed, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import type * as mapboxgl from "mapbox-gl";
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
-const mapEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const mapEl = useTemplateRef("mapEl");
 const center = computed<mapboxgl.LngLatLike>(() => [
 	fields.lng.value,
 	fields.lat.value,

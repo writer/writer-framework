@@ -52,8 +52,7 @@
 			:class="wf.syncHealth.value"
 			:title="syncHealthStatus()"
 		>
-			<i ref="syncHealthIcon" class="material-symbols-outlined icon"
-				>sync</i
+			<i class="material-symbols-outlined icon">sync</i
 			><span v-if="wf.syncHealth.value == 'offline'">Offline</span>
 		</div>
 	</div>
@@ -67,7 +66,6 @@ import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
-const syncHealthIcon = ref(null);
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
