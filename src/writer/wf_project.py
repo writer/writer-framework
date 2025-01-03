@@ -292,3 +292,32 @@ def _start_process_write_files_async_process(context: WfProjectContext, save_int
             write_files(app_path, metadata, components)
 
         time.sleep(save_interval)
+
+
+def is_project(path: str) -> bool:
+    """
+    Returns True if the path is a Writer Framework project.
+
+    >>> wf_project.is_project('app/hello')
+    """
+    has_main_py = os.path.isfile(os.path.join(path, "main.py"))
+    has_wf_directory = os.path.isdir(os.path.join(path, ".wf"))
+    has_ui_json_file = os.path.isfile(os.path.join(path, "ui.json"))
+
+    return has_main_py and (has_wf_directory or has_ui_json_file)
+
+
+def can_create_project(path: str) -> bool:
+    """
+    Returns True the path does not contain a Writer Framework project and
+    it is possible to create one automatically.
+
+    >>> wf_project.can_create_project('app/hello')
+    """
+    if not os.path.isdir(path):
+        return True
+
+    if len(os.listdir(path)) == 0:
+        return True
+
+    return False

@@ -1,31 +1,40 @@
 <!-- eslint-disable @typescript-eslint/ban-types -->
 <template>
 	<Teleport to="#modal">
-		<div class="BuilderModal" tabindex="-1" @keydown="handleKeydown">
+		<div
+			class="BuilderModal"
+			:class="{ 'BuilderModal--overflow': allowOverflow }"
+			tabindex="-1"
+			@keydown="handleKeydown"
+		>
 			<div class="main">
 				<div class="titleContainer">
 					<i v-if="icon" class="material-symbols-outlined">{{
 						icon
 					}}</i>
 					<h2>{{ modalTitle }}</h2>
-					<button
+					<WdsButton
+						variant="neutral"
+						size="icon"
 						:title="closeAction?.desc ?? 'Close'"
 						@click="closeAction.fn"
 					>
 						<i class="material-symbols-outlined">close</i>
-					</button>
+					</WdsButton>
 				</div>
 				<div class="slotContainer">
 					<slot></slot>
 				</div>
 				<div v-if="menuActions?.length > 0" class="actionContainer">
-					<button
+					<WdsButton
 						v-for="(action, index) in menuActions"
 						:key="index"
+						variant="primary"
+						size="small"
 						@click="action.fn"
 					>
 						{{ action.desc }}
-					</button>
+					</WdsButton>
 				</div>
 			</div>
 		</div>
@@ -33,19 +42,25 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs } from "vue";
+import WdsButton from "@/wds/WdsButton.vue";
+import { PropType, toRefs } from "vue";
 
 export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
 };
 
-const props = defineProps<{
-	modalTitle: string;
-	icon?: string;
-	closeAction: ModalAction;
-	menuActions?: ModalAction[];
-}>();
+const props = defineProps({
+	modalTitle: { type: String, required: true },
+	icon: { type: String, required: false, default: undefined },
+	closeAction: { type: Object as PropType<ModalAction>, required: true },
+	menuActions: {
+		type: Array as PropType<ModalAction[]>,
+		required: false,
+		default: undefined,
+	},
+	allowOverflow: { type: Boolean, required: false },
+});
 
 const { modalTitle, icon, closeAction, menuActions } = toRefs(props);
 
@@ -73,14 +88,18 @@ const handleKeydown = (ev: KeyboardEvent) => {
 	width: 80%;
 	overflow: hidden;
 	max-width: 120ch;
-	border-radius: 8px;
-	box-shadow: 0 0 16px 4px rgba(0, 0, 0, 0.3);
+	border-radius: 12px;
+	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
+}
+
+.BuilderModal--overflow .main {
+	overflow: unset;
 }
 
 .titleContainer {
 	border-bottom: 1px solid var(--builderSubtleSeparatorColor);
-	padding: 10px 10px 10px 16px;
-	gap: 16px;
+	padding: 8px 8px 8px 16px;
+	gap: 12px;
 	display: flex;
 	align-items: center;
 	font-size: 1rem;
@@ -94,6 +113,9 @@ const handleKeydown = (ev: KeyboardEvent) => {
 	padding: 16px;
 	max-height: 60vh;
 	overflow: auto;
+}
+.BuilderModal--overflow .slotContainer {
+	overflow: unset;
 }
 
 .actionContainer {

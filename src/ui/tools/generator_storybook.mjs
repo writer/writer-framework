@@ -52,7 +52,6 @@ import type { Meta, StoryObj } from "@storybook/vue3";
 import { provide, ref, computed } from "vue";
 import ${component.nameTrim} from "${relPath(filePath, component.fileRef)}";
 import injectionKeys from "${srcPath("injectionKeys")}";
-import "remixicon/fonts/remixicon.css";
 import { generateCore } from "${srcPath("stories", "fakeCore")}";`;
 }
 

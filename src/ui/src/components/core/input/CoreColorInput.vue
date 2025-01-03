@@ -19,6 +19,7 @@ import { cssClasses } from "@/renderer/sharedStyleFields";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BaseInputColor from "../base/BaseInputColor.vue";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
+import { WdsColor } from "@/wds/tokens";
 
 const description =
 	"A user input component that allows users to select a color using a color picker interface.";
@@ -45,11 +46,11 @@ const definition = {
 			desc: "List of predefined colors",
 			type: FieldType.Object,
 			init: JSON.stringify([
-				"#5551ff",
-				"#3be19b",
-				"#ff3d00",
-				"#333333",
-				"#0094d1",
+				WdsColor.Blue5,
+				WdsColor.Green5,
+				WdsColor.Orange5,
+				WdsColor.Gray6,
+				WdsColor.Blue4,
 			]),
 		},
 		cssClasses,

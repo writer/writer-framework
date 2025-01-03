@@ -13,8 +13,8 @@ def fake_generate_content(application_id, app_inputs):
 
     return f"{name} the {animal}  "
 
-def test_call_nocode_app(session, runner):
-    writer.ai.apps.generate_content = fake_generate_content
+def test_call_nocode_app(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.apps.generate_content", fake_generate_content)
     session.add_fake_component({
         "appId": "123",
         "appInputs": json.dumps({
@@ -28,8 +28,8 @@ def test_call_nocode_app(session, runner):
     assert block.outcome == "success"
 
 
-def test_call_nocode_app_missing_appid(session, runner):
-    writer.ai.apps.generate_content = fake_generate_content
+def test_call_nocode_app_missing_appid(monkeypatch, session, runner):
+    monkeypatch.setattr("writer.ai.apps.generate_content", fake_generate_content)
     session.add_fake_component({
         "appId": "",
         "appInputs": json.dumps({

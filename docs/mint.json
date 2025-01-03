@@ -32,23 +32,20 @@
 				"framework/introduction",
 				"framework/quickstart",
 				"framework/ai-module",
-				"framework/cloud-deploy",
-				"framework/sample-apps"
+				"framework/sample-apps",
+				"framework/component-list-link"
 			]
 		},
 		{
 			"group": "Guides",
 			"pages": [
 				"framework/application-state",
-				"framework/event-handlers",
+				"framework/backend-initiated-actions",
 				"framework/builder-basics",
+				"framework/event-handlers",
 				"framework/handling-inputs",
-				"framework/dataframe",
-				"framework/backend-driven-ui",
-				"framework/stylesheets",
-				"framework/frontend-scripts",
-				"framework/custom-components",
-				"framework/authentication"
+			  	"framework/dataframe",
+				"framework/repeater"
 			]
 		},
 		{
@@ -64,19 +61,23 @@
 			"group": "Deployment",
 			"pages": [
 				"framework/cloud-deploy",
-				"framework/deploy-with-docker",
-				"framework/testing"
+				"framework/deploy-with-docker"
 			]
 		},
 		{
 			"group": "Advanced",
 			"pages": [
-				"framework/repeater",
-				"framework/backend-initiated-actions",
+				"framework/authentication",
+				"framework/backend-driven-ui",
+				"framework/custom-components",
+				"framework/custom-server",
+				"framework/frontend-scripts",
 				"framework/page-routes",
 				"framework/sessions",
-				"framework/custom-server",
-				"framework/state-schema"
+				"framework/state-schema",
+				"framework/stylesheets",
+				"framework/testing",
+				"framework/seo"
 			]
 		},
 		{

@@ -14,10 +14,21 @@
 			@change-render-offset="handleRenderOffsetChange"
 		></WorkflowMiniMap>
 		<div class="bar">
+			<div class="autoArranger">
+				<WdsButton
+					variant="neutral"
+					size="smallIcon"
+					data-writer-tooltip="Auto arrange blocks"
+					data-writer-tooltip-placement="left"
+					@click="handleAutoArrange"
+				>
+					<i class="material-symbols-outlined">apps</i>
+				</WdsButton>
+			</div>
 			<div class="zoomer">
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						zoomLevel > ZOOM_SETTINGS.minLevel
 							? `Zoom out (${getModifierKeyName()}-)`
@@ -36,7 +47,7 @@
 				></WdsTextInput>
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						zoomLevel < ZOOM_SETTINGS.maxLevel
 							? `Zoom in (${getModifierKeyName()}+)`
@@ -49,7 +60,7 @@
 				</WdsButton>
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					data-writer-tooltip="Reset zoom"
 					data-writer-tooltip-placement="right"
 					@click="handleResetZoom"
@@ -60,7 +71,7 @@
 			<div class="miniMapCollapser">
 				<WdsButton
 					variant="neutral"
-					size="unpadded"
+					size="smallIcon"
 					:data-writer-tooltip="
 						isMiniMapShown ? `Close minimap` : `Open minimap`
 					"
@@ -99,6 +110,7 @@ const emit = defineEmits([
 	"changeRenderOffset",
 	"changeZoomLevel",
 	"resetZoom",
+	"autoArrange",
 ]);
 const isMiniMapShown = ref(true);
 const zoomLevelAsText = ref<string>(
@@ -111,6 +123,10 @@ function convertNumericZoomLevelToText(zoomLevel: number) {
 
 function toggleMiniMap() {
 	isMiniMapShown.value = !isMiniMapShown.value;
+}
+
+function handleAutoArrange(ev: MouseEvent) {
+	emit("autoArrange");
 }
 
 function handleRenderOffsetChange(offset: typeof props.renderOffset) {
@@ -190,7 +206,7 @@ onUnmounted(() => {
 	overflow: hidden;
 	color: var(--builderSecondaryTextColor);
 	border: 1px solid var(--builderSeparatorColor);
-	width: 230px;
+	width: 260px;
 }
 
 .bar {
@@ -198,12 +214,23 @@ onUnmounted(() => {
 	background: var(--builderBackgroundColor);
 }
 
+.autoArranger {
+	min-height: 36px;
+	min-width: 40px;
+	flex: 0 0 40px;
+	display: flex;
+	border-right: 1px solid var(--builderSeparatorColor);
+	align-items: center;
+	justify-content: center;
+}
+
 .zoomer {
 	flex: 1 0 auto;
 	display: flex;
-	padding: 6px 12px 6px 12px;
-	gap: 12px;
+	padding: 4px;
+	gap: 4px;
 	align-items: center;
+	justify-content: center;
 }
 
 .zoomer .zoomLevelInput {

@@ -1,6 +1,9 @@
 <template>
-	<div class="BuilderApp" tabindex="-1">
-		<div class="mainGrid">
+	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
+		<div
+			class="mainGrid"
+			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
+		>
 			<BuilderHeader class="builderHeader"></BuilderHeader>
 			<div v-if="builderMode !== 'preview'" class="sidebar">
 				<BuilderSidebar></BuilderSidebar>
@@ -21,45 +24,17 @@
 					</ComponentRenderer>
 				</div>
 
-				<div
+				<BuilderSettings
 					v-if="ssbm.isSelectionActive()"
 					:key="selectedId ?? 'noneSelected'"
-					class="settingsBar"
-				>
-					<div>
-						<BuilderSettings></BuilderSettings>
-					</div>
-				</div>
+				></BuilderSettings>
 			</div>
-			<div class="builderPanels">
-				<BuilderCodePanel
-					v-if="ssbm.openPanels.has('code')"
-				></BuilderCodePanel>
-				<BuilderLogPanel
-					v-if="ssbm.openPanels.has('log')"
-				></BuilderLogPanel>
-			</div>
+			<BuilderPanelSwitcher class="panelSwitcher"></BuilderPanelSwitcher>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
-			<BuilderInstanceTracker
-				v-if="ssbm.isSelectionActive()"
-				:key="selectedInstancePath"
-				class="shortcutsTracker"
-				:prevent-settings-bar-overlap="true"
-				:instance-path="selectedInstancePath"
-				:vertical-offset-pixels="-48"
-				data-writer-cage
-				@dragstart="handleRendererDragStart"
-				@dragend="handleRendererDragEnd"
-			>
-				<BuilderComponentShortcuts
-					:component-id="selectedId"
-					:instance-path="selectedInstancePath"
-				></BuilderComponentShortcuts>
-			</BuilderInstanceTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -104,17 +79,16 @@ import injectionKeys from "../injectionKeys";
 import { isPlatformMac } from "../core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
-import BuilderComponentShortcuts from "./BuilderComponentShortcuts.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
-import BuilderCodePanel from "./BuilderCodePanel.vue";
-import BuilderLogPanel from "./BuilderLogPanel.vue";
+import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
+import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 
 const BuilderSettings = defineAsyncComponent({
-	loader: () => import("./BuilderSettings.vue"),
+	loader: () => import("./settings/BuilderSettings.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 const BuilderSidebar = defineAsyncComponent({
-	loader: () => import("./BuilderSidebar.vue"),
+	loader: () => import("./sidebar/BuilderSidebar.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 const ComponentRenderer = defineAsyncComponent({
@@ -165,10 +139,7 @@ const {
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
-
 const selectedId = computed(() => ssbm.getSelection()?.componentId);
-const selectedInstancePath = computed(() => ssbm.getSelection()?.instancePath);
-const openPanelCount = computed<number>(() => ssbm.openPanels.size);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -300,33 +271,33 @@ onMounted(() => {
 @import "./sharedStyles.css";
 
 .BuilderApp {
-	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #5551ff;
-	--builderSuccessColor: #3be19b;
-	--builderErrorColor: #ff3d00;
-	--builderHeaderBackgroundColor: #333333;
-	--builderHeaderBackgroundHoleColor: #000000;
+	--builderBackgroundColor: var(--wdsColorWhite);
+	--builderAccentColor: var(--wdsColorBlue5);
+	--builderSuccessColor: var(--wdsColorGreen5);
+	--builderErrorColor: var(--wdsColorOrange5);
+	--builderHeaderBackgroundColor: var(--wdsColorGray6);
+	--builderHeaderBackgroundHoleColor: var(--wdsColorBlack);
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
 	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSeparatorColor: #e4e7ed;
-	--builderSubtleSeparatorColor: #f5f5f9;
-	--builderIntenseSeparatorColor: #d2d4d7;
-	--builderSelectedColor: #e4e9ff;
-	--builderMatchingColor: #f8dccc;
-	--builderIntenseSelectedColor: #0094d1;
+	--builderSeparatorColor: var(--wdsColorGray2);
+	--builderSubtleSeparatorColor: var(--wdsColorGray1);
+	--builderIntenseSeparatorColor: var(--wdsColorGray3);
+	--builderSelectedColor: var(--wdsColorBlue2);
+	--builderMatchingColor: var(--wdsColorOrange2);
+	--builderIntenseSelectedColor: var(--wdsColorBlue4);
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
-	--builderSubtleHighlightColorSolid: #f2f2f2;
-	--builderDisabledColor: rgb(180, 180, 180);
+	--builderSubtleHighlightColorSolid: var(--wdsColorGray1);
 	--builderSidebarWidth: 265px;
 	--builderSettingsWidth: 450px;
-	--builderActionOngoingColor: #333333;
+	--builderActionOngoingColor: var(--wdsColorGray6);
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
-	--builderWarningColor: #ff3d00;
-	--builderPanelHeight: 50vh;
+	--builderWarningColor: var(--wdsColorOrange5);
+	--builderPanelSwitcherHeight: 48px;
+	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 
-	--buttonColor: #5551ff;
+	--buttonColor: var(--wdsColorBlue5);
 	--buttonTextColor: white;
 	--accentColor: var(--builderAccentColor);
 	--primaryTextColor: var(--builderPrimaryTextColor);
@@ -351,10 +322,18 @@ onMounted(() => {
 			"ssbm.getMode() !== 'preview' ? 'var(--builderSidebarWidth)' : '0px'"
 		)
 		1fr;
-	grid-template-rows: var(--builderTopBarHeight) 1fr v-bind(
-			"openPanelCount > 0 ? 'var(--builderPanelHeight)' : '0px'"
-		);
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherHeight);
 	display: grid;
+}
+
+.mainGrid.openPanels {
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		1fr
+		var(--builderPanelSwitcherExpandedHeight);
 }
 
 .builderHeader {
@@ -365,7 +344,7 @@ onMounted(() => {
 
 .sidebar {
 	grid-column: 1 / 2;
-	grid-row: 2;
+	grid-row: 2 / 5;
 	min-height: 0;
 	border-right: 1px solid var(--builderAreaSeparatorColor);
 }
@@ -394,35 +373,9 @@ onMounted(() => {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
 }
 
-.settingsBar {
-	position: absolute;
-	right: 24px;
-	top: v-bind("ssbm.getMode() == 'workflows' ? '72px' : '20px'");
-	z-index: 4;
-	width: var(--builderSettingsWidth);
-	bottom: 24px;
-	overflow: hidden;
-	border: 1px solid var(--builderAreaSeparatorColor);
-	background: var(--builderBackgroundColor);
-	box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.04);
-	border-radius: 12px;
-}
-
-.settingsBar > div {
-	overflow-y: auto;
-	height: 100%;
-}
-
-.builderPanels {
-	grid-column: 1 / 3;
+.panelSwitcher {
+	grid-column: 2 / 3;
 	grid-row: 3;
-	display: grid;
-	grid-template-columns: repeat(v-bind("openPanelCount"), 1fr);
-	grid-template-rows: 100%;
-}
-
-.builderPanels:empty {
-	display: none;
 }
 
 .shortcutsTracker,

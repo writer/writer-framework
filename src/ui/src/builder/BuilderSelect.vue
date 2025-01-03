@@ -1,190 +1,154 @@
 <template>
-	<!-- inspired from https://andrejgajdos.com/custom-select-dropdown -->
-	<div class="selectWrapper" @click="open">
-		<div ref="selectEl" class="select">
-			<div class="selectTrigger">
-				<div class="selectContent">
-					<div v-if="currentLabel != null" class="flexRow">
-						<div>
-							<i class="material-symbols-outlined">{{
-								currentIcon
-							}}</i>
-						</div>
-						<div>{{ currentLabel }}</div>
-					</div>
-				</div>
-				<div class="selectArrow">
-					<i class="material-symbols-outlined">expand_more</i>
-				</div>
+	<div ref="trigger" class="BuilderSelect">
+		<button
+			class="BuilderSelect__trigger"
+			role="button"
+			@click="isOpen = !isOpen"
+		>
+			<i v-if="!hideIcons" class="material-symbols-outlined">{{
+				currentIcon
+			}}</i>
+			<div class="BuilderSelect__trigger__label">{{ currentLabel }}</div>
+			<div class="BuilderSelect__trigger__arrow">
+				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
-			<div class="selectOptions">
-				<div
-					v-for="option in compOptions"
-					:key="option.value"
-					class="selectOption"
-					:data-value="option.value"
-					:class="option.class"
-					@click="select"
-				>
-					<div class="flexRow">
-						<div>
-							<i class="material-symbols-outlined">{{
-								option.icon
-							}}</i>
-						</div>
-						<div>{{ option.label }}</div>
-					</div>
-				</div>
-			</div>
-		</div>
+		</button>
+		<WdsMenu
+			v-if="isOpen"
+			ref="dropdown"
+			:enable-search="enableSearch"
+			:options="options"
+			:selected="currentValue"
+			:style="floatingStyles"
+			@select="onSelect"
+			@search="updateFloatingStyle"
+		/>
 	</div>
 </template>
 
+<script lang="ts">
+export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue";
+</script>
+
 <script setup lang="ts">
-import { computed, ref, Ref } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	nextTick,
+	PropType,
+	ref,
+	watch,
+} from "vue";
+import { useFloating, autoPlacement } from "@floating-ui/vue";
+import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
+import { useFocusWithin } from "@/composables/useFocusWithin";
 
-const selectEl: Ref<HTMLElement> = ref(null);
+const WdsMenu = defineAsyncComponent(() => import("@/wds/WdsDropdownMenu.vue"));
 
-const props = defineProps<{
-	options?: Array<{ value: string; label: string; icon?: string }>;
-	defaultValue?: string;
-	defaultIcon?: string;
-}>();
-
-let currentValue = ref(props.defaultValue);
-
-const currentLabel = computed(() => {
-	const option = props.options.find(
-		(option) => option.value == currentValue.value,
-	);
-	return option ? option.label : "";
+const props = defineProps({
+	options: {
+		type: Array as PropType<WdsDropdownMenuOption[]>,
+		default: () => [],
+	},
+	defaultIcon: { type: String, required: false, default: undefined },
+	hideIcons: { type: Boolean, required: false },
+	enableSearch: { type: Boolean, required: false },
 });
+
+const currentValue = defineModel({ type: String, required: false });
+const isOpen = ref(false);
+const trigger = ref<HTMLElement>();
+const dropdown = ref<HTMLElement>();
+
+const { floatingStyles, update: updateFloatingStyle } = useFloating(
+	trigger,
+	dropdown,
+	{
+		placement: "bottom",
+		middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
+	},
+);
+
+const expandIcon = computed(() =>
+	isOpen.value ? "keyboard_arrow_up" : "expand_more",
+);
+
+const selectedOption = computed(() =>
+	props.options.find((o) => o.value === currentValue.value),
+);
+
+const currentLabel = computed(() => selectedOption.value?.label ?? "");
 
 const currentIcon = computed(() => {
-	const defaultIcon = props.defaultIcon ? props.defaultIcon : "help_center";
-	const option = props.options.find(
-		(option) => option.value == currentValue.value,
-	);
-	return option && option.icon ? option.icon : defaultIcon;
+	if (props.hideIcons) return "";
+	return selectedOption.value?.icon ?? props.defaultIcon ?? "help_center";
 });
 
-const emit = defineEmits(["select"]);
-
-let compOptions = computed(() => {
-	const options_list = props.options.map((option) => {
-		let new_option = { ...option, class: "" };
-		if (new_option.value == currentValue.value) {
-			new_option.class = "selected";
-			new_option.icon = new_option.icon ? new_option.icon : "help_center";
-		} else {
-			new_option.class = "";
-			new_option.icon = new_option.icon ? new_option.icon : "help_center";
+// close the dropdown when clicking outside
+const hasFocus = useFocusWithin(trigger);
+watch(
+	hasFocus,
+	() => {
+		if (!hasFocus.value) {
+			// wait next tick to let event propagate
+			nextTick().then(() => (isOpen.value = false));
 		}
-		return new_option;
-	});
+	},
+	{ immediate: true },
+);
 
-	return options_list;
-});
-
-const open = () => {
-	selectEl.value.classList.toggle("open");
-};
-
-const select = (event) => {
-	const value = event.currentTarget.getAttribute("data-value");
+function onSelect(value: string) {
+	isOpen.value = false;
 	currentValue.value = value;
-	emit("select", value);
-};
+}
 </script>
 
 <style scoped>
-@import "./ico.css";
-
-.selectWrapper {
+.BuilderSelect {
 	position: relative;
 	user-select: none;
 	width: 100%;
 	font-size: 0.875rem;
 }
 
-.select {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-}
-
-.selectTrigger {
-	position: relative;
+.BuilderSelect__trigger {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	padding: 8px;
+	gap: 8px;
+
+	height: 40px;
+	width: 100%;
+	padding: 8.5px 12px 8.5px 12px;
+
+	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+
 	font-weight: 400;
-	color: #3b3b3b;
-	height: 32px;
-	background: #ffffff;
+	font-size: 0.875rem;
+
+	color: var(--primaryTextColor);
+	background: transparent;
+
 	cursor: pointer;
 }
-
-.selectOptions {
-	position: absolute;
-	display: block;
-	top: 100%;
-	left: 0;
-	right: 0;
-	border: 1px solid #394a6d;
-	background: #fff;
-	transition: all 0.2s;
-	opacity: 0;
-	visibility: hidden;
-	pointer-events: none;
-	z-index: 2;
+.BuilderSelect__trigger:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+	outline: none;
 }
-
-.select.open .selectOptions {
-	opacity: 1;
-	visibility: visible;
-	pointer-events: all;
+.BuilderSelect__trigger__label {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	flex-grow: 1;
+	text-align: left;
 }
-
-.selectOption {
-	position: relative;
-	display: block;
-	padding: 8px;
-	font-weight: 400;
-	font-size: 0.75rem;
-	color: #000000e6;
-	cursor: pointer;
-	transition: all 0.2s;
-}
-
-.selectOption:hover {
-	cursor: pointer;
-	background-color: #000000b3;
-	color: #fff;
-}
-
-.selected {
-	background-color: #000000b3;
-	color: #fff;
-}
-
-.selectArrow {
-	position: relative;
+.BuilderSelect__trigger__arrow {
+	border: none;
+	background-color: transparent;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	font-weight: 300;
-	color: #000000e6;
-}
-
-.flexRow {
-	display: flex;
-	flex-direction: row;
-	gap: 8px;
-}
-
-.selectContent {
-	font-size: 0.75rem;
+	cursor: pointer;
 }
 </style>

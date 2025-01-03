@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 const setTextField = async (page, text) => {
 	await page.locator('div.CoreText.component').click();
 	await page
-		.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput')
+		.locator('.BuilderFieldsText[data-automation-key="text"] textarea')
 		.fill(text);
 }
 
@@ -21,7 +21,7 @@ test.describe("state autocompletion", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test.describe("text", () => {
@@ -29,7 +29,7 @@ test.describe("state autocompletion", () => {
 			await setTextField(page, "@{types.");
 			page.locator('.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")').click();
 			await expect(page
-				.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput'))
+				.locator('.BuilderFieldsText[data-automation-key="text"] textarea'))
 				.toHaveValue("@{types.string");
 		});
 		test("counter", async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe("state autocompletion", () => {
 		test("options should show on focus", async ({ page }) => {
 			await page.locator('div.CoreText.component').click();
 			await page
-				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] .templateInput')
+				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] input')
 				.focus();
 			await expect(page.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="yes"]')).toHaveCount(1);
 			await expect(page.locator('.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="no"]')).toHaveCount(1);
@@ -66,30 +66,30 @@ test.describe("state autocompletion", () => {
 		test("Static List - completion", async ({ page }) => {
 			const FIELD = `.BuilderFieldsOptions[data-automation-key="options"]`;
 			await page
-				.locator(`div.component.button[data-component-type="radioinput"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("Static List")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("Static List")`)
 				.click();
 			await page
-				.locator(`${FIELD} .inputKey .templateInput`)
+				.locator(`${FIELD} .inputKey input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .inputKey .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .inputKey .templateInput`))
+				.locator(`${FIELD} .inputKey input`))
 				.toHaveValue("@{types.string");
 			await page
-				.locator(`${FIELD} .inputValue .templateInput`)
+				.locator(`${FIELD} .inputValue input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .inputValue .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .inputValue .templateInput`))
+				.locator(`${FIELD} .inputValue input`))
 				.toHaveValue("@{types.string");
 			await page.locator('[data-automation-action="delete"]').click();
 		});
@@ -97,21 +97,21 @@ test.describe("state autocompletion", () => {
 		test("JSON - completion", async ({ page }) => {
 			const FIELD = `.BuilderFieldsOptions[data-automation-key="options"]`;
 			await page
-				.locator(`div.component.button[data-component-type="radioinput"]`)
+				.locator(`.BuilderSidebarToolkit [data-component-type="radioinput"]`)
 				.dragTo(page.locator(".CorePage"));
 
 			await page.locator('div.CoreRadioInput.component > label').click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("JSON")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("JSON")`)
 				.click();
 			await page
-				.locator(`${FIELD} .templateInput`)
+				.locator(`${FIELD} textarea`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .templateInput`))
+				.locator(`${FIELD} textarea`))
 				.toHaveValue("@{types.string");
 			await page.locator('[data-automation-action="delete"]').click();
 		});
@@ -122,23 +122,23 @@ test.describe("state autocompletion", () => {
 			const FIELD = `.${type}[data-automation-key="${key}"]`; 
 			await page.locator(componentSelector).click();
 			await page
-				.locator(`${FIELD} button.chip:text-matches("CSS")`)
+				.locator(`${FIELD} button.WdsTab:text-matches("CSS")`)
 				.click();
 			await page
-				.locator(`${FIELD} .templateInput`)
+				.locator(`${FIELD} .BuilderTemplateInput input`)
 				.fill("@{types.");
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(page.locator(`${FIELD} .fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			page.locator(`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
-				.locator(`${FIELD} .templateInput`))
+				.locator(`${FIELD} .BuilderTemplateInput input`))
 				.toHaveValue("@{types.string");
 		});
 	}
 
 	testFieldType("BuilderFieldsColor", "primaryTextColor", 'div.CoreText.component');
-	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderTreeBranch [data-branch-component-type="root"]');
-	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderTreeBranch [data-branch-component-type="root"]');
+	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
 });

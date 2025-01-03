@@ -33,6 +33,7 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
+import { WdsColor } from "@/wds/tokens";
 export default {
 	writer: {
 		name: "Annotated text",
@@ -49,7 +50,7 @@ export default {
 				name: "Reference",
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
-				default: "#5551FF",
+				default: WdsColor.Blue5,
 				category: FieldCategory.Style,
 			},
 			seed: {

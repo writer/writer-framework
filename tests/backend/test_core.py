@@ -1,8 +1,9 @@
 import json
 import math
+import typing
 import unittest
 import urllib
-from typing import Dict
+from typing import Any, Dict
 
 import altair
 import numpy as np
@@ -268,7 +269,7 @@ class TestStateProxy(unittest.TestCase):
 
 class TestState:
 
-    def test_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+    def test_state_shema_set_dictionary_in_a_state_should_transform_it_in_state_proxy_and_trigger_mutation(self):
         """
         Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
         triggers mutations to update the interface
@@ -287,7 +288,7 @@ class TestState:
             r"+new\.state\.with\.dots.test": "test"
         }
 
-    def test_set_dictionary_in_a_state_with_schema_should_transform_it_in_state_proxy_and_trigger_mutation(self):
+    def test_state_shema_set_dictionary_in_a_state_with_schema_should_keep_as_dict(self):
         class SimpleSchema(State):
             app: dict
 
@@ -600,6 +601,79 @@ class TestState:
 
             # Assert
             assert initial_state['total'] == 4
+
+    def test_state_shema_should_accept_Dict_generic_typing_for_dict(self):
+        """
+        A schema must accept a generic typed dictionary for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: Dict[str, Any]
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['counter'], int)
+            assert isinstance(initial_state['record'], dict)
+            assert initial_state['record'] == {}
+
+    def test_state_shema_should_accept_DictTyped_typing_for_dict(self):
+        """
+        A schema must accept a dictionary typed for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        class SpecificDictTyped(typing.TypedDict):
+            a: str
+            b: str
+
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: SpecificDictTyped
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['counter'], int)
+            assert isinstance(initial_state['record'], dict)
+            assert initial_state['record'] == {}
+
+    def test_state_shema_should_support_convert_dict_into_state_by_default(self):
+        """
+        A schema must accept a dictionary typed for a dictionary
+        and manipulate it as a dictionary, not as a StateProxy.
+        """
+        class Substate(State):
+            a: str
+            b: str
+
+        with writer_fixtures.new_app_context():
+            # Assign
+            class MyState(wf.WriterState):
+                counter: int
+                record: Substate
+
+            # Acts
+            initial_state = wf.init_state({
+                "counter": 0,
+                "record": {}
+            }, schema=MyState)
+
+            # Assert
+            assert isinstance(initial_state['record'], Substate)
+
 
 class TestWriterState:
 
@@ -1223,7 +1297,7 @@ class TestSessionManager:
         assert s_invalid is None
 
 
-class TestEditableDataframe:
+class TestEditableDataFrame:
 
     def test_editable_dataframe_expose_pandas_dataframe_as_df_property(self) -> None:
         df = pandas.DataFrame({
@@ -1231,7 +1305,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
         assert edf.df is not None
         assert isinstance(edf.df, pandas.DataFrame)
 
@@ -1242,7 +1316,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.df.loc[0, "age"] = 26
@@ -1256,7 +1330,7 @@ class TestEditableDataframe:
             "name": ["Alice", "Bob", "Charlie"],
             "age": [25, 30, 35]
         })
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1272,7 +1346,7 @@ class TestEditableDataframe:
         })
         df = df.set_index('name')
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1289,7 +1363,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1305,7 +1379,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1321,7 +1395,7 @@ class TestEditableDataframe:
         })
         df = df.set_index('name')
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1337,7 +1411,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40, "city": "Berlin"}})
@@ -1354,7 +1428,7 @@ class TestEditableDataframe:
 
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25, "city": "Paris"}})
@@ -1371,7 +1445,7 @@ class TestEditableDataframe:
 
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1387,7 +1461,7 @@ class TestEditableDataframe:
         })
         df = df.set_index(['name', 'city'])
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         table = edf.pyarrow_table()
@@ -1401,7 +1475,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
         assert edf.df is not None
         assert isinstance(edf.df, polars.DataFrame)
 
@@ -1410,7 +1484,7 @@ class TestEditableDataframe:
             "name": ["Alice", "Bob", "Charlie"],
             "age": [25, 30, 35]
         })
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         r = edf.record(0)
@@ -1425,7 +1499,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1439,7 +1513,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
@@ -1453,7 +1527,7 @@ class TestEditableDataframe:
             "age": [25, 30, 35]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1468,7 +1542,7 @@ class TestEditableDataframe:
             "city": ["Paris", "London", "New York"]
         })
 
-        edf = wf.EditableDataframe(df)
+        edf = wf.EditableDataFrame(df)
 
         # When
         table = edf.pyarrow_table()
@@ -1484,7 +1558,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         assert edf.df is not None
         assert isinstance(edf.df, list)
@@ -1496,7 +1570,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         r = edf.record(0)
@@ -1512,7 +1586,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_add({"record": {"name": "David", "age": 40}})
@@ -1528,7 +1602,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_update({"record_index": 0, "record": {"name": "Alicia", "age": 25}})
@@ -1543,7 +1617,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         edf.record_remove({"record_index": 0})
@@ -1559,7 +1633,7 @@ class TestEditableDataframe:
             {"name": "Charlie", "age": 35}
         ]
 
-        edf = wf.EditableDataframe(records)
+        edf = wf.EditableDataFrame(records)
 
         # When
         table = edf.pyarrow_table()

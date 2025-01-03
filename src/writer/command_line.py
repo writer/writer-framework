@@ -1,12 +1,11 @@
-import logging
 import os
 import shutil
-import sys
 from typing import Optional
 
 import click
 
 import writer.serve
+from writer import VERSION, wf_project
 from writer.deploy import cloud, deploy
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
@@ -21,33 +20,59 @@ def main():
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=None, help="Port to run the app on")
+@click.option("--enable-jobs-api", help="Set this flag to enable the Jobs API, allowing you to execute jobs without user interaction.", is_flag=True)
 @click.argument('path')
-def run(path: str, host: str, port: Optional[int]):
+def run(path: str, host: str, port: Optional[int], enable_jobs_api: bool):
     """Run the app from PATH folder in run mode."""
 
     abs_path = os.path.abspath(path)
-    if not os.path.isdir(abs_path):
-        raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer run my_app")
+    if wf_project.is_project(path) is False and \
+        wf_project.can_create_project(path) is True:
+        raise click.ClickException(f"There's no Writer Framework project at this location, create a new one with `writer create {path}`")
+
+    if wf_project.is_project(path) is False and \
+        wf_project.can_create_project(path) is False:
+        raise click.ClickException(f"There's no Writer Framework project at this location : {abs_path}")
 
     writer.serve.serve(
-        abs_path, mode="run", port=port, host=host, enable_server_setup=True)
+        abs_path, mode="run", port=port, host=host, enable_server_setup=True, enable_jobs_api=enable_jobs_api)
 
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=None, help="Port to run the app on")
 @click.option('--enable-remote-edit', help="Set this flag to allow non-local requests in edit mode.", is_flag=True)
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
+@click.option("--no-interactive", help="Set this flag to run the app without asking anything to the user.", is_flag=True)
+@click.option("--enable-jobs-api", help="Set this flag to enable the Jobs API, allowing you to execute jobs without user interaction.", is_flag=True)
 @click.argument('path')
-def edit(path: str, port: Optional[int], host: str, enable_remote_edit: bool, enable_server_setup: bool):
+def edit(
+    path: str,
+    port: Optional[int],
+    host: str,
+    enable_remote_edit: bool,
+    enable_server_setup: bool,
+    no_interactive: bool,
+    enable_jobs_api: bool,
+):
     """Run the app from PATH folder in edit mode."""
-
     abs_path = os.path.abspath(path)
-    if not os.path.isdir(abs_path):
-        raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer edit my_app")
+    if wf_project.is_project(path) is False and \
+        wf_project.can_create_project(path) is True and \
+        no_interactive is False:
+        click.confirm("There’s no Writer Framework project at this location, would you like to create a new one ?", default=False, abort=True)
+        create_app(path, template_name="default", overwrite=False)
+
+    if wf_project.is_project(path) is False and \
+        wf_project.can_create_project(path) is True:
+        raise click.ClickException(f"There’s no Writer Framework project at this location, create a new one with `writer create {path}`")
+
+    if wf_project.is_project(path) is False and \
+        wf_project.can_create_project(path) is False:
+        raise click.ClickException(f"There’s no Writer Framework project at this location : {abs_path}")
 
     writer.serve.serve(
         abs_path, mode="edit", port=port, host=host,
-        enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup)
+        enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
 
 @main.command()
 @click.argument('path')
@@ -80,21 +105,21 @@ def create_app(app_path: str, template_name: Optional[str], overwrite=False):
     if template_name is None:
         template_name = "default"
 
-    is_folder_created = os.path.exists(app_path)
-    is_folder_empty = True if not is_folder_created else len(os.listdir(app_path)) == 0
-
-    if not overwrite and not is_folder_empty:
-        logging.error("The target folder must be empty or not already exist.")
-        sys.exit(1)
+    if wf_project.can_create_project(path=app_path) is False:
+        raise click.ClickException("The target folder must be empty or not already exist.")
 
     server_path = os.path.dirname(__file__)
     template_path = os.path.join(server_path, "app_templates", template_name)
 
     if not os.path.exists(template_path):
-        logging.error(f"Template { template_name } couldn't be found.")
-        sys.exit(1)
+        raise click.ClickException(f"Template { template_name } couldn't be found.")
 
     shutil.copytree(template_path, app_path, dirs_exist_ok=True)
+    # create/update requirements.txt and add writer to it
+    requirements_path = os.path.join(app_path, "requirements.txt")
+    with open(requirements_path, "a") as f:
+        f.write(f"writer=={VERSION}\n")
+
 
 if __name__ == "__main__":
     main()

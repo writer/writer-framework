@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 const setTextField = async (page, text) => {
 	await page.locator('div.CoreText.component').click();
 	await page
-		.locator('.BuilderFieldsText[data-automation-key="text"] .templateInput')
+		.locator('.BuilderFieldsText[data-automation-key="text"] textarea')
 		.fill(text);
 }
 
@@ -35,7 +35,7 @@ test.describe("state", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url);
+		await page.goto(url, {waitUntil: "domcontentloaded"});
 	});
 
 	test("increment number", async ({ page }) => {

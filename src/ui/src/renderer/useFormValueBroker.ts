@@ -3,17 +3,19 @@ import { useEvaluator } from "@/renderer/useEvaluator";
 import { Core, InstancePath } from "@/writerTypes";
 
 /**
- *
  * Encapsulates repeatable form value logic, including binding.
  *
  * @param wf
  * @param componentId
+ * @param defaultValue the initial value when binding is not set
  * @returns
  */
 export function useFormValueBroker<T = any>(
 	wf: Core,
 	instancePath: InstancePath,
 	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
+	// @ts-expect-error keep default string for compatibility reason
+	defaultValue: T = "",
 ) {
 	const formValue: Ref<T> = ref();
 	const isBusy = ref(false);
@@ -110,7 +112,7 @@ export function useFormValueBroker<T = any>(
 		formValue,
 		(newValue) => {
 			if (typeof newValue === "undefined") {
-				formValue.value = "" as T;
+				formValue.value = defaultValue;
 			}
 		},
 		{ immediate: true },

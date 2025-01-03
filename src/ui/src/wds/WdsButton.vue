@@ -8,10 +8,15 @@
 import { computed, PropType } from "vue";
 
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonVariant = "primary" | "secondary" | "tertiary" | "neutral";
+type WdsButtonVariant =
+	| "primary"
+	| "secondary"
+	| "tertiary"
+	| "special"
+	| "neutral";
 
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonSize = "big" | "small" | "unpadded";
+type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
@@ -33,10 +38,10 @@ const className = computed(() => [
 	max-width: 100%;
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 8px;
 	border-radius: 300px;
 	font-weight: 600;
-	line-height: 20px;
 	font-size: 0.875rem;
 	cursor: pointer;
 	box-shadow: var(--buttonShadow);
@@ -61,47 +66,66 @@ const className = computed(() => [
 	background: var(--intensifiedButtonColor);
 }
 .WdsButton--primary:disabled {
-	border-color: #4a46da;
-	background-color: #4a46da;
+	border-color: var(--wdsColorBlue6);
+	background-color: var(--wdsColorBlue6);
 }
 
 /* VARIANTS -- secondary */
 
 .WdsButton--secondary {
 	color: var(--buttonTextColor);
-	background: #000000;
-	border-color: #000000;
+	background: var(--wdsColorBlack);
+	border-color: var(--wdsColorBlack);
 }
 
 .WdsButton--secondary:hover,
 .WdsButton--secondary:focus {
-	border-color: #333333;
-	background: #333333;
+	border-color: var(--wdsColorGray6);
+	background: var(--wdsColorGray6);
 }
 .WdsButton--secondary:disabled {
-	border-color: #333333;
-	background: #333333;
+	border-color: var(--wdsColorGray6);
+	background: var(--wdsColorGray6);
 	opacity: 40%;
 }
 
 /* VARIANTS -- tertiary */
 
 .WdsButton--tertiary {
-	color: #000000;
-	background: #ffffff;
-	border-color: #e4e7ed;
+	color: var(--wdsColorBlack);
+	background: var(--wdsColorWhite);
+	border-color: var(--wdsColorGray2);
 }
 
 .WdsButton--tertiary:hover,
 .WdsButton--tertiary:focus {
-	color: #828282;
+	color: var(--wdsColorGray4);
 }
 .WdsButton--tertiary:disabled {
-	color: #828282;
+	color: var(--wdsColorGray4);
 	opacity: 50%;
 }
 
-/* VARIANTS -- neutral */
+/* VARIANTS -- special */
+
+.WdsButton--special {
+	color: var(--wdsColorBlue5);
+	background: var(--wdsColorBlue2);
+	border-color: var(--wdsColorBlue2);
+}
+
+.WdsButton--special:hover,
+.WdsButton--special:focus {
+	border-color: var(--wdsColorBlue3);
+	background: var(--wdsColorBlue3);
+}
+.WdsButton--special:disabled {
+	border-color: var(--wdsColorBlue2);
+	background-color: var(--wdsColorBlue2);
+	opacity: 0.4;
+}
+
+/* VARIANTS -- neutral (WDS "White" equivalent) */
 
 .WdsButton--neutral {
 	border: none;
@@ -112,17 +136,16 @@ const className = computed(() => [
 	padding: 0;
 }
 
-.WdsButton--neutral:hover,
-.WdsButton--neutral:focus {
+.WdsButton--neutral:focus,
+.WdsButton--neutral:hover {
 	color: unset;
 	border: none;
 	box-shadow: none;
-	background: var(--builderSeparatorColor);
+	background: var(--builderSubtleSeparatorColor);
 }
 
 .WdsButton--neutral:disabled {
-	color: #828282;
-	opacity: 50%;
+	opacity: 0.4;
 }
 
 /* SIZES */
@@ -136,7 +159,13 @@ const className = computed(() => [
 	padding: 4px 16px 4px 16px;
 }
 
-.WdsButton--unpadded {
-	padding: 0;
+.WdsButton--icon {
+	height: 40px;
+	width: 40px;
+}
+
+.WdsButton--smallIcon {
+	height: 32px;
+	width: 32px;
 }
 </style>

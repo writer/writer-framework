@@ -316,18 +316,50 @@ export function generateCore() {
 			? getPayloadFromEvent(event)
 			: null;
 		let callback: Function;
+		let handler: string;
 
 		if (event instanceof CustomEvent) {
 			callback = event.detail?.callback;
+			handler = event.detail?.handler;
 		}
 
 		const messagePayload = async () => ({
 			type: event.type,
 			instancePath,
+			handler,
 			payload: await eventPayload,
 		});
 
 		sendFrontendMessage("event", messagePayload, callback, true);
+	}
+
+	/**
+	 * Sends a message to be hashed in the backend using the relevant keys.
+	 * Due to security reasons, it works only in edit mode.
+	 * 
+	 * @param message Messaged to be hashed
+	 * @returns The hashed message
+	 */
+	async function hashMessage(message: string):Promise<string> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) {
+					reject("Couldn't connect to the server.");
+					return;
+				}
+				resolve(r.payload?.message);
+			};
+
+			sendFrontendMessage(
+				"hashRequest",
+				{ message },
+				messageCallback,
+			);
+		});
+
 	}
 
 	async function sendCodeSaveRequest(newCode: string): Promise<void> {
@@ -569,6 +601,7 @@ export function generateCore() {
 		addMailSubscription,
 		init,
 		forwardEvent,
+		hashMessage,
 		runCode: readonly(runCode),
 		sendCodeSaveRequest,
 		sendCodeUpdate,

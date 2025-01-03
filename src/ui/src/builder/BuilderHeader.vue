@@ -5,12 +5,13 @@
 		<div class="undoRedo">
 			<button
 				class="undo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
-						? `Undo ${undoRedoSnapshot.undoDesc}`
+						? `Undo: ${undoRedoSnapshot.undoDesc}`
 						: 'Nothing to undo'
 				"
 				:disabled="!undoRedoSnapshot.isUndoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="undo()"
 			>
 				<i class="material-symbols-outlined"> undo </i>
@@ -18,12 +19,13 @@
 			</button>
 			<button
 				class="redo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
-						? `Redo ${undoRedoSnapshot.redoDesc}`
+						? `Redo: ${undoRedoSnapshot.redoDesc}`
 						: 'Nothing to redo'
 				"
 				:disabled="!undoRedoSnapshot.isRedoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="redo()"
 			>
 				<i class="material-symbols-outlined"> redo </i>
@@ -45,29 +47,6 @@
 			</BuilderModal>
 		</div>
 		<div class="gap"></div>
-		<WdsButton
-			variant="primary"
-			size="small"
-			class="panelToggler"
-			data-automation-action="toggle-code-panel"
-			:class="{ active: ssbm.openPanels.has('code') }"
-			@click="togglePanel('code')"
-		>
-			<i class="material-symbols-outlined"> code </i>
-			Code
-		</WdsButton>
-		<WdsButton
-			variant="primary"
-			size="small"
-			class="panelToggler"
-			data-automation-action="toggle-log-panel"
-			title="Toggle Log panel"
-			:class="{ active: ssbm.openPanels.has('log') }"
-			@click="togglePanel('log')"
-		>
-			Log
-			<BuilderLogIndicator class="indicator"></BuilderLogIndicator>
-		</WdsButton>
 		<div
 			class="syncHealth"
 			:class="wf.syncHealth.value"
@@ -87,8 +66,6 @@ import { useComponentActions } from "./useComponentActions";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
 import injectionKeys from "../injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
-import WdsButton from "@/wds/WdsButton.vue";
-import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 
 const syncHealthIcon = ref(null);
 const wf = inject(injectionKeys.core);
@@ -124,16 +101,6 @@ const syncHealthStatus = () => {
 
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
-}
-
-function togglePanel(
-	panelId: typeof ssbm.openPanels extends Set<infer T> ? T : never,
-) {
-	if (ssbm.openPanels.has(panelId)) {
-		ssbm.openPanels.delete(panelId);
-		return;
-	}
-	ssbm.openPanels.add(panelId);
 }
 
 const customHandlerModalCloseAction: ModalAction = {
@@ -175,7 +142,7 @@ const customHandlerModalCloseAction: ModalAction = {
 .panelToggler:hover {
 	font-size: 12px;
 	--buttonColor: black;
-	--builderSeparatorColor: #303030;
+	--builderSeparatorColor: var(--wdsColorGray6);
 	--buttonTextColor: white;
 }
 

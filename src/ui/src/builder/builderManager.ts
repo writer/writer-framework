@@ -14,6 +14,9 @@ transactions.
 const MUTATIONTRANSACTION_DEBOUNCE_MS = 1000;
 const MAX_LOG_ENTRIES = 100;
 
+export const panelIds = ["code", "log"];
+export type PanelId = (typeof panelIds)[number];
+
 export type WorkflowExecutionLog = {
 	summary: {
 		componentId: Component["id"];
@@ -60,7 +63,6 @@ type SelectionSource = "click" | "tree" | "log";
 
 type State = {
 	mode: "ui" | "workflows" | "preview";
-	openPanels: Set<"log" | "code">;
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
@@ -80,7 +82,6 @@ type State = {
 export function generateBuilderManager() {
 	const initState: State = {
 		mode: "ui",
-		openPanels: new Set(),
 		selection: null,
 		clipboard: null,
 		mutationTransactionsSnapshot: {
@@ -309,7 +310,8 @@ export function generateBuilderManager() {
 	const builder = {
 		setMode,
 		getMode,
-		openPanels: state.value.openPanels,
+		openPanels: ref(new Set<"code" | "log">()),
+		isSettingsBarCollapsed: ref(false),
 		isSelectionActive,
 		setSelection,
 		getSelection,

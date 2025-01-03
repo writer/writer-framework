@@ -7,11 +7,6 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 
-/**
- * RemixIcon by remixicon.com
- */
-import "remixicon/fonts/remixicon.css";
-
 const wf = generateCore();
 
 globalThis.vue = vue;
