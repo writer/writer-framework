@@ -197,12 +197,11 @@ const selectedComponent = computed(() => {
 	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
-const componentDefinition = computed(() => {
-	const { type } = selectedComponent.value;
-	return wf.getComponentDefinition(type);
-});
 const fields = computed(() => {
-	return componentDefinition.value?.fields;
+	return wf.getComponentFieldsForGroupLevel(
+		selectedComponent.value.id,
+		props.groupLevel,
+	);
 });
 
 const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
@@ -240,6 +239,14 @@ function handleExpand(fieldKey: string) {
 function handleShrink(fieldKey: string) {
 	expandedFields.value.delete(fieldKey);
 }
+
+interface Props {
+	groupLevel: 0 | 1;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	groupLevel: 0,
+});
 </script>
 
 <style scoped>

@@ -41,12 +41,12 @@
 						<div
 							class="ball"
 							:class="
-								item.componentDef?.outs?.[item.outcome]?.style
+								outs(item.componentDef, item.outcome)?.style
 							"
 						></div>
 
 						{{
-							item.componentDef?.outs?.[item.outcome]?.name ??
+							outs(item.componentDef, item.outcome)?.name ??
 							item.outcome
 						}}
 					</template>
@@ -139,15 +139,18 @@ const enrichedExecutionLog = computed(() => {
 					...item,
 					component: wf.getComponentById(item.componentId),
 					componentDef: wf.getComponentById(item.componentId)
-						? wf.getComponentDefinition(
-								wf.getComponentById(item.componentId).type,
-							)
+						? wf.getComponentDefinitionById(item.componentId)
 						: undefined,
 				})),
 		],
 	};
 	return eLog;
 });
+
+const outs = (component: WriterComponentDefinition, outcome: string) => {
+	if (!component.outs) return null;
+	return component.outs[outcome];
+};
 
 async function selectBlock(componentId: Component["id"]) {
 	wfbm.setMode("workflows");
