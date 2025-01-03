@@ -69,6 +69,7 @@ import CoreMapbox from "../components/core/embed/CoreMapbox.vue";
 
 import WorkflowsWorkflow from "../components/workflows/WorkflowsWorkflow.vue";
 import WorkflowsNode from "../components/workflows/abstract/WorkflowsNode.vue";
+import WorkflowsNodeGroup from "@/components/workflows/abstract/WorkflowsNodeGroup.vue";
 import WorkflowsRoot from "@/components/workflows/WorkflowsRoot.vue";
 
 import type {
@@ -76,7 +77,8 @@ import type {
 	TemplateMap,
 	WriterComponentDefinition,
 } from "@/writerTypes";
-import { h } from "vue";
+import {ComponentCustomOptions, h} from "vue";
+
 
 const templateMap: TemplateMap = {
 	root: CoreRoot,
@@ -184,11 +186,13 @@ function fallbackTemplate(type: string) {
 function getMergedAbstractTemplate(type: string) {
 	const abstractBaseTemplateMap = {
 		workflows_node: WorkflowsNode,
+		workflows_node_group: WorkflowsNode,
 	};
 	const template = abstractTemplateMap[type];
 	if (!template) return;
 	const baseType = template.baseType;
-	return {
+
+	const mergedTemplate = {
 		...abstractBaseTemplateMap[baseType],
 		writer: {
 			...abstractBaseTemplateMap[baseType].writer,
@@ -199,20 +203,97 @@ function getMergedAbstractTemplate(type: string) {
 			},
 		},
 	};
+	return mergedTemplate;
+}
+
+/**
+ * List Les Nodes grouped in a group node
+ *
+ * @param node_name Name of the group node
+ */
+function _listActionsForGroup(type: string): string[] {
+	const nodes: string[] = [];
+	const node_name = abstractTemplateMap[type].writer.name;
+	for (const [key, value] of Object.entries(abstractTemplateMap)) {
+		if (value.writer.group === node_name) {
+			nodes.push(key);
+		}
+	}
+	return nodes;
+}
+
+/**
+ * Recovers the type of higher level of a node belonging to a group
+ * @param type
+ */
+export function getGroupType(type: string): string | null {
+	if (!(type in abstractTemplateMap)) {
+		return null;
+	}
+
+	const definition = abstractTemplateMap[type];
+	if (definition.baseType === "workflows_node_group") {
+		return type;
+	} else if (definition.baseType === "workflows_node") {
+		for (const [key, value] of Object.entries(abstractTemplateMap)) {
+			if (value.baseType === "workflows_node_group") {
+				if (value.writer.name === definition.writer.group) {
+					return key;
+				}
+			}
+		}
+	}
+
+	return null;
 }
 
 export function getTemplate(type: string) {
-	return (
+	const template =
 		getMergedAbstractTemplate(type) ??
 		templateMap[type] ??
-		fallbackTemplate(type)
-	);
+		fallbackTemplate(type);
+
+	return template;
 }
 
 export function getComponentDefinition(
 	type: string,
 ): WriterComponentDefinition {
 	return getTemplate(type)?.writer;
+}
+
+export function hasComponentDefinition(type: string): boolean {
+	return type in abstractTemplateMap;
+}
+
+export function isGroupNode(type: string): boolean {
+	const isGroupNode = getGroupType(type) !== null;
+	return isGroupNode;
+}
+
+export function getActionName(type: string): string | null {
+	if (isGroupNode(type) && getGroupType(type) !== type) {
+		return abstractTemplateMap[type].writer.name;
+	}
+
+	return null;
+}
+
+export function getAvailableActions(
+	type: string,
+): Record<string, WriterComponentDefinition> {
+	const definitions = {};
+	const groupType = getGroupType(type);
+	if (!groupType || !(type in abstractTemplateMap)) {
+		return definitions;
+	}
+
+	const actions = _listActionsForGroup(groupType);
+	actions.forEach((action) => {
+		definitions[action] = getComponentDefinition(action);
+	});
+
+	return definitions;
 }
 
 export function getSupportedComponentTypes() {
@@ -230,6 +311,7 @@ export function registerAbstractComponentTemplate(
 	type: string,
 	abstractTemplate: AbstractTemplate,
 ) {
+	abstractTemplate.writer.type = type;
 	abstractTemplateMap[type] = abstractTemplate;
 }
 

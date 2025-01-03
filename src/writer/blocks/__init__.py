@@ -1,4 +1,7 @@
 from writer.blocks.addtostatelist import AddToStateList
+from writer.blocks.airtable import Airtable
+from writer.blocks.airtablemanipulaterecord import AirtableManipulateRecord
+from writer.blocks.airtablequeryrecords import AirtableQueryRecords
 from writer.blocks.calleventhandler import CallEventHandler
 from writer.blocks.changepage import ChangePage
 from writer.blocks.code import CodeBlock
@@ -37,3 +40,6 @@ WriterAddToKG.register("workflows_writeraddtokg")
 UIEventTrigger.register("workflows_uieventtrigger")
 CodeBlock.register("workflows_code")
 ChangePage.register("workflows_changepage")
+Airtable.register("workflows_airtable")
+AirtableQueryRecords.register("workflows_airtablequeryrecords")
+AirtableManipulateRecord.register("workflows_airtablemanipulaterecord")

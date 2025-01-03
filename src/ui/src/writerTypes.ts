@@ -82,6 +82,7 @@ export type WriterComponentDefinitionField = {
 
 export type WriterComponentDefinition = {
 	name: string; // Display name for the component
+	type?: string; // Type of the component
 	description: string; // Short description
 	docs?: string; // Collapsible mini-docs
 	toolkit?: "core" | "workflows";
