@@ -33,7 +33,7 @@
 import { toRefs, inject, computed } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);

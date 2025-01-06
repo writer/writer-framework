@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import {
 	PropType,
 	inject,

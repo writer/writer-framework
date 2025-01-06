@@ -40,8 +40,8 @@
 
 <script setup lang="ts">
 import { inject, onMounted, reactive, Ref, ref } from "vue";
-import injectionKeys from "../injectionKeys";
-import WdsButton from "../wds/WdsButton.vue";
+import injectionKeys from "@/injectionKeys";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
 const wf = inject(injectionKeys.core);

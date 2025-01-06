@@ -75,8 +75,8 @@
 import { computed, defineAsyncComponent, inject, onMounted } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
-import { isPlatformMac } from "../core/detectPlatform";
+import injectionKeys from "@/injectionKeys";
+import { isPlatformMac } from "@/core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";

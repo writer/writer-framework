@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { inject, computed, watch, defineAsyncComponent } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
 import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";

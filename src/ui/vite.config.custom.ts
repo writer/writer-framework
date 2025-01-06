@@ -4,8 +4,6 @@ import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import writerPlugin from "./viteWriterPlugin";
 
-const injectionKeys = path.resolve("src/injectionKeys");
-
 export default defineConfig({
 	base: "./",
 	plugins: [vue(), writerPlugin()],
@@ -31,11 +29,11 @@ export default defineConfig({
 			},
 		},
 		rollupOptions: {
-			external: ["vue", injectionKeys],
+			external: ["vue", "@/injectionKeys"],
 			output: {
 				globals: {
 					vue: "vue",
-					[injectionKeys]: "injectionKeys",
+					[path.resolve("src/injectionKeys")]: "injectionKeys",
 				},
 			},
 		},

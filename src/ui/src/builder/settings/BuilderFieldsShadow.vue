@@ -112,7 +112,7 @@ import {
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import {
