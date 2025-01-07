@@ -251,32 +251,49 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	}
 
 	/**
+	 * Removes multiples components at the same time (including their descendents) inside an unique transaction.
+	 *
+	 * @param componentId Id of the target component
+	 */
+	function removeComponentsSubtree(...componentIds: Component["id"][]): void {
+		const components = componentIds
+			.map((i) => wf.getComponentById(i))
+			.filter(Boolean);
+		if (components.length === 0) return;
+
+		const transactionId = `delete-${components.map((c) => c.id).join(",")}`;
+		ssbm.openMutationTransaction(transactionId, `Delete`);
+
+		for (const component of components) {
+			if (wf.getComponentById(component.id).parentId) {
+				repositionHigherSiblings(component.id, -1);
+			}
+			const dependencies = getNodeDependencies(component.id);
+			for (const c of dependencies) {
+				ssbm.registerPreMutation(c);
+				c.outs = [
+					...c.outs.filter((out) => out.toNodeId !== component.id),
+				];
+			}
+			const subtree = getFlatComponentSubtree(component.id);
+			for (const c of subtree) {
+				ssbm.registerPreMutation(c);
+				wf.deleteComponent(c.id);
+				ssbm.removeSelectedComponentId(c.id);
+			}
+		}
+
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+	}
+
+	/**
 	 * Removes a component and all its descendents
 	 *
 	 * @param componentId Id of the target component
 	 */
 	function removeComponentSubtree(componentId: Component["id"]): void {
-		const component = wf.getComponentById(componentId);
-		if (!component) return;
-		const parentId = wf.getComponentById(componentId).parentId;
-
-		const transactionId = `delete-${componentId}`;
-		ssbm.openMutationTransaction(transactionId, `Delete`);
-		if (parentId) {
-			repositionHigherSiblings(component.id, -1);
-		}
-		const dependencies = getNodeDependencies(componentId);
-		dependencies.map((c) => {
-			ssbm.registerPreMutation(c);
-			c.outs = [...c.outs.filter((out) => out.toNodeId !== componentId)];
-		});
-		const subtree = getFlatComponentSubtree(componentId);
-		subtree.map((c) => {
-			ssbm.registerPreMutation(c);
-			wf.deleteComponent(c.id);
-		});
-		ssbm.closeMutationTransaction(transactionId);
-		wf.sendComponentUpdate();
+		return removeComponentsSubtree(componentId);
 	}
 
 	/**
@@ -789,7 +806,11 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 
 		const transactionId = `change-${componentId}-coordinates`;
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
+		ssbm.openMutationTransaction(
+			transactionId,
+			"Change coordinates",
+			false,
+		);
 		ssbm.registerPreMutation(component);
 
 		component.x = Math.floor(x);
@@ -804,14 +825,18 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	 * Change the coordinates of multiple components.
 	 */
 	function changeCoordinatesMultiple(
-		coordinates: Record<Component["id"], {x: number, y: number}>
+		coordinates: Record<Component["id"], { x: number; y: number }>,
 	) {
 		const transactionId = "change-multiple-coordinates";
-		ssbm.openMutationTransaction(transactionId, "Change coordinates", false);
+		ssbm.openMutationTransaction(
+			transactionId,
+			"Change coordinates",
+			false,
+		);
 
-		const entries = Object.entries(coordinates); 
+		const entries = Object.entries(coordinates);
 		if (entries.length == 0) return;
-		entries.forEach(([componentId, {x, y}]) => {
+		entries.forEach(([componentId, { x, y }]) => {
 			const component = wf.getComponentById(componentId);
 			if (!component) return;
 			ssbm.registerPreMutation(component);
@@ -965,6 +990,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		pasteComponent,
 		createAndInsertComponent,
 		removeComponentSubtree,
+		removeComponentsSubtree,
 		isPasteAllowed,
 		undo,
 		redo,

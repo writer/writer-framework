@@ -165,7 +165,7 @@ export default {
 
 		const isSelected = ref(false);
 		watch(
-			() => ssbm?.getSelectedId() == componentId,
+			() => ssbm?.isComponentIdSelected(componentId),
 			(isNowSelected) => {
 				isSelected.value = isNowSelected;
 			},

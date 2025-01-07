@@ -72,7 +72,7 @@ import WdsButton from "@/wds/WdsButton.vue";
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const collapsed = ref(false);
-const selected = computed(() => wfbm.getSelectedId() == props.componentId);
+const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
 const {
 	createAndInsertComponent,
 	moveComponent,
@@ -146,10 +146,10 @@ const name = computed(() => {
 	return def.value?.name ?? `Unknown (${component.value.type})`;
 });
 
-async function select() {
+async function select(ev: MouseEvent | KeyboardEvent) {
 	goToComponentParentPage(props.componentId);
 	await nextTick();
-	wfbm.setSelection(props.componentId, undefined, "tree");
+	wfbm.handleSelectionFromEvent(ev, props.componentId, undefined, "tree");
 	expand();
 }
 
@@ -205,7 +205,7 @@ function toggleCollapse() {
 }
 
 watch(
-	() => wfbm.getSelection(),
+	wfbm.firstSelectedItem,
 	async (newSelection) => {
 		if (!newSelection) return;
 		if (newSelection.componentId !== props.componentId) return;

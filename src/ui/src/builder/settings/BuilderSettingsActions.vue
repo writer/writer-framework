@@ -7,6 +7,7 @@
 		:data-writer-id="selectedId"
 	>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			data-writer-tooltip="Add child"
 			data-writer-tooltip-placement="left"
 			variant="neutral"
@@ -21,6 +22,7 @@
 			><i class="material-symbols-outlined">add</i></WdsButton
 		>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			size="small"
 			variant="neutral"
@@ -35,6 +37,7 @@
 			><i class="material-symbols-outlined">arrow_upward</i></WdsButton
 		>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			variant="neutral"
 			size="small"
@@ -50,6 +53,7 @@
 			<i class="material-symbols-outlined">arrow_downward</i>
 		</WdsButton>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			variant="neutral"
 			size="small"
@@ -65,6 +69,7 @@
 			<i class="material-symbols-outlined">cut</i>
 		</WdsButton>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			variant="neutral"
 			size="small"
@@ -80,6 +85,7 @@
 			<i class="material-symbols-outlined">content_copy</i>
 		</WdsButton>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			variant="neutral"
 			size="small"
@@ -95,6 +101,7 @@
 			<i class="material-symbols-outlined">content_paste</i>
 		</WdsButton>
 		<WdsButton
+			v-if="ssbm.isSingleSelectionActive.value"
 			class="actionButton"
 			variant="neutral"
 			size="small"
@@ -110,6 +117,18 @@
 			<i class="material-symbols-outlined">move_up</i>
 		</WdsButton>
 		<WdsButton
+			v-if="ssbm.selectionStatus.value === SelectionStatus.Multiple"
+			class="actionButton"
+			variant="neutral"
+			size="small"
+			data-automation-action="clear-selection"
+			data-writer-tooltip="Clear selection"
+			data-writer-tooltip-placement="left"
+			@click="ssbm.setSelection(null)"
+		>
+			<i class="material-symbols-outlined">close</i>
+		</WdsButton>
+		<WdsButton
 			class="actionButton delete"
 			variant="neutral"
 			size="small"
@@ -117,11 +136,7 @@
 			data-writer-tooltip="Delete (Del)"
 			data-writer-tooltip-placement="left"
 			:disabled="!shortcutsInfo?.isDeleteEnabled"
-			@click="
-				shortcutsInfo?.isDeleteEnabled
-					? removeComponentSubtree(selectedId)
-					: undefined
-			"
+			@click="deleteSelectedComponents"
 		>
 			<i class="material-symbols-outlined">delete</i>
 		</WdsButton>
@@ -160,6 +175,7 @@ import injectionKeys from "@/injectionKeys";
 import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
+import { SelectionStatus } from "../builderManager";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -178,12 +194,21 @@ const {
 	isPasteAllowed,
 	isDeleteAllowed,
 	getEnabledMoves,
-	removeComponentSubtree,
+	removeComponentsSubtree,
 	goToParent,
 } = useComponentActions(wf, ssbm);
 
-const selectedId = computed(() => ssbm.getSelection()?.componentId);
-const selectedInstancePath = computed(() => ssbm.getSelection()?.instancePath);
+function deleteSelectedComponents() {
+	if (!shortcutsInfo.value.isDeleteEnabled) return;
+	const componentIds = ssbm.selection.value.map((c) => c.componentId);
+	if (componentIds.length === 0) return;
+	removeComponentsSubtree(...componentIds);
+}
+
+const selectedId = ssbm.firstSelectedId;
+const selectedInstancePath = computed(
+	() => ssbm.firstSelectedItem.value?.instancePath,
+);
 
 const isAddModalOpen = ref(false);
 
