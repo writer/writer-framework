@@ -8,7 +8,13 @@
 			<i v-if="!hideIcons" class="material-symbols-outlined">{{
 				currentIcon
 			}}</i>
-			<div class="BuilderSelect__trigger__label">{{ currentLabel }}</div>
+			<div
+				class="BuilderSelect__trigger__label"
+				data-writer-tooltip-strategy="overflow"
+				:data-writer-tooltip="currentLabel"
+			>
+				{{ currentLabel }}
+			</div>
 			<div class="BuilderSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
@@ -141,6 +147,7 @@ function onSelect(value: string) {
 	overflow: hidden;
 	flex-grow: 1;
 	text-align: left;
+	white-space: nowrap;
 }
 .BuilderSelect__trigger__arrow {
 	border: none;
