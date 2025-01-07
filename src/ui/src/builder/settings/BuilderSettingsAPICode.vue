@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import BuilderEmbeddedCodeEditor from "../BuilderEmbeddedCodeEditor.vue";
 import WdsButton from "@/wds/WdsButton.vue";

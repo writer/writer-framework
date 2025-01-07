@@ -1,7 +1,7 @@
 <script lang="ts">
 import { PropType, VNode, computed, h, inject, provide, ref, watch } from "vue";
-import { getTemplate } from "../core/templateMap";
-import injectionKeys from "../injectionKeys";
+import { getTemplate } from "@/core/templateMap";
+import injectionKeys from "@/injectionKeys";
 import { Component, InstancePath, InstancePathItem } from "@/writerTypes";
 import ChildlessPlaceholder from "./ChildlessPlaceholder.vue";
 import ComponentProxy from "./ComponentProxy.vue";

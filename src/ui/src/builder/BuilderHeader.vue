@@ -64,7 +64,7 @@ import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
 const syncHealthIcon = ref(null);

@@ -156,8 +156,8 @@
 import { computed, inject, onMounted, Ref, ref, watch } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import { WriterComponentDefinition } from "@/writerTypes";
-import injectionKeys from "../../injectionKeys";
-import { getModifierKeyName } from "../../core/detectPlatform";
+import injectionKeys from "@/injectionKeys";
+import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 

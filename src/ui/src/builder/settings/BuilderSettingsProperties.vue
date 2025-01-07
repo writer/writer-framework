@@ -113,7 +113,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";

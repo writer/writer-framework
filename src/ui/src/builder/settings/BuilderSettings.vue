@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { inject, computed, ref, watch } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";

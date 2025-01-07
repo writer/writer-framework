@@ -53,7 +53,7 @@ import {
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
