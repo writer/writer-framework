@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CoreDateInput > should render value from the state and forward emit 1`] = `
+<div
+  class="BaseInputWrapper CoreDateInput"
+  data-v-7e12caaf=""
+  data-v-acf95c76=""
+>
+  <label
+    data-v-7e12caaf=""
+  >
+    This is the label
+  </label>
+  
+  <input
+    data-v-acf95c76=""
+    type="date"
+  />
+  
+</div>
+`;

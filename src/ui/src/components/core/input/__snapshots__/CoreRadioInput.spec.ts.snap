@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CoreRadioInput > should render value from the state and forward emit 1`] = `
+<div
+  class="BaseInputWrapper CoreRadioInput"
+  data-v-7e12caaf=""
+  data-v-d075b11d=""
+>
+  <label
+    data-v-7e12caaf=""
+  >
+    This is the label
+  </label>
+  
+  <div
+    class="options horizontal"
+    data-v-d075b11d=""
+  >
+    
+    <div
+      class="option"
+      data-v-d075b11d=""
+    >
+      <input
+        data-v-d075b11d=""
+        id="component-id-test:0-option-a"
+        name="component-id-test:0-options"
+        type="radio"
+        value="a"
+      />
+      <label
+        data-v-d075b11d=""
+        for="component-id-test:0-option-a"
+      >
+        Option A
+      </label>
+    </div>
+    <div
+      class="option"
+      data-v-d075b11d=""
+    >
+      <input
+        data-v-d075b11d=""
+        id="component-id-test:0-option-b"
+        name="component-id-test:0-options"
+        type="radio"
+        value="b"
+      />
+      <label
+        data-v-d075b11d=""
+        for="component-id-test:0-option-b"
+      >
+        Option B
+      </label>
+    </div>
+    
+  </div>
+  
+</div>
+`;
