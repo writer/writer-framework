@@ -8,7 +8,6 @@
 			class="rootBranch"
 			:component-id="rootComponentId"
 			:query="query"
-			:is-root="true"
 		></BuilderSidebarComponentTreeBranch>
 		<div class="add">
 			<WdsButton

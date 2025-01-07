@@ -164,3 +164,27 @@ export type AbstractTemplate = {
 };
 
 export type TemplateMap = Record<string, VueComponent>;
+
+export type SourceFilesFile = {
+	type: "file";
+	complete?: boolean;
+	content: string;
+};
+
+export type SourceFilesDirectory = {
+	type: "directory";
+	children: Record<string, SourceFiles>;
+};
+
+/**
+ * Represent a file tree as an object with:
+ *
+ * - the key representing the filename
+ * - the content as a string for a readable text file, or as a recursive `SourceFiles` if it's a directory
+ *
+ * @example
+ * ```json
+ * { "type": "directory", "children": { "main.py": { "type": "file", "content": "print('hello')", "complete": true } } }
+ * ```
+ */
+export type SourceFiles = SourceFilesDirectory | SourceFilesFile;

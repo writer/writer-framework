@@ -261,6 +261,7 @@ def get_asgi_app(
             components=payload.components,
             userFunctions=payload.userFunctions,
             runCode=run_code,
+            sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
             abstractTemplates=abstract.templates
@@ -546,10 +547,36 @@ def get_asgi_app(
                 ))
         elif req_message.type == "codeSaveRequest":
             app_runner.save_code(
-                session_id, req_message.payload["code"])
+                session_id, req_message.payload["code"], req_message.payload["path"])
         elif req_message.type == "codeUpdate":
-            app_runner.update_code(
-                session_id, req_message.payload["code"])
+            app_runner.update_code(session_id, req_message.payload["code"])
+        elif req_message.type == "loadSourceFile":
+            path = os.path.join(*req_message.payload['path'])
+            try:
+                response.payload = { "content": app_runner.load_persisted_script(path) }
+            except FileNotFoundError as error:
+                logging.warning(f"could not load script at {path}", error)
+                response.payload = {"error": str(error)}
+        elif  req_message.type == "createSourceFile":
+            path = os.path.join(*req_message.payload['path'])
+            try:
+                app_runner.create_persisted_script(path)
+            except Exception as error:
+                response.payload = {"error": str(error)}
+        elif  req_message.type == "deleteSourceFile":
+            path = os.path.join(*req_message.payload['path'])
+            try:
+                app_runner.delete_persisted_script(path)
+            except Exception as error:
+                response.payload = {"error": str(error)}
+        elif  req_message.type == "renameSourceFile":
+            from_path = os.path.join(*req_message.payload['from'])
+            to_path = os.path.join(*req_message.payload['to'])
+            try:
+                app_runner.rename_persisted_script(from_path, to_path)
+            except Exception as error:
+                response.payload = {"error": str(error)}
+
         await websocket.send_json(response.model_dump())
 
     async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):

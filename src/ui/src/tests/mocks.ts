@@ -1,7 +1,7 @@
 import { generateCore } from "@/core";
 import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
-import type { Component, InstancePath } from "@/writerTypes";
+import type { Component, InstancePath, SourceFiles } from "@/writerTypes";
 import { ref } from "vue";
 
 export const mockComponentId = "component-id-test";
@@ -27,10 +27,13 @@ export function buildMockComponent(component: Partial<Component>) {
 export function buildMockCore() {
 	const core = generateCore();
 	const userState = ref({});
+	const sourceFiles = ref<SourceFiles>({ type: "directory", children: {} });
 
-	core.userState = ref(userState);
+	core.userState = userState;
+	// @ts-expect-error overide the default value
+	core.sourceFiles = sourceFiles;
 
-	return { core, userState };
+	return { core, userState, sourceFiles };
 }
 
 export const mockProvides: Record<symbol, unknown> = {

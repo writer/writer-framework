@@ -6,6 +6,7 @@ This module manipulates the folder of a wf project stored into `wf`.
 >>> metadata, components = wf_project.read_files('app/hello')
 """
 import dataclasses
+import glob
 import io
 import json
 import logging
@@ -19,7 +20,7 @@ from multiprocessing import Queue
 from typing import Any, Dict, List, Tuple
 
 from writer import core_ui
-from writer.ss_types import ComponentDefinition, MetadataDefinition
+from writer.ss_types import ComponentDefinition, MetadataDefinition, SourceFilesDirectory
 
 ROOTS = ['root', 'workflows_root']
 COMPONENT_ROOTS = ['page', 'workflows_workflow']
@@ -321,3 +322,61 @@ def can_create_project(path: str) -> bool:
         return True
 
     return False
+
+
+def build_source_files(app_path: str) -> SourceFilesDirectory:
+    """
+    Build a file tree as `Dict` wherein the key represent the filename. The value is a `Dict` with a `type` as:
+
+    - `directory`, so it's a directory containing `children`
+    - `file`, so it's a file with `content` as string. We limit the file to the first X characters and set `"complete": False` if content is truncated
+
+    Example:
+
+    >>> {'type': 'directory', 'children': {'README.md': {'type': 'file', 'content': 'This app w', 'complete': False}}}
+    """
+    def load_persisted_script(file: str) -> str:
+        path = os.path.join(app_path, file)
+        with open(path, "r", encoding='utf-8') as f:
+            return f.read()
+
+    # we can't use `glob`'s `include_hidden` options since it's only available on Python 3.11+
+    files = []
+    for pattern in ['**/*', '**/.*', '.**/*', '.**/.*']:
+        files += glob.glob(os.path.join(app_path, pattern), recursive=True)
+
+    file_tree: SourceFilesDirectory = {
+        "type": "directory",
+        "children": {}
+    }
+
+
+    for file in files:
+        relative_path = os.path.relpath(file, app_path)
+        parts = relative_path.split(os.sep)
+        current_level: SourceFilesDirectory = file_tree
+
+        for part in parts:
+            if os.path.isdir(os.path.join(app_path, *parts[:parts.index(part) + 1])):
+                if part not in current_level["children"]:
+                    current_level["children"][part] = { "type": "directory", "children": {} }
+
+                next_level = current_level["children"][part]
+
+                if next_level["type"] == "directory":
+                    current_level = next_level
+            else:
+                try:
+                    content = load_persisted_script(relative_path)
+                    extension = os.path.splitext(relative_path)[1]
+                    # limit only the first 100 characters to limit bandwidth usage, the rest will be lazy loaded
+                    exerpt = content if extension == '.py' else content[0:100]
+                    current_level["children"][part] = {
+                        "type": "file",
+                        "content": exerpt,
+                        "complete": exerpt == content,
+                    }
+                except (UnicodeDecodeError, FileNotFoundError):
+                    pass
+
+    return file_tree
