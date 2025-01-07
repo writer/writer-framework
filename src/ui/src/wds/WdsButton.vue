@@ -1,5 +1,5 @@
 <template>
-	<button class="WdsButton colorTransformer" :class="className">
+	<button class="WdsButton colorTransformer" :class="className" role="button">
 		<slot></slot>
 	</button>
 </template>
