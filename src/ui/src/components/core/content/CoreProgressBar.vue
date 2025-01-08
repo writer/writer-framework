@@ -18,7 +18,7 @@
 				label
 			}}</label>
 			<span
-				v-if="displayPercentage"
+				v-if="displayPercentage && progression !== undefined"
 				class="CoreProgressBar__title__progress"
 				>{{ progressionText }}</span
 			>
