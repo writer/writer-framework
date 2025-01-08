@@ -6,7 +6,7 @@ All valid HTML tags are supported, including tags such as \`iframe\`, allowing y
 Take into account the potential risks of adding custom HTML to your app, including XSS. Be specially careful when injecting user-generated data.
 </docs>
 <script lang="ts">
-import { h, inject } from "vue";
+import { computed, h, inject } from "vue";
 import { FieldControl, FieldType } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { cssClasses } from "@/renderer/sharedStyleFields";
@@ -39,7 +39,7 @@ export default {
 			},
 			styles: {
 				name: "Styles",
-				default: null,
+				default: "{}",
 				init: JSON.stringify(defaultStyle, null, 2),
 				type: FieldType.Object,
 				desc: "Define the CSS styles to apply to the HTML element using a JSON object or a state reference to a dictionary.",
@@ -47,7 +47,7 @@ export default {
 			},
 			attrs: {
 				name: "Attributes",
-				default: null,
+				default: "{}",
 				type: FieldType.Object,
 				desc: "Set additional HTML attributes for the element using a JSON object or a dictionary via a state reference.",
 				validator: validatorObjectRecordNotNested,
@@ -64,6 +64,24 @@ export default {
 	},
 	setup(_, { slots }) {
 		const fields = inject(injectionKeys.evaluatedFields);
+
+		const validAttributeNameRegex = /^[a-zA-Z][a-zA-Z0-9-_:.]*$/;
+
+		const attrs = computed(() => {
+			if (
+				typeof fields.attrs.value !== "object" ||
+				fields.attrs.value === null
+			) {
+				return {};
+			}
+
+			// filter invalid attribute keys
+			const entries = Object.entries(fields.attrs.value).filter(([key]) =>
+				validAttributeNameRegex.test(key),
+			);
+			return Object.fromEntries(entries);
+		});
+
 		return () => {
 			let insideHtmlNode = undefined;
 			if (fields.htmlInside.value) {
@@ -71,10 +89,11 @@ export default {
 					innerHTML: fields.htmlInside.value,
 				});
 			}
+
 			return h(
 				fields.element.value,
 				{
-					...fields.attrs.value,
+					...attrs.value,
 					class: "CoreHTML",
 					"data-writer-container": "",
 					style: fields.styles.value,
