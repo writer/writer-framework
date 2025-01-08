@@ -1,7 +1,7 @@
 <template>
 	<div class="WorkflowsNode">
 		<div class="title">
-			<img :src="imagePath" />
+			<SharedImgWithFallback :urls="possibleImageUrls" />
 			<WorkflowsNodeNamer
 				:component-id="componentId"
 				class="nodeNamer"
@@ -69,17 +69,18 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-const imagePath = ref<string>(null);
 
 const component = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -142,38 +143,17 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	emit("outMousedown", outId);
 }
 
-async function checkIfUrlExists(url: string) {
-	try {
-		const response = await fetch(url, { method: "HEAD" });
-		return response.ok;
-	} catch {
-		return false;
-	}
-}
-
-async function getBestAvailableImagePath() {
+const possibleImageUrls = computed(() => {
 	const paths = [
-		`./../../../../components/${component.value.type}.svg`,
-		`./../../../../components/workflows_category_${def.value.category}.svg`,
+		`/components/${component.value.type}.svg`,
+		`/components/workflows_category_${def.value.category}.svg`,
 	];
 
 	if (wf.featureFlags.value.includes("custom_block_icons")) {
-		paths.unshift(
-			`./../../../../static/components/${component.value.id}.svg`,
-		);
+		paths.unshift(`/static/components/${component.value.id}.svg`);
 	}
 
-	for (let i = 0; i < paths.length; i++) {
-		const path = paths[i];
-		if (await checkIfUrlExists(path)) {
-			return path;
-		}
-	}
-	return "";
-}
-
-onMounted(async () => {
-	imagePath.value = await getBestAvailableImagePath();
+	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
 
 watch(isEngaged, () => {
