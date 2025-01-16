@@ -36,9 +36,13 @@ function onChange(event: InputEvent) {
 
 <style scoped>
 .CoreDataframeCellBoolean {
+	width: 100%;
 	display: flex;
 	gap: 8px;
 	align-items: center;
+	justify-content: center;
+	border: 1px solid transparent;
+	padding: 8.5px 12px 8.5px 12px;
 }
 .CoreDataframeCellBoolean input {
 	cursor: pointer;
