@@ -11,15 +11,23 @@ const text = computed(() => JSON.stringify(props.value, bigIntReplacer));
 
 <template>
 	<div class="CoreDataframeCellUnknown">
-		{{ text }}
+		<p class="CoreDataframeCellUnknown__content">{{ text }}</p>
 	</div>
 </template>
 
 <style scoped>
 .CoreDataframeCellUnknown {
+	width: 100%;
+	font-size: inherit;
+
+	border: 1px solid transparent;
+	padding: 8.5px 12px 8.5px 12px;
+	pointer-events: none;
+}
+
+.CoreDataframeCellUnknown__content {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
-	display: inline-block;
 }
 </style>
