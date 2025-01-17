@@ -39,6 +39,10 @@ pandas = ">= 2.2.0, < 3"
 plotly = "^5.24.1"
 pyarrow = ">= 15.0.0, < 19.0.0"
 pydantic = ">= 2.6.0, < 3"
+numpy = [
+    {version = "<=2.0.2", python = "<3.10"},
+    {version = "^2.0", python = ">=3.10"}
+]
 python = ">=3.9.2, <4.0"
 python-dateutil = "^2.9.0.post0"
 pytz = "^2024.1"
