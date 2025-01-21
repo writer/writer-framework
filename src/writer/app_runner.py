@@ -20,8 +20,6 @@ from watchdog.observers.polling import PollingObserver
 from writer import VERSION, audit_and_fix, core_ui, crypto, wf_project
 from writer.core import (
     Config,
-    EventHandlerRegistry,
-    MiddlewareRegistry,
     WriterSession,
     use_request_context,
 )
@@ -43,8 +41,6 @@ from writer.ss_types import (
     InitSessionRequestPayload,
     InitSessionResponsePayload,
     ServeMode,
-    StateContentRequest,
-    StateContentResponsePayload,
     StateEnquiryRequest,
     StateEnquiryResponsePayload,
     WriterEvent,
@@ -108,31 +104,6 @@ class AppProcess(multiprocessing.Process):
         self.is_app_process_server_ready = is_app_process_server_ready
         self.is_app_process_server_failed = is_app_process_server_failed 
         self.logger = logging.getLogger("app")
-        self.handler_registry = EventHandlerRegistry()
-        self.middleware_registry = MiddlewareRegistry()
-
-
-    def _load_module(self) -> ModuleType:
-        """
-        Loads the entry point for the user code in module writeruserapp.
-        """
-
-        module_name = "writeruserapp"
-        spec = importlib.util.spec_from_loader(module_name, loader=None)
-        if spec is None:
-            raise ModuleNotFoundError("Couldn't load app module spec.")
-        module: ModuleType = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        globals()[module_name] = module
-
-        return module
-
-    def _get_user_functions(self) -> List[EventHandlerRegistry.HandlerMeta]:
-        """
-        Returns functions exposed in the user code module and registered modules,
-        which are potential event handlers, using the handler registry.
-        """
-        return self.handler_registry.gather_handler_meta()
 
     def _handle_session_init(self, payload: InitSessionRequestPayload) -> InitSessionResponsePayload:
         """
@@ -150,26 +121,32 @@ class AppProcess(multiprocessing.Process):
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
-        user_state = {}
-        try:
-            user_state = session.session_state.user_state.to_dict()
-        except BaseException:
-            session.session_state.add_log_entry(
-                "error", "Serialisation error", tb.format_exc())
+        self._execute_user_code(session)
 
         ui_component_tree = core_ui.export_component_tree(
             session.session_component_tree, mode=writer.Config.mode)
+        
+        evaluated_tree = None
+        try:
+            evaluated_tree = session.evaluator.get_evaluated_tree()
+        except BaseException as e:
+            session.mail.add_log_entry("error",
+                                                "Evaluation error",
+                                                "Couldn't finish the evaluation process.",
+                                                tb.format_exc())
+            evaluated_tree = {}
 
         res_payload = InitSessionResponsePayload(
-            userState=user_state,
+            userState=session.get_serialized_globals(),
             sessionId=session.session_id,
-            mail=session.session_state.mail,
+            mail=session.mail.mail,
             components=ui_component_tree,
-            userFunctions=self._get_user_functions(),
+            evaluatedTree=evaluated_tree,
+            userFunctions=session.handler_registry.gather_handler_meta(),
             featureFlags=writer.Config.feature_flags
         )
 
-        session.session_state.clear_mail()
+        session.mail.clear_mail()
 
         return res_payload
 
@@ -178,67 +155,38 @@ class AppProcess(multiprocessing.Process):
 
         result = session.event_handler.handle(event)
 
-        mutations = {}
-
-        try:
-            mutations = session.session_state.user_state.get_mutations_as_dict()
-        except BaseException:
-            session.session_state.add_log_entry("error",
-                                                "Serialisation Error",
-                                                "An exception was raised during serialisation.",
-                                                tb.format_exc())
-
-        mail = session.session_state.mail
-
         ui_component_tree = core_ui.export_component_tree(
             session.session_component_tree, mode=Config.mode, only_update=True)
 
+        evaluated_tree = None
+        try:
+            evaluated_tree = session.evaluator.get_evaluated_tree()
+        except BaseException:
+            session.mail.add_log_entry("error",
+                                                "Evaluation error",
+                                                "Couldn't finish the evaluation process.",
+                                                tb.format_exc())
+            evaluated_tree = {}
+
         res_payload = EventResponsePayload(
             result=result,
-            mutations=mutations,
+            evaluatedTree=evaluated_tree,
             components=ui_component_tree,
-            mail=mail
+            mail=session.mail.mail
         )
-        session.session_state.clear_mail()
+        session.mail.clear_mail()
 
         return res_payload
 
     def _handle_state_enquiry(self, session: WriterSession) -> StateEnquiryResponsePayload:
-        import traceback as tb
-
-        mutations = {}
-
-        try:
-            mutations = session.session_state.user_state.get_mutations_as_dict()
-        except BaseException:
-            session.session_state.add_log_entry("error",
-                                                "Serialisation Error",
-                                                "An exception was raised during serialisation.",
-                                                tb.format_exc())
-
-        mail = session.session_state.mail
-
         res_payload = StateEnquiryResponsePayload(
-            mutations=mutations,
-            mail=mail
+            evaluatedTree=session.evaluator.get_evaluated_tree(),
+            mail=session.mail.mail
         )
 
-        session.session_state.clear_mail()
+        session.mail.clear_mail()
 
         return res_payload
-
-    def _handle_state_content(self, session: WriterSession) -> StateContentResponsePayload:
-        serialized_state = {}
-        try:
-            serialized_state = session.session_state.user_state.to_raw_state()
-        except BaseException:
-            import traceback as tb
-            session.session_state.add_log_entry("error",
-                                                "Serialisation Error",
-                                                "An exception was raised during serialisation.",
-                                                tb.format_exc())
-
-        return StateContentResponsePayload(state=serialized_state)
 
     def _handle_hash_request(self, req_payload: HashRequestPayload) -> HashRequestResponsePayload:
         res_payload = HashRequestResponsePayload(
@@ -283,7 +231,7 @@ class AppProcess(multiprocessing.Process):
                 )
 
             if type == "event":
-                ev_req_payload = WriterEvent.parse_obj(request.payload)
+                ev_req_payload = WriterEvent.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
@@ -295,13 +243,6 @@ class AppProcess(multiprocessing.Process):
                     status="ok",
                     status_message=None,
                     payload=self._handle_state_enquiry(session)
-                )
-
-            if type == "stateContent":
-                return AppProcessServerResponse(
-                    status="ok",
-                    status_message=None,
-                    payload=self._handle_state_content(session)
                 )
 
             if type == "setUserinfo":
@@ -321,7 +262,7 @@ class AppProcess(multiprocessing.Process):
                 )
 
             if self.mode == "edit" and type == "componentUpdate":
-                cu_req_payload = ComponentUpdateRequestPayload.parse_obj(
+                cu_req_payload = ComponentUpdateRequestPayload.model_validate(
                     request.payload)
                 self._handle_component_update(session, cu_req_payload)
                 return AppProcessServerResponse(
@@ -332,32 +273,17 @@ class AppProcess(multiprocessing.Process):
 
             raise MessageHandlingException("Invalid event.")
 
-    def _execute_user_code(self) -> None:
-        """
-        Executes the user code and captures standard output.
-        """
-
-        import io
-        from contextlib import redirect_stdout
-
-        import writer
-
-        writeruserapp = sys.modules.get("writeruserapp")
-        if writeruserapp is None:
-            raise ValueError("Couldn't find app module (writeruserapp).")
-
-        code_path = os.path.join(self.app_path, "main.py")
-        with redirect_stdout(io.StringIO()) as f:
+    def _execute_user_code(self, session: WriterSession) -> None:
+        session_id = session.session_id
+        request = None
+        with use_request_context(session_id, request):
+            code_path = os.path.join(self.app_path, "main.py")
             code = compile(self.run_code, code_path, "exec")
-            exec(code, writeruserapp.__dict__)
-        captured_stdout = f.getvalue()
+            exec(code, session.globals)
 
-        if captured_stdout:
-            writer.core.initial_state.add_log_entry(
-                "info", "Stdout message during initialization", captured_stdout)
+            # Register non-private functions as handlers
 
-        # Register non-private functions as handlers
-        self.handler_registry.register_module(writeruserapp)
+            session.handler_registry.register_dict(session.globals)
 
     def _apply_configuration(self) -> None:
         import writer
@@ -380,11 +306,8 @@ class AppProcess(multiprocessing.Process):
         self._apply_configuration()
         import os
         os.chdir(self.app_path)
-        self._load_module()
         # Allows for relative imports from the app's path
         sys.path.append(self.app_path)
-
-        import traceback as tb
 
         import writer
 
@@ -392,24 +315,10 @@ class AppProcess(multiprocessing.Process):
 
         try:
             ingest_bmc_component_tree(writer.base_component_tree, self.bmc_components)
-        except BaseException:
-            writer.core.initial_state.add_log_entry(
-                "error", "UI Components Error", "Couldn't load components. An exception was raised.", tb.format_exc())
+        except BaseException as e:
             if self.mode == "run":
                 terminate_early = True
-
-        try:
-            self._execute_user_code()
-        except BaseException:
-            # Initialisation errors will be sent to all sessions via mail during session initialisation
-
-            writer.core.initial_state.add_log_entry(
-                "error", "Code Error", "Couldn't execute code. An exception was raised.", tb.format_exc())
-            
-            # Exit if in run mode
-            
-            if self.mode == "run":
-                terminate_early = True
+            raise e
 
         if terminate_early:
             self._terminate_early()
@@ -771,16 +680,6 @@ class AppRunner:
     async def handle_state_enquiry(self, session_id: str) -> AppProcessServerResponse:
         return await self.dispatch_message(session_id, StateEnquiryRequest(
             type="stateEnquiry"
-        ))
-
-    async def handle_state_content(self, session_id: str) -> AppProcessServerResponse:
-        """
-        This method returns the complete status of the application.
-
-        It is only accessible through tests
-        """
-        return await self.dispatch_message(session_id, StateContentRequest(
-            type="stateContent"
         ))
 
     def save_code(self, session_id: str, code: str) -> None:

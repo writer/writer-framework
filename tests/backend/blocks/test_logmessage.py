@@ -1,13 +1,12 @@
 import pytest
 import writer.core
 from writer.blocks.logmessage import LogMessage
-from writer.core import WriterState
 
 
 def test_log_message(session, runner):
-    session.session_state = WriterState({
+    session.globals = {
         "animal": "rat",
-    }, [{"type": "test", "payload": "Just a test"}])
+    }
     session.add_fake_component({
         "message": "The quick brown fox is under the table."
     })
@@ -15,16 +14,16 @@ def test_log_message(session, runner):
     block = LogMessage("fake_id", runner, {})
     block.run()
     assert block.outcome == "success"
-    latest_mail = session.session_state.mail[0]
+    latest_mail = session.mail.mail[0]
     assert latest_mail.get("type") == "logEntry"
     assert latest_mail.get("payload").get("type") == "info"
     assert latest_mail.get("payload").get("message") == "The quick brown fox is under the table."
 
 
 def test_log_message_with_template(session, runner):
-    session.session_state = WriterState({
+    session.globals = {
         "animal": "rat",
-    })
+    }
     session.add_fake_component({
         "message": "The quick brown @{animal} is under the @{object}."
     })
@@ -34,16 +33,16 @@ def test_log_message_with_template(session, runner):
     })
     block.run()
     assert block.outcome == "success"
-    latest_mail = session.session_state.mail[0]
+    latest_mail = session.mail.mail[0]
     assert latest_mail.get("type") == "logEntry"
     assert latest_mail.get("payload").get("type") == "info"
     assert latest_mail.get("payload").get("message") == "The quick brown rat is under the tent."
 
 
 def test_log_error_message(session, runner):
-    session.session_state = WriterState({
+    session.globals = {
         "animal": "squirrel",
-    })
+    }
     session.add_fake_component({
         "type": "error",
         "message": "The quick brown @{animal} has escaped."
@@ -59,9 +58,9 @@ def test_log_error_message(session, runner):
 
 
 def test_empty_message(session, runner):
-    session.session_state = WriterState({
+    session.globals = {
         "animal": None,
-    })
+    }
     session.add_fake_component({
         "type": "error",
         "message": "@{animals}"

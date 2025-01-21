@@ -319,10 +319,6 @@ class EditableDataFrame(MutableValue):
     Editable Dataframe makes it easier to process events from components
     that modify a dataframe like the dataframe editor.
 
-    >>> initial_state = wf.init_state({
-    >>>    "df": wf.EditableDataFrame(df)
-    >>> })
-
     Editable Dataframe is compatible with a pandas, thrillers or record list dataframe
     """
     processors = [PandasRecordProcessor, PolarRecordProcessor, RecordListRecordProcessor]

@@ -3,12 +3,14 @@ import writer.core
 from writer.blocks.calleventhandler import CallEventHandler
 
 
-def valid_handler(state):
-    state["animal"] = "duck"
+def valid_handler():
+    global animal
+    animal = "duck"
     return 1
 
-def invalid_handler(state):
-    state["animal"] = "cat"
+def invalid_handler():
+    global animal
+    animal = "cat"
     return 1/0
 
 class MockHandlerRegistry():

@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 from pydantic import BaseModel, Field, field_validator, validator
 from typing_extensions import TypedDict
 
+import writer
 from writer.ss_types import ComponentDefinition, ServeMode
 
 current_parent_container: ContextVar[Union["Component", None]] = \
@@ -271,7 +272,7 @@ class ComponentTree():
         if is_positionless:
             return -2
 
-        children = self._get_direct_descendents(parent_id)
+        children = self.get_direct_descendents(parent_id)
         cmc_children = list(filter(lambda c: c.isCodeManaged is True, children))
         if len(cmc_children) > 0:
             position = \
@@ -281,7 +282,7 @@ class ComponentTree():
             return 0
 
     def get_descendents(self, parent_id: str) -> List[Component]:
-        children = self._get_direct_descendents(parent_id)
+        children = self.get_direct_descendents(parent_id)
         desc = children.copy()
         for child in children:
             desc += self.get_descendents(child.id)
@@ -312,7 +313,7 @@ class ComponentTree():
 
         return branch.freeze
 
-    def _get_direct_descendents(self, parent_id: str) -> List[Component]:
+    def get_direct_descendents(self, parent_id: str) -> List[Component]:
         _all_components = self.components.values()
         children = list(filter(lambda c: c.parentId == parent_id, _all_components))
         return children

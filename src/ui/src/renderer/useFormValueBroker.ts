@@ -24,19 +24,8 @@ export function useFormValueBroker<T = any>(
 
 	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => wf.getComponentById(componentId));
-	const { evaluateExpression } = useEvaluator(wf);
-
-	function getBindingValue() {
-		const component = wf.getComponentById(componentId);
-		if (component?.binding?.stateRef) {
-			const value = evaluateExpression(
-				component.binding.stateRef,
-				instancePath,
-			);
-			return value;
-		}
-		return;
-	}
+	const { getEvaluatedBinding } = useEvaluator(wf);
+	const evaluatedBinding = getEvaluatedBinding(instancePath);
 
 	/**
 	 * Takes a value and emits a CustomEvent of the given type.
@@ -100,7 +89,7 @@ export function useFormValueBroker<T = any>(
 	}
 
 	watch(
-		() => getBindingValue(),
+		evaluatedBinding,
 		(value) => {
 			if (isBusy.value) return;
 			formValue.value = value as T;

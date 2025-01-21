@@ -1,0 +1,3 @@
+{"id": "lfltcky7l1fsm6j2", "type": "workflows_workflow", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 0}
+{"id": "g04t0b9am2dt65wo", "type": "workflows_logmessage", "content": {"type": "info", "message": "Test"}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 0, "x": 366, "y": 137}
+{"id": "2kzpjg4bs09pnaz0", "type": "workflows_writercompletion", "content": {}, "handlers": {}, "parentId": "lfltcky7l1fsm6j2", "position": 1, "x": 238, "y": 87}

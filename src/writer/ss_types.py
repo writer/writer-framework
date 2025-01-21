@@ -26,7 +26,7 @@ class Readable(Protocol):
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest"]
+                      "keepAlive", "stateEnquiry", "setUserinfo", "hashRequest"]
 
 
 class AbstractTemplate(BaseModel):
@@ -50,6 +50,7 @@ class InitResponseBody(BaseModel):
     extensionPaths: List
     featureFlags: List[str]
     abstractTemplates: Dict[str, AbstractTemplate]
+    evaluatedTree: Dict
 
 
 class InitResponseBodyRun(InitResponseBody):
@@ -115,11 +116,6 @@ class EventRequest(AppProcessServerRequest):
 class StateEnquiryRequest(AppProcessServerRequest):
     type: Literal["stateEnquiry"]
 
-
-class StateContentRequest(AppProcessServerRequest):
-    type: Literal["stateContent"]
-
-
 class HashRequestPayload(BaseModel):
     message: str
 
@@ -145,6 +141,7 @@ class InitSessionResponsePayload(BaseModel):
     mail: List
     userFunctions: List[Dict]
     components: Dict
+    evaluatedTree: Dict[str, Any]
     featureFlags: List[str]
 
 
@@ -155,18 +152,14 @@ class InitSessionResponse(AppProcessServerResponse):
 
 class EventResponsePayload(BaseModel):
     result: Any
-    mutations: Dict[str, Any]
+    evaluatedTree: Dict[str, Any]
     mail: List
     components: Optional[Dict] = None
 
 
 class StateEnquiryResponsePayload(BaseModel):
-    mutations: Dict[str, Any]
+    evaluatedTree: Dict[str, Any]
     mail: List
-
-class StateContentResponsePayload(BaseModel):
-    state: Dict[str, Any]
-
 
 class EventResponse(AppProcessServerResponse):
     type: Literal["event"]

@@ -4,7 +4,6 @@ from typing import Literal
 import pytest
 from writer.app_runner import AppRunner
 
-
 def pytest_collection_modifyitems(config, items):
     if not config.getoption("--full-run"):
         deselected = []

@@ -17,7 +17,6 @@ import {
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
-import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 
@@ -39,6 +38,7 @@ export function generateCore() {
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
+	const evaluatedTree: Ref<Record<string, any>> = shallowRef({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline" | "suspended"> =
 		ref("idle");
@@ -96,9 +96,10 @@ export function generateCore() {
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
+		evaluatedTree.value = initData.evaluatedTree;
 		loadAbstractTemplates(initData.abstractTemplates);
 
-		// put some components behind feature flag
+		// Put some components behind feature flag
 
 		if (featureFlags.value.includes("dataframeEditor")) {
 			const component = await import(
@@ -135,43 +136,6 @@ export function generateCore() {
 		setTimeout(() => {
 			sendFrontendMessage("keepAlive", {}, sendKeepAliveMessage);
 		}, KEEP_ALIVE_DELAY_MS);
-	}
-
-	function ingestMutations(mutations: Record<string, any>) {
-		if (!mutations) return;
-		Object.entries(mutations).forEach(([key, value]) => {
-			/*
-			Splits the key while respecting escaped dots.
-			For example, "files.myfile\.sh" will be split into ["files", "myfile.sh"] 
-			*/
-
-			const mutationFlag = key.charAt(0);
-			const accessor = parseAccessor(key.substring(1));
-			const lastElementIndex = accessor.length - 1;
-			let stateRef = userState.value;
-
-			// Check if the accessor is meant for deletion.
-			const isDeletion = mutationFlag === "-";
-
-			for (let i = 0; i < lastElementIndex; i++) {
-				const nextStateRef = stateRef?.[accessor[i]];
-				if (typeof nextStateRef === "object" && nextStateRef !== null) {
-					stateRef = nextStateRef;
-				} else if (!isDeletion) {
-					// Only create new path elements if it's not a deletion operation.
-					stateRef[accessor[i]] = {};
-					stateRef = stateRef[accessor[i]];
-				}
-			}
-
-			if (isDeletion) {
-				// If it's a deletion operation, delete the property.
-				delete stateRef[accessor.at(-1)];
-			} else {
-				// Otherwise, set the value as usual.
-				stateRef[accessor.at(-1)] = value;
-			}
-		});
 	}
 
 	function ingestComponents(newComponents: Record<string, any>) {
@@ -217,7 +181,7 @@ export function generateCore() {
 				message.messageType == "eventResponse" ||
 				message.messageType == "stateEnquiryResponse"
 			) {
-				ingestMutations(message.payload?.mutations);
+				evaluatedTree.value = message.payload?.evaluatedTree;
 				collateMail(message.payload?.mail);
 				ingestComponents(message.payload?.components);
 			}
@@ -336,11 +300,11 @@ export function generateCore() {
 	/**
 	 * Sends a message to be hashed in the backend using the relevant keys.
 	 * Due to security reasons, it works only in edit mode.
-	 * 
+	 *
 	 * @param message Messaged to be hashed
 	 * @returns The hashed message
 	 */
-	async function hashMessage(message: string):Promise<string> {
+	async function hashMessage(message: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
@@ -353,13 +317,8 @@ export function generateCore() {
 				resolve(r.payload?.message);
 			};
 
-			sendFrontendMessage(
-				"hashRequest",
-				{ message },
-				messageCallback,
-			);
+			sendFrontendMessage("hashRequest", { message }, messageCallback);
 		});
-
 	}
 
 	async function sendCodeSaveRequest(newCode: string): Promise<void> {
@@ -504,7 +463,7 @@ export function generateCore() {
 			components: builderManagedComponents,
 		};
 
-		return new Promise((resolve, reject) => {
+		const updatePromise: Promise<void> = new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
 				payload?: Record<string, any>;
@@ -517,6 +476,22 @@ export function generateCore() {
 			};
 			sendFrontendMessage("componentUpdate", payload, messageCallback);
 		});
+
+		const enquiryPromise: Promise<void> = new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) {
+					reject("Couldn't connect to the server.");
+					return;
+				}
+				resolve();
+			};
+			sendStateEnquiry(messageCallback);
+		});
+
+		return updatePromise.then(() => enquiryPromise);
 	}
 
 	function getComponentById(componentId: Component["id"]): Component {
@@ -620,6 +595,7 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
+		evaluatedTree: readonly(evaluatedTree),
 	};
 
 	return core;

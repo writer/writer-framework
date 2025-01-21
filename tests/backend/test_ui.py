@@ -1,5 +1,6 @@
 import contextlib
 import json
+from pathlib import Path
 
 import writer as wf
 from writer import audit_and_fix, core, wf_project
@@ -14,9 +15,8 @@ from writer.core_ui import (
 from writer.ui import WriterUIManager
 
 from backend.fixtures import core_ui_fixtures
-from tests.backend import test_app_dir
 
-_, sc = wf_project.read_files(test_app_dir)
+_, sc = wf_project.read_files(Path(__file__).resolve().parent / "basic_test_app")
 sc = audit_and_fix.fix_components(sc)
 
 @contextlib.contextmanager
@@ -50,15 +50,15 @@ class TestComponentTree:
         with use_ui_manager_with_init_ui() as ui:
             d = ui.component_tree.to_dict()
             assert d.get(
-                "84378aea-b64c-49a3-9539-f854532279ee").get("type") == "header"
+                "bebc5fe9-63a7-46a7-b0fa-62303555cfaf").get("type") == "header"
 
     def test_descendents(self) -> None:
         with use_ui_manager_with_init_ui() as ui:
             desc = ui.component_tree.get_descendents("root")
             desc_ids = [x.id for x in desc]
-            assert "84378aea-b64c-49a3-9539-f854532279ee" in desc_ids
-            assert "bb4d0e86-619e-4367-a180-be28ab6059f4" in desc_ids
-            assert "85120b55-69c6-4b50-853a-bbbf73ff8121" in desc_ids
+            assert "bebc5fe9-63a7-46a7-b0fa-62303555cfaf" in desc_ids
+            assert "wzudartz9sn1785b" in desc_ids
+            assert "aoyhvw30c0ncxg60" in desc_ids
 
 
 class TestUIManager:
@@ -66,7 +66,7 @@ class TestUIManager:
     def test_find_component(self):
         with use_ui_manager_with_init_ui() as ui:
             # Verify that the find method correctly retrieves a component by its ID
-            expected_id = "84378aea-b64c-49a3-9539-f854532279ee"
+            expected_id = "bebc5fe9-63a7-46a7-b0fa-62303555cfaf"
             with ui.find(expected_id) as found_component:
                 assert found_component is not None
                 assert found_component.id == expected_id
@@ -74,7 +74,7 @@ class TestUIManager:
     def test_find_component_no_context(self):
         with use_ui_manager_with_init_ui() as ui:
             # Verify that the find method correctly retrieves a component by its ID
-            expected_id = "84378aea-b64c-49a3-9539-f854532279ee"
+            expected_id = "bebc5fe9-63a7-46a7-b0fa-62303555cfaf"
             found_component = ui.find(expected_id)
             assert found_component is not None
             assert found_component.id == expected_id

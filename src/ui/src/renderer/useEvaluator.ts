@@ -1,145 +1,18 @@
 import { ComputedRef, computed } from "vue";
 import { Component, Core, FieldType, InstancePath } from "@/writerTypes";
+import { flattenInstancePath } from "./instancePath";
 
 export function useEvaluator(wf: Core) {
-	const templateRegex = /[\\]?@{([^}]*)}/g;
-
-	/**
-	 * Returns the expression as an array of static accessors.
-	 * For example, turns a.b.c into ["a", "b", "c"].
-	 *
-	 */
-	function parseExpression(
-		expr: string,
+	function getEvaluatedBinding(
 		instancePath?: InstancePath,
-	): string[] {
-		let accessors = [],
-			s = "";
-		let level = 0;
-
-		let i = 0
-		while (i < expr.length) {
-			const c = expr.charAt(i);
-			if (c == "\\") {
-				if (i + 1 < expr.length) {
-					s += expr.charAt(i + 1);
-					i++;
-				}
-			} else if (c == ".") {
-				if (level == 0) {
-					accessors.push(s);
-					s = "";
-				} else {
-					s += c;
-				}
-			} else if (c == "[") {
-				if (level == 0) {
-					accessors.push(s);
-					s = "";
-				} else {
-					s += c;
-				}
-				level++;
-			} else if (c == "]") {
-				level--;
-				if (level == 0) {
-					s = evaluateExpression(s, instancePath)?.toString();
-				} else {
-					s += c;
-				}
-			} else {
-				s += c;
-			}
-
-			i++
-		}
-
-		if (s) {
-			accessors.push(s);
-		}
-
-		return accessors;
-	}
-
-	function evaluateExpression(expr: string, instancePath?: InstancePath) {
-		const contextData = instancePath
-			? getContextData(instancePath)
-			: undefined;
-		let contextRef = contextData;
-		let stateRef = wf.userState.value;
-		const accessors = parseExpression(expr, instancePath);
-
-		for (let i = 0; i < accessors.length; i++) {
-			contextRef = contextRef?.[accessors[i]];
-			stateRef = stateRef?.[accessors[i]];
-		}
-
-		return contextRef ?? stateRef;
-	}
-
-	function getContextData(instancePath: InstancePath) {
-		const context = {};
-
-		for (let i = 0; i < instancePath.length - 1; i++) {
-			const pathItem = instancePath[i];
-			const { componentId } = pathItem;
-			const { type } = wf.getComponentById(componentId);
-			if (type !== "repeater") continue;
-			if (i + 1 >= instancePath.length) continue;
-			const repeaterInstancePath = instancePath.slice(0, i + 1);
-			const nextInstancePath = instancePath.slice(0, i + 2);
-			const { instanceNumber } = nextInstancePath.at(-1);
-
-			const repeaterObject = evaluateField(
-				repeaterInstancePath,
-				"repeaterObject",
-			);
-
-			if (!repeaterObject) continue;
-
-			const repeaterEntries = Object.entries(repeaterObject);
-			const keyVariable = evaluateField(
-				repeaterInstancePath,
-				"keyVariable",
-			);
-			const valueVariable = evaluateField(
-				repeaterInstancePath,
-				"valueVariable",
-			);
-
-			context[keyVariable] = repeaterEntries[instanceNumber]?.[0];
-			context[valueVariable] = repeaterEntries[instanceNumber]?.[1];
-		}
-
-		return context;
-	}
-
-	function evaluateTemplate(
-		template: string,
-		instancePath: InstancePath,
-	): string {
-		if (template === undefined || template === null) return "";
-		const evaluatedTemplate = template.replace(
-			templateRegex,
-			(match, captured) => {
-				if (match.charAt(0) == "\\") return match.substring(1); // Escaped @, don't evaluate, return without \
-
-				const expr = captured.trim();
-				if (!expr) return "";
-
-				const exprValue = evaluateExpression(expr, instancePath);
-
-				if (typeof exprValue == "undefined") {
-					return "";
-				} else if (typeof exprValue == "object") {
-					return JSON.stringify(exprValue);
-				}
-
-				return exprValue.toString();
-			},
+	): ComputedRef<any> {
+		const flattenedInstancePath = flattenInstancePath(instancePath);
+		return computed(
+			() =>
+				wf.evaluatedTree.value?.[flattenedInstancePath]?.["binding"]?.[
+					"reference"
+				],
 		);
-
-		return evaluatedTemplate;
 	}
 
 	function getEvaluatedFields(
@@ -167,13 +40,23 @@ export function useEvaluator(wf: Core) {
 		const { fields } = wf.getComponentDefinition(component.type);
 		const contentValue = component.content?.[fieldKey];
 		const defaultValue = fields[fieldKey].default;
-		const evaluated = evaluateTemplate(contentValue, instancePath);
+		const flattenedInstancePath = flattenInstancePath(instancePath);
+		const evaluated =
+			(wf.evaluatedTree.value?.[flattenedInstancePath]?.["content"]?.[
+				fieldKey
+			] ??
+				contentValue) ||
+			defaultValue;
 		const fieldType = fields[fieldKey].type;
 		const isValueEmpty =
 			typeof evaluated == "undefined" ||
 			evaluated === null ||
 			evaluated === "";
-		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue || fieldType == FieldType.Tools) {
+		if (
+			fieldType == FieldType.Object ||
+			fieldType == FieldType.KeyValue ||
+			fieldType == FieldType.Tools
+		) {
 			if (!evaluated) {
 				return JSON.parse(defaultValue ?? null);
 			}
@@ -219,10 +102,10 @@ export function useEvaluator(wf: Core) {
 		if (typeof component.visible === "undefined") return true;
 		if (component.visible.expression === true) return true;
 		if (component.visible.expression === false) return false;
-		const evaluated = evaluateExpression(
-			component.visible.binding as string,
-			instancePath,
-		);
+		// const evaluated = evaluateExpression(
+		// 	component.visible.binding as string,
+		// 	instancePath,
+		// );
 
 		return component.visible.reversed === true ? !evaluated : !!evaluated;
 	}
@@ -230,6 +113,6 @@ export function useEvaluator(wf: Core) {
 	return {
 		getEvaluatedFields,
 		isComponentVisible,
-		evaluateExpression,
+		getEvaluatedBinding,
 	};
 }

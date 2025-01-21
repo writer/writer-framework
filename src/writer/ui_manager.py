@@ -160,7 +160,7 @@ def _prepare_binding(raw_binding):
         if len(raw_binding) == 1:
             binding = {
                 "eventType": list(raw_binding.keys())[0],
-                "stateRef": list(raw_binding.values())[0]
+                "reference": list(raw_binding.values())[0]
             }
             return binding
         elif len(raw_binding) != 0:

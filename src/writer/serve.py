@@ -247,7 +247,8 @@ def get_asgi_app(
             userFunctions=payload.userFunctions,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=abstract.templates
+            evaluatedTree=payload.evaluatedTree,
+            abstractTemplates=abstract.templates,
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -263,6 +264,7 @@ def get_asgi_app(
             runCode=run_code,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
+            evaluatedTree=payload.evaluatedTree,
             abstractTemplates=abstract.templates
         )
 
@@ -297,6 +299,8 @@ def get_asgi_app(
         ))
 
         status = app_response.status
+
+        # raise ValueError(repr(app_response))
 
         """
         Deletes the session cookie that was set by 

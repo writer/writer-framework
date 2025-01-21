@@ -9,17 +9,11 @@ from writer.core import (
     Config,
     FileWrapper,
     Readable,
-    State,
-    WriterState,
     base_component_tree,
     get_app_process,
-    initial_state,
-    new_initial_state,
     session_manager,
     session_verifier,
-)
-from writer.core import (
-    writerproperty as property,
+    get_session
 )
 from writer.core_df import EditableDataFrame
 
@@ -67,9 +61,6 @@ def pack_bytes(raw_data, mime_type: Optional[str] = None):
     return BytesWrapper(raw_data, mime_type)
 
 
-S = TypeVar('S', bound=WriterState)
-
-
 def init_ui() -> WriterUIManager:
     """Initializes and returns an instance of WriterUIManager.
     This manager provides methods to dynamically create and manage UI
@@ -95,32 +86,6 @@ def init_ui() -> WriterUIManager:
         return WriterUIManager()
     else:
         raise RuntimeError(_get_ui_runtime_error_message())
-
-
-def init_state(raw_state: Dict[str, Any], schema: Optional[Type[S]] = None) -> Union[S, WriterState]:
-    """
-    Sets the initial state, which will be used as the starting point for
-    every session.
-
-    initial_state.user_state.state = {}
-    initial_state.user_state.ingest(state_dict)
-    return initial_state
-
-
-
-    >>> import writer as wf
-
-    >>> initial_state = wf.init_state({
-    >>>   "counter": 0,
-    >>> }, schema=AppSchema)
-    """
-    concrete_schema = cast(Type[S], WriterState if schema is None else schema)
-    if not issubclass(concrete_schema, WriterState):
-        raise ValueError("Root schema must inherit from WriterState")
-
-    _initial_state: S = new_initial_state(concrete_schema, raw_state)
-
-    return _initial_state
 
 
 def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
@@ -161,28 +126,15 @@ def init_handlers(handler_modules: Union[List[ModuleType], ModuleType]):
 def middleware():
     """
     A "middleware" is a function that works with every event handler before it is processed and also before returning it.
-
-    >>> import writer as wf
-    >>>
-    >>> @wf.middleware()
-    >>> def my_middleware(state):
-    >>>     state['processing'] += 1
-    >>>     yield
-    >>>     state['processing'] -= 1
-
-    Middleware accepts the same arguments as an event handler.
-
-    >>> import writer as wf
-    >>>
-    >>> @wf.middleware()
-    >>> def my_middleware(state, payload, session):
-    >>>     state['processing'] += 1
-    >>>     yield
-    >>>     state['processing'] -= 1
     """
     def inner(func):
         _app_process = get_app_process()
         _app_process.middleware_registry.register(func)
 
-
     return inner
+
+def get_state():
+    session = get_session()
+    if not session:
+        raise RuntimeError("Cannot get state. No session found.")
+    return session.state
