@@ -28,14 +28,22 @@
 			</WdsButton>
 
 			<slot name="nameLeft" />
-			<span class="BuilderTree__main__name">{{ name }}</span>
+			<span
+				class="BuilderTree__main__name"
+				:data-writer-tooltip="name"
+				data-writer-tooltip-strategy="overflow"
+				>{{ name }}</span
+			>
 			<slot name="nameRight" />
-			<BaseDropdown
+			<div
 				v-if="dropdownOptions && isMainHovered"
 				class="BuilderTree__dropdown"
-				:options="dropdownOptions"
-				@selected="$emit('dropdownSelect', $event)"
-			/>
+			>
+				<BaseDropdown
+					:options="dropdownOptions"
+					@selected="$emit('dropdownSelect', $event)"
+				/>
+			</div>
 		</div>
 		<div
 			v-show="(!collapsed || props.query) && hasChildren"
@@ -139,7 +147,6 @@ function toggleCollapse() {
 
 .BuilderTree__main__name {
 	color: var(--builderPrimaryTextColor);
-	flex-grow: 1;
 }
 
 .BuilderTree__main__collapser {
@@ -153,6 +160,9 @@ function toggleCollapse() {
 }
 
 .BuilderTree__dropdown {
+	flex-grow: 1;
+	display: flex;
+	justify-content: flex-end;
 	color: var(--builderPrimaryTextColor);
 	--containerShadow: var(--wdsShadowMenu);
 }

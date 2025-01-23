@@ -113,6 +113,7 @@ function focus() {
 	font-size: 14px;
 	border: none;
 	background: transparent;
+	width: 100%;
 }
 .WdsTextInput--leftIcon input:focus {
 	border: none;

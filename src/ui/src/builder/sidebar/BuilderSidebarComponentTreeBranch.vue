@@ -1,6 +1,7 @@
 <template>
 	<TreeBranch
 		ref="treeBranch"
+		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
 		:name="name"
 		:query="query"
@@ -154,14 +155,21 @@ function expand() {
 	treeBranch.value.expand();
 	collapsed.value = false;
 	emit("expandBranch");
+	scrollToShow({ onlyHorizontal: true });
 }
 
-function scrollToShow() {
-	if (!treeBranch.value) return;
-	const treeEl = treeBranch.value.$el.closest(".BuilderSidebarComponentTree");
+function scrollToShow(opts?: { onlyHorizontal?: boolean }) {
+	const treeBranchEl = treeBranch.value?.$el as HTMLDivElement;
+	if (!treeBranchEl) return;
+	const treeEl = treeBranchEl.closest(".BuilderSidebarComponentTree");
 	const treeBCR = treeEl.getBoundingClientRect();
-	const scrollTop = treeBranch.value.$el.offsetTop - treeBCR.height / 2;
-	treeEl.scrollTo({ top: scrollTop, left: 0, behavior: "smooth" });
+	const top = treeBranch.value.$el.offsetTop - treeBCR.height / 2;
+	const left = treeBranch.value.$el.offsetLeft - treeBCR.left - 16;
+	treeEl.scrollTo({
+		top: opts?.onlyHorizontal ? undefined : top,
+		left: Math.max(0, left),
+		behavior: "smooth",
+	});
 }
 
 function handleDragStart(ev: DragEvent) {
