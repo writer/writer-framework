@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BaseMarkdown > should render markdown as block 1`] = `
+<div
+  data-v-app=""
+>
+  
+  <div
+    class="BaseMarkdown markdown"
+    data-v-03a7c885=""
+  >
+    <div>
+      # hello
+I'm **MD** 
+    </div>
+  </div>
+  
+</div>
+`;
+
+exports[`BaseMarkdown > should render markdown as inline 1`] = `
+<div
+  data-v-app=""
+>
+  
+  <span
+    class="BaseMarkdown markdown"
+    data-v-03a7c885=""
+  >
+    <span>
+      # hello
+I'm **MD** 
+    </span>
+  </span>
+  
+</div>
+`;

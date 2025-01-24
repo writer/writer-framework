@@ -2,15 +2,17 @@
 	<div v-if="shouldDisplay" class="CoreAnnotatedText">
 		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
 		<span v-for="(content, i) in safeText" :key="String(content) + i">
-			<template v-if="typeof content === 'string'">{{
-				content
-			}}</template>
+			<BaseMarkdown
+				v-if="typeof content === 'string'"
+				:raw-text="content"
+				inline
+			/>
 			<span
 				v-if="Array.isArray(content)"
 				class="annotation"
 				:style="{ background: content[2] || generateColor(content[1]) }"
 			>
-				{{ content[0] }}
+				<BaseMarkdown :raw-text="content[0]" inline />
 				<span v-if="content[1]" class="annotation-subject">
 					{{ content[1] }}
 				</span>
@@ -97,6 +99,7 @@ import injectionKeys from "@/injectionKeys";
 import { computed, ComputedRef, inject } from "vue";
 import chroma, { Color } from "chroma-js";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
+import BaseMarkdown from "../base/BaseMarkdown.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -266,5 +269,8 @@ function stringifyData(arr: string[]) {
 	&:hover {
 		opacity: 0.9;
 	}
+}
+:deep(.BaseMarkdown) {
+	font-size: inherit;
 }
 </style>
