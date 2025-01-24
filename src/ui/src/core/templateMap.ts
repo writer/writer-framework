@@ -7,7 +7,7 @@ import CoreIcon from "../components/core/content/CoreIcon.vue";
 import CoreImage from "../components/core/content/CoreImage.vue";
 import CoreMessage from "../components/core/content/CoreMessage.vue";
 import CoreMetric from "../components/core/content/CoreMetric.vue";
-import CorePlotlyGraph from "../components/core/content/CorePlotlyGraph.vue";
+import CorePlotlyGraphDefinition from "../components/core/content/CorePlotlyGraph.def";
 import CoreText from "../components/core/content/CoreText.vue";
 import CoreVegaLiteChart from "../components/core/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../components/core/content/CoreVideoPlayer.vue";
@@ -57,7 +57,7 @@ import CoreTimer from "../components/core/other/CoreTimer.vue";
 import CoreWebcamCapture from "../components/core/other/CoreWebcamCapture.vue";
 import CoreReuse from "../components/core/other/CoreReuse.vue";
 // embed
-import CorePDF from "../components/core/embed/CorePDF.vue";
+import CorePDFDefinition from "../components/core/embed/CorePDF.def";
 import CoreIFrame from "../components/core/embed/CoreIFrame.vue";
 import CoreGoogleMaps from "../components/core/embed/CoreGoogleMaps.vue";
 // root
@@ -76,7 +76,7 @@ import type {
 	TemplateMap,
 	WriterComponentDefinition,
 } from "@/writerTypes";
-import { h } from "vue";
+import { defineAsyncComponent, h } from "vue";
 
 const templateMap: TemplateMap = {
 	root: CoreRoot,
@@ -99,7 +99,12 @@ const templateMap: TemplateMap = {
 	horizontalstack: CoreHorizontalStack,
 	separator: CoreSeparator,
 	image: CoreImage,
-	pdf: CorePDF,
+	pdf: {
+		definition: CorePDFDefinition,
+		asyncComponent: defineAsyncComponent(
+			() => import("../components/core/embed/CorePDF.vue"),
+		),
+	},
 	iframe: CoreIFrame,
 	googlemaps: CoreGoogleMaps,
 	mapbox: CoreMapbox,
@@ -121,7 +126,12 @@ const templateMap: TemplateMap = {
 	fileinput: CoreFileInput,
 	webcamcapture: CoreWebcamCapture,
 	vegalitechart: CoreVegaLiteChart,
-	plotlygraph: CorePlotlyGraph,
+	plotlygraph: {
+		asyncComponent: defineAsyncComponent(
+			() => import("../components/core/content/CorePlotlyGraph.vue"),
+		),
+		definition: CorePlotlyGraphDefinition,
+	},
 	metric: CoreMetric,
 	message: CoreMessage,
 	videoplayer: CoreVideoPlayer,
@@ -201,7 +211,7 @@ function getMergedAbstractTemplate(type: string) {
 	};
 }
 
-export function getTemplate(type: string) {
+export function getTemplate(type: string): TemplateMap[0] {
 	return (
 		getMergedAbstractTemplate(type) ??
 		templateMap[type] ??
@@ -209,10 +219,25 @@ export function getTemplate(type: string) {
 	);
 }
 
+export function getComponentTemplate(type: string): VueComponent {
+	const template = getTemplate(type);
+
+	if (template === undefined) return undefined;
+	if (typeof template === "object" && "asyncComponent" in template)
+		return template.asyncComponent;
+	return template;
+}
+
 export function getComponentDefinition(
 	type: string,
 ): WriterComponentDefinition {
-	return getTemplate(type)?.writer;
+	const template = getTemplate(type);
+
+	if (template === undefined) return undefined;
+	if (typeof template === "object" && "definition" in template)
+		return template.definition;
+	// @ts-expect-error writer is defined
+	return template.writer;
 }
 
 export function getSupportedComponentTypes() {

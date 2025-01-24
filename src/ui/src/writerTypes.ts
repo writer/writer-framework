@@ -1,4 +1,4 @@
-import type { Component as VueComponent } from "vue";
+import type { AsyncComponentLoader, Component as VueComponent } from "vue";
 import { generateCore } from "./core";
 import { generateBuilderManager } from "./builder/builderManager";
 
@@ -163,4 +163,11 @@ export type AbstractTemplate = {
 	writer: WriterComponentDefinition;
 };
 
-export type TemplateMap = Record<string, VueComponent>;
+export type TemplateMap = Record<
+	string,
+	| VueComponent
+	| {
+			definition: WriterComponentDefinition;
+			asyncComponent: AsyncComponentLoader;
+	  }
+>;

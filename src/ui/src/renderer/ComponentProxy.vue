@@ -1,6 +1,6 @@
 <script lang="ts">
 import { PropType, VNode, computed, h, inject, provide, ref, watch } from "vue";
-import { getTemplate } from "@/core/templateMap";
+import { getComponentTemplate, getTemplate } from "@/core/templateMap";
 import injectionKeys from "@/injectionKeys";
 import {
 	Component,
@@ -25,7 +25,7 @@ export default {
 		const ssbm = inject(injectionKeys.builderManager);
 		const componentId = props.componentId;
 		const component = computed(() => wf.getComponentById(componentId));
-		const template = getTemplate(component.value.type);
+		const template = getComponentTemplate(component.value.type);
 		const instancePath = props.instancePath;
 		const instanceData = props.instanceData;
 		const { getEvaluatedFields, isComponentVisible } = useEvaluator(wf);
