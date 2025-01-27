@@ -1,35 +1,25 @@
 <template>
-	<template v-if="html !== undefined">
-		<span
-			v-if="inline"
-			v-dompurify-html="html"
-			class="BaseMarkdown markdown"
-		></span>
-		<div v-else v-dompurify-html="html" class="BaseMarkdown markdown"></div>
-	</template>
+	<div
+		v-if="isMarkedLoaded"
+		v-dompurify-html="marked.parse(props.rawText).trim()"
+		class="BaseMarkdown markdown"
+	></div>
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, watch } from "vue";
+import { onBeforeMount, ref } from "vue";
 
-const props = defineProps({
-	rawText: { type: String, required: true },
-	inline: { type: Boolean },
+let marked: typeof import("marked");
+const isMarkedLoaded = ref(false);
+
+const props = defineProps<{
+	rawText: string;
+}>();
+
+onBeforeMount(async () => {
+	marked = await import("marked");
+	isMarkedLoaded.value = true;
 });
-
-const html = ref<string | undefined>(undefined);
-
-const { rawText, inline } = toRefs(props);
-
-async function buildHtml() {
-	const marked = await import("marked");
-	const result = inline.value
-		? marked.parseInline(rawText.value, { async: false })
-		: marked.parse(rawText.value, { async: false });
-	html.value = await result;
-}
-
-watch([rawText, inline], buildHtml, { immediate: true });
 </script>
 
 <style scoped>
