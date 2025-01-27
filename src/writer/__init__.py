@@ -9,6 +9,7 @@ from writer.core import (
     Config,
     FileWrapper,
     Readable,
+    WriterState,
     base_component_tree,
     get_app_process,
     session_manager,
@@ -133,7 +134,7 @@ def middleware():
 
     return inner
 
-def get_state():
+def get_state() -> "WriterState":
     session = get_session()
     if not session:
         raise RuntimeError("Cannot get state. No session found.")

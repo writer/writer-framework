@@ -16,6 +16,8 @@ def serialize(v: Any) -> Union[Dict, List, str, bool, int, float, None]:
     from writer.ai import Conversation
     from writer.core_df import EditableDataFrame
 
+    if isinstance(v, writer.core.WriterState):
+        return _serialize_dict_recursively(v._state_data)
     if isinstance(v, Conversation):
         return v.serialized_messages
     if isinstance(v, (writer.core.FileWrapper, writer.core.BytesWrapper)):

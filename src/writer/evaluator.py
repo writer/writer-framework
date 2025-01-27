@@ -25,24 +25,24 @@ class Evaluator:
 
     EXPRESSIONS_TEMPLATE_REGEX = re.compile(r"\{\{([^{}]*)\}\}")
 
-    def __init__(self, globals: Dict, component_tree: "ComponentTree", mail: "writer.core.SessionMail"):
-        self.globals = globals
+    def __init__(self, state: "writer.core.WriterState", component_tree: "ComponentTree", mail: "writer.core.SessionMail"):
+        self.state = state
         self.component_tree = component_tree
         self.mail = mail
         self.evaluated_tree = None
 
     @classmethod
-    def _transform_expression_to_globals_reference(cls, expr: str) -> str:
+    def _transform_expression_to_state_reference(cls, expr: str) -> str:
         pattern = r"^(\w+)([\.\[]?.*)"
-        transformed_expr = re.sub(pattern, r'globals()["\1"]\2', expr)
+        transformed_expr = re.sub(pattern, r'state["\1"]\2', expr)
         return transformed_expr
 
     def set_state(self, expr: str, value: Any, locals: Dict) -> None:        
         # expr is safe and always defined by an app editor.
         
         try:
-            transformed_expr = Evaluator._transform_expression_to_globals_reference(expr)
-            exec(f"{transformed_expr} = __wf_temp_assignment_value", self.globals, locals | {"__wf_temp_assignment_value": value})
+            transformed_expr = Evaluator._transform_expression_to_state_reference(expr)
+            exec(f"{transformed_expr} = __wf_temp_assignment_value", locals | {"state": self.state, "__wf_temp_assignment_value": value})
         except BaseException as e:
             import traceback
             msg = f"Couldn't assign value to expression `{expr}`. Please make sure that it's a valid left-hand side expression."
@@ -229,7 +229,7 @@ class Evaluator:
         if expr.startswith("$") and len(expr) > 1:
             return os.getenv(expr[1:])
         try:
-            return eval(expr, self.globals, locals)
+            return eval(expr, None, self.state._state_data | locals)
         except BaseException as e:
             import traceback
             self.mail.add_log_entry("error", "Evaluation error",

@@ -1,6 +1,5 @@
 import asyncio
 import concurrent.futures
-import importlib.util
 import logging
 import logging.handlers
 import multiprocessing
@@ -10,14 +9,13 @@ import os
 import signal
 import sys
 import threading
-from types import ModuleType
-from typing import Callable, Dict, List, Optional, cast
+from typing import Callable, Dict, Optional, cast
 
 import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix, core_ui, crypto, wf_project
+from writer import VERSION, audit_and_fix, core_ui, crypto, serializer, wf_project
 from writer.core import (
     Config,
     WriterSession,
@@ -137,7 +135,7 @@ class AppProcess(multiprocessing.Process):
             evaluated_tree = {}
 
         res_payload = InitSessionResponsePayload(
-            userState=session.get_serialized_globals(),
+            userState=serializer.serialize(session.state),
             sessionId=session.session_id,
             mail=session.mail.mail,
             components=ui_component_tree,

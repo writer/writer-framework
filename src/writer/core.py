@@ -266,16 +266,11 @@ class WriterSession:
         self.mail = SessionMail()
         self.handler_registry = EventHandlerRegistry()
         self.middleware_registry = MiddlewareRegistry()
-        self.evaluator = writer.evaluator.Evaluator(self.globals, self.session_component_tree, self.mail)
+        self.evaluator = writer.evaluator.Evaluator(self.state, self.session_component_tree, self.mail)
         self.event_handler = EventHandler(self)
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
-
-    def get_serialized_globals(self):
-        globals_excluding_builtins = {k: v for k, v in self.globals.items() if k != "__builtins__"}
-
-        return serialize(globals_excluding_builtins)
 
 class FileWrapper:
     """
@@ -498,7 +493,7 @@ class EventDeserializer:
     applying sanitisation of inputs where relevant."""
 
     def __init__(self, session: "WriterSession"):
-        self.evaluator = writer.evaluator.Evaluator(session.globals, session.session_component_tree, session.mail)
+        self.evaluator = writer.evaluator.Evaluator(session.state, session.session_component_tree, session.mail)
 
     def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
@@ -1252,6 +1247,9 @@ class WriterState:
             if name in _state_data:
                 return _state_data[name]
             raise AttributeError(f""""{name}" isn't present in state.""")
+
+    def __dict__(self):
+        return self._state_data
 
     def __repr__(self):
         return repr(self._state_data)
