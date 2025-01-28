@@ -25,6 +25,7 @@ import {
 	buttonShadow,
 	separatorColor,
 	cssClasses,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import { watch } from "vue";
 import { getClick } from "@/renderer/syntheticEvents";
@@ -57,13 +58,9 @@ export default {
 				type: FieldType.Text,
 			},
 			isDisabled: {
+				...baseYesNoField,
 				name: "Disabled",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				desc: "Disables all event handlers.",
 			},
 			buttonColor,
@@ -92,8 +89,8 @@ const isDisabled = inject(injectionKeys.isDisabled);
 
 watch(
 	fields.isDisabled,
-	(newFieldValue: string) => {
-		isDisabled.value = newFieldValue == "yes";
+	(newFieldValue: boolean) => {
+		isDisabled.value = newFieldValue;
 	},
 	{
 		immediate: true,

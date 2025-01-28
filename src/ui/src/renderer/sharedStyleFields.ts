@@ -117,21 +117,27 @@ export const contentPadding: WriterComponentDefinitionField = {
 	category: FieldCategory.Style,
 };
 
-const yesNoOptions = { yes: "Yes", no: "No" };
+export const baseYesNoField = Object.freeze<
+	Pick<WriterComponentDefinitionField, "type" | "validator" | "options">
+>({
+	type: FieldType.Boolean,
+	options: { yes: "Yes", no: "No" },
+	validator: {
+		type: "boolean",
+	},
+});
 
 export const isCollapsible: WriterComponentDefinitionField = {
+	...baseYesNoField,
 	name: "Collapsible",
 	default: "no",
-	type: FieldType.Text,
-	options: yesNoOptions,
 	category: FieldCategory.Style,
 };
 
 export const startCollapsed: WriterComponentDefinitionField = {
+	...baseYesNoField,
 	name: "Start collapsed",
-	type: FieldType.Text,
 	category: FieldCategory.Style,
 	default: "no",
-	options: yesNoOptions,
 	desc: "Only applied when the component is collapsible.",
 };

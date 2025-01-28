@@ -18,7 +18,7 @@
 			:disabled="!isBeingEdited"
 			:class="{
 				active: isStepActive,
-				completed: fields.isCompleted.value == 'yes',
+				completed: fields.isCompleted.value,
 			}"
 			stepindex="0"
 			@click="activateStep"
@@ -28,11 +28,11 @@
 				<div
 					class="status"
 					:class="{
-						completed: fields.isCompleted.value == 'yes',
+						completed: fields.isCompleted.value,
 					}"
 				>
 					<i
-						v-if="fields.isCompleted.value == 'yes'"
+						v-if="fields.isCompleted.value"
 						class="material-symbols-outlined"
 					>
 						done
@@ -72,6 +72,7 @@ import {
 	contentHAlign,
 	cssClasses,
 	contentPadding,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import { onBeforeUnmount } from "vue";
 
@@ -97,14 +98,10 @@ export default {
 				default: "16px",
 			},
 			isCompleted: {
+				...baseYesNoField,
 				name: "Completed",
 				desc: "Use a state reference to dynamically mark this step as complete.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			contentHAlign,
 			cssClasses,
@@ -203,7 +200,7 @@ function activateNextStep() {
 	const subsequentSteps = stepContainerData.value.steps.slice(
 		currentStepIndex + 1,
 	);
-	let nextStep = subsequentSteps.find((step) => step.isCompleted != "yes");
+	let nextStep = subsequentSteps.find((step) => !step.isCompleted);
 	if (!nextStep) {
 		const lastStep = stepContainerData.value.steps.at(-1);
 		nextStep = lastStep;
@@ -222,7 +219,7 @@ function checkIfStepIsParent(childId: Component["id"]): boolean {
 }
 
 function activateDefaultStep() {
-	if (fields.isCompleted.value != "yes") {
+	if (!fields.isCompleted.value) {
 		activateStep();
 		return;
 	}
@@ -270,7 +267,7 @@ Prevent a step of being active while completed.
 watch([isStepActive, fields.isCompleted], () => {
 	if (isBeingEdited.value) return;
 	if (!isStepActive.value) return;
-	if (fields.isCompleted.value == "yes") {
+	if (fields.isCompleted.value) {
 		activateNextStep();
 	}
 });
@@ -278,9 +275,9 @@ watch([isStepActive, fields.isCompleted], () => {
 /*
 Activate any step that was previously complete but switched to non-completed.
 */
-watch(fields.isCompleted, (value: string, oldValue: string) => {
-	if (oldValue !== "yes") return;
-	if (value !== "no") return;
+watch(fields.isCompleted, (value: boolean, oldValue: boolean) => {
+	if (!oldValue) return;
+	if (value) return;
 	activateDefaultStep();
 });
 

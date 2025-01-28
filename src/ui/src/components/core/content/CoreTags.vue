@@ -25,7 +25,11 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
-import { cssClasses, primaryTextColor } from "@/renderer/sharedStyleFields";
+import {
+	baseYesNoField,
+	cssClasses,
+	primaryTextColor,
+} from "@/renderer/sharedStyleFields";
 import { WdsColor } from "@/wds/tokens";
 
 const clickHandlerStub = `
@@ -61,13 +65,9 @@ export default {
 				category: FieldCategory.Style,
 			},
 			rotateHue: {
+				...baseYesNoField,
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
-				type: FieldType.Text,
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "yes",
 				category: FieldCategory.Style,
 			},
@@ -113,7 +113,7 @@ const isClickable = computed(() => {
 });
 
 function generateColor(s: string) {
-	if (fields.rotateHue.value == "no") {
+	if (!fields.rotateHue.value) {
 		return fields.referenceColor.value;
 	}
 	const baseColor = chroma(fields.referenceColor.value);

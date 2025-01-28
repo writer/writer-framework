@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import { ComponentPublicInstance } from "vue";
-import { cssClasses } from "@/renderer/sharedStyleFields";
+import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
 import { FieldType } from "@/writerTypes";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
@@ -94,13 +94,9 @@ export default {
 				desc: "Provides hints for browsers to select the correct file types. You can specify extensions and MIME types separated by comma, or leave empty to accept any file.",
 			},
 			allowMultipleFiles: {
+				...baseYesNoField,
 				name: "Allow multiple files",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			cssClasses,
 		},
@@ -145,7 +141,7 @@ const selectedFiles = computed<SavedFile[]>(() =>
 const allowFileTypes = computed(() => fields.allowFileTypes?.value ?? "");
 
 const allowMultipleFilesFlag = computed(() => {
-	return fields.allowMultipleFiles.value == "yes" ? true : undefined;
+	return fields.allowMultipleFiles.value || undefined;
 });
 
 const encodeFile = async (file: File) => {

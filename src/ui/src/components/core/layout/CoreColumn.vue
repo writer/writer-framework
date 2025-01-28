@@ -3,7 +3,7 @@
 		class="CoreColumn"
 		:style="rootStyle"
 		:class="{
-			sticky: isSticky,
+			sticky: fields.isSticky.value,
 			collapsible: isCollapsible,
 			collapsibleToRight: isCollapsibleToRight,
 			collapsed: isCollapsed,
@@ -47,6 +47,7 @@ import {
 	separatorColor,
 	startCollapsed,
 	isCollapsible as isCollapsibleField,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import { validatorPositiveNumber } from "@/constants/validators";
 
@@ -75,13 +76,9 @@ export default {
 				validator: validatorPositiveNumber,
 			},
 			isSticky: {
+				...baseYesNoField,
 				name: "Sticky",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				category: FieldCategory.Style,
 			},
 			isCollapsible: isCollapsibleField,
@@ -111,11 +108,10 @@ const wf = inject(injectionKeys.core);
 const componentId = inject(injectionKeys.componentId);
 
 const fields = inject(injectionKeys.evaluatedFields);
-const isCollapsible = computed(() => fields.isCollapsible.value == "yes");
-const isCollapsed: Ref<boolean> = ref(
-	fields.isCollapsible.value == "yes" && fields.startCollapsed.value == "yes",
+const isCollapsible = computed(() => Boolean(fields.isCollapsible.value));
+const isCollapsed = ref(
+	fields.isCollapsible.value && fields.startCollapsed.value,
 );
-const isSticky = computed(() => fields.isSticky.value == "yes");
 
 const rootStyle = computed(() => {
 	let flex: string;
