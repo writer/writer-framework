@@ -1,0 +1,123 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CoreAnnotatedText > should render in markdown mode 1`] = `""`;
+
+exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
+<div
+  class="CoreAnnotatedText"
+  data-v-13ebc398=""
+>
+  
+  <!--v-if-->
+  
+  <span
+    data-v-13ebc398=""
+  >
+    
+    # This
+
+
+    
+    <!--v-if-->
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    <!--v-if-->
+    <span
+      class="CoreAnnotatedText__annotation"
+      data-v-13ebc398=""
+      style="background-color: red;"
+    >
+      **is** 
+      <span
+        class="CoreAnnotatedText__annotation__subject"
+        data-v-13ebc398=""
+      >
+        Verb
+      </span>
+    </span>
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    
+     some 
+    
+    <!--v-if-->
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    <!--v-if-->
+    <span
+      class="CoreAnnotatedText__annotation"
+      data-v-13ebc398=""
+      style="background-color: rgb(180, 237, 238);"
+    >
+      _annotated_ 
+      <span
+        class="CoreAnnotatedText__annotation__subject"
+        data-v-13ebc398=""
+      >
+        Adjective
+      </span>
+    </span>
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    <!--v-if-->
+    <span
+      class="CoreAnnotatedText__annotation"
+      data-v-13ebc398=""
+      style="background-color: rgb(229, 208, 250);"
+    >
+      text 
+      <span
+        class="CoreAnnotatedText__annotation__subject"
+        data-v-13ebc398=""
+      >
+        Noun
+      </span>
+    </span>
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    
+    . 
+    
+    <!--v-if-->
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    
+    ## title 2
+
+
+    
+    <!--v-if-->
+  </span>
+  <span
+    data-v-13ebc398=""
+  >
+    
+    And [here](https://google.com)'s paragraph 2
+    
+    <!--v-if-->
+  </span>
+  
+  
+  <shared-control-bar-stub
+    copyrawcontent="# This
+
+**is** some _annotated_text. ## title 2
+
+And [here](https://google.com)'s paragraph 2"
+    copystructuredcontent="["# This\\n\\n",["**is**","Verb","red"]," some ",["_annotated_","Adjective"],["text","Noun"],". ","## title 2\\n\\n","And [here](https://google.com)'s paragraph 2"]"
+    data-v-13ebc398=""
+  />
+</div>
+`;
