@@ -4,6 +4,7 @@ import { computed } from "vue";
 
 const props = defineProps({
 	value: { validator: () => true, required: true },
+	wrapText: { type: Boolean, required: false },
 });
 
 const text = computed(() => JSON.stringify(props.value, bigIntReplacer));
@@ -11,7 +12,9 @@ const text = computed(() => JSON.stringify(props.value, bigIntReplacer));
 
 <template>
 	<div class="CoreDataframeCellUnknown">
-		<p class="CoreDataframeCellUnknown__content">{{ text }}</p>
+		<p :class="{ 'CoreDataframeCellUnknown__content--noWrap': !wrapText }">
+			{{ text }}
+		</p>
 	</div>
 </template>
 
@@ -25,7 +28,7 @@ const text = computed(() => JSON.stringify(props.value, bigIntReplacer));
 	pointer-events: none;
 }
 
-.CoreDataframeCellUnknown__content {
+.CoreDataframeCellUnknown__content--noWrap {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
