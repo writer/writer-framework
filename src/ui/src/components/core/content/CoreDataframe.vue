@@ -28,7 +28,7 @@
 				:style="gridStyle"
 				:class="{
 					scrolled: rowOffset > 0,
-					wrapText: fields.wrapText.value === 'yes',
+					wrapText: wrapText,
 				}"
 			>
 				<div
@@ -95,6 +95,7 @@
 						indexColumnNames.map((c) => row[c]).join(', ')
 					"
 					:display-shadow-on-sticky="displayShadowOnSticky"
+					:wrap-text="wrapText"
 					@action="handleActionRow"
 					@change="handleUpdateCell"
 				/>
@@ -412,10 +413,11 @@ const enableRecordUpdate = computed(
 	() => fields.enableRecordUpdate.value == "yes",
 );
 const enableRecordAdd = computed(() => fields.enableRecordAdd.value == "yes");
+const wrapText = computed(() => fields.wrapText.value === "yes");
 
 const rowOffset = computed(() => {
 	let maxOffset: number;
-	if (fields.wrapText.value == "yes") {
+	if (wrapText.value) {
 		maxOffset = rowCount.value - 1;
 	} else {
 		maxOffset = rowCount.value - displayRowCount.value;
@@ -466,7 +468,7 @@ const gridStyle = computed<CSSProperties>(() => {
 		"min-height": `${ROW_HEIGHT_PX}px`,
 		"max-height": height,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
-		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, max(${ROW_HEIGHT_PX}px , min-content))`,
+		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
 		"grid-template-columns": gridTemplateColumns.value,
 	};
 });
@@ -690,7 +692,7 @@ watch(columnCount, () => {
 	recalculateColumnWidths();
 });
 
-watch(fields.wrapText, () => {
+watch(wrapText, () => {
 	recalculateColumnWidths();
 });
 
@@ -797,7 +799,7 @@ onUnmounted(() => {
 }
 
 .CoreDataframe__table.wrapText .CoreDataframe__table__th {
-	white-space: pre-wrap;
+	white-space: unset;
 }
 
 .CoreDataframe__table__th__name {

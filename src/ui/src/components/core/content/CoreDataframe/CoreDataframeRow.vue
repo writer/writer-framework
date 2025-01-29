@@ -23,6 +23,7 @@
 				:value="row[columnName]"
 				:use-markdown="useMarkdown"
 				:editable="editable && (isRowHovered || hasFocusWithin)"
+				:wrap-text="wrapText"
 				class="CoreDataframeRow__cell__content"
 				@change="
 					$emit(
@@ -62,6 +63,7 @@ import { useFocusWithin } from "@/composables/useFocusWithin";
 
 const props = defineProps({
 	showIndex: { type: Boolean, required: false },
+	wrapText: { type: Boolean, required: false },
 	indexText: { type: [Number, String], required: true },
 	columns: { type: Array as PropType<string[]>, required: true },
 	row: { type: Object, required: true },

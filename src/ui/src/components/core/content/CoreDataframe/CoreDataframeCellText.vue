@@ -7,6 +7,7 @@ const props = defineProps({
 	value: { validator: () => true, required: true },
 	useMarkdown: { type: Boolean, required: false },
 	editable: { type: Boolean, required: false },
+	wrapText: { type: Boolean, required: false },
 });
 
 const emits = defineEmits({
@@ -33,7 +34,9 @@ function stopEditing() {
 	/>
 	<BaseMarkdown v-else-if="useMarkdown" :raw-text="String(value)" />
 	<div v-else class="CoreDataframeCellText--text">
-		<p class="CoreDataframeCellText__content">{{ value }}</p>
+		<p :class="{ 'CoreDataframeCellText__content--noWrap': !wrapText }">
+			{{ value }}
+		</p>
 	</div>
 </template>
 
@@ -50,7 +53,7 @@ function stopEditing() {
 
 	width: 100%;
 }
-.CoreDataframeCellText__content {
+.CoreDataframeCellText__content--noWrap {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
