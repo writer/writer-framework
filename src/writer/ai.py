@@ -1174,7 +1174,7 @@ class Conversation:
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
         sdk_message = WriterAIMessage(
-            content=message["content"] or None,
+            content=message.get("content", None) or "",
             role=message["role"]
             )
         if msg_name := message.get("name"):
@@ -1293,6 +1293,16 @@ class Conversation:
                     raise ValueError(
                         f"'type' for parameter '{param_name}' must be a string"
                         )
+                
+                supported_types = {
+                    "string", "number", "integer", "float", 
+                    "boolean", "array", "object", "null"
+                }
+                if param_info["type"] not in supported_types:
+                    raise ValueError(
+                        f"Unsupported type '{param_info['type']}' " +
+                        f"for parameter '{param_name}'"
+                    )
 
                 # Optional 'description' validation (if provided)
                 if (
@@ -1306,6 +1316,29 @@ class Conversation:
                         )
 
             return True
+
+        def prepare_parameters(parameters: Dict[str, Dict[str, str]]) -> Dict:
+            """
+            Prepares the parameters dictionary for a function tool.
+
+            :param parameters: The parameters dictionary to prepare.
+            :return: The processed parameters dictionary.
+            """
+            processed_params = {}
+            if not parameters:
+                return processed_params
+            else:
+                for param_name, param_info in parameters.items():
+                    processed_param = param_info.copy()
+                    # Convert Python numeric types to JSON schema "number" type
+                    if processed_param["type"] in ["float", "integer"]:
+                        processed_param["type"] = "number"
+                        processed_params[param_name] = processed_param
+
+            return {
+                "type": "object",
+                "properties": processed_params
+            }
 
         def validate_graph_ids(graph_ids: List[str]) -> bool:
             """
@@ -1400,7 +1433,10 @@ class Conversation:
                             "type": "function",
                             "function": {
                                 "name": tool_instance["name"],
-                                "parameters": tool_instance["parameters"]
+                                "parameters":
+                                    prepare_parameters(
+                                        tool_instance["parameters"]
+                                        )
                                 }
                         }
                     )
@@ -1765,6 +1801,18 @@ class Conversation:
                     tool_call_arguments
                 )
 
+    def _prepare_received_message_for_history(self, message: ChoiceMessage):
+        """
+        Prepares a received message for adding to the conversation history.
+
+        :param message: The message to prepare.
+        :return: The prepared message.
+        """
+        raw_message = message.model_dump()
+        if not raw_message.get("content"):
+            raw_message["content"] = ""
+        return raw_message
+
     def _process_response_data(
             self,
             response_data: Chat,
@@ -1787,7 +1835,7 @@ class Conversation:
                     logging.debug(
                         f"Message has tool calls - {message.tool_calls}"
                         )
-                    self += message.model_dump()
+                    self += self._prepare_received_message_for_history(message)
                     self._process_tool_calls(message)
                     self.messages += self._gather_tool_calls_results()
                     # Send follow-up call to LLM
