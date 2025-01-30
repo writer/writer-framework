@@ -121,6 +121,7 @@ function toggleCollapse() {
 
 .BuilderTree__main__name {
 	color: var(--builderPrimaryTextColor);
+	flex-grow: 1;
 }
 
 .BuilderTree__main__collapser {
