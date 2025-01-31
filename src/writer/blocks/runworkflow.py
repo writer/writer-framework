@@ -17,7 +17,7 @@ class RunWorkflow(WorkflowBlock):
                 "fields": {
                     "workflowKey": {
                         "name": "Workflow key",
-                        "type": "Text",
+                        "type": "WorkflowKey",
                         "validator": {
                             "type": "string",
                             "format": "writer#workflowKey",

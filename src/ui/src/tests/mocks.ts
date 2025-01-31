@@ -2,6 +2,7 @@ import { generateCore } from "@/core";
 import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
 import type { Component, InstancePath, SourceFiles } from "@/writerTypes";
+import { vi } from "vitest";
 import { ref } from "vue";
 
 export const mockComponentId = "component-id-test";
@@ -30,8 +31,9 @@ export function buildMockCore() {
 	const sourceFiles = ref<SourceFiles>({ type: "directory", children: {} });
 
 	core.userState = userState;
-	// @ts-expect-error overide the default value
 	core.sourceFiles = sourceFiles;
+
+	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
 	return { core, userState, sourceFiles };
 }

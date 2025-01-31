@@ -18,7 +18,7 @@ class ForEach(WorkflowBlock):
                     "workflowKey": {
                         "name": "Workflow key",
                         "desc": "The workflow which will be executed for each item.",
-                        "type": "Text",
+                        "type": "WorkflowKey",
                     },
                     "items": {
                         "name": "Items",
