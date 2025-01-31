@@ -4,6 +4,7 @@ import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
 	findSourceFileFromPath,
+	getSourceFilesPathsToEdges,
 	getSourceFilesPathsToFiles,
 	moveFileToSourceFiles,
 } from "./sourceFiles";
@@ -41,6 +42,44 @@ describe(findSourceFileFromPath.name, () => {
 		};
 
 		expect(findSourceFileFromPath(["a", "b", "file"], tree)).toBe(file);
+	});
+});
+
+describe(getSourceFilesPathsToEdges.name, () => {
+	it("should generate all nestes path", () => {
+		const result = getSourceFilesPathsToEdges({
+			type: "directory",
+			children: {
+				"a.txt": {
+					type: "file",
+					content: "",
+				},
+				b: {
+					type: "directory",
+					children: {
+						c: {
+							type: "directory",
+							children: {
+								"d.txt": {
+									type: "file",
+									content: "",
+								},
+								e: {
+									type: "directory",
+									children: {},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		expect(Array.from(result)).toStrictEqual([
+			["a.txt"],
+			["b", "c", "d.txt"],
+			["b", "c", "e"],
+		]);
 	});
 });
 

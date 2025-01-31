@@ -35,6 +35,42 @@ export function* getSourceFilesPathsToFiles(
 	}
 }
 
+/**
+ * Generate all the possible paths leading to an edge (file or folder)
+ */
+export function* getSourceFilesPathsToEdges(
+	tree: SourceFiles,
+	path: string[] = [],
+): Generator<string[]> {
+	if (isSourceFilesFile(tree)) {
+		yield path;
+		return;
+	}
+	if (Object.values(tree.children).length === 0) {
+		yield path;
+		return;
+	}
+
+	for (const [root, node] of Object.entries(tree.children)) {
+		yield* getSourceFilesPathsToEdges(node, [...path, root]);
+	}
+}
+
+/**
+ * Generate all the possible paths
+ */
+export function* getSourceFilesPathsToNodes(
+	tree: SourceFiles,
+	path: string[] = [],
+): Generator<string[]> {
+	yield path;
+	if (isSourceFilesFile(tree)) return;
+
+	for (const [root, node] of Object.entries(tree.children)) {
+		yield* getSourceFilesPathsToNodes(node, [...path, root]);
+	}
+}
+
 export function findSourceFileFromPath(
 	path: string[],
 	tree: SourceFiles,

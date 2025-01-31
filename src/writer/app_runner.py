@@ -7,6 +7,7 @@ import multiprocessing
 import multiprocessing.connection
 import multiprocessing.synchronize
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -749,7 +750,8 @@ class AppRunner:
         to_path_abs = os.path.join(self.app_path, to_path)
         self._check_file_in_app_path(to_path_abs)
 
-        os.renames(from_path_abs, to_path_abs)
+        os.makedirs(os.path.dirname(to_path_abs), exist_ok=True)
+        os.rename(from_path_abs, to_path_abs)
 
         self.source_files = wf_project.build_source_files(self.app_path)
 
@@ -760,7 +762,10 @@ class AppRunner:
         path = os.path.join(self.app_path, file)
         self._check_file_in_app_path(path)
 
-        os.remove(path)
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
 
         self.source_files = wf_project.build_source_files(self.app_path)
 

@@ -101,6 +101,62 @@ describe(useSourceFiles.name, () => {
 		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
 	});
 
+	it("should remove a folder to the draft", async () => {
+		const { core, sourceFiles } = buildMockCore();
+		sourceFiles.value = {
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {
+						b: { type: "directory", children: {} },
+						"c.txt": { type: "file", content: "" },
+					},
+				},
+			},
+		};
+
+		const { sourceFileDraft } = useSourceFiles(core);
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+
+		sourceFiles.value = {
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {
+						"c.txt": { type: "file", content: "" },
+					},
+				},
+			},
+		};
+		await flushPromises();
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+	});
+
+	it("should remove a root folder to the draft", async () => {
+		const { core, sourceFiles } = buildMockCore();
+		sourceFiles.value = {
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {
+						b: { type: "directory", children: {} },
+						"c.txt": { type: "file", content: "" },
+					},
+				},
+			},
+		};
+
+		const { sourceFileDraft } = useSourceFiles(core);
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+
+		sourceFiles.value = { type: "directory", children: {} };
+		await flushPromises();
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+	});
+
 	describe("lazy loading", () => {
 		it("should request fetchig whole file on opening", () => {
 			const { core, sourceFiles } = buildMockCore();

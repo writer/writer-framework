@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO(WF-154): to be move in shared
 import { onMounted, onUnmounted, PropType, ref } from "vue";
 
 defineProps({
@@ -81,8 +82,8 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 
 .BaseDropdown__trigger {
 	cursor: pointer;
-	background-color: var(--separatorColor);
-	border: 1px solid var(--emptinessColor);
+	background-color: transparent;
+	border: none;
 	height: 16px;
 	width: 16px;
 	border-radius: 4px;
@@ -95,6 +96,7 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 	position: absolute;
 	z-index: 1;
 	top: 18px;
+	transform: translateX(calc(-100% + 18px));
 	background-color: white;
 
 	flex-direction: column;

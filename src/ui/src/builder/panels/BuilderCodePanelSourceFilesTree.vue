@@ -7,7 +7,12 @@
 			matched
 			:has-children="isSourceFilesDirectory(node)"
 			:selected="isSelected(key)"
+			:right-click-options="rightClickDropdownOptions"
+			:dropdown-options="
+				isSourceFilesDirectory(node) ? { delete: 'Delete' } : undefined
+			"
 			@select="handleSelect(key)"
+			@dropdown-select="handleDropdownSelect($event, key)"
 		>
 			<template v-if="isDraft(key)" #nameLeft>
 				<WdsStateDot state="newDraft" />
@@ -19,11 +24,20 @@
 					:paths-unsaved="pathsUnsaved"
 					:path="[...path, key]"
 					@select="$emit('select', $event)"
+					@delete="$emit('delete', $event)"
 				/>
 			</template>
 		</BuilderTree>
 	</div>
 </template>
+
+<script lang="ts">
+import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
+
+const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
+	{ label: "Delete", value: "delete" },
+];
+</script>
 
 <script setup lang="ts">
 import { SourceFiles } from "@/writerTypes";
@@ -46,6 +60,7 @@ const props = defineProps({
 
 const emits = defineEmits({
 	select: (path: string[]) => Array.isArray(path),
+	delete: (path: string[]) => Array.isArray(path),
 	addFile: () => true,
 });
 
@@ -82,6 +97,10 @@ function handleSelect(key: string) {
 	if (!isSourceFilesFile(node)) return;
 
 	emits("select", [...props.path, key]);
+}
+
+function handleDropdownSelect(action: string, key: string) {
+	if (action === "delete") emits("delete", [...props.path, key]);
 }
 </script>
 

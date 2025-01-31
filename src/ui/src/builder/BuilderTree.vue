@@ -6,6 +6,8 @@
 			tabindex="0"
 			:draggable="draggable"
 			:data-automation-key="dataAutomationKey"
+			@mouseenter="isMainHovered = true"
+			@mouseleave="isMainHovered = false"
 			@click="$emit('select', $event)"
 			@keydown.enter="$emit('select', $event)"
 			@dragover="$emit('dragover', $event)"
@@ -28,6 +30,12 @@
 			<slot name="nameLeft" />
 			<span class="BuilderTree__main__name">{{ name }}</span>
 			<slot name="nameRight" />
+			<BaseDropdown
+				v-if="dropdownOptions && isMainHovered"
+				class="BuilderTree__dropdown"
+				:options="dropdownOptions"
+				@selected="$emit('dropdownSelect', $event)"
+			/>
 		</div>
 		<div
 			v-show="(!collapsed || props.query) && hasChildren"
@@ -39,8 +47,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
+const BaseDropdown = defineAsyncComponent(
+	() => import("@/components/core/base/BaseDropdown.vue"),
+);
 
 const props = defineProps({
 	name: { type: String, required: true },
@@ -50,6 +61,11 @@ const props = defineProps({
 	draggable: { type: Boolean },
 	matched: { type: Boolean },
 	selected: { type: Boolean },
+	dropdownOptions: {
+		type: Object as PropType<Record<string, string>>,
+		required: false,
+		default: undefined,
+	},
 });
 
 const emit = defineEmits({
@@ -59,11 +75,13 @@ const emit = defineEmits({
 	dragstart: (ev: DragEvent) => !!ev,
 	dragend: (ev: DragEvent) => !!ev,
 	drop: (ev: DragEvent) => !!ev,
+	dropdownSelect: (key: string) => typeof key === "string",
 });
 
 defineExpose({ expand });
 
 const collapsed = ref(false);
+const isMainHovered = ref(false);
 
 const notMatched = computed(() => !props.matched);
 
@@ -132,5 +150,9 @@ function toggleCollapse() {
 
 .BuilderTree__children {
 	margin-left: 20px;
+}
+
+.BuilderTree__dropdown {
+	--containerShadow: var(--wdsShadowMenu);
 }
 </style>

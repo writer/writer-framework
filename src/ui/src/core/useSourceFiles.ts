@@ -4,7 +4,9 @@ import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
 	findSourceFileFromPath,
+	getSourceFilesPathsToEdges,
 	getSourceFilesPathsToFiles,
+	getSourceFilesPathsToNodes,
 	isSourceFilesFile,
 } from "./sourceFiles";
 
@@ -49,7 +51,7 @@ export function useSourceFiles(wf: Core) {
 		}
 
 		// handle deleted nodes
-		for (const path of getSourceFilesPathsToFiles(previousSourceFiles)) {
+		for (const path of getSourceFilesPathsToNodes(tree)) {
 			if (
 				findSourceFileFromPath(path, currentSourceFiles) === undefined
 			) {

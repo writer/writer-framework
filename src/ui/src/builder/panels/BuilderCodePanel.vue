@@ -18,6 +18,7 @@
 					:source-files="sourceFileDraft"
 					@add-file="handleAddFile"
 					@select="openFile"
+					@delete="handleDeleteFile"
 				/>
 				<button
 					class="BuilderCodePanel__tree__addFile"
@@ -183,15 +184,24 @@ async function handleMoreSelect(key: string) {
 		case "rename":
 			return openRenameMode();
 		case "delete":
-			await wf.sendDeleteSourceFileRequest(filepathOpen.value);
-			pushToast({ type: "success", message: "The file was deleted" });
-			return openFile(["main.py"]);
+			await handleDeleteFile(filepathOpen.value);
 	}
 }
 
 async function handleAddFile() {
 	await openNewFile();
 	openRenameMode();
+}
+
+async function handleDeleteFile(path: string[]) {
+	await wf.sendDeleteSourceFileRequest(path);
+	pushToast({ type: "success", message: "The file was deleted" });
+
+	const currentFileDeleted = filepathOpen.value
+		.join("/")
+		.startsWith(path.join("/"));
+
+	if (currentFileDeleted) openFile(["main.py"]);
 }
 
 async function handleSave() {
