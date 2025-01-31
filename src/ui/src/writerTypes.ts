@@ -136,6 +136,7 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
+	WorkflowKey = "WorkflowKey",
 }
 
 export const enum FieldCategory {
