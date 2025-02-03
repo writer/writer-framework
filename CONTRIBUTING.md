@@ -25,7 +25,7 @@ Pull requests should be done on the `dev` branch. When the release is finalised,
 
 Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Writer Framework, these are the suggested steps for setting up a development environment.
 
-- You can install the package in editable mode using `poetry install`
+- You can install the package in editable mode using `poetry install  --with build`
 - Enable the virtual environment with `poetry shell`
 - Install all the dev dependencies with `alfred install.dev`
 - Run Writer Framework on port 5000. For example, `writer edit apps/hello --port 5000`.
