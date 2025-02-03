@@ -153,6 +153,7 @@ function toggleCollapse() {
 }
 
 .BuilderTree__dropdown {
+	color: var(--builderPrimaryTextColor);
 	--containerShadow: var(--wdsShadowMenu);
 }
 </style>

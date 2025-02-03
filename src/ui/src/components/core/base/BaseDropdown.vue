@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // TODO(WF-154): to be move in shared
-import { onMounted, onUnmounted, PropType, ref } from "vue";
+import { useFocusWithin } from "@/composables/useFocusWithin";
+import { onMounted, onUnmounted, PropType, ref, watch } from "vue";
 
 defineProps({
 	options: {
@@ -13,27 +14,28 @@ const emits = defineEmits({
 	selected: (key: string) => typeof key === "string",
 });
 
-/**
- * @deprecated use `useId` from Vue 3.5 when we upgrade
- */
-function useId() {
-	return Math.random().toString();
-}
-
-const trigger = ref<Element>();
-
-const popoverId = useId();
-const popover = ref<Element & { hidePopover: () => void }>();
-const closePopover = () => popover.value?.hidePopover();
+const root = ref<HTMLDivElement>();
+const trigger = ref<HTMLDivElement>();
+const isOpen = ref(false);
 
 const popoverTop = ref("unset");
 const popoverLeft = ref("unset");
 
-function computePopoverPosition() {
-	// the popover use an overlay with an absolute position, so we have to positionate it manually according to the trigger position
+const hasFocus = useFocusWithin(root);
+watch(hasFocus, () => {
+	if (!hasFocus.value) closePopover();
+});
+
+function closePopover() {
+	isOpen.value = false;
+}
+
+function openPopover() {
 	const boundingRect = trigger.value.getBoundingClientRect();
 	popoverTop.value = `${boundingRect.top + boundingRect.height + 4 + window.pageYOffset}px`;
 	popoverLeft.value = `${boundingRect.left + window.pageXOffset}px`;
+
+	isOpen.value = true;
 }
 
 function onItemClick(key: string) {
@@ -46,20 +48,17 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 </script>
 
 <template>
-	<div class="BaseDropdown">
+	<div ref="root" class="BaseDropdown">
 		<button
 			ref="trigger"
-			:popovertarget="popoverId"
 			class="BaseDropdown__trigger"
-			@click="computePopoverPosition"
+			@click="openPopover"
 		>
 			<i class="material-symbols-outlined">more_horiz</i>
 		</button>
 		<div
-			:id="popoverId"
-			ref="popover"
+			v-if="isOpen"
 			class="BaseDropdown__dropdown"
-			popover
 			:style="{ top: popoverTop, left: popoverLeft }"
 		>
 			<button
@@ -76,10 +75,6 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 </template>
 
 <style scoped>
-.BaseDropdown {
-	position: relative;
-}
-
 .BaseDropdown__trigger {
 	cursor: pointer;
 	background-color: transparent;
@@ -94,7 +89,7 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 
 .BaseDropdown__dropdown {
 	position: absolute;
-	z-index: 1;
+	z-index: 2;
 	top: 18px;
 	transform: translateX(calc(-100% + 18px));
 	background-color: white;
@@ -116,6 +111,8 @@ onUnmounted(() => window.removeEventListener("scroll", closePopover));
 	/* reset button */
 	background-color: transparent;
 	border: none;
+
+	width: 100%;
 
 	text-align: left;
 
