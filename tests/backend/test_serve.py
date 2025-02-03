@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import time
 from typing import Any
@@ -10,7 +11,7 @@ import writer.serve
 from fastapi import FastAPI
 from writer import crypto
 
-from tests.backend import test_app_dir, test_multiapp_dir
+from tests.backend import test_app_dir, test_multiapp_dir, testmorerecentapp_dir
 
 
 class TestServe:
@@ -173,6 +174,43 @@ class TestServe:
         with fastapi.testclient.TestClient(asgi_app) as client:
             res = client.get("/probes/healthcheck")
             assert res.status_code == 404
+
+    def test_server_should_check_version_consistency_when_editing_the_app(self, caplog):
+        """
+        Verifies that WF informs the user if the version of writer used to edit
+        the application is older than the version used when developing the application.
+
+        :param caplog: https://docs.pytest.org/en/stable/how-to/logging.html
+        """
+        with caplog.at_level(logging.WARNING):
+            asgi_app = writer.serve.get_asgi_app(testmorerecentapp_dir, "edit", enable_server_setup=False)
+
+            assert caplog.records[0].levelname == "WARNING"
+            assert "used to edit the app, is older than the version 999.0.0 used in previous development." in caplog.records[0].message
+
+            # important to free server resources
+            with fastapi.testclient.TestClient(asgi_app):
+                pass
+
+    def test_server_should_check_version_consistency_when_running_the_app(self, caplog):
+        """
+        Verifies that WF informs the user if the version of writer used to run is older than the version used when developing the application.
+
+        :param caplog: https://docs.pytest.org/en/stable/how-to/logging.html
+        """
+        with caplog.at_level(logging.WARNING):
+            asgi_app = writer.serve.get_asgi_app(testmorerecentapp_dir, "run", enable_server_setup=False)
+
+            assert caplog.records[0].levelname == "WARNING"
+            assert "used to run the app, is older than the version 999.0.0 used during development." in caplog.records[0].message
+
+            assert caplog.records[1].levelname == "WARNING"
+            assert 'You should update the version of writer in the pyproject.toml.' in caplog.records[1].message
+
+            # important to free server resources
+            with fastapi.testclient.TestClient(asgi_app):
+                pass
+
 
     def test_abstract_components(self):
         writer.abstract.register_abstract_template("sectiona", {
