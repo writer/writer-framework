@@ -894,6 +894,7 @@ def test_explicit_conversation_complete_tool_calls(emulate_app_process):
             name="get_secret_word_by_password",
             parameters={
                 "password": {
+                    "required": True,
                     "type": "string",
                     "description": "A password used to retrieve the secret word"
                     }
@@ -919,10 +920,12 @@ def test_explicit_conversation_complete_tool_calls(emulate_app_process):
             name="calculate",
             parameters={
                 "number": {
+                    "required": True,
                     "type": "integer",
-                    "description": "The base number to perform calculation against"
+                    "description": "The base number to perform calculation against",
                 },
                 "coefficient": {
+                    "required": True,
                     "type": "float",
                     "description": "The coefficient to use against the number"
                 }
@@ -988,6 +991,7 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
             name="get_secret_word_by_password",
             parameters={
                 "password": {
+                    "required": True,
                     "type": "string",
                     "description": "A password used to retrieve the secret word"
                     }
@@ -1015,10 +1019,12 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
             name="calculate",
             parameters={
                 "number": {
+                    "required": True,
                     "type": "integer",
                     "description": "The base number to perform calculation against"
                 },
                 "coefficient": {
+                    "required": True,
                     "type": "float",
                     "description": "The coefficient to use against the number"
                 }

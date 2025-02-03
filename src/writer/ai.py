@@ -1328,17 +1328,24 @@ class Conversation:
             if not parameters:
                 return processed_params
             else:
+                required_list = []
                 for param_name, param_info in parameters.items():
                     processed_param = param_info.copy()
                     # Convert Python numeric types to JSON schema "number" type
                     if processed_param["type"] in ["float", "integer"]:
                         processed_param["type"] = "number"
-                        processed_params[param_name] = processed_param
+                    # Check the "required" flag on parameter
+                    if processed_param.get("required", False) is True:
+                        required_list.append(param_name)
+                    processed_params[param_name] = processed_param
 
-            return {
+            res = {
                 "type": "object",
                 "properties": processed_params
             }
+            if required_list:
+                res["required"] = required_list
+            return res
 
         def validate_graph_ids(graph_ids: List[str]) -> bool:
             """
