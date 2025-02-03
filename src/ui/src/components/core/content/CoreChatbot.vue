@@ -110,6 +110,7 @@ import {
 import prettyBytes from "pretty-bytes";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsControl from "@/wds/WdsControl.vue";
+import { WdsColor } from "@/wds/tokens";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -241,21 +242,21 @@ export default {
 			},
 			userRoleColor: {
 				name: "User role",
-				default: "#F5F5F9",
+				default: WdsColor.Gray1,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
 			avatarBackgroundColor: {
 				name: "Avatar",
-				default: "#2C2D30",
+				default: WdsColor.Gray6,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
 			},
 			avatarTextColor: {
 				name: "Avatar text",
-				default: "#FFFFFF",
+				default: WdsColor.White,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 				applyStyleVariable: true,
@@ -267,11 +268,11 @@ export default {
 			separatorColor,
 			buttonColor: {
 				...buttonColor,
-				default: "#000000",
+				default: WdsColor.Black,
 			},
 			buttonTextColor: {
 				...buttonTextColor,
-				default: "#ffffff",
+				default: WdsColor.White,
 			},
 			cssClasses,
 		},
@@ -400,7 +401,7 @@ function scrollToBottom() {
 }
 
 const encodeFile = async (file: File) => {
-	var reader = new FileReader();
+	const reader = new FileReader();
 	reader.readAsDataURL(file);
 
 	return new Promise((resolve, reject) => {

@@ -79,7 +79,7 @@ const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const selectedId = computed(() => ssbm?.getSelectedId());
+const selectedId = computed(() => ssbm?.firstSelectedId.value);
 
 const rendererTop = ref(0);
 
@@ -137,23 +137,6 @@ onMounted(() => {
 	margin-bottom: 16px;
 }
 
-.collapserContainer > .collapser {
-	flex: 0 0 32px;
-}
-
-.collapserContainer .collapserArrow {
-	transition: all 0.5s ease-in-out;
-	transform: rotate(0deg);
-}
-
-.CoreSidebar.collapsed .collapserArrow {
-	transform: rotate(180deg);
-}
-
-.collapserContainer > .collapser:hover {
-	background: var(--separatorColor);
-}
-
 @media only screen and (max-width: 768px) {
 	.CoreSidebar {
 		min-width: 100%;
@@ -163,10 +146,6 @@ onMounted(() => {
 
 	.CoreSidebar.collapsed > .collapserContainer {
 		margin-bottom: 0;
-	}
-
-	.collapserContainer > .collapser {
-		transform: rotate(90deg);
 	}
 }
 </style>

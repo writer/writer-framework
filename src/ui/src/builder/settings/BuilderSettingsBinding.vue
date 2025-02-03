@@ -1,15 +1,10 @@
 <template>
-	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
-		<div class="sectionTitle">
-			<i class="material-symbols-outlined">link</i>
-			<h3>Binding</h3>
-		</div>
+	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
+		<BuilderSectionTitle icon="link" label="Binding" />
 		<div class="main">
-			<div class="fieldWrapper">
-				<span class="name">State element</span>
+			<WdsFieldWrapper label="State element" :hint="hint">
 				<BuilderTemplateInput
 					type="state"
-					class="content"
 					:value="component.binding?.stateRef"
 					placeholder="my_var"
 					@input="
@@ -20,12 +15,7 @@
 							)
 					"
 				/>
-				<div class="desc">
-					Links this component to a state element, in a two-way
-					fashion. Reference the state element directly, i.e. use
-					"my_var" instead of "@{my_var}".
-				</div>
-			</div>
+			</WdsFieldWrapper>
 		</div>
 	</div>
 </template>
@@ -33,14 +23,20 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+
+const hint =
+	'Links this component to a state element, in a two-way fashion. Reference the state element directly, i.e. use "my_var" instead of "@{my_var}".';
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setBinding } = useComponentActions(wf, ssbm);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 </script>
 
 <style scoped>

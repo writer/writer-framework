@@ -1,0 +1,56 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CoreCheckboxInput > should render value from the state and forward emit 1`] = `
+<div
+  class="BaseInputWrapper CoreCheckboxInput"
+  data-v-7a72f1be=""
+  data-v-7e12caaf=""
+>
+  <label
+    data-v-7e12caaf=""
+  >
+    This is the label
+  </label>
+  
+  <div
+    class="options horizontal"
+    data-v-7a72f1be=""
+  >
+    
+    <div
+      class="option"
+      data-v-7a72f1be=""
+    >
+      <input
+        data-v-7a72f1be=""
+        type="checkbox"
+        value="a"
+      />
+      <label
+        data-v-7a72f1be=""
+        for="component-id-test:0-option-a"
+      >
+        Option A
+      </label>
+    </div>
+    <div
+      class="option"
+      data-v-7a72f1be=""
+    >
+      <input
+        data-v-7a72f1be=""
+        type="checkbox"
+        value="b"
+      />
+      <label
+        data-v-7a72f1be=""
+        for="component-id-test:0-option-b"
+      >
+        Option B
+      </label>
+    </div>
+    
+  </div>
+  
+</div>
+`;

@@ -40,8 +40,8 @@
 
 <script setup lang="ts">
 import { inject, onMounted, reactive, Ref, ref } from "vue";
-import injectionKeys from "../injectionKeys";
-import WdsButton from "../wds/WdsButton.vue";
+import injectionKeys from "@/injectionKeys";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
 const wf = inject(injectionKeys.core);
@@ -103,7 +103,7 @@ const clearAll = () => {
 	max-width: 70ch;
 	width: 40vw;
 	z-index: 3;
-	--buttonColor: #5551ff;
+	--buttonColor: var(--wdsColorBlue5);
 }
 
 .balloonFlash {

@@ -1,4 +1,4 @@
-import { ref, Ref } from "vue";
+import { computed, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
@@ -61,13 +61,19 @@ type LogEntry = {
 
 type SelectionSource = "click" | "tree" | "log";
 
+export const enum SelectionStatus {
+	None = 0,
+	Single = 1,
+	Multiple = 2,
+}
+
 type State = {
 	mode: "ui" | "workflows" | "preview";
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
 		source: SelectionSource;
-	};
+	}[];
 	clipboard: {
 		operation: ClipboardOperation;
 		jsonSubtree: string;
@@ -82,7 +88,7 @@ type State = {
 export function generateBuilderManager() {
 	const initState: State = {
 		mode: "ui",
-		selection: null,
+		selection: [],
 		clipboard: null,
 		mutationTransactionsSnapshot: {
 			undo: null,
@@ -105,14 +111,27 @@ export function generateBuilderManager() {
 	};
 
 	const setSelection = (
-		componentId: Component["id"],
+		componentId: Component["id"] | null,
 		instancePath?: string,
 		source?: SelectionSource,
 	) => {
 		if (componentId === null) {
-			state.value.selection = null;
+			state.value.selection = [];
 			return;
 		}
+
+		if (state.value.selection.length !== 0) {
+			state.value.selection = [];
+		}
+
+		appendSelection(componentId, instancePath, source);
+	};
+
+	const appendSelection = (
+		componentId: Component["id"],
+		instancePath?: string,
+		source?: SelectionSource,
+	) => {
 		let resolvedInstancePath = instancePath;
 		if (typeof resolvedInstancePath == "undefined") {
 			const componentFirstElement: HTMLElement = document.querySelector(
@@ -122,24 +141,56 @@ export function generateBuilderManager() {
 				componentFirstElement?.dataset.writerInstancePath;
 		}
 
-		state.value.selection = {
+		state.value.selection.push({
 			componentId,
 			instancePath: resolvedInstancePath,
 			source,
-		};
+		});
 	};
 
-	const isSelectionActive = () => {
-		return state.value.selection !== null;
+	const handleSelectionFromEvent = (
+		ev: MouseEvent | KeyboardEvent,
+		componentId: Component["id"],
+		instancePath?: string,
+		source?: SelectionSource,
+	) => {
+		if (!ev.shiftKey && !ev.ctrlKey && !ev.metaKey) {
+			return setSelection(componentId, instancePath, source);
+		}
+
+		if (isComponentIdSelected(componentId)) {
+			removeSelectedComponentId(componentId);
+		} else {
+			appendSelection(componentId, instancePath, source);
+		}
 	};
 
-	const getSelection = () => {
-		return state.value.selection;
+	const isComponentIdSelected = (componentId: string) => {
+		return state.value.selection.some((s) => s.componentId === componentId);
 	};
 
-	const getSelectedId = () => {
-		return state.value.selection?.componentId;
+	const removeSelectedComponentId = (componentId: string) => {
+		const newSelection = state.value.selection.filter(
+			(c) => c.componentId !== componentId,
+		);
+		if (newSelection.length === state.value.selection.length) return;
+		state.value.selection = newSelection;
 	};
+
+	const selectionStatus = computed<SelectionStatus>(() => {
+		if (state.value.selection.length === 0) return SelectionStatus.None;
+		if (state.value.selection.length === 1) return SelectionStatus.Single;
+		return SelectionStatus.Multiple;
+	});
+	const isSingleSelectionActive = computed(
+		() => selectionStatus.value === SelectionStatus.Single,
+	);
+
+	const firstSelectedItem = computed(() => state.value.selection[0]);
+
+	const firstSelectedId = computed(
+		() => state.value.selection[0]?.componentId,
+	);
 
 	const setClipboard = (clipboard: State["clipboard"]) => {
 		state.value.clipboard = clipboard;
@@ -312,10 +363,16 @@ export function generateBuilderManager() {
 		getMode,
 		openPanels: ref(new Set<"code" | "log">()),
 		isSettingsBarCollapsed: ref(false),
-		isSelectionActive,
+		isComponentIdSelected,
+		selectionStatus,
+		isSingleSelectionActive,
+		firstSelectedId,
+		firstSelectedItem,
+		removeSelectedComponentId,
 		setSelection,
-		getSelection,
-		getSelectedId,
+		appendSelection,
+		handleSelectionFromEvent,
+		selection: computed(() => state.value.selection),
 		setClipboard,
 		getClipboard,
 		openMutationTransaction,

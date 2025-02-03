@@ -56,12 +56,12 @@ const fields = inject(injectionKeys.evaluatedFields);
 .triangle {
 	flex: 0 0 auto;
 	border-left: 12px solid white;
-	border-top: 12px solid #f0f0f0;
+	border-top: 12px solid var(--wdsColorGray1);
 }
 
 .message {
 	flex: 1 0 auto;
-	background: #f0f0f0;
+	background: var(--wdsColorGray1);
 	border-radius: 0 12px 12px 12px;
 	padding: 16px;
 }

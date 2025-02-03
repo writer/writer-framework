@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderApp" tabindex="-1">
+	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
 		<div
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
@@ -13,7 +13,7 @@
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
-							settingsOpen: ssbm.isSelectionActive(),
+							settingsOpen: ssbm.isSingleSelectionActive,
 						}"
 						@dragover="handleRendererDragover"
 						@dragstart="handleRendererDragStart"
@@ -25,7 +25,7 @@
 				</div>
 
 				<BuilderSettings
-					v-if="ssbm.isSelectionActive()"
+					v-if="ssbm.isSingleSelectionActive"
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>
@@ -75,12 +75,14 @@
 import { computed, defineAsyncComponent, inject, onMounted } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
-import { isPlatformMac } from "../core/detectPlatform";
+import injectionKeys from "@/injectionKeys";
+import { isPlatformMac } from "@/core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
+import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
+import { SelectionStatus } from "./builderManager";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -138,7 +140,7 @@ const {
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
-const selectedId = computed(() => ssbm.getSelection()?.componentId);
+const selectedId = computed(() => ssbm.firstSelectedId.value);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -161,9 +163,12 @@ function handleKeydown(ev: KeyboardEvent): void {
 		return;
 	}
 
-	if (!ssbm.isSelectionActive()) return;
+	if (!ssbm.isSingleSelectionActive.value || !ssbm.firstSelectedItem.value) {
+		return;
+	}
+
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
-		ssbm.getSelection();
+		ssbm.firstSelectedItem.value;
 
 	if (ev.key == "Delete") {
 		if (!isDeleteAllowed(selectedId)) return;
@@ -233,11 +238,20 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (!targetEl) return;
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
-	if (targetId !== ssbm.getSelectedId()) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		ssbm.setSelection(targetId, targetInstancePath, "click");
+
+	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
+
+	if (
+		isAlreadySelected &&
+		ssbm.selectionStatus.value !== SelectionStatus.Multiple
+	) {
+		return;
 	}
+
+	ev.preventDefault();
+	ev.stopPropagation();
+
+	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {
@@ -249,6 +263,12 @@ const handleRendererDragStart = (ev: DragEvent) => {
 
 	const componentId = targetEl.dataset.writerId;
 	const { type } = wf.getComponentById(componentId);
+
+	// we don't support yet dragginfg multiple components in UI. If drag is starting with multiple selections, we select only one component
+	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) {
+		ssbm.setSelection(componentId, undefined, "click");
+		ssbm.isSettingsBarCollapsed.value = true;
+	}
 
 	ev.dataTransfer.setData(
 		`application/json;writer=${type},${componentId}`,
@@ -270,34 +290,33 @@ onMounted(() => {
 @import "./sharedStyles.css";
 
 .BuilderApp {
-	--builderBackgroundColor: #ffffff;
-	--builderAccentColor: #5551ff;
-	--builderSuccessColor: #3be19b;
-	--builderErrorColor: #ff3d00;
-	--builderHeaderBackgroundColor: #333333;
-	--builderHeaderBackgroundHoleColor: #000000;
+	--builderBackgroundColor: var(--wdsColorWhite);
+	--builderAccentColor: var(--wdsColorBlue5);
+	--builderSuccessColor: var(--wdsColorGreen5);
+	--builderErrorColor: var(--wdsColorOrange5);
+	--builderHeaderBackgroundColor: var(--wdsColorGray6);
+	--builderHeaderBackgroundHoleColor: var(--wdsColorBlack);
 	--builderPrimaryTextColor: rgba(0, 0, 0, 0.9);
 	--builderSecondaryTextColor: rgba(0, 0, 0, 0.6);
 	--builderAreaSeparatorColor: rgba(0, 0, 0, 0.2);
-	--builderSeparatorColor: #e4e7ed;
-	--builderSubtleSeparatorColor: #f5f5f9;
-	--builderIntenseSeparatorColor: #d2d4d7;
-	--builderSelectedColor: #e4e9ff;
-	--builderMatchingColor: #f8dccc;
-	--builderIntenseSelectedColor: #0094d1;
+	--builderSeparatorColor: var(--wdsColorGray2);
+	--builderSubtleSeparatorColor: var(--wdsColorGray1);
+	--builderIntenseSeparatorColor: var(--wdsColorGray3);
+	--builderSelectedColor: var(--wdsColorBlue2);
+	--builderMatchingColor: var(--wdsColorOrange2);
+	--builderIntenseSelectedColor: var(--wdsColorBlue4);
 	--builderSubtleHighlightColor: rgba(0, 0, 0, 0.05);
-	--builderSubtleHighlightColorSolid: #f2f2f2;
-	--builderDisabledColor: rgb(180, 180, 180);
+	--builderSubtleHighlightColorSolid: var(--wdsColorGray1);
 	--builderSidebarWidth: 265px;
 	--builderSettingsWidth: 450px;
-	--builderActionOngoingColor: #333333;
+	--builderActionOngoingColor: var(--wdsColorGray6);
 	--builderTopBarHeight: 48px;
 	--builderWarningTextColor: white;
-	--builderWarningColor: #ff3d00;
+	--builderWarningColor: var(--wdsColorOrange5);
 	--builderPanelSwitcherHeight: 48px;
 	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
 
-	--buttonColor: #5551ff;
+	--buttonColor: var(--wdsColorBlue5);
 	--buttonTextColor: white;
 	--accentColor: var(--builderAccentColor);
 	--primaryTextColor: var(--builderPrimaryTextColor);

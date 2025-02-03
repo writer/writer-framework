@@ -1,21 +1,25 @@
 """
 # AI Module Test Suite
 
-This module provides a suite of tests for the AI integration with the Writer SDK.
+This module provides a suite of tests for the AI integration
+with the Writer SDK.
 
 ## Types of tests
 
 1. **Mock tests**
-   - These tests simulate interactions with the Writer AI SDK without making real API calls.
+   - These tests simulate interactions with the Writer AI SDK without
+   making real API calls.
    - They are faster and can be run frequently during development.
 
 2. **SDK query tests**
    - These tests make real API calls to the Writer AI service.
-   - They are intended for use on potentially breaking changes and major releases to ensure compatibility with the live API.
+   - They are intended for use on potentially breaking changes
+   and major releases to ensure compatibility with the live API.
 
 ## Running the tests
 
-By default, SDK query tests are marked with the custom `explicit` decorator and are excluded from regular test runs.
+By default, SDK query tests are marked with the custom `explicit` decorator
+and are excluded from regular test runs.
 Only mock tests are run by regular `pytest` command:
 
 ```sh
@@ -34,7 +38,8 @@ env =
     WRITER_API_KEY=your_api_key_here
 ```
 
-After that, to include SDK query tests into the run, use the `--full-run` option:
+After that, to include SDK query tests into the run, use the `--full-run`
+option:
 ```sh
 pytest ./tests/backend/test_ai.py --full-run
 ```
@@ -59,7 +64,6 @@ from writer.ai import (
     apps,
     ask,
     complete,
-    create_function_tool,
     create_graph,
     delete_file,
     delete_graph,
@@ -70,6 +74,7 @@ from writer.ai import (
     retrieve_graph,
     stream_ask,
     stream_complete,
+    tools,
     upload_file,
 )
 from writerai import Writer
@@ -80,190 +85,177 @@ from writerai.types import (
     ChatCompletionChunk,
     Completion,
     StreamingData,
+    ToolContextAwareSplittingResponse,
+    ToolParsePdfResponse,
 )
+from writerai.types.tools import ComprehendMedicalResponse
 
-# Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
+# Decorator to mark tests as explicit,
+# i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
 
 
 test_complete_literal = "Completed text"
+test_expected_pdf_content = "PDF content"
+test_expected_chunks = ["chunk1", "chunk2", "chunk3"]
+test_expected_medical_entities = [
+    {
+        "type": "Diagnosis",
+        "text": "Example",
+        "category": "MEDICAL_CONDITION",
+        "score": 0.98,
+        "begin_offset": 0,
+        "end_offset": 7,
+        "attributes": [],
+        "traits": [],
+        "concepts": []
+    }
+]
+
+test_pdf_data = \
+    (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj\n"
+        b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] "
+        b"/Contents 4 0 R >>\nendobj\n"
+        b"4 0 obj\n<< /Length 44 >>\nstream\nBT\n/F1 24 Tf\n72 144 Td\n"
+        b"(Hello PDF!)Tj\nET\nendstream\nendobj\n"
+        b"xref\n0 5\n0000000000 65535 f \n0000000018 00000 n \n"
+        b"0000000070 00000 n \n0000000121 00000 n \n0000000220 00000 n \n"
+        b"trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n316\n%%EOF"
+    )
+test_split_text = \
+        "This is some sample text that will be split into chunks. " + \
+        "The quick brown fox jumps over the lazy dog. " + \
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " + \
+        "Sed do eiusmod tempor incididunt ut labore " + \
+        "et dolore magna aliqua. " + \
+        "Ut enim ad minim veniam, quis nostrud " + \
+        "exercitation ullamco laboris " + \
+        "nisi ut aliquip ex ea commodo consequat. " + \
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse " + \
+        "cillum dolore eu fugiat nulla pariatur. " + \
+        "Excepteur sint occaecat cupidatat non proident, " + \
+        "sunt in culpa qui officia deserunt mollit anim id est laborum. " + \
+        "These sentences are intended to test how well the split function " + \
+        "handles a larger block of text, including punctuation, " + \
+        "multiple sentences, and some variety in wording."
+test_fast_split_text = \
+    "Q: What'\''s the best way to learn a new song for a person that has " + \
+    "never learned a song before? A: One way to learn a new song would be " + \
+    "to write your own and see how it goes, it may just come natural. A: " + \
+    "Alternatively you could practice the same verse over and over until " + \
+    "you know it by heart and then move onto the next one, until you know " + \
+    "the song start to finish. A: You could also simply read the lyrics " + \
+    "while the music is playing in the background, eventually you will " + \
+    "learn it. A: It'\''s also very useful to get someone to sing it for " + \
+    "you before going to bed. A: And don'\''t forget you can always " + \
+    "team up with a friend and practice together, maybe at a karaoke!"
 
 
 @pytest.fixture
 def mock_app_content_generation():
-    with patch('writer.ai.WriterAIManager.acquire_client') as mock_acquire_client:
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
         original_client = Writer(api_key="fake_token")
         non_streaming_client = AsyncMock(original_client)
         mock_acquire_client.return_value = non_streaming_client
 
-        non_streaming_client.applications.generate_content.return_value = ApplicationGenerateContentResponse(
-            suggestion=test_complete_literal
-        )
+        non_streaming_client.applications.generate_content.return_value =\
+            ApplicationGenerateContentResponse(
+                suggestion=test_complete_literal
+            )
 
         yield non_streaming_client
 
 
 @pytest.fixture
-def mock_writer_client():
-    """Mock fixture for Writer client with configurable behavior."""
-    with patch('writer.ai.WriterAIManager.acquire_client') as mock_acquire_client:
+def mock_non_streaming_client():
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
         original_client = Writer(api_key="fake_token")
-        mock_client = AsyncMock(original_client)
-        mock_acquire_client.return_value = mock_client
+        non_streaming_client = AsyncMock(original_client)
+        mock_acquire_client.return_value = non_streaming_client
 
-        # Attach the original client for use in tests
-        mock_client._original_client = original_client
-
-        # Basic response mock
-        mock_client.completions.create.return_value = Completion(
-            choices=[{"text": "Completed text"}]
-        )
-
-        def mock_chat_response(include_tool_calls=None):
-            """Configurable mock chat response."""
-            tool_calls = include_tool_calls if include_tool_calls else None
-            return Chat(
+        non_streaming_client.chat.chat.return_value = \
+            Chat(
                 id="test",
                 choices=[
                     {
                         "finish_reason": "stop",
                         "index": 0,
+                        "logprobs": {},
                         "message": {
                             "role": "assistant",
                             "content": "Response",
-                            "tool_calls": tool_calls,
-                        },
-                    }
+                            "refusal": "false"
+                            }
+                    },
+
                 ],
                 created=0,
                 model="test",
                 object="chat.completion"
                 )
-        mock_client.completions.create.return_value = \
+        non_streaming_client.completions.create.return_value = \
             Completion(choices=[{"text": test_complete_literal}])
 
-        mock_client.graphs.question.return_value = \
+        non_streaming_client.graphs.question.return_value = \
             MagicMock(answer="Mocked Answer")
 
-        mock_client.chat.create_chat_response = mock_chat_response
-
-        # Shared fake stream response generator
-        def fake_stream_response():
-            yield b'data: {"choices":[{"message":{"content":"part1","role":"assistant"}}]}\n\n'
-            yield b'data: {"choices":[{"message":{"content":"part2","role":"assistant"}}]}\n\n'
-
-        mock_client.fake_stream_response = fake_stream_response
-        yield mock_client
+        yield non_streaming_client
 
 
 @pytest.fixture
-def mock_non_streaming_client(mock_writer_client):
-    """Mock client without tool calls."""
-    mock_writer_client.chat.chat.return_value = mock_writer_client.chat.create_chat_response()
-    yield mock_writer_client
-
-
-@pytest.fixture
-def mock_tool_calls_client(mock_writer_client):
-    """Mock client with tool calls returned only once."""
-    tool_calls = [
-        {"id": "1", "type": "function", "function": {"name": "test_function", "arguments": '{"arg1": 5}'}},
-        {"id": "2", "type": "function", "function": {"name": "test_function", "arguments": '{"arg1": 7}'}},
-    ]
-
-    tool_calls_control = {
-        "check_enabled": True,  # Toggle for enabling/disabling the check
-        "returned": False       # Tracks if tool calls have been returned
-    }
-    def conditional_chat_response(*args, **kwargs):
-        # Return tool calls only on the first call
-        if tool_calls_control["returned"]:
-            return mock_writer_client.chat.create_chat_response()
-        else:
-            if tool_calls_control["check_enabled"]:
-                tool_calls_control["returned"] = True
-            return mock_writer_client.chat.create_chat_response(
-                include_tool_calls=mock_writer_client.tool_calls
+def mock_streaming_client():
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
+        def fake_response_content():
+            yield (
+                b'data: {"id":"test","choices":[{"finish_reason":"stop",'
+                b'"message":{"content":"part1","role":"assistant"}}],'
+                b'"created":0,"model":"test"}\n\n'
                 )
+            yield (
+                b'data: {"id":"test","choices":[{"finish_reason":"stop",'
+                b'"message":{"content":"part2","role":"assistant"}}],'
+                b'"created":0,"model":"test"}\n\n'
+                )
+            yield b'\n'
 
-    # Apply the conditional response to the mock
-    mock_writer_client.tool_calls = tool_calls
-    mock_writer_client.tool_calls_control = tool_calls_control
-    mock_writer_client.chat.chat.side_effect = conditional_chat_response
-    yield mock_writer_client
+        original_client = Writer(api_key="fake_token")
+        streaming_client = AsyncMock(original_client)
+        mock_acquire_client.return_value = streaming_client
 
+        mock_chat_stream = Stream(
+            client=original_client,
+            cast_to=ChatCompletionChunk,
+            response=httpx.Response(
+                status_code=200,
+                content=fake_response_content()
+            )
+        )
+        streaming_client.chat.chat.return_value = mock_chat_stream
 
-@pytest.fixture
-def mock_streaming_client(mock_writer_client):
-    """Mock client for streaming."""
-    mock_stream = Stream(
-        client=mock_writer_client._original_client,
-        cast_to=Chat,
-        response=httpx.Response(200, content=mock_writer_client.fake_stream_response()),
-    )
-    mock_writer_client.chat.chat.return_value = mock_stream
-
-    mock_completion_stream = MagicMock()
-    mock_completion_stream.__iter__.return_value = iter([
-        StreamingData(value="part1"),
-        StreamingData(value=" part2")
-    ])
-    mock_writer_client.completions.create.return_value = \
+        # Mock completion streaming
+        mock_completion_stream = MagicMock()
+        mock_completion_stream.__iter__.return_value = iter([
+            StreamingData(value="part1"),
+            StreamingData(value=" part2")
+        ])
+        streaming_client.completions.create.return_value = \
             mock_completion_stream
 
-    # Mock question streaming
-    mock_graph_stream = MagicMock()
-    mock_graph_stream._iter_events.return_value = iter([
-        MagicMock(data='{"answer": "Part 1"}'),
-        MagicMock(data='{"answer": "Part 2"}'),
-    ])
-    mock_writer_client.graphs.question.return_value = mock_graph_stream
-    yield mock_writer_client
+        # Mock question streaming
+        mock_graph_stream = MagicMock()
+        mock_graph_stream._iter_events.return_value = iter([
+            MagicMock(data='{"answer": "Part 1"}'),
+            MagicMock(data='{"answer": "Part 2"}'),
+        ])
+        streaming_client.graphs.question.return_value = mock_graph_stream
 
-
-@pytest.fixture
-def mock_streaming_tool_calls_client(mock_writer_client):
-    """Mock client with tool calls returned only once."""
-    tool_calls_control = {
-        "check_enabled": True,  # Toggle for enabling/disabling the check
-        "returned": False       # Tracks if tool calls have been returned
-    }
-    tool_call_stream = [
-        b'data: {"id":"a2a302fa-a85c-44b4-9c20-0956d557517c","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":"","role":"assistant","tool_calls":null,"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"dc06043b-b002-40d3-b3fb-e6f1c2a090bc","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":0,"id":"chatcmpl-tool-1ff1df7d81074e5995ec77af2911f7c1","type":"function","function":{"name":"test_function","arguments":null}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"10d482f0-e370-41f6-9101-846d3ccbd3c6","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":0,"id":null,"type":null,"function":{"name":null,"arguments":"{\\"arg1\\": 5"}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"3eaf20c3-5af0-4b6e-a604-e6bd62bd24ee","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":0,"id":null,"type":null,"function":{"name":null,"arguments":""}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"433e565b-38e9-4d20-8c27-ffc33b252669","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":0,"id":null,"type":null,"function":{"name":null,"arguments":"}"}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"5091cdb6-2bed-4a55-9625-77c5cd607383","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\\n","role":"assistant","tool_calls":null,"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"b526eb17-0751-4d6b-8c61-332a28efbac3","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":1,"id":"chatcmpl-tool-22538c865437437e8ace8076a5755749","type":"function","function":{"name":"test_function","arguments":null}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"6cc43656-4ea1-43cc-8538-212476bc5681","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":1,"id":null,"type":null,"function":{"name":null,"arguments":"{\\"arg1\\": 7"}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"a68791cf-f01a-42fd-87bc-d209b2075e13","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":null,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":1,"id":null,"type":null,"function":{"name":null,"arguments":""}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-        b'data: {"id":"168bc578-1916-448b-8373-1c473383c0cb","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"content":null,"role":"assistant","tool_calls":[{"index":1,"id":null,"type":null,"function":{"name":null,"arguments":"}"}}],"graph_data":{"sources":null,"status":null,"subqueries":null},"refusal":null},"logprobs":null}],"created":1731919162,"model":"palmyra-x-004","usage":null,"system_fingerprint":"v1","service_tier":null}\n\n',
-    ]
-    def fake_stream_with_tool_calls():
-        """Generate streaming data with tool calls in JSON format for the first chunk."""
-        if tool_calls_control["returned"]:
-            # Use the original fake stream response
-            yield from mock_writer_client.fake_stream_response()
-        else:
-            if tool_calls_control["check_enabled"]:
-                tool_calls_control["returned"] = True
-            for chunk in mock_writer_client.tool_call_stream:
-                yield chunk
-
-    # Mock the streaming response with the modified generator
-    def create_mock_stream(*args, **kwargs):
-        mock_stream = Stream(
-            client=mock_writer_client._original_client,
-            cast_to=Chat,
-            response=httpx.Response(200, content=fake_stream_with_tool_calls()),
-        )
-        return mock_stream
-
-    mock_writer_client.tool_call_stream = tool_call_stream
-    mock_writer_client.tool_calls_control = tool_calls_control
-    mock_writer_client.chat.chat.side_effect = create_mock_stream
-    yield mock_writer_client
+        yield streaming_client
 
 
 @pytest.fixture
@@ -271,7 +263,12 @@ def sdk_graph_mock():
     return SDKGraph(
         id="test_graph_id",
         created_at=datetime.now(),
-        file_status={"completed": 0, "failed": 0, "in_progress": 0, "total": 0},
+        file_status={
+            "completed": 0,
+            "failed": 0,
+            "in_progress": 0,
+            "total": 0
+            },
         name="test_graph",
         description="A test graph"
     )
@@ -290,7 +287,8 @@ def sdk_file_mock():
 
 @pytest.fixture
 def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
-    with patch('writer.ai.Graph._retrieve_graphs_accessor') as mock_acquire_client:
+    with patch('writer.ai.Graph._retrieve_graphs_accessor') \
+      as mock_acquire_client:
         mock_accessor = MagicMock()
         mock_graph = Graph(sdk_graph_mock)
         mock_file = File(sdk_file_mock)
@@ -298,8 +296,10 @@ def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
         mock_accessor.add_file_to_graph.return_value = mock_file
         mock_accessor.retrieve.return_value = mock_graph
         mock_accessor.list.return_value = [mock_graph]
-        mock_accessor.delete.return_value = GraphDeleteResponse(id="test_file_id", deleted=True)
-        mock_accessor.remove_file_from_graph.return_value = GraphRemoveFileFromGraphResponse(id="test_file_id", deleted=True)
+        mock_accessor.delete.return_value =\
+            GraphDeleteResponse(id="test_file_id", deleted=True)
+        mock_accessor.remove_file_from_graph.return_value =\
+            GraphRemoveFileFromGraphResponse(id="test_file_id", deleted=True)
 
         mock_acquire_client.return_value = mock_accessor
         yield mock_accessor
@@ -307,15 +307,43 @@ def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
 
 @pytest.fixture
 def mock_files_accessor(sdk_file_mock):
-    with patch('writer.ai.File._retrieve_files_accessor') as mock_acquire_client:
+    with patch('writer.ai.File._retrieve_files_accessor') \
+      as mock_acquire_client:
         mock_accessor = MagicMock()
         mock_file = File(sdk_file_mock)
         mock_accessor.retrieve.return_value = mock_file
         mock_accessor.list.return_value = [mock_file]
         mock_accessor.upload.return_value = mock_file
-        mock_accessor.delete.return_value = FileDeleteResponse(id="test_delete", deleted=True)
+        mock_accessor.delete.return_value =\
+            FileDeleteResponse(id="test_delete", deleted=True)
         mock_acquire_client.return_value = mock_accessor
         yield mock_accessor
+
+
+@pytest.fixture
+def mock_tools_accessor():
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
+        mock_client = MagicMock()
+        mock_accessor = MagicMock()
+        mock_acquire_client.return_value = mock_client
+
+        mock_parse_pdf_content = ToolParsePdfResponse(
+            content=test_expected_pdf_content
+            )
+        mock_split = ToolContextAwareSplittingResponse(
+            chunks=test_expected_chunks
+            )
+        mock_comprehend_medical = ComprehendMedicalResponse(
+            entities=test_expected_medical_entities
+        )
+
+        mock_accessor.parse_pdf.return_value = mock_parse_pdf_content
+        mock_accessor.context_aware_splitting.return_value = mock_split
+        mock_accessor.comprehend.medical.return_value = mock_comprehend_medical
+
+        mock_client.tools = mock_accessor
+        yield mock_client
 
 
 @pytest.fixture
@@ -341,7 +369,8 @@ class FakeAppProcessForAIManager:
 
 def create_fake_app_process(token: str) -> FakeAppProcessForAIManager:
     """
-    Helper function to create and patch FakeAppProcessForAIManager with a given token.
+    Helper function to create and patch FakeAppProcessForAIManager
+    with a given token.
     """
     fake_process = FakeAppProcessForAIManager(token)
     method_to_patch = 'writer.ai.WriterAIManager.acquire_instance'
@@ -466,7 +495,11 @@ def test_conversation_serialized_messages_excludes_system():
     assert serialized_messages[0] == \
         {"role": "user", "content": "Hello", "actions": None}
     assert serialized_messages[1] == \
-        {"role": "assistant", "content": "Hi, how can I help?", "actions": None}
+        {
+            "role": "assistant",
+            "content": "Hi, how can I help?",
+            "actions": None
+        }
 
 
 @pytest.mark.set_token("fake_token")
@@ -480,7 +513,10 @@ def test_conversation_complete(emulate_app_process, mock_non_streaming_client):
 
 
 @pytest.mark.set_token("fake_token")
-def test_conversation_stream_complete(emulate_app_process, mock_streaming_client):
+def test_conversation_stream_complete(
+    emulate_app_process,
+    mock_streaming_client
+):
     # Create the Conversation object and collect the response chunks
     conversation = Conversation("Initial prompt")
 
@@ -489,149 +525,11 @@ def test_conversation_stream_complete(emulate_app_process, mock_streaming_client
         response_chunks.append(chunk)
 
     # Verify the content
-    assert " ".join(chunk["content"] for chunk in response_chunks) == "part1 part2"
+    assert " ".join(
+        chunk["content"]
+        for chunk in response_chunks
+        ) == "part1 part2"
 
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_tool_call(emulate_app_process, mock_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-    _ = conversation.complete(tools=[{
-        "type": "function",
-        "callable": test_function,
-        "name": "test_function",
-        "parameters": {"arg1": {"type": "string"}}
-    }])
-    tool_results = [message for message in conversation.messages if message["role"] == "tool"]
-    assert len(tool_results) == 2
-    assert tool_results[0]["content"] == "25"
-    assert tool_results[1]["content"] == "49"
-
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_stream_tool_call(emulate_app_process, mock_streaming_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-    response = conversation.stream_complete(tools=[{
-        "type": "function",
-        "callable": test_function,
-        "name": "test_function",
-        "parameters": {"arg1": {"type": "string"}}
-    }])
-    # Initiate streaming to trigger the calls
-    for _ in response:
-        pass
-    tool_results = [message for message in conversation.messages if message["role"] == "tool"]
-    assert len(tool_results) == 2
-    assert tool_results[0]["content"] == "25"
-    assert tool_results[1]["content"] == "49"
-
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_bad_tool_call(emulate_app_process, mock_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-
-    # Prepare bad tool call data
-    mock_tool_calls_client.tool_calls = [
-        {"id": "1", "type": "function", "function": {"name": "test_function", "arguments": '{"arg1": "invalid"}'}},
-        {"id": "2", "type": "function", "function": {"name": "test_function", "arguments": '{"arg2": 5}'}},  # Missing 'arg1'
-    ]
-
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-
-    _ = conversation.complete(tools=[{
-        "type": "function",
-        "callable": test_function,
-        "name": "test_function",
-        "parameters": {"arg1": {"type": "string"}}
-    }])
-    tool_results = [message for message in conversation.messages if message["role"] == "tool"]
-    assert len(tool_results) == 2
-    assert "inform the user about the error" in tool_results[0]["content"]
-    assert "inform the user about the error" in tool_results[1]["content"]
-
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_stream_bad_tool_call(emulate_app_process, mock_streaming_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-
-    # Prepare bad tool call data
-    mock_streaming_tool_calls_client.tool_call_stream = [
-        b'data: {"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":null,"role":"assistant","tool_calls":[{"index":0,"id":"1","type":"function","function":{"name":"test_function","arguments":"{\\"arg1\\":\\"invalid\\"}"}}]}}]}\n\n',
-        b'data: {"id":"2","object":"chat.completion.chunk","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"content":null,"role":"assistant","tool_calls":[{"index":1,"id":"2","type":"function","function":{"name":"test_function","arguments":"{\\"arg2\\": 5}"}}]}}]}\n\n',  # Missing 'arg1'
-    ]
-
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-
-    response = conversation.stream_complete(tools=[{
-        "type": "function",
-        "callable": test_function,
-        "name": "test_function",
-        "parameters": {"arg1": {"type": "string"}}
-    }])
-    # Initiate streaming to trigger the calls
-    for _ in response:
-        pass
-    tool_results = [message for message in conversation.messages if message["role"] == "tool"]
-    assert len(tool_results) == 2
-    assert "inform the user about the error" in tool_results[0]["content"]
-    assert "inform the user about the error" in tool_results[1]["content"]
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_tool_call_max_depth(emulate_app_process, mock_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-    mock_tool_calls_client.tool_calls_control["check_enabled"] = False
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-    with pytest.raises(RuntimeError):
-        _ = conversation.complete(tools=[{
-            "type": "function",
-            "callable": test_function,
-            "name": "test_function",
-            "parameters": {"arg1": {"type": "string"}}
-        }])
-
-
-@pytest.mark.set_token("fake_token")
-def test_conversation_with_stream_tool_call_max_depth(emulate_app_process, mock_streaming_tool_calls_client):
-    def test_function(arg1):
-        return int(arg1) ** 2
-    mock_streaming_tool_calls_client.tool_calls_control["check_enabled"] = False
-    conversation = Conversation()
-    conversation._register_callable(test_function, "test_function", {"arg1": {"type": "integer"}})
-
-    conversation.add("user", "Call a tool")
-    with pytest.raises(RuntimeError):
-        response = conversation.stream_complete(tools=[{
-            "type": "function",
-            "callable": test_function,
-            "name": "test_function",
-            "parameters": {"arg1": {"type": "string"}}
-        }])
-        # Initiate streaming to trigger the calls
-        for _ in response:
-            pass
 
 @pytest.mark.set_token("fake_token")
 def test_complete(emulate_app_process, mock_non_streaming_client):
@@ -648,7 +546,10 @@ def test_stream_complete(emulate_app_process, mock_streaming_client):
 
 
 @pytest.mark.set_token("fake_token")
-def test_generate_content_from_app(emulate_app_process, mock_app_content_generation):
+def test_generate_content_from_app(
+    emulate_app_process,
+    mock_app_content_generation
+):
     response = apps.generate_content("abc123", {
         "Favorite animal": "Dog",
         "Favorite color": "Purple"
@@ -751,6 +652,73 @@ def test_delete_file(mock_files_accessor):
 
 
 @pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_id(emulate_app_process, mock_tools_accessor):
+    file_content = tools.parse_pdf(file_id_or_file="test_file_id")
+    assert file_content == test_expected_pdf_content
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_payload_valid(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    fake_payload = {
+        "name": "file.pdf",
+        "type": "application/pdf",
+        "data": "some base64 encoded pdf data"
+    }
+    file_content = tools.parse_pdf(file_id_or_file=fake_payload)
+    assert file_content == test_expected_pdf_content
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_payload_missing_name(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    fake_payload = {
+        "type": "application/pdf",
+        "data": "some base64 encoded pdf data"
+    }
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid payload passed to parse_pdf method: " +
+              r"expected keys `data`, `type` and `name`, " +
+              r"got dict_keys\(\['type', 'data'\]\)"
+    ):
+        tools.parse_pdf(file_id_or_file=fake_payload)
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_split(emulate_app_process, mock_tools_accessor):
+    result = tools.split("Some content here")
+    assert result == test_expected_chunks
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_split_empty(emulate_app_process, mock_tools_accessor):
+    with pytest.raises(ValueError, match="Content cannot be empty."):
+        tools.split("")
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_comprehend_medical(emulate_app_process, mock_tools_accessor):
+    result = tools.comprehend_medical("Medical content")
+    assert result == ComprehendMedicalResponse(
+            entities=test_expected_medical_entities
+        ).entities
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_comprehend_medical_empty(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    with pytest.raises(ValueError, match="Content cannot be empty."):
+        tools.comprehend_medical("")
+
+
+@pytest.mark.set_token("fake_token")
 def test_ask(mock_non_streaming_client):
     question = "What is the capital of France?"
     graphs_or_graph_ids = ["graph_id_1"]
@@ -821,7 +789,10 @@ def test_stream_ask_graph_class(mock_streaming_client):
 @explicit
 def test_explicit_conversation_complete(emulate_app_process):
     conversation = Conversation()
-    conversation.add("user", "Hello, how can I improve my social media engagement?")
+    conversation.add(
+        "user",
+        "Hello, how can I improve my social media engagement?"
+        )
 
     response = conversation.complete()
 
@@ -832,7 +803,10 @@ def test_explicit_conversation_complete(emulate_app_process):
 @explicit
 def test_explicit_conversation_stream_complete(emulate_app_process):
     conversation = Conversation()
-    conversation.add("user", "Hello, how can I improve my social media engagement?")
+    conversation.add(
+        "user",
+        "Hello, how can I improve my social media engagement?"
+        )
 
     response_chunks = []
     for chunk in conversation.stream_complete():
@@ -1041,7 +1015,8 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
 @explicit
 @pytest.mark.asyncio
 async def test_explicit_complete(emulate_app_process):
-    initial_text = "Write a short paragraph about the benefits of regular exercise."
+    initial_text = "\
+        Write a short paragraph about the benefits of regular exercise."
     response = complete(initial_text)
 
     assert isinstance(response, str)
@@ -1052,7 +1027,8 @@ async def test_explicit_complete(emulate_app_process):
 @explicit
 @pytest.mark.asyncio
 async def test_explicit_stream_complete(emulate_app_process):
-    initial_text = "Write a short paragraph about the benefits of regular exercise."
+    initial_text = \
+        "Write a short paragraph about the benefits of regular exercise."
 
     response_chunks = list(stream_complete(initial_text))
 
@@ -1064,7 +1040,10 @@ async def test_explicit_stream_complete(emulate_app_process):
 
 @explicit
 def test_explicit_create_graph(emulate_app_process, created_graphs):
-    graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(graph)
     assert graph.id is not None
     assert graph.name == "integration_test_graph"
@@ -1072,7 +1051,10 @@ def test_explicit_create_graph(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_retrieve_graph(emulate_app_process, created_graphs):
-    created_graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    created_graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(created_graph)
     graph = retrieve_graph(graph_id=created_graph.id)
 
@@ -1083,7 +1065,10 @@ def test_explicit_retrieve_graph(emulate_app_process, created_graphs):
 @explicit
 def test_explicit_list_graphs(emulate_app_process, created_graphs):
     # Create a graph to ensure there's at least one graph in the list
-    graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(graph)
 
     graphs = list_graphs()
@@ -1094,7 +1079,10 @@ def test_explicit_list_graphs(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_delete_graph(emulate_app_process, created_graphs):
-    created_graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    created_graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(created_graph)
     response = delete_graph(graph_id_or_graph=created_graph.id)
 
@@ -1106,8 +1094,11 @@ def test_explicit_delete_graph(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_upload_file(emulate_app_process, created_files):
-    data = b"file_content"
-    file = upload_file(data=data, type="text/plain", name="integration_uploaded_file")
+    file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(file)
 
     assert file.id is not None
@@ -1116,7 +1107,11 @@ def test_explicit_upload_file(emulate_app_process, created_files):
 
 @explicit
 def test_explicit_retrieve_file(emulate_app_process, created_files):
-    uploaded_file = upload_file(data=b"file_content", type="text/plain", name="integration_uploaded_file")
+    uploaded_file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(uploaded_file)
     file = retrieve_file(file_id=uploaded_file.id)
 
@@ -1127,8 +1122,11 @@ def test_explicit_retrieve_file(emulate_app_process, created_files):
 @explicit
 def test_explicit_list_files(emulate_app_process, created_files):
     # Upload a file to ensure there's at least one file in the list
-    data = b"file_content"
-    file = upload_file(data=data, type="text/plain", name="integration_uploaded_file")
+    file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(file)
 
     files = list_files()
@@ -1139,7 +1137,11 @@ def test_explicit_list_files(emulate_app_process, created_files):
 
 @explicit
 def test_explicit_delete_file(emulate_app_process, created_files):
-    uploaded_file = upload_file(data=b"file_content", type="text/plain", name="integration_uploaded_file")
+    uploaded_file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(uploaded_file)
     response = delete_file(file_id_or_file=uploaded_file.id)
 
@@ -1188,7 +1190,7 @@ def test_explicit_ask_graph_class(
         )
 
     assert isinstance(answer, str)
-    assert answer == "PARIS"
+    assert answer == " PARIS"
 
 
 @explicit
@@ -1271,12 +1273,13 @@ def test_explicit_ask(
             break
 
     answer = ask(
-        question="What is the source word? Name only the word and nothing else",
+        question="What is the source word?" +
+                 " Name only the word and nothing else",
         graphs_or_graph_ids=[graph]
         )
 
     assert isinstance(answer, str)
-    assert answer == "PARIS"
+    assert answer == " PARIS"
 
 
 @explicit
@@ -1315,7 +1318,8 @@ def test_explicit_stream_ask(
 
     answer = ""
     stream = stream_ask(
-        question="What is the source word? Name only the word and nothing else",
+        question="What is the source word?" +
+                 " Name only the word and nothing else",
         graphs_or_graph_ids=[graph]
         )
     for chunk in stream:
@@ -1324,5 +1328,186 @@ def test_explicit_stream_ask(
     assert isinstance(answer, str)
     assert answer == " PARIS"
 
-# For doing a explicit test of apps.generate_content() we need a no-code app that
-# nobody will touch. That is a challenge.
+
+@explicit
+def test_explicit_tools_parse_pdf(emulate_app_process, created_files):
+    pdf_file = upload_file(
+        data=test_pdf_data,
+        type="application/pdf",
+        name="uploaded_test.pdf"
+        )
+    created_files.append(pdf_file)
+
+    pdf_result = tools.parse_pdf(file_id_or_file=pdf_file.id)
+    assert pdf_result.strip() == "Hello PDF!"
+
+
+@explicit
+def test_explicit_tools_split_llm(emulate_app_process):
+    split_result = tools.split(
+        test_split_text
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_split_fast(emulate_app_process):
+    split_result = tools.split(
+        test_fast_split_text,
+        strategy="fast_split"
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_split_hybrid(emulate_app_process):
+    # Test using the hybrid_split strategy
+    split_result = tools.split(
+        test_split_text,
+        strategy="hybrid_split"
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_entities(emulate_app_process):
+    medical_result = tools.comprehend_medical(
+        "The patient shows symptoms of mild hypertension."
+        )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert hasattr(first_entity, "category")
+    assert first_entity.category == "MEDICAL_CONDITION"
+    assert hasattr(first_entity, "text")
+    assert first_entity.text.lower() == "hypertension"
+    assert hasattr(first_entity, "score")
+    assert first_entity.score > 0.5  # Ensure it's confident enough
+
+    # The first entity's attributes should contain "mild"
+    assert hasattr(first_entity, "attributes")
+    assert len(first_entity.attributes) > 0
+    first_attribute = first_entity.attributes[0]
+    assert hasattr(first_attribute, "text")
+    assert first_attribute.text.lower() == "mild"
+
+    assert hasattr(first_entity, "traits")
+    assert len(first_entity.traits) > 0
+    first_trait = first_entity.traits[0]
+    assert hasattr(first_trait, "name")
+    assert first_trait.name == "DIAGNOSIS"
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_rxnorm(emulate_app_process):
+    # Test using RxNorm response type
+    medical_result = tools.comprehend_medical(
+        "The patient was prescribed Lisinopril for blood pressure management.",
+        response_type="RxNorm"
+    )
+
+    # Basic structure checks
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert first_entity.category == "MEDICATION"
+    assert first_entity.text.lower() == "lisinopril"
+
+    # Check that concepts are present and have expected structure
+    assert hasattr(first_entity, "concepts")
+    assert len(first_entity.concepts) > 0
+    assert all(
+        hasattr(c, "code")
+        and
+        hasattr(c, "description")
+        and hasattr(c, "score")
+        for c in first_entity.concepts
+        )
+
+    # Verify that at least one concept matches the base drug name
+    assert any(
+        "lisinopril" in c.description.lower()
+        for c in first_entity.concepts
+        )
+
+    # Verify scores are reasonable
+    assert first_entity.score > 0.5
+    for concept in first_entity.concepts:
+        assert concept.score > 0.5
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_icd10(emulate_app_process):
+    # Test using ICD-10-CM response type
+    medical_result = tools.comprehend_medical(
+        "The patient has been diagnosed with Type 2 diabetes mellitus.",
+        response_type="ICD-10-CM"
+    )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert first_entity.category == "MEDICAL_CONDITION"
+    assert first_entity.text.lower() == "diabetes mellitus"
+    assert any(
+        "diabetes" in c.description.lower()
+        for c in first_entity.concepts
+        )
+
+    # Ensure there's a DIAGNOSIS trait
+    assert hasattr(first_entity, "traits")
+    assert len(first_entity.traits) > 0
+    assert any(trait.name == "DIAGNOSIS" for trait in first_entity.traits)
+
+    # Check ICD-10-CM concept codes
+    assert any(c.code.startswith("E11") for c in first_entity.concepts)
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_snomed(emulate_app_process):
+    # Test using SNOMED CT response type
+    medical_result = tools.comprehend_medical(
+        "The patient presents with symptoms consistent with appendicitis.",
+        response_type="SNOMED CT"
+    )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) >= 2
+
+    symptoms_entity = medical_result[0]
+    appendicitis_entity = medical_result[1]
+
+    # Check categories and text
+    assert symptoms_entity.category == "MEDICAL_CONDITION"
+    assert "symptoms" in symptoms_entity.text.lower()
+
+    assert appendicitis_entity.category == "MEDICAL_CONDITION"
+    assert "appendicitis" in appendicitis_entity.text.lower()
+
+    # Check traits
+    assert len(symptoms_entity.traits) > 0
+    assert any(trait.name == "SYMPTOM" for trait in symptoms_entity.traits)
+
+    assert len(appendicitis_entity.traits) > 0
+    assert any(
+        trait.name == "DIAGNOSIS"
+        for trait in appendicitis_entity.traits
+        )
+
+    # Check that concepts have codes
+    assert len(symptoms_entity.concepts) > 0
+    assert all(c.code and c.description for c in symptoms_entity.concepts)
+
+    assert len(appendicitis_entity.concepts) > 0
+    assert any(
+        "appendicitis" in c.description.lower()
+        for c in appendicitis_entity.concepts
+        )
+
+
+# For doing a explicit test of apps.generate_content() we need a no-code app
+# that nobody will touch. That is a challenge.

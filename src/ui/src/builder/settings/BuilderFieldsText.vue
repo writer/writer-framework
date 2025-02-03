@@ -33,7 +33,7 @@
 import { toRefs, inject, computed } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
@@ -75,7 +75,6 @@ const handleInput = (ev: Event) => {
 
 <style>
 .BuilderFieldsText .content {
-	padding: 16px 12px 12px 12px;
 	width: 100%;
 }
 </style>

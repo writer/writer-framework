@@ -16,6 +16,7 @@ import {
 	primaryTextColor,
 	secondaryTextColor,
 } from "@/renderer/sharedStyleFields";
+import { WdsColor } from "@/wds/tokens";
 
 const description =
 	"A component that prominently displays a metric value and associated information.";
@@ -51,7 +52,7 @@ export default {
 			secondaryTextColor,
 			positiveColor: {
 				name: "Positive",
-				default: "#a9f9e1",
+				default: WdsColor.Green3,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},
@@ -63,7 +64,7 @@ export default {
 			},
 			negativeColor: {
 				name: "Negative",
-				default: "#ffcfc2",
+				default: WdsColor.Orange2,
 				type: FieldType.Color,
 				category: FieldCategory.Style,
 			},

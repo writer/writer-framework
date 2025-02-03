@@ -75,7 +75,7 @@ def _get_editable_df():
         'object': [{"updatedAt": None}, {"updatedAt": None}, {"updatedAt": None}],
         'text': ['one', 'two', 'three'],
     })
-    return wf.EditableDataframe(df)
+    return wf.EditableDataFrame(df)
 
 def _get_highlighted_members():
     sample_df = _get_main_df().sample(3).set_index("name", drop=False)

@@ -4,6 +4,7 @@ import {
 	WriterComponentDefinition,
 } from "@/writerTypes";
 import { getComponentDefinition } from "./templateMap";
+import { useLogger } from "@/composables/useLogger";
 
 /**
  * Audits integrity of ComponentMap. Applies automatic fixes if necessary.
@@ -23,9 +24,11 @@ export function auditAndFixComponents(components: ComponentMap): boolean {
 }
 
 export function auditAndFixComponent(component: Component): boolean {
+	const logger = useLogger();
+
 	const def = getComponentDefinition(component.type);
 	if (!def || def.category == "Fallback") {
-		console.error(
+		logger.error(
 			`Component ${component.id} (${component.type}). Invalid component type.`,
 		);
 		return false;
@@ -53,6 +56,7 @@ function traverseComponentTree(
 }
 
 function auditOrphanComponents(components: ComponentMap) {
+	const logger = useLogger();
 	const visited = Object.fromEntries(
 		Object.entries(components).map(([componentId]) => [componentId, false]),
 	);
@@ -60,7 +64,7 @@ function auditOrphanComponents(components: ComponentMap) {
 	traverseComponentTree("workflows_root", components, visited);
 	Object.entries(visited).forEach(([componentId, isVisited]) => {
 		if (!isVisited) {
-			console.warn(
+			logger.warn(
 				`Component ${componentId} (${components[componentId].type}). Orphan component.`,
 			);
 		}
@@ -71,11 +75,12 @@ function auditComponentFieldKeys(
 	component: Component,
 	def: WriterComponentDefinition,
 ) {
+	const logger = useLogger();
 	const fieldKeys = Object.keys(def.fields ?? {});
 	if (!component.content) return;
 	Object.keys(component.content).forEach((contentFieldKey) => {
 		if (fieldKeys.includes(contentFieldKey)) return;
-		console.warn(
+		logger.warn(
 			`Component ${component.id} (${component.type}). Field key "${contentFieldKey}" is defined in the component but not in the template.`,
 		);
 	});
@@ -93,7 +98,8 @@ function auditComponentBinding(
 		def.events[boundEventType].bindable
 	)
 		return;
-	console.warn(
+	const logger = useLogger();
+	logger.warn(
 		`Component ${component.id} (${component.type}). The component is bound to event "${component.binding.eventType}" but the template doesn't define that event or it's not bindable.`,
 	);
 }
@@ -110,14 +116,15 @@ function auditAndFixPositions(
 	component: Component,
 	components: ComponentMap,
 ): boolean {
+	const logger = useLogger();
 	let isFixApplied = false;
 	if (component.id == "root") {
 		if (component.position !== 0) {
-			console.error("Root must be at position 0.");
+			logger.error("Root must be at position 0.");
 		}
 	}
 	if (component.position == -1) {
-		console.error(
+		logger.error(
 			`Component ${component.id} (${component.type}). Invalid position.`,
 		);
 	}
@@ -136,7 +143,7 @@ function auditAndFixPositions(
 	const arithmeticProgression =
 		((positionfulChildren.length - 1) * positionfulChildren.length) / 2;
 	if (arithmeticProgression !== positionSum) {
-		console.error(
+		logger.error(
 			`Component ${component.id} (${component.type}). Invalid children positions. Automated fix will be applied.`,
 		);
 		fixPositions(positionfulChildren);

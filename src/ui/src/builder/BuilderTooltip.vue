@@ -37,11 +37,14 @@ const position = ref<{
 }>({ top: 0, left: 0 });
 
 async function setUpAndShowTooltip() {
+	if (!trackedElement) return;
 	tooltipText.value = trackedElement.dataset.writerTooltip;
+	if (!tooltipText.value) return;
 	const gapPx = trackedElement.dataset.writerTooltipGap
 		? parseInt(trackedElement.dataset.writerTooltipGap)
 		: DEFAULT_GAP_PX;
-	isActive.value = true;
+	isActive.value = canBeActive(trackedElement);
+	if (!isActive.value) return;
 	await nextTick();
 	const { x, y, width, height } = trackedElement.getBoundingClientRect();
 	const { width: tooltipWidth, height: tooltipHeight } =
@@ -65,6 +68,12 @@ async function setUpAndShowTooltip() {
 			position.value.left = x + width / 2 - tooltipWidth / 2;
 			break;
 	}
+}
+
+function canBeActive(el: HTMLElement) {
+	const strategy = el.getAttribute("data-writer-tooltip-strategy");
+	if (strategy === "overflow") return el.scrollWidth > el.clientWidth;
+	return true;
 }
 
 function handleMouseover(ev: MouseEvent) {
@@ -96,6 +105,7 @@ async function confirmTooltip(el: HTMLElement) {
 		attributeFilter: [
 			"data-writer-tooltip",
 			"data-writer-tooltip-placement",
+			"data-writer-tooltip-strategy",
 		],
 	});
 	setUpAndShowTooltip();
@@ -129,6 +139,7 @@ onUnmounted(() => {
 	display: content;
 	max-width: 260px;
 	filter: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.16));
+	word-break: break-all;
 }
 
 .arrow {

@@ -5,39 +5,11 @@
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
-		<div class="chipStackContainer">
-			<div class="chipStack">
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'default' }"
-					@click="
-						() => {
-							setMode('default');
-							setContentValue(component.id, fieldKey, undefined);
-						}
-					"
-				>
-					Default
-				</button>
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'css' }"
-					@click="setMode('css')"
-				>
-					CSS
-				</button>
-				<button
-					class="chip"
-					:class="{ active: mode == 'pick' }"
-					tabindex="0"
-					@click="setMode('pick')"
-				>
-					Pick
-				</button>
-			</div>
-		</div>
+		<WdsTabs
+			:tabs="tabs"
+			:model-value="mode"
+			@update:model-value="setMode"
+		/>
 
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
@@ -47,11 +19,11 @@
 					@update:model-value="handleInputSelect"
 				/>
 				<div v-if="subMode == SubMode.fixed" class="fixedContainer">
-					<input
+					<WdsTextInput
 						ref="fixedEl"
-						type="text"
-						:value="valuePickFixed"
-						@input="handleInputFixed"
+						type="number"
+						:model-value="valuePickFixed"
+						@update:model-value="handleInputFixed"
 					/>
 					<div>px</div>
 				</div>
@@ -69,6 +41,7 @@
 
 <script setup lang="ts">
 import {
+	ComponentInstance,
 	computed,
 	inject,
 	nextTick,
@@ -80,9 +53,15 @@ import {
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import {
+	BuilderFieldCssMode as Mode,
+	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
+} from "./constants/builderFieldsCssTabs";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -90,10 +69,8 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl: Ref<HTMLElement> = ref(null);
 const pickerEl: Ref<HTMLInputElement> = ref(null);
-const fixedEl: Ref<HTMLInputElement> = ref(null);
+const fixedEl = ref<ComponentInstance<typeof WdsTextInput>>(null);
 const freehandInputEl: Ref<HTMLInputElement> = ref(null);
-
-type Mode = "pick" | "css" | "default";
 
 enum SubMode {
 	fixed = "fixed",
@@ -213,6 +190,10 @@ const setMode = async (newMode: Mode) => {
 	mode.value = newMode;
 	await nextTick();
 	autofocus();
+
+	if (newMode === "default") {
+		setContentValue(component.value.id, fieldKey.value, undefined);
+	}
 };
 
 const handleInputSelect = (select: string) => {
@@ -239,12 +220,8 @@ const handleInputCss = (ev: Event) => {
 	);
 };
 
-const handleInputFixed = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value + "px",
-	);
+const handleInputFixed = (ev: string) => {
+	setContentValue(component.value.id, fieldKey.value, `${ev}px`);
 };
 
 onMounted(() => {
@@ -259,20 +236,15 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
-}
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
 }
 
 .fixedContainer {
+	margin-top: 8px;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	gap: 8px;
-	padding: 8px;
 }
 </style>

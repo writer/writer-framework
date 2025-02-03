@@ -1,13 +1,7 @@
 <template>
 	<div class="WorkflowsNode">
 		<div class="title">
-			<img
-				:src="`./../../../../components/${component.type}.svg`"
-				@error="
-					(ev) =>
-						!isImageFallback ? handleImageError(ev) : undefined
-				"
-			/>
+			<SharedImgWithFallback :urls="possibleImageUrls" />
 			<WorkflowsNodeNamer
 				:component-id="componentId"
 				class="nodeNamer"
@@ -75,17 +69,18 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-const isImageFallback = ref(false);
 
 const component = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -97,7 +92,7 @@ const def = computed(() => {
 });
 
 const isEngaged = computed(() => {
-	const isSelected = wfbm.getSelectedId() == componentId;
+	const isSelected = wfbm.isComponentIdSelected(componentId);
 	return isSelected;
 });
 
@@ -109,12 +104,6 @@ const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	});
 	return processedOuts;
 });
-
-function handleImageError(ev: Event) {
-	const imageEl = ev.target as HTMLImageElement;
-	imageEl.src = `./../../../../components/workflows_category_${def.value.category}.svg`;
-	isImageFallback.value = true;
-}
 
 function getDynamicKeysFromField(fieldKey: string) {
 	const fieldType = def.value.fields[fieldKey].type;
@@ -154,6 +143,19 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 	emit("outMousedown", outId);
 }
 
+const possibleImageUrls = computed(() => {
+	const paths = [
+		`/components/${component.value.type}.svg`,
+		`/components/workflows_category_${def.value.category}.svg`,
+	];
+
+	if (wf.featureFlags.value.includes("custom_block_icons")) {
+		paths.unshift(`/static/components/${component.value.id}.svg`);
+	}
+
+	return paths.map((p) => convertAbsolutePathtoFullURL(p));
+});
+
 watch(isEngaged, () => {
 	emit("engaged");
 });
@@ -166,12 +168,12 @@ watch(isEngaged, () => {
 	border-radius: 8px;
 	width: 240px;
 	position: absolute;
-	box-shadow: 0px 2px 0px 0px #f3f3f3;
+	box-shadow: var(--wdsShadowBox);
 	user-select: none;
 }
 
 .WorkflowsNode:hover {
-	border: 2px solid #e4e9ff;
+	border: 2px solid var(--wdsColorBlue2);
 }
 
 .title {
@@ -220,7 +222,7 @@ watch(isEngaged, () => {
 	font-weight: 400;
 	/* letter-spacing: 1.3px; */
 	/* text-transform: uppercase; */
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 	font-feature-settings:
 		"liga" off,
 		"clig" off;
@@ -236,19 +238,19 @@ watch(isEngaged, () => {
 }
 
 .output .ball.success {
-	background: #3bdcab;
+	background: var(--wdsColorGreen5);
 }
 
 .output .ball.error {
-	background: #ff643c;
+	background: var(--wdsColorOrange5);
 }
 
 .output .ball.dynamic {
-	background: #a95ef8;
+	background: var(--wdsColorPurple4);
 }
 
 .WorkflowsNode.selected.component {
-	border: 2px solid #6985ff;
+	border: 2px solid var(--wdsColorBlue4);
 	background: var(--builderBackgroundColor);
 }
 </style>

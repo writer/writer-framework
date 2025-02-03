@@ -1,3 +1,5 @@
+import re
+
 import requests
 
 from writer.abstract import register_abstract_template
@@ -6,6 +8,8 @@ from writer.ss_types import AbstractTemplate
 
 
 class HTTPRequest(WorkflowBlock):
+
+    CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 
     @classmethod
     def register(cls, type: str):
@@ -64,6 +68,12 @@ class HTTPRequest(WorkflowBlock):
             }
         ))
 
+    def _clean_json_string(self, s: str) -> str:
+
+        """ Remove control characters, which aren't tolerated by JSON loads() strict mode, from string."""
+
+        return HTTPRequest.CONTROL_CHARS.sub("", s)
+
     def run(self):
         import json
 
@@ -71,7 +81,7 @@ class HTTPRequest(WorkflowBlock):
             method = self._get_field("method", False, "GET")
             url = self._get_field("url")
             headers = self._get_field("headers", True)
-            body = self._get_field("body")
+            body = self._clean_json_string(self._get_field("body"))
             req = requests.request(method, url, headers=headers, data=body)
             
             content_type = req.headers.get("Content-Type")

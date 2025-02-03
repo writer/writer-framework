@@ -1,27 +1,36 @@
 <template>
 	<div v-if="shouldDisplay" class="CoreAnnotatedText">
-		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
-		<span v-for="(content, i) in safeText" :key="String(content) + i">
-			<template v-if="typeof content === 'string'">{{
-				content
-			}}</template>
-			<span
-				v-if="Array.isArray(content)"
-				class="annotation"
-				:style="{ background: content[2] || generateColor(content[1]) }"
-			>
-				{{ content[0] }}
-				<span v-if="content[1]" class="annotation-subject">
-					{{ content[1] }}
+		<BaseMarkdownRaw
+			v-if="useMarkdown"
+			:raw-markdown="markdown"
+			class="CoreAnnotatedText__markdown"
+		/>
+		<template v-else>
+			<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
+			<span v-for="(content, i) in text" :key="String(content) + i">
+				<template v-if="typeof content === 'string'">{{
+					content
+				}}</template>
+				<span
+					v-if="Array.isArray(content)"
+					class="CoreAnnotatedText__annotation"
+					:style="{ backgroundColor: getAnnotationBgColor(content) }"
+				>
+					{{ content[0] }}
+					<span
+						v-if="content[1]"
+						class="CoreAnnotatedText__annotation__subject"
+					>
+						{{ content[1] }}
+					</span>
 				</span>
 			</span>
-		</span>
-		<template v-if="fields.copyButtons.value === 'yes'">
-			<SharedControlBar
-				:copy-raw-content="textToString(safeText)"
-				:copy-structured-content="stringifyData(safeText)"
-			/>
 		</template>
+		<SharedControlBar
+			v-if="fields.copyButtons.value === 'yes'"
+			:copy-raw-content="copyRawContent"
+			:copy-structured-content="copyStructuredContent"
+		/>
 	</div>
 </template>
 
@@ -33,6 +42,7 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
+import { WdsColor } from "@/wds/tokens";
 export default {
 	writer: {
 		name: "Annotated text",
@@ -49,7 +59,7 @@ export default {
 				name: "Reference",
 				desc: "The colour to be used as reference for chroma and luminance, and as the starting point for hue rotation.",
 				type: FieldType.Color,
-				default: "#5551FF",
+				default: WdsColor.Blue5,
 				category: FieldCategory.Style,
 			},
 			seed: {
@@ -69,6 +79,16 @@ export default {
 				},
 				default: "yes",
 				category: FieldCategory.Style,
+			},
+			useMarkdown: {
+				name: "Use Markdown",
+				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
+				default: "no",
+				type: FieldType.Text,
+				options: {
+					yes: "Yes",
+					no: "No",
+				},
 			},
 			copyButtons: {
 				name: "Copy buttons",
@@ -93,23 +113,24 @@ export default {
 <script setup lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
-import { computed, ComputedRef, inject } from "vue";
+import { computed, inject, readonly, ref, watch } from "vue";
 import chroma, { Color } from "chroma-js";
+import { useFieldValueAsYesNo } from "@/composables/useFieldValue";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
+import BaseMarkdownRaw from "../base/BaseMarkdownRaw.vue";
+
+type AnnotatedTextElementArray = [content: string, tag: string, color?: string];
+type AnnotatedTextElement = string | AnnotatedTextElementArray;
 
 const fields = inject(injectionKeys.evaluatedFields);
 
-const safeText: ComputedRef<string[]> = computed(() => {
-	if (!fields.text.value) {
-		return [];
-	}
-	return fields.text.value;
-});
+const text = computed<AnnotatedTextElement[]>(() => fields.text.value ?? []);
 
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const isEmpty = computed(() => !fields.text.value);
 const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
+const useMarkdown = useFieldValueAsYesNo(fields, "useMarkdown");
 
 const COLOR_STEPS = [
 	{ h: -78, s: -34, l: 16 },
@@ -127,6 +148,48 @@ const COLOR_STEPS = [
 let currentSteps = [...COLOR_STEPS];
 let subjectColorCache = {};
 let lastSeed = fields.seed.value;
+
+function useMarkdownRenderer() {
+	const markdown = ref("");
+
+	watch(
+		[useMarkdown, text],
+		async () => {
+			if (!useMarkdown.value) return (markdown.value = "");
+			markdown.value = await parseMarkdown();
+		},
+		{ immediate: true },
+	);
+
+	/* Translate annotation as `<span>` to use it inside the markdown */
+	function RawAnnotation(element: AnnotatedTextElementArray) {
+		const [content, subject] = element;
+		const subjectEl = subject
+			? `<span class="CoreAnnotatedText__annotation__subject">${subject}</span>`
+			: "";
+
+		return `<span class="CoreAnnotatedText__annotation" style="background: ${getAnnotationBgColor(element)}">${content}${subjectEl}</span>`;
+	}
+
+	async function parseMarkdown() {
+		const rawMarkdown = text.value.reduce<string>((acc, part) => {
+			if (typeof part === "string") {
+				return `${acc} ${part}`;
+			} else if (Array.isArray(part)) {
+				return `${acc} ${RawAnnotation(part)}`;
+			} else {
+				return acc;
+			}
+		}, "");
+
+		const marked = await import("marked");
+		return await marked.parse(rawMarkdown);
+	}
+
+	return readonly(markdown);
+}
+
+const markdown = useMarkdownRenderer();
 
 function generateColorCss(
 	baseColor: Color,
@@ -157,6 +220,10 @@ function calculateColorStep(s: string, stepsLength = COLOR_STEPS.length) {
 	const step = Math.abs(hash) % stepsLength;
 
 	return step;
+}
+
+function getAnnotationBgColor(content: AnnotatedTextElementArray) {
+	return content[2] || generateColor(content[1]);
 }
 
 function generateColor(s: string) {
@@ -190,23 +257,23 @@ function generateColor(s: string) {
 	return generateColorCss(baseColor, colorData);
 }
 
-function textToString(text: string[]) {
-	return text.reduce((acc, val) => {
+const copyRawContent = computed(() => {
+	return text.value.reduce<string>((acc, val) => {
 		if (typeof val === "string") {
 			return acc + val;
 		}
 
 		return acc + val[0];
 	}, "");
-}
+});
 
-function stringifyData(arr: string[]) {
+const copyStructuredContent = computed(() => {
 	try {
-		return JSON.stringify(arr);
+		return JSON.stringify(text.value);
 	} catch (e) {
-		return arr.join("");
+		return text.value.join("");
 	}
-}
+});
 </script>
 
 <style scoped>
@@ -215,7 +282,13 @@ function stringifyData(arr: string[]) {
 	line-height: 1.8;
 }
 
-.annotation {
+.CoreAnnotatedText__markdown {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.CoreAnnotatedText__annotation,
+.CoreAnnotatedText__markdown :deep(.CoreAnnotatedText__annotation) {
 	flex-direction: row;
 	align-items: center;
 	background: rgba(255, 164, 33, 0.4);
@@ -226,7 +299,8 @@ function stringifyData(arr: string[]) {
 	vertical-align: middle;
 }
 
-.annotation-subject {
+.CoreAnnotatedText__annotation__subject,
+.CoreAnnotatedText__markdown :deep(.CoreAnnotatedText__annotation__subject) {
 	display: inline-flex;
 	font-size: 10px;
 	margin-left: 14px;
@@ -242,28 +316,6 @@ function stringifyData(arr: string[]) {
 		top: 0px;
 		left: -9px;
 		height: 10px;
-	}
-}
-
-.controls {
-	margin: 10px 0;
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-end;
-}
-
-.control-button {
-	background-color: var(--buttonColor);
-	border: none;
-	border-radius: 8px;
-	color: white;
-	cursor: pointer;
-	font-size: 11px;
-	margin-right: 10px;
-	padding: 4px 8px;
-
-	&:hover {
-		opacity: 0.9;
 	}
 }
 </style>

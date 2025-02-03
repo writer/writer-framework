@@ -90,17 +90,31 @@ class GraphTool(Tool):
     subqueries: bool
 
 
+class FunctionToolParameterMeta(TypedDict):
+    type: Union[
+        Literal["string"],
+        Literal["number"],
+        Literal["integer"],
+        Literal["float"],
+        Literal["boolean"],
+        Literal["array"],
+        Literal["object"],
+        Literal["null"]
+        ]
+    description: str
+
+
 class FunctionTool(Tool):
     callable: Callable
     name: str
     description: Optional[str]
-    parameters: Dict[str, Dict[str, str]]
+    parameters: Dict[str, FunctionToolParameterMeta]
 
 
 def create_function_tool(
     callable: Callable,
     name: str,
-    parameters: Optional[Dict[str, Dict[str, str]]] = None,
+    parameters: Optional[Dict[str, FunctionToolParameterMeta]] = None,
     description: Optional[str] = None
 ) -> FunctionTool:
     parameters = parameters or {}
@@ -1196,7 +1210,7 @@ class Conversation:
             self,
             callable_to_register: Callable,
             name: str,
-            parameters: Dict[str, Dict[str, str]]
+            parameters: Dict[str, FunctionToolParameterMeta]
     ):
         """
         Internal helper function to store a provided callable
@@ -1266,7 +1280,9 @@ class Conversation:
         Internal helper function to process a tool instance
         into the required format.
         """
-        def validate_parameters(parameters: Dict[str, Dict[str, str]]) -> bool:
+        def validate_parameters(
+                parameters: Dict[str, FunctionToolParameterMeta]
+        ) -> bool:
             """
             Validates the `parameters` dictionary to ensure that each key
             is a parameter name, and each value is a dictionary containing
@@ -2141,6 +2157,110 @@ class Apps:
             )
 
 
+class Tools:
+    SplittingStrategy = Union[
+        Literal["llm_split"],
+        Literal["fast_split"],
+        Literal["hybrid_split"]
+        ]
+    MedicalResponseType = Union[
+        Literal["Entities"],
+        Literal["RxNorm"],
+        Literal["ICD-10-CM"],
+        Literal["SNOMED CT"]
+    ]
+
+    @staticmethod
+    def _retrieve_tools_accessor():
+        return WriterAIManager.acquire_client().tools
+
+    @classmethod
+    def parse_pdf(
+        cls,
+        file_id_or_file: Union[str, File, Dict],
+        format: Union[Literal['text'], Literal['markdown']] = 'text',
+        config: Optional[APIOptions] = None
+    ) -> str:
+        config = config or {}
+        client_tools = cls._retrieve_tools_accessor()
+        file_id = None
+        if isinstance(file_id_or_file, File):
+            file_id = file_id_or_file.id
+        elif isinstance(file_id_or_file, Dict):
+            if not (
+                "data" in file_id_or_file
+                and
+                "type" in file_id_or_file
+                and
+                "name" in file_id_or_file
+            ):
+                raise ValueError(
+                    "Invalid payload passed to parse_pdf method: " +
+                    "expected keys `data`, `type` and `name`, " +
+                    f"got {file_id_or_file.keys()}"
+                    )
+            new_file_from_payload = upload_file(
+                **file_id_or_file,
+                config=config
+                )
+            file_id = new_file_from_payload.id
+        elif isinstance(file_id_or_file, str):
+            file_id = file_id_or_file
+        else:
+            raise ValueError(
+                "parse_pdf expects a `writer.ai.File` type instance, " +
+                f"a file payload, or a string ID: got {type(file_id_or_file)}"
+            )
+
+        result = client_tools.parse_pdf(
+            file_id=file_id,
+            format=format,
+            **config
+        )
+
+        return result.content
+
+    @classmethod
+    def split(
+        cls,
+        content: str,
+        strategy: SplittingStrategy = "llm_split",
+        config: Optional[APIOptions] = None
+    ) -> List[str]:
+        if not content:
+            raise ValueError("Content cannot be empty.")
+        config = config or {}
+        client_tools = cls._retrieve_tools_accessor()
+
+        result = client_tools.context_aware_splitting(
+            strategy=strategy,
+            text=content,
+            **config
+        )
+
+        return result.chunks
+
+    @classmethod
+    def comprehend_medical(
+        cls,
+        content: str,
+        response_type: MedicalResponseType = "Entities",
+        config: Optional[APIOptions] = None
+    ) -> List:
+        if not content:
+            raise ValueError("Content cannot be empty.")
+        config = config or {}
+        client_tools = cls._retrieve_tools_accessor()
+
+        result = client_tools.comprehend.medical(
+            content=content,
+            response_type=response_type,
+            **config
+        )
+
+        return result.entities
+
+
 def complete(
         initial_text: str,
         config: Optional['CreateOptions'] = None
@@ -2378,3 +2498,4 @@ def init(token: Optional[str] = None):
 
 
 apps = Apps()
+tools = Tools()

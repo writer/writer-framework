@@ -31,8 +31,8 @@ const definition = computed(() =>
 @import "@/renderer/sharedStyles.css";
 
 .BaseEmptiness {
-	background: #e4e7ed;
-	color: #4f4f4f;
+	background: var(--wdsColorGray2);
+	color: var(--wdsColorGray5);
 	padding: 16px;
 	display: flex;
 	align-items: center;
@@ -46,7 +46,7 @@ const definition = computed(() =>
 }
 
 .title > h3 {
-	color: #4f4f4f;
+	color: var(--wdsColorGray5);
 }
 
 .message {

@@ -138,7 +138,7 @@ graph.add_file(file)
 
 # Remove the file from the graph
 graph.remove_file(file)
-````
+```
 
 #### Applying Graphs to Conversation completion
 
@@ -217,7 +217,7 @@ Function tools require the following properties:
 
 When a conversation involves a tool (either a graph or a function), Framework automatically handles the requests from LLM to use the tools during interactions. If the tool needs multiple steps (for example, querying data and processing it), Framework will handle those steps recursively, calling functions as needed until the final result is returned.
 
-By default, to prevent endless recursion, Framework will only handle 3 consecutive tool calls. You can expand it in case it doesn't suit your case – both `complete()` and `stream_complete()` accept a `max_tool_depth` parameter, which configures the maximum allowed recursion depth:
+By default, to prevent endless recursion, Framework will only handle 5 consecutive tool calls. You can expand it in case it doesn't suit your case – both `complete()` and `stream_complete()` accept a `max_tool_depth` parameter, which configures the maximum allowed recursion depth:
 
 ```python
 response = conversation.complete(tools=tool, max_tool_depth=7)
@@ -228,10 +228,10 @@ response = conversation.complete(tools=tool, max_tool_depth=7)
 You can pass either a single tool or a list of tools to the `complete()` or `stream_complete()` methods. The tools can be a combination of FunctionTool, Graph, or JSON-defined tools.
 
 ```python
-from writer.ai import FunctionTool, retrieve_graph
+from writer.ai import create_function_tool, retrieve_graph
 
 # Define a function tool
-tool1 = FunctionTool(
+tool1 = create_function_tool(
     name="get_data",
     callable=lambda x: f"Data for {x}",
     parameters={"x": {"type": "string", "description": "Input value"}}
@@ -245,7 +245,9 @@ response = conversation.complete(tools=[tool1, graph])
 ```
 
 ## Text generation without a conversation state
-These `complete` and `stream_complete` methods are designed for one-off text generation without the need to manage a conversation state. They return the model's response as a string. Each function accepts a `config` dictionary allowing call-specific configurations.
+
+### Text generation against a string prompt
+`complete` and `stream_complete` methods are designed for one-off text generation without the need to manage a conversation state. They return the model's response as a string. Each function accepts a `config` dictionary allowing call-specific configurations.
 
 <CodeGroup>
 ```python complete
@@ -260,4 +262,162 @@ for text_chunk in stream_complete("Explore the benefits of AI.", config={'temper
 ```
 </CodeGroup>
 
+### Text generation against graphs
+The `ask` and `stream_ask` methods allow you to query one or more graphs to generate responses from the information stored within them.
 
+#### Two approaches to questioning graphs
+
+There are two ways to query graphs, depending on your needs:
+1.	**Graph-Level Methods** (`Graph.ask`, `Graph.stream_ask`): Used when working with a single graph instance. These methods are tied directly to the Graph object, encapsulating operations within that instance.
+2.	**Module-Level Methods** (`writer.ai.ask`, `writer.ai.stream_ask`): Designed for querying multiple graphs simultaneously. These methods operate on a broader scale, allowing mixed inputs of graph objects and IDs.
+
+<Note>
+•	Use graph-level methods when working with a single graph instance.
+•	Use module-level methods when querying multiple graphs or when graph IDs are your primary input.
+</Note>
+
+#### Parameters
+
+Both methods include:
+	• `question: str`: The main query for the LLM.
+	• *Optional* `subqueries: bool` (default: `False`): Allows the LLM to generate additional questions during response preparation for more detailed answers. Enabling this might increase response time.
+
+Method-level methods require:
+    • `graphs_or_graph_ids: list[Graph | str]`: A list of graphs to use for the question. You can pass `Graph` objects directly into the list, use graph IDs in string form, or a mix of both.
+
+#### Graph-level methods
+
+The graph-level methods, `Graph.ask` and `Graph.stream_ask`, are designed for interacting with a single graph. By calling these methods on a specific `Graph` instance, you can easily pose questions and retrieve answers tailored to that graph’s content.
+
+<CodeGroup>
+```python ask
+# Retrieve a specific graph
+graph = retrieve_graph("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+
+# Pose a question to the graph and get a complete response
+response = graph.ask("What are the benefits of renewable energy?")
+print(response)
+```
+```python stream_ask
+# Retrieve a specific graph
+graph = retrieve_graph("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+
+# Pose a question and stream the response in chunks
+for chunk in graph.stream_ask("Explain the history of solar energy."):
+    print(chunk)
+```
+</CodeGroup>
+
+#### Module-level methods
+The module-level methods, `writer.ai.ask` and `writer.ai.stream_ask`, are designed for querying multiple graphs simultaneously. They are useful when you need to aggregate or compare data across multiple graphs.
+
+<CodeGroup>
+```python ask
+from writer.ai import ask
+
+# Pose a question to multiple graphs
+response = ask(
+    question="What are the latest advancements in AI?",
+    graphs_or_graph_ids=[
+        "550e8400-e29b-41d4-a716-446655440000",
+        "123e4567-e89b-12d3-a456-426614174000"
+        ]
+)
+print(response)
+```
+```python stream_ask
+from writer.ai import stream_ask
+
+# Stream responses from multiple graphs
+for chunk in stream_ask(
+    question="Describe the key features of renewable energy sources.",
+    graphs_or_graph_ids=[
+        "550e8400-e29b-41d4-a716-446655440000",
+        "123e4567-e89b-12d3-a456-426614174000"
+        ]
+):
+    print(chunk)
+```
+</CodeGroup>
+
+## Using the `Tools` class
+
+<Note>
+This document outlines the use of `Tools` in the Writer Framework; for more thorough documentation, check out (this guide)[https://dev.writer.com/api-guides/tools].
+</Note>
+
+The `writer.ai.tools` instance provides access to Writer SDK `tools` resources, such as text splitting, medical content comprehension, and PDF parsing. Below is a guide on how to use each method.
+
+### Splitting Content
+
+The `split` method divides text into chunks based on a selected strategy.
+
+```python
+from writer.ai import tools
+
+content = \
+    """
+    This is a long piece of text that needs to be split into smaller parts.
+    Lorem ipsum dolor sit amet...
+    """
+chunks = tools.split(content, strategy="llm_split")
+print(chunks)
+```
+
+**Parameters**:
+- `content` (str): The text to be split.
+- `strategy` (str): The splitting strategy (`llm_split`, `fast_split`, or `hybrid_split`).
+
+**Returns**:
+A list of text chunks.
+
+### Medical Content Comprehension
+
+The `comprehend_medical` method processes medical text and extracts relevant entities based on a specified response type.
+
+```python
+from writer.ai import tools
+
+medical_text = "Patient shows symptoms of hypertension and diabetes."
+entities = tools.comprehend_medical(medical_text, response_type="Entities")
+print(entities)
+```
+
+**Parameters**:
+- `content` (str): The medical text to process.
+- `response_type` (str): The type of medical response (`Entities`, `RxNorm`, `ICD-10-CM`, or `SNOMED CT`).
+
+**Returns**:
+A list of extracted medical entities.
+
+### PDF Parsing
+
+The `parse_pdf` method extracts text content from a PDF file. The file can be referenced by its ID, or provided as a `File` object.
+
+<CodeGroup>
+```python file_id
+from writer.ai import tools
+
+file_id = "example-file-id"
+parsed_content = tools.parse_pdf(file_id, format="text")
+print(parsed_content)
+```
+```python upload_file
+from writer.ai import tools
+
+file_object = upload_file(
+    data=pdf_content,
+    type="application/pdf",
+    name="uploaded_file.pdf"
+)
+parsed_content = tools.parse_pdf(file_object, format="text")
+print(parsed_content)
+```
+</CodeGroup>
+
+**Parameters**:
+- `file_id_or_file` (str or File): The file to parse (by ID or as an object).
+- `format` (str): The format of the extracted content (`text` or `markdown`).
+
+**Returns**:
+The text content of the PDF.

@@ -5,9 +5,9 @@ import alfred
 def install_dev():
     alfred.run("poetry install --with build")
     alfred.run("npm ci")
-    alfred.invoke_command("npm.codegen")
+    alfred.run("npm run build")
 
 @alfred.command("install.ci", help="install ci dependencies and generate code", hidden=True)
 def install_ci():
     alfred.run("npm ci")
-    alfred.invoke_command("npm.codegen")
+    alfred.run("npm run build")

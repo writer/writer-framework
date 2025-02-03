@@ -5,40 +5,11 @@
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
-		<div class="chipStackContainer">
-			<div class="chipStack">
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'default' }"
-					@click="
-						() => {
-							setMode('default');
-							setContentValue(component.id, fieldKey, undefined);
-						}
-					"
-				>
-					Default
-				</button>
-				<button
-					class="chip"
-					tabindex="0"
-					:class="{ active: mode == 'css' }"
-					@click="setMode('css')"
-				>
-					CSS
-				</button>
-				<button
-					class="chip"
-					:class="{ active: mode == 'pick' }"
-					tabindex="0"
-					@click="setMode('pick')"
-				>
-					Pick
-				</button>
-			</div>
-		</div>
-
+		<WdsTabs
+			:tabs="tabs"
+			:model-value="mode"
+			@update:model-value="setMode"
+		/>
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
 				<div class="param">
@@ -141,8 +112,13 @@ import {
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import {
+	BuilderFieldCssMode as Mode,
+	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
+} from "./constants/builderFieldsCssTabs";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -155,8 +131,6 @@ const paramOffsetYEl: Ref<HTMLInputElement> = ref(null);
 const paramBlurRadiusEl: Ref<HTMLInputElement> = ref(null);
 const paramSpreadRadiusEl: Ref<HTMLInputElement> = ref(null);
 const paramColorEl: Ref<HTMLInputElement> = ref(null);
-
-type Mode = "pick" | "css" | "default";
 
 const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	pick: paramOffsetXEl,
@@ -198,6 +172,10 @@ const setMode = async (newMode: Mode) => {
 	mode.value = newMode;
 	await nextTick();
 	autofocus();
+
+	if (newMode === "default") {
+		setContentValue(component.value.id, fieldKey.value, undefined);
+	}
 };
 
 const handleInput = () => {
@@ -236,25 +214,19 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "../sharedStyles.css";
 
-.chipStackContainer {
-	padding: 12px;
-	margin-top: 4px;
-	padding-bottom: 12px;
-}
 .main {
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 12px;
+	margin-top: 4px;
 }
 
 .pickerContainer {
 	display: flex;
-	gap: 8px;
+	gap: 4px;
 	flex-direction: column;
 }
 
 .param > .header {
 	display: flex;
-	margin-bottom: 8px;
+	margin-bottom: 4px;
 }
 
 .param > .header > .name {
@@ -263,5 +235,18 @@ onBeforeUnmount(() => {
 
 .param > .header > .value {
 	margin-left: auto;
+}
+.param input[type="range"] {
+	width: 100%;
+}
+
+input[type="color"] {
+	width: 100%;
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid var(--separatorColor);
+
+	display: block;
+	height: 40px;
 }
 </style>

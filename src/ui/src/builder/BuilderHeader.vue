@@ -5,12 +5,13 @@
 		<div class="undoRedo">
 			<button
 				class="undo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
-						? `Undo ${undoRedoSnapshot.undoDesc}`
+						? `Undo: ${undoRedoSnapshot.undoDesc}`
 						: 'Nothing to undo'
 				"
 				:disabled="!undoRedoSnapshot.isUndoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="undo()"
 			>
 				<i class="material-symbols-outlined"> undo </i>
@@ -18,12 +19,13 @@
 			</button>
 			<button
 				class="redo"
-				:title="
+				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
-						? `Redo ${undoRedoSnapshot.redoDesc}`
+						? `Redo: ${undoRedoSnapshot.redoDesc}`
 						: 'Nothing to redo'
 				"
 				:disabled="!undoRedoSnapshot.isRedoAvailable"
+				data-writer-tooltip-placement="bottom"
 				@click="redo()"
 			>
 				<i class="material-symbols-outlined"> redo </i>
@@ -62,7 +64,7 @@ import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
 import BuilderModal, { ModalAction } from "./BuilderModal.vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
 const syncHealthIcon = ref(null);
@@ -140,7 +142,7 @@ const customHandlerModalCloseAction: ModalAction = {
 .panelToggler:hover {
 	font-size: 12px;
 	--buttonColor: black;
-	--builderSeparatorColor: #303030;
+	--builderSeparatorColor: var(--wdsColorGray6);
 	--buttonTextColor: white;
 }
 

@@ -29,7 +29,7 @@
 			v-for="miniNode in miniNodes"
 			:key="miniNode.id"
 			class="node"
-			:class="{ selected: wfbm.getSelectedId() == miniNode.id }"
+			:class="{ selected: wfbm.isComponentIdSelected(miniNode.id) }"
 			:style="{
 				top: `${miniNode.top * scale}px`,
 				left: `${miniNode.left * scale}px`,
@@ -58,7 +58,7 @@ const miniMap = ref({
 });
 
 const selector = ref({
-	width: 230,
+	width: 260,
 	height: 1,
 	top: 0,
 	left: 0,
@@ -120,7 +120,7 @@ function render() {
 	});
 
 	miniMap.value = {
-		width: 230,
+		width: 260,
 		height:
 			((nodeContainerBCR.height / nodeContainerBCR.width) *
 				nodeContainerBCR.width) /
@@ -232,7 +232,7 @@ onUnmounted(() => {
 }
 
 .node.selected {
-	background: #6985ff;
+	background: var(--wdsColorBlue4);
 }
 
 .selectedArea {
@@ -248,7 +248,7 @@ onUnmounted(() => {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	border: 1px solid #6985ff;
+	border: 1px solid var(--wdsColorBlue4);
 	border-radius: 4px;
 	pointer-events: none;
 	display: v-bind("selector.isDisplayed ? '' : 'none'");

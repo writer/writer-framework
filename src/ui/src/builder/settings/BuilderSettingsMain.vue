@@ -10,24 +10,22 @@
 
 		<div class="sections" :inert="isReadOnly">
 			<BuilderSettingsProperties></BuilderSettingsProperties>
-			<template
-				v-if="
-					!componentDefinition.toolkit ||
-					componentDefinition.toolkit == 'core'
-				"
-			>
+			<template v-if="displaySettings">
 				<BuilderSettingsBinding
 					v-if="isBindable"
 				></BuilderSettingsBinding>
 				<BuilderSettingsHandlers></BuilderSettingsHandlers>
 				<BuilderSettingsVisibility></BuilderSettingsVisibility>
 			</template>
+			<BuilderSettingsAPICode>Execute via API</BuilderSettingsAPICode>
 		</div>
 
 		<div class="sections debug">
 			<div>
 				Component id:
-				<BuilderCopyText>{{ ssbm.getSelectedId() }}</BuilderCopyText>
+				<BuilderCopyText>{{
+					ssbm.firstSelectedId.value
+				}}</BuilderCopyText>
 			</div>
 		</div>
 	</div>
@@ -35,13 +33,14 @@
 
 <script setup lang="ts">
 import { inject, computed, watch, defineAsyncComponent } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
 import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "../BuilderCopyText.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import BuilderSettingsAPICode from "./BuilderSettingsAPICode.vue";
 
 const BuilderSettingsHandlers = defineAsyncComponent({
 	loader: () => import("./BuilderSettingsHandlers.vue"),
@@ -51,8 +50,19 @@ const BuilderSettingsHandlers = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 const isReadOnly = computed(() => component.value.isCodeManaged);
+
+const displaySettings = computed(() => {
+	if (!ssbm.isSingleSelectionActive.value) return false;
+
+	return (
+		!componentDefinition.value.toolkit ||
+		componentDefinition.value.toolkit == "core"
+	);
+});
 
 const componentDefinition = computed(() => {
 	const { type } = component.value;

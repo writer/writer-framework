@@ -12,6 +12,7 @@ For example, implement cross-filtering.
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { WdsColor } from "@/wds/tokens";
 
 const description = "A component that displays Plotly graphs.";
 
@@ -64,17 +65,22 @@ const fields = inject(injectionKeys.evaluatedFields);
 const spec = computed(() => fields.spec.value);
 
 const defaultLayout = {
-	paper_bgcolor: "#ffffff",
-	plot_bgcolor: "#f5f5f9",
-	colorway: ["#6985FF", "#A95EF8", "#F86", "#3BDCAB"],
+	paper_bgcolor: WdsColor.White,
+	plot_bgcolor: WdsColor.Gray1,
+	colorway: [
+		WdsColor.Blue4,
+		WdsColor.Blue4,
+		WdsColor.Orange4,
+		WdsColor.Green5,
+	],
 	font: {
 		family: "Poppins, sans-serif",
 		size: 12,
-		color: "#000000",
+		color: WdsColor.Black,
 	},
 	hoverlabel: {
-		color: "#ffffff",
-		bgcolor: "#000000",
+		color: WdsColor.White,
+		bgcolor: WdsColor.Black,
 	},
 };
 

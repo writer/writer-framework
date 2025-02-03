@@ -29,7 +29,7 @@ export default defineConfig({
 			},
 		},
 		rollupOptions: {
-			external: ["vue", "../injectionKeys"],
+			external: ["vue", "@/injectionKeys"],
 			output: {
 				globals: {
 					vue: "vue",

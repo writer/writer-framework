@@ -1,9 +1,5 @@
 <template>
-	<div
-		ref="trigger"
-		class="BuilderSelect"
-		:class="{ 'BuilderSelect--embedded': variant === 'embedded' }"
-	>
+	<div ref="trigger" class="BuilderSelect">
 		<button
 			class="BuilderSelect__trigger"
 			role="button"
@@ -12,7 +8,13 @@
 			<i v-if="!hideIcons" class="material-symbols-outlined">{{
 				currentIcon
 			}}</i>
-			<div class="BuilderSelect__trigger__label">{{ currentLabel }}</div>
+			<div
+				class="BuilderSelect__trigger__label"
+				data-writer-tooltip-strategy="overflow"
+				:data-writer-tooltip="currentLabel"
+			>
+				{{ currentLabel }}
+			</div>
 			<div class="BuilderSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
@@ -57,14 +59,6 @@ const props = defineProps({
 	defaultIcon: { type: String, required: false, default: undefined },
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
-	/**
-	 * Customize the appareance of the selector.
-	 * In embeded mode, we remove the padding and the border around the trigger. Usefull when the selector is embed into a field wrapper.
-	 */
-	variant: {
-		type: String as PropType<"normal" | "embedded">,
-		default: "normal",
-	},
 });
 
 const currentValue = defineModel({ type: String, required: false });
@@ -77,7 +71,7 @@ const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	dropdown,
 	{
 		placement: "bottom",
-		middleware: [autoPlacement()],
+		middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
 	},
 );
 
@@ -125,32 +119,35 @@ function onSelect(value: string) {
 
 .BuilderSelect__trigger {
 	display: flex;
-	height: 32px;
-	width: 100%;
-
+	align-items: center;
 	gap: 8px;
 
-	align-items: center;
-	padding: 8px;
+	height: 40px;
+	width: 100%;
+	padding: 8.5px 12px 8.5px 12px;
+
+	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+
 	font-weight: 400;
-	color: #3b3b3b;
-	background: #ffffff;
-}
+	font-size: 0.875rem;
 
-.BuilderSelect__trigger {
-	/* reset button */
-	border: none;
+	color: var(--primaryTextColor);
+	background: transparent;
+
 	cursor: pointer;
-
-	font-size: 0.75rem;
-	display: flex;
-	align-items: center;
+}
+.BuilderSelect__trigger:focus {
+	border: 1px solid var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+	outline: none;
 }
 .BuilderSelect__trigger__label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-grow: 1;
 	text-align: left;
+	white-space: nowrap;
 }
 .BuilderSelect__trigger__arrow {
 	border: none;
@@ -159,12 +156,6 @@ function onSelect(value: string) {
 	align-items: center;
 	justify-content: space-between;
 	font-weight: 300;
-	color: #000000e6;
 	cursor: pointer;
-}
-
-.BuilderSelect--embedded .BuilderSelect__trigger {
-	padding: 0;
-	height: 18px;
 }
 </style>
