@@ -101,7 +101,8 @@ class FunctionToolParameterMeta(TypedDict):
         Literal["object"],
         Literal["null"]
         ]
-    description: str
+    description: Optional[str]
+    required: Optional[bool]
 
 
 class FunctionTool(Tool):
@@ -1333,14 +1334,14 @@ class Conversation:
 
             return True
 
-        def prepare_parameters(parameters: Dict[str, Dict[str, str]]) -> Dict:
+        def prepare_parameters(parameters: Dict[str, FunctionToolParameterMeta]) -> Dict:
             """
             Prepares the parameters dictionary for a function tool.
 
             :param parameters: The parameters dictionary to prepare.
             :return: The processed parameters dictionary.
             """
-            processed_params = {}
+            processed_params: Dict[str, FunctionToolParameterMeta] = {}
             if not parameters:
                 return processed_params
             else:
