@@ -340,10 +340,12 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
         with open(path, "r", encoding='utf-8') as f:
             return f.read()
 
-    # we can't use `glob`'s `include_hidden` options since it's only available on Python 3.11+
     files = []
-    for pattern in ['**/*', '**/.*', '.**/*', '.**/.*']:
-        files += glob.glob(os.path.join(app_path, pattern), recursive=True)
+    for root, dirs, filenames in os.walk(app_path):
+        # ignore specific folders
+        dirs[:] = [d for d in dirs if d not in {'.venv', 'venv', '__pycache__', '.wf'}]
+        for filename in filenames:
+            files.append(os.path.realpath(os.path.join(root, filename)))
 
     file_tree: SourceFilesDirectory = {
         "type": "directory",
