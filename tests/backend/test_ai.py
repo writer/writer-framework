@@ -64,6 +64,7 @@ from writer.ai import (
     apps,
     ask,
     complete,
+    create_function_tool,
     create_graph,
     delete_file,
     delete_graph,
