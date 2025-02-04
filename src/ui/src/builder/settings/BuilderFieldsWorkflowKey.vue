@@ -8,7 +8,7 @@
 			data-writer-tooltip="Jump to the workflow"
 			@click="jumpToWorkflow"
 		>
-			<i class="material-symbols-outlined">target</i>
+			<i class="material-symbols-outlined">jump_to_element</i>
 		</WdsButton>
 	</div>
 </template>
@@ -80,6 +80,7 @@ const selectedWorkflowComponentId = computed<string | undefined>(() => {
 function jumpToWorkflow() {
 	if (!selectedWorkflowComponentId.value) return;
 	ssbm.setSelection(selectedWorkflowComponentId.value, null, "click");
+	wf.setActivePageId(selectedWorkflowComponentId.value);
 }
 </script>
 

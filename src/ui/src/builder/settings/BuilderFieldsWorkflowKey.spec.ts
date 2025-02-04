@@ -5,6 +5,7 @@ import { buildMockCore, buildMockComponent, mockProvides } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
 import { generateBuilderManager } from "../builderManager";
 import BuilderSelect from "../BuilderSelect.vue";
+import WdsButton from "@/wds/WdsButton.vue";
 import type { generateCore } from "@/core";
 
 describe("BuilderFieldsWorkflowKey", () => {
@@ -69,7 +70,7 @@ describe("BuilderFieldsWorkflowKey", () => {
 		});
 	});
 
-	it("should handle change", async () => {
+	it("should select a workflow and jump", async () => {
 		const wrapper = buildWrapper(componentWf2.id);
 		await flushPromises();
 
@@ -81,6 +82,12 @@ describe("BuilderFieldsWorkflowKey", () => {
 
 		expect(core.sendComponentUpdate).toHaveBeenCalled();
 		expect(select.props("modelValue")).toBe(componentWf1.content.key);
+
+		const jumpButton = wrapper.getComponent(WdsButton);
+
+		await jumpButton.trigger("click");
+
+		expect(core.activePageId.value).toBe(componentWf1.id);
 	});
 
 	it("should handle unexisting workflow", async () => {
