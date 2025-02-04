@@ -1,9 +1,10 @@
 import { generateCore } from "@/core";
 import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
-import type { Component, InstancePath, SourceFiles } from "@/writerTypes";
+import type { Component, InstancePath, UserFunction } from "@/writerTypes";
 import { vi } from "vitest";
 import { ref } from "vue";
+import { SourceFiles } from "../writerTypes";
 
 export const mockComponentId = "component-id-test";
 
@@ -29,13 +30,15 @@ export function buildMockCore() {
 	const core = generateCore();
 	const userState = ref({});
 	const sourceFiles = ref<SourceFiles>({ type: "directory", children: {} });
+	const userFunctions = ref<UserFunction[]>([]);
 
+	core.userFunctions = userFunctions;
 	core.userState = userState;
 	core.sourceFiles = sourceFiles;
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
-	return { core, userState, sourceFiles };
+	return { core, userState, sourceFiles, userFunctions };
 }
 
 export const mockProvides: Record<symbol, unknown> = {

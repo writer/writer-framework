@@ -15,7 +15,6 @@
 
 <script setup lang="ts">
 import { toRefs, inject, computed, defineAsyncComponent } from "vue";
-import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
@@ -29,10 +28,11 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const props = defineProps<{
-	componentId: Component["id"];
-	fieldKey: string;
-}>();
+const props = defineProps({
+	componentId: { type: String, required: true },
+	fieldKey: { type: String, required: true },
+});
+
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
