@@ -81,8 +81,13 @@ test.describe("Workflows", () => {
 
 		await runWorkflowBlock.click();
 		await page
-			.locator(`.BuilderFieldsText[data-automation-key="workflowKey"] input`)
-			.fill("repeat_payload");
+			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)
+			.locator(".BuilderSelect__trigger")
+			.click();
+		await page
+			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)
+			.locator('button[data-automation-key="repeat_payload"]')
+			.click();
 		const payload = "blue";
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="payload"] textarea`)

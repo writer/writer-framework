@@ -16,6 +16,7 @@
 		<button
 			v-for="option in optionsFiltered"
 			:key="option.value"
+			:data-automation-key="option.value"
 			class="WdsDropdownMenu__item"
 			:class="{
 				'WdsDropdownMenu__item--selected': option.value === selected,
