@@ -15,7 +15,7 @@ import polars as pl
 import pyarrow as pa
 import pytest
 import writer as wf
-from writer import audit_and_fix, wf_project
+from writer import audit_and_fix, core, wf_project
 from writer.core import (
     BytesWrapper,
     EventDeserialiser,
@@ -31,6 +31,7 @@ from writer.core import (
 )
 from writer.ss_types import WriterEvent
 
+from backend.fixtures import app_runner_fixtures
 from tests.backend import test_app_dir
 from tests.backend.fixtures import (
     writer_fixtures,
@@ -155,7 +156,7 @@ class TestStateProxy(unittest.TestCase):
             '+name': 'Robert',
             '+state\\.with\\.dots': None,
             '+utfࠀ': 23,
-            '+a\.b': 3
+            r'+a\.b': 3
         }
 
         self.sp_simple_dict.apply_mutation_marker()
@@ -751,6 +752,40 @@ class TestWriterState:
         json.dumps(cloned.user_state.to_dict())
         json.dumps(cloned.mail)
 
+    def test_local_storage_set_item_should_update_backend_localstorage(self):
+        """
+        Tests that setting an item in the local storage updates the backend local storage
+        """
+        with app_runner_fixtures.within_message_request():
+            # Assign
+            _state = WriterState({"a": 1, "b": 2})
+
+            # Acts
+            _state.local_storage_set_item("tab", "tab1")
+
+            # Assert
+            _session = core.get_session()
+            assert _session.local_storage['tab'] == "tab1"
+            assert _state.mail[0].get("type") == "localStorageSetItem"
+            assert _state.mail[0].get("payload") == {"key": "tab", "value": "tab1"}
+
+    def test_local_storage_set_item_should_set_value_as_string(self):
+        """
+        Tests that using local_storage_set_item forces the value to be a string.
+        """
+        with app_runner_fixtures.within_message_request():
+            # Assign
+            _state = WriterState({"a": 1, "b": 2})
+
+            # Acts
+            _state.local_storage_set_item("tab", 0)
+
+            # Assert
+            _session = core.get_session()
+            assert _session.local_storage['tab'] == "0"
+            assert _state.mail[0].get("type") == "localStorageSetItem"
+            assert _state.mail[0].get("payload") == {"key": "tab", "value": "0"}
+
 
 class TestEventDeserialiser:
 
@@ -1222,6 +1257,7 @@ class TestSessionManager:
         self.sm.get_new_session(
             {"testCookie": "yes"},
             {"origin": "example.com"},
+            {},
             self.proposed_session_id
         )
         self.sm.get_session(self.proposed_session_id)

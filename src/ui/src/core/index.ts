@@ -5,7 +5,7 @@ import {
 	AbstractTemplate,
 	Component,
 	ComponentMap,
-	InstancePath,
+	InstancePath, LocalStorageRemoveItemEvent, LocalStorageSetItemEvent,
 	MailItem,
 	UserFunction,
 } from "@/writerTypes";
@@ -60,6 +60,20 @@ export function generateCore() {
 		addMailSubscription("pageChange", (pageKey: string) => {
 			setActivePageFromKey(pageKey);
 		});
+		addMailSubscription(
+			"localStorageSetItem",
+			(event: LocalStorageSetItemEvent) => {
+				localStorage.setItem(event.key, event.value);
+			},
+		);
+
+		addMailSubscription(
+			"localStorageRemoveItem",
+			(event: LocalStorageRemoveItemEvent) => {
+				localStorage.removeItem(event.key);
+			},
+		);
+
 		sendKeepAliveMessage();
 		if (mode.value != "edit") return;
 	}
@@ -70,6 +84,12 @@ export function generateCore() {
 	 * @returns
 	 */
 	async function initSession() {
+		const localStorageItems = {};
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			localStorageItems[key] = localStorage.getItem(key);
+		}
+
 		const response = await fetch("./api/init", {
 			method: "post",
 			cache: "no-store",
@@ -78,6 +98,7 @@ export function generateCore() {
 			},
 			body: JSON.stringify({
 				proposedSessionId: sessionId,
+				localStorage: localStorageItems,
 			}),
 		});
 		const initData = await response.json();

@@ -1,8 +1,8 @@
 ---
-title: "Frontend scripts"
+title: "Frontend actions"
 ---
 
-Framework can import custom JavaScript/ES6 modules from the front-end. Module functions can be triggered from the back-end.
+Framework can interact with frontend to import custom JavaScript/ES6 modules, set data into local storage, trigger module functions, ...
 
 ## Importing an ES6 module
 
@@ -84,6 +84,44 @@ initial_state = wf.init_state({
 
 initial_state.import_script("lodash", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js")
 ```
+
+## Local storage
+
+Framework provides functions to interact with browser's local storage. This mechanism allows information such as user preferences to be persisted between several sessions.
+
+*  `state.local_storage_set_item(key, value)`: set a value in local storage.
+*  `state.local_storage_remove_item(key)`: remove a key from local storage.
+
+```python
+# Event handler register on root:wf-app-open
+def on_app_open(state, session):
+    state['last_visit'] = session['local_storage'].get('last_visit', "")
+    state['dark_mode'] = session['local_storage'].get('dark_mode', "False") == "True"
+    state.local_storage_set_item("last_visit", str(datetime.now()))
+
+
+def on_dark_mode_toggle(state, payload):
+    state['dark_mode'] = payload
+    state.local_storage_set_item("dark_mode", str(state['dark_mode']))
+
+
+initial_state = wf.init_state({
+    "last_visit": "",
+    "dark_mode": False
+})
+```
+
+<Warning>
+	Framework propose a binding on [Local storage API](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). It support only raw value. Your application has to serialize the data before storing it. Framework won't do it for you.
+</Warning>
+
+<Warning>
+	Local storage is not secure and should not be used to store sensitive data without encryption. It's accessible to anyone with access to the user's device.
+</Warning>
+
+<Info>
+	Content of local storage is loaded in `session` on the init request. If a JS function change a value inside, it won't be reflected. Change from the backend are reflected.
+</Info>
 
 ## Frontend core
 
