@@ -2,7 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
 
-DEFAULT_MODEL = "palmyra-x-003-instruct"
+DEFAULT_MODEL = "palmyra-x-004"
 
 class WriterCompletion(WorkflowBlock):
 
