@@ -53,6 +53,7 @@ import {
 	containerBackgroundColor,
 } from "@/renderer/sharedStyleFields";
 import WdsControl from "@/wds/WdsControl.vue";
+import { validatorArrayOfString } from "@/constants/validators";
 
 const description = "A component to embed PDF documents.";
 
@@ -72,6 +73,7 @@ export default {
 				default: JSON.stringify([]),
 				desc: "A list of highlights to be applied to the PDF as a JSON array of strings.",
 				type: FieldType.Object,
+				validator: validatorArrayOfString,
 			},
 			selectedMatch: {
 				name: "Selected highlight match",

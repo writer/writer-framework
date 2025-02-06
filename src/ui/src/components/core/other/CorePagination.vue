@@ -73,6 +73,7 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
+import { validatorPositiveNumber } from "@/constants/validators";
 
 const pageChangeStub = `
 def handle_page_change(state, payload):
@@ -106,18 +107,21 @@ export default {
 				default: "1",
 				type: FieldType.Number,
 				desc: "The current page number.",
+				validator: validatorPositiveNumber,
 			},
 			pageSize: {
 				name: "Page Size",
 				default: "10",
 				type: FieldType.Number,
 				desc: "The number of items per page.",
+				validator: validatorPositiveNumber,
 			},
 			totalItems: {
 				name: "Total Items",
 				default: "10",
 				type: FieldType.Number,
 				desc: "The total number of items",
+				validator: validatorPositiveNumber,
 			},
 			pageSizeOptions: {
 				name: "Page Size Options",

@@ -43,6 +43,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
 import { WdsColor } from "@/wds/tokens";
+import { validatorAnotatedText } from "@/constants/validators";
 export default {
 	writer: {
 		name: "Annotated text",
@@ -53,7 +54,8 @@ export default {
 				name: "Annotated text",
 				type: FieldType.Object,
 				desc: "Value array with text/annotations. Must be a JSON string or a state reference to an array.",
-				init: `["This ",["is", "Verb"]," some ",["annotated", "Adjective"],    ["text", "Noun"]," for those of ",["you", "Pronoun"]," who ",["like", "Verb"]," this sort of ",["thing", "Noun"],". ","And here's a ",["word", "", "#faf"]," with a fancy background but no label."]`,
+				init: `["This ",["is", "Verb"]," some ",["annotated", "Adjective"], ["text", "Noun"]," for those of ",["you", "Pronoun"]," who ",["like", "Verb"]," this sort of ",["thing", "Noun"],". ","And here's a ",["word", "", "#faf"]," with a fancy background but no label."]`,
+				validator: validatorAnotatedText,
 			},
 			referenceColor: {
 				name: "Reference",

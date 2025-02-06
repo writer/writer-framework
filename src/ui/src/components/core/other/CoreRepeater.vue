@@ -2,6 +2,7 @@
 import { computed, h, inject } from "vue";
 import { FieldType } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
+import { validatorRepeaterObject } from "@/constants/validators";
 
 const description =
 	"A container component that repeats its child components based on a dictionary.";
@@ -23,6 +24,7 @@ export default {
 				default: JSON.stringify(defaultRepeaterObject, null, 2),
 				type: FieldType.Object,
 				desc: "Include a state reference to the dictionary used for repeating the child components. Alternatively, specify a JSON object.",
+				validator: validatorRepeaterObject,
 			},
 			keyVariable: {
 				name: "Key variable name",

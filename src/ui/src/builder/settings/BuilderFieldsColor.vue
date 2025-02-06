@@ -24,6 +24,7 @@
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
 				:value="component.content[fieldKey]"
+				:error="error"
 				@input="handleInput"
 			/>
 		</div>
@@ -40,6 +41,7 @@ import {
 	Ref,
 	ref,
 	toRefs,
+	PropType,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
@@ -65,10 +67,12 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	default: null,
 };
 
-const props = defineProps<{
-	componentId: Component["id"];
-	fieldKey: string;
-}>();
+const props = defineProps({
+	componentId: { type: String as PropType<Component["id"]>, required: true },
+	fieldKey: { type: String, required: true },
+	error: { type: String, required: false, default: undefined },
+});
+
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 

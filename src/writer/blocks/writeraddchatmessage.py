@@ -23,7 +23,15 @@ class WriterAddChatMessage(WorkflowBlock):
                     "message": {
                         "name": "Message",
                         "type": "Object",
-                        "init": '{ "role": "assistant", "content": "Hello" }'
+                        "init": '{ "role": "assistant", "content": "Hello" }',
+                        "validator": {
+                            "type": "object",
+                            "properties": {
+                                "role": { "type": "string" },
+                                "content": { "type": "string" },
+                            },
+                            "additionalProperties": False,
+                        }
                     }
                 },
                 "outs": {

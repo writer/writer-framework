@@ -111,6 +111,7 @@ import prettyBytes from "pretty-bytes";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsControl from "@/wds/WdsControl.vue";
 import { WdsColor } from "@/wds/tokens";
+import { validatorChatBotMessages } from "@/constants/validators";
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
@@ -198,6 +199,7 @@ export default {
 				init: initConversation,
 				desc: "An array with messages or a writer.ai.Conversation object.",
 				type: FieldType.Object,
+				validator: validatorChatBotMessages,
 			},
 			assistantInitials: {
 				name: "Assistant initials",

@@ -13,6 +13,11 @@
 /* global google */
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import {
+	validatorGpsMarkers,
+	validatorGpsLat,
+	validatorGpsLng,
+} from "@/constants/validators";
 
 const description =
 	"A component to embed a Google Map. It can be used to display a map with markers.";
@@ -60,17 +65,20 @@ export default {
 				name: "Latitude",
 				default: "37.79322359164316",
 				type: FieldType.Number,
+				validator: validatorGpsLat,
 			},
 			lng: {
 				name: "Longitude",
 				default: "-122.39999318828129",
 				type: FieldType.Number,
+				validator: validatorGpsLng,
 			},
 			markers: {
 				name: "Markers",
 				default: JSON.stringify(markersDefaultData),
 				desc: "Markers data",
 				type: FieldType.Object,
+				validator: validatorGpsMarkers,
 			},
 			cssClasses,
 		},

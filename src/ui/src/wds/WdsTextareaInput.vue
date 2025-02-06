@@ -1,11 +1,15 @@
 <template>
-	<textarea ref="input" v-model="model"></textarea>
+	<textarea ref="input" v-model="model" :aria-invalid="invalid"></textarea>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 
 const model = defineModel<string>();
+
+defineProps({
+	invalid: { type: Boolean, required: false },
+});
 
 defineExpose({
 	focus,
@@ -51,5 +55,8 @@ textarea {
 textarea:focus {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+}
+textarea[aria-invalid="true"] {
+	border-color: var(--wdsColorOrange5);
 }
 </style>

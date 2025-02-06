@@ -29,7 +29,12 @@ class WriterCompletion(WorkflowBlock):
                     "temperature": {
                         "name": "Temperature",
                         "type": "Number",
-                        "default": "0.7"
+                        "default": "0.7",
+                        "validator": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                        }
                     }
                 },
                 "outs": {

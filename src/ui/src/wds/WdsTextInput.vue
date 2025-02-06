@@ -1,8 +1,9 @@
 <template>
 	<div
 		v-if="leftIcon"
-		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
 		v-bind="$attrs"
+		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
+		:aria-invalid="invalid"
 		@click="input.focus()"
 	>
 		<i class="material-symbols-outlined">{{ leftIcon }}</i>
@@ -13,6 +14,7 @@
 		v-bind="$attrs"
 		ref="input"
 		v-model="model"
+		:aria-invalid="invalid"
 		class="WdsTextInput colorTransformer"
 	/>
 </template>
@@ -27,6 +29,7 @@ defineOptions({ inheritAttrs: false });
 
 defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
+	invalid: { type: Boolean, required: false },
 });
 
 defineExpose({
@@ -99,5 +102,9 @@ function focus() {
 	border: none;
 	box-shadow: none;
 	outline: none;
+}
+
+.WdsTextInput[aria-invalid="true"] {
+	border-color: var(--wdsColorOrange5);
 }
 </style>

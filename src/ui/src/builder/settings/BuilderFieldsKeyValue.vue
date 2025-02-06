@@ -13,7 +13,10 @@
 		/>
 
 		<template v-if="mode == 'assisted'">
-			<div class="staticList">
+			<div
+				class="staticList"
+				:class="{ 'staticList--invalid': error !== undefined }"
+			>
 				<div
 					v-for="(entryValue, entryKey) in assistedEntries"
 					:key="entryKey"
@@ -54,6 +57,7 @@
 			<BuilderFieldsObject
 				:component-id="component.id"
 				:field-key="fieldKey"
+				:error="error"
 			></BuilderFieldsObject>
 		</template>
 	</div>
@@ -87,6 +91,7 @@ const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 	instancePath: { type: Array as PropType<InstancePath>, required: true },
+	error: { type: String, required: false, default: undefined },
 });
 
 const { componentId, fieldKey } = toRefs(props);
@@ -191,6 +196,9 @@ onMounted(async () => {
 	padding: 8.5px 12px 8.5px 12px;
 	border: 1px solid var(--builderSeparatorColor);
 	border-radius: 8px;
+}
+.staticList--invalid {
+	border-color: var(--wdsColorOrange5);
 }
 
 .staticList:empty::before {
