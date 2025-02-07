@@ -9,6 +9,9 @@ import {
 	MailItem,
 	SourceFiles,
 	UserFunction,
+	WriterGraph,
+	WriterGraphRequest,
+	WriterGraphResponse,
 } from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
@@ -490,6 +493,23 @@ export function generateCore() {
 		});
 	}
 
+	async function sendListResourcesRequest<T>(type: string): Promise<T[]> {
+		return new Promise<T[]>((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload: { data: T[] };
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				resolve(r.payload?.data ?? []);
+			};
+			sendFrontendMessage(
+				"listResources",
+				{ resource_type: type },
+				messageCallback,
+			);
+		});
+	}
+
 	async function sendStateEnquiry(callback: Function) {
 		sendFrontendMessage("stateEnquiry", {}, callback, true);
 	}
@@ -708,6 +728,7 @@ export function generateCore() {
 		sendRenameSourceFileRequest,
 		sendDeleteSourceFileRequest,
 		requestSourceFileLoading,
+		sendListResourcesRequest,
 		sendComponentUpdate,
 		addComponent,
 		deleteComponent,

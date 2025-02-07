@@ -5,9 +5,11 @@
 			role="button"
 			@click="isOpen = !isOpen"
 		>
-			<i v-if="!hideIcons" class="material-symbols-outlined">{{
-				currentIcon
-			}}</i>
+			<i
+				v-if="!hideIcons || hasUnknowOptionSelected"
+				class="material-symbols-outlined"
+				>{{ currentIcon }}</i
+			>
 			<div
 				class="BuilderSelect__trigger__label"
 				data-writer-tooltip-strategy="overflow"
@@ -19,10 +21,11 @@
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
 		</button>
-		<WdsMenu
+		<WdsDropdownMenu
 			v-if="isOpen"
 			ref="dropdown"
 			:enable-search="enableSearch"
+			:enable-multi-selection="enableMultiSelection"
 			:hide-icons="hideIcons"
 			:options="options"
 			:selected="currentValue"
@@ -51,29 +54,45 @@ import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 
-const WdsMenu = defineAsyncComponent(() => import("@/wds/WdsDropdownMenu.vue"));
+const WdsDropdownMenu = defineAsyncComponent(
+	() => import("@/wds/WdsDropdownMenu.vue"),
+);
 
 const props = defineProps({
 	options: {
-		type: Array as PropType<WdsDropdownMenuOption[]>,
+		type: Array as PropType<
+			WdsDropdownMenuOption[] | Readonly<WdsDropdownMenuOption[]>
+		>,
 		default: () => [],
 	},
 	defaultIcon: { type: String, required: false, default: undefined },
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
+	enableMultiSelection: { type: Boolean, required: false },
 });
 
-const currentValue = defineModel({ type: String, required: false });
+const currentValue = defineModel({
+	type: [String, Array] as PropType<string | string[]>,
+	required: true,
+	default: undefined,
+});
 const isOpen = ref(false);
 const trigger = useTemplateRef("trigger");
 const dropdown = useTemplateRef("dropdown");
+
+const middleware = computed(() =>
+	// avoid placement on the top when search mode is enabled
+	props.enableSearch
+		? []
+		: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
+);
 
 const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	trigger,
 	dropdown,
 	{
 		placement: "bottom",
-		middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
+		middleware,
 	},
 );
 
@@ -81,15 +100,29 @@ const expandIcon = computed(() =>
 	isOpen.value ? "keyboard_arrow_up" : "expand_more",
 );
 
-const selectedOption = computed(() =>
-	props.options.find((o) => o.value === currentValue.value),
+const selectedOptions = computed(() =>
+	props.options.filter((o) => isSelected(o.value)),
 );
 
-const currentLabel = computed(() => selectedOption.value?.label ?? "");
+const hasUnknowOptionSelected = computed(() => {
+	return currentValue.value && selectedOptions.value.length === 0;
+});
+
+const currentLabel = computed(() => {
+	if (hasUnknowOptionSelected.value) return String(currentValue.value);
+
+	return selectedOptions.value
+		.map((o) => o.label)
+		.sort()
+		.join(" / ");
+});
 
 const currentIcon = computed(() => {
+	if (hasUnknowOptionSelected.value) return "help_center";
 	if (props.hideIcons) return "";
-	return selectedOption.value?.icon ?? props.defaultIcon ?? "help_center";
+	return (
+		selectedOptions.value.at(0)?.icon ?? props.defaultIcon ?? "help_center"
+	);
 });
 
 // close the dropdown when clicking outside
@@ -105,9 +138,15 @@ watch(
 	{ immediate: true },
 );
 
-function onSelect(value: string) {
-	isOpen.value = false;
+function onSelect(value: string | string[]) {
+	if (!props.enableMultiSelection) isOpen.value = false;
 	currentValue.value = value;
+}
+
+function isSelected(value: string) {
+	return Array.isArray(currentValue.value)
+		? currentValue.value.includes(value)
+		: currentValue.value === value;
 }
 </script>
 

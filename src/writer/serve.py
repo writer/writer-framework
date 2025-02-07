@@ -26,6 +26,7 @@ from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from writer import VERSION, abstract, crypto
+from writer.ai import Graph
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -596,7 +597,9 @@ def get_asgi_app(
                 app_runner.rename_persisted_script(from_path, to_path)
             except Exception as error:
                 response.payload = {"error": str(error)}
-
+        elif req_message.type == "listResources":
+            res = await app_runner.list_resources(session_id, req_message.payload["resource_type"])
+            response.payload = res.payload
         await websocket.send_json(response.model_dump())
 
     async def _handle_keep_alive_message(

@@ -19,12 +19,18 @@
 			:data-automation-key="option.value"
 			class="WdsDropdownMenu__item"
 			:class="{
-				'WdsDropdownMenu__item--selected': option.value === selected,
+				'WdsDropdownMenu__item--selected': isSelected(option.value),
 				'WdsDropdownMenu__item--hideIcon': hideIcons,
 			}"
-			@click="$emit('select', option.value)"
+			@click="onSelect(option.value)"
 		>
-			<i v-if="!hideIcons" class="material-symbols-outlined">{{
+			<div
+				v-if="enableMultiSelection"
+				class="WdsDropdownMenu__item__checkbox"
+			>
+				<input type="checkbox" :checked="isSelected(option.value)" />
+			</div>
+			<i v-else-if="!hideIcons" class="material-symbols-outlined">{{
 				getOptionIcon(option)
 			}}</i>
 			<div
@@ -34,8 +40,16 @@
 			>
 				{{ option.label }}
 			</div>
+			<div
+				v-if="option.detail"
+				class="WdsDropdownMenu__item__detail"
+				:data-writer-tooltip="option.detail"
+				data-writer-tooltip-strategy="overflow"
+			>
+				{{ option.detail }}
+			</div>
 			<i
-				v-if="option.value === selected"
+				v-if="isSelected(option.value)"
 				class="material-symbols-outlined"
 			>
 				check
@@ -48,6 +62,7 @@
 export type WdsDropdownMenuOption = {
 	value: string;
 	label: string;
+	detail?: string;
 	icon?: string;
 };
 </script>
@@ -58,16 +73,24 @@ import { computed, PropType, ref, useTemplateRef, watch } from "vue";
 
 const props = defineProps({
 	options: {
-		type: Array as PropType<WdsDropdownMenuOption[]>,
+		type: Array as PropType<
+			WdsDropdownMenuOption[] | Readonly<WdsDropdownMenuOption[]>
+		>,
 		default: () => [],
 	},
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
-	selected: { type: String, required: false, default: undefined },
+	enableMultiSelection: { type: Boolean, required: false },
+	selected: {
+		type: [Array, String] as PropType<string[] | string>,
+		required: false,
+		default: () => {},
+	},
 });
 
 const emits = defineEmits({
-	select: (value: string) => typeof value === "string",
+	select: (value: string | string[]) =>
+		typeof value === "string" || Array.isArray(value),
 	search: (value: string) => typeof value === "string",
 });
 
@@ -87,6 +110,27 @@ const optionsFiltered = computed(() => {
 		option.label.toLowerCase().includes(query),
 	);
 });
+
+function isSelected(value: string) {
+	return Array.isArray(props.selected)
+		? props.selected.includes(value)
+		: props.selected === value;
+}
+
+const optionsValues = computed(
+	() => new Set(props.options.map((o: WdsDropdownMenuOption) => o.value)),
+);
+
+function onSelect(value: string) {
+	if (!props.enableMultiSelection) return emits("select", value);
+
+	const values = new Set(props.selected);
+	values.has(value) ? values.delete(value) : values.add(value);
+	emits(
+		"select",
+		[...values].filter((v) => optionsValues.value.has(v)),
+	);
+}
 
 watch(searchTerm, () => emits("search", searchTerm.value));
 </script>
@@ -119,8 +163,8 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	width: 100%;
 
 	display: grid;
-	grid-template-columns: auto 1fr auto;
-	gap: 8px;
+	grid-template-columns: 1fr auto;
+	column-gap: 8px;
 	align-items: center;
 
 	border-radius: 4px;
@@ -132,6 +176,10 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	cursor: pointer;
 	transition: all 0.2s;
 	pointer-events: all;
+}
+.WdsDropdownMenu__item:has(.material-symbols-outlined),
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__checkbox) {
+	grid-template-columns: auto 1fr auto;
 }
 
 .WdsDropdownMenu__item:hover {
@@ -145,12 +193,34 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu__item--hideIcon {
 	grid-template-columns: 1fr auto;
 }
+
+.WdsDropdownMenu__item__checkbox {
+	grid-row-start: 1;
+	grid-row-end: -1;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+}
+
+.WdsDropdownMenu__item__detail,
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
 	text-align: left;
 }
+
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__detail) {
+	grid-template-rows: auto auto;
+}
+
+.WdsDropdownMenu__item__detail {
+	grid-row: 2;
+	color: var(--wdsColorGray4);
+}
+
 .WdsDropdownMenu__search-wrapper {
 	position: sticky;
 	top: 0px;
