@@ -34,7 +34,6 @@
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
-import { ComponentPublicInstance } from "vue";
 
 const description =
 	"A user input component that allows users to enter numeric values.";

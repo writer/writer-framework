@@ -24,7 +24,14 @@ export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue"
 </script>
 
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, PropType, ref, watch } from "vue";
+import {
+	defineAsyncComponent,
+	nextTick,
+	PropType,
+	ref,
+	useTemplateRef,
+	watch,
+} from "vue";
 import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
@@ -46,8 +53,8 @@ const emits = defineEmits({
 });
 
 const isOpen = ref(false);
-const trigger = ref<HTMLElement>();
-const dropdown = ref<HTMLElement>();
+const trigger = useTemplateRef("trigger");
+const dropdown = useTemplateRef("dropdown");
 
 const { floatingStyles } = useFloating(trigger, dropdown, {
 	placement: "bottom-end",
