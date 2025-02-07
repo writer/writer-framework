@@ -68,6 +68,7 @@ const className = computed(() => [
 .WdsButton--primary:disabled {
 	border-color: var(--wdsColorBlue6);
 	background-color: var(--wdsColorBlue6);
+	opacity: 40%;
 }
 
 /* VARIANTS -- secondary */

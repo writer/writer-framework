@@ -7,7 +7,9 @@ import multiprocessing
 import multiprocessing.connection
 import multiprocessing.synchronize
 import os
+import shutil
 import signal
+import subprocess
 import sys
 import threading
 from types import ModuleType
@@ -43,6 +45,7 @@ from writer.ss_types import (
     InitSessionRequestPayload,
     InitSessionResponsePayload,
     ServeMode,
+    SourceFilesDirectory,
     StateContentRequest,
     StateContentResponsePayload,
     StateEnquiryRequest,
@@ -501,9 +504,9 @@ class FileEventHandler(watchdog.events.PatternMatchingEventHandler):
     Watches for changes in files and triggers code reloads.
     """
 
-    def __init__(self, update_callback: Callable):
+    def __init__(self, update_callback: Callable, patterns: List[str]):
         self.update_callback = update_callback
-        super().__init__(patterns=["*.py"], ignore_patterns=[
+        super().__init__(patterns=patterns, ignore_patterns=[
             ".*"], ignore_directories=False, case_sensitive=False)
 
     def on_any_event(self, event) -> None:
@@ -605,6 +608,7 @@ class AppRunner:
         self.client_conn: Optional[multiprocessing.connection.Connection] = None
         self.app_process: Optional[AppProcess] = None
         self.run_code: Optional[str] = None
+        self.source_files: SourceFilesDirectory = {"children": {}, "type": "directory"}
         self.bmc_components: Optional[Dict] = None
         self.is_app_process_server_ready = multiprocessing.Event()
         self.is_app_process_server_failed = multiprocessing.Event()
@@ -644,14 +648,37 @@ class AppRunner:
 
     def _start_fs_observer(self):
         self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
-        self.observer.schedule(FileEventHandler(self.reload_code_from_saved), path=self.app_path, recursive=True)
+        self.observer.schedule(FileEventHandler(self.reload_code_from_saved, patterns=["*.py"]), path=self.app_path, recursive=True)
+        self.observer.schedule(FileEventHandler(self._install_requirements, patterns=["requirements.txt"]), path=self.app_path)
         self.observer.start()
 
     def _start_wf_project_process_write_files(self):
         wf_project.start_process_write_files_async(self.wf_project_context, AppRunner.WF_PROJECT_SAVE_INTERVAL)
 
+    def _install_requirements(self) -> None:
+        logger = logging.getLogger('writer')
+        logger.debug("\nDetected changes in requirements.txt. Installing dependencies...")
+        try:
+            # Run pip install command
+            subprocess.run(
+                ["pip", "install", "-r", "requirements.txt"], 
+                check=True,
+                capture_output=True,
+                text=True,
+                # stdout=subprocess.DEVNULL,  # Suppress pip output
+                cwd=self.app_path,
+            )
+            logger.debug("Dependencies installed successfully, restart server!\n")
+            self.reload_code_from_saved()
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Error installing dependencies: {e.stderr}")
+            # TODO(WF-170): find a way to dispatch log
+        except Exception as e:
+            logger.warning(f"Unexpected error: {e}")
+
     def load(self) -> None:
-        self.run_code = self._load_persisted_script()
+        self.run_code = self.load_persisted_script("main.py")
+        self.source_files = wf_project.build_source_files(self.app_path)
         self.bmc_components = self._load_persisted_components()
 
         if self.mode == "edit":
@@ -701,17 +728,68 @@ class AppRunner:
 
         return response
 
-    def _load_persisted_script(self) -> str:
+
+    def create_persisted_script(self, file = "main.py"):
+        path = os.path.join(self.app_path, file)
+        self._check_file_in_app_path(path)
+
+        with open(path, "x", encoding='utf-8') as f:
+            f.write('')
+
+        self.source_files = wf_project.build_source_files(self.app_path)
+
+    def rename_persisted_script(self, from_path: str, to_path: str):
+        if from_path == 'main.py':
+            raise PermissionError("cannot rename main script")
+        if to_path == 'main.py':
+            raise PermissionError("cannot overwrite main script")
+
+        from_path_abs = os.path.join(self.app_path, from_path)
+        self._check_file_in_app_path(from_path_abs)
+
+        to_path_abs = os.path.join(self.app_path, to_path)
+        self._check_file_in_app_path(to_path_abs)
+
+        os.makedirs(os.path.dirname(to_path_abs), exist_ok=True)
+        os.rename(from_path_abs, to_path_abs)
+
+        self.source_files = wf_project.build_source_files(self.app_path)
+
+    def delete_persisted_script(self, file: str):
+        if file == 'main.py':
+            raise PermissionError("cannot delete main script")
+
+        path = os.path.join(self.app_path, file)
+        self._check_file_in_app_path(path)
+
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+
+        self.source_files = wf_project.build_source_files(self.app_path)
+
+    def load_persisted_script(self, file = "main.py") -> str:
+        path = os.path.join(self.app_path, file)
+        self._check_file_in_app_path(path)
+
         logger = logging.getLogger('writer')
         try:
             contents = None
-            with open(os.path.join(self.app_path, "main.py"), "r", encoding='utf-8') as f:
+            with open(path, "r", encoding='utf-8') as f:
                 contents = f.read()
             return contents
-        except FileNotFoundError:
-            logger.error(
-                "Couldn't find main.py in the path provided: %s.", self.app_path)
-            sys.exit(1)
+        except FileNotFoundError as error:
+            logger.error("Couldn't find %s in the path provided: %s.", file, self.app_path)
+            if file == "main.py":
+                sys.exit(1)
+            else:
+                raise error
+
+    def _check_file_in_app_path(self, path):
+        if not os.path.abspath(path).startswith(os.path.abspath((self.app_path))):
+            raise PermissionError(f"{path} is outside of application ({self.app_path})")
+
 
     def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
         logger = logging.getLogger('writer')
@@ -783,12 +861,20 @@ class AppRunner:
             type="stateContent"
         ))
 
-    def save_code(self, session_id: str, code: str) -> None:
+    def save_code(self, session_id: str, code: str, path: List[str] = ['main.py']) -> None:
         if self.mode != "edit":
             raise PermissionError("Cannot save code in non-edit mode.")
 
-        with open(os.path.join(self.app_path, "main.py"), "w") as f:
+        filepath = os.path.join(self.app_path, *path)
+
+        # ensure we don't load a file outside of the application (like `../../../etc/passwd`)
+        if not os.path.abspath(filepath).startswith(self.app_path):
+            raise FileNotFoundError(f"{filepath} is outside of application ({self.app_path})")
+
+        with open(filepath, "w") as f:
             f.write(code)
+
+        self.source_files = wf_project.build_source_files(self.app_path)
 
     def _clean_process(self) -> None:
         # Terminate the AppProcess server by sending an empty message
@@ -861,7 +947,7 @@ class AppRunner:
     def reload_code_from_saved(self) -> None:
         if not self.is_app_process_server_ready.is_set():
             return
-        self.update_code(None, self._load_persisted_script())
+        self.update_code(None, self.load_persisted_script())
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
 
@@ -876,6 +962,7 @@ class AppRunner:
         if not self.is_app_process_server_ready.is_set():
             return
         self.run_code = run_code
+        self.source_files = wf_project.build_source_files(self.app_path)
         self._clean_process()
         self._start_app_process()
         self.is_app_process_server_ready.wait()

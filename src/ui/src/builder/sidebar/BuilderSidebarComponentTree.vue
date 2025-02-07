@@ -4,34 +4,38 @@
 		class="BuilderSidebarComponentTree"
 		placeholder="Component tree"
 	>
-		<BuilderSidebarComponentTreeBranch
-			class="rootBranch"
-			:component-id="rootComponentId"
-			:query="query"
-			:is-root="true"
-		></BuilderSidebarComponentTreeBranch>
-		<div class="add">
-			<WdsButton
-				v-if="rootComponentId == 'root'"
-				variant="special"
-				size="small"
-				data-automation-action="add-page"
-				@click="addPage"
-			>
-				<i class="material-symbols-outlined"> add </i> Add
-				page</WdsButton
-			>
-			<WdsButton
-				v-if="rootComponentId == 'workflows_root'"
-				variant="special"
-				size="small"
-				data-automation-action="add-workflow"
-				@click="addWorkflow"
-			>
-				<i class="material-symbols-outlined"> add </i> Add
-				workflow</WdsButton
-			>
+		<div>
+			<BuilderSidebarComponentTreeBranch
+				class="rootBranch"
+				:component-id="rootComponentId"
+				:query="query"
+			></BuilderSidebarComponentTreeBranch>
 		</div>
+
+		<template #footer>
+			<div class="add">
+				<WdsButton
+					v-if="rootComponentId == 'root'"
+					variant="special"
+					size="small"
+					data-automation-action="add-page"
+					@click="addPage"
+				>
+					<i class="material-symbols-outlined"> add </i> Add
+					page</WdsButton
+				>
+				<WdsButton
+					v-if="rootComponentId == 'workflows_root'"
+					variant="special"
+					size="small"
+					data-automation-action="add-workflow"
+					@click="addWorkflow"
+				>
+					<i class="material-symbols-outlined"> add </i> Add
+					workflow</WdsButton
+				>
+			</div>
+		</template>
 	</BuilderSidebarPanel>
 </template>
 
@@ -76,8 +80,6 @@ async function addWorkflow() {
 
 <style scoped>
 .BuilderSidebarComponentTree {
-	display: flex;
-	flex-direction: column;
 	height: 100%;
 	position: relative;
 }
@@ -107,16 +109,12 @@ async function addWorkflow() {
 }
 
 .add {
-	position: sticky;
 	flex: 0 0 48px;
 	bottom: 0;
 	height: 48px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-left: -16px;
-	margin-right: -16px;
-	margin-bottom: -16px;
 	border-top: 1px solid var(--builderSeparatorColor);
 	background: var(--builderBackgroundColor);
 }

@@ -68,6 +68,7 @@
 		<!-- TOOLTIP -->
 
 		<BuilderTooltip id="tooltip"></BuilderTooltip>
+		<BuilderToasts />
 	</div>
 </template>
 
@@ -83,6 +84,7 @@ import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 import { SelectionStatus } from "./builderManager";
+import BuilderToasts from "./BuilderToasts.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),

@@ -13,8 +13,10 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
     disabled="false"
   >
     <summary
+      class="SharedCollapsible__summary"
       data-v-55c4d015=""
     >
+      <!--v-if-->
       
       <div
         class="SharedJsonViewerCollapsible__title"
@@ -57,8 +59,10 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
             disabled="false"
           >
             <summary
+              class="SharedCollapsible__summary"
               data-v-55c4d015=""
             >
+              <!--v-if-->
               
               <div
                 class="SharedJsonViewerCollapsible__title"
@@ -107,8 +111,10 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
             disabled="false"
           >
             <summary
+              class="SharedCollapsible__summary"
               data-v-55c4d015=""
             >
+              <!--v-if-->
               
               <div
                 class="SharedJsonViewerCollapsible__title"
@@ -171,8 +177,10 @@ exports[`SharedJsonViewer > should render an array 1`] = `
     disabled="false"
   >
     <summary
+      class="SharedCollapsible__summary"
       data-v-55c4d015=""
     >
+      <!--v-if-->
       
       <div
         class="SharedJsonViewerCollapsible__title"
