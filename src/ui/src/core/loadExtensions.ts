@@ -1,3 +1,4 @@
+import { useLogger } from "@/composables/useLogger";
 import { registerComponentTemplate } from "./templateMap";
 
 const CUSTOM_COMPONENTS_GLOBAL_VAR = "WriterCustomComponentTemplates";
@@ -16,15 +17,16 @@ export async function loadExtensions(extensionPaths: string[]) {
 }
 
 async function importCustomComponentTemplate(path: string) {
-	console.log(`Importing custom component templates at "${path}"...`);
+	const logger = useLogger();
+	logger.log(`Importing custom component templates at "${path}"...`);
 	await import(/* @vite-ignore */ getRelativeExtensionsPath() + path);
 	Object.entries(window[CUSTOM_COMPONENTS_GLOBAL_VAR])?.forEach(
 		([key, template]) => {
 			if (checkComponentKey(key)) {
 				registerComponentTemplate(`custom_${key}`, template);
-				console.log(`Registering template for "${key}".`);
+				logger.log(`Registering template for "${key}".`);
 			} else {
-				console.warn(
+				logger.warn(
 					`custom component '${key}' is ignored. A custom component should be declared using only alphanumeric lowercase and _.`,
 				);
 			}
@@ -62,5 +64,3 @@ function getRelativeExtensionsPath() {
 
 	return `${pathname}extensions/`;
 }
-
-

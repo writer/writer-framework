@@ -23,6 +23,7 @@
 						ref="fixedEl"
 						type="number"
 						:model-value="valuePickFixed"
+						:invalid="error !== undefined"
 						@update:model-value="handleInputFixed"
 					/>
 					<div>px</div>
@@ -47,13 +48,14 @@ import {
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
+	PropType,
 	Ref,
 	ref,
 	toRefs,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
@@ -111,10 +113,11 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	default: null,
 };
 
-const props = defineProps<{
-	componentId: Component["id"];
-	fieldKey: string;
-}>();
+const props = defineProps({
+	componentId: { type: String as PropType<Component["id"]>, required: true },
+	fieldKey: { type: String, required: true },
+	error: { type: String, required: false, default: undefined },
+});
 
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));

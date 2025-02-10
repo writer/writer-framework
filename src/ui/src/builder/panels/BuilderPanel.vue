@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderPanel" :class="{ collapsed }">
-		<div class="collapser">
+		<div class="BuilderPanel__collapser">
 			<WdsButton
 				variant="neutral"
 				size="smallIcon"
@@ -14,15 +14,28 @@
 				}}</i>
 			</WdsButton>
 		</div>
-		<div class="title">{{ name }}</div>
-		<div class="titleCompanion">
+		<div class="BuilderPanel__title">{{ name }}</div>
+		<div class="BuilderPanel__titleCompanion">
 			<slot name="titleCompanion"></slot>
 		</div>
 		<template v-if="!collapsed">
 			<Teleport :to="contentsTeleportEl">
-				<div :style="{ order }" :data-order="order" class="contents">
-					<div class="actions">
-						<div class="actionsCompanion">
+				<div
+					:style="{ order }"
+					:data-order="order"
+					class="BuilderPanel__contents"
+					:class="{
+						'BuilderPanel__contents--leftPanel': enableLeftPanel,
+					}"
+				>
+					<div
+						v-if="enableLeftPanel"
+						class="BuilderPanel__contents__leftPanel"
+					>
+						<slot name="leftPanel" />
+					</div>
+					<div class="BuilderPanel__actions">
+						<div class="BuilderPanel__actionsCompanion">
 							<slot name="actionsCompanion"></slot>
 						</div>
 						<WdsButton
@@ -44,7 +57,7 @@
 							}}</i></WdsButton
 						>
 					</div>
-					<div class="mainContents">
+					<div class="BuilderPanel__mainContents">
 						<slot></slot>
 					</div>
 				</div>
@@ -83,7 +96,12 @@ const props = defineProps<{
 	contentsTeleportEl: HTMLElement;
 	scrollable: boolean;
 	keyboardShortcutKey: string;
+	enableLeftPanel?: boolean;
 }>();
+
+const emits = defineEmits({
+	openned: (open: boolean) => typeof open === "boolean",
+});
 
 const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));
 const order = computed(() => panelIds.indexOf(props.panelId));
@@ -91,9 +109,11 @@ const order = computed(() => panelIds.indexOf(props.panelId));
 function togglePanel(panelId: typeof props.panelId) {
 	if (wfbm.openPanels.value.has(panelId)) {
 		wfbm.openPanels.value.delete(panelId);
+		emits("openned", false);
 		return;
 	}
 	wfbm.openPanels.value.add(panelId);
+	emits("openned", true);
 }
 
 function handleKeydown(ev: KeyboardEvent) {
@@ -145,26 +165,42 @@ onUnmounted(() => {
 	background: var(--builderBackgroundColor);
 }
 
-.title {
+.BuilderPanel__title {
 	font-size: 14px;
 	font-style: normal;
 	font-weight: 600;
 	line-height: 140%;
 }
 
-.titleCompanion {
+.BuilderPanel__titleCompanion {
 	margin-left: 8px;
 }
 
-.contents {
+.BuilderPanel__contents {
 	display: grid;
 	height: 100%;
-	grid-template-rows: 36px 1fr;
+	grid-template-rows: 56px 1fr;
 	grid-template-columns: 1fr;
 	overflow: hidden;
 }
 
-.actions {
+.BuilderPanel__contents--leftPanel {
+	grid-template-columns: auto 1fr;
+}
+
+.BuilderPanel__contents__leftPanel {
+	width: 200px;
+	height: 100%;
+	grid-row: 1 / 3;
+	border-right: 1px solid var(--builderSeparatorColor);
+}
+
+.BuilderPanel__actions,
+.BuilderPanel__actionsCompanion {
+	width: 100%;
+}
+
+.BuilderPanel__actions {
 	display: flex;
 	justify-content: right;
 	align-items: center;
@@ -173,7 +209,7 @@ onUnmounted(() => {
 	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 
-.mainContents {
+.BuilderPanel__mainContents {
 	overflow-x: hidden;
 	overflow-y: auto;
 }

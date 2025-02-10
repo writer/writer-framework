@@ -1,5 +1,5 @@
 <template>
-	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsVisibility">
+	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsVisibility">
 		<BuilderSectionTitle icon="visibility" label="Visibility" />
 		<div class="main">
 			<WdsTabs v-model="tab" :tabs="tabs" />
@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderSectionTitle from "./BuilderSectionTitle.vue";
@@ -88,7 +88,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setVisibleValue } = useComponentActions(wf, ssbm);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 
 const hint =
 	'Reference a state or context element that will evaluate to true or false. Reference the element directly, i.e. use "my_var" instead of "@{my_var}".';

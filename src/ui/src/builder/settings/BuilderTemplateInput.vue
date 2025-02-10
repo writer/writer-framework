@@ -9,6 +9,7 @@
 				spellcheck="false"
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
+				:invalid="error !== undefined"
 				@input="handleInput"
 				@blur="closeAutocompletion"
 			/>
@@ -38,6 +39,7 @@
 				spellcheck="false"
 				rows="3"
 				:placeholder="props.placeholder"
+				:invalid="error !== undefined"
 				@input="handleInput"
 			/>
 		</template>
@@ -65,7 +67,7 @@
 
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import {
 	PropType,
 	inject,
@@ -99,6 +101,7 @@ const props = defineProps({
 		default: undefined,
 	},
 	placeholder: { type: String, required: false, default: undefined },
+	error: { type: String, required: false, default: undefined },
 });
 
 const ss = inject(injectionKeys.core);

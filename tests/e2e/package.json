@@ -15,12 +15,12 @@
     "e2e:grep": "playwright test --project=chromium --grep "
   },
   "dependencies": {
-    "writer-ui": "*",
     "express": "4.19.2",
-    "http-proxy": "1.18.1"
+    "http-proxy": "1.18.1",
+    "writer-ui": "*"
   },
   "devDependencies": {
-    "@playwright/test": "1.42.1",
+    "@playwright/test": "^1.49.1",
     "nodemon": "3.1.0"
   }
 }

@@ -19,6 +19,7 @@
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { validatorPositiveNumber } from "@/constants/validators";
 
 export default {
 	writer: {
@@ -39,6 +40,7 @@ export default {
 				desc: `Icon size in px`,
 				category: FieldCategory.Style,
 				default: "14",
+				validator: validatorPositiveNumber,
 			},
 			color: {
 				name: "Icon color",

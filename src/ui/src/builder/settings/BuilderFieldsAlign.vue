@@ -24,6 +24,7 @@
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
 				:value="component.content[fieldKey]"
+				:error="error"
 				@input="handleInputCss"
 			/>
 		</div>
@@ -38,6 +39,7 @@ import {
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
+	PropType,
 	Ref,
 	ref,
 	toRefs,
@@ -135,11 +137,15 @@ const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
 	default: null,
 };
 
-const props = defineProps<{
-	componentId: Component["id"];
-	fieldKey: string;
-	direction: "horizontal" | "vertical";
-}>();
+const props = defineProps({
+	componentId: { type: String as PropType<Component["id"]>, required: true },
+	fieldKey: { type: String, required: true },
+	direction: {
+		type: String as PropType<"horizontal" | "vertical">,
+		required: true,
+	},
+	error: { type: String, required: false, default: undefined },
+});
 
 const { componentId, fieldKey, direction } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));

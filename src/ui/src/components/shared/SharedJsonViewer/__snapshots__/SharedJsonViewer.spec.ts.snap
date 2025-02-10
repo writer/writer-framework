@@ -1,0 +1,288 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SharedJsonViewer > should render a nested object 1`] = `
+<div
+  data-v-app=""
+>
+  
+  
+  <details
+    class="SharedCollapsible"
+    data-v-11af3d6a=""
+    data-v-55c4d015=""
+    disabled="false"
+  >
+    <summary
+      class="SharedCollapsible__summary"
+      data-v-55c4d015=""
+    >
+      <!--v-if-->
+      
+      <div
+        class="SharedJsonViewerCollapsible__title"
+        data-v-11af3d6a=""
+      >
+        <!--v-if-->
+        <span
+          data-v-11af3d6a=""
+          data-v-562f08a9=""
+        >
+          Object{2}
+        </span>
+      </div>
+      
+    </summary>
+    <div
+      class="content"
+      data-v-55c4d015=""
+    >
+      
+      <div
+        class="SharedJsonViewerCollapsible__content"
+        data-v-11af3d6a=""
+      >
+        
+        <div
+          class="SharedJsonViewerObject"
+          data-v-4abbcc0e=""
+        >
+          
+          
+          <!-- This is a single value, we display it as plain key/value text -->
+          
+          <!-- This is a an object -->
+          <details
+            class="SharedCollapsible"
+            data-v-11af3d6a=""
+            data-v-4abbcc0e=""
+            data-v-55c4d015=""
+            disabled="false"
+          >
+            <summary
+              class="SharedCollapsible__summary"
+              data-v-55c4d015=""
+            >
+              <!--v-if-->
+              
+              <div
+                class="SharedJsonViewerCollapsible__title"
+                data-v-11af3d6a=""
+              >
+                <span
+                  data-v-11af3d6a=""
+                >
+                  array
+                </span>
+                <span
+                  data-v-11af3d6a=""
+                  data-v-562f08a9=""
+                >
+                  Array[3]
+                </span>
+              </div>
+              
+            </summary>
+            <div
+              class="content"
+              data-v-55c4d015=""
+            >
+              
+              <div
+                class="SharedJsonViewerCollapsible__content"
+                data-v-11af3d6a=""
+              >
+                
+                
+              </div>
+              
+            </div>
+          </details>
+          
+          
+          
+          <!-- This is a single value, we display it as plain key/value text -->
+          
+          <!-- This is a an object -->
+          <details
+            class="SharedCollapsible"
+            data-v-11af3d6a=""
+            data-v-4abbcc0e=""
+            data-v-55c4d015=""
+            disabled="false"
+          >
+            <summary
+              class="SharedCollapsible__summary"
+              data-v-55c4d015=""
+            >
+              <!--v-if-->
+              
+              <div
+                class="SharedJsonViewerCollapsible__title"
+                data-v-11af3d6a=""
+              >
+                <span
+                  data-v-11af3d6a=""
+                >
+                  nested
+                </span>
+                <span
+                  data-v-11af3d6a=""
+                  data-v-562f08a9=""
+                >
+                  Object{2}
+                </span>
+              </div>
+              
+            </summary>
+            <div
+              class="content"
+              data-v-55c4d015=""
+            >
+              
+              <div
+                class="SharedJsonViewerCollapsible__content"
+                data-v-11af3d6a=""
+              >
+                
+                
+              </div>
+              
+            </div>
+          </details>
+          
+          
+          
+        </div>
+        
+      </div>
+      
+    </div>
+  </details>
+  
+  <!--v-if-->
+  
+</div>
+`;
+
+exports[`SharedJsonViewer > should render an array 1`] = `
+<div
+  data-v-app=""
+>
+  
+  
+  <details
+    class="SharedCollapsible"
+    data-v-11af3d6a=""
+    data-v-55c4d015=""
+    disabled="false"
+  >
+    <summary
+      class="SharedCollapsible__summary"
+      data-v-55c4d015=""
+    >
+      <!--v-if-->
+      
+      <div
+        class="SharedJsonViewerCollapsible__title"
+        data-v-11af3d6a=""
+      >
+        <!--v-if-->
+        <span
+          data-v-11af3d6a=""
+          data-v-562f08a9=""
+        >
+          Array[3]
+        </span>
+      </div>
+      
+    </summary>
+    <div
+      class="content"
+      data-v-55c4d015=""
+    >
+      
+      <div
+        class="SharedJsonViewerCollapsible__content"
+        data-v-11af3d6a=""
+      >
+        
+        <div
+          class="SharedJsonViewerObject"
+          data-v-4abbcc0e=""
+        >
+          
+          
+          <!-- This is a single value, we display it as plain key/value text -->
+          <div
+            class="SharedJsonViewerObject__value"
+            data-v-4abbcc0e=""
+          >
+            <span
+              data-v-4abbcc0e=""
+            >
+              0
+            </span>
+            : 
+            <span
+              class="SharedJsonViewerValue"
+              data-v-4abbcc0e=""
+              data-v-e1f0c935=""
+            >
+              1
+            </span>
+          </div>
+          
+          
+          <!-- This is a single value, we display it as plain key/value text -->
+          <div
+            class="SharedJsonViewerObject__value"
+            data-v-4abbcc0e=""
+          >
+            <span
+              data-v-4abbcc0e=""
+            >
+              1
+            </span>
+            : 
+            <span
+              class="SharedJsonViewerValue"
+              data-v-4abbcc0e=""
+              data-v-e1f0c935=""
+            >
+              2
+            </span>
+          </div>
+          
+          
+          <!-- This is a single value, we display it as plain key/value text -->
+          <div
+            class="SharedJsonViewerObject__value"
+            data-v-4abbcc0e=""
+          >
+            <span
+              data-v-4abbcc0e=""
+            >
+              2
+            </span>
+            : 
+            <span
+              class="SharedJsonViewerValue"
+              data-v-4abbcc0e=""
+              data-v-e1f0c935=""
+            >
+              3
+            </span>
+          </div>
+          
+          
+        </div>
+        
+      </div>
+      
+    </div>
+  </details>
+  
+  <!--v-if-->
+  
+</div>
+`;

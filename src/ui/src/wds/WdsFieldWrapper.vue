@@ -21,7 +21,8 @@
 			</WdsButton>
 		</div>
 		<div class="WdsFieldWrapper__slot"><slot></slot></div>
-		<div v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</div>
+		<p v-if="error" class="WdsFieldWrapper__error">{{ error }}</p>
+		<p v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</p>
 	</div>
 </template>
 
@@ -32,6 +33,7 @@ defineProps({
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
 	hint: { type: String, required: false, default: undefined },
+	error: { type: String, required: false, default: undefined },
 	helpButton: {
 		type: [String, Boolean],
 		required: false,
@@ -71,12 +73,23 @@ defineEmits({
 	color: var(--secondaryTextColor);
 }
 
-.WdsFieldWrapper__hint {
-	color: var(--secondaryTextColor);
+.WdsFieldWrapper__hint,
+.WdsFieldWrapper__error {
 	margin-top: 4px;
 	font-family: Poppins;
 	font-size: 12px;
 	font-weight: 400;
 	line-height: 160%;
+}
+.WdsFieldWrapper__error:first-letter {
+	text-transform: capitalize;
+}
+
+.WdsFieldWrapper__hint {
+	color: var(--secondaryTextColor);
+}
+
+.WdsFieldWrapper__error {
+	color: var(--builderErrorColor);
 }
 </style>

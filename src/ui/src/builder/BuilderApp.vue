@@ -13,7 +13,7 @@
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
-							settingsOpen: ssbm.isSelectionActive(),
+							settingsOpen: ssbm.isSingleSelectionActive,
 						}"
 						@dragover="handleRendererDragover"
 						@dragstart="handleRendererDragStart"
@@ -25,7 +25,7 @@
 				</div>
 
 				<BuilderSettings
-					v-if="ssbm.isSelectionActive()"
+					v-if="ssbm.isSingleSelectionActive"
 					:key="selectedId ?? 'noneSelected'"
 				></BuilderSettings>
 			</div>
@@ -68,6 +68,7 @@
 		<!-- TOOLTIP -->
 
 		<BuilderTooltip id="tooltip"></BuilderTooltip>
+		<BuilderToasts />
 	</div>
 </template>
 
@@ -75,13 +76,15 @@
 import { computed, defineAsyncComponent, inject, onMounted } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
-import injectionKeys from "../injectionKeys";
-import { isPlatformMac } from "../core/detectPlatform";
+import injectionKeys from "@/injectionKeys";
+import { isPlatformMac } from "@/core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
+import { SelectionStatus } from "./builderManager";
+import BuilderToasts from "./BuilderToasts.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -139,7 +142,7 @@ const {
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
-const selectedId = computed(() => ssbm.getSelection()?.componentId);
+const selectedId = computed(() => ssbm.firstSelectedId.value);
 
 function handleKeydown(ev: KeyboardEvent): void {
 	if (ev.key == "Escape") {
@@ -162,9 +165,12 @@ function handleKeydown(ev: KeyboardEvent): void {
 		return;
 	}
 
-	if (!ssbm.isSelectionActive()) return;
+	if (!ssbm.isSingleSelectionActive.value || !ssbm.firstSelectedItem.value) {
+		return;
+	}
+
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
-		ssbm.getSelection();
+		ssbm.firstSelectedItem.value;
 
 	if (ev.key == "Delete") {
 		if (!isDeleteAllowed(selectedId)) return;
@@ -234,11 +240,20 @@ function handleRendererClick(ev: PointerEvent): void {
 	if (!targetEl) return;
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
-	if (targetId !== ssbm.getSelectedId()) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		ssbm.setSelection(targetId, targetInstancePath, "click");
+
+	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
+
+	if (
+		isAlreadySelected &&
+		ssbm.selectionStatus.value !== SelectionStatus.Multiple
+	) {
+		return;
 	}
+
+	ev.preventDefault();
+	ev.stopPropagation();
+
+	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {
@@ -250,6 +265,12 @@ const handleRendererDragStart = (ev: DragEvent) => {
 
 	const componentId = targetEl.dataset.writerId;
 	const { type } = wf.getComponentById(componentId);
+
+	// we don't support yet dragginfg multiple components in UI. If drag is starting with multiple selections, we select only one component
+	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) {
+		ssbm.setSelection(componentId, undefined, "click");
+		ssbm.isSettingsBarCollapsed.value = true;
+	}
 
 	ev.dataTransfer.setData(
 		`application/json;writer=${type},${componentId}`,

@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="ssbm.isSelectionActive() && fields"
+		v-if="ssbm.isSingleSelectionActive && fields"
 		class="BuilderSettingsProperties"
 	>
 		<div
@@ -29,17 +29,20 @@
 					"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
 				>
 					<BuilderFieldsColor
 						v-if="fieldValue.type == FieldType.Color"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsColor>
 
 					<BuilderFieldsShadow
 						v-if="fieldValue.type == FieldType.Shadow"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsShadow>
 
 					<BuilderFieldsKeyValue
@@ -47,36 +50,42 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:instance-path="selectedInstancePath"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsKeyValue>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Text"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Number"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.IdKey"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
 					<BuilderFieldsObject
 						v-if="fieldValue.type == FieldType.Object"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsObject>
 
 					<BuilderFieldsWidth
 						v-if="fieldValue.type == FieldType.Width"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsWidth>
 
 					<BuilderFieldsAlign
@@ -84,6 +93,7 @@
 						direction="horizontal"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsAlign>
 
 					<BuilderFieldsAlign
@@ -91,12 +101,14 @@
 						direction="vertical"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsAlign>
 
 					<BuilderFieldsPadding
 						v-if="fieldValue.type == FieldType.Padding"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsPadding>
 
 					<BuilderFieldsTools
@@ -113,7 +125,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
@@ -126,23 +138,28 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const selectedInstancePath = computed<InstancePath>(() =>
-	parseInstancePathString(ssbm.getSelection()?.instancePath),
+	parseInstancePathString(ssbm.firstSelectedItem?.value?.instancePath),
 );
 
 const selectedComponent = computed(() => {
-	return wf.getComponentById(ssbm.getSelectedId());
+	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
-const fields = computed(() => {
+const componentDefinition = computed(() => {
 	const { type } = selectedComponent.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition.fields;
+	return wf.getComponentDefinition(type);
 });
+const fields = computed(() => {
+	return componentDefinition.value?.fields;
+});
+
+const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
 
 const fieldCategories = computed(() => {
 	return [

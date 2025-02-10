@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from "vue";
-import injectionKeys from "../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -21,7 +21,7 @@ const props = defineProps<{
 	disabled?: boolean;
 }>();
 
-const { modelValue, disabled } = toRefs(props);
+const { modelValue, disabled, language } = toRefs(props);
 const emit = defineEmits(["update:modelValue"]);
 
 const VARIANTS_SETTINGS: Record<
@@ -53,6 +53,10 @@ watch(disabled, (isNewDisabled) => {
 watch(modelValue, (newCode) => {
 	if (editor.getValue() == newCode) return;
 	editor.getModel().setValue(newCode);
+});
+
+watch(language, () => {
+	monaco.editor.setModelLanguage(editor.getModel(), language.value);
 });
 
 onMounted(() => {

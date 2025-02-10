@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { readonly, ref, Ref, shallowRef } from "vue";
+import { readonly, ref, Ref, shallowRef, toRaw } from "vue";
 import {
 	AbstractTemplate,
 	Component,
 	ComponentMap,
 	InstancePath,
 	MailItem,
+	SourceFiles,
 	UserFunction,
 } from "@/writerTypes";
 import {
@@ -20,6 +21,14 @@ import { auditAndFixComponents } from "./auditAndFix";
 import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
+import { useLogger } from "@/composables/useLogger";
+import {
+	createFileToSourceFiles,
+	deleteFileToSourceFiles,
+	findSourceFileFromPath,
+	isSourceFilesFile,
+	moveFileToSourceFiles,
+} from "./sourceFiles";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -36,6 +45,10 @@ export function generateCore() {
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
+	const sourceFiles = shallowRef<SourceFiles>({
+		type: "directory",
+		children: {},
+	});
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
 	const userState: Ref<Record<string, any>> = ref({});
@@ -112,6 +125,7 @@ export function generateCore() {
 
 		userFunctions.value = initData.userFunctions;
 		runCode.value = initData.runCode;
+		sourceFiles.value = initData.sourceFiles;
 
 		await startSync();
 
@@ -191,6 +205,8 @@ export function generateCore() {
 	async function startSync(): Promise<void> {
 		if (webSocket) return; // Open WebSocket exists
 
+		const logger = useLogger();
+
 		const url = new URL("./api/stream", window.location.href);
 		url.protocol = url.protocol.replace("https", "wss");
 		url.protocol = url.protocol.replace("http", "ws");
@@ -199,7 +215,7 @@ export function generateCore() {
 		webSocket.onopen = () => {
 			clearFrontendMap();
 			syncHealth.value = "connected";
-			console.log("WebSocket connected. Initialising stream...");
+			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
 		};
 
@@ -236,7 +252,7 @@ export function generateCore() {
 				// Connection established correctly but closed due to invalid session.
 				// Do not attempt to reconnect, the session will remain invalid. Initialise a new session.
 
-				console.error("Invalid session. Reinitialising...");
+				logger.error("Invalid session. Reinitialising...");
 
 				// Take care of pending event resolutions and fail them.
 				await initSession();
@@ -245,12 +261,12 @@ export function generateCore() {
 
 			// Connection lost due to some other reason. Try to reconnect.
 
-			console.error("WebSocket closed. Attempting to reconnect...");
+			logger.error("WebSocket closed. Attempting to reconnect...");
 			setTimeout(async () => {
 				try {
 					await startSync();
 				} catch {
-					console.error("Couldn't reconnect.");
+					logger.error("Couldn't reconnect.");
 				}
 			}, RECONNECT_DELAY_MS);
 		};
@@ -336,76 +352,142 @@ export function generateCore() {
 	/**
 	 * Sends a message to be hashed in the backend using the relevant keys.
 	 * Due to security reasons, it works only in edit mode.
-	 * 
+	 *
 	 * @param message Messaged to be hashed
 	 * @returns The hashed message
 	 */
-	async function hashMessage(message: string):Promise<string> {
+	async function hashMessage(message: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
 				payload?: Record<string, any>;
 			}) => {
-				if (!r.ok) {
-					reject("Couldn't connect to the server.");
-					return;
-				}
+				if (!r.ok) return reject("Couldn't connect to the server.");
 				resolve(r.payload?.message);
 			};
 
-			sendFrontendMessage(
-				"hashRequest",
-				{ message },
-				messageCallback,
-			);
+			sendFrontendMessage("hashRequest", { message }, messageCallback);
 		});
-
 	}
 
-	async function sendCodeSaveRequest(newCode: string): Promise<void> {
-		const messageData = {
-			code: newCode,
-		};
+	function updateSourceFile(content: string, path: string[]) {
+		const tree = structuredClone(toRaw(sourceFiles.value));
+		const node = findSourceFileFromPath(path, tree);
+		if (isSourceFilesFile(node)) {
+			node.content = content;
+			node.complete = true;
+			sourceFiles.value = tree;
+		}
+	}
 
+	async function sendCreateSourceFileRequest(path: string[]): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
 				payload?: Record<string, any>;
 			}) => {
-				if (!r.ok) {
-					reject("Couldn't connect to the server.");
-					return;
-				}
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (r.payload?.["error"])
+					return reject("Couldn't create the file.");
+
+				sourceFiles.value = createFileToSourceFiles(
+					path,
+					toRaw(sourceFiles.value),
+				);
+				resolve();
+			};
+
+			sendFrontendMessage("createSourceFile", { path }, messageCallback);
+		});
+	}
+
+	async function sendRenameSourceFileRequest(
+		from: string[],
+		to: string[],
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (r.payload?.["error"])
+					return reject("Couldn't rename the file.");
+
+				sourceFiles.value = moveFileToSourceFiles(
+					from,
+					to,
+					toRaw(sourceFiles.value),
+				);
+				resolve();
+			};
+
+			sendFrontendMessage(
+				"renameSourceFile",
+				{ from, to },
+				messageCallback,
+			);
+		});
+	}
+
+	async function sendDeleteSourceFileRequest(path: string[]): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (r.payload?.["error"])
+					return reject("Couldn't delete the file.");
+
+				sourceFiles.value = deleteFileToSourceFiles(
+					path,
+					toRaw(sourceFiles.value),
+				);
+				resolve();
+			};
+
+			sendFrontendMessage("deleteSourceFile", { path }, messageCallback);
+		});
+	}
+
+	async function sendCodeSaveRequest(
+		code: string,
+		path = ["main.py"],
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				updateSourceFile(code, path);
 				resolve();
 			};
 
 			sendFrontendMessage(
 				"codeSaveRequest",
-				messageData,
+				{ code, path },
 				messageCallback,
 			);
 
-			syncHealth.value = "suspended";
+			if (path.join("/") === "main.py") syncHealth.value = "suspended";
 		});
 	}
 
-	async function sendCodeUpdate(newCode: string): Promise<void> {
-		const messageData = {
-			code: newCode,
-		};
-
+	function requestSourceFileLoading(path: string[]): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const messageCallback = (r: {
 				ok: boolean;
-				payload?: Record<string, any>;
+				payload?: { content: string };
 			}) => {
-				if (!r.ok) {
-					reject("Couldn't connect to the server.");
-					return;
-				}
+				if (!r.ok) return reject("Couldn't connect to the server.");
+
+				updateSourceFile(r.payload.content, path);
+
 				resolve();
 			};
-			sendFrontendMessage("codeUpdate", messageData, messageCallback);
+			sendFrontendMessage("loadSourceFile", { path }, messageCallback);
 		});
 	}
 
@@ -440,6 +522,7 @@ export function generateCore() {
 			callback?.({ ok: false });
 			return;
 		}
+		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
 		try {
 			if (callback || track) {
@@ -468,8 +551,7 @@ export function generateCore() {
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
 		} catch (error) {
-			// eslint-disable-next-line no-console
-			console.error("sendFrontendMessage error", error);
+			logger.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
 		}
 	}
@@ -509,10 +591,7 @@ export function generateCore() {
 				ok: boolean;
 				payload?: Record<string, any>;
 			}) => {
-				if (!r.ok) {
-					reject("Couldn't connect to the server.");
-					return;
-				}
+				if (!r.ok) return reject("Couldn't connect to the server.");
 				resolve();
 			};
 			sendFrontendMessage("componentUpdate", payload, messageCallback);
@@ -603,8 +682,12 @@ export function generateCore() {
 		forwardEvent,
 		hashMessage,
 		runCode: readonly(runCode),
+		sourceFiles: readonly(sourceFiles),
 		sendCodeSaveRequest,
-		sendCodeUpdate,
+		sendCreateSourceFileRequest,
+		sendRenameSourceFileRequest,
+		sendDeleteSourceFileRequest,
+		requestSourceFileLoading,
 		sendComponentUpdate,
 		addComponent,
 		deleteComponent,

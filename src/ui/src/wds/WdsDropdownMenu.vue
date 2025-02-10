@@ -25,7 +25,11 @@
 			<i v-if="!hideIcons" class="material-symbols-outlined">{{
 				getOptionIcon(option)
 			}}</i>
-			<div class="WdsDropdownMenu__item__label">
+			<div
+				class="WdsDropdownMenu__item__label"
+				:data-writer-tooltip="option.label"
+				data-writer-tooltip-strategy="overflow"
+			>
 				{{ option.label }}
 			</div>
 			<i
@@ -138,6 +142,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
+	white-space: nowrap;
 	overflow: hidden;
 	text-align: left;
 }

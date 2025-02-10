@@ -79,7 +79,7 @@ const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
-const selectedId = computed(() => ssbm?.getSelectedId());
+const selectedId = computed(() => ssbm?.firstSelectedId.value);
 
 const rendererTop = ref(0);
 

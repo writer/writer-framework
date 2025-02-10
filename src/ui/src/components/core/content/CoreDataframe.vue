@@ -135,6 +135,11 @@ import {
 } from "./CoreDataframe/constants";
 import WdsButton from "@/wds/WdsButton.vue";
 import { WdsColor } from "@/wds/tokens";
+import { useLogger } from "@/composables/useLogger";
+import {
+	validatorObjectRecordNotNested,
+	validatorPositiveNumber,
+} from "@/constants/validators";
 
 const description = "A component to display Pandas DataFrames.";
 
@@ -243,6 +248,7 @@ export default {
 				desc: "Define rows actions",
 				type: FieldType.KeyValue,
 				default: JSON.stringify({ remove: "Remove", open: "Open" }),
+				validator: validatorObjectRecordNotNested,
 			},
 			useMarkdown: {
 				name: "Use Markdown",
@@ -260,6 +266,7 @@ export default {
 				type: FieldType.Number,
 				category: FieldCategory.Style,
 				default: "10",
+				validator: validatorPositiveNumber,
 			},
 			wrapText: {
 				name: "Wrap text",
@@ -523,8 +530,7 @@ async function loadData() {
 			[ARQUERO_INTERNAL_ID]: () => aq.op.row_number(),
 		});
 	} catch (e) {
-		// eslint-disable-next-line no-console
-		console.error("Couldn't load dataframe from Arrow URL.", e);
+		useLogger().error("Couldn't load dataframe from Arrow URL.", e);
 	} finally {
 		isLoadingData.value = false;
 	}

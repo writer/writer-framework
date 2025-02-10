@@ -33,6 +33,19 @@ class AbstractTemplate(BaseModel):
     baseType: str
     writer: Dict
 
+
+class SourceFilesFile(TypedDict):
+    type: Literal["file"]
+    complete: Optional[bool]
+    content: str
+
+
+class SourceFilesDirectory(TypedDict):
+    type: Literal["directory"]
+    children: Dict[str, 'SourceFiles']
+
+SourceFiles = Union[SourceFilesFile, SourceFilesDirectory]
+
 # Web server models
 
 
@@ -59,6 +72,7 @@ class InitResponseBodyRun(InitResponseBody):
 class InitResponseBodyEdit(InitResponseBody):
     mode: Literal["edit"]
     runCode: Optional[str] = None
+    sourceFiles: SourceFilesDirectory = {"type": "directory", "children": {}}
 
 
 class WriterWebsocketIncoming(BaseModel):
@@ -231,3 +245,4 @@ class WorkflowExecutionLog(BaseModel):
 
 class WriterConfigurationError(ValueError):
     pass
+

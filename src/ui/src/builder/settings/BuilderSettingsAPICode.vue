@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import BuilderEmbeddedCodeEditor from "../BuilderEmbeddedCodeEditor.vue";
 import WdsButton from "@/wds/WdsButton.vue";
@@ -71,7 +71,9 @@ import WdsButton from "@/wds/WdsButton.vue";
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
-const component = computed(() => wf.getComponentById(wfbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(wfbm.firstSelectedId.value),
+);
 
 const isWorkflow = computed(
 	() => component.value?.type === "workflows_workflow",

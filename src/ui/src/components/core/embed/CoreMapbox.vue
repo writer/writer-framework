@@ -12,6 +12,12 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
+import { useLogger } from "@/composables/useLogger";
+import {
+	validatorGpsLat,
+	validatorGpsLng,
+	validatorGpsMarkers,
+} from "@/constants/validators";
 
 const markersDefaultData = [
 	{ lat: 37.79322359164316, lng: -122.39999318828129, name: "Marker" },
@@ -46,17 +52,20 @@ export default {
 				name: "Latitude",
 				default: "37.79322359164316",
 				type: FieldType.Number,
+				validator: validatorGpsLat,
 			},
 			lng: {
 				name: "Longitude",
 				default: "-122.39999318828129",
 				type: FieldType.Number,
+				validator: validatorGpsLng,
 			},
 			markers: {
 				name: "Markers",
 				init: JSON.stringify(markersDefaultData, null, 2),
 				desc: "",
 				type: FieldType.Object,
+				validator: validatorGpsMarkers,
 			},
 			controls: {
 				name: "Controls visible",
@@ -137,8 +146,7 @@ const initMap = async () => {
 			map.value.on("load", renderMarkers);
 		}
 	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error(error);
+		useLogger().error(error);
 	}
 };
 

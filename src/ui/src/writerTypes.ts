@@ -1,6 +1,7 @@
 import type { Component as VueComponent } from "vue";
 import { generateCore } from "./core";
 import { generateBuilderManager } from "./builder/builderManager";
+import type { SchemaObject } from "ajv";
 
 export type Core = ReturnType<typeof generateCore>;
 
@@ -50,13 +51,11 @@ export type InstancePathItem = {
 /**
  * Details the full path, including all ancestors, of a unique instance of a Component.
  */
-
 export type InstancePath = InstancePathItem[];
 
 /**
  * Defines component structure and behaviour. Included in Component templates.
  */
-
 export type WriterComponentDefinitionField = {
 	/** Display name */
 	name: string;
@@ -77,6 +76,7 @@ export type WriterComponentDefinitionField = {
 	category?: FieldCategory;
 	/** Use the value of this field as a CSS variable */
 	applyStyleVariable?: boolean;
+	validator?: SchemaObject;
 };
 
 export type WriterComponentDefinition = {
@@ -164,3 +164,27 @@ export type AbstractTemplate = {
 };
 
 export type TemplateMap = Record<string, VueComponent>;
+
+export type SourceFilesFile = {
+	type: "file";
+	complete?: boolean;
+	content: string;
+};
+
+export type SourceFilesDirectory = {
+	type: "directory";
+	children: Record<string, SourceFiles>;
+};
+
+/**
+ * Represent a file tree as an object with:
+ *
+ * - the key representing the filename
+ * - the content as a string for a readable text file, or as a recursive `SourceFiles` if it's a directory
+ *
+ * @example
+ * ```json
+ * { "type": "directory", "children": { "main.py": { "type": "file", "content": "print('hello')", "complete": true } } }
+ * ```
+ */
+export type SourceFiles = SourceFilesDirectory | SourceFilesFile;

@@ -48,6 +48,7 @@ import {
 	startCollapsed,
 	isCollapsible as isCollapsibleField,
 } from "@/renderer/sharedStyleFields";
+import { validatorPositiveNumber } from "@/constants/validators";
 
 const description =
 	"A layout component that organizes its child components in columns. Must be inside a Column Container component.";
@@ -71,6 +72,7 @@ export default {
 				type: FieldType.Number,
 				desc: "Relative size when compared to other columns in the same container. A column of width 2 will be double the width of one with width 1.",
 				category: FieldCategory.Style,
+				validator: validatorPositiveNumber,
 			},
 			isSticky: {
 				name: "Sticky",

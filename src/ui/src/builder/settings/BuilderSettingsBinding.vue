@@ -1,5 +1,5 @@
 <template>
-	<div v-if="ssbm.isSelectionActive()" class="BuilderSettingsBinding">
+	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
 		<BuilderSectionTitle icon="link" label="Binding" />
 		<div class="main">
 			<WdsFieldWrapper label="State element" :hint="hint">
@@ -23,9 +23,10 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "../../injectionKeys";
+import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderSectionTitle from "./BuilderSectionTitle.vue";
 
 const hint =
 	'Links this component to a state element, in a two-way fashion. Reference the state element directly, i.e. use "my_var" instead of "@{my_var}".';
@@ -34,7 +35,9 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setBinding } = useComponentActions(wf, ssbm);
 
-const component = computed(() => wf.getComponentById(ssbm.getSelectedId()));
+const component = computed(() =>
+	wf.getComponentById(ssbm.firstSelectedId.value),
+);
 </script>
 
 <style scoped>

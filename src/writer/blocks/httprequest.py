@@ -31,16 +31,33 @@ class HTTPRequest(WorkflowBlock):
                             "PATCH": "PATCH",
                             "DELETE": "DELETE"
                         },
-                        "default": "GET"
+                        "default": "GET",
+                        "validator": {
+                            "type": "string",
+                            "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+                        }
                     },
                     "url": {
                         "name": "URL",
                         "type": "Text",
+                        "validator": {
+                            "type": "string",
+                            "format": "uri",
+                        }
                     },
                     "headers": {
                         "name": "Headers",
                         "type": "Key-Value",
                         "default": "{}",
+                        "validator": {
+                            "type": "object",
+                            "patternProperties": {
+                                "^.*$": {
+                                    "type": ["string", "number", "boolean"],
+                                },
+                            },
+                            "additionalProperties": True,
+                        }
                     },
                     "body": {
                         "name": "Body",

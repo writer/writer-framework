@@ -1,21 +1,25 @@
 """
 # AI Module Test Suite
 
-This module provides a suite of tests for the AI integration with the Writer SDK.
+This module provides a suite of tests for the AI integration
+with the Writer SDK.
 
 ## Types of tests
 
 1. **Mock tests**
-   - These tests simulate interactions with the Writer AI SDK without making real API calls.
+   - These tests simulate interactions with the Writer AI SDK without
+   making real API calls.
    - They are faster and can be run frequently during development.
 
 2. **SDK query tests**
    - These tests make real API calls to the Writer AI service.
-   - They are intended for use on potentially breaking changes and major releases to ensure compatibility with the live API.
+   - They are intended for use on potentially breaking changes
+   and major releases to ensure compatibility with the live API.
 
 ## Running the tests
 
-By default, SDK query tests are marked with the custom `explicit` decorator and are excluded from regular test runs.
+By default, SDK query tests are marked with the custom `explicit` decorator
+and are excluded from regular test runs.
 Only mock tests are run by regular `pytest` command:
 
 ```sh
@@ -34,7 +38,8 @@ env =
     WRITER_API_KEY=your_api_key_here
 ```
 
-After that, to include SDK query tests into the run, use the `--full-run` option:
+After that, to include SDK query tests into the run, use the `--full-run`
+option:
 ```sh
 pytest ./tests/backend/test_ai.py --full-run
 ```
@@ -70,6 +75,7 @@ from writer.ai import (
     retrieve_graph,
     stream_ask,
     stream_complete,
+    tools,
     upload_file,
 )
 from writerai import Writer
@@ -80,25 +86,87 @@ from writerai.types import (
     ChatCompletionChunk,
     Completion,
     StreamingData,
+    ToolContextAwareSplittingResponse,
+    ToolParsePdfResponse,
 )
+from writerai.types.tools import ComprehendMedicalResponse
 
-# Decorator to mark tests as explicit, i.e. that they only to be run on direct demand
+# Decorator to mark tests as explicit,
+# i.e. that they only to be run on direct demand
 explicit = pytest.mark.explicit
 
 
 test_complete_literal = "Completed text"
+test_expected_pdf_content = "PDF content"
+test_expected_chunks = ["chunk1", "chunk2", "chunk3"]
+test_expected_medical_entities = [
+    {
+        "type": "Diagnosis",
+        "text": "Example",
+        "category": "MEDICAL_CONDITION",
+        "score": 0.98,
+        "begin_offset": 0,
+        "end_offset": 7,
+        "attributes": [],
+        "traits": [],
+        "concepts": []
+    }
+]
+
+test_pdf_data = \
+    (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj\n"
+        b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] "
+        b"/Contents 4 0 R >>\nendobj\n"
+        b"4 0 obj\n<< /Length 44 >>\nstream\nBT\n/F1 24 Tf\n72 144 Td\n"
+        b"(Hello PDF!)Tj\nET\nendstream\nendobj\n"
+        b"xref\n0 5\n0000000000 65535 f \n0000000018 00000 n \n"
+        b"0000000070 00000 n \n0000000121 00000 n \n0000000220 00000 n \n"
+        b"trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n316\n%%EOF"
+    )
+test_split_text = \
+        "This is some sample text that will be split into chunks. " + \
+        "The quick brown fox jumps over the lazy dog. " + \
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " + \
+        "Sed do eiusmod tempor incididunt ut labore " + \
+        "et dolore magna aliqua. " + \
+        "Ut enim ad minim veniam, quis nostrud " + \
+        "exercitation ullamco laboris " + \
+        "nisi ut aliquip ex ea commodo consequat. " + \
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse " + \
+        "cillum dolore eu fugiat nulla pariatur. " + \
+        "Excepteur sint occaecat cupidatat non proident, " + \
+        "sunt in culpa qui officia deserunt mollit anim id est laborum. " + \
+        "These sentences are intended to test how well the split function " + \
+        "handles a larger block of text, including punctuation, " + \
+        "multiple sentences, and some variety in wording."
+test_fast_split_text = \
+    "Q: What'\''s the best way to learn a new song for a person that has " + \
+    "never learned a song before? A: One way to learn a new song would be " + \
+    "to write your own and see how it goes, it may just come natural. A: " + \
+    "Alternatively you could practice the same verse over and over until " + \
+    "you know it by heart and then move onto the next one, until you know " + \
+    "the song start to finish. A: You could also simply read the lyrics " + \
+    "while the music is playing in the background, eventually you will " + \
+    "learn it. A: It'\''s also very useful to get someone to sing it for " + \
+    "you before going to bed. A: And don'\''t forget you can always " + \
+    "team up with a friend and practice together, maybe at a karaoke!"
 
 
 @pytest.fixture
 def mock_app_content_generation():
-    with patch('writer.ai.WriterAIManager.acquire_client') as mock_acquire_client:
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
         original_client = Writer(api_key="fake_token")
         non_streaming_client = AsyncMock(original_client)
         mock_acquire_client.return_value = non_streaming_client
 
-        non_streaming_client.applications.generate_content.return_value = ApplicationGenerateContentResponse(
-            suggestion=test_complete_literal
-        )
+        non_streaming_client.applications.generate_content.return_value =\
+            ApplicationGenerateContentResponse(
+                suggestion=test_complete_literal
+            )
 
         yield non_streaming_client
 
@@ -271,7 +339,12 @@ def sdk_graph_mock():
     return SDKGraph(
         id="test_graph_id",
         created_at=datetime.now(),
-        file_status={"completed": 0, "failed": 0, "in_progress": 0, "total": 0},
+        file_status={
+            "completed": 0,
+            "failed": 0,
+            "in_progress": 0,
+            "total": 0
+            },
         name="test_graph",
         description="A test graph"
     )
@@ -290,7 +363,8 @@ def sdk_file_mock():
 
 @pytest.fixture
 def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
-    with patch('writer.ai.Graph._retrieve_graphs_accessor') as mock_acquire_client:
+    with patch('writer.ai.Graph._retrieve_graphs_accessor') \
+      as mock_acquire_client:
         mock_accessor = MagicMock()
         mock_graph = Graph(sdk_graph_mock)
         mock_file = File(sdk_file_mock)
@@ -298,8 +372,10 @@ def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
         mock_accessor.add_file_to_graph.return_value = mock_file
         mock_accessor.retrieve.return_value = mock_graph
         mock_accessor.list.return_value = [mock_graph]
-        mock_accessor.delete.return_value = GraphDeleteResponse(id="test_file_id", deleted=True)
-        mock_accessor.remove_file_from_graph.return_value = GraphRemoveFileFromGraphResponse(id="test_file_id", deleted=True)
+        mock_accessor.delete.return_value =\
+            GraphDeleteResponse(id="test_file_id", deleted=True)
+        mock_accessor.remove_file_from_graph.return_value =\
+            GraphRemoveFileFromGraphResponse(id="test_file_id", deleted=True)
 
         mock_acquire_client.return_value = mock_accessor
         yield mock_accessor
@@ -307,15 +383,43 @@ def mock_graphs_accessor(sdk_file_mock, sdk_graph_mock):
 
 @pytest.fixture
 def mock_files_accessor(sdk_file_mock):
-    with patch('writer.ai.File._retrieve_files_accessor') as mock_acquire_client:
+    with patch('writer.ai.File._retrieve_files_accessor') \
+      as mock_acquire_client:
         mock_accessor = MagicMock()
         mock_file = File(sdk_file_mock)
         mock_accessor.retrieve.return_value = mock_file
         mock_accessor.list.return_value = [mock_file]
         mock_accessor.upload.return_value = mock_file
-        mock_accessor.delete.return_value = FileDeleteResponse(id="test_delete", deleted=True)
+        mock_accessor.delete.return_value =\
+            FileDeleteResponse(id="test_delete", deleted=True)
         mock_acquire_client.return_value = mock_accessor
         yield mock_accessor
+
+
+@pytest.fixture
+def mock_tools_accessor():
+    with patch('writer.ai.WriterAIManager.acquire_client') \
+      as mock_acquire_client:
+        mock_client = MagicMock()
+        mock_accessor = MagicMock()
+        mock_acquire_client.return_value = mock_client
+
+        mock_parse_pdf_content = ToolParsePdfResponse(
+            content=test_expected_pdf_content
+            )
+        mock_split = ToolContextAwareSplittingResponse(
+            chunks=test_expected_chunks
+            )
+        mock_comprehend_medical = ComprehendMedicalResponse(
+            entities=test_expected_medical_entities
+        )
+
+        mock_accessor.parse_pdf.return_value = mock_parse_pdf_content
+        mock_accessor.context_aware_splitting.return_value = mock_split
+        mock_accessor.comprehend.medical.return_value = mock_comprehend_medical
+
+        mock_client.tools = mock_accessor
+        yield mock_client
 
 
 @pytest.fixture
@@ -341,7 +445,8 @@ class FakeAppProcessForAIManager:
 
 def create_fake_app_process(token: str) -> FakeAppProcessForAIManager:
     """
-    Helper function to create and patch FakeAppProcessForAIManager with a given token.
+    Helper function to create and patch FakeAppProcessForAIManager
+    with a given token.
     """
     fake_process = FakeAppProcessForAIManager(token)
     method_to_patch = 'writer.ai.WriterAIManager.acquire_instance'
@@ -466,7 +571,11 @@ def test_conversation_serialized_messages_excludes_system():
     assert serialized_messages[0] == \
         {"role": "user", "content": "Hello", "actions": None}
     assert serialized_messages[1] == \
-        {"role": "assistant", "content": "Hi, how can I help?", "actions": None}
+        {
+            "role": "assistant",
+            "content": "Hi, how can I help?",
+            "actions": None
+        }
 
 
 @pytest.mark.set_token("fake_token")
@@ -480,7 +589,10 @@ def test_conversation_complete(emulate_app_process, mock_non_streaming_client):
 
 
 @pytest.mark.set_token("fake_token")
-def test_conversation_stream_complete(emulate_app_process, mock_streaming_client):
+def test_conversation_stream_complete(
+    emulate_app_process,
+    mock_streaming_client
+):
     # Create the Conversation object and collect the response chunks
     conversation = Conversation("Initial prompt")
 
@@ -489,7 +601,10 @@ def test_conversation_stream_complete(emulate_app_process, mock_streaming_client
         response_chunks.append(chunk)
 
     # Verify the content
-    assert " ".join(chunk["content"] for chunk in response_chunks) == "part1 part2"
+    assert " ".join(
+        chunk["content"]
+        for chunk in response_chunks
+        ) == "part1 part2"
 
 
 @pytest.mark.set_token("fake_token")
@@ -595,6 +710,7 @@ def test_conversation_with_stream_bad_tool_call(emulate_app_process, mock_stream
     assert "inform the user about the error" in tool_results[0]["content"]
     assert "inform the user about the error" in tool_results[1]["content"]
 
+
 @pytest.mark.set_token("fake_token")
 def test_conversation_with_tool_call_max_depth(emulate_app_process, mock_tool_calls_client):
     def test_function(arg1):
@@ -633,6 +749,7 @@ def test_conversation_with_stream_tool_call_max_depth(emulate_app_process, mock_
         for _ in response:
             pass
 
+
 @pytest.mark.set_token("fake_token")
 def test_complete(emulate_app_process, mock_non_streaming_client):
     response = complete("test")
@@ -648,7 +765,10 @@ def test_stream_complete(emulate_app_process, mock_streaming_client):
 
 
 @pytest.mark.set_token("fake_token")
-def test_generate_content_from_app(emulate_app_process, mock_app_content_generation):
+def test_generate_content_from_app(
+    emulate_app_process,
+    mock_app_content_generation
+):
     response = apps.generate_content("abc123", {
         "Favorite animal": "Dog",
         "Favorite color": "Purple"
@@ -751,6 +871,73 @@ def test_delete_file(mock_files_accessor):
 
 
 @pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_id(emulate_app_process, mock_tools_accessor):
+    file_content = tools.parse_pdf(file_id_or_file="test_file_id")
+    assert file_content == test_expected_pdf_content
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_payload_valid(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    fake_payload = {
+        "name": "file.pdf",
+        "type": "application/pdf",
+        "data": "some base64 encoded pdf data"
+    }
+    file_content = tools.parse_pdf(file_id_or_file=fake_payload)
+    assert file_content == test_expected_pdf_content
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_parse_pdf_file_payload_missing_name(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    fake_payload = {
+        "type": "application/pdf",
+        "data": "some base64 encoded pdf data"
+    }
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid payload passed to parse_pdf method: " +
+              r"expected keys `data`, `type` and `name`, " +
+              r"got dict_keys\(\['type', 'data'\]\)"
+    ):
+        tools.parse_pdf(file_id_or_file=fake_payload)
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_split(emulate_app_process, mock_tools_accessor):
+    result = tools.split("Some content here")
+    assert result == test_expected_chunks
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_split_empty(emulate_app_process, mock_tools_accessor):
+    with pytest.raises(ValueError, match="Content cannot be empty."):
+        tools.split("")
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_comprehend_medical(emulate_app_process, mock_tools_accessor):
+    result = tools.comprehend_medical("Medical content")
+    assert result == ComprehendMedicalResponse(
+            entities=test_expected_medical_entities
+        ).entities
+
+
+@pytest.mark.set_token("fake_token")
+def test_tools_comprehend_medical_empty(
+    emulate_app_process,
+    mock_tools_accessor
+):
+    with pytest.raises(ValueError, match="Content cannot be empty."):
+        tools.comprehend_medical("")
+
+
+@pytest.mark.set_token("fake_token")
 def test_ask(mock_non_streaming_client):
     question = "What is the capital of France?"
     graphs_or_graph_ids = ["graph_id_1"]
@@ -821,7 +1008,10 @@ def test_stream_ask_graph_class(mock_streaming_client):
 @explicit
 def test_explicit_conversation_complete(emulate_app_process):
     conversation = Conversation()
-    conversation.add("user", "Hello, how can I improve my social media engagement?")
+    conversation.add(
+        "user",
+        "Hello, how can I improve my social media engagement?"
+        )
 
     response = conversation.complete()
 
@@ -832,7 +1022,10 @@ def test_explicit_conversation_complete(emulate_app_process):
 @explicit
 def test_explicit_conversation_stream_complete(emulate_app_process):
     conversation = Conversation()
-    conversation.add("user", "Hello, how can I improve my social media engagement?")
+    conversation.add(
+        "user",
+        "Hello, how can I improve my social media engagement?"
+        )
 
     response_chunks = []
     for chunk in conversation.stream_complete():
@@ -894,6 +1087,7 @@ def test_explicit_conversation_complete_tool_calls(emulate_app_process):
             name="get_secret_word_by_password",
             parameters={
                 "password": {
+                    "required": True,
                     "type": "string",
                     "description": "A password used to retrieve the secret word"
                     }
@@ -919,10 +1113,12 @@ def test_explicit_conversation_complete_tool_calls(emulate_app_process):
             name="calculate",
             parameters={
                 "number": {
+                    "required": True,
                     "type": "integer",
-                    "description": "The base number to perform calculation against"
+                    "description": "The base number to perform calculation against",
                 },
                 "coefficient": {
+                    "required": True,
                     "type": "float",
                     "description": "The coefficient to use against the number"
                 }
@@ -988,6 +1184,7 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
             name="get_secret_word_by_password",
             parameters={
                 "password": {
+                    "required": True,
                     "type": "string",
                     "description": "A password used to retrieve the secret word"
                     }
@@ -1015,10 +1212,12 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
             name="calculate",
             parameters={
                 "number": {
+                    "required": True,
                     "type": "integer",
                     "description": "The base number to perform calculation against"
                 },
                 "coefficient": {
+                    "required": True,
                     "type": "float",
                     "description": "The coefficient to use against the number"
                 }
@@ -1035,7 +1234,8 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
 @explicit
 @pytest.mark.asyncio
 async def test_explicit_complete(emulate_app_process):
-    initial_text = "Write a short paragraph about the benefits of regular exercise."
+    initial_text = "\
+        Write a short paragraph about the benefits of regular exercise."
     response = complete(initial_text)
 
     assert isinstance(response, str)
@@ -1046,7 +1246,8 @@ async def test_explicit_complete(emulate_app_process):
 @explicit
 @pytest.mark.asyncio
 async def test_explicit_stream_complete(emulate_app_process):
-    initial_text = "Write a short paragraph about the benefits of regular exercise."
+    initial_text = \
+        "Write a short paragraph about the benefits of regular exercise."
 
     response_chunks = list(stream_complete(initial_text))
 
@@ -1058,7 +1259,10 @@ async def test_explicit_stream_complete(emulate_app_process):
 
 @explicit
 def test_explicit_create_graph(emulate_app_process, created_graphs):
-    graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(graph)
     assert graph.id is not None
     assert graph.name == "integration_test_graph"
@@ -1066,7 +1270,10 @@ def test_explicit_create_graph(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_retrieve_graph(emulate_app_process, created_graphs):
-    created_graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    created_graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(created_graph)
     graph = retrieve_graph(graph_id=created_graph.id)
 
@@ -1077,7 +1284,10 @@ def test_explicit_retrieve_graph(emulate_app_process, created_graphs):
 @explicit
 def test_explicit_list_graphs(emulate_app_process, created_graphs):
     # Create a graph to ensure there's at least one graph in the list
-    graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(graph)
 
     graphs = list_graphs()
@@ -1088,7 +1298,10 @@ def test_explicit_list_graphs(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_delete_graph(emulate_app_process, created_graphs):
-    created_graph = create_graph(name="integration_test_graph", description="Integration test graph")
+    created_graph = create_graph(
+        name="integration_test_graph",
+        description="Integration test graph"
+        )
     created_graphs.append(created_graph)
     response = delete_graph(graph_id_or_graph=created_graph.id)
 
@@ -1100,8 +1313,11 @@ def test_explicit_delete_graph(emulate_app_process, created_graphs):
 
 @explicit
 def test_explicit_upload_file(emulate_app_process, created_files):
-    data = b"file_content"
-    file = upload_file(data=data, type="text/plain", name="integration_uploaded_file")
+    file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(file)
 
     assert file.id is not None
@@ -1110,7 +1326,11 @@ def test_explicit_upload_file(emulate_app_process, created_files):
 
 @explicit
 def test_explicit_retrieve_file(emulate_app_process, created_files):
-    uploaded_file = upload_file(data=b"file_content", type="text/plain", name="integration_uploaded_file")
+    uploaded_file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(uploaded_file)
     file = retrieve_file(file_id=uploaded_file.id)
 
@@ -1121,8 +1341,11 @@ def test_explicit_retrieve_file(emulate_app_process, created_files):
 @explicit
 def test_explicit_list_files(emulate_app_process, created_files):
     # Upload a file to ensure there's at least one file in the list
-    data = b"file_content"
-    file = upload_file(data=data, type="text/plain", name="integration_uploaded_file")
+    file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(file)
 
     files = list_files()
@@ -1133,7 +1356,11 @@ def test_explicit_list_files(emulate_app_process, created_files):
 
 @explicit
 def test_explicit_delete_file(emulate_app_process, created_files):
-    uploaded_file = upload_file(data=b"file_content", type="text/plain", name="integration_uploaded_file")
+    uploaded_file = upload_file(
+        data=b"file_content",
+        type="text/plain",
+        name="integration_uploaded_file"
+        )
     created_files.append(uploaded_file)
     response = delete_file(file_id_or_file=uploaded_file.id)
 
@@ -1182,7 +1409,7 @@ def test_explicit_ask_graph_class(
         )
 
     assert isinstance(answer, str)
-    assert answer == "PARIS"
+    assert answer.strip() == "PARIS"
 
 
 @explicit
@@ -1227,7 +1454,7 @@ def test_explicit_stream_ask_graph_class(
         answer += chunk
 
     assert isinstance(answer, str)
-    assert answer == " PARIS"
+    assert answer.strip() == "PARIS"
 
 
 @explicit
@@ -1265,12 +1492,13 @@ def test_explicit_ask(
             break
 
     answer = ask(
-        question="What is the source word? Name only the word and nothing else",
+        question="What is the source word?" +
+                 " Name only the word and nothing else",
         graphs_or_graph_ids=[graph]
         )
 
     assert isinstance(answer, str)
-    assert answer == "PARIS"
+    assert answer.strip() == "PARIS"
 
 
 @explicit
@@ -1309,14 +1537,196 @@ def test_explicit_stream_ask(
 
     answer = ""
     stream = stream_ask(
-        question="What is the source word? Name only the word and nothing else",
+        question="What is the source word?" +
+                 " Name only the word and nothing else",
         graphs_or_graph_ids=[graph]
         )
     for chunk in stream:
         answer += chunk
 
     assert isinstance(answer, str)
-    assert answer == " PARIS"
+    assert answer.strip() == "PARIS"
 
-# For doing a explicit test of apps.generate_content() we need a no-code app that
-# nobody will touch. That is a challenge.
+
+@explicit
+def test_explicit_tools_parse_pdf(emulate_app_process, created_files):
+    pdf_file = upload_file(
+        data=test_pdf_data,
+        type="application/pdf",
+        name="uploaded_test.pdf"
+        )
+    created_files.append(pdf_file)
+
+    pdf_result = tools.parse_pdf(file_id_or_file=pdf_file.id)
+    assert pdf_result.strip() == "Hello PDF!"
+
+
+@explicit
+def test_explicit_tools_split_llm(emulate_app_process):
+    split_result = tools.split(
+        test_split_text
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_split_fast(emulate_app_process):
+    split_result = tools.split(
+        test_fast_split_text,
+        strategy="fast_split"
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_split_hybrid(emulate_app_process):
+    # Test using the hybrid_split strategy
+    split_result = tools.split(
+        test_split_text,
+        strategy="hybrid_split"
+    )
+    assert isinstance(split_result, list)
+    assert len(split_result) > 1
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_entities(emulate_app_process):
+    medical_result = tools.comprehend_medical(
+        "The patient shows symptoms of mild hypertension."
+        )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert hasattr(first_entity, "category")
+    assert first_entity.category == "MEDICAL_CONDITION"
+    assert hasattr(first_entity, "text")
+    assert first_entity.text.lower() == "hypertension"
+    assert hasattr(first_entity, "score")
+    assert first_entity.score > 0.5  # Ensure it's confident enough
+
+    # The first entity's attributes should contain "mild"
+    assert hasattr(first_entity, "attributes")
+    assert len(first_entity.attributes) > 0
+    first_attribute = first_entity.attributes[0]
+    assert hasattr(first_attribute, "text")
+    assert first_attribute.text.lower() == "mild"
+
+    assert hasattr(first_entity, "traits")
+    assert len(first_entity.traits) > 0
+    first_trait = first_entity.traits[0]
+    assert hasattr(first_trait, "name")
+    assert first_trait.name == "DIAGNOSIS"
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_rxnorm(emulate_app_process):
+    # Test using RxNorm response type
+    medical_result = tools.comprehend_medical(
+        "The patient was prescribed Lisinopril for blood pressure management.",
+        response_type="RxNorm"
+    )
+
+    # Basic structure checks
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert first_entity.category == "MEDICATION"
+    assert first_entity.text.lower() == "lisinopril"
+
+    # Check that concepts are present and have expected structure
+    assert hasattr(first_entity, "concepts")
+    assert len(first_entity.concepts) > 0
+    assert all(
+        hasattr(c, "code")
+        and
+        hasattr(c, "description")
+        and hasattr(c, "score")
+        for c in first_entity.concepts
+        )
+
+    # Verify that at least one concept matches the base drug name
+    assert any(
+        "lisinopril" in c.description.lower()
+        for c in first_entity.concepts
+        )
+
+    # Verify scores are reasonable
+    assert first_entity.score > 0.5
+    for concept in first_entity.concepts:
+        assert concept.score > 0.5
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_icd10(emulate_app_process):
+    # Test using ICD-10-CM response type
+    medical_result = tools.comprehend_medical(
+        "The patient has been diagnosed with Type 2 diabetes mellitus.",
+        response_type="ICD-10-CM"
+    )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) > 0
+
+    first_entity = medical_result[0]
+    assert first_entity.category == "MEDICAL_CONDITION"
+    assert first_entity.text.lower() == "diabetes mellitus"
+    assert any(
+        "diabetes" in c.description.lower()
+        for c in first_entity.concepts
+        )
+
+    # Ensure there's a DIAGNOSIS trait
+    assert hasattr(first_entity, "traits")
+    assert len(first_entity.traits) > 0
+    assert any(trait.name == "DIAGNOSIS" for trait in first_entity.traits)
+
+    # Check ICD-10-CM concept codes
+    assert any(c.code.startswith("E11") for c in first_entity.concepts)
+
+
+@explicit
+def test_explicit_tools_comprehend_medical_snomed(emulate_app_process):
+    # Test using SNOMED CT response type
+    medical_result = tools.comprehend_medical(
+        "The patient presents with symptoms consistent with appendicitis.",
+        response_type="SNOMED CT"
+    )
+    assert isinstance(medical_result, list)
+    assert len(medical_result) >= 2
+
+    symptoms_entity = medical_result[0]
+    appendicitis_entity = medical_result[1]
+
+    # Check categories and text
+    assert symptoms_entity.category == "MEDICAL_CONDITION"
+    assert "symptoms" in symptoms_entity.text.lower()
+
+    assert appendicitis_entity.category == "MEDICAL_CONDITION"
+    assert "appendicitis" in appendicitis_entity.text.lower()
+
+    # Check traits
+    assert len(symptoms_entity.traits) > 0
+    assert any(trait.name == "SYMPTOM" for trait in symptoms_entity.traits)
+
+    assert len(appendicitis_entity.traits) > 0
+    assert any(
+        trait.name == "DIAGNOSIS"
+        for trait in appendicitis_entity.traits
+        )
+
+    # Check that concepts have codes
+    assert len(symptoms_entity.concepts) > 0
+    assert all(c.code and c.description for c in symptoms_entity.concepts)
+
+    assert len(appendicitis_entity.concepts) > 0
+    assert any(
+        "appendicitis" in c.description.lower()
+        for c in appendicitis_entity.concepts
+        )
+
+
+# For doing a explicit test of apps.generate_content() we need a no-code app
+# that nobody will touch. That is a challenge.

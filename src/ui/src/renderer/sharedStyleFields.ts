@@ -1,4 +1,8 @@
 import {
+	validatorCssClassname,
+	validatorCssSize,
+} from "@/constants/validators";
+import {
 	FieldCategory,
 	FieldType,
 	WriterComponentDefinitionField,
@@ -80,6 +84,7 @@ export const cssClasses: WriterComponentDefinitionField = {
 	type: FieldType.Text,
 	category: FieldCategory.Style,
 	desc: "CSS classes, separated by spaces. You can define classes in custom stylesheets.",
+	validator: validatorCssClassname,
 };
 
 export const contentWidth: WriterComponentDefinitionField = {
@@ -88,6 +93,7 @@ export const contentWidth: WriterComponentDefinitionField = {
 	default: "100%",
 	category: FieldCategory.Style,
 	desc: "Configure content width using CSS units, e.g. 100px, 50%, 10vw, etc.",
+	validator: validatorCssSize,
 };
 
 export const contentHAlign: WriterComponentDefinitionField = {

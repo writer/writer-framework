@@ -20,13 +20,20 @@ class WriterAddToKG(WorkflowBlock):
                     "graphId": {
                         "name": "Graph id",
                         "type": "Text",
-                        "desc": "The id for an existing knowledge graph. It has a UUID format."
+                        "desc": "The id for an existing knowledge graph. It has a UUID format.",
+                        "validator": {
+                            "type": "string",
+                            "format": "uuid",
+                        }
                     },
                     "files": {
                         "name": "Files",
                         "type": "Object",
                         "default": "[]",
-                        "desc": "A list of files to be uploaded and added to the knowledge graph. You can use files uploaded via the File Input component or specify dictionaries with data, type and name."
+                        "desc": "A list of files to be uploaded and added to the knowledge graph. You can use files uploaded via the File Input component or specify dictionaries with data, type and name.",
+                        "validator": {
+                            "type": "array",
+                        }
                     },
                 },
                 "outs": {

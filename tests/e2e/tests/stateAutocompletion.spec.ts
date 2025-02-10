@@ -137,8 +137,8 @@ test.describe("state autocompletion", () => {
 	}
 
 	testFieldType("BuilderFieldsColor", "primaryTextColor", 'div.CoreText.component');
-	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
-	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
-	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
-	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderSidebarComponentTreeBranch [data-automation-key="root"]');
+	testFieldType("BuilderFieldsShadow", "buttonShadow", '.BuilderSidebarComponentTree [data-automation-key="root"]');
+	testFieldType("BuilderFieldsAlign", "contentHAlign", '.BuilderSidebarComponentTree [data-automation-key="root"]');
+	testFieldType("BuilderFieldsPadding", "contentPadding", '.BuilderSidebarComponentTree [data-automation-key="root"]');
+	testFieldType("BuilderFieldsWidth", "contentWidth", '.BuilderSidebarComponentTree [data-automation-key="root"]');
 });

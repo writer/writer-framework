@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderSidebarPanel">
-		<div class="inputContainer">
+		<div class="BuilderSidebarPanel__inputContainer">
 			<WdsTextInput
 				v-model="model"
 				class="searchInput"
@@ -9,7 +9,10 @@
 				:placeholder="placeholder"
 			></WdsTextInput>
 		</div>
-		<div class="main"><slot></slot></div>
+		<div class="BuilderSidebarPanel__main"><slot></slot></div>
+		<div class="BuilderSidebarPanel__footer">
+			<slot name="footer"></slot>
+		</div>
 	</div>
 </template>
 
@@ -25,17 +28,21 @@ defineProps<{
 
 <style scoped>
 .BuilderSidebarPanel {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-rows: auto 1fr;
+	grid-template-columns: 100%;
 	height: 100%;
+	width: 100%;
 	position: relative;
-	overflow-x: hidden;
+	overflow-x: auto;
 	overflow-y: scroll;
 }
 
-.inputContainer {
+.BuilderSidebarPanel__inputContainer {
 	position: sticky;
 	top: 0;
+	left: 0;
+	right: 0;
 	padding: 16px 16px 0 16px;
 	background: var(--builderBackgroundColor);
 	z-index: 2;
@@ -43,14 +50,19 @@ defineProps<{
 
 .searchInput {
 	background: var(--builderSubtleSeparatorColor);
+	width: 100%;
 }
 
-.main {
+.BuilderSidebarPanel__main {
 	display: flex;
-	flex: 1 0 auto;
 	padding: 16px;
 	gap: 16px;
 	flex-direction: column;
+}
+.BuilderSidebarPanel__footer {
+	position: sticky;
+	bottom: 0px;
+	left: 0px;
 }
 
 .categories {

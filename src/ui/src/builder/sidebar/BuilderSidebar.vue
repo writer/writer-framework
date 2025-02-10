@@ -13,16 +13,12 @@ import BuilderSidebarComponentTree from "./BuilderSidebarComponentTree.vue";
 
 <style scoped>
 .BuilderSidebar {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-rows: 1fr 1fr;
 	height: 100%;
 }
 
 .BuilderSidebar > *:not(:first-child) {
 	border-top: 1px solid var(--builderSeparatorColor);
-}
-
-.BuilderSidebar > * {
-	flex: 0 0 50%;
 }
 </style>
