@@ -24,7 +24,7 @@ class WorkflowBlock:
         self.execution_environment = execution_environment
         self.result = None
         self.return_value = None
-        self.evaluator = writer.evaluator.Evaluator(runner.session.globals, runner.session.session_component_tree, runner.session.mail)
+        self.evaluator = writer.evaluator.Evaluator(runner.session.state, runner.session.session_component_tree, runner.session.mail)
 
     def _handle_missing_field(self, field_key):
         component_tree = self.runner.session.session_component_tree
@@ -36,12 +36,6 @@ class WorkflowBlock:
             raise WriterConfigurationError(f"The field `{field_key}` is required. It was left empty.")
 
     def _get_field(self, field_key: str, default_value=None, as_object=False, required=False):
-        if default_value is None:
-            if as_object:
-                default_value = {}
-            else:
-                default_value = ""
-
         locals = self.execution_environment
         value = self.evaluator.evaluate_field(self.component_id, field_key, default_value, locals, as_object)
 
@@ -50,7 +44,7 @@ class WorkflowBlock:
             
         return value
 
-    def _set_variable(self, expr: str, value: Any):
+    def _set_state(self, expr: str, value: Any):
         self.evaluator.set_state(expr, value, self.execution_environment)
 
     def run(self):

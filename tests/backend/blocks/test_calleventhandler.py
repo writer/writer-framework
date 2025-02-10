@@ -3,14 +3,12 @@ import writer.core
 from writer.blocks.calleventhandler import CallEventHandler
 
 
-def valid_handler():
-    global animal
-    animal = "duck"
+def valid_handler(state):
+    state.animal = "duck"
     return 1
 
-def invalid_handler():
-    global animal
-    animal = "cat"
+def invalid_handler(state):
+    state.animal = "cat"
     return 1/0
 
 class MockHandlerRegistry():
@@ -36,7 +34,7 @@ def test_call_event_handler(session, runner):
     block.run()
     assert block.outcome == "success"
     assert block.result == 1
-    assert session.session_state["animal"] == "duck"
+    assert session.state.animal == "duck"
 
 def test_invalid_json(session, runner):
     writer.core.get_app_process = lambda: MockAppProcess()
@@ -47,4 +45,4 @@ def test_invalid_json(session, runner):
     with pytest.raises(BaseException):
         block.run()
     assert block.outcome == "error"
-    assert session.session_state["animal"] == "cat"
+    assert session.state.animal == "cat"

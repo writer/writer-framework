@@ -45,7 +45,7 @@ class AddToStateList(WorkflowBlock):
             element_expr = self._get_field("element")
             value = self._get_field("value")
 
-            element = self.evaluator.evaluate_expression(element_expr, self.instance_path, self.execution_environment)
+            element = self.evaluator.evaluate_expression(element_expr, self.execution_environment)
 
             if not element:
                 element = []

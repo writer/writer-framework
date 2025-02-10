@@ -4,7 +4,7 @@ from writer.blocks.writerinitchat import WriterInitChat
 
 
 def test_init_chat_already_initialized(session, runner):
-    session.session_state["convo"] = Conversation()
+    session.state.convo = Conversation()
     session.add_fake_component({
         "conversationStateElement": "convo",
     })
@@ -14,7 +14,7 @@ def test_init_chat_already_initialized(session, runner):
 
 
 def test_init_chat_already_initialized_with_rubbish(session, runner):
-    session.session_state["convo"] = "-hello -hello there. This is a conversation but not the right kind."
+    session.state.convo = "-hello -hello there. This is a conversation but not the right kind."
     session.add_fake_component({
         "conversationStateElement": "convo",
     })
@@ -29,5 +29,5 @@ def test_init_chat_from_scratch(session, runner):
     })
     block = WriterInitChat("fake_id", runner, {})
     block.run()
-    assert isinstance(session.session_state["convo"], Conversation)
+    assert isinstance(session.state.convo, Conversation)
     assert block.outcome == "success"

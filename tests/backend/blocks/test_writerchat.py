@@ -63,7 +63,7 @@ def conversation():
 
 def test_chat_complete(session, runner, conversation):
     conversation.add("user", "Hi, where's the bat?")
-    session.session_state["convo"] = conversation
+    session.state.convo = conversation
     session.add_fake_component({
         "conversationStateElement": "convo",
         "useStreaming": "no"
@@ -75,7 +75,7 @@ def test_chat_complete(session, runner, conversation):
 
 def test_chat_stream_complete(session, runner, conversation):
     conversation.add("user", "Hi, where's the bat?")
-    session.session_state["convo"] = conversation
+    session.state.convo = conversation
     session.add_fake_component({
         "conversationStateElement": "convo"
         # streaming should be default
@@ -87,7 +87,7 @@ def test_chat_stream_complete(session, runner, conversation):
 
 def test_chat_stream_complete_with_tools(session, runner, conversation):
     conversation.add("user", "Hi, where's the bat?")
-    session.session_state["convo"] = conversation
+    session.state.convo = conversation
     session.add_fake_component({
         "conversationStateElement": "convo",
         "tools": json.dumps({
@@ -115,7 +115,7 @@ def test_chat_stream_complete_with_tools(session, runner, conversation):
 
 def test_chat_stream_complete_no_conversation(session, runner, conversation):
     conversation.add("user", "Hi, where's the bat?")
-    session.session_state["convo"] = "not_a_conversation"
+    session.state.convo = "not_a_conversation"
     session.add_fake_component({
         "conversationStateElement": "convo"
         # streaming should be default

@@ -74,8 +74,8 @@ class WriterChat(WorkflowBlock):
             import writer.ai
 
             conversation_state_element = self._get_field("conversationStateElement", required=True)
-            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
-            tools_raw = self._get_field("tools", True)
+            use_streaming = self._get_field("useStreaming", "yes", False) == "yes"
+            tools_raw = self._get_field("tools", {}, True)
             tools = []
 
             for tool_name, tool_raw in tools_raw.items():
@@ -98,7 +98,7 @@ class WriterChat(WorkflowBlock):
                     continue
                 tools.append(tool)
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.execution_environment)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
                 raise ValueError("The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'.")

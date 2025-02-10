@@ -1,15 +1,13 @@
 import json
-import logging
 import os
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import writer.core
 import writer.core_ui
 from writer.serializer import serialize
 from writer.ss_types import (
     InstancePath,
-    WriterConfigurationError,
 )
 
 if TYPE_CHECKING:
@@ -34,19 +32,20 @@ class Evaluator:
     @classmethod
     def _transform_expression_to_state_reference(cls, expr: str) -> str:
         pattern = r"^(\w+)([\.\[]?.*)"
-        transformed_expr = re.sub(pattern, r'state["\1"]\2', expr)
+        transformed_expr = re.sub(pattern, r'state.\1\2', expr)
         return transformed_expr
 
     def set_state(self, expr: str, value: Any, locals: Dict) -> None:        
         # expr is safe and always defined by an app editor.
-        
+
         try:
             transformed_expr = Evaluator._transform_expression_to_state_reference(expr)
-            exec(f"{transformed_expr} = __wf_temp_assignment_value", locals | {"state": self.state, "__wf_temp_assignment_value": value})
+            exec(f"{transformed_expr} = __wf_temp_assignment_value", None, locals | {"state": self.state, "__wf_temp_assignment_value": value})
         except BaseException as e:
             import traceback
             msg = f"Couldn't assign value to expression `{expr}`. Please make sure that it's a valid left-hand side expression."
             self.mail.add_log_entry("error", "Assignment error", msg, traceback.format_exc())
+            raise ValueError(msg)
 
     @classmethod
     def has_template(cls, text: str) -> bool:
@@ -72,7 +71,7 @@ class Evaluator:
             component_dict = component.model_dump(exclude_unset=True)
 
             for field_key, field_value in component_dict.get("content", {}).items():
-                if not Evaluator.has_template(field_value):
+                if not Evaluator.has_template(field_value) and component_dict["type"] != "repeater":
                     continue
                 if not "content" in found:
                     found["content"] = {}
@@ -144,6 +143,7 @@ class Evaluator:
             component_scaffolding = self.scaffolding.get(component_id)
             if component_scaffolding is not None:
                 evaluated_tree[Evaluator.flatten_instance_path(instance_path)] = evaluate_scaffolding(component_scaffolding, context)
+                evaluated_tree[Evaluator.flatten_instance_path(instance_path)]["_context"] = context
             children = self.component_tree.get_direct_descendents(component_id)
             for child in children:
                 child_instance_path = instance_path + [{"componentId": child.id, "instanceNumber": 0}]
@@ -176,6 +176,7 @@ class Evaluator:
             key_variable = self.evaluate_field(component_id, "keyVariable", "itemId", context, False)
             value_variable = self.evaluate_field(component_id, "valueVariable", "item", context, False)
             children = self.component_tree.get_direct_descendents(component_id)
+
             for child in children:
                 for instance_number, repeater_item in enumerate(repeater_items):
                     child_instance_path = instance_path + [{"componentId": child.id, "instanceNumber": instance_number}]
@@ -249,5 +250,5 @@ class Evaluator:
             if not tree_entry:
                 continue
             context = tree_entry.get("_context", context)
-        
+
         return context

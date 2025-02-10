@@ -45,7 +45,7 @@ class RunWorkflow(WorkflowBlock):
     def run(self):
         try:
             workflow_key = self._get_field("workflowKey")
-            payload = self._get_field("payload")
+            payload = self._get_field("payload", {}, as_object=True)
             expanded_execution_environment = self.execution_environment | { "payload": payload }
             return_value = self.runner.run_workflow_by_key(workflow_key, expanded_execution_environment)
             self.result = return_value

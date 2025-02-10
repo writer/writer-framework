@@ -45,3 +45,8 @@ def ci_test():
     alfred.run("pytest")
 
 
+@alfred.command("ci.pytest.focused", help="run pytest on a specific file")
+def ci_test2():
+    os.chdir("tests")
+    alfred.run("pytest backend/test_middleware.py")
+

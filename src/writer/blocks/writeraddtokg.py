@@ -58,7 +58,7 @@ class WriterAddToKG(WorkflowBlock):
             import writer.ai
 
             graph_id = self._get_field("graphId", required=True)
-            raw_files = self._get_field("files", as_json=True)
+            raw_files = self._get_field("files", as_object=True)
             prepared_files = []
 
             if not isinstance(raw_files, list):

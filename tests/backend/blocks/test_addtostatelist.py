@@ -11,10 +11,10 @@ def test_empty_list(session, runner):
     block = AddToStateList("fake_id", runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["my_list"] == ["my_value"]
+    assert session.state.my_list == ["my_value"]
 
 def test_non_empty_list(session, runner):
-    session.session_state["my_list"] = ["a"]
+    session.state.my_list = ["a"]
     session.add_fake_component({
         "element": "my_list",
         "value": "b"
@@ -22,11 +22,11 @@ def test_non_empty_list(session, runner):
     block = AddToStateList("fake_id", runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["my_list"] == ["a", "b"]
+    assert session.state.my_list == ["a", "b"]
 
 
 def test_non_list_element(session, runner):
-    session.session_state["my_element"] = "dog"
+    session.state.my_element = "dog"
     session.add_fake_component({
         "element": "my_element",
         "value": "cat"

@@ -831,29 +831,6 @@ class SessionManager:
 
     def __init__(self) -> None:
         self.sessions: Dict[str, WriterSession] = {}
-        self.verifiers: List[Callable] = []
-
-    def add_verifier(self, verifier: Callable) -> None:
-        self.verifiers.append(verifier)
-
-    def _verify_before_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None) -> bool:
-        for verifier in self.verifiers:
-            args = inspect.getfullargspec(verifier).args
-            arg_values = []
-            for arg in args:
-                if arg == "cookies":
-                    arg_values.append(cookies)
-                elif arg == "headers":
-                    arg_values.append(headers)
-            verifier_result = verifier(*arg_values)
-            if verifier_result is False:
-                return False
-            elif verifier_result is True:
-                pass
-            else:
-                raise ValueError(
-                    "Invalid verifier return value. Must be True or False.")
-        return True
 
     def _check_proposed_session_id(self, proposed_session_id: Optional[str]) -> bool:
         if proposed_session_id is None:
@@ -864,8 +841,6 @@ class SessionManager:
 
     def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[WriterSession]:
         if not self._check_proposed_session_id(proposed_session_id):
-            return None
-        if not self._verify_before_new_session(cookies, headers):
             return None
         new_id = None
         if proposed_session_id is None:
@@ -1130,17 +1105,6 @@ class EventHandlerExecutor:
             executor = middlewares_executors[0]
             with executor.execute(writer_args):
                 return EventHandlerExecutor.invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
-
-def session_verifier(func: Callable) -> Callable:
-    """
-    Decorator for marking session verifiers.
-    """
-
-    def wrapped(*args, **kwargs):
-        pass
-
-    session_manager.add_verifier(func)
-    return wrapped
 
 
 def get_session() -> Optional[WriterSession]:

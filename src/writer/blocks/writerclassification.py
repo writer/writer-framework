@@ -52,7 +52,7 @@ class WriterClassification(WorkflowBlock):
 
             text = self._get_field("text", required=True)
             additional_context = self._get_field("additionalContext")
-            categories = self._get_field("categories", as_json=True, required=True)
+            categories = self._get_field("categories", {}, as_object=True, required=True)
 
             config = {}
 

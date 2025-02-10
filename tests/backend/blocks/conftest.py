@@ -1,7 +1,7 @@
 from typing import Dict
 
 import pytest
-from writer.core import SessionMail, WriterSession
+from writer.core import SessionMail, WriterSession, WriterState
 from writer.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
 from writer.workflows import WorkflowRunner
 
@@ -14,6 +14,7 @@ class BlockTesterMockSession(WriterSession):
         self.session_component_tree = component_tree
         self.mail = SessionMail()
         self.globals = {}
+        self.state = WriterState()
 
     def add_fake_component(self, content={}, id="fake_id", type="fake_type"):
         self.bmc_branch.attach(Component(id=id, type=type, content=content))

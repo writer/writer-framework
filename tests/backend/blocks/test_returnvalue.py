@@ -3,11 +3,11 @@ from writer.blocks.returnvalue import ReturnValue
 
 
 def test_basic_return(session, runner):
-    session.globals = {
+    session.state._state_data = {
         "animal": "marmot",
     }
     session.add_fake_component({
-        "value": "@{animal}"
+        "value": "{{animal}}"
     })
     block = ReturnValue("fake_id", runner, {})
     block.run()
@@ -16,11 +16,11 @@ def test_basic_return(session, runner):
     assert block.return_value == "marmot"
 
 def test_empty_return(session, runner):
-    session.globals = {
+    session.state._state_data = {
         "animal": None,
     }
     session.add_fake_component({
-        "value": "@{animal}"
+        "value": "{{animal}}"
     })
     block = ReturnValue("fake_id", runner, {})
     

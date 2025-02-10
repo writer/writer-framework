@@ -337,37 +337,6 @@ class TestSessionManager:
         self.sm.prune_sessions()
         assert self.sm.get_session(s.session_id) is None
 
-    def test_session_verifiers(self) -> None:
-        def session_verifier_1(cookies: Dict[str, str]):
-            if cookies != {"testCookie": "yes"}:
-                return False
-            return True
-
-        def session_verifier_2(headers: Dict[str, str]) -> None:
-            if headers != {"origin": "example.com"}:
-                return False
-            return True
-
-        self.sm.add_verifier(session_verifier_1)
-        self.sm.add_verifier(session_verifier_2)
-        s_valid = self.sm.get_new_session(
-            {"testCookie": "yes"},
-            {"origin": "example.com"},
-            None
-        )
-        assert s_valid is not None
-        s_invalid = self.sm.get_new_session(
-            {"testCookie": "no"},
-            {"origin": "example.com"},
-            None
-        )
-        s_invalid = self.sm.get_new_session(
-            {"testCookie": "yes"},
-            {"origin": "example"},
-            None
-        )
-        assert s_invalid is None
-
 
 class TestEditableDataFrame:
 

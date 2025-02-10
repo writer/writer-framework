@@ -49,7 +49,7 @@ class CallEventHandler(WorkflowBlock):
     def run(self):
         try:
             handler_name = self._get_field("name")
-            additional_args = self._get_field("additionalArgs", as_object=True)
+            additional_args = self._get_field("additionalArgs", {}, True)
 
             current_app_process = writer.core.get_app_process()
             handler_registry = current_app_process.handler_registry
@@ -57,6 +57,7 @@ class CallEventHandler(WorkflowBlock):
 
             args = {
                 "session": writer.core._event_handler_session_info(),
+                "state": self.runner.session.state
             } | additional_args
 
             handler_args = inspect.getfullargspec(callable_handler).args

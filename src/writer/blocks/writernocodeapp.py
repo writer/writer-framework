@@ -46,7 +46,7 @@ class WriterNoCodeApp(WorkflowBlock):
             import writer.ai
 
             application_id = self._get_field("appId", required=True)
-            app_inputs = self._get_field("appInputs", as_json=True)
+            app_inputs = self._get_field("appInputs", {}, as_object=True)
 
             # config = {}
             # if model_id:

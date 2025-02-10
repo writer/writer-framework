@@ -46,9 +46,9 @@ class WriterAddChatMessage(WorkflowBlock):
             import writer.ai
 
             conversation_state_element = self._get_field("conversationStateElement", required=True)
-            message = self._get_field("message", as_json=True, required=True)
+            message = self._get_field("message", as_object=True, required=True)
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.execution_environment)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
                 raise WriterConfigurationError("The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'.")

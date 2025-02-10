@@ -14,10 +14,10 @@ def test_workflow_that_does_not_exist(session, runner):
     assert block.outcome == "error"
 
 def test_duplicator(session, runner):
-    session.session_state["item_dict"] = json.loads('{"item": 23}')
+    session.state.item_dict = json.loads('{"item": 23}')
     session.add_fake_component({
         "workflowKey": "duplicator",
-        "payload": "@{item_dict}"
+        "payload": "{{item_dict}}"
     })
     block = RunWorkflow("fake_id", runner, {})
     block.run()

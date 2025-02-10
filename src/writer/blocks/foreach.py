@@ -56,7 +56,7 @@ class ForEach(WorkflowBlock):
     def run(self):
         try:
             workflow_key = self._get_field("workflowKey")
-            items = self._get_field("items", as_json=True)
+            items = self._get_field("items", as_object=True)
             base_execution_environment = self.execution_environment
 
             std_items = items

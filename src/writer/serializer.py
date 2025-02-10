@@ -116,9 +116,9 @@ def _serialize_pyarrow_table(table):
 
     sink = pa.BufferOutputStream()
     batches = table.to_batches()
-    with pa.ipc.new_file(sink, table.schema) as writer:
+    with pa.ipc.new_file(sink, table.schema) as batch_writer:
         for batch in batches:
-            writer.write_batch(batch)
+            batch_writer.write_batch(batch)
     buf = sink.getvalue()
     bw = writer.core.BytesWrapper(buf, "application/vnd.apache.arrow.file")
     return serialize(bw)

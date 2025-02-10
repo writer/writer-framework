@@ -1,3 +1,7 @@
 {"id": "lfltcky7l1fsm6j2", "type": "workflows_workflow", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 0}
-{"id": "g04t0b9am2dt65wo", "type": "workflows_logmessage", "content": {"type": "info", "message": "Test"}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 0, "x": 366, "y": 137}
-{"id": "2kzpjg4bs09pnaz0", "type": "workflows_writercompletion", "content": {}, "handlers": {}, "parentId": "lfltcky7l1fsm6j2", "position": 1, "x": 238, "y": 87}
+{"id": "g04t0b9am2dt65wo", "type": "workflows_logmessage", "content": {"type": "info", "message": "Test"}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 0, "x": 941, "y": 106}
+{"id": "2kzpjg4bs09pnaz0", "type": "workflows_writercompletion", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 1, "x": 128, "y": 603}
+{"id": "uskicwsieheur0ju", "type": "workflows_writerchat", "content": {"alias": ""}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "dx2284h61emn1ce8", "outId": "success"}], "parentId": "lfltcky7l1fsm6j2", "position": 2, "x": 917, "y": 374}
+{"id": "p3bsaxrt3qcsr6um", "type": "workflows_httprequest", "content": {"alias": "Get support message"}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "uskicwsieheur0ju", "outId": "success"}], "parentId": "lfltcky7l1fsm6j2", "position": 3, "x": 517, "y": 475}
+{"id": "dx2284h61emn1ce8", "type": "workflows_httprequest", "content": {"alias": "Send email"}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 4, "x": 1303, "y": 463}
+{"id": "3im0fzdbkrb25i2z", "type": "workflows_writercompletion", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "lfltcky7l1fsm6j2", "position": 5, "x": 363, "y": 202}

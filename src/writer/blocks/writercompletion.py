@@ -52,8 +52,8 @@ class WriterCompletion(WorkflowBlock):
             import writer.ai
 
             prompt = self._get_field("prompt")
-            temperature = float(self._get_field("temperature", False, "0.7"))
-            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
+            temperature = float(self._get_field("temperature", "0.7"))
+            model_id = self._get_field("modelId", DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
             result = writer.ai.complete(prompt, config).strip()
             self.result = result

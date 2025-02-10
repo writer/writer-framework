@@ -13,7 +13,6 @@ from writer.core import (
     base_component_tree,
     get_app_process,
     session_manager,
-    session_verifier,
     get_session
 )
 from writer.core_df import EditableDataFrame
@@ -41,7 +40,6 @@ VERSION = importlib.metadata.version("writer")
 base_component_tree
 session_manager
 Config
-session_verifier
 
 
 def pack_file(file: Union[Readable, str], mime_type: Optional[str] = None):
@@ -129,8 +127,10 @@ def middleware():
     A "middleware" is a function that works with every event handler before it is processed and also before returning it.
     """
     def inner(func):
-        _app_process = get_app_process()
-        _app_process.middleware_registry.register(func)
+        session = get_session()
+        if not session:
+            raise RuntimeError("Cannot register middleware. No session found.")
+        session.middleware_registry.register(func)
 
     return inner
 

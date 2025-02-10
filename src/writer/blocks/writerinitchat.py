@@ -54,10 +54,10 @@ class WriterInitChat(WorkflowBlock):
 
             conversation_state_element = self._get_field("conversationStateElement")
             temperature = float(self._get_field("temperature", False, "0.7"))
-            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
+            model_id = self._get_field("modelId", DEFAULT_MODEL)
             config = { "temperature": temperature, "model": model_id}
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.execution_environment)
 
             if conversation is not None and not isinstance(conversation, writer.ai.Conversation):
                 raise WriterConfigurationError(f'The state element specified does not contain a Conversation. A value of type "{type(conversation)}" was found.')

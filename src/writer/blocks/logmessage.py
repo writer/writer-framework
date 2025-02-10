@@ -47,10 +47,10 @@ class LogMessage(WorkflowBlock):
 
     def run(self):
         try:
-            type = self._get_field("type", False, "info")
+            type = self._get_field("type", "info", False)
             message = self._get_field("message", required=True)
 
-            self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
+            self.runner.session.mail.add_log_entry(type, "Workflows message", message)
             self.result = None
             self.outcome = "success"
         except BaseException as e:

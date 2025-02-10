@@ -78,10 +78,10 @@ class HTTPRequest(WorkflowBlock):
         import json
 
         try:
-            method = self._get_field("method", False, "GET")
+            method = self._get_field("method", "GET", False)
             url = self._get_field("url")
-            headers = self._get_field("headers", True)
-            body = self._clean_json_string(self._get_field("body"))
+            headers = self._get_field("headers", {}, True)
+            body = self._clean_json_string(self._get_field("body", ""))
             req = requests.request(method, url, headers=headers, data=body)
             
             content_type = req.headers.get("Content-Type")

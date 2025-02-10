@@ -200,7 +200,10 @@ class TestAppRunner:
                 ar.save_code(None, "exec(virus)")
 
     def run_loader_thread(self, app_runner: AppRunner) -> None:
-        app_runner.update_code(None, "pet_count = 728")
+        app_runner.update_code(None, """import writer as wf
+state = wf.get_state()
+state.pet_count = 728
+""")
 
     async def wait_for_code_update(self, app_runner: AppRunner) -> None:
         await app_runner.code_update_condition.acquire()

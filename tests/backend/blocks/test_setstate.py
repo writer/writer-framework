@@ -12,11 +12,11 @@ def test_basic_assignment(session):
     block = SetState("fake_id", runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["my_element"] == "my_value"
+    assert session.state.my_element == "my_value"
 
 def test_nested_assignment_without_parent(session):
     session.add_fake_component({
-        "element": "parent_element.my_element",
+        "element": 'parent_element["my_element"]',
         "value": "my_value"
     })
     runner = WorkflowRunner(session)
@@ -26,18 +26,18 @@ def test_nested_assignment_without_parent(session):
     assert block.outcome == "error"
 
 def test_nested_assignment_with_parent(session, runner):
-    session.session_state["parent_element"] = {
+    session.state.parent_element = {
         "sibling_element": "yes"
     }
     session.add_fake_component({
-        "element": "parent_element.my_element",
+        "element": 'parent_element["my_element"]',
         "value": "my_value"
     })
     block = SetState("fake_id", runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["parent_element"]["sibling_element"] == "yes"
-    assert session.session_state["parent_element"]["my_element"] == "my_value"
+    assert session.state.parent_element["sibling_element"] == "yes"
+    assert session.state.parent_element["my_element"] == "my_value"
 
 def test_assignment_with_empty_element(session):
     session.add_fake_component({
