@@ -23,10 +23,10 @@ packages = [
     { include = "writer", from = "src" }
 ]
 include = [
-    "src/writer/*.py",
-    "src/writer/static/**/*",
-    "src/writer/templates/**/*",
-    "src/writer/app_templates/**/*"
+    { path = "src/writer/*.py", format = ["sdist", "wheel"] },
+    { path = "src/writer/static/**/*", format = ["sdist", "wheel"] },
+    { path = "src/writer/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "src/writer/app_templates/**/*", format = ["sdist", "wheel"] }
 ]
 
 [tool.poetry.dependencies]
