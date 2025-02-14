@@ -1,12 +1,16 @@
 <template>
-	<button class="WdsButton colorTransformer" :class="className" role="button">
+	<button
+		class="WdsButton colorTransformer"
+		:class="className"
+		role="button"
+		:style="style"
+	>
 		<slot></slot>
 	</button>
 </template>
 
 <script setup lang="ts">
-import { computed, PropType } from "vue";
-
+import { computed, CSSProperties, PropType } from "vue";
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonVariant =
 	| "primary"
@@ -21,12 +25,18 @@ type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
+	customSize: { type: String, required: false, default: undefined },
+});
+
+const style = computed<CSSProperties>(() => {
+	if (!props.customSize) return undefined;
+	return { width: props.customSize, height: props.customSize };
 });
 
 const className = computed(() => [
 	"WdsButton",
 	`WdsButton--${props.variant}`,
-	`WdsButton--${props.size}`,
+	props.customSize ? undefined : `WdsButton--${props.size}`,
 ]);
 </script>
 

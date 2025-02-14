@@ -9,7 +9,9 @@
 			:selected="isSelected(key)"
 			:right-click-options="rightClickDropdownOptions"
 			:dropdown-options="
-				isSourceFilesDirectory(node) ? { delete: 'Delete' } : undefined
+				isSourceFilesDirectory(node)
+					? rightClickDropdownOptions
+					: undefined
 			"
 			@select="handleSelect(key)"
 			@dropdown-select="handleDropdownSelect($event, key)"
@@ -35,7 +37,7 @@
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 
 const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
-	{ label: "Delete", value: "delete" },
+	{ label: "Delete", value: "delete", icon: "delete" },
 ];
 </script>
 

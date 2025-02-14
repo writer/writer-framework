@@ -37,11 +37,12 @@
 			<slot name="nameRight" />
 			<div
 				v-if="dropdownOptions && isMainHovered"
-				class="BuilderTree__dropdown"
+				class="BuilderTree__main__dropdown"
 			>
-				<BaseDropdown
+				<BuilderMoreDropdown
 					:options="dropdownOptions"
-					@selected="$emit('dropdownSelect', $event)"
+					trigger-custom-size="16px"
+					@select="$emit('dropdownSelect', $event)"
 				/>
 			</div>
 		</div>
@@ -57,8 +58,9 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
-const BaseDropdown = defineAsyncComponent(
-	() => import("@/components/core/base/BaseDropdown.vue"),
+import type { Option } from "./BuilderMoreDropdown.vue";
+const BuilderMoreDropdown = defineAsyncComponent(
+	() => import("./BuilderMoreDropdown.vue"),
 );
 
 const props = defineProps({
@@ -70,7 +72,7 @@ const props = defineProps({
 	matched: { type: Boolean },
 	selected: { type: Boolean },
 	dropdownOptions: {
-		type: Object as PropType<Record<string, string>>,
+		type: Array as PropType<Option[]>,
 		required: false,
 		default: undefined,
 	},
@@ -118,7 +120,6 @@ function toggleCollapse() {
 	flex-wrap: nowrap;
 	text-wrap: nowrap;
 	max-width: 100%;
-	overflow: hidden;
 	align-items: center;
 	outline: none;
 	gap: 4px;
@@ -159,11 +160,9 @@ function toggleCollapse() {
 	margin-left: 20px;
 }
 
-.BuilderTree__dropdown {
+.BuilderTree__main__dropdown {
 	flex-grow: 1;
 	display: flex;
 	justify-content: flex-end;
-	color: var(--builderPrimaryTextColor);
-	--containerShadow: var(--wdsShadowMenu);
 }
 </style>
