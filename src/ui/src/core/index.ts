@@ -642,6 +642,27 @@ export function generateCore() {
 		return ca;
 	}
 
+	/**
+	 * Gets registered Writer Framework components with their child components
+	 *
+	 * @param parentId If specified, only include results that are children of a component with this id.
+	 * @param opts Whether to include Builder-managed components and code-managed components, and whether to sort.
+	 * @returns An iterable of components.
+	 */
+	function* getComponentsNested(
+		parentId?: Component["id"],
+		opts: {
+			includeBMC?: boolean;
+			includeCMC?: boolean;
+			sortedByPosition?: boolean;
+		} = {},
+	): Generator<Component> {
+		for (const component of getComponents(parentId, opts)) {
+			yield component;
+			yield* getComponentsNested(component.id, opts);
+		}
+	}
+
 	function setActivePageFromKey(targetPageKey: string) {
 		const pages = getComponents("root");
 		const matches = pages.filter((pageComponent) => {
@@ -682,6 +703,7 @@ export function generateCore() {
 		deleteComponent,
 		getComponentById,
 		getComponents,
+		getComponentsNested,
 		setActivePageId,
 		activePageId: readonly(activePageId),
 		setActivePageFromKey,

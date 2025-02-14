@@ -1,5 +1,6 @@
 <template>
 	<TreeBranch
+		v-show="shouldBeDisplayed"
 		ref="treeBranch"
 		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
@@ -86,16 +87,35 @@ const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 const { isComponentVisible } = useEvaluator(wf);
 const emit = defineEmits(["expandBranch"]);
 
-const matched = computed(() => {
+function isComponentMatchingQuery(component: Component) {
 	const q = props.query?.toLocaleLowerCase();
 	if (!q) return true;
-	if (def.value?.name.toLocaleLowerCase().includes(q)) return true;
 
-	const matchingFields = Object.values(component.value.content).filter(
+	const def = wf.getComponentDefinition(component.type);
+
+	if (def?.name.toLocaleLowerCase().includes(q)) return true;
+
+	const matchingFields = Object.values(component.content).filter(
 		(fieldContent) => fieldContent.toLocaleLowerCase().includes(q),
 	);
 	if (matchingFields.length > 0) return true;
 
+	return false;
+}
+
+const matched = computed(() => {
+	const q = props.query?.toLocaleLowerCase();
+	if (!q) return true;
+
+	return isComponentMatchingQuery(component.value);
+});
+
+const shouldBeDisplayed = computed(() => {
+	if (matched.value) return true;
+
+	for (const c of wf.getComponentsNested(component.value.id)) {
+		if (isComponentMatchingQuery(c)) return true;
+	}
 	return false;
 });
 
