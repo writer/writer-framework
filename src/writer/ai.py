@@ -88,6 +88,7 @@ class Tool(TypedDict, total=False):
 class GraphTool(Tool):
     graph_ids: List[str]
     subqueries: bool
+    description: Optional[str]
 
 
 class FunctionToolParameterMeta(TypedDict):
@@ -1419,7 +1420,8 @@ class Conversation:
                                 "graph_ids": tool_instance["graph_ids"],
                                 "subqueries": tool_instance.get(
                                     "subqueries", False
-                                    )
+                                    ),
+                                "description": tool_instance.get("description", None)
                             }
                         }
                     )
