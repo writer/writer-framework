@@ -77,6 +77,7 @@ function focus() {
 	outline: none;
 	color: var(--primaryTextColor);
 	background: transparent;
+	transition: box-shadow ease-in-out 0.2s;
 }
 
 .WdsTextInput:focus,
@@ -87,15 +88,22 @@ function focus() {
 
 .WdsTextInput--ghost {
 	border-color: transparent;
-}
-.WdsTextInput--ghost:hover {
 	background-color: var(--wdsColorGray1);
+	transition:
+		box-shadow,
+		background-color,
+		border-color ease-in-out 0.2s;
 }
-.WdsTextInput--ghost:focus,
-.WdsTextInput--ghost:focus-within {
-	background-color: var(--wdsColorGray1);
-	border-color: transparent;
-	box-shadow: unset;
+.WdsTextInput--ghost:disabled {
+	cursor: not-allowed;
+}
+.WdsTextInput--ghost:not(:disabled):hover {
+	background-color: transparent;
+	border-color: var(--wdsColorBlue3);
+}
+.WdsTextInput--ghost:not(:disabled):focus,
+.WdsTextInput--ghost:not(:disabled):focus-within {
+	background-color: transparent;
 }
 
 .WdsTextInput--leftIcon {
