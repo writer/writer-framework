@@ -248,8 +248,8 @@ async function handleSave() {
 	border: none;
 
 	display: flex;
-	justify-content: center;
-	text-align: left;
+	justify-content: flex-start;
+	align-items: center;
 	gap: 4px;
 }
 
