@@ -1,4 +1,6 @@
 from writer.blocks.addtostatelist import AddToStateList
+from writer.blocks.airtablemanipulaterecord import AirtableManipulateRecord
+from writer.blocks.airtablequeryrecords import AirtableQueryRecords
 from writer.blocks.calleventhandler import CallEventHandler
 from writer.blocks.foreach import ForEach
 from writer.blocks.httprequest import HTTPRequest
@@ -30,4 +32,6 @@ CallEventHandler.register("workflows_calleventhandler")
 AddToStateList.register("workflows_addtostatelist")
 ReturnValue.register("workflows_returnvalue")
 WriterInitChat.register("workflows_writerinitchat")
-WriterAddToKG.register("workflows_writeraddtokg")
+WriterAddToKG.register("workflows_airtablequeryrecords")
+AirtableQueryRecords.register("workflows_airtablequeryrecords")
+AirtableManipulateRecord.register("workflows_airtablemanipulaterecord")

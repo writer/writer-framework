@@ -61,6 +61,7 @@ const displayedCategories = [
 	"Writer",
 	"Logic",
 	"Other",
+	"Third parts",
 ];
 
 const activeToolkit = computed(() => {
