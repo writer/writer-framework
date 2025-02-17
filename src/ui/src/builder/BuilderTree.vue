@@ -6,6 +6,7 @@
 			tabindex="0"
 			:draggable="draggable"
 			:data-automation-key="dataAutomationKey"
+			:aria-expanded="!collapsed"
 			@mouseenter="isMainHovered = true"
 			@mouseleave="isMainHovered = false"
 			@click="$emit('select', $event)"
@@ -20,7 +21,7 @@
 				class="BuilderTree__main__collapser"
 				variant="neutral"
 				size="icon"
-				@click.stop="toggleCollapse"
+				@click.stop="toggleCollapse(undefined)"
 			>
 				<i class="material-symbols-outlined">{{
 					collapsed ? "expand_more" : "expand_less"
@@ -45,12 +46,14 @@
 				/>
 			</div>
 		</div>
-		<div
-			v-show="(!collapsed || props.query) && hasChildren"
-			class="BuilderTree__children"
-		>
-			<slot name="children" />
-		</div>
+		<Transition name="slide-fade">
+			<div
+				v-show="!collapsed && hasChildren"
+				class="BuilderTree__children"
+			>
+				<slot name="children" />
+			</div>
+		</Transition>
 	</div>
 </template>
 
@@ -86,7 +89,7 @@ const emit = defineEmits({
 	dropdownSelect: (key: string) => typeof key === "string",
 });
 
-defineExpose({ expand });
+defineExpose({ expand, toggleCollapse });
 
 const collapsed = ref(false);
 const isMainHovered = ref(false);
@@ -100,8 +103,9 @@ function expand() {
 	emit("expandBranch");
 }
 
-function toggleCollapse() {
-	collapsed.value = !collapsed.value;
+function toggleCollapse(newCollapse?: boolean) {
+	newCollapse ??= !collapsed.value;
+	if (newCollapse !== collapsed.value) collapsed.value = newCollapse;
 }
 </script>
 
@@ -165,5 +169,27 @@ function toggleCollapse() {
 	justify-content: flex-end;
 	color: var(--builderPrimaryTextColor);
 	--containerShadow: var(--wdsShadowMenu);
+}
+
+.slide-fade-enter-active {
+	transition: all 0.1s ease-out;
+}
+
+.slide-fade-leave-active {
+	transition: all 0.1s ease-in;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+	transform: translateY(-18px);
+	opacity: 0;
+}
+@media (prefers-reduced-motion) {
+	.slide-fade-enter-from,
+	.slide-fade-leave-to,
+	.slide-fade-enter-active,
+	.slide-fade-leave-active {
+		transition: unset;
+	}
 }
 </style>
