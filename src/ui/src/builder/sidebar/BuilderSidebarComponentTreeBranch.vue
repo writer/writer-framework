@@ -1,6 +1,5 @@
 <template>
 	<TreeBranch
-		v-show="shouldBeDisplayed"
 		ref="treeBranch"
 		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
@@ -70,6 +69,11 @@ import { useComponentActions } from "../useComponentActions";
 
 import TreeBranch from "../BuilderTree.vue";
 
+const props = defineProps({
+	componentId: { type: String, required: true },
+	query: { type: String, required: false, default: "" },
+});
+
 const treeBranch = ref<ComponentPublicInstance<typeof TreeBranch>>();
 
 const wf = inject(injectionKeys.core);
@@ -87,46 +91,43 @@ const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 const { isComponentVisible } = useEvaluator(wf);
 const emit = defineEmits(["expandBranch"]);
 
+const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
+
 function isComponentMatchingQuery(component: Component) {
-	const q = props.query?.toLocaleLowerCase();
-	if (!q) return true;
+	if (!q.value) return true;
 
 	const def = wf.getComponentDefinition(component.type);
-
-	if (def?.name.toLocaleLowerCase().includes(q)) return true;
+	if (def?.name.toLocaleLowerCase().includes(q.value)) return true;
 
 	const matchingFields = Object.values(component.content).filter(
-		(fieldContent) => fieldContent.toLocaleLowerCase().includes(q),
+		(fieldContent) => fieldContent.toLocaleLowerCase().includes(q.value),
 	);
 	if (matchingFields.length > 0) return true;
 
 	return false;
 }
 
-const matched = computed(() => {
-	const q = props.query?.toLocaleLowerCase();
-	if (!q) return true;
+const matched = computed(
+	() => !q.value || isComponentMatchingQuery(component.value),
+);
 
-	return isComponentMatchingQuery(component.value);
-});
-
-const shouldBeDisplayed = computed(() => {
-	if (matched.value) return true;
-
+const hasMatchingChildren = computed(() => {
+	if (!q.value) return true;
 	for (const c of wf.getComponentsNested(component.value.id)) {
 		if (isComponentMatchingQuery(c)) return true;
 	}
 	return false;
 });
 
-const props = defineProps<{
-	componentId: Component["id"];
-	query?: string;
-}>();
+const shouldBeDisplayed = computed(
+	() => matched.value || hasMatchingChildren.value,
+);
 
-const component = computed(() => {
-	return wf.getComponentById(props.componentId);
+watch(shouldBeDisplayed, (value) => treeBranch.value?.toggleCollapse(!value), {
+	immediate: true,
 });
+
+const component = computed(() => wf.getComponentById(props.componentId));
 
 const children = computed(() => {
 	return wf.getComponents(props.componentId, { sortedByPosition: true });
