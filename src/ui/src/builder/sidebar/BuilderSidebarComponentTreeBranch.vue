@@ -93,6 +93,8 @@ const emit = defineEmits(["expandBranch"]);
 
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
+const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
+
 const component = computed(() => wf.getComponentById(props.componentId));
 
 const { hasMatchingChildren, matched } = useComponentsTreeSearchForComponent(
