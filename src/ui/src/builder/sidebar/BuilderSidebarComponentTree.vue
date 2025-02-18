@@ -3,13 +3,14 @@
 		v-model="query"
 		class="BuilderSidebarComponentTree"
 		placeholder="Component tree"
+		:search-count="searchResultCount"
 	>
 		<div>
 			<BuilderSidebarComponentTreeBranch
 				class="rootBranch"
 				:component-id="rootComponentId"
 				:query="query"
-			></BuilderSidebarComponentTreeBranch>
+			/>
 		</div>
 
 		<template #footer>
@@ -40,12 +41,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref } from "vue";
+import { inject, nextTick, ref } from "vue";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBranch.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useComponentActions } from "../useComponentActions";
+import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -53,12 +55,13 @@ const query = ref("");
 
 const { createAndInsertComponent } = useComponentActions(wf, wfbm);
 
-const rootComponentId = computed(() => {
-	if (wfbm.getMode() == "workflows") {
-		return "workflows_root";
-	}
-	return "root";
-});
+const rootComponentId = wfbm.activeRootId;
+
+const { searchResultCount } = useComponentsTreeSearchResults(
+	wf,
+	query,
+	rootComponentId,
+);
 
 async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
