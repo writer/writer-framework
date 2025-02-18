@@ -7,7 +7,9 @@
 				left-icon="search"
 				data-automation-action="search"
 				:placeholder="placeholder"
-			></WdsTextInput>
+				:right-text="searchRightText"
+				enable-clear-button
+			/>
 		</div>
 		<div class="BuilderSidebarPanel__main"><slot></slot></div>
 		<div class="BuilderSidebarPanel__footer">
@@ -18,12 +20,20 @@
 
 <script setup lang="ts">
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import { computed } from "vue";
 
 const model = defineModel<string>();
 
-defineProps<{
-	placeholder: string;
-}>();
+const props = defineProps({
+	placeholder: { type: String, required: true },
+	searchCount: { type: Number, required: false, default: undefined },
+});
+
+const searchRightText = computed(() => {
+	if (props.searchCount === undefined) return undefined;
+
+	return `${props.searchCount} result${props.searchCount === 1 ? "" : "s"}`;
+});
 </script>
 
 <style scoped>

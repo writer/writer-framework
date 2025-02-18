@@ -53,7 +53,6 @@
 
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { Component } from "@/writerTypes";
 import {
 	ComponentPublicInstance,
 	computed,
@@ -68,6 +67,7 @@ import { useDragDropComponent } from "../useDragDropComponent";
 import { useComponentActions } from "../useComponentActions";
 
 import TreeBranch from "../BuilderTree.vue";
+import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -93,41 +93,21 @@ const emit = defineEmits(["expandBranch"]);
 
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
-function isComponentMatchingQuery(component: Component) {
-	if (!q.value) return true;
-
-	const def = wf.getComponentDefinition(component.type);
-	if (def?.name.toLocaleLowerCase().includes(q.value)) return true;
-
-	const matchingFields = Object.values(component.content).filter(
-		(fieldContent) => fieldContent.toLocaleLowerCase().includes(q.value),
-	);
-	if (matchingFields.length > 0) return true;
-
-	return false;
-}
-
-const matched = computed(
-	() => !q.value || isComponentMatchingQuery(component.value),
-);
-
-const hasMatchingChildren = computed(() => {
-	if (!q.value) return true;
-	for (const c of wf.getComponentsNested(component.value.id)) {
-		if (isComponentMatchingQuery(c)) return true;
-	}
-	return false;
-});
-
-const shouldBeDisplayed = computed(
-	() => matched.value || hasMatchingChildren.value,
-);
-
-watch(shouldBeDisplayed, (value) => treeBranch.value?.toggleCollapse(!value), {
-	immediate: true,
-});
-
 const component = computed(() => wf.getComponentById(props.componentId));
+
+const { hasMatchingChildren, matched } = useComponentsTreeSearchForComponent(
+	wf,
+	q,
+	component,
+);
+
+watch(
+	hasMatchingChildren,
+	(value) => treeBranch.value?.toggleCollapse(!value),
+	{
+		immediate: true,
+	},
+);
 
 const children = computed(() => {
 	return wf.getComponents(props.componentId, { sortedByPosition: true });
