@@ -311,6 +311,7 @@ function formatExecutionTime(timeInSeconds: number): string {
 	border-radius: 8px;
 	margin-top: 8px;
 	font-size: 14px;
+	overflow-x: auto;
 }
 
 .markdown :deep(code) {
