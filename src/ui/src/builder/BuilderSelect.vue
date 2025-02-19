@@ -11,6 +11,19 @@
 				>{{ currentIcon }}</i
 			>
 			<div
+				v-if="enableMultiSelection"
+				class="BuilderSelect__trigger__multiSelectLabel"
+			>
+				<WdsTag
+					v-for="option of selectedOptions"
+					:key="option.value"
+					:text="option.label"
+					closable
+					@close="handleRemoveValue(option.value)"
+				/>
+			</div>
+			<div
+				v-else
 				class="BuilderSelect__trigger__label"
 				data-writer-tooltip-strategy="overflow"
 				:data-writer-tooltip="currentLabel"
@@ -53,6 +66,7 @@ import {
 import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
+import WdsTag from "@/wds/WdsTag.vue";
 
 const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),
@@ -100,12 +114,26 @@ const expandIcon = computed(() =>
 	isOpen.value ? "keyboard_arrow_up" : "expand_more",
 );
 
-const selectedOptions = computed(() =>
-	props.options.filter((o) => isSelected(o.value)),
+const currentValueArray = computed(() => {
+	if (!currentValue.value) return [];
+	const array = Array.isArray(currentValue.value)
+		? currentValue.value
+		: [currentValue.value];
+	return array.filter(Boolean);
+});
+
+const selectedOptions = computed<WdsDropdownMenuOption[]>(() =>
+	currentValueArray.value.map(
+		(v) =>
+			props.options.find((o) => o.value === v) ?? { value: v, label: v },
+	),
 );
 
 const hasUnknowOptionSelected = computed(() => {
-	return currentValue.value && selectedOptions.value.length === 0;
+	return (
+		currentValue.value &&
+		!props.options.some((o) => o.value === currentValue.value)
+	);
 });
 
 const currentLabel = computed(() => {
@@ -143,10 +171,9 @@ function onSelect(value: string | string[]) {
 	currentValue.value = value;
 }
 
-function isSelected(value: string) {
-	return Array.isArray(currentValue.value)
-		? currentValue.value.includes(value)
-		: currentValue.value === value;
+function handleRemoveValue(value: string) {
+	if (!Array.isArray(currentValue.value)) return;
+	currentValue.value = currentValue.value.filter((v) => v !== value);
 }
 </script>
 
@@ -163,7 +190,7 @@ function isSelected(value: string) {
 	align-items: center;
 	gap: 8px;
 
-	height: 40px;
+	min-height: 40px;
 	width: 100%;
 	padding: 8.5px 12px 8.5px 12px;
 
@@ -198,5 +225,14 @@ function isSelected(value: string) {
 	justify-content: space-between;
 	font-weight: 300;
 	cursor: pointer;
+}
+
+.BuilderSelect__trigger__multiSelectLabel {
+	flex-grow: 1;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	gap: 8px;
 }
 </style>
