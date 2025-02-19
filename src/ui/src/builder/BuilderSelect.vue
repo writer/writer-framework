@@ -6,7 +6,10 @@
 			@click="isOpen = !isOpen"
 		>
 			<i
-				v-if="!hideIcons || hasUnknowOptionSelected"
+				v-if="
+					(hasUnknowOptionSelected || !hideIcons) &&
+					!enableMultiSelection
+				"
 				class="material-symbols-outlined"
 				>{{ currentIcon }}</i
 			>
@@ -40,6 +43,7 @@
 			:enable-search="enableSearch"
 			:enable-multi-selection="enableMultiSelection"
 			:hide-icons="hideIcons"
+			:loading="loading"
 			:options="options"
 			:selected="currentValue"
 			:style="floatingStyles"
@@ -83,6 +87,7 @@ const props = defineProps({
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
 	enableMultiSelection: { type: Boolean, required: false },
+	loading: { type: Boolean, required: false },
 });
 
 const currentValue = defineModel({

@@ -1,6 +1,9 @@
 <template>
 	<div class="WdsDropdownMenu">
-		<div v-if="enableSearch" class="WdsDropdownMenu__search-wrapper">
+		<div
+			v-if="enableSearch && !loading"
+			class="WdsDropdownMenu__search-wrapper"
+		>
 			<div class="WdsDropdownMenu__search">
 				<i class="material-symbols-outlined">search</i>
 				<input
@@ -10,51 +13,76 @@
 					type="text"
 					placeholder="Search"
 					autocomplete="off"
+					:disabled="loading"
 				/>
 			</div>
 		</div>
-		<button
-			v-for="option in optionsFiltered"
-			:key="option.value"
-			:data-automation-key="option.value"
-			class="WdsDropdownMenu__item"
-			:class="{
-				'WdsDropdownMenu__item--selected': isSelected(option.value),
-				'WdsDropdownMenu__item--hideIcon': hideIcons,
-			}"
-			@click="onSelect(option.value)"
-		>
-			<div
-				v-if="enableMultiSelection"
-				class="WdsDropdownMenu__item__checkbox"
+
+		<template v-if="loading">
+			<button
+				v-for="index in 6"
+				:key="index"
+				class="WdsDropdownMenu__item"
 			>
-				<input type="checkbox" :checked="isSelected(option.value)" />
-			</div>
-			<i v-else-if="!hideIcons" class="material-symbols-outlined">{{
-				getOptionIcon(option)
-			}}</i>
-			<div
-				class="WdsDropdownMenu__item__label"
-				:data-writer-tooltip="option.label"
-				data-writer-tooltip-strategy="overflow"
+				<div
+					v-if="enableMultiSelection || !hideIcons"
+					class="WdsDropdownMenu__item__checkbox"
+				>
+					<WdsSkeletonLoader style="width: 20px" />
+				</div>
+				<div class="WdsDropdownMenu__item__label">
+					<WdsSkeletonLoader />
+				</div>
+			</button>
+		</template>
+
+		<template v-else>
+			<button
+				v-for="option in optionsFiltered"
+				:key="option.value"
+				class="WdsDropdownMenu__item"
+				:class="{
+					'WdsDropdownMenu__item--selected': isSelected(option.value),
+					'WdsDropdownMenu__item--hideIcon': hideIcons,
+				}"
+				:data-automation-key="option.value"
+				@click="onSelect(option.value)"
 			>
-				{{ option.label }}
-			</div>
-			<div
-				v-if="option.detail"
-				class="WdsDropdownMenu__item__detail"
-				:data-writer-tooltip="option.detail"
-				data-writer-tooltip-strategy="overflow"
-			>
-				{{ option.detail }}
-			</div>
-			<i
-				v-if="isSelected(option.value)"
-				class="material-symbols-outlined"
-			>
-				check
-			</i>
-		</button>
+				<div
+					v-if="enableMultiSelection"
+					class="WdsDropdownMenu__item__checkbox"
+				>
+					<input
+						type="checkbox"
+						:checked="isSelected(option.value)"
+					/>
+				</div>
+				<i v-else-if="!hideIcons" class="material-symbols-outlined">{{
+					getOptionIcon(option)
+				}}</i>
+				<div
+					class="WdsDropdownMenu__item__label"
+					:data-writer-tooltip="option.label"
+					data-writer-tooltip-strategy="overflow"
+				>
+					{{ option.label }}
+				</div>
+				<div
+					v-if="option.detail"
+					class="WdsDropdownMenu__item__detail"
+					:data-writer-tooltip="option.detail"
+					data-writer-tooltip-strategy="overflow"
+				>
+					{{ option.detail }}
+				</div>
+				<i
+					v-if="isSelected(option.value)"
+					class="material-symbols-outlined"
+				>
+					check
+				</i>
+			</button>
+		</template>
 	</div>
 </template>
 
@@ -69,7 +97,8 @@ export type WdsDropdownMenuOption = {
 
 <script setup lang="ts">
 // from https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=128-396&t=9Gy9MYDycjVV8C2Y-1
-import { computed, PropType, ref, useTemplateRef, watch } from "vue";
+import { computed, PropType, ref, watch } from "vue";
+import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 
 const props = defineProps({
 	options: {
@@ -86,6 +115,7 @@ const props = defineProps({
 		required: false,
 		default: () => {},
 	},
+	loading: { type: Boolean, required: false },
 });
 
 const emits = defineEmits({
@@ -94,7 +124,6 @@ const emits = defineEmits({
 	search: (value: string) => typeof value === "string",
 });
 
-const searchInput = useTemplateRef("searchInput");
 const searchTerm = ref("");
 
 function getOptionIcon(option: WdsDropdownMenuOption) {
@@ -166,6 +195,8 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	grid-template-columns: 1fr auto;
 	column-gap: 8px;
 	align-items: center;
+
+	min-height: 36px;
 
 	border-radius: 4px;
 

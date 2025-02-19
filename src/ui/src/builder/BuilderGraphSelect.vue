@@ -12,7 +12,6 @@ import type { Option } from "./BuilderSelect.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import type { WriterGraph } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 
 const BuilderSelect = defineAsyncComponent({
 	loader: () => import("./BuilderSelect.vue"),
@@ -65,15 +64,15 @@ const currentValueStr = computed<string>({
 <template>
 	<div class="BuilderGraphSelect--text">
 		<BuilderSelect
-			v-if="graphs.length > 0"
+			v-if="graphs.length > 0 || isLoading"
 			v-model="currentValue"
 			:options="options"
 			hide-icons
 			enable-search
+			:loading="isLoading"
 			:enable-multi-selection="enableMultiSelection"
 		/>
 		<WdsTextInput v-else v-model="currentValueStr" />
-		<LoadingSymbol v-if="isLoading" />
 	</div>
 </template>
 
