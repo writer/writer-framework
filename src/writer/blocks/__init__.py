@@ -14,6 +14,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.writerquestiontokg import WriterQuestionToKG
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
@@ -31,3 +32,4 @@ AddToStateList.register("workflows_addtostatelist")
 ReturnValue.register("workflows_returnvalue")
 WriterInitChat.register("workflows_writerinitchat")
 WriterAddToKG.register("workflows_writeraddtokg")
+WriterQuestionToKG.register("workflows_writerquestiontokg")
