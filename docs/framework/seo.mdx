@@ -1,21 +1,23 @@
 ---
-title: "Seo and social sharing"
+title: "SEO and social sharing"
 mode: "wide"
 ---
 
-Writer Framework offers you the possibility of optimizing metadata to optimize your SEO and the sharing of information on social networks.
+Writer Framework provides powerful options for optimizing your application's metadata to improve SEO (Search Engine Optimization) and enhance how your content appears when shared on social networks. These options are available in the `writer.serve.configure_webpage_metadata` function available in the `server_setup.py` file.
 
-### Configure page title
+## Page title configuration
 
-The page title is editable for web crawlers. This title is a key element for the SEO of your application. A bot will not load the app. It will see `Writer Framework` by default.
+The page title is a crucial element for your application's SEO. Web crawlers and bots will see this title without loading the full application. By default, they will see `Writer Framework`.
 
 ```python
-writer.serve.configure_webpage_metadata(title="My amazing app")
+# ./server_setup.py
+writer.serve.configure_webpage_metadata(title="My Amazing App")
 ```
 
-If you need dynamic title,you can use a function instead of a hard coded parameter. The title will be evaluated when the Robot loads the page.
+For dynamic titles, you can use a function instead of a static string. The title will be evaluated when a bot loads the page:
 
 ```python
+# ./server_setup.py
 def _title():
 	last_news = db.get_last_news()
 	return f"Last news: {last_news.title}"
@@ -23,43 +25,43 @@ def _title():
 writer.serve.configure_webpage_metadata(title=_title)
 ```
 
-### Configure meta tags
+## Meta tags configuration
 
-http headers allow you to specify a title, a description and keywords which will be used by a search engine.
+HTTP headers allow you to specify a title, description, and keywords that search engines will use to understand and index your content. You can configure these tags using the `meta` parameter.
 
-*./server_setup.py*
 ```python
+# ./server_setup.py
 writer.serve.configure_webpage_metadata(
-	title="My amazing app",
+	title="My Amazing App",
     meta={
-    	"description": "my amazing app",
+    	"description": "My amazing app",
     	"keywords": "WF, Amazing, AI App",
-    	"author": "Amazing company"
+    	"author": "Amazing Company"
     }
 )
 ```
 
-You can also use a function to generate the meta tags dynamically.
+You can also generate meta tags dynamically using a function:
 
-*./server_setup.py*
 ```python
+# ./server_setup.py
 def _meta():
 	last_news = db.get_last_news()
 	return {
 		"description": f"Last news: {last_news.title}",
 		"keywords": f"{last_news.keywords}",
-		"author": "Amazing company"
+		"author": "Amazing Company"
 	}
 
 writer.serve.configure_webpage_metadata(meta=_meta)
 ```
 
-### Configure social networks
+## Social network configuration
 
-When you share a link on social networks, they will try to fetch the metadata of the page to display a preview.
+When users share links to your application on social networks, those platforms will attempt to fetch metadata to create rich previews of your content. You can configure the OpenGraph tags to improve the appearance of your content when shared.
 
-*./server_setup.py*
 ```python
+# ./server_setup.py
 writer.serve.configure_webpage_metadata(
     opengraph_tags= {
     	"og:title": "My App",
@@ -70,10 +72,10 @@ writer.serve.configure_webpage_metadata(
 )
 ```
 
-You can also use a function to generate the opengraph tags dynamically.
+Like meta tags, OpenGraph tags can also be generated dynamically:
 
-*./server_setup.py*
 ```python
+# ./server_setup.py
 def _opengraph_tags():
 	last_news = db.get_last_news()
 	return {
@@ -86,3 +88,4 @@ def _opengraph_tags():
 writer.serve.configure_webpage_metadata(opengraph_tags=_opengraph_tags)
 ```
 
+By configuring your application's metadata, your application will be more visible in search engines and social networks.
