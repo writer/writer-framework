@@ -1,4 +1,4 @@
-import { shallowMount } from "@vue/test-utils";
+import { mount, shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
 import WdsDropdownMenu from "./WdsDropdownMenu.vue";
@@ -31,7 +31,7 @@ describe("WdsDropdownMenu", () => {
 
 	describe("multiple mode", () => {
 		it("should support multiple mode", async () => {
-			const wrapper = shallowMount(WdsDropdownMenu, {
+			const wrapper = mount(WdsDropdownMenu, {
 				props: {
 					selected: ["???"],
 					enableMultiSelection: true,
@@ -40,7 +40,7 @@ describe("WdsDropdownMenu", () => {
 			});
 
 			await wrapper
-				.get(`.WdsDropdownMenu__item[data-automation-key="b"]`)
+				.get(`.WdsDropdownMenu__checkbox[data-automation-key="b"]`)
 				.trigger("click");
 
 			expect(wrapper.emitted("select").at(0)).toStrictEqual([["b"]]);

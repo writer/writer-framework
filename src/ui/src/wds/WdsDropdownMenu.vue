@@ -24,16 +24,28 @@
 				:key="index"
 				class="WdsDropdownMenu__item"
 			>
-				<div
+				<WdsSkeletonLoader
 					v-if="enableMultiSelection || !hideIcons"
-					class="WdsDropdownMenu__item__checkbox"
-				>
-					<WdsSkeletonLoader style="width: 20px" />
-				</div>
+					style="width: 20px"
+				/>
 				<div class="WdsDropdownMenu__item__label">
 					<WdsSkeletonLoader />
 				</div>
 			</button>
+		</template>
+
+		<template v-else-if="enableMultiSelection">
+			<WdsCheckbox
+				v-for="option in optionsFiltered"
+				:key="option.value"
+				class="WdsDropdownMenu__checkbox"
+				:checked="isSelected(option.value)"
+				:label="option.label"
+				:detail="option.detail"
+				:data-automation-key="option.value"
+				:model-value="isSelected(option.value)"
+				@update:model-value="onSelect(option.value)"
+			/>
 		</template>
 
 		<template v-else>
@@ -48,16 +60,7 @@
 				:data-automation-key="option.value"
 				@click="onSelect(option.value)"
 			>
-				<div
-					v-if="enableMultiSelection"
-					class="WdsDropdownMenu__item__checkbox"
-				>
-					<input
-						type="checkbox"
-						:checked="isSelected(option.value)"
-					/>
-				</div>
-				<i v-else-if="!hideIcons" class="material-symbols-outlined">{{
+				<i v-if="!hideIcons" class="material-symbols-outlined">{{
 					getOptionIcon(option)
 				}}</i>
 				<div
@@ -99,6 +102,7 @@ export type WdsDropdownMenuOption = {
 // from https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=128-396&t=9Gy9MYDycjVV8C2Y-1
 import { computed, PropType, ref, watch } from "vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
+import WdsCheckbox from "./WdsCheckbox.vue";
 
 const props = defineProps({
 	options: {
@@ -185,6 +189,16 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	padding-top: 0px;
 }
 
+.WdsDropdownMenu__checkbox,
+.WdsDropdownMenu__item {
+	min-height: 36px;
+}
+
+.WdsDropdownMenu__checkbox {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
 .WdsDropdownMenu__item {
 	background-color: transparent;
 	border: none;
@@ -196,8 +210,6 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	column-gap: 8px;
 	align-items: center;
 
-	min-height: 36px;
-
 	border-radius: 4px;
 
 	padding: 8px;
@@ -208,8 +220,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	transition: all 0.2s;
 	pointer-events: all;
 }
-.WdsDropdownMenu__item:has(.material-symbols-outlined),
-.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__checkbox) {
+.WdsDropdownMenu__item:has(.material-symbols-outlined) {
 	grid-template-columns: auto 1fr auto;
 }
 
@@ -223,16 +234,6 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__item--hideIcon {
 	grid-template-columns: 1fr auto;
-}
-
-.WdsDropdownMenu__item__checkbox {
-	grid-row-start: 1;
-	grid-row-end: -1;
-
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 100%;
 }
 
 .WdsDropdownMenu__item__detail,
