@@ -130,7 +130,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		initProperties?: Partial<
 			Omit<
 				Component,
-				"id" | "type" | "parent" | "content" | "handlers" | "position"
+				"id" | "type" | "parent" | "handlers" | "position"
 			>
 		>,
 	) {
@@ -139,7 +139,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		const { fields } = definition;
 		const initContent = {};
 		Object.entries(fields ?? {}).map(([fieldKey, field]) => {
-			initContent[fieldKey] = field.init;
+			initContent[fieldKey] = initProperties?.["content"]?.[fieldKey] ?? field.init;
 		});
 
 		const component = {
@@ -170,7 +170,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		initProperties?: Partial<
 			Omit<
 				Component,
-				"id" | "type" | "parent" | "content" | "handlers" | "position"
+				"id" | "type" | "parent"  | "handlers" | "position"
 			>
 		>,
 	): Component["id"] {

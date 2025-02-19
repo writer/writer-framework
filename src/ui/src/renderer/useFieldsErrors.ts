@@ -17,6 +17,8 @@ export function useFieldsErrors(
 	wf: Core,
 	instancePath: ComputedRef<InstancePath>,
 ) {
+	if (!instancePath.value.at(-1)) return computed(() => ({}));
+
 	const { getEvaluatedFields } = useEvaluator(wf);
 
 	const componentFields = computed(() => {

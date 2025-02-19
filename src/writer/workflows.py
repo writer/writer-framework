@@ -4,15 +4,26 @@ from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Typ
 
 import writer.blocks
 import writer.blocks.base_block
+from writer.blocks.base_trigger import WorkflowTrigger
 import writer.core
 import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
-
+import logging
 
 class WorkflowRunner():
 
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
+
+    def execute_ui_trigger(self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}):
+        components = self.session.session_component_tree.get_descendents("workflows_root")
+        ui_triggers = list(filter(lambda c: c.type == "workflows_uieventtrigger", components))
+        for trigger in ui_triggers:
+            if trigger.content.get("refComponentId") != ref_component_id:
+                continue
+            if trigger.content.get("refEventType") != ref_event_type:
+                continue
+            self.run_branch(trigger.id, "trigger", execution_environment, "UI trigger execution")
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.session.session_component_tree.components.values()
