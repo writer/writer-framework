@@ -57,14 +57,51 @@ const templateField = computed(() => {
 
 const inputId = computed(() => `${props.componentId}-${props.fieldKey}`);
 
+const predefinedOptionFns = {
+	uiComponents: () => {
+		const uiComponents = wf
+			.getComponents(undefined, { sortedByPosition: true })
+			.filter((c) => wf.isChildOf("root", c.id));
+		const options = {};
+		uiComponents.forEach((component) => {
+			options[component.id] = component.id;
+		});
+		return options;
+	},
+	uiComponentsWithEvents: () => {
+		const uiComponents = wf
+			.getComponents(undefined, { sortedByPosition: true })
+			.filter((c) => wf.isChildOf("root", c.id))
+			.filter((c) => Boolean(wf.getComponentDefinition(c.type).events));
+		const options = {};
+		uiComponents.forEach((component) => {
+			options[component.id] = component.id;
+		});
+		return options;
+	},
+	eventTypes: (core: typeof wf, componentId: Component["id"]) => {
+		const refComponentId =
+			core.getComponentById(componentId).content?.["refComponentId"];
+		const refComponent = wf.getComponentById(refComponentId);
+		if (!refComponent) return {};
+		const refDef = core.getComponentDefinition(refComponent.type);
+		const refEvents = Object.fromEntries(
+			Object.keys(refDef.events ?? {}).map((k) => [k, k]),
+		);
+		return refEvents;
+	},
+};
+
 const options = computed(() => {
 	const field = templateField.value;
-	if (field.options) {
-		return typeof field.options === "function"
-			? field.options(wf, componentId.value)
-			: field.options;
+	if (!field.options) return {};
+	if (typeof field.options === "function") {
+		return field.options(wf, componentId.value);
 	}
-	return {};
+	if (typeof field.options === "string") {
+		return predefinedOptionFns?.[field.options](wf, componentId.value);
+	}
+	return field.options;
 });
 
 const handleInput = (ev: Event) => {

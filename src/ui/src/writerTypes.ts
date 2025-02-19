@@ -69,6 +69,7 @@ export type WriterComponentDefinitionField = {
 	control?: FieldControl;
 	options?:
 		| Record<string, string>
+		| string // For predefined functions
 		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
@@ -133,6 +134,7 @@ export const enum FieldType {
 	VAlign = "Align (V)",
 	Padding = "Padding",
 	Tools = "Tools",
+	ComponentPicker = "Component",
 }
 
 export const enum FieldCategory {
