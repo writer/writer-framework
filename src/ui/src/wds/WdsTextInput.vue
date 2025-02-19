@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref } from "vue";
+import { PropType, useTemplateRef } from "vue";
 
 const model = defineModel({ type: String });
 
@@ -43,7 +43,7 @@ defineExpose({
 	setSelectionStart,
 });
 
-const input = ref<HTMLInputElement>();
+const input = useTemplateRef("input");
 
 function setSelectionStart(value: number) {
 	if (input.value) input.value.selectionStart = value;

@@ -42,10 +42,17 @@
 
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { inject, nextTick, onMounted, onUnmounted, ref } from "vue";
+import {
+	inject,
+	nextTick,
+	onMounted,
+	onUnmounted,
+	ref,
+	useTemplateRef,
+} from "vue";
 
 const wfbm = inject(injectionKeys.builderManager);
-const rootEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const emit = defineEmits(["changeRenderOffset"]);
 const resizeObserver = new ResizeObserver(render);
 const mutationObserver = new MutationObserver(render);

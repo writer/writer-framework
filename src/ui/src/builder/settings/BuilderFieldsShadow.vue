@@ -111,6 +111,7 @@ import {
 	Ref,
 	ref,
 	toRefs,
+	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
@@ -126,15 +127,15 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const freehandInputEl: Ref<HTMLInputElement> = ref(null);
-const paramOffsetXEl: Ref<HTMLInputElement> = ref(null);
-const paramOffsetYEl: Ref<HTMLInputElement> = ref(null);
-const paramBlurRadiusEl: Ref<HTMLInputElement> = ref(null);
-const paramSpreadRadiusEl: Ref<HTMLInputElement> = ref(null);
-const paramColorEl: Ref<HTMLInputElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const freehandInputEl = useTemplateRef("freehandInputEl");
+const paramOffsetXEl = useTemplateRef("paramOffsetXEl");
+const paramOffsetYEl = useTemplateRef("paramOffsetYEl");
+const paramBlurRadiusEl = useTemplateRef("paramBlurRadiusEl");
+const paramSpreadRadiusEl = useTemplateRef("paramSpreadRadiusEl");
+const paramColorEl = useTemplateRef("paramColorEl");
 
-const focusEls: Record<Mode, Ref<HTMLInputElement>> = {
+const focusEls = {
 	pick: paramOffsetXEl,
 	css: freehandInputEl,
 	default: null,

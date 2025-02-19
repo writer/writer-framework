@@ -85,7 +85,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import chroma from "chroma-js";
 
@@ -101,7 +101,7 @@ const COLOR_STEPS = [
 	{ h: 69, s: 0, l: 25 },
 	{ h: 70, s: 0, l: 29 },
 ];
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);

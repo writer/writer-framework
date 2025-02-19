@@ -38,6 +38,7 @@ exports[`CoreCheckboxInput > should render value from the state and forward emit
       data-v-7a72f1be=""
     >
       <input
+        checked=""
         data-v-7a72f1be=""
         type="checkbox"
         value="b"

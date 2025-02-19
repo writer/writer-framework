@@ -75,6 +75,7 @@ import {
 	onMounted,
 	onUnmounted,
 	ref,
+	useTemplateRef,
 	watch,
 } from "vue";
 import BuilderPanel from "./BuilderPanel.vue";
@@ -139,7 +140,7 @@ function useKeydownCmdS(callback: () => void | Promise<void>) {
 }
 useKeydownCmdS(handleSave);
 
-const filenameEl = ref<HTMLInputElement>();
+const filenameEl = useTemplateRef("filenameEl");
 const filename = ref("");
 const isDisabled = ref(false);
 

@@ -97,14 +97,15 @@ import {
 	onMounted,
 	Ref,
 	ref,
+	useTemplateRef,
 	watch,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const isActive = ref(false);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const canvasEl = document.createElement("canvas");
-const videoEl: Ref<HTMLVideoElement> = ref(null);
+const videoEl = useTemplateRef("videoEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const videoDevices: Ref<MediaDeviceInfo[]> = ref(null);
 const preferredDeviceId: Ref<MediaDeviceInfo["deviceId"]> = ref(null);

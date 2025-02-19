@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ComponentInstance, computed, PropType, ref, toRef, watch } from "vue";
+import { computed, PropType, toRef, useTemplateRef, watch } from "vue";
 import BaseInputRangeThumb from "./BaseInputSliderThumb.vue";
 import { useBoundingClientRect } from "@/composables/useBoundingClientRect";
 import BaseInputSliderLayout from "./BaseInputSliderLayout.vue";
@@ -64,8 +64,8 @@ function onUpdate(key: 0 | 1, value: number) {
 	model.value = copy.sort((a, b) => a - b);
 }
 
-const slider = ref<HTMLElement>();
-const thumbs = ref<ComponentInstance<typeof BaseInputRangeThumb>[]>();
+const slider = useTemplateRef("slider");
+const thumbs = useTemplateRef("thumbs");
 
 function handleMouseDown(e: MouseEvent) {
 	const thumb1 = thumbs.value[0];

@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, ref, toRef, watch } from "vue";
+import { computed, PropType, ref, toRef, useTemplateRef, watch } from "vue";
 import { useNumberFormatByStep } from "./BaseInputSlider.utils";
 
 const props = defineProps({
@@ -44,7 +44,7 @@ defineExpose({ handleMouseDown, getOffsetLeft });
 
 const model = defineModel("value", { type: Number, default: 50 });
 
-const thumb = ref<HTMLElement>();
+const thumb = useTemplateRef("thumb");
 
 const displayValue = useNumberFormatByStep(model, toRef(props, "step"));
 

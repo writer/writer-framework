@@ -84,12 +84,12 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);

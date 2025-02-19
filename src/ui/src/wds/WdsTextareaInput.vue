@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { useTemplateRef } from "vue";
 
 const model = defineModel<string>();
 
@@ -19,7 +19,7 @@ defineExpose({
 	setSelectionStart,
 });
 
-const input = ref<HTMLTextAreaElement>();
+const input = useTemplateRef("input");
 
 function setSelectionStart(value: number) {
 	if (input.value) input.value.selectionStart = value;

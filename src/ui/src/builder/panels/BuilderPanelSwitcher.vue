@@ -28,13 +28,13 @@ export type BuilderPanelAction = {
 
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { inject, ref } from "vue";
+import { inject, useTemplateRef } from "vue";
 import BuilderCodePanel from "./BuilderCodePanel.vue";
 import BuilderLogPanel from "./BuilderLogPanel.vue";
 
 const wfbm = inject(injectionKeys.builderManager);
 
-const screenEl = ref(null);
+const screenEl = useTemplateRef("screenEl");
 </script>
 
 <style scoped>

@@ -305,15 +305,16 @@ import {
 	ref,
 	computed,
 	ComputedRef,
+	useTemplateRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 import CoreChatbotSentMessageIcon from "./CoreChatBot/CoreChatbotSentMessageIcon.vue";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const messageAreaEl: Ref<HTMLElement> = ref(null);
-const messagesEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const messageAreaEl = useTemplateRef("messageAreaEl");
+const messagesEl = useTemplateRef("messagesEl");
 const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
 const files: Ref<File[]> = shallowRef([]);

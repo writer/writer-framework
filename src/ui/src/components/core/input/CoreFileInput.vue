@@ -116,7 +116,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, Ref, ref, watch } from "vue";
+import { computed, inject, Ref, ref, useTemplateRef, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
@@ -126,7 +126,7 @@ type SavedFile = { name: string; type: string; data: unknown };
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const fileEl: Ref<HTMLInputElement> = ref(null);
+const fileEl = useTemplateRef("fileEl");
 const message: Ref<string> = ref(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);

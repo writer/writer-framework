@@ -15,6 +15,7 @@ exports[`CoreDateInput > should render value from the state and forward emit 1`]
   <input
     data-v-acf95c76=""
     type="date"
+    value="2024-12-14"
   />
   
 </div>

@@ -7,10 +7,10 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { onMounted, onUnmounted, ref, toRefs, watch } from "vue";
+import { onMounted, onUnmounted, toRefs, useTemplateRef, watch } from "vue";
 
-const rootEl = ref<HTMLElement>(null);
-const editorContainerEl = ref<HTMLElement>(null);
+const rootEl = useTemplateRef("rootEl");
+const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 

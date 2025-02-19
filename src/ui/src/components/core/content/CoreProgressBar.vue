@@ -107,13 +107,13 @@ export default { writer: definition };
 </script>
 
 <script setup lang="ts">
-import { CSSProperties, computed, inject, ref } from "vue";
+import { CSSProperties, computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFieldValueAsYesNo } from "@/composables/useFieldValue";
 import { getClick } from "@/renderer/syntheticEvents";
 import { usePercentageFormatter } from "@/composables/useFormatter";
 
-const rootEl = ref<HTMLElement>();
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);

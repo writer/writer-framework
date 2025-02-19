@@ -52,7 +52,7 @@ export type WdsDropdownMenuOption = {
 
 <script setup lang="ts">
 // from https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=128-396&t=9Gy9MYDycjVV8C2Y-1
-import { computed, PropType, ref, watch } from "vue";
+import { computed, PropType, ref, useTemplateRef, watch } from "vue";
 
 const props = defineProps({
 	options: {
@@ -69,7 +69,7 @@ const emits = defineEmits({
 	search: (value: string) => typeof value === "string",
 });
 
-const searchInput = ref<HTMLElement>();
+const searchInput = useTemplateRef("searchInput");
 const searchTerm = ref("");
 
 function getOptionIcon(option: WdsDropdownMenuOption) {

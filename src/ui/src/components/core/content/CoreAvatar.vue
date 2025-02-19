@@ -4,7 +4,7 @@
 		class="CoreAvatar"
 		:class="[fields.size.value, fields.orientation.value]"
 	>
-		<div class="image" @click="handleClick">
+		<div class="image" :style="imageStyle" @click="handleClick">
 			<i v-if="!fields.imageSrc.value" class="material-symbols-outlined">
 				account_circle
 			</i>
@@ -97,10 +97,10 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { CSSProperties, computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);
@@ -109,6 +109,13 @@ const isClickable = computed(() => {
 	const component = wf.getComponentById(componentId);
 	return typeof component.handlers?.["wf-click"] !== "undefined";
 });
+
+const imageStyle = computed<CSSProperties>(() => ({
+	backgroundImage: fields.imageSrc.value
+		? `url(${fields.imageSrc.value})`
+		: "none",
+	cursor: isClickable.value ? "pointer" : "auto",
+}));
 
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
@@ -151,11 +158,7 @@ function handleClick(ev: MouseEvent) {
 	background-color: var(--separatorColor);
 	background-position: center;
 	background-size: cover;
-	background-image: v-bind(
-		"fields.imageSrc.value ? `url(\"${fields.imageSrc.value}\")` : 'none'"
-	);
 	color: var(--primaryTextColor);
-	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
 }
 
 .info {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
+import { nextTick, ref, useTemplateRef } from "vue";
 
 const props = defineProps({
 	value: {
@@ -13,8 +13,8 @@ const emits = defineEmits({
 	change: (value: string) => typeof value === "string",
 });
 
-const wrapper = ref<HTMLDivElement | undefined>();
-const input = ref<HTMLTextAreaElement | undefined>();
+const wrapper = useTemplateRef("wrapper");
+const input = useTemplateRef("input");
 const isEditing = ref(false);
 
 async function startEditing() {

@@ -56,11 +56,11 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, Ref, ref, watch } from "vue";
+import { computed, inject, onMounted, useTemplateRef, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const chartTargetEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const chartTargetEl = useTemplateRef("chartTargetEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const spec = computed(() => fields.spec.value);
 

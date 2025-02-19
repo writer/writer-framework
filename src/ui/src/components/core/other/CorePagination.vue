@@ -178,13 +178,20 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch, onUnmounted, onMounted, Ref } from "vue";
+import {
+	inject,
+	computed,
+	watch,
+	onUnmounted,
+	onMounted,
+	useTemplateRef,
+} from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const instancePath = inject(injectionKeys.instancePath);
 
 const { handleInput: handlePageInput } = useFormValueBroker(

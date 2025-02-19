@@ -24,7 +24,10 @@ import { PropType } from "vue";
 import WdsTab from "./WdsTab.vue";
 
 defineProps({
-	tabs: { type: Array as PropType<WdsTabOptions[]>, required: true },
+	tabs: {
+		type: Array as PropType<WdsTabOptions[] | Readonly<WdsTabOptions[]>>,
+		required: true,
+	},
 });
 
 const selected = defineModel({ type: String });

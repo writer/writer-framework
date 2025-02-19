@@ -57,7 +57,6 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
-import { ComponentPublicInstance } from "vue";
 import { buildJsonSchemaForNumberBetween } from "@/constants/validators";
 
 const description =
@@ -127,13 +126,13 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { Ref, computed, inject, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const rootInstance = ref<ComponentPublicInstance | null>(null);
-const unitsEl: Ref<HTMLElement> = ref(null);
+const rootInstance = useTemplateRef("rootInstance");
+const unitsEl = useTemplateRef("unitsEl");
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const provisionalValue: Ref<number> = ref(null);

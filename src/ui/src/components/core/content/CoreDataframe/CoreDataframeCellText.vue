@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
+import { nextTick, ref, useTemplateRef } from "vue";
 import BaseMarkdown from "../../base/BaseMarkdown.vue";
 
 const props = defineProps({
@@ -12,8 +12,8 @@ const emits = defineEmits({
 	change: (value: string) => typeof value === "string",
 });
 
-const wrapper = ref<HTMLDivElement | undefined>();
-const textarea = ref<HTMLTextAreaElement | undefined>();
+const wrapper = useTemplateRef("wrapper");
+const textarea = useTemplateRef("textarea");
 const isEditing = ref(false);
 const height = ref<number | undefined>();
 

@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, ref, ComponentInstance, toRef, watch } from "vue";
+import { computed, PropType, toRef, watch, useTemplateRef } from "vue";
 import BaseInputRangeThumb from "./BaseInputSliderThumb.vue";
 import BaseInputSliderLayout from "./BaseInputSliderLayout.vue";
 import { useBoundingClientRect } from "@/composables/useBoundingClientRect";
@@ -50,8 +50,8 @@ const props = defineProps({
 
 const model = defineModel("value", { type: Number, default: 50 });
 
-const slider = ref<HTMLElement>();
-const thumb = ref<ComponentInstance<typeof BaseInputRangeThumb>>();
+const slider = useTemplateRef("slider");
+const thumb = useTemplateRef("thumb");
 
 const displayValue = useNumberFormatByStep(model, toRef(props, "step"));
 

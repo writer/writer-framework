@@ -22,6 +22,7 @@ exports[`CoreRadioInput > should render value from the state and forward emit 1`
       data-v-d075b11d=""
     >
       <input
+        checked=""
         data-v-d075b11d=""
         id="component-id-test:0-option-a"
         name="component-id-test:0-options"

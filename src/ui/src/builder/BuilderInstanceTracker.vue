@@ -4,7 +4,15 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, Ref, ref, toRefs } from "vue";
+import {
+	nextTick,
+	onMounted,
+	onUnmounted,
+	Ref,
+	ref,
+	toRefs,
+	useTemplateRef,
+} from "vue";
 
 const REFRESH_INTERVAL_MS = 200;
 
@@ -33,7 +41,7 @@ type RootStyle = {
 
 const rootStyle: Ref<RootStyle> = ref(null);
 const timerId = ref(0);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const MIN_TOP_PX = 36;
 
 const trackElement = (el: HTMLElement) => {
