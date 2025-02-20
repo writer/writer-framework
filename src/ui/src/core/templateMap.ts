@@ -1,7 +1,7 @@
 import type { Component as VueComponent } from "vue";
 // Maps Writer Framework component types to renderable Vue components
 // content
-import CoreDataframe from "../components/core/content/CoreDataframeLegacy.vue";
+import CoreDataframe from "../components/core/content/CoreDataframe.vue";
 import CoreHeading from "../components/core/content/CoreHeading.vue";
 import CoreIcon from "../components/core/content/CoreIcon.vue";
 import CoreImage from "../components/core/content/CoreImage.vue";
