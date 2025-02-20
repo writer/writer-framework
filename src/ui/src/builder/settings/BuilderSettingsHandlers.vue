@@ -338,23 +338,27 @@ async function createLinkedWorkflow(refEventType: string) {
 	const workflowId = createAndInsertComponent(
 		"workflows_workflow",
 		"workflows_root",
-	);
-	createAndInsertComponent(
-		"workflows_uieventtrigger",
-		workflowId,
 		undefined,
-		{
-			content: {
-				alias: `${name} - ${refEventType}`,
-				refComponentId: component.value.id,
-				refEventType,
-			},
-			x: 48,
-			y: 200,
+		undefined,
+		(parentId) => {
+			createAndInsertComponent(
+				"workflows_uieventtrigger",
+				parentId,
+				undefined,
+				{
+					content: {
+						alias: `${name} - ${refEventType}`,
+						refComponentId: component.value.id,
+						refEventType,
+					},
+					x: 96,
+					y: 96,
+				},
+			);
 		},
 	);
+
 	wf.setActivePageId(workflowId);
-	await nextTick();
 	wfbm.setMode("workflows");
 	wfbm.setSelection(workflowId);
 }

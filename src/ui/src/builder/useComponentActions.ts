@@ -128,10 +128,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		parentId: Component["id"],
 		position?: number,
 		initProperties?: Partial<
-			Omit<
-				Component,
-				"id" | "type" | "parent" | "handlers" | "position"
-			>
+			Omit<Component, "id" | "type" | "parent" | "handlers" | "position">
 		>,
 	) {
 		const newId = generateNewComponentId();
@@ -139,7 +136,8 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		const { fields } = definition;
 		const initContent = {};
 		Object.entries(fields ?? {}).map(([fieldKey, field]) => {
-			initContent[fieldKey] = initProperties?.["content"]?.[fieldKey] ?? field.init;
+			initContent[fieldKey] =
+				initProperties?.["content"]?.[fieldKey] ?? field.init;
 		});
 
 		const component = {
@@ -168,11 +166,9 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		parentId: Component["id"],
 		position?: number,
 		initProperties?: Partial<
-			Omit<
-				Component,
-				"id" | "type" | "parent"  | "handlers" | "position"
-			>
+			Omit<Component, "id" | "type" | "parent" | "handlers" | "position">
 		>,
+		initializer?: (parentId: Component["id"]) => void,
 	): Component["id"] {
 		const component = createComponent(
 			type,
@@ -184,6 +180,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Create`);
 		wf.addComponent(component);
 		repositionHigherSiblings(component.id, 1);
+		initializer?.(component.id);
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
