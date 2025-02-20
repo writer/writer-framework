@@ -339,7 +339,7 @@ async function createLinkedWorkflow(refEventType: string) {
 		"workflows_workflow",
 		"workflows_root",
 	);
-	const triggerId = createAndInsertComponent(
+	createAndInsertComponent(
 		"workflows_uieventtrigger",
 		workflowId,
 		undefined,
