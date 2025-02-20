@@ -22,15 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	inject,
-	ref,
-	computed,
-	watch,
-	ComputedRef,
-	onBeforeMount,
-	onMounted,
-} from "vue";
+import { inject, ref, computed, watch, onBeforeMount, onMounted } from "vue";
 import { Component } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
@@ -48,11 +40,9 @@ const wfbm = inject(injectionKeys.builderManager);
 const templateEvaluator = useEvaluator(wf);
 const importedModulesSpecifiers: Record<string, string> = {};
 
-const activeRootId: ComputedRef<Component["id"]> = computed(() => {
-	if (!wfbm) return "root";
-	if (wfbm.getMode() == "workflows") return "workflows_root";
-	return "root";
-});
+const activeRootId = computed<Component["id"]>(
+	() => wfbm?.activeRootId.value ?? "root",
+);
 
 const coreRootFields = templateEvaluator.getEvaluatedFields([
 	{ componentId: "root", instanceNumber: 0 },

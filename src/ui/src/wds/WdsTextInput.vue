@@ -1,14 +1,26 @@
 <template>
 	<div
-		v-if="leftIcon"
+		v-if="leftIcon || enableClearButton"
 		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
 		:class="{ 'WdsTextInput--ghost': variant === 'ghost' }"
 		v-bind="$attrs"
 		:aria-invalid="invalid"
+		:style="{
+			gridTemplateColumns: gridTemplateColumns,
+		}"
 		@click="focus"
 	>
-		<i class="material-symbols-outlined">{{ leftIcon }}</i>
+		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
 		<input ref="input" v-model="model" v-bind="$attrs" />
+		<p v-if="rightText" class="WdsTextInput__rightText">{{ rightText }}</p>
+		<button
+			v-if="enableClearButton && model"
+			class="WdsTextInput__clearBtn"
+			type="button"
+			@click="model = ''"
+		>
+			<i class="material-symbols-outlined">close</i>
+		</button>
 	</div>
 	<input
 		v-else
@@ -22,17 +34,19 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, useTemplateRef } from "vue";
+import { computed, PropType, useTemplateRef } from "vue";
 
 const model = defineModel({ type: String });
 
 // disable attributes inheritance to apply attr to nested input
 defineOptions({ inheritAttrs: false });
 
-defineProps({
+const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
 	invalid: { type: Boolean, required: false },
 	variant: { type: String as PropType<"ghost">, default: undefined },
+	enableClearButton: { type: Boolean, required: false },
+	rightText: { type: String, required: false, default: "" },
 });
 
 defineExpose({
@@ -44,6 +58,17 @@ defineExpose({
 });
 
 const input = useTemplateRef("input");
+
+const gridTemplateColumns = computed(() =>
+	[
+		props.leftIcon ? "auto" : undefined,
+		"1fr",
+		props.rightText ? "auto" : undefined,
+		props.enableClearButton ? "auto" : undefined,
+	]
+		.filter(Boolean)
+		.join(" "),
+);
 
 function setSelectionStart(value: number) {
 	if (input.value) input.value.selectionStart = value;
@@ -108,7 +133,7 @@ function focus() {
 
 .WdsTextInput--leftIcon {
 	cursor: pointer;
-	display: flex;
+	display: grid;
 	align-items: center;
 	gap: 8px;
 }
@@ -127,6 +152,19 @@ function focus() {
 	border: none;
 	box-shadow: none;
 	outline: none;
+}
+
+.WdsTextInput__clearBtn {
+	border: none;
+	background-color: transparent;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+.WdsTextInput__rightText {
+	padding-left: 8px;
+	border-left: 2px solid var(--separatorColor);
 }
 
 .WdsTextInput[aria-invalid="true"] {

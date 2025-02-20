@@ -132,7 +132,7 @@ function toggleMiniMap() {
 	isMiniMapShown.value = !isMiniMapShown.value;
 }
 
-function handleAutoArrange(ev: MouseEvent) {
+function handleAutoArrange() {
 	emit("autoArrange");
 }
 

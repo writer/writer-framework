@@ -102,13 +102,30 @@ export function generateBuilderManager() {
 	let mutationTransactionOffset = 0;
 	const mutationTransactions: ComponentMutationTransaction[] = [];
 
+	/**
+	 * @deprecated use {@link mode} instead
+	 */
 	const setMode = (newMode: State["mode"]): void => {
 		state.value.mode = newMode;
 	};
 
+	/**
+	 * @deprecated use {@link mode} instead
+	 */
 	const getMode = () => {
 		return state.value.mode;
 	};
+
+	const mode = computed<State["mode"]>({
+		get: () => state.value.mode,
+		set(newValue) {
+			state.value.mode = newValue;
+		},
+	});
+
+	const activeRootId = computed<Component["id"]>(() =>
+		mode.value == "workflows" ? "workflows_root" : "root",
+	);
 
 	const setSelection = (
 		componentId: Component["id"] | null,
@@ -361,6 +378,8 @@ export function generateBuilderManager() {
 	const builder = {
 		setMode,
 		getMode,
+		mode,
+		activeRootId,
 		openPanels: ref(new Set<"code" | "log">()),
 		isSettingsBarCollapsed: ref(false),
 		isComponentIdSelected,

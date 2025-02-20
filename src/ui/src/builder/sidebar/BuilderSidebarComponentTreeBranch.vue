@@ -53,7 +53,6 @@
 
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { Component } from "@/writerTypes";
 import {
 	ComponentPublicInstance,
 	computed,
@@ -68,6 +67,12 @@ import { useDragDropComponent } from "../useDragDropComponent";
 import { useComponentActions } from "../useComponentActions";
 
 import TreeBranch from "../BuilderTree.vue";
+import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
+
+const props = defineProps({
+	componentId: { type: String, required: true },
+	query: { type: String, required: false, default: "" },
+});
 
 const treeBranch = ref<ComponentPublicInstance<typeof TreeBranch>>();
 
@@ -86,27 +91,23 @@ const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 const { isComponentVisible } = useEvaluator(wf);
 const emit = defineEmits(["expandBranch"]);
 
-const matched = computed(() => {
-	const q = props.query?.toLocaleLowerCase();
-	if (!q) return true;
-	if (def.value?.name.toLocaleLowerCase().includes(q)) return true;
+const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
-	const matchingFields = Object.values(component.value.content).filter(
-		(fieldContent) => fieldContent.toLocaleLowerCase().includes(q),
-	);
-	if (matchingFields.length > 0) return true;
+const component = computed(() => wf.getComponentById(props.componentId));
 
-	return false;
-});
+const { hasMatchingChildren, matched } = useComponentsTreeSearchForComponent(
+	wf,
+	q,
+	component,
+);
 
-const props = defineProps<{
-	componentId: Component["id"];
-	query?: string;
-}>();
-
-const component = computed(() => {
-	return wf.getComponentById(props.componentId);
-});
+watch(
+	hasMatchingChildren,
+	(value) => treeBranch.value?.toggleCollapse(!value),
+	{
+		immediate: true,
+	},
+);
 
 const children = computed(() => {
 	return wf.getComponents(props.componentId, { sortedByPosition: true });
