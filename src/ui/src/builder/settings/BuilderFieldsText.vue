@@ -69,15 +69,14 @@ const predefinedOptionFns = {
 		return options;
 	},
 	uiComponentsWithEvents: () => {
-		const uiComponents = wf
+		return wf
 			.getComponents(undefined, { sortedByPosition: true })
 			.filter((c) => wf.isChildOf("root", c.id))
-			.filter((c) => Boolean(wf.getComponentDefinition(c.type).events));
-		const options = {};
-		uiComponents.forEach((component) => {
-			options[component.id] = component.id;
-		});
-		return options;
+			.filter((c) => Boolean(wf.getComponentDefinition(c.type).events))
+			.reduce((acc, component) => {
+				acc[component.id] = [component.id]
+				return acc;
+			}, {});
 	},
 	eventTypes: (core: typeof wf, componentId: Component["id"]) => {
 		const refComponentId =
