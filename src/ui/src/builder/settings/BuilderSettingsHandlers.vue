@@ -32,7 +32,7 @@
 				</div>
 				<WdsButton
 					variant="tertiary"
-					@click="() => createLinkedWorkflow(eventType)"
+					@click="createLinkedWorkflow(eventType)"
 				>
 					<i class="material-symbols-outlined">add</i>Create linked
 					workflow
