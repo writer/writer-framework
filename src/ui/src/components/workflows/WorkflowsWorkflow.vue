@@ -502,6 +502,19 @@ function moveNode(ev: MouseEvent) {
 	const translationX = newX - component.x;
 	const translationY = newY - component.y;
 
+	const isMovingNodeSelected = wfbm.selection.value.some(
+		(c) => c.componentId === nodeId,
+	);
+
+	if (!isMovingNodeSelected) {
+		// if the user moves a node that is not selected, we don't move other selected nodes
+		temporaryNodeCoordinates.value = {
+			...temporaryNodeCoordinates.value,
+			[nodeId]: { x: newX, y: newY },
+		};
+		return;
+	}
+
 	// apply the same vector to other selected components
 	const otherSelectedComponents = wfbm.selection.value
 		.map((c) => wf.getComponentById(c.componentId))
