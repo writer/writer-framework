@@ -127,6 +127,8 @@ const fields = inject(injectionKeys.evaluatedFields);
 
 function handleKeydown(ev: KeyboardEvent) {
 	const ssEv = getKeydown(ev);
+	const targetEl = ev.target as HTMLElement;
+	if (!rootEl.value.contains(targetEl)) return;
 	rootEl.value.dispatchEvent(ssEv);
 }
 

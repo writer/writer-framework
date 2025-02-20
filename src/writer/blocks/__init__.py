@@ -7,6 +7,7 @@ from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
 from writer.blocks.runworkflow import RunWorkflow
 from writer.blocks.setstate import SetState
+from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writerchat import WriterChat
@@ -31,3 +32,4 @@ AddToStateList.register("workflows_addtostatelist")
 ReturnValue.register("workflows_returnvalue")
 WriterInitChat.register("workflows_writerinitchat")
 WriterAddToKG.register("workflows_writeraddtokg")
+UIEventTrigger.register("workflows_uieventtrigger")

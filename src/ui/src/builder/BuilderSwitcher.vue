@@ -9,7 +9,6 @@
 			UI
 		</div>
 		<div
-			v-if="isWorkflowsFeatureFlagged"
 			data-automation-action="set-mode-workflows"
 			:class="{ active: activeId == 'workflows' }"
 			@click="selectOption('workflows')"
@@ -32,12 +31,7 @@
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-
-const isWorkflowsFeatureFlagged = computed(() =>
-	wf.featureFlags.value.includes("workflows"),
-);
 
 let selectedId: Ref<string> = ref(null);
 

@@ -1687,6 +1687,8 @@ class EventHandler:
             target_id = instance_path[-1]["componentId"]
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
+            calling_arguments = self._get_calling_arguments(ev, instance_path)
+            self.workflow_runner.execute_ui_trigger(target_id, ev.type, calling_arguments)
             if not target_component.handlers:
                 return None
             handler = target_component.handlers.get(ev.type)
@@ -1695,7 +1697,6 @@ class EventHandler:
             handler_callable = self._get_handler_callable(handler)
             if not handler_callable:
                 return
-            calling_arguments = self._get_calling_arguments(ev, instance_path)
             return self._call_handler_callable(handler_callable, calling_arguments)
         except BaseException as e:
             self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
