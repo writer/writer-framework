@@ -240,7 +240,7 @@ export default {
 						wf.forwardEvent(ev, instancePath, true);
 					}
 					const handlerFunction =
-						component.value.handlers?.[eventType];
+						component.value.handlers?.[eventType] ?? null;
 					getHandlerCallable(handlerFunction, isBinding)?.(ev);
 				};
 			});
