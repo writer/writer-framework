@@ -74,7 +74,7 @@ const predefinedOptionFns = {
 			.filter((c) => wf.isChildOf("root", c.id))
 			.filter((c) => Boolean(wf.getComponentDefinition(c.type).events))
 			.reduce((acc, component) => {
-				acc[component.id] = [component.id]
+				acc[component.id] = [component.id];
 				return acc;
 			}, {});
 	},
