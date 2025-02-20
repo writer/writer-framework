@@ -9,6 +9,7 @@ const props = defineProps({
 	value: { validator: () => true, required: true },
 	useMarkdown: { type: Boolean, required: false },
 	editable: { type: Boolean, required: false },
+	wrapText: { type: Boolean, required: false },
 });
 
 defineEmits({
@@ -36,6 +37,7 @@ const component = computed(() => {
 		:value="value"
 		:use-markdown="useMarkdown"
 		:editable="editable"
+		:wrap-text="wrapText"
 		@change="$emit('change', $event)"
 	/>
 </template>

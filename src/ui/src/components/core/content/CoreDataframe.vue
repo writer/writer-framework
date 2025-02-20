@@ -18,30 +18,33 @@
 				<i class="material-symbols-outlined">download</i>
 			</WdsControl>
 		</div>
-		<div ref="gridContainerEl" class="gridContainer" @scroll="handleScroll">
+		<div
+			ref="gridContainerEl"
+			class="CoreDataframe__tableWrapper"
+			@scroll="handleScroll"
+		>
 			<div
-				class="grid"
+				class="CoreDataframe__table"
 				:style="gridStyle"
 				:class="{
 					scrolled: rowOffset > 0,
-					wrapText: fields.wrapText.value === 'yes',
+					wrapText: wrapText,
 				}"
 			>
 				<div
-					:style="{
-						display: 'grid',
-						'grid-template-columns': gridTemplateColumns,
-					}"
+					class="CoreDataframe__table__row CoreDataframe__table__row--head"
 				>
-					<div v-if="hasActions"></div>
-
+					<div
+						class="CoreDataframe__table__th CoreDataframeRow__spacer"
+					></div>
 					<div
 						v-if="isIndexShown"
 						data-writer-grid-col="0"
-						class="cell headerCell indexCell"
+						class="CoreDataframe__table__th CoreDataframe__table__th--index"
 					>
-						<div class="name"></div>
-						<div class="widthAdjuster"></div>
+						<span class="widthAdjuster material-symbols-outlined">
+							drag_indicator
+						</span>
 					</div>
 					<div
 						v-for="(columnName, columnPosition) in shownColumnNames"
@@ -49,32 +52,38 @@
 						:data-writer-grid-col="
 							columnPosition + (isIndexShown ? 1 : 0)
 						"
-						class="cell headerCell"
-						@click="handleSetOrder($event, columnName)"
+						class="CoreDataframe__table__th"
 					>
-						<div class="name">
-							{{ columnName }}
-						</div>
-						<div
-							v-show="orderSetting?.columnName == columnName"
-							class="icon"
+						<button
+							type="button"
+							class="CoreDataframe__table__th__name"
+							@click="handleSetOrder($event, columnName)"
 						>
-							<span class="material-symbols-outlined">{{
+							{{ columnName }}
+						</button>
+						<span
+							v-if="orderSetting?.columnName == columnName"
+							class="CoreDataframe__table__th__icon material-symbols-outlined"
+							>{{
 								orderSetting?.descending
-									? "arrow_upward"
-									: "arrow_downward"
-							}}</span>
-						</div>
-						<div class="widthAdjuster"></div>
+									? "arrow_drop_up"
+									: "arrow_drop_down"
+							}}</span
+						>
+						<span class="widthAdjuster material-symbols-outlined">
+							drag_indicator
+						</span>
 					</div>
+					<div
+						v-if="hasActions"
+						class="CoreDataframe__table__th CoreDataframe__table__th--stickyRight"
+					></div>
 				</div>
 
 				<CoreDataframeRow
 					v-for="(row, rowNumber) in slicedTable?.data"
 					:key="rowNumber"
-					:style="{
-						'grid-template-columns': gridTemplateColumns,
-					}"
+					class="CoreDataframe__table__row"
 					:row="row"
 					:actions="actions"
 					:use-markdown="useMarkdown"
@@ -85,20 +94,11 @@
 						slicedTable.indices[rowNumber] ??
 						indexColumnNames.map((c) => row[c]).join(', ')
 					"
+					:display-shadow-on-sticky="displayShadowOnSticky"
+					:wrap-text="wrapText"
 					@action="handleActionRow"
 					@change="handleUpdateCell"
 				/>
-				<div v-if="enableRecordAdd" class="CoreDataframe__newRow cell">
-					<WdsButton
-						aria-label="Create a new row at the end"
-						size="small"
-						variant="tertiary"
-						@click="handleAddRow"
-					>
-						<i class="material-symbols-outlined">add</i>
-						Add a row
-					</WdsButton>
-				</div>
 			</div>
 			<div
 				v-if="isRowCountMassive"
@@ -106,11 +106,29 @@
 				:style="endpointStyle"
 			></div>
 		</div>
+		<div v-if="enableRecordAdd" class="CoreDataframe__newRow">
+			<WdsButton
+				aria-label="Create a new row at the end"
+				size="small"
+				variant="tertiary"
+				@click="onAddRow"
+			>
+				<i class="material-symbols-outlined">add</i>
+				Add a row
+			</WdsButton>
+		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { computed, inject, ref, shallowRef, useTemplateRef } from "vue";
+import {
+	computed,
+	CSSProperties,
+	inject,
+	ref,
+	shallowRef,
+	useTemplateRef,
+} from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import CoreDataframeRow from "./CoreDataframe/CoreDataframeRow.vue";
 import {
@@ -316,8 +334,7 @@ import type { Table } from "apache-arrow";
  * to prevent filling the DOM with unnecessary rows.
  */
 const MASSIVE_ROW_COUNT = 1000;
-const ROW_HEIGHT_PX = 36; // Must match CSS
-const ROW_ADD_RECORD_HEIGHT_PX = 58;
+const ROW_HEIGHT_PX = 48; // Must match CSS
 const MIN_COLUMN_WIDTH_PX = 80;
 const MAX_COLUMN_AUTO_WIDTH_PX = 300;
 
@@ -349,6 +366,14 @@ const {
 	handleActionRow,
 	isBusy: isUpdatingBusy,
 } = useDataFrameValueBroker(wf, instancePath, rootEl, table);
+
+async function onAddRow() {
+	await handleAddRow();
+	gridContainerEl.value.scrollTo({
+		behavior: "smooth",
+		top: ROW_HEIGHT_PX * rowCount.value,
+	});
+}
 
 const isBusy = computed(() => isLoadingData.value || isUpdatingBusy.value);
 
@@ -388,10 +413,11 @@ const enableRecordUpdate = computed(
 	() => fields.enableRecordUpdate.value == "yes",
 );
 const enableRecordAdd = computed(() => fields.enableRecordAdd.value == "yes");
+const wrapText = computed(() => fields.wrapText.value === "yes");
 
 const rowOffset = computed(() => {
 	let maxOffset: number;
-	if (fields.wrapText.value == "yes") {
+	if (wrapText.value) {
 		maxOffset = rowCount.value - 1;
 	} else {
 		maxOffset = rowCount.value - displayRowCount.value;
@@ -412,33 +438,38 @@ const slicedTable = computed(() => {
 	const data = table.value.objects({ offset, limit });
 	const indices = table.value
 		.indices()
-		.slice(rowOffset.value, rowOffset.value + displayRowCount.value);
+		.slice(offset, rowOffset.value + displayRowCount.value);
 
 	return { data, indices };
 });
 
 const gridTemplateColumns = computed(() => {
-	let columns = hasActions.value ? "16px " : "";
+	let columns = "16px ";
 
 	if (columnWidths.value.length == 0) {
-		columns += `repeat(${columnCount.value}, minmax(min-content, 1fr))`;
+		if (isIndexShown.value) columns += "75px ";
+		columns += `repeat(${shownColumnNames.value.length}, minmax(min-content, 1fr)) `;
 	} else {
 		columns += columnWidths.value
-			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px`)
+			.map((cw) => `${Math.max(cw, MIN_COLUMN_WIDTH_PX)}px `)
 			.join(" ");
 	}
+	if (hasActions.value) columns += "40px ";
 
 	return columns;
 });
 
-const gridStyle = computed(() => {
+const gridStyle = computed<CSSProperties>(() => {
 	const fontStyle = fields.fontStyle.value;
+	const height = `${(1 + fields.displayRowCount.value) * ROW_HEIGHT_PX}px`;
 
 	return {
-		"min-height": `${(1 + fields.displayRowCount.value + Number(enableRecordAdd.value ?? false)) * ROW_HEIGHT_PX}px`,
-		"max-height": `${(displayRowCount.value + 1 + Number(enableRecordAdd.value ?? false)) * ROW_HEIGHT_PX}px`,
+		position: isRowCountMassive.value ? "sticky" : "unset",
+		"min-height": `${ROW_HEIGHT_PX}px`,
+		"max-height": height,
 		"font-family": fontStyle == "monospace" ? "monospace" : undefined,
-		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content) ${ROW_ADD_RECORD_HEIGHT_PX}px`,
+		"grid-template-rows": `${ROW_HEIGHT_PX}px repeat(${displayRowCount.value}, min-content)`,
+		"grid-template-columns": gridTemplateColumns.value,
 	};
 });
 
@@ -449,12 +480,32 @@ const endpointStyle = computed(() => {
 	};
 });
 
+const displayShadowOnSticky = ref(false);
+
+function refreshDisplayShadowOnSticky() {
+	const hasScroll =
+		gridContainerEl.value.scrollWidth > gridContainerEl.value.clientWidth;
+
+	if (!hasScroll) {
+		displayShadowOnSticky.value = false;
+		return;
+	}
+
+	const isScrolledToRight =
+		gridContainerEl.value.scrollLeft + gridContainerEl.value.clientWidth >=
+		gridContainerEl.value.scrollWidth;
+
+	displayShadowOnSticky.value = !isScrolledToRight;
+}
+watch(columnWidths, refreshDisplayShadowOnSticky);
+
 function handleScroll() {
 	const scrollTop = gridContainerEl.value.scrollTop;
 	relativePosition.value =
 		scrollTop /
 		(gridContainerEl.value.scrollHeight -
 			gridContainerEl.value.clientHeight);
+	refreshDisplayShadowOnSticky();
 }
 
 function resetScroll() {
@@ -467,13 +518,15 @@ async function recalculateColumnWidths() {
 	const columnHeadersEls = gridContainerEl.value?.querySelectorAll(
 		"[data-writer-grid-col]",
 	);
+	const newWidths = [];
 	columnHeadersEls?.forEach((headerEl) => {
 		const headerHTMLEl = headerEl as HTMLElement;
 		const columnPosition = headerHTMLEl.dataset.writerGridCol;
 		const { width: autoWidth } = headerHTMLEl.getBoundingClientRect();
 		const newWidth = Math.min(autoWidth, MAX_COLUMN_AUTO_WIDTH_PX);
-		columnWidths.value[columnPosition] = newWidth;
+		newWidths[columnPosition] = newWidth;
 	});
+	columnWidths.value = newWidths;
 }
 
 function handleSetOrder(ev: MouseEvent, columnName: string) {
@@ -608,7 +661,9 @@ async function handleWidthAdjust(ev: MouseEvent) {
 		columnBeingWidthAdjusted === null &&
 		targetEl.classList.contains("widthAdjuster")
 	) {
-		const adjustedColEl = targetEl.closest(".cell") as HTMLElement;
+		const adjustedColEl = targetEl.closest(
+			".CoreDataframe__table__th",
+		) as HTMLElement;
 		columnBeingWidthAdjusted = parseInt(
 			adjustedColEl.dataset.writerGridCol,
 		);
@@ -619,11 +674,9 @@ async function handleWidthAdjust(ev: MouseEvent) {
 	const colEl = gridContainerEl.value.querySelector(
 		`[data-writer-grid-col="${columnBeingWidthAdjusted}"]`,
 	);
-	const adjusterEl = colEl.querySelector(".widthAdjuster");
-	const { width: adjusterWidth } = adjusterEl.getBoundingClientRect();
 	const { left: colLeft } = colEl.getBoundingClientRect();
 	const mouseX = ev.clientX;
-	const newWidth = mouseX - colLeft + adjusterWidth / 2;
+	const newWidth = mouseX - colLeft;
 	columnWidths.value[columnBeingWidthAdjusted] = newWidth;
 }
 
@@ -639,7 +692,7 @@ watch(columnCount, () => {
 	recalculateColumnWidths();
 });
 
-watch(fields.wrapText, () => {
+watch(wrapText, () => {
 	recalculateColumnWidths();
 });
 
@@ -661,6 +714,11 @@ onUnmounted(() => {
 @import "@/renderer/sharedStyles.css";
 @import "@/renderer/colorTransformations.css";
 
+/* remove the background if the dataframe is being selected in builder mode */
+.CoreDataframe.selected {
+	--dataframeBackgroundColor: var(--builderSelectedColor) !important;
+}
+
 .CoreDataframe {
 	font-size: 0.8rem;
 	width: 100%;
@@ -670,18 +728,7 @@ onUnmounted(() => {
 	display: flex;
 	align-self: center;
 	justify-content: center;
-}
-.CoreDataframe__newRow__btn {
-	cursor: pointer;
-
-	background-color: var(--separatorColor);
-	border: 1px solid var(--emptinessColor);
-	height: 16px;
-	width: 16px;
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	padding: 8.5px 17px;
 }
 
 .tools {
@@ -703,21 +750,16 @@ onUnmounted(() => {
 	border-radius: 8px;
 }
 
-.gridContainer {
+.CoreDataframe__tableWrapper {
 	background: var(--dataframeBackgroundColor);
 	position: relative;
 	overflow: auto;
 	max-height: 90vh;
 }
 
-/* remove the background if the dataframe is being selected in builder mode */
-.CoreDataframe.selected .gridContainer {
-	background: unset;
-}
-
-.grid {
+.CoreDataframe__table {
+	display: grid;
 	margin-bottom: -1px;
-	position: v-bind("isRowCountMassive ? 'sticky': 'unset'");
 	top: 0;
 	display: grid;
 }
@@ -728,70 +770,90 @@ onUnmounted(() => {
 	width: 1px;
 	background: red;
 }
-</style>
 
-<style>
-.cell {
-	min-height: 36px;
-	padding: 8px;
-	overflow: hidden;
-	color: var(--primaryTextColor);
+.CoreDataframe__table__row {
 	border-bottom: 1px solid var(--separatorColor);
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: subgrid;
+}
+.CoreDataframe__table.scrolled .CoreDataframe__table__row--head {
+	box-shadow: var(--wdsShadowMenu);
+}
+
+.CoreDataframe__table__th {
+	padding: 8.5px 17px;
+	color: var(--primaryTextColor);
+	border-left: 1px solid var(--separatorColor);
 	display: flex;
-	align-items: start;
+	align-items: center;
 	white-space: nowrap;
+	gap: 8px;
+	user-select: none;
+	position: relative;
+}
+
+.CoreDataframe__table__th:first-child,
+.CoreDataframe__table__th:nth-child(2) {
+	border-left: unset;
+}
+
+.CoreDataframe__table.wrapText .CoreDataframe__table__th {
+	white-space: unset;
+}
+
+.CoreDataframe__table__th__name {
 	font-size: 0.75rem;
+	text-align: left;
+	background-color: transparent;
+	border: none;
+	font-size: inherit;
+	cursor: pointer;
+	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.grid.wrapText .cell {
-	white-space: pre-wrap;
+.CoreDataframe__table__th__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 18px;
+	width: 18px;
+	border-radius: 50%;
+	background-color: var(--wdsColorGray1);
 }
 
-.cell.headerCell {
-	padding: 0;
-	cursor: pointer;
-	gap: 8px;
-	user-select: none;
-	font-size: 0.875rem;
-	font-weight: 400;
-	margin-bottom: 12px;
-	border-bottom: none;
-	top: 0;
+.CoreDataframe__table__th--index {
+	color: var(--secondaryTextColor);
+}
+.CoreDataframe__table__th--stickyRight {
+	border-left: 1px solid var(--separatorColor);
+	background-color: var(--dataframeBackgroundColor);
+	position: sticky;
+	right: 0px;
+	width: 40px;
 	z-index: 1;
 }
 
-.grid.scrolled .cell.headerCell {
-	box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.05);
-}
+.widthAdjuster {
+	display: block;
+	cursor: col-resize;
+	width: 18px;
+	height: 18px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	transform: translateX(50%);
+	z-index: 1;
 
-.cell .name {
-	padding: 8px;
-	flex: 1 1 auto;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.cell .icon {
-	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
-	visibility: hidden;
-}
+	justify-content: center;
 
-.cell .widthAdjuster {
-	cursor: col-resize;
-	min-width: 16px;
-	flex: 0 0 16px;
-	height: 100%;
-	margin-right: -1px;
+	background-color: var(--dataframeBackgroundColor);
+	color: var(--wdsColorGray4);
 }
-
-.cell:hover .widthAdjuster {
-	background-color: var(--separatorColor);
-}
-
-.indexCell {
-	color: var(--secondaryTextColor);
+.widthAdjuster:hover {
+	color: var(--wdsColorBlack);
 }
 </style>
