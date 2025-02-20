@@ -25,8 +25,8 @@ class MockAppProcess():
     def __init__(self):
         self.handler_registry = MockHandlerRegistry()
 
-def test_call_event_handler(session, runner):
-    writer.core.get_app_process = lambda: MockAppProcess()
+def test_call_event_handler(session, runner, monkeypatch):
+    monkeypatch.setattr("writer.core.get_app_process", lambda: MockAppProcess())
     session.add_fake_component({
         "name": "valid_handler"
     })
@@ -36,8 +36,8 @@ def test_call_event_handler(session, runner):
     assert block.result == 1
     assert session.session_state["animal"] == "duck"
 
-def test_invalid_json(session, runner):
-    writer.core.get_app_process = lambda: MockAppProcess()
+def test_invalid_json(session, runner, monkeypatch):
+    monkeypatch.setattr("writer.core.get_app_process", lambda: MockAppProcess())
     session.add_fake_component({
         "name": "invalid_handler"
     })

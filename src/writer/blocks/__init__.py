@@ -7,6 +7,7 @@ from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
 from writer.blocks.runworkflow import RunWorkflow
 from writer.blocks.setstate import SetState
+from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writerchat import WriterChat
@@ -14,7 +15,6 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
-from writer.blocks.uieventtrigger import UIEventTrigger
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")

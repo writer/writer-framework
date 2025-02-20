@@ -1,14 +1,13 @@
 import json
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
 import writer.blocks
 import writer.blocks.base_block
-from writer.blocks.base_trigger import WorkflowTrigger
 import writer.core
 import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
-import logging
+
 
 class WorkflowRunner():
 
