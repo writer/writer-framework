@@ -1,15 +1,30 @@
 <template>
 	<div class="WdsDropdownMenu">
 		<div
-			v-if="enableSearch && !loading"
-			class="WdsDropdownMenu__search-wrapper"
+			v-if="(enableSearch || enableMultiSelection) && !loading"
+			class="WdsDropdownMenu__header"
 		>
-			<div class="WdsDropdownMenu__search">
+			<div
+				v-if="enableMultiSelection"
+				class="WdsDropdownMenu__header__multiSelect"
+			>
+				<div class="WdsDropdownMenu__header__multiSelect__count">
+					{{ headerSelectCountText }}
+				</div>
+				<button
+					class="WdsDropdownMenu__header__multiSelect__clear"
+					role="button"
+					@click="$emit('select', [])"
+				>
+					Clear all
+				</button>
+			</div>
+			<div v-if="enableSearch" class="WdsDropdownMenu__header__search">
 				<i class="material-symbols-outlined">search</i>
 				<input
 					ref="searchInput"
 					v-model="searchTerm"
-					class="WdsDropdownMenu__search__input"
+					class="WdsDropdownMenu__header__search__input"
 					type="text"
 					placeholder="Search"
 					autocomplete="off"
@@ -130,10 +145,13 @@ const emits = defineEmits({
 
 const searchTerm = ref("");
 
-function getOptionIcon(option: WdsDropdownMenuOption) {
-	if (props.hideIcons) return "";
-	return option.icon ?? "help_center";
-}
+const headerSelectCountText = computed(() => {
+	const selectedArray = Array.isArray(props.selected)
+		? props.selected
+		: [props.selected];
+	const count = selectedArray.filter(Boolean).length;
+	return `${count}/${props.options.length} selected`;
+});
 
 const optionsFiltered = computed(() => {
 	if (!props.enableSearch) return props.options;
@@ -143,6 +161,11 @@ const optionsFiltered = computed(() => {
 		option.label.toLowerCase().includes(query),
 	);
 });
+
+function getOptionIcon(option: WdsDropdownMenuOption) {
+	if (props.hideIcons) return "";
+	return option.icon ?? "help_center";
+}
 
 function isSelected(value: string) {
 	return Array.isArray(props.selected)
@@ -185,7 +208,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
 }
-.WdsDropdownMenu:has(.WdsDropdownMenu__search-wrapper) {
+.WdsDropdownMenu:has(.WdsDropdownMenu__header) {
 	padding-top: 0px;
 }
 
@@ -253,15 +276,19 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	color: var(--wdsColorGray4);
 }
 
-.WdsDropdownMenu__search-wrapper {
+.WdsDropdownMenu__header {
 	position: sticky;
 	top: 0px;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	background: #fff;
+
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
-.WdsDropdownMenu__search {
+.WdsDropdownMenu__header__search {
 	background-color: var(--wdsColorGray1);
 	border-radius: 4px;
 	height: 36px;
@@ -277,15 +304,15 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 	color: currentcolor;
 }
-.WdsDropdownMenu__search:hover {
+.WdsDropdownMenu__header__search:hover {
 	border-color: var(--wdsColorBlue1);
 }
-.WdsDropdownMenu__search:focus-within {
+.WdsDropdownMenu__header__search:focus-within {
 	background-color: white;
 	outline: 4px solid var(--wdsColorBlue1);
 }
 
-.WdsDropdownMenu__search__input {
+.WdsDropdownMenu__header__search__input {
 	letter-spacing: inherit;
 	color: currentcolor;
 	padding: 4px 0px 5px;
@@ -301,7 +328,28 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	animation-duration: 10ms;
 	appearance: textfield;
 }
-.WdsDropdownMenu__search__input:focus-visible {
+.WdsDropdownMenu__header__search__input:focus-visible {
 	outline: none;
+}
+
+.WdsDropdownMenu__header__multiSelect {
+	display: flex;
+	gap: 12px;
+}
+.WdsDropdownMenu__header__multiSelect__count,
+.WdsDropdownMenu__header__multiSelect__clear {
+	text-transform: uppercase;
+	font-size: 13px;
+}
+.WdsDropdownMenu__header__multiSelect__count {
+	flex-grow: 1;
+	color: var(--wdsColorGray6);
+}
+.WdsDropdownMenu__header__multiSelect__clear {
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	text-align: right;
+	color: var(--wdsColorGray4);
 }
 </style>
