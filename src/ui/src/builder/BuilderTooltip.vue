@@ -183,5 +183,6 @@ onUnmounted(() => {
 	margin: 4px;
 	position: relative;
 	z-index: 1;
+	word-break: break-word;
 }
 </style>
