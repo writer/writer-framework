@@ -1,39 +1,69 @@
 <template>
 	<div class="WdsFieldWrapper colorTransformer">
-		<div v-if="label || helpButton" class="WdsFieldWrapper__title">
-			<label v-if="label" class="WdsFieldWrapper__title__label"
-				>{{ label
-				}}<span v-if="unit" class="WdsFieldWrapper__title__label__unit"
-					>&nbsp;:&nbsp;{{ unit }}</span
-				>
-			</label>
-			<WdsButton
-				v-if="helpButton"
-				class="WdsFieldWrapper__title__help"
-				variant="neutral"
-				size="smallIcon"
-				:data-writer-tooltip="
-					typeof helpButton === 'string' ? helpButton : undefined
-				"
-				@click="$emit('helpClick')"
+		<template v-if="isExpanded">
+			<WdsModal :actions="[OkAction]" :description="hint" :title="label"
+				><slot></slot
+			></WdsModal>
+			<div class="temporaryMissingBar">
+				Field <strong>{{ label }}</strong> is open in a new window.
+			</div>
+		</template>
+		<template v-else>
+			<div
+				v-if="!isExpanded && (label || helpButton)"
+				class="WdsFieldWrapper__title"
 			>
-				<i class="material-symbols-outlined">help</i>
-			</WdsButton>
-		</div>
-		<div class="WdsFieldWrapper__slot"><slot></slot></div>
-		<p v-if="error" class="WdsFieldWrapper__error">{{ error }}</p>
-		<p v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</p>
+				<label v-if="label" class="WdsFieldWrapper__title__label"
+					>{{ label
+					}}<span
+						v-if="unit"
+						class="WdsFieldWrapper__title__label__unit"
+						>&nbsp;:&nbsp;{{ unit }}</span
+					>
+				</label>
+				<WdsButton
+					v-if="isExpansible"
+					class="WdsFieldWrapper__title__help"
+					variant="neutral"
+					size="smallIcon"
+					data-writer-tooltip="Expand"
+					@click="handleExpansion"
+				>
+					<i class="material-symbols-outlined">open_in_new</i>
+				</WdsButton>
+				<WdsButton
+					v-if="helpButton"
+					class="WdsFieldWrapper__title__help"
+					variant="neutral"
+					size="smallIcon"
+					:data-writer-tooltip="
+						typeof helpButton === 'string' ? helpButton : undefined
+					"
+					@click="$emit('helpClick')"
+				>
+					<i class="material-symbols-outlined">help</i>
+				</WdsButton>
+			</div>
+			<div class="WdsFieldWrapper__slot">
+				<slot></slot>
+			</div>
+			<p v-if="error" class="WdsFieldWrapper__error">{{ error }}</p>
+			<p v-if="hint" class="WdsFieldWrapper__hint">{{ hint }}</p>
+		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import WdsButton from "./WdsButton.vue";
+import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 
 defineProps({
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
 	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
+	isExpansible: { type: Boolean, required: false, default: false },
 	helpButton: {
 		type: [String, Boolean],
 		required: false,
@@ -41,9 +71,26 @@ defineProps({
 	},
 });
 
-defineEmits({
+const emits = defineEmits({
 	helpClick: () => true,
+	expand: () => true,
+	shrink: () => true,
 });
+
+const isExpanded = ref(false);
+
+function handleExpansion() {
+	emits("expand");
+	isExpanded.value = true;
+}
+
+const OkAction: ModalAction = {
+	desc: "OK",
+	fn: () => {
+		isExpanded.value = false;
+		emits("shrink");
+	},
+};
 </script>
 
 <style scoped>
@@ -91,5 +138,12 @@ defineEmits({
 
 .WdsFieldWrapper__error {
 	color: var(--builderErrorColor);
+}
+
+.temporaryMissingBar {
+	background: var(--separatorColor);
+	color: var(--secondaryTextColor);
+	padding: 16px;
+	border-radius: 8px;
 }
 </style>
