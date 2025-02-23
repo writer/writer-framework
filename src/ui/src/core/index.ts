@@ -213,12 +213,22 @@ export function generateCore() {
 
 			if (
 				message.messageType == "announcement" &&
-				message.payload.announce == "codeUpdate"
+				message.payload.type == "codeUpdate"
 			) {
 				webSocket.close();
 				initSession();
 				return;
-			} else if (
+			}
+
+			if (
+				message.messageType == "announcement" &&
+				message.payload.type == "mail"
+			) {
+				collateMail(message.payload.payload);
+				return;
+			}
+
+			if (
 				message.messageType == "eventResponse" ||
 				message.messageType == "stateEnquiryResponse"
 			) {
