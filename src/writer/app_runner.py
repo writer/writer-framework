@@ -695,7 +695,6 @@ class AppRunner:
                     }
                 ],
             )
-            # TODO(WF-170): find a way to dispatch log
         except Exception as e:
             logger.warning(f"Unexpected error: {e}")
 
