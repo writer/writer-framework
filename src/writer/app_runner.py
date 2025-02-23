@@ -550,6 +550,7 @@ class AppProcessListener(threading.Thread):
         self.is_app_process_server_ready = is_app_process_server_ready
         self.response_packets = response_packets
         self.response_events = response_events
+        self.logger = logging.getLogger("writer")
 
     def run(self) -> None:
         self.is_app_process_server_ready.wait()
