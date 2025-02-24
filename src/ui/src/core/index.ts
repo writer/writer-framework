@@ -9,9 +9,6 @@ import {
 	MailItem,
 	SourceFiles,
 	UserFunction,
-	WriterGraph,
-	WriterGraphRequest,
-	WriterGraphResponse,
 } from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
