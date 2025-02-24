@@ -13,7 +13,7 @@ See the stubs for more details.
 					v-for="(message, messageId) in messages"
 					:key="messageId"
 					:message="message"
-					:use-markdown="fields.useMarkdown.value == 'yes'"
+					:use-markdown="fields.useMarkdown.value"
 					:assistant-role-color="fields.assistantRoleColor.value"
 					:initials="
 						message.role === 'assistant'
@@ -99,6 +99,7 @@ See the stubs for more details.
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	accentColor,
+	baseYesNoField,
 	buttonColor,
 	buttonTextColor,
 	containerBackgroundColor,
@@ -212,14 +213,10 @@ export default {
 				type: FieldType.Text,
 			},
 			useMarkdown: {
+				...baseYesNoField,
 				name: "Use Markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			enableFileUpload: {
 				name: "Enable file upload",

@@ -3,8 +3,8 @@
 		<SharedJsonViewer
 			:data="data ?? {}"
 			:initial-depth="initialDepth"
-			:enable-copy-to-json="fields.copy.value === 'yes'"
-			:hide-root="fields.hideRoot.value === 'yes'"
+			:enable-copy-to-json="fields.copy.value"
+			:hide-root="fields.hideRoot.value"
 		/>
 	</div>
 </template>
@@ -12,6 +12,7 @@
 <script lang="ts">
 import {
 	accentColor,
+	baseYesNoField,
 	cssClasses,
 	secondaryTextColor,
 	separatorColor,
@@ -61,24 +62,16 @@ const definition: WriterComponentDefinition = {
 			validator: validatorPositiveNumber,
 		},
 		hideRoot: {
+			...baseYesNoField,
 			name: "Hide root",
 			desc: "Don't show the type of the root node when it's an Object or an Array.",
-			type: FieldType.Text,
-			options: {
-				yes: "yes",
-				no: "no",
-			},
 			default: "no",
 			category: FieldCategory.Style,
 		},
 		copy: {
+			...baseYesNoField,
 			name: "Copy",
 			desc: "If active, adds a control bar with copy JSON button.",
-			type: FieldType.Text,
-			options: {
-				yes: "yes",
-				no: "no",
-			},
 			default: "no",
 			category: FieldCategory.Style,
 		},

@@ -74,6 +74,7 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { validatorPositiveNumber } from "@/constants/validators";
+import { baseYesNoField } from "@/renderer/sharedStyleFields";
 
 const pageChangeStub = `
 def handle_page_change(state, payload):
@@ -131,23 +132,15 @@ export default {
 				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option.",
 			},
 			pageSizeShowAll: {
+				...baseYesNoField,
 				name: "Show All Option",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				desc: "Show an option to show all records.",
 			},
 			jumpTo: {
+				...baseYesNoField,
 				name: "Jump To",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				desc: "Show an option to jump to a specific page.",
 			},
 			// Disabled for now, I am waiting functions to manipulate Hash params from the URL
@@ -205,11 +198,9 @@ const { handleInput: handlePageSizeInput } = useFormValueBroker(
 	rootEl,
 );
 const pagesizeEnabled = computed(
-	() =>
-		fields.pageSizeOptions.value !== "" ||
-		fields.pageSizeShowAll.value === "yes",
+	() => fields.pageSizeOptions.value !== "" || fields.pageSizeShowAll.value,
 );
-const jumptoEnabled = computed(() => fields.jumpTo.value === "yes");
+const jumptoEnabled = computed(() => fields.jumpTo.value);
 
 const firstItem = computed(() => {
 	if (fields.totalItems.value == 0) {
@@ -237,7 +228,7 @@ const pageSizeOptions = computed(() => {
 		const n = parseInt(inputs[o], 10);
 		options.push({ value: n, label: `${n} items` });
 	}
-	if (fields.pageSizeShowAll.value === "yes") {
+	if (fields.pageSizeShowAll.value) {
 		options.push({ value: totalItem.value, label: "All items" });
 	}
 

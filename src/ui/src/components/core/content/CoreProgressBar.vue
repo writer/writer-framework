@@ -47,6 +47,7 @@ import {
 	accentColor,
 	primaryTextColor,
 	separatorColor,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 
 const clickHandlerStub = `
@@ -81,14 +82,10 @@ const definition: WriterComponentDefinition = {
 			default: "1",
 		},
 		displayPercentage: {
+			...baseYesNoField,
 			name: "Display percentage",
 			default: "no",
-			type: FieldType.Text,
 			category: FieldCategory.Style,
-			options: {
-				yes: "Yes",
-				no: "No",
-			},
 		},
 		accentColor,
 		primaryTextColor,
@@ -109,7 +106,6 @@ export default { writer: definition };
 <script setup lang="ts">
 import { CSSProperties, computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { useFieldValueAsYesNo } from "@/composables/useFieldValue";
 import { getClick } from "@/renderer/syntheticEvents";
 import { usePercentageFormatter } from "@/composables/useFormatter";
 
@@ -122,7 +118,9 @@ const label = computed(() => String(fields.label?.value));
 const value = computed(() => Number(fields.value.value));
 const min = computed(() => Number(fields.min.value));
 const max = computed(() => Number(fields.max.value));
-const displayPercentage = useFieldValueAsYesNo(fields, "displayPercentage");
+const displayPercentage = computed(() =>
+	Boolean(fields.displayPercentage.value),
+);
 
 const progression = computed<number | undefined>(() => {
 	if (value.value === undefined || Number.isNaN(value.value)) {

@@ -54,7 +54,10 @@
 					></BuilderFieldsKeyValue>
 
 					<BuilderFieldsText
-						v-if="fieldValue.type == FieldType.Text"
+						v-if="
+							fieldValue.type == FieldType.Text ||
+							fieldValue.type == FieldType.Boolean
+						"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"

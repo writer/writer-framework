@@ -10,7 +10,7 @@
 				/>
 			</div>
 			<WdsControl
-				v-if="fields.enableDownload.value === 'yes'"
+				v-if="fields.enableDownload.value"
 				title="Download"
 				class="download"
 				@click="download"
@@ -137,6 +137,7 @@ import {
 	secondaryTextColor,
 	accentColor,
 	separatorColor,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { watch } from "vue";
@@ -215,51 +216,31 @@ export default {
 				default: DEFAULT_DATA_FRAME,
 			},
 			showIndex: {
+				...baseYesNoField,
 				name: "Show index",
 				desc: "Shows the dataframe's index. If an Arrow table is used, shows the zero-based integer index.",
-				type: FieldType.Text,
 				default: "yes",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 			},
 			enableSearch: {
+				...baseYesNoField,
 				name: "Enable search",
-				type: FieldType.Text,
 				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 			},
 			enableRecordAdd: {
+				...baseYesNoField,
 				name: "Enable adding a record",
-				type: FieldType.Text,
 				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 			},
 			enableRecordUpdate: {
+				...baseYesNoField,
 				name: "Enable updating a record",
-				type: FieldType.Text,
 				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 			},
 			enableDownload: {
+				...baseYesNoField,
 				name: "Enable download",
 				desc: "Allows the user to download the data as CSV.",
-				type: FieldType.Text,
 				default: "no",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 			},
 			actions: {
 				name: "Actions",
@@ -269,13 +250,9 @@ export default {
 				validator: validatorObjectRecordNotNested,
 			},
 			useMarkdown: {
+				...baseYesNoField,
 				name: "Use Markdown",
-				type: FieldType.Text,
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "no",
 			},
 			displayRowCount: {
@@ -287,14 +264,10 @@ export default {
 				validator: validatorPositiveNumber,
 			},
 			wrapText: {
+				...baseYesNoField,
 				name: "Wrap text",
-				type: FieldType.Text,
 				category: FieldCategory.Style,
 				desc: "Not wrapping text allows for an uniform grid, but may be inconvenient if your data contains longer text fields.",
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "no",
 			},
 			primaryTextColor,
@@ -408,12 +381,12 @@ const displayRowCount = computed(() =>
 const hasActions = computed(
 	() => Object.keys(fields.actions.value || {}).length > 0,
 );
-const useMarkdown = computed(() => fields.useMarkdown.value == "yes");
-const enableRecordUpdate = computed(
-	() => fields.enableRecordUpdate.value == "yes",
+const useMarkdown = computed(() => Boolean(fields.useMarkdown.value));
+const enableRecordUpdate = computed(() =>
+	Boolean(fields.enableRecordUpdate.value),
 );
-const enableRecordAdd = computed(() => fields.enableRecordAdd.value == "yes");
-const wrapText = computed(() => fields.wrapText.value === "yes");
+const enableRecordAdd = computed(() => Boolean(fields.enableRecordAdd.value));
+const wrapText = computed(() => Boolean(fields.wrapText.value));
 
 const rowOffset = computed(() => {
 	let maxOffset: number;
