@@ -60,6 +60,18 @@
 						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
+					<BuilderFieldsWorkflowKey
+						v-if="fieldValue.type == FieldType.WorkflowKey"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+					></BuilderFieldsWorkflowKey>
+
+					<BuilderFieldsHandler
+						v-if="fieldValue.type == FieldType.Handler"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+					></BuilderFieldsHandler>
+
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Number"
 						:field-key="fieldKey"
@@ -138,6 +150,8 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
+import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);

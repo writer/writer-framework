@@ -20,7 +20,7 @@ class CallEventHandler(WorkflowBlock):
                 "fields": {
                     "name": {
                         "name": "Name",
-                        "type": "Text",
+                        "type": "Handler",
                         "desc": "The name of the event handling function."
                     },
                     "additionalArgs": {

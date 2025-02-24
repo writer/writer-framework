@@ -16,9 +16,11 @@
 		<button
 			v-for="option in optionsFiltered"
 			:key="option.value"
+			:data-automation-key="option.value"
 			class="WdsDropdownMenu__item"
 			:class="{
 				'WdsDropdownMenu__item--selected': option.value === selected,
+				'WdsDropdownMenu__item--hideIcon': hideIcons,
 			}"
 			@click="$emit('select', option.value)"
 		>
@@ -139,6 +141,9 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 .WdsDropdownMenu__item--selected {
 	background-color: var(--wdsColorBlue2);
+}
+.WdsDropdownMenu__item--hideIcon {
+	grid-template-columns: 1fr auto;
 }
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;

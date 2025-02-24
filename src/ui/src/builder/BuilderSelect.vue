@@ -23,6 +23,7 @@
 			v-if="isOpen"
 			ref="dropdown"
 			:enable-search="enableSearch"
+			:hide-icons="hideIcons"
 			:options="options"
 			:selected="currentValue"
 			:style="floatingStyles"
