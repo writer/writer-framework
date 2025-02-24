@@ -10,11 +10,24 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, PropType, ref, watch } from "vue";
+import {
+	toRefs,
+	inject,
+	computed,
+	PropType,
+	ref,
+	watch,
+	defineAsyncComponent,
+} from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import { Component } from "@/writerTypes";
-import BuilderEmbeddedCodeEditor from "../BuilderEmbeddedCodeEditor.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+
+const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
