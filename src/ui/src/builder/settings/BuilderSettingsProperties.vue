@@ -161,7 +161,6 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
