@@ -31,6 +31,7 @@
 			:close-action="customHandlerModalCloseAction"
 			icon="add"
 			modal-title="Add tool"
+			allow-overflow
 		>
 			<div class="addToolForm">
 				<WdsFieldWrapper label="Tool type">
@@ -58,13 +59,16 @@
 					label="Graph id(s)"
 					hint="Specify the id of the knowledge graph you want to use. If multiple, separate the ids using commas."
 				>
-					<WdsTextareaInput
-						v-model="toolForm.graphIds"
-					></WdsTextareaInput>
+					<BuilderGraphSelect
+						v-model="graphIds"
+						enable-multi-selection
+					/>
 				</WdsFieldWrapper>
 			</div>
 			<div class="addToolFormActions">
-				<WdsButton @click="saveToolForm">Save</WdsButton>
+				<WdsButton :disabled.prop="saveDisabled" @click="saveToolForm"
+					>Save</WdsButton
+				>
 			</div>
 		</BuilderModal>
 	</div>
@@ -78,9 +82,9 @@ import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderGraphSelect from "../BuilderGraphSelect.vue";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent(
 	() => import("../BuilderEmbeddedCodeEditor.vue"),
@@ -127,15 +131,36 @@ const initFunctionToolCode = `
 }
 `.trim();
 
-const toolFormInitValue = {
+const toolFormInitValue: ToolForm = {
 	isShown: false,
 	type: "function" as "function" | "graph",
 	name: "new_tool",
 	code: initFunctionToolCode,
-	graphIds: "6029b226-1ee0-4239-a1b0-cdeebfa3ad5a",
+	graphIds: "",
 };
 
 const toolForm = ref<ToolForm>(toolFormInitValue);
+
+const saveDisabled = computed(() => {
+	switch (toolForm.value.type) {
+		case "function":
+			return !toolForm.value.code;
+		case "graph":
+			return !toolForm.value.graphIds;
+		default:
+			return true;
+	}
+});
+
+const graphIds = computed<string[]>({
+	get: () => toolForm.value.graphIds.split(","),
+	set(ids) {
+		toolForm.value = {
+			...toolForm.value,
+			graphIds: ids.join(","),
+		};
+	},
+});
 
 const props = defineProps<{
 	componentId: Component["id"];

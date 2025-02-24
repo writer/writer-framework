@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 
-import { computed, ComputedRef, inject, nextTick, Ref, ref } from "vue";
+import { computed, ComputedRef, inject, Ref, ref } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";

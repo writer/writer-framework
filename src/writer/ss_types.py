@@ -26,7 +26,7 @@ class Readable(Protocol):
 ServeMode = Literal["run", "edit"]
 MessageType = Literal["sessionInit", "componentUpdate",
                       "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest"]
+                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest", "listResources"]
 
 
 class AbstractTemplate(BaseModel):
@@ -112,6 +112,12 @@ class ComponentUpdateRequest(AppProcessServerRequest):
     type: Literal["componentUpdate"]
     payload: ComponentUpdateRequestPayload
 
+class ListResourcesRequestPayload(BaseModel):
+    resource_type: str
+
+class ListResourcesRequest(AppProcessServerRequest):
+    type: Literal["listResources"]
+    payload: ListResourcesRequestPayload
 
 class WriterEvent(BaseModel):
     type: str

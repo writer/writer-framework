@@ -132,6 +132,13 @@
 						:component-id="selectedComponent.id"
 					>
 					</BuilderFieldsTools>
+
+					<BuilderFieldsWriterGraphId
+						v-if="fieldValue.type == FieldType.WriterGraphId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+					/>
 				</WdsFieldWrapper>
 			</div>
 		</div>
@@ -156,6 +163,7 @@ import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
+import BuilderFieldsWriterGraphId from "./BuilderFieldsWriterGraphId.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

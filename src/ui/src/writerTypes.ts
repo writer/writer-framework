@@ -138,6 +138,7 @@ export const enum FieldType {
 	ComponentPicker = "Component",
 	WorkflowKey = "WorkflowKey",
 	Handler = "Handler",
+	WriterGraphId = "WriterGraphId",
 }
 
 export const enum FieldCategory {
@@ -193,3 +194,17 @@ export type SourceFilesDirectory = {
  * ```
  */
 export type SourceFiles = SourceFilesDirectory | SourceFilesFile;
+
+export type WriterGraph = {
+	id: string;
+	created_at: string;
+	name: string;
+	description: string;
+	file_status: {
+		in_progress: number;
+		completed: number;
+		failed: number;
+		total: number;
+	};
+	type: "connector" | "manual";
+};
