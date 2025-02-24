@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
 import { useSourceFiles } from "./useSourceFiles";
 import { buildMockCore } from "@/tests/mocks";
 import { flushPromises } from "@vue/test-utils";
+import { generateCore } from ".";
 
 describe(useSourceFiles.name, () => {
 	it("should open a file", () => {
@@ -155,6 +156,107 @@ describe(useSourceFiles.name, () => {
 		sourceFiles.value = { type: "directory", children: {} };
 		await flushPromises();
 		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+	});
+
+	describe("saving file", () => {
+		let mockCore: ReturnType<typeof buildMockCore>;
+
+		beforeEach(() => {
+			mockCore = buildMockCore();
+
+			vi.spyOn(mockCore.core, "sendCodeSaveRequest").mockImplementation(
+				async () => {},
+			);
+
+			vi.spyOn(
+				mockCore.core,
+				"sendRenameSourceFileRequest",
+			).mockImplementation(async () => {});
+		});
+
+		describe("text file", () => {
+			beforeEach(() => {
+				mockCore.sourceFiles.value = {
+					type: "directory",
+					children: {
+						"a.txt": {
+							type: "file",
+							content: "A",
+							complete: true,
+						},
+					},
+				};
+			});
+
+			it("should save a file", async () => {
+				const { openFile, save } = useSourceFiles(mockCore.core);
+
+				openFile(["a.txt"]);
+				await save();
+
+				expect(
+					mockCore.core.sendCodeSaveRequest,
+				).toHaveBeenNthCalledWith(1, "A", ["a.txt"]);
+				expect(
+					mockCore.core.sendRenameSourceFileRequest,
+				).not.toHaveBeenCalled();
+			});
+
+			it("should save a file and rename", async () => {
+				const { openFile, save } = useSourceFiles(mockCore.core);
+
+				openFile(["a.txt"]);
+				await save(["b.txt"]);
+
+				expect(
+					mockCore.core.sendCodeSaveRequest,
+				).toHaveBeenNthCalledWith(1, "A", ["a.txt"]);
+				expect(
+					mockCore.core.sendRenameSourceFileRequest,
+				).toHaveBeenNthCalledWith(1, ["a.txt"], ["b.txt"]);
+			});
+		});
+
+		describe("binary file", () => {
+			beforeEach(() => {
+				mockCore.sourceFiles.value = {
+					type: "directory",
+					children: {
+						"a.png": {
+							type: "binary",
+						},
+					},
+				};
+			});
+
+			it("should save a file", async () => {
+				const { openFile, save } = useSourceFiles(mockCore.core);
+
+				openFile(["a.png"]);
+				await save();
+
+				expect(
+					mockCore.core.sendCodeSaveRequest,
+				).not.toHaveBeenCalled();
+				expect(
+					mockCore.core.sendRenameSourceFileRequest,
+				).not.toHaveBeenCalled();
+			});
+
+			it("should save a file and rename", async () => {
+				const { openFile, save } = useSourceFiles(mockCore.core);
+
+				openFile(["a.png"]);
+				await save(["b.png"]);
+
+				expect(
+					mockCore.core.sendCodeSaveRequest,
+				).not.toHaveBeenCalled();
+				expect(
+					mockCore.core.sendRenameSourceFileRequest,
+				).toHaveBeenNthCalledWith(1, ["a.png"], ["b.png"]);
+			});
+		});
 	});
 
 	describe("lazy loading", () => {

@@ -152,6 +152,8 @@ function toggleCollapse(newCollapse?: boolean) {
 
 .BuilderTree__main__name {
 	color: var(--builderPrimaryTextColor);
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .BuilderTree__main__collapser {

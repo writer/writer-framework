@@ -9,7 +9,7 @@
 			:selected="isSelected(key)"
 			:right-click-options="rightClickDropdownOptions"
 			:dropdown-options="
-				isSourceFilesDirectory(node)
+				isSourceFilesDirectory(node) || isSourceFilesBinary(node)
 					? rightClickDropdownOptions
 					: undefined
 			"
@@ -46,7 +46,10 @@ import { SourceFiles } from "@/writerTypes";
 import { computed, PropType } from "vue";
 import BuilderTree from "../BuilderTree.vue";
 import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.vue";
-import { isSourceFilesDirectory, isSourceFilesFile } from "@/core/sourceFiles";
+import {
+	isSourceFilesDirectory,
+	isSourceFilesBinary,
+} from "@/core/sourceFiles";
 import WdsStateDot from "@/wds/WdsStateDot.vue";
 
 const props = defineProps({
@@ -96,7 +99,7 @@ function handleSelect(key: string) {
 
 	// only allow files to be selected
 	const node = props.sourceFiles.children[key];
-	if (!isSourceFilesFile(node)) return;
+	if (isSourceFilesDirectory(node)) return;
 
 	emits("select", [...props.path, key]);
 }

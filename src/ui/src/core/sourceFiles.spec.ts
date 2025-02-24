@@ -169,23 +169,22 @@ describe(createFileToSourceFiles.name, () => {
 });
 
 describe(moveFileToSourceFiles.name, () => {
-	const initial: SourceFiles = {
-		type: "directory",
-		children: {
-			a: {
-				type: "directory",
-				children: {
-					"b.txt": {
-						type: "file",
-						content: "",
-						complete: true,
+	it("should move file", () => {
+		const initial: SourceFiles = {
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {
+						"b.txt": {
+							type: "file",
+							content: "",
+							complete: true,
+						},
 					},
 				},
 			},
-		},
-	};
-
-	it("should move node", () => {
+		};
 		const result = moveFileToSourceFiles(
 			["a", "b.txt"],
 			["b", "b.txt"],
@@ -206,6 +205,45 @@ describe(moveFileToSourceFiles.name, () => {
 							type: "file",
 							content: "",
 							complete: true,
+						},
+					},
+				},
+			},
+		});
+	});
+
+	it("should move binary", () => {
+		const initial: SourceFiles = {
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {
+						"b.png": {
+							type: "binary",
+						},
+					},
+				},
+			},
+		};
+		const result = moveFileToSourceFiles(
+			["a", "b.png"],
+			["b", "b.png"],
+			initial,
+		);
+
+		expect(result).toStrictEqual({
+			type: "directory",
+			children: {
+				a: {
+					type: "directory",
+					children: {},
+				},
+				b: {
+					type: "directory",
+					children: {
+						"b.png": {
+							type: "binary",
 						},
 					},
 				},

@@ -378,7 +378,10 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
                         "content": exerpt,
                         "complete": exerpt == content,
                     }
-                except (UnicodeDecodeError, FileNotFoundError):
+                except UnicodeDecodeError:
+                    # TODO: get mimetype
+                    current_level["children"][part] = { "type": "binary" }
+                except  FileNotFoundError:
                     pass
 
     return file_tree

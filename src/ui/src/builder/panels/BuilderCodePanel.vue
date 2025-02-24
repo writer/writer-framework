@@ -30,11 +30,25 @@
 			</div>
 		</template>
 		<BuilderEmbeddedCodeEditor
+			v-if="fileTypeOpen === 'file'"
 			v-model="code"
 			variant="full"
 			:language="openedFileLanguage"
 			:disabled="isDisabled"
 		/>
+		<div
+			v-if="fileTypeOpen === 'binary'"
+			class="BuilderCodePanel__noPreview"
+		>
+			<img
+				class="BuilderCodePanel__noPreview__img"
+				src="@/assets/art-paper.svg"
+			/>
+			<p class="BuilderCodePanel__noPreview__title">Can’t Preview File</p>
+			<p class="BuilderCodePanel__noPreview__desc">
+				Non-text files are not available to view here
+			</p>
+		</div>
 		<template #actionsCompanion>
 			<div class="BuilderCodePanel__actionsCompanion">
 				<WdsTextInput
@@ -112,9 +126,12 @@ const {
 	code,
 	openedFileLanguage,
 	filepathOpen,
+	fileOpen,
 	pathsUnsaved,
 	save,
 } = useSourceFiles(wf);
+
+const fileTypeOpen = computed(() => fileOpen.value?.type);
 
 const { pushToast } = useToasts();
 
@@ -269,5 +286,30 @@ async function handleSave() {
 
 .BuilderCodePanel__actionsCompanion__saveBtn {
 	min-width: 120px;
+}
+
+.BuilderCodePanel__noPreview {
+	display: flex;
+	flex-direction: column;
+	font-size: 14px;
+	height: 100%;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.BuilderCodePanel__noPreview__img {
+	height: 170px;
+	margin-bottom: 32px;
+}
+
+.BuilderCodePanel__noPreview__title {
+	font-size: 16px;
+	margin-bottom: 2px;
+}
+
+.BuilderCodePanel__noPreview__desc {
+	color: var(--wdsColorGray6);
+	font-size: 12px;
 }
 </style>

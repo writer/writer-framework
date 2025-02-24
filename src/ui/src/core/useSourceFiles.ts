@@ -4,9 +4,9 @@ import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
 	findSourceFileFromPath,
-	getSourceFilesPathsToEdges,
 	getSourceFilesPathsToFiles,
 	getSourceFilesPathsToNodes,
+	isSourceFilesBinary,
 	isSourceFilesFile,
 } from "./sourceFiles";
 
@@ -72,6 +72,7 @@ export function useSourceFiles(wf: Core) {
 	const pathsUnsaved = computed(() => {
 		return sourceFilesDraftPaths.value.filter((path) => {
 			const draft = findSourceFileFromPath(path, sourceFileDraft.value);
+			if (isSourceFilesBinary(draft)) return false;
 			if (!isSourceFilesFile(draft)) return true;
 
 			const file = findSourceFileFromPath(path, wf.sourceFiles.value);
@@ -83,7 +84,7 @@ export function useSourceFiles(wf: Core) {
 		});
 	});
 
-	const fileOpen = computed(() => {
+	const fileOpen = computed<SourceFiles | undefined>(() => {
 		if (filepathOpen.value === undefined) return undefined;
 		return findSourceFileFromPath(
 			filepathOpen.value,
@@ -156,9 +157,11 @@ export function useSourceFiles(wf: Core) {
 	}
 
 	async function save(newPath?: string[]) {
-		if (!filepathOpen.value) return;
+		if (!filepathOpen.value || !fileOpen.value) return;
 
-		await wf.sendCodeSaveRequest(code.value, filepathOpen.value);
+		if (fileOpen.value.type === "file") {
+			await wf.sendCodeSaveRequest(code.value, filepathOpen.value);
+		}
 
 		if (newPath) {
 			const oldPath = [...toRaw(filepathOpen.value)];
@@ -176,6 +179,7 @@ export function useSourceFiles(wf: Core) {
 	return {
 		code,
 		sourceFileDraft,
+		fileOpen,
 		filepathOpen,
 		pathsUnsaved,
 		openedFileLanguage,

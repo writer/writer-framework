@@ -1,5 +1,6 @@
 import {
 	SourceFilesFile,
+	SourceFilesBinary,
 	SourceFilesDirectory,
 	SourceFiles,
 } from "@/writerTypes";
@@ -7,6 +8,13 @@ import {
 export function isSourceFilesFile(value: unknown): value is SourceFilesFile {
 	if (typeof value !== "object" || value === null) return false;
 	return value["type"] === "file" && typeof value["content"] === "string";
+}
+
+export function isSourceFilesBinary(
+	value: unknown,
+): value is SourceFilesBinary {
+	if (typeof value !== "object" || value === null) return false;
+	return value["type"] === "binary";
 }
 
 export function isSourceFilesDirectory(
@@ -25,7 +33,7 @@ export function* getSourceFilesPathsToFiles(
 	tree: SourceFiles,
 	path: string[] = [],
 ): Generator<string[]> {
-	if (isSourceFilesFile(tree)) {
+	if (!isSourceFilesDirectory(tree)) {
 		yield path;
 		return;
 	}
@@ -64,7 +72,7 @@ export function* getSourceFilesPathsToNodes(
 	path: string[] = [],
 ): Generator<string[]> {
 	yield path;
-	if (isSourceFilesFile(tree)) return;
+	if (!isSourceFilesDirectory(tree)) return;
 
 	for (const [root, node] of Object.entries(tree.children)) {
 		yield* getSourceFilesPathsToNodes(node, [...path, root]);
@@ -74,7 +82,7 @@ export function* getSourceFilesPathsToNodes(
 export function findSourceFileFromPath(
 	path: string[],
 	tree: SourceFiles,
-): SourceFilesDirectory | SourceFilesFile | undefined {
+): SourceFilesDirectory | SourceFilesFile | SourceFilesBinary | undefined {
 	if (path.length === 0) return tree;
 	if (!isSourceFilesDirectory(tree)) return undefined;
 
@@ -121,7 +129,7 @@ export function moveFileToSourceFiles(
 	tree: SourceFiles,
 ) {
 	const node = findSourceFileFromPath(fromPath, tree);
-	if (!isSourceFilesFile(node)) return tree;
+	if (isSourceFilesDirectory(node) || node === undefined) return tree;
 
 	const treeWithDelete = deleteFileToSourceFiles(fromPath, tree);
 	return createFileToSourceFiles(
