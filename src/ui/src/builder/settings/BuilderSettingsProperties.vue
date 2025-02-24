@@ -164,6 +164,7 @@ import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
+import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
