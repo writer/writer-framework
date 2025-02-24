@@ -1,6 +1,6 @@
 <template>
 	<div ref="rootEl" class="CorePDF">
-		<div v-if="fields.controls.value === 'yes'" class="controls">
+		<div v-if="fields.controls.value" class="controls">
 			<WdsControl @click="() => gotoPage(page - 1)">
 				<i class="material-symbols-outlined">arrow_upward</i>
 			</WdsControl>
@@ -51,6 +51,7 @@ import {
 	separatorColor,
 	primaryTextColor,
 	containerBackgroundColor,
+	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import WdsControl from "@/wds/WdsControl.vue";
 import { validatorArrayOfString } from "@/constants/validators";
@@ -87,12 +88,8 @@ export default {
 				desc: "The page to be displayed.",
 			},
 			controls: {
+				...baseYesNoField,
 				name: "Controls",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				desc: "Show controls to navigate the PDF.",
 				default: "yes",
 			},

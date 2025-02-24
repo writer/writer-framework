@@ -24,18 +24,6 @@ test.describe("Builder field validation", () => {
 			.dragTo(page.locator(".CoreSection"));
 		await page.locator(`button.CoreButton.component`).click();
 
-		// is disabled
-
-		const isDisabledInput = page.locator(
-			'.BuilderFieldsText[data-automation-key="isDisabled"] input',
-		);
-
-		await isDisabledInput.fill("maybe");
-		expect(await isDisabledInput.getAttribute("aria-invalid")).toBe("true");
-
-		await isDisabledInput.fill("yes");
-		expect(await isDisabledInput.getAttribute("aria-invalid")).toBe("false");
-
 		// css classes
 
 		const cssClasses = page.locator(

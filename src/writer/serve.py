@@ -48,13 +48,12 @@ from writer.ss_types import (
 if typing.TYPE_CHECKING:
     from .auth import Auth, Unauthorized
 
-MAX_WEBSOCKET_MESSAGE_SIZE = 201*1024*1024
+MAX_WEBSOCKET_MESSAGE_SIZE = 201 * 1024 * 1024
 logging.getLogger().setLevel(logging.INFO)
 
 
 class JobVault:
-
-    SCHEMES:List[str] = []
+    SCHEMES: List[str] = []
     job_vault_implementations: List[Type["JobVault"]] = []
 
     def __init__(self):
@@ -67,7 +66,7 @@ class JobVault:
 
     def set(self, job_id: str, value: Any):
         self.vault[job_id] = value
-    
+
     def get(self, job_id: str):
         return self.vault.get(job_id)
 
@@ -90,7 +89,11 @@ class JobVault:
 
         matching_implementation = cls._get_matching_implementation(connection_string)
         if not matching_implementation:
-            supported_schemes = [scheme for implementation in JobVault.job_vault_implementations for scheme in implementation.SCHEMES]
+            supported_schemes = [
+                scheme
+                for implementation in JobVault.job_vault_implementations
+                for scheme in implementation.SCHEMES
+            ]
             supported_schemes_msg = ", ".join(supported_schemes)
             logging.error(f"No matching implementation found for { connection_string }. Falling back to in-memory JobVault. \
                           Supported schemes: {supported_schemes_msg}.")
@@ -99,20 +102,24 @@ class JobVault:
         try:
             return matching_implementation()
         except Exception as e:
-            logging.error(f"There was an error connecting to { connection_string }. Falling back to in-memory JobVault. {repr(e)}")
+            logging.error(
+                f"There was an error connecting to { connection_string }. Falling back to in-memory JobVault. {repr(e)}"
+            )
             return cls()
 
 
 class RedisJobVault(JobVault):
-
     SCHEMES = ["redis://", "rediss://", "redis-socket://", "redis-sentinel://"]
     DEFAULT_TTL = 86400
 
     def __init__(self):
         import redis  # type: ignore
+
         super().__init__()
         redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
-        self.redis_client = redis.from_url(redis_connection_string, decode_responses=True, socket_timeout=30)
+        self.redis_client = redis.from_url(
+            redis_connection_string, decode_responses=True, socket_timeout=30
+        )
         self.counter_key = "job_counter"
         if not self.redis_client.exists(self.counter_key):
             self.redis_client.set(self.counter_key, 0)
@@ -141,26 +148,32 @@ class WriterState(typing.Protocol):
     writer_app: bool
     job_vault: JobVault
     is_server_static_mounted: bool
-    meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # meta tags for SEO
-    opengraph_tags: Union[Dict[str, Any], Callable[[], Dict[str, Any]]] # opengraph tags for social networks integration (facebook, discord)
-    title: Union[str, Callable[[], str]] # title of the page, default: "Writer Framework"
+    meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]]  # meta tags for SEO
+    opengraph_tags: Union[
+        Dict[str, Any], Callable[[], Dict[str, Any]]
+    ]  # opengraph tags for social networks integration (facebook, discord)
+    title: Union[str, Callable[[], str]]  # title of the page, default: "Writer Framework"
+
 
 class WriterAsgi(typing.Protocol):
     state: WriterState
 
+
 class WriterFastAPI(FastAPI, WriterAsgi):  # type: ignore
     pass
 
+
 app: WriterFastAPI = cast(WriterFastAPI, None)
 
+
 def get_asgi_app(
-        user_app_path: str,
-        serve_mode: ServeMode,
-        enable_remote_edit: bool = False,
-        enable_server_setup: bool = True,
-        on_load: Optional[Callable] = None,
-        on_shutdown: Optional[Callable] = None,
-        enable_jobs_api: bool = False
+    user_app_path: str,
+    serve_mode: ServeMode,
+    enable_remote_edit: bool = False,
+    enable_server_setup: bool = True,
+    on_load: Optional[Callable] = None,
+    on_shutdown: Optional[Callable] = None,
+    enable_jobs_api: bool = False,
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -191,9 +204,11 @@ def get_asgi_app(
         app_runner.hook_to_running_event_loop()
         app_runner.load()
 
-        if on_load is not None \
-           and hasattr(asgi_app.state, 'is_server_static_mounted') \
-           and asgi_app.state.is_server_static_mounted:
+        if (
+            on_load is not None
+            and hasattr(asgi_app.state, "is_server_static_mounted")
+            and asgi_app.state.is_server_static_mounted
+        ):
             on_load()
 
         try:
@@ -217,10 +232,12 @@ def get_asgi_app(
         extensions_path = pathlib.Path(user_app_path) / "extensions"
         if not extensions_path.exists():
             return []
-        filtered_files = [f for f in extensions_path.rglob(
-            "*") if f.suffix.lower() in (".js", ".css") and f.is_file()]
-        relative_paths = [f.relative_to(
-            extensions_path).as_posix() for f in filtered_files]
+        filtered_files = [
+            f
+            for f in extensions_path.rglob("*")
+            if f.suffix.lower() in (".js", ".css") and f.is_file()
+        ]
+        relative_paths = [f.relative_to(extensions_path).as_posix() for f in filtered_files]
         return relative_paths
 
     cached_extension_paths = _get_extension_paths()
@@ -247,7 +264,7 @@ def get_asgi_app(
             userFunctions=payload.userFunctions,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=abstract.templates
+            abstractTemplates=abstract.templates,
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -264,7 +281,7 @@ def get_asgi_app(
             sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=abstract.templates
+            abstractTemplates=abstract.templates,
         )
 
     @app.get("/api/health")
@@ -272,8 +289,9 @@ def get_asgi_app(
         return {"status": "ok"}
 
     @app.post("/api/init")
-    async def init(initBody: InitRequestBody, request: Request, response: Response) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
-
+    async def init(
+        initBody: InitRequestBody, request: Request, response: Response
+    ) -> Union[InitResponseBodyRun, InitResponseBodyEdit]:
         """
         Handles session init and provides a "starter pack" to the frontend.
         """
@@ -284,18 +302,20 @@ def get_asgi_app(
             wrong_origin_message += "To circumvent this protection, use the --enable-remote-edit flag if running via command line."
             logging.error(wrong_origin_message, origin_header)
             raise HTTPException(
-                status_code=403, detail="Incorrect origin. Only local origins are allowed.")
+                status_code=403, detail="Incorrect origin. Only local origins are allowed."
+            )
 
         session_id = request.cookies.get("session")
         if session_id is not None:
             initBody.proposedSessionId = session_id
 
-
-        app_response = await app_runner.init_session(InitSessionRequestPayload(
-            cookies=dict(request.cookies),
-            headers=dict(request.headers),
-            proposedSessionId=initBody.proposedSessionId
-        ))
+        app_response = await app_runner.init_session(
+            InitSessionRequestPayload(
+                cookies=dict(request.cookies),
+                headers=dict(request.headers),
+                proposedSessionId=initBody.proposedSessionId,
+            )
+        )
 
         status = app_response.status
 
@@ -319,7 +339,7 @@ def get_asgi_app(
 
     async def _get_payload_as_json(request: Request):
         payload = None
-        body = await request.body()        
+        body = await request.body()
         if not body:
             return None
         try:
@@ -339,7 +359,7 @@ def get_asgi_app(
             if isinstance(data, list):
                 return [serialize_result(item) for item in data]
             if isinstance(data, dict):
-                return {k : serialize_result(v) for k, v in data.items()}
+                return {k: serialize_result(v) for k, v in data.items()}
             if isinstance(data, (str, int, float, bool, type(None))):
                 return data
             try:
@@ -351,7 +371,7 @@ def get_asgi_app(
             current_job_info = app.state.job_vault.get(job_id)
             if not current_job_info:
                 raise RuntimeError("Job not found.")
-            merged_info = current_job_info | { "finished_at": int(time.time()) } | job_info
+            merged_info = current_job_info | {"finished_at": int(time.time())} | job_info
             app.state.job_vault.set(job_id, merged_info)
 
         def job_done_callback(task: asyncio.Task, job_id: str):
@@ -363,19 +383,16 @@ def get_asgi_app(
                 result = None
                 if apsr.payload and apsr.payload.result:
                     result = apsr.payload.result.get("result")
-                update_job(job_id, {
-                    "status": "complete",
-                    "result": serialize_result(result)
-                })
+                update_job(job_id, {"status": "complete", "result": serialize_result(result)})
             except Exception as e:
                 update_job(job_id, {"status": "error"})
                 raise e
 
-        app_response = await app_runner.init_session(InitSessionRequestPayload(
-            cookies=dict(request.cookies),
-            headers=dict(request.headers),
-            proposedSessionId=None
-        ))
+        app_response = await app_runner.init_session(
+            InitSessionRequestPayload(
+                cookies=dict(request.cookies), headers=dict(request.headers), proposedSessionId=None
+            )
+        )
 
         if not app_response or not app_response.payload:
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
@@ -385,25 +402,24 @@ def get_asgi_app(
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
         loop = asyncio.get_running_loop()
-        task = loop.create_task(app_runner.handle_event(
-            session_id, WriterEvent(
-                type="wf-builtin-run",
-                isSafe=True,
-                handler=f"$runWorkflow_{workflow_key}",
-                payload=await _get_payload_as_json(request)
-            )))
+        task = loop.create_task(
+            app_runner.handle_event(
+                session_id,
+                WriterEvent(
+                    type="wf-builtin-run",
+                    isSafe=True,
+                    handler=f"$runWorkflow_{workflow_key}",
+                    payload=await _get_payload_as_json(request),
+                ),
+            )
+        )
 
         job_id = app.state.job_vault.generate_job_id()
-        app.state.job_vault.set(job_id, {
-            "id": job_id,
-            "status": "in progress",
-            "created_at": int(time.time())
-        })
+        app.state.job_vault.set(
+            job_id, {"id": job_id, "status": "in progress", "created_at": int(time.time())}
+        )
         task.add_done_callback(lambda t: job_done_callback(t, job_id))
-        return {
-            "id": job_id,
-            "token": crypto.get_hash(f"get_job_{job_id}")
-        }
+        return {"id": job_id, "token": crypto.get_hash(f"get_job_{job_id}")}
 
     @app.get("/api/job/{job_id}")
     async def get_workflow_job(job_id: str, request: Request, response: Response):
@@ -414,21 +430,17 @@ def get_asgi_app(
         job = app.state.job_vault.get(job_id)
 
         if not job:
-            return JSONResponse(status_code=404, content={
-                "id": job_id,
-                "status": "not found"
-            })
+            return JSONResponse(status_code=404, content={"id": job_id, "status": "not found"})
 
         status_code = 200
         if job.get("status") == "error":
             status_code = 400
-        
+
         return JSONResponse(status_code=status_code, content=job)
 
     # Streaming
 
     async def _stream_session_init(websocket: WebSocket):
-
         """
         Waits for the client to provide a session id to initialise the stream.
         Returns the session id received.
@@ -439,8 +451,7 @@ def get_asgi_app(
             req_message_raw = await websocket.receive_json()
 
             try:
-                req_message = WriterWebsocketIncoming.model_validate(
-                    req_message_raw)
+                req_message = WriterWebsocketIncoming.model_validate(req_message_raw)
             except ValidationError:
                 logging.error("Incorrect incoming request.")
                 return
@@ -450,9 +461,8 @@ def get_asgi_app(
         return session_id
 
     async def _stream_incoming_requests(websocket: WebSocket, session_id: str):
-
         """
-        Handles incoming requests from client. 
+        Handles incoming requests from client.
         """
 
         pending_tasks: Set[asyncio.Task] = set()
@@ -462,8 +472,7 @@ def get_asgi_app(
                 req_message_raw = await websocket.receive_json()
 
                 try:
-                    req_message = WriterWebsocketIncoming.model_validate(
-                        req_message_raw)
+                    req_message = WriterWebsocketIncoming.model_validate(req_message_raw)
                 except ValidationError:
                     logging.error("Incorrect incoming request.")
                     break
@@ -476,19 +485,24 @@ def get_asgi_app(
 
                 if req_message.type == "event":
                     new_task = asyncio.create_task(
-                        _handle_incoming_event(websocket, session_id, req_message))
+                        _handle_incoming_event(websocket, session_id, req_message)
+                    )
                 elif req_message.type == "keepAlive":
                     new_task = asyncio.create_task(
-                        _handle_keep_alive_message(websocket, session_id, req_message))
+                        _handle_keep_alive_message(websocket, session_id, req_message)
+                    )
                 elif req_message.type == "stateEnquiry":
                     new_task = asyncio.create_task(
-                        _handle_state_enquiry_message(websocket, session_id, req_message))
+                        _handle_state_enquiry_message(websocket, session_id, req_message)
+                    )
                 elif serve_mode == "edit" and req_message.type == "hashRequest":
                     new_task = asyncio.create_task(
-                        _handle_hash_request(websocket, session_id, req_message))
+                        _handle_hash_request(websocket, session_id, req_message)
+                    )
                 elif serve_mode == "edit":
                     new_task = asyncio.create_task(
-                        _handle_incoming_edit_message(websocket, session_id, req_message))
+                        _handle_incoming_edit_message(websocket, session_id, req_message)
+                    )
 
                 if new_task:
                     pending_tasks.add(new_task)
@@ -507,11 +521,13 @@ def get_asgi_app(
                 except asyncio.CancelledError:
                     pass
 
-    async def _handle_incoming_event(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+    async def _handle_incoming_event(
+        websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
+    ):
         response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
-            payload=None
+            payload=None,
         )
 
         # Allows for global events if in edit mode (such as "Run workflow" for previewing a workflow)
@@ -520,58 +536,62 @@ def get_asgi_app(
         res_payload: Optional[Dict[str, Any]] = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_event(
-            session_id, WriterEvent(
+            session_id,
+            WriterEvent(
                 type=req_message.payload.get("type"),
                 handler=req_message.payload.get("handler"),
                 isSafe=is_safe,
                 instancePath=req_message.payload.get("instancePath"),
-                payload=req_message.payload.get("payload")
-            ))
+                payload=req_message.payload.get("payload"),
+            ),
+        )
         if apsr is not None and apsr.payload is not None:
-            res_payload = typing.cast(
-                EventResponsePayload, apsr.payload).model_dump()
+            res_payload = typing.cast(EventResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
         await websocket.send_json(response.model_dump())
 
-    async def _handle_incoming_edit_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+    async def _handle_incoming_edit_message(
+        websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
+    ):
         response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
-            payload=None
+            payload=None,
         )
         if req_message.type == "componentUpdate":
             await app_runner.update_components(
-                session_id, ComponentUpdateRequestPayload(
-                    components=req_message.payload["components"]
-                ))
+                session_id,
+                ComponentUpdateRequestPayload(components=req_message.payload["components"]),
+            )
         elif req_message.type == "codeSaveRequest":
             app_runner.save_code(
-                session_id, req_message.payload["code"], req_message.payload["path"])
+                session_id, req_message.payload["code"], req_message.payload["path"]
+            )
         elif req_message.type == "codeUpdate":
             app_runner.update_code(session_id, req_message.payload["code"])
         elif req_message.type == "loadSourceFile":
-            path = os.path.join(*req_message.payload['path'])
+            path = os.path.join(*req_message.payload["path"])
             try:
-                response.payload = { "content": app_runner.load_persisted_script(path) }
+                response.payload = {"content": app_runner.load_persisted_script(path)}
             except FileNotFoundError as error:
                 logging.warning(f"could not load script at {path}", error)
                 response.payload = {"error": str(error)}
-        elif  req_message.type == "createSourceFile":
-            path = os.path.join(*req_message.payload['path'])
+        elif req_message.type == "createSourceFile":
+            path = os.path.join(*req_message.payload["path"])
             try:
                 app_runner.create_persisted_script(path)
             except Exception as error:
                 response.payload = {"error": str(error)}
-        elif  req_message.type == "deleteSourceFile":
-            path = os.path.join(*req_message.payload['path'])
+        elif req_message.type == "deleteSourceFile":
+            path = os.path.join(*req_message.payload["path"])
             try:
                 app_runner.delete_persisted_script(path)
             except Exception as error:
                 response.payload = {"error": str(error)}
-        elif  req_message.type == "renameSourceFile":
-            from_path = os.path.join(*req_message.payload['from'])
-            to_path = os.path.join(*req_message.payload['to'])
+        elif req_message.type == "renameSourceFile":
+            from_path = os.path.join(*req_message.payload["from"])
+            to_path = os.path.join(*req_message.payload["to"])
             try:
                 app_runner.rename_persisted_script(from_path, to_path)
             except Exception as error:
@@ -579,66 +599,60 @@ def get_asgi_app(
 
         await websocket.send_json(response.model_dump())
 
-    async def _handle_keep_alive_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+    async def _handle_keep_alive_message(
+        websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
+    ):
         response = WriterWebsocketOutgoing(
-            messageType="keepAliveResponse",
-            trackingId=req_message.trackingId,
-            payload=None
+            messageType="keepAliveResponse", trackingId=req_message.trackingId, payload=None
         )
         await websocket.send_json(response.model_dump())
 
-    async def _handle_state_enquiry_message(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+    async def _handle_state_enquiry_message(
+        websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
+    ):
         response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
-            payload=None
+            payload=None,
         )
         res_payload: Optional[Dict[str, Any]] = None
         apsr: Optional[AppProcessServerResponse] = None
         apsr = await app_runner.handle_state_enquiry(session_id)
         if apsr is not None and apsr.payload is not None:
-            res_payload = typing.cast(
-                StateEnquiryResponsePayload, apsr.payload).model_dump()
+            res_payload = typing.cast(StateEnquiryResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
         await websocket.send_json(response.model_dump())
 
-    async def _handle_hash_request(websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming):
+    async def _handle_hash_request(
+        websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
+    ):
         response = WriterWebsocketOutgoing(
             messageType=f"{req_message.type}Response",
             trackingId=req_message.trackingId,
-            payload=None
+            payload=None,
         )
         apsr: Optional[AppProcessServerResponse] = None
-        apsr = await app_runner.handle_hash_request(session_id, HashRequestPayload(
-            message=req_message.payload.get("message", "")
-        ))
+        apsr = await app_runner.handle_hash_request(
+            session_id, HashRequestPayload(message=req_message.payload.get("message", ""))
+        )
         if apsr is not None and apsr.payload is not None:
-            response.payload = typing.cast(
-                HashRequestResponsePayload, apsr.payload).model_dump()
+            response.payload = typing.cast(HashRequestResponsePayload, apsr.payload).model_dump()
         await websocket.send_json(response.model_dump())
 
     async def _stream_outgoing_announcements(websocket: WebSocket):
-
         """
-        Handles outgoing communications to client (announcements).
+        Handles outgoing communications to the client (announcements).
         """
 
-        if app_runner.code_update_condition is None:
-            raise ValueError("Code update condition not set.")
+        if app_runner.announcement_queue is None:
+            raise ValueError("Announcement queue not set.")
 
-        await app_runner.code_update_condition.acquire()
-        try:
-            await app_runner.code_update_condition.wait()
-        finally:
-            app_runner.code_update_condition.release()
+        # Wait for a message to be available in the queue
+        announcement_data = await app_runner.announcement_queue.get()
 
         announcement = WriterWebsocketOutgoing(
-            messageType="announcement",
-            trackingId=-1,
-            payload={
-                "announce": "codeUpdate"
-            }
+            messageType="announcement", trackingId=-1, payload=announcement_data
         )
 
         if websocket.application_state == WebSocketState.DISCONNECTED:
@@ -646,13 +660,12 @@ def get_asgi_app(
 
         try:
             await websocket.send_json(announcement.dict())
-        except (WebSocketDisconnect):
+        except WebSocketDisconnect:
             pass
 
     @app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
-
-        """ Initialises incoming and outgoing communications on the stream. """
+        """Initialises incoming and outgoing communications on the stream."""
 
         await websocket.accept()
 
@@ -671,8 +684,7 @@ def get_asgi_app(
             await websocket.close(code=1008)  # Invalid permissions
             return
 
-        task1 = asyncio.create_task(
-            _stream_incoming_requests(websocket, session_id))
+        task1 = asyncio.create_task(_stream_incoming_requests(websocket, session_id))
         task2 = asyncio.create_task(_stream_outgoing_announcements(websocket))
 
         try:
@@ -693,7 +705,9 @@ def get_asgi_app(
 
     user_app_extensions_path = pathlib.Path(user_app_path) / "extensions"
     if user_app_extensions_path.exists():
-        app.mount("/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions")
+        app.mount(
+            "/extensions", StaticFiles(directory=str(user_app_extensions_path)), name="extensions"
+        )
 
     server_path = pathlib.Path(__file__)
     server_static_path = server_path.parent / "static"
@@ -750,17 +764,30 @@ def print_route_message(run_name: str, port: int, host: str):
     GREEN_TOKEN = "\033[92m"
     END_TOKEN = "\033[0m"
 
-    print(f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}", flush=True)
+    print(
+        f"{run_name} is available at:{END_TOKEN}{GREEN_TOKEN} http://{host}:{port}{END_TOKEN}",
+        flush=True,
+    )
+
 
 def register_auth(
-    auth: 'Auth',
+    auth: "Auth",
     callback: Optional[Callable[[Request, str, dict], None]] = None,
-    unauthorized_action: Optional[Callable[[Request, 'Unauthorized'], Response]] = None
+    unauthorized_action: Optional[Callable[[Request, "Unauthorized"], Response]] = None,
 ):
     auth.register(app, callback=callback, unauthorized_action=unauthorized_action)
 
-def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remote_edit=False, enable_server_setup=False, enable_jobs_api=False):
-    """ Initialises the web server. """
+
+def serve(
+    app_path: str,
+    mode: ServeMode,
+    port: Optional[int],
+    host,
+    enable_remote_edit=False,
+    enable_server_setup=False,
+    enable_jobs_api=False,
+):
+    """Initialises the web server."""
 
     print_init_message()
 
@@ -773,17 +800,24 @@ def serve(app_path: str, mode: ServeMode, port: Optional[int], host, enable_remo
     when Writer Framework is launched with the run command.
     """
     if port is None:
-        mode_allowed_ports = {
-            'run': (3005, 3099),
-            'edit': (4005, 4099)
-        }
+        mode_allowed_ports = {"run": (3005, 3099), "edit": (4005, 4099)}
 
         port = _next_localhost_available_port(mode_allowed_ports[mode])
 
     enable_server_setup = mode == "run" or enable_server_setup
-    app = get_asgi_app(app_path, mode, enable_remote_edit, on_load=on_load, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
+    app = get_asgi_app(
+        app_path,
+        mode,
+        enable_remote_edit,
+        on_load=on_load,
+        enable_server_setup=enable_server_setup,
+        enable_jobs_api=enable_jobs_api,
+    )
     log_level = "warning"
-    uvicorn.run(app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE)
+    uvicorn.run(
+        app, host=host, port=port, log_level=log_level, ws_max_size=MAX_WEBSOCKET_MESSAGE_SIZE
+    )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -814,10 +848,11 @@ async def lifespan(app: FastAPI):
     async with _lifespan_invoke(writer_lifespans, app):
         yield
 
+
 def configure_webpage_metadata(
     title: Union[str, Callable[[], str]] = "Writer Framework",
     meta: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None,
-    opengraph_tags: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None
+    opengraph_tags: Optional[Union[Dict[str, Any], Callable[[], Dict[str, Any]]]] = None,
 ):
     """
     Configures the page header for SEO and social networks from `server_setup` module.
@@ -912,6 +947,7 @@ async def _lifespan_invoke(context: list, app: FastAPI):
         else:
             yield
 
+
 def _fix_mimetype():
     """
     Fixes mimetypes for .js files. This is needed for the webserver to serve .js files correctly.
@@ -920,13 +956,14 @@ def _fix_mimetype():
     if js_mimetype[0] != "text/javascript":
         mimetypes.add_type("text/javascript", ".js")
 
+
 def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) -> None:
     """
     Unitarily declares the files and folders present in "/static" directory of source code.
 
     We avoid the general declaration as below. This declaration limit the ability of a developper to
     declare it's own route.
-    
+
     >>> asgi_app.mount("/", StaticFiles(directory=str(server_static_path), html=True), name="server_static")
 
     Writer Framework routes remain priority. A developer cannot come and overload them.
@@ -937,6 +974,7 @@ def _mount_server_static_path(app: FastAPI, server_static_path: pathlib.Path) ->
         if f.is_dir():
             app.mount(f"/{f.name}", StaticFiles(directory=f), name=f"server_static_{f}")
 
+
 def _mount_render_index_html(app: FastAPI, server_static_path: pathlib.Path):
     """
     Serves the main page with the title that has been configured.
@@ -945,29 +983,45 @@ def _mount_render_index_html(app: FastAPI, server_static_path: pathlib.Path):
     :param server_static_path:
     :return:
     """
+
     def _render_index_html():
-        with io.open(server_static_path.joinpath('index.html'), 'r', encoding='utf-8') as f:
+        with io.open(server_static_path.joinpath("index.html"), "r", encoding="utf-8") as f:
             index_html = f.read()
             if hasattr(app.state, "title"):
-                index_html = index_html.replace("<title>Writer Framework</title>", f"<title>{html.escape(app.state.title)}</title>")
+                index_html = index_html.replace(
+                    "<title>Writer Framework</title>",
+                    f"<title>{html.escape(app.state.title)}</title>",
+                )
 
             if hasattr(app.state, "meta"):
                 meta = app.state.meta() if callable(app.state.meta) else app.state.meta
-                meta_tags = "\n".join([f'<meta name="{k}" content="{html.escape(v)}">' for k, v in meta.items()])
+                meta_tags = "\n".join(
+                    [f'<meta name="{k}" content="{html.escape(v)}">' for k, v in meta.items()]
+                )
                 index_html = index_html.replace("<!-- {{ meta }} -->", meta_tags)
             else:
                 index_html = index_html.replace("<!-- {{ meta }} -->", "")
 
             if hasattr(app.state, "opengraph_tags"):
-                opengraph_tags = app.state.opengraph_tags() if callable(app.state.opengraph_tags) else app.state.opengraph_tags
-                opengraph_tags = "\n".join([f'<meta property="{k}" content="{html.escape(v)}">' for k, v in opengraph_tags.items()])
+                opengraph_tags = (
+                    app.state.opengraph_tags()
+                    if callable(app.state.opengraph_tags)
+                    else app.state.opengraph_tags
+                )
+                opengraph_tags = "\n".join(
+                    [
+                        f'<meta property="{k}" content="{html.escape(v)}">'
+                        for k, v in opengraph_tags.items()
+                    ]
+                )
                 index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", opengraph_tags)
             else:
                 index_html = index_html.replace("<!-- {{ opengraph_tags }} -->", "")
 
         return Response(content=index_html, media_type="text/html")
 
-    return app.get('/')(_render_index_html)
+    return app.get("/")(_render_index_html)
+
 
 def app_runner(asgi_app: WriterFastAPI) -> AppRunner:
     return asgi_app.state.app_runner
@@ -986,7 +1040,7 @@ def wf_root_static_assets() -> List[pathlib.Path]:
     all_static_assets: List[pathlib.Path] = []
     server_path = pathlib.Path(__file__)
     server_static_path = server_path.parent / "static"
-    for f in server_static_path.glob('*'):
+    for f in server_static_path.glob("*"):
         all_static_assets.append(f)
 
     return all_static_assets
@@ -999,7 +1053,9 @@ def _execute_server_setup_hook(user_app_path: str) -> None:
     """
     server_setup_path = os.path.join(user_app_path, "server_setup.py")
     if os.path.isfile(server_setup_path):
-        spec = cast(ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path))
+        spec = cast(
+            ModuleSpec, importlib.util.spec_from_file_location("server_setup", server_setup_path)
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore
 
@@ -1015,9 +1071,11 @@ def _next_localhost_available_port(port_range: Tuple[int, int]) -> int:
     for port in range(port_range[0], port_range[1]):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-        result = sock.connect_ex(('127.0.0.1', port))
+        result = sock.connect_ex(("127.0.0.1", port))
         sock.close()
         if result != 0:
             return port
 
-    raise OSError(f"No free port found to start the server between {port_range[0]} and {port_range[1]} .")
+    raise OSError(
+        f"No free port found to start the server between {port_range[0]} and {port_range[1]} ."
+    )

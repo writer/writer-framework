@@ -17,7 +17,7 @@ export function useEvaluator(wf: Core) {
 			s = "";
 		let level = 0;
 
-		let i = 0
+		let i = 0;
 		while (i < expr.length) {
 			const c = expr.charAt(i);
 			if (c == "\\") {
@@ -51,7 +51,7 @@ export function useEvaluator(wf: Core) {
 				s += c;
 			}
 
-			i++
+			i++;
 		}
 
 		if (s) {
@@ -173,7 +173,11 @@ export function useEvaluator(wf: Core) {
 			typeof evaluated == "undefined" ||
 			evaluated === null ||
 			evaluated === "";
-		if (fieldType == FieldType.Object || fieldType == FieldType.KeyValue || fieldType == FieldType.Tools) {
+		if (
+			fieldType == FieldType.Object ||
+			fieldType == FieldType.KeyValue ||
+			fieldType == FieldType.Tools
+		) {
 			if (!evaluated) {
 				return JSON.parse(defaultValue ?? null);
 			}
@@ -194,6 +198,9 @@ export function useEvaluator(wf: Core) {
 			if (typeof n === "undefined" || Number.isNaN(n))
 				return floatDefaultValue ?? null;
 			return n;
+		} else if (fieldType == FieldType.Boolean) {
+			const value = isValueEmpty ? defaultValue : evaluated;
+			return value === "yes" || value === "true";
 		} else if (fieldType == FieldType.IdKey) {
 			return contentValue;
 		} else {

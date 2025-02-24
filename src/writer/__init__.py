@@ -70,7 +70,7 @@ def pack_bytes(raw_data, mime_type: Optional[str] = None):
 S = TypeVar('S', bound=WriterState)
 
 
-def init_ui() -> WriterUIManager:
+def init_ui() -> 'WriterUIManager':
     """Initializes and returns an instance of WriterUIManager.
     This manager provides methods to dynamically create and manage UI
     components in a Writer Framework application.

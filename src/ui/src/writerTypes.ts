@@ -123,6 +123,7 @@ export const enum ClipboardOperation {
 
 export const enum FieldType {
 	Text = "Text",
+	Boolean = "Boolean",
 	KeyValue = "Key-Value",
 	Color = "Color",
 	Shadow = "Shadow",
@@ -136,6 +137,8 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
+	WorkflowKey = "WorkflowKey",
+	Handler = "Handler",
 }
 
 export const enum FieldCategory {

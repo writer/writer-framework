@@ -14,10 +14,10 @@ Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
 	<div class="CoreVideoPlayer">
 		<video
 			:src="fields.src.value"
-			:controls="fields.controls.value === 'yes'"
-			:autoplay="fields.autoplay.value === 'yes'"
-			:loop="fields.loop.value === 'yes'"
-			:muted="fields.muted.value === 'yes'"
+			:controls="fields.controls.value"
+			:autoplay="fields.autoplay.value"
+			:loop="fields.loop.value"
+			:muted="fields.muted.value"
 		></video>
 		<div class="mask" />
 	</div>
@@ -25,8 +25,8 @@ Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { cssClasses } from "@/renderer/sharedStyleFields";
 import { validatorUri } from "@/constants/validators";
+import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
 
 const description =
 	"A video player component that can play various video formats.";
@@ -45,44 +45,28 @@ export default {
 				validator: validatorUri,
 			},
 			controls: {
+				...baseYesNoField,
 				name: "Controls",
 				desc: "Display video player controls.",
 				default: "yes",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			autoplay: {
+				...baseYesNoField,
 				name: "Autoplay",
 				desc: "Autoplay the video when the component is loaded.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			loop: {
+				...baseYesNoField,
 				name: "Loop",
 				desc: "Loop the video when it reaches the end.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			muted: {
+				...baseYesNoField,
 				name: "Muted",
 				desc: "Mute the video by default.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			cssClasses,
 		},

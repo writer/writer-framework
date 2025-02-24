@@ -75,7 +75,7 @@ import { computed, inject, onMounted, Ref, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value == "yes");
+const isCollapsed: Ref<boolean> = ref(fields.startCollapsed.value);
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);

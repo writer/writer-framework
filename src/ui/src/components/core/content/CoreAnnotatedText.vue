@@ -27,7 +27,7 @@
 			</span>
 		</template>
 		<SharedControlBar
-			v-if="fields.copyButtons.value === 'yes'"
+			v-if="fields.copyButtons.value"
 			:copy-raw-content="copyRawContent"
 			:copy-structured-content="copyStructuredContent"
 		/>
@@ -36,6 +36,7 @@
 
 <script lang="ts">
 import {
+	baseYesNoField,
 	buttonColor,
 	buttonTextColor,
 	cssClasses,
@@ -72,34 +73,22 @@ export default {
 				category: FieldCategory.Style,
 			},
 			rotateHue: {
+				...baseYesNoField,
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
-				type: FieldType.Text,
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "yes",
 				category: FieldCategory.Style,
 			},
 			useMarkdown: {
+				...baseYesNoField,
 				name: "Use Markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			copyButtons: {
+				...baseYesNoField,
 				name: "Copy buttons",
 				desc: "If active, adds a control bar with both copy text and JSON buttons.",
-				type: FieldType.Text,
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "no",
 				category: FieldCategory.Style,
 			},
@@ -117,7 +106,6 @@ import { FieldCategory, FieldType } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { computed, inject, readonly, ref, watch } from "vue";
 import chroma, { Color } from "chroma-js";
-import { useFieldValueAsYesNo } from "@/composables/useFieldValue";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdownRaw from "../base/BaseMarkdownRaw.vue";
 
@@ -132,7 +120,7 @@ const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const componentId = inject(injectionKeys.componentId);
 const isEmpty = computed(() => !fields.text.value);
 const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
-const useMarkdown = useFieldValueAsYesNo(fields, "useMarkdown");
+const useMarkdown = computed(() => Boolean(fields.useMarkdown.value));
 
 const COLOR_STEPS = [
 	{ h: -78, s: -34, l: 16 },
@@ -229,7 +217,7 @@ function getAnnotationBgColor(content: AnnotatedTextElementArray) {
 }
 
 function generateColor(s: string) {
-	if (fields.rotateHue.value == "no") {
+	if (!fields.rotateHue.value) {
 		return fields.referenceColor.value;
 	}
 
