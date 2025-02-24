@@ -19,7 +19,7 @@ class WriterAddToKG(WorkflowBlock):
                 "fields": {
                     "graphId": {
                         "name": "Graph id",
-                        "type": "Text",
+                        "type": "WriterGraphId",
                         "desc": "The id for an existing knowledge graph. It has a UUID format.",
                         "validator": {
                             "type": "string",

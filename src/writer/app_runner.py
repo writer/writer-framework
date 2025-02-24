@@ -44,6 +44,8 @@ from writer.ss_types import (
     InitSessionRequest,
     InitSessionRequestPayload,
     InitSessionResponsePayload,
+    ListResourcesRequest,
+    ListResourcesRequestPayload,
     ServeMode,
     SourceFilesDirectory,
     StateContentRequest,
@@ -262,6 +264,33 @@ class AppProcess(multiprocessing.Process):
         ingest_bmc_component_tree(writer.base_component_tree, payload.components)
         ingest_bmc_component_tree(session.session_component_tree, payload.components, True)
 
+    def _handle_list_resources(self, session: WriterSession, req: ListResourcesRequestPayload) -> AppProcessServerResponse:
+        if req.resource_type == 'graphs':
+            from writerai import APIConnectionError
+
+            from writer.ai import list_graphs
+
+            try:
+                graphs = list_graphs()
+                raw_graphs = [{"name": graph.name, "id": graph.id, "description": graph.description} for graph in graphs]
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload={"data": raw_graphs}
+                )
+            except (RuntimeError, APIConnectionError) as e:
+                return AppProcessServerResponse(
+                    status="error",
+                    status_message=str(e),
+                    payload=None
+                )
+
+        return AppProcessServerResponse(
+            status="error",
+            status_message=f"could not load unknow resources {req.resource_type}",
+            payload=None
+        )
+
     def _handle_message(
         self, session_id: str, request: AppProcessServerRequest
     ) -> AppProcessServerResponse:
@@ -324,6 +353,10 @@ class AppProcess(multiprocessing.Process):
                 cu_req_payload = ComponentUpdateRequestPayload.parse_obj(request.payload)
                 self._handle_component_update(session, cu_req_payload)
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
+
+            if self.mode == "edit" and type == "listResources":
+                list_req_payload = ListResourcesRequestPayload.parse_obj(request.payload)
+                return self._handle_list_resources(session, list_req_payload)
 
             raise MessageHandlingException("Invalid event.")
 
@@ -856,6 +889,14 @@ class AppRunner:
         return await self.dispatch_message(
             session_id, ComponentUpdateRequest(type="componentUpdate", payload=payload)
         )
+
+    async def list_resources(self, session_id: str, resource_type: str) -> AppProcessServerResponse:
+        if self.mode != "edit":
+            raise PermissionError(
+                "Cannot update components in non-update mode.")
+        message_payload = ListResourcesRequestPayload(resource_type=resource_type)
+        message = ListResourcesRequest(type="listResources", payload=message_payload)
+        return await self.dispatch_message(session_id, message)
 
     async def handle_event(self, session_id: str, event: WriterEvent) -> AppProcessServerResponse:
         return await self.dispatch_message(session_id, EventRequest(type="event", payload=event))

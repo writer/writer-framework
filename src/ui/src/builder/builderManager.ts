@@ -1,5 +1,6 @@
 import { computed, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
+import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -86,8 +87,11 @@ type State = {
 };
 
 export function generateBuilderManager() {
+	const modeCache = useLocalStorageJSON<State["mode"]>(
+		"generateBuilderManager__mode",
+	);
 	const initState: State = {
-		mode: "ui",
+		mode: modeCache.value ?? "ui",
 		selection: [],
 		clipboard: null,
 		mutationTransactionsSnapshot: {
@@ -106,7 +110,7 @@ export function generateBuilderManager() {
 	 * @deprecated use {@link mode} instead
 	 */
 	const setMode = (newMode: State["mode"]): void => {
-		state.value.mode = newMode;
+		mode.value = newMode;
 	};
 
 	/**
@@ -120,6 +124,7 @@ export function generateBuilderManager() {
 		get: () => state.value.mode,
 		set(newValue) {
 			state.value.mode = newValue;
+			modeCache.value = newValue;
 		},
 	});
 
