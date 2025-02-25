@@ -751,7 +751,7 @@ class AppRunner:
         self._subscribe_terminal_signal()
 
     async def dispatch_message(
-        self, session_id: Optional[str], request: AppProcessServerRequest
+        self, session_id: str, request: AppProcessServerRequest
     ) -> AppProcessServerResponse:
         """
         Sends a message to the AppProcess server, waits for the listener to obtain a response and returns it.
@@ -870,7 +870,7 @@ class AppRunner:
 
     async def init_session(self, payload: InitSessionRequestPayload) -> AppProcessServerResponse:
         return await self.dispatch_message(
-            None, InitSessionRequest(type="sessionInit", payload=payload)
+            "anonymous", InitSessionRequest(type="sessionInit", payload=payload)
         )
 
     async def update_components(

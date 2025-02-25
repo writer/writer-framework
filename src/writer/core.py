@@ -1563,6 +1563,8 @@ class SessionManager:
     ) -> Optional[WriterSession]:
         if session_id is None:
             return None
+        if session_id == "anonymous":
+            return None
 
         session = self.sessions.get(session_id)
         if session is not None and restore_initial_mail is True:
