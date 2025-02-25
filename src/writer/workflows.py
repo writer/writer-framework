@@ -1,8 +1,8 @@
 import json
-import os
+import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import writer.blocks
 import writer.blocks.base_block
@@ -14,8 +14,20 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
-        max_workers = (os.cpu_count() or 4) * 5
-        self.executor = ThreadPoolExecutor(max_workers=max_workers)
+        self.executor = self._get_pool_executor()
+
+    def _get_pool_executor(self):
+        current_app_process = None
+        try:
+            current_app_process = writer.core.get_app_process()
+        except RuntimeError:
+            current_app_process = None
+        if current_app_process:
+            return current_app_process.pool_executor
+        logging.info(
+            "The main pool executor isn't being reused. This is only expected in test or debugging situations."
+        )
+        return ThreadPoolExecutor(20)  # Pool executor for debugging (running outside of AppProcess)
 
     def execute_ui_trigger(
         self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
@@ -52,18 +64,17 @@ class WorkflowRunner:
         :param execution_environments: A list of execution environments, one per execution.
         :return: A list of results in the same order as execution_environments.
         """
-        futures = []
 
-        for env in execution_environments:
-            future = self.executor.submit(self.run_workflow_by_key, workflow_key, env)
-            futures.append(future)
+        futures = [
+            self.executor.submit(self.run_workflow_by_key, workflow_key, env)
+            for env in execution_environments
+        ]
+
+        wait(futures)  # Important to preserve order, don't switch to as_completed
 
         results = []
-        for future in as_completed(futures):
-            try:
-                results.append(future.result())
-            except Exception:
-                results.append(None)
+        for future in futures:
+            results.append(future.result())
 
         return results
 

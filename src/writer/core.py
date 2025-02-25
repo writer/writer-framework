@@ -1757,7 +1757,6 @@ class EventHandler:
             else:
                 return {"ok": True, "result": self._handle_component_event(ev)}
         except BaseException as e:
-            raise e
             return {"ok": False, "result": str(e)}
 
 
