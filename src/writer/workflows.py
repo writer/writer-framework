@@ -21,7 +21,7 @@ class WorkflowRunner:
         new_executor = None
         try:
             current_app_process = writer.core.get_app_process()
-            yield current_app_process.pool_executor
+            yield current_app_process.executor
         except RuntimeError:
             logging.info(
                 "The main pool executor isn't being reused. This is only expected in test or debugging situations."
@@ -31,19 +31,6 @@ class WorkflowRunner:
         finally:
             if new_executor:
                 new_executor.shutdown()
-
-    def _get_pool_executor(self):
-        current_app_process = None
-        try:
-            current_app_process = writer.core.get_app_process()
-        except RuntimeError:
-            current_app_process = None
-        if current_app_process:
-            return current_app_process.pool_executor
-        logging.info(
-            "The main pool executor isn't being reused. This is only expected in test or debugging situations."
-        )
-        return ThreadPoolExecutor(20)  # Pool executor for debugging (running outside of AppProcess)
 
     def execute_ui_trigger(
         self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
