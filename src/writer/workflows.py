@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -15,8 +14,7 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
-        max_workers = os.cpu_count() * 5
-        logging.error(f"WORKERS MAX WORKERS Using {max_workers} workers")
+        max_workers = (os.cpu_count() or 4) * 5
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def execute_ui_trigger(
