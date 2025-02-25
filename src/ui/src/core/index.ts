@@ -400,6 +400,34 @@ export function generateCore() {
 		});
 	}
 
+	async function sendFileUploadRequest(
+		path: string[],
+		content: string | ArrayBuffer,
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (r.payload?.["error"])
+					return reject("Couldn't create the file.");
+
+				sourceFiles.value = createFileToSourceFiles(
+					path,
+					toRaw(sourceFiles.value),
+				);
+				resolve();
+			};
+
+			sendFrontendMessage(
+				"uploadSourceFile",
+				{ path, content },
+				messageCallback,
+			);
+		});
+	}
+
 	async function sendRenameSourceFileRequest(
 		from: string[],
 		to: string[],
@@ -724,6 +752,7 @@ export function generateCore() {
 		sendCreateSourceFileRequest,
 		sendRenameSourceFileRequest,
 		sendDeleteSourceFileRequest,
+		sendFileUploadRequest,
 		requestSourceFileLoading,
 		sendListResourcesRequest,
 		sendComponentUpdate,

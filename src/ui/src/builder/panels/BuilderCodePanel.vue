@@ -20,13 +20,16 @@
 					@select="openFile"
 					@delete="handleDeleteFile"
 				/>
-				<button
-					class="BuilderCodePanel__tree__addFile"
-					@click="handleAddFile"
-				>
-					<i class="material-symbols-outlined">add</i>
-					Add file
-				</button>
+				<div class="BuilderCodePanel__tree__actions">
+					<button
+						class="BuilderCodePanel__tree__actions__addFile"
+						@click="handleAddFile"
+					>
+						<i class="material-symbols-outlined">add</i>
+						Add file
+					</button>
+					<BuilderCodePanelFileUploadBtn @selected="handleUpload" />
+				</div>
 			</div>
 		</template>
 		<BuilderEmbeddedCodeEditor
@@ -102,6 +105,7 @@ import BuilderMoreDropdown, { Option } from "../BuilderMoreDropdown.vue";
 import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.vue";
 import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
+import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
@@ -122,6 +126,7 @@ const moreOptions: Option[] = [
 const {
 	sourceFileDraft,
 	openFile,
+	upload,
 	openNewFile,
 	code,
 	openedFileLanguage,
@@ -130,6 +135,14 @@ const {
 	pathsUnsaved,
 	save,
 } = useSourceFiles(wf);
+
+async function handleUpload(files: FileList) {
+	try {
+		await upload(files);
+	} catch (error) {
+		pushToast({ type: "error", message: error.message });
+	}
+}
 
 const fileTypeOpen = computed(() => fileOpen.value?.type);
 
@@ -255,7 +268,13 @@ async function handleSave() {
 	overflow-y: auto;
 }
 
-.BuilderCodePanel__tree__addFile {
+.BuilderCodePanel__tree__actions {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.BuilderCodePanel__tree__actions__addFile {
 	height: 32px;
 	padding: 8px;
 
@@ -263,6 +282,7 @@ async function handleSave() {
 	background-color: transparent;
 	color: var(--wdsColorBlue5);
 	font-size: 12px;
+	font-weight: 500;
 	border: none;
 
 	display: flex;

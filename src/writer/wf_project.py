@@ -343,7 +343,7 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
     files = []
     for root, dirs, filenames in os.walk(app_path):
         # ignore specific folders
-        dirs[:] = [d for d in dirs if d not in {'.venv', 'venv', '__pycache__', '.wf'}]
+        dirs[:] = [d for d in dirs if d not in {'.venv', 'venv', '__pycache__', '.wf', '.DS_Store'}]
         for filename in filenames:
             files.append(os.path.realpath(os.path.join(root, filename)))
 

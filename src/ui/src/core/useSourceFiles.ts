@@ -176,6 +176,47 @@ export function useSourceFiles(wf: Core) {
 		}
 	}
 
+	function readFile(file: File): Promise<string | ArrayBuffer> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.addEventListener("loadend", (event) => {
+				const data = event.target.result;
+
+				if (data instanceof ArrayBuffer) {
+					const binaryString = String.fromCharCode.apply(
+						null,
+						new Uint8Array(data),
+					);
+					return resolve(binaryString);
+				}
+
+				resolve(data);
+			});
+
+			reader.addEventListener("error", () => {
+				reject();
+			});
+			reader.readAsArrayBuffer(file);
+		});
+	}
+
+	async function upload(files: FileList) {
+		const maxSize = 100 * 1024 * 1024; // 100mb
+		for (const file of files) {
+			if (file.size > maxSize)
+				throw Error("Cannot upload file bigger than 100mb");
+
+			const path = [file.name];
+
+			if (findSourceFileFromPath(path, wf.sourceFiles.value))
+				throw Error(`The file ${file.name} already exists`);
+
+			const content = await readFile(file);
+			// TODO: validate size here
+			await wf.sendFileUploadRequest(path, content);
+		}
+	}
+
 	return {
 		code,
 		sourceFileDraft,
@@ -184,6 +225,7 @@ export function useSourceFiles(wf: Core) {
 		pathsUnsaved,
 		openedFileLanguage,
 		save,
+		upload,
 		openFile,
 		openNewFile,
 		getNewFilename,

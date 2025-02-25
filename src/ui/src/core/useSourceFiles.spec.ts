@@ -158,7 +158,7 @@ describe(useSourceFiles.name, () => {
 		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
 	});
 
-	describe("saving file", () => {
+	describe("save", () => {
 		let mockCore: ReturnType<typeof buildMockCore>;
 
 		beforeEach(() => {
@@ -188,7 +188,7 @@ describe(useSourceFiles.name, () => {
 				};
 			});
 
-			it("should save a file", async () => {
+			it("should save", async () => {
 				const { openFile, save } = useSourceFiles(mockCore.core);
 
 				openFile(["a.txt"]);
@@ -202,7 +202,7 @@ describe(useSourceFiles.name, () => {
 				).not.toHaveBeenCalled();
 			});
 
-			it("should save a file and rename", async () => {
+			it("should save and rename", async () => {
 				const { openFile, save } = useSourceFiles(mockCore.core);
 
 				openFile(["a.txt"]);
@@ -229,7 +229,7 @@ describe(useSourceFiles.name, () => {
 				};
 			});
 
-			it("should save a file", async () => {
+			it("should save", async () => {
 				const { openFile, save } = useSourceFiles(mockCore.core);
 
 				openFile(["a.png"]);
@@ -243,7 +243,7 @@ describe(useSourceFiles.name, () => {
 				).not.toHaveBeenCalled();
 			});
 
-			it("should save a file and rename", async () => {
+			it("should save and rename", async () => {
 				const { openFile, save } = useSourceFiles(mockCore.core);
 
 				openFile(["a.png"]);
@@ -256,6 +256,89 @@ describe(useSourceFiles.name, () => {
 					mockCore.core.sendRenameSourceFileRequest,
 				).toHaveBeenNthCalledWith(1, ["a.png"], ["b.png"]);
 			});
+		});
+	});
+
+	describe("upload", () => {
+		let mockCore: ReturnType<typeof buildMockCore>;
+
+		beforeEach(() => {
+			mockCore = buildMockCore();
+
+			vi.spyOn(mockCore.core, "sendFileUploadRequest").mockImplementation(
+				async () => {},
+			);
+		});
+
+		it("should not overide an existing file", async () => {
+			mockCore.sourceFiles.value = {
+				type: "directory",
+				children: {
+					"a.txt": {
+						type: "file",
+						content: "A",
+						complete: false,
+					},
+				},
+			};
+
+			const { upload } = useSourceFiles(mockCore.core);
+			const files = [new File([], "a.txt")] as unknown as FileList;
+
+			await expect(upload(files)).rejects.toThrowError(
+				"The file a.txt already exists",
+			);
+
+			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
+		});
+
+		it("should not upload big file", async () => {
+			const { upload } = useSourceFiles(mockCore.core);
+
+			const fileSize = 200 * 1024 * 1024; // 200mb
+
+			const files = [
+				{
+					...new File([], "a.png"),
+					size: fileSize,
+				},
+			] as unknown as FileList;
+
+			await expect(upload(files)).rejects.toThrowError(
+				/Cannot upload file bigger than/,
+			);
+
+			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
+		});
+
+		it("should upload a text file", async () => {
+			const { upload } = useSourceFiles(mockCore.core);
+			const files = [new File(["Hello"], "a.txt")] as unknown as FileList;
+
+			await upload(files);
+
+			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
+			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
+				["a.txt"],
+				"Hello",
+			);
+		});
+
+		it("should upload a binary file", async () => {
+			const { upload } = useSourceFiles(mockCore.core);
+
+			const binaryData = new Uint8Array([72, 101, 108, 108, 111]); // "Hello" in ASCII
+			const files = [
+				new File([binaryData], "a.png"),
+			] as unknown as FileList;
+
+			await upload(files);
+
+			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
+			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
+				["a.png"],
+				"Hello",
+			);
 		});
 	});
 

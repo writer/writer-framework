@@ -600,6 +600,15 @@ def get_asgi_app(
         elif req_message.type == "listResources":
             res = await app_runner.list_resources(session_id, req_message.payload["resource_type"])
             response.payload = res.payload
+        elif req_message.type == "uploadSourceFile":
+            path = os.path.join(*req_message.payload["path"])
+            content = req_message.payload["content"]
+
+            try:
+                app_runner.create_persisted_script(path, content)
+            except Exception as error:
+                response.payload = {"error": str(error)}
+
         await websocket.send_json(response.model_dump())
 
     async def _handle_keep_alive_message(

@@ -783,12 +783,13 @@ class AppRunner:
 
         return response
 
-    def create_persisted_script(self, file="main.py"):
+    def create_persisted_script(self, file = "main.py", content = ''):
         path = os.path.join(self.app_path, file)
         self._check_file_in_app_path(path)
 
-        with open(path, "x", encoding="utf-8") as f:
-            f.write("")
+        # TODO: handle binary with `xb` mode 
+        with open(path, "x", encoding='utf-8') as f:
+            f.write(content)
 
         self.source_files = wf_project.build_source_files(self.app_path)
 
