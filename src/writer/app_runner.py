@@ -13,7 +13,7 @@ import subprocess
 import sys
 import threading
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, cast, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import watchdog.events
 from pydantic import ValidationError
