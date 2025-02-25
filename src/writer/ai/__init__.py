@@ -25,22 +25,34 @@ from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
 from writerai.resources import FilesResource, GraphsResource
 from writerai.types import (
-    Chat,
+    ApplicationListResponse,
+    ApplicationRetrieveResponse,
+    ChatCompletion,
     Completion,
+    CompletionChunk,
     FileDeleteResponse,
     GraphDeleteResponse,
     GraphRemoveFileFromGraphResponse,
-    GraphUpdateResponse,
-    StreamingData,
+    GraphUpdateResponse
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.application_generate_content_params import Input
-from writerai.types.chat import ChoiceMessage, ChoiceMessageGraphData, ChoiceMessageToolCall
+from writerai.types.applications import (
+    ApplicationGenerateAsyncResponse,
+    JobCreateResponse
+)
+from writerai.types.applications.application_graphs_response import (
+    ApplicationGraphsResponse
+)
 from writerai.types.chat_chat_params import Message as WriterAIMessage
-from writerai.types.chat_chat_params import MessageGraphData
-from writerai.types.chat_chat_params import ToolFunctionTool as SDKFunctionTool
-from writerai.types.chat_chat_params import ToolGraphTool as SDKGraphTool
+from writerai.types.chat_chat_params import GraphData, ToolChoice
+from writerai.types.shared_params.tool_param import (
+    FunctionTool as SDKFunctionTool,
+    GraphTool as SDKGraphTool,
+    LlmTool as SDKLlmTool
+)
+from writerai.types.chat_completion_message import ChatCompletionMessage
 from writerai.types.question import Question
 from writerai.types.question_response_chunk import QuestionResponseChunk
 
@@ -56,7 +68,9 @@ class APIOptions(TypedDict, total=False):
 
 class ChatOptions(APIOptions, total=False):
     model: str
+    tool_choice: ToolChoice
     tools: Union[Iterable[Union[SDKGraphTool, SDKFunctionTool]], NotGiven]
+    logprobs: Union[bool, NotGiven]
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
     stop: Union[List[str], str, NotGiven]
@@ -79,6 +93,13 @@ class APIListOptions(APIOptions, total=False):
     before: Union[str, NotGiven]
     limit: Union[int, NotGiven]
     order: Union[Literal["asc", "desc"], NotGiven]
+
+
+class APIRetrieveJobsOptions(APIListOptions, total=False):
+    status: Union[
+        Literal["completed", "failed", "in_progress", "pending"],
+        NotGiven
+        ]
 
 
 class Tool(TypedDict, total=False):
@@ -129,7 +150,12 @@ def create_function_tool(
     )
 
 
-def _process_completion_data_chunk(choice: StreamingData) -> str:
+class LLMTool(Tool):
+    model: str
+    description: str
+
+
+def _process_completion_data_chunk(choice: CompletionChunk) -> str:
     text = choice.value
     if not text:
         return ""
@@ -138,7 +164,7 @@ def _process_completion_data_chunk(choice: StreamingData) -> str:
     raise ValueError("Failed to retrieve text from completion stream")
 
 
-def _process_chat_data_chunk(chat_data: Chat) -> tuple[dict, dict]:
+def _process_chat_data_chunk(chat_data: ChatCompletion) -> tuple[dict, dict]:
     choices = chat_data.choices
     for entry in choices:
         dict_entry = entry.model_dump()
@@ -373,7 +399,7 @@ class Graph(SDKWrapper):
         - `extra_body` (Optional[Body]):
         Additional body parameters for the request.
         - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-        Timeout for the request.
+        Timeout for the request in seconds.
         """
         config = config or {}
 
@@ -415,7 +441,7 @@ class Graph(SDKWrapper):
         - `extra_body` (Optional[Body]):
         Additional body parameters for the request.
         - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-        Timeout for the request.
+        Timeout for the request in seconds.
         """
         config = config or {}
         file_id = None
@@ -462,7 +488,7 @@ class Graph(SDKWrapper):
         - `extra_body` (Optional[Body]):
         Additional body parameters for the request.
         - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-        Timeout for the request.
+        Timeout for the request in seconds.
         """
         config = config or {}
         file_id = None
@@ -521,20 +547,25 @@ class Graph(SDKWrapper):
         responses or when reduced latency is needed.
 
         :param question: The query or question to be answered by the graph.
-        :param subqueries: Enables subquery generation if set to True, 
+        :param subqueries: Enables subquery generation if set to True,
         enhancing the result.
-        :param config: Optional dictionary for additional API 
-        configuration settings. 
-        The configuration can include:
-            - ``extra_headers`` (Optional[Headers]): Additional headers.
-            - ``extra_query`` (Optional[Query]): Extra query parameters.
-            - ``extra_body`` (Optional[Body]): Additional body data.
-            - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+        :param config: Optional dictionary for additional API
+        configuration settings.
 
         :yields: Incremental chunks of the answer to the question.
 
         :raises ValueError: If an invalid graph or graph ID
         is provided in `graphs_or_graph_ids`.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
 
         **Example Usage**:
 
@@ -544,7 +575,7 @@ class Graph(SDKWrapper):
         ...     print(chunk)
         ...
         """
-        
+
         response = cast(
                 Stream[QuestionResponseChunk],
                 self._question(
@@ -577,17 +608,22 @@ class Graph(SDKWrapper):
         a single response.
 
         :param question: The query or question to be answered by the graph.
-        :param subqueries: Enables subquery generation if set to True, 
+        :param subqueries: Enables subquery generation if set to True,
         enhancing the result.
-        :param config: Optional dictionary for additional API 
+        :param config: Optional dictionary for additional API
         configuration settings.
-        The configuration can include:
-            - ``extra_headers`` (Optional[Headers]): Additional headers.
-            - ``extra_query`` (Optional[Query]): Extra query parameters.
-            - ``extra_body`` (Optional[Body]): Additional body data.
-            - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
 
         :return: The answer to the question from the graph(s).
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
 
         **Example Usage**:
 
@@ -632,7 +668,7 @@ def create_graph(
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
@@ -668,7 +704,7 @@ def retrieve_graph(
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     """
     config = config or {}
     graphs = Graph._retrieve_graphs_accessor()
@@ -694,7 +730,7 @@ def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     - `after` (Union[str, NotGiven]):
     Filter to retrieve items created after a specific cursor.
     - `before` (Union[str, NotGiven]):
@@ -809,7 +845,7 @@ def retrieve_file(file_id: str, config: Optional[APIOptions] = None) -> File:
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     """
     config = config or {}
     files = File._retrieve_files_accessor()
@@ -835,7 +871,7 @@ def list_files(config: Optional[APIListOptions] = None) -> List[File]:
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     - `after` (Union[str, NotGiven]):
     Filter to retrieve items created after a specific cursor.
     - `before` (Union[str, NotGiven]):
@@ -879,7 +915,7 @@ def upload_file(
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     """
     config = config or {}
     files = File._retrieve_files_accessor()
@@ -920,7 +956,7 @@ def delete_file(
     - `extra_body` (Optional[Body]):
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
-    Timeout for the request.
+    Timeout for the request in seconds.
     """
     config = config or {}
     file_id = None
@@ -971,13 +1007,43 @@ class Conversation:
     :param prompt_or_history: Initial system prompt as a string, or
                               history of messages as a list, used to start
                               a new conversation or to load an existing one.
-    :param config: Configuration settings for the conversation. These settings
-                   can include parameters such as `max_tokens`, `temperature`,
-                   and `timeout`, which affect the behavior and performance
-                   of the conversation operations. This configuration provides
-                   a default context for all operations, but can be overridden
-                   or extended by additional configurations passed directly
-                   to specific methods.
+    :param config: Configuration settings for the conversation.
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request in seconds.
+    - `model` (str):
+    The model to use for completion.
+    - `tool_choice` (ToolChoice):
+    Configure how the model will call functions: `auto` will allow the model
+    to automatically choose the best tool, `none` disables tool calling.
+    You can also pass a specific previously defined function.
+    - `logprobs` (Union[bool, NotGiven]):
+    Specifies whether to return log probabilities of the output tokens.
+    - `tools` (Union[Iterable[Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]], NotGiven]):
+    Tools available for the model to use.
+    - `max_tokens` (Union[int, NotGiven]):
+    Maximum number of tokens to generate.
+    - `n` (Union[int, NotGiven]):
+    Number of completions to generate.
+    - `stop` (Union[List[str], str, NotGiven]):
+    Sequences where the API will stop generating tokens.
+    - `temperature` (Union[float, NotGiven]):
+    Controls the randomness or creativity of the model's responses.
+    A higher temperature results in more varied and less predictable text,
+    while a lower temperature produces more deterministic
+    and conservative outputs.
+    - `top_p` (Union[float, NotGiven]):
+    Sets the threshold for "nucleus sampling," a technique to focus the model's
+    token generation on the most likely subset of tokens. Only tokens with
+    cumulative probability above this threshold are considered, controlling the
+    trade-off between creativity and coherence.
 
     **Configuration Example:**
 
@@ -991,7 +1057,7 @@ class Conversation:
     or extend the initial configuration:
 
     >>> response = conversation.complete(
-    ...             data={
+    ...             config={
     ...                 'max_tokens': 150,
     ...                 'temperature': 0.7
     ...                 }
@@ -1201,7 +1267,7 @@ class Conversation:
             sdk_message["tool_calls"] = cast(list, msg_tool_calls)
         if msg_graph_data := message.get("graph_data"):
             sdk_message["graph_data"] = cast(
-                MessageGraphData,
+                GraphData,
                 msg_graph_data
                 )
         if msg_refusal := message.get("refusal"):
@@ -1276,7 +1342,7 @@ class Conversation:
 
     def _prepare_tool(
             self,
-            tool_instance: Union['Graph', GraphTool, FunctionTool]
+            tool_instance: Union['Graph', GraphTool, FunctionTool, LLMTool]
             ) -> Union[SDKGraphTool, SDKFunctionTool]:
         """
         Internal helper function to process a tool instance
@@ -1389,13 +1455,14 @@ class Conversation:
                     "type": "graph",
                     "function": {
                         "graph_ids": [tool_instance.id],
-                        "subqueries": True
+                        "subqueries": True,
+                        "description": tool_instance.description
                     }
                 }
             )
 
         elif isinstance(tool_instance, dict):
-            # Handle a dictionary (either a graph or a function)
+            # Handle a dictionary (either a graph, a function or a LLM tool)
             if "type" not in tool_instance:
                 raise ValueError(
                     "Invalid tool definition: 'type' field is missing"
@@ -1407,6 +1474,13 @@ class Conversation:
                 tool_instance = cast(GraphTool, tool_instance)
                 if "graph_ids" not in tool_instance:
                     raise ValueError("Graph tool must include 'graph_ids'")
+                if "description" not in tool_instance:
+                    logging.warning(
+                        "No description provided for `graph` tool. " +
+                        "This may produce suboptimal results. " +
+                        "To increase output quality, provide a description " +
+                        "for the tool."
+                        )
                 # Return graph tool JSON
 
                 graph_ids_valid = \
@@ -1443,6 +1517,13 @@ class Conversation:
                     raise ValueError(
                         "Function tool must include 'name' and 'parameters'"
                         )
+                if "description" not in tool_instance:
+                    logging.warning(
+                        "No description provided for `function` tool. " +
+                        "This may produce suboptimal results. " +
+                        "To increase output quality, provide a description " +
+                        "for the tool."
+                        )
 
                 parameters_valid = \
                     validate_parameters(tool_instance["parameters"])
@@ -1462,7 +1543,8 @@ class Conversation:
                                 "parameters":
                                     prepare_parameters(
                                         tool_instance["parameters"]
-                                        )
+                                        ),
+                                "description": tool_instance.get("description")
                                 }
                         }
                     )
@@ -1472,6 +1554,28 @@ class Conversation:
                         f"`{tool_instance['name']}`"
                         )
 
+            elif tool_type == "llm":
+                tool_instance = cast(LLMTool, tool_instance)
+                if "model" not in tool_instance:
+                    raise ValueError("LLM tool must include 'model'")
+                if "description" not in tool_instance:
+                    logging.warning(
+                        "No description provided for `llm` tool. " +
+                        "This may produce suboptimal results. " +
+                        "To increase output quality, provide a description " +
+                        "for the tool."
+                        )
+                # Return LLM tool JSON
+                return cast(
+                    SDKLlmTool,
+                    {
+                        "type": "llm",
+                        "function": {
+                            "model": tool_instance["model"],
+                            "description": tool_instance.get("description")
+                        }
+                    }
+                )
             else:
                 raise ValueError(f"Unsupported tool type: {tool_type}")
 
@@ -1529,7 +1633,7 @@ class Conversation:
             request_model: str,
             request_data: ChatOptions,
             stream: bool = False
-    ) -> Union[Stream, Chat]:
+    ) -> Union[Stream, ChatCompletion]:
         """
         Helper function to send a chat request to the LLM.
 
@@ -1537,7 +1641,7 @@ class Conversation:
         :param request_data: Configuration settings for the chat request.
         :param stream: Whether to use streaming mode.
         :return: The response from the LLM, either as
-        a Stream or a Chat object.
+        a Stream or a ChatCompletion object.
         """
         client = WriterAIManager.acquire_client()
         prepared_messages = [
@@ -1553,7 +1657,9 @@ class Conversation:
             messages=prepared_messages,
             model=request_model,
             stream=stream,
+            logprobs=request_data.get('logprobs', NotGiven()),
             tools=request_data.get('tools', NotGiven()),
+            tool_choice=request_data.get('tool_choice', NotGiven()),
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
             stop=request_data.get('stop', NotGiven()),
@@ -1796,7 +1902,7 @@ class Conversation:
             if follow_up_message:
                 self._ongoing_tool_calls[index]["res"] = follow_up_message
 
-    def _process_tool_calls(self, message: ChoiceMessage):
+    def _process_tool_calls(self, message: ChatCompletionMessage):
         if message.tool_calls:
             for helper_index, tool_call in enumerate(message.tool_calls):
                 index = tool_call.index or helper_index
@@ -1827,7 +1933,10 @@ class Conversation:
                     tool_call_arguments
                 )
 
-    def _prepare_received_message_for_history(self, message: ChoiceMessage):
+    def _prepare_received_message_for_history(
+            self,
+            message: ChatCompletionMessage
+            ):
         """
         Prepares a received message for adding to the conversation history.
 
@@ -1841,7 +1950,7 @@ class Conversation:
 
     def _process_response_data(
             self,
-            response_data: Chat,
+            response_data: ChatCompletion,
             request_model: str,
             request_data: ChatOptions,
             depth=1,
@@ -1867,7 +1976,7 @@ class Conversation:
                     # Send follow-up call to LLM
                     logging.debug("Sending a request to LLM")
                     follow_up_response = cast(
-                        Chat,
+                        ChatCompletion,
                         self._send_chat_request(
                             request_model=request_model,
                             request_data=request_data
@@ -1965,7 +2074,8 @@ class Conversation:
                     Graph,
                     GraphTool,
                     FunctionTool,
-                    List[Union[Graph, GraphTool, FunctionTool]]
+                    LLMTool,
+                    List[Union[Graph, GraphTool, FunctionTool, LLMTool]]
                     ]  # can be an instance of tool or a list of instances
                 ] = None,
             max_tool_depth: int = 5,
@@ -1976,7 +2086,9 @@ class Conversation:
         Note: this method only produces AI model output and does not attach the
         result to the existing conversation history.
 
+        :param tools: Optional tools to use for processing.
         :param config: Optional parameters to pass for processing.
+        :param max_tool_depth: Maximum depth for tool calls processing.
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted
         to retrieve model text.
@@ -1996,8 +2108,8 @@ class Conversation:
         request_model = \
             request_data.get("model") or WriterAIManager.use_chat_model()
 
-        response_data: Chat = cast(
-                Chat,
+        response_data: ChatCompletion = cast(
+                ChatCompletion,
                 self._send_chat_request(
                     request_model=request_model,
                     request_data=request_data
@@ -2034,7 +2146,9 @@ class Conversation:
         Note: this method only produces AI model output and does not attach
         the result to the existing conversation history.
 
+        :param tools: Optional tools to use for processing.
         :param config: Optional parameters to pass for processing.
+        :param max_tool_depth: Maximum depth for tool calls processing.
         :yields: Model response chunks as they arrive from the stream.
         """
         config = config or {}
@@ -2116,21 +2230,123 @@ class Conversation:
 
 
 class Apps:
+    def list(
+            self,
+            config: Optional[APIOptions] = None
+            ) -> List[ApplicationListResponse]:
+        """
+        Lists all applications available to the user.
+
+        :param config: Optional dictionary containing parameters
+        for the list call.
+        :return: List of applications.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        response = client.applications.list(**config)
+        return response.data
+
+    def retrieve(
+            self,
+            application_id: str,
+            config: Optional[APIOptions] = None
+            ) -> ApplicationRetrieveResponse:
+        """
+        Retrieves all information about a specific application by its ID.
+
+        :param application_id: The ID of the application to retrieve data for.
+        :param config: Optional dictionary containing parameters
+        for the retrieve call.
+        :return: The application data.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        response_data = client.applications.retrieve(
+            application_id=application_id,
+            **config
+            )
+        return response_data
+
     def generate_content(
             self,
             application_id: str,
             input_dict: Optional[Dict[str, str]] = None,
-            config: Optional[APIOptions] = None) -> str:
+            async_job: Optional[bool] = False,
+            config: Optional[APIOptions] = None
+            ) -> Union[str, JobCreateResponse]:
         """
         Generates output based on an existing AI Studio no-code application.
 
         :param application_id: The id for the application, which can be
-        obtained on AI Studio.
+            obtained on AI Studio.
         :param input_dict: Optional dictionary containing parameters for
-        the generation call.
-        :return: The generated text.
+            the generation call.
+        :param async_job: Optional. If True, the function initiates
+            an asynchronous job and returns job details instead of
+            waiting for the immediate output.
+        :return: The generated text
+            or the information about new asynchronous job.
         :raises RuntimeError: If response data was not properly formatted
         to retrieve model text.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+
+        Examples:
+
+        **Synchronous Call (Immediate Output)**
+
+        >>> response = writer.ai.apps.generate_content(
+        ...     application_id="app_123",
+        ...     input_dict={"topic": "Climate Change"},
+        ...     async_job=False
+        ... )
+        >>> print(response)
+        "Climate change refers to long-term shifts in temperatures and weather patterns..."
+
+        **Asynchronous Call (Job Creation)**
+
+        >>> response = writer.ai.apps.generate_content(
+        ...     application_id="app_123",
+        ...     input_dict={"topic": "Climate Change"},
+        ...     async_job=True
+        ... )
+        >>> print(response)
+        JobCreateResponse(id="job_456", created_at=datetime(2025, 2, 24, 12, 30, 45), status="in_progress")
+        >>> result = writer.ai.apps.retrieve_job(job_id=response.id)
+        >>> if result.status == "completed":
+        ...     print(result.data)
+        {"title": "output", "suggestion": "Climate change refers to long-term shifts in temperatures and weather patterns..."}
+
         """
 
         client = WriterAIManager.acquire_client()
@@ -2144,20 +2360,191 @@ class Apps:
                 "value": v if isinstance(v, list) else [v]
             }))
 
-        response_data = client.applications.generate_content(
-            application_id=application_id,
-            inputs=inputs,
+        if not async_job:
+            response_data = client.applications.generate_content(
+                application_id=application_id,
+                inputs=inputs,
+                **config
+                )
+
+            text = response_data.suggestion
+            if text:
+                return text
+
+            raise RuntimeError(
+                "Failed to acquire proper response " +
+                "for completion from data: " +
+                f"{response_data}"
+            )
+
+        else:
+            response_data = client.applications.jobs.create(
+                application_id=application_id,
+                inputs=inputs,
+                **config
+            )
+
+            return response_data
+
+    def retry_job(
+            job_id: str,
+            config: Optional[APIOptions] = None
+            ) -> JobCreateResponse:
+        """
+        Retries a specific asynchronous job execution.
+
+        :param job_id: The unique identifier of the job to retry.
+        :param config: Optional API configuration options for the retry request.
+        :return: The response data from retrying the job.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        response_data = client.applications.jobs.retry(
+            job_id=job_id,
             **config
             )
 
-        text = response_data.suggestion
-        if text:
-            return text
+        return response_data
 
-        raise RuntimeError(
-            "Failed to acquire proper response for completion from data: " +
-            f"{response_data}"
+    def retrieve_jobs(
+            application_id: str,
+            config: Optional[APIRetrieveJobsOptions] = None
+            ) -> List[ApplicationGenerateAsyncResponse]:
+        """
+        Retrieves a list of jobs for a specific application.
+
+        :param application_id: The unique identifier of the application.
+        :param config: Optional configuration parameters for the API request.
+        :return: A list of job responses associated with
+        the specified application.
+
+        The `config` dictionary can include:
+        - `limit` (int): The pagination limit for retrieving the jobs.
+        - `offset` (int): The pagination offset for retrieving the jobs.
+        - `status` (Literal['in_progress', 'failed', 'completed']):
+        Filter jobs by the provided status.
+        - `extra_headers` (Optional[Headers]): Additional headers.
+        - `extra_query` (Optional[Query]): Extra query parameters.
+        - `extra_body` (Optional[Body]): Additional body data.
+        - `timeout` (Union[float, Timeout, None, NotGiven]):
+        Request timeout in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        jobs = client.applications.jobs.list(
+            application_id=application_id,
+            **config
+        )
+
+        return jobs.result
+
+    def retrieve_job(
+            job_id: str,
+            config: Optional[APIOptions] = None
+            ) -> ApplicationGenerateAsyncResponse:
+        """
+        Retrieves an asynchronous job from the Writer AI API based on its ID.
+
+        :param job_id: The unique identifier of the job to retrieve.
+        :param config: Additional API configuration options.
+        :returns: The retrieved job object from the API.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        job = client.applications.jobs.retrieve(
+            job_id=job_id,
+            **config
+        )
+
+        return job
+
+    def retrieve_graphs(
+            application_id: str,
+            config: Optional[APIOptions] = None
+            ) -> List[str]:
+        """
+        Retrieves a list of graph IDs for a specific application.
+
+        :param application_id: The unique identifier of the application.
+        :param config: Optional configuration parameters for the API request.
+        :return: A list of graph IDs associated with the specified application.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        graphs = client.applications.graphs.list(
+            application_id=application_id,
+            **config
+        )
+
+        return graphs.graph_ids
+
+    def associate_graphs(
+            application_id: str,
+            graph_ids: List[str],
+            config: Optional[APIOptions] = None
+            ) -> ApplicationGraphsResponse:
+        """
+        Associates a list of graph IDs with a specific application.
+
+        :param application_id: The unique identifier of the application.
+        :param graph_ids: A list of graph IDs to associate with the application.
+        :param config: Optional configuration parameters for the API request.
+        :return: The response data from associating the graphs.
+
+        The `config` dictionary can include the following keys:
+        - `extra_headers` (Optional[Headers]):
+        Additional headers for the request.
+        - `extra_query` (Optional[Query]):
+        Additional query parameters for the request.
+        - `extra_body` (Optional[Body]):
+        Additional body parameters for the request.
+        - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+        Timeout for the request in seconds.
+        """
+        client = WriterAIManager.acquire_client()
+        config = config or {}
+
+        response_data = client.applications.graphs.update(
+            application_id=application_id,
+            graph_ids=graph_ids,
+            **config
             )
+
+        return response_data
 
 
 class Tools:
@@ -2379,17 +2766,12 @@ def ask(
     a single response.
 
     :param question: The query or question to be answered by the graph(s).
-    :param graphs_or_graph_ids: A list of `Graph` objects or graph IDs that 
+    :param graphs_or_graph_ids: A list of `Graph` objects or graph IDs that
     should be queried.
-    :param subqueries: Enables subquery generation if set to True, 
+    :param subqueries: Enables subquery generation if set to True,
     enhancing the result.
-    :param config: Optional dictionary for additional API 
+    :param config: Optional dictionary for additional API
     configuration settings.
-    The configuration can include:
-        - ``extra_headers`` (Optional[Headers]): Additional headers.
-        - ``extra_query`` (Optional[Query]): Extra query parameters.
-        - ``extra_body`` (Optional[Body]): Additional body data.
-        - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
 
     :return: The answer to the question from the graph(s).
 
@@ -2397,6 +2779,16 @@ def ask(
     in `graphs_or_graph_ids`.
     :raises RuntimeError: If the API response is improperly formatted
     or the answer cannot be retrieved.
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request in seconds.
 
     **Example Usage**:
 
@@ -2436,22 +2828,27 @@ def stream_ask(
     responses or when reduced latency is needed.
 
     :param question: The query or question to be answered by the graph(s).
-    :param graphs_or_graph_ids: A list of Graph objects or graph IDs that 
+    :param graphs_or_graph_ids: A list of Graph objects or graph IDs that
     should be queried.
-    :param subqueries: Enables subquery generation if set to True, 
+    :param subqueries: Enables subquery generation if set to True,
     enhancing the result.
-    :param config: Optional dictionary for additional API 
-    configuration settings. 
-    The configuration can include:
-        - ``extra_headers`` (Optional[Headers]): Additional headers.
-        - ``extra_query`` (Optional[Query]): Extra query parameters.
-        - ``extra_body`` (Optional[Body]): Additional body data.
-        - ``timeout`` (Union[float, Timeout, None, NotGiven]): Request timeout.
+    :param config: Optional dictionary for additional API
+    configuration settings.
 
     :yields: Incremental chunks of the answer to the question.
 
     :raises ValueError: If an invalid graph or graph ID
     is provided in `graphs_or_graph_ids`.
+
+    The `config` dictionary can include the following keys:
+    - `extra_headers` (Optional[Headers]):
+    Additional headers for the request.
+    - `extra_query` (Optional[Query]):
+    Additional query parameters for the request.
+    - `extra_body` (Optional[Body]):
+    Additional body parameters for the request.
+    - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
+    Timeout for the request in seconds.
 
     **Example Usage**:
 
