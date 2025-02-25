@@ -115,9 +115,7 @@ class AppProcess(multiprocessing.Process):
         self.logger = logging.getLogger("app")
         self.handler_registry = EventHandlerRegistry()
         self.middleware_registry = MiddlewareRegistry()
-        self.pool_executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=(os.cpu_count() or 4) * 5
-        )
+        self.executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
 
     def _load_module(self) -> ModuleType:
         """
@@ -485,7 +483,7 @@ class AppProcess(multiprocessing.Process):
         def terminate_server():
             if is_app_process_server_terminated.is_set():
                 return
-            self.pool_executor.shutdown(wait=False)
+            self.executor.shutdown(wait=False)
             with self.server_conn_lock:
                 self.server_conn.send(None)
                 is_app_process_server_terminated.set()
@@ -521,13 +519,16 @@ class AppProcess(multiprocessing.Process):
                 return
 
     def _handle_app_process_server_packet(self, packet: AppProcessServerRequestPacket) -> None:
+        if not self.executor:
+            return
         (message_id, session_id, request) = packet
-        thread_pool_future = self.pool_executor.submit(
+        thread_pool_future = self.executor.submit(
             self._handle_message_and_get_packet, message_id, session_id, request
         )
         thread_pool_future.add_done_callback(self._send_packet)
 
     def run(self) -> None:
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=(os.cpu_count() or 4) * 5)
         self.server_conn_lock = threading.Lock()
         self.client_conn.close()
         self._main()

@@ -17,7 +17,7 @@ class WorkflowRunner:
         self.session = session
 
     @contextmanager
-    def _get_thread_pool(self):
+    def _get_executor(self):
         new_executor = None
         try:
             current_app_process = writer.core.get_app_process()
@@ -81,7 +81,7 @@ class WorkflowRunner:
         :return: A list of results in the same order as execution_environments.
         """
 
-        with self._get_thread_pool() as executor:
+        with self._get_executor() as executor:
             futures = [
                 executor.submit(self.run_workflow_by_key, workflow_key, env)
                 for env in execution_environments
@@ -250,7 +250,7 @@ class WorkflowRunner:
         result = None
         matched_dependencies = 0
 
-        with self._get_thread_pool() as executor:
+        with self._get_executor() as executor:
             future_to_node = {
                 executor.submit(self.run_node, node, nodes, execution_environment, execution): (
                     node,
