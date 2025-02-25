@@ -4,7 +4,6 @@
 		language="python"
 		:variant="isExpanded ? 'full' : 'minimal'"
 		class="BuilderFieldsCode"
-		:class="{ 'BuilderFieldsCode--expanded': isExpanded }"
 	>
 	</BuilderEmbeddedCodeEditor>
 </template>
@@ -56,9 +55,5 @@ watch(code, (newCode) => {
 	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
 	overflow: hidden;
-}
-
-.BuilderFieldsCode--expanded {
-	min-height: 300px;
 }
 </style>

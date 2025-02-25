@@ -1,5 +1,9 @@
 <template>
-	<div ref="rootEl" class="BuilderEmbeddedCodeEditor">
+	<div
+		ref="rootEl"
+		class="BuilderEmbeddedCodeEditor"
+		:class="{ 'BuilderEmbeddedCodeEditor--full': variant == 'full' }"
+	>
 		<div ref="editorContainerEl" class="editorContainer"></div>
 	</div>
 </template>
@@ -90,6 +94,10 @@ onUnmounted(() => {
 	height: 100%;
 	width: 100%;
 	min-height: 100px;
+}
+
+.BuilderEmbeddedCodeEditor--full {
+	min-height: 300px;
 }
 
 .editorContainer {
