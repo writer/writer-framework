@@ -190,13 +190,13 @@ export function useSourceFiles(wf: Core) {
 					return resolve(binaryString);
 				}
 
-				resolve(data);
+				resolve(data.split(",")[1]);
 			});
 
 			reader.addEventListener("error", () => {
 				reject();
 			});
-			reader.readAsArrayBuffer(file);
+			reader.readAsDataURL(file);
 		});
 	}
 
@@ -212,7 +212,6 @@ export function useSourceFiles(wf: Core) {
 				throw Error(`The file ${file.name} already exists`);
 
 			const content = await readFile(file);
-			// TODO: validate size here
 			await wf.sendFileUploadRequest(path, content);
 		}
 	}

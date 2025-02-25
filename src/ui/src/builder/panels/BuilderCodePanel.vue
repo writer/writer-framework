@@ -139,6 +139,7 @@ const {
 async function handleUpload(files: FileList) {
 	try {
 		await upload(files);
+		pushToast({ type: "success", message: "File uploaded" });
 	} catch (error) {
 		pushToast({ type: "error", message: error.message });
 	}

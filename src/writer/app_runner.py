@@ -13,7 +13,7 @@ import subprocess
 import sys
 import threading
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast, Union
 
 import watchdog.events
 from pydantic import ValidationError
@@ -783,12 +783,18 @@ class AppRunner:
 
         return response
 
-    def create_persisted_script(self, file = "main.py", content = ''):
+    def create_persisted_script(self, file="main.py", content: Union[str, bytes] = ""):
         path = os.path.join(self.app_path, file)
         self._check_file_in_app_path(path)
 
-        # TODO: handle binary with `xb` mode 
-        with open(path, "x", encoding='utf-8') as f:
+        if isinstance(content, str):
+            mode = "w"
+            encoding = 'utf-8'
+        elif isinstance(content, bytes):
+            mode = "wb"
+            encoding = None
+
+        with open(path, mode, encoding=encoding) as f:
             f.write(content)
 
         self.source_files = wf_project.build_source_files(self.app_path)

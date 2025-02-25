@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import html
 import importlib.util
 import io
@@ -602,9 +603,9 @@ def get_asgi_app(
             response.payload = res.payload
         elif req_message.type == "uploadSourceFile":
             path = os.path.join(*req_message.payload["path"])
-            content = req_message.payload["content"]
 
             try:
+                content = base64.b64decode(req_message.payload["content"])
                 app_runner.create_persisted_script(path, content)
             except Exception as error:
                 response.payload = {"error": str(error)}

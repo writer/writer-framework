@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
 import { useSourceFiles } from "./useSourceFiles";
 import { buildMockCore } from "@/tests/mocks";
 import { flushPromises } from "@vue/test-utils";
-import { generateCore } from ".";
 
 describe(useSourceFiles.name, () => {
 	it("should open a file", () => {
@@ -320,7 +319,7 @@ describe(useSourceFiles.name, () => {
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
 				["a.txt"],
-				"Hello",
+				btoa("Hello"),
 			);
 		});
 
@@ -337,7 +336,7 @@ describe(useSourceFiles.name, () => {
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
 				["a.png"],
-				"Hello",
+				btoa("Hello"),
 			);
 		});
 	});

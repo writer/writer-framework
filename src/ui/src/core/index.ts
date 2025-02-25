@@ -400,6 +400,9 @@ export function generateCore() {
 		});
 	}
 
+	/**
+	 * @param content the cotent of the file encoded in base64
+	 */
 	async function sendFileUploadRequest(
 		path: string[],
 		content: string | ArrayBuffer,
@@ -411,8 +414,9 @@ export function generateCore() {
 			}) => {
 				if (!r.ok) return reject("Couldn't connect to the server.");
 				if (r.payload?.["error"])
-					return reject("Couldn't create the file.");
+					return reject("Couldn't upload the file.");
 
+				// TODO: create a binary file when it's needed
 				sourceFiles.value = createFileToSourceFiles(
 					path,
 					toRaw(sourceFiles.value),
