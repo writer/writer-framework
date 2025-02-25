@@ -165,7 +165,7 @@ class HashRequest(AppProcessServerRequest):
     payload: HashRequestPayload
 
 
-AppProcessServerRequestPacket = Tuple[int, Literal["anonymous"] | str, AppProcessServerRequest]
+AppProcessServerRequestPacket = Tuple[int, str, AppProcessServerRequest]
 
 # AppProcessServer Responses
 
