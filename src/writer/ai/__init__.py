@@ -33,28 +33,25 @@ from writerai.types import (
     FileDeleteResponse,
     GraphDeleteResponse,
     GraphRemoveFileFromGraphResponse,
-    GraphUpdateResponse
+    GraphUpdateResponse,
 )
 from writerai.types import File as SDKFile
 from writerai.types import Graph as SDKGraph
 from writerai.types.application_generate_content_params import Input
 from writerai.types.applications import (
     ApplicationGenerateAsyncResponse,
-    JobCreateResponse
+    JobCreateResponse,
+    JobRetryResponse,
 )
-from writerai.types.applications.application_graphs_response import (
-    ApplicationGraphsResponse
-)
-from writerai.types.chat_chat_params import Message as WriterAIMessage
+from writerai.types.applications.application_graphs_response import ApplicationGraphsResponse
 from writerai.types.chat_chat_params import GraphData, ToolChoice
-from writerai.types.shared_params.tool_param import (
-    FunctionTool as SDKFunctionTool,
-    GraphTool as SDKGraphTool,
-    LlmTool as SDKLlmTool
-)
+from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_completion_message import ChatCompletionMessage
 from writerai.types.question import Question
 from writerai.types.question_response_chunk import QuestionResponseChunk
+from writerai.types.shared_params.tool_param import FunctionTool as SDKFunctionTool
+from writerai.types.shared_params.tool_param import GraphTool as SDKGraphTool
+from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
 
 from writer.core import get_app_process
 
@@ -69,7 +66,12 @@ class APIOptions(TypedDict, total=False):
 class ChatOptions(APIOptions, total=False):
     model: str
     tool_choice: ToolChoice
-    tools: Union[Iterable[Union[SDKGraphTool, SDKFunctionTool]], NotGiven]
+    tools: Union[
+            Iterable[
+                Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]
+                ],
+            NotGiven
+        ]
     logprobs: Union[bool, NotGiven]
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
@@ -95,9 +97,11 @@ class APIListOptions(APIOptions, total=False):
     order: Union[Literal["asc", "desc"], NotGiven]
 
 
-class APIRetrieveJobsOptions(APIListOptions, total=False):
+class APIRetrieveJobsOptions(APIOptions, total=False):
+    limit: Union[int, NotGiven]
+    offset: Union[int, NotGiven]
     status: Union[
-        Literal["completed", "failed", "in_progress", "pending"],
+        Literal["completed", "failed", "in_progress"],
         NotGiven
         ]
 
@@ -1343,7 +1347,7 @@ class Conversation:
     def _prepare_tool(
             self,
             tool_instance: Union['Graph', GraphTool, FunctionTool, LLMTool]
-            ) -> Union[SDKGraphTool, SDKFunctionTool]:
+            ) -> Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]:
         """
         Internal helper function to process a tool instance
         into the required format.
@@ -2378,18 +2382,19 @@ class Apps:
             )
 
         else:
-            response_data = client.applications.jobs.create(
+            async_response_data = client.applications.jobs.create(
                 application_id=application_id,
                 inputs=inputs,
                 **config
             )
 
-            return response_data
+            return async_response_data
 
     def retry_job(
+            self,
             job_id: str,
             config: Optional[APIOptions] = None
-            ) -> JobCreateResponse:
+            ) -> JobRetryResponse:
         """
         Retries a specific asynchronous job execution.
 
@@ -2418,6 +2423,7 @@ class Apps:
         return response_data
 
     def retrieve_jobs(
+            self,
             application_id: str,
             config: Optional[APIRetrieveJobsOptions] = None
             ) -> List[ApplicationGenerateAsyncResponse]:
@@ -2451,6 +2457,7 @@ class Apps:
         return jobs.result
 
     def retrieve_job(
+            self,
             job_id: str,
             config: Optional[APIOptions] = None
             ) -> ApplicationGenerateAsyncResponse:
@@ -2482,6 +2489,7 @@ class Apps:
         return job
 
     def retrieve_graphs(
+            self,
             application_id: str,
             config: Optional[APIOptions] = None
             ) -> List[str]:
@@ -2513,6 +2521,7 @@ class Apps:
         return graphs.graph_ids
 
     def associate_graphs(
+            self,
             application_id: str,
             graph_ids: List[str],
             config: Optional[APIOptions] = None
