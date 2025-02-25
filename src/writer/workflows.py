@@ -1,7 +1,8 @@
 import json
 import logging
 import time
-from concurrent.futures import Executor, ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from contextlib import contextmanager
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import writer.blocks
@@ -11,23 +12,25 @@ import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 
 
-class SynchronousExecutor(Executor):
-    def submit(self, fn, *args, **kwargs):
-        return SynchronousFuture(fn(*args, **kwargs))
-
-
-class SynchronousFuture:
-    def __init__(self, result):
-        self._result = result
-
-    def result(self, timeout=None):
-        return self._result
-
-
 class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
-        self.executor = self._get_pool_executor()
+
+    @contextmanager
+    def _get_thread_pool():
+        new_executor = None
+        try:
+            current_app_process = writer.core.get_app_process()
+            yield current_app_process.pool_executor
+        except RuntimeError:
+            logging.info(
+                "The main pool executor isn't being reused. This is only expected in test or debugging situations."
+            )
+            new_executor = ThreadPoolExecutor(20)
+            yield new_executor  # Pool executor for debugging (running outside of AppProcess)
+        finally:
+            if new_executor:
+                new_executor.shutdown()
 
     def _get_pool_executor(self):
         current_app_process = None
@@ -38,9 +41,9 @@ class WorkflowRunner:
         if current_app_process:
             return current_app_process.pool_executor
         logging.info(
-            "The main pool executor isn't being used. This is only expected in test or debugging situations."
+            "The main pool executor isn't being reused. This is only expected in test or debugging situations."
         )
-        return SynchronousExecutor()  # Executor for debugging (running outside of AppProcess)
+        return ThreadPoolExecutor(20)  # Pool executor for debugging (running outside of AppProcess)
 
     def execute_ui_trigger(
         self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
@@ -78,10 +81,11 @@ class WorkflowRunner:
         :return: A list of results in the same order as execution_environments.
         """
 
-        futures = [
-            self.executor.submit(self.run_workflow_by_key, workflow_key, env)
-            for env in execution_environments
-        ]
+        with self._get_thread_pool() as executor:
+            futures = [
+                executor.submit(self.run_workflow_by_key, workflow_key, env)
+                for env in execution_environments
+            ]
 
         wait(futures)  # Important to preserve order, don't switch to as_completed
 
@@ -246,13 +250,14 @@ class WorkflowRunner:
         result = None
         matched_dependencies = 0
 
-        future_to_node = {
-            self.executor.submit(self.run_node, node, nodes, execution_environment, execution): (
-                node,
-                out_id,
-            )
-            for node, out_id in dependencies
-        }
+        with self._get_thread_pool() as executor:
+            future_to_node = {
+                executor.submit(self.run_node, node, nodes, execution_environment, execution): (
+                    node,
+                    out_id,
+                )
+                for node, out_id in dependencies
+            }
 
         for future in as_completed(future_to_node):
             node, out_id = future_to_node[future]
