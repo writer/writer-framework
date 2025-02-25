@@ -416,11 +416,9 @@ export function generateCore() {
 				if (r.payload?.["error"])
 					return reject("Couldn't upload the file.");
 
-				// TODO: create a binary file when it's needed
-				sourceFiles.value = createFileToSourceFiles(
-					path,
-					toRaw(sourceFiles.value),
-				);
+				sourceFiles.value =
+					r.payload?.["sourceFiles"] ??
+					createFileToSourceFiles(path, toRaw(sourceFiles.value));
 				resolve();
 			};
 

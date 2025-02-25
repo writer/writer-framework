@@ -82,7 +82,7 @@ export function* getSourceFilesPathsToNodes(
 export function findSourceFileFromPath(
 	path: string[],
 	tree: SourceFiles,
-): SourceFilesDirectory | SourceFilesFile | SourceFilesBinary | undefined {
+): SourceFiles | undefined {
 	if (path.length === 0) return tree;
 	if (!isSourceFilesDirectory(tree)) return undefined;
 
@@ -97,7 +97,7 @@ export function findSourceFileFromPath(
 export function createFileToSourceFiles(
 	path: string[],
 	tree: SourceFiles,
-	newFile: SourceFilesFile = {
+	newFile: SourceFiles = {
 		type: "file",
 		content: "",
 		complete: true,

@@ -81,6 +81,21 @@ describe(useSourceFiles.name, () => {
 		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
 	});
 
+	it("should add a binary file to the draft", async () => {
+		const { core, sourceFiles } = buildMockCore();
+		sourceFiles.value = { type: "directory", children: {} };
+
+		const { sourceFileDraft } = useSourceFiles(core);
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+
+		sourceFiles.value = {
+			type: "directory",
+			children: { "a.png": { type: "binary" } },
+		};
+		await flushPromises();
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+	});
+
 	it("should remove a file to the draft", async () => {
 		const { core, sourceFiles } = buildMockCore();
 		sourceFiles.value = {
@@ -281,7 +296,7 @@ describe(useSourceFiles.name, () => {
 				},
 			};
 
-			const { upload } = useSourceFiles(mockCore.core);
+			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
 			const files = [new File([], "a.txt")] as unknown as FileList;
 
 			await expect(upload(files)).rejects.toThrowError(
@@ -289,10 +304,11 @@ describe(useSourceFiles.name, () => {
 			);
 
 			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
+			expect(filepathOpen.value).toBeUndefined();
 		});
 
 		it("should not upload big file", async () => {
-			const { upload } = useSourceFiles(mockCore.core);
+			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
 
 			const fileSize = 200 * 1024 * 1024; // 200mb
 
@@ -308,10 +324,11 @@ describe(useSourceFiles.name, () => {
 			);
 
 			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
+			expect(filepathOpen.value).toBeUndefined();
 		});
 
 		it("should upload a text file", async () => {
-			const { upload } = useSourceFiles(mockCore.core);
+			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
 			const files = [new File(["Hello"], "a.txt")] as unknown as FileList;
 
 			await upload(files);
@@ -321,10 +338,11 @@ describe(useSourceFiles.name, () => {
 				["a.txt"],
 				btoa("Hello"),
 			);
+			expect(filepathOpen.value).toStrictEqual(["a.txt"]);
 		});
 
 		it("should upload a binary file", async () => {
-			const { upload } = useSourceFiles(mockCore.core);
+			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
 
 			const binaryData = new Uint8Array([72, 101, 108, 108, 111]); // "Hello" in ASCII
 			const files = [
@@ -338,6 +356,7 @@ describe(useSourceFiles.name, () => {
 				["a.png"],
 				btoa("Hello"),
 			);
+			expect(filepathOpen.value).toStrictEqual(["a.png"]);
 		});
 	});
 

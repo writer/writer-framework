@@ -1,5 +1,5 @@
 import { Core, SourceFiles } from "@/writerTypes";
-import { computed, ref, shallowRef, toRaw, watch } from "vue";
+import { computed, nextTick, ref, shallowRef, toRaw, watch } from "vue";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -7,6 +7,7 @@ import {
 	getSourceFilesPathsToFiles,
 	getSourceFilesPathsToNodes,
 	isSourceFilesBinary,
+	isSourceFilesDirectory,
 	isSourceFilesFile,
 } from "./sourceFiles";
 
@@ -24,9 +25,9 @@ export function useSourceFiles(wf: Core) {
 			const prev = findSourceFileFromPath(path, previousSourceFiles);
 
 			const cur = findSourceFileFromPath(path, currentSourceFiles);
-			if (!isSourceFilesFile(cur)) continue;
+			if (isSourceFilesDirectory(cur)) continue;
 
-			if (prev === undefined) {
+			if (prev === undefined || isSourceFilesBinary(cur)) {
 				// a file was added, we duplicate it to the draft
 				tree = createFileToSourceFiles(
 					path,
@@ -213,6 +214,8 @@ export function useSourceFiles(wf: Core) {
 
 			const content = await readFile(file);
 			await wf.sendFileUploadRequest(path, content);
+			await nextTick(); // wait the `wf.sourceFiles` & `sourceFileDraft` synchronization happens
+			openFile(path);
 		}
 	}
 

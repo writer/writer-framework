@@ -607,6 +607,7 @@ def get_asgi_app(
             try:
                 content = base64.b64decode(req_message.payload["content"])
                 app_runner.create_persisted_script(path, content)
+                response.payload = {"sourceFiles": app_runner.source_files}
             except Exception as error:
                 response.payload = {"error": str(error)}
 
