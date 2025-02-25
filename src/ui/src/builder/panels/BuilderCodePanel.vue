@@ -8,10 +8,16 @@
 		enable-left-panel
 		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
+		@drop.prevent="handleDrop"
+		@dragover.prevent
 		@openned="onOpenPanel"
 	>
 		<template #leftPanel>
-			<div class="BuilderCodePanel__tree">
+			<div
+				class="BuilderCodePanel__tree"
+				@drop="handleDrop"
+				@dragover.prevent
+			>
 				<BuilderCodePanelSourceFilesTree
 					:path-active="filepathOpen"
 					:paths-unsaved="pathsUnsaved"
@@ -136,7 +142,26 @@ const {
 	save,
 } = useSourceFiles(wf);
 
-async function handleUpload(files: FileList) {
+async function handleDrop(event: DragEvent) {
+	event.preventDefault();
+	const files: File[] = [];
+
+	if (event.dataTransfer.items) {
+		for (const item of event.dataTransfer.items) {
+			if (item.kind !== "file") continue;
+			const file = item.getAsFile();
+			if (file) files.push(file);
+		}
+	} else {
+		for (const file of event.dataTransfer.files) {
+			files.push(file);
+		}
+	}
+
+	await handleUpload(files);
+}
+
+async function handleUpload(files: FileList | File[]) {
 	try {
 		await upload(files);
 		pushToast({ type: "success", message: "File uploaded" });

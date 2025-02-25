@@ -201,7 +201,7 @@ export function useSourceFiles(wf: Core) {
 		});
 	}
 
-	async function upload(files: FileList) {
+	async function upload(files: FileList | File[]) {
 		const maxSize = 100 * 1024 * 1024; // 100mb
 		for (const file of files) {
 			if (file.size > maxSize)
