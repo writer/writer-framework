@@ -17,7 +17,7 @@ class WorkflowRunner:
         self.session = session
 
     @contextmanager
-    def _get_thread_pool():
+    def _get_thread_pool(self):
         new_executor = None
         try:
             current_app_process = writer.core.get_app_process()
