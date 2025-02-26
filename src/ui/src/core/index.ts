@@ -59,7 +59,7 @@ export function generateCore() {
 		new Map(),
 	);
 	let mailInbox: MailItem[] = [];
-	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
+	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
 
 	/**
@@ -301,6 +301,12 @@ export function generateCore() {
 	function addMailSubscription(mailType: string, fn: Function) {
 		mailSubscriptions.push({ mailType, fn });
 		collateMail();
+	}
+
+	function removeMailSubscription(mailType: string, fn: Function) {
+		mailSubscriptions = mailSubscriptions.filter(
+			(sub) => !(sub.mailType === mailType && sub.fn === fn),
+		);
 	}
 
 	function getPayloadFromEvent(event: Event) {
@@ -715,6 +721,7 @@ export function generateCore() {
 		mode: readonly(mode),
 		userFunctions: readonly(userFunctions),
 		addMailSubscription,
+		removeMailSubscription,
 		init,
 		forwardEvent,
 		hashMessage,

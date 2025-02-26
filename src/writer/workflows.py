@@ -218,6 +218,9 @@ class WorkflowRunner:
             execution[target_node.id] = tool
 
         try:
+            self.session.session_state.add_mail(
+                "workflowActivity", {"componentId": tool.component_id, "type": "start"}
+            )
             start_time = time.time()
             tool.run()
             tool.execution_time_in_seconds = time.time() - start_time
@@ -233,5 +236,9 @@ class WorkflowRunner:
             else:
                 tool.message = repr(e)
             raise e
+        finally:
+            self.session.session_state.add_mail(
+                "workflowActivity", {"componentId": tool.component_id, "type": "finish"}
+            )
 
         return tool

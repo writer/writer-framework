@@ -4,10 +4,14 @@
 		:class="{
 			'WorkflowsNode--trigger': isTrigger,
 			'WorkflowsNode--intelligent': isIntelligent,
+			'WorkflowsNode--running': isRunning,
 		}"
 	>
+		<div v-if="isIntelligent" class="side"></div>
+		<div class="extraBorder">
+			<div v-if="isRunning" class="runner"></div>
+		</div>
 		<div class="main">
-			<div v-if="isIntelligent" class="side"></div>
 			<div class="title">
 				<SharedImgWithFallback :urls="possibleImageUrls" />
 				<WorkflowsNodeNamer
@@ -81,9 +85,9 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { FieldType, WriterComponentDefinition } from "@/writerTypes";
+import { Component, FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
@@ -93,6 +97,7 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
+const isRunning = ref(false);
 
 const component = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -176,6 +181,36 @@ const possibleImageUrls = computed(() => {
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
 
+type WorkflowActivity = {
+	componentId: Component["id"];
+	type: "start" | "finish";
+};
+
+function handleWorkflowActivityMail(payload: WorkflowActivity) {
+	if (payload.componentId !== component.value.id) return;
+	if (payload.type == "start") {
+		console.log("up", payload.componentId);
+		isRunning.value = true;
+		return;
+	}
+	if (payload.type == "finish") {
+		console.log("taking down", payload.componentId);
+		setTimeout(() => {
+			isRunning.value = false;
+		}, 200);
+
+		return;
+	}
+}
+
+onMounted(() => {
+	wf.addMailSubscription("workflowActivity", handleWorkflowActivityMail);
+});
+
+onUnmounted(() => {
+	wf.removeMailSubscription("workflowActivity", handleWorkflowActivityMail);
+});
+
 watch(isEngaged, () => {
 	emit("engaged");
 });
@@ -191,19 +226,12 @@ watch(isEngaged, () => {
 	user-select: none;
 }
 
-.WorkflowsNode--intelligent {
-	background: var(
-		--Gradients-Summer-Dawn-2,
-		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
-	);
-}
-
 .side {
 	position: absolute;
 	border-radius: 8px 0 0 8px;
-	left: 0px;
-	top: 0px;
-	bottom: 0px;
+	left: 0;
+	top: 0;
+	bottom: 0;
 	width: 8px;
 	background: var(
 		--Gradients-Summer-Dawn-2,
@@ -211,49 +239,58 @@ watch(isEngaged, () => {
 	);
 }
 
-.WorkflowsNode:hover .side,
-.WorkflowsNode.selected.component .side {
-	border-radius: 6px 0 0 6px;
-	width: 6px;
-	left: 2px;
-	top: 2px;
-	bottom: 2px;
+.extraBorder {
+	height: 100%;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.WorkflowsNode:hover .extraBorder {
+	background-color: var(--wdsColorBlue2);
+}
+
+.WorkflowsNode--intelligent:hover .extraBorder {
 	background: var(
 		--Gradients-Summer-Dawn-2,
-		linear-gradient(180deg, #ffd5f8 0.01%, #bfcbff 99.42%)
+		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
 	);
 }
 
+.WorkflowsNode.selected.component .extraBorder {
+	background: var(--wdsColorBlue4);
+}
+
+.extraBorder .runner {
+	height: 200%;
+	width: 200%;
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	background: conic-gradient(#a95ef8, #f5f5f9);
+	filter: blur(24px);
+	animation: spin 0.8s linear infinite;
+}
+
 .main {
-	padding: 2px;
+	position: relative;
+	margin: 2px;
 	background: var(--builderBackgroundColor);
 	border-radius: 6px;
 }
 
-.WorkflowsNode:hover {
-	padding: 2px;
-	background-color: var(--wdsColorBlue2);
+.WorkflowsNode--intelligent .main {
+	margin-left: 6px;
+	border-radius: 0 6px 6px 0;
 }
 
-.WorkflowsNode:hover .main {
-	padding: 0px;
-}
-
-.WorkflowsNode--trigger {
+.WorkflowsNode--trigger,
+.WorkflowsNode--trigger .main,
+.WorkflowsNode--trigger .extraBorder {
 	border-radius: 36px;
-}
-
-.WorkflowsNode--trigger .main {
-	border-radius: 36px;
-}
-
-.WorkflowsNode.selected.component {
-	padding: 2px;
-	background: var(--wdsColorBlue4);
-}
-
-.WorkflowsNode.selected.component .main {
-	padding: 0;
 }
 
 .title {
@@ -335,5 +372,16 @@ watch(isEngaged, () => {
 
 .output .ball.dynamic {
 	background: var(--wdsColorPurple4);
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+		transform-origin: center;
+	}
+	100% {
+		transform: rotate(360deg);
+		transform-origin: center;
+	}
 }
 </style>
