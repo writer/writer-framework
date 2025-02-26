@@ -1,5 +1,5 @@
 import { Core, SourceFiles } from "@/writerTypes";
-import { computed, nextTick, ref, shallowRef, toRaw, watch } from "vue";
+import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -11,7 +11,7 @@ import {
 	isSourceFilesFile,
 } from "./sourceFiles";
 
-export const SOURCE_FILE_MAX_SIZE_MB = 200;
+export const SOURCE_FILE_MAX_SIZE_MB = 150;
 
 export function useSourceFiles(wf: Core) {
 	const sourceFileDraft = ref<SourceFiles>(
