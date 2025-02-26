@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
-import { useSourceFiles } from "./useSourceFiles";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SOURCE_FILE_MAX_SIZE_MB, useSourceFiles } from "./useSourceFiles";
 import { buildMockCore } from "@/tests/mocks";
 import { flushPromises } from "@vue/test-utils";
 
@@ -310,7 +310,7 @@ describe(useSourceFiles.name, () => {
 		it("should not upload big file", async () => {
 			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
 
-			const fileSize = 200 * 1024 * 1024; // 200mb
+			const fileSize = (SOURCE_FILE_MAX_SIZE_MB + 1) * 1024 * 1024;
 
 			const files = [
 				{

@@ -8,43 +8,30 @@
 		enable-left-panel
 		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
-		@drop.prevent="handleDrop"
-		@dragover.prevent
+		enable-drop-file
+		@file-drop="handleUpload"
 		@openned="onOpenPanel"
 	>
 		<template #leftPanel>
-			<div
-				class="BuilderCodePanel__tree"
-				:class="{
-					'BuilderCodePanel__tree--dropingFiles': isDropingFiles,
-				}"
-				@drop="handleDrop"
-				@dragover.prevent="isDropingFiles = true"
-				@dragleave="isDropingFiles = false"
-			>
-				<BuilderDropFileZone v-if="isDropingFiles" />
-				<template v-else>
-					<BuilderCodePanelSourceFilesTree
-						:path-active="filepathOpen"
-						:paths-unsaved="pathsUnsaved"
-						:source-files="sourceFileDraft"
-						@add-file="handleAddFile"
-						@select="openFile"
-						@delete="handleDeleteFile"
-					/>
-					<div class="BuilderCodePanel__tree__actions">
-						<button
-							class="BuilderCodePanel__tree__actions__addFile"
-							@click="handleAddFile"
-						>
-							<i class="material-symbols-outlined">add</i>
-							Add file
-						</button>
-						<BuilderCodePanelFileUploadBtn
-							@selected="handleUpload"
-						/>
-					</div>
-				</template>
+			<div class="BuilderCodePanel__tree">
+				<BuilderCodePanelSourceFilesTree
+					:path-active="filepathOpen"
+					:paths-unsaved="pathsUnsaved"
+					:source-files="sourceFileDraft"
+					@add-file="handleAddFile"
+					@select="openFile"
+					@delete="handleDeleteFile"
+				/>
+				<div class="BuilderCodePanel__tree__actions">
+					<button
+						class="BuilderCodePanel__tree__actions__addFile"
+						@click="handleAddFile"
+					>
+						<i class="material-symbols-outlined">add</i>
+						Add file
+					</button>
+					<BuilderCodePanelFileUploadBtn @selected="handleUpload" />
+				</div>
 			</div>
 		</template>
 		<BuilderEmbeddedCodeEditor
@@ -110,7 +97,6 @@ import {
 	useTemplateRef,
 	watch,
 } from "vue";
-import BuilderDropFileZone from "../BuilderDropFileZone.vue";
 import BuilderPanel from "./BuilderPanel.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import injectionKeys from "@/injectionKeys";
@@ -151,28 +137,6 @@ const {
 	pathsUnsaved,
 	save,
 } = useSourceFiles(wf);
-
-const isDropingFiles = ref(false);
-
-async function handleDrop(event: DragEvent) {
-	event.preventDefault();
-	const files: File[] = [];
-	isDropingFiles.value = false;
-
-	if (event.dataTransfer.items) {
-		for (const item of event.dataTransfer.items) {
-			if (item.kind !== "file") continue;
-			const file = item.getAsFile();
-			if (file) files.push(file);
-		}
-	} else {
-		for (const file of event.dataTransfer.files) {
-			files.push(file);
-		}
-	}
-
-	await handleUpload(files);
-}
 
 async function handleUpload(files: FileList | File[]) {
 	try {
@@ -305,10 +269,6 @@ async function handleSave() {
 	width: 100%;
 	padding: 4px;
 	overflow-y: auto;
-}
-
-.BuilderCodePanel__tree--dropingFiles {
-	background-color: var(--wdsColorBlue1);
 }
 
 .BuilderCodePanel__tree__actions {
