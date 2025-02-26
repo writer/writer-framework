@@ -1704,11 +1704,7 @@ class EventHandler:
     def _handle_global_event(self, ev: WriterEvent):
         try:
             if not ev.isSafe:
-                error_message = "Attempted executing a global event in an unsafe context."
-                self.session_state.add_log_entry(
-                    "error", "Forbidden operation", error_message, traceback.format_exc()
-                )
-                raise PermissionError(error_message)
+                raise PermissionError("Attempted executing a global event in an unsafe context.")
             if not ev.handler:
                 raise ValueError("Handler not specified when attempting to execute global event.")
             handler_callable = self._get_handler_callable(ev.handler)
