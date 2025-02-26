@@ -136,6 +136,7 @@ export const enum FieldType {
 	Padding = "Padding",
 	Tools = "Tools",
 	ComponentPicker = "Component",
+	Code = "Code",
 	WorkflowKey = "WorkflowKey",
 	Handler = "Handler",
 	WriterGraphId = "WriterGraphId",

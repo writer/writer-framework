@@ -279,11 +279,12 @@ class WorkflowRunner:
                 raise e
             if not tool.outcome:
                 tool.outcome = "error"
+            if self._is_outcome_managed(target_node, tool.outcome):
+                pass
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
-            if not tool.outcome or not self._is_outcome_managed(target_node, tool.outcome):
-                raise e
-        finally:
-            execution[target_node.id] = tool
+            else:
+                tool.message = repr(e)
+            raise e
 
         return tool

@@ -1702,19 +1702,33 @@ class EventHandler:
             raise e
 
     def _handle_global_event(self, ev: WriterEvent):
-        if not ev.isSafe:
-            error_message = "Attempted executing a global event in an unsafe context."
-            self.session_state.add_log_entry(
-                "error", "Forbidden operation", error_message, traceback.format_exc()
+        try:
+            if not ev.isSafe:
+                error_message = "Attempted executing a global event in an unsafe context."
+                self.session_state.add_log_entry(
+                    "error", "Forbidden operation", error_message, traceback.format_exc()
+                )
+                raise PermissionError(error_message)
+            if not ev.handler:
+                raise ValueError("Handler not specified when attempting to execute global event.")
+            handler_callable = self._get_handler_callable(ev.handler)
+            if not handler_callable:
+                return
+            calling_arguments = self._get_calling_arguments(ev, instance_path=None)
+            return self._call_handler_callable(handler_callable, calling_arguments)
+        except BaseException as e:
+            self.session_state.add_notification(
+                "error",
+                "Runtime Error",
+                f"An error occurred when processing event '{ ev.type }'.",
             )
-            raise PermissionError(error_message)
-        if not ev.handler:
-            raise ValueError("Handler not specified when attempting to execute global event.")
-        handler_callable = self._get_handler_callable(ev.handler)
-        if not handler_callable:
-            return
-        calling_arguments = self._get_calling_arguments(ev, instance_path=None)
-        return self._call_handler_callable(handler_callable, calling_arguments)
+            self.session_state.add_log_entry(
+                "error",
+                "Runtime Exception",
+                f"A runtime exception was raised when processing event '{ ev.type }'.",
+                traceback.format_exc(),
+            )
+            raise e
 
     def _handle_component_event(self, ev: WriterEvent):
         instance_path = ev.instancePath
