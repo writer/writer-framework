@@ -14,7 +14,7 @@ class UIEventTrigger(WorkflowTrigger):
                 writer={
                     "name": "UI Trigger",
                     "description": "Trigger the workflow when an UI event takes place.",
-                    "category": "Writer",
+                    "category": "Triggers",
                     "fields": {
                         "refComponentId": {
                             "name": "Component Id",

@@ -1,50 +1,62 @@
 <template>
-	<div class="WorkflowsNode">
-		<div class="title">
-			<SharedImgWithFallback :urls="possibleImageUrls" />
-			<WorkflowsNodeNamer
-				:component-id="componentId"
-				class="nodeNamer"
-				:block-name="def.name"
-			></WorkflowsNodeNamer>
-		</div>
-		<div v-if="false" class="main">
-			<div></div>
-		</div>
-		<div
-			v-for="(outs, fieldKey) in dynamicOuts"
-			:key="fieldKey"
-			class="outputs"
-		>
-			<h4>{{ def.fields[fieldKey].name }}</h4>
-			<div v-for="(out, outId) in outs" :key="outId" class="output">
-				{{ out.name }}
-				<div
-					class="ball"
-					:class="out.style"
-					:data-writer-socket-id="outId"
-					:data-writer-unselectable="true"
-					@click.capture.stop
-					@mousedown.capture="
-						(ev: DragEvent) => handleOutMousedown(ev, outId)
-					"
-				></div>
+	<div
+		class="WorkflowsNode"
+		:class="{
+			'WorkflowsNode--trigger': isTrigger,
+			'WorkflowsNode--intelligent': isIntelligent,
+		}"
+	>
+		<div class="main">
+			<div v-if="isIntelligent" class="side"></div>
+			<div class="title">
+				<SharedImgWithFallback :urls="possibleImageUrls" />
+				<WorkflowsNodeNamer
+					:component-id="componentId"
+					class="nodeNamer"
+					:block-name="def.name"
+				></WorkflowsNodeNamer>
 			</div>
-			<div v-if="Object.keys(outs).length == 0">None configured.</div>
-		</div>
-		<div class="outputs">
-			<div v-for="(out, outId) in staticOuts" :key="outId" class="output">
-				{{ out.name }}
+			<div
+				v-for="(outs, fieldKey) in dynamicOuts"
+				:key="fieldKey"
+				class="outputs"
+			>
+				<h4>{{ def.fields[fieldKey].name }}</h4>
+				<div v-for="(out, outId) in outs" :key="outId" class="output">
+					{{ out.name }}
+					<div
+						class="ball"
+						:class="out.style"
+						:data-writer-socket-id="outId"
+						:data-writer-unselectable="true"
+						@click.capture.stop
+						@mousedown.capture="
+							(ev: DragEvent) => handleOutMousedown(ev, outId)
+						"
+					></div>
+				</div>
+				<div v-if="Object.keys(outs).length == 0">None configured.</div>
+			</div>
+			<div class="outputs">
 				<div
-					class="ball"
-					:class="out.style"
-					:data-writer-socket-id="outId"
-					:data-writer-unselectable="true"
-					@click.capture.stop
-					@mousedown.capture="
-						(ev: DragEvent) => handleOutMousedown(ev, outId)
-					"
-				></div>
+					v-for="(out, outId) in staticOuts"
+					:key="outId"
+					class="output"
+				>
+					<template v-if="Object.keys(staticOuts).length > 1">
+						{{ out.name }}
+					</template>
+					<div
+						class="ball"
+						:class="out.style"
+						:data-writer-socket-id="outId"
+						:data-writer-unselectable="true"
+						@click.capture.stop
+						@mousedown.capture="
+							(ev: DragEvent) => handleOutMousedown(ev, outId)
+						"
+					></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -69,7 +81,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
@@ -89,6 +101,14 @@ const component = computed(() => {
 
 const def = computed(() => {
 	return wf?.getComponentDefinition(component.value?.type);
+});
+
+const isTrigger = computed(() => {
+	return def?.value?.category == "Triggers";
+});
+
+const isIntelligent = computed(() => {
+	return def?.value?.category == "Writer";
 });
 
 const isEngaged = computed(() => {
@@ -164,7 +184,6 @@ watch(isEngaged, () => {
 <style scoped>
 .WorkflowsNode {
 	background: var(--builderBackgroundColor);
-	border: 2px solid transparent;
 	border-radius: 8px;
 	width: 240px;
 	position: absolute;
@@ -172,8 +191,69 @@ watch(isEngaged, () => {
 	user-select: none;
 }
 
+.WorkflowsNode--intelligent {
+	background: var(
+		--Gradients-Summer-Dawn-2,
+		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
+	);
+}
+
+.side {
+	position: absolute;
+	border-radius: 8px 0 0 8px;
+	left: 0px;
+	top: 0px;
+	bottom: 0px;
+	width: 8px;
+	background: var(
+		--Gradients-Summer-Dawn-2,
+		linear-gradient(180deg, #ffd5f8 0%, #bfcbff 95.5%)
+	);
+}
+
+.WorkflowsNode:hover .side,
+.WorkflowsNode.selected.component .side {
+	border-radius: 6px 0 0 6px;
+	width: 6px;
+	left: 2px;
+	top: 2px;
+	bottom: 2px;
+	background: var(
+		--Gradients-Summer-Dawn-2,
+		linear-gradient(180deg, #ffd5f8 0.01%, #bfcbff 99.42%)
+	);
+}
+
+.main {
+	padding: 2px;
+	background: var(--builderBackgroundColor);
+	border-radius: 6px;
+}
+
 .WorkflowsNode:hover {
-	border: 2px solid var(--wdsColorBlue2);
+	padding: 2px;
+	background-color: var(--wdsColorBlue2);
+}
+
+.WorkflowsNode:hover .main {
+	padding: 0px;
+}
+
+.WorkflowsNode--trigger {
+	border-radius: 36px;
+}
+
+.WorkflowsNode--trigger .main {
+	border-radius: 36px;
+}
+
+.WorkflowsNode.selected.component {
+	padding: 2px;
+	background: var(--wdsColorBlue4);
+}
+
+.WorkflowsNode.selected.component .main {
+	padding: 0;
 }
 
 .title {
@@ -189,17 +269,16 @@ watch(isEngaged, () => {
 	height: 24px;
 }
 
+.WorkflowsNode--trigger .title img {
+	border-radius: 50%;
+}
+
 .WorkflowsNode:hover .nodeNamer :deep(.blockName) {
 	background: var(--builderSubtleSeparatorColor);
 }
 
 .WorkflowsNode:hover .nodeNamer :deep(.aliasEditor) {
 	background: var(--builderSubtleSeparatorColor);
-}
-
-.main {
-	font-size: 14px;
-	padding: 16px 12px 16px 12px;
 }
 
 .outputs {
@@ -212,6 +291,17 @@ watch(isEngaged, () => {
 	font-size: 12px;
 }
 
+.WorkflowsNode--trigger .outputs {
+	border: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	padding: 0;
+	height: 100%;
+	justify-content: center;
+}
+
 .output {
 	display: flex;
 	gap: 8px;
@@ -220,8 +310,6 @@ watch(isEngaged, () => {
 	font-size: 12px;
 	font-style: normal;
 	font-weight: 400;
-	/* letter-spacing: 1.3px; */
-	/* text-transform: uppercase; */
 	color: var(--wdsColorGray5);
 	font-feature-settings:
 		"liga" off,
@@ -247,10 +335,5 @@ watch(isEngaged, () => {
 
 .output .ball.dynamic {
 	background: var(--wdsColorPurple4);
-}
-
-.WorkflowsNode.selected.component {
-	border: 2px solid var(--wdsColorBlue4);
-	background: var(--builderBackgroundColor);
 }
 </style>

@@ -61,6 +61,7 @@ const displayedCategories = [
 	"Embed",
 	"Writer",
 	"Logic",
+	"Triggers",
 	"Other",
 ];
 
