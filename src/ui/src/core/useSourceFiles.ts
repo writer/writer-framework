@@ -11,6 +11,8 @@ import {
 	isSourceFilesFile,
 } from "./sourceFiles";
 
+export const SOURCE_FILE_MAX_SIZE_MB = 200;
+
 export function useSourceFiles(wf: Core) {
 	const sourceFileDraft = ref<SourceFiles>(
 		structuredClone(toRaw(wf.sourceFiles.value)),
@@ -202,9 +204,9 @@ export function useSourceFiles(wf: Core) {
 	}
 
 	async function upload(files: FileList | File[]) {
-		const maxSize = 100 * 1024 * 1024; // 100mb
+		const maxSizeBytes = SOURCE_FILE_MAX_SIZE_MB * 1024 * 1024;
 		for (const file of files) {
-			if (file.size > maxSize)
+			if (file.size > maxSizeBytes)
 				throw Error("Cannot upload file bigger than 100mb");
 
 			const path = [file.name];
