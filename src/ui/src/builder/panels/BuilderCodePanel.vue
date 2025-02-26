@@ -139,16 +139,17 @@ const {
 } = useSourceFiles(wf);
 
 async function handleUpload(files: FileList | File[]) {
-	for (const file of files) {
-		try {
-			await upload(file);
-			pushToast({
-				type: "success",
-				message: `File ${file.name} uploaded`,
-			});
-		} catch (error) {
-			pushToast({ type: "error", message: error.message });
-		}
+	await Promise.all([...files].map(handleFileUpload));
+}
+async function handleFileUpload(file: File) {
+	try {
+		await upload(file);
+		pushToast({
+			type: "success",
+			message: `File ${file.name} uploaded`,
+		});
+	} catch (error) {
+		pushToast({ type: "error", message: error.message });
 	}
 }
 

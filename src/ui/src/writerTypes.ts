@@ -179,6 +179,7 @@ export type SourceFilesFile = {
 };
 export type SourceFilesBinary = {
 	type: "binary";
+	uploading?: boolean;
 };
 
 export type SourceFilesDirectory = {

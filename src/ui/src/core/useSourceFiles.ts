@@ -216,6 +216,15 @@ export function useSourceFiles(wf: Core) {
 		if (findSourceFileFromPath(path, wf.sourceFiles.value))
 			throw Error(`The file ${file.name} already exists`);
 
+		sourceFileDraft.value = createFileToSourceFiles(
+			path,
+			toRaw(sourceFileDraft.value),
+			{
+				type: "binary",
+				uploading: true,
+			},
+		);
+
 		const content = await readFile(file);
 		await wf.sendFileUploadRequest(path, content);
 	}
