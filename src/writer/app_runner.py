@@ -115,6 +115,7 @@ class AppProcess(multiprocessing.Process):
         self.logger = logging.getLogger("app")
         self.handler_registry = EventHandlerRegistry()
         self.middleware_registry = MiddlewareRegistry()
+        self.executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
 
     def _load_module(self) -> ModuleType:
         """
@@ -264,31 +265,30 @@ class AppProcess(multiprocessing.Process):
         ingest_bmc_component_tree(writer.base_component_tree, payload.components)
         ingest_bmc_component_tree(session.session_component_tree, payload.components, True)
 
-    def _handle_list_resources(self, session: WriterSession, req: ListResourcesRequestPayload) -> AppProcessServerResponse:
-        if req.resource_type == 'graphs':
+    def _handle_list_resources(
+        self, session: WriterSession, req: ListResourcesRequestPayload
+    ) -> AppProcessServerResponse:
+        if req.resource_type == "graphs":
             from writerai import APIConnectionError
 
             from writer.ai import list_graphs
 
             try:
                 graphs = list_graphs()
-                raw_graphs = [{"name": graph.name, "id": graph.id, "description": graph.description} for graph in graphs]
+                raw_graphs = [
+                    {"name": graph.name, "id": graph.id, "description": graph.description}
+                    for graph in graphs
+                ]
                 return AppProcessServerResponse(
-                    status="ok",
-                    status_message=None,
-                    payload={"data": raw_graphs}
+                    status="ok", status_message=None, payload={"data": raw_graphs}
                 )
             except (RuntimeError, APIConnectionError) as e:
-                return AppProcessServerResponse(
-                    status="error",
-                    status_message=str(e),
-                    payload=None
-                )
+                return AppProcessServerResponse(status="error", status_message=str(e), payload=None)
 
         return AppProcessServerResponse(
             status="error",
             status_message=f"could not load unknow resources {req.resource_type}",
-            payload=None
+            payload=None,
         )
 
     def _handle_message(
@@ -483,6 +483,7 @@ class AppProcess(multiprocessing.Process):
         def terminate_server():
             if is_app_process_server_terminated.is_set():
                 return
+            self.executor.shutdown(wait=False)
             with self.server_conn_lock:
                 self.server_conn.send(None)
                 is_app_process_server_terminated.set()
@@ -498,36 +499,36 @@ class AppProcess(multiprocessing.Process):
             # No need to handle signal as not main thread
             pass
 
-        with concurrent.futures.ThreadPoolExecutor(100) as thread_pool:
-            self.is_app_process_server_ready.set()
-            while True:  # Starts app message server
-                try:
-                    if not self.server_conn.poll(1):
-                        continue
-                    packet = self.server_conn.recv()
-                    if packet is None:  # An empty packet terminates the process
-                        # Send empty packet to client for it to close
-                        terminate_server()
-                        return
-                    self._handle_app_process_server_packet(packet, thread_pool)
-                except InterruptedError:
+        self.is_app_process_server_ready.set()
+        while True:  # Starts app message server
+            try:
+                if not self.server_conn.poll(1):
+                    continue
+                packet = self.server_conn.recv()
+                if packet is None:  # An empty packet terminates the process
+                    # Send empty packet to client for it to close
                     terminate_server()
                     return
-                except BaseException as e:
-                    self.logger.error(f"Unexpected exception in AppProcess server.\n{repr(e)}")
-                    terminate_server()
-                    return
+                self._handle_app_process_server_packet(packet)
+            except InterruptedError:
+                terminate_server()
+                return
+            except BaseException as e:
+                self.logger.error(f"Unexpected exception in AppProcess server.\n{repr(e)}")
+                terminate_server()
+                return
 
-    def _handle_app_process_server_packet(
-        self, packet: AppProcessServerRequestPacket, thread_pool
-    ) -> None:
+    def _handle_app_process_server_packet(self, packet: AppProcessServerRequestPacket) -> None:
+        if not self.executor:
+            return
         (message_id, session_id, request) = packet
-        thread_pool_future = thread_pool.submit(
+        thread_pool_future = self.executor.submit(
             self._handle_message_and_get_packet, message_id, session_id, request
         )
         thread_pool_future.add_done_callback(self._send_packet)
 
     def run(self) -> None:
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=(os.cpu_count() or 4) * 5)
         self.server_conn_lock = threading.Lock()
         self.client_conn.close()
         self._main()
@@ -751,7 +752,7 @@ class AppRunner:
         self._subscribe_terminal_signal()
 
     async def dispatch_message(
-        self, session_id: Optional[str], request: AppProcessServerRequest
+        self, session_id: str, request: AppProcessServerRequest
     ) -> AppProcessServerResponse:
         """
         Sends a message to the AppProcess server, waits for the listener to obtain a response and returns it.
@@ -870,7 +871,7 @@ class AppRunner:
 
     async def init_session(self, payload: InitSessionRequestPayload) -> AppProcessServerResponse:
         return await self.dispatch_message(
-            None, InitSessionRequest(type="sessionInit", payload=payload)
+            "anonymous", InitSessionRequest(type="sessionInit", payload=payload)
         )
 
     async def update_components(
@@ -892,8 +893,7 @@ class AppRunner:
 
     async def list_resources(self, session_id: str, resource_type: str) -> AppProcessServerResponse:
         if self.mode != "edit":
-            raise PermissionError(
-                "Cannot update components in non-update mode.")
+            raise PermissionError("Cannot update components in non-update mode.")
         message_payload = ListResourcesRequestPayload(resource_type=resource_type)
         message = ListResourcesRequest(type="listResources", payload=message_payload)
         return await self.dispatch_message(session_id, message)

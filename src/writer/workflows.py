@@ -1,7 +1,9 @@
 import json
 import logging
 import time
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from contextlib import contextmanager
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import writer.blocks
 import writer.blocks.base_block
@@ -13,6 +15,22 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
+
+    @contextmanager
+    def _get_executor(self):
+        new_executor = None
+        try:
+            current_app_process = writer.core.get_app_process()
+            yield current_app_process.executor
+        except RuntimeError:
+            logging.info(
+                "The main pool executor isn't being reused. This is only expected in test or debugging situations."
+            )
+            new_executor = ThreadPoolExecutor(20)
+            yield new_executor  # Pool executor for debugging (running outside of AppProcess)
+        finally:
+            if new_executor:
+                new_executor.shutdown()
 
     def execute_ui_trigger(
         self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
@@ -40,6 +58,29 @@ class WorkflowRunner:
         return self.run_workflow(
             workflow.id, execution_environment, f"Workflow execution ({workflow_key})"
         )
+
+    def run_workflow_pool(self, workflow_key: str, execution_environments: List[Dict]):
+        """
+        Executes the same workflow multiple times in parallel with different execution environments.
+
+        :param workflow_key: The workflow identifier (same workflow for all executions).
+        :param execution_environments: A list of execution environments, one per execution.
+        :return: A list of results in the same order as execution_environments.
+        """
+
+        with self._get_executor() as executor:
+            futures = [
+                executor.submit(self.run_workflow_by_key, workflow_key, env)
+                for env in execution_environments
+            ]
+
+        wait(futures)  # Important to preserve order, don't switch to as_completed
+
+        results = []
+        for future in futures:
+            results.append(future.result())
+
+        return results
 
     def _get_workflow_nodes(self, component_id):
         return self.session.session_component_tree.get_descendents(component_id)
@@ -195,15 +236,30 @@ class WorkflowRunner:
 
         result = None
         matched_dependencies = 0
-        for node, out_id in dependencies:
-            tool = self.run_node(node, nodes, execution_environment, execution)
+
+        with self._get_executor() as executor:
+            future_to_node = {
+                executor.submit(self.run_node, node, nodes, execution_environment, execution): (
+                    node,
+                    out_id,
+                )
+                for node, out_id in dependencies
+            }
+
+        for future in as_completed(future_to_node):
+            node, out_id = future_to_node[future]
+            tool = future.result()
+
             if not tool:
                 continue
+
             if tool.outcome == out_id:
                 matched_dependencies += 1
+
             result = tool.result
+
             if tool.return_value is not None:
-                return
+                return tool.return_value
 
         if len(dependencies) > 0 and matched_dependencies == 0:
             return
@@ -213,9 +269,7 @@ class WorkflowRunner:
             "results": {k: v.result for k, v in execution.items()},
         }
         tool = tool_class(target_node.id, self, expanded_execution_environment)
-
-        if tool:
-            execution[target_node.id] = tool
+        execution[target_node.id] = tool
 
         try:
             self.session.session_state.add_mail(
