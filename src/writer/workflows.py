@@ -269,6 +269,7 @@ class WorkflowRunner:
             "results": {k: v.result for k, v in execution.items()},
         }
         tool = tool_class(target_node.id, self, expanded_execution_environment)
+        execution[target_node.id] = tool
 
         try:
             start_time = time.time()
