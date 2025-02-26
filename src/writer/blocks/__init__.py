@@ -1,5 +1,6 @@
 from writer.blocks.addtostatelist import AddToStateList
 from writer.blocks.calleventhandler import CallEventHandler
+from writer.blocks.code import CodeBlock
 from writer.blocks.foreach import ForEach
 from writer.blocks.httprequest import HTTPRequest
 from writer.blocks.logmessage import LogMessage
@@ -33,3 +34,4 @@ ReturnValue.register("workflows_returnvalue")
 WriterInitChat.register("workflows_writerinitchat")
 WriterAddToKG.register("workflows_writeraddtokg")
 UIEventTrigger.register("workflows_uieventtrigger")
+CodeBlock.register("workflows_code")

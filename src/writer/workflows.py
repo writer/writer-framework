@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
@@ -9,12 +10,13 @@ import writer.core_ui
 from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 
 
-class WorkflowRunner():
-
+class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
 
-    def execute_ui_trigger(self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}):
+    def execute_ui_trigger(
+        self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
+    ):
         components = self.session.session_component_tree.get_descendents("workflows_root")
         ui_triggers = list(filter(lambda c: c.type == "workflows_uieventtrigger", components))
         for trigger in ui_triggers:
@@ -26,19 +28,28 @@ class WorkflowRunner():
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.session.session_component_tree.components.values()
-        workflows = list(filter(lambda c: c.type == "workflows_workflow" and c.content.get("key") == workflow_key, all_components))
+        workflows = list(
+            filter(
+                lambda c: c.type == "workflows_workflow" and c.content.get("key") == workflow_key,
+                all_components,
+            )
+        )
         if len(workflows) == 0:
             raise ValueError(f'Workflow with key "{workflow_key}" not found.')
         workflow = workflows[0]
-        return self.run_workflow(workflow.id, execution_environment, f"Workflow execution ({workflow_key})")
+        return self.run_workflow(
+            workflow.id, execution_environment, f"Workflow execution ({workflow_key})"
+        )
 
     def _get_workflow_nodes(self, component_id):
         return self.session.session_component_tree.get_descendents(component_id)
 
-    def _get_branch_nodes(self, base_component_id: str, base_outcome: Optional[str]=None):
+    def _get_branch_nodes(self, base_component_id: str, base_outcome: Optional[str] = None):
         root_node = self.session.session_component_tree.get_component(base_component_id)
         if not root_node:
-            raise RuntimeError(f'Cannot obtain branch. Could not find component "{base_component_id}".')
+            raise RuntimeError(
+                f'Cannot obtain branch. Could not find component "{base_component_id}".'
+            )
         if not root_node:
             return []
         branch_nodes: List[writer.core_ui.Component] = []
@@ -47,22 +58,37 @@ class WorkflowRunner():
         for out in root_node.outs:
             if base_outcome is not None and base_outcome != out.get("outId"):
                 continue
-            branch_root_node = self.session.session_component_tree.get_component(out.get("toNodeId"))
+            branch_root_node = self.session.session_component_tree.get_component(
+                out.get("toNodeId")
+            )
             if not branch_root_node:
                 continue
             branch_nodes.append(branch_root_node)
             branch_nodes += self._get_branch_nodes(out.get("toNodeId"), base_outcome=None)
         return branch_nodes
 
-    def run_branch(self, base_component_id: str, base_outcome: str, execution_environment: Dict, title: str = "Branch execution"):
+    def run_branch(
+        self,
+        base_component_id: str,
+        base_outcome: str,
+        execution_environment: Dict,
+        title: str = "Branch execution",
+    ):
         nodes = self._get_branch_nodes(base_component_id, base_outcome)
         return self.run_nodes(nodes, execution_environment, title)
 
-    def run_workflow(self, component_id: str, execution_environment: Dict, title="Workflow execution"):
+    def run_workflow(
+        self, component_id: str, execution_environment: Dict, title="Workflow execution"
+    ):
         nodes = self._get_workflow_nodes(component_id)
         return self.run_nodes(nodes, execution_environment, title)
 
-    def run_nodes(self, nodes: List[writer.core_ui.Component], execution_environment: Dict, title: str = "Workflow execution"):
+    def run_nodes(
+        self,
+        nodes: List[writer.core_ui.Component],
+        execution_environment: Dict,
+        title: str = "Workflow execution",
+    ):
         execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
         return_value = None
         try:
@@ -85,7 +111,7 @@ class WorkflowRunner():
         if isinstance(data, list):
             return [self._summarize_data_for_log(item) for item in data]
         if isinstance(data, dict):
-            return {k : self._summarize_data_for_log(v) for k, v in data.items()}
+            return {k: self._summarize_data_for_log(v) for k, v in data.items()}
         if isinstance(data, (str, int, float, bool, type(None))):
             return data
         try:
@@ -93,35 +119,43 @@ class WorkflowRunner():
         except (TypeError, OverflowError):
             return f"Can't be displayed in the log. Value of type: {str(type(data))}."
 
-
-    def _generate_run_log(self,
-                          execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
-                          title: str,
-                          entry_type: Literal["info", "error"],
-                          return_value: Optional[Any] = None):
+    def _generate_run_log(
+        self,
+        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+        title: str,
+        entry_type: Literal["info", "error"],
+        return_value: Optional[Any] = None,
+    ):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
-        exec_log:WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
+        exec_log: WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
         for component_id, tool in execution.items():
-            exec_log.summary.append({
-                "componentId": component_id,
-                "outcome": tool.outcome,
-                "message": tool.message,
-                "result": self._summarize_data_for_log(tool.result),
-                "returnValue": self._summarize_data_for_log(tool.return_value),
-                "executionEnvironment": self._summarize_data_for_log(tool.execution_environment),
-                "executionTimeInSeconds": tool.execution_time_in_seconds 
-            })
+            exec_log.summary.append(
+                {
+                    "componentId": component_id,
+                    "outcome": tool.outcome,
+                    "message": tool.message,
+                    "result": self._summarize_data_for_log(tool.result),
+                    "returnValue": self._summarize_data_for_log(tool.return_value),
+                    "executionEnvironment": self._summarize_data_for_log(
+                        tool.execution_environment
+                    ),
+                    "executionTimeInSeconds": tool.execution_time_in_seconds,
+                }
+            )
         msg = "Execution finished."
-        
-        self.session.session_state.add_log_entry(entry_type, title, msg, workflow_execution=exec_log)
 
+        self.session.session_state.add_log_entry(
+            entry_type, title, msg, workflow_execution=exec_log
+        )
 
     def get_terminal_nodes(self, nodes):
         return [node for node in nodes if not node.outs]
 
-    def _get_node_dependencies(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component]):
-        dependencies:List[Tuple] = []
+    def _get_node_dependencies(
+        self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component]
+    ):
+        dependencies: List[Tuple] = []
         parent_id = target_node.parentId
         if not parent_id:
             return []
@@ -143,7 +177,13 @@ class WorkflowRunner():
                 return True
         return False
 
-    def run_node(self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component], execution_environment: Dict, execution: Dict[str, writer.blocks.base_block.WorkflowBlock]):
+    def run_node(
+        self,
+        target_node: writer.core_ui.Component,
+        nodes: List[writer.core_ui.Component],
+        execution_environment: Dict,
+        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+    ):
         tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
             raise RuntimeError(f'Could not find tool for "{target_node.type}".')
@@ -170,10 +210,13 @@ class WorkflowRunner():
 
         expanded_execution_environment = execution_environment | {
             "result": result,
-            "results": { k:v.result for k,v in execution.items() }
+            "results": {k: v.result for k, v in execution.items()},
         }
         tool = tool_class(target_node.id, self, expanded_execution_environment)
-        
+
+        if tool:
+            execution[target_node.id] = tool
+
         try:
             start_time = time.time()
             tool.run()
@@ -183,11 +226,12 @@ class WorkflowRunner():
                 raise e
             if not tool.outcome:
                 tool.outcome = "error"
+            if self._is_outcome_managed(target_node, tool.outcome):
+                pass
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
-            if not tool.outcome or not self._is_outcome_managed(target_node, tool.outcome):
-                raise e
-        finally:
-            execution[target_node.id] = tool
-        
+            else:
+                tool.message = repr(e)
+            raise e
+
         return tool

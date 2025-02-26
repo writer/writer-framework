@@ -16,7 +16,7 @@
 					<WdsButton
 						variant="neutral"
 						size="icon"
-						:title="closeAction?.desc ?? 'Close'"
+						:data-writer-tooltip="closeAction?.desc ?? 'Close'"
 						@click="closeAction.fn"
 					>
 						<i class="material-symbols-outlined">close</i>

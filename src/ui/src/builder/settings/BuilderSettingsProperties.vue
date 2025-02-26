@@ -30,6 +30,9 @@
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
+					:is-expansible="fieldValue.type == FieldType.Code"
+					@expand="handleExpand(fieldKey)"
+					@shrink="handleShrink(fieldKey)"
 				>
 					<BuilderFieldsColor
 						v-if="fieldValue.type == FieldType.Color"
@@ -133,6 +136,13 @@
 					>
 					</BuilderFieldsTools>
 
+					<BuilderFieldsCode
+						v-if="fieldValue.type == FieldType.Code"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:is-expanded="expandedFields.has(fieldKey)"
+					>
+					</BuilderFieldsCode>
 					<BuilderFieldsWriterGraphId
 						v-if="fieldValue.type == FieldType.WriterGraphId"
 						:field-key="fieldKey"
@@ -146,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
@@ -160,6 +170,7 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
@@ -167,6 +178,8 @@ import BuilderFieldsWriterGraphId from "./BuilderFieldsWriterGraphId.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const expandedFields = ref(new Set());
 
 const selectedInstancePath = computed<InstancePath>(() =>
 	parseInstancePathString(ssbm.firstSelectedItem?.value?.instancePath),
@@ -211,6 +224,14 @@ const fieldsByCategory = computed(() => {
 	};
 	return result;
 });
+
+function handleExpand(fieldKey: string) {
+	expandedFields.value.add(fieldKey);
+}
+
+function handleShrink(fieldKey: string) {
+	expandedFields.value.delete(fieldKey);
+}
 </script>
 
 <style scoped>
