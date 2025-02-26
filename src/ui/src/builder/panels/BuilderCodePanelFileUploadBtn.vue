@@ -18,6 +18,7 @@ function onFileUploaded() {
 			v-show="false"
 			ref="input"
 			type="file"
+			multiple="true"
 			@change="onFileUploaded"
 		/>
 		<button

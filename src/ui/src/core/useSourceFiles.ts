@@ -203,22 +203,21 @@ export function useSourceFiles(wf: Core) {
 		});
 	}
 
-	async function upload(files: FileList | File[]) {
+	async function upload(file: File) {
 		const maxSizeBytes = SOURCE_FILE_MAX_SIZE_MB * 1024 * 1024;
-		for (const file of files) {
-			if (file.size > maxSizeBytes)
-				throw Error("Cannot upload file bigger than 100mb");
-
-			const path = [file.name];
-
-			if (findSourceFileFromPath(path, wf.sourceFiles.value))
-				throw Error(`The file ${file.name} already exists`);
-
-			const content = await readFile(file);
-			await wf.sendFileUploadRequest(path, content);
-			await nextTick(); // wait the `wf.sourceFiles` & `sourceFileDraft` synchronization happens
-			openFile(path);
+		if (file.size > maxSizeBytes) {
+			throw Error(
+				`Cannot upload file bigger than ${SOURCE_FILE_MAX_SIZE_MB}mb`,
+			);
 		}
+
+		const path = [file.name];
+
+		if (findSourceFileFromPath(path, wf.sourceFiles.value))
+			throw Error(`The file ${file.name} already exists`);
+
+		const content = await readFile(file);
+		await wf.sendFileUploadRequest(path, content);
 	}
 
 	return {

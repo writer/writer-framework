@@ -9,7 +9,7 @@
 		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
 		enable-drop-file
-		@file-drop="handleUpload"
+		@files-drop="handleUpload"
 		@openned="onOpenPanel"
 	>
 		<template #leftPanel>
@@ -139,11 +139,16 @@ const {
 } = useSourceFiles(wf);
 
 async function handleUpload(files: FileList | File[]) {
-	try {
-		await upload(files);
-		pushToast({ type: "success", message: "File uploaded" });
-	} catch (error) {
-		pushToast({ type: "error", message: error.message });
+	for (const file of files) {
+		try {
+			await upload(file);
+			pushToast({
+				type: "success",
+				message: `File ${file.name} uploaded`,
+			});
+		} catch (error) {
+			pushToast({ type: "error", message: error.message });
+		}
 	}
 }
 

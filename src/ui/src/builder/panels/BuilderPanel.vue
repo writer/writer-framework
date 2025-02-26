@@ -111,7 +111,7 @@ const props = defineProps<{
 
 const emits = defineEmits({
 	openned: (open: boolean) => typeof open === "boolean",
-	fileDrop: (files: File[]) => Array.isArray(files) && files.length > 0,
+	filesDrop: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
 
 const showDropingFilesZone = computed(
@@ -147,7 +147,7 @@ function handleDrop(event: DragEvent) {
 		}
 	}
 
-	if (files.length > 0) emits("fileDrop", files);
+	if (files.length > 0) emits("filesDrop", files);
 }
 
 const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));

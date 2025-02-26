@@ -296,67 +296,59 @@ describe(useSourceFiles.name, () => {
 				},
 			};
 
-			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
-			const files = [new File([], "a.txt")] as unknown as FileList;
+			const { upload } = useSourceFiles(mockCore.core);
+			const files = new File([], "a.txt");
 
 			await expect(upload(files)).rejects.toThrowError(
 				"The file a.txt already exists",
 			);
 
 			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
-			expect(filepathOpen.value).toBeUndefined();
 		});
 
 		it("should not upload big file", async () => {
-			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
+			const { upload } = useSourceFiles(mockCore.core);
 
 			const fileSize = (SOURCE_FILE_MAX_SIZE_MB + 1) * 1024 * 1024;
 
-			const files = [
-				{
-					...new File([], "a.png"),
-					size: fileSize,
-				},
-			] as unknown as FileList;
+			const file = {
+				...new File([], "a.png"),
+				size: fileSize,
+			};
 
-			await expect(upload(files)).rejects.toThrowError(
+			await expect(upload(file)).rejects.toThrowError(
 				/Cannot upload file bigger than/,
 			);
 
 			expect(mockCore.core.sendFileUploadRequest).not.toHaveBeenCalled();
-			expect(filepathOpen.value).toBeUndefined();
 		});
 
 		it("should upload a text file", async () => {
-			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
-			const files = [new File(["Hello"], "a.txt")] as unknown as FileList;
+			const { upload } = useSourceFiles(mockCore.core);
+			const file = new File(["Hello"], "a.txt");
 
-			await upload(files);
+			await upload(file);
 
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
 				["a.txt"],
 				btoa("Hello"),
 			);
-			expect(filepathOpen.value).toStrictEqual(["a.txt"]);
 		});
 
 		it("should upload a binary file", async () => {
-			const { upload, filepathOpen } = useSourceFiles(mockCore.core);
+			const { upload } = useSourceFiles(mockCore.core);
 
 			const binaryData = new Uint8Array([72, 101, 108, 108, 111]); // "Hello" in ASCII
-			const files = [
-				new File([binaryData], "a.png"),
-			] as unknown as FileList;
+			const file = new File([binaryData], "a.png");
 
-			await upload(files);
+			await upload(file);
 
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledOnce();
 			expect(mockCore.core.sendFileUploadRequest).toHaveBeenCalledWith(
 				["a.png"],
 				btoa("Hello"),
 			);
-			expect(filepathOpen.value).toStrictEqual(["a.png"]);
 		});
 	});
 
