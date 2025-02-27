@@ -2259,7 +2259,10 @@ class Apps:
         config = config or {}
 
         response = client.applications.list(**config)
-        return response.data
+
+        # Creating a new list in order to trigger SyncCursorPage
+        # to fetch all applications available
+        return [app for app in response.data]
 
     def retrieve(
             self,
