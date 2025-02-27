@@ -340,18 +340,17 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
         with open(path, "r", encoding='utf-8') as f:
             return f.read()
 
+
+    ignore_dirs = ['.venv', 'venv', '__pycache__', '.wf']
+    ignore_files = ['.DS_Store']
     files = []
     for root, dirs, filenames in os.walk(app_path):
-        # ignore specific folders
-        dirs[:] = [d for d in dirs if d not in {'.venv', 'venv', '__pycache__', '.wf'}]
+        dirs[:] = [d for d in dirs if d not in ignore_dirs]
         for filename in filenames:
-            files.append(os.path.realpath(os.path.join(root, filename)))
+            if filename not in ignore_files:
+                files.append(os.path.realpath(os.path.join(root, filename)))
 
-    file_tree: SourceFilesDirectory = {
-        "type": "directory",
-        "children": {}
-    }
-
+    file_tree: SourceFilesDirectory = { "type": "directory", "children": {} }
 
     for file in files:
         relative_path = os.path.relpath(file, app_path)
@@ -378,7 +377,10 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
                         "content": exerpt,
                         "complete": exerpt == content,
                     }
-                except (UnicodeDecodeError, FileNotFoundError):
+                except UnicodeDecodeError:
+                    # TODO: get mimetype
+                    current_level["children"][part] = { "type": "binary" }
+                except  FileNotFoundError:
                     pass
 
     return file_tree

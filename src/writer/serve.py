@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import html
 import importlib.util
 import io
@@ -600,6 +601,16 @@ def get_asgi_app(
         elif req_message.type == "listResources":
             res = await app_runner.list_resources(session_id, req_message.payload["resource_type"])
             response.payload = res.payload
+        elif req_message.type == "uploadSourceFile":
+            path = os.path.join(*req_message.payload["path"])
+
+            try:
+                content = base64.b64decode(req_message.payload["content"])
+                app_runner.create_persisted_script(path, content)
+                response.payload = {"sourceFiles": app_runner.source_files}
+            except Exception as error:
+                response.payload = {"error": str(error)}
+
         await websocket.send_json(response.model_dump())
 
     async def _handle_keep_alive_message(

@@ -17,7 +17,9 @@ defineProps({
 <style scoped>
 .WdsStateDotState {
 	height: 16px;
+	min-height: 16px;
 	width: 16px;
+	min-width: 16px;
 	border-radius: 50%;
 }
 .WdsStateDotState::after {
