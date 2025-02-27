@@ -23,6 +23,7 @@ from writerai._exceptions import WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
+from writerai.pagination import SyncCursorPage
 from writerai.resources import FilesResource, GraphsResource
 from writerai.types import (
     ApplicationListResponse,
@@ -2234,16 +2235,42 @@ class Conversation:
 
 
 class Apps:
+    class AppListPaginator:
+        def __init__(self, response: SyncCursorPage[ApplicationListResponse]):
+            self.page = response
+            self.data = response.data
+
+        def __iter__(self):
+            return iter(self.data)
+
+        def __len__(self):
+            return len(self.data)
+
+        def __getitem__(self, index):
+            return self.data[index]
+
+        @property
+        def first_id(self):
+            return self.page.first_id
+
+        @property
+        def last_id(self):
+            return self.page.last_id
+
+        @property
+        def has_more(self):
+            return self.page.has_more
+
     def list(
             self,
             config: Optional[APIOptions] = None
-            ) -> List[ApplicationListResponse]:
+            ) -> 'AppListPaginator':
         """
         Lists all applications available to the user.
 
         :param config: Optional dictionary containing parameters
         for the list call.
-        :return: List of applications.
+        :return: Paginator object that provides iteration over retrieved apps.
 
         The `config` dictionary can include the following keys:
         - `extra_headers` (Optional[Headers]):
@@ -2259,7 +2286,7 @@ class Apps:
         config = config or {}
 
         response = client.applications.list(**config)
-        return response.data
+        return self.AppListPaginator(response)
 
     def retrieve(
             self,
