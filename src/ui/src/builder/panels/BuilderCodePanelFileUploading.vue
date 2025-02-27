@@ -1,5 +1,10 @@
 <template>
-	<WdsProgressLinear :progress="progress" :size-px="12" :stroke-width="2" />
+	<WdsProgressLinear
+		class="BuilderCodePanelFileUploading"
+		:progress="progress"
+		:size-px="12"
+		:stroke-width="2"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -26,3 +31,9 @@ onMounted(() => {
 	requestAnimationFrame(updateProgress);
 });
 </script>
+
+<style lang="css" scoped>
+.BuilderCodePanelFileUploading {
+	min-width: 12px;
+}
+</style>
