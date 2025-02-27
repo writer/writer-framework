@@ -780,7 +780,7 @@ def test_apps_list(
 ):
     result = apps.list()
 
-    assert isinstance(result, list)
+    assert isinstance(result, apps.AppListPaginator)
     assert len(result) == 2
     assert result[0]["id"] == "app1"
     assert result[1]["name"] == "Test App 2"
