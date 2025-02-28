@@ -4,11 +4,14 @@ import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
 	findSourceFileFromPath,
-	getSourceFilesPathsToEdges,
 	getSourceFilesPathsToFiles,
 	getSourceFilesPathsToNodes,
+	isSourceFilesBinary,
+	isSourceFilesDirectory,
 	isSourceFilesFile,
 } from "./sourceFiles";
+
+export const SOURCE_FILE_MAX_SIZE_MB = 150;
 
 export function useSourceFiles(wf: Core) {
 	const sourceFileDraft = ref<SourceFiles>(
@@ -24,9 +27,9 @@ export function useSourceFiles(wf: Core) {
 			const prev = findSourceFileFromPath(path, previousSourceFiles);
 
 			const cur = findSourceFileFromPath(path, currentSourceFiles);
-			if (!isSourceFilesFile(cur)) continue;
+			if (isSourceFilesDirectory(cur)) continue;
 
-			if (prev === undefined) {
+			if (prev === undefined || isSourceFilesBinary(cur)) {
 				// a file was added, we duplicate it to the draft
 				tree = createFileToSourceFiles(
 					path,
@@ -72,6 +75,7 @@ export function useSourceFiles(wf: Core) {
 	const pathsUnsaved = computed(() => {
 		return sourceFilesDraftPaths.value.filter((path) => {
 			const draft = findSourceFileFromPath(path, sourceFileDraft.value);
+			if (isSourceFilesBinary(draft)) return false;
 			if (!isSourceFilesFile(draft)) return true;
 
 			const file = findSourceFileFromPath(path, wf.sourceFiles.value);
@@ -83,7 +87,7 @@ export function useSourceFiles(wf: Core) {
 		});
 	});
 
-	const fileOpen = computed(() => {
+	const fileOpen = computed<SourceFiles | undefined>(() => {
 		if (filepathOpen.value === undefined) return undefined;
 		return findSourceFileFromPath(
 			filepathOpen.value,
@@ -156,9 +160,11 @@ export function useSourceFiles(wf: Core) {
 	}
 
 	async function save(newPath?: string[]) {
-		if (!filepathOpen.value) return;
+		if (!filepathOpen.value || !fileOpen.value) return;
 
-		await wf.sendCodeSaveRequest(code.value, filepathOpen.value);
+		if (fileOpen.value.type === "file") {
+			await wf.sendCodeSaveRequest(code.value, filepathOpen.value);
+		}
 
 		if (newPath) {
 			const oldPath = [...toRaw(filepathOpen.value)];
@@ -173,13 +179,65 @@ export function useSourceFiles(wf: Core) {
 		}
 	}
 
+	function readFile(file: File): Promise<string | ArrayBuffer> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.addEventListener("loadend", (event) => {
+				const data = event.target.result;
+
+				if (data instanceof ArrayBuffer) {
+					const binaryString = String.fromCharCode.apply(
+						null,
+						new Uint8Array(data),
+					);
+					return resolve(binaryString);
+				}
+
+				resolve(data.split(",")[1]);
+			});
+
+			reader.addEventListener("error", () => {
+				reject();
+			});
+			reader.readAsDataURL(file);
+		});
+	}
+
+	async function upload(file: File) {
+		const maxSizeBytes = SOURCE_FILE_MAX_SIZE_MB * 1024 * 1024;
+		if (file.size > maxSizeBytes) {
+			throw Error(
+				`Cannot upload file bigger than ${SOURCE_FILE_MAX_SIZE_MB}mb`,
+			);
+		}
+
+		const path = [file.name];
+
+		if (findSourceFileFromPath(path, wf.sourceFiles.value))
+			throw Error(`The file ${file.name} already exists`);
+
+		sourceFileDraft.value = createFileToSourceFiles(
+			path,
+			toRaw(sourceFileDraft.value),
+			{
+				type: "binary",
+				uploading: true,
+			},
+		);
+
+		const content = await readFile(file);
+		await wf.sendFileUploadRequest(path, content);
+	}
+
 	return {
 		code,
 		sourceFileDraft,
+		fileOpen,
 		filepathOpen,
 		pathsUnsaved,
 		openedFileLanguage,
 		save,
+		upload,
 		openFile,
 		openNewFile,
 		getNewFilename,

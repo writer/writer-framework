@@ -21,6 +21,7 @@
 				class="BuilderTree__main__collapser"
 				variant="neutral"
 				size="icon"
+				:disabled="disabled"
 				@click.stop="toggleCollapse(undefined)"
 			>
 				<i class="material-symbols-outlined">{{
@@ -31,6 +32,9 @@
 			<slot name="nameLeft" />
 			<span
 				class="BuilderTree__main__name"
+				:class="{
+					'BuilderTree__main__name--disabled': disabled,
+				}"
 				:data-writer-tooltip="name"
 				data-writer-tooltip-strategy="overflow"
 				>{{ name }}</span
@@ -74,6 +78,7 @@ const props = defineProps({
 	draggable: { type: Boolean },
 	matched: { type: Boolean },
 	selected: { type: Boolean },
+	disabled: { type: Boolean },
 	dropdownOptions: {
 		type: Array as PropType<Option[]>,
 		required: false,
@@ -152,6 +157,11 @@ function toggleCollapse(newCollapse?: boolean) {
 
 .BuilderTree__main__name {
 	color: var(--builderPrimaryTextColor);
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+.BuilderTree__main__name--disabled {
+	color: var(--wdsColorGray6);
 }
 
 .BuilderTree__main__collapser {

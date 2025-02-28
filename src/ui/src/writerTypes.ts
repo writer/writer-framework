@@ -178,6 +178,10 @@ export type SourceFilesFile = {
 	complete?: boolean;
 	content: string;
 };
+export type SourceFilesBinary = {
+	type: "binary";
+	uploading?: boolean;
+};
 
 export type SourceFilesDirectory = {
 	type: "directory";
@@ -195,7 +199,10 @@ export type SourceFilesDirectory = {
  * { "type": "directory", "children": { "main.py": { "type": "file", "content": "print('hello')", "complete": true } } }
  * ```
  */
-export type SourceFiles = SourceFilesDirectory | SourceFilesFile;
+export type SourceFiles =
+	| SourceFilesDirectory
+	| SourceFilesFile
+	| SourceFilesBinary;
 
 export type WriterGraph = {
 	id: string;

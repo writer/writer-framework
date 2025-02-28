@@ -8,6 +8,8 @@
 		enable-left-panel
 		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
+		enable-drop-file
+		@files-drop="handleUpload"
 		@openned="onOpenPanel"
 	>
 		<template #leftPanel>
@@ -20,21 +22,38 @@
 					@select="openFile"
 					@delete="handleDeleteFile"
 				/>
-				<button
-					class="BuilderCodePanel__tree__addFile"
-					@click="handleAddFile"
-				>
-					<i class="material-symbols-outlined">add</i>
-					Add file
-				</button>
+				<div class="BuilderCodePanel__tree__actions">
+					<button
+						class="BuilderCodePanel__tree__actions__addFile"
+						@click="handleAddFile"
+					>
+						<i class="material-symbols-outlined">add</i>
+						Add file
+					</button>
+					<BuilderCodePanelFileUploadBtn @selected="handleUpload" />
+				</div>
 			</div>
 		</template>
 		<BuilderEmbeddedCodeEditor
+			v-if="fileTypeOpen === 'file'"
 			v-model="code"
 			variant="full"
 			:language="openedFileLanguage"
 			:disabled="isDisabled"
 		/>
+		<div
+			v-if="fileTypeOpen === 'binary'"
+			class="BuilderCodePanel__noPreview"
+		>
+			<img
+				class="BuilderCodePanel__noPreview__img"
+				src="@/assets/art-paper.svg"
+			/>
+			<p class="BuilderCodePanel__noPreview__title">Can’t Preview File</p>
+			<p class="BuilderCodePanel__noPreview__desc">
+				Non-text files are not available to view here
+			</p>
+		</div>
 		<template #actionsCompanion>
 			<div class="BuilderCodePanel__actionsCompanion">
 				<WdsTextInput
@@ -88,6 +107,7 @@ import BuilderMoreDropdown, { Option } from "../BuilderMoreDropdown.vue";
 import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.vue";
 import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
+import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
@@ -108,13 +128,32 @@ const moreOptions: Option[] = [
 const {
 	sourceFileDraft,
 	openFile,
+	upload,
 	openNewFile,
 	code,
 	openedFileLanguage,
 	filepathOpen,
+	fileOpen,
 	pathsUnsaved,
 	save,
 } = useSourceFiles(wf);
+
+async function handleUpload(files: FileList | File[]) {
+	await Promise.all([...files].map(handleFileUpload));
+}
+async function handleFileUpload(file: File) {
+	try {
+		await upload(file);
+		pushToast({
+			type: "success",
+			message: `File ${file.name} uploaded`,
+		});
+	} catch (error) {
+		pushToast({ type: "error", message: error.message });
+	}
+}
+
+const fileTypeOpen = computed(() => fileOpen.value?.type);
 
 const { pushToast } = useToasts();
 
@@ -238,7 +277,13 @@ async function handleSave() {
 	overflow-y: auto;
 }
 
-.BuilderCodePanel__tree__addFile {
+.BuilderCodePanel__tree__actions {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.BuilderCodePanel__tree__actions__addFile {
 	height: 32px;
 	padding: 8px;
 
@@ -246,6 +291,7 @@ async function handleSave() {
 	background-color: transparent;
 	color: var(--wdsColorBlue5);
 	font-size: 12px;
+	font-weight: 500;
 	border: none;
 
 	display: flex;
@@ -269,5 +315,30 @@ async function handleSave() {
 
 .BuilderCodePanel__actionsCompanion__saveBtn {
 	min-width: 120px;
+}
+
+.BuilderCodePanel__noPreview {
+	display: flex;
+	flex-direction: column;
+	font-size: 14px;
+	height: 100%;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.BuilderCodePanel__noPreview__img {
+	height: 170px;
+	margin-bottom: 32px;
+}
+
+.BuilderCodePanel__noPreview__title {
+	font-size: 16px;
+	margin-bottom: 2px;
+}
+
+.BuilderCodePanel__noPreview__desc {
+	color: var(--wdsColorGray6);
+	font-size: 12px;
 }
 </style>
