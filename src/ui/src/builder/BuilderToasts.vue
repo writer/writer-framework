@@ -8,6 +8,7 @@
 				:closable="toast.closable"
 				:message="toast.message"
 				:type="toast.type"
+				:action="toast.action"
 				@click="removeToast(toast.id)"
 			/>
 		</TransitionGroup>
