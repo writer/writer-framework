@@ -6,6 +6,7 @@ export type Toast = {
 	message: string;
 	closable?: boolean;
 	delayMs?: number;
+	action?: { label: string; func: () => void; icon: string };
 };
 
 const toasts = shallowRef<Toast[]>([]);

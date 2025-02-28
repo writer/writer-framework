@@ -30,13 +30,10 @@
 						/>
 					</WdsFieldWrapper>
 				</div>
-				<WdsButton
-					variant="tertiary"
-					@click="createLinkedWorkflow(eventType)"
-				>
-					<i class="material-symbols-outlined">add</i>Create linked
-					workflow
-				</WdsButton>
+				<BuilderSettingsHandlersWorkflow
+					:component="component"
+					:event-type="eventType"
+				/>
 			</div>
 
 			<WdsButton variant="tertiary" @click="showCustomHandlerModal">
@@ -123,11 +120,10 @@ import type { Option } from "../BuilderSelect.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import BuilderSettingsHandlersWorkflow from "./BuilderSettingsHandlersWorkflow.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-
-const { createAndInsertComponent } = useComponentActions(wf, wfbm);
 
 const { setHandlerValue } = useComponentActions(wf, wfbm);
 const component = computed(() =>
@@ -331,37 +327,6 @@ const customHandlerModalCloseAction: ModalAction = {
 const copyToClipboard = (text: string) => {
 	navigator.clipboard.writeText(text);
 };
-
-async function createLinkedWorkflow(refEventType: string) {
-	const { type } = component.value;
-	const { name } = wf.getComponentDefinition(type);
-	const workflowId = createAndInsertComponent(
-		"workflows_workflow",
-		"workflows_root",
-		undefined,
-		undefined,
-		(parentId) => {
-			createAndInsertComponent(
-				"workflows_uieventtrigger",
-				parentId,
-				undefined,
-				{
-					content: {
-						alias: `${name} - ${refEventType}`,
-						refComponentId: component.value.id,
-						refEventType,
-					},
-					x: 96,
-					y: 96,
-				},
-			);
-		},
-	);
-
-	wf.setActivePageId(workflowId);
-	wfbm.setMode("workflows");
-	wfbm.setSelection(workflowId);
-}
 </script>
 
 <style scoped>

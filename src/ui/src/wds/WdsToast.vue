@@ -21,6 +21,7 @@ export type WdsToastData = {
 	type: "error" | "success" | "info";
 	message: string;
 	closable: boolean;
+	// TODO: handle actions
 };
 </script>
 
