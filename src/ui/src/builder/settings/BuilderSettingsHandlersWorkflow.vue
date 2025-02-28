@@ -81,6 +81,20 @@ async function createLinkedWorkflow() {
 	});
 }
 
+function deleteLinkedWorkflow(workflowId: string) {
+	const block = wf
+		.getComponents(workflowId)
+		.find(
+			(c) =>
+				c.type === "workflows_uieventtrigger" &&
+				c.content.refComponentId === props.component.id &&
+				c.content.refEventType === props.eventType,
+		);
+	if (block === undefined) return;
+
+	wf.deleteComponent(block.id);
+}
+
 function jumpToWorkflow(workflowId: string) {
 	wf.setActivePageId(workflowId);
 	wfbm.setMode("workflows");
@@ -119,8 +133,9 @@ function jumpToWorkflow(workflowId: string) {
 					<WdsButton
 						variant="neutral"
 						size="smallIcon"
-						aria-label="Run the event"
-						@click="createLinkedWorkflow"
+						aria-label="Unlink Orchestration"
+						data-writer-tooltip="This will remove the trigger but will not delete the Orchestration"
+						@click="deleteLinkedWorkflow(workflow.id)"
 					>
 						<i class="material-symbols-outlined">link_off</i>
 					</WdsButton>

@@ -2,7 +2,7 @@
 	<div v-if="wfbm.isSingleSelectionActive" class="BuilderSettingsHandlers">
 		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">bolt</i>
-			<h3>Events</h3>
+			<h3>Orchestration Trigger</h3>
 		</div>
 		<div class="BuilderSettingsHandlers__list">
 			<div
