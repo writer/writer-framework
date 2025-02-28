@@ -26,40 +26,48 @@
 					class="BuilderPanel__contents"
 					:class="{
 						'BuilderPanel__contents--leftPanel': enableLeftPanel,
+						'BuilderPanel__contents--dropingFile':
+							showDropingFilesZone,
 					}"
+					@drop="handleDrop"
+					@dragover="handleDragEvent($event, true)"
+					@dragleave="handleDragEvent($event, false)"
 				>
-					<div
-						v-if="enableLeftPanel"
-						class="BuilderPanel__contents__leftPanel"
-					>
-						<slot name="leftPanel" />
-					</div>
-					<div class="BuilderPanel__actions">
-						<div class="BuilderPanel__actionsCompanion">
-							<slot name="actionsCompanion"></slot>
-						</div>
-						<WdsButton
-							v-for="(action, actionKey) in actions"
-							:key="actionKey"
-							:data-writer-tooltip="
-								action.name +
-								getKeyboardShortcutDescription(
-									action.keyboardShortcut,
-								)
-							"
-							data-writer-tooltip-placement="left"
-							variant="neutral"
-							size="smallIcon"
-							:disabled="action.isDisabled"
-							@click="action.callback"
-							><i class="material-symbols-outlined">{{
-								action.icon
-							}}</i></WdsButton
+					<BuilderDropFileZone v-if="showDropingFilesZone" />
+					<template v-else>
+						<div
+							v-if="enableLeftPanel"
+							class="BuilderPanel__contents__leftPanel"
 						>
-					</div>
-					<div class="BuilderPanel__mainContents">
-						<slot></slot>
-					</div>
+							<slot name="leftPanel" />
+						</div>
+						<div class="BuilderPanel__actions">
+							<div class="BuilderPanel__actionsCompanion">
+								<slot name="actionsCompanion"></slot>
+							</div>
+							<WdsButton
+								v-for="(action, actionKey) in actions"
+								:key="actionKey"
+								:data-writer-tooltip="
+									action.name +
+									getKeyboardShortcutDescription(
+										action.keyboardShortcut,
+									)
+								"
+								data-writer-tooltip-placement="left"
+								variant="neutral"
+								size="smallIcon"
+								:disabled="action.isDisabled"
+								@click="action.callback"
+								><i class="material-symbols-outlined">{{
+									action.icon
+								}}</i></WdsButton
+							>
+						</div>
+						<div class="BuilderPanel__mainContents">
+							<slot></slot>
+						</div>
+					</template>
 				</div>
 			</Teleport>
 		</template>
@@ -83,7 +91,8 @@ export type BuilderPanelAction = {
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
-import { computed, inject, onMounted, onUnmounted } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
+import BuilderDropFileZone from "../BuilderDropFileZone.vue";
 
 const wfbm = inject(injectionKeys.builderManager);
 
@@ -97,11 +106,49 @@ const props = defineProps<{
 	scrollable: boolean;
 	keyboardShortcutKey: string;
 	enableLeftPanel?: boolean;
+	enableDropFile?: boolean;
 }>();
 
 const emits = defineEmits({
 	openned: (open: boolean) => typeof open === "boolean",
+	filesDrop: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
+
+const showDropingFilesZone = computed(
+	() => props.enableDropFile && isDropingFiles.value,
+);
+
+const isDropingFiles = ref(false);
+
+function handleDragEvent(event: DragEvent, hover: boolean) {
+	if (!props.enableDropFile) return;
+
+	event.preventDefault();
+	isDropingFiles.value = hover;
+}
+
+function handleDrop(event: DragEvent) {
+	isDropingFiles.value = false;
+
+	if (!props.enableDropFile) return;
+	event.preventDefault();
+
+	const files: File[] = [];
+
+	if (event.dataTransfer.items) {
+		for (const item of event.dataTransfer.items) {
+			if (item.kind !== "file") continue;
+			const file = item.getAsFile();
+			if (file) files.push(file);
+		}
+	} else {
+		for (const file of event.dataTransfer.files) {
+			files.push(file);
+		}
+	}
+
+	if (files.length > 0) emits("filesDrop", files);
+}
 
 const collapsed = computed(() => !wfbm.openPanels.value.has(props.panelId));
 const order = computed(() => panelIds.indexOf(props.panelId));
@@ -186,6 +233,10 @@ onUnmounted(() => {
 
 .BuilderPanel__contents--leftPanel {
 	grid-template-columns: auto 1fr;
+}
+.BuilderPanel__contents--dropingFile {
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr;
 }
 
 .BuilderPanel__contents__leftPanel {

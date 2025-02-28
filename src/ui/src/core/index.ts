@@ -14,7 +14,6 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
-	registerComponentTemplate,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -60,7 +59,7 @@ export function generateCore() {
 		new Map(),
 	);
 	let mailInbox: MailItem[] = [];
-	const mailSubscriptions: { mailType: string; fn: Function }[] = [];
+	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
 
 	/**
@@ -110,16 +109,6 @@ export function generateCore() {
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
 		loadAbstractTemplates(initData.abstractTemplates);
-
-		// put some components behind feature flag
-
-		if (featureFlags.value.includes("dataframeEditor")) {
-			const component = await import(
-				"@/components/core/content/CoreDataframe.vue"
-			).then((m) => m.default);
-
-			registerComponentTemplate("dataframe", component);
-		}
 
 		// Only returned for edit (Builder) mode
 
@@ -224,12 +213,22 @@ export function generateCore() {
 
 			if (
 				message.messageType == "announcement" &&
-				message.payload.announce == "codeUpdate"
+				message.payload.type == "codeUpdate"
 			) {
 				webSocket.close();
 				initSession();
 				return;
-			} else if (
+			}
+
+			if (
+				message.messageType == "announcement" &&
+				message.payload.type == "mail"
+			) {
+				collateMail(message.payload.payload);
+				return;
+			}
+
+			if (
 				message.messageType == "eventResponse" ||
 				message.messageType == "stateEnquiryResponse"
 			) {
@@ -302,6 +301,12 @@ export function generateCore() {
 	function addMailSubscription(mailType: string, fn: Function) {
 		mailSubscriptions.push({ mailType, fn });
 		collateMail();
+	}
+
+	function removeMailSubscription(mailType: string, fn: Function) {
+		mailSubscriptions = mailSubscriptions.filter(
+			(sub) => !(sub.mailType === mailType && sub.fn === fn),
+		);
 	}
 
 	function getPayloadFromEvent(event: Event) {
@@ -401,6 +406,36 @@ export function generateCore() {
 		});
 	}
 
+	/**
+	 * @param content the cotent of the file encoded in base64
+	 */
+	async function sendFileUploadRequest(
+		path: string[],
+		content: string | ArrayBuffer,
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (r.payload?.["error"])
+					return reject("Couldn't upload the file.");
+
+				sourceFiles.value =
+					r.payload?.["sourceFiles"] ??
+					createFileToSourceFiles(path, toRaw(sourceFiles.value));
+				resolve();
+			};
+
+			sendFrontendMessage(
+				"uploadSourceFile",
+				{ path, content },
+				messageCallback,
+			);
+		});
+	}
+
 	async function sendRenameSourceFileRequest(
 		from: string[],
 		to: string[],
@@ -488,6 +523,23 @@ export function generateCore() {
 				resolve();
 			};
 			sendFrontendMessage("loadSourceFile", { path }, messageCallback);
+		});
+	}
+
+	async function sendListResourcesRequest<T>(type: string): Promise<T[]> {
+		return new Promise<T[]>((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload: { data: T[] };
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				resolve(r.payload?.data ?? []);
+			};
+			sendFrontendMessage(
+				"listResources",
+				{ resource_type: type },
+				messageCallback,
+			);
 		});
 	}
 
@@ -653,6 +705,27 @@ export function generateCore() {
 		return ca;
 	}
 
+	/**
+	 * Gets registered Writer Framework components with their child components
+	 *
+	 * @param parentId If specified, only include results that are children of a component with this id.
+	 * @param opts Whether to include Builder-managed components and code-managed components, and whether to sort.
+	 * @returns An iterable of components.
+	 */
+	function* getComponentsNested(
+		parentId?: Component["id"],
+		opts: {
+			includeBMC?: boolean;
+			includeCMC?: boolean;
+			sortedByPosition?: boolean;
+		} = {},
+	): Generator<Component> {
+		for (const component of getComponents(parentId, opts)) {
+			yield component;
+			yield* getComponentsNested(component.id, opts);
+		}
+	}
+
 	function setActivePageFromKey(targetPageKey: string) {
 		const pages = getComponents("root");
 		const matches = pages.filter((pageComponent) => {
@@ -678,6 +751,7 @@ export function generateCore() {
 		mode: readonly(mode),
 		userFunctions: readonly(userFunctions),
 		addMailSubscription,
+		removeMailSubscription,
 		init,
 		forwardEvent,
 		hashMessage,
@@ -687,12 +761,15 @@ export function generateCore() {
 		sendCreateSourceFileRequest,
 		sendRenameSourceFileRequest,
 		sendDeleteSourceFileRequest,
+		sendFileUploadRequest,
 		requestSourceFileLoading,
+		sendListResourcesRequest,
 		sendComponentUpdate,
 		addComponent,
 		deleteComponent,
 		getComponentById,
 		getComponents,
+		getComponentsNested,
 		setActivePageId,
 		activePageId: readonly(activePageId),
 		setActivePageFromKey,

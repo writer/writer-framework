@@ -119,14 +119,16 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, inject, ref } from "vue";
+import { inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 
 function handleKeydown(ev: KeyboardEvent) {
 	const ssEv = getKeydown(ev);
+	const targetEl = ev.target as HTMLElement;
+	if (!rootEl.value.contains(targetEl)) return;
 	rootEl.value.dispatchEvent(ssEv);
 }
 

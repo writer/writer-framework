@@ -5,7 +5,7 @@
 		class="CoreTextInput"
 	>
 		<input
-			:type="fields.passwordMode.value == 'yes' ? 'password' : 'text'"
+			:type="fields.passwordMode.value ? 'password' : 'text'"
 			:value="formValue"
 			:placeholder="fields.placeholder.value"
 			aria-autocomplete="none"
@@ -29,7 +29,11 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
-import { accentColor, cssClasses } from "@/renderer/sharedStyleFields";
+import {
+	accentColor,
+	baseYesNoField,
+	cssClasses,
+} from "@/renderer/sharedStyleFields";
 import { ComponentPublicInstance } from "vue";
 
 const description =
@@ -58,13 +62,9 @@ export default {
 				type: FieldType.Text,
 			},
 			passwordMode: {
+				...baseYesNoField,
 				name: "Password mode",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				category: FieldCategory.Style,
 			},
 			accentColor,

@@ -4,11 +4,12 @@
 			variant="neutral"
 			size="smallIcon"
 			:disabled="disabled"
+			:custom-size="triggerCustomSize"
 			@click="isOpen = !isOpen"
 		>
 			<i class="material-symbols-outlined">more_horiz</i>
 		</WdsButton>
-		<WdsMenu
+		<WdsDropdownMenu
 			v-if="isOpen"
 			ref="dropdown"
 			class="BuilderMoreDropdown__dropdown"
@@ -24,19 +25,29 @@ export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue"
 </script>
 
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, PropType, ref, watch } from "vue";
+import {
+	defineAsyncComponent,
+	nextTick,
+	PropType,
+	ref,
+	useTemplateRef,
+	watch,
+} from "vue";
 import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsButton from "@/wds/WdsButton.vue";
 
-const WdsMenu = defineAsyncComponent(() => import("@/wds/WdsDropdownMenu.vue"));
+const WdsDropdownMenu = defineAsyncComponent(
+	() => import("@/wds/WdsDropdownMenu.vue"),
+);
 
 defineProps({
 	options: {
 		type: Array as PropType<WdsDropdownMenuOption[]>,
 		default: () => [],
 	},
+	triggerCustomSize: { type: String, default: "smallIcon" },
 	disabled: { type: Boolean },
 	hideIcons: { type: Boolean, required: false },
 });
@@ -46,12 +57,14 @@ const emits = defineEmits({
 });
 
 const isOpen = ref(false);
-const trigger = ref<HTMLElement>();
-const dropdown = ref<HTMLElement>();
+const trigger = useTemplateRef("trigger");
+const dropdown = useTemplateRef("dropdown");
 
 const { floatingStyles } = useFloating(trigger, dropdown, {
 	placement: "bottom-end",
-	middleware: [autoPlacement({ allowedPlacements: ["bottom", "top"] })],
+	middleware: [
+		autoPlacement({ allowedPlacements: ["bottom-end", "top-end"] }),
+	],
 });
 
 // close the dropdown when clicking outside
@@ -78,6 +91,6 @@ function onSelect(value: string) {
 	position: relative;
 }
 .BuilderMoreDropdown__dropdown {
-	min-width: 200px;
+	min-width: 150px;
 }
 </style>

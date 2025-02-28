@@ -6,6 +6,7 @@
 			tabindex="0"
 			:draggable="draggable"
 			:data-automation-key="dataAutomationKey"
+			:aria-expanded="!collapsed"
 			@mouseenter="isMainHovered = true"
 			@mouseleave="isMainHovered = false"
 			@click="$emit('select', $event)"
@@ -20,7 +21,8 @@
 				class="BuilderTree__main__collapser"
 				variant="neutral"
 				size="icon"
-				@click.stop="toggleCollapse"
+				:disabled="disabled"
+				@click.stop="toggleCollapse(undefined)"
 			>
 				<i class="material-symbols-outlined">{{
 					collapsed ? "expand_more" : "expand_less"
@@ -30,6 +32,9 @@
 			<slot name="nameLeft" />
 			<span
 				class="BuilderTree__main__name"
+				:class="{
+					'BuilderTree__main__name--disabled': disabled,
+				}"
 				:data-writer-tooltip="name"
 				data-writer-tooltip-strategy="overflow"
 				>{{ name }}</span
@@ -37,28 +42,32 @@
 			<slot name="nameRight" />
 			<div
 				v-if="dropdownOptions && isMainHovered"
-				class="BuilderTree__dropdown"
+				class="BuilderTree__main__dropdown"
 			>
-				<BaseDropdown
+				<BuilderMoreDropdown
 					:options="dropdownOptions"
-					@selected="$emit('dropdownSelect', $event)"
+					trigger-custom-size="16px"
+					@select="$emit('dropdownSelect', $event)"
 				/>
 			</div>
 		</div>
-		<div
-			v-show="(!collapsed || props.query) && hasChildren"
-			class="BuilderTree__children"
-		>
-			<slot name="children" />
-		</div>
+		<Transition name="slide-fade">
+			<div
+				v-show="!collapsed && hasChildren"
+				class="BuilderTree__children"
+			>
+				<slot name="children" />
+			</div>
+		</Transition>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
-const BaseDropdown = defineAsyncComponent(
-	() => import("@/components/core/base/BaseDropdown.vue"),
+import type { Option } from "./BuilderMoreDropdown.vue";
+const BuilderMoreDropdown = defineAsyncComponent(
+	() => import("./BuilderMoreDropdown.vue"),
 );
 
 const props = defineProps({
@@ -69,8 +78,9 @@ const props = defineProps({
 	draggable: { type: Boolean },
 	matched: { type: Boolean },
 	selected: { type: Boolean },
+	disabled: { type: Boolean },
 	dropdownOptions: {
-		type: Object as PropType<Record<string, string>>,
+		type: Array as PropType<Option[]>,
 		required: false,
 		default: undefined,
 	},
@@ -86,7 +96,7 @@ const emit = defineEmits({
 	dropdownSelect: (key: string) => typeof key === "string",
 });
 
-defineExpose({ expand });
+defineExpose({ expand, toggleCollapse });
 
 const collapsed = ref(false);
 const isMainHovered = ref(false);
@@ -100,8 +110,9 @@ function expand() {
 	emit("expandBranch");
 }
 
-function toggleCollapse() {
-	collapsed.value = !collapsed.value;
+function toggleCollapse(newCollapse?: boolean) {
+	newCollapse ??= !collapsed.value;
+	if (newCollapse !== collapsed.value) collapsed.value = newCollapse;
 }
 </script>
 
@@ -118,7 +129,6 @@ function toggleCollapse() {
 	flex-wrap: nowrap;
 	text-wrap: nowrap;
 	max-width: 100%;
-	overflow: hidden;
 	align-items: center;
 	outline: none;
 	gap: 4px;
@@ -147,6 +157,11 @@ function toggleCollapse() {
 
 .BuilderTree__main__name {
 	color: var(--builderPrimaryTextColor);
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+.BuilderTree__main__name--disabled {
+	color: var(--wdsColorGray6);
 }
 
 .BuilderTree__main__collapser {
@@ -159,11 +174,31 @@ function toggleCollapse() {
 	margin-left: 20px;
 }
 
-.BuilderTree__dropdown {
+.BuilderTree__main__dropdown {
 	flex-grow: 1;
 	display: flex;
 	justify-content: flex-end;
-	color: var(--builderPrimaryTextColor);
-	--containerShadow: var(--wdsShadowMenu);
+}
+
+.slide-fade-enter-active {
+	transition: all 0.1s ease-out;
+}
+
+.slide-fade-leave-active {
+	transition: all 0.1s ease-in;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+	transform: translateY(-18px);
+	opacity: 0;
+}
+@media (prefers-reduced-motion) {
+	.slide-fade-enter-from,
+	.slide-fade-leave-to,
+	.slide-fade-enter-active,
+	.slide-fade-leave-active {
+		transition: unset;
+	}
 }
 </style>

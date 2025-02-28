@@ -9,8 +9,12 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { accentColor, cssClasses } from "@/renderer/sharedStyleFields";
 import { validatorPositiveNumber } from "@/constants/validators";
+import {
+	accentColor,
+	baseYesNoField,
+	cssClasses,
+} from "@/renderer/sharedStyleFields";
 const description =
 	"A component that emits an event repeatedly at specified time intervals, enabling time-based refresh.";
 
@@ -35,14 +39,10 @@ export default {
 				validator: validatorPositiveNumber,
 			},
 			isActive: {
+				...baseYesNoField,
 				name: "Active",
 				default: "yes",
 				desc: "Whether the timer should trigger tick events.",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			accentColor,
 			cssClasses,
@@ -58,17 +58,25 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, Ref, ref, watch } from "vue";
+import {
+	computed,
+	inject,
+	nextTick,
+	onMounted,
+	ref,
+	useTemplateRef,
+	watch,
+} from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const MIN_ANIMATION_RESET_MS = 500;
 const MIN_ANIMATION_DURATION_MS = 1000;
 const fields = inject(injectionKeys.evaluatedFields);
 const wf = inject(injectionKeys.core);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 
 const intervalMs = computed(() => fields.intervalMs.value);
-const isActive = computed(() => fields.isActive.value == "yes");
+const isActive = computed(() => fields.isActive.value);
 const isFailing = ref(false);
 const componentId = inject(injectionKeys.componentId);
 const isTickHandlerSet = computed(

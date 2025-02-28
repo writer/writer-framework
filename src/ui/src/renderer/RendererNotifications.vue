@@ -39,14 +39,14 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, reactive, Ref, ref } from "vue";
+import { inject, onMounted, reactive, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
 const wf = inject(injectionKeys.core);
 const isActive = ref(false);
-const balloon: Ref<HTMLElement> = ref(null);
+const balloon = useTemplateRef("balloon");
 
 const notifications: {
 	type: string;

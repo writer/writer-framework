@@ -1,5 +1,6 @@
 import { computed, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
+import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -46,14 +47,10 @@ type LogEntryContents = {
 	message: string;
 	code?: string;
 	workflowExecution?: WorkflowExecutionLog;
+	id?: string;
 };
 
-type LogEntry = {
-	type: string;
-	title: string;
-	message: string;
-	code?: string;
-	workflowExecution?: WorkflowExecutionLog;
+type LogEntry = LogEntryContents & {
 	timestampReceived: Date;
 	fingerprint: string;
 	repeated: number;
@@ -86,8 +83,11 @@ type State = {
 };
 
 export function generateBuilderManager() {
+	const modeCache = useLocalStorageJSON<State["mode"]>(
+		"generateBuilderManager__mode",
+	);
 	const initState: State = {
-		mode: "ui",
+		mode: modeCache.value ?? "ui",
 		selection: [],
 		clipboard: null,
 		mutationTransactionsSnapshot: {
@@ -102,13 +102,31 @@ export function generateBuilderManager() {
 	let mutationTransactionOffset = 0;
 	const mutationTransactions: ComponentMutationTransaction[] = [];
 
+	/**
+	 * @deprecated use {@link mode} instead
+	 */
 	const setMode = (newMode: State["mode"]): void => {
-		state.value.mode = newMode;
+		mode.value = newMode;
 	};
 
+	/**
+	 * @deprecated use {@link mode} instead
+	 */
 	const getMode = () => {
 		return state.value.mode;
 	};
+
+	const mode = computed<State["mode"]>({
+		get: () => state.value.mode,
+		set(newValue) {
+			state.value.mode = newValue;
+			modeCache.value = newValue;
+		},
+	});
+
+	const activeRootId = computed<Component["id"]>(() =>
+		mode.value == "workflows" ? "workflows_root" : "root",
+	);
 
 	const setSelection = (
 		componentId: Component["id"] | null,
@@ -182,6 +200,7 @@ export function generateBuilderManager() {
 		if (state.value.selection.length === 1) return SelectionStatus.Single;
 		return SelectionStatus.Multiple;
 	});
+
 	const isSingleSelectionActive = computed(
 		() => selectionStatus.value === SelectionStatus.Single,
 	);
@@ -318,22 +337,33 @@ export function generateBuilderManager() {
 	}
 
 	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
-		const { type, title, message, code, workflowExecution } =
+		const { type, title, message, code, workflowExecution, id } =
 			logEntryContents;
 		const fingerprint = await hashLogEntryContents(logEntryContents);
-		const matchingEntry = state.value.logEntries.find(
-			(le) => le.fingerprint === fingerprint,
-		);
-		if (matchingEntry) {
-			matchingEntry.repeated++;
-			matchingEntry.timestampReceived = new Date();
-			state.value.logEntries.sort((a, b) =>
-				a.timestampReceived < b.timestampReceived ? 1 : -1,
+
+		if (id) {
+			const index = state.value.logEntries.findIndex(
+				(entry) => entry.id === id,
 			);
-			return;
+			if (index !== -1) {
+				state.value.logEntries.splice(index, 1);
+			}
+		} else {
+			const matchingEntry = state.value.logEntries.find(
+				(le) => le.fingerprint === fingerprint,
+			);
+			if (matchingEntry) {
+				matchingEntry.repeated++;
+				matchingEntry.timestampReceived = new Date();
+				state.value.logEntries.sort((a, b) =>
+					a.timestampReceived < b.timestampReceived ? 1 : -1,
+				);
+				return;
+			}
 		}
 
 		state.value.logEntries.unshift({
+			id,
 			type,
 			title,
 			message,
@@ -361,6 +391,8 @@ export function generateBuilderManager() {
 	const builder = {
 		setMode,
 		getMode,
+		mode,
+		activeRootId,
 		openPanels: ref(new Set<"code" | "log">()),
 		isSettingsBarCollapsed: ref(false),
 		isComponentIdSelected,

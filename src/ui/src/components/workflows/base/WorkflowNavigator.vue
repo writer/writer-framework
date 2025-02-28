@@ -86,7 +86,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, toRefs, watch } from "vue";
+import {
+	onMounted,
+	onUnmounted,
+	ref,
+	toRefs,
+	useTemplateRef,
+	watch,
+} from "vue";
 import WorkflowMiniMap from "./WorkflowMiniMap.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
@@ -105,7 +112,7 @@ const props = defineProps<{
 
 const { zoomLevel } = toRefs(props);
 
-const rootEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const emit = defineEmits([
 	"changeRenderOffset",
 	"changeZoomLevel",
@@ -125,7 +132,7 @@ function toggleMiniMap() {
 	isMiniMapShown.value = !isMiniMapShown.value;
 }
 
-function handleAutoArrange(ev: MouseEvent) {
+function handleAutoArrange() {
 	emit("autoArrange");
 }
 

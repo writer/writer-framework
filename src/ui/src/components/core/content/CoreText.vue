@@ -9,7 +9,7 @@
 		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
 		<template v-else>
 			<BaseMarkdown
-				v-if="fields.useMarkdown.value == 'yes'"
+				v-if="fields.useMarkdown.value"
 				:raw-text="fields.text.value"
 				:style="contentStyle"
 			>
@@ -22,7 +22,11 @@
 </template>
 
 <script lang="ts">
-import { cssClasses, primaryTextColor } from "@/renderer/sharedStyleFields";
+import {
+	baseYesNoField,
+	cssClasses,
+	primaryTextColor,
+} from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
 
@@ -50,14 +54,10 @@ export default {
 				control: FieldControl.Textarea,
 			},
 			useMarkdown: {
+				...baseYesNoField,
 				name: "Use Markdown",
 				desc: "The Markdown output will be sanitised; unsafe elements will be removed.",
 				default: "no",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 			},
 			alignment: {
 				name: "Alignment",
@@ -83,13 +83,14 @@ export default {
 	},
 };
 </script>
+
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
 
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);

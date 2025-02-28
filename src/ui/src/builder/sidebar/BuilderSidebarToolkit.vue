@@ -3,6 +3,7 @@
 		v-model="query"
 		class="BuilderSidebarToolkit"
 		:placeholder="placeholder"
+		:search-count="searchCount"
 	>
 		<div
 			v-for="(tools, categoryId) in categories"
@@ -60,6 +61,7 @@ const displayedCategories = [
 	"Embed",
 	"Writer",
 	"Logic",
+	"Triggers",
 	"Other",
 ];
 
@@ -70,7 +72,9 @@ const activeToolkit = computed(() => {
 	return "core";
 });
 
-const categories = computed(() => {
+const categories = computed<
+	Record<string, ReturnType<typeof getRelevantToolsInCategory>>
+>(() => {
 	const categoriesWithTools = displayedCategories
 		.map((categoryId) => [
 			categoryId,
@@ -79,6 +83,14 @@ const categories = computed(() => {
 		.filter(([_categoryId, tools]) => tools.length > 0);
 
 	return Object.fromEntries(categoriesWithTools);
+});
+
+const searchCount = computed(() => {
+	if (!query.value) return undefined;
+	return Object.values(categories.value).reduce(
+		(acc, v) => acc + v.length,
+		0,
+	);
 });
 
 const placeholder = computed(() => {

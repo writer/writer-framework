@@ -138,6 +138,7 @@ import {
 	onUnmounted,
 	ref,
 	shallowRef,
+	useTemplateRef,
 } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
@@ -146,8 +147,8 @@ import injectionKeys from "@/injectionKeys";
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
 
-const rootEl: Ref<HTMLElement | null> = ref(null);
-const nodeContainerEl: Ref<HTMLElement | null> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const nodeContainerEl = useTemplateRef("nodeContainerEl");
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
@@ -160,7 +161,7 @@ const temporaryNodeCoordinates = shallowRef<
 	Record<Component["id"], { x: number; y: number }>
 >({});
 
-const AUTOARRANGE_ROW_GAP_PX = 96;
+const AUTOARRANGE_ROW_GAP_PX = 48;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>
@@ -305,7 +306,7 @@ function handleAutoArrange() {
 	);
 
 	const coordinates = {};
-	let x = AUTOARRANGE_COLUMN_GAP_PX;
+	let x = AUTOARRANGE_COLUMN_GAP_PX / 2;
 	for (let i = 0; i < columns.size; i++) {
 		const nodes = Array.from(columns.get(i)).sort((a, b) =>
 			a.y > b.y ? 1 : -1,
@@ -334,7 +335,7 @@ async function handleRun() {
 			},
 		}),
 		null,
-		false,
+		true,
 	);
 }
 
@@ -500,6 +501,19 @@ function moveNode(ev: MouseEvent) {
 
 	const translationX = newX - component.x;
 	const translationY = newY - component.y;
+
+	const isMovingNodeSelected = wfbm.selection.value.some(
+		(c) => c.componentId === nodeId,
+	);
+
+	if (!isMovingNodeSelected) {
+		// if the user moves a node that is not selected, we don't move other selected nodes
+		temporaryNodeCoordinates.value = {
+			...temporaryNodeCoordinates.value,
+			[nodeId]: { x: newX, y: newY },
+		};
+		return;
+	}
 
 	// apply the same vector to other selected components
 	const otherSelectedComponents = wfbm.selection.value

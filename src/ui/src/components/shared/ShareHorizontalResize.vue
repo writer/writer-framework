@@ -14,12 +14,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, CSSProperties, ref } from "vue";
+import { computed, CSSProperties, ref, useTemplateRef } from "vue";
 
 const props = defineProps({
 	initialLeftSize: { type: Number, required: true },
 });
-const root = ref<HTMLElement | null>(null);
+const root = useTemplateRef("root");
 
 let leftSize = ref(props.initialLeftSize);
 const style = computed<CSSProperties>(() => ({
@@ -27,6 +27,7 @@ const style = computed<CSSProperties>(() => ({
 }));
 
 function handleMouseDown() {
+	if (!root.value) return;
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 

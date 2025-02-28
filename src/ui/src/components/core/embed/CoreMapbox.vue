@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { cssClasses } from "@/renderer/sharedStyleFields";
+import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
 import { useLogger } from "@/composables/useLogger";
 import {
 	validatorGpsLat,
@@ -68,13 +68,9 @@ export default {
 				validator: validatorGpsMarkers,
 			},
 			controls: {
+				...baseYesNoField,
 				name: "Controls visible",
 				default: "yes",
-				type: FieldType.Text,
-				options: {
-					yes: "Yes",
-					no: "No",
-				},
 				desc: "Show map controls",
 			},
 			cssClasses,
@@ -93,12 +89,12 @@ export default {
 
 <script setup lang="ts">
 import "mapbox-gl/dist/mapbox-gl.css";
-import { inject, ref, watch, computed } from "vue";
+import { inject, ref, watch, computed, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import type * as mapboxgl from "mapbox-gl";
 const fields = inject(injectionKeys.evaluatedFields);
-const rootEl = ref(null);
-const mapEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const mapEl = useTemplateRef("mapEl");
 const center = computed<mapboxgl.LngLatLike>(() => [
 	fields.lng.value,
 	fields.lat.value,
@@ -139,7 +135,7 @@ const initMap = async () => {
 			rootEl.value.dispatchEvent(event);
 		});
 		controls = new mapboxgl.NavigationControl();
-		if (fields.controls.value === "yes") {
+		if (fields.controls.value) {
 			map.value.addControl(controls);
 		}
 		if (fields.markers.value) {
@@ -177,7 +173,7 @@ const renderMarkers = async () => {
 
 watch(fields.controls, () => {
 	if (map.value) {
-		if (fields.controls.value === "yes") {
+		if (fields.controls) {
 			map.value.addControl(controls);
 		} else {
 			map.value.removeControl(controls);

@@ -1,50 +1,71 @@
 <template>
-	<div class="WorkflowsNode">
-		<div class="title">
-			<SharedImgWithFallback :urls="possibleImageUrls" />
-			<WorkflowsNodeNamer
-				:component-id="componentId"
-				class="nodeNamer"
-				:block-name="def.name"
-			></WorkflowsNodeNamer>
-		</div>
-		<div v-if="false" class="main">
-			<div></div>
-		</div>
+	<div
+		class="WorkflowsNode"
+		:class="{
+			'WorkflowsNode--trigger': isTrigger,
+			'WorkflowsNode--intelligent': isIntelligent,
+			'WorkflowsNode--running': completionStyle == 'running',
+			'WorkflowsNode--success': completionStyle == 'success',
+			'WorkflowsNode--error': completionStyle == 'error',
+		}"
+	>
 		<div
-			v-for="(outs, fieldKey) in dynamicOuts"
-			:key="fieldKey"
-			class="outputs"
-		>
-			<h4>{{ def.fields[fieldKey].name }}</h4>
-			<div v-for="(out, outId) in outs" :key="outId" class="output">
-				{{ out.name }}
-				<div
-					class="ball"
-					:class="out.style"
-					:data-writer-socket-id="outId"
-					:data-writer-unselectable="true"
-					@click.capture.stop
-					@mousedown.capture="
-						(ev: DragEvent) => handleOutMousedown(ev, outId)
-					"
-				></div>
-			</div>
-			<div v-if="Object.keys(outs).length == 0">None configured.</div>
+			v-if="isIntelligent && completionStyle === null"
+			class="side"
+		></div>
+		<div class="extraBorder">
+			<div v-if="completionStyle == 'running'" class="runner"></div>
 		</div>
-		<div class="outputs">
-			<div v-for="(out, outId) in staticOuts" :key="outId" class="output">
-				{{ out.name }}
+		<div class="main">
+			<div class="title">
+				<SharedImgWithFallback :urls="possibleImageUrls" />
+				<WorkflowsNodeNamer
+					:component-id="componentId"
+					class="nodeNamer"
+					:block-name="def.name"
+				></WorkflowsNodeNamer>
+			</div>
+			<div
+				v-for="(outs, fieldKey) in dynamicOuts"
+				:key="fieldKey"
+				class="outputs"
+			>
+				<h4>{{ def.fields[fieldKey].name }}</h4>
+				<div v-for="(out, outId) in outs" :key="outId" class="output">
+					{{ out.name }}
+					<div
+						class="ball"
+						:class="out.style"
+						:data-writer-socket-id="outId"
+						:data-writer-unselectable="true"
+						@click.capture.stop
+						@mousedown.capture="
+							(ev: DragEvent) => handleOutMousedown(ev, outId)
+						"
+					></div>
+				</div>
+				<div v-if="Object.keys(outs).length == 0">None configured.</div>
+			</div>
+			<div class="outputs">
 				<div
-					class="ball"
-					:class="out.style"
-					:data-writer-socket-id="outId"
-					:data-writer-unselectable="true"
-					@click.capture.stop
-					@mousedown.capture="
-						(ev: DragEvent) => handleOutMousedown(ev, outId)
-					"
-				></div>
+					v-for="(out, outId) in staticOuts"
+					:key="outId"
+					class="output"
+				>
+					<template v-if="Object.keys(staticOuts).length > 1">
+						{{ out.name }}
+					</template>
+					<div
+						class="ball"
+						:class="out.style"
+						:data-writer-socket-id="outId"
+						:data-writer-unselectable="true"
+						@click.capture.stop
+						@mousedown.capture="
+							(ev: DragEvent) => handleOutMousedown(ev, outId)
+						"
+					></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -89,6 +110,42 @@ const component = computed(() => {
 
 const def = computed(() => {
 	return wf?.getComponentDefinition(component.value?.type);
+});
+
+const isTrigger = computed(() => {
+	return def?.value?.category == "Triggers";
+});
+
+const isIntelligent = computed(() => {
+	return def?.value?.category == "Writer";
+});
+
+const completionStyle = computed(() => {
+	if (latestKnownOutcome.value == null) return null;
+	if (latestKnownOutcome.value == "in_progress") return "running";
+
+	// Any dynamic out is considered success
+
+	return (
+		{ ...staticOuts.value }?.[latestKnownOutcome.value].style ?? "success"
+	);
+});
+
+const latestKnownOutcome = computed(() => {
+	const logEntries = wfbm.getLogEntries();
+
+	for (let i = 0; i < logEntries.length; i++) {
+		const logEntry = logEntries[i];
+		const we = logEntry.workflowExecution;
+		if (!we) continue;
+		for (let j = 0; j < we.summary.length; j++) {
+			const item = we.summary[j];
+			if (item.componentId !== component.value.id) continue;
+			return item.outcome;
+		}
+	}
+
+	return null;
 });
 
 const isEngaged = computed(() => {
@@ -144,6 +201,10 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 }
 
 const possibleImageUrls = computed(() => {
+	if (["success", "error"].includes(completionStyle.value)) {
+		return [`/status/${completionStyle.value}.svg`];
+	}
+
 	const paths = [
 		`/components/${component.value.type}.svg`,
 		`/components/workflows_category_${def.value.category}.svg`,
@@ -164,7 +225,6 @@ watch(isEngaged, () => {
 <style scoped>
 .WorkflowsNode {
 	background: var(--builderBackgroundColor);
-	border: 2px solid transparent;
 	border-radius: 8px;
 	width: 240px;
 	position: absolute;
@@ -172,8 +232,97 @@ watch(isEngaged, () => {
 	user-select: none;
 }
 
-.WorkflowsNode:hover {
-	border: 2px solid var(--wdsColorBlue2);
+.WorkflowsNode--success {
+	background: var(--wdsColorGreen3) !important;
+}
+
+.WorkflowsNode--error {
+	background: var(--wdsColorOrange2) !important;
+}
+
+.WorkflowsNode--running {
+	box-shadow: 0px 2px 24px -16px #6985ff;
+	animation: shadowPulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes shadowPulse {
+	0% {
+		box-shadow: 0px 2px 24px -16px #6985ff;
+	}
+	100% {
+		box-shadow: 0px 2px 24px -4px #bfcbff;
+	}
+}
+
+.side {
+	position: absolute;
+	border-radius: 8px 0 0 8px;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 8px;
+	background: var(
+		--Gradients-Summer-Dawn-2,
+		linear-gradient(180deg, #ffd5f8 0%, #bfcbff 95.5%)
+	);
+}
+
+.extraBorder {
+	height: 100%;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.WorkflowsNode:hover .extraBorder {
+	background-color: var(--wdsColorBlue2);
+}
+
+.WorkflowsNode--intelligent:hover .extraBorder {
+	background: var(
+		--Gradients-Summer-Dawn-2,
+		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
+	);
+}
+
+.WorkflowsNode.selected.component .extraBorder {
+	background: var(--wdsColorBlue4);
+}
+
+.extraBorder .runner {
+	height: 200%;
+	width: 200%;
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	background: conic-gradient(#6985ff, #f5f5f9);
+	filter: blur(24px);
+	animation: spin 1.5s linear infinite;
+}
+
+.WorkflowsNode--intelligent .extraBorder .runner {
+	background: conic-gradient(#6985ff, #ffd5f8, #bfcbff);
+}
+
+.main {
+	position: relative;
+	margin: 2px;
+	background: var(--builderBackgroundColor);
+	border-radius: 6px;
+}
+
+.WorkflowsNode--intelligent .main {
+	margin-left: 8px;
+	border-radius: 0 6px 6px 0;
+}
+
+.WorkflowsNode--trigger,
+.WorkflowsNode--trigger .main,
+.WorkflowsNode--trigger .extraBorder {
+	border-radius: 36px;
 }
 
 .title {
@@ -184,9 +333,17 @@ watch(isEngaged, () => {
 	align-items: center;
 }
 
+.WorkflowsNode--intelligent .title {
+	padding-left: 6px;
+}
+
 .title img {
 	width: 24px;
 	height: 24px;
+}
+
+.WorkflowsNode--trigger .title img {
+	border-radius: 50%;
 }
 
 .WorkflowsNode:hover .nodeNamer :deep(.blockName) {
@@ -195,11 +352,6 @@ watch(isEngaged, () => {
 
 .WorkflowsNode:hover .nodeNamer :deep(.aliasEditor) {
 	background: var(--builderSubtleSeparatorColor);
-}
-
-.main {
-	font-size: 14px;
-	padding: 16px 12px 16px 12px;
 }
 
 .outputs {
@@ -212,6 +364,17 @@ watch(isEngaged, () => {
 	font-size: 12px;
 }
 
+.WorkflowsNode--trigger .outputs {
+	border: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	padding: 0;
+	height: 100%;
+	justify-content: center;
+}
+
 .output {
 	display: flex;
 	gap: 8px;
@@ -220,8 +383,6 @@ watch(isEngaged, () => {
 	font-size: 12px;
 	font-style: normal;
 	font-weight: 400;
-	/* letter-spacing: 1.3px; */
-	/* text-transform: uppercase; */
 	color: var(--wdsColorGray5);
 	font-feature-settings:
 		"liga" off,
@@ -249,8 +410,14 @@ watch(isEngaged, () => {
 	background: var(--wdsColorPurple4);
 }
 
-.WorkflowsNode.selected.component {
-	border: 2px solid var(--wdsColorBlue4);
-	background: var(--builderBackgroundColor);
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+		transform-origin: center;
+	}
+	100% {
+		transform: rotate(360deg);
+		transform-origin: center;
+	}
 }
 </style>

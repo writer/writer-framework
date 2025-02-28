@@ -20,7 +20,7 @@ class CallEventHandler(WorkflowBlock):
                 "fields": {
                     "name": {
                         "name": "Name",
-                        "type": "Text",
+                        "type": "Handler",
                         "desc": "The name of the event handling function."
                     },
                     "additionalArgs": {
@@ -59,6 +59,7 @@ class CallEventHandler(WorkflowBlock):
                 "state": self.runner.session.session_state,
                 "context": self.execution_environment,
                 "session": writer.core._event_handler_session_info(),
+                "ui": writer.core._event_handler_ui_manager()
             } | additional_args
 
             handler_args = inspect.getfullargspec(callable_handler).args

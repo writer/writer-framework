@@ -80,12 +80,13 @@ from writer.ai import (
 )
 from writerai import Writer
 from writerai._streaming import Stream
+from writerai.pagination import SyncCursorPage
 from writerai.types import (
     ApplicationGenerateContentResponse,
-    Chat,
+    ChatCompletion,
     ChatCompletionChunk,
     Completion,
-    StreamingData,
+    CompletionChunk,
     ToolContextAwareSplittingResponse,
     ToolParsePdfResponse,
 )
@@ -163,6 +164,14 @@ def mock_app_content_generation():
         non_streaming_client = AsyncMock(original_client)
         mock_acquire_client.return_value = non_streaming_client
 
+        non_streaming_client.applications.list.return_value = SyncCursorPage(
+            data=[
+                {"id": "app1", "name": "Test App 1"},
+                {"id": "app2", "name": "Test App 2"},
+            ],
+            has_more=False
+        )
+
         non_streaming_client.applications.generate_content.return_value =\
             ApplicationGenerateContentResponse(
                 suggestion=test_complete_literal
@@ -190,7 +199,7 @@ def mock_writer_client():
         def mock_chat_response(include_tool_calls=None):
             """Configurable mock chat response."""
             tool_calls = include_tool_calls if include_tool_calls else None
-            return Chat(
+            return ChatCompletion(
                 id="test",
                 choices=[
                     {
@@ -266,15 +275,15 @@ def mock_streaming_client(mock_writer_client):
     """Mock client for streaming."""
     mock_stream = Stream(
         client=mock_writer_client._original_client,
-        cast_to=Chat,
+        cast_to=ChatCompletion,
         response=httpx.Response(200, content=mock_writer_client.fake_stream_response()),
     )
     mock_writer_client.chat.chat.return_value = mock_stream
 
     mock_completion_stream = MagicMock()
     mock_completion_stream.__iter__.return_value = iter([
-        StreamingData(value="part1"),
-        StreamingData(value=" part2")
+        CompletionChunk(value="part1"),
+        CompletionChunk(value=" part2")
     ])
     mock_writer_client.completions.create.return_value = \
             mock_completion_stream
@@ -323,7 +332,7 @@ def mock_streaming_tool_calls_client(mock_writer_client):
     def create_mock_stream(*args, **kwargs):
         mock_stream = Stream(
             client=mock_writer_client._original_client,
-            cast_to=Chat,
+            cast_to=ChatCompletion,
             response=httpx.Response(200, content=fake_stream_with_tool_calls()),
         )
         return mock_stream
@@ -338,6 +347,7 @@ def mock_streaming_tool_calls_client(mock_writer_client):
 def sdk_graph_mock():
     return SDKGraph(
         id="test_graph_id",
+        type="manual",
         created_at=datetime.now(),
         file_status={
             "completed": 0,
@@ -579,7 +589,6 @@ def test_conversation_serialized_messages_excludes_system():
 
 
 @pytest.mark.set_token("fake_token")
-@pytest.mark.asyncio
 def test_conversation_complete(emulate_app_process, mock_non_streaming_client):
     conversation = Conversation()
     response = conversation.complete()
@@ -762,6 +771,20 @@ def test_stream_complete(emulate_app_process, mock_streaming_client):
     response_chunks = list(stream_complete("test"))
 
     assert "".join(response_chunks) == "part1 part2"
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_list(
+    emulate_app_process,
+    mock_app_content_generation
+):
+    result = apps.list()
+
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0]["id"] == "app1"
+    assert result[1]["name"] == "Test App 2"
+    mock_app_content_generation.applications.list.assert_called_once()
 
 
 @pytest.mark.set_token("fake_token")

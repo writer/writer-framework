@@ -89,11 +89,10 @@ export default {
 import {
 	computed,
 	inject,
-	ref,
-	Ref,
 	watch,
 	nextTick,
 	onBeforeMount,
+	useTemplateRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { changePageInHash, serializeParsedHash } from "@/core/navigation";
@@ -101,7 +100,7 @@ import { changePageInHash, serializeParsedHash } from "@/core/navigation";
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const { isComponentVisible } = useEvaluator(wf);
 
 const displayedPageId = computed(() => {

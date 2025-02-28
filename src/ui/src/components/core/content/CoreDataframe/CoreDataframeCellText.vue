@@ -1,33 +1,22 @@
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
+import { useTemplateRef } from "vue";
 import BaseMarkdown from "../../base/BaseMarkdown.vue";
+import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
 const props = defineProps({
 	value: { validator: () => true, required: true },
 	useMarkdown: { type: Boolean, required: false },
 	editable: { type: Boolean, required: false },
+	wrapText: { type: Boolean, required: false },
 });
 
 const emits = defineEmits({
 	change: (value: string) => typeof value === "string",
 });
 
-const wrapper = ref<HTMLDivElement | undefined>();
-const textarea = ref<HTMLTextAreaElement | undefined>();
-const isEditing = ref(false);
-const height = ref<number | undefined>();
-
-async function startEditing() {
-	if (!props.editable) return false;
-	height.value = wrapper.value?.getBoundingClientRect().height - 16 - 1;
-	isEditing.value = true;
-	// focus on the textarea when it renders
-	await nextTick();
-	textarea.value.focus();
-}
+const textarea = useTemplateRef("textarea");
 
 function stopEditing() {
-	isEditing.value = false;
 	const newValue = textarea.value.value;
 	if (newValue === props.value) return;
 	emits("change", textarea.value.value);
@@ -35,45 +24,43 @@ function stopEditing() {
 </script>
 
 <template>
-	<div
-		ref="wrapper"
-		class="CoreDataframeCellText"
-		:class="{ 'CoreDataframeCellText--editable': editable }"
-		:tabindex="editable && !isEditing ? 0 : -1"
-		@focusin="startEditing"
-		@click="startEditing"
-	>
-		<textarea
-			v-if="isEditing"
-			ref="textarea"
-			:value="String(value)"
-			:style="{
-				height: height ? `${height}px` : 'auto',
-			}"
-			@focusout="stopEditing"
-		></textarea>
-		<template v-else>
-			<BaseMarkdown v-if="useMarkdown" :raw-text="String(value)" />
-			<template v-else>
-				{{ value }}
-			</template>
-		</template>
+	<WdsTextareaInput
+		v-if="editable"
+		ref="textarea"
+		class="CoreDataframeCellText--textarea"
+		rows="1"
+		:model-value="String(value)"
+		@focusout="stopEditing"
+	/>
+	<BaseMarkdown v-else-if="useMarkdown" :raw-text="String(value)" />
+	<div v-else class="CoreDataframeCellText--text">
+		<p :class="{ 'CoreDataframeCellText__content--noWrap': !wrapText }">
+			{{ value }}
+		</p>
 	</div>
 </template>
 
 <style scoped>
-.CoreDataframeCellText--editable {
-	cursor: pointer;
-}
-.CoreDataframeCellText textarea {
+.CoreDataframeCellText--textarea,
+.CoreDataframeCellText--text {
 	width: 100%;
-	font-size: 0.75rem;
-
-	border: unset;
-	resize: vertical;
+	font-size: inherit;
 }
-.CoreDataframeCellText textarea:focus {
-	border: unset;
-	outline: 1px solid var(--accentColor);
+
+.CoreDataframeCellText--text {
+	padding: 8.5px 12px 8.5px 12px;
+	border: 1px solid transparent;
+
+	width: 100%;
+}
+.CoreDataframeCellText__content--noWrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.CoreDataframeCellText--textarea {
+	resize: vertical;
+	height: 100%;
 }
 </style>

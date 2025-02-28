@@ -202,32 +202,16 @@ export default {
 			handlerFunctionName: string,
 			isBinding: boolean,
 		) => {
-			const isForwardable = !handlerFunctionName.startsWith("$goToPage_");
+			const isForwardable =
+				!handlerFunctionName ||
+				!handlerFunctionName?.startsWith("$goToPage_");
 
 			if (isForwardable && !isBinding) {
 				return (ev: Event) => {
-					// Only include payload if there's a function waiting for it on the other side
-
-					let includePayload = false;
-
-					if (
-						wf.userFunctions.value.some(
-							(uf) =>
-								uf.name == handlerFunctionName &&
-								uf.args.includes("payload"),
-						)
-					) {
-						includePayload = true;
-					}
-
-					if (handlerFunctionName.startsWith("$runWorkflow_")) {
-						includePayload = true;
-					}
-
-					wf.forwardEvent(ev, instancePath, includePayload);
+					wf.forwardEvent(ev, instancePath, true);
 				};
 			}
-			if (handlerFunctionName.startsWith("$goToPage_")) {
+			if (handlerFunctionName?.startsWith("$goToPage_")) {
 				const pageKey = handlerFunctionName.substring(
 					"$goToPage_".length,
 				);
@@ -241,14 +225,8 @@ export default {
 
 			// Handle event handlers
 
-			const handledEventTypes = Object.keys(
-				component.value.handlers ?? {},
-			);
-			const boundEventTypes = component.value.binding
-				? [component.value.binding.eventType]
-				: [];
-			const eventTypes = Array.from(
-				new Set([...handledEventTypes, ...boundEventTypes]),
+			const eventTypes = Object.keys(
+				componentDefinition.value.events ?? {},
 			);
 
 			eventTypes.forEach((eventType) => {
@@ -262,10 +240,8 @@ export default {
 						wf.forwardEvent(ev, instancePath, true);
 					}
 					const handlerFunction =
-						component.value.handlers?.[eventType];
-					if (handlerFunction) {
-						getHandlerCallable(handlerFunction, isBinding)?.(ev);
-					}
+						component.value.handlers?.[eventType] ?? null;
+					getHandlerCallable(handlerFunction, isBinding)?.(ev);
 				};
 			});
 

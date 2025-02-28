@@ -25,7 +25,11 @@
 
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
-import { cssClasses, primaryTextColor } from "@/renderer/sharedStyleFields";
+import {
+	baseYesNoField,
+	cssClasses,
+	primaryTextColor,
+} from "@/renderer/sharedStyleFields";
 import { WdsColor } from "@/wds/tokens";
 
 const clickHandlerStub = `
@@ -61,13 +65,9 @@ export default {
 				category: FieldCategory.Style,
 			},
 			rotateHue: {
+				...baseYesNoField,
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
-				type: FieldType.Text,
-				options: {
-					yes: "yes",
-					no: "no",
-				},
 				default: "yes",
 				category: FieldCategory.Style,
 			},
@@ -85,7 +85,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import chroma from "chroma-js";
 
@@ -101,7 +101,7 @@ const COLOR_STEPS = [
 	{ h: 69, s: 0, l: 25 },
 	{ h: 70, s: 0, l: 29 },
 ];
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);
@@ -113,7 +113,7 @@ const isClickable = computed(() => {
 });
 
 function generateColor(s: string) {
-	if (fields.rotateHue.value == "no") {
+	if (!fields.rotateHue.value) {
 		return fields.referenceColor.value;
 	}
 	const baseColor = chroma(fields.referenceColor.value);

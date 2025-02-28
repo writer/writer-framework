@@ -19,14 +19,24 @@ InstancePath = List[InstancePathItem]
 
 
 class Readable(Protocol):
-    def read(self) -> Any:
-        ...
+    def read(self) -> Any: ...
 
 
 ServeMode = Literal["run", "edit"]
-MessageType = Literal["sessionInit", "componentUpdate",
-                      "event", "codeUpdate", "codeSave", "checkSession",
-                      "keepAlive", "stateEnquiry", "setUserinfo", "stateContent", "hashRequest"]
+MessageType = Literal[
+    "sessionInit",
+    "componentUpdate",
+    "event",
+    "codeUpdate",
+    "codeSave",
+    "checkSession",
+    "keepAlive",
+    "stateEnquiry",
+    "setUserinfo",
+    "stateContent",
+    "hashRequest",
+    "listResources",
+]
 
 
 class AbstractTemplate(BaseModel):
@@ -39,12 +49,15 @@ class SourceFilesFile(TypedDict):
     complete: Optional[bool]
     content: str
 
+class SourceFilesBinary(TypedDict):
+    type: Literal["binary"]
 
 class SourceFilesDirectory(TypedDict):
     type: Literal["directory"]
-    children: Dict[str, 'SourceFiles']
+    children: Dict[str, "SourceFiles"]
 
-SourceFiles = Union[SourceFilesFile, SourceFilesDirectory]
+
+SourceFiles = Union[SourceFilesFile, SourceFilesDirectory, SourceFilesBinary]
 
 # Web server models
 
@@ -86,6 +99,7 @@ class WriterWebsocketOutgoing(BaseModel):
     trackingId: int
     payload: Optional[Dict[str, Any]] = None
 
+
 # AppProcessServer Requests
 
 
@@ -98,6 +112,7 @@ class InitSessionRequestPayload(BaseModel):
     cookies: Optional[Dict[str, str]] = None
     headers: Optional[Dict[str, str]] = None
     proposedSessionId: Optional[str] = None
+
 
 class InitSessionRequest(AppProcessServerRequest):
     type: Literal["sessionInit"]
@@ -113,10 +128,19 @@ class ComponentUpdateRequest(AppProcessServerRequest):
     payload: ComponentUpdateRequestPayload
 
 
+class ListResourcesRequestPayload(BaseModel):
+    resource_type: str
+
+
+class ListResourcesRequest(AppProcessServerRequest):
+    type: Literal["listResources"]
+    payload: ListResourcesRequestPayload
+
+
 class WriterEvent(BaseModel):
     type: str
     isSafe: Optional[bool] = False
-    handler: Optional[str] = None 
+    handler: Optional[str] = None
     instancePath: Optional[InstancePath] = None
     payload: Optional[Any] = None
 
@@ -137,12 +161,13 @@ class StateContentRequest(AppProcessServerRequest):
 class HashRequestPayload(BaseModel):
     message: str
 
+
 class HashRequest(AppProcessServerRequest):
     type: Literal["hashRequest"]
     payload: HashRequestPayload
 
-AppProcessServerRequestPacket = Tuple[int,
-                                      Optional[str], AppProcessServerRequest]
+
+AppProcessServerRequestPacket = Tuple[int, str, AppProcessServerRequest]
 
 # AppProcessServer Responses
 
@@ -178,6 +203,7 @@ class StateEnquiryResponsePayload(BaseModel):
     mutations: Dict[str, Any]
     mail: List
 
+
 class StateContentResponsePayload(BaseModel):
     state: Dict[str, Any]
 
@@ -195,9 +221,11 @@ class StateEnquiryResponse(AppProcessServerResponse):
 class HashRequestResponsePayload(BaseModel):
     message: str
 
+
 class HashRequestResponse(AppProcessServerRequest):
     type: Literal["hashRequest"]
     payload: HashRequestResponsePayload
+
 
 AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerResponse]
 
@@ -205,27 +233,34 @@ AppProcessServerResponsePacket = Tuple[int, Optional[str], AppProcessServerRespo
 class DataFrameRecordAdded(TypedDict):
     record: Dict[str, Any]
 
+
 class DataFrameRecordUpdated(TypedDict):
     record_index: int
     record: Dict[str, Any]
 
+
 class DataFrameRecordRemoved(TypedDict):
     record_index: int
+
 
 class WriterEventResult(TypedDict):
     ok: bool
     result: Any
 
+
 class MetadataDefinition(TypedDict):
     """
     Declarative definition of meta for auto-completion
     """
+
     writer_version: str
+
 
 class ComponentDefinition(TypedDict):
     """
     Declarative definition of a component for auto-completion
     """
+
     id: str
     type: str
     content: Dict[str, Any]
@@ -239,10 +274,10 @@ class ComponentDefinition(TypedDict):
     x: Optional[int]
     y: Optional[int]
 
+
 class WorkflowExecutionLog(BaseModel):
     summary: List[Dict]
 
 
 class WriterConfigurationError(ValueError):
     pass
-

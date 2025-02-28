@@ -1,44 +1,106 @@
 <template>
 	<div class="WdsDropdownMenu">
-		<div v-if="enableSearch" class="WdsDropdownMenu__search-wrapper">
-			<div class="WdsDropdownMenu__search">
+		<div
+			v-if="(enableSearch || enableMultiSelection) && !loading"
+			class="WdsDropdownMenu__header"
+		>
+			<div
+				v-if="enableMultiSelection"
+				class="WdsDropdownMenu__header__multiSelect"
+			>
+				<div class="WdsDropdownMenu__header__multiSelect__count">
+					{{ headerSelectCountText }}
+				</div>
+				<button
+					class="WdsDropdownMenu__header__multiSelect__clear"
+					role="button"
+					@click="$emit('select', [])"
+				>
+					Clear all
+				</button>
+			</div>
+			<div v-if="enableSearch" class="WdsDropdownMenu__header__search">
 				<i class="material-symbols-outlined">search</i>
 				<input
 					ref="searchInput"
 					v-model="searchTerm"
-					class="WdsDropdownMenu__search__input"
+					class="WdsDropdownMenu__header__search__input"
 					type="text"
 					placeholder="Search"
 					autocomplete="off"
+					:disabled="loading"
 				/>
 			</div>
 		</div>
-		<button
-			v-for="option in optionsFiltered"
-			:key="option.value"
-			class="WdsDropdownMenu__item"
-			:class="{
-				'WdsDropdownMenu__item--selected': option.value === selected,
-			}"
-			@click="$emit('select', option.value)"
-		>
-			<i v-if="!hideIcons" class="material-symbols-outlined">{{
-				getOptionIcon(option)
-			}}</i>
-			<div
-				class="WdsDropdownMenu__item__label"
-				:data-writer-tooltip="option.label"
-				data-writer-tooltip-strategy="overflow"
+
+		<template v-if="loading">
+			<button
+				v-for="index in 6"
+				:key="index"
+				class="WdsDropdownMenu__item"
 			>
-				{{ option.label }}
-			</div>
-			<i
-				v-if="option.value === selected"
-				class="material-symbols-outlined"
+				<WdsSkeletonLoader
+					v-if="enableMultiSelection || !hideIcons"
+					style="width: 20px"
+				/>
+				<div class="WdsDropdownMenu__item__label">
+					<WdsSkeletonLoader />
+				</div>
+			</button>
+		</template>
+
+		<template v-else-if="enableMultiSelection">
+			<WdsCheckbox
+				v-for="option in optionsFiltered"
+				:key="option.value"
+				class="WdsDropdownMenu__checkbox"
+				:checked="isSelected(option.value)"
+				:label="option.label"
+				:detail="option.detail"
+				:data-automation-key="option.value"
+				:model-value="isSelected(option.value)"
+				@update:model-value="onSelect(option.value)"
+			/>
+		</template>
+
+		<template v-else>
+			<button
+				v-for="option in optionsFiltered"
+				:key="option.value"
+				class="WdsDropdownMenu__item"
+				:class="{
+					'WdsDropdownMenu__item--selected': isSelected(option.value),
+					'WdsDropdownMenu__item--hideIcon': hideIcons,
+				}"
+				:data-automation-key="option.value"
+				@click="onSelect(option.value)"
 			>
-				check
-			</i>
-		</button>
+				<i v-if="!hideIcons" class="material-symbols-outlined">{{
+					getOptionIcon(option)
+				}}</i>
+				<div
+					class="WdsDropdownMenu__item__label"
+					:data-writer-tooltip="option.label"
+					data-writer-tooltip-strategy="overflow"
+				>
+					{{ option.label }}
+				</div>
+				<div
+					v-if="option.detail"
+					class="WdsDropdownMenu__item__detail"
+					:data-writer-tooltip="option.detail"
+					data-writer-tooltip-strategy="overflow"
+				>
+					{{ option.detail }}
+				</div>
+				<i
+					v-if="isSelected(option.value)"
+					class="material-symbols-outlined"
+				>
+					check
+				</i>
+			</button>
+		</template>
 	</div>
 </template>
 
@@ -46,6 +108,7 @@
 export type WdsDropdownMenuOption = {
 	value: string;
 	label: string;
+	detail?: string;
 	icon?: string;
 };
 </script>
@@ -53,29 +116,42 @@ export type WdsDropdownMenuOption = {
 <script setup lang="ts">
 // from https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=128-396&t=9Gy9MYDycjVV8C2Y-1
 import { computed, PropType, ref, watch } from "vue";
+import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
+import WdsCheckbox from "./WdsCheckbox.vue";
 
 const props = defineProps({
 	options: {
-		type: Array as PropType<WdsDropdownMenuOption[]>,
+		type: Array as PropType<
+			WdsDropdownMenuOption[] | Readonly<WdsDropdownMenuOption[]>
+		>,
 		default: () => [],
 	},
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
-	selected: { type: String, required: false, default: undefined },
+	enableMultiSelection: { type: Boolean, required: false },
+	selected: {
+		type: [Array, String] as PropType<string[] | string>,
+		required: false,
+		default: () => {},
+	},
+	loading: { type: Boolean, required: false },
 });
 
 const emits = defineEmits({
-	select: (value: string) => typeof value === "string",
+	select: (value: string | string[]) =>
+		typeof value === "string" || Array.isArray(value),
 	search: (value: string) => typeof value === "string",
 });
 
-const searchInput = ref<HTMLElement>();
 const searchTerm = ref("");
 
-function getOptionIcon(option: WdsDropdownMenuOption) {
-	if (props.hideIcons) return "";
-	return option.icon ?? "help_center";
-}
+const headerSelectCountText = computed(() => {
+	const selectedArray = Array.isArray(props.selected)
+		? props.selected
+		: [props.selected];
+	const count = selectedArray.filter(Boolean).length;
+	return `${count}/${props.options.length} selected`;
+});
 
 const optionsFiltered = computed(() => {
 	if (!props.enableSearch) return props.options;
@@ -85,6 +161,32 @@ const optionsFiltered = computed(() => {
 		option.label.toLowerCase().includes(query),
 	);
 });
+
+function getOptionIcon(option: WdsDropdownMenuOption) {
+	if (props.hideIcons) return "";
+	return option.icon ?? "help_center";
+}
+
+function isSelected(value: string) {
+	return Array.isArray(props.selected)
+		? props.selected.includes(value)
+		: props.selected === value;
+}
+
+const optionsValues = computed(
+	() => new Set(props.options.map((o: WdsDropdownMenuOption) => o.value)),
+);
+
+function onSelect(value: string) {
+	if (!props.enableMultiSelection) return emits("select", value);
+
+	const values = new Set(props.selected);
+	values.has(value) ? values.delete(value) : values.add(value);
+	emits(
+		"select",
+		[...values].filter((v) => optionsValues.value.has(v)),
+	);
+}
 
 watch(searchTerm, () => emits("search", searchTerm.value));
 </script>
@@ -106,8 +208,18 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
 }
-.WdsDropdownMenu:has(.WdsDropdownMenu__search-wrapper) {
+.WdsDropdownMenu:has(.WdsDropdownMenu__header) {
 	padding-top: 0px;
+}
+
+.WdsDropdownMenu__checkbox,
+.WdsDropdownMenu__item {
+	min-height: 36px;
+}
+
+.WdsDropdownMenu__checkbox {
+	margin-top: 8px;
+	margin-bottom: 8px;
 }
 
 .WdsDropdownMenu__item {
@@ -117,8 +229,8 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	width: 100%;
 
 	display: grid;
-	grid-template-columns: auto 1fr auto;
-	gap: 8px;
+	grid-template-columns: 1fr auto;
+	column-gap: 8px;
 	align-items: center;
 
 	border-radius: 4px;
@@ -131,6 +243,9 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	transition: all 0.2s;
 	pointer-events: all;
 }
+.WdsDropdownMenu__item:has(.material-symbols-outlined) {
+	grid-template-columns: auto 1fr auto;
+}
 
 .WdsDropdownMenu__item:hover {
 	cursor: pointer;
@@ -140,21 +255,40 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu__item--selected {
 	background-color: var(--wdsColorBlue2);
 }
+.WdsDropdownMenu__item--hideIcon {
+	grid-template-columns: 1fr auto;
+}
+
+.WdsDropdownMenu__item__detail,
 .WdsDropdownMenu__item__label {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
 	text-align: left;
 }
-.WdsDropdownMenu__search-wrapper {
+
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__detail) {
+	grid-template-rows: auto auto;
+}
+
+.WdsDropdownMenu__item__detail {
+	grid-row: 2;
+	color: var(--wdsColorGray4);
+}
+
+.WdsDropdownMenu__header {
 	position: sticky;
 	top: 0px;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	background: #fff;
+
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
-.WdsDropdownMenu__search {
+.WdsDropdownMenu__header__search {
 	background-color: var(--wdsColorGray1);
 	border-radius: 4px;
 	height: 36px;
@@ -170,15 +304,15 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 	color: currentcolor;
 }
-.WdsDropdownMenu__search:hover {
+.WdsDropdownMenu__header__search:hover {
 	border-color: var(--wdsColorBlue1);
 }
-.WdsDropdownMenu__search:focus-within {
+.WdsDropdownMenu__header__search:focus-within {
 	background-color: white;
 	outline: 4px solid var(--wdsColorBlue1);
 }
 
-.WdsDropdownMenu__search__input {
+.WdsDropdownMenu__header__search__input {
 	letter-spacing: inherit;
 	color: currentcolor;
 	padding: 4px 0px 5px;
@@ -194,7 +328,28 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	animation-duration: 10ms;
 	appearance: textfield;
 }
-.WdsDropdownMenu__search__input:focus-visible {
+.WdsDropdownMenu__header__search__input:focus-visible {
 	outline: none;
+}
+
+.WdsDropdownMenu__header__multiSelect {
+	display: flex;
+	gap: 12px;
+}
+.WdsDropdownMenu__header__multiSelect__count,
+.WdsDropdownMenu__header__multiSelect__clear {
+	text-transform: uppercase;
+	font-size: 13px;
+}
+.WdsDropdownMenu__header__multiSelect__count {
+	flex-grow: 1;
+	color: var(--wdsColorGray6);
+}
+.WdsDropdownMenu__header__multiSelect__clear {
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	text-align: right;
+	color: var(--wdsColorGray4);
 }
 </style>

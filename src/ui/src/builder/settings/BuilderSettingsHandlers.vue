@@ -1,5 +1,5 @@
 <template>
-	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsHandlers">
+	<div v-if="wfbm.isSingleSelectionActive" class="BuilderSettingsHandlers">
 		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">bolt</i>
 			<h3>Events</h3>
@@ -30,7 +30,15 @@
 						/>
 					</WdsFieldWrapper>
 				</div>
+				<WdsButton
+					variant="tertiary"
+					@click="createLinkedWorkflow(eventType)"
+				>
+					<i class="material-symbols-outlined">add</i>Create linked
+					workflow
+				</WdsButton>
 			</div>
+
 			<WdsButton variant="tertiary" @click="showCustomHandlerModal">
 				<i class="material-symbols-outlined">add</i>Add custom handler
 			</WdsButton>
@@ -117,11 +125,13 @@ import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
+const wfbm = inject(injectionKeys.builderManager);
 
-const { setHandlerValue } = useComponentActions(wf, ssbm);
+const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+
+const { setHandlerValue } = useComponentActions(wf, wfbm);
 const component = computed(() =>
-	wf.getComponentById(ssbm.firstSelectedId.value),
+	wf.getComponentById(wfbm.firstSelectedId.value),
 );
 
 const options = computed<Option[]>(() => {
@@ -233,7 +243,7 @@ function getCustomEventStubCode() {
 # primitive properties (non-Object, non-function properties).
 
 # If the event is instead an instance of CustomEvent,
-# it looks for a "payload" property inside the CustomEvent's "detail" property. 
+# it looks for a "payload" property inside the CustomEvent's "detail" property.
 
 def handle_keydown(state, payload):
 	print(payload) # Shows all the properties captured
@@ -321,6 +331,37 @@ const customHandlerModalCloseAction: ModalAction = {
 const copyToClipboard = (text: string) => {
 	navigator.clipboard.writeText(text);
 };
+
+async function createLinkedWorkflow(refEventType: string) {
+	const { type } = component.value;
+	const { name } = wf.getComponentDefinition(type);
+	const workflowId = createAndInsertComponent(
+		"workflows_workflow",
+		"workflows_root",
+		undefined,
+		undefined,
+		(parentId) => {
+			createAndInsertComponent(
+				"workflows_uieventtrigger",
+				parentId,
+				undefined,
+				{
+					content: {
+						alias: `${name} - ${refEventType}`,
+						refComponentId: component.value.id,
+						refEventType,
+					},
+					x: 96,
+					y: 96,
+				},
+			);
+		},
+	);
+
+	wf.setActivePageId(workflowId);
+	wfbm.setMode("workflows");
+	wfbm.setSelection(workflowId);
+}
 </script>
 
 <style scoped>

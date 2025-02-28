@@ -95,11 +95,11 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Ref, inject, ref, onMounted, watch, computed } from "vue";
+import { inject, onMounted, watch, computed, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-const rootEl: Ref<HTMLElement> = ref(null);
-const mapEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
+const mapEl = useTemplateRef("mapEl");
 const fields = inject(injectionKeys.evaluatedFields);
 let map: google.maps.Map | null = null;
 let markers = [];

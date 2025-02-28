@@ -1,5 +1,9 @@
 <template>
-	<div ref="rootEl" class="BuilderEmbeddedCodeEditor">
+	<div
+		ref="rootEl"
+		class="BuilderEmbeddedCodeEditor"
+		:class="{ 'BuilderEmbeddedCodeEditor--full': variant == 'full' }"
+	>
 		<div ref="editorContainerEl" class="editorContainer"></div>
 	</div>
 </template>
@@ -7,10 +11,10 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { onMounted, onUnmounted, ref, toRefs, watch } from "vue";
+import { onMounted, onUnmounted, toRefs, useTemplateRef, watch } from "vue";
 
-const rootEl = ref<HTMLElement>(null);
-const editorContainerEl = ref<HTMLElement>(null);
+const rootEl = useTemplateRef("rootEl");
+const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
@@ -92,8 +96,12 @@ onUnmounted(() => {
 	min-height: 100px;
 }
 
+.BuilderEmbeddedCodeEditor--full {
+	min-height: 300px;
+}
+
 .editorContainer {
-	min-height: 100px;
+	min-height: inherit;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;

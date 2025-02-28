@@ -25,12 +25,12 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, ref, Ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
-const rootEl: Ref<HTMLElement> = ref(null);
+const rootEl = useTemplateRef("rootEl");
 
 const displayedWorkflowId = computed(() => {
 	const activePageId = wf.activePageId.value;

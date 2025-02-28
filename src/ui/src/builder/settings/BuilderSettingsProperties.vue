@@ -30,6 +30,9 @@
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
+					:is-expansible="fieldValue.type == FieldType.Code"
+					@expand="handleExpand(fieldKey)"
+					@shrink="handleShrink(fieldKey)"
 				>
 					<BuilderFieldsColor
 						v-if="fieldValue.type == FieldType.Color"
@@ -54,11 +57,26 @@
 					></BuilderFieldsKeyValue>
 
 					<BuilderFieldsText
-						v-if="fieldValue.type == FieldType.Text"
+						v-if="
+							fieldValue.type == FieldType.Text ||
+							fieldValue.type == FieldType.Boolean
+						"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
+
+					<BuilderFieldsWorkflowKey
+						v-if="fieldValue.type == FieldType.WorkflowKey"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+					></BuilderFieldsWorkflowKey>
+
+					<BuilderFieldsHandler
+						v-if="fieldValue.type == FieldType.Handler"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+					></BuilderFieldsHandler>
 
 					<BuilderFieldsText
 						v-if="fieldValue.type == FieldType.Number"
@@ -117,6 +135,28 @@
 						:component-id="selectedComponent.id"
 					>
 					</BuilderFieldsTools>
+
+					<BuilderFieldsCode
+						v-if="fieldValue.type == FieldType.Code"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:is-expanded="expandedFields.has(fieldKey)"
+					>
+					</BuilderFieldsCode>
+					<BuilderFieldsWriterResourceId
+						v-if="fieldValue.type == FieldType.WriterGraphId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+						resource-type="graph"
+					/>
+					<BuilderFieldsWriterResourceId
+						v-if="fieldValue.type == FieldType.WriterAppId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+						resource-type="application"
+					/>
 				</WdsFieldWrapper>
 			</div>
 		</div>
@@ -124,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
@@ -138,10 +178,16 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import BuilderFieldsCode from "./BuilderFieldsCode.vue";
+import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
+import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
+import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const expandedFields = ref(new Set());
 
 const selectedInstancePath = computed<InstancePath>(() =>
 	parseInstancePathString(ssbm.firstSelectedItem?.value?.instancePath),
@@ -186,6 +232,14 @@ const fieldsByCategory = computed(() => {
 	};
 	return result;
 });
+
+function handleExpand(fieldKey: string) {
+	expandedFields.value.add(fieldKey);
+}
+
+function handleShrink(fieldKey: string) {
+	expandedFields.value.delete(fieldKey);
+}
 </script>
 
 <style scoped>

@@ -69,6 +69,7 @@ export type WriterComponentDefinitionField = {
 	control?: FieldControl;
 	options?:
 		| Record<string, string>
+		| string // For predefined functions
 		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
@@ -122,6 +123,7 @@ export const enum ClipboardOperation {
 
 export const enum FieldType {
 	Text = "Text",
+	Boolean = "Boolean",
 	KeyValue = "Key-Value",
 	Color = "Color",
 	Shadow = "Shadow",
@@ -133,6 +135,12 @@ export const enum FieldType {
 	VAlign = "Align (V)",
 	Padding = "Padding",
 	Tools = "Tools",
+	ComponentPicker = "Component",
+	Code = "Code",
+	WorkflowKey = "Workflow Key",
+	Handler = "Handler",
+	WriterGraphId = "Graph Id",
+	WriterAppId = "App Id",
 }
 
 export const enum FieldCategory {
@@ -170,6 +178,10 @@ export type SourceFilesFile = {
 	complete?: boolean;
 	content: string;
 };
+export type SourceFilesBinary = {
+	type: "binary";
+	uploading?: boolean;
+};
 
 export type SourceFilesDirectory = {
 	type: "directory";
@@ -187,4 +199,27 @@ export type SourceFilesDirectory = {
  * { "type": "directory", "children": { "main.py": { "type": "file", "content": "print('hello')", "complete": true } } }
  * ```
  */
-export type SourceFiles = SourceFilesDirectory | SourceFilesFile;
+export type SourceFiles =
+	| SourceFilesDirectory
+	| SourceFilesFile
+	| SourceFilesBinary;
+
+export type WriterGraph = {
+	id: string;
+	name: string;
+	description: string;
+	file_status: {
+		in_progress: number;
+		completed: number;
+		failed: number;
+		total: number;
+	};
+	type: "connector" | "manual";
+};
+
+export type WriterApplication = {
+	id: string;
+	name: string;
+	type: string;
+	status: string;
+};

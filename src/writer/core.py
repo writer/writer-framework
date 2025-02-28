@@ -62,15 +62,18 @@ if TYPE_CHECKING:
     from writer.app_runner import AppProcess
     from writer.ss_types import AppProcessServerRequest
 
+
 @dataclasses.dataclass
 class CurrentRequest:
     session_id: str
-    request: 'AppProcessServerRequest'
+    request: "AppProcessServerRequest"
+
 
 _current_request: ContextVar[Optional[CurrentRequest]] = ContextVar("current_request", default=None)
 
+
 @contextlib.contextmanager
-def use_request_context(session_id: str, request: 'AppProcessServerRequest'):
+def use_request_context(session_id: str, request: "AppProcessServerRequest"):
     """
     Context manager to set the current request context.
 
@@ -85,7 +88,8 @@ def use_request_context(session_id: str, request: 'AppProcessServerRequest'):
     finally:
         _current_request.set(None)
 
-def get_app_process() -> 'AppProcess':
+
+def get_app_process() -> "AppProcess":
     """
     Retrieves the Writer Framework process context.
 
@@ -93,11 +97,12 @@ def get_app_process() -> 'AppProcess':
     >>> _current_process.bmc_components # get the component tree
     """
     from writer.app_runner import AppProcess  # Needed during runtime
+
     raw_process: BaseProcess = multiprocessing.current_process()
     if isinstance(raw_process, AppProcess):
         return raw_process
 
-    raise RuntimeError( "Failed to retrieve the AppProcess: running in wrong context")
+    raise RuntimeError("Failed to retrieve the AppProcess: running in wrong context")
 
 
 def import_failure(rvalue: Any = None):
@@ -113,6 +118,7 @@ def import_failure(rvalue: Any = None):
 
     :param rvalue: the value to return
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -120,12 +126,13 @@ def import_failure(rvalue: Any = None):
                 return func(*args, **kwargs)
             except ImportError:
                 return rvalue
+
         return wrapper
+
     return decorator
 
 
 class Config:
-
     is_mail_enabled_for_log: bool = False
     mode: ServeMode = "run"
     logger: Optional[logging.Logger] = None
@@ -133,12 +140,13 @@ class Config:
 
 
 class WriterSession:
-
     """
     Represents a session.
     """
 
-    def __init__(self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]) -> None:
+    def __init__(
+        self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]
+    ) -> None:
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
@@ -167,16 +175,17 @@ class MutationSubscription:
 
     >>> m = MutationSubscription(path="a.c", handler=myhandler)
     """
-    type: Literal['subscription', 'property']
+
+    type: Literal["subscription", "property"]
     path: str
-    handler: Callable # Handler to execute when mutation happens
-    state: 'State'
+    handler: Callable  # Handler to execute when mutation happens
+    state: "State"
     property_name: Optional[str] = None
 
     def __post_init__(self):
         if len(self.path) == 0:
             raise ValueError("path cannot be empty.")
-        
+
         path_parts = parse_state_variable_expression(self.path)
         for part in path_parts:
             if len(part) == 0:
@@ -194,13 +203,16 @@ class MutationSubscription:
         path_parts = parse_state_variable_expression(self.path)
         return path_parts[-1]
 
-class StateRecursionWatcher():
+
+class StateRecursionWatcher:
     limit = 128
 
     def __init__(self):
         self.counter_recursion = 0
 
+
 _state_recursion_watcher = ContextVar("state_recursion_watcher", default=StateRecursionWatcher())
+
 
 @contextlib.contextmanager
 def state_recursion_new(key: str):
@@ -219,6 +231,7 @@ def state_recursion_new(key: str):
     finally:
         recursion_watcher.counter_recursion -= 1
 
+
 class FileWrapper:
     """
     A wrapper for either a string pointing to a file or a file-like object with a read() method.
@@ -229,17 +242,18 @@ class FileWrapper:
     def __init__(self, file: Union[Readable, str], mime_type: Optional[str] = None):
         if not file:
             raise ValueError("Must specify a file.")
-        if not (
-                callable(getattr(file, "read", None)) or
-                isinstance(file, str)):
+        if not (callable(getattr(file, "read", None)) or isinstance(file, str)):
             raise ValueError(
-                "File must provide a read() method or contain a string with a path to a local file.")
+                "File must provide a read() method or contain a string with a path to a local file."
+            )
         self.file = file
         self.mime_type = mime_type
 
     def _get_file_stream_as_dataurl(self, f_stream: Readable) -> str:
         base64_str = base64.b64encode(f_stream.read()).decode("latin-1")
-        dataurl = f"data:{self.mime_type if self.mime_type is not None else ''};base64,{ base64_str }"
+        dataurl = (
+            f"data:{self.mime_type if self.mime_type is not None else ''};base64,{ base64_str }"
+        )
         return dataurl
 
     def get_as_dataurl(self) -> str:
@@ -253,7 +267,6 @@ class FileWrapper:
 
 
 class BytesWrapper:
-
     """
     A wrapper for raw byte data.
     Provides a method for retrieving the data as data URL.
@@ -279,6 +292,7 @@ class StateSerialiser:
     Serialises user state values before sending them to the front end.
     Provides JSON-compatible values, including data URLs for binary data.
     """
+
     def serialise(self, v: Any) -> Union[Dict, List, str, bool, int, float, None]:
         from writer.ai import Conversation
         from writer.core_df import EditableDataFrame
@@ -308,8 +322,7 @@ class StateSerialiser:
         # Checking the MRO allows to determine object type without creating dependencies
         # to these packages
 
-        v_mro = [
-            f"{x.__module__}.{x.__name__}" for x in inspect.getmro(type(v))]
+        v_mro = [f"{x.__module__}.{x.__name__}" for x in inspect.getmro(type(v))]
 
         if isinstance(v, (int, float)):
             if "numpy.float64" in v_mro:
@@ -339,7 +352,8 @@ class StateSerialiser:
             return self._serialise_dict_recursively(v.to_dict())
 
         raise StateSerialiserException(
-            f"Object of type { type(v) } (MRO: {v_mro}) cannot be serialised.")
+            f"Object of type { type(v) } (MRO: {v_mro}) cannot be serialised."
+        )
 
     def _serialise_dict_recursively(self, d: Dict) -> Dict:
         return {str(k): self.serialise(v) for k, v in d.items()}
@@ -371,11 +385,13 @@ class StateSerialiser:
         :return: a arrow file as a dataurl (application/vnd.apache.arrow.file)
         """
         import pyarrow.interchange  # type: ignore
+
         table = pyarrow.interchange.from_dataframe(df)
         return self._serialise_pyarrow_table(table)
 
     def _serialise_pandas_dataframe(self, df):
         import pyarrow as pa  # type: ignore
+
         pa_table = pa.Table.from_pandas(df, preserve_index=True)
         return self._serialise_pyarrow_table(pa_table)
 
@@ -391,6 +407,7 @@ class StateSerialiser:
         bw = BytesWrapper(buf, "application/vnd.apache.arrow.file")
         return self.serialise(bw)
 
+
 class MutableValue:
     """
     MutableValue allows you to implement a value whose modification
@@ -405,6 +422,7 @@ class MutableValue:
     >>>         self.value = new_value
     >>>         self.mutate()
     """
+
     def __init__(self):
         self._mutated = False
 
@@ -430,8 +448,8 @@ class MutableValue:
         """
         self._mutated = False
 
-class StateProxy:
 
+class StateProxy:
     """
     The root user state and its children (nested states) are instances of this class.
     Provides proxy functionality to detect state mutations via assignment.
@@ -466,33 +484,31 @@ class StateProxy:
     def __setitem__(self, key: str, raw_value: Any) -> None:
         with state_recursion_new(key):
             if not isinstance(key, str):
-                raise ValueError(
-                    f"State keys must be strings. Received {str(key)} ({type(key)}).")
+                raise ValueError(f"State keys must be strings. Received {str(key)} ({type(key)}).")
             old_value = self.state.get(key)
             self.state[key] = raw_value
 
             for local_mutation in self.local_mutation_subscriptions:
                 if local_mutation.local_path == key:
-                    if local_mutation.type == 'subscription':
-                        context_data = {
-                            "event": "mutation",
-                            "mutation": local_mutation.path
-                        }
-                        payload = {
-                            "previous_value": old_value,
-                            "new_value": raw_value
-                        }
+                    if local_mutation.type == "subscription":
+                        context_data = {"event": "mutation", "mutation": local_mutation.path}
+                        payload = {"previous_value": old_value, "new_value": raw_value}
 
-                        EventHandlerExecutor.invoke(local_mutation.handler, {
-                            "state": local_mutation.state,
-                            "context": context_data,
-                            "payload": payload,
-                            "session": _event_handler_session_info(),
-                            "ui": _event_handler_ui_manager()
-                        })
-                    elif local_mutation.type == 'property':
+                        EventHandlerExecutor.invoke(
+                            local_mutation.handler,
+                            {
+                                "state": local_mutation.state,
+                                "context": context_data,
+                                "payload": payload,
+                                "session": _event_handler_session_info(),
+                                "ui": _event_handler_ui_manager(),
+                            },
+                        )
+                    elif local_mutation.type == "property":
                         assert local_mutation.property_name is not None
-                        self[local_mutation.property_name] = local_mutation.handler(local_mutation.state)
+                        self[local_mutation.property_name] = local_mutation.handler(
+                            local_mutation.state
+                        )
 
             self._apply_raw(f"+{key}")
 
@@ -544,7 +560,7 @@ class StateProxy:
         for key, value in list(self.state.items()):
             if key.startswith("_"):
                 continue
-            
+
             escaped_key = self.escape_key(key)
             serialised_value = None
 
@@ -562,20 +578,21 @@ class StateProxy:
                 try:
                     serialised_value = state_serialiser.serialise(value)
                 except BaseException:
-                    raise ValueError(f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
+                    raise ValueError(
+                        f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }"."""
+                    )
                 serialised_mutations[f"+{escaped_key}"] = serialised_value
             elif isinstance(value, MutableValue) is True and value.mutated():
                 try:
                     serialised_value = state_serialiser.serialise(value)
                     value.reset_mutation()
                 except BaseException:
-                    raise ValueError(f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
+                    raise ValueError(
+                        f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }"."""
+                    )
                 serialised_mutations[f"+{escaped_key}"] = serialised_value
 
-        deleted_keys = \
-            {self.escape_key(key)
-                for key in self.mutated
-                if key.startswith("-")}
+        deleted_keys = {self.escape_key(key) for key in self.mutated if key.startswith("-")}
         for key in deleted_keys:
             serialised_mutations[f"{key}"] = None
 
@@ -592,7 +609,8 @@ class StateProxy:
                 serialised_value = state_serialiser.serialise(value)
             except BaseException:
                 raise ValueError(
-                    f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }".""")
+                    f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }"."""
+                )
             serialised[key] = serialised_value
         return serialised
 
@@ -620,13 +638,14 @@ def get_annotations(instance) -> Dict[str, Any]:
     Returns the annotations of the class in a way that works on python 3.9 and python 3.10
     """
     if isinstance(instance, type):
-        ann = instance.__dict__.get('__annotations__', None)
+        ann = instance.__dict__.get("__annotations__", None)
     else:
-        ann = getattr(instance, '__annotations__', None)
+        ann = getattr(instance, "__annotations__", None)
 
     if ann is None:
         ann = {}
     return ann
+
 
 class StateMeta(type):
     """
@@ -672,15 +691,16 @@ class StateMeta(type):
         annotations = get_annotations(klass)
         for key, expected_type in annotations.items():
             if key == "_state_proxy":
-                raise AttributeError("_state_proxy is an reserved keyword for Writer Framework, don't use it in annotation.")
+                raise AttributeError(
+                    "_state_proxy is an reserved keyword for Writer Framework, don't use it in annotation."
+                )
 
-            if not(inspect.isclass(expected_type) and issubclass(expected_type, State)):
+            if not (inspect.isclass(expected_type) and issubclass(expected_type, State)):
                 proxy = DictPropertyProxy("_state_proxy", key)
                 setattr(klass, key, proxy)
 
 
 class State(metaclass=StateMeta):
-
     def __init__(self, raw_state: Optional[Dict[str, Any]] = None):
         final_raw_state = raw_state if raw_state is not None else {}
 
@@ -703,7 +723,9 @@ class State(metaclass=StateMeta):
         """
         self._state_proxy.state = {}
         for key, value in raw_state.items():
-            assert not isinstance(value, StateProxy), f"state proxy datatype is not expected in ingest operation, {locals()}"
+            assert not isinstance(
+                value, StateProxy
+            ), f"state proxy datatype is not expected in ingest operation, {locals()}"
             self._set_state_item(key, value)
 
     def to_dict(self) -> dict:
@@ -716,7 +738,6 @@ class State(metaclass=StateMeta):
         >>> return state.to_dict()
         """
         return self._state_proxy.to_dict()
-
 
     def to_raw_state(self) -> dict:
         """
@@ -735,7 +756,6 @@ class State(metaclass=StateMeta):
         return self._state_proxy.__repr__()
 
     def __getitem__(self, key: str) -> Any:
-
         # Essential to support operation like
         # state['item']['a'] = state['item']['b']
         if hasattr(self, key):
@@ -746,7 +766,9 @@ class State(metaclass=StateMeta):
         return self._state_proxy.__getitem__(key)
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
-        assert not isinstance(raw_value, StateProxy), f"state proxy datatype is not expected, {locals()}"
+        assert not isinstance(
+            raw_value, StateProxy
+        ), f"state proxy datatype is not expected, {locals()}"
 
         self._set_state_item(key, raw_value)
 
@@ -769,8 +791,7 @@ class State(metaclass=StateMeta):
         return self._state_proxy.__contains__(key)
 
     def _set_state_item(self, key: str, value: Any):
-        """
-        """
+        """ """
 
         """
         At this level, the values that arrive are either States which encapsulate a StateProxy, or another datatype. 
@@ -786,7 +807,9 @@ class State(metaclass=StateMeta):
             """
             state = annotations[key](value) if key in annotations else State()
             if not isinstance(state, State):
-                raise ValueError(f"Attribute {key} must inherit of State or requires a dict to accept dictionary")
+                raise ValueError(
+                    f"Attribute {key} must inherit of State or requires a dict to accept dictionary"
+                )
 
             setattr(self, key, state)
             state.ingest(value)
@@ -798,11 +821,12 @@ class State(metaclass=StateMeta):
             else:
                 self._state_proxy[key] = value
 
-
-    def subscribe_mutation(self,
-                           path: Union[str, List[str]],
-                           handler: Callable[..., Union[None, Awaitable[None]]],
-                           initial_triggered: bool = False) -> None:
+    def subscribe_mutation(
+        self,
+        path: Union[str, List[str]],
+        handler: Callable[..., Union[None, Awaitable[None]]],
+        initial_triggered: bool = False,
+    ) -> None:
         r"""
         Automatically triggers a handler when a mutation occurs in the state.
 
@@ -847,30 +871,35 @@ class State(metaclass=StateMeta):
             path_parts = parse_state_variable_expression(p)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
-                    local_mutation = MutationSubscription('subscription', p, handler, self)
+                    local_mutation = MutationSubscription("subscription", p, handler, self)
                     state_proxy.local_mutation_subscriptions.append(local_mutation)
 
                     # At startup, the application must be informed of the
                     # existing states. To cause this, we trigger manually
                     # the handler.
                     if initial_triggered is True:
-                        EventHandlerExecutor.invoke(handler, {
-                            "state": self,
-                            "context": {"event": "init"},
-                            "payload": {},
-                            "session": {},
-                            "ui": _event_handler_ui_manager()
-                        })
+                        EventHandlerExecutor.invoke(
+                            handler,
+                            {
+                                "state": self,
+                                "context": {"event": "init"},
+                                "payload": {},
+                                "session": {},
+                                "ui": _event_handler_ui_manager(),
+                            },
+                        )
 
                 elif path_part in state_proxy:
                     state_proxy = state_proxy[path_part]
                 else:
                     raise ValueError(f"Mutation subscription failed - {p} not found in state")
 
-    def calculated_property(self,
-                            property_name: str,
-                            path: Union[str, List[str]],
-                            handler: Callable[..., Union[None, Awaitable[None]]]) -> None:
+    def calculated_property(
+        self,
+        property_name: str,
+        path: Union[str, List[str]],
+        handler: Callable[..., Union[None, Awaitable[None]]],
+    ) -> None:
         """
         Update a calculated property when a mutation triggers
 
@@ -900,7 +929,9 @@ class State(metaclass=StateMeta):
             path_parts = parse_state_variable_expression(p)
             for i, path_part in enumerate(path_parts):
                 if i == len(path_parts) - 1:
-                    local_mutation = MutationSubscription('property', p, handler, self, property_name)
+                    local_mutation = MutationSubscription(
+                        "property", p, handler, self, property_name
+                    )
                     state_proxy.local_mutation_subscriptions.append(local_mutation)
                     state_proxy[property_name] = handler(self)
                 elif path_part in state_proxy:
@@ -927,11 +958,11 @@ class WriterState(State):
 
     @classmethod
     def get_new(cls):
-        """ Returns a new WriterState instance set to the initial state."""
+        """Returns a new WriterState instance set to the initial state."""
 
         return initial_state.get_clone()
 
-    def get_clone(self) -> 'WriterState':
+    def get_clone(self) -> "WriterState":
         """
         get_clone clones the destination application state for the session.
 
@@ -949,10 +980,12 @@ class WriterState(State):
             cloned_mail = copy.deepcopy(self.mail)
         except BaseException:
             substitute_state = WriterState()
-            substitute_state.add_log_entry("error",
-                                           "Cannot clone state",
-                                           "The state may contain unpickable objects, such as modules.",
-                                           traceback.format_exc())
+            substitute_state.add_log_entry(
+                "error",
+                "Cannot clone state",
+                "The state may contain unpickable objects, such as modules.",
+                traceback.format_exc(),
+            )
             return substitute_state
 
         cloned_state = self.__class__(cloned_user_state, cloned_mail)
@@ -960,20 +993,28 @@ class WriterState(State):
         return cloned_state
 
     def add_mail(self, type: str, payload: Any) -> None:
-        mail_item = {
-            "type": type,
-            "payload": payload
-        }
-        self.mail.insert(0, mail_item)
+        mail_item = {"type": type, "payload": payload}
+        self.mail.append(mail_item)
 
-    def add_notification(self, type: Literal["info", "success", "warning", "error"], title: str, message: str) -> None:
-        self.add_mail("notification", {
-            "type": type,
-            "title": title,
-            "message": message,
-        })
+    def add_notification(
+        self, type: Literal["info", "success", "warning", "error"], title: str, message: str
+    ) -> None:
+        self.add_mail(
+            "notification",
+            {
+                "type": type,
+                "title": title,
+                "message": message,
+            },
+        )
 
-    def _log_entry_in_logger(self, type: Literal["debug", "info", "warning", "error", "critical"], title: str, message: str, code: Optional[str] = None) -> None:
+    def _log_entry_in_logger(
+        self,
+        type: Literal["debug", "info", "warning", "error", "critical"],
+        title: str,
+        message: str,
+        code: Optional[str] = None,
+    ) -> None:
         if not Config.logger:
             return
         log_args: Tuple[str, ...] = ()
@@ -984,11 +1025,11 @@ class WriterState(State):
             log_args = (title, message)
 
         log_colors = {
-            "debug": "\x1b[36;20m",    # Cyan for debug
-            "info": "\x1b[34;20m",     # Blue for info
+            "debug": "\x1b[36;20m",  # Cyan for debug
+            "info": "\x1b[34;20m",  # Blue for info
             "warning": "\x1b[33;20m",  # Yellow for warning
-            "error": "\x1b[31;20m",    # Red for error
-            "critical": "\x1b[35;20m"  # Magenta for critical
+            "error": "\x1b[31;20m",  # Red for error
+            "critical": "\x1b[35;20m",  # Magenta for critical
         }
 
         log_methods = {
@@ -996,41 +1037,55 @@ class WriterState(State):
             "info": Config.logger.info,
             "warning": Config.logger.warning,
             "error": Config.logger.error,
-            "critical": Config.logger.critical
+            "critical": Config.logger.critical,
         }
 
         log_message = "From app log: " + ("\n%s" * len(log_args))
 
         color = log_colors.get(type, "\x1b[0m")  # Default to no color if type not found
-        log_method = log_methods.get(type, Config.logger.info)  # Default to info level if type not found
+        log_method = log_methods.get(
+            type, Config.logger.info
+        )  # Default to info level if type not found
 
         log_method(f"{color}{log_message}\x1b[0m", *log_args)
 
-    def add_log_entry(self, type: Literal["info", "error"], title: str, message: str, code: Optional[str] = None, workflow_execution: Optional[WorkflowExecutionLog] = None) -> None:
+    def add_log_entry(
+        self,
+        type: Literal["info", "error"],
+        title: str,
+        message: str,
+        code: Optional[str] = None,
+        workflow_execution: Optional[WorkflowExecutionLog] = None,
+        id: Optional[str] = None,
+    ) -> None:
         self._log_entry_in_logger(type, title, message, code)
         if not Config.is_mail_enabled_for_log:
             return
         shortened_message = None
         if len(message) > WriterState.LOG_ENTRY_MAX_LEN:
-            shortened_message = message[0:WriterState.LOG_ENTRY_MAX_LEN] + "..."
+            shortened_message = message[0 : WriterState.LOG_ENTRY_MAX_LEN] + "..."
         else:
             shortened_message = message
-        self.add_mail("logEntry", {
-            "type": type,
-            "title": title,
-            "message": shortened_message,
-            "code": code,
-            "workflowExecution": workflow_execution
-        })
+        self.add_mail(
+            "logEntry",
+            {
+                "type": type,
+                "title": title,
+                "message": shortened_message,
+                "code": code,
+                "workflowExecution": workflow_execution,
+                "id": id,
+            },
+        )
 
     def file_download(self, data: Any, file_name: str):
         if not isinstance(data, (bytes, FileWrapper, BytesWrapper)):
             raise ValueError(
-                "Data for a fileDownload mail must be bytes, a FileWrapper or a BytesWrapper.")
-        self.add_mail("fileDownload", {
-            "data": state_serialiser.serialise(data),
-            "fileName": file_name
-        })
+                "Data for a fileDownload mail must be bytes, a FileWrapper or a BytesWrapper."
+            )
+        self.add_mail(
+            "fileDownload", {"data": state_serialiser.serialise(data), "fileName": file_name}
+        )
 
     def open_url(self, url: str):
         self.add_mail("openUrl", url)
@@ -1045,10 +1100,7 @@ class WriterState(State):
         self.add_mail("routeVarsChange", route_vars)
 
     def import_stylesheet(self, stylesheet_key: str, path: str) -> None:
-        self.add_mail("importStylesheet", {
-            "stylesheetKey": stylesheet_key,
-            "path": path
-        })
+        self.add_mail("importStylesheet", {"stylesheetKey": stylesheet_key, "path": path})
 
     def import_script(self, script_key: str, path: str) -> None:
         """
@@ -1060,25 +1112,18 @@ class WriterState(State):
         >>>
         >>> initial_state.import_script("my_script", "/static/script.js")
         """
-        self.add_mail("importScript", {
-            "scriptKey": script_key,
-            "path": path
-        })
+        self.add_mail("importScript", {"scriptKey": script_key, "path": path})
 
     def import_frontend_module(self, module_key: str, specifier: str) -> None:
-        self.add_mail("importModule", {
-            "moduleKey": module_key,
-            "specifier": specifier
-        })
+        self.add_mail("importModule", {"moduleKey": module_key, "specifier": specifier})
 
     def call_frontend_function(self, module_key: str, function_name: str, args: List) -> None:
-        self.add_mail("functionCall", {
-            "moduleKey": module_key,
-            "functionName": function_name,
-            "args": args
-        })
+        self.add_mail(
+            "functionCall", {"moduleKey": module_key, "functionName": function_name, "args": args}
+        )
 
-class MiddlewareExecutor():
+
+class MiddlewareExecutor:
     """
     A MiddlewareExecutor executes middleware in a controlled context. It allows writer framework
     to manage different implementations of middleware.
@@ -1114,7 +1159,6 @@ class MiddlewareExecutor():
 
 
 class MiddlewareRegistry:
-
     def __init__(self) -> None:
         self.registry: List[MiddlewareExecutor] = []
 
@@ -1131,6 +1175,7 @@ class MiddlewareRegistry:
         """
         return self.registry
 
+
 class EventHandlerRegistry:
     """
     Maps functions registered as event handlers from the user app's core
@@ -1143,10 +1188,10 @@ class EventHandlerRegistry:
 
     class HandlerEntry(TypedDict):
         callable: Callable
-        meta: 'EventHandlerRegistry.HandlerMeta'
+        meta: "EventHandlerRegistry.HandlerMeta"
 
     def __init__(self):
-        self.handler_map: Dict[str, 'EventHandlerRegistry.HandlerEntry'] = {}  # type: ignore
+        self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {}  # type: ignore
 
     def __iter__(self):
         return iter(self.handler_map.keys())
@@ -1165,23 +1210,17 @@ class EventHandlerRegistry:
             # and handler __qualname__by a dot
             access_name = f"{module_name}.{handler.__qualname__}"
 
-        entry: EventHandlerRegistry.HandlerEntry = \
-            {
-                "callable": handler,
-                "meta": {
-                    "name": access_name,
-                    "args": inspect.getfullargspec(handler).args
-                }
-            }
+        entry: EventHandlerRegistry.HandlerEntry = {
+            "callable": handler,
+            "meta": {"name": access_name, "args": inspect.getfullargspec(handler).args},
+        }
 
         self.handler_map[access_name] = entry
 
     def register_module(self, module: ModuleType):
         if isinstance(module, ModuleType):
-            all_fn_names = (x[0] for x in inspect.getmembers(
-                module, inspect.isfunction))
-            exposed_fn_names = list(
-                filter(lambda x: not x.startswith("_"), all_fn_names))
+            all_fn_names = (x[0] for x in inspect.getmembers(module, inspect.isfunction))
+            exposed_fn_names = list(filter(lambda x: not x.startswith("_"), all_fn_names))
 
             for fn_name in exposed_fn_names:
                 fn_callable = getattr(module, fn_name)
@@ -1189,25 +1228,18 @@ class EventHandlerRegistry:
                     continue
                 self.register_handler(fn_callable)
         else:
-            raise ValueError(
-                f"Attempted to register a non-module object: {module}"
-                )
+            raise ValueError(f"Attempted to register a non-module object: {module}")
 
     def find_handler_callable(self, handler_name: str) -> Optional[Callable]:
         if handler_name not in self.handler_map:
             return None
-        handler_entry: EventHandlerRegistry.HandlerEntry = \
-            self.handler_map[handler_name]
+        handler_entry: EventHandlerRegistry.HandlerEntry = self.handler_map[handler_name]
         return handler_entry["callable"]
 
-    def get_handler_meta(
-            self,
-            handler_name: str
-            ) -> "EventHandlerRegistry.HandlerMeta":
+    def get_handler_meta(self, handler_name: str) -> "EventHandlerRegistry.HandlerMeta":
         if handler_name not in self.handler_map:
             raise RuntimeError(f"Handler {handler_name} is not registered")
-        entry: EventHandlerRegistry.HandlerEntry = \
-            self.handler_map[handler_name]
+        entry: EventHandlerRegistry.HandlerEntry = self.handler_map[handler_name]
         return entry["meta"]
 
     def gather_handler_meta(self) -> List["EventHandlerRegistry.HandlerMeta"]:
@@ -1215,7 +1247,6 @@ class EventHandlerRegistry:
 
 
 class EventDeserialiser:
-
     """Applies transformations to the payload of an incoming event, depending on its type.
 
     The transformation happens in place: the event passed to the transform method is mutated.
@@ -1224,7 +1255,9 @@ class EventDeserialiser:
     applying sanitisation of inputs where relevant."""
 
     def __init__(self, session: "WriterSession"):
-        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
+        self.evaluator = writer.evaluator.Evaluator(
+            session.session_state, session.session_component_tree
+        )
 
     def transform(self, ev: WriterEvent) -> None:
         # Events without payloads are safe
@@ -1243,8 +1276,7 @@ class EventDeserialiser:
             if ev.isSafe:
                 return
             ev.payload = {}
-            raise ValueError(
-                "No payload transformer available for custom event type.")
+            raise ValueError("No payload transformer available for custom event type.")
         tf_func = getattr(self, func_name)
         try:
             tf_payload = tf_func(ev)
@@ -1259,8 +1291,7 @@ class EventDeserialiser:
         instance_path = ev.instancePath
         if not instance_path:
             raise ValueError("This event cannot be run as a global event.")
-        options = self.evaluator.evaluate_field(
-            instance_path, "tags", True, "{ }")
+        options = self.evaluator.evaluate_field(instance_path, "tags", True, "{ }")
         if not isinstance(options, dict):
             raise ValueError("Invalid value for tags")
         if payload not in options.keys():
@@ -1273,7 +1304,8 @@ class EventDeserialiser:
         if not instance_path:
             raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
-            instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
+            instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }"""
+        )
         if not isinstance(options, dict):
             raise ValueError("Invalid value for options")
         if payload not in options.keys():
@@ -1286,12 +1318,12 @@ class EventDeserialiser:
         if not instance_path:
             raise ValueError("This event cannot be run as a global event.")
         options = self.evaluator.evaluate_field(
-            instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }""")
+            instance_path, "options", True, """{ "a": "Option A", "b": "Option B" }"""
+        )
         if not isinstance(options, dict):
             raise ValueError("Invalid value for options")
         if not isinstance(payload, list):
-            raise ValueError(
-                "Invalid multiple options payload. Expected a list.")
+            raise ValueError("Invalid multiple options payload. Expected a list.")
         if not all(item in options.keys() for item in payload):
             raise ValueError("Unauthorised option")
         return payload
@@ -1310,7 +1342,7 @@ class EventDeserialiser:
             "key": key,
             "ctrl_key": ctrl_key,
             "shift_key": shift_key,
-            "meta_key": meta_key
+            "meta_key": meta_key,
         }
         return tf_payload
 
@@ -1319,21 +1351,14 @@ class EventDeserialiser:
         ctrl_key = bool(payload.get("ctrlKey"))
         shift_key = bool(payload.get("shiftKey"))
         meta_key = bool(payload.get("metaKey"))
-        tf_payload = {
-            "ctrl_key": ctrl_key,
-            "shift_key": shift_key,
-            "meta_key": meta_key
-        }
+        tf_payload = {"ctrl_key": ctrl_key, "shift_key": shift_key, "meta_key": meta_key}
         return tf_payload
 
     def _transform_hashchange(self, ev) -> Dict:
         payload = ev.payload
         page_key = payload.get("pageKey")
         route_vars = dict(payload.get("routeVars"))
-        tf_payload = {
-            "page_key": page_key,
-            "route_vars": route_vars
-        }
+        tf_payload = {"page_key": page_key, "route_vars": route_vars}
         return tf_payload
 
     def _transform_page_open(self, ev) -> str:
@@ -1344,10 +1369,7 @@ class EventDeserialiser:
         payload = ev.payload
         page_key = payload.get("pageKey")
         route_vars = dict(payload.get("routeVars"))
-        tf_payload = {
-            "page_key": page_key,
-            "route_vars": route_vars
-        }
+        tf_payload = {"page_key": page_key, "route_vars": route_vars}
         return tf_payload
 
     def _transform_chatbot_message(self, ev) -> dict:
@@ -1384,7 +1406,7 @@ class EventDeserialiser:
         return {
             "name": file_item.get("name"),
             "type": file_item.get("type"),
-            "data": urllib.request.urlopen(data).read()
+            "data": urllib.request.urlopen(data).read(),
         }
 
     def _transform_file_change(self, ev) -> List[Dict]:
@@ -1401,8 +1423,7 @@ class EventDeserialiser:
         try:
             datetime.date.fromisoformat(payload)
         except ValueError:
-            raise ValueError(
-                "Date must be in YYYY-MM-DD format or another valid ISO 8601 format.")
+            raise ValueError("Date must be in YYYY-MM-DD format or another valid ISO 8601 format.")
 
         return payload
 
@@ -1412,10 +1433,11 @@ class EventDeserialiser:
         if not isinstance(payload, str):
             raise ValueError("Time must be a string.")
         try:
-            time.strptime(payload, '%H:%M')
+            time.strptime(payload, "%H:%M")
         except ValueError:
             raise ValueError(
-                "Time must be in hh:mm format (in 24-hour format that includes leading zeros).")
+                "Time must be in hh:mm format (in 24-hour format that includes leading zeros)."
+            )
 
         return payload
 
@@ -1455,7 +1477,7 @@ class EventDeserialiser:
         payload = ev.payload
         if not isinstance(payload, dict):
             return None
-        
+
         payload = _deserialize_bigint_format(payload)
         return payload
 
@@ -1477,15 +1499,13 @@ class EventDeserialiser:
 
 
 class SessionManager:
-
     """
     Stores and manages sessions.
     """
 
     IDLE_SESSION_MAX_SECONDS = 3600
     TOKEN_SIZE_BYTES = 32
-    hex_pattern = re.compile(
-        r"^[0-9a-fA-F]{" + str(TOKEN_SIZE_BYTES*2) + r"}$")
+    hex_pattern = re.compile(r"^[0-9a-fA-F]{" + str(TOKEN_SIZE_BYTES * 2) + r"}$")
 
     def __init__(self) -> None:
         self.sessions: Dict[str, WriterSession] = {}
@@ -1494,7 +1514,9 @@ class SessionManager:
     def add_verifier(self, verifier: Callable) -> None:
         self.verifiers.append(verifier)
 
-    def _verify_before_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None) -> bool:
+    def _verify_before_new_session(
+        self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None
+    ) -> bool:
         for verifier in self.verifiers:
             args = inspect.getfullargspec(verifier).args
             arg_values = []
@@ -1509,8 +1531,7 @@ class SessionManager:
             elif verifier_result is True:
                 pass
             else:
-                raise ValueError(
-                    "Invalid verifier return value. Must be True or False.")
+                raise ValueError("Invalid verifier return value. Must be True or False.")
         return True
 
     def _check_proposed_session_id(self, proposed_session_id: Optional[str]) -> bool:
@@ -1520,7 +1541,12 @@ class SessionManager:
             return True
         return False
 
-    def get_new_session(self, cookies: Optional[Dict] = None, headers: Optional[Dict] = None, proposed_session_id: Optional[str] = None) -> Optional[WriterSession]:
+    def get_new_session(
+        self,
+        cookies: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        proposed_session_id: Optional[str] = None,
+    ) -> Optional[WriterSession]:
         if not self._check_proposed_session_id(proposed_session_id):
             return None
         if not self._verify_before_new_session(cookies, headers):
@@ -1534,8 +1560,12 @@ class SessionManager:
         self.sessions[new_id] = new_session
         return new_session
 
-    def get_session(self, session_id: Optional[str], restore_initial_mail: bool = False) -> Optional[WriterSession]:
+    def get_session(
+        self, session_id: Optional[str], restore_initial_mail: bool = False
+    ) -> Optional[WriterSession]:
         if session_id is None:
+            return None
+        if session_id == "anonymous":
             return None
 
         session = self.sessions.get(session_id)
@@ -1556,8 +1586,7 @@ class SessionManager:
         del self.sessions[session_id]
 
     def prune_sessions(self) -> None:
-        cutoff_timestamp = int(time.time()) - \
-            SessionManager.IDLE_SESSION_MAX_SECONDS
+        cutoff_timestamp = int(time.time()) - SessionManager.IDLE_SESSION_MAX_SECONDS
         prune_sessions = []
         for session_id, session in self.sessions.items():
             if session.last_active_timestamp < cutoff_timestamp:
@@ -1575,7 +1604,6 @@ class SessionManager:
 
 
 class EventHandler:
-
     """
     Handles events in the context of a Session.
     """
@@ -1587,9 +1615,10 @@ class EventHandler:
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
         self.deser = EventDeserialiser(session)
-        self.evaluator = writer.evaluator.Evaluator(session.session_state, session.session_component_tree)
+        self.evaluator = writer.evaluator.Evaluator(
+            session.session_state, session.session_component_tree
+        )
         self.workflow_runner = writer.workflows.WorkflowRunner(session)
-
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
         if not target_component.binding:
@@ -1599,22 +1628,23 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _get_workflow_callable(self, workflow_key: Optional[str] = None, workflow_id: Optional[str] = None):
+    def _get_workflow_callable(
+        self, workflow_key: Optional[str] = None, workflow_id: Optional[str] = None
+    ):
         def fn(payload, context, session):
-            execution_environment = {
-                "payload": payload,
-                "context": context,
-                "session": session
-            }
+            execution_environment = {"payload": payload, "context": context, "session": session}
             if workflow_key:
                 return self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
             elif workflow_id:
-                return self.workflow_runner.run_workflow(workflow_id, execution_environment, "Workflow execution triggered on demand")
+                return self.workflow_runner.run_workflow(
+                    workflow_id, execution_environment, "Workflow execution triggered on demand"
+                )
+
         return fn
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
         if handler.startswith("$runWorkflow_"):
-            workflow_key = handler[13:] 
+            workflow_key = handler[13:]
             return self._get_workflow_callable(workflow_key=workflow_key)
 
         if handler.startswith("$runWorkflowById_"):
@@ -1633,22 +1663,22 @@ class EventHandler:
             "state": self.session_state,
             "payload": ev.payload,
             "context": context_data,
-            "session":_event_handler_session_info(),
-            "ui": _event_handler_ui_manager()
+            "session": _event_handler_session_info(),
+            "ui": _event_handler_ui_manager(),
         }
 
-    def _call_handler_callable(
-        self,
-        handler_callable: Callable,
-        calling_arguments: Dict
-    ) -> Any:        
+    def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
         current_app_process = get_app_process()
         result = None
         captured_stdout = None
-        with core_ui.use_component_tree(self.session.session_component_tree), \
-            contextlib.redirect_stdout(io.StringIO()) as f:
+        with (
+            core_ui.use_component_tree(self.session.session_component_tree),
+            contextlib.redirect_stdout(io.StringIO()) as f,
+        ):
             middlewares_executors = current_app_process.middleware_registry.executors()
-            result = EventHandlerExecutor.invoke_with_middlewares(middlewares_executors, handler_callable, calling_arguments)
+            result = EventHandlerExecutor.invoke_with_middlewares(
+                middlewares_executors, handler_callable, calling_arguments
+            )
             captured_stdout = f.getvalue()
 
         if captured_stdout:
@@ -1659,25 +1689,44 @@ class EventHandler:
     def _deserialize(self, ev: WriterEvent):
         try:
             self.deser.transform(ev)
-        except BaseException as e: 
+        except BaseException as e:
             self.session_state.add_notification(
-                "error", "Error", f"A deserialization error occurred when handling event '{ ev.type }'.")
-            self.session_state.add_log_entry("error", "Deserialization Failed",
-                                             f"The data sent might be corrupt. A runtime exception was raised when deserializing event '{ ev.type }'.", traceback.format_exc())
+                "error",
+                "Error",
+                f"A deserialization error occurred when handling event '{ ev.type }'.",
+            )
+            self.session_state.add_log_entry(
+                "error",
+                "Deserialization Failed",
+                f"The data sent might be corrupt. A runtime exception was raised when deserializing event '{ ev.type }'.",
+                traceback.format_exc(),
+            )
             raise e
 
     def _handle_global_event(self, ev: WriterEvent):
-        if not ev.isSafe:
-            error_message = "Attempted executing a global event in an unsafe context."
-            self.session_state.add_log_entry("error", "Forbidden operation", error_message, traceback.format_exc())
-            raise PermissionError(error_message)
-        if not ev.handler:
-            raise ValueError("Handler not specified when attempting to execute global event.")
-        handler_callable = self._get_handler_callable(ev.handler)
-        if not handler_callable:
-            return
-        calling_arguments = self._get_calling_arguments(ev, instance_path=None)
-        return self._call_handler_callable(handler_callable, calling_arguments)
+        try:
+            if not ev.isSafe:
+                raise PermissionError("Attempted executing a global event in an unsafe context.")
+            if not ev.handler:
+                raise ValueError("Handler not specified when attempting to execute global event.")
+            handler_callable = self._get_handler_callable(ev.handler)
+            if not handler_callable:
+                return
+            calling_arguments = self._get_calling_arguments(ev, instance_path=None)
+            return self._call_handler_callable(handler_callable, calling_arguments)
+        except BaseException as e:
+            self.session_state.add_notification(
+                "error",
+                "Runtime Error",
+                f"An error occurred when processing event '{ ev.type }'.",
+            )
+            self.session_state.add_log_entry(
+                "error",
+                "Runtime Exception",
+                f"A runtime exception was raised when processing event '{ ev.type }'.",
+                traceback.format_exc(),
+            )
+            raise e
 
     def _handle_component_event(self, ev: WriterEvent):
         instance_path = ev.instancePath
@@ -1687,6 +1736,8 @@ class EventHandler:
             target_id = instance_path[-1]["componentId"]
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
+            calling_arguments = self._get_calling_arguments(ev, instance_path)
+            self.workflow_runner.execute_ui_trigger(target_id, ev.type, calling_arguments)
             if not target_component.handlers:
                 return None
             handler = target_component.handlers.get(ev.type)
@@ -1695,13 +1746,19 @@ class EventHandler:
             handler_callable = self._get_handler_callable(handler)
             if not handler_callable:
                 return
-            calling_arguments = self._get_calling_arguments(ev, instance_path)
             return self._call_handler_callable(handler_callable, calling_arguments)
         except BaseException as e:
-            self.session_state.add_notification("error", "Runtime Error", f"An error occurred when processing event '{ ev.type }'.",
-                                                )
-            self.session_state.add_log_entry("error", "Runtime Exception",
-                                             f"A runtime exception was raised when processing event '{ ev.type }'.", traceback.format_exc())
+            self.session_state.add_notification(
+                "error",
+                "Runtime Error",
+                f"An error occurred when processing event '{ ev.type }'.",
+            )
+            self.session_state.add_log_entry(
+                "error",
+                "Runtime Exception",
+                f"A runtime exception was raised when processing event '{ ev.type }'.",
+                traceback.format_exc(),
+            )
             raise e
 
     def handle(self, ev: WriterEvent) -> WriterEventResult:
@@ -1718,7 +1775,6 @@ class EventHandler:
 
 
 class EventHandlerExecutor:
-
     @staticmethod
     def build_arguments(func: Callable, writer_args: dict) -> List[Any]:
         """
@@ -1756,7 +1812,7 @@ class EventHandlerExecutor:
         >>> EventHandlerExecutor.invoke(my_handler, {'state': {'a': 1}, 'payload': None, 'context': None, 'session': None, 'ui': None})
         """
         is_async_handler = inspect.iscoroutinefunction(callable_handler)
-        if (not callable(callable_handler) and not is_async_handler):
+        if not callable(callable_handler) and not is_async_handler:
             raise ValueError("Invalid handler. The handler isn't a callable object.")
 
         handler_args = EventHandlerExecutor.build_arguments(callable_handler, writer_args)
@@ -1770,7 +1826,11 @@ class EventHandlerExecutor:
         return result
 
     @staticmethod
-    def invoke_with_middlewares(middlewares_executors: List[MiddlewareExecutor], callable_handler: Callable, writer_args: dict) -> Any:
+    def invoke_with_middlewares(
+        middlewares_executors: List[MiddlewareExecutor],
+        callable_handler: Callable,
+        writer_args: dict,
+    ) -> Any:
         """
         Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
 
@@ -1789,7 +1849,9 @@ class EventHandlerExecutor:
         else:
             executor = middlewares_executors[0]
             with executor.execute(writer_args):
-                return EventHandlerExecutor.invoke_with_middlewares(middlewares_executors[1:], callable_handler, writer_args)
+                return EventHandlerExecutor.invoke_with_middlewares(
+                    middlewares_executors[1:], callable_handler, writer_args
+                )
 
 
 class DictPropertyProxy:
@@ -1840,6 +1902,7 @@ class DictPropertyProxy:
 
 S = TypeVar("S", bound=WriterState)
 
+
 def new_initial_state(klass: Type[S], raw_state: dict) -> S:
     """
     Initializes the initial state of the application and makes it globally accessible.
@@ -1859,6 +1922,7 @@ def new_initial_state(klass: Type[S], raw_state: dict) -> S:
 
     return initial_state
 
+
 """
 This variable contains the list of properties calculated for each class 
 that inherits from State.
@@ -1867,6 +1931,7 @@ This mechanic allows Writer Framework to subscribe to mutations that trigger
 these properties when loading an application.
 """
 calculated_properties_per_state_type: Dict[Type[State], List[str]] = {}
+
 
 def writerproperty(path: Union[str, List[str]]):
     """
@@ -1891,8 +1956,7 @@ def writerproperty(path: Union[str, List[str]]):
     >>>         return self.counterA + self.counterB
     """
 
-    class Property():
-
+    class Property:
         def __init__(self, func):
             self.func = func
             self.initialized = False
@@ -1917,16 +1981,21 @@ def writerproperty(path: Union[str, List[str]]):
             """
             args = inspect.getfullargspec(self.func)
             if len(args.args) > 1:
-                logging.warning(f"Wrong signature for calculated property '{instance.__class__.__name__}:{self.property_name}'. It must declare only self argument.")
+                logging.warning(
+                    f"Wrong signature for calculated property '{instance.__class__.__name__}:{self.property_name}'. It must declare only self argument."
+                )
                 return None
 
             if self.initialized is False:
-                instance.calculated_property(property_name=self.property_name, path=path, handler=self.func)
+                instance.calculated_property(
+                    property_name=self.property_name, path=path, handler=self.func
+                )
                 self.initialized = True
 
             return self.func(instance)
 
     return Property
+
 
 def session_verifier(func: Callable) -> Callable:
     """
@@ -1967,7 +2036,10 @@ def reset_base_component_tree() -> None:
     global base_component_tree
     base_component_tree = core_ui.build_base_component_tree()
 
-def _clone_mutation_subscriptions(session_state: State, app_state: State, root_state: Optional['State'] = None) -> None:
+
+def _clone_mutation_subscriptions(
+    session_state: State, app_state: State, root_state: Optional["State"] = None
+) -> None:
     """
     clone subscriptions on mutations between the initial state of the application and the state created for the session
 
@@ -1988,7 +2060,9 @@ def _clone_mutation_subscriptions(session_state: State, app_state: State, root_s
     _root_state = root_state if root_state is not None else session_state
     for mutation_subscription in state_proxy_app.local_mutation_subscriptions:
         new_mutation_subscription = copy.copy(mutation_subscription)
-        new_mutation_subscription.state = _root_state if new_mutation_subscription.type == "subscription" else session_state
+        new_mutation_subscription.state = (
+            _root_state if new_mutation_subscription.type == "subscription" else session_state
+        )
         session_state._state_proxy.local_mutation_subscriptions.append(new_mutation_subscription)
 
 
@@ -2006,19 +2080,19 @@ def parse_state_variable_expression(p: str):
     it = 0
     last_split = 0
     while it < len(p):
-        if p[it] == '\\':
+        if p[it] == "\\":
             it += 2
-        elif p[it] == '.':
-            new_part = p[last_split: it]
-            parts.append(new_part.replace('\\.', '.'))
+        elif p[it] == ".":
+            new_part = p[last_split:it]
+            parts.append(new_part.replace("\\.", "."))
 
             last_split = it + 1
             it += 1
         else:
             it += 1
 
-    new_part = p[last_split: len(p)]
-    parts.append(new_part.replace('\\.', '.'))
+    new_part = p[last_split : len(p)]
+    parts.append(new_part.replace("\\.", "."))
     return parts
 
 
@@ -2026,30 +2100,35 @@ async def _async_wrapper_internal(callable_handler: Callable, arg_values: List[A
     result = await callable_handler(*arg_values)
     return result
 
+
 def _event_handler_session_info() -> Dict[str, Any]:
     """
     Returns the session information for the current event handler.
 
     This information is exposed in the session parameter of a handler
-    
+
     """
     current_session = get_session()
     session_info: Dict[str, Any] = {}
     if current_session is not None:
-        session_info['id'] = current_session.session_id
-        session_info['cookies'] = current_session.cookies
-        session_info['headers'] = current_session.headers
-        session_info['userinfo'] = current_session.userinfo or {}
+        session_info["id"] = current_session.session_id
+        session_info["cookies"] = current_session.cookies
+        session_info["headers"] = current_session.headers
+        session_info["userinfo"] = current_session.userinfo or {}
 
     return session_info
 
+
 def _event_handler_ui_manager():
     from writer import PROPER_UI_INIT, _get_ui_runtime_error_message
+
     if PROPER_UI_INIT:
         from writer.ui import WriterUIManager
+
         return WriterUIManager()
     else:
         raise RuntimeError(_get_ui_runtime_error_message())
+
 
 def _deserialize_bigint_format(payload: Optional[Union[dict, list]]):
     """
@@ -2117,9 +2196,11 @@ def _type_match_dict(expected_type: Type):
     >>>
     >>> _type_match_dict(SpecifcDict) # True
     """
-    if expected_type is not None and \
-        inspect.isclass(expected_type) and \
-        issubclass(expected_type, dict):
+    if (
+        expected_type is not None
+        and inspect.isclass(expected_type)
+        and issubclass(expected_type, dict)
+    ):
         return True
 
     if typing.get_origin(expected_type) == dict:
@@ -2150,6 +2231,7 @@ def unescape_bigint_matching_string(string: str) -> str:
         result += c
 
     return result
+
 
 state_serialiser = StateSerialiser()
 initial_state = WriterState()

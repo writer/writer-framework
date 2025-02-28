@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref } from "vue";
+import { computed, inject, nextTick, ref, useTemplateRef } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { Component } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
@@ -47,7 +47,7 @@ const aliasFieldValue = computed(
 	() => wf.getComponentById(props.componentId)?.content["alias"],
 );
 const isAliased = computed(() => Boolean(aliasFieldValue.value));
-const aliasEditorEl = ref<HTMLInputElement>(null);
+const aliasEditorEl = useTemplateRef("aliasEditorEl");
 const isAliasBeingEdited = ref(false);
 
 async function enableEditor() {
@@ -122,7 +122,8 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 
 .aliasEditor {
 	transition-property: color, font-size;
-	padding: 4px;
+	padding: 2px 4px 2px 4px;
+	margin-bottom: -2px;
 	margin-left: -4px;
 	border-radius: 4px;
 	width: 100%;

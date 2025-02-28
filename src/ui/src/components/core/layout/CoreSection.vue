@@ -93,9 +93,9 @@ import BaseCollapseButton from "../base/BaseCollapseButton.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 
-const isCollapsible = computed(() => fields.isCollapsible.value === "yes");
+const isCollapsible = computed(() => fields.isCollapsible.value);
 const isCollapsed = ref<boolean>(
-	isCollapsible.value && fields.startCollapsed.value === "yes",
+	isCollapsible.value && fields.startCollapsed.value,
 );
 </script>
 

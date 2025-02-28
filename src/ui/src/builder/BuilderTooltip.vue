@@ -20,12 +20,13 @@ import {
 	onMounted,
 	onUnmounted,
 	ref,
+	useTemplateRef,
 } from "vue";
 
 const DELAY_MS = 200;
 const DEFAULT_GAP_PX = 4;
 
-const rootEl = ref(null);
+const rootEl = useTemplateRef("rootEl");
 const isActive = ref(false);
 const tooltipText = ref<ComputedRef | string | null>(null);
 let trackedElement: HTMLElement | null = null;
@@ -182,5 +183,6 @@ onUnmounted(() => {
 	margin: 4px;
 	position: relative;
 	z-index: 1;
+	word-break: break-word;
 }
 </style>

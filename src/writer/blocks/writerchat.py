@@ -90,10 +90,12 @@ class WriterChat(WorkflowBlock):
                         parameters=tool_raw.get("parameters")
                     )
                 elif tool_type == "graph":
-                    tool = {
-                        "type": "graph",
-                        "graph_ids": tool_raw.get("graph_ids")
-                    }
+                    tool = writer.ai.GraphTool(
+                        type="graph",
+                        graph_ids=tool_raw.get("graph_ids"),
+                        subqueries=False,
+                        description=tool_name,
+                    )
                 else:
                     continue
                 tools.append(tool)
