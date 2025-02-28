@@ -5,7 +5,6 @@ import { useComponentActions } from "../useComponentActions";
 import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
-import { WdsColor } from "@/wds/tokens";
 import BuilderListItem from "../BuilderListItem.vue";
 
 const wf = inject(injectionKeys.core);
@@ -74,7 +73,7 @@ async function createLinkedWorkflow() {
 		type: "success",
 		message: `${alias} added`,
 		action: {
-			label: "Go to archestration",
+			label: "Go to workflow",
 			func: () => jumpToWorkflow(workflowId),
 			icon: "linked_services",
 		},
@@ -165,6 +164,9 @@ function jumpToWorkflow(workflowId: string) {
 	display: flex;
 	gap: 8px;
 	align-items: center;
+}
+.BuilderSettingsHandlersWorkflow__title__btn {
+	min-width: 40px;
 }
 .BuilderSettingsHandlersWorkflow__title__btn i {
 	font-size: 24px;
