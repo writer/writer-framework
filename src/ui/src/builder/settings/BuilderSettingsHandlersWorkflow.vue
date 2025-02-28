@@ -103,21 +103,24 @@ function jumpToWorkflow(workflowId: string) {
 			<p>{{ eventTypeFormated }}</p>
 		</div>
 
-		<ul class="BuilderSettingsHandlersWorkflow__list">
-			<li
-				v-for="workflow of linkedWorkflows"
-				:key="workflow.id"
-				class="BuilderSettingsHandlersWorkflow__list__item"
-			>
-				<button
-					role="button"
-					class="BuilderSettingsHandlersWorkflow__list__item__btn"
-					@click="jumpToWorkflow(workflow.id)"
-				>
-					{{ workflow.content.key || "Workflow" }}
-				</button>
-			</li>
-		</ul>
+		<div class="BuilderSettingsHandlersWorkflow__list">
+			<template v-for="workflow of linkedWorkflows" :key="workflow.id">
+				<div class="BuilderSettingsHandlersWorkflow__list__anchor">
+					<div
+						class="BuilderSettingsHandlersWorkflow__list__anchor__arrow"
+					></div>
+				</div>
+				<div class="BuilderSettingsHandlersWorkflow__list__item">
+					<button
+						role="button"
+						class="BuilderSettingsHandlersWorkflow__list__item__btn"
+						@click="jumpToWorkflow(workflow.id)"
+					>
+						{{ workflow.content.key || "Workflow" }}
+					</button>
+				</div>
+			</template>
+		</div>
 	</div>
 </template>
 
@@ -130,8 +133,29 @@ function jumpToWorkflow(workflowId: string) {
 }
 
 .BuilderSettingsHandlersWorkflow__list {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	column-gap: 12px;
+	padding-left: 20px;
 }
 .BuilderSettingsHandlersWorkflow__list__item {
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
+.BuilderSettingsHandlersWorkflow__list__anchor {
+	/* background-color: coral; */
+	width: 20px;
+	height: 100%;
+	border-left: 1px solid red;
+}
+.BuilderSettingsHandlersWorkflow__list__anchor__arrow {
+	width: 100%;
+	height: 100%;
+	background-color: transparent;
+	border-bottom-left-radius: 50%;
+	border-left: 1px solid red;
+	border-bottom: 1px solid red;
 }
 
 .BuilderSettingsHandlersWorkflow__list__item__btn {
