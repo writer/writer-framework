@@ -142,7 +142,7 @@ class WorkflowRunner:
         execution_environment: Dict,
         title: str = "Workflow execution",
     ):
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = {}
         tool_futures: Dict[str, Future] = {}
         return_value = None
         execution_environment["run_id"] = self._generate_run_id()
@@ -211,7 +211,7 @@ class WorkflowRunner:
 
     def _generate_run_log(
         self,
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
         title: str,
         entry_type: Literal["info", "error"],
         return_value: Optional[Any] = None,
@@ -278,7 +278,7 @@ class WorkflowRunner:
         target_node: writer.core_ui.Component,
         nodes: List[writer.core_ui.Component],
         execution_environment: Dict,
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
         tool_futures: Dict[str, Future],
         trace: List[str],
     ):
