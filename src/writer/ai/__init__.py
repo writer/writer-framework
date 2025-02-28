@@ -2258,12 +2258,9 @@ class Apps:
         client = WriterAIManager.acquire_client()
         config = config or {}
 
-        result = []
         response = client.applications.list(**config)
-        pages = response.iter_pages()
+        result = [app for app in response]
 
-        for page in pages:
-            result.extend(page.data)
         return result
 
     def retrieve(
