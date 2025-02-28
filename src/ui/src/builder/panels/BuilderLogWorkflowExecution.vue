@@ -7,10 +7,27 @@
 		>
 			<div class="marker top"></div>
 			<div class="marker bottom"></div>
-			<div class="item">
+			<div
+				class="item"
+				:class="{
+					selected: wfbm.firstSelectedId.value == item.componentId,
+				}"
+			>
 				<div class="name">
-					{{ item.componentDef.name }}
+					<div v-if="item.component?.['content']?.['alias']">
+						<div class="eyebrow">
+							{{
+								item.componentDef?.name ??
+								"Unavailable component"
+							}}
+						</div>
+						{{ item.component?.["content"]?.["alias"] }}
+					</div>
+					<template v-else>
+						{{ item.componentDef?.name ?? "Unavailable component" }}
+					</template>
 					<WdsButton
+						v-if="item.component"
 						variant="neutral"
 						size="smallIcon"
 						data-writer-tooltip="Jump to this block"
@@ -20,88 +37,44 @@
 					</WdsButton>
 				</div>
 				<div class="outcome">
-					<div
-						class="ball"
-						:class="item.componentDef.outs[item.outcome]?.style"
-					></div>
-					{{
-						item.componentDef.outs[item.outcome]?.name ??
-						item.outcome
-					}}
+					<template v-if="item.outcome !== 'in_progress'">
+						<div
+							class="ball"
+							:class="
+								item.componentDef?.outs?.[item.outcome]?.style
+							"
+						></div>
+
+						{{
+							item.componentDef?.outs?.[item.outcome]?.name ??
+							item.outcome
+						}}
+					</template>
+					<template v-else>
+						<div class="ballContainer">
+							<div class="ball inProgress"></div>
+						</div>
+
+						In progress...
+					</template>
 				</div>
 				<div class="result">
-					<BuilderModal
+					<WdsModal
 						v-if="displayedItemId == itemId"
-						:close-action="{
-							desc: 'Close',
-							fn: () => (displayedItemId = null),
-						}"
-						icon="find_in_page"
-						modal-title="Details"
+						title="Trace"
+						size="wide"
+						:actions="[
+							{
+								desc: 'Done',
+								fn: () => (displayedItemId = null),
+							},
+						]"
 					>
-						<div class="detailsModalContent">
-							<div>
-								<h2>Result</h2>
-								<p>
-									The value resulting of the execution of this
-									block. This value is added to the execution
-									environment of the direct dependents of this
-									block. There, it's accessible via @{result}.
-								</p>
-								<div class="data" data-automation-key="result">
-									<SharedJsonViewer
-										v-if="item?.result"
-										:data="item.result"
-										:initial-depth="1"
-										class="data"
-									/>
-									<div v-else class="nothing">No result.</div>
-								</div>
-							</div>
-							<div>
-								<h2>Execution environment</h2>
-								<p>
-									The following values were made available to
-									this block during execution time. These
-									values are accessible via the same template
-									syntax i.e. @{my_var}, as state elements.
-								</p>
-								<div class="data">
-									<SharedJsonViewer
-										v-if="item?.executionEnvironment"
-										:data="item.executionEnvironment"
-										:initial-depth="1"
-										class="data"
-									/>
-									<div v-else class="nothing">
-										Empty execution environment.
-									</div>
-								</div>
-							</div>
-							<div>
-								<h2>Return value</h2>
-								<p>
-									The value being returned, which is used to
-									determine the result of 'Run workflow'
-									blocks and 'Chat completion' tool calls.
-								</p>
-								<div
-									class="data"
-									data-automation-key="return-value"
-								>
-									<SharedJsonViewer
-										v-if="item?.returnValue"
-										:data="item.returnValue"
-										:initial-depth="1"
-										class="data"
-									/>
-									<template v-else>
-										No return value.
-									</template>
-								</div>
-							</div>
-						</div>
-					</BuilderModal>
+						<BuilderLogWorkflowExecutionTrace
+							:execution-item="item"
+							@close-modal="() => (displayedItemId = null)"
+						></BuilderLogWorkflowExecutionTrace>
+					</WdsModal>
 					<WdsButton
 						v-if="
 							item.result ||
@@ -113,7 +86,7 @@
 						@click="() => (displayedItemId = itemId)"
 					>
 						<i class="material-symbols-outlined">find_in_page</i>
-						Details
+						Trace
 					</WdsButton>
 				</div>
 				<div class="time">
@@ -136,9 +109,9 @@ import { WorkflowExecutionLog } from "../builderManager";
 import { computed, inject, nextTick, ref } from "vue";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
-import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderModal from "../BuilderModal.vue";
+import BuilderLogWorkflowExecutionTrace from "./BuilderLogWorkflowExecutionTrace.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -160,15 +133,17 @@ type EnrichedExecutionLog = WorkflowExecutionLog & {
 const enrichedExecutionLog = computed(() => {
 	const eLog: EnrichedExecutionLog = {
 		summary: [
-			...props.executionLog.summary.map((item) => ({
-				...item,
-				component: wf.getComponentById(item.componentId),
-				componentDef: wf.getComponentById(item.componentId)
-					? wf.getComponentDefinition(
-							wf.getComponentById(item.componentId).type,
-						)
-					: undefined,
-			})),
+			...props.executionLog.summary
+				.filter((item) => Boolean(item.outcome))
+				.map((item) => ({
+					...item,
+					component: wf.getComponentById(item.componentId),
+					componentDef: wf.getComponentById(item.componentId)
+						? wf.getComponentDefinition(
+								wf.getComponentById(item.componentId).type,
+							)
+						: undefined,
+				})),
 		],
 	};
 	return eLog;
@@ -244,12 +219,21 @@ function formatExecutionTime(timeInSeconds: number): string {
 	border: 1px solid var(--builderSeparatorColor);
 }
 
+.item.selected {
+	border-left: 8px solid var(--builderSelectedColor);
+}
+
 .item .name {
 	grid-column: 1 / 2;
 	grid-row: 1 / 2;
 	display: flex;
 	gap: 8px;
 	align-items: center;
+}
+
+.item .name .eyebrow {
+	color: var(--secondaryTextColor);
+	font-size: 12px;
 }
 
 .item .outcome {
@@ -278,6 +262,31 @@ function formatExecutionTime(timeInSeconds: number): string {
 	background: var(--wdsColorPurple4);
 }
 
+.item .outcome .ballContainer {
+	margin-left: -2px;
+	margin-top: -2px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	padding: 2px;
+	background: conic-gradient(#6985ff, #e4e9ff);
+	animation: spin 0.8s linear infinite;
+}
+
+.item .outcome .ball.inProgress {
+	background: #6985ff;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+		transform-origin: center;
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 .item .result {
 	grid-column: 3 / 4;
 	grid-row: 1 / 2;
@@ -292,26 +301,9 @@ function formatExecutionTime(timeInSeconds: number): string {
 	grid-column: 1 / 5;
 	grid-row: 2 / 3;
 	margin-top: 8px;
-}
-
-.detailsModalContent {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.detailsModalContent div:not(:first-of-type) {
-	padding-top: 16px;
 	border-top: 1px solid var(--builderSeparatorColor);
-}
-
-.detailsModalContent .data {
-	background-color: var(--builderSubtleSeparatorColor);
-	padding: 8px;
-	border-radius: 8px;
-	margin-top: 8px;
-	font-size: 14px;
-	overflow-x: auto;
+	padding-top: 16px;
+	padding-bottom: 8px;
 }
 
 .markdown :deep(code) {

@@ -4,12 +4,17 @@
 		:class="{
 			'WorkflowsNode--trigger': isTrigger,
 			'WorkflowsNode--intelligent': isIntelligent,
-			'WorkflowsNode--running': isRunning,
+			'WorkflowsNode--running': completionStyle == 'running',
+			'WorkflowsNode--success': completionStyle == 'success',
+			'WorkflowsNode--error': completionStyle == 'error',
 		}"
 	>
-		<div v-if="isIntelligent" class="side"></div>
+		<div
+			v-if="isIntelligent && completionStyle === null"
+			class="side"
+		></div>
 		<div class="extraBorder">
-			<div v-if="isRunning" class="runner"></div>
+			<div v-if="completionStyle == 'running'" class="runner"></div>
 		</div>
 		<div class="main">
 			<div class="title">
@@ -85,9 +90,9 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { Component, FieldType, WriterComponentDefinition } from "@/writerTypes";
+import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
@@ -97,7 +102,6 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-const isRunning = ref(false);
 
 const component = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -114,6 +118,34 @@ const isTrigger = computed(() => {
 
 const isIntelligent = computed(() => {
 	return def?.value?.category == "Writer";
+});
+
+const completionStyle = computed(() => {
+	if (latestKnownOutcome.value == null) return null;
+	if (latestKnownOutcome.value == "in_progress") return "running";
+
+	// Any dynamic out is considered success
+
+	return (
+		{ ...staticOuts.value }?.[latestKnownOutcome.value].style ?? "success"
+	);
+});
+
+const latestKnownOutcome = computed(() => {
+	const logEntries = wfbm.getLogEntries();
+
+	for (let i = 0; i < logEntries.length; i++) {
+		const logEntry = logEntries[i];
+		const we = logEntry.workflowExecution;
+		if (!we) continue;
+		for (let j = 0; j < we.summary.length; j++) {
+			const item = we.summary[j];
+			if (item.componentId !== component.value.id) continue;
+			return item.outcome;
+		}
+	}
+
+	return null;
 });
 
 const isEngaged = computed(() => {
@@ -169,6 +201,10 @@ function handleOutMousedown(ev: DragEvent, outId: string) {
 }
 
 const possibleImageUrls = computed(() => {
+	if (["success", "error"].includes(completionStyle.value)) {
+		return [`/status/${completionStyle.value}.svg`];
+	}
+
 	const paths = [
 		`/components/${component.value.type}.svg`,
 		`/components/workflows_category_${def.value.category}.svg`,
@@ -179,36 +215,6 @@ const possibleImageUrls = computed(() => {
 	}
 
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
-});
-
-type WorkflowActivity = {
-	componentId: Component["id"];
-	type: "start" | "finish";
-};
-
-function handleWorkflowActivityMail(payload: WorkflowActivity) {
-	if (payload.componentId !== component.value.id) return;
-	if (payload.type == "start") {
-		console.log("up", payload.componentId);
-		isRunning.value = true;
-		return;
-	}
-	if (payload.type == "finish") {
-		console.log("taking down", payload.componentId);
-		setTimeout(() => {
-			isRunning.value = false;
-		}, 200);
-
-		return;
-	}
-}
-
-onMounted(() => {
-	wf.addMailSubscription("workflowActivity", handleWorkflowActivityMail);
-});
-
-onUnmounted(() => {
-	wf.removeMailSubscription("workflowActivity", handleWorkflowActivityMail);
 });
 
 watch(isEngaged, () => {
@@ -224,6 +230,28 @@ watch(isEngaged, () => {
 	position: absolute;
 	box-shadow: var(--wdsShadowBox);
 	user-select: none;
+}
+
+.WorkflowsNode--success {
+	background: var(--wdsColorGreen3) !important;
+}
+
+.WorkflowsNode--error {
+	background: var(--wdsColorOrange2) !important;
+}
+
+.WorkflowsNode--running {
+	box-shadow: 0px 2px 24px -16px #6985ff;
+	animation: shadowPulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes shadowPulse {
+	0% {
+		box-shadow: 0px 2px 24px -16px #6985ff;
+	}
+	100% {
+		box-shadow: 0px 2px 24px -4px #bfcbff;
+	}
 }
 
 .side {
@@ -270,9 +298,13 @@ watch(isEngaged, () => {
 	position: absolute;
 	top: -50%;
 	left: -50%;
-	background: conic-gradient(#a95ef8, #f5f5f9);
+	background: conic-gradient(#6985ff, #f5f5f9);
 	filter: blur(24px);
-	animation: spin 0.8s linear infinite;
+	animation: spin 1.5s linear infinite;
+}
+
+.WorkflowsNode--intelligent .extraBorder .runner {
+	background: conic-gradient(#6985ff, #ffd5f8, #bfcbff);
 }
 
 .main {
@@ -283,7 +315,7 @@ watch(isEngaged, () => {
 }
 
 .WorkflowsNode--intelligent .main {
-	margin-left: 6px;
+	margin-left: 8px;
 	border-radius: 0 6px 6px 0;
 }
 
@@ -299,6 +331,10 @@ watch(isEngaged, () => {
 	padding: 12px;
 	border-radius: 12px 12px 0 0;
 	align-items: center;
+}
+
+.WorkflowsNode--intelligent .title {
+	padding-left: 6px;
 }
 
 .title img {
