@@ -2264,7 +2264,7 @@ class Apps:
 
         for page in pages:
             result.extend(page.data)
-        return response.data
+        return result
 
     def retrieve(
             self,
