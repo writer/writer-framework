@@ -109,7 +109,8 @@ test.describe("Workflows", () => {
 			)
 			.click();
 		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
-		await expect(rowsLocator).toHaveCount(3);
+		const successRows = rowsLocator.locator('.outcome').filter({ hasText: "success" });
+		await expect(successRows).toHaveCount(3);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();
 		await rowLocator.getByRole("button", { name: "Trace" }).click();
 		await expect(page.locator(".WdsModal")).toBeVisible();
