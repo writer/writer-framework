@@ -111,10 +111,10 @@ test.describe("Workflows", () => {
 		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
 		await expect(rowsLocator).toHaveCount(3);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).first();
-		await rowLocator.getByRole("button", { name: "Details" }).click();
-		await expect(page.locator(".BuilderModal")).toBeVisible();
+		await rowLocator.getByRole("button", { name: "Trace" }).click();
+		await expect(page.locator(".WdsModal")).toBeVisible();
 		const returnValueLocator = page.locator(
-			`.BuilderModal [data-automation-key="return-value"]`,
+			`.WdsModal [data-automation-key="return-value"]`,
 		);
 		await expect(returnValueLocator).toContainText("blue");
 	});
