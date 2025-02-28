@@ -35,13 +35,13 @@ test.describe("Workflows", () => {
 			const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
 			await expect(rowsLocator).toHaveCount(3);
 			const rowLocator = rowsLocator.filter({ hasText: "Return value" });
-			await rowLocator.getByRole("button", { name: "Details" }).click();
-			await expect(page.locator(".BuilderModal")).toBeVisible();
+			await rowLocator.getByRole("button", { name: "Trace" }).click();
+			await expect(page.locator(".WdsModal")).toBeVisible();
 			const resultsLocator = page.locator(
-				`.BuilderModal [data-automation-key="result"]`,
+				`.WdsModal [data-automation-key="result"]`,
 			);
 			const returnValueLocator = page.locator(
-				`.BuilderModal [data-automation-key="return-value"]`,
+				`.WdsModal [data-automation-key="return-value"]`,
 			);
 			const expectedTexts = ["color", color, "object", object];
 			for (const text of expectedTexts) {
