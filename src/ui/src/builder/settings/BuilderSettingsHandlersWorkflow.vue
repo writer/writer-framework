@@ -90,14 +90,12 @@ function jumpToWorkflow(workflowId: string) {
 
 <template>
 	<div class="BuilderSettingsHandlersWorkflow">
-		<WdsButton variant="tertiary" @click="createLinkedWorkflow">
-			<i class="material-symbols-outlined">add</i>Create linked workflow
-		</WdsButton>
-
 		<div class="BuilderSettingsHandlersWorkflow__title">
 			<WdsButton
+				class="BuilderSettingsHandlersWorkflow__title__btn"
 				variant="special"
 				size="icon"
+				aria-label="Run the event"
 				@click="createLinkedWorkflow"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
@@ -107,9 +105,8 @@ function jumpToWorkflow(workflowId: string) {
 
 		<div class="BuilderSettingsHandlersWorkflow__list">
 			<BuilderListItem
-				v-for="(workflow, i) of linkedWorkflows"
+				v-for="workflow of linkedWorkflows"
 				:key="workflow.id"
-				:is-last="linkedWorkflows.length === i + 1"
 			>
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
 					<button
@@ -119,6 +116,26 @@ function jumpToWorkflow(workflowId: string) {
 					>
 						{{ workflow.content.key || "Workflow" }}
 					</button>
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
+						aria-label="Run the event"
+						@click="createLinkedWorkflow"
+					>
+						<i class="material-symbols-outlined">link_off</i>
+					</WdsButton>
+				</div>
+			</BuilderListItem>
+			<BuilderListItem is-last>
+				<div class="BuilderSettingsHandlersWorkflow__list__item">
+					<button
+						role="button"
+						class="BuilderSettingsHandlersWorkflow__list__item__btn BuilderSettingsHandlersWorkflow__list__item__btn--primary"
+						@click="createLinkedWorkflow"
+					>
+						<i class="material-symbols-outlined">add</i>
+						Connect new Orchestration
+					</button>
 				</div>
 			</BuilderListItem>
 		</div>
@@ -126,13 +143,17 @@ function jumpToWorkflow(workflowId: string) {
 </template>
 
 <style lang="css" scoped>
+.BuilderSettingsHandlersWorkflow {
+	font-size: 14px;
+}
 .BuilderSettingsHandlersWorkflow__title {
 	display: flex;
 	gap: 8px;
 	align-items: center;
-	font-size: 14px;
 }
-
+.BuilderSettingsHandlersWorkflow__title__btn i {
+	font-size: 24px;
+}
 .BuilderSettingsHandlersWorkflow__list {
 	column-gap: 12px;
 	padding-left: 20px;
@@ -140,6 +161,9 @@ function jumpToWorkflow(workflowId: string) {
 .BuilderSettingsHandlersWorkflow__list__item {
 	padding-top: 6px;
 	padding-bottom: 6px;
+
+	display: flex;
+	justify-content: space-between;
 }
 
 .BuilderSettingsHandlersWorkflow__list__item__btn {
@@ -148,8 +172,19 @@ function jumpToWorkflow(workflowId: string) {
 	text-align: left;
 	padding: 0;
 	cursor: pointer;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
 }
 .BuilderSettingsHandlersWorkflow__list__item__btn:hover {
 	text-decoration: underline;
+}
+.BuilderSettingsHandlersWorkflow__list__item__btn--primary {
+	color: var(--wdsColorBlue5);
+}
+.BuilderSettingsHandlersWorkflow__list__item__btn--primary:hover {
+	text-decoration: unset;
 }
 </style>

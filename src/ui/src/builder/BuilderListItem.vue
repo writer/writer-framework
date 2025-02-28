@@ -2,7 +2,7 @@
 import { WdsColor } from "@/wds/tokens";
 
 defineProps({
-	isLast: { type: Boolean, required: true },
+	isLast: { type: Boolean, required: false },
 });
 </script>
 
@@ -21,22 +21,30 @@ defineProps({
 			/>
 			<path v-if="!isLast" d="M1 19 V54" :stroke="WdsColor.Blue2" />
 		</svg>
-		<slot />
+		<div class="BuilderListItem__content">
+			<slot />
+		</div>
 	</div>
 </template>
 
 <style scoped>
 .BuilderListItem {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	align-items: center;
+	align-items: stretch;
 	column-gap: 12px;
+	position: relative;
+	overflow: hidden;
 }
 .BuilderListItem__anchor {
 	min-width: 17px;
-	height: fit-content;
+	max-width: 17px;
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	margin: auto 0;
 }
 .BuilderListItem__content {
-	/* height: 100px; */
+	width: 100%;
+	padding-left: calc(17px + 12px);
 }
 </style>

@@ -9,7 +9,8 @@
 				v-for="(eventInfo, eventType) in recognisedEvents"
 				:key="eventType"
 			>
-				<div class="columns">
+				<!-- TODO: remove ? -->
+				<div v-if="false" class="columns">
 					<WdsFieldWrapper
 						:label="eventType"
 						:hint="eventInfo?.desc"
