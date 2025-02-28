@@ -292,20 +292,19 @@ class TestAppRunner:
     def run_loader_thread(self, app_runner: AppRunner) -> None:
         app_runner.update_code(None, "print('188542')")
 
-    async def wait_for_code_update(self, app_runner: AppRunner) -> None:
-        await app_runner.announcement_queue.get()
-
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
     async def test_code_update(self, setup_app_runner) -> None:
         with setup_app_runner(test_app_dir, "edit") as ar:
             ar.hook_to_running_event_loop()
             ar.load()
-            wait_update_task = asyncio.create_task(self.wait_for_code_update(ar))
+            aq = asyncio.Queue()
+            ar.announcement_queues["dummy_session"] = aq
             loader_thread = threading.Thread(target=self.run_loader_thread, args=(ar,))
             loader_thread.start()
-            await wait_update_task
+            await aq.get()
             loader_thread.join()
+            del ar.announcement_queues["dummy_session"]
 
             si = InitSessionRequest(
                 type="sessionInit",

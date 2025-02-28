@@ -122,7 +122,8 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 
 .aliasEditor {
 	transition-property: color, font-size;
-	padding: 4px;
+	padding: 2px 4px 2px 4px;
+	margin-bottom: -2px;
 	margin-left: -4px;
 	border-radius: 4px;
 	width: 100%;

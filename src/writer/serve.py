@@ -654,28 +654,27 @@ def get_asgi_app(
             response.payload = typing.cast(HashRequestResponsePayload, apsr.payload).model_dump()
         await websocket.send_json(response.model_dump())
 
-    async def _stream_outgoing_announcements(websocket: WebSocket):
+    async def _stream_outgoing_announcements(websocket: WebSocket, session_id: str):
         """
         Handles outgoing communications to the client (announcements).
         """
 
-        if app_runner.announcement_queue is None:
-            raise ValueError("Announcement queue not set.")
-
-        # Wait for a message to be available in the queue
-        announcement_data = await app_runner.announcement_queue.get()
-
-        announcement = WriterWebsocketOutgoing(
-            messageType="announcement", trackingId=-1, payload=announcement_data
-        )
-
-        if websocket.application_state == WebSocketState.DISCONNECTED:
-            return
+        session_queue: asyncio.Queue = asyncio.Queue()
+        app_runner.announcement_queues[session_id] = session_queue
 
         try:
-            await websocket.send_json(announcement.dict())
+            while True:
+                announcement_data = await session_queue.get()
+                announcement = WriterWebsocketOutgoing(
+                    messageType="announcement", trackingId=-1, payload=announcement_data
+                )
+                await websocket.send_json(announcement.dict())
+                if announcement_data.get("type") == "codeUpdate":
+                    return
         except WebSocketDisconnect:
             pass
+        finally:
+            del app_runner.announcement_queues[session_id]
 
     @app.websocket("/api/stream")
     async def stream(websocket: WebSocket):
@@ -699,7 +698,7 @@ def get_asgi_app(
             return
 
         task1 = asyncio.create_task(_stream_incoming_requests(websocket, session_id))
-        task2 = asyncio.create_task(_stream_outgoing_announcements(websocket))
+        task2 = asyncio.create_task(_stream_outgoing_announcements(websocket, session_id))
 
         try:
             await asyncio.wait((task1, task2), return_when=asyncio.FIRST_COMPLETED)

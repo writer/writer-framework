@@ -994,7 +994,7 @@ class WriterState(State):
 
     def add_mail(self, type: str, payload: Any) -> None:
         mail_item = {"type": type, "payload": payload}
-        self.mail.insert(0, mail_item)
+        self.mail.append(mail_item)
 
     def add_notification(
         self, type: Literal["info", "success", "warning", "error"], title: str, message: str
@@ -1056,6 +1056,7 @@ class WriterState(State):
         message: str,
         code: Optional[str] = None,
         workflow_execution: Optional[WorkflowExecutionLog] = None,
+        id: Optional[str] = None,
     ) -> None:
         self._log_entry_in_logger(type, title, message, code)
         if not Config.is_mail_enabled_for_log:
@@ -1073,6 +1074,7 @@ class WriterState(State):
                 "message": shortened_message,
                 "code": code,
                 "workflowExecution": workflow_execution,
+                "id": id,
             },
         )
 

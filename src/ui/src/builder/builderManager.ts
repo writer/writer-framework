@@ -47,14 +47,10 @@ type LogEntryContents = {
 	message: string;
 	code?: string;
 	workflowExecution?: WorkflowExecutionLog;
+	id?: string;
 };
 
-type LogEntry = {
-	type: string;
-	title: string;
-	message: string;
-	code?: string;
-	workflowExecution?: WorkflowExecutionLog;
+type LogEntry = LogEntryContents & {
 	timestampReceived: Date;
 	fingerprint: string;
 	repeated: number;
@@ -204,6 +200,7 @@ export function generateBuilderManager() {
 		if (state.value.selection.length === 1) return SelectionStatus.Single;
 		return SelectionStatus.Multiple;
 	});
+
 	const isSingleSelectionActive = computed(
 		() => selectionStatus.value === SelectionStatus.Single,
 	);
@@ -340,22 +337,33 @@ export function generateBuilderManager() {
 	}
 
 	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
-		const { type, title, message, code, workflowExecution } =
+		const { type, title, message, code, workflowExecution, id } =
 			logEntryContents;
 		const fingerprint = await hashLogEntryContents(logEntryContents);
-		const matchingEntry = state.value.logEntries.find(
-			(le) => le.fingerprint === fingerprint,
-		);
-		if (matchingEntry) {
-			matchingEntry.repeated++;
-			matchingEntry.timestampReceived = new Date();
-			state.value.logEntries.sort((a, b) =>
-				a.timestampReceived < b.timestampReceived ? 1 : -1,
+
+		if (id) {
+			const index = state.value.logEntries.findIndex(
+				(entry) => entry.id === id,
 			);
-			return;
+			if (index !== -1) {
+				state.value.logEntries.splice(index, 1);
+			}
+		} else {
+			const matchingEntry = state.value.logEntries.find(
+				(le) => le.fingerprint === fingerprint,
+			);
+			if (matchingEntry) {
+				matchingEntry.repeated++;
+				matchingEntry.timestampReceived = new Date();
+				state.value.logEntries.sort((a, b) =>
+					a.timestampReceived < b.timestampReceived ? 1 : -1,
+				);
+				return;
+			}
 		}
 
 		state.value.logEntries.unshift({
+			id,
 			type,
 			title,
 			message,

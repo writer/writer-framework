@@ -545,7 +545,9 @@ class AppProcess(multiprocessing.Process):
         thread_pool_future.add_done_callback(self._send_packet)
 
     def run(self) -> None:
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=(os.cpu_count() or 4) * 5)
+        self.executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=(os.cpu_count() or 4) * 10
+        )
         self.server_conn_lock = threading.Lock()
         self.client_conn.close()
         self._main()
@@ -674,7 +676,7 @@ class AppRunner:
         self.log_queue: multiprocessing.Queue = multiprocessing.Queue()
         self.log_listener: Optional[LogListener] = None
         self.serve_loop: Optional[asyncio.AbstractEventLoop] = None
-        self.announcement_queue: Optional[asyncio.Queue] = None
+        self.announcement_queues: Dict[str, asyncio.Queue] = {}
         self.wf_project_context = WfProjectContext(app_path=app_path)
 
         if mode not in ("edit", "run"):
@@ -690,7 +692,6 @@ class AppRunner:
         """
 
         self.serve_loop = asyncio.get_running_loop()
-        self.announcement_queue = asyncio.Queue()
 
     def _set_logger(self):
         logger = logging.getLogger("app")
@@ -1056,11 +1057,10 @@ class AppRunner:
 
     def queue_announcement(self, type, payload):
         async def announce(type: str, payload: Any):
-            if self.announcement_queue is None:
-                return
-            await self.announcement_queue.put({"type": type, "payload": payload})
+            for announcement_queue in self.announcement_queues.values():
+                await announcement_queue.put({"type": type, "payload": payload})
 
-        if self.serve_loop is not None and self.announcement_queue is not None:
+        if self.serve_loop is not None:
             try:
                 future = asyncio.run_coroutine_threadsafe(announce(type, payload), self.serve_loop)
                 future.result(AppRunner.MAX_WAIT_NOTIFY_SECONDS)

@@ -3,7 +3,10 @@
 	<Teleport to="#modal">
 		<div
 			class="WdsModal colorTransformer"
-			:class="{ 'WdsModal--overflow': allowOverflow }"
+			:class="{
+				'WdsModal--overflow': allowOverflow,
+				'WdsModal--wide': size == 'wide',
+			}"
 			tabindex="-1"
 		>
 			<div class="main">
@@ -42,6 +45,11 @@ export type ModalAction = {
 
 const props = defineProps({
 	title: { type: String, required: true },
+	size: {
+		type: String as PropType<"normal" | "wide">,
+		required: false,
+		default: "normal",
+	},
 	description: { type: String, required: false, default: null },
 	actions: {
 		type: Array as PropType<ModalAction[]>,
@@ -77,8 +85,12 @@ const { title, actions } = toRefs(props);
 	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
 }
 
+.WdsModal--wide .main {
+	max-width: 240ch;
+}
+
 .WdsModal--overflow .main {
-	overflow: unset;
+	overflow-y: unset;
 }
 
 h2 {
@@ -102,7 +114,8 @@ summary {
 
 .slotContainer {
 	max-height: 60vh;
-	overflow: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 .WdsModal--overflow .slotContainer {
 	overflow: unset;

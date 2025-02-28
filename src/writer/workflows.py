@@ -1,7 +1,10 @@
+import hashlib
 import json
 import logging
+import os
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
@@ -15,13 +18,15 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 class WorkflowRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
+        self.executor_lock = threading.Lock()
 
     @contextmanager
     def _get_executor(self):
         new_executor = None
         try:
             current_app_process = writer.core.get_app_process()
-            yield current_app_process.executor
+            with self.executor_lock:
+                yield current_app_process.executor
         except RuntimeError:
             logging.info(
                 "The main pool executor isn't being reused. This is only expected in test or debugging situations."
@@ -124,28 +129,72 @@ class WorkflowRunner:
         nodes = self._get_workflow_nodes(component_id)
         return self.run_nodes(nodes, execution_environment, title)
 
+    def _generate_run_id(self):
+        timestamp = str(int(time.time() * 1000))
+        salt = os.urandom(8).hex()
+        raw_id = f"{self.session.session_id}_{timestamp}_{salt}"
+        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
+        return hashed_id
+
     def run_nodes(
         self,
         nodes: List[writer.core_ui.Component],
         execution_environment: Dict,
         title: str = "Workflow execution",
     ):
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock] = {}
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = {}
+        tool_futures: Dict[str, Future] = {}
         return_value = None
+        execution_environment["run_id"] = self._generate_run_id()
+        trace = execution_environment.get("trace", []).copy()
         try:
-            for node in self.get_terminal_nodes(nodes):
-                self.run_node(node, nodes, execution_environment, execution)
+            futures = []
+            with self._get_executor() as executor:
+                for node in self.get_terminal_nodes(nodes):
+                    futures.append(
+                        executor.submit(
+                            self.run_node,
+                            node,
+                            nodes,
+                            execution_environment,
+                            execution,
+                            tool_futures,
+                            trace,
+                        )
+                    )
+
+            wait(futures)
+
             for tool in execution.values():
                 if tool and tool.return_value is not None:
                     return_value = tool.return_value
         except WriterConfigurationError:
-            self._generate_run_log(execution, title, "error")
+            self._generate_run_log(
+                execution,
+                title,
+                "error",
+                msg="Execution finished.",
+                run_id=execution_environment.get("run_id"),
+            )
             # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
         except BaseException as e:
-            self._generate_run_log(execution, title, "error")
+            self._generate_run_log(
+                execution,
+                title,
+                "error",
+                msg="Execution finished.",
+                run_id=execution_environment.get("run_id"),
+            )
             raise e
         else:
-            self._generate_run_log(execution, title, "info", return_value)
+            self._generate_run_log(
+                execution,
+                "Workflow execution finished",
+                "info",
+                return_value,
+                msg="Execution finished.",
+                run_id=execution_environment.get("run_id"),
+            )
         return return_value
 
     def _summarize_data_for_log(self, data):
@@ -162,15 +211,22 @@ class WorkflowRunner:
 
     def _generate_run_log(
         self,
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
         title: str,
         entry_type: Literal["info", "error"],
         return_value: Optional[Any] = None,
+        msg: str = "",
+        run_id: Optional[str] = None,
     ):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
+        if run_id is None:
+            run_id = self._generate_run_id()
         exec_log: WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
         for component_id, tool in execution.items():
+            if tool is None:
+                exec_log.summary.append({"componentId": component_id})
+                continue
             exec_log.summary.append(
                 {
                     "componentId": component_id,
@@ -184,10 +240,9 @@ class WorkflowRunner:
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
             )
-        msg = "Execution finished."
 
         self.session.session_state.add_log_entry(
-            entry_type, title, msg, workflow_execution=exec_log
+            entry_type, title, msg, workflow_execution=exec_log, id=run_id
         )
 
     def get_terminal_nodes(self, nodes):
@@ -195,7 +250,7 @@ class WorkflowRunner:
 
     def _get_node_dependencies(
         self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component]
-    ):
+    ) -> List[Tuple]:
         dependencies: List[Tuple] = []
         parent_id = target_node.parentId
         if not parent_id:
@@ -223,31 +278,41 @@ class WorkflowRunner:
         target_node: writer.core_ui.Component,
         nodes: List[writer.core_ui.Component],
         execution_environment: Dict,
-        execution: Dict[str, writer.blocks.base_block.WorkflowBlock],
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
+        tool_futures: Dict[str, Future],
+        trace: List[str],
     ):
         tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
             raise RuntimeError(f'Could not find tool for "{target_node.type}".')
         dependencies = self._get_node_dependencies(target_node, nodes)
 
-        tool = execution.get(target_node.id)
-        if tool:
-            return tool
-
+        execution[target_node.id] = None
         result = None
         matched_dependencies = 0
+        dependencies_futures = []
 
         with self._get_executor() as executor:
-            future_to_node = {
-                executor.submit(self.run_node, node, nodes, execution_environment, execution): (
-                    node,
-                    out_id,
-                )
-                for node, out_id in dependencies
-            }
+            for node, out_id in dependencies:
+                tool_future = tool_futures.get(node.id)
 
-        for future in as_completed(future_to_node):
-            node, out_id = future_to_node[future]
+                if tool_future is None:
+                    tool_future = executor.submit(
+                        self.run_node,
+                        node,
+                        nodes,
+                        execution_environment,
+                        execution,
+                        tool_futures,
+                        trace,
+                    )
+                    tool_futures[node.id] = tool_future
+                dependencies_futures.append(tool_future)
+
+        wait(dependencies_futures)  # Important to preserve order, don't switch to as_completed
+
+        for future, dependency in zip(dependencies_futures, dependencies):
+            (node, out_id) = dependency
             tool = future.result()
 
             if not tool:
@@ -264,28 +329,47 @@ class WorkflowRunner:
         if len(dependencies) > 0 and matched_dependencies == 0:
             return
 
+        trace += [target_node.id]
         expanded_execution_environment = execution_environment | {
+            "trace": trace.copy(),
             "result": result,
-            "results": {k: v.result for k, v in execution.items()},
+            "results": {k: v.result if v is not None else None for k, v in execution.items()},
         }
         tool = tool_class(target_node.id, self, expanded_execution_environment)
-        execution[target_node.id] = tool
 
         try:
+            tool.outcome = "in_progress"
+            del execution[target_node.id]
+            execution[target_node.id] = tool
+            self._generate_run_log(
+                execution,
+                "Running workflow...",
+                "info",
+                msg="Execution in progress.",
+                run_id=execution_environment.get("run_id"),
+            )
             start_time = time.time()
             tool.run()
             tool.execution_time_in_seconds = time.time() - start_time
         except BaseException as e:
             if not tool:
                 raise e
-            if not tool.outcome:
-                tool.outcome = "error"
             if self._is_outcome_managed(target_node, tool.outcome):
-                pass
+                return tool
+            if not tool.outcome or tool.outcome == "in_progress":
+                tool.outcome = "error"
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
             else:
                 tool.message = repr(e)
             raise e
+        finally:
+            self._generate_run_log(
+                execution,
+                "Running workflow...",
+                "info",
+                msg="Execution in progress.",
+                run_id=execution_environment.get("run_id"),
+            )
 
         return tool

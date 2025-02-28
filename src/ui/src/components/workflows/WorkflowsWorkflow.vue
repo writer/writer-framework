@@ -161,7 +161,7 @@ const temporaryNodeCoordinates = shallowRef<
 	Record<Component["id"], { x: number; y: number }>
 >({});
 
-const AUTOARRANGE_ROW_GAP_PX = 96;
+const AUTOARRANGE_ROW_GAP_PX = 48;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>
@@ -306,7 +306,7 @@ function handleAutoArrange() {
 	);
 
 	const coordinates = {};
-	let x = AUTOARRANGE_COLUMN_GAP_PX;
+	let x = AUTOARRANGE_COLUMN_GAP_PX / 2;
 	for (let i = 0; i < columns.size; i++) {
 		const nodes = Array.from(columns.get(i)).sort((a, b) =>
 			a.y > b.y ? 1 : -1,
@@ -335,7 +335,7 @@ async function handleRun() {
 			},
 		}),
 		null,
-		false,
+		true,
 	);
 }
 
