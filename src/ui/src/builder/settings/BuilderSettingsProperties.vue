@@ -143,11 +143,19 @@
 						:is-expanded="expandedFields.has(fieldKey)"
 					>
 					</BuilderFieldsCode>
-					<BuilderFieldsWriterGraphId
+					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterGraphId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
+						resource-type="graph"
+					/>
+					<BuilderFieldsWriterResourceId
+						v-if="fieldValue.type == FieldType.WriterAppId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+						resource-type="application"
 					/>
 				</WdsFieldWrapper>
 			</div>
@@ -173,8 +181,8 @@ import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
+import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
-import BuilderFieldsWriterGraphId from "./BuilderFieldsWriterGraphId.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -17,9 +17,9 @@ class ForEach(WorkflowBlock):
                     "category": "Logic",
                     "fields": {
                         "workflowKey": {
-                            "name": "Workflow key",
+                            "name": "Workflow Key",
                             "desc": "The workflow which will be executed for each item.",
-                            "type": "WorkflowKey",
+                            "type": "Workflow Key",
                         },
                         "items": {
                             "name": "Items",

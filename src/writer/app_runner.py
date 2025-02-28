@@ -285,6 +285,23 @@ class AppProcess(multiprocessing.Process):
             except (RuntimeError, APIConnectionError) as e:
                 return AppProcessServerResponse(status="error", status_message=str(e), payload=None)
 
+        if req.resource_type == "applications":
+            from writerai import APIConnectionError
+
+            from writer.ai import apps
+
+            try:
+                applications = apps.list()
+                raw_apps = [
+                    {"name": app.name, "id": app.id, "type": app.type, "status": app.status}
+                    for app in applications
+                ]
+                return AppProcessServerResponse(
+                    status="ok", status_message=None, payload={"data": raw_apps}
+                )
+            except (RuntimeError, APIConnectionError) as e:
+                return AppProcessServerResponse(status="error", status_message=str(e), payload=None)
+
         return AppProcessServerResponse(
             status="error",
             status_message=f"could not load unknow resources {req.resource_type}",

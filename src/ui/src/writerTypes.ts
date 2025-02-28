@@ -137,9 +137,10 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
-	WorkflowKey = "WorkflowKey",
+	WorkflowKey = "Workflow Key",
 	Handler = "Handler",
-	WriterGraphId = "WriterGraphId",
+	WriterGraphId = "Graph Id",
+	WriterAppId = "App Id",
 }
 
 export const enum FieldCategory {
@@ -198,7 +199,6 @@ export type SourceFiles = SourceFilesDirectory | SourceFilesFile;
 
 export type WriterGraph = {
 	id: string;
-	created_at: string;
 	name: string;
 	description: string;
 	file_status: {
@@ -208,4 +208,11 @@ export type WriterGraph = {
 		total: number;
 	};
 	type: "connector" | "manual";
+};
+
+export type WriterApplication = {
+	id: string;
+	name: string;
+	type: string;
+	status: string;
 };
