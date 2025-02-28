@@ -17,7 +17,7 @@ class WriterNoCodeApp(WorkflowBlock):
                 "fields": {
                     "appId": {
                         "name": "App Id",
-                        "type": "WriterAppId",
+                        "type": "App Id",
                         "desc": "The app id can be found in the app's URL. It has a UUID format.",
                         "validator": {
                             "type": "string",

@@ -16,8 +16,8 @@ class RunWorkflow(WorkflowBlock):
                 "category": "Logic",
                 "fields": {
                     "workflowKey": {
-                        "name": "Workflow key",
-                        "type": "WorkflowKey",
+                        "name": "Workflow Key",
+                        "type": "Workflow Key",
                         "validator": {
                             "type": "string",
                             "format": "writer#workflowKey",

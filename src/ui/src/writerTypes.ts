@@ -137,10 +137,10 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
-	WorkflowKey = "WorkflowKey",
+	WorkflowKey = "Workflow Key",
 	Handler = "Handler",
-	WriterGraphId = "WriterGraphId",
-	WriterAppId = "WriterAppId",
+	WriterGraphId = "Graph Id",
+	WriterAppId = "App Id",
 }
 
 export const enum FieldCategory {
