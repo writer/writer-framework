@@ -2259,7 +2259,9 @@ class Apps:
         config = config or {}
 
         response = client.applications.list(**config)
-        result = [app for app in response]
+        # Convert the response to list
+        # to collect all the apps available
+        result = list(response)
 
         return result
 
