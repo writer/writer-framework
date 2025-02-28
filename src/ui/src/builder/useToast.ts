@@ -1,12 +1,14 @@
 import { readonly, shallowRef } from "vue";
 
+export type ToastAction = { label: string; func: () => void; icon: string };
+
 export type Toast = {
 	id: number;
 	type: "error" | "success" | "info";
 	message: string;
 	closable?: boolean;
 	delayMs?: number;
-	action?: { label: string; func: () => void; icon: string };
+	action?: ToastAction;
 };
 
 const toasts = shallowRef<Toast[]>([]);

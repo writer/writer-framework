@@ -183,6 +183,7 @@ function jumpToWorkflow(workflowId: string) {
 }
 .BuilderSettingsHandlersWorkflow__list__item__btn--primary {
 	color: var(--wdsColorBlue5);
+	font-weight: 500;
 }
 .BuilderSettingsHandlersWorkflow__list__item__btn--primary:hover {
 	text-decoration: unset;
