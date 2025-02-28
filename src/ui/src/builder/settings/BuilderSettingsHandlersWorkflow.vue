@@ -6,6 +6,7 @@ import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import { WdsColor } from "@/wds/tokens";
+import BuilderListItem from "../BuilderListItem.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -105,29 +106,11 @@ function jumpToWorkflow(workflowId: string) {
 		</div>
 
 		<div class="BuilderSettingsHandlersWorkflow__list">
-			<template
+			<BuilderListItem
 				v-for="(workflow, i) of linkedWorkflows"
 				:key="workflow.id"
+				:is-last="linkedWorkflows.length === i + 1"
 			>
-				<div class="BuilderSettingsHandlersWorkflow__list__anchor">
-					<svg
-						width="17"
-						viewBox="0 0 17 28"
-						fill="none"
-						xmlns="http://www.w3.org/2000/svg"
-						preserveAspectRatio="xMinYMax meet"
-					>
-						<path
-							d="M1 0V19C1 23.4183 4.58172 27 9 27H17"
-							:stroke="WdsColor.Blue2"
-						/>
-						<path
-							v-if="linkedWorkflows.length !== i + 1"
-							d="M1 0 V28"
-							:stroke="WdsColor.Blue2"
-						/>
-					</svg>
-				</div>
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
 					<button
 						role="button"
@@ -137,7 +120,7 @@ function jumpToWorkflow(workflowId: string) {
 						{{ workflow.content.key || "Workflow" }}
 					</button>
 				</div>
-			</template>
+			</BuilderListItem>
 		</div>
 	</div>
 </template>
@@ -151,23 +134,12 @@ function jumpToWorkflow(workflowId: string) {
 }
 
 .BuilderSettingsHandlersWorkflow__list {
-	display: grid;
-	grid-template-columns: auto 1fr;
 	column-gap: 12px;
 	padding-left: 20px;
 }
 .BuilderSettingsHandlersWorkflow__list__item {
 	padding-top: 6px;
 	padding-bottom: 6px;
-}
-
-.BuilderSettingsHandlersWorkflow__list__anchor {
-	/* background-color: coral; */
-	width: 20px;
-	height: 100%;
-}
-.BuilderSettingsHandlersWorkflow__list__anchor_img {
-	height: 100%;
 }
 
 .BuilderSettingsHandlersWorkflow__list__item__btn {
