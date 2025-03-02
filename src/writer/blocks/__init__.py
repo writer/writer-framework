@@ -16,6 +16,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.changepage import ChangePage
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
@@ -35,3 +36,4 @@ WriterInitChat.register("workflows_writerinitchat")
 WriterAddToKG.register("workflows_writeraddtokg")
 UIEventTrigger.register("workflows_uieventtrigger")
 CodeBlock.register("workflows_code")
+ChangePage.register("workflows_changepage")
