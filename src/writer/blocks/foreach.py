@@ -16,21 +16,21 @@ class ForEach(WorkflowBlock):
                     "description": "Executes a workflow repeatedly, based on the items provided.",
                     "category": "Logic",
                     "fields": {
-                        "workflowKey": {
-                            "name": "Workflow Key",
-                            "desc": "The workflow which will be executed for each item.",
-                            "type": "Workflow Key",
-                        },
                         "items": {
                             "name": "Items",
-                            "desc": "The item value will be passed in the execution environment and will be available at @{payload.item}, its id at @{payload.itemId}.",
-                            "default": "{}",
-                            "init": '{ "fr": "France", "pl": "Poland" }',
+                            "desc": "The item value will be passed in the execution environment and will be available at @{item}, its id at @{itemId}. You can use either a list or a dictionary.",
+                            "default": "[]",
+                            "init": '["France", "Poland"]',
                             "type": "Object",
                             "control": "Textarea",
                         },
                     },
                     "outs": {
+                        "loop": {
+                            "name": "Loop",
+                            "description": "Connect the branch that you'd like to loop.",
+                            "style": "success",
+                        },
                         "success": {
                             "name": "Success",
                             "description": "The workflow executed successfully.",
@@ -57,20 +57,23 @@ class ForEach(WorkflowBlock):
 
             if isinstance(items, list):
                 workflow_environments = [
-                    base_execution_environment | {"payload": {"itemId": i, "item": item}}
+                    base_execution_environment | {"itemId": i, "item": item}
                     for i, item in enumerate(items)
                 ]
-                results = self.runner.run_workflow_pool(workflow_key, workflow_environments)
+
+                results = self.runner.run_branch_pool(
+                    self.component_id, "loop", workflow_environments
+                )
                 self.result = results  # Return as a list
 
             elif isinstance(items, dict):
                 workflow_environments = {
                     str(item_id): base_execution_environment
-                    | {"payload": {"itemId": str(item_id), "item": item}}
+                    | {"itemId": str(item_id), "item": item}
                     for item_id, item in items.items()
                 }
-                results = self.runner.run_workflow_pool(
-                    workflow_key, list(workflow_environments.values())
+                results = self.runner.run_branch_pool(
+                    self.component_id, "loop", list(workflow_environments.values())
                 )
                 self.result = {
                     item_id: results[i] for i, item_id in enumerate(workflow_environments.keys())

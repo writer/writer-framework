@@ -123,6 +123,27 @@ class WorkflowRunner:
         nodes = self._get_branch_nodes(base_component_id, base_outcome)
         return self.run_nodes(nodes, execution_environment, title)
 
+    def run_branch_pool(
+        self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
+    ):
+        """
+        Executes the same branch multiple times in parallel with different execution environments.
+        """
+
+        with self._get_executor() as executor:
+            futures = [
+                executor.submit(self.run_branch, base_component_id, base_outcome, env)
+                for env in execution_environments
+            ]
+
+        wait(futures)  # Important to preserve order, don't switch to as_completed
+
+        results = []
+        for future in futures:
+            results.append(future.result())
+
+        return results
+
     def run_workflow(
         self, component_id: str, execution_environment: Dict, title="Workflow execution"
     ):
