@@ -5,7 +5,7 @@
 			class="CoreChatbotMessage__content"
 			:style="{ background: contentBgColor }"
 		>
-			<CoreChatbotLoader v-if="displayLoader" />
+			<WdsLoaderDots v-if="displayLoader" />
 			<div v-else class="CoreChatbotMessage__content__text">
 				<BaseMarkdown v-if="useMarkdown" :raw-text="content">
 				</BaseMarkdown>
@@ -59,8 +59,8 @@ import CoreChatbotAvatar from "./CoreChatbotAvatar.vue";
 const BaseMarkdown = defineAsyncComponent(
 	() => import("../../base/BaseMarkdown.vue"),
 );
-const CoreChatbotLoader = defineAsyncComponent(
-	() => import("./CoreChatbotLoader.vue"),
+const WdsLoaderDots = defineAsyncComponent(
+	() => import("@/wds/WdsLoaderDots.vue"),
 );
 
 const props = defineProps({

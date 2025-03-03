@@ -32,7 +32,9 @@ test.describe("Workflows", () => {
 					`[data-automation-action="toggle-panel"][data-automation-key="log"]`,
 				)
 				.click();
-			const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
+			const rowsLocator = page.locator(
+				".BuilderPanelSwitcher div.BuilderListItem",
+			);
 			await expect(rowsLocator).toHaveCount(3);
 			const rowLocator = rowsLocator.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Trace" }).click();
@@ -108,8 +110,12 @@ test.describe("Workflows", () => {
 				`[data-automation-action="toggle-panel"][data-automation-key="log"]`,
 			)
 			.click();
-		const rowsLocator = page.locator(".BuilderPanelSwitcher div.row");
-		const successRows = rowsLocator.locator(".outcome").filter({ hasText: "success" });
+		const rowsLocator = page.locator(
+			".BuilderPanelSwitcher div.BuilderListItem",
+		);
+		const successRows = rowsLocator
+			.locator(".outcome")
+			.filter({ hasText: "success" });
 		await expect(successRows).toHaveCount(3);
 		const rowLocator = rowsLocator.filter({ hasText: "Return value" }).last();
 		await rowLocator.getByRole("button", { name: "Trace" }).click();
