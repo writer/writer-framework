@@ -4,6 +4,7 @@
 		:class="{
 			'WorkflowsNode--trigger': isTrigger,
 			'WorkflowsNode--intelligent': isIntelligent,
+			'WorkflowsNode--deprecated': isDeprecated,
 			'WorkflowsNode--running': completionStyle == 'running',
 			'WorkflowsNode--success': completionStyle == 'success',
 			'WorkflowsNode--error': completionStyle == 'error',
@@ -24,6 +25,9 @@
 					class="nodeNamer"
 					:block-name="def.name"
 				></WorkflowsNodeNamer>
+				<div v-if="isDeprecated" class="deprecationNotice">
+					Deprecated
+				</div>
 			</div>
 			<div
 				v-for="(outs, fieldKey) in dynamicOuts"
@@ -118,6 +122,10 @@ const isTrigger = computed(() => {
 
 const isIntelligent = computed(() => {
 	return def?.value?.category == "Writer";
+});
+
+const isDeprecated = computed(() => {
+	return def?.value?.deprecated;
 });
 
 const completionStyle = computed(() => {
@@ -245,6 +253,10 @@ watch(isEngaged, () => {
 	animation: shadowPulse 1s infinite alternate ease-in-out;
 }
 
+.WorkflowsNode--deprecated {
+	filter: grayscale(1);
+}
+
 @keyframes shadowPulse {
 	0% {
 		box-shadow: 0px 2px 24px -16px #6985ff;
@@ -326,11 +338,12 @@ watch(isEngaged, () => {
 }
 
 .title {
-	display: flex;
+	display: grid;
 	gap: 10px;
 	padding: 12px;
 	border-radius: 12px 12px 0 0;
 	align-items: center;
+	grid-template-columns: 24px 1fr;
 }
 
 .WorkflowsNode--intelligent .title {
@@ -340,6 +353,17 @@ watch(isEngaged, () => {
 .title img {
 	width: 24px;
 	height: 24px;
+}
+
+.title .deprecationNotice {
+	font-size: 12px;
+	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 12px; /* 100% */
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+	color: var(--builderSecondaryTextColor);
 }
 
 .WorkflowsNode--trigger .title img {

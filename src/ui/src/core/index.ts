@@ -68,9 +68,6 @@ export function generateCore() {
 	 */
 	async function init() {
 		await initSession();
-		addMailSubscription("pageChange", (pageKey: string) => {
-			setActivePageFromKey(pageKey);
-		});
 		sendKeepAliveMessage();
 		if (mode.value != "edit") return;
 	}

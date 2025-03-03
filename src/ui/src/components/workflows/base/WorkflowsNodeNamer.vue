@@ -82,6 +82,7 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 <style scoped>
 .WorkflowsNodeNamer {
 	width: 100%;
+	overflow: hidden;
 }
 
 .blockName {
