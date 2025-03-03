@@ -1,17 +1,24 @@
 import io
 import sys
+from typing import Any
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
 
-INIT_CODE = """# State is accessible as a global variable. For example:
+INIT_CODE = """
+# State is accessible as a global variable. For example:
 state["counter"] = 10
 
 # Other variables from the execution environment are also available. For example:
 result # Result from the execution of the last block
 results # Dictionary with the execution results of each block, with the block id as key
-payload # When executing via API or via an UI event with a payload"""
+payload # When executing via API or via an UI event with a payload
+
+# To set the output of this block, which will be available via result to the next block:
+set_output("a sample result")
+
+"""
 
 
 class CodeBlock(WorkflowBlock):
@@ -51,28 +58,28 @@ class CodeBlock(WorkflowBlock):
             ),
         )
 
+    def set_output(self, output: Any):
+        self.result = output
+
     def run(self):
         try:
             code = self._get_field("code")
-
-            output_buffer = io.StringIO()
-            sys.stdout = output_buffer
+            self.result = None
 
             writeruserapp = sys.modules.get("writeruserapp")
-
-            exec(
-                code,
+            block_globals = (
                 {
                     "state": self.runner.session.session_state,
                 }
                 | self.execution_environment
-                | writeruserapp.__dict__,
+                | writeruserapp.__dict__
+                | {"set_output": self.set_output}
+            )
+            exec(
+                code,
+                block_globals,
             )
 
-            sys.stdout = sys.__stdout__
-            captured_output = output_buffer.getvalue()
-
-            self.result = captured_output
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

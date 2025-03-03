@@ -3,36 +3,34 @@ from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
 
 
-class LogMessage(WorkflowBlock):
+class ChangePage(WorkflowBlock):
     @classmethod
     def register(cls, type: str):
-        super(LogMessage, cls).register(type)
+        super(ChangePage, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
                 baseType="workflows_node",
                 writer={
-                    "name": "Log message",
-                    "description": "Appends a message to the log.",
+                    "name": "Change page",
+                    "description": "Changes the active page.",
                     "category": "Other",
                     "fields": {
-                        "type": {
-                            "name": "Type",
+                        "pageKey": {
+                            "name": "Page key",
                             "type": "Text",
-                            "options": {"info": "Info", "error": "Error"},
-                            "default": "info",
+                            "desc": "The identifying key of the target page.",
                         },
-                        "message": {"name": "Message", "type": "Text", "control": "Textarea"},
                     },
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "The request was successful.",
+                            "description": "The page change was successful.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The workflow was executed successfully.",
+                            "description": "The event handler execution wasn't successful.",
                             "style": "error",
                         },
                     },
@@ -42,11 +40,8 @@ class LogMessage(WorkflowBlock):
 
     def run(self):
         try:
-            type = self._get_field("type", False, "info")
-            message = str(self._get_field("message", required=True))
-
-            self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
-            self.result = message
+            page_key = self._get_field("pageKey", required=True)
+            self.runner.session.session_state.set_page(page_key)
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"

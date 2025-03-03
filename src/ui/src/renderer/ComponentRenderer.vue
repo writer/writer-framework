@@ -22,7 +22,15 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, computed, watch, onBeforeMount, onMounted } from "vue";
+import {
+	inject,
+	ref,
+	computed,
+	watch,
+	onBeforeMount,
+	onMounted,
+	nextTick,
+} from "vue";
 import { Component } from "@/writerTypes";
 import ComponentProxy from "./ComponentProxy.vue";
 import RendererNotifications from "./RendererNotifications.vue";
@@ -39,10 +47,18 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const templateEvaluator = useEvaluator(wf);
 const importedModulesSpecifiers: Record<string, string> = {};
+const lastActivePageId = ref({});
 
 const activeRootId = computed<Component["id"]>(
 	() => wfbm?.activeRootId.value ?? "root",
 );
+
+watch(activeRootId, (newMode, previousMode) => {
+	lastActivePageId.value[previousMode] = wf.activePageId;
+	const lastPageId = lastActivePageId.value?.[newMode];
+	if (!lastPageId) return;
+	wf.setActivePageId(lastPageId);
+});
 
 const coreRootFields = templateEvaluator.getEvaluatedFields([
 	{ componentId: "root", instanceNumber: 0 },
@@ -157,8 +173,11 @@ function addMailSubscriptions() {
 		el.rel = "noopener noreferrer";
 		el.click();
 	});
-	wf.addMailSubscription("pageChange", (pageKey: string) => {
+	wf.addMailSubscription("pageChange", async (pageKey: string) => {
+		wfbm.setMode("ui");
+		await nextTick();
 		changePageInHash(pageKey);
+		wf.setActivePageFromKey(pageKey);
 	});
 	wf.addMailSubscription(
 		"routeVarsChange",
