@@ -43,7 +43,7 @@ class LogMessage(WorkflowBlock):
     def run(self):
         try:
             type = self._get_field("type", False, "info")
-            message = self._get_field("message", required=True)
+            message = str(self._get_field("message", required=True))
 
             self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
             self.result = message
