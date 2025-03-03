@@ -6,6 +6,7 @@ import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
+import { useWorkflowsRun } from "@/composables/useWorkflowRun";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -21,7 +22,7 @@ const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),
 );
 
-const linkedWorkflows = computed(() => {
+const linkedWorkflows = computed<Component[]>(() => {
 	return wf
 		.getComponents("workflows_root")
 		.filter((w) =>
@@ -35,14 +36,27 @@ const linkedWorkflows = computed(() => {
 				),
 		);
 });
+const linkedWorkflowsIds = computed(() =>
+	linkedWorkflows.value.map((w) => w.id),
+);
+
+const { run, isRunning } = useWorkflowsRun(wf, linkedWorkflowsIds);
 
 const { pushToast } = useToasts();
+
+function getNewWorkflowKey() {
+	const indexes = linkedWorkflows.value.map((w) => {
+		const matchs = (w.content.key ?? "0").match(/\d+/);
+		return matchs ? Number(matchs[0]) : 0;
+	});
+	return indexes.length === 0 ? 1 : Math.max(...indexes) + 1;
+}
 
 async function createLinkedWorkflow() {
 	const { type } = props.component;
 	const { name } = wf.getComponentDefinition(type);
 	const alias = `${name} - ${props.eventType}`;
-	const key = `${type}@${props.eventType.replace(/^wf-/, "")}`;
+	const key = `${type}@${props.eventType.replace(/^wf-/, "")}_${getNewWorkflowKey()}`;
 	const workflowId = createAndInsertComponent(
 		"workflows_workflow",
 		"workflows_root",
@@ -109,7 +123,7 @@ function jumpToWorkflow(workflowId: string) {
 				variant="special"
 				size="icon"
 				aria-label="Run the event"
-				@click="createLinkedWorkflow"
+				@click="run"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
 			</WdsButton>
@@ -148,7 +162,7 @@ function jumpToWorkflow(workflowId: string) {
 						@click="createLinkedWorkflow"
 					>
 						<i class="material-symbols-outlined">add</i>
-						Connect new Orchestration
+						Connect new workflow
 					</button>
 				</div>
 			</BuilderListItem>
