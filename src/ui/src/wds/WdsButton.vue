@@ -5,12 +5,13 @@
 		role="button"
 		:style="style"
 	>
-		<slot></slot>
+		<WdsLoaderDots v-if="loading" />
+		<slot v-else></slot>
 	</button>
 </template>
 
 <script setup lang="ts">
-import { computed, CSSProperties, PropType } from "vue";
+import { computed, CSSProperties, defineAsyncComponent, PropType } from "vue";
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonVariant =
 	| "primary"
@@ -22,10 +23,15 @@ type WdsButtonVariant =
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 
+const WdsLoaderDots = defineAsyncComponent(
+	() => import("@/wds/WdsLoaderDots.vue"),
+);
+
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
+	loading: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
@@ -58,6 +64,9 @@ const className = computed(() => [
 	outline: none;
 	border-style: solid;
 	border-width: 1px;
+}
+.WdsButton:disabled {
+	cursor: not-allowed;
 }
 
 /* VARIANTS */
