@@ -161,7 +161,7 @@ const temporaryNodeCoordinates = shallowRef<
 	Record<Component["id"], { x: number; y: number }>
 >({});
 
-const AUTOARRANGE_ROW_GAP_PX = 48;
+const AUTOARRANGE_ROW_GAP_PX = 64;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>
