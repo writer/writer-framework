@@ -187,11 +187,12 @@ function jumpToWorkflow(workflowId: string) {
 }
 .BuilderSettingsHandlersWorkflow__list {
 	column-gap: 12px;
-	padding-left: 20px;
+	padding-left: 19px;
 }
 .BuilderSettingsHandlersWorkflow__list__item {
 	padding-top: 6px;
 	padding-bottom: 6px;
+	padding-left: 12px;
 
 	display: flex;
 	justify-content: space-between;
