@@ -1,13 +1,13 @@
 <template>
-	<div class="CoreChatbotLoader" :style="{ '--dotSize': '6px' }">
-		<span class="CoreChatbotLoader__dot"></span>
-		<span class="CoreChatbotLoader__dot"></span>
-		<span class="CoreChatbotLoader__dot"></span>
+	<div class="WdsLoaderDots" :style="{ '--dotSize': '6px' }">
+		<span class="WdsLoaderDots__dot"></span>
+		<span class="WdsLoaderDots__dot"></span>
+		<span class="WdsLoaderDots__dot"></span>
 	</div>
 </template>
 
 <style scoped>
-.CoreChatbotLoader {
+.WdsLoaderDots {
 	width: 100px;
 	height: 100%;
 	display: flex;
@@ -16,14 +16,14 @@
 	justify-content: center;
 }
 
-.CoreChatbotLoader__dot {
+.WdsLoaderDots__dot {
 	display: inline-block;
 	width: var(--dotSize);
 	height: var(--dotSize);
 	position: relative;
 }
 
-.CoreChatbotLoader__dot::after {
+.WdsLoaderDots__dot::after {
 	display: inline-block;
 	content: "";
 	position: absolute;
@@ -38,13 +38,13 @@
 	transform: translate(-50%, -50%);
 }
 
-.CoreChatbotLoader__dot:nth-child(1)::after {
+.WdsLoaderDots__dot:nth-child(1)::after {
 	animation-delay: 0s;
 }
-.CoreChatbotLoader__dot:nth-child(2)::after {
+.WdsLoaderDots__dot:nth-child(2)::after {
 	animation-delay: 0.5s;
 }
-.CoreChatbotLoader__dot:nth-child(3)::after {
+.WdsLoaderDots__dot:nth-child(3)::after {
 	animation-delay: 1s;
 }
 

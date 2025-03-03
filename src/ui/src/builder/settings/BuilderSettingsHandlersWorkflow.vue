@@ -116,13 +116,15 @@ function jumpToWorkflow(workflowId: string) {
 </script>
 
 <template>
-	<div class="BuilderSettingsHandlersWorkflow">
+	<div class="BuilderSettingsHandlersWorkflow" :aria-busy="isRunning">
 		<div class="BuilderSettingsHandlersWorkflow__title">
 			<WdsButton
 				class="BuilderSettingsHandlersWorkflow__title__btn"
 				variant="special"
 				size="icon"
-				aria-label="Run the event"
+				aria-label="Run the attached workflows"
+				:disabled="isRunning"
+				:loading="isRunning"
 				@click="run"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
@@ -148,6 +150,7 @@ function jumpToWorkflow(workflowId: string) {
 						size="smallIcon"
 						aria-label="Unlink Orchestration"
 						data-writer-tooltip="This will remove the trigger but will not delete the Orchestration"
+						:disabled="isRunning"
 						@click="deleteLinkedWorkflow(workflow.id)"
 					>
 						<i class="material-symbols-outlined">link_off</i>
@@ -159,6 +162,7 @@ function jumpToWorkflow(workflowId: string) {
 					<button
 						role="button"
 						class="BuilderSettingsHandlersWorkflow__list__item__btn BuilderSettingsHandlersWorkflow__list__item__btn--primary"
+						:disabled="isRunning"
 						@click="createLinkedWorkflow"
 					>
 						<i class="material-symbols-outlined">add</i>
