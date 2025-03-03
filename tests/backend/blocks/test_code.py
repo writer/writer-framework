@@ -13,13 +13,14 @@ def test_run_code(session, runner, monkeypatch):
         {
             "code": """
 print('hi testing stdout ' + str(test_thing_ee) + my_fn())
+set_output("return " + str(test_thing_ee))
 """
         }
     )
     block = CodeBlock("fake_id", runner, {"test_thing_ee": 26})
     block.run()
     assert block.outcome == "success"
-    assert block.result == "hi testing stdout 26Monkeypatched!\n"
+    assert block.result == "return 26"
 
 
 def test_run_invalid_code(session, runner, monkeypatch):
