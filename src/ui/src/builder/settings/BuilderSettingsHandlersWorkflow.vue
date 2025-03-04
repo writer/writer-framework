@@ -8,6 +8,7 @@ import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
 import { useWorkflowsRun } from "@/composables/useWorkflowRun";
 import { WdsColor } from "@/wds/tokens";
+import BuilderWorkflowState from "../BuilderWorkflowState.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -152,16 +153,23 @@ function jumpToWorkflow(workflowId: string) {
 					>
 						{{ workflow.content.key || "Workflow" }}
 					</button>
-					<WdsButton
-						variant="neutral"
-						size="smallIcon"
-						aria-label="Unlink Orchestration"
-						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
-						:disabled="isRunning"
-						@click="deleteLinkedWorkflow(workflow.id)"
-					>
-						<i class="material-symbols-outlined">link_off</i>
-					</WdsButton>
+					<BuilderWorkflowState :workflow-id="workflow.id">
+						<template #unknown>
+							<WdsButton
+								variant="neutral"
+								size="smallIcon"
+								custom-size="18px"
+								aria-label="Unlink Orchestration"
+								data-writer-tooltip="This will remove the trigger but will not delete the workflow"
+								:disabled="isRunning"
+								@click="deleteLinkedWorkflow(workflow.id)"
+							>
+								<i class="material-symbols-outlined"
+									>link_off</i
+								>
+							</WdsButton>
+						</template>
+					</BuilderWorkflowState>
 				</div>
 			</BuilderListItem>
 			<BuilderListItem is-last :color="WdsColor.Blue2">

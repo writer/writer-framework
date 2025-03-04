@@ -44,22 +44,23 @@ export function useWorkflowsRun(
 ) {
 	const runningWorkflowIds = ref<string[]>([]);
 
-	async function run() {
-		for (const workflowId of unref(workflowComponentIds)) {
-			if (runningWorkflowIds.value.includes(workflowId)) continue;
+	async function handleRunWorkflow(workflowId: string) {
+		if (runningWorkflowIds.value.includes(workflowId)) return;
 
-			try {
-				runningWorkflowIds.value = [
-					workflowId,
-					...runningWorkflowIds.value,
-				];
-				await runWorkflow(wf, workflowId);
-			} finally {
-				runningWorkflowIds.value = runningWorkflowIds.value.filter(
-					(id) => id !== workflowId,
-				);
-			}
+		try {
+			runningWorkflowIds.value = [
+				workflowId,
+				...runningWorkflowIds.value,
+			];
+			await runWorkflow(wf, workflowId);
+		} finally {
+			runningWorkflowIds.value = runningWorkflowIds.value.filter(
+				(id) => id !== workflowId,
+			);
 		}
+	}
+	async function run() {
+		await Promise.all(unref(workflowComponentIds).map(handleRunWorkflow));
 	}
 
 	const isRunning = computed(() => runningWorkflowIds.value.length > 0);

@@ -5,8 +5,8 @@ import { computed } from "vue";
 const props = defineProps({
 	isLast: { type: Boolean, required: false },
 	height: { type: Number, required: false, default: 1_000 },
-	color: { type: String, required: true, default: WdsColor.Blue2 },
-	colorLast: { type: String, required: true, default: WdsColor.Blue2 },
+	color: { type: String, required: false, default: WdsColor.Blue2 },
+	colorLast: { type: String, required: false, default: WdsColor.Blue2 },
 });
 
 const midHeight = computed(() => props.height / 2);
