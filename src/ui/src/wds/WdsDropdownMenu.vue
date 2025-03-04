@@ -75,11 +75,18 @@
 				:data-automation-key="option.value"
 				@click="onSelect(option.value)"
 			>
-				<i
-					v-if="!hideIcons"
-					class="material-symbols-outlined WdsDropdownMenu__item__icon"
-					>{{ getOptionIcon(option) }}</i
-				>
+				<template v-if="!hideIcons">
+					<SharedImgWithFallback
+						v-if="Array.isArray(option.icon)"
+						class="WdsDropdownMenu__item__icon"
+						:urls="option.icon"
+					/>
+					<i
+						v-else
+						class="material-symbols-outlined WdsDropdownMenu__item__icon"
+						>{{ getOptionIcon(option) }}</i
+					>
+				</template>
 				<div
 					class="WdsDropdownMenu__item__label"
 					:data-writer-tooltip="option.label"
@@ -111,7 +118,10 @@ export type WdsDropdownMenuOption = {
 	value: string;
 	label: string;
 	detail?: string;
-	icon?: string;
+	/**
+	 * A font icon or an array of image URL
+	 */
+	icon?: string | string[];
 };
 </script>
 
@@ -120,6 +130,7 @@ export type WdsDropdownMenuOption = {
 import { computed, PropType, ref, watch } from "vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
 const props = defineProps({
 	options: {
@@ -249,6 +260,10 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon) {
 	grid-template-columns: auto 1fr auto;
+}
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon)
+	.WdsDropdownMenu__item__detail {
+	grid-column-start: 2;
 }
 
 .WdsDropdownMenu__item:hover {
