@@ -7,6 +7,7 @@ import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
 import { useWorkflowsRun } from "@/composables/useWorkflowRun";
+import { WdsColor } from "@/wds/tokens";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -134,8 +135,14 @@ function jumpToWorkflow(workflowId: string) {
 
 		<div class="BuilderSettingsHandlersWorkflow__list">
 			<BuilderListItem
-				v-for="workflow of linkedWorkflows"
+				v-for="(workflow, i) of linkedWorkflows"
 				:key="workflow.id"
+				:color="WdsColor.Blue6"
+				:color-last="
+					linkedWorkflows.length === i + 1
+						? WdsColor.Blue2
+						: WdsColor.Blue6
+				"
 			>
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
 					<button
@@ -157,7 +164,7 @@ function jumpToWorkflow(workflowId: string) {
 					</WdsButton>
 				</div>
 			</BuilderListItem>
-			<BuilderListItem is-last>
+			<BuilderListItem is-last :color="WdsColor.Blue2">
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
 					<button
 						role="button"

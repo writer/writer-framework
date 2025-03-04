@@ -5,6 +5,8 @@ import { computed } from "vue";
 const props = defineProps({
 	isLast: { type: Boolean, required: false },
 	height: { type: Number, required: false, default: 1_000 },
+	color: { type: String, required: true, default: WdsColor.Blue2 },
+	colorLast: { type: String, required: true, default: WdsColor.Blue2 },
 });
 
 const midHeight = computed(() => props.height / 2);
@@ -33,13 +35,8 @@ const d2 = computed(() =>
 			preserveAspectRatio="xMinYMax meet"
 			class="BuilderListItem__anchor"
 		>
-			<path :d="d1" :stroke="WdsColor.Blue2" stroke-width="2" />
-			<path
-				v-if="!isLast"
-				:d="d2"
-				:stroke="WdsColor.Blue2"
-				stroke-width="2"
-			/>
+			<path v-if="!isLast" :d="d2" :stroke="colorLast" stroke-width="1" />
+			<path :d="d1" :stroke="color" stroke-width="1" />
 		</svg>
 		<div class="BuilderListItem__content">
 			<slot />
