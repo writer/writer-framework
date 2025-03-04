@@ -18,7 +18,7 @@ class UIEventTrigger(WorkflowTrigger):
                     "fields": {
                         "refComponentId": {
                             "name": "Component Id",
-                            "type": "Text",
+                            "type": "Component Id",
                             "options": "uiComponentsWithEvents",
                             "desc": "The id of the component that will trigger this branch.",
                         },
