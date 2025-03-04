@@ -87,6 +87,7 @@ import { watch } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
+import { useWorkflowRun } from "@/composables/useWorkflowRun";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -153,7 +154,6 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
-const isRunning = ref(false);
 const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
@@ -322,22 +322,7 @@ function handleAutoArrange() {
 	changeCoordinatesMultiple(coordinates);
 }
 
-async function handleRun() {
-	if (isRunning.value) return;
-	isRunning.value = true;
-	await wf.forwardEvent(
-		new CustomEvent("wf-builtin-run", {
-			detail: {
-				callback: () => {
-					isRunning.value = false;
-				},
-				handler: `$runWorkflowById_${workflowComponentId}`,
-			},
-		}),
-		null,
-		true,
-	);
-}
+const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
