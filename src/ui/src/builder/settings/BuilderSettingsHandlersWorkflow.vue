@@ -149,7 +149,7 @@ function jumpToWorkflow(workflowId: string) {
 						variant="neutral"
 						size="smallIcon"
 						aria-label="Unlink Orchestration"
-						data-writer-tooltip="This will remove the trigger but will not delete the Orchestration"
+						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
 						:disabled="isRunning"
 						@click="deleteLinkedWorkflow(workflow.id)"
 					>
