@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { WdsColor } from "./tokens";
 
-const color = WdsColor.Blue5;
+defineProps({
+	color: { type: String, required: false, default: WdsColor.Blue5 },
+});
 </script>
 
 <template>
