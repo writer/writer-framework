@@ -75,9 +75,11 @@
 				:data-automation-key="option.value"
 				@click="onSelect(option.value)"
 			>
-				<i v-if="!hideIcons" class="material-symbols-outlined">{{
-					getOptionIcon(option)
-				}}</i>
+				<i
+					v-if="!hideIcons"
+					class="material-symbols-outlined WdsDropdownMenu__item__icon"
+					>{{ getOptionIcon(option) }}</i
+				>
 				<div
 					class="WdsDropdownMenu__item__label"
 					:data-writer-tooltip="option.label"
@@ -157,8 +159,10 @@ const optionsFiltered = computed(() => {
 	if (!props.enableSearch) return props.options;
 
 	const query = searchTerm.value.toLowerCase();
-	return props.options.filter((option) =>
-		option.label.toLowerCase().includes(query),
+	return props.options.filter(
+		(option) =>
+			option.label.toLowerCase().includes(query) ||
+			option.detail?.toLowerCase().includes(query),
 	);
 });
 
@@ -243,7 +247,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	transition: all 0.2s;
 	pointer-events: all;
 }
-.WdsDropdownMenu__item:has(.material-symbols-outlined) {
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon) {
 	grid-template-columns: auto 1fr auto;
 }
 
