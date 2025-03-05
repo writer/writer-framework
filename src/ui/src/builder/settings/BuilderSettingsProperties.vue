@@ -162,7 +162,6 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-						resource-type="application"
 					/>
 				</WdsFieldWrapper>
 			</div>
