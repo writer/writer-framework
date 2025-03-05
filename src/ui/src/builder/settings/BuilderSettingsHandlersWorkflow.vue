@@ -153,23 +153,18 @@ function jumpToWorkflow(workflowId: string) {
 					>
 						{{ workflow.content.key || "Workflow" }}
 					</button>
-					<BuilderWorkflowState :workflow-id="workflow.id">
-						<template #unknown>
-							<WdsButton
-								variant="neutral"
-								size="smallIcon"
-								custom-size="18px"
-								aria-label="Unlink Orchestration"
-								data-writer-tooltip="This will remove the trigger but will not delete the workflow"
-								:disabled="isRunning"
-								@click="deleteLinkedWorkflow(workflow.id)"
-							>
-								<i class="material-symbols-outlined"
-									>link_off</i
-								>
-							</WdsButton>
-						</template>
-					</BuilderWorkflowState>
+					<BuilderWorkflowState :workflow-id="workflow.id" />
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
+						custom-size="18px"
+						aria-label="Unlink Orchestration"
+						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
+						:disabled="isRunning"
+						@click="deleteLinkedWorkflow(workflow.id)"
+					>
+						<i class="material-symbols-outlined">link_off</i>
+					</WdsButton>
 				</div>
 			</BuilderListItem>
 			<BuilderListItem is-last :color="WdsColor.Blue2">
@@ -215,19 +210,21 @@ function jumpToWorkflow(workflowId: string) {
 
 	display: flex;
 	justify-content: space-between;
+	gap: 4px;
 }
 
 .BuilderSettingsHandlersWorkflow__list__item__btn {
 	background-color: transparent;
 	border: none;
-	text-align: left;
 	padding: 0;
 	cursor: pointer;
 
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	gap: 8px;
+
+	flex-grow: 1;
 }
 .BuilderSettingsHandlersWorkflow__list__item__btn:hover {
 	text-decoration: underline;
