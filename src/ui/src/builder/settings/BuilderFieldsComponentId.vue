@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, PropType, defineAsyncComponent } from "vue";
+import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import type { Option } from "../BuilderSelect.vue";
@@ -34,10 +34,6 @@ const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
-	resourceType: {
-		type: String as PropType<"graph" | "application">,
-		required: true,
-	},
 });
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
