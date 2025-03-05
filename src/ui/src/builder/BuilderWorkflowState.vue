@@ -38,9 +38,7 @@ const result = computed(() => {
 
 <template>
 	<div class="BuilderWorkflowState">
-		<slot v-if="!result" name="unknown">
-			<p>unknown</p>
-		</slot>
+		<slot v-if="!result" name="unknown"></slot>
 		<slot v-else-if="result === 'success'" name="success">
 			<span
 				class="BuilderWorkflowState__status BuilderWorkflowState__status--success material-symbols-outlined"
@@ -54,7 +52,10 @@ const result = computed(() => {
 			>
 		</slot>
 		<slot v-else-if="result === 'in_progress'" name="running">
-			<WdsLoaderDots :color="WdsColor.Gray5" />
+			<WdsLoaderDots
+				class="BuilderWorkflowState__status"
+				:color="WdsColor.Gray5"
+			/>
 		</slot>
 	</div>
 </template>
