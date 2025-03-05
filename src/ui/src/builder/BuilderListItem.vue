@@ -15,14 +15,14 @@ const viewBox = computed(() => `0 0 17 ${props.height}`);
 const d1 = computed(() =>
 	[
 		"M1 0",
-		`V${midHeight.value - 4}`,
-		`C1 ${midHeight.value}.4183 4.58172 ${midHeight.value + 4} 9 ${midHeight.value + 4}`,
+		`V${midHeight.value - 8}`,
+		`C1 ${midHeight.value - 4}.4183 4.58172 ${midHeight.value} 9 ${midHeight.value}`,
 		`H17`,
 	].join(" "),
 );
 
 const d2 = computed(() =>
-	[`M1 ${midHeight.value - 4}`, `V${props.height}`].join(" "),
+	[`M1 ${midHeight.value - 8}`, `V${props.height}`].join(" "),
 );
 </script>
 
