@@ -1,6 +1,16 @@
 <template>
 	<div class="BuilderFieldsComponentId" :data-automation-key="props.fieldKey">
 		<BuilderSelect v-model="selected" :options="options" enable-search />
+		<WdsButton
+			v-if="selected"
+			variant="neutral"
+			size="smallIcon"
+			data-writer-tooltip="Jump to the element"
+			:disabled="!selectedComponent"
+			@click="jumpToElement"
+		>
+			<i class="material-symbols-outlined">jump_to_element</i>
+		</WdsButton>
 	</div>
 </template>
 
@@ -10,6 +20,7 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import type { Option } from "../BuilderSelect.vue";
 import { useComponentDescription } from "../useComponentDescription";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const BuilderSelect = defineAsyncComponent(
 	() => import("../BuilderSelect.vue"),
@@ -61,4 +72,34 @@ const selected = computed<string>({
 		setContentValue(component.value.id, fieldKey.value, String(value));
 	},
 });
+
+const pageId = computed(() => {
+	let current = selected.value;
+	while (current) {
+		const comp = wf.getComponentById(current);
+		if (comp.type === "page") return comp.id;
+		current = comp.parentId;
+	}
+	return undefined;
+});
+
+const selectedComponent = computed(() => wf.getComponentById(selected.value));
+
+function jumpToElement() {
+	if (!selected.value || !selectedComponent.value) return;
+	if (pageId.value) {
+		ssbm.mode.value = "ui";
+		wf.setActivePageId(pageId.value);
+	}
+	ssbm.setSelection(selected.value, null, "click");
+}
 </script>
+
+<style scoped>
+.BuilderFieldsComponentId {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 12px;
+}
+</style>
