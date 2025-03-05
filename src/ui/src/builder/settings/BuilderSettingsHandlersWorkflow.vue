@@ -18,7 +18,8 @@ const props = defineProps({
 	eventType: { type: String, required: true },
 });
 
-const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+const { createAndInsertComponent, removeComponentSubtree } =
+	useComponentActions(wf, wfbm);
 
 const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),
@@ -107,7 +108,7 @@ function deleteLinkedWorkflow(workflowId: string) {
 		);
 	if (block === undefined) return;
 
-	wf.deleteComponent(block.id);
+	removeComponentSubtree(block.id);
 }
 
 function jumpToWorkflow(workflowId: string) {
