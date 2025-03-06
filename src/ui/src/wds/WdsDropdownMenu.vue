@@ -76,11 +76,12 @@
 				@click="onSelect(option.value)"
 			>
 				<template v-if="!hideIcons">
-					<SharedImgWithFallback
+					<div
 						v-if="Array.isArray(option.icon)"
-						class="WdsDropdownMenu__item__icon"
-						:urls="option.icon"
-					/>
+						class="WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--img"
+					>
+						<SharedImgWithFallback :urls="option.icon" />
+					</div>
 					<i
 						v-else
 						class="material-symbols-outlined WdsDropdownMenu__item__icon"
@@ -264,6 +265,12 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon)
 	.WdsDropdownMenu__item__detail {
 	grid-column-start: 2;
+}
+.WdsDropdownMenu__item__icon {
+	grid-row-start: 1;
+	grid-row-end: -1;
+	display: flex;
+	align-items: center;
 }
 
 .WdsDropdownMenu__item:hover {
