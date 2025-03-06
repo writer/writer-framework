@@ -14,7 +14,7 @@
 			@click="selectOption('workflows')"
 		>
 			<i class="icon material-symbols-outlined"> linked_services </i>
-			Workflows
+			Blueprints
 		</div>
 		<div
 			:class="{ active: activeId == 'preview' }"
