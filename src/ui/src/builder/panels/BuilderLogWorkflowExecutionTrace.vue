@@ -55,10 +55,10 @@
 			</div>
 		</div>
 
-		<div class="trace">
+		<div class="callStack">
 			<h3>Call stack</h3>
 			<div
-				v-for="(component, componentId) in trace"
+				v-for="(component, componentId) in callStack"
 				:key="componentId"
 				class="component"
 				:class="{
@@ -118,15 +118,13 @@ const props = defineProps<{
 	executionItem: WorkflowExecutionLog["summary"][number];
 }>();
 
-const trace = computed(() => {
-	const traceArr: Component["id"][] =
-		props.executionItem.executionEnvironment?.["trace"];
+const callStack = computed(() => {
+	const callStackArr: Component["id"][] =
+		props.executionItem.executionEnvironment?.["call_stack"];
 
-	const trace = Object.fromEntries(
-		traceArr.map((cid) => [cid, wf.getComponentById(cid)]),
+	return Object.fromEntries(
+		callStackArr.map((cid) => [cid, wf.getComponentById(cid)]),
 	);
-
-	return trace;
 });
 
 async function selectBlock(componentId: Component["id"]) {
@@ -177,14 +175,14 @@ h3 {
 	flex: 0 0 30%;
 }
 
-.trace {
+.callStack {
 	flex: 0 0 30%;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 }
 
-.trace .component {
+.callStack .component {
 	display: flex;
 	align-items: center;
 	border-radius: 8px;
@@ -192,16 +190,16 @@ h3 {
 	border: 1px solid var(--builderSeparatorColor);
 }
 
-.trace .component > div {
+.callStack .component > div {
 	flex: 1 0 auto;
 }
 
-.trace .component .eyebrow {
+.callStack .component .eyebrow {
 	font-size: 12px;
 	color: var(--builderSecondaryTextColor);
 }
 
-.trace .component.active {
+.callStack .component.active {
 	border-color: var(--builderSelectedColor);
 }
 </style>

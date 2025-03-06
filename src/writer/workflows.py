@@ -16,6 +16,8 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 
 
 class WorkflowRunner:
+    MAX_CALL_STACK_SIZE = 256
+
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
         self.executor_lock = threading.Lock()
@@ -146,7 +148,10 @@ class WorkflowRunner:
         tool_futures: Dict[str, Future] = {}
         return_value = None
         execution_environment["run_id"] = self._generate_run_id()
-        trace = execution_environment.get("trace", []).copy()
+        if "call_stack" not in execution_environment:
+            execution_environment["call_stack"] = []
+        if "call_depth" not in execution_environment:
+            execution_environment["call_depth"] = 0
         try:
             futures = []
             with self._get_executor() as executor:
@@ -159,7 +164,6 @@ class WorkflowRunner:
                             execution_environment,
                             execution,
                             tool_futures,
-                            trace,
                         )
                     )
 
@@ -280,7 +284,6 @@ class WorkflowRunner:
         execution_environment: Dict,
         execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
         tool_futures: Dict[str, Future],
-        trace: List[str],
     ):
         tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
@@ -291,6 +294,12 @@ class WorkflowRunner:
         result = None
         matched_dependencies = 0
         dependencies_futures = []
+
+        execution_environment["call_depth"] = execution_environment.get("call_depth", 0) + 1
+        if execution_environment["call_depth"] > 4:
+            raise RuntimeError(
+                "Maximum call depth exceeded. Please check that your workflow doesn't contain any unintended circular references."
+            )
 
         with self._get_executor() as executor:
             for node, out_id in dependencies:
@@ -304,12 +313,13 @@ class WorkflowRunner:
                         execution_environment,
                         execution,
                         tool_futures,
-                        trace,
                     )
                     tool_futures[node.id] = tool_future
                 dependencies_futures.append(tool_future)
 
         wait(dependencies_futures)  # Important to preserve order, don't switch to as_completed
+
+        call_stack = execution_environment.get("call_stack")
 
         for future, dependency in zip(dependencies_futures, dependencies):
             (node, out_id) = dependency
@@ -322,6 +332,7 @@ class WorkflowRunner:
                 matched_dependencies += 1
 
             result = tool.result
+            call_stack += tool.execution_environment.get("call_stack", [])
 
             if tool.return_value is not None:
                 return tool.return_value
@@ -329,9 +340,9 @@ class WorkflowRunner:
         if len(dependencies) > 0 and matched_dependencies == 0:
             return
 
-        trace += [target_node.id]
         expanded_execution_environment = execution_environment | {
-            "trace": trace.copy(),
+            # "call_stack": list(set(call_stack + [target_node.id])),
+            "call_stack": call_stack + [target_node.id],
             "result": result,
             "results": {k: v.result if v is not None else None for k, v in execution.items()},
         }
