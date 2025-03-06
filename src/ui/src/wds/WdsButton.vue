@@ -4,6 +4,7 @@
 		:class="className"
 		role="button"
 		:style="style"
+		:disabled="disabled"
 	>
 		<WdsLoaderDots v-if="loading" />
 		<slot v-else></slot>
@@ -32,6 +33,7 @@ const props = defineProps({
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
 	loading: { type: Boolean, required: false },
+	disabled: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
