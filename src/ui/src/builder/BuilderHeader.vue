@@ -1,10 +1,13 @@
 <template>
 	<div class="BuilderHeader">
 		<img src="../assets/logo.svg" alt="Writer Framework logo" />
-		<BuilderSwitcher></BuilderSwitcher>
-		<div class="undoRedo">
+		<BuilderSwitcher />
+		<div class="gap"></div>
+		<div class="BuilderHeader__toolbar">
 			<button
-				class="undo"
+				type="button"
+				class="BuilderHeader__toolbar__btn"
+				data-automation-key="undo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
 						? `Undo: ${undoRedoSnapshot.undoDesc}`
@@ -14,11 +17,12 @@
 				data-writer-tooltip-placement="bottom"
 				@click="undo()"
 			>
-				<i class="material-symbols-outlined"> undo </i>
-				Undo
+				<i class="material-symbols-outlined">undo</i>
 			</button>
 			<button
-				class="redo"
+				type="button"
+				class="BuilderHeader__toolbar__btn"
+				data-automation-key="redo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
 						? `Redo: ${undoRedoSnapshot.redoDesc}`
@@ -28,15 +32,23 @@
 				data-writer-tooltip-placement="bottom"
 				@click="redo()"
 			>
-				<i class="material-symbols-outlined"> redo </i>
-				Redo
+				<i class="material-symbols-outlined">redo</i>
 			</button>
-		</div>
-		<div>
-			<button @click="showStateExplorer">
-				<i class="material-symbols-outlined"> mystery </i>
-				State Explorer
+			<button
+				type="button"
+				class="BuilderHeader__toolbar__btn"
+				data-writer-tooltip="State Explorer"
+				data-writer-tooltip-placement="bottom"
+				@click="showStateExplorer"
+			>
+				<i class="material-symbols-outlined">mystery</i>
 			</button>
+			<BuilderHeaderDeploy v-if="canDeploy" />
+			<WdsStateDot
+				:state="stateDotState"
+				:data-writer-tooltip="syncHealthStatus"
+				data-writer-tooltip-placement="left"
+			/>
 			<WdsModal
 				v-if="isStateExplorerShown"
 				title="State Explorer"
@@ -45,15 +57,6 @@
 			>
 				<BuilderStateExplorer />
 			</WdsModal>
-		</div>
-		<div class="gap"></div>
-		<div
-			class="syncHealth"
-			:class="wf.syncHealth.value"
-			:title="syncHealthStatus()"
-		>
-			<i class="material-symbols-outlined icon">sync</i
-			><span v-if="wf.syncHealth.value == 'offline'">Offline</span>
 		</div>
 	</div>
 </template>
@@ -65,6 +68,8 @@ import { useComponentActions } from "./useComponentActions";
 import WdsModal from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
+import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
+import BuilderHeaderDeploy from "./BuilderHeaderDeploy.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -73,7 +78,9 @@ const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
-const syncHealthStatus = () => {
+const canDeploy = computed(() => wf.featureFlags.value.includes("writerCloud"));
+
+const syncHealthStatus = computed(() => {
 	let s = "";
 	switch (wf.syncHealth.value) {
 		case "offline":
@@ -95,7 +102,18 @@ const syncHealthStatus = () => {
 	}
 
 	return s;
-};
+});
+
+const stateDotState = computed<WdsStateDotState>(() => {
+	switch (wf.syncHealth.value) {
+		case "offline":
+		case "suspended":
+		case "idle":
+			return "error";
+		default:
+			return "deployed";
+	}
+});
 
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
@@ -116,15 +134,31 @@ function showStateExplorer() {
 	border-bottom: 1px solid var(--builderAreaSeparatorColor);
 }
 
-.BuilderHeader img {
-	width: 28px;
-}
-
-.undoRedo {
+.BuilderHeader__toolbar {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
+
+.BuilderHeader__toolbar__btn {
+	background: var(--builderHeaderBackgroundHoleColor);
+	color: var(--builderBackgroundColor);
+	border: none;
+	border-radius: 50%;
+	height: 32px;
+	width: 32px;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	font-size: 14px;
+}
+
+.BuilderHeader img {
+	width: 28px;
+}
+
 .BuilderHeader .gap {
 	flex: 1 0 auto;
 }
@@ -153,52 +187,6 @@ function showStateExplorer() {
 
 .panelToggler .indicator {
 	margin-right: -12px;
-}
-
-.syncHealth {
-	background: var(--builderHeaderBackgroundHoleColor);
-	border-radius: 18px;
-	padding-left: 16px;
-	padding-right: 16px;
-	height: 32px;
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	transition:
-		color,
-		background-color 0.5s ease-in-out;
-}
-
-.syncHealth.offline {
-	background: var(--builderErrorColor);
-}
-
-.syncHealth.suspended {
-	background: var(--builderErrorColor);
-}
-
-.syncHealth.connected {
-	color: var(--builderBackgroundColor);
-}
-
-.syncHealth .icon {
-	transform-origin: center;
-	font-size: 0.875rem;
-}
-
-.syncHealth .icon.beingAnimated {
-	animation-name: activate;
-	animation-duration: 1s;
-	animation-timing-function: ease-in-out;
-}
-
-@keyframes activate {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
 }
 
 button {
