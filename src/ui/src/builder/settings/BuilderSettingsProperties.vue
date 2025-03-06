@@ -163,6 +163,12 @@
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
 					/>
+					<BuilderFieldsComponentEventType
+						v-if="fieldValue.type == FieldType.ComponentEventType"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+					/>
 				</WdsFieldWrapper>
 			</div>
 		</div>
@@ -189,6 +195,7 @@ import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
+import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);

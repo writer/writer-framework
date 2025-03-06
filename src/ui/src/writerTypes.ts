@@ -143,6 +143,7 @@ export const enum FieldType {
 	WriterGraphId = "Graph Id",
 	WriterAppId = "App Id",
 	ComponentId = "Component Id",
+	ComponentEventType = "Component Event Type",
 }
 
 export const enum FieldCategory {
