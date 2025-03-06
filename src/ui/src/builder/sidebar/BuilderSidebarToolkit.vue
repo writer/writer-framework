@@ -95,7 +95,7 @@ const searchCount = computed(() => {
 
 const placeholder = computed(() => {
 	if (activeToolkit.value == "core") return "Core toolkit";
-	if (activeToolkit.value == "workflows") return "Workflows toolkit";
+	if (activeToolkit.value == "workflows") return "Blueprints toolkit";
 	return "Toolkit";
 });
 

@@ -4,46 +4,44 @@ from writer.ss_types import AbstractTemplate
 
 
 class WriterNoCodeApp(WorkflowBlock):
-
     @classmethod
     def register(cls, type: str):
         super(WriterNoCodeApp, cls).register(type)
-        register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
-            writer={
-                "name": "No-code app",
-                "description": "Run a no-code app.",
-                "category": "Writer",
-                "fields": {
-                    "appId": {
-                        "name": "App Id",
-                        "type": "App Id",
-                        "desc": "The app id can be found in the app's URL. It has a UUID format.",
-                        "validator": {
-                            "type": "string",
-                            "format": "uuid",
-                        }
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="workflows_node",
+                writer={
+                    "name": "No-code agent",
+                    "description": "Run a no-code agent.",
+                    "category": "Writer",
+                    "fields": {
+                        "appId": {
+                            "name": "App Id",
+                            "type": "App Id",
+                            "desc": "The agent id can be found in the agent's URL. It has a UUID format.",
+                            "validator": {
+                                "type": "string",
+                                "format": "uuid",
+                            },
+                        },
+                        "appInputs": {"name": "App inputs", "type": "Key-Value", "default": "{}"},
                     },
-                    "appInputs": {
-                        "name": "App inputs",
-                        "type": "Key-Value",
-                        "default": "{}"
+                    "outs": {
+                        "success": {
+                            "name": "Success",
+                            "description": "If the execution was successful.",
+                            "style": "success",
+                        },
+                        "error": {
+                            "name": "Error",
+                            "description": "If the function raises an Exception.",
+                            "style": "error",
+                        },
                     },
                 },
-                "outs": {
-                    "success": {
-                        "name": "Success",
-                        "description": "If the execution was successful.",
-                        "style": "success",
-                    },
-                    "error": {
-                        "name": "Error",
-                        "description": "If the function raises an Exception.",
-                        "style": "error",
-                    },
-                },
-            }
-        ))
+            ),
+        )
 
     def run(self):
         try:
