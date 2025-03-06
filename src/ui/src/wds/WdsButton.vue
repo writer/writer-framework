@@ -4,6 +4,7 @@
 		:class="className"
 		role="button"
 		:style="style"
+		:disabled="disabled"
 	>
 		<slot></slot>
 	</button>
@@ -26,6 +27,7 @@ const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
+	disabled: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
