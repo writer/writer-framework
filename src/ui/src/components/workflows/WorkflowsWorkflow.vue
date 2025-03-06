@@ -63,7 +63,7 @@
 				@click="handleRun"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run workflow" }}
+				{{ isRunning ? "Running..." : "Run blueprint" }}
 			</WdsButton>
 		</div>
 		<WorkflowNavigator
@@ -93,7 +93,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Workflow",
+		name: "Blueprint",
 		toolkit: "workflows",
 		category: "Root",
 		description,
