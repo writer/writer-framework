@@ -4,14 +4,18 @@
 		:class="className"
 		role="button"
 		:style="style"
-		:disabled="disabled"
+		:disabled="disabled || loading"
 	>
+		<div v-if="loading" class="WdsButton__loader">
+			<WdsLoaderDots color="white" :size="24" />
+		</div>
 		<slot></slot>
 	</button>
 </template>
 
 <script setup lang="ts">
 import { computed, CSSProperties, PropType } from "vue";
+import WdsLoaderDots from "./WdsLoaderDots.vue";
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonVariant =
 	| "primary"
@@ -28,6 +32,7 @@ const props = defineProps({
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
 	disabled: { type: Boolean, required: false },
+	loading: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
@@ -60,6 +65,18 @@ const className = computed(() => [
 	outline: none;
 	border-style: solid;
 	border-width: 1px;
+	position: relative;
+	overflow: hidden;
+}
+.WdsButton__loader {
+	/* position the loader as absolute to display the loader but keep the original width taken by the content */
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: inherit;
 }
 
 /* VARIANTS */
