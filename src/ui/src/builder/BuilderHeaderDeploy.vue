@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import WdsButton from "@/wds/WdsButton.vue";
 import { computed, ref, watch } from "vue";
-import WdsLoaderDots from "@/wds/WdsLoaderDots.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
@@ -73,12 +72,11 @@ function deploy() {
 <template>
 	<WdsButton
 		size="small"
-		class="BuilderHeaderDeploy__btn"
 		:disabled="disabled"
+		:loading="isDeploying"
 		@click="prepareDeploy"
 	>
-		<WdsLoaderDots v-if="isDeploying" color="white" :size="24" />
-		<template v-else-if="lastDeployedAt">Deploy changes</template>
+		<template v-if="lastDeployedAt">Deploy changes</template>
 		<template v-else>Deploy</template>
 		<WdsModal
 			v-if="confirmModalOpen"
