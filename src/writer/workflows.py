@@ -1,10 +1,11 @@
+from collections import defaultdict, deque
 import hashlib
 import json
 import logging
 import os
 import threading
 import time
-from concurrent.futures import Future, ThreadPoolExecutor, wait
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
@@ -24,17 +25,17 @@ class WorkflowRunner:
 
     @contextmanager
     def _get_executor(self):
+        current_app_process = writer.core.get_app_process()
         new_executor = None
+
         try:
-            current_app_process = writer.core.get_app_process()
-            with self.executor_lock:
-                yield current_app_process.executor
+            yield current_app_process.executor
         except RuntimeError:
             logging.info(
                 "The main pool executor isn't being reused. This is only expected in test or debugging situations."
             )
-            new_executor = ThreadPoolExecutor(20)
-            yield new_executor  # Pool executor for debugging (running outside of AppProcess)
+            new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
+            yield new_executor
         finally:
             if new_executor:
                 new_executor.shutdown()
@@ -145,60 +146,50 @@ class WorkflowRunner:
         title: str = "Workflow execution",
     ):
         execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = {}
-        tool_futures: Dict[str, Future] = {}
         return_value = None
         execution_environment["run_id"] = self._generate_run_id()
         if "call_stack" not in execution_environment:
             execution_environment["call_stack"] = []
-        if "call_depth" not in execution_environment:
-            execution_environment["call_depth"] = 0
-        try:
-            futures = []
-            with self._get_executor() as executor:
-                for node in self.get_terminal_nodes(nodes):
-                    futures.append(
-                        executor.submit(
-                            self.run_node,
-                            node,
-                            nodes,
-                            execution_environment,
-                            execution,
-                            tool_futures,
-                        )
-                    )
 
-            wait(futures)
+        self.execute_dag(nodes, execution_environment, title)
 
-            for tool in execution.values():
-                if tool and tool.return_value is not None:
-                    return_value = tool.return_value
-        except WriterConfigurationError:
-            self._generate_run_log(
-                execution,
-                title,
-                "error",
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
-            # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
-        except BaseException as e:
-            self._generate_run_log(
-                execution,
-                title,
-                "error",
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
-            raise e
-        else:
-            self._generate_run_log(
-                execution,
-                "Workflow execution finished",
-                "info",
-                return_value,
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
+        for tool in execution.values():
+            if tool and tool.return_value is not None:
+                return_value = tool.return_value
+
+        # try:
+        #     self.execute_dag(nodes, execution_environment, title)
+
+        #     for tool in execution.values():
+        #         if tool and tool.return_value is not None:
+        #             return_value = tool.return_value
+        # except WriterConfigurationError:
+        #     self._generate_run_log(
+        #         execution,
+        #         title,
+        #         "error",
+        #         msg="Execution finished.",
+        #         run_id=execution_environment.get("run_id"),
+        #     )
+        #     # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
+        # except BaseException as e:
+        #     self._generate_run_log(
+        #         execution,
+        #         title,
+        #         "error",
+        #         msg="Execution finished.",
+        #         run_id=execution_environment.get("run_id"),
+        #     )
+        #     raise e
+        # else:
+        #     self._generate_run_log(
+        #         execution,
+        #         "Workflow execution finished",
+        #         "info",
+        #         return_value,
+        #         msg="Execution finished.",
+        #         run_id=execution_environment.get("run_id"),
+        #     )
         return return_value
 
     def _summarize_data_for_log(self, data):
@@ -283,7 +274,6 @@ class WorkflowRunner:
         nodes: List[writer.core_ui.Component],
         execution_environment: Dict,
         execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
-        tool_futures: Dict[str, Future],
     ):
         tool_class = writer.blocks.base_block.block_map.get(target_node.type)
         if not tool_class:
@@ -293,37 +283,11 @@ class WorkflowRunner:
         execution[target_node.id] = None
         result = None
         matched_dependencies = 0
-        dependencies_futures = []
-
-        execution_environment["call_depth"] = execution_environment.get("call_depth", 0) + 1
-        if execution_environment["call_depth"] > 4:
-            raise RuntimeError(
-                "Maximum call depth exceeded. Please check that your workflow doesn't contain any unintended circular references."
-            )
-
-        with self._get_executor() as executor:
-            for node, out_id in dependencies:
-                tool_future = tool_futures.get(node.id)
-
-                if tool_future is None:
-                    tool_future = executor.submit(
-                        self.run_node,
-                        node,
-                        nodes,
-                        execution_environment,
-                        execution,
-                        tool_futures,
-                    )
-                    tool_futures[node.id] = tool_future
-                dependencies_futures.append(tool_future)
-
-        wait(dependencies_futures)  # Important to preserve order, don't switch to as_completed
 
         call_stack = execution_environment.get("call_stack")
 
-        for future, dependency in zip(dependencies_futures, dependencies):
-            (node, out_id) = dependency
-            tool = future.result()
+        for node, out_id in dependencies:
+            tool = execution.get(node.id)
 
             if not tool:
                 continue
@@ -341,7 +305,6 @@ class WorkflowRunner:
             return
 
         expanded_execution_environment = execution_environment | {
-            # "call_stack": list(set(call_stack + [target_node.id])),
             "call_stack": call_stack + [target_node.id],
             "result": result,
             "results": {k: v.result if v is not None else None for k, v in execution.items()},
@@ -350,7 +313,6 @@ class WorkflowRunner:
 
         try:
             tool.outcome = "in_progress"
-            del execution[target_node.id]
             execution[target_node.id] = tool
             self._generate_run_log(
                 execution,
@@ -384,3 +346,54 @@ class WorkflowRunner:
             )
 
         return tool
+
+    def execute_dag(
+        self,
+        nodes: List[writer.core_ui.Component],
+        execution_environment: Dict,
+        title: str = "Workflow execution",
+    ):
+        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = {}
+        graph = {}
+        in_degree = {node.id: 0 for node in nodes}
+
+        for node in nodes:
+            graph[node.id] = node
+            for out in node.outs or []:
+                to_node_id = out.get("toNodeId")
+                in_degree[to_node_id] += 1
+
+        ready = deque([node for node in nodes if in_degree[node.id] == 0])
+
+        with self._get_executor() as executor:
+            futures = set()
+
+            while ready or futures:
+                logging.error("READY")
+                logging.error(repr(ready))
+                logging.error("FUTURES")
+                logging.error(repr(futures))
+
+                while ready:
+                    node = ready.popleft()
+                    future = executor.submit(
+                        self.run_node,
+                        node,
+                        nodes,
+                        execution_environment,
+                        execution,
+                    )
+                    futures.add(future)
+
+                done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                for future in done:
+                    futures.remove(future)
+                    tool = future.result()
+                    node = graph.get(tool.component_id)
+
+                    for out in node.outs or []:
+                        to_node_id = out.get("toNodeId")
+                        in_degree[to_node_id] -= 1
+                        if in_degree[to_node_id] == 0:
+                            node = graph.get(to_node_id)
+                            ready.append(node)
