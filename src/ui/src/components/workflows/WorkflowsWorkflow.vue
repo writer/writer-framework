@@ -75,7 +75,6 @@ import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
-import WorkflowToolbar from "./base/WorkflowToolbar.vue";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -121,6 +120,7 @@ export const ZOOM_SETTINGS = {
 import {
 	Ref,
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -132,6 +132,10 @@ import {
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+
+const WorkflowToolbar = defineAsyncComponent({
+	loader: () => import("./base/WorkflowToolbar.vue"),
+});
 
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
