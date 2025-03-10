@@ -54,18 +54,7 @@
 				></component>
 			</template>
 		</div>
-		<div class="workflowsToolbar">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-workflow"
-				@click="handleRun"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-		</div>
+		<WorkflowToolbar class="workflowsToolbar" />
 		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -84,10 +73,9 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
-import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
-import { useWorkflowRun } from "@/composables/useWorkflowRun";
+import WorkflowToolbar from "./base/WorkflowToolbar.vue";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -321,8 +309,6 @@ function handleAutoArrange() {
 	}
 	changeCoordinatesMultiple(coordinates);
 }
-
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
@@ -776,7 +762,7 @@ onUnmounted(() => {
 	position: absolute;
 	display: flex;
 	gap: 8px;
-	right: 24px;
+	right: 60px;
 	top: 20px;
 }
 
