@@ -20,6 +20,21 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const workflowComponentId = inject(injectionKeys.componentId);
 
+const root = useTemplateRef("root");
+const dropdown = useTemplateRef("dropdown");
+
+const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
+
+const { floatingStyles } = useFloating(root, dropdown, {
+	placement: "bottom-end",
+	middleware: [offset(12)],
+});
+
+const hasFocus = useFocusWithin(root);
+watch(hasFocus, () => {
+	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
+});
+
 const startBlocks = computed(() => {
 	const blocks = wf.getComponents(workflowComponentId);
 
@@ -33,22 +48,6 @@ const startBlocks = computed(() => {
 });
 
 const isDropdownOpen = ref(false);
-
-const seeWorkflowsBtn = useTemplateRef("seeWorkflowsBtn");
-const dropdown = useTemplateRef("dropdown");
-
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
-
-const { floatingStyles } = useFloating(seeWorkflowsBtn, dropdown, {
-	placement: "bottom-end",
-	middleware: [offset(12)],
-});
-
-const root = useTemplateRef("root");
-const hasFocus = useFocusWithin(root);
-watch(hasFocus, () => {
-	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
-});
 
 const previousSelection = shallowRef<typeof wfbm.selection.value>([]);
 
@@ -80,30 +79,28 @@ function runBranch(componentId: string) {
 
 <template>
 	<div ref="root" class="WorkflowToolbar" :data-writer-unselectable="true">
-		<div ref="seeWorkflowsBtn" class="WorkflowToolbar__btn">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				data-automation-action="run-workflow"
-				@click.stop="handleRun()"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-			<hr class="WorkflowToolbar__btn__divider" />
-			<WdsButton
-				v-if="startBlocks.length > 1"
-				class="WorkflowToolbar__btn__dropdownTrigger"
-				variant="secondary"
-				size="smallIcon"
-				custom-size="20px"
-				@click.capture="toggleDropdown"
-			>
-				<i class="material-symbols-outlined">{{
-					isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
-				}}</i>
-			</WdsButton>
-		</div>
+		<WdsButton
+			variant="secondary"
+			size="small"
+			data-automation-action="run-workflow"
+			@click.stop="handleRun()"
+		>
+			<i class="material-symbols-outlined">play_arrow</i>
+			{{ isRunning ? "Running..." : "Run blueprint" }}
+		</WdsButton>
+		<hr class="WorkflowToolbar__divider" />
+		<WdsButton
+			v-if="startBlocks.length > 1"
+			class="WorkflowToolbar__dropdownTrigger"
+			variant="secondary"
+			size="smallIcon"
+			custom-size="20px"
+			@click.capture="toggleDropdown"
+		>
+			<i class="material-symbols-outlined">{{
+				isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
+			}}</i>
+		</WdsButton>
 		<BaseTransitionSlideFade>
 			<WorkflowToolbarBlocksDropdown
 				v-if="isDropdownOpen"
@@ -118,7 +115,7 @@ function runBranch(componentId: string) {
 </template>
 
 <style lang="css" scoped>
-.WorkflowToolbar__btn {
+.WorkflowToolbar {
 	display: flex;
 	background: var(--wdsColorBlack);
 	border-radius: 300px;
@@ -133,10 +130,10 @@ function runBranch(componentId: string) {
 	padding-left: 8px;
 	padding-right: 8px;
 }
-.WorkflowToolbar__btn__dropdownTrigger {
+.WorkflowToolbar__dropdownTrigger {
 	font-size: 20px;
 }
-.WorkflowToolbar__btn__divider {
+.WorkflowToolbar__divider {
 	display: block;
 	width: 1px;
 	height: 100%;
