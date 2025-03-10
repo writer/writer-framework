@@ -1640,7 +1640,10 @@ class EventHandler:
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
     def _get_workflow_callable(
-        self, workflow_key: Optional[str] = None, workflow_id: Optional[str] = None
+        self,
+        workflow_key: Optional[str] = None,
+        workflow_id: Optional[str] = None,
+        branch_id: Optional[str] = None,
     ):
         def fn(payload, context, session):
             execution_environment = {"payload": payload, "context": context, "session": session}
@@ -1649,6 +1652,13 @@ class EventHandler:
             elif workflow_id:
                 return self.workflow_runner.run_workflow(
                     workflow_id, execution_environment, "Workflow execution triggered on demand"
+                )
+            elif branch_id:
+                return self.workflow_runner.run_branch(
+                    branch_id,
+                    None,
+                    execution_environment,
+                    "Workflow branch execution triggered on demand",
                 )
 
         return fn
@@ -1661,6 +1671,10 @@ class EventHandler:
         if handler.startswith("$runWorkflowById_"):
             workflow_id = handler[17:]
             return self._get_workflow_callable(workflow_id=workflow_id)
+
+        if handler.startswith("$runWorkflowBranchById_"):
+            branch_id = handler[23:]
+            return self._get_workflow_callable(branch_id=branch_id)
 
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry

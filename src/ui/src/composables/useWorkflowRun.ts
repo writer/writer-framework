@@ -4,13 +4,16 @@ import { computed, readonly, Ref, ref, unref } from "vue";
 function runWorkflow(
 	wf: ReturnType<typeof generateCore>,
 	workflowComponentId: string,
+	branchId?: string,
 ) {
 	return new Promise((res, rej) => {
 		wf.forwardEvent(
 			new CustomEvent("wf-builtin-run", {
 				detail: {
 					callback: res,
-					handler: `$runWorkflowById_${workflowComponentId}`,
+					handler: branchId
+						? `$runWorkflowBranchById_${branchId}`
+						: `$runWorkflowById_${workflowComponentId}`,
 				},
 			}),
 			null,
@@ -25,11 +28,11 @@ export function useWorkflowRun(
 ) {
 	const isRunning = ref(false);
 
-	async function run() {
+	async function run(branchId?: string) {
 		if (isRunning.value) return;
 		isRunning.value = true;
 		try {
-			await runWorkflow(wf, unref(workflowComponentId));
+			await runWorkflow(wf, unref(workflowComponentId), branchId);
 		} finally {
 			isRunning.value = false;
 		}
