@@ -54,33 +54,15 @@
 				></component>
 			</template>
 		</div>
-		<div class="workflowsToolbar">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-autogen"
-				@click="isAutogenShown = true"
-			>
-				<i class="material-symbols-outlined">bolt</i>
-				Autogen
-			</WdsButton>
-			<WdsModal v-if="isAutogenShown">
-				<WorkflowsAutogen
-					@block-generation="handleBlockGeneration"
-				></WorkflowsAutogen>
-			</WdsModal>
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-workflow"
-				@click="handleRun"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-		</div>
+		<WorkflowToolbar
+			class="workflowsToolbar"
+			@autogen-click="isAutogenShown = true"
+		/>
+		<WdsModal v-if="isAutogenShown">
+			<WorkflowsAutogen
+				@block-generation="handleBlockGeneration"
+			></WorkflowsAutogen>
+		</WdsModal>
 		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -99,12 +81,11 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
-import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import WorkflowsAutogen from "./WorkflowsAutogen.vue";
-import { useWorkflowRun } from "@/composables/useWorkflowRun";
+import WorkflowToolbar from "./base/WorkflowToolbar.vue";
 import { useLogger } from "@/composables/useLogger";
 
 const { log } = useLogger();
@@ -381,8 +362,6 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 	}
 	changeCoordinatesMultiple(coordinates);
 }
-
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
@@ -880,7 +859,7 @@ onUnmounted(() => {
 	position: absolute;
 	display: flex;
 	gap: 8px;
-	right: 24px;
+	right: 60px;
 	top: 20px;
 }
 
