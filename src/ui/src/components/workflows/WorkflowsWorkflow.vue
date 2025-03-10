@@ -85,7 +85,6 @@ import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import WorkflowsAutogen from "./WorkflowsAutogen.vue";
-import WorkflowToolbar from "./base/WorkflowToolbar.vue";
 import { useLogger } from "@/composables/useLogger";
 
 const { log } = useLogger();
@@ -130,10 +129,12 @@ export const ZOOM_SETTINGS = {
 	initialLevel: 1,
 };
 </script>
+
 <script setup lang="ts">
 import {
 	Ref,
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -145,6 +146,10 @@ import {
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+
+const WorkflowToolbar = defineAsyncComponent({
+	loader: () => import("./base/WorkflowToolbar.vue"),
+});
 
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);

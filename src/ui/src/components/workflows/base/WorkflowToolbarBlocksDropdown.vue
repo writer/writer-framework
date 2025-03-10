@@ -69,7 +69,6 @@ function getBlockTitle(component: Component) {
 
 <style lang="css" scoped>
 .WorkflowToolbarBlocksDropdown {
-	position: absolute;
 	border: 1px solid var(--wdsColorGray2);
 	border: none;
 	background: #fff;

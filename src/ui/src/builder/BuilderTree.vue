@@ -51,14 +51,14 @@
 				/>
 			</div>
 		</div>
-		<Transition name="slide-fade">
+		<BaseTransitionSlideFade>
 			<div
 				v-show="!collapsed && hasChildren"
 				class="BuilderTree__children"
 			>
 				<slot name="children" />
 			</div>
-		</Transition>
+		</BaseTransitionSlideFade>
 	</div>
 </template>
 
@@ -66,6 +66,7 @@
 import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import type { Option } from "./BuilderMoreDropdown.vue";
+import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 const BuilderMoreDropdown = defineAsyncComponent(
 	() => import("./BuilderMoreDropdown.vue"),
 );
@@ -178,27 +179,5 @@ function toggleCollapse(newCollapse?: boolean) {
 	flex-grow: 1;
 	display: flex;
 	justify-content: flex-end;
-}
-
-.slide-fade-enter-active {
-	transition: all 0.1s ease-out;
-}
-
-.slide-fade-leave-active {
-	transition: all 0.1s ease-in;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-	transform: translateY(-18px);
-	opacity: 0;
-}
-@media (prefers-reduced-motion) {
-	.slide-fade-enter-from,
-	.slide-fade-leave-to,
-	.slide-fade-enter-active,
-	.slide-fade-leave-active {
-		transition: unset;
-	}
 }
 </style>

@@ -14,6 +14,7 @@ import {
 import { useFloating, offset } from "@floating-ui/vue";
 import WorkflowToolbarBlocksDropdown from "./WorkflowToolbarBlocksDropdown.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
+import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 
 defineEmits({
 	autogenClick: () => true,
@@ -117,14 +118,16 @@ function runBranch(componentId: string) {
 				}}</i>
 			</WdsButton>
 		</div>
-		<WorkflowToolbarBlocksDropdown
-			v-if="isDropdownOpen"
-			ref="dropdown"
-			:style="floatingStyles"
-			:blocks="startBlocks"
-			@jump-to-component="jumpToComponent"
-			@run-branch="runBranch"
-		/>
+		<BaseTransitionSlideFade>
+			<WorkflowToolbarBlocksDropdown
+				v-if="isDropdownOpen"
+				ref="dropdown"
+				:style="floatingStyles"
+				:blocks="startBlocks"
+				@jump-to-component="jumpToComponent"
+				@run-branch="runBranch"
+			/>
+		</BaseTransitionSlideFade>
 	</div>
 </template>
 
