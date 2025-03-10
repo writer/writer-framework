@@ -43,13 +43,7 @@ const { floatingStyles } = useFloating(seeWorkflowsBtn, dropdown, {
 	middleware: [offset(12)],
 });
 
-function jumpToComponent(componentId: string) {
-	wfbm.setSelection(componentId, undefined, "click");
-	isDropdownOpen.value = false;
-}
-
 const root = useTemplateRef("root");
-
 const hasFocus = useFocusWithin(root);
 watch(hasFocus, () => {
 	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
@@ -61,6 +55,16 @@ function toggleDropdown() {
 		wfbm.isSettingsBarCollapsed.value = true;
 	}
 }
+
+function jumpToComponent(componentId: string) {
+	wfbm.setSelection(componentId, undefined, "click");
+	isDropdownOpen.value = false;
+}
+
+function runBranch(componentId: string) {
+	handleRun(componentId);
+	isDropdownOpen.value = false;
+}
 </script>
 
 <template>
@@ -71,7 +75,7 @@ function toggleDropdown() {
 				size="small"
 				:data-writer-unselectable="true"
 				data-automation-action="run-workflow"
-				@click="handleRun"
+				@click="handleRun()"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
@@ -96,6 +100,7 @@ function toggleDropdown() {
 			:style="floatingStyles"
 			:blocks="startBlocks"
 			@jump-to-component="jumpToComponent"
+			@run-branch="runBranch"
 		/>
 	</div>
 </template>
