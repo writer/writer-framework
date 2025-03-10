@@ -37,7 +37,7 @@ function getBlockTitle(component: Component) {
 				<WdsButton
 					variant="primary"
 					size="smallIcon"
-					custom-size="18px"
+					custom-size="20px"
 					data-writer-tooltip="Run the branch"
 					@click="$emit('runBranch', startBlock.id)"
 				>
@@ -56,7 +56,7 @@ function getBlockTitle(component: Component) {
 				<WdsButton
 					variant="neutral"
 					size="smallIcon"
-					custom-size="18px"
+					custom-size="20px"
 					data-writer-tooltip="Jump to the workflow"
 					@click="$emit('jumpToComponent', startBlock.id)"
 				>
