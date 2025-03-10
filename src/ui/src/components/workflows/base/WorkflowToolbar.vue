@@ -24,6 +24,21 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const workflowComponentId = inject(injectionKeys.componentId);
 
+const root = useTemplateRef("root");
+const dropdown = useTemplateRef("dropdown");
+
+const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
+
+const { floatingStyles } = useFloating(root, dropdown, {
+	placement: "bottom-end",
+	middleware: [offset(12)],
+});
+
+const hasFocus = useFocusWithin(root);
+watch(hasFocus, () => {
+	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
+});
+
 const startBlocks = computed(() => {
 	const blocks = wf.getComponents(workflowComponentId);
 
@@ -37,22 +52,6 @@ const startBlocks = computed(() => {
 });
 
 const isDropdownOpen = ref(false);
-
-const seeWorkflowsBtn = useTemplateRef("seeWorkflowsBtn");
-const dropdown = useTemplateRef("dropdown");
-
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
-
-const { floatingStyles } = useFloating(seeWorkflowsBtn, dropdown, {
-	placement: "bottom-end",
-	middleware: [offset(12)],
-});
-
-const root = useTemplateRef("root");
-const hasFocus = useFocusWithin(root);
-watch(hasFocus, () => {
-	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
-});
 
 const previousSelection = shallowRef<typeof wfbm.selection.value>([]);
 
