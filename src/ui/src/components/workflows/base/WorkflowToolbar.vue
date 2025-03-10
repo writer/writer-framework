@@ -2,7 +2,15 @@
 import { useWorkflowRun } from "@/composables/useWorkflowRun";
 import WdsButton from "@/wds/WdsButton.vue";
 import injectionKeys from "@/injectionKeys";
-import { computed, inject, ref, useTemplateRef, watch } from "vue";
+import {
+	computed,
+	inject,
+	ref,
+	shallowRef,
+	toRaw,
+	useTemplateRef,
+	watch,
+} from "vue";
 import { useFloating, offset } from "@floating-ui/vue";
 import WorkflowToolbarBlocksDropdown from "./WorkflowToolbarBlocksDropdown.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
@@ -45,10 +53,20 @@ watch(hasFocus, () => {
 	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
 });
 
+const previousSelection = shallowRef<typeof wfbm.selection.value>([]);
+
 function toggleDropdown() {
 	isDropdownOpen.value = !isDropdownOpen.value;
 	if (isDropdownOpen.value) {
 		wfbm.isSettingsBarCollapsed.value = true;
+		previousSelection.value = toRaw(wfbm.selection.value);
+		wfbm.setSelection(null);
+	} else if (previousSelection.value?.length) {
+		wfbm.setSelection(null);
+		for (const s of previousSelection.value) {
+			wfbm.appendSelection(s.componentId, s.instancePath, s.source);
+		}
+		previousSelection.value = [];
 	}
 }
 

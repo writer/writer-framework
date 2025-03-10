@@ -859,7 +859,7 @@ onUnmounted(() => {
 	position: absolute;
 	display: flex;
 	gap: 8px;
-	right: 60px;
+	right: 24px;
 	top: 20px;
 }
 
