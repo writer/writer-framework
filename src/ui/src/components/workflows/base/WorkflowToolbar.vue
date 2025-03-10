@@ -2,15 +2,7 @@
 import { useWorkflowRun } from "@/composables/useWorkflowRun";
 import WdsButton from "@/wds/WdsButton.vue";
 import injectionKeys from "@/injectionKeys";
-import {
-	computed,
-	inject,
-	ref,
-	toRaw,
-	useTemplateRef,
-	watch,
-	watchEffect,
-} from "vue";
+import { computed, inject, ref, useTemplateRef, watch } from "vue";
 import { useFloating, offset } from "@floating-ui/vue";
 import WorkflowToolbarBlocksDropdown from "./WorkflowToolbarBlocksDropdown.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
@@ -68,14 +60,13 @@ function runBranch(componentId: string) {
 </script>
 
 <template>
-	<div ref="root" class="WorkflowToolbar">
+	<div ref="root" class="WorkflowToolbar" :data-writer-unselectable="true">
 		<div ref="seeWorkflowsBtn" class="WorkflowToolbar__btn">
 			<WdsButton
 				variant="secondary"
 				size="small"
-				:data-writer-unselectable="true"
 				data-automation-action="run-workflow"
-				@click="handleRun()"
+				@click.stop="handleRun()"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
@@ -87,7 +78,7 @@ function runBranch(componentId: string) {
 				variant="secondary"
 				size="smallIcon"
 				custom-size="20px"
-				@click="toggleDropdown"
+				@click.capture="toggleDropdown"
 			>
 				<i class="material-symbols-outlined">{{
 					isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
