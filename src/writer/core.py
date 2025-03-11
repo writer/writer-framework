@@ -1672,8 +1672,8 @@ class EventHandler:
             workflow_id = handler[17:]
             return self._get_workflow_callable(workflow_id=workflow_id)
 
-        if handler.startswith("$runWorkflowBranchById_"):
-            branch_id = handler[23:]
+        if handler.startswith("$runWorkflowTriggerBranchById_"):
+            branch_id = handler[30:]
             return self._get_workflow_callable(branch_id=branch_id)
 
         current_app_process = get_app_process()

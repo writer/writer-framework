@@ -12,7 +12,7 @@ function runWorkflow(
 				detail: {
 					callback: res,
 					handler: branchId
-						? `$runWorkflowBranchById_${branchId}`
+						? `$runWorkflowTriggerBranchById_${branchId}`
 						: `$runWorkflowById_${workflowComponentId}`,
 				},
 			}),
