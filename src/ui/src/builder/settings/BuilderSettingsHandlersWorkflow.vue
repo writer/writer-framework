@@ -9,6 +9,7 @@ import BuilderListItem from "../BuilderListItem.vue";
 import { useWorkflowsRun } from "@/composables/useWorkflowRun";
 import { WdsColor } from "@/wds/tokens";
 import BuilderWorkflowState from "../BuilderWorkflowState.vue";
+import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -25,20 +26,12 @@ const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),
 );
 
-const linkedWorkflows = computed<Component[]>(() => {
-	return wf
-		.getComponents("workflows_root")
-		.filter((w) =>
-			wf
-				.getComponents(w.id)
-				.some(
-					(c) =>
-						c.type === "workflows_uieventtrigger" &&
-						c.content.refComponentId === props.component.id &&
-						c.content.refEventType === props.eventType,
-				),
-		);
-});
+const linkedWorkflows = useComponentLinkedWorkflows(
+	wf,
+	computed(() => props.component.id),
+	computed(() => props.eventType),
+);
+
 const linkedWorkflowsIds = computed(() =>
 	linkedWorkflows.value.map((w) => w.id),
 );
