@@ -39,17 +39,13 @@ watch(hasFocus, () => {
 	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
 });
 
-const startBlocks = computed(() => {
-	const blocks = wf.getComponents(workflowComponentId);
-
-	const blockIdsWithDeps = new Set();
-	for (const block of blocks) {
-		if (!block.outs?.length) continue;
-		for (const out of block.outs) blockIdsWithDeps.add(out.toNodeId);
-	}
-
-	return blocks.filter((b) => !blockIdsWithDeps.has(b.id));
-});
+const triggerComponents = computed(() =>
+	wf
+		.getComponents(workflowComponentId)
+		.filter(
+			(c) => wf.getComponentDefinition(c.type)?.category === "Triggers",
+		),
+);
 
 const isDropdownOpen = ref(false);
 
@@ -102,30 +98,31 @@ function runBranch(componentId: string) {
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
 			</WdsButton>
-			<hr class="WorkflowToolbar__btn__divider" />
-			<WdsButton
-				v-if="startBlocks.length > 1"
-				class="WorkflowToolbar__btn__dropdownTrigger"
-				variant="secondary"
-				size="smallIcon"
-				custom-size="20px"
-				@click.capture="toggleDropdown"
-			>
-				<i class="material-symbols-outlined">{{
-					isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
-				}}</i>
-			</WdsButton>
+			<template v-if="triggerComponents.length > 1">
+				<hr class="WorkflowToolbar__btn__divider" />
+				<WdsButton
+					class="WorkflowToolbar__btn__dropdownTrigger"
+					variant="secondary"
+					size="smallIcon"
+					custom-size="20px"
+					@click.capture="toggleDropdown"
+				>
+					<i class="material-symbols-outlined">{{
+						isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
+					}}</i>
+				</WdsButton>
+			</template>
+			<BaseTransitionSlideFade>
+				<WorkflowToolbarBlocksDropdown
+					v-if="isDropdownOpen"
+					ref="dropdown"
+					:style="floatingStyles"
+					:components="triggerComponents"
+					@jump-to-component="jumpToComponent"
+					@run-branch="runBranch"
+				/>
+			</BaseTransitionSlideFade>
 		</div>
-		<BaseTransitionSlideFade>
-			<WorkflowToolbarBlocksDropdown
-				v-if="isDropdownOpen"
-				ref="dropdown"
-				:style="floatingStyles"
-				:blocks="startBlocks"
-				@jump-to-component="jumpToComponent"
-				@run-branch="runBranch"
-			/>
-		</BaseTransitionSlideFade>
 	</div>
 </template>
 
