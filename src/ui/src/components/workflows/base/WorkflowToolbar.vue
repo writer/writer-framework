@@ -58,7 +58,6 @@ const previousSelection = shallowRef<typeof wfbm.selection.value>([]);
 function toggleDropdown() {
 	isDropdownOpen.value = !isDropdownOpen.value;
 	if (isDropdownOpen.value) {
-		wfbm.isSettingsBarCollapsed.value = true;
 		previousSelection.value = toRaw(wfbm.selection.value);
 		wfbm.setSelection(null);
 	} else if (previousSelection.value?.length) {

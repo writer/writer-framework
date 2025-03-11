@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
+import { useEvaluator } from "@/renderer/useEvaluator";
 import WdsButton from "@/wds/WdsButton.vue";
 import { Component } from "@/writerTypes";
-import { inject, PropType } from "vue";
+import { computed, inject, PropType } from "vue";
 
-defineProps({
+const props = defineProps({
 	blocks: { type: Array as PropType<Component[]>, required: true },
 });
 
@@ -20,9 +21,37 @@ function getBlockType(component: Component) {
 	return def?.name ?? component.type;
 }
 
-function getBlockTitle(component: Component) {
-	return component.content?.alias || getBlockType(component);
+function isRunnable(component: Component) {
+	if (component.type !== "workflows_uieventtrigger") return true;
+
+	// TODO: evaluate the field
+	const hasDefaultResult = Boolean(component.content.defaultResult);
+	if (hasDefaultResult) return true;
+
+	const fields = (component.outs ?? [])
+		.map((o) => wf.getComponentById(o.toNodeId))
+		.flatMap((c) => Object.values(c.content ?? {}));
+	if (fields.length === 0) return true;
+
+	const needResult = fields.some((field) => field.includes("@{result}"));
+
+	return !needResult;
 }
+
+const options = computed(() =>
+	props.blocks.map((block) => {
+		const def = wf.getComponentDefinition(block.type);
+		const title = block.content?.alias || getBlockType(block);
+		const description = def?.name ?? block.type;
+
+		return {
+			id: block.id,
+			disabled: !isRunnable(block),
+			title,
+			description,
+		};
+	}),
+);
 </script>
 
 <template>
@@ -30,16 +59,25 @@ function getBlockTitle(component: Component) {
 		<p class="WorkflowToolbarBlocksDropdown__header">Start workflow from</p>
 		<div class="WorkflowToolbarBlocksDropdown__list">
 			<div
-				v-for="startBlock of blocks"
-				:key="startBlock.id"
+				v-for="option of options"
+				:key="option.id"
 				class="WorkflowToolbarBlocksDropdown__list__item"
+				:class="{
+					'WorkflowToolbarBlocksDropdown__list__item--disabled':
+						option.disabled,
+				}"
 			>
 				<WdsButton
 					variant="primary"
 					size="smallIcon"
 					custom-size="20px"
-					data-writer-tooltip="Run the branch"
-					@click="$emit('runBranch', startBlock.id)"
+					:disabled="option.disabled"
+					:data-writer-tooltip="
+						option.disabled
+							? 'Can not run without a default result. Go to this block to define a default result.'
+							: 'Run the branch'
+					"
+					@click="$emit('runBranch', option.id)"
 				>
 					<i class="material-symbols-outlined">play_arrow</i>
 				</WdsButton>
@@ -47,10 +85,10 @@ function getBlockTitle(component: Component) {
 					<p
 						class="WorkflowToolbarBlocksDropdown__list__item__description"
 					>
-						{{ getBlockType(startBlock) }}
+						{{ option.description }}
 					</p>
 					<p class="WorkflowToolbarBlocksDropdown__list__item__title">
-						{{ getBlockTitle(startBlock) }}
+						{{ option.title }}
 					</p>
 				</div>
 				<WdsButton
@@ -58,7 +96,7 @@ function getBlockTitle(component: Component) {
 					size="smallIcon"
 					custom-size="20px"
 					data-writer-tooltip="Jump to the workflow"
-					@click="$emit('jumpToComponent', startBlock.id)"
+					@click="$emit('jumpToComponent', option.id)"
 				>
 					<i class="material-symbols-outlined">jump_to_element</i>
 				</WdsButton>
@@ -114,5 +152,12 @@ function getBlockTitle(component: Component) {
 .WorkflowToolbarBlocksDropdown__list__item__description {
 	font-weight: 400;
 	color: var(--wdsColorGray4);
+}
+
+.WorkflowToolbarBlocksDropdown__list__item--disabled
+	.WorkflowToolbarBlocksDropdown__list__item__description,
+.WorkflowToolbarBlocksDropdown__list__item--disabled
+	.WorkflowToolbarBlocksDropdown__list__item__title {
+	opacity: 50%;
 }
 </style>
