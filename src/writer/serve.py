@@ -31,6 +31,7 @@ from writer.ai import Graph
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
+    AutogenRequestBody,
     ComponentUpdateRequestPayload,
     EventResponsePayload,
     HashRequestPayload,
@@ -289,6 +290,12 @@ def get_asgi_app(
     @app.get("/api/health")
     async def health():
         return {"status": "ok"}
+
+    @app.post("/api/autogen")
+    async def autogen(requestBody: AutogenRequestBody, request: Request):
+        import writer.autogen
+
+        return writer.autogen.generate_workflow(requestBody.description)
 
     @app.post("/api/init")
     async def init(

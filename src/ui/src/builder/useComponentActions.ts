@@ -166,7 +166,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		parentId: Component["id"],
 		position?: number,
 		initProperties?: Partial<
-			Omit<Component, "id" | "type" | "parent" | "handlers" | "position">
+			Omit<Component, "type" | "parent" | "handlers" | "position">
 		>,
 		initializer?: (parentId: Component["id"]) => void,
 	): Component["id"] {
@@ -176,6 +176,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			position,
 			initProperties,
 		);
+		component.id = initProperties?.id ?? component.id;
 		const transactionId = `create-${component.id}`;
 		ssbm.openMutationTransaction(transactionId, `Create`);
 		wf.addComponent(component);

@@ -59,6 +59,21 @@
 				variant="secondary"
 				size="small"
 				:data-writer-unselectable="true"
+				data-automation-action="run-autogen"
+				@click="isAutogenShown = true"
+			>
+				<i class="material-symbols-outlined">bolt</i>
+				Autogen
+			</WdsButton>
+			<WdsModal v-if="isAutogenShown">
+				<WorkflowsAutogen
+					@block-generation="handleBlockGeneration"
+				></WorkflowsAutogen>
+			</WdsModal>
+			<WdsButton
+				variant="secondary"
+				size="small"
+				:data-writer-unselectable="true"
 				data-automation-action="run-workflow"
 				@click="handleRun"
 			>
@@ -87,6 +102,8 @@ import { watch } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
+import WdsModal from "@/wds/WdsModal.vue";
+import WorkflowsAutogen from "./WorkflowsAutogen.vue";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -155,6 +172,7 @@ const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
 const isRunning = ref(false);
 const selectedArrow = ref(null);
+const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<
@@ -231,11 +249,8 @@ function organizeNodesInColumns() {
 	const columns: Map<number, Set<Component>> = new Map();
 
 	function scan(node: Component, layer: number) {
-		columns.forEach((column) => {
-			if (column.has(node)) {
-				column.delete(node);
-			}
-		});
+		const isFound = columns.values().find((column) => column.has(node));
+		if (isFound) return;
 		if (!columns.has(layer)) {
 			columns.set(layer, new Set());
 		}
@@ -296,6 +311,46 @@ function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 }
 
 function handleAutoArrange() {
+	autoArrange("currentY");
+}
+
+function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
+	const ySortStrategies: Record<
+		typeof ySortStrategyKey,
+		(a: Component, b: Component) => number
+	> = {
+		currentY: (a, b) => (a.y > b.y ? 1 : -1),
+		socketPosition: (a, b) => {
+			const [aPre, bPre] = [a, b].map((sortComponent) =>
+				nodes.value
+					.map((c) =>
+						c.outs
+							?.filter((out) => out.toNodeId === sortComponent.id)
+							.map((out) => ({
+								fromNodeId: c.id,
+								fromOutId: out.outId,
+							})),
+					)
+					.flat(),
+			);
+
+			if (!aPre || aPre.length === 0) return 0;
+			if (!bPre || bPre.length === 0) return 0;
+
+			const aEl = document.querySelector(
+				`[data-writer-id="${aPre[0].fromNodeId}"] [data-writer-socket-id="${aPre[0].fromOutId}"]`,
+			);
+
+			const bEl = document.querySelector(
+				`[data-writer-id="${bPre[0].fromNodeId}"] [data-writer-socket-id="${bPre[0].fromOutId}"]`,
+			);
+
+			const aElBCR = aEl.getBoundingClientRect();
+			const bElBCR = bEl.getBoundingClientRect();
+			return aElBCR > bElBCR ? -1 : 1;
+		},
+	};
+
 	const columns = organizeNodesInColumns();
 	const { columnDimensions, nodeDimensions } =
 		calculateAutoArrangeDimensions(columns);
@@ -308,8 +363,8 @@ function handleAutoArrange() {
 	const coordinates = {};
 	let x = AUTOARRANGE_COLUMN_GAP_PX / 2;
 	for (let i = 0; i < columns.size; i++) {
-		const nodes = Array.from(columns.get(i)).sort((a, b) =>
-			a.y > b.y ? 1 : -1,
+		const nodes = Array.from(columns.get(i)).sort(
+			ySortStrategies[ySortStrategyKey],
 		);
 		const { width, height } = columnDimensions.get(i);
 		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
@@ -741,6 +796,25 @@ async function resetZoom() {
 
 	setZoomLevel(newZoomLevel);
 	changeRenderOffset(0, 0);
+}
+
+async function handleBlockGeneration(
+	payload: { components: Component[] } | null,
+) {
+	isAutogenShown.value = false;
+	if (!payload) return;
+	const { components } = payload;
+	components.forEach((component) => {
+		createAndInsertComponent(
+			component.type,
+			workflowComponentId,
+			undefined,
+			component,
+		);
+	});
+
+	await nextTick();
+	autoArrange("currentY");
 }
 
 watch(wfbm.firstSelectedItem, (newSelection) => {
