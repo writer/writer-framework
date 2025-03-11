@@ -89,7 +89,14 @@ from writerai.types import (
     CompletionChunk,
     ToolContextAwareSplittingResponse,
     ToolParsePdfResponse,
+    ApplicationRetrieveResponse
 )
+from writerai.types.applications import (
+    ApplicationGenerateAsyncResponse,
+    JobCreateResponse,
+    JobRetryResponse,
+)
+from writerai.types.applications.application_graphs_response import ApplicationGraphsResponse
 from writerai.types.tools import ComprehendMedicalResponse
 
 # Decorator to mark tests as explicit,
@@ -175,6 +182,72 @@ def mock_app_content_generation():
         non_streaming_client.applications.generate_content.return_value =\
             ApplicationGenerateContentResponse(
                 suggestion=test_complete_literal
+            )
+        
+        non_streaming_client.applications.retrieve.return_value =\
+            ApplicationRetrieveResponse(
+                id="app1",
+                name="Test App 1",
+                created_at=datetime.now(),
+                description="A test application",
+                inputs=[],
+                status="deployed",
+                type="generation",
+                updated_at=datetime.now()
+            )
+
+        non_streaming_client.applications.jobs.create.return_value =\
+            JobCreateResponse(
+                id="job1",
+                created_at=datetime.now(),
+                status="in_progress"
+            )
+
+        non_streaming_client.applications.jobs.retry.return_value =\
+            JobRetryResponse(
+                id="job1",
+                created_at=datetime.now(),
+                status="in_progress"
+            )
+
+        non_streaming_client.applications.jobs.list.return_value =\
+            SyncCursorPage(
+                data=[
+                    ApplicationGenerateAsyncResponse(
+                        id="job1",
+                        application_id="test_app",
+                        created_at=datetime.now(),
+                        status="completed",
+                        data={"title": "output", "suggestion": "Completed text"}
+                    ),
+                    ApplicationGenerateAsyncResponse(
+                        id="job2",
+                        application_id="test_app",
+                        created_at=datetime.now(),
+                        status="in_progress",
+                        data=None
+                    )
+                ],
+                has_more=False
+            )
+
+        non_streaming_client.applications.jobs.retrieve.return_value =\
+            ApplicationGenerateAsyncResponse(
+                id="job1",
+                application_id="test_app",
+                created_at=datetime.now(),
+                status="completed",
+                data={"title": "output", "suggestion": "Completed text"}
+            )
+
+        non_streaming_client.applications.graphs.list.return_value =\
+            ApplicationGraphsResponse(
+                graph_ids=["graph1", "graph2"]
+            )
+
+        non_streaming_client.applications.graphs.update.return_value =\
+            ApplicationGraphsResponse(
+                graph_ids=["graph1", "graph2", "graph3"]
             )
 
         yield non_streaming_client
@@ -788,6 +861,102 @@ def test_apps_list(
 
 
 @pytest.mark.set_token("fake_token")
+def test_apps_retrieve(emulate_app_process, mock_app_content_generation):
+    result = apps.retrieve("app1")
+
+    assert isinstance(result, ApplicationRetrieveResponse)
+    assert result.id == "app1"
+    assert result.name == "Test App 1"
+    assert result.description == "A test application"
+    mock_app_content_generation.applications.retrieve.assert_called_once_with(
+        application_id="app1"
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_generate_content_from_app_async(
+    emulate_app_process,
+    mock_app_content_generation
+):
+    response = apps.generate_content(
+        "abc123",
+        {"Favorite animal": "Dog", "Favorite color": "Purple"},
+        async_job=True
+    )
+
+    assert isinstance(response, JobCreateResponse)
+    assert response.id == "job1"
+    assert response.status == "in_progress"
+    mock_app_content_generation.applications.jobs.create.assert_called_once()
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_retry_job(emulate_app_process, mock_app_content_generation):
+    response = apps.retry_job("job1")
+
+    assert isinstance(response, JobRetryResponse)
+    assert response.id == "job1"
+    assert response.status == "in_progress"
+    mock_app_content_generation.applications.jobs.retry.assert_called_once_with(
+        job_id="job1"
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_retrieve_jobs(emulate_app_process, mock_app_content_generation):
+    result = apps.retrieve_jobs("app1")
+
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0].id == "job1"
+    assert result[0].status == "completed"
+    assert result[0].data.suggestion == "Completed text"
+    assert result[1].id == "job2"
+    assert result[1].status == "in_progress"
+    assert result[1].data is None
+    mock_app_content_generation.applications.jobs.list.assert_called_once_with(
+        application_id="app1"
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_retrieve_job(emulate_app_process, mock_app_content_generation):
+    result = apps.retrieve_job("job1")
+
+    assert isinstance(result, ApplicationGenerateAsyncResponse)
+    assert result.id == "job1"
+    assert result.status == "completed"
+    assert result.data.suggestion == "Completed text"
+    mock_app_content_generation.applications.jobs.retrieve.assert_called_once_with(
+        job_id="job1"
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_retrieve_graphs(emulate_app_process, mock_app_content_generation):
+    result = apps.retrieve_graphs("app1")
+
+    assert isinstance(result, list)
+    assert result == ["graph1", "graph2"]
+    mock_app_content_generation.applications.graphs.list.assert_called_once_with(
+        application_id="app1"
+    )
+
+
+@pytest.mark.set_token("fake_token")
+def test_apps_associate_graphs(emulate_app_process, mock_app_content_generation):
+    graph_ids = ["graph1", "graph2", "graph3"]
+    response = apps.associate_graphs("app1", graph_ids)
+
+    assert isinstance(response, ApplicationGraphsResponse)
+    assert response.graph_ids == graph_ids
+    mock_app_content_generation.applications.graphs.update.assert_called_once_with(
+        application_id="app1",
+        graph_ids=graph_ids
+    )
+
+
+@pytest.mark.set_token("fake_token")
 def test_generate_content_from_app(
     emulate_app_process,
     mock_app_content_generation
@@ -1252,6 +1421,32 @@ def test_explicit_conversation_stream_complete_tool_calls(emulate_app_process):
         third_response += chunk.get("content")
 
     assert third_response == str(number * coefficient)
+
+
+@explicit
+def test_explicit_conversation_complete_llm_tool(emulate_app_process):
+    llm_tool = {
+        "type": "llm",
+        "model": "palmyra-fin",
+        "description": "A tool to provide financial advice using the Palmyra Fin model."
+    }
+
+    conversation = Conversation(config={"tool_choice": "required"})
+    conversation.add(
+        "user",
+        "What’s a good strategy for saving money?"
+        )
+
+    response = conversation.complete(tools=[llm_tool])
+
+    assert response["role"] == "assistant"
+    assert isinstance(response["content"], str)
+    assert len(response["content"]) > 0
+    finance_keywords = {"saving", "money", "budget", "investment", "finance"}
+    assert any(
+        keyword in response["content"].lower() for keyword in finance_keywords
+        )
+    assert not response["llm_data"] is False
 
 
 @explicit
