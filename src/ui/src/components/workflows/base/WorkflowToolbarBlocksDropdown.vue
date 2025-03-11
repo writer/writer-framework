@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { useEvaluator } from "@/renderer/useEvaluator";
 import WdsButton from "@/wds/WdsButton.vue";
 import { Component } from "@/writerTypes";
 import { computed, inject, PropType } from "vue";
 
 const props = defineProps({
-	blocks: { type: Array as PropType<Component[]>, required: true },
+	components: { type: Array as PropType<Component[]>, required: true },
 });
 
 defineEmits({
@@ -24,7 +23,6 @@ function getBlockType(component: Component) {
 function isRunnable(component: Component) {
 	if (component.type !== "workflows_uieventtrigger") return true;
 
-	// TODO: evaluate the field
 	const hasDefaultResult = Boolean(component.content.defaultResult);
 	if (hasDefaultResult) return true;
 
@@ -39,7 +37,7 @@ function isRunnable(component: Component) {
 }
 
 const options = computed(() =>
-	props.blocks.map((block) => {
+	props.components.map((block) => {
 		const def = wf.getComponentDefinition(block.type);
 		const title = block.content?.alias || getBlockType(block);
 		const description = def?.name ?? block.type;
