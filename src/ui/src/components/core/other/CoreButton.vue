@@ -7,6 +7,7 @@
 		ref="rootInstance"
 		class="CoreButton"
 		:aria-disabled="isDisabled"
+		:disabled="!isBeingEdited && isDisabled"
 		@click="handleClick"
 	>
 		<i v-if="fields.icon.value" class="material-symbols-outlined">{{
@@ -86,6 +87,7 @@ import injectionKeys from "@/injectionKeys";
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fields = inject(injectionKeys.evaluatedFields);
 const isDisabled = inject(injectionKeys.isDisabled);
+const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
 watch(
 	fields.isDisabled,
@@ -108,10 +110,8 @@ function handleClick(ev: MouseEvent) {
 @import "@/renderer/sharedStyles.css";
 @import "@/renderer/colorTransformations.css";
 
-.CoreButton.disabled {
-	border: 1px solid var(--separatorColor);
-	cursor: default;
-	opacity: 0.4;
-	filter: contrast(90%);
+.CoreButton.selected {
+	color: var(--wdsColorBlue5);
+	opacity: 1;
 }
 </style>

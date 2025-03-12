@@ -84,7 +84,8 @@ const className = computed(() => [
 	border-color: var(--intensifiedButtonColor);
 	background: var(--intensifiedButtonColor);
 }
-.WdsButton--primary:disabled {
+.WdsButton--primary:disabled,
+.WdsButton--primary[aria-disabled="true"] {
 	border-color: var(--wdsColorBlue6);
 	background-color: var(--wdsColorBlue6);
 	opacity: 40%;
@@ -103,7 +104,8 @@ const className = computed(() => [
 	border-color: var(--wdsColorGray6);
 	background: var(--wdsColorGray6);
 }
-.WdsButton--secondary:disabled {
+.WdsButton--secondary:disabled,
+.WdsButton--secondary[aria-disabled="true"] {
 	border-color: var(--wdsColorGray6);
 	background: var(--wdsColorGray6);
 	opacity: 40%;
@@ -121,7 +123,8 @@ const className = computed(() => [
 .WdsButton--tertiary:focus {
 	color: var(--wdsColorGray4);
 }
-.WdsButton--tertiary:disabled {
+.WdsButton--tertiary:disabled,
+.WdsButton--tertiary[aria-disabled="true"] {
 	color: var(--wdsColorGray4);
 	opacity: 50%;
 }
@@ -139,7 +142,8 @@ const className = computed(() => [
 	border-color: var(--wdsColorBlue3);
 	background: var(--wdsColorBlue3);
 }
-.WdsButton--special:disabled {
+.WdsButton--special:disabled,
+.WdsButton--special[aria-disabled="true"] {
 	border-color: var(--wdsColorBlue2);
 	background-color: var(--wdsColorBlue2);
 	opacity: 0.4;
@@ -164,7 +168,8 @@ const className = computed(() => [
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.WdsButton--neutral:disabled {
+.WdsButton--neutral:disabled,
+.WdsButton--neutral[aria-disabled="true"] {
 	opacity: 0.4;
 }
 
