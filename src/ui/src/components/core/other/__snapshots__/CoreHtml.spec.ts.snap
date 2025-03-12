@@ -15,3 +15,19 @@ exports[`CoreCheckboxInput > should filter invalid Attributes props 1`] = `
   </div>
 </div>
 `;
+
+exports[`CoreHtml > should filter invalid Attributes props 1`] = `
+<div
+  class="CoreHTML"
+  data-writer-container=""
+  style="color: red;"
+  valid="valid"
+>
+  
+  slot
+  
+  <div>
+    inside
+  </div>
+</div>
+`;
