@@ -116,7 +116,7 @@ class WorkflowRunner:
     def run_branch(
         self,
         base_component_id: str,
-        base_outcome: str,
+        base_outcome: Optional[str],
         execution_environment: Dict,
         title: str = "Branch execution",
     ):

@@ -28,6 +28,11 @@ class UIEventTrigger(WorkflowTrigger):
                             "desc": "The type of the event that will trigger this branch. For example, wf-click.",
                             "options": "eventTypes",
                         },
+                        "defaultResult": {
+                            "name": "Default result",
+                            "type": "Code",
+                            "desc": "The result that is used when the workflow is run",
+                        },
                     },
                     "outs": {
                         "trigger": {

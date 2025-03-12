@@ -54,18 +54,7 @@
 				></component>
 			</template>
 		</div>
-		<div class="workflowsToolbar">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-workflow"
-				@click="handleRun"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-		</div>
+		<WorkflowToolbar class="workflowsToolbar" />
 		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -84,10 +73,8 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
-import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
-import { useWorkflowRun } from "@/composables/useWorkflowRun";
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -133,6 +120,7 @@ export const ZOOM_SETTINGS = {
 import {
 	Ref,
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -144,6 +132,10 @@ import {
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+
+const WorkflowToolbar = defineAsyncComponent({
+	loader: () => import("./base/WorkflowToolbar.vue"),
+});
 
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
@@ -321,8 +313,6 @@ function handleAutoArrange() {
 	}
 	changeCoordinatesMultiple(coordinates);
 }
-
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
