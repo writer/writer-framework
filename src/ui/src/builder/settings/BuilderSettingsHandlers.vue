@@ -12,6 +12,7 @@
 				<BuilderSettingsHandlersWorkflow
 					:component="component"
 					:event-type="eventType"
+					:event-description="eventInfo.desc"
 				/>
 			</div>
 		</div>

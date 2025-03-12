@@ -17,6 +17,7 @@ const wfbm = inject(injectionKeys.builderManager);
 const props = defineProps({
 	component: { type: Object as PropType<Component>, required: true },
 	eventType: { type: String, required: true },
+	eventDescription: { type: String, required: false, default: undefined },
 });
 
 const { createAndInsertComponent, removeComponentSubtree } =
@@ -89,9 +90,8 @@ async function createLinkedWorkflow() {
 		},
 	});
 }
-
-function deleteLinkedWorkflow(workflowId: string) {
-	const block = wf
+function getWorkflowTriggerBlock(workflowId: string) {
+	return wf
 		.getComponents(workflowId)
 		.find(
 			(c) =>
@@ -99,6 +99,10 @@ function deleteLinkedWorkflow(workflowId: string) {
 				c.content.refComponentId === props.component.id &&
 				c.content.refEventType === props.eventType,
 		);
+}
+
+function deleteLinkedWorkflow(workflowId: string) {
+	const block = getWorkflowTriggerBlock(workflowId);
 	if (block === undefined) return;
 
 	removeComponentSubtree(block.id);
@@ -107,7 +111,11 @@ function deleteLinkedWorkflow(workflowId: string) {
 function jumpToWorkflow(workflowId: string) {
 	wf.setActivePageId(workflowId);
 	wfbm.setMode("workflows");
-	wfbm.setSelection(workflowId);
+	wfbm.setSelection(
+		getWorkflowTriggerBlock(workflowId)?.id ?? workflowId,
+		undefined,
+		"click",
+	);
 }
 </script>
 
@@ -126,6 +134,12 @@ function jumpToWorkflow(workflowId: string) {
 				<i class="material-symbols-outlined">play_arrow</i>
 			</WdsButton>
 			<p>{{ eventTypeFormated }}</p>
+			<span
+				v-if="eventDescription"
+				:data-writer-tooltip="eventDescription"
+				class="material-symbols-outlined"
+				>help</span
+			>
 		</div>
 
 		<div class="BuilderSettingsHandlersWorkflow__list">
