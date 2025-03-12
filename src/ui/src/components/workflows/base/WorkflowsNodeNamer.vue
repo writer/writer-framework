@@ -7,6 +7,12 @@
 		}"
 		data-writer-unselectable="true"
 	>
+		<div
+			v-if="isGroupNode && !(isAliased || isAliasBeingEdited)"
+			class="groupName"
+		>
+			<div class="eyebrow">{{ groupType }}</div>
+		</div>
 		<div class="blockName" @click="enableEditor">
 			{{ blockName }}
 		</div>
@@ -36,7 +42,6 @@ import injectionKeys from "@/injectionKeys";
 
 const props = defineProps<{
 	componentId: Component["id"];
-	blockName: string;
 }>();
 
 const wf = inject(injectionKeys.core);
@@ -46,6 +51,21 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 const aliasFieldValue = computed(
 	() => wf.getComponentById(props.componentId)?.content["alias"],
 );
+
+const blockName = computed(() => {
+	const def = wf.getComponentDefinitionById(props.componentId);
+	if (
+		(isAliased.value || isAliasBeingEdited.value) &&
+		groupType.value != def.name
+	) {
+		return `${groupType.value} - ${def.name}`;
+	} else if (groupType.value == def.name) {
+		return "...";
+	} else {
+		return def.name;
+	}
+});
+
 const isAliased = computed(() => Boolean(aliasFieldValue.value));
 const aliasEditorEl = useTemplateRef("aliasEditorEl");
 const isAliasBeingEdited = ref(false);
@@ -77,6 +97,17 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 	if (!isAliasBeingEdited.value) return;
 	ev.stopPropagation();
 }
+
+const groupType = computed(() => {
+	const def = wf.getComponentDefinitionById(props.componentId);
+	const groupType = wf.getGroupType(def.type);
+	return wf.getComponentDefinition(groupType).name;
+});
+
+const isGroupNode = computed(() => {
+	const def = wf.getComponentDefinitionById(props.componentId);
+	return wf.isGroupNode(def.type);
+});
 </script>
 
 <style scoped>
@@ -88,6 +119,12 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 .blockName {
 	transition: 0.2s ease-in-out;
 	transition-property: color, font-size;
+}
+
+.groupName {
+	font-size: 12px;
+	color: var(--builderSecondaryTextColor);
+	background: var(--builderBackgroundColor) !important;
 }
 
 .WorkflowsNodeNamer.hasEyebrow .blockName {

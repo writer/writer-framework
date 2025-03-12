@@ -13,7 +13,12 @@ import {
 import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
+	hasComponentDefinition,
 	registerAbstractComponentTemplate,
+	getAvailableActions,
+	isGroupNode,
+	getGroupType,
+	getActionName,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -651,6 +656,87 @@ export function generateCore() {
 		return components.value[componentId];
 	}
 
+	/**
+	 * Return the complete list of the types of a component, including the secondary type if it is a workflow block
+	 * @param componentId
+	 *
+	 * @example
+	 * wf.inspectComponentTypes("1234") // ["workflows", "workflows_workflow"]
+	 */
+	function inspectComponentTypes(componentId: Component["id"]): string[] {
+		const component = getComponentById(componentId);
+		const groupType = getGroupType(component.type);
+		let types: string[] = [];
+		if (groupType === null || groupType === component.type) {
+			types = [component.type];
+		} else if (groupType !== component.type) {
+			types = [groupType, component.type];
+		} else {
+			throw new Error(
+				`Inspection failure for ${componentId} - ${component.type}`,
+			);
+		}
+
+		return types;
+	}
+
+	/**
+	 * Recovers the definition of a component from its type, whether it is the main type or the secondary type
+	 *
+	 * @param componentId
+	 */
+	function getComponentDefinitionById(componentId: Component["id"]) {
+		const component = getComponentById(componentId);
+		return getComponentDefinition(component.type);
+	}
+
+	function getComponentFieldsById(componentId: Component["id"]) {
+		const types = inspectComponentTypes(componentId);
+		const allFields = {};
+		types.forEach((type) => {
+			const fields = getComponentDefinition(type).fields;
+			Object.assign(allFields, fields);
+		});
+
+		return allFields;
+	}
+
+	/**
+	 * Retrieves the fields of a component, for the main group or for action
+	 *
+	 * @param componentId
+	 * @param level
+	 * @example
+	 * fields = wf.getComponentFieldsForGroupLevel("1234", 0)
+	 * // { "title": { "type": "string" }, "content": { "type": "string" } }
+	 */
+	function getComponentFieldsForGroupLevel(
+		componentId: Component["id"],
+		level: 0 | 1,
+	): Record<string, any> {
+		const component = getComponentById(componentId);
+		const groupType = getGroupType(component.type);
+
+		let fields = {};
+		if (groupType === null && level == 0) {
+			fields = getComponentDefinition(component.type).fields;
+		} else if (groupType !== component.type && level == 0) {
+			fields = getComponentDefinition(groupType).fields;
+		} else if (groupType !== component.type && level == 1) {
+			fields = getComponentDefinition(component.type).fields;
+		} else if (groupType === component.type && level == 0) {
+			fields = getComponentDefinition(component.type).fields;
+		} else if (groupType === component.type && level == 1) {
+			fields = {};
+		} else {
+			throw new Error(
+				`get component fields fails for ${componentId} - ${component.type} for group level ${level}`,
+			);
+		}
+
+		return fields;
+	}
+
 	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
 		let child = components.value[childId];
 		do {
@@ -765,13 +851,21 @@ export function generateCore() {
 		addComponent,
 		deleteComponent,
 		getComponentById,
+		getComponentDefinitionById,
+		getComponentFieldsById,
 		getComponents,
 		getComponentsNested,
 		setActivePageId,
 		activePageId: readonly(activePageId),
 		setActivePageFromKey,
 		getComponentDefinition,
+		hasComponentDefinition,
+		getGroupType,
+		isGroupNode,
 		getSupportedComponentTypes,
+		getAvailableActions,
+		getActionName,
+		getComponentFieldsForGroupLevel,
 		getContainableTypes,
 		sessionTimestamp: readonly(sessionTimestamp),
 		userState: readonly(userState),

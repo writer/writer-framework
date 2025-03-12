@@ -50,9 +50,7 @@ const props = defineProps({
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 const templateField = computed(() => {
-	const { type } = component.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition.fields[fieldKey.value];
+	return wf.getComponentFieldsById(componentId.value)[fieldKey.value];
 });
 
 const inputId = computed(() => `${props.componentId}-${props.fieldKey}`);

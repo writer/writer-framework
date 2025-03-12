@@ -63,6 +63,7 @@ const displayedCategories = [
 	"Logic",
 	"Triggers",
 	"Other",
+	"Third parts",
 ];
 
 const activeToolkit = computed(() => {
@@ -103,6 +104,7 @@ function getRelevantToolsInCategory(categoryId: string) {
 	const typeList = getSupportedComponentTypes().filter((type) => {
 		const def = getComponentDefinition(type);
 		if (def.category != categoryId) return false;
+		if (def.group) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
 		if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
 		if (def.deprecated) return false;
