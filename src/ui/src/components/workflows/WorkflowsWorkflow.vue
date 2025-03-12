@@ -54,18 +54,7 @@
 				></component>
 			</template>
 		</div>
-		<div class="workflowsToolbar">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-workflow"
-				@click="handleRun"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-		</div>
+		<WorkflowToolbar class="workflowsToolbar" />
 		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -84,7 +73,6 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
-import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 
@@ -132,6 +120,7 @@ export const ZOOM_SETTINGS = {
 import {
 	Ref,
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -144,6 +133,10 @@ import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
 
+const WorkflowToolbar = defineAsyncComponent({
+	loader: () => import("./base/WorkflowToolbar.vue"),
+});
+
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
 
@@ -153,7 +146,6 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const arrows: Ref<WorkflowArrowData[]> = ref([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
-const isRunning = ref(false);
 const selectedArrow = ref(null);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
@@ -320,23 +312,6 @@ function handleAutoArrange() {
 		x += width + AUTOARRANGE_COLUMN_GAP_PX;
 	}
 	changeCoordinatesMultiple(coordinates);
-}
-
-async function handleRun() {
-	if (isRunning.value) return;
-	isRunning.value = true;
-	await wf.forwardEvent(
-		new CustomEvent("wf-builtin-run", {
-			detail: {
-				callback: () => {
-					isRunning.value = false;
-				},
-				handler: `$runWorkflowById_${workflowComponentId}`,
-			},
-		}),
-		null,
-		true,
-	);
 }
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {

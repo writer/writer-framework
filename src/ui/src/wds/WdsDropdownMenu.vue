@@ -75,9 +75,19 @@
 				:data-automation-key="option.value"
 				@click="onSelect(option.value)"
 			>
-				<i v-if="!hideIcons" class="material-symbols-outlined">{{
-					getOptionIcon(option)
-				}}</i>
+				<template v-if="!hideIcons">
+					<div
+						v-if="Array.isArray(option.icon)"
+						class="WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--img"
+					>
+						<SharedImgWithFallback :urls="option.icon" />
+					</div>
+					<i
+						v-else
+						class="material-symbols-outlined WdsDropdownMenu__item__icon"
+						>{{ getOptionIcon(option) }}</i
+					>
+				</template>
 				<div
 					class="WdsDropdownMenu__item__label"
 					:data-writer-tooltip="option.label"
@@ -109,7 +119,10 @@ export type WdsDropdownMenuOption = {
 	value: string;
 	label: string;
 	detail?: string;
-	icon?: string;
+	/**
+	 * A font icon or an array of image URL
+	 */
+	icon?: string | string[];
 };
 </script>
 
@@ -118,6 +131,7 @@ export type WdsDropdownMenuOption = {
 import { computed, PropType, ref, watch } from "vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
 const props = defineProps({
 	options: {
@@ -157,8 +171,10 @@ const optionsFiltered = computed(() => {
 	if (!props.enableSearch) return props.options;
 
 	const query = searchTerm.value.toLowerCase();
-	return props.options.filter((option) =>
-		option.label.toLowerCase().includes(query),
+	return props.options.filter(
+		(option) =>
+			option.label.toLowerCase().includes(query) ||
+			option.detail?.toLowerCase().includes(query),
 	);
 });
 
@@ -243,8 +259,18 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	transition: all 0.2s;
 	pointer-events: all;
 }
-.WdsDropdownMenu__item:has(.material-symbols-outlined) {
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon) {
 	grid-template-columns: auto 1fr auto;
+}
+.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon)
+	.WdsDropdownMenu__item__detail {
+	grid-column-start: 2;
+}
+.WdsDropdownMenu__item__icon {
+	grid-row-start: 1;
+	grid-row-end: -1;
+	display: flex;
+	align-items: center;
 }
 
 .WdsDropdownMenu__item:hover {
