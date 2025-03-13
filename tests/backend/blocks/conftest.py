@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import pytest
 from writer.core import WriterSession, WriterState
@@ -23,8 +23,17 @@ class BlockTesterMockWorkflowRunner(WorkflowRunner):
     def __init__(self, session):
         super().__init__(session)
 
+    def run_branch_pool(
+        self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
+    ):
+        return len(execution_environments) * [4]
+
     def run_branch(
-        self, component_id: str, base_outcome_id: str, execution_environment: Dict, title: str
+        self,
+        component_id: str,
+        base_outcome_id: str,
+        execution_environment: Dict,
+        title: str = "Branch execution",
     ):
         return f"Branch run {component_id} {base_outcome_id}"
 
