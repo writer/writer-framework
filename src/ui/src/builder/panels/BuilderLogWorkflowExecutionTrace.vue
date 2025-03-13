@@ -1,5 +1,36 @@
 <template>
 	<div class="BuiderLogWorkflowExecutionTrace">
+		<div v-if="trace.length > 0" class="trace">
+			<div
+				v-for="(entry, entryId) in trace"
+				:key="entryId"
+				class="traceEntry"
+			>
+				<div class="type">
+					<span v-if="entry.type == 'functionCall'">⚡️</span>
+					<span v-if="entry.type == 'reasoning'">🧠</span>
+				</div>
+				<div class="main">
+					<div v-if="entry.thought">
+						<strong>Thought.</strong> {{ entry.thought }}
+					</div>
+					<div v-if="entry.action">
+						<strong>Action.</strong> {{ entry.action }}
+					</div>
+					<div v-if="entry.name">
+						{{ entry.name }}
+					</div>
+					<div v-if="entry.parameters">
+						<SharedJsonViewer
+							:hide-root="true"
+							:data="entry.parameters"
+							:initial-depth="1"
+							class="data"
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="details">
 			<div>
 				<h3>Result</h3>
@@ -120,11 +151,15 @@ const props = defineProps<{
 
 const callStack = computed(() => {
 	const callStackArr: Component["id"][] =
-		props.executionItem.executionEnvironment?.["call_stack"];
+		props.executionItem.executionEnvironment?.["call_stack"] ?? [];
 
 	return Object.fromEntries(
 		callStackArr.map((cid) => [cid, wf.getComponentById(cid)]),
 	);
+});
+
+const trace = computed(() => {
+	return props.executionItem.executionEnvironment?.["trace"] ?? [];
 });
 
 async function selectBlock(componentId: Component["id"]) {
@@ -141,6 +176,7 @@ async function selectBlock(componentId: Component["id"]) {
 .BuiderLogWorkflowExecutionTrace {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
 	gap: 48px;
 }
 
@@ -172,14 +208,13 @@ h3 {
 }
 
 .environment {
-	flex: 0 0 30%;
 }
 
 .callStack {
-	flex: 0 0 30%;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	grid-template-columns: 3 / 3;
 }
 
 .callStack .component {
@@ -201,5 +236,34 @@ h3 {
 
 .callStack .component.active {
 	border-color: var(--builderSelectedColor);
+}
+
+.trace {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	grid-column-start: 1;
+	grid-column-end: 4;
+}
+
+.trace .traceEntry {
+	display: flex;
+	align-items: center;
+	border-radius: 8px;
+	border: 1px solid var(--builderSeparatorColor);
+}
+
+.trace .traceEntry .type {
+	flex: 0 0 72px;
+	font-size: 20px;
+	height: 100%;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.trace .traceEntry .main {
+	padding: 8px;
 }
 </style>
