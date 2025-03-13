@@ -115,6 +115,6 @@ class HTTPRequest(WorkflowBlock):
             self.outcome = "responseError"
             raise e
         except BaseException as e:
-            if self.outcome not in ("responseError"):
+            if self.outcome is None or self.outcome not in ("responseError"):
                 self.outcome = "connectionError"
             raise e
