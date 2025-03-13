@@ -5,7 +5,7 @@ import os
 import threading
 import time
 from collections import OrderedDict, deque
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from typing import Dict, List, Literal, Optional
 
@@ -226,7 +226,7 @@ class WorkflowRunner:
                 to_node_id = out.get("toNodeId")
                 in_degree[to_node_id] += 1
 
-        ready = deque()
+        ready: deque = deque()
         for node in nodes:
             if in_degree[node.id] > 0:
                 continue
@@ -236,7 +236,7 @@ class WorkflowRunner:
             tools[node.id] = tool
 
         with self._get_executor() as executor:
-            futures = set()
+            futures: set[Future] = set()
             while ready or futures:
                 while ready:
                     tool = ready.popleft()
@@ -277,6 +277,8 @@ class WorkflowRunner:
                                 },
                             }
                             to_node = graph.get(to_node_id)
+                            if not to_node:
+                                continue
                             to_tool = self._get_tool(to_node, expanded_environment)
                             tools.move_to_end(to_node_id)
                             tools[to_node_id] = to_tool
@@ -314,10 +316,10 @@ class WorkflowRunner:
         try:
             tool.run()
         except BaseException as e:
-            if self._is_outcome_managed(tool.component, tool.outcome):
-                return tool
             if not tool.outcome or tool.outcome == "in_progress":
                 tool.outcome = "error"
+            if self._is_outcome_managed(tool.component, tool.outcome):
+                return tool
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
             else:

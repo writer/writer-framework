@@ -1,4 +1,3 @@
-from typing import Literal
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
@@ -107,10 +106,8 @@ class WriterToolCalling(WorkflowBlock):
             tools.append(tool)
 
         def reasoning_callable(**kwargs):
-            import logging
             import time
 
-            info = repr(kwargs)
             thought = kwargs.get("thought")
             action = kwargs.get("action")
 

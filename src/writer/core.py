@@ -1050,8 +1050,8 @@ class WriterState(State):
                 if outcome is None:
                     continue
                 component_id = entry.get("componentId")
-                message = entry.get("message")
-                log_message += f"- Id: {component_id} | Outcome: {outcome} | {message}\n"
+                entry_message = entry.get("message")
+                log_message += f"- Id: {component_id} | Outcome: {outcome} | {entry_message}\n"
 
         color = log_colors.get(type, "\x1b[0m")  # Default to no color if type not found
         log_method = log_methods.get(

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 import writer.core_ui
 import writer.evaluator
@@ -24,8 +24,8 @@ class WorkflowBlock:
         runner: "WorkflowRunner",
         execution_environment: Dict,
     ):
-        self.outcome = None
-        self.message = None
+        self.outcome: Optional[str] = None
+        self.message: Optional[str] = None
         self.component = component
         self.runner = runner
         self.execution_time_in_seconds = -1.0
