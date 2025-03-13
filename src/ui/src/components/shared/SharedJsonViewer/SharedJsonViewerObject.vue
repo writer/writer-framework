@@ -115,7 +115,7 @@ function isOpen(key: string) {
 .SharedJsonViewerObject__value {
 	font-family: monospace;
 	font-size: 12px;
-	padding-left: 16px;
+	padding-left: 24px;
 
 	display: flex;
 	gap: 4px;

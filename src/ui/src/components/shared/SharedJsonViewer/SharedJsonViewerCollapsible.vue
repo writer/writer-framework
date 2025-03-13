@@ -2,6 +2,7 @@
 	<SharedCollapsible
 		:open="open"
 		:disabled="disabled"
+		:icons="{ open: 'keyboard_arrow_right', close: 'keyboard_arrow_down' }"
 		@toggle="$emit('toggle', $event)"
 	>
 		<template #title>
@@ -60,6 +61,5 @@ defineEmits({
 	padding-left: var(--jsonViewerIndentationSpacing, 8px);
 	padding-top: 4px;
 	padding-bottom: 4px;
-	border-left: 1px solid var(--separatorColor);
 }
 </style>
