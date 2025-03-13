@@ -20,8 +20,8 @@
 </template>
 
 <script setup lang="ts">
-// TODO: rename this component
 import { computed, ComputedRef, inject } from "vue";
+
 import injectionKeys from "@/injectionKeys";
 import { WriterComponentDefinition } from "@/writerTypes";
 import BuilderSettingsHandlersWorkflow from "./BuilderSettingsHandlersWorkflow.vue";
