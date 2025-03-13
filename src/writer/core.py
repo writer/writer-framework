@@ -1014,6 +1014,7 @@ class WriterState(State):
         title: str,
         message: str,
         code: Optional[str] = None,
+        workflow_execution: Optional[WorkflowExecutionLog] = None,
     ) -> None:
         if not Config.logger:
             return
@@ -1042,6 +1043,16 @@ class WriterState(State):
 
         log_message = "From app log: " + ("\n%s" * len(log_args))
 
+        if workflow_execution:
+            log_message += "\n"
+            for entry in workflow_execution.summary:
+                outcome = entry.get("outcome")
+                if outcome is None:
+                    continue
+                component_id = entry.get("componentId")
+                message = entry.get("message")
+                log_message += f"- Id: {component_id} | Outcome: {outcome} | {message}\n"
+
         color = log_colors.get(type, "\x1b[0m")  # Default to no color if type not found
         log_method = log_methods.get(
             type, Config.logger.info
@@ -1058,7 +1069,7 @@ class WriterState(State):
         workflow_execution: Optional[WorkflowExecutionLog] = None,
         id: Optional[str] = None,
     ) -> None:
-        self._log_entry_in_logger(type, title, message, code)
+        self._log_entry_in_logger(type, title, message, code, workflow_execution)
         if not Config.is_mail_enabled_for_log:
             return
         shortened_message = None
