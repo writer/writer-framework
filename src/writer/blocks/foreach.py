@@ -28,8 +28,8 @@ class ForEach(WorkflowBlock):
                     "outs": {
                         "loop": {
                             "name": "Loop",
-                            "description": "Connect the branch that you'd like to loop.",
-                            "style": "success",
+                            "description": "Connect the branch that you'd like to loop. Whatever's plugged in here will be repeated once per item available.",
+                            "style": "dynamic",
                         },
                         "success": {
                             "name": "Success",
@@ -48,7 +48,6 @@ class ForEach(WorkflowBlock):
 
     def run(self):
         try:
-            workflow_key = self._get_field("workflowKey")
             items = self._get_field("items", as_json=True)
             base_execution_environment = self.execution_environment
 
@@ -62,7 +61,7 @@ class ForEach(WorkflowBlock):
                 ]
 
                 results = self.runner.run_branch_pool(
-                    self.component_id, "loop", workflow_environments
+                    self.component.id, "loop", workflow_environments
                 )
                 self.result = results  # Return as a list
 
@@ -73,7 +72,7 @@ class ForEach(WorkflowBlock):
                     for item_id, item in items.items()
                 }
                 results = self.runner.run_branch_pool(
-                    self.component_id, "loop", list(workflow_environments.values())
+                    self.component.id, "loop", list(workflow_environments.values())
                 )
                 self.result = {
                     item_id: results[i] for i, item_id in enumerate(workflow_environments.keys())
