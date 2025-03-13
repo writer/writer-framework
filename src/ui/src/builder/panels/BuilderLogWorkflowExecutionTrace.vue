@@ -1,5 +1,36 @@
 <template>
 	<div class="BuiderLogWorkflowExecutionTrace">
+		<div v-if="trace.length > 0" class="trace">
+			<div
+				v-for="(entry, entryId) in trace"
+				:key="entryId"
+				class="traceEntry"
+			>
+				<div class="type">
+					<span v-if="entry.type == 'functionCall'">⚡️</span>
+					<span v-if="entry.type == 'reasoning'">🧠</span>
+				</div>
+				<div class="main">
+					<div v-if="entry.thought">
+						<strong>Thought.</strong> {{ entry.thought }}
+					</div>
+					<div v-if="entry.action">
+						<strong>Action.</strong> {{ entry.action }}
+					</div>
+					<div v-if="entry.name">
+						{{ entry.name }}
+					</div>
+					<div v-if="entry.parameters">
+						<SharedJsonViewer
+							:hide-root="true"
+							:data="entry.parameters"
+							:initial-depth="1"
+							class="data"
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="details">
 			<div>
 				<h3>Result</h3>
@@ -55,10 +86,10 @@
 			</div>
 		</div>
 
-		<div class="trace">
+		<div class="callStack">
 			<h3>Call stack</h3>
 			<div
-				v-for="(component, componentId) in trace"
+				v-for="(component, componentId) in callStack"
 				:key="componentId"
 				class="component"
 				:class="{
@@ -118,15 +149,17 @@ const props = defineProps<{
 	executionItem: WorkflowExecutionLog["summary"][number];
 }>();
 
-const trace = computed(() => {
-	const traceArr: Component["id"][] =
-		props.executionItem.executionEnvironment?.["trace"];
+const callStack = computed(() => {
+	const callStackArr: Component["id"][] =
+		props.executionItem.executionEnvironment?.["call_stack"] ?? [];
 
-	const trace = Object.fromEntries(
-		traceArr.map((cid) => [cid, wf.getComponentById(cid)]),
+	return Object.fromEntries(
+		callStackArr.map((cid) => [cid, wf.getComponentById(cid)]),
 	);
+});
 
-	return trace;
+const trace = computed(() => {
+	return props.executionItem.executionEnvironment?.["trace"] ?? [];
 });
 
 async function selectBlock(componentId: Component["id"]) {
@@ -143,6 +176,7 @@ async function selectBlock(componentId: Component["id"]) {
 .BuiderLogWorkflowExecutionTrace {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
 	gap: 48px;
 }
 
@@ -174,17 +208,16 @@ h3 {
 }
 
 .environment {
-	flex: 0 0 30%;
 }
 
-.trace {
-	flex: 0 0 30%;
+.callStack {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	grid-template-columns: 3 / 3;
 }
 
-.trace .component {
+.callStack .component {
 	display: flex;
 	align-items: center;
 	border-radius: 8px;
@@ -192,16 +225,45 @@ h3 {
 	border: 1px solid var(--builderSeparatorColor);
 }
 
-.trace .component > div {
+.callStack .component > div {
 	flex: 1 0 auto;
 }
 
-.trace .component .eyebrow {
+.callStack .component .eyebrow {
 	font-size: 12px;
 	color: var(--builderSecondaryTextColor);
 }
 
-.trace .component.active {
+.callStack .component.active {
 	border-color: var(--builderSelectedColor);
+}
+
+.trace {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	grid-column-start: 1;
+	grid-column-end: 4;
+}
+
+.trace .traceEntry {
+	display: flex;
+	align-items: center;
+	border-radius: 8px;
+	border: 1px solid var(--builderSeparatorColor);
+}
+
+.trace .traceEntry .type {
+	flex: 0 0 72px;
+	font-size: 20px;
+	height: 100%;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.trace .traceEntry .main {
+	padding: 8px;
 }
 </style>
