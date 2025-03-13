@@ -25,10 +25,10 @@ class WorkflowRunner:
 
     @contextmanager
     def _get_executor(self):
-        current_app_process = writer.core.get_app_process()
         new_executor = None
 
         try:
+            current_app_process = writer.core.get_app_process()
             yield current_app_process.executor
         except RuntimeError:
             logging.info(
