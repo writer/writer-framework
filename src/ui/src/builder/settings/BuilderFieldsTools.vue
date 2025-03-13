@@ -84,7 +84,12 @@ import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import BuilderGraphSelect from "../BuilderGraphSelect.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+
+const BuilderGraphSelect = defineAsyncComponent({
+	loader: () => import("../BuilderGraphSelect.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent(
 	() => import("../BuilderEmbeddedCodeEditor.vue"),

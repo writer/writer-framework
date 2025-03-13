@@ -113,16 +113,28 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 
-import { computed, ComputedRef, inject, Ref, ref } from "vue";
+import {
+	computed,
+	ComputedRef,
+	defineAsyncComponent,
+	inject,
+	Ref,
+	ref,
+} from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderModal, { ModalAction } from "../BuilderModal.vue";
 import { WriterComponentDefinition } from "@/writerTypes";
-import BuilderSelect from "../BuilderSelect.vue";
 import type { Option } from "../BuilderSelect.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+
+const BuilderSelect = defineAsyncComponent({
+	loader: () => import("../BuilderSelect.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
