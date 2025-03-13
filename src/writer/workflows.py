@@ -4,9 +4,10 @@ import logging
 import os
 import threading
 import time
-from concurrent.futures import Future, ThreadPoolExecutor, wait
+from collections import OrderedDict, deque
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional
 
 import writer.blocks
 import writer.blocks.base_block
@@ -16,6 +17,8 @@ from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
 
 
 class WorkflowRunner:
+    MAX_DAG_DEPTH = 32
+
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
         self.executor_lock = threading.Lock()
@@ -23,16 +26,16 @@ class WorkflowRunner:
     @contextmanager
     def _get_executor(self):
         new_executor = None
+
         try:
             current_app_process = writer.core.get_app_process()
-            with self.executor_lock:
-                yield current_app_process.executor
+            yield current_app_process.executor
         except RuntimeError:
             logging.info(
                 "The main pool executor isn't being reused. This is only expected in test or debugging situations."
             )
-            new_executor = ThreadPoolExecutor(20)
-            yield new_executor  # Pool executor for debugging (running outside of AppProcess)
+            new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
+            yield new_executor
         finally:
             if new_executor:
                 new_executor.shutdown()
@@ -88,40 +91,25 @@ class WorkflowRunner:
         return results
 
     def _get_workflow_nodes(self, component_id):
-        return self.session.session_component_tree.get_descendents(component_id)
-
-    def _get_branch_nodes(self, base_component_id: str, base_outcome: Optional[str] = None):
-        root_node = self.session.session_component_tree.get_component(base_component_id)
-        if not root_node:
-            raise RuntimeError(
-                f'Cannot obtain branch. Could not find component "{base_component_id}".'
-            )
-        if not root_node:
-            return []
-        branch_nodes: List[writer.core_ui.Component] = []
-        if not root_node.outs:
-            return branch_nodes
-        for out in root_node.outs:
-            if base_outcome is not None and base_outcome != out.get("outId"):
-                continue
-            branch_root_node = self.session.session_component_tree.get_component(
-                out.get("toNodeId")
-            )
-            if not branch_root_node:
-                continue
-            branch_nodes.append(branch_root_node)
-            branch_nodes += self._get_branch_nodes(out.get("toNodeId"), base_outcome=None)
-        return branch_nodes
+        current_node_id = component_id
+        while current_node_id is not None:
+            node = self.session.session_component_tree.get_component(current_node_id)
+            if not node:
+                break
+            if node.type == "workflows_workflow":
+                return self.session.session_component_tree.get_descendents(current_node_id)
+            current_node_id = node.parentId
 
     def run_branch(
         self,
-        base_component_id: str,
-        base_outcome: str,
+        start_node_id: str,
+        branch_out_id: str,
         execution_environment: Dict,
         title: str = "Branch execution",
     ):
-        nodes = self._get_branch_nodes(base_component_id, base_outcome)
-        return self.run_nodes(nodes, execution_environment, title)
+        workflow_nodes = self._get_workflow_nodes(start_node_id)
+        nodes = self.filter_branch(workflow_nodes, start_node_id, branch_out_id)
+        return self.execute_dag(nodes, execution_environment, title)
 
     def run_branch_pool(
         self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
@@ -148,7 +136,7 @@ class WorkflowRunner:
         self, component_id: str, execution_environment: Dict, title="Workflow execution"
     ):
         nodes = self._get_workflow_nodes(component_id)
-        return self.run_nodes(nodes, execution_environment, title)
+        return self.execute_dag(nodes, execution_environment, title)
 
     def _generate_run_id(self):
         timestamp = str(int(time.time() * 1000))
@@ -156,67 +144,6 @@ class WorkflowRunner:
         raw_id = f"{self.session.session_id}_{timestamp}_{salt}"
         hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
         return hashed_id
-
-    def run_nodes(
-        self,
-        nodes: List[writer.core_ui.Component],
-        execution_environment: Dict,
-        title: str = "Workflow execution",
-    ):
-        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = {}
-        tool_futures: Dict[str, Future] = {}
-        return_value = None
-        execution_environment["run_id"] = self._generate_run_id()
-        trace = execution_environment.get("trace", []).copy()
-        try:
-            futures = []
-            with self._get_executor() as executor:
-                for node in self.get_terminal_nodes(nodes):
-                    futures.append(
-                        executor.submit(
-                            self.run_node,
-                            node,
-                            nodes,
-                            execution_environment,
-                            execution,
-                            tool_futures,
-                            trace,
-                        )
-                    )
-
-            wait(futures)
-
-            for tool in execution.values():
-                if tool and tool.return_value is not None:
-                    return_value = tool.return_value
-        except WriterConfigurationError:
-            self._generate_run_log(
-                execution,
-                title,
-                "error",
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
-            # No need to re-raise, it's a configuration error under control and shown as message in the relevant tool
-        except BaseException as e:
-            self._generate_run_log(
-                execution,
-                title,
-                "error",
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
-            raise e
-        else:
-            self._generate_run_log(
-                execution,
-                "Workflow execution finished",
-                "info",
-                return_value,
-                msg="Execution finished.",
-                run_id=execution_environment.get("run_id"),
-            )
-        return return_value
 
     def _summarize_data_for_log(self, data):
         if isinstance(data, list):
@@ -232,10 +159,9 @@ class WorkflowRunner:
 
     def _generate_run_log(
         self,
-        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
+        tools: OrderedDict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
         title: str,
         entry_type: Literal["info", "error"],
-        return_value: Optional[Any] = None,
         msg: str = "",
         run_id: Optional[str] = None,
     ):
@@ -244,7 +170,7 @@ class WorkflowRunner:
         if run_id is None:
             run_id = self._generate_run_id()
         exec_log: WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
-        for component_id, tool in execution.items():
+        for component_id, tool in tools.items():
             if tool is None:
                 exec_log.summary.append({"componentId": component_id})
                 continue
@@ -261,30 +187,131 @@ class WorkflowRunner:
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
             )
-
         self.session.session_state.add_log_entry(
             entry_type, title, msg, workflow_execution=exec_log, id=run_id
         )
 
-    def get_terminal_nodes(self, nodes):
-        return [node for node in nodes if not node.outs]
-
-    def _get_node_dependencies(
-        self, target_node: writer.core_ui.Component, nodes: List[writer.core_ui.Component]
-    ) -> List[Tuple]:
-        dependencies: List[Tuple] = []
-        parent_id = target_node.parentId
-        if not parent_id:
-            return []
-        for node in nodes:
-            if not node.outs:
+    def filter_branch(
+        self,
+        nodes: List[writer.core_ui.Component],
+        start_node_id: str,
+        branch_out_id: Optional[str] = None,
+    ):
+        node_map = {node.id: node for node in nodes}
+        filtered_node_ids = set()
+        stack = []
+        if branch_out_id is not None:
+            start_node = node_map.get(start_node_id)
+            if not start_node:
+                raise ValueError(f"Start node {start_node_id} not found in nodes.")
+            for out in start_node.outs or []:
+                if out.get("outId") == branch_out_id:
+                    stack.append(out.get("toNodeId"))
+        else:
+            stack.append(start_node_id)
+        while stack:
+            current_id = stack.pop()
+            if current_id in filtered_node_ids:
                 continue
-            for out in node.outs:
+            filtered_node_ids.add(current_id)
+            current_node = node_map.get(current_id)
+            if not current_node:
+                continue
+            for out in current_node.outs or []:
+                if current_id == start_node_id and branch_out_id:
+                    if out.get("outId") != branch_out_id:
+                        continue
                 to_node_id = out.get("toNodeId")
-                out_id = out.get("outId")
-                if to_node_id == target_node.id:
-                    dependencies.append((node, out_id))
-        return dependencies
+                if to_node_id not in filtered_node_ids:
+                    stack.append(to_node_id)
+        return [node_map[node_id] for node_id in filtered_node_ids]
+
+    def execute_dag(
+        self,
+        nodes: List[writer.core_ui.Component],
+        execution_environment: Dict,
+        title: str = "Workflow execution",
+    ):
+        run_id = self._generate_run_id()
+        tools: OrderedDict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = OrderedDict()
+        graph = {}
+        in_degree = {node.id: 0 for node in nodes}
+
+        def update_log(message: str, entry_type="info"):
+            self._generate_run_log(tools, title, entry_type, msg=message, run_id=run_id)
+
+        for node in nodes:
+            graph[node.id] = node
+            tools[node.id] = None
+            for out in node.outs or []:
+                to_node_id = out.get("toNodeId")
+                in_degree[to_node_id] += 1
+
+        ready: deque = deque()
+        for node in nodes:
+            if in_degree[node.id] > 0:
+                continue
+            tool = self._get_tool(node, execution_environment)
+            ready.append(tool)
+            tools.move_to_end(node.id)
+            tools[node.id] = tool
+
+        with self._get_executor() as executor:
+            futures: set[Future] = set()
+            while ready or futures:
+                while ready:
+                    tool = ready.popleft()
+                    tool.outcome = "in_progress"
+                    future = executor.submit(self.run_tool, tool)
+                    futures.add(future)
+
+                update_log("Executing...")
+                done, _ = wait(futures, return_when=FIRST_COMPLETED)
+
+                for future in done:
+                    futures.remove(future)
+                    try:
+                        tool = future.result()
+                    except BaseException:
+                        update_log("Execution failed", entry_type="error")
+                        return None
+                    else:
+                        update_log("Executing...")
+                    if tool.return_value is not None:
+                        return tool.return_value
+                    node = tool.component
+                    for out in node.outs or []:
+                        to_node_id = out.get("toNodeId")
+                        out_id = out.get("outId")
+                        if tool.outcome != out_id:
+                            continue
+                        in_degree[to_node_id] -= 1
+                        if in_degree[to_node_id] == 0:
+                            new_call_stack = tool.execution_environment.get("call_stack", []) + [
+                                node.id
+                            ]
+                            expanded_environment = execution_environment | {
+                                "call_stack": new_call_stack,
+                                "result": tool.result,
+                                "results": {
+                                    k: v.result if v is not None else None for k, v in tools.items()
+                                },
+                            }
+                            to_node = graph.get(to_node_id)
+                            if not to_node:
+                                continue
+                            to_tool = self._get_tool(to_node, expanded_environment)
+                            tools.move_to_end(to_node_id)
+                            tools[to_node_id] = to_tool
+                            ready.append(to_tool)
+            update_log("Execution completed.")
+
+    def _get_tool(self, node: writer.core_ui.Component, execution_environment: Dict):
+        tool_class = writer.blocks.base_block.block_map.get(node.type)
+        if not tool_class:
+            raise RuntimeError(f'Could not find tool for "{node.type}".')
+        tool = tool_class(node, self, execution_environment)
+        return tool
 
     def _is_outcome_managed(self, target_node: writer.core_ui.Component, target_out_id: str):
         if not target_node.outs:
@@ -294,103 +321,32 @@ class WorkflowRunner:
                 return True
         return False
 
-    def run_node(
-        self,
-        target_node: writer.core_ui.Component,
-        nodes: List[writer.core_ui.Component],
-        execution_environment: Dict,
-        execution: Dict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
-        tool_futures: Dict[str, Future],
-        trace: List[str],
-    ):
-        tool_class = writer.blocks.base_block.block_map.get(target_node.type)
-        if not tool_class:
-            raise RuntimeError(f'Could not find tool for "{target_node.type}".')
-        dependencies = self._get_node_dependencies(target_node, nodes)
+    def run_tool(self, tool: writer.blocks.base_block.WorkflowBlock):
+        start_time = time.time()
 
-        execution[target_node.id] = None
-        result = None
-        matched_dependencies = 0
-        dependencies_futures = []
-
-        with self._get_executor() as executor:
-            for node, out_id in dependencies:
-                tool_future = tool_futures.get(node.id)
-
-                if tool_future is None:
-                    tool_future = executor.submit(
-                        self.run_node,
-                        node,
-                        nodes,
-                        execution_environment,
-                        execution,
-                        tool_futures,
-                        trace,
-                    )
-                    tool_futures[node.id] = tool_future
-                dependencies_futures.append(tool_future)
-
-        wait(dependencies_futures)  # Important to preserve order, don't switch to as_completed
-
-        for future, dependency in zip(dependencies_futures, dependencies):
-            (node, out_id) = dependency
-            tool = future.result()
-
-            if not tool:
-                continue
-
-            if tool.outcome == out_id:
-                matched_dependencies += 1
-
-            result = tool.result
-
-            if tool.return_value is not None:
-                return tool.return_value
-
-        if len(dependencies) > 0 and matched_dependencies == 0:
-            return
-
-        trace += [target_node.id]
-        expanded_execution_environment = execution_environment | {
-            "trace": trace.copy(),
-            "result": result,
-            "results": {k: v.result if v is not None else None for k, v in execution.items()},
-        }
-        tool = tool_class(target_node.id, self, expanded_execution_environment)
+        call_stack = tool.execution_environment.get("call_stack", []) + [tool.component.id]
+        call_depth = call_stack.count(tool.component.id)
+        if call_depth > WorkflowRunner.MAX_DAG_DEPTH:
+            error_message = f"Maximum call depth ({WorkflowRunner.MAX_DAG_DEPTH}) exceeded. Check that you don't have any unintended circular references."
+            tool.outcome = "error"
+            tool.message = error_message
+            raise RuntimeError(error_message)
+        tool.execution_environment["call_stack"] = call_stack
+        tool.execution_environment["trace"] = []
 
         try:
-            tool.outcome = "in_progress"
-            del execution[target_node.id]
-            execution[target_node.id] = tool
-            self._generate_run_log(
-                execution,
-                "Running workflow...",
-                "info",
-                msg="Execution in progress.",
-                run_id=execution_environment.get("run_id"),
-            )
-            start_time = time.time()
             tool.run()
-            tool.execution_time_in_seconds = time.time() - start_time
         except BaseException as e:
-            if not tool:
-                raise e
-            if self._is_outcome_managed(target_node, tool.outcome):
-                return tool
             if not tool.outcome or tool.outcome == "in_progress":
                 tool.outcome = "error"
+            if self._is_outcome_managed(tool.component, tool.outcome):
+                return tool
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
             else:
                 tool.message = repr(e)
             raise e
         finally:
-            self._generate_run_log(
-                execution,
-                "Running workflow...",
-                "info",
-                msg="Execution in progress.",
-                run_id=execution_environment.get("run_id"),
-            )
+            tool.execution_time_in_seconds = time.time() - start_time
 
         return tool

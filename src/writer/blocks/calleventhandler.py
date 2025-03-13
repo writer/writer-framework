@@ -7,44 +7,47 @@ from writer.ss_types import AbstractTemplate
 
 
 class CallEventHandler(WorkflowBlock):
-
     @classmethod
     def register(cls, type: str):
         super(CallEventHandler, cls).register(type)
-        register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
-            writer={
-                "name": "Call event handler",
-                "description": "Executes an event handler.",
-                "category": "Logic",
-                "fields": {
-                    "name": {
-                        "name": "Name",
-                        "type": "Handler",
-                        "desc": "The name of the event handling function."
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="workflows_node",
+                writer={
+                    "name": "Call event handler",
+                    "description": "Executes an event handler.",
+                    "category": "Logic",
+                    "deprecated": True,
+                    "fields": {
+                        "name": {
+                            "name": "Name",
+                            "type": "Handler",
+                            "desc": "The name of the event handling function.",
+                        },
+                        "additionalArgs": {
+                            "name": "Additional arguments",
+                            "init": '{ "my_arg": 2 }',
+                            "type": "Object",
+                            "control": "Textarea",
+                            "default": "{}",
+                        },
                     },
-                    "additionalArgs": {
-                        "name": "Additional arguments",
-                        "init": '{ "my_arg": 2 }',
-                        "type": "Object",
-                        "control": "Textarea",
-                        "default": "{}"
+                    "outs": {
+                        "success": {
+                            "name": "Success",
+                            "description": "The event handler execution was successful.",
+                            "style": "success",
+                        },
+                        "error": {
+                            "name": "Error",
+                            "description": "The event handler execution wasn't successful.",
+                            "style": "error",
+                        },
                     },
                 },
-                "outs": {
-                    "success": {
-                        "name": "Success",
-                        "description": "The event handler execution was successful.",
-                        "style": "success",
-                    },
-                    "error": {
-                        "name": "Error",
-                        "description": "The event handler execution wasn't successful.",
-                        "style": "error",
-                    },
-                },
-            }
-        ))
+            ),
+        )
 
     def run(self):
         try:
@@ -59,7 +62,7 @@ class CallEventHandler(WorkflowBlock):
                 "state": self.runner.session.session_state,
                 "context": self.execution_environment,
                 "session": writer.core._event_handler_session_info(),
-                "ui": writer.core._event_handler_ui_manager()
+                "ui": writer.core._event_handler_ui_manager(),
             } | additional_args
 
             handler_args = inspect.getfullargspec(callable_handler).args

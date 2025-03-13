@@ -33,7 +33,7 @@
 					@click="addWorkflow"
 				>
 					<i class="material-symbols-outlined"> add </i> Add
-					workflow</WdsButton
+					blueprint</WdsButton
 				>
 			</div>
 		</template>

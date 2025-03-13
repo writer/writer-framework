@@ -63,7 +63,7 @@
 				@click="handleRun"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run workflow" }}
+				{{ isRunning ? "Running..." : "Run blueprint" }}
 			</WdsButton>
 		</div>
 		<WorkflowNavigator
@@ -93,7 +93,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Workflow",
+		name: "Blueprint",
 		toolkit: "workflows",
 		category: "Root",
 		description,
@@ -161,7 +161,7 @@ const temporaryNodeCoordinates = shallowRef<
 	Record<Component["id"], { x: number; y: number }>
 >({});
 
-const AUTOARRANGE_ROW_GAP_PX = 48;
+const AUTOARRANGE_ROW_GAP_PX = 64;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>

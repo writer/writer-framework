@@ -95,7 +95,7 @@ const searchCount = computed(() => {
 
 const placeholder = computed(() => {
 	if (activeToolkit.value == "core") return "Core toolkit";
-	if (activeToolkit.value == "workflows") return "Workflows toolkit";
+	if (activeToolkit.value == "workflows") return "Blueprints toolkit";
 	return "Toolkit";
 });
 
@@ -105,6 +105,7 @@ function getRelevantToolsInCategory(categoryId: string) {
 		if (def.category != categoryId) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
 		if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
+		if (def.deprecated) return false;
 		return true;
 	});
 	const enriched = typeList.map((type) => {
@@ -130,7 +131,7 @@ function handleDragEnd(ev: DragEvent) {
 function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
 	return [
 		`/components/${tool.type}.svg`,
-		`/components/category_${tool.category}.svg`,
+		`/components/${activeToolkit.value == "workflows" ? "workflows_" : ""}category_${tool.category}.svg`,
 	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 

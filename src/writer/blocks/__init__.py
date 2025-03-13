@@ -1,5 +1,6 @@
 from writer.blocks.addtostatelist import AddToStateList
 from writer.blocks.calleventhandler import CallEventHandler
+from writer.blocks.changepage import ChangePage
 from writer.blocks.code import CodeBlock
 from writer.blocks.foreach import ForEach
 from writer.blocks.httprequest import HTTPRequest
@@ -16,6 +17,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.writertoolcalling import WriterToolCalling
 
 SetState.register("workflows_setstate")
 WriterClassification.register("workflows_writerclassification")
@@ -35,3 +37,5 @@ WriterInitChat.register("workflows_writerinitchat")
 WriterAddToKG.register("workflows_writeraddtokg")
 UIEventTrigger.register("workflows_uieventtrigger")
 CodeBlock.register("workflows_code")
+ChangePage.register("workflows_changepage")
+WriterToolCalling.register("workflows_writertoolcalling")
