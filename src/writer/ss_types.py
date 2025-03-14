@@ -49,8 +49,10 @@ class SourceFilesFile(TypedDict):
     complete: Optional[bool]
     content: str
 
+
 class SourceFilesBinary(TypedDict):
     type: Literal["binary"]
+
 
 class SourceFilesDirectory(TypedDict):
     type: Literal["directory"]

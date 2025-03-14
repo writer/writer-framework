@@ -566,6 +566,14 @@ def get_asgi_app(
                 session_id,
                 ComponentUpdateRequestPayload(components=req_message.payload["components"]),
             )
+            await app_runner.queue_announcement_async(
+                "componentUpdate", req_message.payload["components"], session_id
+            )
+        elif req_message.type == "collaborationUpdate":
+            pass
+            # await app_runner.queue_announcement_async(
+            #     "collaborationAnnouncement", req_message.payload, exclude_session_id=session_id
+            # )
         elif req_message.type == "codeSaveRequest":
             app_runner.save_code(
                 session_id, req_message.payload["code"], req_message.payload["path"]
@@ -674,6 +682,8 @@ def get_asgi_app(
         except WebSocketDisconnect:
             pass
         finally:
+            if app_runner.announcement_queues.get(session_id) is None:
+                return
             del app_runner.announcement_queues[session_id]
 
     @app.websocket("/api/stream")
