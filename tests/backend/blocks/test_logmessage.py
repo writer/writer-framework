@@ -11,9 +11,9 @@ def test_log_message(session, runner):
         },
         [{"type": "test", "payload": "Just a test"}],
     )
-    session.add_fake_component({"message": "The quick brown fox is under the table."})
+    component = session.add_fake_component({"message": "The quick brown fox is under the table."})
     writer.core.Config.is_mail_enabled_for_log = True
-    block = LogMessage("fake_id", runner, {})
+    block = LogMessage(component, runner, {})
     block.run()
     assert block.outcome == "success"
     latest_mail = session.session_state.mail[1]
@@ -28,9 +28,11 @@ def test_log_message_with_template(session, runner):
             "animal": "rat",
         }
     )
-    session.add_fake_component({"message": "The quick brown @{animal} is under the @{object}."})
+    component = session.add_fake_component(
+        {"message": "The quick brown @{animal} is under the @{object}."}
+    )
     writer.core.Config.is_mail_enabled_for_log = True
-    block = LogMessage("fake_id", runner, {"object": "tent"})
+    block = LogMessage(component, runner, {"object": "tent"})
     block.run()
     assert block.outcome == "success"
     latest_mail = session.session_state.mail[0]
@@ -45,11 +47,11 @@ def test_log_error_message(session, runner):
             "animal": "squirrel",
         }
     )
-    session.add_fake_component(
+    component = session.add_fake_component(
         {"type": "error", "message": "The quick brown @{animal} has escaped."}
     )
     writer.core.Config.is_mail_enabled_for_log = True
-    block = LogMessage("fake_id", runner, {})
+    block = LogMessage(component, runner, {})
     block.run()
     assert block.outcome == "success"
     latest_mail = session.session_state.mail[0]
@@ -64,9 +66,9 @@ def test_empty_message(session, runner):
             "animal": None,
         }
     )
-    session.add_fake_component({"type": "error", "message": "@{animals}"})
+    component = session.add_fake_component({"type": "error", "message": "@{animals}"})
     writer.core.Config.is_mail_enabled_for_log = True
-    block = LogMessage("fake_id", runner, {})
+    block = LogMessage(component, runner, {})
     with pytest.raises(ValueError):
         block.run()
     assert block.outcome == "error"

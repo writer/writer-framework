@@ -4,69 +4,77 @@ from writer.ss_types import AbstractTemplate
 
 
 class WriterChat(WorkflowBlock):
-
     @classmethod
     def register(cls, type: str):
         super(WriterChat, cls).register(type)
-        register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
-            writer={
-                "name": "Chat completion",
-                "description": "Handles chat completions.",
-                "category": "Writer",
-                "fields": {
-                    "conversationStateElement": {
-                        "name": "Conversation state element",
-                        "desc": "Where the conversation will be stored",
-                        "type": "Text",
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="workflows_node",
+                writer={
+                    "name": "Chat completion",
+                    "description": "Handles chat completions.",
+                    "category": "Writer",
+                    "fields": {
+                        "conversationStateElement": {
+                            "name": "Conversation state element",
+                            "desc": "Where the conversation will be stored",
+                            "type": "Text",
+                        },
+                        "useStreaming": {
+                            "name": "Use streaming",
+                            "type": "Text",
+                            "default": "yes",
+                            "options": {"yes": "Yes", "no": "No"},
+                        },
+                        "tools": {
+                            "name": "Tools",
+                            "type": "Tools",
+                            "default": "{}",
+                            "init": "",
+                            "category": "Tools",
+                        },
                     },
-                    "useStreaming": {
-                        "name": "Use streaming",
-                        "type": "Text",
-                        "default": "yes",
-                        "options": {
-                            "yes": "Yes",
-                            "no": "No"
-                        }
+                    "outs": {
+                        "tools": {
+                            "name": "Tools",
+                            "field": "tools",
+                            "description": "Run associated tools.",
+                            "style": "dynamic",
+                        },
+                        "success": {
+                            "name": "Success",
+                            "description": "If the function doesn't raise an Exception.",
+                            "style": "success",
+                        },
+                        "error": {
+                            "name": "Error",
+                            "description": "If the function raises an Exception.",
+                            "style": "error",
+                        },
                     },
-                    "tools": {
-                        "name": "Tools",
-                        "type": "Tools",
-                        "default": "{}",
-                        "category": "Tools"
-                    }
                 },
-                "outs": {
-                    "tools": {
-                        "name": "Tools",
-                        "field": "tools",
-                        "description": "Run associated tools.",
-                        "style": "dynamic"
-                    },
-                    "success": {
-                        "name": "Success",
-                        "description": "If the function doesn't raise an Exception.",
-                        "style": "success",
-                    },
-                    "error": {
-                        "name": "Error",
-                        "description": "If the function raises an Exception.",
-                        "style": "error",
-                    },
-                },
-            }
-        ))
+            ),
+        )
 
     def _make_callable(self, tool_name: str):
         def callable(**args):
             expanded_execution_environment = self.execution_environment | args
-            return_value = self.runner.run_branch(self.component_id, f"tools_{tool_name}", expanded_execution_environment, f"Workflow branch execution (chat tool {tool_name})")
+            return_value = self.runner.run_branch(
+                self.component.id,
+                f"tools_{tool_name}",
+                expanded_execution_environment,
+                f"Workflow branch execution (chat tool {tool_name})",
+            )
 
             if return_value is None:
                 self.outcome = "error"
-                raise ValueError(f'No value has been returned for the outcome branch "{tool_name}". Use the block "Return value" to specify one.')
+                raise ValueError(
+                    f'No value has been returned for the outcome branch "{tool_name}". Use the block "Return value" to specify one.'
+                )
 
             return return_value
+
         return callable
 
     def run(self):
@@ -87,7 +95,7 @@ class WriterChat(WorkflowBlock):
                         name=tool_name,
                         description=tool_raw.get("description"),
                         callable=self._make_callable(tool_name),
-                        parameters=tool_raw.get("parameters")
+                        parameters=tool_raw.get("parameters"),
                     )
                 elif tool_type == "graph":
                     tool = writer.ai.GraphTool(
@@ -100,10 +108,14 @@ class WriterChat(WorkflowBlock):
                     continue
                 tools.append(tool)
 
-            conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
+            conversation = self.evaluator.evaluate_expression(
+                conversation_state_element, self.instance_path, self.execution_environment
+            )
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
-                raise ValueError("The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'.")
+                raise ValueError(
+                    "The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
+                )
 
             msg = ""
             if not use_streaming:
@@ -117,7 +129,7 @@ class WriterChat(WorkflowBlock):
                     msg += chunk.get("content")
                     conversation += chunk
                     self._set_state(conversation_state_element, conversation)
-            
+
             self.result = msg
             self.outcome = "success"
         except BaseException as e:
