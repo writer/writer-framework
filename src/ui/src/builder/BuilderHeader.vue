@@ -80,18 +80,17 @@ import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import BuilderHeaderDeploy from "./BuilderHeaderDeploy.vue";
-import { useApplicationName } from "@/composables/useApplicationName";
+import { useApplicationCloud } from "@/composables/useApplicationCloud";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
-const applicationName = useApplicationName(wf);
+const { name: applicationName, isCloudApp: canDeploy } =
+	useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
-
-const canDeploy = computed(() => wf.featureFlags.value.includes("writerCloud"));
 
 const syncHealthStatus = computed(() => {
 	let s = "";
