@@ -1,13 +1,6 @@
 import { Core } from "@/writerTypes";
 import { computed, onMounted, onUnmounted } from "vue";
-
-function useDebouncer(callback: () => void | Promise<void>, ms: number) {
-	let id: ReturnType<typeof setTimeout>;
-	return () => {
-		if (id) clearTimeout(id);
-		id = setTimeout(callback, ms);
-	};
-}
+import { useDebouncer } from "./useDebouncer";
 
 export function useApplicationName(wf: Core) {
 	const abort = new AbortController();
