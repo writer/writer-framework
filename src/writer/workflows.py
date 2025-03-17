@@ -103,7 +103,7 @@ class WorkflowRunner:
     def run_branch(
         self,
         start_node_id: str,
-        branch_out_id: str,
+        branch_out_id: Optional[str],
         execution_environment: Dict,
         title: str = "Branch execution",
     ):
