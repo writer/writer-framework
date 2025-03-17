@@ -57,9 +57,11 @@ export function useFormValueBroker<T = any>(
 		const isHandlerSet = component.value.handlers?.[emitEventType];
 		const isBindingSet =
 			component.value.binding?.eventType == emitEventType;
-		const isWorkflowAttached =
-			useComponentLinkedWorkflows(wf, componentId, emitEventType).value
-				.length > 0;
+		const isWorkflowAttached = useComponentLinkedWorkflows(
+			wf,
+			componentId,
+			emitEventType,
+		).isLinked.value;
 
 		// Event is not used
 		if (!isHandlerSet && !isBindingSet && !isWorkflowAttached) return;

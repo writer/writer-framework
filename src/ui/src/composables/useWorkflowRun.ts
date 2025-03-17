@@ -41,13 +41,19 @@ export function useWorkflowRun(
 	return { isRunning: readonly(isRunning), run };
 }
 
+export type WorkflowsRunListItem = { workflowId: string; branchId: string };
+type MaybeRef<T> = T | Ref<T>;
+
 export function useWorkflowsRun(
 	wf: ReturnType<typeof generateCore>,
-	workflowComponentIds: string[] | Ref<string[]>,
+	workflowComponentIds: MaybeRef<WorkflowsRunListItem[]>,
 ) {
 	const runningWorkflowIds = ref<string[]>([]);
 
-	async function handleRunWorkflow(workflowId: string) {
+	async function handleRunWorkflow({
+		workflowId,
+		branchId,
+	}: WorkflowsRunListItem) {
 		if (runningWorkflowIds.value.includes(workflowId)) return;
 
 		try {
@@ -55,7 +61,7 @@ export function useWorkflowsRun(
 				workflowId,
 				...runningWorkflowIds.value,
 			];
-			await runWorkflow(wf, workflowId);
+			await runWorkflow(wf, workflowId, branchId);
 		} finally {
 			runningWorkflowIds.value = runningWorkflowIds.value.filter(
 				(id) => id !== workflowId,

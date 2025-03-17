@@ -6,7 +6,10 @@ import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
-import { useWorkflowsRun } from "@/composables/useWorkflowRun";
+import {
+	useWorkflowsRun,
+	WorkflowsRunListItem,
+} from "@/composables/useWorkflowRun";
 import { WdsColor } from "@/wds/tokens";
 import BuilderWorkflowState from "../BuilderWorkflowState.vue";
 import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
@@ -27,17 +30,22 @@ const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),
 );
 
-const linkedWorkflows = useComponentLinkedWorkflows(
+const { workflows: linkedWorkflows, triggers: linkedTriggers } =
+	useComponentLinkedWorkflows(
+		wf,
+		computed(() => props.component.id),
+		computed(() => props.eventType),
+	);
+
+const { run, isRunning } = useWorkflowsRun(
 	wf,
-	computed(() => props.component.id),
-	computed(() => props.eventType),
+	computed(() =>
+		linkedTriggers.value.map((w) => ({
+			workflowId: w.parentId,
+			branchId: w.id,
+		})),
+	),
 );
-
-const linkedWorkflowsIds = computed(() =>
-	linkedWorkflows.value.map((w) => w.id),
-);
-
-const { run, isRunning } = useWorkflowsRun(wf, linkedWorkflowsIds);
 
 const { pushToast } = useToasts();
 
@@ -85,7 +93,11 @@ async function createLinkedWorkflow() {
 		message: `${alias} added`,
 		action: {
 			label: "Go to workflow",
-			func: () => jumpToWorkflow(workflowId),
+			func: () =>
+				jumpToWorkflow(
+					workflowId,
+					getWorkflowTriggerBlock(workflowId)?.id,
+				),
 			icon: "linked_services",
 		},
 	});
@@ -108,14 +120,14 @@ function deleteLinkedWorkflow(workflowId: string) {
 	removeComponentSubtree(block.id);
 }
 
-function jumpToWorkflow(workflowId: string) {
+function getTriggerName(trigger: Component) {
+	return wf.getComponentById(trigger.parentId)?.content?.key || "Workflow";
+}
+
+function jumpToWorkflow(workflowId: string, triggerId?: string) {
 	wf.setActivePageId(workflowId);
 	wfbm.setMode("workflows");
-	wfbm.setSelection(
-		getWorkflowTriggerBlock(workflowId)?.id ?? workflowId,
-		undefined,
-		"click",
-	);
+	wfbm.setSelection(triggerId ?? workflowId, undefined, "click");
 }
 </script>
 
@@ -144,11 +156,11 @@ function jumpToWorkflow(workflowId: string) {
 
 		<div class="BuilderSettingsHandlersWorkflow__list">
 			<BuilderListItem
-				v-for="(workflow, i) of linkedWorkflows"
-				:key="workflow.id"
+				v-for="(trigger, i) of linkedTriggers"
+				:key="trigger.id"
 				:color="WdsColor.Blue6"
 				:color-last="
-					linkedWorkflows.length === i + 1
+					linkedTriggers.length === i + 1
 						? WdsColor.Blue2
 						: WdsColor.Blue6
 				"
@@ -157,11 +169,11 @@ function jumpToWorkflow(workflowId: string) {
 					<button
 						role="button"
 						class="BuilderSettingsHandlersWorkflow__list__item__btn"
-						@click="jumpToWorkflow(workflow.id)"
+						@click="jumpToWorkflow(trigger.parentId, trigger.id)"
 					>
-						{{ workflow.content.key || "Workflow" }}
+						{{ getTriggerName(trigger) }}
 					</button>
-					<BuilderWorkflowState :workflow-id="workflow.id" />
+					<BuilderWorkflowState :workflow-id="trigger.parentId" />
 					<WdsButton
 						variant="neutral"
 						size="smallIcon"
@@ -169,7 +181,7 @@ function jumpToWorkflow(workflowId: string) {
 						aria-label="Unlink Orchestration"
 						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
 						:disabled="isRunning"
-						@click="deleteLinkedWorkflow(workflow.id)"
+						@click="deleteLinkedWorkflow(trigger.id)"
 					>
 						<i class="material-symbols-outlined">link_off</i>
 					</WdsButton>

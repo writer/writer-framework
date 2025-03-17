@@ -156,9 +156,11 @@ export function useDataFrameValueBroker(
 	function isEventUsed(eventType: string): boolean {
 		const isHandlerSet = component.value.handlers?.[eventType];
 		const isBindingSet = component.value.binding?.eventType == eventType;
-		const isWorkflowAttached =
-			useComponentLinkedWorkflows(wf, componentId, eventType).value
-				.length > 0;
+		const isWorkflowAttached = useComponentLinkedWorkflows(
+			wf,
+			componentId,
+			eventType,
+		).isLinked.value;
 
 		return Boolean(isHandlerSet || isBindingSet || isWorkflowAttached);
 	}
