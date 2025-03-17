@@ -45,4 +45,5 @@ class UIEventTrigger(WorkflowTrigger):
         )
 
     def run(self):
+        super().run()
         self.outcome = "trigger"
