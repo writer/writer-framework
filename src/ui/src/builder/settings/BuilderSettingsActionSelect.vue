@@ -1,36 +1,23 @@
 <template>
 	<div class="selector-container">
-		<div class="form">
-			<label class="title__label">Action</label>
-			<div class="input">
-				<input
-					class="selector-input"
-					:value="actionName"
-					type="text"
-					placeholder="..."
-					readonly
-					@input="handleInput"
-					@focus="showSuggestions = true"
-				/>
-			</div>
-		</div>
-
-		<ul v-if="showSuggestions" class="suggestions-list">
-			<li
-				v-for="option of options"
-				:key="option.type"
-				class="suggestion-item"
-				@click="selectOption(option.type)"
-			>
-				{{ option.name }}
-			</li>
-		</ul>
+		<BuilderSelect
+			:model-value="actionName"
+			:options="options"
+			:hide-icons="true"
+			@update:model-value="selectOption"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, defineAsyncComponent, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
+import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
+
+const BuilderSelect = defineAsyncComponent({
+	loader: () => import("../BuilderSelect.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -47,8 +34,8 @@ const options = computed(() => {
 	const options = [];
 	for (const _action of Object.keys(availableActions.value)) {
 		options.push({
-			type: availableActions.value[_action].type,
-			name: availableActions.value[_action].name,
+			value: availableActions.value[_action].type,
+			label: availableActions.value[_action].name,
 		});
 	}
 	return options;
@@ -63,17 +50,10 @@ const actionName = computed(() => {
 	}
 });
 
-const showSuggestions = ref(false);
-
-function handleInput() {
-	showSuggestions.value = true;
-}
-
 function selectOption(selected: string) {
 	const hasAction = wf.hasComponentDefinition(selected);
 	if (hasAction) {
 		component.value.type = selected;
-		showSuggestions.value = false;
 	}
 }
 </script>

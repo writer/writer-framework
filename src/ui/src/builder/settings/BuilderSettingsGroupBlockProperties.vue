@@ -8,5 +8,3 @@
 import BuilderSettingsActionSelect from "@/builder/settings/BuilderSettingsActionSelect.vue";
 import BuilderSettingsProperties from "@/builder/settings/BuilderSettingsProperties.vue";
 </script>
-
-<style scoped></style>

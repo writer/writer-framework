@@ -51,7 +51,3 @@ const isBindable = computed(() =>
 	),
 );
 </script>
-
-<style scoped>
-@import "../sharedStyles.css";
-</style>

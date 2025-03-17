@@ -207,9 +207,14 @@ function getMergedAbstractTemplate(type: string) {
 }
 
 /**
- * List Les Nodes grouped in a group node
+ * List the nodes grouped in a group node
  *
- * @param node_name Name of the group node
+ * @param type key of the group node
+ *
+ * @example
+ * ```js
+ * const actions = _listActionsForGroup("workflows_airtable") # ["workflows_airtablequeryrecords", "workflows_airtablemanipulaterecord"]
+ * ```
  */
 function _listActionsForGroup(type: string): string[] {
 	const nodes: string[] = [];

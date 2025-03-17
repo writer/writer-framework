@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, PropType, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
@@ -240,12 +240,12 @@ function handleShrink(fieldKey: string) {
 	expandedFields.value.delete(fieldKey);
 }
 
-interface Props {
-	groupLevel: 0 | 1;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-	groupLevel: 0,
+const props = defineProps({
+	groupLevel: {
+		type: Number as PropType<0 | 1>,
+		required: false,
+		default: 0,
+	},
 });
 </script>
 

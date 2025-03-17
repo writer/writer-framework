@@ -9,12 +9,8 @@
 		</div>
 
 		<div class="sections" :inert="isReadOnly">
-			<BuilderSettingsBlockProperties
-				v-if="!isGroupNode"
-			></BuilderSettingsBlockProperties>
-			<BuilderSettingsGroupBlockProperties
-				v-if="isGroupNode"
-			></BuilderSettingsGroupBlockProperties>
+			<BuilderSettingsGroupBlockProperties v-if="isGroupNode" />
+			<BuilderSettingsBlockProperties v-else />
 		</div>
 
 		<div class="sections debug">

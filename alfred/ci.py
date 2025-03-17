@@ -23,8 +23,6 @@ def ci(front, back, back_external, e2e, docs):
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest.backend")
-    if back_external or no_flags:
-        alfred.invoke_command("ci.pytest.backend_external")
     if docs or no_flags:
         alfred.invoke_command("npm.docs.test")
     if e2e:
@@ -48,12 +46,6 @@ def ci_ruff(fix):
 @alfred.command("ci.pytest.backend", help="run pytest on ./tests")
 def ci_pytest_backend():
     os.chdir("tests/backend")
-    alfred.run("pytest")
-
-
-@alfred.command("ci.pytest.backend_external", help="run automatic test on external integrations")
-def ci_test_backend_external():
-    os.chdir("tests/backend_external")
     alfred.run("pytest")
 
 

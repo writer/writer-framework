@@ -658,10 +658,11 @@ export function generateCore() {
 
 	/**
 	 * Return the complete list of the types of a component, including the secondary type if it is a workflow block
-	 * @param componentId
 	 *
 	 * @example
+	 * ```js
 	 * wf.inspectComponentTypes("1234") // ["workflows", "workflows_workflow"]
+	 * ```
 	 */
 	function inspectComponentTypes(componentId: Component["id"]): string[] {
 		const component = getComponentById(componentId);
@@ -704,11 +705,14 @@ export function generateCore() {
 	/**
 	 * Retrieves the fields of a component, for the main group or for action
 	 *
-	 * @param componentId
-	 * @param level
+	 * @param componentId id of component
+	 * @param level 0 for the fields of the main group, 1 for the fields of the action
+	 *
 	 * @example
+	 * ```js
 	 * fields = wf.getComponentFieldsForGroupLevel("1234", 0)
 	 * // { "title": { "type": "string" }, "content": { "type": "string" } }
+	 * ```
 	 */
 	function getComponentFieldsForGroupLevel(
 		componentId: Component["id"],
@@ -717,24 +721,21 @@ export function generateCore() {
 		const component = getComponentById(componentId);
 		const groupType = getGroupType(component.type);
 
-		let fields = {};
-		if (groupType === null && level == 0) {
-			fields = getComponentDefinition(component.type).fields;
-		} else if (groupType !== component.type && level == 0) {
-			fields = getComponentDefinition(groupType).fields;
-		} else if (groupType !== component.type && level == 1) {
-			fields = getComponentDefinition(component.type).fields;
-		} else if (groupType === component.type && level == 0) {
-			fields = getComponentDefinition(component.type).fields;
-		} else if (groupType === component.type && level == 1) {
-			fields = {};
+		if (groupType === null && level === 0) {
+			return getComponentDefinition(component.type).fields;
+		} else if (groupType !== component.type && level === 0) {
+			return getComponentDefinition(groupType).fields;
+		} else if (groupType !== component.type && level === 1) {
+			return getComponentDefinition(component.type).fields;
+		} else if (groupType === component.type && level === 0) {
+			return getComponentDefinition(component.type).fields;
+		} else if (groupType === component.type && level === 1) {
+			return {};
 		} else {
 			throw new Error(
 				`get component fields fails for ${componentId} - ${component.type} for group level ${level}`,
 			);
 		}
-
-		return fields;
 	}
 
 	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
