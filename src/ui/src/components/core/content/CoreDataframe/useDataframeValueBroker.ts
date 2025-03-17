@@ -3,6 +3,7 @@ import { type internal } from "arquero";
 import { ARQUERO_INTERNAL_ID, UNNAMED_INDEX_COLUMN_PATTERN } from "./constants";
 import { useJobs } from "./useJobs";
 import { Core, InstancePath } from "@/writerTypes";
+import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
 
 /**
  * Encapsulates the logic to update an Arquero table and sync it with the backend
@@ -155,8 +156,11 @@ export function useDataFrameValueBroker(
 	function isEventUsed(eventType: string): boolean {
 		const isHandlerSet = component.value.handlers?.[eventType];
 		const isBindingSet = component.value.binding?.eventType == eventType;
+		const isWorkflowAttached =
+			useComponentLinkedWorkflows(wf, componentId, eventType).value
+				.length > 0;
 
-		return Boolean(isHandlerSet || isBindingSet);
+		return Boolean(isHandlerSet || isBindingSet || isWorkflowAttached);
 	}
 
 	function dispatchEvent(event: CustomEvent) {
