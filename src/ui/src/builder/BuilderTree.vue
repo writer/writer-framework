@@ -44,7 +44,7 @@
 				v-if="dropdownOptions && isMainHovered"
 				class="BuilderTree__main__dropdown"
 			>
-				<BuilderMoreDropdown
+				<SharedMoreDropdown
 					:options="dropdownOptions"
 					trigger-custom-size="16px"
 					@select="$emit('dropdownSelect', $event)"
@@ -65,10 +65,10 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import type { Option } from "./BuilderMoreDropdown.vue";
+import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
-const BuilderMoreDropdown = defineAsyncComponent(
-	() => import("./BuilderMoreDropdown.vue"),
+const SharedMoreDropdown = defineAsyncComponent(
+	() => import("@/components/shared/SharedMoreDropdown.vue"),
 );
 
 const props = defineProps({
