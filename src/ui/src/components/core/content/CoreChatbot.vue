@@ -96,11 +96,7 @@ See the stubs for more details.
 </template>
 
 <script lang="ts">
-import {
-	FieldCategory,
-	FieldType,
-	WriterComponentDefinition,
-} from "@/writerTypes";
+import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	accentColor,
 	baseYesNoField,

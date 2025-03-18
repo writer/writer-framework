@@ -39,7 +39,6 @@ import {
 	useFloating,
 	autoPlacement,
 	Placement,
-	UseFloatingOptions,
 	Middleware,
 } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";

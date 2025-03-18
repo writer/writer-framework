@@ -116,7 +116,6 @@ const { isLinked: hasLinkedWorkflow } = useComponentLinkedWorkflows(
 );
 
 const isClickable = computed(() => {
-	console.log(hasLinkedWorkflow.value);
 	if (hasLinkedWorkflow.value) return true;
 	const component = wf.getComponentById(componentId);
 	return typeof component.handlers?.["wf-tag-click"] !== "undefined";
@@ -154,7 +153,6 @@ function calculateColorStep(s: string | number) {
 }
 
 function handleTagClick(tagId: string | number) {
-	console.log("handleTagClick");
 	const event = new CustomEvent("wf-tag-click", {
 		detail: {
 			payload: tagId,
