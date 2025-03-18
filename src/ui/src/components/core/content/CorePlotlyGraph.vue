@@ -43,6 +43,19 @@ export default {
 		events: {
 			"plotly-click": {
 				desc: "Sends a list with the clicked points.",
+				eventPayloadExample: {
+					curveNumber: 0,
+					pointNumber: 2,
+					x: "c",
+					y: 29,
+					label: "c",
+					xaxis: {
+						anchor: "y",
+					},
+					yaxis: {
+						anchor: "x",
+					},
+				},
 			},
 			"plotly-selected": {
 				desc: "Sends a list with the selected points.",

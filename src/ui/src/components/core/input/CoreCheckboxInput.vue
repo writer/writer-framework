@@ -98,6 +98,7 @@ export default {
 				desc: "Sent when the selected options change.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
+				eventPayloadExample: Object.keys(defaultOptions),
 			},
 		},
 	},

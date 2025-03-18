@@ -198,14 +198,32 @@ export default {
 			"wf-dataframe-add": {
 				desc: "Capture adding a row.",
 				stub: dataFrameAddHandlerStub.trim(),
+				eventPayloadExample: {
+					record: {
+						col_a: "0n",
+						col_b: "0n",
+					},
+					record_index: 2,
+				},
 			},
 			"wf-dataframe-update": {
 				desc: "Capture a cell change.",
 				stub: dataFrameUpdateHandlerStub.trim(),
+				eventPayloadExample: {
+					record: {
+						col_a: "1n",
+						col_b: "2n",
+					},
+					record_index: 0,
+				},
 			},
 			"wf-dataframe-action": {
 				desc: "Remove or open a row.",
 				stub: dataFrameActionHandlerStub.trim(),
+				eventPayloadExample: {
+					action: "open",
+					record_index: 0,
+				},
 			},
 		},
 		fields: {

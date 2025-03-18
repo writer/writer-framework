@@ -73,10 +73,12 @@ export default {
 				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+				eventPayloadExample: "The content of the textarea",
 			},
 			"wf-change-finish": {
 				desc: "Capture changes once this control has lost focus.",
 				stub: onChangeHandlerStub,
+				eventPayloadExample: "The content of the textarea",
 			},
 		},
 	},

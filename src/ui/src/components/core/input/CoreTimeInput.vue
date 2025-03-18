@@ -52,6 +52,7 @@ export default {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+				eventPayloadExample: "9:30",
 			},
 		},
 	},

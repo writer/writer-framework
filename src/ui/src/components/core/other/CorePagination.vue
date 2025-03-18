@@ -160,10 +160,12 @@ export default {
 			"wf-change-page": {
 				desc: "Fires when the user pick a page",
 				stub: pageChangeStub.trim(),
+				eventPayloadExample: 2,
 			},
 			"wf-change-page-size": {
 				desc: "Fires when the user change the page size.",
 				stub: onPageSizeChangeStub.trim(),
+				eventPayloadExample: 10,
 			},
 		},
 	},

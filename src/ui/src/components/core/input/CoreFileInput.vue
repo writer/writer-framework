@@ -105,6 +105,13 @@ export default {
 				desc: "Capture changes to this control.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+				eventPayloadExample: [
+					{
+						name: "hello.txt",
+						type: "text/plain",
+						data: "data:text/plain;base64,SGVsbG8gd29ybGQK",
+					},
+				],
 			},
 		},
 	},

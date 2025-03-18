@@ -12,7 +12,7 @@
 				:key="tagId"
 				class="tag"
 				:style="{ background: generateColor(tagId) }"
-				@click="() => handleTagClick(tagId)"
+				@click="handleTagClick(tagId)"
 			>
 				<span>{{ tagDesc }}</span>
 			</div>
@@ -31,6 +31,7 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import { WdsColor } from "@/wds/tokens";
+import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
 
 const clickHandlerStub = `
 def handle_tag_click(state, payload):
@@ -78,6 +79,7 @@ export default {
 			"wf-tag-click": {
 				desc: "Triggered when a tag is clicked.",
 				stub: clickHandlerStub.trim(),
+				eventPayloadExample: "tagKey",
 			},
 		},
 		previewField: "text",
@@ -107,12 +109,20 @@ const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
+const { isLinked: hasLinkedWorkflow } = useComponentLinkedWorkflows(
+	wf,
+	componentId,
+	"wf-tag-click",
+);
+
 const isClickable = computed(() => {
+	console.log(hasLinkedWorkflow.value);
+	if (hasLinkedWorkflow.value) return true;
 	const component = wf.getComponentById(componentId);
 	return typeof component.handlers?.["wf-tag-click"] !== "undefined";
 });
 
-function generateColor(s: string) {
+function generateColor(s: string | number) {
 	if (!fields.rotateHue.value) {
 		return fields.referenceColor.value;
 	}
@@ -134,7 +144,7 @@ function generateColor(s: string) {
 	return genColor.css();
 }
 
-function calculateColorStep(s: string) {
+function calculateColorStep(s: string | number) {
 	let hash = (fields.seed.value * 52673) & 0xffffffff;
 	for (let i = 0; i < s.length; i++) {
 		hash = ((i + 1) * s.charCodeAt(i)) ^ (hash & 0xffffffff);
@@ -143,7 +153,8 @@ function calculateColorStep(s: string) {
 	return step;
 }
 
-function handleTagClick(tagId: string) {
+function handleTagClick(tagId: string | number) {
+	console.log("handleTagClick");
 	const event = new CustomEvent("wf-tag-click", {
 		detail: {
 			payload: tagId,

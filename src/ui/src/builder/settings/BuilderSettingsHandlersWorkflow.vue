@@ -6,10 +6,7 @@ import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
-import {
-	useWorkflowsRun,
-	WorkflowsRunListItem,
-} from "@/composables/useWorkflowRun";
+import { useWorkflowsRun } from "@/composables/useWorkflowRun";
 import { WdsColor } from "@/wds/tokens";
 import BuilderWorkflowState from "../BuilderWorkflowState.vue";
 import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
@@ -23,7 +20,7 @@ const props = defineProps({
 	eventDescription: { type: String, required: false, default: undefined },
 });
 
-const { createAndInsertComponent, removeComponentSubtree } =
+const { createAndInsertComponent, removeComponentsSubtree } =
 	useComponentActions(wf, wfbm);
 
 const eventTypeFormated = computed(() =>
@@ -59,9 +56,16 @@ function getNewWorkflowKey() {
 
 async function createLinkedWorkflow() {
 	const { type } = props.component;
-	const { name } = wf.getComponentDefinition(type);
+	const { name, events } = wf.getComponentDefinition(type);
 	const alias = `${name} - ${props.eventType}`;
 	const key = `${type}@${props.eventType.replace(/^wf-/, "")}_${getNewWorkflowKey()}`;
+
+	let defaultResult = events?.[props.eventType]?.eventPayloadExample;
+
+	if (typeof defaultResult === "object" && defaultResult !== null) {
+		defaultResult = JSON.stringify(defaultResult);
+	}
+
 	const workflowId = createAndInsertComponent(
 		"workflows_workflow",
 		"workflows_root",
@@ -81,6 +85,9 @@ async function createLinkedWorkflow() {
 						alias,
 						refComponentId: props.component.id,
 						refEventType: props.eventType,
+						defaultResult: defaultResult
+							? String(defaultResult)
+							: undefined,
 					},
 					x: 96,
 					y: 96,
@@ -113,11 +120,12 @@ function getWorkflowTriggerBlock(workflowId: string) {
 		);
 }
 
-function deleteLinkedWorkflow(workflowId: string) {
-	const block = getWorkflowTriggerBlock(workflowId);
-	if (block === undefined) return;
-
-	removeComponentSubtree(block.id);
+function deleteLinkedWorkflow(trigger: Component) {
+	const componentsToDelete = [trigger.id];
+	if (wf.getComponents(trigger.parentId).length === 1) {
+		componentsToDelete.push(trigger.parentId);
+	}
+	removeComponentsSubtree(...componentsToDelete);
 }
 
 function getTriggerName(trigger: Component) {
@@ -181,7 +189,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 						aria-label="Unlink Orchestration"
 						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
 						:disabled="isRunning"
-						@click="deleteLinkedWorkflow(trigger.id)"
+						@click="deleteLinkedWorkflow(trigger)"
 					>
 						<i class="material-symbols-outlined">link_off</i>
 					</WdsButton>
