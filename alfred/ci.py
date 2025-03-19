@@ -11,9 +11,10 @@ import alfred
 @alfred.option("--front", "-f", help="run for frontend only", is_flag=True, default=False)
 @alfred.option("--docs", "-d", help="run for docs only", is_flag=True, default=False)
 @alfred.option("--back", "-b", help="run for backend only", is_flag=True, default=False)
+@alfred.option("--back-external", help="run for external test only", is_flag=True, default=False)
 @alfred.option("--e2e", "-e", help="run for end-to-end only", default=None)
-def ci(front, back, e2e, docs):
-    no_flags = not front and not back and not e2e and not docs
+def ci(front, back, back_external, e2e, docs):
+    no_flags = (not front and not back and not e2e and not docs)
 
     if front or no_flags:
         alfred.invoke_command("npm.lint")
@@ -21,7 +22,7 @@ def ci(front, back, e2e, docs):
     if back or no_flags:
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
-        alfred.invoke_command("ci.pytest")
+        alfred.invoke_command("ci.pytest.backend")
     if docs or no_flags:
         alfred.invoke_command("npm.docs.test")
     if e2e:
@@ -42,9 +43,9 @@ def ci_ruff(fix):
         alfred.run("ruff check")
 
 
-@alfred.command("ci.pytest", help="run pytest on ./tests")
-def ci_test():
-    os.chdir("tests")
+@alfred.command("ci.pytest.backend", help="run pytest on ./tests")
+def ci_pytest_backend():
+    os.chdir("tests/backend")
     alfred.run("pytest")
 
 

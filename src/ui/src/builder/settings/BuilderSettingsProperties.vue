@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, PropType, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
 import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
@@ -197,12 +197,11 @@ const selectedComponent = computed(() => {
 	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
-const componentDefinition = computed(() => {
-	const { type } = selectedComponent.value;
-	return wf.getComponentDefinition(type);
-});
 const fields = computed(() => {
-	return componentDefinition.value?.fields;
+	return wf.getComponentFieldsForGroupLevel(
+		selectedComponent.value.id,
+		props.groupLevel,
+	);
 });
 
 const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
@@ -240,6 +239,14 @@ function handleExpand(fieldKey: string) {
 function handleShrink(fieldKey: string) {
 	expandedFields.value.delete(fieldKey);
 }
+
+const props = defineProps({
+	groupLevel: {
+		type: Number as PropType<0 | 1>,
+		required: false,
+		default: 0,
+	},
+});
 </script>
 
 <style scoped>

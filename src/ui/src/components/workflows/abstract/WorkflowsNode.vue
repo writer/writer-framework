@@ -23,7 +23,6 @@
 				<WorkflowsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"
-					:block-name="def.name"
 				></WorkflowsNodeNamer>
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
@@ -165,6 +164,8 @@ const isEngaged = computed(() => {
 
 const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const processedOuts = {};
+	if (!def.value.outs) return processedOuts;
+
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
 		if (out.style == "dynamic") return;
 		processedOuts[outId] = out;
@@ -190,6 +191,8 @@ const dynamicOuts = computed<
 	>
 >(() => {
 	const processedOuts = {};
+	if (!def.value.outs) return processedOuts;
+
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
 		if (out.style !== "dynamic") {
 			return;

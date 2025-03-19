@@ -9,15 +9,8 @@
 		</div>
 
 		<div class="sections" :inert="isReadOnly">
-			<BuilderSettingsProperties></BuilderSettingsProperties>
-			<template v-if="displaySettings">
-				<BuilderSettingsBinding
-					v-if="isBindable"
-				></BuilderSettingsBinding>
-				<BuilderSettingsHandlers></BuilderSettingsHandlers>
-				<BuilderSettingsVisibility></BuilderSettingsVisibility>
-			</template>
-			<BuilderSettingsAPICode>Execute via API</BuilderSettingsAPICode>
+			<BuilderSettingsGroupBlockProperties v-if="isGroupNode" />
+			<BuilderSettingsBlockProperties v-else />
 		</div>
 
 		<div class="sections debug">
@@ -32,20 +25,12 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, watch, defineAsyncComponent } from "vue";
+import { inject, computed, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
-import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
-import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "../BuilderCopyText.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
-import BuilderSettingsAPICode from "./BuilderSettingsAPICode.vue";
-
-const BuilderSettingsHandlers = defineAsyncComponent({
-	loader: () => import("./BuilderSettingsHandlers.vue"),
-	loadingComponent: BuilderAsyncLoader,
-});
+import BuilderSettingsBlockProperties from "@/builder/settings/BuilderSettingsBlockProperties.vue";
+import BuilderSettingsGroupBlockProperties from "@/builder/settings/BuilderSettingsGroupBlockProperties.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -53,32 +38,16 @@ const ssbm = inject(injectionKeys.builderManager);
 const component = computed(() =>
 	wf.getComponentById(ssbm.firstSelectedId.value),
 );
+
 const isReadOnly = computed(() => component.value.isCodeManaged);
 
-const displaySettings = computed(() => {
-	if (!ssbm.isSingleSelectionActive.value) return false;
-
-	return (
-		!componentDefinition.value.toolkit ||
-		componentDefinition.value.toolkit == "core"
-	);
-});
-
-const componentDefinition = computed(() => {
-	const { type } = component.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition;
+const isGroupNode = computed(() => {
+	return wf.isGroupNode(component.value.type);
 });
 
 watch(component, (newComponent) => {
 	if (!newComponent) ssbm.setSelection(null);
 });
-
-const isBindable = computed(() =>
-	Object.values(componentDefinition.value?.events ?? {}).some(
-		(e) => e.bindable,
-	),
-);
 </script>
 
 <style scoped>
