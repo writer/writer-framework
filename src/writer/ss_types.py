@@ -49,8 +49,10 @@ class SourceFilesFile(TypedDict):
     complete: Optional[bool]
     content: str
 
+
 class SourceFilesBinary(TypedDict):
     type: Literal["binary"]
+
 
 class SourceFilesDirectory(TypedDict):
     type: Literal["directory"]
@@ -60,6 +62,10 @@ class SourceFilesDirectory(TypedDict):
 SourceFiles = Union[SourceFilesFile, SourceFilesDirectory, SourceFilesBinary]
 
 # Web server models
+
+
+class AutogenRequestBody(BaseModel):
+    description: str
 
 
 class InitRequestBody(BaseModel):

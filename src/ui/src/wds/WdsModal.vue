@@ -10,7 +10,7 @@
 			tabindex="-1"
 		>
 			<div class="main">
-				<div class="titleContainer">
+				<div v-if="title || description" class="titleContainer">
 					<h2>{{ title }}</h2>
 					<summary v-if="description">
 						{{ description }}
@@ -44,7 +44,7 @@ export type ModalAction = {
 };
 
 const props = defineProps({
-	title: { type: String, required: true },
+	title: { type: String, required: false, default: null },
 	size: {
 		type: String as PropType<"normal" | "wide">,
 		required: false,

@@ -174,7 +174,9 @@ function addMailSubscriptions() {
 		el.click();
 	});
 	wf.addMailSubscription("pageChange", async (pageKey: string) => {
-		wfbm.setMode("ui");
+		if (wfbm.getMode() === "workflows") {
+			wfbm.setMode("ui");
+		}
 		await nextTick();
 		changePageInHash(pageKey);
 		wf.setActivePageFromKey(pageKey);

@@ -10,15 +10,14 @@ def test_complete(monkeypatch, session, runner):
         return "Blue."
 
     monkeypatch.setattr("writer.ai.complete", fake_complete)
-    session.add_fake_component({
-        "prompt": "What color is the sea?",
-        "modelId": "buenos-aires-x-004",
-        "temperature": "0.9"
-    })
-    block = WriterCompletion("fake_id", runner, {})
+    component = session.add_fake_component(
+        {"prompt": "What color is the sea?", "modelId": "buenos-aires-x-004", "temperature": "0.9"}
+    )
+    block = WriterCompletion(component, runner, {})
     block.run()
     assert block.result == "Blue."
     assert block.outcome == "success"
+
 
 def test_complete_missing_text(monkeypatch, session, runner):
     def fake_complete(prompt, config):
@@ -28,13 +27,11 @@ def test_complete_missing_text(monkeypatch, session, runner):
         return "Plants are usually green."
 
     monkeypatch.setattr("writer.ai.complete", fake_complete)
-    session.add_fake_component({
-        "prompt": "",
-        "modelId": "buenos-aires-x-004",
-        "temperature": "0.9"
-    })
-    block = WriterCompletion("fake_id", runner, {})
- 
+    component = session.add_fake_component(
+        {"prompt": "", "modelId": "buenos-aires-x-004", "temperature": "0.9"}
+    )
+    block = WriterCompletion(component, runner, {})
+
     # Not expected to fail, just hallucinate
 
     block.run()

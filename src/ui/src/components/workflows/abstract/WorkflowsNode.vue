@@ -34,7 +34,9 @@
 				:key="fieldKey"
 				class="outputs"
 			>
-				<h4>{{ def.fields[fieldKey].name }}</h4>
+				<h4 v-if="def.fields?.[fieldKey]">
+					{{ def.fields[fieldKey].name }}
+				</h4>
 				<div v-for="(out, outId) in outs" :key="outId" class="output">
 					{{ out.name }}
 					<div
@@ -56,7 +58,7 @@
 					:key="outId"
 					class="output"
 				>
-					<template v-if="Object.keys(staticOuts).length > 1">
+					<template v-if="outId !== 'trigger'">
 						{{ out.name }}
 					</template>
 					<div
@@ -164,7 +166,7 @@ const isEngaged = computed(() => {
 const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const processedOuts = {};
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
-		if (out.field) return;
+		if (out.style == "dynamic") return;
 		processedOuts[outId] = out;
 	});
 	return processedOuts;
@@ -189,7 +191,15 @@ const dynamicOuts = computed<
 >(() => {
 	const processedOuts = {};
 	Object.entries(def.value.outs).forEach(([outId, out]) => {
-		if (!out.field) return;
+		if (out.style !== "dynamic") {
+			return;
+		}
+		if (!out.field) {
+			processedOuts["default"] ??= {};
+			processedOuts["default"][outId] = { ...out };
+			return;
+		}
+
 		processedOuts[out.field] = {};
 		const dynamicKeys = getDynamicKeysFromField(out.field);
 		dynamicKeys.forEach((key) => {
@@ -431,6 +441,10 @@ watch(isEngaged, () => {
 }
 
 .output .ball.dynamic {
+	background: var(--wdsColorPurple4);
+}
+
+.output .ball.branching {
 	background: var(--wdsColorPurple4);
 }
 
