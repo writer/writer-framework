@@ -98,7 +98,6 @@ async function handleAutogen() {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: "Bearer YOUR_ACCESS_TOKEN", // Remove if not needed
 		},
 		body: JSON.stringify({ description }),
 	});
