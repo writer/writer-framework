@@ -13,7 +13,7 @@ class ForEach(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "For-each loop",
-                    "description": "Executes a workflow repeatedly, based on the items provided.",
+                    "description": "Executes a branch repeatedly, based on the items provided.",
                     "category": "Logic",
                     "fields": {
                         "items": {
@@ -24,21 +24,26 @@ class ForEach(WorkflowBlock):
                             "type": "Object",
                             "control": "Textarea",
                         },
+                        "prefix": {
+                            "name": "Prefix",
+                            "type": "Text",
+                            "desc": "If set, the item will be available at @{prefix_item} and the item id at @{prefix_itemId}.",
+                        },
                     },
                     "outs": {
                         "loop": {
                             "name": "Loop",
-                            "description": "Connect the branch that you'd like to loop. Whatever's plugged in here will be repeated once per item available.",
+                            "description": "Connect the branch that you'd like to loop on. The branch plugged in here will be executed once per item.",
                             "style": "dynamic",
                         },
                         "success": {
                             "name": "Success",
-                            "description": "The workflow executed successfully.",
+                            "description": "The branch referenced executed successfully for each item.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The workflow wasn't executed successfully.",
+                            "description": "The branch referenced has failed for at least one of the items.",
                             "style": "error",
                         },
                     },
@@ -49,6 +54,9 @@ class ForEach(WorkflowBlock):
     def run(self):
         try:
             items = self._get_field("items", as_json=True)
+            prefix = str(self._get_field("prefix", as_json=False, default_field_value="")).strip()
+            if prefix:
+                prefix += "_"
             base_execution_environment = self.execution_environment
 
             if not isinstance(items, (list, dict)):
@@ -56,7 +64,7 @@ class ForEach(WorkflowBlock):
 
             if isinstance(items, list):
                 workflow_environments = [
-                    base_execution_environment | {"itemId": i, "item": item}
+                    base_execution_environment | {f"{prefix}itemId": i, f"{prefix}item": item}
                     for i, item in enumerate(items)
                 ]
 
@@ -68,7 +76,7 @@ class ForEach(WorkflowBlock):
             elif isinstance(items, dict):
                 workflow_environments = {
                     str(item_id): base_execution_environment
-                    | {"itemId": str(item_id), "item": item}
+                    | {f"{prefix}itemId": str(item_id), f"{prefix}item": item}
                     for item_id, item in items.items()
                 }
                 results = self.runner.run_branch_pool(

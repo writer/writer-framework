@@ -19,7 +19,7 @@ class HTTPRequest(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "HTTP Request",
-                    "description": "Executes an HTTP request.",
+                    "description": "Executes an HTTP request. If the response is JSON, it's automatically parsed.",
                     "category": "Other",
                     "fields": {
                         "method": {
@@ -41,6 +41,7 @@ class HTTPRequest(WorkflowBlock):
                         "url": {
                             "name": "URL",
                             "type": "Text",
+                            "control": "Textarea",
                             "validator": {
                                 "type": "string",
                                 "format": "uri",

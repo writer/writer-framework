@@ -4,41 +4,40 @@ from writer.ss_types import AbstractTemplate
 
 
 class SetState(WorkflowBlock):
-
     @classmethod
     def register(cls, type: str):
         super(SetState, cls).register(type)
-        register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
-            writer={
-                "name": "Set state",
-                "description": "Set the value for a state element.",
-                "category": "Other",
-                "fields": {
-                    "element": {
-                        "name": "State element",
-                        "type": "Text"
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="workflows_node",
+                writer={
+                    "name": "Set state",
+                    "description": "Set the value for a state element.",
+                    "category": "Other",
+                    "fields": {
+                        "element": {
+                            "name": "State element",
+                            "type": "Text",
+                            "desc": "The name of the state element. If set to 'my_var' the value will be available at @{my_var} when using as part of a template.",
+                        },
+                        "value": {"name": "Value", "type": "Text", "control": "Textarea"},
                     },
-                    "value": {
-                        "name": "Value",
-                        "type": "Text",
-                        "control": "Textarea"
+                    "outs": {
+                        "success": {
+                            "name": "Success",
+                            "description": "If the function doesn't raise an Exception.",
+                            "style": "success",
+                        },
+                        "error": {
+                            "name": "Error",
+                            "description": "If the function raises an Exception.",
+                            "style": "error",
+                        },
                     },
                 },
-                "outs": {
-                    "success": {
-                        "name": "Success",
-                        "description": "If the function doesn't raise an Exception.",
-                        "style": "success",
-                    },
-                    "error": {
-                        "name": "Error",
-                        "description": "If the function raises an Exception.",
-                        "style": "error",
-                    },
-                },
-            }
-        ))
+            ),
+        )
 
     def run(self):
         try:

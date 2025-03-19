@@ -6,45 +6,47 @@ from writer.ss_types import AbstractTemplate
 
 
 class WriterClassification(WorkflowBlock):
-
     @classmethod
     def register(cls, type: str):
         super(WriterClassification, cls).register(type)
-        register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
-            writer={
-                "name": "Classification",
-                "description": "Classify a text.",
-                "category": "Writer",
-                "fields": {
-                    "text": {
-                        "name": "Text",
-                        "type": "Text",
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="workflows_node",
+                writer={
+                    "name": "Classification",
+                    "description": "Classify a text into a different categories, running different branches depending on the resulting category.",
+                    "category": "Writer",
+                    "fields": {
+                        "text": {
+                            "name": "Text",
+                            "type": "Text",
+                            "desc": "The text you want to classify.",
+                        },
+                        "categories": {
+                            "name": "Categories",
+                            "type": "Key-Value",
+                            "default": "{}",
+                            "desc": "The keys should be the categories you want to classify the text in, for example 'valid' and 'invalid', and the values the criteria for each category.",
+                        },
+                        "additionalContext": {
+                            "name": "Additional context",
+                            "type": "Text",
+                            "control": "Textarea",
+                            "desc": "Any additional information that might help the AI in making the classification decision.",
+                        },
                     },
-                    "categories": {
-                        "name": "Categories",
-                        "type": "Key-Value",
-                        "default": "{}"
-                    },
-                    "additionalContext": {
-                        "name": "Additional context",
-                        "type": "Text",
-                        "control": "Textarea"
+                    "outs": {
+                        "category": {"field": "categories", "style": "dynamic"},
+                        "error": {
+                            "name": "Error",
+                            "description": "If the function raises an Exception.",
+                            "style": "error",
+                        },
                     },
                 },
-                "outs": {
-                    "category": {
-                        "field": "categories",
-                        "style": "dynamic"
-                    },
-                    "error": {
-                        "name": "Error",
-                        "description": "If the function raises an Exception.",
-                        "style": "error",
-                    },
-                },
-            }
-        ))
+            ),
+        )
 
     def run(self):
         try:
