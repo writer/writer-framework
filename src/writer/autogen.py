@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 from writerai import Writer
 
@@ -276,7 +276,11 @@ def generate_blueprint(description: str):
                 }
             ]
         response = client.chat.chat(
-            model="palmyra-x5", messages=messages, tools=tools, tool_choice="required", stream=False
+            messages=messages,
+            model="palmyra-x5",
+            tool_choice="required",
+            tools=tools,
+            stream=False,  # type: ignore
         )
 
         response_message = response.choices[0].message
