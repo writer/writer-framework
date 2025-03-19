@@ -26,11 +26,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { inject, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WorkflowsLifeLoading from "./WorkflowsLifeLoading.vue";
 import { Component } from "@/writerTypes";
+import { useComponentActions } from "@/builder/useComponentActions";
+import injectionKeys from "@/injectionKeys";
+
+const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
+
+const { generateNewComponentId } = useComponentActions(wf, wfbm);
 
 const isBusy = ref(false);
 const prompt = ref("");
@@ -39,6 +46,49 @@ const emits = defineEmits(["blockGeneration"]);
 
 function handleCancel() {
 	emits("blockGeneration", null);
+}
+
+/**
+ * The generation happens with simple ids (aig1, aig2, ...).
+ * Component ids are altered to preserve uniqueness across blueprints.
+ */
+function alterIds(components: Component[]) {
+	const mapping: Record<string, string> = {};
+
+	// Switch ids
+
+	components.forEach((c) => {
+		const newId = generateNewComponentId();
+		mapping[c.id] = newId;
+		c.id = newId;
+	});
+
+	// Switch out ids
+
+	components.forEach((c) => {
+		c.outs?.forEach((out) => {
+			out.toNodeId = mapping[out.toNodeId];
+		});
+	});
+
+	// Switch results
+
+	components.forEach((c) => {
+		Object.entries(mapping).forEach(([originalId, newId]) => {
+			const regex = new RegExp(
+				`(@{\\s*results\\.)aig${originalId}\\b`,
+				"g",
+			);
+			Object.entries(c.content).forEach(([fieldKey, field]) => {
+				const newField = field.replace(regex, (_match, capturedAig) =>
+					_match.replace(capturedAig, newId),
+				);
+				c.content[fieldKey] = newField;
+			});
+		});
+	});
+
+	return components;
 }
 
 async function handleAutogen() {
@@ -61,7 +111,7 @@ async function handleAutogen() {
 
 	const data = await response.json(); // Assuming the response is JSON
 
-	const components: Component[] = data.components;
+	const components: Component[] = alterIds(data.blueprint?.components);
 	emits("blockGeneration", { components });
 }
 </script>

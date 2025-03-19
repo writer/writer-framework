@@ -104,6 +104,8 @@ import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import WorkflowsAutogen from "./WorkflowsAutogen.vue";
+import { useLogger } from "@/composables/useLogger";
+const { log } = useLogger();
 
 const description =
 	"A container component representing a single workflow within the application.";
@@ -345,9 +347,11 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 				`[data-writer-id="${bPre[0].fromNodeId}"] [data-writer-socket-id="${bPre[0].fromOutId}"]`,
 			);
 
+			if (!aEl || !bEl) return 0;
+
 			const aElBCR = aEl.getBoundingClientRect();
 			const bElBCR = bEl.getBoundingClientRect();
-			return aElBCR > bElBCR ? -1 : 1;
+			return aElBCR.y > bElBCR.y ? -1 : 1;
 		},
 	};
 
@@ -685,6 +689,28 @@ async function handleChangeRenderOffset(payload: { x: number; y: number }) {
 	await changeRenderOffset(payload.x, payload.y);
 }
 
+function handleCreateAutogenExample(description: string) {
+	const simplifiedNodes = nodes.value.map((node) => {
+		return {
+			id: node.id,
+			type: node.type,
+			content: node.content,
+			outs: node.outs,
+		};
+	});
+	const stringifiedBlueprint = JSON.stringify(simplifiedNodes);
+	const message = `
+	<example>
+		<description>
+			${description}
+		</description>
+		<blueprint>
+			${stringifiedBlueprint}
+		</blueprint>
+	</example>`.trim();
+	log(message);
+}
+
 function setZoomLevel(level: number) {
 	zoomLevel.value = Math.max(
 		Math.min(ZOOM_SETTINGS.maxLevel, level),
@@ -814,7 +840,7 @@ async function handleBlockGeneration(
 	});
 
 	await nextTick();
-	autoArrange("currentY");
+	autoArrange("socketPosition");
 }
 
 watch(wfbm.firstSelectedItem, (newSelection) => {
@@ -838,6 +864,9 @@ onMounted(async () => {
 		subtree: true,
 		characterData: true,
 	});
+
+	//@ts-expect-error modifying window
+	window.createAutogenExample = handleCreateAutogenExample;
 });
 
 onUnmounted(() => {

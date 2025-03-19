@@ -980,6 +980,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	}
 
 	return {
+		generateNewComponentId,
 		moveComponent,
 		moveComponentUp,
 		moveComponentDown,

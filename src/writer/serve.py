@@ -295,7 +295,7 @@ def get_asgi_app(
     async def autogen(requestBody: AutogenRequestBody, request: Request):
         import writer.autogen
 
-        return writer.autogen.generate_workflow(requestBody.description)
+        return writer.autogen.generate_blueprint(requestBody.description)
 
     @app.post("/api/init")
     async def init(
