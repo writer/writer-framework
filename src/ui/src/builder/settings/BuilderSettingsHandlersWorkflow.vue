@@ -177,6 +177,8 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 					<button
 						role="button"
 						class="BuilderSettingsHandlersWorkflow__list__item__btn"
+						:data-writer-tooltip="getTriggerName(trigger)"
+						data-writer-tooltip-strategy="overflow"
 						@click="jumpToWorkflow(trigger.parentId, trigger.id)"
 					>
 						{{ getTriggerName(trigger) }}
@@ -236,7 +238,8 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 	padding-bottom: 6px;
 	padding-left: 12px;
 
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
 	justify-content: space-between;
 	gap: 4px;
 }
@@ -247,12 +250,10 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 	padding: 0;
 	cursor: pointer;
 
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: 8px;
-
-	flex-grow: 1;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	text-align: left;
 }
 .BuilderSettingsHandlersWorkflow__list__item__btn:hover {
 	text-decoration: underline;
