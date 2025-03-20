@@ -2,18 +2,9 @@
 import { useWorkflowRun } from "@/composables/useWorkflowRun";
 import WdsButton from "@/wds/WdsButton.vue";
 import injectionKeys from "@/injectionKeys";
-import {
-	computed,
-	inject,
-	ref,
-	shallowRef,
-	toRaw,
-	useTemplateRef,
-	watch,
-} from "vue";
+import { computed, inject, ref, shallowRef, toRaw, useTemplateRef } from "vue";
 import { useFloating, offset } from "@floating-ui/vue";
 import WorkflowToolbarBlocksDropdown from "./WorkflowToolbarBlocksDropdown.vue";
-import { useFocusWithin } from "@/composables/useFocusWithin";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 
 defineEmits({
@@ -32,11 +23,6 @@ const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
 const { floatingStyles } = useFloating(root, dropdown, {
 	placement: "bottom-end",
 	middleware: [offset(12)],
-});
-
-const hasFocus = useFocusWithin(root);
-watch(hasFocus, () => {
-	if (!hasFocus.value && isDropdownOpen.value) isDropdownOpen.value = false;
 });
 
 const triggerComponents = computed(() =>
@@ -70,9 +56,9 @@ function jumpToComponent(componentId: string) {
 	isDropdownOpen.value = false;
 }
 
-function runBranch(componentId: string) {
-	handleRun(componentId);
+async function runWorkflow(componentId?: string) {
 	isDropdownOpen.value = false;
+	await handleRun(componentId);
 }
 </script>
 
@@ -80,8 +66,6 @@ function runBranch(componentId: string) {
 	<div ref="root" class="WorkflowToolbar" :data-writer-unselectable="true">
 		<WdsButton
 			variant="secondary"
-			size="small"
-			:data-writer-unselectable="true"
 			data-automation-action="run-autogen"
 			@click="$emit('autogenClick')"
 		>
@@ -93,7 +77,8 @@ function runBranch(componentId: string) {
 				variant="secondary"
 				size="small"
 				data-automation-action="run-workflow"
-				@click.stop="handleRun()"
+				class="WorkflowToolbar__btn__runWorkflow"
+				@click.stop="runWorkflow()"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
@@ -111,17 +96,17 @@ function runBranch(componentId: string) {
 						isDropdownOpen ? "arrow_drop_up" : "arrow_drop_down"
 					}}</i>
 				</WdsButton>
+				<BaseTransitionSlideFade>
+					<WorkflowToolbarBlocksDropdown
+						v-if="isDropdownOpen"
+						ref="dropdown"
+						:style="floatingStyles"
+						:components="triggerComponents"
+						@jump-to-component="jumpToComponent"
+						@run-branch="runWorkflow($event)"
+					/>
+				</BaseTransitionSlideFade>
 			</template>
-			<BaseTransitionSlideFade>
-				<WorkflowToolbarBlocksDropdown
-					v-if="isDropdownOpen"
-					ref="dropdown"
-					:style="floatingStyles"
-					:components="triggerComponents"
-					@jump-to-component="jumpToComponent"
-					@run-branch="runBranch"
-				/>
-			</BaseTransitionSlideFade>
 		</div>
 	</div>
 </template>
@@ -141,6 +126,10 @@ function runBranch(componentId: string) {
 	gap: 8px;
 	padding-left: 8px;
 	padding-right: 8px;
+}
+.WorkflowToolbar__btn__runWorkflow {
+	min-width: 155px;
+	justify-content: flex-start;
 }
 .WorkflowToolbar__btn__dropdownTrigger {
 	font-size: 20px;
