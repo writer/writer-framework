@@ -24,6 +24,7 @@
 						:variant="
 							index == actions.length - 1 ? 'primary' : 'tertiary'
 						"
+						:disabled="action.disabled"
 						@click="action.fn"
 					>
 						{{ action.desc }}
@@ -40,6 +41,7 @@ import { PropType, toRefs } from "vue";
 
 export type ModalAction = {
 	desc: string;
+	disabled?: boolean;
 	fn: (..._args: unknown[]) => unknown;
 };
 
