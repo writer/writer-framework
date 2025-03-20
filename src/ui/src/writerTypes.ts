@@ -225,6 +225,7 @@ export type WriterGraph = {
 		total: number;
 	};
 	type: "connector" | "manual";
+	organization_id?: string;
 };
 
 export type WriterApplication = {
@@ -232,4 +233,5 @@ export type WriterApplication = {
 	name: string;
 	type: string;
 	status: string;
+	organization_id?: string;
 };
