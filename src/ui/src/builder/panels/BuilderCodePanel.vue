@@ -75,7 +75,7 @@
 					<i class="material-symbols-outlined">save</i>
 					Save file
 				</WdsButton>
-				<BuilderMoreDropdown
+				<SharedMoreDropdown
 					:disabled="moreOptionsDisabled"
 					:options="moreOptions"
 					@select="handleMoreSelect"
@@ -103,11 +103,15 @@ import injectionKeys from "@/injectionKeys";
 import { useSourceFiles } from "@/core/useSourceFiles";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderMoreDropdown, { Option } from "../BuilderMoreDropdown.vue";
+import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.vue";
 import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
 import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
+
+const SharedMoreDropdown = defineAsyncComponent(
+	() => import("@/components/shared/SharedMoreDropdown.vue"),
+);
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),

@@ -15,6 +15,7 @@
 			class="BuilderMoreDropdown__dropdown"
 			:options="options"
 			:style="floatingStyles"
+			:hide-icons="hideIcons"
 			@select="onSelect"
 		/>
 	</div>
@@ -30,10 +31,16 @@ import {
 	nextTick,
 	PropType,
 	ref,
+	toRef,
 	useTemplateRef,
 	watch,
 } from "vue";
-import { useFloating, autoPlacement } from "@floating-ui/vue";
+import {
+	useFloating,
+	autoPlacement,
+	Placement,
+	Middleware,
+} from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsButton from "@/wds/WdsButton.vue";
@@ -42,7 +49,7 @@ const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),
 );
 
-defineProps({
+const props = defineProps({
 	options: {
 		type: Array as PropType<WdsDropdownMenuOption[]>,
 		default: () => [],
@@ -50,7 +57,21 @@ defineProps({
 	triggerCustomSize: { type: String, default: "smallIcon" },
 	disabled: { type: Boolean },
 	hideIcons: { type: Boolean, required: false },
+	dropdownPlacement: {
+		type: String as PropType<Placement>,
+		required: true,
+		default: "bottom-end",
+	},
+	floatingMiddleware: {
+		type: Array as PropType<Middleware[]>,
+		required: false,
+		default: () => [
+			autoPlacement({ allowedPlacements: ["bottom-end", "top-end"] }),
+		],
+	},
 });
+
+// const a : Placement = ''
 
 const emits = defineEmits({
 	select: (value: string) => typeof value === "string",
@@ -61,10 +82,8 @@ const trigger = useTemplateRef("trigger");
 const dropdown = useTemplateRef("dropdown");
 
 const { floatingStyles } = useFloating(trigger, dropdown, {
-	placement: "bottom-end",
-	middleware: [
-		autoPlacement({ allowedPlacements: ["bottom-end", "top-end"] }),
-	],
+	placement: toRef(props, "dropdownPlacement"),
+	middleware: toRef(props, "floatingMiddleware"),
 });
 
 // close the dropdown when clicking outside

@@ -5,14 +5,20 @@
 			role="button"
 			@click="isOpen = !isOpen"
 		>
-			<i
+			<template
 				v-if="
 					(hasUnknowOptionSelected || !hideIcons) &&
 					!enableMultiSelection
 				"
-				class="material-symbols-outlined"
-				>{{ currentIcon }}</i
 			>
+				<SharedImgWithFallback
+					v-if="Array.isArray(currentIcon)"
+					:urls="currentIcon"
+				/>
+				<i v-else class="material-symbols-outlined">{{
+					currentIcon
+				}}</i>
+			</template>
 			<div
 				v-if="enableMultiSelection"
 				class="BuilderSelect__trigger__multiSelectLabel"
@@ -71,6 +77,7 @@ import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
 const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),

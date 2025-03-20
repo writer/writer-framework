@@ -82,10 +82,12 @@ export default {
 				desc: "Capture changes as they happen.",
 				stub: onChangeHandlerStub,
 				bindable: true,
+				eventPayloadExample: 42,
 			},
 			"wf-number-change-finish": {
 				desc: "Capture changes once this control has lost focus.",
 				stub: onChangeHandlerStub,
+				eventPayloadExample: 42,
 			},
 		},
 	},

@@ -42,24 +42,30 @@
 				'CoreDataframeRow__options--shadow': displayShadowOnSticky,
 			}"
 		>
-			<div class="CoreDataframeRow__options__wrapper">
-				<BaseDropdown
-					:options="actions"
-					@selected="
-						$emit('action', $event, row[ARQUERO_INTERNAL_ID])
-					"
-				/>
-			</div>
+			<SharedMoreDropdown
+				:options="actionsOptions"
+				hide-icons
+				dropdown-placement="left"
+				:floating-middleware="floatingMiddleware"
+				@select="$emit('action', $event, row[ARQUERO_INTERNAL_ID])"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, ref } from "vue";
+import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import CoreDataframeCell from "./CoreDataframeCell.vue";
-import BaseDropdown from "../../base/BaseDropdown.vue";
 import { ARQUERO_INTERNAL_ID } from "./constants";
 import { useFocusWithin } from "@/composables/useFocusWithin";
+import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
+import { Middleware, offset, shift } from "@floating-ui/vue";
+
+const SharedMoreDropdown = defineAsyncComponent(
+	() => import("@/components/shared/SharedMoreDropdown.vue"),
+);
+
+const floatingMiddleware: Middleware[] = [offset(16), shift()];
 
 const props = defineProps({
 	showIndex: { type: Boolean, required: false },
@@ -92,13 +98,20 @@ const hasFocusWithin = useFocusWithin(root);
 const isRowHovered = ref(false);
 
 const hasActions = computed(() => Object.keys(props.actions || {}).length > 0);
+
+const actionsOptions = computed<Option[]>(() => {
+	return Object.entries(props.actions || {}).map(([key, value]) => ({
+		value: key,
+		label: value,
+	}));
+});
 </script>
 
 <style scoped>
 .CoreDataframeRow {
 	width: fit-content;
 
-	position: relative;
+	/* position: relative; */
 	font-size: 0.75rem;
 	min-height: 40px;
 	border-bottom: 1px solid var(--separatorColor);
@@ -144,20 +157,17 @@ const hasActions = computed(() => Object.keys(props.actions || {}).length > 0);
 	z-index: 3;
 	min-width: unset;
 	border-left: 1px solid var(--separatorColor);
-}
-.CoreDataframeRow__options--shadow {
-	box-shadow: var(--wdsShadowMenu);
-}
-.CoreDataframeRow__options__wrapper {
-	height: 100%;
-	width: 100%;
+
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
+.CoreDataframeRow__options--shadow {
+	box-shadow: var(--wdsShadowMenu);
+}
 
-.CoreDataframeRow:hover .CoreDataframeRow__options__wrapper,
-.CoreDataframeRow:focus-within .CoreDataframeRow__options__wrapper {
+.CoreDataframeRow:hover .CoreDataframeRow__options,
+.CoreDataframeRow:focus-within .CoreDataframeRow__options {
 	background-color: var(--wdsColorGray1);
 	border-top-right-radius: 56px;
 	border-bottom-right-radius: 56px;

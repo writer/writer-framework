@@ -83,6 +83,7 @@ export default {
 			"wf-webcam": {
 				desc: "Sent when a frame is captured. Its payload contains the captured frame in PNG format.",
 				stub: ssWebcamHandlerStub.trim(),
+				eventPayloadExample: "data:image/png;base64,azerty",
 			},
 		},
 	},

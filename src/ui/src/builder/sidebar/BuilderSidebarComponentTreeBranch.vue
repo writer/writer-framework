@@ -68,6 +68,7 @@ import { useComponentActions } from "../useComponentActions";
 
 import TreeBranch from "../BuilderTree.vue";
 import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
+import { useComponentDescription } from "../useComponentDescription";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -113,36 +114,7 @@ const children = computed(() => {
 	return wf.getComponents(props.componentId, { sortedByPosition: true });
 });
 
-const previewText = computed(() => {
-	const key = def.value?.previewField;
-	if (!key) return;
-	const text = component.value.content?.[key];
-
-	let shortenedText: string;
-	const MAX_PREVIEW_TEXT_LENGTH = 70;
-	if (text?.length > MAX_PREVIEW_TEXT_LENGTH) {
-		shortenedText = text.substring(0, MAX_PREVIEW_TEXT_LENGTH) + "...";
-	} else {
-		shortenedText = text;
-	}
-
-	return shortenedText;
-});
-
-const def = computed(() => {
-	return wf.getComponentDefinition(component.value.type);
-});
-
-const name = computed(() => {
-	const type = component.value.type;
-	if (type == "html" && component.value.content?.["element"]) {
-		return component.value.content?.["element"];
-	}
-	if (type == "workflows_workflow") {
-		return component.value.content?.["key"] || "Blueprint";
-	}
-	return def.value?.name ?? `Unknown (${component.value.type})`;
-});
+const { name, previewText } = useComponentDescription(wf, component);
 
 async function select(ev: MouseEvent | KeyboardEvent) {
 	goToComponentParentPage(props.componentId);

@@ -50,7 +50,7 @@ class WorkflowRunner:
                 continue
             if trigger.content.get("refEventType") != ref_event_type:
                 continue
-            self.run_branch(trigger.id, "trigger", execution_environment, "UI trigger execution")
+            self.run_branch(trigger.id, None, execution_environment, "UI trigger execution")
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.session.session_component_tree.components.values()
@@ -103,7 +103,7 @@ class WorkflowRunner:
     def run_branch(
         self,
         start_node_id: str,
-        branch_out_id: str,
+        branch_out_id: Optional[str],
         execution_environment: Dict,
         title: str = "Branch execution",
     ):
