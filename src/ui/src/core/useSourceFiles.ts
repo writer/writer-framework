@@ -22,6 +22,8 @@ export function useSourceFiles(wf: Core) {
 	watch(wf.sourceFiles, (currentSourceFiles, previousSourceFiles) => {
 		let wasUpdated = false;
 		let tree = structuredClone(toRaw(sourceFileDraft.value));
+		const pathsUnsavedStr =
+			getDifferentPaths(previousSourceFiles).map(pathToStr);
 
 		for (const path of getSourceFilesPathsToFiles(currentSourceFiles)) {
 			const prev = findSourceFileFromPath(path, previousSourceFiles);
@@ -41,10 +43,14 @@ export function useSourceFiles(wf: Core) {
 			}
 
 			if (!isSourceFilesFile(prev)) continue;
-			const wasLoaded = !prev.complete && cur.complete;
-			if (!wasLoaded) continue;
 
-			//  change because an element is loaded, we update the draft
+			const wasLoaded = !prev.complete && cur.complete;
+			const hasBeenChanged = prev.complete && cur.complete;
+			if (!wasLoaded && !hasBeenChanged) continue;
+
+			const pathStr = pathToStr(path);
+			if (pathsUnsavedStr.includes(pathStr)) continue;
+
 			const draft = findSourceFileFromPath(path, tree);
 			if (!isSourceFilesFile(draft)) continue;
 
@@ -66,26 +72,34 @@ export function useSourceFiles(wf: Core) {
 		if (wasUpdated) sourceFileDraft.value = tree;
 	});
 
+	function pathToStr(path: string[]) {
+		return path.join("/");
+	}
+
 	const filepathOpen = shallowRef<string[] | undefined>();
 
 	const sourceFilesDraftPaths = computed(() =>
 		Array.from(getSourceFilesPathsToFiles(sourceFileDraft.value)),
 	);
 
-	const pathsUnsaved = computed(() => {
+	const pathsUnsaved = computed(() =>
+		getDifferentPaths(wf.sourceFiles.value),
+	);
+
+	function getDifferentPaths(sourceFiles: SourceFiles) {
 		return sourceFilesDraftPaths.value.filter((path) => {
 			const draft = findSourceFileFromPath(path, sourceFileDraft.value);
 			if (isSourceFilesBinary(draft)) return false;
 			if (!isSourceFilesFile(draft)) return true;
 
-			const file = findSourceFileFromPath(path, wf.sourceFiles.value);
+			const file = findSourceFileFromPath(path, sourceFiles);
 			if (!isSourceFilesFile(file)) return true;
 
 			if (!draft.complete || !file.complete) return false;
 
 			return draft.content !== file.content;
 		});
-	});
+	}
 
 	const fileOpen = computed<SourceFiles | undefined>(() => {
 		if (filepathOpen.value === undefined) return undefined;

@@ -59,7 +59,7 @@ const props = defineProps({
 	hideIcons: { type: Boolean, required: false },
 	dropdownPlacement: {
 		type: String as PropType<Placement>,
-		required: true,
+		required: false,
 		default: "bottom-end",
 	},
 	floatingMiddleware: {

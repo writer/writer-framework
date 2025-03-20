@@ -96,6 +96,60 @@ describe(useSourceFiles.name, () => {
 		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
 	});
 
+	it("should update a file to the draft", async () => {
+		const { core, sourceFiles } = buildMockCore();
+		sourceFiles.value = {
+			type: "directory",
+			children: {
+				"a.txt": { type: "file", content: "init", complete: true },
+				"b.txt": { type: "file", content: "init", complete: true },
+			},
+		};
+
+		const { sourceFileDraft, openFile, code, pathsUnsaved } =
+			useSourceFiles(core);
+		expect(pathsUnsaved.value).toHaveLength(0);
+		expect(sourceFileDraft.value).toStrictEqual(sourceFiles.value);
+
+		// open a file and start editing
+		openFile(["b.txt"]);
+		code.value = "unsaved changes";
+		expect(sourceFileDraft.value).toStrictEqual({
+			type: "directory",
+			children: {
+				"a.txt": { type: "file", content: "init", complete: true },
+				"b.txt": {
+					type: "file",
+					content: "unsaved changes",
+					complete: true,
+				},
+			},
+		});
+		expect(pathsUnsaved.value).toHaveLength(1);
+
+		// simulate loading new file
+		sourceFiles.value = {
+			type: "directory",
+			children: {
+				"a.txt": { type: "file", content: "after", complete: true },
+				"b.txt": { type: "file", content: "init", complete: true },
+			},
+		};
+
+		await flushPromises();
+		expect(sourceFileDraft.value).toStrictEqual({
+			type: "directory",
+			children: {
+				"a.txt": { type: "file", content: "after", complete: true },
+				"b.txt": {
+					type: "file",
+					content: "unsaved changes",
+					complete: true,
+				},
+			},
+		});
+	});
+
 	it("should remove a file to the draft", async () => {
 		const { core, sourceFiles } = buildMockCore();
 		sourceFiles.value = {
