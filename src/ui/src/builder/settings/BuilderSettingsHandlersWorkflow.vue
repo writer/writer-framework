@@ -188,7 +188,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 						variant="neutral"
 						size="smallIcon"
 						custom-size="18px"
-						aria-label="Unlink Orchestration"
+						aria-label="Unlink blueprint"
 						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
 						:disabled="isRunning"
 						@click="deleteLinkedWorkflow(trigger)"
@@ -203,7 +203,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 						variant="primary"
 						:disabled="isRunning"
 						left-icon="add"
-						text="Create linked blueprint"
+						text="Create blueprint"
 						@click="createLinkedWorkflow"
 					/>
 				</div>

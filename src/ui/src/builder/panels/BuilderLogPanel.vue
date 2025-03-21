@@ -109,7 +109,7 @@ const logEntries = computed(() => {
 }
 
 .entry:not(:first-of-type) {
-	margin-top: 10px;
+	margin-top: 12px;
 }
 
 .entry.error {

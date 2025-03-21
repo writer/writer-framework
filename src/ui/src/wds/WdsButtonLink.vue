@@ -5,17 +5,11 @@
 		:class="className"
 		role="button"
 	>
-		<i
-			v-if="leftIcon"
-			class="WdsButtonLink__icon WdsButtonLink__icon--left material-symbols-outlined"
-			>{{ leftIcon }}</i
-		>
+		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
 		<span class="WdsButtonLink__text">{{ text }}</span>
-		<i
-			v-if="rightIcon"
-			class="WdsButtonLink__icon WdsButtonLink__icon--right material-symbols-outlined"
-			>{{ rightIcon }}</i
-		>
+		<i v-if="rightIcon" class="material-symbols-outlined">{{
+			rightIcon
+		}}</i>
 	</button>
 </template>
 
@@ -68,10 +62,6 @@ const className = computed(() => [
 	white-space: nowrap;
 	overflow: hidden;
 	display: block;
-}
-
-.WdsButtonLink__icon {
-	vertical-align: middle; /* Align the icon vertically in the middle */
 }
 
 .WdsButtonLink:hover .WdsButtonLink__text {
