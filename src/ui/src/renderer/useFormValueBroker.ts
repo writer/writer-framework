@@ -27,6 +27,12 @@ export function useFormValueBroker<T = any>(
 	const component = computed(() => wf.getComponentById(componentId));
 	const { evaluateExpression } = useEvaluator(wf);
 
+	function initializeFormValueBroker() {
+		const bindingEventType = component.value.binding?.eventType;
+		if (!bindingEventType) return;
+		handleInput(defaultValue, bindingEventType);
+	}
+
 	function getBindingValue() {
 		const component = wf.getComponentById(componentId);
 		if (component?.binding?.stateRef) {
@@ -127,5 +133,6 @@ export function useFormValueBroker<T = any>(
 	return {
 		formValue,
 		handleInput,
+		initializeFormValueBroker
 	};
 }
