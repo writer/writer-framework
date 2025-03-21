@@ -2,7 +2,7 @@
 	<div v-if="shoudBeDisplayed" class="BuilderSettingsHandlers">
 		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">linked_services</i>
-			<h3>Workflow</h3>
+			<h3>Blueprints</h3>
 		</div>
 		<div class="BuilderSettingsHandlers__list">
 			<div

@@ -203,7 +203,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 						variant="primary"
 						:disabled="isRunning"
 						left-icon="add"
-						text="Connect new workflow"
+						text="Create linked blueprint"
 						@click="createLinkedWorkflow"
 					/>
 				</div>
