@@ -201,6 +201,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
 					<WdsButtonLink
 						variant="primary"
+						weight="semibold"
 						:disabled="isRunning"
 						left-icon="add"
 						text="Create blueprint"

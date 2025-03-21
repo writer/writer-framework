@@ -74,4 +74,11 @@ const className = computed(() => [
 .WdsButtonLink--variant-secondary {
 	color: var(--wdsColorBlack);
 }
+
+.WdsButtonLink--weight-default {
+	font-weight: 400;
+}
+.WdsButtonLink--weight-semibold {
+	font-weight: 500;
+}
 </style>
