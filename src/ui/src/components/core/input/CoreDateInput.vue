@@ -59,7 +59,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
@@ -68,11 +68,12 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootInstance);
+
+onMounted(() => {
+	initializeFormValueBroker();
+});
 </script>
 
 <style scoped>

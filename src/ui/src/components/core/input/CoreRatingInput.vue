@@ -126,7 +126,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { Ref, computed, inject, ref, useTemplateRef } from "vue";
+import { Ref, computed, inject, onMounted, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
@@ -137,11 +137,8 @@ const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const provisionalValue: Ref<number> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootInstance);
 
 function getRawRatingFromEvent(event: MouseEvent) {
 	const evX = event.offsetX;
@@ -242,6 +239,10 @@ const feedbackRating = computed(() => {
 	const formN = parseFloat(formValue.value);
 	if (isNaN(formN)) return null;
 	return formN;
+});
+
+onMounted(() => {
+	initializeFormValueBroker();
 });
 </script>
 

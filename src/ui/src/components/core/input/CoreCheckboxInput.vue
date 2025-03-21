@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { ComponentPublicInstance, inject } from "vue";
+import { ComponentPublicInstance, inject, onMounted } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
@@ -115,11 +115,8 @@ const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootInstance);
 
 function getCheckedKeys() {
 	if (!rootInstance.value) return;
@@ -133,6 +130,10 @@ function getCheckedKeys() {
 		.filter((el) => typeof el != "undefined");
 	return checkedValues;
 }
+
+onMounted(() => {
+	initializeFormValueBroker();
+});
 </script>
 
 <style scoped>

@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { inject } from "vue";
+import { inject, onMounted } from "vue";
 import { ref } from "vue";
 import { FieldType } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
@@ -86,11 +86,12 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootInstance);
+
+onMounted(() => {
+	initializeFormValueBroker();
+});
 </script>
 
 <style scoped>

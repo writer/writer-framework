@@ -91,7 +91,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 import BaseInputSliderRange from "../base/BaseInputSliderRange.vue";
@@ -101,12 +101,17 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput } = useFormValueBroker<[number, number]>(
-	wf,
-	instancePath,
-	rootInstance,
-	[20, 50],
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker<[number, number]>(
+		wf,
+		instancePath,
+		rootInstance,
+		[20, 50],
+	);
+
+onMounted(() => {
+	initializeFormValueBroker();
+});
 </script>
 
 <style scoped>

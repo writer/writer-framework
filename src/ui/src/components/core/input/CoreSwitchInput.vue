@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { inject } from "vue";
+import { inject, onMounted } from "vue";
 import { ref } from "vue";
 import { FieldType } from "@/writerTypes";
 import {
@@ -76,15 +76,16 @@ const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
+const { formValue, handleInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootInstance);
 
 function handleToggle() {
 	handleInput(!formValue.value, "wf-toggle");
 }
+
+onMounted(() => {
+	initializeFormValueBroker();
+});
 </script>
 
 <style scoped>

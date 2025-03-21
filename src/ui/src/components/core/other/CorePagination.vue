@@ -194,11 +194,8 @@ const { handleInput: handlePageInput } = useFormValueBroker(
 	instancePath,
 	rootEl,
 );
-const { handleInput: handlePageSizeInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootEl,
-);
+const { handleInput: handlePageSizeInput, initializeFormValueBroker } =
+	useFormValueBroker(wf, instancePath, rootEl);
 const pagesizeEnabled = computed(
 	() => fields.pageSizeOptions.value !== "" || fields.pageSizeShowAll.value,
 );
@@ -379,6 +376,7 @@ onMounted(() => {
 	// 		jumpTo(parseInt(page));
 	// 	}
 	// }
+	initializeFormValueBroker();
 });
 
 onUnmounted(() => {
