@@ -1,14 +1,29 @@
 <template>
 	<div
-		class="BuilderFieldsWriterApplicationId"
+		class="BuilderFieldsWriterResourceId"
 		:data-automation-key="props.fieldKey"
 	>
-		<component :is="selector" v-model="selected" />
+		<component :is="selector" ref="selectorEl" v-model="selected" />
+		<a
+			v-if="ressourceUrl"
+			class="BuilderFieldsWriterResourceId__link"
+			:href="ressourceUrl"
+			target="_blank"
+			:data-writer-tooltip="linkTooltip"
+			><i class="material-symbols-outlined"> open_in_new </i></a
+		>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, PropType, defineAsyncComponent } from "vue";
+import {
+	toRefs,
+	inject,
+	computed,
+	PropType,
+	defineAsyncComponent,
+	useTemplateRef,
+} from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 
@@ -35,11 +50,42 @@ const props = defineProps({
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
+const selectorEl = useTemplateRef("selectorEl");
+
 const selector = computed(() =>
 	props.resourceType === "graph"
 		? BuilderGraphSelect
 		: BuilderApplicationSelect,
 );
+
+const linkTooltip = computed(() => {
+	switch (props.resourceType) {
+		case "graph":
+			return "Edit knowledge graph";
+		case "application":
+			return "Edit agent";
+		default:
+			return undefined;
+	}
+});
+
+const ressourceUrl = computed(() => {
+	if (!selected.value) return;
+
+	const orgId = selectorEl.value?.selectedData?.organization_id;
+	if (!orgId) return;
+
+	switch (props.resourceType) {
+		case "graph": {
+			const params = new URLSearchParams({ graphId: selected.value });
+			return `https://app.writer.com/aistudio/organization/${orgId}/knowledge-graph?${params}`;
+		}
+		case "application":
+			return `https://app.writer.com/aistudio/organization/${orgId}/app/${selected.value}`;
+		default:
+			return undefined;
+	}
+});
 
 const selected = computed<string>({
 	get: () => component.value.content[props.fieldKey] ?? "",
@@ -48,3 +94,21 @@ const selected = computed<string>({
 	},
 });
 </script>
+
+<style scoped>
+@import "../sharedStyles.css";
+
+.BuilderFieldsWriterResourceId {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 12px;
+}
+
+.BuilderFieldsWriterResourceId__link {
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	font-size: 18px;
+}
+</style>

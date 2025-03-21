@@ -72,6 +72,16 @@ const currentValueStr = computed<string>({
 		currentValue.value = value.split(",");
 	},
 });
+
+const selectedData = computed(() => {
+	if (currentValue.value === undefined) return undefined;
+
+	return typeof currentValue.value === "string"
+		? graphs.value.find((g) => g.id === currentValue.value)
+		: graphs.value.filter((g) => currentValue.value.includes(g.id));
+});
+
+defineExpose({ selectedData });
 </script>
 
 <template>
