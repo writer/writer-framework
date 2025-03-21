@@ -5,7 +5,14 @@
 			:key="itemId"
 			:is-last="itemId + 1 === enrichedExecutionLog.summary.length"
 		>
-			<div class="itemWrapper">
+			<div
+				class="itemWrapper"
+				:class="{
+					'itemWrapper--first': itemId === 0,
+					'itemWrapper--last':
+						itemId + 1 === enrichedExecutionLog.summary.length,
+				}"
+			>
 				<div
 					class="item"
 					:class="{
@@ -187,8 +194,14 @@ function formatExecutionTime(timeInSeconds: number): string {
 }
 
 .itemWrapper {
-	padding-top: 10px;
-	padding-bottom: 10px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+}
+.itemWrapper--first {
+	margin-top: 12px;
+}
+.itemWrapper--last {
+	margin-bottom: unset;
 }
 
 .item {

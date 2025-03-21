@@ -10,6 +10,7 @@ import { useWorkflowsRun } from "@/composables/useWorkflowRun";
 import { WdsColor } from "@/wds/tokens";
 import BuilderWorkflowState from "../BuilderWorkflowState.vue";
 import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
+import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -174,21 +175,20 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 				"
 			>
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
-					<button
-						role="button"
-						class="BuilderSettingsHandlersWorkflow__list__item__btn"
+					<WdsButtonLink
+						variant="secondary"
+						:disabled="isRunning"
+						:text="getTriggerName(trigger)"
 						:data-writer-tooltip="getTriggerName(trigger)"
 						data-writer-tooltip-strategy="overflow"
 						@click="jumpToWorkflow(trigger.parentId, trigger.id)"
-					>
-						{{ getTriggerName(trigger) }}
-					</button>
+					/>
 					<BuilderWorkflowState :workflow-id="trigger.parentId" />
 					<WdsButton
 						variant="neutral"
 						size="smallIcon"
 						custom-size="18px"
-						aria-label="Unlink Orchestration"
+						aria-label="Unlink blueprint"
 						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
 						:disabled="isRunning"
 						@click="deleteLinkedWorkflow(trigger)"
@@ -199,15 +199,14 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 			</BuilderListItem>
 			<BuilderListItem is-last :color="WdsColor.Blue2">
 				<div class="BuilderSettingsHandlersWorkflow__list__item">
-					<button
-						role="button"
-						class="BuilderSettingsHandlersWorkflow__list__item__btn BuilderSettingsHandlersWorkflow__list__item__btn--primary"
+					<WdsButtonLink
+						variant="primary"
+						weight="semibold"
 						:disabled="isRunning"
+						left-icon="add"
+						text="Create blueprint"
 						@click="createLinkedWorkflow"
-					>
-						<i class="material-symbols-outlined">add</i>
-						Connect new workflow
-					</button>
+					/>
 				</div>
 			</BuilderListItem>
 		</div>
@@ -242,27 +241,5 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 	grid-template-columns: minmax(0, 1fr) auto auto;
 	justify-content: space-between;
 	gap: 4px;
-}
-
-.BuilderSettingsHandlersWorkflow__list__item__btn {
-	background-color: transparent;
-	border: none;
-	padding: 0;
-	cursor: pointer;
-
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	text-align: left;
-}
-.BuilderSettingsHandlersWorkflow__list__item__btn:hover {
-	text-decoration: underline;
-}
-.BuilderSettingsHandlersWorkflow__list__item__btn--primary {
-	color: var(--wdsColorBlue5);
-	font-weight: 500;
-}
-.BuilderSettingsHandlersWorkflow__list__item__btn--primary:hover {
-	text-decoration: unset;
 }
 </style>

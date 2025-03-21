@@ -1,8 +1,8 @@
 <template>
-	<div v-if="wfbm.isSingleSelectionActive" class="BuilderSettingsHandlers">
+	<div v-if="shoudBeDisplayed" class="BuilderSettingsHandlers">
 		<div class="BuilderSettingsHandlers__title">
 			<i class="material-symbols-outlined">linked_services</i>
-			<h3>Workflow</h3>
+			<h3>Blueprints</h3>
 		</div>
 		<div class="BuilderSettingsHandlers__list">
 			<div
@@ -47,6 +47,11 @@ const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 
 		return recEvents;
 	});
+
+const shoudBeDisplayed = computed(() => {
+	if (!wfbm.isSingleSelectionActive.value) return false;
+	return Object.keys(recognisedEvents.value).length > 0;
+});
 </script>
 
 <style scoped>
