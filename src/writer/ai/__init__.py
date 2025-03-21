@@ -1776,7 +1776,7 @@ class Conversation:
                                     value,
                                     target_type
                                     )
-                        elif param_info.get("required") == True:
+                        elif param_info.get("required") is True:
                             raise ValueError(
                                 f"Missing required parameter: {param_name}"
                                 )
