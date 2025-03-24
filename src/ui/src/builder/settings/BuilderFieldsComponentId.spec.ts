@@ -33,9 +33,6 @@ describe("BuilderFieldsComponentId", () => {
 				fieldKey,
 			},
 			global: {
-				stubs: {
-					BaseSelect: true,
-				},
 				provide: {
 					...mockProvides,
 					[injectionKeys.builderManager as symbol]: wfbm,
