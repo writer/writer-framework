@@ -6,7 +6,8 @@
 	"scripts": {
 		"preview": "mintlify dev",
 		"test": "jest",
-		"codegen": "node codegen/generator_components_pages.mjs"
+		"codegen": "node codegen/generator_components_pages.mjs",
+	  	"codegen.blueprints": "poetry run python3 codegen/generator_blueprints_pages.py"
 	},
 	"dependencies": {
 		"mintlify": "^4.0.160",

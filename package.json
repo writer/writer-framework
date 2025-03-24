@@ -7,24 +7,23 @@
 		"tests/e2e",
 		"docs"
 	],
-  "engines": {
-    "node": "22.x.x",
-    "npm": "10.x.x"
-  },
+	"engines": {
+		"node": "22.x.x",
+		"npm": "10.x.x"
+	},
 	"scripts": {
-		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen",
+		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen && npm run docs:codegen && npm run ui:codegen.blueprints && npm run docs:codegen.blueprints",
 		"test": "npm run --if-present -ws test",
 		"lint": "npm run --if-present -ws lint",
 		"dev": "npm run -w writer-ui dev",
 		"storybook": "npm run -w writer-ui storybook",
 		"storybook.build": "npm run -w writer-ui storybook.build",
 		"custom.dev": "npm run -w writer-ui custom.dev",
-
 		"cli:test": "pytest tests -o log_cli=true ",
 		"cli:lint": "mypy ./src/writer --exclude app_templates/* && ruff check",
 		"cli:build": "npm run ui:codegen",
-
-	  	"ui:codegen": "npm run -w writer-ui codegen",
+		"ui:codegen": "npm run -w writer-ui codegen",
+	  	"ui:codegen.blueprints": "npm run -w writer-ui codegen.blueprints",
 		"ui:dev": "npm run -w writer-ui dev",
 		"ui:build": "npm run -w writer-ui build",
 		"ui:preview": "npm run -w writer-ui preview",
@@ -32,11 +31,10 @@
 		"ui:custom.check": "npm run -w writer-ui custom.check",
 		"ui:lint": "npm run -w writer-ui lint",
 		"ui:lint.ci": "npm run -w writer-ui lint.ci",
-
 		"docs:codegen": "npm run -w writer-docs codegen",
+	  	"docs:codegen.blueprints": "npm run -w writer-docs codegen.blueprints",
 		"docs:preview": "npm run -w writer-docs preview",
 		"docs:test": "npm run -w writer-docs test",
-
 		"e2e": "npm run -w writer-e2e e2e",
 		"e2e:setup": "npm run -w writer-e2e e2e:setup",
 		"e2e:ui": "npm run -w writer-e2e e2e:ui",
@@ -44,8 +42,7 @@
 		"e2e:firefox": "npm run -w writer-e2e e2e:firefox",
 		"e2e:chromium": "npm run -w writer-e2e e2e:chromium",
 		"e2e:webkit": "npm run -w writer-e2e e2e:webkit",
-
 		"apps:build": "cp -R ./apps/hello ./src/writer/app_templates/ && cp -R ./apps/default ./src/writer/app_templates/",
-	  	"codegen": "npm run ui:codegen && npm run docs:codegen"
+		"codegen": "npm run ui:codegen && npm run docs:codegen && npm run ui:codegen.blueprints && npm run docs:codegen.blueprints"
 	}
 }

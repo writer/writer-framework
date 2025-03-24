@@ -9,6 +9,7 @@
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"lint.ci": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"codegen": "node tools/generator.mjs",
+	  	"codegen.blueprints": "poetry run python3 tools/generator_blueprints_json.py",
 		"custom.dev": "vite --config vite.config.custom.ts",
 		"custom.build": "vite build --config vite.config.custom.ts",
 		"custom.check": "node tools/custom_check.mjs",

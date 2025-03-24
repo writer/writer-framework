@@ -20,6 +20,7 @@ src/writer/app_templates/*
 src/writer/ui.py
 src/ui/src/stories/**
 src/ui/components.codegen.json
+src/ui/blueprints.codegen.json
 playground/
 *.mp4
 .turbo
