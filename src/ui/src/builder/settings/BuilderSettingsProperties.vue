@@ -30,7 +30,7 @@
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
-					:is-expansible="fieldValue.type == FieldType.Code"
+					:is-expansible="isExpansible(fieldValue)"
 					@expand="handleExpand(fieldKey)"
 					@shrink="handleShrink(fieldKey)"
 				>
@@ -179,7 +179,13 @@
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
-import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
+import {
+	FieldCategory,
+	FieldControl,
+	FieldType,
+	InstancePath,
+	WriterComponentDefinitionField,
+} from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsColor from "./BuilderFieldsColor.vue";
 import BuilderFieldsKeyValue from "./BuilderFieldsKeyValue.vue";
@@ -218,6 +224,14 @@ const componentDefinition = computed(() => {
 const fields = computed(() => {
 	return componentDefinition.value?.fields;
 });
+
+function isExpansible(field: WriterComponentDefinitionField) {
+	return (
+		field.type === FieldType.Code ||
+		field.type === FieldType.Object ||
+		field.control === FieldControl.Textarea
+	);
+}
 
 const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
 
