@@ -23,13 +23,7 @@ function onChange(event: InputEvent) {
 </script>
 
 <template>
-	<label
-		:for="id"
-		class="WdsCheckbox"
-		:class="classes"
-		@mousedown.prevent
-		@click.prevent="checked = !checked"
-	>
+	<label :for="id" class="WdsCheckbox" :class="classes" @mousedown.prevent>
 		<div class="WdsCheckbox__checkbox">
 			<i class="WdsCheckbox__checkbox__check material-symbols-outlined"
 				>check</i
@@ -57,6 +51,10 @@ function onChange(event: InputEvent) {
 	row-gap: 2px;
 	cursor: pointer;
 }
+.WdsCheckbox--disabled {
+	opacity: 40%;
+	cursor: not-allowed;
+}
 .WdsCheckbox__checkbox {
 	border: 1px solid var(--wdsColorGray4);
 	width: 18px;
@@ -75,7 +73,8 @@ function onChange(event: InputEvent) {
 	display: none;
 }
 
-.WdsCheckbox:hover:not(.WdsCheckbox--checked) .WdsCheckbox__checkbox__check {
+.WdsCheckbox:hover:not(.WdsCheckbox--checked):not(.WdsCheckbox--disabled)
+	.WdsCheckbox__checkbox__check {
 	display: block;
 	color: var(--wdsColorGray4);
 }

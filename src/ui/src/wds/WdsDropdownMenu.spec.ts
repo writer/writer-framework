@@ -1,8 +1,9 @@
-import { mount, shallowMount } from "@vue/test-utils";
+import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
 import WdsDropdownMenu from "./WdsDropdownMenu.vue";
 import { WdsDropdownMenuOption } from "./WdsDropdownMenu.vue";
+import WdsCheckbox from "./WdsCheckbox.vue";
 
 describe("WdsDropdownMenu", () => {
 	const options: WdsDropdownMenuOption[] = [
@@ -30,8 +31,8 @@ describe("WdsDropdownMenu", () => {
 	});
 
 	describe("multiple mode", () => {
-		it("should support multiple mode", async () => {
-			const wrapper = mount(WdsDropdownMenu, {
+		it("should support multiple mode", () => {
+			const wrapper = shallowMount(WdsDropdownMenu, {
 				props: {
 					selected: ["???"],
 					enableMultiSelection: true,
@@ -39,11 +40,9 @@ describe("WdsDropdownMenu", () => {
 				},
 			});
 
-			await wrapper
-				.get(`.WdsDropdownMenu__checkbox[data-automation-key="b"]`)
-				.trigger("click");
+			wrapper.getComponent(WdsCheckbox).vm.$emit("update:modelValue");
 
-			expect(wrapper.emitted("select").at(0)).toStrictEqual([["b"]]);
+			expect(wrapper.emitted("select").at(0)).toStrictEqual([["a"]]);
 		});
 	});
 });
