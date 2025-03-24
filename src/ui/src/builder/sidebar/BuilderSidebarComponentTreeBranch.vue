@@ -128,21 +128,16 @@ function expand() {
 	treeBranch.value.expand();
 	collapsed.value = false;
 	emit("expandBranch");
-	scrollToShow({ onlyHorizontal: true });
 }
 
-function scrollToShow(opts?: { onlyHorizontal?: boolean }) {
+function scrollToShow() {
 	const treeBranchEl = treeBranch.value?.$el as HTMLDivElement;
 	if (!treeBranchEl) return;
 	const treeEl = treeBranchEl.closest(".BuilderSidebarComponentTree");
 	const treeBCR = treeEl.getBoundingClientRect();
 	const top = treeBranch.value.$el.offsetTop - treeBCR.height / 2;
 	const left = treeBranch.value.$el.offsetLeft - treeBCR.left - 16;
-	treeEl.scrollTo({
-		top: opts?.onlyHorizontal ? undefined : top,
-		left: Math.max(0, left),
-		behavior: "smooth",
-	});
+	treeEl.scrollTo({ top, left: Math.max(0, left), behavior: "smooth" });
 }
 
 function handleDragStart(ev: DragEvent) {
