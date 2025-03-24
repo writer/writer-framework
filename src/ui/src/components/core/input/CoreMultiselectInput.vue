@@ -4,20 +4,18 @@
 		:label="fields.label.value"
 		class="CoreMultiselectInput"
 	>
-		<BaseSelect
-			:base-id="flattenedInstancePath"
-			:active-value="formValue"
+		<BuilderSelect
+			v-model="model"
 			:options="options"
-			:maximum-count="maximumCount"
-			mode="multiple"
 			:placeholder="fields.placeholder.value"
-			@change="handleChange"
-		></BaseSelect>
+			enable-multi-selection
+			hide-icons
+		/>
 	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { computed, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
@@ -80,6 +78,7 @@ export default {
 				...accentColor,
 				desc: "The colour of the chips created for each selected option.",
 			},
+			// TODO: use it
 			chipTextColor: {
 				name: "Chip text",
 				type: FieldType.Color,
@@ -109,15 +108,12 @@ export default {
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import BaseSelect from "../base/BaseSelect.vue";
+import BuilderSelect, { Option } from "@/builder/BuilderSelect.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const options = computed(() => fields.options.value);
-const maximumCount: Ref<number> = computed(() => fields.maximumCount.value);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
 	wf,
@@ -125,9 +121,27 @@ const { formValue, handleInput } = useFormValueBroker(
 	rootInstance,
 );
 
-function handleChange(selectedOptions: string[]) {
-	handleInput(selectedOptions, "wf-options-change");
-}
+const hasReachSelectionLimit = computed(() => {
+	if (!fields.maximumCount.value) return false;
+	return model.value.length >= fields.maximumCount.value;
+});
+
+const options = computed(() => {
+	return Object.entries(fields.options.value).map<Option>(([key, value]) => ({
+		value: key,
+		label: String(value),
+		disabled: hasReachSelectionLimit.value && !model.value.includes(key),
+	}));
+});
+
+const model = computed<string[]>({
+	get() {
+		return formValue.value ?? [];
+	},
+	set(value) {
+		handleInput(value, "wf-options-change");
+	},
+});
 </script>
 
 <style scoped>

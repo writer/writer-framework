@@ -30,6 +30,12 @@
 					closable
 					@close="handleRemoveValue(option.value)"
 				/>
+				<p
+					v-if="selectedOptions.length === 0 && placeholder"
+					class="BuilderSelect__trigger__multiSelectLabel__placeholder"
+				>
+					{{ placeholder }}
+				</p>
 			</div>
 			<div
 				v-else
@@ -37,7 +43,7 @@
 				data-writer-tooltip-strategy="overflow"
 				:data-writer-tooltip="currentLabel"
 			>
-				{{ currentLabel }}
+				{{ currentLabel ?? placeholder }}
 			</div>
 			<div class="BuilderSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
@@ -90,6 +96,7 @@ const props = defineProps({
 		>,
 		default: () => [],
 	},
+	placeholder: { type: String, required: false, default: undefined },
 	defaultIcon: { type: String, required: false, default: undefined },
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
@@ -213,7 +220,7 @@ function handleRemoveValue(value: string) {
 	font-size: 0.875rem;
 
 	color: var(--primaryTextColor);
-	background: transparent;
+	background: var(--wdsColorWhite);
 
 	cursor: pointer;
 }
@@ -246,5 +253,8 @@ function handleRemoveValue(value: string) {
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	gap: 8px;
+}
+.BuilderSelect__trigger__multiSelectLabel__placeholder {
+	color: var(--wdsColorGray5);
 }
 </style>
