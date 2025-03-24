@@ -43,17 +43,13 @@ from writerai.types.applications import (
     JobCreateResponse,
     JobRetryResponse,
 )
-from writerai.types.applications.application_graphs_response import (
-    ApplicationGraphsResponse
-    )
+from writerai.types.applications.application_graphs_response import ApplicationGraphsResponse
 from writerai.types.chat_chat_params import GraphData, ToolChoice
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_completion_message import ChatCompletionMessage
 from writerai.types.question import Question
 from writerai.types.question_response_chunk import QuestionResponseChunk
-from writerai.types.shared_params.tool_param import (
-    FunctionTool as SDKFunctionTool
-    )
+from writerai.types.shared_params.tool_param import FunctionTool as SDKFunctionTool
 from writerai.types.shared_params.tool_param import GraphTool as SDKGraphTool
 from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
 
