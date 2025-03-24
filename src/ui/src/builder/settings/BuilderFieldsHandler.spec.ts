@@ -25,9 +25,6 @@ describe("BuilderFieldsHandler", () => {
 				fieldKey,
 			},
 			global: {
-				stubs: {
-					BaseSelect: true,
-				},
 				provide: {
 					...mockProvides,
 					[injectionKeys.builderManager as symbol]: ssbm,
