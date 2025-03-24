@@ -83,13 +83,13 @@ from writerai._streaming import Stream
 from writerai.pagination import SyncCursorPage
 from writerai.types import (
     ApplicationGenerateContentResponse,
+    ApplicationRetrieveResponse,
     ChatCompletion,
     ChatCompletionChunk,
     Completion,
     CompletionChunk,
     ToolContextAwareSplittingResponse,
     ToolParsePdfResponse,
-    ApplicationRetrieveResponse
 )
 from writerai.types.applications import (
     ApplicationGenerateAsyncResponse,
@@ -1446,7 +1446,7 @@ def test_explicit_conversation_complete_llm_tool(emulate_app_process):
     assert any(
         keyword in response["content"].lower() for keyword in finance_keywords
         )
-    assert not response["llm_data"] is False
+    assert response["llm_data"] is not False
 
 
 @explicit
