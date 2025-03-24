@@ -201,23 +201,20 @@ const activeCanvasMove = shallowRef<{
 } | null>(null);
 
 function refreshArrows() {
-	const newArrows = [];
-	nodes.value
-		.filter((node) => node.outs?.length > 0)
-		.forEach((node) => {
-			const fromNodeId = node.id;
-			node.outs.forEach((out) => {
-				const arrow = calculateArrow(
-					fromNodeId,
-					out.outId,
-					undefined,
-					out.toNodeId,
-				);
-				if (!arrow) return;
-				newArrows.push(arrow);
-			});
-		});
-	arrows.value = newArrows;
+	arrows.value = nodes.value.reduce((acc, node) => {
+		if (!node.outs?.length) return acc;
+
+		for (const out of node.outs) {
+			const arrow = calculateArrow(
+				node.id,
+				out.outId,
+				undefined,
+				out.toNodeId,
+			);
+			if (arrow) acc.push(arrow);
+		}
+		return acc;
+	}, []);
 }
 
 const isUnselectable = computed(() => {
