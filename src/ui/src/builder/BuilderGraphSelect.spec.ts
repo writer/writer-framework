@@ -3,7 +3,7 @@ import BuilderGraphSelect from "./BuilderGraphSelect.vue";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { buildMockCore } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
-import BuilderSelect from "./BuilderSelect.vue";
+import WdsSelect from "@/wds/WdsSelect.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 describe("BuilderGraphSelect", () => {
@@ -26,7 +26,7 @@ describe("BuilderGraphSelect", () => {
 			props: { modelValue: "1" },
 			global: {
 				stubs: {
-					BuilderSelect: true,
+					WdsSelect: true,
 				},
 				provide: {
 					[injectionKeys.core as symbol]: core,
@@ -35,7 +35,7 @@ describe("BuilderGraphSelect", () => {
 		});
 		await flushPromises();
 		expect(sendListResourcesRequest).toHaveBeenCalledOnce();
-		expect(wrapper.findComponent(BuilderSelect).exists()).toBe(true);
+		expect(wrapper.findComponent(WdsSelect).exists()).toBe(true);
 	});
 
 	it("should fallback to input", async () => {
@@ -47,7 +47,7 @@ describe("BuilderGraphSelect", () => {
 			props: { modelValue: "1" },
 			global: {
 				stubs: {
-					BuilderSelect: true,
+					WdsSelect: true,
 				},
 				provide: {
 					[injectionKeys.core as symbol]: core,
@@ -56,7 +56,7 @@ describe("BuilderGraphSelect", () => {
 		});
 		await flushPromises();
 		expect(sendListResourcesRequest).toHaveBeenCalledOnce();
-		expect(wrapper.findComponent(BuilderSelect).exists()).toBe(false);
+		expect(wrapper.findComponent(WdsSelect).exists()).toBe(false);
 		expect(wrapper.findComponent(WdsTextInput).exists()).toBe(true);
 	});
 });
