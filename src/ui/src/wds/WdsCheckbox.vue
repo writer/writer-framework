@@ -50,6 +50,7 @@ function onChange(event: InputEvent) {
 	column-gap: 12px;
 	row-gap: 2px;
 	cursor: pointer;
+	text-align: center;
 }
 .WdsCheckbox--disabled {
 	opacity: 40%;

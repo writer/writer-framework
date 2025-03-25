@@ -22,7 +22,6 @@ import {
 	containerBackgroundColor,
 	cssClasses,
 	primaryTextColor,
-	secondaryTextColor,
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
@@ -72,7 +71,6 @@ export default {
 			},
 			accentColor,
 			primaryTextColor,
-			secondaryTextColor,
 			containerBackgroundColor,
 			separatorColor,
 			cssClasses,
@@ -129,5 +127,15 @@ const model = computed<string[]>({
 	max-width: 70ch;
 	width: 100%;
 	position: relative;
+}
+
+/* Override WDS components from component's styles */
+
+:deep(.WdsSelect__trigger) {
+	border-color: var(--separatorColor);
+	background-color: var(--containerBackgroundColor);
+}
+:deep(.WdsSelect__trigger):focus {
+	border: 1px solid var(--separatorColor);
 }
 </style>
