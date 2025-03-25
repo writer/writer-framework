@@ -315,6 +315,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	z-index: 2;
 }
 
 .WdsDropdownMenu__header__search {
