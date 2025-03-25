@@ -1,9 +1,12 @@
 <template>
 	<div ref="trigger" class="WdsSelect">
-		<button
+		<!-- use a `<div>` instead of button because Firefox has an issue with draggable `<button>` https://bugzilla.mozilla.org/show_bug.cgi?id=568313 -->
+		<div
 			class="WdsSelect__trigger"
 			role="button"
+			tabindex="0"
 			@click="isOpen = !isOpen"
+			@keydown.enter="isOpen = !isOpen"
 		>
 			<template
 				v-if="
@@ -48,7 +51,7 @@
 			<div class="WdsSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
-		</button>
+		</div>
 		<WdsDropdownMenu
 			v-if="isOpen"
 			ref="dropdown"
