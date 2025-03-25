@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderFieldsComponentId" :data-automation-key="props.fieldKey">
-		<BuilderSelect v-model="selected" :options="options" enable-search />
+		<WdsSelect v-model="selected" :options="options" enable-search />
 		<WdsButton
 			v-if="selected"
 			variant="neutral"
@@ -18,13 +18,11 @@
 import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
-import type { Option } from "../BuilderSelect.vue";
+import type { Option } from "@/wds/WdsSelect.vue";
 import { useComponentDescription } from "../useComponentDescription";
 import WdsButton from "@/wds/WdsButton.vue";
 
-const BuilderSelect = defineAsyncComponent(
-	() => import("../BuilderSelect.vue"),
-);
+const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

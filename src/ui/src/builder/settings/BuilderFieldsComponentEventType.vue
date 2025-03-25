@@ -3,7 +3,7 @@
 		class="BuilderFieldsComponentEventType"
 		:data-automation-key="props.fieldKey"
 	>
-		<BuilderSelect
+		<WdsSelect
 			v-if="options.length"
 			v-model="selected"
 			:options="options"
@@ -17,13 +17,11 @@
 import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
-import type { Option } from "../BuilderSelect.vue";
+import type { Option } from "@/wds/WdsSelect.vue";
 import { FieldType } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
-const BuilderSelect = defineAsyncComponent(
-	() => import("../BuilderSelect.vue"),
-);
+const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

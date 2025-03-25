@@ -84,7 +84,7 @@ test.describe("Workflows", () => {
 		await runWorkflowBlock.click();
 		await page
 			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)
-			.locator(".BuilderSelect__trigger")
+			.locator(".WdsSelect__trigger")
 			.click();
 		await page
 			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)

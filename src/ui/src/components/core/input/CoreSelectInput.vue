@@ -4,7 +4,7 @@
 		:label="fields.label.value"
 		class="CoreSelectInput"
 	>
-		<BuilderSelect
+		<WdsSelect
 			v-model="model"
 			:options="options"
 			:placeholder="fields.placeholder.value"
@@ -91,7 +91,7 @@ export default {
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import BuilderSelect, { Option } from "@/builder/BuilderSelect.vue";
+import WdsSelect, { Option } from "@/wds/WdsSelect.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
