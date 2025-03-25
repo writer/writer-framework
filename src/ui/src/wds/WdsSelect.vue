@@ -1,7 +1,7 @@
 <template>
-	<div ref="trigger" class="BuilderSelect">
+	<div ref="trigger" class="WdsSelect">
 		<button
-			class="BuilderSelect__trigger"
+			class="WdsSelect__trigger"
 			role="button"
 			@click="isOpen = !isOpen"
 		>
@@ -21,7 +21,7 @@
 			</template>
 			<div
 				v-if="enableMultiSelection"
-				class="BuilderSelect__trigger__multiSelectLabel"
+				class="WdsSelect__trigger__multiSelectLabel"
 			>
 				<WdsTag
 					v-for="option of selectedOptions"
@@ -32,20 +32,20 @@
 				/>
 				<p
 					v-if="selectedOptions.length === 0 && placeholder"
-					class="BuilderSelect__trigger__multiSelectLabel__placeholder"
+					class="WdsSelect__trigger__multiSelectLabel__placeholder"
 				>
 					{{ placeholder }}
 				</p>
 			</div>
 			<div
 				v-else
-				class="BuilderSelect__trigger__label"
+				class="WdsSelect__trigger__label"
 				data-writer-tooltip-strategy="overflow"
 				:data-writer-tooltip="currentLabel"
 			>
 				{{ currentLabel ?? placeholder }}
 			</div>
-			<div class="BuilderSelect__trigger__arrow">
+			<div class="WdsSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
 		</button>
@@ -197,14 +197,14 @@ function handleRemoveValue(value: string) {
 </script>
 
 <style scoped>
-.BuilderSelect {
+.WdsSelect {
 	position: relative;
 	user-select: none;
 	width: 100%;
 	font-size: 0.875rem;
 }
 
-.BuilderSelect__trigger {
+.WdsSelect__trigger {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -224,19 +224,19 @@ function handleRemoveValue(value: string) {
 
 	cursor: pointer;
 }
-.BuilderSelect__trigger:focus {
+.WdsSelect__trigger:focus {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 	outline: none;
 }
-.BuilderSelect__trigger__label {
+.WdsSelect__trigger__label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-grow: 1;
 	text-align: left;
 	white-space: nowrap;
 }
-.BuilderSelect__trigger__arrow {
+.WdsSelect__trigger__arrow {
 	border: none;
 	background-color: transparent;
 	display: flex;
@@ -246,7 +246,7 @@ function handleRemoveValue(value: string) {
 	cursor: pointer;
 }
 
-.BuilderSelect__trigger__multiSelectLabel {
+.WdsSelect__trigger__multiSelectLabel {
 	flex-grow: 1;
 
 	display: flex;
@@ -254,7 +254,7 @@ function handleRemoveValue(value: string) {
 	justify-content: flex-start;
 	gap: 8px;
 }
-.BuilderSelect__trigger__multiSelectLabel__placeholder {
+.WdsSelect__trigger__multiSelectLabel__placeholder {
 	color: var(--wdsColorGray5);
 }
 </style>

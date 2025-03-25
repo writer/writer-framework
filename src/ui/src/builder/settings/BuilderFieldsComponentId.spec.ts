@@ -4,7 +4,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { buildMockCore, buildMockComponent, mockProvides } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
 import { generateBuilderManager } from "../builderManager";
-import BuilderSelect from "../BuilderSelect.vue";
+import WdsSelect from "@/wds/WdsSelect.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import type { generateCore } from "@/core";
 
@@ -56,7 +56,7 @@ describe("BuilderFieldsComponentId", () => {
 
 		expect(wrapper.attributes("data-automation-key")).toBe(fieldKey);
 
-		const select = wrapper.getComponent(BuilderSelect);
+		const select = wrapper.getComponent(WdsSelect);
 
 		expect(select.props("modelValue")).toBe("");
 
@@ -77,7 +77,7 @@ describe("BuilderFieldsComponentId", () => {
 		const wrapper = buildWrapper(componentPage.id);
 		await flushPromises();
 
-		const select = wrapper.getComponent(BuilderSelect);
+		const select = wrapper.getComponent(WdsSelect);
 
 		select.vm.$emit("update:modelValue", componentButton.id);
 
