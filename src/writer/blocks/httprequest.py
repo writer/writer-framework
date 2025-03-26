@@ -1,4 +1,4 @@
-import re
+from typing import Any, Optional
 
 import requests
 
@@ -8,8 +8,6 @@ from writer.ss_types import AbstractTemplate
 
 
 class HTTPRequest(WorkflowBlock):
-    CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
-
     @classmethod
     def register(cls, type: str):
         super(HTTPRequest, cls).register(type)
@@ -61,6 +59,16 @@ class HTTPRequest(WorkflowBlock):
                                 "additionalProperties": True,
                             },
                         },
+                        "bodyType": {
+                            "name": "Body type",
+                            "type": "Text",
+                            "description": "Specify whether to interpret the body as plain text or JSON.",
+                            "options": {
+                                "text": "Plain text",
+                                "JSON": "JSON",
+                            },
+                            "default": "text",
+                        },
                         "body": {"name": "Body", "type": "Text", "control": "Textarea"},
                     },
                     "outs": {
@@ -84,11 +92,6 @@ class HTTPRequest(WorkflowBlock):
             ),
         )
 
-    def _clean_json_string(self, s: str) -> str:
-        """Remove control characters, which aren't tolerated by JSON loads() strict mode, from string."""
-
-        return HTTPRequest.CONTROL_CHARS.sub("", s)
-
     def run(self):
         import json
 
@@ -96,22 +99,36 @@ class HTTPRequest(WorkflowBlock):
             method = self._get_field("method", False, "GET")
             url = self._get_field("url")
             headers = self._get_field("headers", True)
-            body = self._clean_json_string(self._get_field("body"))
-            req = requests.request(method, url, headers=headers, data=body)
+            body_type = self._get_field("bodyType")
+            body = None
+            raw_body = None
+            if body_type == "JSON":
+                body = self._get_field("body", as_json=True)
+                raw_body = json.dumps(body)
+            else:
+                body = self._get_field("body", as_json=False)
+                raw_body = body
 
-            content_type = req.headers.get("Content-Type")
-            is_json = content_type and "application/json" in content_type
+            res = requests.request(method, url, headers=headers, data=raw_body)
+
+            content_type = res.headers.get("Content-Type")
+            is_response_json = content_type and "application/json" in content_type
 
             self.result = {
-                "headers": dict(req.headers),
-                "status_code": req.status_code,
-                "body": req.json() if is_json else req.text,
+                "request": {
+                    "url": str(res.request.url),
+                    "headers": dict(res.request.headers),
+                    "body": str(res.request.body),
+                },
+                "headers": dict(res.headers),
+                "status_code": res.status_code,
+                "body": res.json() if is_response_json else res.text,
             }
-            if req.ok:
+            if res.ok:
                 self.outcome = "success"
             else:
                 self.outcome = "responseError"
-                raise RuntimeError("HTTP response with code " + str(req.status_code))
+                raise RuntimeError("HTTP response with code " + str(res.status_code))
         except json.JSONDecodeError as e:
             self.outcome = "responseError"
             raise e

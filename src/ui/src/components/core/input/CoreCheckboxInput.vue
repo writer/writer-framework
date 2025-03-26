@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { ComponentPublicInstance, inject } from "vue";
+import { ComponentPublicInstance, inject, onMounted } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {

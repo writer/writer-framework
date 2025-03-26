@@ -143,18 +143,6 @@ export default {
 				default: "no",
 				desc: "Show an option to jump to a specific page.",
 			},
-			// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-			//
-			// urlParam: {
-			// 	name: "Url parameters",
-			// 	default: "no",
-			// 	type: FieldType.Text,
-			// 	options: {
-			// 		yes: "Yes",
-			// 		no: "No",
-			// 	},
-			// 	desc: "Set the page size and the page as URL parameters. Default, will be page and pageSize."
-			// }
 		},
 		events: {
 			"wf-change-page": {
@@ -173,14 +161,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import {
-	inject,
-	computed,
-	watch,
-	onUnmounted,
-	onMounted,
-	useTemplateRef,
-} from "vue";
+import { inject, computed, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
@@ -339,62 +320,6 @@ const onPageSizeChange = (event) => {
 	let pageSize = parseInt(event.target.value);
 	handlePageSizeInput(pageSize, "wf-change-page-size");
 };
-
-watch(fields.page, () => {
-	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-	// if (fields.urlParam.value.trim() === "yes") {
-	// 	const searchURL = new URL(window.location);
-	// 	searchURL.searchParams.set("page", fields.page.value)
-	// 	window.history.replaceState({}, '', searchURL);
-	// }
-});
-
-watch(fields.pageSize, () => {
-	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-	// if (fields.urlParam.value.trim() === "yes") {
-	// 	const searchURL = new URL(window.location);
-	// 	searchURL.searchParams.set("pageSize", fields.pageSize.value)
-	// 	window.history.replaceState({}, '', searchURL);
-	// }
-});
-
-onMounted(() => {
-	/**
-	 * On page load, get URL parameters and configure pagination.
-	 */
-	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-	// const searchURL = new URL(window.location);
-	//
-	// if (searchURL.searchParams.has("pageSize")) {
-	// 	const pageSize = searchURL.searchParams.get("pageSize");
-	// 	handlePageSizeInput(parseInt(pageSize), 'page-size-changed', () => {
-	// 		if (searchURL.searchParams.has("page")) {
-	// 			const page = searchURL.searchParams.get("page");
-	// 			jumpTo(parseInt(page));
-	// 		}
-	// 	})
-	// } else {
-	// 	if (searchURL.searchParams.has("page")) {
-	// 		const page = searchURL.searchParams.get("page");
-	// 		jumpTo(parseInt(page));
-	// 	}
-	// }
-});
-
-onUnmounted(() => {
-	/**
-	 * When changing pages, eliminates URL parameters that are not useful on the next page.
-	 */
-	// Disabled for now, I am waiting functions to manipulate Hash params from the URL
-	// const searchURL = new URL(window.location);
-	// if (searchURL.searchParams.has("page")) {
-	// 	searchURL.searchParams.delete("page");
-	// }
-	// if (searchURL.searchParams.has("pageSize")) {
-	// 	searchURL.searchParams.delete("pageSize");
-	// }
-	// window.history.replaceState({}, '', searchURL);
-});
 </script>
 
 <style scoped>

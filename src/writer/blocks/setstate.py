@@ -21,6 +21,16 @@ class SetState(WorkflowBlock):
                             "type": "Text",
                             "desc": "The name of the state element. If set to 'my_var' the value will be available at @{my_var} when using as part of a template.",
                         },
+                        "valueType": {
+                            "name": "Value type",
+                            "type": "Text",
+                            "description": "Specify whether to interpret the value as plain text or JSON.",
+                            "options": {
+                                "text": "Plain text",
+                                "JSON": "JSON",
+                            },
+                            "default": "text",
+                        },
                         "value": {"name": "Value", "type": "Text", "control": "Textarea"},
                     },
                     "outs": {
@@ -42,7 +52,8 @@ class SetState(WorkflowBlock):
     def run(self):
         try:
             element = self._get_field("element", required=True)
-            value = self._get_field("value")
+            value_type = self._get_field("valueType")
+            value = self._get_field("value", as_json=value_type == "JSON")
 
             self._set_state(element, value)
             self.result = value

@@ -93,13 +93,13 @@ function updateTitle(appName: string) {
 	const mode = wf.mode.value;
 	let title: string;
 	if (appName && mode == "edit") {
-		title = `${appName} | Writer Framework | Builder`;
+		title = `${appName} | Writer | Builder`;
 	} else if (!appName && mode == "edit") {
-		title = "Writer Framework | Builder";
+		title = "Writer | Builder";
 	} else if (appName && mode == "run") {
 		title = `${appName}`;
 	} else if (!appName && mode == "run") {
-		title = "Writer Framework App";
+		title = "Writer";
 	}
 	document.title = title;
 }

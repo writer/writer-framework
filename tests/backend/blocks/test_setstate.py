@@ -12,6 +12,18 @@ def test_basic_assignment(session):
     assert session.session_state["my_element"] == "my_value"
 
 
+def test_json_assignment(session):
+    component = session.add_fake_component(
+        {"element": "my_element", "value": '{ "dog": true, "cat": 0 }', "valueType": "JSON"}
+    )
+    runner = WorkflowRunner(session)
+    block = SetState(component, runner, {})
+    block.run()
+    assert block.outcome == "success"
+    assert session.session_state["my_element"]["dog"] is True
+    assert session.session_state["my_element"]["cat"] == 0
+
+
 def test_nested_assignment_without_parent(session):
     component = session.add_fake_component(
         {"element": "parent_element.my_element", "value": "my_value"}
