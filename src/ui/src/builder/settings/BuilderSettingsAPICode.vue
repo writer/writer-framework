@@ -1,10 +1,10 @@
 <template>
 	<div v-if="isWorkflow" class="BuilderSettingsAPICode">
-		<BuilderModal
+		<WdsModal
 			v-if="isModalVisible"
-			:close-action="modalCloseAction"
-			icon="code"
-			modal-title="API Code"
+			title="API Code"
+			display-close-button
+			@close="isModalVisible = false"
 		>
 			<div class="modalContents">
 				<template v-if="isHashAvailable">
@@ -39,7 +39,7 @@
 					environment variable WRITER_SECRET_KEY has been set up.
 				</template>
 			</div>
-		</BuilderModal>
+		</WdsModal>
 		<template v-if="workflowKey">
 			<WdsButton variant="tertiary" size="small" @click="showCode">
 				<i class="material-symbols-outlined"> code </i> Call via
@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
-import BuilderModal, { ModalAction } from "../BuilderModal.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 import BuilderEmbeddedCodeEditor from "../BuilderEmbeddedCodeEditor.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 
@@ -89,13 +89,6 @@ const isModalVisible = ref(false);
 const code = ref("");
 const codePost = ref("");
 const isHashAvailable = ref(false);
-
-const modalCloseAction: ModalAction = {
-	desc: "Close",
-	fn: () => {
-		isModalVisible.value = false;
-	},
-};
 
 function showCode() {
 	generateCode();

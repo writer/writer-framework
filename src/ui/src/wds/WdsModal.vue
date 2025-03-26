@@ -9,7 +9,16 @@
 			}"
 			tabindex="-1"
 		>
-			<div class="main">
+			<div class="WdsModal__main">
+				<WdsButton
+					v-if="displayCloseButton"
+					variant="neutral"
+					size="smallIcon"
+					class="WdsModal__main__closeBtn"
+					@click="$emit('close')"
+				>
+					<i class="material-symbols-outlined">close</i>
+				</WdsButton>
 				<div v-if="title || description" class="titleContainer">
 					<h2>{{ title }}</h2>
 					<summary v-if="description">
@@ -24,6 +33,7 @@
 						:variant="
 							index == actions.length - 1 ? 'primary' : 'tertiary'
 						"
+						:disabled="action.disabled"
 						@click="action.fn"
 					>
 						{{ action.desc }}
@@ -41,6 +51,8 @@ import { PropType, toRefs } from "vue";
 export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
+
+	disabled?: boolean;
 };
 
 const props = defineProps({
@@ -53,10 +65,15 @@ const props = defineProps({
 	description: { type: String, required: false, default: null },
 	actions: {
 		type: Array as PropType<ModalAction[]>,
-		required: true,
-		default: undefined,
+		required: false,
+		default: () => [],
 	},
 	allowOverflow: { type: Boolean, required: false },
+	displayCloseButton: { type: Boolean, required: false },
+});
+
+defineEmits({
+	close: () => true,
 });
 
 const { title, actions } = toRefs(props);
@@ -74,7 +91,7 @@ const { title, actions } = toRefs(props);
 	justify-content: center;
 }
 
-.main {
+.WdsModal__main {
 	padding: 32px;
 	background: var(--wdsColorWhite);
 	width: 80%;
@@ -83,14 +100,21 @@ const { title, actions } = toRefs(props);
 	border-radius: 8px;
 	border: 1px solid var(--separatorColor);
 	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
+	position: relative;
 }
 
-.WdsModal--wide .main {
+.WdsModal--wide .WdsModal__main {
 	max-width: 240ch;
 }
 
-.WdsModal--overflow .main {
-	overflow-y: unset;
+.WdsModal--overflow .WdsModal__main {
+	overflow: unset;
+}
+
+.WdsModal__main__closeBtn {
+	position: absolute;
+	right: 8px;
+	top: 8px;
 }
 
 h2 {
