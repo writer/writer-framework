@@ -95,7 +95,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, onMounted, useTemplateRef } from "vue";
+import { inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
@@ -105,8 +105,11 @@ const inputEl = useTemplateRef("inputEl");
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput, initializeFormValueBroker } =
-	useFormValueBroker(wf, instancePath, rootInstance);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 function enforceLimitsAndReturnValue() {
 	if (inputEl.value.value == "") return null;
@@ -136,10 +139,6 @@ function handleChangeEvent() {
 	if (isNaN(v)) return;
 	handleInput(v, "wf-number-change-finish");
 }
-
-onMounted(() => {
-	initializeFormValueBroker();
-});
 </script>
 
 <style scoped>

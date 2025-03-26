@@ -75,7 +75,7 @@ const definition = {
 export default { writer: definition };
 </script>
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
@@ -88,12 +88,11 @@ const colorList = computed(() =>
 	Array.isArray(fields.colorList.value) ? fields.colorList.value : undefined,
 );
 
-const { formValue, handleInput, initializeFormValueBroker } =
-	useFormValueBroker<string>(wf, instancePath, rootInstance);
-
-onMounted(() => {
-	initializeFormValueBroker();
-});
+const { formValue, handleInput } = useFormValueBroker<string>(
+	wf,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>

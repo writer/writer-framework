@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { inject, onMounted } from "vue";
+import { inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
@@ -113,12 +113,11 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput, initializeFormValueBroker } =
-	useFormValueBroker(wf, instancePath, rootInstance);
-
-onMounted(() => {
-	initializeFormValueBroker();
-});
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 </script>
 
 <style scoped>

@@ -119,15 +119,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import {
-	computed,
-	inject,
-	onMounted,
-	Ref,
-	ref,
-	useTemplateRef,
-	watch,
-} from "vue";
+import { computed, inject, Ref, ref, useTemplateRef, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
@@ -143,8 +135,11 @@ const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 const processingFiles: Ref<string[]> = ref(null);
 
-const { formValue, handleInput, initializeFormValueBroker } =
-	useFormValueBroker(wf, instancePath, rootInstance);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 const selectedFiles = computed<SavedFile[]>(() =>
 	Array.isArray(formValue.value) ? formValue.value : [],
@@ -220,10 +215,6 @@ const fileLabel = computed(() =>
 );
 const triggerText = computed(() => `Browse ${fileLabel.value}`);
 const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
-
-onMounted(() => {
-	initializeFormValueBroker();
-});
 </script>
 
 <style scoped>

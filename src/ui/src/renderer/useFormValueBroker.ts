@@ -1,4 +1,11 @@
-import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
+import {
+	ComponentPublicInstance,
+	computed,
+	onMounted,
+	Ref,
+	ref,
+	watch,
+} from "vue";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import { Core, InstancePath } from "@/writerTypes";
 import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
@@ -32,6 +39,10 @@ export function useFormValueBroker<T = any>(
 		if (!bindingEventType) return;
 		handleInput(defaultValue, bindingEventType);
 	}
+
+	onMounted(() => {
+		initializeFormValueBroker();
+	});
 
 	function getBindingValue() {
 		const component = wf.getComponentById(componentId);
@@ -133,6 +144,6 @@ export function useFormValueBroker<T = any>(
 	return {
 		formValue,
 		handleInput,
-		initializeFormValueBroker
+		initializeFormValueBroker,
 	};
 }

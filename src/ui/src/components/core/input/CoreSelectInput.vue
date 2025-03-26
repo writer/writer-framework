@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { computed, inject, onMounted } from "vue";
+import { computed, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
@@ -112,17 +112,16 @@ const wf = inject(injectionKeys.core);
 const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { formValue, handleInput, initializeFormValueBroker } =
-	useFormValueBroker(wf, instancePath, rootInstance);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 function handleChange(selectedOptions: string[]) {
 	const selectedOption = selectedOptions?.[0] ?? null;
 	handleInput(selectedOption, "wf-option-change");
 }
-
-onMounted(() => {
-	initializeFormValueBroker();
-});
 </script>
 
 <style scoped>
