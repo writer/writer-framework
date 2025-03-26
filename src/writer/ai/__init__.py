@@ -2469,7 +2469,7 @@ class Apps:
             **config
         )
 
-        return jobs.result
+        return list(jobs)
 
     def retrieve_job(
             self,
