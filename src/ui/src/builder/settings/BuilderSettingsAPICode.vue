@@ -4,12 +4,19 @@
 			v-if="isModalVisible"
 			title="API Code"
 			display-close-button
+			:hint="
+				isHashAvailable
+					? 'Note: For API calls to work, the --enable-jobs-api flag must be active.'
+					: undefined
+			"
 			@close="isModalVisible = false"
 		>
 			<div class="modalContents">
 				<template v-if="isHashAvailable">
-					The following call will create the job and provide you with
-					a job ID and a job token.
+					<p>
+						The following call will create the job and provide you
+						with a job ID and a job token.
+					</p>
 					<div class="codeContainer">
 						<BuilderEmbeddedCodeEditor
 							v-model="code"
@@ -18,9 +25,12 @@
 							language="shell"
 						></BuilderEmbeddedCodeEditor>
 					</div>
-					Using the job ID and token obtained in the previous call,
-					check the status of the job. You can use the code below,
-					after replacing JOB_ID and JOB_TOKEN for the right values.
+					<p>
+						Using the job ID and token obtained in the previous
+						call, check the status of the job. You can use the code
+						below, after replacing JOB_ID and JOB_TOKEN for the
+						right values.
+					</p>
 					<div class="codeContainer">
 						<BuilderEmbeddedCodeEditor
 							v-model="codePost"
@@ -29,15 +39,11 @@
 							language="shell"
 						></BuilderEmbeddedCodeEditor>
 					</div>
-					<strong
-						>Note: For API calls to work, the --enable-jobs-api flag
-						must be active.</strong
-					>
 				</template>
-				<template v-else>
+				<p v-else>
 					API code cannot be generated. Please make sure the
 					environment variable WRITER_SECRET_KEY has been set up.
-				</template>
+				</p>
 			</div>
 		</WdsModal>
 		<template v-if="workflowKey">
