@@ -547,7 +547,7 @@ class Graph(SDKWrapper):
         """
         Streams response for a question posed to the graph.
 
-        This method returns incremental chunks of the response, ideal for long 
+        This method returns incremental chunks of the response, ideal for long
         responses or when reduced latency is needed.
 
         :param question: The query or question to be answered by the graph.
@@ -608,7 +608,7 @@ class Graph(SDKWrapper):
             config: Optional[APIOptions] = None
     ):
         """
-        Sends a question to the graph and retrieves 
+        Sends a question to the graph and retrieves
         a single response.
 
         :param question: The query or question to be answered by the graph.
@@ -1030,7 +1030,8 @@ class Conversation:
     You can also pass a specific previously defined function.
     - `logprobs` (Union[bool, NotGiven]):
     Specifies whether to return log probabilities of the output tokens.
-    - `tools` (Union[Iterable[Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]], NotGiven]):
+    - `tools` (Union[Iterable[Union[SDKGraphTool,
+    SDKFunctionTool, SDKLlmTool]], NotGiven]):
     Tools available for the model to use.
     - `max_tokens` (Union[int, NotGiven]):
     Maximum number of tokens to generate.
@@ -1209,12 +1210,13 @@ class Conversation:
             new_tool_calls = clear_chunk.pop("tool_calls", []) or []
 
             for new_call in new_tool_calls:
-                index = new_call.get("index", 0)
                 last_message_tool_calls = \
                     cast(list, updated_last_message["tool_calls"])
-                if index < len(last_message_tool_calls):
-                    # If there's an existing call at this index, update it
-                    existing_call = last_message_tool_calls[index]
+                if not new_call.get("id"):
+                    # Received ID is an indicator
+                    # of a new call that needs to be added:
+                    # otherwise, modify the latest existing call
+                    existing_call = last_message_tool_calls[-1]
                     for key, value in new_call.items():
                         if key == "function":
                             if key not in existing_call:
@@ -1237,12 +1239,12 @@ class Conversation:
                                     # to existing arguments
                                     call_function[fkey] += \
                                         fvalue or ""
-                                elif fvalue is not None:
+                                elif fvalue is not None and fvalue != '':
                                     call_function[fkey] = fvalue
-                        elif value is not None:
+                        elif value is not None and value != '':
                             existing_call[key] = value
                 else:
-                    # If no existing call, append the new call
+                    # If ID was received, this is the new call and we add it
                     last_message_tool_calls.append(new_call)
 
         updated_last_message |= clear_chunk
@@ -1381,9 +1383,9 @@ class Conversation:
                     raise ValueError(
                         f"'type' for parameter '{param_name}' must be a string"
                         )
-                
+
                 supported_types = {
-                    "string", "number", "integer", "float", 
+                    "string", "number", "integer", "float",
                     "boolean", "array", "object", "null"
                 }
                 if param_info["type"] not in supported_types:
@@ -1405,7 +1407,9 @@ class Conversation:
 
             return True
 
-        def prepare_parameters(parameters: Dict[str, FunctionToolParameterMeta]) -> Dict:
+        def prepare_parameters(
+                parameters: Dict[str, FunctionToolParameterMeta]
+        ) -> Dict:
             """
             Prepares the parameters dictionary for a function tool.
 
@@ -1499,7 +1503,9 @@ class Conversation:
                                 "subqueries": tool_instance.get(
                                     "subqueries", False
                                     ),
-                                "description": tool_instance.get("description", None)
+                                "description": tool_instance.get(
+                                    "description", None
+                                    )
                             }
                         }
                     )
@@ -1766,7 +1772,7 @@ class Conversation:
                                     value,
                                     target_type
                                     )
-                        else:
+                        elif param_info.get("required") is True:
                             raise ValueError(
                                 f"Missing required parameter: {param_name}"
                                 )
@@ -1835,15 +1841,15 @@ class Conversation:
             }
 
         # Capture `tool_call_id` from the message
-        if tool_call_id is not None:
+        if tool_call_id is not None and tool_call_id != '':
             self._ongoing_tool_calls[index]["tool_call_id"] = tool_call_id
 
         # Capture `name` for function call
-        if tool_call_name is not None:
+        if tool_call_name is not None and tool_call_name != '':
             self._ongoing_tool_calls[index]["name"] = tool_call_name
 
         # Accumulate arguments across chunks
-        if tool_call_arguments is not None:
+        if tool_call_arguments is not None and tool_call_arguments != '':
             if (
                 tool_call_arguments.startswith("{")
                 and tool_call_arguments.endswith("}")
@@ -1864,8 +1870,12 @@ class Conversation:
             self._ongoing_tool_calls[index]["name"], \
             self._ongoing_tool_calls[index]["arguments"]
 
-        tool_call_id_ready = tool_call_id is not None
-        tool_call_name_ready = tool_call_name is not None
+        tool_call_id_ready = \
+            tool_call_id is not None \
+            and tool_call_id != ''
+        tool_call_name_ready = \
+            tool_call_name is not None \
+            and tool_call_name != ''
 
         # Check whether the arguments are prepared properly -
         # either present in correct format
@@ -1924,8 +1934,8 @@ class Conversation:
     def _process_streaming_tool_calls(self, chunk: Dict):
         tool_calls = chunk["tool_calls"]
         if isinstance(tool_calls, list):
-            for tool_call in tool_calls:
-                index = tool_call["index"]
+            for helper_index, tool_call in enumerate(tool_calls):
+                index = tool_call["index"] or helper_index
                 tool_call_id = tool_call["id"]
                 tool_call_name = tool_call["function"]["name"]
                 tool_call_arguments = tool_call["function"]["arguments"]
@@ -2194,7 +2204,7 @@ class Conversation:
         """
         Function to verify whether the message should be serializable.
 
-        :return: Boolean indicating if the message meets 
+        :return: Boolean indicating if the message meets
         the criteria for serialization.
         """
         if message["role"] in ["system", "tool"]:
@@ -2403,7 +2413,8 @@ class Apps:
         Retries a specific asynchronous job execution.
 
         :param job_id: The unique identifier of the job to retry.
-        :param config: Optional API configuration options for the retry request.
+        :param config: Optional API configuration options for
+        the retry request.
         :return: The response data from retrying the job.
 
         The `config` dictionary can include the following keys:
@@ -2534,7 +2545,8 @@ class Apps:
         Associates a list of graph IDs with a specific application.
 
         :param application_id: The unique identifier of the application.
-        :param graph_ids: A list of graph IDs to associate with the application.
+        :param graph_ids: A list of graph IDs to associate with
+        the application.
         :param config: Optional configuration parameters for the API request.
         :return: The response data from associating the graphs.
 
@@ -2775,7 +2787,7 @@ def ask(
     config: Optional[APIOptions] = None
 ):
     """
-    Sends a question to the specified graph(s) and retrieves 
+    Sends a question to the specified graph(s) and retrieves
     a single response.
 
     :param question: The query or question to be answered by the graph(s).
@@ -2837,7 +2849,7 @@ def stream_ask(
     """
     Streams response for a question posed to the specified graph(s).
 
-    This method returns incremental chunks of the response, ideal for long 
+    This method returns incremental chunks of the response, ideal for long
     responses or when reduced latency is needed.
 
     :param question: The query or question to be answered by the graph(s).
