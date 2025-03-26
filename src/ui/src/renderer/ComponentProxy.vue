@@ -184,7 +184,7 @@ export default {
 
 		// keep track on style fields changed to remove the "selected" state if a style change (it helps the user to see his modifications)
 		const styleFields = computed(() => {
-			return Object.entries(componentDefinitionFields.value)
+			return Object.entries(componentDefinitionFields.value ?? {})
 				.filter(([, value]) => value.category === FieldCategory.Style)
 				.reduce<Record<string, unknown>>((acc, [key]) => {
 					acc[key] = evaluatedFields[key].value;
