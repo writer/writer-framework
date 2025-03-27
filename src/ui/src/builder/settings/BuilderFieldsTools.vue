@@ -26,11 +26,10 @@
 			<i class="material-symbols-outlined">add</i>
 			Add tool</WdsButton
 		>
-		<BuilderModal
+		<WdsModal
 			v-if="toolForm.isShown"
-			:close-action="customHandlerModalCloseAction"
-			icon="add"
-			modal-title="Add tool"
+			:actions="modalActions"
+			title="Add tool"
 			allow-overflow
 		>
 			<div class="addToolForm">
@@ -50,6 +49,7 @@
 				>
 					<BuilderEmbeddedCodeEditor
 						v-model="toolForm.code"
+						class="addToolForm__codeEditor"
 						variant="minimal"
 						language="json"
 					></BuilderEmbeddedCodeEditor>
@@ -65,12 +65,7 @@
 					/>
 				</WdsFieldWrapper>
 			</div>
-			<div class="addToolFormActions">
-				<WdsButton :disabled.prop="saveDisabled" @click="saveToolForm"
-					>Save</WdsButton
-				>
-			</div>
-		</BuilderModal>
+		</WdsModal>
 	</div>
 </template>
 
@@ -80,7 +75,7 @@ import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderModal, { ModalAction } from "../BuilderModal.vue";
+import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
@@ -287,12 +282,17 @@ function deleteTool(toolName: string) {
 	setContentValue(component.value.id, fieldKey.value, newFieldValue);
 }
 
-const customHandlerModalCloseAction: ModalAction = {
-	desc: "Close",
-	fn: () => {
-		toolForm.value.isShown = false;
+const modalActions = computed<ModalAction[]>(() => [
+	{
+		desc: "cancel",
+		fn: () => (toolForm.value.isShown = false),
 	},
-};
+	{
+		desc: "Save",
+		disabled: saveDisabled.value,
+		fn: saveToolForm,
+	},
+]);
 </script>
 
 <style scoped>
@@ -343,7 +343,9 @@ const customHandlerModalCloseAction: ModalAction = {
 	grid-column: span 2;
 }
 
-.addToolFormActions {
-	margin-top: 16px;
+.addToolForm__codeEditor {
+	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	overflow: hidden;
 }
 </style>

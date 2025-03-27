@@ -141,11 +141,11 @@
 			<i class="material-symbols-outlined">delete</i>
 		</WdsButton>
 
-		<BuilderModal
+		<WdsModal
 			v-if="isAddModalOpen"
-			:close-action="modalCloseAction"
-			icon="add"
-			modal-title="Add child component"
+			title="Add child component"
+			display-close-button
+			@close="isAddModalOpen = false"
 		>
 			<input
 				class="addModalInput"
@@ -163,7 +163,7 @@
 					{{ definition.name }}
 				</option>
 			</datalist>
-		</BuilderModal>
+		</WdsModal>
 	</div>
 </template>
 
@@ -174,7 +174,7 @@ import { WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderModal, { ModalAction } from "../BuilderModal.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 import { SelectionStatus } from "../builderManager";
 
 const wf = inject(injectionKeys.core);
@@ -270,13 +270,6 @@ function reprocessShorcutsInfo(): void {
 		isDeleteEnabled: isDeleteAllowed(selectedId.value),
 	};
 }
-
-const modalCloseAction: ModalAction = {
-	desc: "Close",
-	fn: () => {
-		isAddModalOpen.value = false;
-	},
-};
 
 watch(
 	() => wf.getComponentById(selectedId.value)?.position,
