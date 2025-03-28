@@ -906,30 +906,4 @@ svg {
 	width: 100%;
 	height: 100%;
 }
-
-/* customize the `RenderError` component to make it looks like a node */
-.nodeContainer :deep(.RenderError) {
-	position: absolute;
-	width: 240px;
-	border-radius: 8px;
-	box-shadow: var(--wdsShadowBox);
-	padding: 12px;
-	background-color: var(--builderBackgroundColor);
-	border: 2px solid transparent;
-	font-size: 14px;
-}
-.nodeContainer :deep(.RenderError.selected) {
-	background-color: var(--builderBackgroundColor);
-	border: 2px solid var(--wdsColorBlue4);
-	font-size: 14px;
-}
-.nodeContainer :deep(.RenderError:hover) {
-	border: 2px solid var(--wdsColorBlue2);
-}
-
-.nodeContainer :deep(.RenderError h2) {
-	color: var(--builderErrorColor);
-	font-size: 14px;
-	font-weight: 500;
-}
 </style>
