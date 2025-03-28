@@ -82,6 +82,7 @@ class InitResponseBody(BaseModel):
     extensionPaths: List
     featureFlags: List[str]
     abstractTemplates: Dict[str, AbstractTemplate]
+    isCloud: bool
 
 
 class InitResponseBodyRun(InitResponseBody):
@@ -191,6 +192,7 @@ class InitSessionResponsePayload(BaseModel):
     userFunctions: List[Dict]
     components: Dict
     featureFlags: List[str]
+    isCloud: bool
 
 
 class InitSessionResponse(AppProcessServerResponse):

@@ -1,5 +1,5 @@
 import { Core } from "@/writerTypes";
-import { computed, onBeforeUnmount, onMounted, readonly, ref } from "vue";
+import { onBeforeUnmount, onMounted, readonly, ref } from "vue";
 
 const enum IFrameRequestMessage {
 	Deploy = "deploy",
@@ -17,9 +17,7 @@ export const enum DeploymentStatus {
 
 export function useApplicationCloud(wf: Core) {
 	const abort = new AbortController();
-	const isCloudApp = computed(() =>
-		wf.featureFlags.value.includes("writerCloud"),
-	);
+	const isCloudApp = wf.isCloud;
 
 	onMounted(() => {
 		window.addEventListener(
