@@ -178,6 +178,7 @@ class AppProcess(multiprocessing.Process):
             components=ui_component_tree,
             userFunctions=self._get_user_functions(),
             featureFlags=writer.Config.feature_flags,
+            isCloud=os.getenv("WRITER_CLOUD") is not None,
         )
 
         session.session_state.clear_mail()
