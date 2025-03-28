@@ -13,6 +13,7 @@ import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
 import { flattenInstancePath } from "./instancePath";
 import { useEvaluator } from "./useEvaluator";
+import WorkflowsNode from "@/components/workflows/abstract/WorkflowsNode.vue";
 
 export default {
 	props: {
@@ -184,7 +185,7 @@ export default {
 
 		// keep track on style fields changed to remove the "selected" state if a style change (it helps the user to see his modifications)
 		const styleFields = computed(() => {
-			return Object.entries(componentDefinitionFields.value)
+			return Object.entries(componentDefinitionFields.value ?? {})
 				.filter(([, value]) => value.category === FieldCategory.Style)
 				.reduce<Record<string, unknown>>((acc, [key]) => {
 					acc[key] = evaluatedFields[key].value;
@@ -337,9 +338,15 @@ export default {
 				return vnodes;
 			};
 
-			const vnodeProps = {
-				...getRootElProps(),
-			};
+			const vnodeProps = getRootElProps();
+
+			const isWorkflowNode =
+				wf.getComponentById(component.value.parentId)?.type ===
+				"workflows_workflow";
+
+			if (template.writer?.category === "Fallback" && isWorkflowNode) {
+				return h(WorkflowsNode, vnodeProps, { default: defaultSlotFn });
+			}
 
 			if (
 				!isParentSuitable(
