@@ -8,13 +8,13 @@ import {
 	PropType,
 } from "vue";
 import { useListResources } from "@/composables/useListResources";
-import type { Option } from "./BuilderSelect.vue";
+import type { Option } from "@/wds/WdsSelect.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import type { WriterGraph } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
-const BuilderSelect = defineAsyncComponent({
-	loader: () => import("./BuilderSelect.vue"),
+const WdsSelect = defineAsyncComponent({
+	loader: () => import("@/wds/WdsSelect.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 
@@ -73,7 +73,7 @@ defineExpose({ selectedData });
 
 <template>
 	<div class="BuilderGraphSelect--text">
-		<BuilderSelect
+		<WdsSelect
 			v-if="graphs.length > 0 || isLoading"
 			v-model="currentValue"
 			:options="options"

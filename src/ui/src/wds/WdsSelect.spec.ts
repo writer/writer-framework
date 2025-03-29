@@ -1,11 +1,11 @@
 import { flushPromises, mount, shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
-import BuilderSelect from "./BuilderSelect.vue";
-import { Option } from "./BuilderSelect.vue";
+import WdsSelect from "./WdsSelect.vue";
+import { Option } from "./WdsSelect.vue";
 import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
 
-describe("BuilderSelect", () => {
+describe("WdsSelect", () => {
 	const options: Option[] = [
 		{ label: "Label A", value: "a" },
 		{ label: "Label B", value: "b" },
@@ -13,7 +13,7 @@ describe("BuilderSelect", () => {
 	];
 
 	it("should display unknow value selected", () => {
-		const wrapper = shallowMount(BuilderSelect, {
+		const wrapper = shallowMount(WdsSelect, {
 			props: {
 				modelValue: "x",
 				enableMultiSelection: false,
@@ -28,7 +28,7 @@ describe("BuilderSelect", () => {
 	});
 
 	it("should support single mode", async () => {
-		const wrapper = mount(BuilderSelect, {
+		const wrapper = mount(WdsSelect, {
 			props: {
 				modelValue: "a",
 				enableMultiSelection: false,
@@ -42,7 +42,7 @@ describe("BuilderSelect", () => {
 		});
 		await flushPromises();
 
-		await wrapper.get(".BuilderSelect__trigger").trigger("click");
+		await wrapper.get(".WdsSelect__trigger").trigger("click");
 		await flushPromises();
 
 		const dropdownMenu = wrapper.getComponent(WdsDropdownMenu);
