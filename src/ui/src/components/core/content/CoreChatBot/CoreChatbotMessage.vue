@@ -119,7 +119,6 @@ const contentBgColor = computed(() => {
 	width: fit-content;
 	flex: 0 1 auto;
 	color: var(--primaryTextColor);
-	white-space: pre-wrap;
 }
 
 .CoreChatbotMessage__content__text {
