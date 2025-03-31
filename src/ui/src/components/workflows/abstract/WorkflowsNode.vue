@@ -54,7 +54,7 @@
 			</div>
 			<div class="outputs">
 				<div
-					v-for="(out, outId) in staticOuts"
+					v-for="(out, outId) in { ...staticOuts, ...unknownOuts }"
 					:key="outId"
 					class="output"
 				>
@@ -165,11 +165,26 @@ const isEngaged = computed(() => {
 
 const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const processedOuts = {};
-	Object.entries(def.value.outs).forEach(([outId, out]) => {
+	Object.entries(def.value.outs ?? {}).forEach(([outId, out]) => {
 		if (out.style == "dynamic") return;
 		processedOuts[outId] = out;
 	});
 	return processedOuts;
+});
+
+const unknownOuts = computed<WriterComponentDefinition["outs"]>(() => {
+	const knownsOutIds = new Set([
+		...Object.keys(staticOuts.value),
+		...Object.values(dynamicOuts.value).flatMap(Object.keys),
+	]);
+
+	return (component.value?.outs ?? []).reduce<
+		WriterComponentDefinition["outs"]
+	>((acc, { outId }) => {
+		if (knownsOutIds.has(outId)) return;
+		acc[outId] = { name: outId, style: "dynamic", description: "" };
+		return acc;
+	}, {});
 });
 
 function getDynamicKeysFromField(fieldKey: string) {
@@ -190,7 +205,7 @@ const dynamicOuts = computed<
 	>
 >(() => {
 	const processedOuts = {};
-	Object.entries(def.value.outs).forEach(([outId, out]) => {
+	Object.entries(def.value.outs ?? {}).forEach(([outId, out]) => {
 		if (out.style !== "dynamic") {
 			return;
 		}
