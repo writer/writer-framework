@@ -13,7 +13,6 @@ import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
 import { flattenInstancePath } from "./instancePath";
 import { useEvaluator } from "./useEvaluator";
-import WorkflowsNode from "@/components/workflows/abstract/WorkflowsNode.vue";
 
 export default {
 	props: {
@@ -339,14 +338,6 @@ export default {
 			};
 
 			const vnodeProps = getRootElProps();
-
-			const isWorkflowNode =
-				wf.getComponentById(component.value.parentId)?.type ===
-				"workflows_workflow";
-
-			if (template.writer?.category === "Fallback" && isWorkflowNode) {
-				return h(WorkflowsNode, vnodeProps, { default: defaultSlotFn });
-			}
 
 			if (
 				!isParentSuitable(
