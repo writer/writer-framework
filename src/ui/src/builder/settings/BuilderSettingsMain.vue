@@ -1,32 +1,36 @@
 <template>
 	<div class="BuilderSettingsMain">
-		<div v-if="isReadOnly" class="warning cmc-warning">
+		<p
+			v-if="componentDefinition.description"
+			class="BuilderSettingsMain__description"
+		>
+			{{ componentDefinition.description }}
+		</p>
+		<p v-if="isReadOnly" class="warning cmc-warning">
 			<i class="material-symbols-outlined">warning</i>
 			<span>
 				This component is instantiated in code. All settings in this
 				panel are read-only and cannot be edited.
 			</span>
-		</div>
+		</p>
 
 		<div class="sections" :inert="isReadOnly">
-			<BuilderSettingsProperties></BuilderSettingsProperties>
+			<BuilderSettingsProperties />
 			<template v-if="displaySettings">
-				<BuilderSettingsBinding
-					v-if="isBindable"
-				></BuilderSettingsBinding>
-				<BuilderSettingsHandlers></BuilderSettingsHandlers>
-				<BuilderSettingsVisibility></BuilderSettingsVisibility>
+				<BuilderSettingsBinding v-if="isBindable" />
+				<BuilderSettingsHandlers />
+				<BuilderSettingsVisibility />
 			</template>
 			<BuilderSettingsAPICode>Execute via API</BuilderSettingsAPICode>
 		</div>
 
 		<div class="sections debug">
-			<div>
+			<p>
 				Component id:
 				<BuilderCopyText>{{
 					ssbm.firstSelectedId.value
 				}}</BuilderCopyText>
-			</div>
+			</p>
 		</div>
 	</div>
 </template>
@@ -83,6 +87,13 @@ const isBindable = computed(() =>
 
 <style scoped>
 @import "../sharedStyles.css";
+
+.BuilderSettingsMain__description {
+	padding-left: 24px;
+	padding-right: 24px;
+	padding-top: 24px;
+	font-size: 14px;
+}
 
 .sections {
 	display: flex;

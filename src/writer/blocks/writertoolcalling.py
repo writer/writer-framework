@@ -13,7 +13,7 @@ class WriterToolCalling(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Tool calling",
-                    "description": "Handles tool calling without the need for a chat.",
+                    "description": "Connects the Agent to external tools to complete tasks it cannot handle directly.",
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},

@@ -13,7 +13,7 @@ class WriterChat(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Chat completion",
-                    "description": "Handles chat completions.",
+                    "description": "Generates an AI chat response using the full conversation history. Requires prior messages.",
                     "category": "Writer",
                     "fields": {
                         "conversationStateElement": {

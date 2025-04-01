@@ -13,7 +13,7 @@ class WriterNoCodeApp(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "No-code agent",
-                    "description": "Run a no-code agent.",
+                    "description": "Runs an Writer AI Studio Agent app by ID.",
                     "category": "Writer",
                     "fields": {
                         "appId": {

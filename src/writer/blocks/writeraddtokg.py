@@ -14,7 +14,7 @@ class WriterAddToKG(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Add to Knowledge Graph",
-                "description": "Adds files to an existing knowledge graph.",
+                "description": "Adds structured information to the knowledge graph. Use for storing facts AI can reference.",
                 "category": "Writer",
                 "fields": {
                     "graphId": {

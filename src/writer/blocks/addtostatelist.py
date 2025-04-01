@@ -12,7 +12,7 @@ class AddToStateList(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Add to state list",
-                "description": "Adds a value to a list in state, creating a new one if it doesn't exist.",
+                "description": "Adds a new item to a list in the Agent's state. Useful for tracking multiple values over time.",
                 "category": "Other",
                 "fields": {
                     "element": {

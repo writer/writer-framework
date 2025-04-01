@@ -31,7 +31,7 @@ class CodeBlock(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Python code",
-                    "description": "Executes Python code.",
+                    "description": "Runs custom Python code. Useful for logic not covered by existing blocks.",
                     "category": "Logic",
                     "fields": {
                         "code": {

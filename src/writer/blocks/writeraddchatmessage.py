@@ -12,7 +12,7 @@ class WriterAddChatMessage(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Add chat message",
-                "description": "Add a message to a conversation.",
+                "description": "Adds a message to the conversation history. Use for displaying user or AI messages.",
                 "category": "Writer",
                 "fields": {
                     "conversationStateElement": {

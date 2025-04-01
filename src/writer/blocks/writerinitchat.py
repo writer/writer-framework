@@ -14,7 +14,7 @@ class WriterInitChat(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Initialize chat",
-                "description": "If it doesn't already exist, initializes a conversation for Chat completion",
+                "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",
                 "category": "Writer",
                 "fields": {
                     "conversationStateElement": {

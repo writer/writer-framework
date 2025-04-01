@@ -15,7 +15,7 @@ class ParseJSON(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Parse JSON",
-                    "description": "Parses a JSON string.",
+                    "description": "Converts a JSON string into an object, so you can work with it in your logic.",
                     "category": "Other",
                     "fields": {
                         "plainText": {"name": "Plain text", "type": "Text", "control": "Textarea"},

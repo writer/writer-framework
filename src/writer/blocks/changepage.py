@@ -13,7 +13,7 @@ class ChangePage(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Change page",
-                    "description": "Changes the active page.",
+                    "description": "Navigates the user to another page in the app. Requires a valid page key.",
                     "category": "Other",
                     "fields": {
                         "pageKey": {

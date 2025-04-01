@@ -13,7 +13,7 @@ class UIEventTrigger(WorkflowTrigger):
                 baseType="workflows_node",
                 writer={
                     "name": "UI Trigger",
-                    "description": "Trigger the workflow when an UI event takes place.",
+                    "description": "Triggers an event based on UI interactions like button clicks or input changes.",
                     "category": "Triggers",
                     "fields": {
                         "refComponentId": {
