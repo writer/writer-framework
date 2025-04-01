@@ -23,13 +23,11 @@
 					@delete="handleDeleteFile"
 				/>
 				<div class="BuilderCodePanel__tree__actions">
-					<button
-						class="BuilderCodePanel__tree__actions__addFile"
+					<WdsButtonLink
+						left-icon="add"
+						text="Add file"
 						@click="handleAddFile"
-					>
-						<i class="material-symbols-outlined">add</i>
-						Add file
-					</button>
+					/>
 					<BuilderCodePanelFileUploadBtn @selected="handleUpload" />
 				</div>
 			</div>
@@ -72,7 +70,7 @@
 					class="BuilderCodePanel__actionsCompanion__saveBtn"
 					@click="handleSave"
 				>
-					<i class="material-symbols-outlined">save</i>
+					<i class="material-symbols-outlined">keyboard_backspace</i>
 					Save file
 				</WdsButton>
 				<SharedMoreDropdown
@@ -108,6 +106,7 @@ import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.v
 import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
 import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
+import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 
 const SharedMoreDropdown = defineAsyncComponent(
 	() => import("@/components/shared/SharedMoreDropdown.vue"),
@@ -285,23 +284,8 @@ async function handleSave() {
 	display: flex;
 	justify-content: space-between;
 	flex-wrap: wrap;
-}
-
-.BuilderCodePanel__tree__actions__addFile {
-	height: 32px;
 	padding: 8px;
-
-	cursor: pointer;
-	background-color: transparent;
-	color: var(--wdsColorBlue5);
-	font-size: 12px;
-	font-weight: 500;
-	border: none;
-
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 4px;
+	padding-left: 12px;
 }
 
 .BuilderCodePanel__actionsCompanion {
