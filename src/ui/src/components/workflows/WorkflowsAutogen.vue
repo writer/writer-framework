@@ -19,8 +19,7 @@
 		</template>
 
 		<template v-else>
-			<WorkflowsLifeLoading></WorkflowsLifeLoading>
-			<h2>Generating...</h2>
+			<WorkflowsGenerationLoader></WorkflowsGenerationLoader>
 		</template>
 	</div>
 </template>
@@ -29,7 +28,8 @@
 import { inject, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
-import WorkflowsLifeLoading from "./WorkflowsLifeLoading.vue";
+
+import WorkflowsGenerationLoader from "./WorkflowsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
