@@ -324,7 +324,9 @@ watch(isEngaged, () => {
 		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
 	);
 }
-
+.WorkflowsNode.selected {
+	outline: unset !important;
+}
 .WorkflowsNode.selected.component .extraBorder {
 	background: var(--wdsColorBlue4);
 }
