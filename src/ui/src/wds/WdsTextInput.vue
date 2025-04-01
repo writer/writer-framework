@@ -113,7 +113,7 @@ function focus() {
 
 .WdsTextInput--ghost {
 	border-color: transparent;
-	background-color: var(--wdsColorGray1);
+	background-color: transparent;
 	transition:
 		box-shadow,
 		background-color,
