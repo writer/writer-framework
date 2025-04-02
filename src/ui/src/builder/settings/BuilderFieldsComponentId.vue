@@ -38,11 +38,16 @@ const props = defineProps({
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
+function* getComponents() {
+	yield wf.getComponentById("root");
+	yield* wf.getComponentsNested("root");
+}
+
 const options = computed<Option[]>(() => {
 	const options: Option[] = [];
 
-	for (const component of wf.getComponentsNested("root")) {
-		const def = wf.getComponentDefinition(component.type);
+	for (const component of getComponents()) {
+		const def = wf.getComponentDefinition(component?.type);
 		if (!def?.events || Object.keys(def.events).length === 0) continue;
 
 		const { name, previewText, possibleImageUrls } =
