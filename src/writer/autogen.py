@@ -277,7 +277,7 @@ def generate_blueprint(description: str):
             ]
         response = client.chat.chat(
             messages=messages,
-            model="palmyra-x5",
+            model="palmyra-x-004-turbo",
             tool_choice="required",
             tools=tools,
             stream=False,  # type: ignore
@@ -321,3 +321,7 @@ def generate_blueprint(description: str):
             )
 
     return {"blueprint": None, "messages": messages}
+
+
+if __name__ == "__main__":
+    generate_blueprint("Log message hello")
