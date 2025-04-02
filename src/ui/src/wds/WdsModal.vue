@@ -21,6 +21,7 @@
 				</WdsButton>
 				<div v-if="title || description" class="WdsModal__main__title">
 					<h2>{{ title }}</h2>
+					<slot name="titleActions" />
 					<summary v-if="description">
 						{{ description }}
 					</summary>
