@@ -175,7 +175,7 @@ async function selectBlock(componentId: Component["id"]) {
 <style scoped>
 .BuiderLogWorkflowExecutionTrace {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 	grid-template-rows: 1fr 1fr;
 	gap: 48px;
 }

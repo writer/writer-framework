@@ -85,9 +85,11 @@ export default {
 		events: {
 			"gmap-marker-click": {
 				desc: "Capture single clicks on markers.",
+				eventPayloadExample: [{ lat: 1, lng: 1, name: "Marker" }],
 			},
 			"gmap-click": {
 				desc: "Capture single click on map.",
+				eventPayloadExample: { lat: 1, lng: 1 },
 			},
 		},
 	},

@@ -1,6 +1,14 @@
-import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
+import {
+	ComponentPublicInstance,
+	computed,
+	onMounted,
+	Ref,
+	ref,
+	watch,
+} from "vue";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import { Core, InstancePath } from "@/writerTypes";
+import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
 
 /**
  * Encapsulates repeatable form value logic, including binding.
@@ -25,6 +33,16 @@ export function useFormValueBroker<T = any>(
 	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => wf.getComponentById(componentId));
 	const { evaluateExpression } = useEvaluator(wf);
+
+	function initializeFormValueBroker() {
+		const bindingEventType = component.value.binding?.eventType;
+		if (!bindingEventType) return;
+		handleInput(defaultValue, bindingEventType);
+	}
+
+	onMounted(() => {
+		initializeFormValueBroker();
+	});
 
 	function getBindingValue() {
 		const component = wf.getComponentById(componentId);
@@ -56,9 +74,14 @@ export function useFormValueBroker<T = any>(
 		const isHandlerSet = component.value.handlers?.[emitEventType];
 		const isBindingSet =
 			component.value.binding?.eventType == emitEventType;
+		const isWorkflowAttached = useComponentLinkedWorkflows(
+			wf,
+			componentId,
+			emitEventType,
+		).isLinked.value;
 
 		// Event is not used
-		if (!isHandlerSet && !isBindingSet) return;
+		if (!isHandlerSet && !isBindingSet && !isWorkflowAttached) return;
 
 		if (isBusy.value) {
 			// Queued event is overwritten for debouncing purposes
@@ -121,5 +144,6 @@ export function useFormValueBroker<T = any>(
 	return {
 		formValue,
 		handleInput,
+		initializeFormValueBroker,
 	};
 }

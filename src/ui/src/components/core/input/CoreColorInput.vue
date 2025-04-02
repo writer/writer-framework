@@ -62,10 +62,12 @@ const definition = {
 			desc: "Capture changes as they happen.",
 			stub: onChangeHandlerStub,
 			bindable: true,
+			eventPayloadExample: WdsColor.Blue5,
 		},
 		"wf-change-finish": {
 			desc: "Capture changes once this control has lost focus.",
 			stub: onChangeHandlerStub,
+			eventPayloadExample: WdsColor.Blue5,
 		},
 	},
 } satisfies WriterComponentDefinition;

@@ -4,7 +4,7 @@
 		class="WorkflowsWorkflow"
 		:data-writer-unselectable="isUnselectable"
 		@click="handleClick"
-		@dragover="handleDragover"
+		@dragover.prevent.stop
 		@drop="handleDrop"
 		@mousemove="handleMousemove"
 		@mousedown="handleMousedown"
@@ -54,33 +54,15 @@
 				></component>
 			</template>
 		</div>
-		<div class="workflowsToolbar">
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-autogen"
-				@click="isAutogenShown = true"
-			>
-				<i class="material-symbols-outlined">bolt</i>
-				Autogen
-			</WdsButton>
-			<WdsModal v-if="isAutogenShown">
-				<WorkflowsAutogen
-					@block-generation="handleBlockGeneration"
-				></WorkflowsAutogen>
-			</WdsModal>
-			<WdsButton
-				variant="secondary"
-				size="small"
-				:data-writer-unselectable="true"
-				data-automation-action="run-workflow"
-				@click="handleRun"
-			>
-				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
-			</WdsButton>
-		</div>
+		<WorkflowToolbar
+			class="workflowsToolbar"
+			@autogen-click="isAutogenShown = true"
+		/>
+		<WdsModal v-if="isAutogenShown">
+			<WorkflowsAutogen
+				@block-generation="handleBlockGeneration"
+			></WorkflowsAutogen>
+		</WdsModal>
 		<WorkflowNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -99,12 +81,12 @@
 import { type Component, FieldType } from "@/writerTypes";
 import WorkflowArrow from "./base/WorkflowArrow.vue";
 import { watch } from "vue";
-import WdsButton from "@/wds/WdsButton.vue";
 import WorkflowNavigator from "./base/WorkflowNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import WorkflowsAutogen from "./WorkflowsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
+
 const { log } = useLogger();
 
 const description =
@@ -147,10 +129,11 @@ export const ZOOM_SETTINGS = {
 	initialLevel: 1,
 };
 </script>
+
 <script setup lang="ts">
 import {
-	Ref,
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -163,23 +146,25 @@ import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
 
+const WorkflowToolbar = defineAsyncComponent({
+	loader: () => import("./base/WorkflowToolbar.vue"),
+});
+
+const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const workflowComponentId = inject(injectionKeys.componentId);
 
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");
-const wf = inject(injectionKeys.core);
-const wfbm = inject(injectionKeys.builderManager);
-const arrows: Ref<WorkflowArrowData[]> = ref([]);
+
+const arrows = shallowRef<WorkflowArrowData[]>([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
-const isRunning = ref(false);
-const selectedArrow = ref(null);
+const selectedArrow = shallowRef(null);
 const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
-const temporaryNodeCoordinates = shallowRef<
-	Record<Component["id"], { x: number; y: number }>
->({});
+const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
 
 const AUTOARRANGE_ROW_GAP_PX = 64;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
@@ -187,6 +172,8 @@ const AUTOARRANGE_COLUMN_GAP_PX = 128;
 const nodes = computed(() =>
 	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
 );
+
+type Point = { x: number; y: number };
 
 const {
 	createAndInsertComponent,
@@ -196,41 +183,38 @@ const {
 } = useComponentActions(wf, wfbm);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
-const activeConnection: Ref<{
+const activeConnection = shallowRef<{
 	fromNodeId: Component["id"];
 	fromOutId: Component["outs"][number]["outId"];
 	liveArrow?: WorkflowArrowData;
-} | null> = ref(null);
+}>(null);
 
-const activeNodeMove: Ref<{
+const activeNodeMove = shallowRef<{
 	nodeId: Component["id"];
-	offset: { x: number; y: number };
+	offset: Point;
 	isPerfected: boolean;
-} | null> = ref(null);
+} | null>(null);
 
-const activeCanvasMove: Ref<{
-	offset: { x: number; y: number };
+const activeCanvasMove = shallowRef<{
+	offset: Point;
 	isPerfected: boolean;
-} | null> = ref(null);
+} | null>(null);
 
 function refreshArrows() {
-	const newArrows = [];
-	nodes.value
-		.filter((node) => node.outs?.length > 0)
-		.forEach((node) => {
-			const fromNodeId = node.id;
-			node.outs.forEach((out) => {
-				const arrow = calculateArrow(
-					fromNodeId,
-					out.outId,
-					undefined,
-					out.toNodeId,
-				);
-				if (!arrow) return;
-				newArrows.push(arrow);
-			});
-		});
-	arrows.value = newArrows;
+	arrows.value = nodes.value.reduce((acc, node) => {
+		if (!node.outs?.length) return acc;
+
+		for (const out of node.outs) {
+			const arrow = calculateArrow(
+				node.id,
+				out.outId,
+				undefined,
+				out.toNodeId,
+			);
+			if (arrow) acc.push(arrow);
+		}
+		return acc;
+	}, []);
 }
 
 const isUnselectable = computed(() => {
@@ -381,23 +365,6 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 	changeCoordinatesMultiple(coordinates);
 }
 
-async function handleRun() {
-	if (isRunning.value) return;
-	isRunning.value = true;
-	await wf.forwardEvent(
-		new CustomEvent("wf-builtin-run", {
-			detail: {
-				callback: () => {
-					isRunning.value = false;
-				},
-				handler: `$runWorkflowById_${workflowComponentId}`,
-			},
-		}),
-		null,
-		true,
-	);
-}
-
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	clearActiveOperations();
 	const nodeEl = document.querySelector(`[data-writer-id="${nodeId}"]`);
@@ -423,11 +390,6 @@ function handleNodeOutMousedown(
 	};
 }
 
-function handleDragover(ev: DragEvent) {
-	ev.preventDefault();
-	ev.stopPropagation();
-}
-
 function getAdjustedCoordinates(ev: MouseEvent) {
 	const canvasBCR = rootEl.value.getBoundingClientRect();
 	const x =
@@ -449,7 +411,7 @@ function handleDrop(ev: DragEvent) {
 	const { x, y } = getAdjustedCoordinates(ev);
 	if (x < 0 || y < 0) return;
 
-	createNode(draggedType, x, y);
+	createNode(draggedType, { x, y });
 }
 
 function handleArrowClick(ev: MouseEvent, arrowId: number) {
@@ -474,7 +436,7 @@ async function handleArrowDeleteClick(arrow: WorkflowArrowData) {
 function calculateArrow(
 	fromNodeId: Component["id"],
 	fromOutId: string,
-	toCoordinates?: { x: number; y: number },
+	toCoordinates?: Point,
 	toNodeId?: Component["id"],
 ): WorkflowArrowData {
 	let x1: number, y1: number, x2: number, y2: number;
@@ -520,7 +482,7 @@ function getHoveredNodeId(ev: MouseEvent) {
 }
 
 function refreshLiveArrow(ev: MouseEvent) {
-	let toCoordinates: { x: number; y: number }, toNodeId: Component["id"];
+	let toCoordinates: Point, toNodeId: Component["id"];
 
 	toNodeId = getHoveredNodeId(ev);
 	if (typeof toNodeId == "undefined") {
@@ -529,12 +491,15 @@ function refreshLiveArrow(ev: MouseEvent) {
 	const { fromNodeId, fromOutId } = activeConnection.value;
 	if (toNodeId == fromNodeId) return;
 
-	activeConnection.value.liveArrow = calculateArrow(
-		fromNodeId,
-		fromOutId,
-		toCoordinates,
-		toNodeId,
-	);
+	activeConnection.value = {
+		...activeConnection.value,
+		liveArrow: calculateArrow(
+			fromNodeId,
+			fromOutId,
+			toCoordinates,
+			toNodeId,
+		),
+	};
 }
 
 function clearActiveOperations() {
@@ -548,15 +513,28 @@ function saveNodeMove() {
 	temporaryNodeCoordinates.value = {};
 }
 
+function computeDistance(a: Point, b: Point): number {
+	return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+}
+
 function moveNode(ev: MouseEvent) {
 	const { nodeId, offset } = activeNodeMove.value;
-	activeNodeMove.value.isPerfected = true;
 	const { x, y } = getAdjustedCoordinates(ev);
 
 	const newX = Math.floor(x - offset.x);
 	const newY = Math.floor(y - offset.y);
 
 	const component = wf.getComponentById(nodeId);
+
+	const distance = computeDistance(
+		{ x: component.x, y: component.y },
+		{ x: newX, y: newY },
+	);
+
+	if (distance > 10) {
+		// once `isPerfected` is `true`, we don't select the node. So we considerate a small movement as a missclick (the user click but drag few pixels)
+		activeNodeMove.value = { ...activeNodeMove.value, isPerfected: true };
+	}
 
 	const translationX = newX - component.x;
 	const translationY = newY - component.y;
@@ -580,7 +558,7 @@ function moveNode(ev: MouseEvent) {
 		.filter(
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
 		)
-		.reduce<Record<string, { x: number; y: number }>>((acc, component) => {
+		.reduce<Record<string, Point>>((acc, component) => {
 			acc[component.id] = {
 				x: component.x + translationX,
 				y: component.y + translationY,
@@ -600,9 +578,9 @@ function moveCanvas(ev: MouseEvent) {
 	const x = ev.pageX - canvasBCR.x;
 	const y = ev.pageY - canvasBCR.y;
 	const { x: prevX, y: prevY } = activeCanvasMove.value.offset;
-	activeCanvasMove.value.isPerfected = true;
 
-	activeCanvasMove.value.offset = { x, y };
+	activeCanvasMove.value = { isPerfected: true, offset: { x, y } };
+
 	changeRenderOffset(
 		renderOffset.value.x + (prevX - x) * 1 * (1 / zoomLevel.value),
 		renderOffset.value.y + (prevY - y) * 1 * (1 / zoomLevel.value),
@@ -664,7 +642,7 @@ async function handleMouseup(ev: MouseEvent) {
 	});
 }
 
-function createNode(type: string, x: number, y: number) {
+function createNode(type: string, { x, y }: Point) {
 	createAndInsertComponent(type, workflowComponentId, undefined, {
 		x: Math.floor(x),
 		y: Math.floor(y),
@@ -685,8 +663,8 @@ function findAndCenterBlock(componentId: Component["id"]) {
 	);
 }
 
-async function handleChangeRenderOffset(payload: { x: number; y: number }) {
-	await changeRenderOffset(payload.x, payload.y);
+function handleChangeRenderOffset(payload: Point) {
+	changeRenderOffset(payload.x, payload.y);
 }
 
 function handleCreateAutogenExample(description: string) {

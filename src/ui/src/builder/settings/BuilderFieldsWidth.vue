@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import {
 	computed,
+	defineAsyncComponent,
 	inject,
 	nextTick,
 	onBeforeUnmount,
@@ -57,7 +58,6 @@ import {
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
-import BuilderSelect from "../BuilderSelect.vue";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
@@ -65,6 +65,12 @@ import {
 	BuilderFieldCssMode as Mode,
 	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
 } from "./constants/builderFieldsCssTabs";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+
+const BuilderSelect = defineAsyncComponent({
+	loader: () => import("../BuilderSelect.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import json
 import logging
@@ -50,7 +51,7 @@ class WorkflowRunner:
                 continue
             if trigger.content.get("refEventType") != ref_event_type:
                 continue
-            self.run_branch(trigger.id, "trigger", execution_environment, "UI trigger execution")
+            self.run_branch(trigger.id, None, execution_environment, "UI trigger execution")
 
     def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
         all_components = self.session.session_component_tree.components.values()
@@ -103,7 +104,7 @@ class WorkflowRunner:
     def run_branch(
         self,
         start_node_id: str,
-        branch_out_id: str,
+        branch_out_id: Optional[str],
         execution_environment: Dict,
         title: str = "Branch execution",
     ):
@@ -146,6 +147,16 @@ class WorkflowRunner:
         return hashed_id
 
     def _summarize_data_for_log(self, data):
+        data = copy.deepcopy(data)
+        MAX_ROWS = 100
+        if isinstance(data, list):
+            return [self._summarize_data_for_log(item) for item in data[:MAX_ROWS]]
+        if isinstance(data, dict):
+            return {
+                k: self._summarize_data_for_log(v)
+                for i, (k, v) in enumerate(data.items())
+                if i < MAX_ROWS
+            }
         if isinstance(data, list):
             return [self._summarize_data_for_log(item) for item in data]
         if isinstance(data, dict):
@@ -173,6 +184,16 @@ class WorkflowRunner:
         for component_id, tool in tools.items():
             if tool is None:
                 exec_log.summary.append({"componentId": component_id})
+                continue
+            if tool.outcome == "in_progress":
+                exec_log.summary.append(
+                    {
+                        "componentId": component_id,
+                        "outcome": tool.outcome,
+                        "message": tool.message,
+                        "executionTimeInSeconds": tool.execution_time_in_seconds,
+                    }
+                )
                 continue
             exec_log.summary.append(
                 {

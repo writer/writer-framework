@@ -6,7 +6,7 @@ import injectionKeys from "@/injectionKeys";
 import { ref } from "vue";
 import { mockProvides } from "@/tests/mocks";
 
-describe("CoreCheckboxInput", () => {
+describe("CoreHtml", () => {
 	it("should filter invalid Attributes props", async () => {
 		const wrapper = mount(CoreHtml, {
 			slots: {

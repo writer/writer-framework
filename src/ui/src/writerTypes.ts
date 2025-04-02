@@ -80,6 +80,17 @@ export type WriterComponentDefinitionField = {
 	validator?: SchemaObject;
 };
 
+export type WriterComponentDefinitionEvent = {
+	/** Description */
+	desc?: string;
+	/** Stub method for the event */
+	stub?: string;
+	/** Whether this event is used for value binding */
+	bindable?: boolean;
+	/** The payload that will be given  */
+	eventPayloadExample?: string | boolean | object;
+};
+
 export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
@@ -96,11 +107,7 @@ export type WriterComponentDefinition = {
 	>;
 	events?: Record<
 		string, // Event type
-		{
-			desc?: string; // Description
-			stub?: string; // Stub method for the event
-			bindable?: boolean; // Whether this event is used for value binding
-		}
+		WriterComponentDefinitionEvent
 	>;
 	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
@@ -142,6 +149,8 @@ export const enum FieldType {
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
 	WriterAppId = "App Id",
+	ComponentId = "Component Id",
+	ComponentEventType = "Component Event Type",
 }
 
 export const enum FieldCategory {
@@ -216,6 +225,7 @@ export type WriterGraph = {
 		total: number;
 	};
 	type: "connector" | "manual";
+	organization_id?: string;
 };
 
 export type WriterApplication = {
@@ -223,4 +233,5 @@ export type WriterApplication = {
 	name: string;
 	type: string;
 	status: string;
+	organization_id?: string;
 };

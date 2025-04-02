@@ -5,12 +5,13 @@
 		role="button"
 		:style="style"
 	>
-		<slot></slot>
+		<WdsLoaderDots v-if="loading" />
+		<slot v-else></slot>
 	</button>
 </template>
 
 <script setup lang="ts">
-import { computed, CSSProperties, PropType } from "vue";
+import { computed, CSSProperties, defineAsyncComponent, PropType } from "vue";
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonVariant =
 	| "primary"
@@ -22,10 +23,15 @@ type WdsButtonVariant =
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
 type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 
+const WdsLoaderDots = defineAsyncComponent(
+	() => import("@/wds/WdsLoaderDots.vue"),
+);
+
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
+	loading: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
@@ -59,6 +65,9 @@ const className = computed(() => [
 	border-style: solid;
 	border-width: 1px;
 }
+.WdsButton:disabled {
+	cursor: not-allowed;
+}
 
 /* VARIANTS */
 
@@ -75,7 +84,8 @@ const className = computed(() => [
 	border-color: var(--intensifiedButtonColor);
 	background: var(--intensifiedButtonColor);
 }
-.WdsButton--primary:disabled {
+.WdsButton--primary:disabled,
+.WdsButton--primary[aria-disabled="true"] {
 	border-color: var(--wdsColorBlue6);
 	background-color: var(--wdsColorBlue6);
 	opacity: 40%;
@@ -94,7 +104,8 @@ const className = computed(() => [
 	border-color: var(--wdsColorGray6);
 	background: var(--wdsColorGray6);
 }
-.WdsButton--secondary:disabled {
+.WdsButton--secondary:disabled,
+.WdsButton--secondary[aria-disabled="true"] {
 	border-color: var(--wdsColorGray6);
 	background: var(--wdsColorGray6);
 	opacity: 40%;
@@ -112,7 +123,8 @@ const className = computed(() => [
 .WdsButton--tertiary:focus {
 	color: var(--wdsColorGray4);
 }
-.WdsButton--tertiary:disabled {
+.WdsButton--tertiary:disabled,
+.WdsButton--tertiary[aria-disabled="true"] {
 	color: var(--wdsColorGray4);
 	opacity: 50%;
 }
@@ -130,7 +142,8 @@ const className = computed(() => [
 	border-color: var(--wdsColorBlue3);
 	background: var(--wdsColorBlue3);
 }
-.WdsButton--special:disabled {
+.WdsButton--special:disabled,
+.WdsButton--special[aria-disabled="true"] {
 	border-color: var(--wdsColorBlue2);
 	background-color: var(--wdsColorBlue2);
 	opacity: 0.4;
@@ -155,7 +168,8 @@ const className = computed(() => [
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.WdsButton--neutral:disabled {
+.WdsButton--neutral:disabled,
+.WdsButton--neutral[aria-disabled="true"] {
 	opacity: 0.4;
 }
 

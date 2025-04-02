@@ -219,6 +219,24 @@ export function generateCore() {
 
 			if (
 				message.messageType == "announcement" &&
+				message.payload.type == "componentUpdate"
+			) {
+				const cmc = {};
+				Object.entries(components.value).forEach(
+					([componentId, component]) => {
+						if (!component.isCodeManaged) return;
+						cmc[componentId] = component;
+					},
+				);
+				components.value = {
+					...cmc,
+					...message.payload.payload,
+				};
+				return;
+			}
+
+			if (
+				message.messageType == "announcement" &&
 				message.payload.type == "mail"
 			) {
 				collateMail(message.payload.payload);

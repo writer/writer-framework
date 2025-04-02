@@ -9,6 +9,8 @@ export function useFocusWithin(
 ) {
 	const focus = ref(false);
 
+	const abort = new AbortController();
+
 	function onFocusIn() {
 		focus.value = true;
 	}
@@ -17,18 +19,22 @@ export function useFocusWithin(
 		const target = e.currentTarget as HTMLElement;
 		// If the document has lost focus, don't hide the container just yet, wait until the focus is returned.
 		if (!document.hasFocus()) {
-			window.addEventListener("focus", function focusReturn() {
-				// We want the listener to be triggered just once, so we have it remove itself from the `focus` event.
-				window.removeEventListener("focus", focusReturn);
+			window.addEventListener(
+				"focus",
+				function focusReturn() {
+					// We want the listener to be triggered just once, so we have it remove itself from the `focus` event.
+					window.removeEventListener("focus", focusReturn);
 
-				// Test whether the container is still in the DOM and whether the active element is contained within.
-				if (
-					target.isConnected &&
-					!target.contains(document.activeElement)
-				) {
-					focus.value = false;
-				}
-			});
+					// Test whether the container is still in the DOM and whether the active element is contained within.
+					if (
+						target.isConnected &&
+						!target.contains(document.activeElement)
+					) {
+						focus.value = false;
+					}
+				},
+				{ signal: abort.signal },
+			);
 		} else if (!target.contains(e.relatedTarget as HTMLElement)) {
 			focus.value = false;
 		}
@@ -42,13 +48,16 @@ export function useFocusWithin(
 
 		if (!element) return;
 
-		element.value.addEventListener("focusin", onFocusIn);
-		element.value.addEventListener("focusout", onFocusOut);
+		element.value.addEventListener("focusin", onFocusIn, {
+			signal: abort.signal,
+		});
+		element.value.addEventListener("focusout", onFocusOut, {
+			signal: abort.signal,
+		});
 	});
 
 	onBeforeUnmount(() => {
-		element.value.removeEventListener("focusin", onFocusIn);
-		element.value.removeEventListener("focusout", onFocusOut);
+		abort.abort();
 	});
 
 	return readonly(focus);

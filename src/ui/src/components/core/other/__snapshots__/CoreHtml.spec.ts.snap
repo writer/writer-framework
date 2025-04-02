@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CoreCheckboxInput > should filter invalid Attributes props 1`] = `
+exports[`CoreHtml > should filter invalid Attributes props 1`] = `
 <div
   class="CoreHTML"
   data-writer-container=""

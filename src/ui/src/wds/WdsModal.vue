@@ -9,25 +9,48 @@
 			}"
 			tabindex="-1"
 		>
-			<div class="main">
-				<div v-if="title || description" class="titleContainer">
+			<div class="WdsModal__main">
+				<WdsButton
+					v-if="displayCloseButton"
+					variant="neutral"
+					size="smallIcon"
+					class="WdsModal__main__closeBtn"
+					@click="$emit('close')"
+				>
+					<i class="material-symbols-outlined">close</i>
+				</WdsButton>
+				<div v-if="title || description" class="WdsModal__main__title">
 					<h2>{{ title }}</h2>
 					<summary v-if="description">
 						{{ description }}
 					</summary>
 				</div>
-				<div class="slotContainer"><slot></slot></div>
-				<div v-if="actions?.length > 0" class="actionContainer">
-					<WdsButton
-						v-for="(action, index) in actions"
-						:key="index"
-						:variant="
-							index == actions.length - 1 ? 'primary' : 'tertiary'
-						"
-						@click="action.fn"
+				<div class="WdsModal__main__content"><slot></slot></div>
+				<div
+					v-if="actions?.length > 0 || hint"
+					class="WdsModal__main__footer"
+				>
+					<p v-if="hint" class="WdsModal__main__footer__hint">
+						{{ hint }}
+					</p>
+					<div
+						v-if="actions?.length > 0"
+						class="WdsModal__main__footer__actions"
 					>
-						{{ action.desc }}
-					</WdsButton>
+						<WdsButton
+							v-for="(action, index) in actions"
+							:key="index"
+							:variant="
+								index == actions.length - 1
+									? 'primary'
+									: 'tertiary'
+							"
+							:disabled="action.disabled"
+							@click="action.fn"
+						>
+							{{ action.desc }}
+						</WdsButton>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -41,6 +64,8 @@ import { PropType, toRefs } from "vue";
 export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
+
+	disabled?: boolean;
 };
 
 const props = defineProps({
@@ -53,10 +78,16 @@ const props = defineProps({
 	description: { type: String, required: false, default: null },
 	actions: {
 		type: Array as PropType<ModalAction[]>,
-		required: true,
-		default: undefined,
+		required: false,
+		default: () => [],
 	},
 	allowOverflow: { type: Boolean, required: false },
+	displayCloseButton: { type: Boolean, required: false },
+	hint: { type: String, required: false, default: undefined },
+});
+
+defineEmits({
+	close: () => true,
 });
 
 const { title, actions } = toRefs(props);
@@ -74,7 +105,7 @@ const { title, actions } = toRefs(props);
 	justify-content: center;
 }
 
-.main {
+.WdsModal__main {
 	padding: 32px;
 	background: var(--wdsColorWhite);
 	width: 80%;
@@ -83,17 +114,49 @@ const { title, actions } = toRefs(props);
 	border-radius: 8px;
 	border: 1px solid var(--separatorColor);
 	box-shadow: 0px 3px 40px 0px rgba(172, 185, 220, 0.4);
+	position: relative;
 }
 
-.WdsModal--wide .main {
+.WdsModal--wide .WdsModal__main {
 	max-width: 240ch;
 }
 
-.WdsModal--overflow .main {
-	overflow-y: unset;
+.WdsModal--overflow .WdsModal__main {
+	overflow: unset;
 }
 
-h2 {
+.WdsModal__main__closeBtn {
+	position: absolute;
+	right: 8px;
+	top: 8px;
+}
+
+.WdsModal__main__footer {
+	margin-top: 32px;
+	display: flex;
+	align-items: center;
+}
+.WdsModal__main__footer__hint {
+	color: var(--wdsColorGray5);
+	font-size: 12px;
+	flex-grow: 1;
+}
+.WdsModal__main__footer__actions {
+	display: flex;
+	justify-content: right;
+	gap: 8px;
+}
+/* let action take full width to right align if hint is not present */
+.WdsModal__main__footer:has(:not(.WdsModal__main__footer__hint))
+	.WdsModal__main__footer__actions {
+	flex-grow: 1;
+}
+
+.WdsModal__main__title {
+	margin-bottom: 32px;
+}
+
+.WdsModal__main__title h2 {
 	margin: 0;
 	font-size: 24px;
 	font-style: normal;
@@ -101,30 +164,19 @@ h2 {
 	line-height: 160%;
 }
 
-summary {
+.WdsModal__main__title summary {
 	color: var(--secondaryTextColor);
 	font-size: 14px;
 	margin-top: 4px;
 	line-height: 180%;
 }
 
-.titleContainer {
-	margin-bottom: 32px;
-}
-
-.slotContainer {
+.WdsModal__main__content {
 	max-height: 60vh;
 	overflow-x: hidden;
 	overflow-y: auto;
 }
 .WdsModal--overflow .slotContainer {
 	overflow: unset;
-}
-
-.actionContainer {
-	display: flex;
-	justify-content: right;
-	margin-top: 32px;
-	gap: 8px;
 }
 </style>

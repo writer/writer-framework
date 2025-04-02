@@ -4,6 +4,10 @@
 			<span class="material-symbols-outlined">{{ icon }}</span>
 		</div>
 		<p>{{ message }}</p>
+		<button v-if="action" class="WdsToast__action" @click="action.func">
+			{{ action.label }}
+			<span class="material-symbols-outlined">{{ action.icon }}</span>
+		</button>
 		<WdsButton
 			v-if="closable"
 			class="WdsToast__close"
@@ -16,22 +20,20 @@
 	</div>
 </template>
 
-<script lang="ts">
-export type WdsToastData = {
-	type: "error" | "success" | "info";
-	message: string;
-	closable: boolean;
-};
-</script>
-
 <script setup lang="ts">
 import { computed, PropType } from "vue";
 import WdsButton from "./WdsButton.vue";
+import type { Toast, ToastAction } from "@/builder/useToast";
 
 const props = defineProps({
-	type: { type: String as PropType<WdsToastData["type"]>, required: true },
+	type: { type: String as PropType<Toast["type"]>, required: true },
 	message: { type: String, required: true },
 	closable: { type: Boolean },
+	action: {
+		type: Object as PropType<ToastAction>,
+		required: false,
+		default: undefined,
+	},
 });
 
 defineEmits({
@@ -78,6 +80,17 @@ const icon = computed(() => {
 	justify-content: center;
 
 	background-color: var(--wdsColorGreen3);
+}
+
+.WdsToast__action {
+	background-color: transparent;
+	border: none;
+	display: flex;
+	gap: 4px;
+	font-weight: 500;
+}
+.WdsToast__action:hover {
+	text-decoration: underline;
 }
 
 .WdsToast--success .WdsToast__icon {

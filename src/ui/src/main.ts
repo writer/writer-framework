@@ -44,7 +44,7 @@ async function load() {
 	app.mount("#app");
 }
 
-logger.log("Initialising Writer Framework core...");
+logger.log("Initialising core...");
 load()
 	.then(async () => {
 		logger.log("Core initialised.");

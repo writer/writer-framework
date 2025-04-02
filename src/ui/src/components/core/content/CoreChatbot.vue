@@ -279,6 +279,10 @@ export default {
 			"wf-chatbot-message": {
 				desc: "Triggered when the user sends a message.",
 				stub: chatbotMessageStub,
+				eventPayloadExample: {
+					role: "user",
+					content: "I'm building a Chatbot",
+				},
 			},
 			"wf-chatbot-action-click": {
 				desc: "Handle clicks on actions.",

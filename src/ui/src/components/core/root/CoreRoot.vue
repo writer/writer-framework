@@ -11,7 +11,22 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import * as sharedStyleFields from "@/renderer/sharedStyleFields";
+import {
+	cssClasses,
+	buttonColor,
+	buttonShadow,
+	accentColor,
+	contentPadding,
+	primaryTextColor,
+	buttonTextColor,
+	emptinessColor,
+	containerShadow,
+	secondaryTextColor,
+	separatorColor,
+	contentVAlign,
+	contentHAlign,
+	contentWidth,
+} from "@/renderer/sharedStyleFields";
 import { useEvaluator } from "@/renderer/useEvaluator";
 
 const ssHashChangeStub = `
@@ -70,7 +85,20 @@ export default {
 				type: FieldType.Text,
 				desc: "The app name will be shown in the browser's title bar.",
 			},
-			...sharedStyleFields,
+			cssClasses,
+			buttonColor,
+			buttonShadow,
+			accentColor,
+			contentPadding,
+			primaryTextColor,
+			buttonTextColor,
+			emptinessColor,
+			containerShadow,
+			secondaryTextColor,
+			separatorColor,
+			contentVAlign,
+			contentHAlign,
+			contentWidth,
 		},
 		events: {
 			"wf-app-open": {

@@ -11,7 +11,6 @@
 
 <script lang="ts">
 import {
-	accentColor,
 	baseYesNoField,
 	cssClasses,
 	secondaryTextColor,
@@ -82,7 +81,6 @@ const definition: WriterComponentDefinition = {
 			applyStyleVariable: true,
 			validator: validatorCssSize,
 		},
-		accentColor,
 		secondaryTextColor,
 		separatorColor,
 		cssClasses,

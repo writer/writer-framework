@@ -37,14 +37,14 @@
 				<i class="material-symbols-outlined"> mystery </i>
 				State Explorer
 			</button>
-			<BuilderModal
+			<WdsModal
 				v-if="isStateExplorerShown"
-				:close-action="customHandlerModalCloseAction"
-				icon="mystery"
-				modal-title="State Explorer"
+				title="State Explorer"
+				display-close-button
+				@close="isStateExplorerShown = false"
 			>
-				<BuilderStateExplorer></BuilderStateExplorer>
-			</BuilderModal>
+				<BuilderStateExplorer />
+			</WdsModal>
 		</div>
 		<div class="gap"></div>
 		<div
@@ -62,7 +62,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
-import BuilderModal, { ModalAction } from "./BuilderModal.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 
@@ -100,13 +100,6 @@ const syncHealthStatus = () => {
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
 }
-
-const customHandlerModalCloseAction: ModalAction = {
-	desc: "Close",
-	fn: () => {
-		isStateExplorerShown.value = false;
-	},
-};
 </script>
 
 <style scoped>

@@ -1,37 +1,29 @@
 <template>
 	<div class="SharedControlBar">
-		<button
+		<SharedButtonCopyClipboard
 			v-if="props.copyStructuredContent"
-			class="control-button"
-			@click="copyToClipboard({ text: props.copyStructuredContent })"
-		>
-			Copy JSON
-		</button>
-		<button
+			label="Copy JSON"
+			:content="props.copyStructuredContent"
+		/>
+		<SharedButtonCopyClipboard
 			v-if="props.copyRawContent"
-			class="control-button"
-			@click="copyToClipboard({ text: props.copyRawContent })"
-		>
-			Copy
-		</button>
+			label="Copy"
+			:content="props.copyRawContent"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { useLogger } from "@/composables/useLogger";
+import SharedButtonCopyClipboard from "./SharedButtonCopyClipboard.vue";
 
-const props = defineProps<{
-	copyRawContent?: string;
-	copyStructuredContent?: string;
-}>();
-
-function copyToClipboard({ text = "" }: { text?: string }) {
-	try {
-		navigator.clipboard.writeText(text);
-	} catch (error) {
-		useLogger().error(error);
-	}
-}
+const props = defineProps({
+	copyRawContent: { type: String, required: false, default: undefined },
+	copyStructuredContent: {
+		type: String,
+		required: false,
+		default: undefined,
+	},
+});
 </script>
 
 <style scoped>
@@ -41,19 +33,5 @@ function copyToClipboard({ text = "" }: { text?: string }) {
 	flex-direction: row;
 	justify-content: flex-end;
 	gap: 8px;
-}
-
-.control-button {
-	background-color: var(--buttonColor);
-	border: none;
-	border-radius: 8px;
-	color: white;
-	cursor: pointer;
-	font-size: 11px;
-	padding: 4px 8px;
-
-	&:hover {
-		opacity: 0.9;
-	}
 }
 </style>

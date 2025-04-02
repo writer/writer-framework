@@ -1,104 +1,119 @@
 <template>
 	<div class="BuilderLogWorkflowExecution">
-		<div
+		<BuilderListItem
 			v-for="(item, itemId) in enrichedExecutionLog.summary"
 			:key="itemId"
-			class="row"
+			:is-last="itemId + 1 === enrichedExecutionLog.summary.length"
 		>
-			<div class="marker top"></div>
-			<div class="marker bottom"></div>
 			<div
-				class="item"
+				class="itemWrapper"
 				:class="{
-					selected: wfbm.firstSelectedId.value == item.componentId,
+					'itemWrapper--first': itemId === 0,
+					'itemWrapper--last':
+						itemId + 1 === enrichedExecutionLog.summary.length,
 				}"
 			>
-				<div class="name">
-					<div v-if="item.component?.['content']?.['alias']">
-						<div class="eyebrow">
+				<div
+					class="item"
+					:class="{
+						selected: wfbm.isComponentIdSelected(item.componentId),
+					}"
+				>
+					<div class="name">
+						<div v-if="item.component?.['content']?.['alias']">
+							<div class="eyebrow">
+								{{
+									item.componentDef?.name ??
+									"Unavailable component"
+								}}
+							</div>
+							{{ item.component?.["content"]?.["alias"] }}
+						</div>
+						<template v-else>
 							{{
 								item.componentDef?.name ??
 								"Unavailable component"
 							}}
-						</div>
-						{{ item.component?.["content"]?.["alias"] }}
+						</template>
+						<WdsButton
+							v-if="item.component"
+							variant="neutral"
+							size="smallIcon"
+							data-writer-tooltip="Jump to this block"
+							@click="selectBlock(item.componentId)"
+						>
+							<i class="material-symbols-outlined"
+								>jump_to_element</i
+							>
+						</WdsButton>
 					</div>
-					<template v-else>
-						{{ item.componentDef?.name ?? "Unavailable component" }}
-					</template>
-					<WdsButton
-						v-if="item.component"
-						variant="neutral"
-						size="smallIcon"
-						data-writer-tooltip="Jump to this block"
-						@click="selectBlock(item.componentId)"
-					>
-						<i class="material-symbols-outlined">jump_to_element</i>
-					</WdsButton>
-				</div>
-				<div class="outcome">
-					<template v-if="item.outcome !== 'in_progress'">
-						<div
-							class="ball"
-							:class="
-								item.componentDef?.outs?.[item.outcome]?.style
+					<div class="outcome">
+						<template v-if="item.outcome !== 'in_progress'">
+							<div
+								class="ball"
+								:class="
+									item.componentDef?.outs?.[item.outcome]
+										?.style
+								"
+							></div>
+
+							{{
+								item.componentDef?.outs?.[item.outcome]?.name ??
+								item.outcome
+							}}
+						</template>
+						<template v-else>
+							<div class="ballContainer">
+								<div class="ball inProgress"></div>
+							</div>
+
+							In progress...
+						</template>
+					</div>
+					<div class="result">
+						<WdsModal
+							v-if="displayedItemId == itemId"
+							title="Trace"
+							size="wide"
+							:actions="[
+								{
+									desc: 'Done',
+									fn: () => (displayedItemId = null),
+								},
+							]"
+						>
+							<BuilderLogWorkflowExecutionTrace
+								:execution-item="item"
+								@close-modal="() => (displayedItemId = null)"
+							></BuilderLogWorkflowExecutionTrace>
+						</WdsModal>
+						<WdsButton
+							v-if="
+								item.result ||
+								item.returnValue ||
+								item.executionEnvironment
 							"
-						></div>
-
-						{{
-							item.componentDef?.outs?.[item.outcome]?.name ??
-							item.outcome
-						}}
-					</template>
-					<template v-else>
-						<div class="ballContainer">
-							<div class="ball inProgress"></div>
-						</div>
-
-						In progress...
-					</template>
+							variant="special"
+							size="small"
+							@click="() => (displayedItemId = itemId)"
+						>
+							<i class="material-symbols-outlined"
+								>find_in_page</i
+							>
+							Trace
+						</WdsButton>
+					</div>
+					<div class="time">
+						{{ formatExecutionTime(item.executionTimeInSeconds) }}
+					</div>
+					<div
+						v-if="item.message"
+						v-dompurify-html="marked.parse(item.message)"
+						class="message markdown"
+					></div>
 				</div>
-				<div class="result">
-					<WdsModal
-						v-if="displayedItemId == itemId"
-						title="Trace"
-						size="wide"
-						:actions="[
-							{
-								desc: 'Done',
-								fn: () => (displayedItemId = null),
-							},
-						]"
-					>
-						<BuilderLogWorkflowExecutionTrace
-							:execution-item="item"
-							@close-modal="() => (displayedItemId = null)"
-						></BuilderLogWorkflowExecutionTrace>
-					</WdsModal>
-					<WdsButton
-						v-if="
-							item.result ||
-							item.returnValue ||
-							item.executionEnvironment
-						"
-						variant="special"
-						size="small"
-						@click="() => (displayedItemId = itemId)"
-					>
-						<i class="material-symbols-outlined">find_in_page</i>
-						Trace
-					</WdsButton>
-				</div>
-				<div class="time">
-					{{ formatExecutionTime(item.executionTimeInSeconds) }}
-				</div>
-				<div
-					v-if="item.message"
-					v-dompurify-html="marked.parse(item.message)"
-					class="message markdown"
-				></div>
 			</div>
-		</div>
+		</BuilderListItem>
 	</div>
 </template>
 
@@ -112,6 +127,7 @@ import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderLogWorkflowExecutionTrace from "./BuilderLogWorkflowExecutionTrace.vue";
 import WdsModal from "@/wds/WdsModal.vue";
+import BuilderListItem from "../BuilderListItem.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -174,41 +190,21 @@ function formatExecutionTime(timeInSeconds: number): string {
 .BuilderLogWorkflowExecution {
 	display: flex;
 	flex-direction: column;
-	margin-left: 20px;
+	margin-left: 19px;
 }
 
-.row {
-	display: grid;
-	grid-template-columns: 20px 1fr;
-	grid-template-rows: calc(50% + 5px) 1fr;
+.itemWrapper {
+	margin-top: 6px;
+	margin-bottom: 6px;
 }
-
-.row .marker {
-	border-color: var(--builderSeparatorColor);
-	border-style: solid;
-	border-width: 0;
+.itemWrapper--first {
+	margin-top: 12px;
 }
-
-.row:not(:last-of-type) .marker.bottom {
-	border-left-width: 1px;
-}
-
-.row .marker.top {
-	grid-column: 1 / 2;
-	grid-row: 1 / 2;
-	border-left-width: 1px;
-	border-bottom-width: 1px;
-}
-
-.row .marker.bottom {
-	grid-column: 1 / 2;
-	grid-row: 2 / 3;
+.itemWrapper--last {
+	margin-bottom: unset;
 }
 
 .item {
-	margin-top: 10px;
-	grid-column: 2 / 3;
-	grid-row: 1 / 3;
 	display: grid;
 	grid-template-columns: 1fr 0.5fr 120px 80px;
 	grid-template-rows: 1fr auto;

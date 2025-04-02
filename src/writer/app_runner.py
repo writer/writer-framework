@@ -268,6 +268,7 @@ class AppProcess(multiprocessing.Process):
     def _handle_list_resources(
         self, session: WriterSession, req: ListResourcesRequestPayload
     ) -> AppProcessServerResponse:
+        organization_id = os.environ.get("WRITER_ORG_ID", None)
         if req.resource_type == "graphs":
             from writerai import APIConnectionError
 
@@ -276,7 +277,12 @@ class AppProcess(multiprocessing.Process):
             try:
                 graphs = list_graphs()
                 raw_graphs = [
-                    {"name": graph.name, "id": graph.id, "description": graph.description}
+                    {
+                        "name": graph.name,
+                        "id": graph.id,
+                        "description": graph.description,
+                        "organization_id": organization_id,
+                    }
                     for graph in graphs
                 ]
                 return AppProcessServerResponse(
@@ -293,7 +299,13 @@ class AppProcess(multiprocessing.Process):
             try:
                 applications = apps.list()
                 raw_apps = [
-                    {"name": app.name, "id": app.id, "type": app.type, "status": app.status}
+                    {
+                        "name": app.name,
+                        "id": app.id,
+                        "type": app.type,
+                        "status": app.status,
+                        "organization_id": organization_id,
+                    }
                     for app in applications
                 ]
                 return AppProcessServerResponse(
@@ -807,7 +819,7 @@ class AppRunner:
 
         if isinstance(content, str):
             mode = "w"
-            encoding = 'utf-8'
+            encoding = "utf-8"
         elif isinstance(content, bytes):
             mode = "wb"
             encoding = None
@@ -1054,6 +1066,14 @@ class AppRunner:
         self._start_app_process()
         self.is_app_process_server_ready.wait()
         self.queue_announcement("codeUpdate", None)
+
+    async def queue_announcement_async(
+        self, type, payload, exclude_session_id: Optional[str] = None
+    ):
+        for session_id, announcement_queue in self.announcement_queues.items():
+            if session_id == exclude_session_id:
+                continue
+            await announcement_queue.put({"type": type, "payload": payload})
 
     def queue_announcement(self, type, payload):
         async def announce(type: str, payload: Any):

@@ -30,7 +30,7 @@
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
-					:is-expansible="fieldValue.type == FieldType.Code"
+					:is-expansible="isExpansible(fieldValue)"
 					@expand="handleExpand(fieldKey)"
 					@shrink="handleShrink(fieldKey)"
 				>
@@ -157,6 +157,18 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="application"
 					/>
+					<BuilderFieldsComponentId
+						v-if="fieldValue.type == FieldType.ComponentId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+					/>
+					<BuilderFieldsComponentEventType
+						v-if="fieldValue.type == FieldType.ComponentEventType"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+					/>
 				</WdsFieldWrapper>
 			</div>
 		</div>
@@ -167,7 +179,13 @@
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { parseInstancePathString } from "@/renderer/instancePath";
-import { FieldCategory, FieldType, InstancePath } from "@/writerTypes";
+import {
+	FieldCategory,
+	FieldControl,
+	FieldType,
+	InstancePath,
+	WriterComponentDefinitionField,
+} from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsColor from "./BuilderFieldsColor.vue";
 import BuilderFieldsKeyValue from "./BuilderFieldsKeyValue.vue";
@@ -182,6 +200,8 @@ import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
+import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
+import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
@@ -204,6 +224,14 @@ const componentDefinition = computed(() => {
 const fields = computed(() => {
 	return componentDefinition.value?.fields;
 });
+
+function isExpansible(field: WriterComponentDefinitionField) {
+	return (
+		field.type === FieldType.Code ||
+		field.type === FieldType.Object ||
+		field.control === FieldControl.Textarea
+	);
+}
 
 const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
 

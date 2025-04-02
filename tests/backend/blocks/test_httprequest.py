@@ -5,6 +5,13 @@ import requests
 from writer.blocks.httprequest import HTTPRequest
 
 
+class FakeRequest:
+    def __init__(self):
+        self.body = "requestbody"
+        self.headers = {"Content-Type": "application/fake"}
+        self.url = "https://www.example.com"
+
+
 class FakeResponse:
     def __init__(self, status_code=200, ok=True, headers={}, text=None):
         self.status_code = status_code
@@ -12,6 +19,7 @@ class FakeResponse:
         self.headers = headers
         self.text = text
         self.json = lambda: json.loads(text)
+        self.request = FakeRequest()
 
 
 def fake_request(method, url, headers={}, data=""):
