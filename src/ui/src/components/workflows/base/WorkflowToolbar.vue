@@ -83,7 +83,7 @@ async function runWorkflow(componentId?: string) {
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
 			</WdsButton>
-			<template v-if="triggerComponents.length > 1">
+			<template v-if="triggerComponents.length > 0">
 				<hr class="WorkflowToolbar__btn__divider" />
 				<WdsButton
 					class="WorkflowToolbar__btn__dropdownTrigger"
