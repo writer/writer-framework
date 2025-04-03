@@ -16,40 +16,92 @@
 		<template #default>
 			<BuilderEmbeddedCodeEditor
 				v-if="mode === 'freehand'"
+				v-model="freehandValue"
+				class="BuilderFieldsKeyValueModal__freehand"
 				variant="minimal"
-				:model-value="draftStr"
 				language="json"
 			/>
-			<BuilderFieldsKeyValueEditor
+
+			<div
 				v-if="mode === 'assisted'"
-				v-model="draft"
-			/>
+				class="BuilderFieldsKeyValueModal__assistedEntries"
+			>
+				<div
+					v-if="mode === 'assisted'"
+					class="BuilderFieldsKeyValueModal__assistedEntries__form"
+				>
+					<p
+						class="BuilderFieldsKeyValueModal__assistedEntries__form__labelKey"
+					>
+						Key
+					</p>
+					<p
+						class="BuilderFieldsKeyValueModal__assistedEntries__form__labelValue"
+					>
+						Value
+					</p>
+					<template v-for="(entry, id) of assistedEntries" :key="id">
+						<WdsFieldWrapper :error="getAssistedEntryError(id)">
+							<WdsTextInput
+								:model-value="entry.key"
+								:invalid="
+									getAssistedEntryError(id) !== undefined
+								"
+								@update:model-value="
+									updateAssistedEntryKey(id, $event)
+								"
+							/>
+						</WdsFieldWrapper>
+						<WdsFieldWrapper>
+							<WdsTextInput
+								:model-value="entry.value"
+								@update:model-value="
+									updateAssistedEntryValue(id, $event)
+								"
+							/>
+						</WdsFieldWrapper>
+						<div>
+							<WdsButton
+								variant="neutral"
+								size="smallIcon"
+								class="BuilderFieldsKeyValueModal__assistedEntries__form__deleteBtn"
+								@click="removeAssistedEntry(id)"
+							>
+								<span class="material-symbols-outlined"
+									>delete</span
+								>
+							</WdsButton>
+						</div>
+					</template>
+				</div>
+
+				<WdsButton
+					variant="special"
+					size="small"
+					@click="addAssistedEntry"
+					><span class="material-symbols-outlined">add</span>Add a
+					pair</WdsButton
+				>
+			</div>
 		</template>
 	</WdsModal>
 </template>
 
 <script setup lang="ts">
-import {
-	PropType,
-	Ref,
-	computed,
-	defineAsyncComponent,
-	ref,
-	toRef,
-	watch,
-} from "vue";
+import { PropType, computed, defineAsyncComponent } from "vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import type { JSONValue } from "./BuilderFieldsKeyValue.vue";
-import BuilderFieldsKeyValueEditor from "./BuilderFieldsKeyValueEditor.vue";
+import WdsButton from "@/wds/WdsButton.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
+import { Mode, useKeyValueEditor } from "./composables/useKeyValueEditor";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
-
-type Mode = "assisted" | "freehand";
 
 const props = defineProps({
 	data: {
@@ -58,34 +110,63 @@ const props = defineProps({
 	},
 });
 
+const {
+	mode,
+	assistedEntries,
+	freehandValue,
+	isValid,
+	currentValue,
+	addAssistedEntry,
+	updateAssistedEntryValue,
+	updateAssistedEntryKey,
+	removeAssistedEntry,
+	getAssistedEntryError,
+} = useKeyValueEditor(props.data);
+
 const emits = defineEmits({
 	submit: (data: JSONValue) => typeof data === "object" && data !== undefined,
 	close: () => true,
 });
 
-const draft = ref(props.data);
-
-watch(toRef(props, "data"), (newValue) => (draft.value = newValue));
-
-const draftStr = computed(() => JSON.stringify(draft.value, undefined, 2));
-
 const actions = computed<ModalAction[]>(() => [
 	{
 		desc: "Save",
-		fn: () => emits("submit", draft.value),
-		disabled: JSON.stringify(props.data) === draftStr.value,
+		fn: () => emits("submit", currentValue.value),
+		disabled:
+			JSON.stringify(props.data) === JSON.stringify(currentValue.value) ||
+			!isValid.value,
 	},
 ]);
 
-const mode: Ref<Mode> = ref("assisted");
-
 const tabs: WdsTabOptions<Mode>[] = [
-	{ label: "Static List", value: "assisted" },
+	{ label: "List", value: "assisted" },
 	{ label: "JSON", value: "freehand" },
 ];
 </script>
 
 <style scoped>
-.BuilderFieldsKeyValueModal__assisted {
+.BuilderFieldsKeyValueModal__freehand {
+	border: 1px solid var(--separatorColor);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.BuilderFieldsKeyValueModal__assistedEntries__form {
+	display: grid;
+	grid-template-columns: 1fr 1fr auto;
+	align-items: flex-start;
+	gap: 10px;
+	margin-bottom: 22px;
+}
+
+.BuilderFieldsKeyValueModal__assistedEntries__form__deleteBtn {
+	margin-top: 4px;
+}
+.BuilderFieldsKeyValueModal__assistedEntries__form__labelKey {
+	grid-column-start: 1;
+}
+.BuilderFieldsKeyValueModal__assistedEntries__form__labelValue {
+	grid-column-start: 2;
+	grid-column-end: -1;
 }
 </style>

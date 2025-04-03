@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="rootEl"
-		class="BuilderFieldsOptions"
+		class="BuilderFieldsKeyValue"
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
@@ -16,7 +16,32 @@
 			@close="isModalOpen = false"
 		/>
 
-		<p>{{ evaluatedValue }}</p>
+		<div
+			v-if="Object.keys(evaluatedValue).length === 0"
+			class="BuilderFieldsKeyValue__listEmpty"
+		>
+			<p>There are no key value categories defined</p>
+			<WdsButton
+				variant="special"
+				size="small"
+				@click="isModalOpen = true"
+			>
+				<i class="material-symbols-outlined">keyboard_backspace</i>
+				Edit
+			</WdsButton>
+		</div>
+		<ul v-else class="BuilderFieldsKeyValue__list">
+			<li
+				v-for="(value, key) of evaluatedValue"
+				:key
+				class="BuilderFieldsKeyValue__list__item"
+			>
+				<p class="BuilderFieldsKeyValue__list__item__key">{{ key }}</p>
+				<p class="BuilderFieldsKeyValue__list__item__value">
+					{{ value }}
+				</p>
+			</li>
+		</ul>
 	</div>
 </template>
 
@@ -68,49 +93,42 @@ const evaluatedValue = computed<JSONValue>(
 </script>
 
 <style scoped>
-@import "../sharedStyles.css";
-
-.BuilderFieldsOptions__tabs {
-	margin-bottom: 8px;
-}
-
-.staticList {
-	padding: 8.5px 12px 8.5px 12px;
-	border: 1px solid var(--builderSeparatorColor);
+.BuilderFieldsKeyValue__listEmpty,
+.BuilderFieldsKeyValue__list {
+	border: 1px solid var(--separatorColor);
 	border-radius: 8px;
-}
-.staticList--invalid {
-	border-color: var(--wdsColorOrange5);
+	list-style: none;
 }
 
-.staticList:empty::before {
-	content: "No entries yet.";
+.BuilderFieldsKeyValue__list__item {
+	padding: 12px;
 }
 
-.staticList .entry {
+.BuilderFieldsKeyValue__list__item:not(:last-child) {
+	border-bottom: 1px solid var(--separatorColor);
+}
+
+.BuilderFieldsKeyValue__list__item__key {
+	font-size: 12px;
+	color: var(--wdsColorGray4);
+}
+
+.BuilderFieldsKeyValue__list__item__value {
+	font-size: 12px;
+}
+
+.BuilderFieldsKeyValue__listEmpty {
+	height: 150px;
+	padding: 12px;
+	gap: 18px;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 8px;
-	width: 100%;
-	max-width: 100%;
+	justify-content: center;
 }
-
-.staticList .entry div {
-	overflow: hidden;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	flex: 1 1 auto;
-}
-
-.staticList .entry button {
-	flex: 0 0 auto;
-}
-
-.formAdd {
-	margin-top: 8px;
-}
-
-.BuilderTemplateInput {
-	margin-bottom: 8px;
+.BuilderFieldsKeyValue__listEmpty p {
+	text-align: center;
+	color: var(--wdsColorGray4);
+	text-wrap: pretty;
 }
 </style>
