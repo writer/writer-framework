@@ -89,10 +89,9 @@ const isBindable = computed(() =>
 @import "../sharedStyles.css";
 
 .BuilderSettingsMain__description {
-	padding-left: 24px;
-	padding-right: 24px;
-	padding-top: 24px;
+	padding: 24px;
 	font-size: 14px;
+	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 
 .sections {
