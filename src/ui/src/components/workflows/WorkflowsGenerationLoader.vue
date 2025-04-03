@@ -4,7 +4,11 @@
 			<img src="../../assets/logo.svg" alt="Writer Framework logo" />
 			<WdsLoaderDots class="dot-loader" color="black" />
 			<div class="rotating-text">
-				<span v-for="(text, index) in texts" :key="index" :class="{ active: currentTextIndex === index }">
+				<span
+					v-for="(text, index) in texts"
+					:key="index"
+					:class="{ active: currentTextIndex === index }"
+				>
 					{{ text }}
 				</span>
 			</div>
@@ -18,11 +22,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref } from "vue";
 import WdsLoaderDots from "@/wds/WdsLoaderDots.vue";
-import RotatingCircle from './RotatingCircle.vue';
+import RotatingCircle from "./RotatingCircle.vue";
 
-const texts = ['Analyzing requirements', 'Shopping for blocks', 'Connecting the dots', 'Wiring the circuits', 'Flipping the switches'];
+const texts = [
+	"Analyzing requirements",
+	"Shopping for blocks",
+	"Connecting the dots",
+	"Wiring the circuits",
+	"Flipping the switches",
+];
 const currentTextIndex = ref(0);
 
 const TEXT_CHANGE_INTERVAL = 4000;
