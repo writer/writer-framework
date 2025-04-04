@@ -50,8 +50,18 @@
 				:key
 				class="BuilderFieldsKeyValue__list__item"
 			>
-				<p class="BuilderFieldsKeyValue__list__item__key">{{ key }}</p>
-				<p class="BuilderFieldsKeyValue__list__item__value">
+				<p
+					class="BuilderFieldsKeyValue__list__item__key"
+					:data-writer-tooltip="key"
+					data-writer-tooltip-strategy="overflow"
+				>
+					{{ key }}
+				</p>
+				<p
+					class="BuilderFieldsKeyValue__list__item__value"
+					:data-writer-tooltip="value"
+					data-writer-tooltip-strategy="overflow"
+				>
 					{{ value || "\<empty value\>" }}
 				</p>
 			</li>
@@ -142,13 +152,17 @@ const evaluatedValue = computed<JSONValue>(
 	border-bottom: 1px solid var(--separatorColor);
 }
 
+.BuilderFieldsKeyValue__list__item__key,
+.BuilderFieldsKeyValue__list__item__value {
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
 .BuilderFieldsKeyValue__list__item__key {
 	font-size: 12px;
 	color: var(--wdsColorGray4);
-}
-
-.BuilderFieldsKeyValue__list__item__value {
-	font-size: 12px;
 }
 
 .BuilderFieldsKeyValue__listEmpty {
