@@ -1,9 +1,9 @@
 from typing import Dict, List
 
 import pytest
+from writer.blueprints import BlueprintRunner
 from writer.core import WriterSession, WriterState
 from writer.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
-from writer.blueprints import BlueprintRunner
 
 
 class BlockTesterMockSession(WriterSession):

@@ -47,10 +47,10 @@ import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
+    BlueprintExecutionLog,
     InstancePath,
     Readable,
     ServeMode,
-    BlueprintExecutionLog,
     WriterEvent,
     WriterEventResult,
     WriterFileItem,

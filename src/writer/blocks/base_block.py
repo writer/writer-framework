@@ -5,9 +5,9 @@ import writer.evaluator
 from writer.ss_types import WriterConfigurationError
 
 if TYPE_CHECKING:
+    from writer.blueprints import BlueprintRunner
     from writer.core_ui import Component
     from writer.ss_types import InstancePath
-    from writer.blueprints import BlueprintRunner
 
 BlueprintBlock_T = Type["BlueprintBlock"]
 block_map: Dict[str, BlueprintBlock_T] = {}
