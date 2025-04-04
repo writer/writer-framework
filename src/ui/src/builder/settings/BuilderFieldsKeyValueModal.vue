@@ -42,20 +42,20 @@
 					</p>
 					<template v-for="(entry, id) of assistedEntries" :key="id">
 						<WdsFieldWrapper :error="getAssistedEntryError(id)">
-							<WdsTextInput
-								:model-value="entry.key"
-								:invalid="
-									getAssistedEntryError(id) !== undefined
-								"
-								@update:model-value="
+							<BuilderTemplateInput
+								placeholder="Type a key..."
+								:value="entry.key"
+								:error="getAssistedEntryError(id)"
+								@update:value="
 									updateAssistedEntryKey(id, $event)
 								"
 							/>
 						</WdsFieldWrapper>
 						<WdsFieldWrapper>
-							<WdsTextInput
-								:model-value="entry.value"
-								@update:model-value="
+							<BuilderTemplateInput
+								placeholder="Type a value..."
+								:value="entry.value"
+								@update:value="
 									updateAssistedEntryValue(id, $event)
 								"
 							/>
@@ -95,8 +95,8 @@ import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import type { JSONValue } from "./BuilderFieldsKeyValue.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import WdsTextInput from "@/wds/WdsTextInput.vue";
 import { Mode, useKeyValueEditor } from "./composables/useKeyValueEditor";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
