@@ -1,16 +1,16 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class LogMessage(WorkflowBlock):
+class LogMessage(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(LogMessage, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Log message",
                     "description": "Prints a message to the console for debugging or monitoring app flow.",
@@ -32,7 +32,7 @@ class LogMessage(WorkflowBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The workflow was executed successfully.",
+                            "description": "The blueprint was executed successfully.",
                             "style": "error",
                         },
                     },
@@ -45,7 +45,7 @@ class LogMessage(WorkflowBlock):
             type = self._get_field("type", False, "info")
             message = str(self._get_field("message", required=True))
 
-            self.runner.session.session_state.add_log_entry(type, "Workflows message", message)
+            self.runner.session.session_state.add_log_entry(type, "Blueprints message", message)
             self.result = message
             self.outcome = "success"
         except BaseException as e:

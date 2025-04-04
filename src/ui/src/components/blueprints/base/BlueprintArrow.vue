@@ -1,6 +1,6 @@
 <template>
 	<g
-		class="WorkflowArrow"
+		class="BlueprintArrow"
 		tabindex="0"
 		data-writer-unselectable="true"
 		:class="{ engaged: isEngaged }"
@@ -47,13 +47,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { type WorkflowArrowData } from "../WorkflowsWorkflow.vue";
+import { type BlueprintArrowData } from "../BlueprintsBlueprint.vue";
 
 const PROTRUSION_LENGTH = 30;
 const emit = defineEmits(["delete"]);
 
 const props = defineProps<{
-	arrow: WorkflowArrowData;
+	arrow: BlueprintArrowData;
 	isSelected: boolean;
 	isEngaged: boolean;
 }>();
@@ -105,12 +105,12 @@ function handleDeleteClick() {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.WorkflowArrow {
+.BlueprintArrow {
 	filter: saturate(100%);
 	transition: 0.2s filter ease-in-out;
 }
 
-.WorkflowArrow:not(.engaged):not(:hover) {
+.BlueprintArrow:not(.engaged):not(:hover) {
 	filter: saturate(0%);
 }
 

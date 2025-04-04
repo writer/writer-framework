@@ -1,10 +1,10 @@
 import { test, expect, Locator } from "@playwright/test";
 
-test.describe("Workflows", () => {
+test.describe("Blueprints", () => {
 	let url: string;
 
 	test.beforeAll(async ({ request }) => {
-		const response = await request.post(`/preset/workflows`);
+		const response = await request.post(`/preset/blueprints`);
 		expect(response.ok()).toBeTruthy();
 		({ url } = await response.json());
 	});
@@ -23,7 +23,7 @@ test.describe("Workflows", () => {
 	];
 
 	for (const { object, color } of inputData) {
-		test(`Test context and payload in Workflows for ${object} ${color}`, async ({
+		test(`Test context and payload in Blueprints for ${object} ${color}`, async ({
 			page,
 		}) => {
 			await page.getByPlaceholder(object).fill(color);
@@ -53,41 +53,41 @@ test.describe("Workflows", () => {
 		});
 	}
 
-	test("Create workflow and run workflow repeat_payload from it", async ({
+	test("Create blueprint and run blueprint repeat_payload from it", async ({
 		page,
 	}) => {
-		await page.locator(`[data-automation-action="set-mode-workflows"]`).click();
-		await page.locator(`[data-automation-action="add-workflow"]`).click();
+		await page.locator(`[data-automation-action="set-mode-blueprints"]`).click();
+		await page.locator(`[data-automation-action="add-blueprint"]`).click();
 
 		await page
 			.locator(
-				`.BuilderSidebarToolkit [data-component-type="workflows_runworkflow"]`,
+				`.BuilderSidebarToolkit [data-component-type="blueprints_runblueprint"]`,
 			)
-			.dragTo(page.locator(".WorkflowsWorkflow"), {
+			.dragTo(page.locator(".BlueprintsBlueprint"), {
 				targetPosition: { x: 100, y: 100 },
 			});
-		const runWorkflowBlock = page.locator(
-			`.WorkflowsNode.wf-type-workflows_runworkflow`,
+		const runBlueprintBlock = page.locator(
+			`.BlueprintsNode.wf-type-blueprints_runblueprint`,
 		);
 
 		await page
 			.locator(
-				`.BuilderSidebarToolkit [data-component-type="workflows_returnvalue"]`,
+				`.BuilderSidebarToolkit [data-component-type="blueprints_returnvalue"]`,
 			)
-			.dragTo(page.locator(".WorkflowsWorkflow"), {
+			.dragTo(page.locator(".BlueprintsBlueprint"), {
 				targetPosition: { x: 400, y: 100 },
 			});
 		const returnValueBlock = page.locator(
-			`.WorkflowsNode.wf-type-workflows_returnvalue`,
+			`.BlueprintsNode.wf-type-blueprints_returnvalue`,
 		);
 
-		await runWorkflowBlock.click();
+		await runBlueprintBlock.click();
 		await page
-			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)
+			.locator(`.BuilderFieldsBlueprintKey[data-automation-key="blueprintKey"]`)
 			.locator(".BuilderSelect__trigger")
 			.click();
 		await page
-			.locator(`.BuilderFieldsWorkflowKey[data-automation-key="workflowKey"]`)
+			.locator(`.BuilderFieldsBlueprintKey[data-automation-key="blueprintKey"]`)
 			.locator('button[data-automation-key="repeat_payload"]')
 			.click();
 		const payload = "blue";
@@ -96,14 +96,14 @@ test.describe("Workflows", () => {
 			.fill(payload);
 		await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
-		await runWorkflowBlock.locator(".ball.success").dragTo(returnValueBlock);
+		await runBlueprintBlock.locator(".ball.success").dragTo(returnValueBlock);
 
 		await returnValueBlock.click();
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="value"] textarea`)
 			.fill("@{result}");
 
-		await page.locator(`[data-automation-action="run-workflow"]`).click();
+		await page.locator(`[data-automation-action="run-blueprint"]`).click();
 
 		await page
 			.locator(
@@ -127,43 +127,43 @@ test.describe("Workflows", () => {
 	});
 
 	test.describe("multiple selection", () => {
-		let runWorkflowBlock: Locator;
+		let runBlueprintBlock: Locator;
 		let returnValueBlock: Locator;
 
 		test.beforeEach(async ({ page }) => {
 			await page
-				.locator(`[data-automation-action="set-mode-workflows"]`)
+				.locator(`[data-automation-action="set-mode-blueprints"]`)
 				.click();
-			await page.locator(`[data-automation-action="add-workflow"]`).click();
+			await page.locator(`[data-automation-action="add-blueprint"]`).click();
 
 			await page
 				.locator(
-					`.BuilderSidebarToolkit [data-component-type="workflows_runworkflow"]`,
+					`.BuilderSidebarToolkit [data-component-type="blueprints_runblueprint"]`,
 				)
-				.dragTo(page.locator(".WorkflowsWorkflow"), {
+				.dragTo(page.locator(".BlueprintsBlueprint"), {
 					targetPosition: { x: 100, y: 100 },
 				});
-			runWorkflowBlock = page.locator(
-				`.WorkflowsNode.wf-type-workflows_runworkflow`,
+			runBlueprintBlock = page.locator(
+				`.BlueprintsNode.wf-type-blueprints_runblueprint`,
 			);
 
 			await page
 				.locator(
-					`.BuilderSidebarToolkit [data-component-type="workflows_returnvalue"]`,
+					`.BuilderSidebarToolkit [data-component-type="blueprints_returnvalue"]`,
 				)
-				.dragTo(page.locator(".WorkflowsWorkflow"), {
+				.dragTo(page.locator(".BlueprintsBlueprint"), {
 					targetPosition: { x: 400, y: 100 },
 				});
 			returnValueBlock = page.locator(
-				`.WorkflowsNode.wf-type-workflows_returnvalue`,
+				`.BlueprintsNode.wf-type-blueprints_returnvalue`,
 			);
 
-			await expect(page.locator(`.WorkflowsNode`)).toHaveCount(2);
+			await expect(page.locator(`.BlueprintsNode`)).toHaveCount(2);
 
-			await runWorkflowBlock.click();
+			await runBlueprintBlock.click();
 			await returnValueBlock.click({ modifiers: ["Shift"] });
 
-			await expect(page.locator(`.WorkflowsNode.selected`)).toHaveCount(2);
+			await expect(page.locator(`.BlueprintsNode.selected`)).toHaveCount(2);
 		});
 
 		test("clear selection", async ({ page }) => {
@@ -173,7 +173,7 @@ test.describe("Workflows", () => {
 				)
 				.click();
 
-			await expect(page.locator(`.WorkflowsNode.selected`)).toHaveCount(0);
+			await expect(page.locator(`.BlueprintsNode.selected`)).toHaveCount(0);
 		});
 
 		test("remove multiple elements", async ({ page }) => {
@@ -181,19 +181,19 @@ test.describe("Workflows", () => {
 				.locator('.BuilderSettingsActions [data-automation-action="delete"]')
 				.click();
 
-			await expect(page.locator(`.WorkflowsNode`)).toHaveCount(0);
+			await expect(page.locator(`.BlueprintsNode`)).toHaveCount(0);
 		});
 
 		test("drag multiple elements", async ({ page }) => {
 			const returnValueBlockBoundingBefore =
 				await returnValueBlock.boundingBox();
 
-			await runWorkflowBlock.click();
+			await runBlueprintBlock.click();
 			await returnValueBlock.click({ modifiers: ["Shift"] });
 
-			await expect(page.locator(`.WorkflowsNode.selected`)).toHaveCount(2);
+			await expect(page.locator(`.BlueprintsNode.selected`)).toHaveCount(2);
 
-			await runWorkflowBlock.dragTo(page.locator(".WorkflowsWorkflow"), {
+			await runBlueprintBlock.dragTo(page.locator(".BlueprintsBlueprint"), {
 				targetPosition: { x: 110, y: 110 },
 			});
 

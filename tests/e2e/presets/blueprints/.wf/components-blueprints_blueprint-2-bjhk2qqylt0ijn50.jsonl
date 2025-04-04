@@ -1,3 +1,3 @@
-{"id": "bjhk2qqylt0ijn50", "type": "workflows_workflow", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 2}
-{"id": "60xs6i5w0ckdiymh", "type": "workflows_runworkflow", "content": {"payload": "blue", "workflowKey": "repeat_payload"}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "htzhnqlqe1u02l3o", "outId": "success"}], "parentId": "bjhk2qqylt0ijn50", "position": 0, "x": 244, "y": 282}
-{"id": "htzhnqlqe1u02l3o", "type": "workflows_returnvalue", "content": {"value": "@{result}"}, "handlers": {}, "isCodeManaged": false, "parentId": "bjhk2qqylt0ijn50", "position": 1, "x": 622, "y": 287}
+{"id": "bjhk2qqylt0ijn50", "type": "blueprints_blueprint", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "blueprints_root", "position": 2}
+{"id": "60xs6i5w0ckdiymh", "type": "blueprints_runblueprint", "content": {"payload": "blue", "blueprintKey": "repeat_payload"}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "htzhnqlqe1u02l3o", "outId": "success"}], "parentId": "bjhk2qqylt0ijn50", "position": 0, "x": 244, "y": 282}
+{"id": "htzhnqlqe1u02l3o", "type": "blueprints_returnvalue", "content": {"value": "@{result}"}, "handlers": {}, "isCodeManaged": false, "parentId": "bjhk2qqylt0ijn50", "position": 1, "x": 622, "y": 287}

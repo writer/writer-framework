@@ -30,7 +30,7 @@ function getAllowedSet(
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
 	const supportedTypes = getSupportedComponentTypes().filter(
-		(t) => t !== "root" && t !== "workflows_root",
+		(t) => t !== "root" && t !== "blueprints_root",
 	);
 	const { allowedChildrenTypes, toolkit } = getComponentDefinition(type);
 	if (!allowedChildrenTypes) return new Set([]);

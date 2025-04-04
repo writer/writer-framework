@@ -1,17 +1,17 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x-004"
 
-class WriterToolCalling(WorkflowBlock):
+class WriterToolCalling(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterToolCalling, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Tool calling",
                     "description": "Connects the Agent to external tools to complete tasks it cannot handle directly.",
@@ -68,7 +68,7 @@ class WriterToolCalling(WorkflowBlock):
                     self.component.id,
                     f"tools_{tool_name}",
                     expanded_execution_environment,
-                    f"Workflow branch execution (tool {tool_name})",
+                    f"Blueprint branch execution (tool {tool_name})",
                 )
             )
             if return_value is None:

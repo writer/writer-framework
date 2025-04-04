@@ -216,17 +216,17 @@ class TestServe:
                 "Content-Type": "application/json"
             })
             feature_flags = res.json().get("featureFlags")
-            assert feature_flags == ["workflows", "flag_one", "flag_two"]
+            assert feature_flags == ["blueprints", "flag_one", "flag_two"]
 
-    def test_create_workflow_job_api(self, monkeypatch):
+    def test_create_blueprint_job_api(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        workflow_key = "workflow2"
+        blueprint_key = "blueprint2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"create_job_{workflow_key}")
-            res = client.post(f"/api/job/workflow/{workflow_key}", json={
+            create_job_token = crypto.get_hash(f"create_job_{blueprint_key}")
+            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
                 "proposedSessionId": None
             }, headers={
                 "Content-Type": "application/json",
@@ -240,15 +240,15 @@ class TestServe:
             })
             assert res.json().get("result") == "987127"
 
-    def test_create_workflow_job_api_incorrect_token(self, monkeypatch):
+    def test_create_blueprint_job_api_incorrect_token(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        workflow_key = "workflow2"
+        blueprint_key = "blueprint2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
             create_job_token = crypto.get_hash("not_the_right_message")
-            res = client.post(f"/api/job/workflow/{workflow_key}", json={
+            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
                 "proposedSessionId": None
             }, headers={
                 "Content-Type": "application/json",
@@ -256,15 +256,15 @@ class TestServe:
             })
             assert res.status_code == 403
 
-    def test_create_workflow_job_api_incorrect_token_for_get(self, monkeypatch):
+    def test_create_blueprint_job_api_incorrect_token_for_get(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        workflow_key = "workflow2"
+        blueprint_key = "blueprint2"
         
         with fastapi.testclient.TestClient(asgi_app) as client:
             create_job_token = crypto.get_hash("not_the_right_message")
-            res = client.post(f"/api/job/workflow/{workflow_key}", json={
+            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
                 "proposedSessionId": None
             }, headers={
                 "Content-Type": "application/json",
@@ -279,10 +279,10 @@ class TestServe:
             assert res.status_code == 403
 
 
-    def test_create_workflow_job_api_custom_job_vault(self, monkeypatch):
+    def test_create_blueprint_job_api_custom_job_vault(self, monkeypatch):
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         monkeypatch.setenv("WRITER_PERSISTENT_STORE", "testjobvault://doesn'tmatter")
-        workflow_key = "workflow2"
+        blueprint_key = "blueprint2"
 
         class TestJobVault(writer.serve.JobVault):
             SCHEMES = ["testjobvault://"]
@@ -296,8 +296,8 @@ class TestServe:
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
         with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"create_job_{workflow_key}")
-            res = client.post(f"/api/job/workflow/{workflow_key}", json={
+            create_job_token = crypto.get_hash(f"create_job_{blueprint_key}")
+            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
                 "proposedSessionId": None
             }, headers={
                 "Content-Type": "application/json",

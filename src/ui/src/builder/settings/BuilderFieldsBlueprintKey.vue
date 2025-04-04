@@ -1,12 +1,12 @@
 <template>
-	<div class="BuilderFieldsWorkflowKey" :data-automation-key="props.fieldKey">
-		<BuilderSelect v-model="selectedWorkflowKey" :options="options" />
+	<div class="BuilderFieldsBlueprintKey" :data-automation-key="props.fieldKey">
+		<BuilderSelect v-model="selectedBlueprintKey" :options="options" />
 		<WdsButton
-			v-if="selectedWorkflowComponentId"
+			v-if="selectedBlueprintComponentId"
 			variant="neutral"
 			size="smallIcon"
-			data-writer-tooltip="Jump to the workflow"
-			@click="jumpToWorkflow"
+			data-writer-tooltip="Jump to the blueprint"
+			@click="jumpToBlueprint"
 		>
 			<i class="material-symbols-outlined">jump_to_element</i>
 		</WdsButton>
@@ -36,7 +36,7 @@ const props = defineProps({
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const selectedWorkflowKey = computed<string>({
+const selectedBlueprintKey = computed<string>({
 	get: () => component.value?.content[props.fieldKey] ?? "",
 	set: (key) => setContentValue(component.value.id, fieldKey.value, key),
 });
@@ -44,11 +44,11 @@ const selectedWorkflowKey = computed<string>({
 const options = computed<Option[]>(() => {
 	const worflowsKeys = new Set<string>();
 
-	for (const page of wf.getComponents("workflows_root")) {
+	for (const page of wf.getComponents("blueprints_root")) {
 		if (page.content.key) worflowsKeys.add(page.content.key);
 	}
 
-	const workflowsOptions = [...worflowsKeys]
+	const blueprintsOptions = [...worflowsKeys]
 		.sort((a, b) => a.localeCompare(b))
 		.map((key) => ({
 			value: key,
@@ -57,37 +57,37 @@ const options = computed<Option[]>(() => {
 		}));
 
 	const options: Option[] = [
-		{ value: "", label: "(No workflow)", icon: "block" },
-		...workflowsOptions,
+		{ value: "", label: "(No blueprint)", icon: "block" },
+		...blueprintsOptions,
 	];
 
-	// add an option if selected workflow does not exists
-	if (!options.some((o) => o.value === selectedWorkflowKey.value)) {
-		const key = selectedWorkflowKey.value;
+	// add an option if selected blueprint does not exists
+	if (!options.some((o) => o.value === selectedBlueprintKey.value)) {
+		const key = selectedBlueprintKey.value;
 		options.push({ value: key, label: key });
 	}
 
 	return options;
 });
 
-const selectedWorkflowComponentId = computed<string | undefined>(() => {
+const selectedBlueprintComponentId = computed<string | undefined>(() => {
 	const component = wf
-		.getComponents("workflows_root")
-		.find((page) => page.content.key === selectedWorkflowKey.value);
+		.getComponents("blueprints_root")
+		.find((page) => page.content.key === selectedBlueprintKey.value);
 	return component?.id;
 });
 
-function jumpToWorkflow() {
-	if (!selectedWorkflowComponentId.value) return;
-	ssbm.setSelection(selectedWorkflowComponentId.value, null, "click");
-	wf.setActivePageId(selectedWorkflowComponentId.value);
+function jumpToBlueprint() {
+	if (!selectedBlueprintComponentId.value) return;
+	ssbm.setSelection(selectedBlueprintComponentId.value, null, "click");
+	wf.setActivePageId(selectedBlueprintComponentId.value);
 }
 </script>
 
 <style scoped>
 @import "../sharedStyles.css";
 
-.BuilderFieldsWorkflowKey {
+.BuilderFieldsBlueprintKey {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
 	align-items: center;

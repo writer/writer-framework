@@ -1,17 +1,17 @@
 from typing import Any
 
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
-class WriterAddToKG(WorkflowBlock):
+class WriterAddToKG(BlueprintBlock):
 
     @classmethod
     def register(cls, type: str):
         super(WriterAddToKG, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
+            baseType="blueprints_node",
             writer={
                 "name": "Add to Knowledge Graph",
                 "description": "Adds structured information to the knowledge graph. Use for storing facts AI can reference.",

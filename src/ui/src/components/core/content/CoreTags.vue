@@ -31,7 +31,7 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import { WdsColor } from "@/wds/tokens";
-import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
+import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 const clickHandlerStub = `
 def handle_tag_click(state, payload):
@@ -109,14 +109,14 @@ const componentId = inject(injectionKeys.componentId);
 const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 
-const { isLinked: hasLinkedWorkflow } = useComponentLinkedWorkflows(
+const { isLinked: hasLinkedBlueprint } = useComponentLinkedBlueprints(
 	wf,
 	componentId,
 	"wf-tag-click",
 );
 
 const isClickable = computed(() => {
-	if (hasLinkedWorkflow.value) return true;
+	if (hasLinkedBlueprint.value) return true;
 	const component = wf.getComponentById(componentId);
 	return typeof component.handlers?.["wf-tag-click"] !== "undefined";
 });

@@ -1,18 +1,18 @@
 import json
 
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class ParseJSON(WorkflowBlock):
+class ParseJSON(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(ParseJSON, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Parse JSON",
                     "description": "Converts a JSON string into an object, so you can work with it in your logic.",

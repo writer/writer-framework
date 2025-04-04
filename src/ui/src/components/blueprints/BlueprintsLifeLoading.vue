@@ -1,5 +1,5 @@
 <template>
-	<div class="WorkflowsLifeLoading">
+	<div class="BlueprintsLifeLoading">
 		<div
 			v-for="(cell, cellId) in cells"
 			:key="cellId"
@@ -85,7 +85,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.WorkflowsLifeLoading {
+.BlueprintsLifeLoading {
 	position: relative;
 	width: 240px;
 	height: 240px;

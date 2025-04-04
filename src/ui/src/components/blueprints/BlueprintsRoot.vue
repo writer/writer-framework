@@ -1,9 +1,9 @@
 <template>
-	<div ref="rootEl" class="WorkflowsRoot" data-writer-container>
+	<div ref="rootEl" class="BlueprintsRoot" data-writer-container>
 		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
-				v-if="vnode.key === `${displayedWorkflowId}:0`"
+				v-if="vnode.key === `${displayedBlueprintId}:0`"
 			></component>
 		</template>
 	</div>
@@ -16,10 +16,10 @@ const description =
 export default {
 	writer: {
 		name: "Blueprints Root",
-		toolkit: "workflows",
+		toolkit: "blueprints",
 		category: "Root",
 		description,
-		allowedChildrenTypes: ["workflows_workflow"],
+		allowedChildrenTypes: ["blueprints_blueprint"],
 		fields: {},
 	},
 };
@@ -32,13 +32,13 @@ const wf = inject(injectionKeys.core);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 const rootEl = useTemplateRef("rootEl");
 
-const displayedWorkflowId = computed(() => {
+const displayedBlueprintId = computed(() => {
 	const activePageId = wf.activePageId.value;
 	const activePageExists = Boolean(wf.getComponentById(activePageId));
-	if (activePageExists && wf.isChildOf("workflows_root", activePageId))
+	if (activePageExists && wf.isChildOf("blueprints_root", activePageId))
 		return activePageId;
 
-	const pageComponents = wf.getComponents("workflows_root", {
+	const pageComponents = wf.getComponents("blueprints_root", {
 		includeBMC: true,
 		includeCMC: false,
 		sortedByPosition: true,
@@ -52,14 +52,14 @@ const displayedWorkflowId = computed(() => {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.WorkflowsRoot {
+.BlueprintsRoot {
 	background: var(--emptinessColor);
 	min-height: 100%;
 	display: flex;
 	width: 100%;
 }
 
-.WorkflowsRoot.selected {
+.BlueprintsRoot.selected {
 	background-color: var(--emptinessColor);
 }
 </style>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
+import BuilderFieldsBlueprintKey from "./BuilderFieldsBlueprintKey.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { buildMockCore, buildMockComponent, mockProvides } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
@@ -8,18 +8,18 @@ import BuilderSelect from "../BuilderSelect.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import type { generateCore } from "@/core";
 
-describe("BuilderFieldsWorkflowKey", () => {
+describe("BuilderFieldsBlueprintKey", () => {
 	let core: ReturnType<typeof generateCore>;
 	const componentWf1 = buildMockComponent({
 		id: "wf1",
-		type: "workflows_workflow",
-		parentId: "workflows_root",
+		type: "blueprints_blueprint",
+		parentId: "blueprints_root",
 		content: { key: "wf1" },
 	});
 	const componentWf2 = buildMockComponent({
 		id: "wf2",
-		type: "workflows_workflow",
-		parentId: "workflows_root",
+		type: "blueprints_blueprint",
+		parentId: "blueprints_root",
 		content: { key: "wf2" },
 	});
 	const fieldKey = "mock-field-key";
@@ -27,7 +27,7 @@ describe("BuilderFieldsWorkflowKey", () => {
 	function buildWrapper(componentId: string) {
 		const ssbm = generateBuilderManager();
 
-		return mount(BuilderFieldsWorkflowKey, {
+		return mount(BuilderFieldsBlueprintKey, {
 			props: {
 				componentId,
 				fieldKey,
@@ -70,7 +70,7 @@ describe("BuilderFieldsWorkflowKey", () => {
 		});
 	});
 
-	it("should select a workflow and jump", async () => {
+	it("should select a blueprint and jump", async () => {
 		const wrapper = buildWrapper(componentWf2.id);
 		await flushPromises();
 
@@ -90,13 +90,13 @@ describe("BuilderFieldsWorkflowKey", () => {
 		expect(core.activePageId.value).toBe(componentWf1.id);
 	});
 
-	it("should handle unexisting workflow", async () => {
-		const unexstingWorkflowKey = "unexsting-workflow-key";
+	it("should handle unexisting blueprint", async () => {
+		const unexstingBlueprintKey = "unexsting-blueprint-key";
 		const componentWf3 = buildMockComponent({
 			id: "wf3",
-			type: "workflows_workflow",
-			parentId: "workflows_root",
-			content: { key: "wf2", [fieldKey]: unexstingWorkflowKey },
+			type: "blueprints_blueprint",
+			parentId: "blueprints_root",
+			content: { key: "wf2", [fieldKey]: unexstingBlueprintKey },
 		});
 
 		core.addComponent(componentWf3);
@@ -106,13 +106,13 @@ describe("BuilderFieldsWorkflowKey", () => {
 
 		const select = wrapper.getComponent(BuilderSelect);
 
-		expect(select.props("modelValue")).toBe(unexstingWorkflowKey);
+		expect(select.props("modelValue")).toBe(unexstingBlueprintKey);
 
 		const options = select.props("options");
 		expect(options).toHaveLength(4);
 		expect(options.at(-1)).toStrictEqual({
-			value: unexstingWorkflowKey,
-			label: unexstingWorkflowKey,
+			value: unexstingBlueprintKey,
+			label: unexstingBlueprintKey,
 		});
 	});
 });

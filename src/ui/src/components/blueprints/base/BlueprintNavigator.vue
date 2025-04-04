@@ -2,17 +2,17 @@
 	<div
 		ref="rootEl"
 		data-writer-unselectable="true"
-		class="WorkflowNavigator"
+		class="BlueprintNavigator"
 		@keydown="handleKeydown"
 	>
-		<WorkflowMiniMap
+		<BlueprintMiniMap
 			v-if="nodeContainerEl && isMiniMapShown"
 			:node-container-el="nodeContainerEl"
 			:render-offset="renderOffset"
 			:zoom-level="zoomLevel"
 			class="miniMap"
 			@change-render-offset="handleRenderOffsetChange"
-		></WorkflowMiniMap>
+		></BlueprintMiniMap>
 		<div class="bar">
 			<div class="autoArranger">
 				<WdsButton
@@ -94,11 +94,11 @@ import {
 	useTemplateRef,
 	watch,
 } from "vue";
-import WorkflowMiniMap from "./WorkflowMiniMap.vue";
+import BlueprintMiniMap from "./BlueprintMiniMap.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
-import { ZOOM_SETTINGS } from "../WorkflowsWorkflow.vue";
+import { ZOOM_SETTINGS } from "../BlueprintsBlueprint.vue";
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
 
 const INPUT_KEYDOWN_STEP = 0.01;
@@ -209,7 +209,7 @@ onUnmounted(() => {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.WorkflowNavigator {
+.BlueprintNavigator {
 	overflow: hidden;
 	color: var(--builderSecondaryTextColor);
 	border: 1px solid var(--builderSeparatorColor);

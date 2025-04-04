@@ -1,2 +1,2 @@
-{"id": "8ffkuce0ermsm9dr", "type": "workflows_workflow", "content": {"key": "workflow2"}, "handlers": {}, "parentId": "workflows_root", "position": 1}
-{"id": "6ymlyaewhil88bck", "type": "workflows_returnvalue", "content": {"value": "987127"}, "handlers": {}, "parentId": "8ffkuce0ermsm9dr", "position": 0, "x": 408, "y": 172}
+{"id": "8ffkuce0ermsm9dr", "type": "blueprints_blueprint", "content": {"key": "blueprint2"}, "handlers": {}, "parentId": "blueprints_root", "position": 1}
+{"id": "6ymlyaewhil88bck", "type": "blueprints_returnvalue", "content": {"value": "987127"}, "handlers": {}, "parentId": "8ffkuce0ermsm9dr", "position": 0, "x": 408, "y": 172}

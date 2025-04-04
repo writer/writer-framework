@@ -1,5 +1,5 @@
 <template>
-	<div class="BuiderLogWorkflowExecutionTrace">
+	<div class="BuiderLogBlueprintExecutionTrace">
 		<div v-if="trace.length > 0" class="trace">
 			<div
 				v-for="(entry, entryId) in trace"
@@ -54,7 +54,7 @@
 				<h3>Return value</h3>
 				<p>
 					The value being returned, which is used to determine the
-					result of 'Run workflow' blocks and 'Chat completion' tool
+					result of 'Run blueprint' blocks and 'Chat completion' tool
 					calls.
 				</p>
 				<div class="data" data-automation-key="return-value">
@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import { WorkflowExecutionLog } from "../builderManager";
+import { BlueprintExecutionLog } from "../builderManager";
 import { computed, inject, nextTick } from "vue";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
@@ -146,7 +146,7 @@ const emit = defineEmits(["closeModal"]);
 const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 
 const props = defineProps<{
-	executionItem: WorkflowExecutionLog["summary"][number];
+	executionItem: BlueprintExecutionLog["summary"][number];
 }>();
 
 const callStack = computed(() => {
@@ -164,7 +164,7 @@ const trace = computed(() => {
 
 async function selectBlock(componentId: Component["id"]) {
 	emit("closeModal");
-	wfbm.setMode("workflows");
+	wfbm.setMode("blueprints");
 	await nextTick();
 	goToComponentParentPage(componentId);
 	await nextTick();
@@ -173,7 +173,7 @@ async function selectBlock(componentId: Component["id"]) {
 </script>
 
 <style scoped>
-.BuiderLogWorkflowExecutionTrace {
+.BuiderLogBlueprintExecutionTrace {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 	grid-template-rows: 1fr 1fr;

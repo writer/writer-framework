@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="WorkflowsNodeNamer"
+		class="BlueprintsNodeNamer"
 		:class="{
 			beingEdited: isAliasBeingEdited,
 			hasEyebrow: isAliased || isAliasBeingEdited,
@@ -80,7 +80,7 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 </script>
 
 <style scoped>
-.WorkflowsNodeNamer {
+.BlueprintsNodeNamer {
 	width: 100%;
 	overflow: hidden;
 }
@@ -90,13 +90,13 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 	transition-property: color, font-size;
 }
 
-.WorkflowsNodeNamer.hasEyebrow .blockName {
+.BlueprintsNodeNamer.hasEyebrow .blockName {
 	font-size: 12px;
 	color: var(--builderSecondaryTextColor);
 	background: var(--builderBackgroundColor) !important;
 }
 
-.WorkflowsNodeNamer:not(.hasEyebrow) .blockName {
+.BlueprintsNodeNamer:not(.hasEyebrow) .blockName {
 	cursor: text;
 	font-size: 14px;
 	font-style: normal;
@@ -113,11 +113,11 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 	position: relative;
 }
 
-.WorkflowsNodeNamer:not(.hasEyebrow) .alias {
+.BlueprintsNodeNamer:not(.hasEyebrow) .alias {
 	top: -24px;
 }
 
-.WorkflowsNodeNamer.hasEyebrow .alias {
+.BlueprintsNodeNamer.hasEyebrow .alias {
 	top: 0;
 }
 
@@ -137,7 +137,7 @@ function handleAliasEditorMousemove(ev: MouseEvent) {
 	cursor: text;
 }
 
-.WorkflowsNodeNamer.beingEdited .aliasEditor {
+.BlueprintsNodeNamer.beingEdited .aliasEditor {
 	background: var(--builderSubtleSeparatorColor);
 }
 </style>

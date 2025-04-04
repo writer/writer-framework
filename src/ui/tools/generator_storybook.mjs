@@ -16,7 +16,7 @@ const IGNORE_COMPONENT_TYPES = [
 	"steps",
 	"html",
 	"repeater",
-	"workflowsnode",
+	"blueprintsnode",
 ];
 
 const __filename = fileURLToPath(import.meta.url);
@@ -242,8 +242,8 @@ export async function generate() {
 				filePath,
 				srcPath: (...path) => relPath(filePath, srcFile(...path)),
 			}) +
-				generateMeta(component, { module: mod }) +
-				generateStory(component),
+			generateMeta(component, { module: mod }) +
+			generateStory(component),
 			{
 				flag: "w+",
 			},

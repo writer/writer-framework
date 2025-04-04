@@ -3,7 +3,7 @@ from typing import Dict, List
 import pytest
 from writer.core import WriterSession, WriterState
 from writer.core_ui import Branch, Component, ComponentTree, ComponentTreeBranch
-from writer.workflows import WorkflowRunner
+from writer.blueprints import BlueprintRunner
 
 
 class BlockTesterMockSession(WriterSession):
@@ -19,7 +19,7 @@ class BlockTesterMockSession(WriterSession):
         return component
 
 
-class BlockTesterMockWorkflowRunner(WorkflowRunner):
+class BlockTesterMockBlueprintRunner(BlueprintRunner):
     def __init__(self, session):
         super().__init__(session)
 
@@ -37,21 +37,21 @@ class BlockTesterMockWorkflowRunner(WorkflowRunner):
     ):
         return f"Branch run {component_id} {base_outcome_id}"
 
-    def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict):
+    def run_blueprint_by_key(self, blueprint_key: str, execution_environment: Dict):
         payload = execution_environment.get("payload")
         if "env_injection_test" in payload:
             return payload.get("env_injection_test")
-        if workflow_key == "workflow1":
+        if blueprint_key == "blueprint1":
             return 1
-        if workflow_key == "workflowDict":
+        if blueprint_key == "blueprintDict":
             return {"a": "b"}
-        if workflow_key == "duplicator":
+        if blueprint_key == "duplicator":
             return payload.get("item") * 2
-        if workflow_key == "showId":
+        if blueprint_key == "showId":
             return payload.get("itemId")
-        if workflow_key == "boom":
+        if blueprint_key == "boom":
             return 1 / 0
-        raise ValueError("Workflow not found.")
+        raise ValueError("Blueprint not found.")
 
 
 @pytest.fixture
@@ -61,4 +61,4 @@ def session():
 
 @pytest.fixture
 def runner(session):
-    yield BlockTesterMockWorkflowRunner(session)
+    yield BlockTesterMockBlueprintRunner(session)

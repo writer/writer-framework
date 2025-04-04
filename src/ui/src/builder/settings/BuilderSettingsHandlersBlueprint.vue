@@ -6,10 +6,10 @@ import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
-import { useWorkflowsRun } from "@/composables/useWorkflowRun";
+import { useBlueprintsRun } from "@/composables/useBlueprintRun";
 import { WdsColor } from "@/wds/tokens";
-import BuilderWorkflowState from "../BuilderWorkflowState.vue";
-import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
+import BuilderBlueprintState from "../BuilderBlueprintState.vue";
+import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 
 const wf = inject(injectionKeys.core);
@@ -28,18 +28,18 @@ const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),
 );
 
-const { workflows: linkedWorkflows, triggers: linkedTriggers } =
-	useComponentLinkedWorkflows(
+const { blueprints: linkedBlueprints, triggers: linkedTriggers } =
+	useComponentLinkedBlueprints(
 		wf,
 		computed(() => props.component.id),
 		computed(() => props.eventType),
 	);
 
-const { run, isRunning } = useWorkflowsRun(
+const { run, isRunning } = useBlueprintsRun(
 	wf,
 	computed(() =>
 		linkedTriggers.value.map((w) => ({
-			workflowId: w.parentId,
+			blueprintId: w.parentId,
 			branchId: w.id,
 		})),
 	),
@@ -47,19 +47,19 @@ const { run, isRunning } = useWorkflowsRun(
 
 const { pushToast } = useToasts();
 
-function getNewWorkflowKey() {
-	const indexes = linkedWorkflows.value.map((w) => {
+function getNewBlueprintKey() {
+	const indexes = linkedBlueprints.value.map((w) => {
 		const matchs = (w.content.key ?? "0").match(/\d+/);
 		return matchs ? Number(matchs[0]) : 0;
 	});
 	return indexes.length === 0 ? 1 : Math.max(...indexes) + 1;
 }
 
-async function createLinkedWorkflow() {
+async function createLinkedBlueprint() {
 	const { type } = props.component;
 	const { name, events } = wf.getComponentDefinition(type);
 	const alias = `${name} - ${props.eventType}`;
-	const key = `${type}@${props.eventType.replace(/^wf-/, "")}_${getNewWorkflowKey()}`;
+	const key = `${type}@${props.eventType.replace(/^wf-/, "")}_${getNewBlueprintKey()}`;
 
 	let defaultResult = events?.[props.eventType]?.eventPayloadExample;
 
@@ -67,9 +67,9 @@ async function createLinkedWorkflow() {
 		defaultResult = JSON.stringify(defaultResult);
 	}
 
-	const workflowId = createAndInsertComponent(
-		"workflows_workflow",
-		"workflows_root",
+	const blueprintId = createAndInsertComponent(
+		"blueprints_blueprint",
+		"blueprints_root",
 		undefined,
 		{
 			content: {
@@ -78,7 +78,7 @@ async function createLinkedWorkflow() {
 		},
 		(parentId) => {
 			createAndInsertComponent(
-				"workflows_uieventtrigger",
+				"blueprints_uieventtrigger",
 				parentId,
 				undefined,
 				{
@@ -100,28 +100,28 @@ async function createLinkedWorkflow() {
 		type: "success",
 		message: `${alias} added`,
 		action: {
-			label: "Go to workflow",
+			label: "Go to blueprint",
 			func: () =>
-				jumpToWorkflow(
-					workflowId,
-					getWorkflowTriggerBlock(workflowId)?.id,
+				jumpToBlueprint(
+					blueprintId,
+					getBlueprintTriggerBlock(blueprintId)?.id,
 				),
 			icon: "linked_services",
 		},
 	});
 }
-function getWorkflowTriggerBlock(workflowId: string) {
+function getBlueprintTriggerBlock(blueprintId: string) {
 	return wf
-		.getComponents(workflowId)
+		.getComponents(blueprintId)
 		.find(
 			(c) =>
-				c.type === "workflows_uieventtrigger" &&
+				c.type === "blueprints_uieventtrigger" &&
 				c.content.refComponentId === props.component.id &&
 				c.content.refEventType === props.eventType,
 		);
 }
 
-function deleteLinkedWorkflow(trigger: Component) {
+function deleteLinkedBlueprint(trigger: Component) {
 	const componentsToDelete = [trigger.id];
 	if (wf.getComponents(trigger.parentId).length === 1) {
 		componentsToDelete.push(trigger.parentId);
@@ -130,24 +130,24 @@ function deleteLinkedWorkflow(trigger: Component) {
 }
 
 function getTriggerName(trigger: Component) {
-	return wf.getComponentById(trigger.parentId)?.content?.key || "Workflow";
+	return wf.getComponentById(trigger.parentId)?.content?.key || "Blueprint";
 }
 
-function jumpToWorkflow(workflowId: string, triggerId?: string) {
-	wf.setActivePageId(workflowId);
-	wfbm.setMode("workflows");
-	wfbm.setSelection(triggerId ?? workflowId, undefined, "click");
+function jumpToBlueprint(blueprintId: string, triggerId?: string) {
+	wf.setActivePageId(blueprintId);
+	wfbm.setMode("blueprints");
+	wfbm.setSelection(triggerId ?? blueprintId, undefined, "click");
 }
 </script>
 
 <template>
-	<div class="BuilderSettingsHandlersWorkflow" :aria-busy="isRunning">
-		<div class="BuilderSettingsHandlersWorkflow__title">
+	<div class="BuilderSettingsHandlersBlueprint" :aria-busy="isRunning">
+		<div class="BuilderSettingsHandlersBlueprint__title">
 			<WdsButton
-				class="BuilderSettingsHandlersWorkflow__title__btn"
+				class="BuilderSettingsHandlersBlueprint__title__btn"
 				variant="special"
 				size="icon"
-				aria-label="Run the attached workflows"
+				aria-label="Run the attached blueprints"
 				:disabled="isRunning"
 				:loading="isRunning"
 				@click="run"
@@ -163,7 +163,7 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 			>
 		</div>
 
-		<div class="BuilderSettingsHandlersWorkflow__list">
+		<div class="BuilderSettingsHandlersBlueprint__list">
 			<BuilderListItem
 				v-for="(trigger, i) of linkedTriggers"
 				:key="trigger.id"
@@ -174,38 +174,38 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 						: WdsColor.Blue6
 				"
 			>
-				<div class="BuilderSettingsHandlersWorkflow__list__item">
+				<div class="BuilderSettingsHandlersBlueprint__list__item">
 					<WdsButtonLink
 						variant="secondary"
 						:disabled="isRunning"
 						:text="getTriggerName(trigger)"
 						:data-writer-tooltip="getTriggerName(trigger)"
 						data-writer-tooltip-strategy="overflow"
-						@click="jumpToWorkflow(trigger.parentId, trigger.id)"
+						@click="jumpToBlueprint(trigger.parentId, trigger.id)"
 					/>
-					<BuilderWorkflowState :workflow-id="trigger.parentId" />
+					<BuilderBlueprintState :blueprint-id="trigger.parentId" />
 					<WdsButton
 						variant="neutral"
 						size="smallIcon"
 						custom-size="18px"
 						aria-label="Unlink blueprint"
-						data-writer-tooltip="This will remove the trigger but will not delete the workflow"
+						data-writer-tooltip="This will remove the trigger but will not delete the blueprint"
 						:disabled="isRunning"
-						@click="deleteLinkedWorkflow(trigger)"
+						@click="deleteLinkedBlueprint(trigger)"
 					>
 						<i class="material-symbols-outlined">link_off</i>
 					</WdsButton>
 				</div>
 			</BuilderListItem>
 			<BuilderListItem is-last :color="WdsColor.Blue2">
-				<div class="BuilderSettingsHandlersWorkflow__list__item">
+				<div class="BuilderSettingsHandlersBlueprint__list__item">
 					<WdsButtonLink
 						variant="primary"
 						weight="semibold"
 						:disabled="isRunning"
 						left-icon="add"
 						text="Create blueprint"
-						@click="createLinkedWorkflow"
+						@click="createLinkedBlueprint"
 					/>
 				</div>
 			</BuilderListItem>
@@ -214,25 +214,25 @@ function jumpToWorkflow(workflowId: string, triggerId?: string) {
 </template>
 
 <style lang="css" scoped>
-.BuilderSettingsHandlersWorkflow {
+.BuilderSettingsHandlersBlueprint {
 	font-size: 14px;
 }
-.BuilderSettingsHandlersWorkflow__title {
+.BuilderSettingsHandlersBlueprint__title {
 	display: flex;
 	gap: 8px;
 	align-items: center;
 }
-.BuilderSettingsHandlersWorkflow__title__btn {
+.BuilderSettingsHandlersBlueprint__title__btn {
 	min-width: 40px;
 }
-.BuilderSettingsHandlersWorkflow__title__btn i {
+.BuilderSettingsHandlersBlueprint__title__btn i {
 	font-size: 24px;
 }
-.BuilderSettingsHandlersWorkflow__list {
+.BuilderSettingsHandlersBlueprint__list {
 	column-gap: 12px;
 	padding-left: 19px;
 }
-.BuilderSettingsHandlersWorkflow__list__item {
+.BuilderSettingsHandlersBlueprint__list__item {
 	padding-top: 6px;
 	padding-bottom: 6px;
 	padding-left: 12px;

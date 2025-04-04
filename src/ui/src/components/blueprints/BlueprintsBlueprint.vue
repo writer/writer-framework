@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="rootEl"
-		class="WorkflowsWorkflow"
+		class="BlueprintsBlueprint"
 		:data-writer-unselectable="isUnselectable"
 		@click="handleClick"
 		@dragover.prevent.stop
@@ -12,7 +12,7 @@
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
-				<WorkflowArrow
+				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
 					:arrow="arrow"
@@ -24,14 +24,14 @@
 					"
 					@click="handleArrowClick($event, arrowId)"
 					@delete="handleArrowDeleteClick(arrow)"
-				></WorkflowArrow>
-				<WorkflowArrow
+				></BlueprintArrow>
+				<BlueprintArrow
 					v-if="activeConnection?.liveArrow"
 					key="liveArrow"
 					:arrow="activeConnection.liveArrow"
 					:is-selected="false"
 					:is-engaged="true"
-				></WorkflowArrow>
+				></BlueprintArrow>
 			</svg>
 			<template v-for="node in nodes" :key="node.id">
 				<component
@@ -54,16 +54,16 @@
 				></component>
 			</template>
 		</div>
-		<WorkflowToolbar
-			class="workflowsToolbar"
+		<BlueprintToolbar
+			class="blueprintsToolbar"
 			@autogen-click="isAutogenShown = true"
 		/>
 		<WdsModal v-if="isAutogenShown">
-			<WorkflowsAutogen
+			<BlueprintsAutogen
 				@block-generation="handleBlockGeneration"
-			></WorkflowsAutogen>
+			></BlueprintsAutogen>
 		</WdsModal>
-		<WorkflowNavigator
+		<BlueprintNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
 			:render-offset="renderOffset"
@@ -73,44 +73,44 @@
 			@change-render-offset="handleChangeRenderOffset"
 			@change-zoom-level="handleChangeZoomLevel"
 			@reset-zoom="resetZoom"
-		></WorkflowNavigator>
+		></BlueprintNavigator>
 	</div>
 </template>
 
 <script lang="ts">
 import { type Component, FieldType } from "@/writerTypes";
-import WorkflowArrow from "./base/WorkflowArrow.vue";
+import BlueprintArrow from "./base/BlueprintArrow.vue";
 import { watch } from "vue";
-import WorkflowNavigator from "./base/WorkflowNavigator.vue";
+import BlueprintNavigator from "./base/BlueprintNavigator.vue";
 import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
-import WorkflowsAutogen from "./WorkflowsAutogen.vue";
+import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
 
 const { log } = useLogger();
 
 const description =
-	"A container component representing a single workflow within the application.";
+	"A container component representing a single blueprint within the application.";
 
 export default {
 	writer: {
 		name: "Blueprint",
-		toolkit: "workflows",
+		toolkit: "blueprints",
 		category: "Root",
 		description,
 		allowedChildrenTypes: ["*"],
-		allowedParentTypes: ["workflows_root"],
+		allowedParentTypes: ["blueprints_root"],
 		fields: {
 			key: {
-				name: "Workflow key",
-				desc: "Unique identifier. It's needed to enable navigation to this Workflow.",
+				name: "Blueprint key",
+				desc: "Unique identifier. It's needed to enable navigation to this Blueprint.",
 				type: FieldType.IdKey,
 			},
 		},
 	},
 };
 
-export type WorkflowArrowData = {
+export type BlueprintArrowData = {
 	x1: number;
 	y1: number;
 	x2: number;
@@ -146,19 +146,19 @@ import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
 
-const WorkflowToolbar = defineAsyncComponent({
-	loader: () => import("./base/WorkflowToolbar.vue"),
+const BlueprintToolbar = defineAsyncComponent({
+	loader: () => import("./base/BlueprintToolbar.vue"),
 });
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
-const workflowComponentId = inject(injectionKeys.componentId);
+const blueprintComponentId = inject(injectionKeys.componentId);
 
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");
 
-const arrows = shallowRef<WorkflowArrowData[]>([]);
+const arrows = shallowRef<BlueprintArrowData[]>([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
 const selectedArrow = shallowRef(null);
 const isAutogenShown = ref(false);
@@ -170,7 +170,7 @@ const AUTOARRANGE_ROW_GAP_PX = 64;
 const AUTOARRANGE_COLUMN_GAP_PX = 128;
 
 const nodes = computed(() =>
-	wf.getComponents(workflowComponentId, { sortedByPosition: true }),
+	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
 );
 
 type Point = { x: number; y: number };
@@ -186,7 +186,7 @@ const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 const activeConnection = shallowRef<{
 	fromNodeId: Component["id"];
 	fromOutId: Component["outs"][number]["outId"];
-	liveArrow?: WorkflowArrowData;
+	liveArrow?: BlueprintArrowData;
 }>(null);
 
 const activeNodeMove = shallowRef<{
@@ -424,7 +424,7 @@ function handleArrowClick(ev: MouseEvent, arrowId: number) {
 	wfbm.setSelection(null);
 }
 
-async function handleArrowDeleteClick(arrow: WorkflowArrowData) {
+async function handleArrowDeleteClick(arrow: BlueprintArrowData) {
 	if (!arrow.toNodeId) return;
 	const out = {
 		outId: arrow.fromOutId,
@@ -438,7 +438,7 @@ function calculateArrow(
 	fromOutId: string,
 	toCoordinates?: Point,
 	toNodeId?: Component["id"],
-): WorkflowArrowData {
+): BlueprintArrowData {
 	let x1: number, y1: number, x2: number, y2: number;
 	const canvasBCR = rootEl.value?.getBoundingClientRect();
 	if (!canvasBCR) {
@@ -476,7 +476,7 @@ function calculateArrow(
 function getHoveredNodeId(ev: MouseEvent) {
 	const targetEl = ev.target as HTMLElement;
 	const toNodeEl = targetEl.closest(
-		".WorkflowsWorkflow [data-writer-id]",
+		".BlueprintsBlueprint [data-writer-id]",
 	) as HTMLElement;
 	return toNodeEl?.dataset.writerId;
 }
@@ -643,7 +643,7 @@ async function handleMouseup(ev: MouseEvent) {
 }
 
 function createNode(type: string, { x, y }: Point) {
-	createAndInsertComponent(type, workflowComponentId, undefined, {
+	createAndInsertComponent(type, blueprintComponentId, undefined, {
 		x: Math.floor(x),
 		y: Math.floor(y),
 	});
@@ -811,7 +811,7 @@ async function handleBlockGeneration(
 	components.forEach((component) => {
 		createAndInsertComponent(
 			component.type,
-			workflowComponentId,
+			blueprintComponentId,
 			undefined,
 			component,
 		);
@@ -824,7 +824,7 @@ async function handleBlockGeneration(
 watch(wfbm.firstSelectedItem, (newSelection) => {
 	if (!newSelection) return;
 	selectedArrow.value = null;
-	if (!wf.isChildOf(workflowComponentId, newSelection.componentId)) return;
+	if (!wf.isChildOf(blueprintComponentId, newSelection.componentId)) return;
 	if (newSelection.source !== "click") {
 		findAndCenterBlock(newSelection.componentId);
 	}
@@ -856,7 +856,7 @@ onUnmounted(() => {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.WorkflowsWorkflow {
+.BlueprintsBlueprint {
 	display: flex;
 	width: 100%;
 	min-height: 100%;
@@ -868,7 +868,7 @@ onUnmounted(() => {
 	overflow: hidden;
 }
 
-.workflowsToolbar {
+.blueprintsToolbar {
 	position: absolute;
 	display: flex;
 	gap: 8px;
@@ -876,7 +876,7 @@ onUnmounted(() => {
 	top: 20px;
 }
 
-.component.WorkflowsWorkflow.selected {
+.component.BlueprintsBlueprint.selected {
 	background: var(--builderSubtleSeparatorColor);
 }
 

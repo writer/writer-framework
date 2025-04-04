@@ -9,9 +9,9 @@
 			UI
 		</div>
 		<div
-			data-automation-action="set-mode-workflows"
-			:class="{ active: activeId == 'workflows' }"
-			@click="selectOption('workflows')"
+			data-automation-action="set-mode-blueprints"
+			:class="{ active: activeId == 'blueprints' }"
+			@click="selectOption('blueprints')"
 		>
 			<i class="icon material-symbols-outlined"> linked_services </i>
 			Blueprints
@@ -35,15 +35,15 @@ const ssbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
 
-const selectOption = (optionId: "ui" | "preview" | "workflows") => {
+const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
 	const preMode = ssbm.getMode();
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
 	if (
 		optionId == "preview" ||
-		preMode == "workflows" ||
-		optionId == "workflows"
+		preMode == "blueprints" ||
+		optionId == "blueprints"
 	) {
 		ssbm.setSelection(null);
 	}

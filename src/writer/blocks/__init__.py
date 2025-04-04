@@ -7,7 +7,7 @@ from writer.blocks.httprequest import HTTPRequest
 from writer.blocks.logmessage import LogMessage
 from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
-from writer.blocks.runworkflow import RunWorkflow
+from writer.blocks.runblueprint import RunBlueprint
 from writer.blocks.setstate import SetState
 from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
@@ -19,23 +19,23 @@ from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writertoolcalling import WriterToolCalling
 
-SetState.register("workflows_setstate")
-WriterClassification.register("workflows_writerclassification")
-WriterCompletion.register("workflows_writercompletion")
-HTTPRequest.register("workflows_httprequest")
-RunWorkflow.register("workflows_runworkflow")
-WriterNoCodeApp.register("workflows_writernocodeapp")
-ForEach.register("workflows_foreach")
-LogMessage.register("workflows_logmessage")
-WriterChat.register("workflows_writerchat")
-WriterAddChatMessage.register("workflows_writeraddchatmessage")
-ParseJSON.register("workflows_parsejson")
-CallEventHandler.register("workflows_calleventhandler")
-AddToStateList.register("workflows_addtostatelist")
-ReturnValue.register("workflows_returnvalue")
-WriterInitChat.register("workflows_writerinitchat")
-WriterAddToKG.register("workflows_writeraddtokg")
-UIEventTrigger.register("workflows_uieventtrigger")
-CodeBlock.register("workflows_code")
-ChangePage.register("workflows_changepage")
-WriterToolCalling.register("workflows_writertoolcalling")
+SetState.register("blueprints_setstate")
+WriterClassification.register("blueprints_writerclassification")
+WriterCompletion.register("blueprints_writercompletion")
+HTTPRequest.register("blueprints_httprequest")
+RunBlueprint.register("blueprints_runblueprint")
+WriterNoCodeApp.register("blueprints_writernocodeapp")
+ForEach.register("blueprints_foreach")
+LogMessage.register("blueprints_logmessage")
+WriterChat.register("blueprints_writerchat")
+WriterAddChatMessage.register("blueprints_writeraddchatmessage")
+ParseJSON.register("blueprints_parsejson")
+CallEventHandler.register("blueprints_calleventhandler")
+AddToStateList.register("blueprints_addtostatelist")
+ReturnValue.register("blueprints_returnvalue")
+WriterInitChat.register("blueprints_writerinitchat")
+WriterAddToKG.register("blueprints_writeraddtokg")
+UIEventTrigger.register("blueprints_uieventtrigger")
+CodeBlock.register("blueprints_code")
+ChangePage.register("blueprints_changepage")
+WriterToolCalling.register("blueprints_writertoolcalling")

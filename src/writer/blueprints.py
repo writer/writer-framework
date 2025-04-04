@@ -14,10 +14,10 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
-from writer.ss_types import WorkflowExecutionLog, WriterConfigurationError
+from writer.ss_types import BlueprintExecutionLog, WriterConfigurationError
 
 
-class WorkflowRunner:
+class BlueprintRunner:
     MAX_DAG_DEPTH = 32
 
     def __init__(self, session: writer.core.WriterSession):
@@ -44,8 +44,8 @@ class WorkflowRunner:
     def execute_ui_trigger(
         self, ref_component_id: str, ref_event_type: str, execution_environment: Dict = {}
     ):
-        components = self.session.session_component_tree.get_descendents("workflows_root")
-        ui_triggers = list(filter(lambda c: c.type == "workflows_uieventtrigger", components))
+        components = self.session.session_component_tree.get_descendents("blueprints_root")
+        ui_triggers = list(filter(lambda c: c.type == "blueprints_uieventtrigger", components))
         for trigger in ui_triggers:
             if trigger.content.get("refComponentId") != ref_component_id:
                 continue
@@ -53,33 +53,33 @@ class WorkflowRunner:
                 continue
             self.run_branch(trigger.id, None, execution_environment, "UI trigger execution")
 
-    def run_workflow_by_key(self, workflow_key: str, execution_environment: Dict = {}):
+    def run_blueprint_by_key(self, blueprint_key: str, execution_environment: Dict = {}):
         all_components = self.session.session_component_tree.components.values()
-        workflows = list(
+        blueprints = list(
             filter(
-                lambda c: c.type == "workflows_workflow" and c.content.get("key") == workflow_key,
+                lambda c: c.type == "blueprints_blueprint" and c.content.get("key") == blueprint_key,
                 all_components,
             )
         )
-        if len(workflows) == 0:
-            raise ValueError(f'Workflow with key "{workflow_key}" not found.')
-        workflow = workflows[0]
-        return self.run_workflow(
-            workflow.id, execution_environment, f"Workflow execution ({workflow_key})"
+        if len(blueprints) == 0:
+            raise ValueError(f'Blueprint with key "{blueprint_key}" not found.')
+        blueprint = blueprints[0]
+        return self.run_blueprint(
+            blueprint.id, execution_environment, f"Blueprint execution ({blueprint_key})"
         )
 
-    def run_workflow_pool(self, workflow_key: str, execution_environments: List[Dict]):
+    def run_blueprint_pool(self, blueprint_key: str, execution_environments: List[Dict]):
         """
-        Executes the same workflow multiple times in parallel with different execution environments.
+        Executes the same blueprint multiple times in parallel with different execution environments.
 
-        :param workflow_key: The workflow identifier (same workflow for all executions).
+        :param blueprint_key: The blueprint identifier (same blueprint for all executions).
         :param execution_environments: A list of execution environments, one per execution.
         :return: A list of results in the same order as execution_environments.
         """
 
         with self._get_executor() as executor:
             futures = [
-                executor.submit(self.run_workflow_by_key, workflow_key, env)
+                executor.submit(self.run_blueprint_by_key, blueprint_key, env)
                 for env in execution_environments
             ]
 
@@ -91,13 +91,13 @@ class WorkflowRunner:
 
         return results
 
-    def _get_workflow_nodes(self, component_id):
+    def _get_blueprint_nodes(self, component_id):
         current_node_id = component_id
         while current_node_id is not None:
             node = self.session.session_component_tree.get_component(current_node_id)
             if not node:
                 break
-            if node.type == "workflows_workflow":
+            if node.type == "blueprints_blueprint":
                 return self.session.session_component_tree.get_descendents(current_node_id)
             current_node_id = node.parentId
 
@@ -108,8 +108,8 @@ class WorkflowRunner:
         execution_environment: Dict,
         title: str = "Branch execution",
     ):
-        workflow_nodes = self._get_workflow_nodes(start_node_id)
-        nodes = self.filter_branch(workflow_nodes, start_node_id, branch_out_id)
+        blueprint_nodes = self._get_blueprint_nodes(start_node_id)
+        nodes = self.filter_branch(blueprint_nodes, start_node_id, branch_out_id)
         return self.execute_dag(nodes, execution_environment, title)
 
     def run_branch_pool(
@@ -133,10 +133,10 @@ class WorkflowRunner:
 
         return results
 
-    def run_workflow(
-        self, component_id: str, execution_environment: Dict, title="Workflow execution"
+    def run_blueprint(
+        self, component_id: str, execution_environment: Dict, title="Blueprint execution"
     ):
-        nodes = self._get_workflow_nodes(component_id)
+        nodes = self._get_blueprint_nodes(component_id)
         return self.execute_dag(nodes, execution_environment, title)
 
     def _generate_run_id(self):
@@ -170,7 +170,7 @@ class WorkflowRunner:
 
     def _generate_run_log(
         self,
-        tools: OrderedDict[str, Optional[writer.blocks.base_block.WorkflowBlock]],
+        tools: OrderedDict[str, Optional[writer.blocks.base_block.BlueprintBlock]],
         title: str,
         entry_type: Literal["info", "error"],
         msg: str = "",
@@ -180,7 +180,7 @@ class WorkflowRunner:
             return
         if run_id is None:
             run_id = self._generate_run_id()
-        exec_log: WorkflowExecutionLog = WorkflowExecutionLog(summary=[])
+        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(summary=[])
         for component_id, tool in tools.items():
             if tool is None:
                 exec_log.summary.append({"componentId": component_id})
@@ -209,7 +209,7 @@ class WorkflowRunner:
                 }
             )
         self.session.session_state.add_log_entry(
-            entry_type, title, msg, workflow_execution=exec_log, id=run_id
+            entry_type, title, msg, blueprint_execution=exec_log, id=run_id
         )
 
     def filter_branch(
@@ -251,10 +251,10 @@ class WorkflowRunner:
         self,
         nodes: List[writer.core_ui.Component],
         execution_environment: Dict,
-        title: str = "Workflow execution",
+        title: str = "Blueprint execution",
     ):
         run_id = self._generate_run_id()
-        tools: OrderedDict[str, Optional[writer.blocks.base_block.WorkflowBlock]] = OrderedDict()
+        tools: OrderedDict[str, Optional[writer.blocks.base_block.BlueprintBlock]] = OrderedDict()
         graph = {}
         in_degree = {node.id: 0 for node in nodes}
 
@@ -342,13 +342,13 @@ class WorkflowRunner:
                 return True
         return False
 
-    def run_tool(self, tool: writer.blocks.base_block.WorkflowBlock):
+    def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock):
         start_time = time.time()
 
         call_stack = tool.execution_environment.get("call_stack", []) + [tool.component.id]
         call_depth = call_stack.count(tool.component.id)
-        if call_depth > WorkflowRunner.MAX_DAG_DEPTH:
-            error_message = f"Maximum call depth ({WorkflowRunner.MAX_DAG_DEPTH}) exceeded. Check that you don't have any unintended circular references."
+        if call_depth > BlueprintRunner.MAX_DAG_DEPTH:
+            error_message = f"Maximum call depth ({BlueprintRunner.MAX_DAG_DEPTH}) exceeded. Check that you don't have any unintended circular references."
             tool.outcome = "error"
             tool.message = error_message
             raise RuntimeError(error_message)

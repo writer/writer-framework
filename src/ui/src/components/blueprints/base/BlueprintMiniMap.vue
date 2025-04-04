@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="rootEl"
-		class="WorkflowMiniMap"
+		class="BlueprintMiniMap"
 		@mouseenter="handleMouseenter"
 		@mouseleave="handleMouseleave"
 		@mousemove="handleMousemove"
@@ -220,7 +220,7 @@ onUnmounted(() => {
 <style scoped>
 @import "@/renderer/sharedStyles.css";
 
-.WorkflowMiniMap {
+.BlueprintMiniMap {
 	width: v-bind("`${miniMap.width}px`");
 	height: v-bind("`${miniMap.height}px`");
 	background: var(--builderSeparatorColor);

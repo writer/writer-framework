@@ -1,9 +1,9 @@
 import type { generateCore } from "@/core";
 import { computed, readonly, Ref, ref, unref } from "vue";
 
-function runWorkflow(
+function runBlueprint(
 	wf: ReturnType<typeof generateCore>,
-	workflowComponentId: string,
+	blueprintComponentId: string,
 	branchId?: string,
 ) {
 	return new Promise((res, rej) => {
@@ -12,8 +12,8 @@ function runWorkflow(
 				detail: {
 					callback: res,
 					handler: branchId
-						? `$runWorkflowTriggerBranchById_${branchId}`
-						: `$runWorkflowById_${workflowComponentId}`,
+						? `$runBlueprintTriggerBranchById_${branchId}`
+						: `$runBlueprintById_${blueprintComponentId}`,
 				},
 			}),
 			null,
@@ -22,9 +22,9 @@ function runWorkflow(
 	});
 }
 
-export function useWorkflowRun(
+export function useBlueprintRun(
 	wf: ReturnType<typeof generateCore>,
-	workflowComponentId: string | Ref<string>,
+	blueprintComponentId: string | Ref<string>,
 ) {
 	const isRunning = ref(false);
 
@@ -32,7 +32,7 @@ export function useWorkflowRun(
 		if (isRunning.value) return;
 		isRunning.value = true;
 		try {
-			await runWorkflow(wf, unref(workflowComponentId), branchId);
+			await runBlueprint(wf, unref(blueprintComponentId), branchId);
 		} finally {
 			isRunning.value = false;
 		}
@@ -41,42 +41,42 @@ export function useWorkflowRun(
 	return { isRunning: readonly(isRunning), run };
 }
 
-export type WorkflowsRunListItem = { workflowId: string; branchId: string };
+export type BlueprintsRunListItem = { blueprintId: string; branchId: string };
 type MaybeRef<T> = T | Ref<T>;
 
-export function useWorkflowsRun(
+export function useBlueprintsRun(
 	wf: ReturnType<typeof generateCore>,
-	workflowComponentIds: MaybeRef<WorkflowsRunListItem[]>,
+	blueprintComponentIds: MaybeRef<BlueprintsRunListItem[]>,
 ) {
-	const runningWorkflowIds = ref<string[]>([]);
+	const runningBlueprintIds = ref<string[]>([]);
 
-	async function handleRunWorkflow({
-		workflowId,
+	async function handleRunBlueprint({
+		blueprintId,
 		branchId,
-	}: WorkflowsRunListItem) {
-		if (runningWorkflowIds.value.includes(workflowId)) return;
+	}: BlueprintsRunListItem) {
+		if (runningBlueprintIds.value.includes(blueprintId)) return;
 
 		try {
-			runningWorkflowIds.value = [
-				workflowId,
-				...runningWorkflowIds.value,
+			runningBlueprintIds.value = [
+				blueprintId,
+				...runningBlueprintIds.value,
 			];
-			await runWorkflow(wf, workflowId, branchId);
+			await runBlueprint(wf, blueprintId, branchId);
 		} finally {
-			runningWorkflowIds.value = runningWorkflowIds.value.filter(
-				(id) => id !== workflowId,
+			runningBlueprintIds.value = runningBlueprintIds.value.filter(
+				(id) => id !== blueprintId,
 			);
 		}
 	}
 	async function run() {
-		await Promise.all(unref(workflowComponentIds).map(handleRunWorkflow));
+		await Promise.all(unref(blueprintComponentIds).map(handleRunBlueprint));
 	}
 
-	const isRunning = computed(() => runningWorkflowIds.value.length > 0);
+	const isRunning = computed(() => runningBlueprintIds.value.length > 0);
 
 	return {
 		run,
 		isRunning,
-		runningWorkflowIds: readonly(runningWorkflowIds),
+		runningBlueprintIds: readonly(runningBlueprintIds),
 	};
 }

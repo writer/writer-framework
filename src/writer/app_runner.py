@@ -887,9 +887,9 @@ class AppRunner:
             wf_project.migrate_obsolete_ui_json(self.app_path, metadata={"writer_version": VERSION})
 
         if not os.path.isfile(
-            os.path.join(self.app_path, ".wf", "components-workflows_root.jsonl")
+            os.path.join(self.app_path, ".wf", "components-blueprints_root.jsonl")
         ):
-            wf_project.create_default_workflows_root(self.app_path)
+            wf_project.create_default_blueprints_root(self.app_path)
 
         if not os.path.isdir(os.path.join(self.app_path, ".wf")):
             logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)

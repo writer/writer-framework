@@ -21,7 +21,7 @@ function getBlockType(component: Component) {
 }
 
 function isRunnable(component: Component) {
-	if (component.type !== "workflows_uieventtrigger") return true;
+	if (component.type !== "blueprints_uieventtrigger") return true;
 
 	const hasDefaultResult = Boolean(component.content.defaultResult);
 	if (hasDefaultResult) return true;
@@ -53,15 +53,15 @@ const options = computed(() =>
 </script>
 
 <template>
-	<div class="WorkflowToolbarBlocksDropdown">
-		<p class="WorkflowToolbarBlocksDropdown__header">Start workflow from</p>
-		<div class="WorkflowToolbarBlocksDropdown__list">
+	<div class="BlueprintToolbarBlocksDropdown">
+		<p class="BlueprintToolbarBlocksDropdown__header">Start blueprint from</p>
+		<div class="BlueprintToolbarBlocksDropdown__list">
 			<div
 				v-for="option of options"
 				:key="option.id"
-				class="WorkflowToolbarBlocksDropdown__list__item"
+				class="BlueprintToolbarBlocksDropdown__list__item"
 				:class="{
-					'WorkflowToolbarBlocksDropdown__list__item--disabled':
+					'BlueprintToolbarBlocksDropdown__list__item--disabled':
 						option.disabled,
 				}"
 			>
@@ -81,11 +81,11 @@ const options = computed(() =>
 				</WdsButton>
 				<div>
 					<p
-						class="WorkflowToolbarBlocksDropdown__list__item__description"
+						class="BlueprintToolbarBlocksDropdown__list__item__description"
 					>
 						{{ option.description }}
 					</p>
-					<p class="WorkflowToolbarBlocksDropdown__list__item__title">
+					<p class="BlueprintToolbarBlocksDropdown__list__item__title">
 						{{ option.title }}
 					</p>
 				</div>
@@ -93,7 +93,7 @@ const options = computed(() =>
 					variant="neutral"
 					size="smallIcon"
 					custom-size="20px"
-					data-writer-tooltip="Jump to the workflow"
+					data-writer-tooltip="Jump to the blueprint"
 					@click="$emit('jumpToComponent', option.id)"
 				>
 					<i class="material-symbols-outlined">jump_to_element</i>
@@ -104,7 +104,7 @@ const options = computed(() =>
 </template>
 
 <style lang="css" scoped>
-.WorkflowToolbarBlocksDropdown {
+.BlueprintToolbarBlocksDropdown {
 	border: 1px solid var(--wdsColorGray2);
 	border: none;
 	background: #fff;
@@ -122,7 +122,7 @@ const options = computed(() =>
 	max-height: 300px;
 	overflow-y: auto;
 }
-.WorkflowToolbarBlocksDropdown__header {
+.BlueprintToolbarBlocksDropdown__header {
 	color: var(--wdsColorGray6);
 	font-size: 12px;
 	text-transform: uppercase;
@@ -130,32 +130,32 @@ const options = computed(() =>
 	margin-bottom: 10px;
 }
 
-.WorkflowToolbarBlocksDropdown__list {
+.BlueprintToolbarBlocksDropdown__list {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 }
-.WorkflowToolbarBlocksDropdown__list__item {
+.BlueprintToolbarBlocksDropdown__list__item {
 	display: grid;
 	grid-template-columns: auto minmax(0, 1fr) auto;
 	gap: 16px;
 	align-items: center;
 }
-.WorkflowToolbarBlocksDropdown__list__item__description,
-.WorkflowToolbarBlocksDropdown__list__item__title {
+.BlueprintToolbarBlocksDropdown__list__item__description,
+.BlueprintToolbarBlocksDropdown__list__item__title {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
 }
-.WorkflowToolbarBlocksDropdown__list__item__description {
+.BlueprintToolbarBlocksDropdown__list__item__description {
 	font-weight: 400;
 	color: var(--wdsColorGray4);
 }
 
-.WorkflowToolbarBlocksDropdown__list__item--disabled
-	.WorkflowToolbarBlocksDropdown__list__item__description,
-.WorkflowToolbarBlocksDropdown__list__item--disabled
-	.WorkflowToolbarBlocksDropdown__list__item__title {
+.BlueprintToolbarBlocksDropdown__list__item--disabled
+	.BlueprintToolbarBlocksDropdown__list__item__description,
+.BlueprintToolbarBlocksDropdown__list__item--disabled
+	.BlueprintToolbarBlocksDropdown__list__item__title {
 	opacity: 50%;
 }
 </style>

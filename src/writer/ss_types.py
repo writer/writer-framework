@@ -281,7 +281,7 @@ class ComponentDefinition(TypedDict):
     y: Optional[int]
 
 
-class WorkflowExecutionLog(BaseModel):
+class BlueprintExecutionLog(BaseModel):
     summary: List[Dict]
 
 

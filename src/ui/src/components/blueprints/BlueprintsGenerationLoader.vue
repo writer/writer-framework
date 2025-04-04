@@ -1,5 +1,5 @@
 <template>
-	<div class="WorkflowsLifeLoading">
+	<div class="BlueprintsLifeLoading">
 		<div class="logoContainer">
 			<img src="../../assets/logo.svg" alt="Writer Framework logo" />
 			<WdsLoaderDots class="dot-loader" color="black" />
@@ -45,7 +45,7 @@ onUnmounted(() => clearInterval(intervalId));
 </script>
 
 <style scoped>
-.WorkflowsLifeLoading {
+.BlueprintsLifeLoading {
 	position: relative;
 	height: 306px;
 	background: linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%);

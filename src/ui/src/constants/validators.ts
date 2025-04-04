@@ -4,9 +4,9 @@ import { inject } from "vue";
 
 export enum ValidatorCustomFormat {
 	/**
-	 * Check that the workflow key is existing
+	 * Check that the blueprint key is existing
 	 */
-	WriterWorkflowKey = "writer#workflowKey",
+	WriterBlueprintKey = "writer#blueprintKey",
 	/**
 	 * Check it's a white spaced list of CSS classes
 	 */
@@ -209,21 +209,21 @@ export const validatorCustomSchemas: Record<
 		format: /(^([+-]?\d*\.?\d+)(px|em|%|vh|vw|rem|pt|pc|in|cm|mm|ex|ch|vmin|vmax|fr)$)|(^$)/,
 		errorMessage: "must be a valid CSS size",
 	},
-	[ValidatorCustomFormat.WriterWorkflowKey]: {
+	[ValidatorCustomFormat.WriterBlueprintKey]: {
 		format: {
 			type: "string",
-			validate: (workflowKey) => {
+			validate: (blueprintKey) => {
 				const core = inject(injectionKeys.core);
 				if (!core) return true;
-				const workflowKeys = core
+				const blueprintKeys = core
 					.getComponents()
-					.filter((c) => c.type === "workflows_workflow")
+					.filter((c) => c.type === "blueprints_blueprint")
 					.map((c) => c.content.key);
 
-				return workflowKeys.includes(workflowKey);
+				return blueprintKeys.includes(blueprintKey);
 			},
 		},
-		errorMessage: "must correspond to an existing workflow key",
+		errorMessage: "must correspond to an existing blueprint key",
 	},
 };
 

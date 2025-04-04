@@ -42,13 +42,13 @@ export default {
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
 				component.value.type !== "root" &&
-				component.value.type !== "workflows_root" &&
-				componentDefinition.value?.toolkit !== "workflows",
+				component.value.type !== "blueprints_root" &&
+				componentDefinition.value?.toolkit !== "blueprints",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
-				? ["root", "workflows_root"]
+				? ["root", "blueprints_root"]
 				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};

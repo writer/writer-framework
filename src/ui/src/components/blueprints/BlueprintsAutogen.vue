@@ -1,5 +1,5 @@
 <template>
-	<div class="WorkflowsAutogen">
+	<div class="BlueprintsAutogen">
 		<template v-if="!isBusy">
 			<div class="main">
 				<WdsTextareaInput
@@ -19,7 +19,7 @@
 		</template>
 
 		<template v-else>
-			<WorkflowsGenerationLoader></WorkflowsGenerationLoader>
+			<BlueprintsGenerationLoader></BlueprintsGenerationLoader>
 		</template>
 	</div>
 </template>
@@ -29,7 +29,7 @@ import { inject, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
-import WorkflowsGenerationLoader from "./WorkflowsGenerationLoader.vue";
+import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
@@ -116,7 +116,7 @@ async function handleAutogen() {
 </script>
 
 <style scoped>
-.WorkflowsAutogen {
+.BlueprintsAutogen {
 	display: flex;
 	gap: 24px;
 	flex-direction: column;

@@ -1,27 +1,27 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class RunWorkflow(WorkflowBlock):
+class RunBlueprint(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
-        super(RunWorkflow, cls).register(type)
+        super(RunBlueprint, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Run blueprint",
                     "description": "Starts another blueprint by key. Useful for breaking logic into smaller, reusable parts.",
                     "category": "Logic",
                     "fields": {
-                        "workflowKey": {
-                            "name": "Workflow Key",
-                            "type": "Workflow Key",
+                        "blueprintKey": {
+                            "name": "Blueprint Key",
+                            "type": "Blueprint Key",
                             "validator": {
                                 "type": "string",
-                                "format": "writer#workflowKey",
+                                "format": "writer#blueprintKey",
                             },
                         },
                         "payload": {
@@ -40,7 +40,7 @@ class RunWorkflow(WorkflowBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The workflow was executed successfully.",
+                            "description": "The blueprint was executed successfully.",
                             "style": "error",
                         },
                     },
@@ -50,11 +50,11 @@ class RunWorkflow(WorkflowBlock):
 
     def run(self):
         try:
-            workflow_key = self._get_field("workflowKey")
+            blueprint_key = self._get_field("blueprintKey")
             payload = self._get_field("payload")
             expanded_execution_environment = self.execution_environment | {"payload": payload}
-            return_value = self.runner.run_workflow_by_key(
-                workflow_key, expanded_execution_environment
+            return_value = self.runner.run_blueprint_by_key(
+                blueprint_key, expanded_execution_environment
             )
             self.result = return_value
             self.outcome = "success"

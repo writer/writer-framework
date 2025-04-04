@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useWorkflowRun } from "@/composables/useWorkflowRun";
+import { useBlueprintRun } from "@/composables/useBlueprintRun";
 import WdsButton from "@/wds/WdsButton.vue";
 import injectionKeys from "@/injectionKeys";
 import { computed, inject, ref, shallowRef, toRaw, useTemplateRef } from "vue";
 import { useFloating, offset } from "@floating-ui/vue";
-import WorkflowToolbarBlocksDropdown from "./WorkflowToolbarBlocksDropdown.vue";
+import BlueprintToolbarBlocksDropdown from "./BlueprintToolbarBlocksDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 
 defineEmits({
@@ -13,12 +13,12 @@ defineEmits({
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const workflowComponentId = inject(injectionKeys.componentId);
+const blueprintComponentId = inject(injectionKeys.componentId);
 
 const root = useTemplateRef("root");
 const dropdown = useTemplateRef("dropdown");
 
-const { run: handleRun, isRunning } = useWorkflowRun(wf, workflowComponentId);
+const { run: handleRun, isRunning } = useBlueprintRun(wf, blueprintComponentId);
 
 const { floatingStyles } = useFloating(root, dropdown, {
 	placement: "bottom-end",
@@ -27,7 +27,7 @@ const { floatingStyles } = useFloating(root, dropdown, {
 
 const triggerComponents = computed(() =>
 	wf
-		.getComponents(workflowComponentId)
+		.getComponents(blueprintComponentId)
 		.filter(
 			(c) => wf.getComponentDefinition(c.type)?.category === "Triggers",
 		),
@@ -56,14 +56,14 @@ function jumpToComponent(componentId: string) {
 	isDropdownOpen.value = false;
 }
 
-async function runWorkflow(componentId?: string) {
+async function runBlueprint(componentId?: string) {
 	isDropdownOpen.value = false;
 	await handleRun(componentId);
 }
 </script>
 
 <template>
-	<div ref="root" class="WorkflowToolbar" :data-writer-unselectable="true">
+	<div ref="root" class="BlueprintToolbar" :data-writer-unselectable="true">
 		<WdsButton
 			variant="secondary"
 			data-automation-action="run-autogen"
@@ -72,21 +72,21 @@ async function runWorkflow(componentId?: string) {
 			<i class="material-symbols-outlined">bolt</i>
 			Autogen
 		</WdsButton>
-		<div ref="seeWorkflowsBtn" class="WorkflowToolbar__btn">
+		<div ref="seeBlueprintsBtn" class="BlueprintToolbar__btn">
 			<WdsButton
 				variant="secondary"
 				size="small"
-				data-automation-action="run-workflow"
-				class="WorkflowToolbar__btn__runWorkflow"
-				@click.stop="runWorkflow()"
+				data-automation-action="run-blueprint"
+				class="BlueprintToolbar__btn__runBlueprint"
+				@click.stop="runBlueprint()"
 			>
 				<i class="material-symbols-outlined">play_arrow</i>
 				{{ isRunning ? "Running..." : "Run blueprint" }}
 			</WdsButton>
 			<template v-if="triggerComponents.length > 0">
-				<hr class="WorkflowToolbar__btn__divider" />
+				<hr class="BlueprintToolbar__btn__divider" />
 				<WdsButton
-					class="WorkflowToolbar__btn__dropdownTrigger"
+					class="BlueprintToolbar__btn__dropdownTrigger"
 					variant="secondary"
 					size="smallIcon"
 					custom-size="20px"
@@ -97,13 +97,13 @@ async function runWorkflow(componentId?: string) {
 					}}</i>
 				</WdsButton>
 				<BaseTransitionSlideFade>
-					<WorkflowToolbarBlocksDropdown
+					<BlueprintToolbarBlocksDropdown
 						v-if="isDropdownOpen"
 						ref="dropdown"
 						:style="floatingStyles"
 						:components="triggerComponents"
 						@jump-to-component="jumpToComponent"
-						@run-branch="runWorkflow($event)"
+						@run-branch="runBlueprint($event)"
 					/>
 				</BaseTransitionSlideFade>
 			</template>
@@ -112,7 +112,7 @@ async function runWorkflow(componentId?: string) {
 </template>
 
 <style lang="css" scoped>
-.WorkflowToolbar__btn {
+.BlueprintToolbar__btn {
 	display: flex;
 	background: var(--wdsColorBlack);
 	border-radius: 300px;
@@ -127,14 +127,14 @@ async function runWorkflow(componentId?: string) {
 	padding-left: 8px;
 	padding-right: 8px;
 }
-.WorkflowToolbar__btn__runWorkflow {
+.BlueprintToolbar__btn__runBlueprint {
 	min-width: 155px;
 	justify-content: flex-start;
 }
-.WorkflowToolbar__btn__dropdownTrigger {
+.BlueprintToolbar__btn__dropdownTrigger {
 	font-size: 20px;
 }
-.WorkflowToolbar__btn__divider {
+.BlueprintToolbar__btn__divider {
 	display: block;
 	width: 1px;
 	height: 100%;

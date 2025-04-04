@@ -1,15 +1,15 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
-class ReturnValue(WorkflowBlock):
+class ReturnValue(BlueprintBlock):
 
     @classmethod
     def register(cls, type: str):
         super(ReturnValue, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
+            baseType="blueprints_node",
             writer={
                 "name": "Return value",
                 "description": "Returns a value from this block to the caller. Use to pass results to another blueprint.",

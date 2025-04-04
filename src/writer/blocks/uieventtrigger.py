@@ -1,16 +1,16 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_trigger import WorkflowTrigger
+from writer.blocks.base_trigger import BlueprintTrigger
 from writer.ss_types import AbstractTemplate
 
 
-class UIEventTrigger(WorkflowTrigger):
+class UIEventTrigger(BlueprintTrigger):
     @classmethod
     def register(cls, type: str):
         super(UIEventTrigger, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "UI Trigger",
                     "description": "Triggers an event based on UI interactions like button clicks or input changes.",
@@ -31,7 +31,7 @@ class UIEventTrigger(WorkflowTrigger):
                         "defaultResult": {
                             "name": "Default result",
                             "type": "Code",
-                            "desc": "The result that is used when the workflow is run",
+                            "desc": "The result that is used when the blueprint is run",
                         },
                     },
                     "outs": {

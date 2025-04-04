@@ -1,17 +1,17 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 DEFAULT_MODEL = "palmyra-x-004"
 
 
-class WriterInitChat(WorkflowBlock):
+class WriterInitChat(BlueprintBlock):
 
     @classmethod
     def register(cls, type: str):
         super(WriterInitChat, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
-            baseType="workflows_node",
+            baseType="blueprints_node",
             writer={
                 "name": "Initialize chat",
                 "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",

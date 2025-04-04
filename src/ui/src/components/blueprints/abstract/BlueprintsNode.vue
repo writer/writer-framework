@@ -1,13 +1,13 @@
 <template>
 	<div
-		class="WorkflowsNode"
+		class="BlueprintsNode"
 		:class="{
-			'WorkflowsNode--trigger': isTrigger,
-			'WorkflowsNode--intelligent': isIntelligent,
-			'WorkflowsNode--deprecated': isDeprecated,
-			'WorkflowsNode--running': completionStyle == 'running',
-			'WorkflowsNode--success': completionStyle == 'success',
-			'WorkflowsNode--error': completionStyle == 'error',
+			'BlueprintsNode--trigger': isTrigger,
+			'BlueprintsNode--intelligent': isIntelligent,
+			'BlueprintsNode--deprecated': isDeprecated,
+			'BlueprintsNode--running': completionStyle == 'running',
+			'BlueprintsNode--success': completionStyle == 'success',
+			'BlueprintsNode--error': completionStyle == 'error',
 		}"
 	>
 		<div
@@ -20,11 +20,11 @@
 		<div class="main">
 			<div class="title">
 				<SharedImgWithFallback :urls="possibleImageUrls" />
-				<WorkflowsNodeNamer
+				<BlueprintsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"
 					:block-name="def.name"
-				></WorkflowsNodeNamer>
+				></BlueprintsNodeNamer>
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
 				</div>
@@ -81,8 +81,8 @@
 export default {
 	writer: {
 		name: "Node",
-		description: "A Workflows node.",
-		toolkit: "workflows",
+		description: "A Blueprints node.",
+		toolkit: "blueprints",
 		category: "Other",
 		fields: {
 			alias: {
@@ -90,7 +90,7 @@ export default {
 				type: FieldType.Text,
 			},
 		},
-		allowedParentTypes: ["workflows_workflow"],
+		allowedParentTypes: ["blueprints_blueprint"],
 		previewField: "alias",
 	},
 };
@@ -99,7 +99,7 @@ export default {
 import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
-import WorkflowsNodeNamer from "../base/WorkflowsNodeNamer.vue";
+import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
@@ -146,7 +146,7 @@ const latestKnownOutcome = computed(() => {
 
 	for (let i = 0; i < logEntries.length; i++) {
 		const logEntry = logEntries[i];
-		const we = logEntry.workflowExecution;
+		const we = logEntry.blueprintExecution;
 		if (!we) continue;
 		for (let j = 0; j < we.summary.length; j++) {
 			const item = we.summary[j];
@@ -240,7 +240,7 @@ const possibleImageUrls = computed(() => {
 
 	const paths = [
 		`/components/${component.value.type}.svg`,
-		`/components/workflows_category_${def.value.category}.svg`,
+		`/components/blueprints_category_${def.value.category}.svg`,
 	];
 
 	if (wf.featureFlags.value.includes("custom_block_icons")) {
@@ -256,7 +256,7 @@ watch(isEngaged, () => {
 </script>
 
 <style scoped>
-.WorkflowsNode {
+.BlueprintsNode {
 	background: var(--builderBackgroundColor);
 	border-radius: 8px;
 	width: 240px;
@@ -265,20 +265,20 @@ watch(isEngaged, () => {
 	user-select: none;
 }
 
-.WorkflowsNode--success {
+.BlueprintsNode--success {
 	background: var(--wdsColorGreen3) !important;
 }
 
-.WorkflowsNode--error {
+.BlueprintsNode--error {
 	background: var(--wdsColorOrange2) !important;
 }
 
-.WorkflowsNode--running {
+.BlueprintsNode--running {
 	box-shadow: 0px 2px 24px -16px #6985ff;
 	animation: shadowPulse 1s infinite alternate ease-in-out;
 }
 
-.WorkflowsNode--deprecated {
+.BlueprintsNode--deprecated {
 	filter: grayscale(1);
 }
 
@@ -314,18 +314,18 @@ watch(isEngaged, () => {
 	left: 0;
 }
 
-.WorkflowsNode:hover .extraBorder {
+.BlueprintsNode:hover .extraBorder {
 	background-color: var(--wdsColorBlue2);
 }
 
-.WorkflowsNode--intelligent:hover .extraBorder {
+.BlueprintsNode--intelligent:hover .extraBorder {
 	background: var(
 		--Gradients-Summer-Dawn-2,
 		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
 	);
 }
 
-.WorkflowsNode.selected.component .extraBorder {
+.BlueprintsNode.selected.component .extraBorder {
 	background: var(--wdsColorBlue4);
 }
 
@@ -340,7 +340,7 @@ watch(isEngaged, () => {
 	animation: spin 1.5s linear infinite;
 }
 
-.WorkflowsNode--intelligent .extraBorder .runner {
+.BlueprintsNode--intelligent .extraBorder .runner {
 	background: conic-gradient(#6985ff, #ffd5f8, #bfcbff);
 }
 
@@ -351,14 +351,14 @@ watch(isEngaged, () => {
 	border-radius: 6px;
 }
 
-.WorkflowsNode--intelligent .main {
+.BlueprintsNode--intelligent .main {
 	margin-left: 8px;
 	border-radius: 0 6px 6px 0;
 }
 
-.WorkflowsNode--trigger,
-.WorkflowsNode--trigger .main,
-.WorkflowsNode--trigger .extraBorder {
+.BlueprintsNode--trigger,
+.BlueprintsNode--trigger .main,
+.BlueprintsNode--trigger .extraBorder {
 	border-radius: 36px;
 }
 
@@ -371,7 +371,7 @@ watch(isEngaged, () => {
 	grid-template-columns: 24px 1fr;
 }
 
-.WorkflowsNode--intelligent .title {
+.BlueprintsNode--intelligent .title {
 	padding-left: 6px;
 }
 
@@ -391,15 +391,15 @@ watch(isEngaged, () => {
 	color: var(--builderSecondaryTextColor);
 }
 
-.WorkflowsNode--trigger .title img {
+.BlueprintsNode--trigger .title img {
 	border-radius: 50%;
 }
 
-.WorkflowsNode:hover .nodeNamer :deep(.blockName) {
+.BlueprintsNode:hover .nodeNamer :deep(.blockName) {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.WorkflowsNode:hover .nodeNamer :deep(.aliasEditor) {
+.BlueprintsNode:hover .nodeNamer :deep(.aliasEditor) {
 	background: var(--builderSubtleSeparatorColor);
 }
 
@@ -413,7 +413,7 @@ watch(isEngaged, () => {
 	font-size: 12px;
 }
 
-.WorkflowsNode--trigger .outputs {
+.BlueprintsNode--trigger .outputs {
 	border: none;
 	position: absolute;
 	right: 0;

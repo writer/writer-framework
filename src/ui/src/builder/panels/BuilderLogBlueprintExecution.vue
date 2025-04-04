@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderLogWorkflowExecution">
+	<div class="BuilderLogBlueprintExecution">
 		<BuilderListItem
 			v-for="(item, itemId) in enrichedExecutionLog.summary"
 			:key="itemId"
@@ -82,10 +82,10 @@
 								},
 							]"
 						>
-							<BuilderLogWorkflowExecutionTrace
+							<BuilderLogBlueprintExecutionTrace
 								:execution-item="item"
 								@close-modal="() => (displayedItemId = null)"
-							></BuilderLogWorkflowExecutionTrace>
+							></BuilderLogBlueprintExecutionTrace>
 						</WdsModal>
 						<WdsButton
 							v-if="
@@ -120,12 +120,12 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import injectionKeys from "@/injectionKeys";
-import { WorkflowExecutionLog } from "../builderManager";
+import { BlueprintExecutionLog } from "../builderManager";
 import { computed, inject, nextTick, ref } from "vue";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
-import BuilderLogWorkflowExecutionTrace from "./BuilderLogWorkflowExecutionTrace.vue";
+import BuilderLogBlueprintExecutionTrace from "./BuilderLogBlueprintExecutionTrace.vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import BuilderListItem from "../BuilderListItem.vue";
 
@@ -135,11 +135,11 @@ const wfbm = inject(injectionKeys.builderManager);
 const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 
 const props = defineProps<{
-	executionLog: WorkflowExecutionLog;
+	executionLog: BlueprintExecutionLog;
 }>();
 const displayedItemId = ref<number | null>(null);
 
-type EnrichedExecutionLog = WorkflowExecutionLog & {
+type EnrichedExecutionLog = BlueprintExecutionLog & {
 	summary: {
 		component?: Component;
 		componentDef?: WriterComponentDefinition;
@@ -166,7 +166,7 @@ const enrichedExecutionLog = computed(() => {
 });
 
 async function selectBlock(componentId: Component["id"]) {
-	wfbm.setMode("workflows");
+	wfbm.setMode("blueprints");
 	await nextTick();
 	goToComponentParentPage(componentId);
 	await nextTick();
@@ -187,7 +187,7 @@ function formatExecutionTime(timeInSeconds: number): string {
 <style scoped>
 @import "../sharedStyles.css";
 
-.BuilderLogWorkflowExecution {
+.BuilderLogBlueprintExecution {
 	display: flex;
 	flex-direction: column;
 	margin-left: 19px;

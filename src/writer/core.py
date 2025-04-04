@@ -50,7 +50,7 @@ from writer.ss_types import (
     InstancePath,
     Readable,
     ServeMode,
-    WorkflowExecutionLog,
+    BlueprintExecutionLog,
     WriterEvent,
     WriterEventResult,
     WriterFileItem,
@@ -1014,7 +1014,7 @@ class WriterState(State):
         title: str,
         message: str,
         code: Optional[str] = None,
-        workflow_execution: Optional[WorkflowExecutionLog] = None,
+        blueprint_execution: Optional[BlueprintExecutionLog] = None,
     ) -> None:
         if not Config.logger:
             return
@@ -1043,9 +1043,9 @@ class WriterState(State):
 
         log_message = "From app log: " + ("\n%s" * len(log_args))
 
-        if workflow_execution:
+        if blueprint_execution:
             log_message += "\n"
-            for entry in workflow_execution.summary:
+            for entry in blueprint_execution.summary:
                 outcome = entry.get("outcome")
                 if outcome is None:
                     continue
@@ -1066,10 +1066,10 @@ class WriterState(State):
         title: str,
         message: str,
         code: Optional[str] = None,
-        workflow_execution: Optional[WorkflowExecutionLog] = None,
+        blueprint_execution: Optional[BlueprintExecutionLog] = None,
         id: Optional[str] = None,
     ) -> None:
-        self._log_entry_in_logger(type, title, message, code, workflow_execution)
+        self._log_entry_in_logger(type, title, message, code, blueprint_execution)
         if not Config.is_mail_enabled_for_log:
             return
         shortened_message = None
@@ -1084,7 +1084,7 @@ class WriterState(State):
                 "title": title,
                 "message": shortened_message,
                 "code": code,
-                "workflowExecution": workflow_execution,
+                "blueprintExecution": blueprint_execution,
                 "id": id,
             },
         )
@@ -1620,7 +1620,7 @@ class EventHandler:
     """
 
     def __init__(self, session: WriterSession) -> None:
-        import writer.workflows
+        import writer.blueprints
 
         self.session = session
         self.session_state = session.session_state
@@ -1629,7 +1629,7 @@ class EventHandler:
         self.evaluator = writer.evaluator.Evaluator(
             session.session_state, session.session_component_tree
         )
-        self.workflow_runner = writer.workflows.WorkflowRunner(session)
+        self.blueprint_runner = writer.blueprints.BlueprintRunner(session)
 
     def _handle_binding(self, event_type, target_component, instance_path, payload) -> None:
         if not target_component.binding:
@@ -1639,42 +1639,42 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _get_workflow_callable(
+    def _get_blueprint_callable(
         self,
-        workflow_key: Optional[str] = None,
-        workflow_id: Optional[str] = None,
+        blueprint_key: Optional[str] = None,
+        blueprint_id: Optional[str] = None,
         branch_id: Optional[str] = None,
     ):
         def fn(payload, context, session):
             execution_environment = {"payload": payload, "context": context, "session": session}
-            if workflow_key:
-                return self.workflow_runner.run_workflow_by_key(workflow_key, execution_environment)
-            elif workflow_id:
-                return self.workflow_runner.run_workflow(
-                    workflow_id, execution_environment, "Workflow execution triggered on demand"
+            if blueprint_key:
+                return self.blueprint_runner.run_blueprint_by_key(blueprint_key, execution_environment)
+            elif blueprint_id:
+                return self.blueprint_runner.run_blueprint(
+                    blueprint_id, execution_environment, "Blueprint execution triggered on demand"
                 )
             elif branch_id:
-                return self.workflow_runner.run_branch(
+                return self.blueprint_runner.run_branch(
                     branch_id,
                     None,
                     execution_environment,
-                    "Workflow branch execution triggered on demand",
+                    "Blueprint branch execution triggered on demand",
                 )
 
         return fn
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
-        if handler.startswith("$runWorkflow_"):
-            workflow_key = handler[13:]
-            return self._get_workflow_callable(workflow_key=workflow_key)
+        if handler.startswith("$runBlueprint_"):
+            blueprint_key = handler[13:]
+            return self._get_blueprint_callable(blueprint_key=blueprint_key)
 
-        if handler.startswith("$runWorkflowById_"):
-            workflow_id = handler[17:]
-            return self._get_workflow_callable(workflow_id=workflow_id)
+        if handler.startswith("$runBlueprintById_"):
+            blueprint_id = handler[17:]
+            return self._get_blueprint_callable(blueprint_id=blueprint_id)
 
-        if handler.startswith("$runWorkflowTriggerBranchById_"):
+        if handler.startswith("$runBlueprintTriggerBranchById_"):
             branch_id = handler[30:]
-            return self._get_workflow_callable(branch_id=branch_id)
+            return self._get_blueprint_callable(branch_id=branch_id)
 
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
@@ -1762,7 +1762,7 @@ class EventHandler:
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             calling_arguments = self._get_calling_arguments(ev, instance_path)
-            self.workflow_runner.execute_ui_trigger(target_id, ev.type, calling_arguments)
+            self.blueprint_runner.execute_ui_trigger(target_id, ev.type, calling_arguments)
             if not target_component.handlers:
                 return None
             handler = target_component.handlers.get(ev.type)

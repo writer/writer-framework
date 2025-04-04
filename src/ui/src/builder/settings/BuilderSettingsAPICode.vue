@@ -1,5 +1,5 @@
 <template>
-	<div v-if="isWorkflow" class="BuilderSettingsAPICode">
+	<div v-if="isBlueprint" class="BuilderSettingsAPICode">
 		<WdsModal
 			v-if="isModalVisible"
 			title="API Code"
@@ -46,7 +46,7 @@
 				</p>
 			</div>
 		</WdsModal>
-		<template v-if="workflowKey">
+		<template v-if="blueprintKey">
 			<WdsButton variant="tertiary" size="small" @click="showCode">
 				<i class="material-symbols-outlined"> code </i> Call via
 				API</WdsButton
@@ -57,7 +57,7 @@
 				:disabled="true"
 				variant="tertiary"
 				size="small"
-				data-writer-tooltip="You need to specify a workflow key before this workflow can be
+				data-writer-tooltip="You need to specify a blueprint key before this blueprint can be
 				used in the UI or called via API."
 			>
 				<i class="material-symbols-outlined"> code </i> Call via
@@ -81,12 +81,12 @@ const component = computed(() =>
 	wf.getComponentById(wfbm.firstSelectedId.value),
 );
 
-const isWorkflow = computed(
-	() => component.value?.type === "workflows_workflow",
+const isBlueprint = computed(
+	() => component.value?.type === "blueprints_blueprint",
 );
 
-const workflowKey = computed(() => {
-	if (!isWorkflow.value) return;
+const blueprintKey = computed(() => {
+	if (!isBlueprint.value) return;
 	return component.value.content?.["key"];
 });
 
@@ -102,13 +102,13 @@ function showCode() {
 }
 
 async function generateCode() {
-	const bearerToken = await wf.hashMessage(`create_job_${workflowKey.value}`);
+	const bearerToken = await wf.hashMessage(`create_job_${blueprintKey.value}`);
 	isHashAvailable.value = Boolean(bearerToken);
 	if (!isHashAvailable.value) return;
 
 	const baseURL = window.location.origin + window.location.pathname;
 	code.value = `
-curl --location --request POST '${baseURL}api/job/workflow/${workflowKey.value}' \\
+curl --location --request POST '${baseURL}api/job/blueprint/${blueprintKey.value}' \\
 --header 'Content-Type: application/json' \\
 --header 'Authorization: Bearer ${bearerToken}' \\
 --data '{
