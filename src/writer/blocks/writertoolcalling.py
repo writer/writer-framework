@@ -2,6 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WorkflowBlock
 from writer.ss_types import AbstractTemplate
 
+DEFAULT_MODEL = "palmyra-x-004"
 
 class WriterToolCalling(WorkflowBlock):
     @classmethod
@@ -16,7 +17,17 @@ class WriterToolCalling(WorkflowBlock):
                     "description": "Handles tool calling without the need for a chat.",
                     "category": "Writer",
                     "fields": {
-                        "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},
+                        "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea", "desc": "The prompt to trigger tool calling. Mention including <DONE> to stop iterating."},
+                        "modelId": {
+                            "name": "Model id",
+                            "type": "Text",
+                            "default": DEFAULT_MODEL
+                        },
+                        "maxIterations": {
+                            "name": "Max iterations",
+                            "type": "Number",
+                            "default": 10
+                        },
                         "tools": {
                             "name": "Tools",
                             "type": "Tools",
@@ -145,12 +156,14 @@ class WriterToolCalling(WorkflowBlock):
 
         try:
             prompt = self._get_field("prompt")
+            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
+            max_iterations = int(self._get_field("maxIterations", False, 10))
             conversation = writer.ai.Conversation()
             tools = self._get_tools()
 
-            for i in range(10):
+            for i in range(max_iterations):
                 conversation += {"role": "user", "content": prompt}
-                config = {"model": "palmyra-x5"}
+                config = {"model": model_id}
                 msg = conversation.complete(tools=tools, config=config)
                 conversation += msg
                 if "<DONE>" in msg.get("content"):
