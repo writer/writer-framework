@@ -22,7 +22,7 @@
 		</div>
 		<BuilderFieldsKeyValueModal
 			v-if="isModalOpen"
-			:data="evaluatedValue"
+			:data="field"
 			@submit="onModalSubmit"
 			@close="isModalOpen = false"
 		/>
@@ -93,6 +93,14 @@ function onModalSubmit(data: JSONValue) {
 
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
+
+const field = computed(() => {
+	try {
+		return JSON.parse(component.value.content[fieldKey.value] ?? "{}");
+	} catch {
+		return {};
+	}
+});
 
 const { getEvaluatedFields } = useEvaluator(wf);
 
