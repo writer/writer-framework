@@ -1,4 +1,4 @@
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.core import WriterState
 
 
@@ -9,7 +9,7 @@ def test_get_field(session, runner):
     component = session.add_fake_component(
         {"my_element": "@{animal}", "my_list": "@{my_list}", "my_dict": "@{my_dict}"}
     )
-    block = WorkflowBlock(component, runner, {})
+    block = BlueprintBlock(component, runner, {})
     assert "rat" == block._get_field("my_element", as_json=False, default_field_value="elephant")
     assert [1, 2, 3] == block._get_field("my_list", as_json=True, default_field_value=None)
     assert "b" == block._get_field("my_dict", as_json=True, default_field_value=None).get("a")
@@ -34,7 +34,7 @@ def test_set_state(session, runner):
     component = session.add_fake_component(
         {"my_element": "@{animal}", "my_list": "@{my_list}", "my_dict": "@{my_dict}"}
     )
-    block = WorkflowBlock(component, runner, {})
+    block = BlueprintBlock(component, runner, {})
     block._set_state("animal", "cat")
     block._set_state("animal", "bat")
     block._set_state("my_list", [1, 2])

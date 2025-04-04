@@ -1,16 +1,16 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class SetState(WorkflowBlock):
+class SetState(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(SetState, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Set state",
                     "description": "Stores a value in the Agent's state. Use to remember data across steps.",

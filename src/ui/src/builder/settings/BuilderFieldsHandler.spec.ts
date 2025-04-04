@@ -12,7 +12,7 @@ describe("BuilderFieldsHandler", () => {
 	let userFunctions: ReturnType<typeof buildMockCore>["userFunctions"];
 	const component1 = buildMockComponent({
 		id: "wf1",
-		parentId: "workflows_root",
+		parentId: "blueprints_root",
 	});
 	const fieldKey = "mock-field-key";
 
@@ -86,7 +86,7 @@ describe("BuilderFieldsHandler", () => {
 		const unexstingHandler = "unexsting-handler";
 		const component2 = buildMockComponent({
 			id: "wf3",
-			parentId: "workflows_root",
+			parentId: "blueprints_root",
 			content: { [fieldKey]: unexstingHandler },
 		});
 		core.addComponent(component2);

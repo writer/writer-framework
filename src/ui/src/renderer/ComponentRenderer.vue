@@ -174,7 +174,7 @@ function addMailSubscriptions() {
 		el.click();
 	});
 	wf.addMailSubscription("pageChange", async (pageKey: string) => {
-		if (wfbm?.getMode() === "workflows") {
+		if (wfbm?.getMode() === "blueprints") {
 			wfbm.setMode("ui");
 		}
 		await nextTick();

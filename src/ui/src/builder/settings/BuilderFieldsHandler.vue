@@ -32,7 +32,7 @@ const selectedHandler = computed<string>({
 });
 
 const options = computed<Option[]>(() => {
-	const workflowsOptions = wf.userFunctions.value
+	const blueprintsOptions = wf.userFunctions.value
 		.map((f) => f.name)
 		.sort((a, b) => a.localeCompare(b))
 		.map((key) => ({
@@ -43,10 +43,10 @@ const options = computed<Option[]>(() => {
 
 	const options: Option[] = [
 		{ value: "", label: "(No handler)", icon: "block" },
-		...workflowsOptions,
+		...blueprintsOptions,
 	];
 
-	// add an option if selected workflow does not exists
+	// add an option if selected blueprint does not exists
 	if (!options.some((o) => o.value === selectedHandler.value)) {
 		const key = selectedHandler.value;
 		options.push({ value: key, label: key });

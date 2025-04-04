@@ -69,11 +69,11 @@
 						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsText>
 
-					<BuilderFieldsWorkflowKey
-						v-if="fieldValue.type == FieldType.WorkflowKey"
+					<BuilderFieldsBlueprintKey
+						v-if="fieldValue.type == FieldType.BlueprintKey"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
-					></BuilderFieldsWorkflowKey>
+					></BuilderFieldsBlueprintKey>
 
 					<BuilderFieldsHandler
 						v-if="fieldValue.type == FieldType.Handler"
@@ -200,7 +200,7 @@ import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
-import BuilderFieldsWorkflowKey from "./BuilderFieldsWorkflowKey.vue";
+import BuilderFieldsBlueprintKey from "./BuilderFieldsBlueprintKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";

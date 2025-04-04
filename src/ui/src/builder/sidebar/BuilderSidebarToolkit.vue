@@ -66,8 +66,8 @@ const displayedCategories = [
 ];
 
 const activeToolkit = computed(() => {
-	if (wfbm.getMode() == "workflows") {
-		return "workflows";
+	if (wfbm.getMode() == "blueprints") {
+		return "blueprints";
 	}
 	return "core";
 });
@@ -95,7 +95,7 @@ const searchCount = computed(() => {
 
 const placeholder = computed(() => {
 	if (activeToolkit.value == "core") return "Core toolkit";
-	if (activeToolkit.value == "workflows") return "Blueprints toolkit";
+	if (activeToolkit.value == "blueprints") return "Blueprints toolkit";
 	return "Toolkit";
 });
 
@@ -131,7 +131,7 @@ function handleDragEnd(ev: DragEvent) {
 function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
 	return [
 		`/components/${tool.type}.svg`,
-		`/components/${activeToolkit.value == "workflows" ? "workflows_" : ""}category_${tool.category}.svg`,
+		`/components/${activeToolkit.value == "blueprints" ? "blueprints_" : ""}category_${tool.category}.svg`,
 	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 

@@ -16,7 +16,7 @@ const IGNORE_COMPONENT_TYPES = [
 	"steps",
 	"html",
 	"repeater",
-	"workflowsnode",
+	"blueprintsnode",
 ];
 
 const __filename = fileURLToPath(import.meta.url);

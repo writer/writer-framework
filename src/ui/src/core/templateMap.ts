@@ -65,11 +65,11 @@ import CorePage from "../components/core/root/CorePage.vue";
 import CoreRoot from "../components/core/root/CoreRoot.vue";
 import CoreMapbox from "../components/core/embed/CoreMapbox.vue";
 
-// WORKFLOWS
+// Blueprints
 
-import WorkflowsWorkflow from "../components/workflows/WorkflowsWorkflow.vue";
-import WorkflowsNode from "../components/workflows/abstract/WorkflowsNode.vue";
-import WorkflowsRoot from "@/components/workflows/WorkflowsRoot.vue";
+import BlueprintsBlueprint from "../components/blueprints/BlueprintsBlueprint.vue";
+import BlueprintsNode from "../components/blueprints/abstract/BlueprintsNode.vue";
+import BlueprintsRoot from "@/components/blueprints/BlueprintsRoot.vue";
 
 import type {
 	AbstractTemplate,
@@ -135,8 +135,8 @@ const templateMap: TemplateMap = {
 	avatar: CoreAvatar,
 	annotatedtext: CoreAnnotatedText,
 	jsonviewer: CoreJsonViewer,
-	workflows_root: WorkflowsRoot,
-	workflows_workflow: WorkflowsWorkflow,
+	blueprints_root: BlueprintsRoot,
+	blueprints_blueprint: BlueprintsBlueprint,
 	progressbar: CoreProgressBar,
 };
 
@@ -183,7 +183,7 @@ function fallbackTemplate(type: string) {
 
 function getMergedAbstractTemplate(type: string) {
 	const abstractBaseTemplateMap = {
-		workflows_node: WorkflowsNode,
+		blueprints_node: BlueprintsNode,
 	};
 	const template = abstractTemplateMap[type];
 	if (!template) return;

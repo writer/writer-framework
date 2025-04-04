@@ -1,2 +1,0 @@
-{"id": "n20uom1t17z7c1h8", "type": "workflows_workflow", "content": {"key": "repeat_payload"}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 1}
-{"id": "5rwx9ukywrkz2f8t", "type": "workflows_returnvalue", "content": {"alias": "Repeat payload", "value": "@{payload}"}, "handlers": {}, "isCodeManaged": false, "parentId": "n20uom1t17z7c1h8", "position": 0, "x": 371, "y": 270}

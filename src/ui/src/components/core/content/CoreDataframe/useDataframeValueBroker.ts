@@ -3,7 +3,7 @@ import { type internal } from "arquero";
 import { ARQUERO_INTERNAL_ID, UNNAMED_INDEX_COLUMN_PATTERN } from "./constants";
 import { useJobs } from "./useJobs";
 import { Core, InstancePath } from "@/writerTypes";
-import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
+import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 /**
  * Encapsulates the logic to update an Arquero table and sync it with the backend
@@ -19,17 +19,17 @@ export function useDataFrameValueBroker(
 
 	type Job =
 		| {
-				eventType: "wf-dataframe-add";
-				payload: Parameters<typeof handlerAddRow>;
-		  }
+			eventType: "wf-dataframe-add";
+			payload: Parameters<typeof handlerAddRow>;
+		}
 		| {
-				eventType: "wf-dataframe-update";
-				payload: Parameters<typeof handlerUpdateCell>;
-		  }
+			eventType: "wf-dataframe-update";
+			payload: Parameters<typeof handlerUpdateCell>;
+		}
 		| {
-				eventType: "wf-dataframe-action";
-				payload: Parameters<typeof handlerActionRow>;
-		  };
+			eventType: "wf-dataframe-action";
+			payload: Parameters<typeof handlerActionRow>;
+		};
 
 	const { push: pushJob, isBusy } = useJobs<Job>(handler);
 
@@ -156,13 +156,13 @@ export function useDataFrameValueBroker(
 	function isEventUsed(eventType: string): boolean {
 		const isHandlerSet = component.value.handlers?.[eventType];
 		const isBindingSet = component.value.binding?.eventType == eventType;
-		const isWorkflowAttached = useComponentLinkedWorkflows(
+		const isBlueprintAttached = useComponentLinkedBlueprints(
 			wf,
 			componentId,
 			eventType,
 		).isLinked.value;
 
-		return Boolean(isHandlerSet || isBindingSet || isWorkflowAttached);
+		return Boolean(isHandlerSet || isBindingSet || isBlueprintAttached);
 	}
 
 	function dispatchEvent(event: CustomEvent) {

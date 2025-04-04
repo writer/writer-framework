@@ -447,7 +447,7 @@ def export_component_tree(component_tree: ComponentTree, mode: ServeMode, only_u
 
     >>> filtered_component_tree = core_ui.export_component_tree(session.session_component_tree, mode=writer.Config.mode)
 
-    This function filters artifacts that should be hidden from the user, for example workflows in run mode.
+    This function filters artifacts that should be hidden from the user, for example blueprints in run mode.
 
     :param component_tree: the full component tree
     :param mode: the mode of the application (edit, run)
@@ -459,7 +459,7 @@ def export_component_tree(component_tree: ComponentTree, mode: ServeMode, only_u
 
     roots = ['root']
     if mode == "edit":
-        roots.append('workflows_root')
+        roots.append('blueprints_root')
 
     _components: List[Component] = []
     for root in roots:
