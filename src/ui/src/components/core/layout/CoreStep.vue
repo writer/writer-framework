@@ -1,19 +1,13 @@
 <template>
 	<div
-		v-show="
-			stepContainerDirectChildInstanceItem?.instanceNumber ==
-				STEP_BIT_INSTANCE_NUMBER ||
-			(stepContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER &&
-				isStepActive)
-		"
+		v-show="isStepBitInstance || (isContentInstance && isStepActive)"
 		class="CoreStep"
+		:class="{
+			'CoreStep--bit': isStepBitInstance,
+		}"
 	>
 		<button
-			v-if="
-				stepContainerDirectChildInstanceItem?.instanceNumber ==
-				STEP_BIT_INSTANCE_NUMBER
-			"
+			v-if="isStepBitInstance"
 			class="bit"
 			:disabled="!isBeingEdited"
 			:class="{
@@ -43,10 +37,7 @@
 			<div class="label">{{ fields.name.value }}</div>
 		</button>
 		<BaseContainer
-			v-if="
-				stepContainerDirectChildInstanceItem?.instanceNumber ==
-				CONTENT_DISPLAYING_INSTANCE_NUMBER
-			"
+			v-if="isContentInstance"
 			v-show="isStepActive"
 			class="container"
 			:content-h-align="fields.contentHAlign.value"
@@ -231,6 +222,18 @@ const stepContainerDirectChildInstanceItem = computed(() => {
 	return instancePath.at(i);
 });
 
+const isStepBitInstance = computed(
+	() =>
+		stepContainerDirectChildInstanceItem.value?.instanceNumber ==
+		STEP_BIT_INSTANCE_NUMBER,
+);
+
+const isContentInstance = computed(
+	() =>
+		stepContainerDirectChildInstanceItem.value?.instanceNumber ==
+		CONTENT_DISPLAYING_INSTANCE_NUMBER,
+);
+
 /*
 Activate the step if a component inside it was selected.
 */
@@ -246,10 +249,7 @@ active step's in the parent Step Container.
 */
 const isStepActive = computed(() => {
 	let contentDisplayingInstancePath: InstancePath;
-	if (
-		stepContainerDirectChildInstanceItem?.value.instanceNumber ==
-		STEP_BIT_INSTANCE_NUMBER
-	) {
+	if (isStepBitInstance.value) {
 		contentDisplayingInstancePath = getMatchingStepInstancePath();
 	} else {
 		contentDisplayingInstancePath = instancePath;
@@ -282,11 +282,7 @@ watch(fields.isCompleted, (value: boolean, oldValue: boolean) => {
 });
 
 onBeforeMount(() => {
-	if (
-		stepContainerDirectChildInstanceItem?.value.instanceNumber ==
-		STEP_BIT_INSTANCE_NUMBER
-	)
-		return;
+	if (isStepBitInstance.value) return;
 
 	// Register steps in the Step Container
 
@@ -405,8 +401,11 @@ button.bit.active:focus {
 	background: transparent;
 }
 
+.CoreStep--bit.selected {
+	outline: unset !important;
+}
+
 .label {
 	padding: 8px 16px 0 16px;
 }
 </style>
-../base/BaseContainer.vue
