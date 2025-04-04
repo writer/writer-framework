@@ -3,7 +3,7 @@
 		<div class="logoContainer">
 			<img src="../../assets/logo.svg" alt="Writer Framework logo" />
 			<WdsLoaderDots class="dot-loader" color="black" />
-			<div class="rotating-text">
+			<p class="rotating-text">
 				<span
 					v-for="(text, index) in texts"
 					:key="index"
@@ -11,20 +11,20 @@
 				>
 					{{ text }}
 				</span>
-			</div>
+			</p>
 		</div>
 		<div class="background">
-			<RotatingCircle custom-class="rotating-circle left" />
-			<RotatingCircle custom-class="rotating-circle center" />
-			<RotatingCircle custom-class="rotating-circle right" />
+			<GradientCircle class="rotating-circle left" />
+			<GradientCircle class="rotating-circle center" />
+			<GradientCircle class="rotating-circle right" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import WdsLoaderDots from "@/wds/WdsLoaderDots.vue";
-import RotatingCircle from "./RotatingCircle.vue";
+import GradientCircle from "./GradientCircle.vue";
 
 const texts = [
 	"Analyzing requirements",
@@ -37,11 +37,11 @@ const currentTextIndex = ref(0);
 
 const TEXT_CHANGE_INTERVAL = 4000;
 
-onMounted(() => {
-	setInterval(() => {
-		currentTextIndex.value = (currentTextIndex.value + 1) % texts.length;
-	}, TEXT_CHANGE_INTERVAL);
-});
+const intervalId = setInterval(() => {
+	currentTextIndex.value = (currentTextIndex.value + 1) % texts.length;
+}, TEXT_CHANGE_INTERVAL);
+
+onUnmounted(() => clearInterval(intervalId));
 </script>
 
 <style scoped>
@@ -117,6 +117,7 @@ onMounted(() => {
 }
 
 .rotating-circle {
+	transform-origin: center;
 	position: absolute;
 }
 
