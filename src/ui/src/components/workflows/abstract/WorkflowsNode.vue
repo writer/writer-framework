@@ -137,7 +137,7 @@ const completionStyle = computed(() => {
 	// Any dynamic out is considered success
 
 	return (
-		{ ...staticOuts.value }?.[latestKnownOutcome.value].style ?? "success"
+		{ ...staticOuts.value }?.[latestKnownOutcome.value]?.style ?? "success"
 	);
 });
 

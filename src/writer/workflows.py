@@ -264,9 +264,9 @@ class WorkflowRunner:
         for node in nodes:
             graph[node.id] = node
             tools[node.id] = None
-            for out in node.outs or []:
-                to_node_id = out.get("toNodeId")
-                in_degree[to_node_id] += 1
+            out_node_ids = {out.get("toNodeId") for out in (node.outs or [])}
+            for node_id in out_node_ids:
+                in_degree[node_id] += 1
 
         ready: deque = deque()
         for node in nodes:
