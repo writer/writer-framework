@@ -1665,15 +1665,15 @@ class EventHandler:
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
         if handler.startswith("$runBlueprint_"):
-            blueprint_key = handler[13:]
+            blueprint_key = handler[14:]
             return self._get_blueprint_callable(blueprint_key=blueprint_key)
 
         if handler.startswith("$runBlueprintById_"):
-            blueprint_id = handler[17:]
+            blueprint_id = handler[18:]
             return self._get_blueprint_callable(blueprint_id=blueprint_id)
 
         if handler.startswith("$runBlueprintTriggerBranchById_"):
-            branch_id = handler[30:]
+            branch_id = handler[31:]
             return self._get_blueprint_callable(branch_id=branch_id)
 
         current_app_process = get_app_process()
