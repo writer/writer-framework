@@ -31,14 +31,16 @@ export function buildMockCore() {
 	const userState = ref({});
 	const sourceFiles = ref<SourceFiles>({ type: "directory", children: {} });
 	const userFunctions = ref<UserFunction[]>([]);
+	const featureFlags = ref<string[]>([]);
 
 	core.userFunctions = userFunctions;
 	core.userState = userState;
 	core.sourceFiles = sourceFiles;
+	core.featureFlags = featureFlags;
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
-	return { core, userState, sourceFiles, userFunctions };
+	return { core, userState, sourceFiles, userFunctions, featureFlags };
 }
 
 export const mockProvides: Record<symbol, unknown> = {
