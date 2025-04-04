@@ -13,7 +13,7 @@ class ForEach(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "For-each loop",
-                    "description": "Executes a branch repeatedly, based on the items provided.",
+                    "description": "Loops through each item in a list to run the same logic.",
                     "category": "Logic",
                     "fields": {
                         "items": {

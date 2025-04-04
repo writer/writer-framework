@@ -13,7 +13,7 @@ class SetState(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Set state",
-                    "description": "Set the value for a state element.",
+                    "description": "Stores a value in the Agent's state. Use to remember data across steps.",
                     "category": "Other",
                     "fields": {
                         "element": {

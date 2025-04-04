@@ -9,7 +9,10 @@
 			class="BuilderSettingsProperties__category"
 		>
 			<h4
-				v-if="fieldsByCategory[propertyCategory].length > 0"
+				v-if="
+					fieldsByCategory[propertyCategory].length > 0 &&
+					propertyCategory !== 'General'
+				"
 				class="BuilderSettingsProperties__category__title"
 			>
 				{{ propertyCategory }}

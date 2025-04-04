@@ -17,7 +17,7 @@ class HTTPRequest(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "HTTP Request",
-                    "description": "Executes an HTTP request. If the response is JSON, it's automatically parsed.",
+                    "description": "Sends a HTTP request to an API endpoint. Used to fetch data or send data.",
                     "category": "Other",
                     "fields": {
                         "method": {

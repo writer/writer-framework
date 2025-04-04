@@ -12,7 +12,7 @@ class ReturnValue(WorkflowBlock):
             baseType="workflows_node",
             writer={
                 "name": "Return value",
-                "description": "Returns a value from a workflow or sub-workflow.",
+                "description": "Returns a value from this block to the caller. Use to pass results to another blueprint.",
                 "category": "Logic",
                 "fields": {
                     "value": {

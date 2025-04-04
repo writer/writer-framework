@@ -13,7 +13,7 @@ class RunWorkflow(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Run blueprint",
-                    "description": "Executes a workflow with a given key.",
+                    "description": "Starts another blueprint by key. Useful for breaking logic into smaller, reusable parts.",
                     "category": "Logic",
                     "fields": {
                         "workflowKey": {

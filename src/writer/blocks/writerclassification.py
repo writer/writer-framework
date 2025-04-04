@@ -15,7 +15,7 @@ class WriterClassification(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Classification",
-                    "description": "Classify a text into a different categories, running different branches depending on the resulting category.",
+                    "description": "Classifies text into predefined categories using AI. Useful for tagging and routing inputs.",
                     "category": "Writer",
                     "fields": {
                         "text": {

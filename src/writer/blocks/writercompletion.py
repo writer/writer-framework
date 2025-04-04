@@ -15,7 +15,7 @@ class WriterCompletion(WorkflowBlock):
                 baseType="workflows_node",
                 writer={
                     "name": "Completion",
-                    "description": "Handles AI text generation, also known as text completions.",
+                    "description": "Generates text using a Writer model. Use for completions, summaries, or creative writing.",
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},
