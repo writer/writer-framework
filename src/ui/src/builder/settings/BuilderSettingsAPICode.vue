@@ -102,7 +102,9 @@ function showCode() {
 }
 
 async function generateCode() {
-	const bearerToken = await wf.hashMessage(`create_job_${blueprintKey.value}`);
+	const bearerToken = await wf.hashMessage(
+		`create_job_${blueprintKey.value}`,
+	);
 	isHashAvailable.value = Boolean(bearerToken);
 	if (!isHashAvailable.value) return;
 

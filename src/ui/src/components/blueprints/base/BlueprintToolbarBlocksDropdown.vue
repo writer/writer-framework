@@ -54,7 +54,9 @@ const options = computed(() =>
 
 <template>
 	<div class="BlueprintToolbarBlocksDropdown">
-		<p class="BlueprintToolbarBlocksDropdown__header">Start blueprint from</p>
+		<p class="BlueprintToolbarBlocksDropdown__header">
+			Start blueprint from
+		</p>
 		<div class="BlueprintToolbarBlocksDropdown__list">
 			<div
 				v-for="option of options"
@@ -85,7 +87,9 @@ const options = computed(() =>
 					>
 						{{ option.description }}
 					</p>
-					<p class="BlueprintToolbarBlocksDropdown__list__item__title">
+					<p
+						class="BlueprintToolbarBlocksDropdown__list__item__title"
+					>
 						{{ option.title }}
 					</p>
 				</div>

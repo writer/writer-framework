@@ -1,5 +1,8 @@
 <template>
-	<div class="BuilderFieldsBlueprintKey" :data-automation-key="props.fieldKey">
+	<div
+		class="BuilderFieldsBlueprintKey"
+		:data-automation-key="props.fieldKey"
+	>
 		<BuilderSelect v-model="selectedBlueprintKey" :options="options" />
 		<WdsButton
 			v-if="selectedBlueprintComponentId"

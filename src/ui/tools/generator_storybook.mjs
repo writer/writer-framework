@@ -242,8 +242,8 @@ export async function generate() {
 				filePath,
 				srcPath: (...path) => relPath(filePath, srcFile(...path)),
 			}) +
-			generateMeta(component, { module: mod }) +
-			generateStory(component),
+				generateMeta(component, { module: mod }) +
+				generateStory(component),
 			{
 				flag: "w+",
 			},

@@ -12,7 +12,9 @@ const core = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
 const blueprintBlocks = computed(() => core.getComponents(props.blueprintId));
-const blueprintBlocksId = computed(() => blueprintBlocks.value.map((b) => b.id));
+const blueprintBlocksId = computed(() =>
+	blueprintBlocks.value.map((b) => b.id),
+);
 
 const result = computed(() => {
 	const logs = wfbm.getLogEntries().filter((l) => {
