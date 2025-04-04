@@ -102,10 +102,17 @@ const evaluatedValue = computed<JSONValue>(
 </script>
 
 <style scoped>
+.BuilderFieldsKeyValue {
+	position: relative;
+}
 .BuilderFieldsKeyValue__toolbar {
 	display: flex;
 	gap: 4px;
 	justify-content: flex-end;
+	/* TODO: temporary trick */
+	position: absolute;
+	top: -32px;
+	right: 0px;
 }
 
 .BuilderFieldsKeyValue__listEmpty,
