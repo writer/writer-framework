@@ -1,14 +1,25 @@
 <template>
 	<div
-		ref="rootEl"
 		class="BuilderFieldsKeyValue"
 		tabindex="-1"
 		:data-automation-key="props.fieldKey"
 	>
-		<WdsButton variant="special" size="small" @click="isModalOpen = true">
-			<i class="material-symbols-outlined">keyboard_backspace</i>
-			Edit
-		</WdsButton>
+		<div class="BuilderFieldsKeyValue__toolbar">
+			<WdsButton
+				variant="neutral"
+				size="smallIcon"
+				@click="isModalOpen = true"
+			>
+				<i class="material-symbols-outlined">edit</i>
+			</WdsButton>
+			<WdsButton
+				variant="neutral"
+				size="smallIcon"
+				@click="isModalOpen = true"
+			>
+				<i class="material-symbols-outlined">code</i>
+			</WdsButton>
+		</div>
 		<BuilderFieldsKeyValueModal
 			v-if="isModalOpen"
 			:data="evaluatedValue"
@@ -38,7 +49,7 @@
 			>
 				<p class="BuilderFieldsKeyValue__list__item__key">{{ key }}</p>
 				<p class="BuilderFieldsKeyValue__list__item__value">
-					{{ value }}
+					{{ value || "\<empty value\>" }}
 				</p>
 			</li>
 		</ul>
@@ -50,7 +61,7 @@ export type JSONValue = Record<string, string | number | null>;
 </script>
 
 <script setup lang="ts">
-import { PropType, computed, inject, ref, toRefs, useTemplateRef } from "vue";
+import { PropType, computed, inject, ref, toRefs } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import type { InstancePath } from "@/writerTypes";
@@ -83,8 +94,6 @@ function onModalSubmit(data: JSONValue) {
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const rootEl = useTemplateRef("rootEl");
-
 const { getEvaluatedFields } = useEvaluator(wf);
 
 const evaluatedValue = computed<JSONValue>(
@@ -93,6 +102,12 @@ const evaluatedValue = computed<JSONValue>(
 </script>
 
 <style scoped>
+.BuilderFieldsKeyValue__toolbar {
+	display: flex;
+	gap: 4px;
+	justify-content: flex-end;
+}
+
 .BuilderFieldsKeyValue__listEmpty,
 .BuilderFieldsKeyValue__list {
 	border: 1px solid var(--separatorColor);
