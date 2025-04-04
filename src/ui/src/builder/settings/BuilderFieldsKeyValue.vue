@@ -74,7 +74,7 @@ export type JSONValue = Record<string, string | number | null>;
 </script>
 
 <script setup lang="ts">
-import { PropType, computed, inject, ref, toRefs } from "vue";
+import { PropType, computed, inject, ref, toRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import type { InstancePath } from "@/writerTypes";
@@ -83,17 +83,39 @@ import WdsButton from "@/wds/WdsButton.vue";
 import BuilderFieldsKeyValueModal from "./BuilderFieldsKeyValueModal.vue";
 import type { Mode } from "./composables/useKeyValueEditor";
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
-
-const modalMode = ref<Mode | undefined>();
-
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 	instancePath: { type: Array as PropType<InstancePath>, required: true },
 	error: { type: String, required: false, default: undefined },
+});
+
+const wf = inject(injectionKeys.core);
+const ssbm = inject(injectionKeys.builderManager);
+
+const { setContentValue } = useComponentActions(wf, ssbm);
+const { getEvaluatedFields } = useEvaluator(wf);
+
+const componentId = toRef(props, "componentId");
+const fieldKey = toRef(props, "fieldKey");
+
+const modalMode = ref<Mode | undefined>();
+
+const evaluatedValue = computed<JSONValue>(
+	() => getEvaluatedFields(props.instancePath)[fieldKey.value].value,
+);
+
+const component = computed(() => wf.getComponentById(componentId.value));
+
+const field = computed(() => {
+	const value = component.value.content?.[fieldKey.value];
+	if (value === undefined) return evaluatedValue.value;
+
+	try {
+		return JSON.parse(value);
+	} catch {
+		return {};
+	}
 });
 
 function onModalSubmit(data: JSONValue) {
@@ -104,23 +126,6 @@ function onModalSubmit(data: JSONValue) {
 		JSON.stringify(data, null, 2),
 	);
 }
-
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
-
-const field = computed(() => {
-	try {
-		return JSON.parse(component.value.content[fieldKey.value] ?? "{}");
-	} catch {
-		return {};
-	}
-});
-
-const { getEvaluatedFields } = useEvaluator(wf);
-
-const evaluatedValue = computed<JSONValue>(
-	() => getEvaluatedFields(props.instancePath)[fieldKey.value].value,
-);
 </script>
 
 <style scoped>
