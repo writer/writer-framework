@@ -8,23 +8,26 @@
 			<WdsButton
 				variant="neutral"
 				size="smallIcon"
-				@click="isModalOpen = true"
+				data-automation-key="openAssistedMode"
+				@click="modalMode = 'assisted'"
 			>
 				<i class="material-symbols-outlined">edit</i>
 			</WdsButton>
 			<WdsButton
 				variant="neutral"
 				size="smallIcon"
-				@click="isModalOpen = true"
+				data-automation-key="openFreehandMode"
+				@click="modalMode = 'freehand'"
 			>
 				<i class="material-symbols-outlined">code</i>
 			</WdsButton>
 		</div>
 		<BuilderFieldsKeyValueModal
-			v-if="isModalOpen"
+			v-if="modalMode"
 			:data="field"
+			:initial-mode="modalMode"
 			@submit="onModalSubmit"
-			@close="isModalOpen = false"
+			@close="modalMode = undefined"
 		/>
 
 		<div
@@ -35,7 +38,7 @@
 			<WdsButton
 				variant="special"
 				size="small"
-				@click="isModalOpen = true"
+				@click="modalMode = 'assisted'"
 			>
 				<i class="material-symbols-outlined">keyboard_backspace</i>
 				Edit
@@ -68,12 +71,13 @@ import type { InstancePath } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderFieldsKeyValueModal from "./BuilderFieldsKeyValueModal.vue";
+import type { Mode } from "./composables/useKeyValueEditor";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue } = useComponentActions(wf, ssbm);
 
-const isModalOpen = ref(false);
+const modalMode = ref<Mode | undefined>();
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -83,7 +87,7 @@ const props = defineProps({
 });
 
 function onModalSubmit(data: JSONValue) {
-	isModalOpen.value = false;
+	modalMode.value = undefined;
 	setContentValue(
 		component.value.id,
 		fieldKey.value,

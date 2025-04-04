@@ -108,6 +108,11 @@ const props = defineProps({
 		type: Object as PropType<JSONValue>,
 		required: true,
 	},
+	initialMode: {
+		type: String as PropType<Mode>,
+		required: false,
+		default: "assisted",
+	},
 });
 
 const {
@@ -122,6 +127,7 @@ const {
 	removeAssistedEntry,
 	getAssistedEntryError,
 } = useKeyValueEditor(props.data);
+mode.value = props.initialMode;
 
 const emits = defineEmits({
 	submit: (data: JSONValue) => typeof data === "object" && data !== undefined,
