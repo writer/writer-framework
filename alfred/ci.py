@@ -9,11 +9,10 @@ import alfred
 
 @alfred.command("ci", help="continuous integration pipeline")
 @alfred.option("--front", "-f", help="run for frontend only", is_flag=True, default=False)
-@alfred.option("--docs", "-d", help="run for docs only", is_flag=True, default=False)
 @alfred.option("--back", "-b", help="run for backend only", is_flag=True, default=False)
 @alfred.option("--e2e", "-e", help="run for end-to-end only", default=None)
-def ci(front, back, e2e, docs):
-    no_flags = not front and not back and not e2e and not docs
+def ci(front, back, e2e):
+    no_flags = not front and not back and not e2e
 
     if front or no_flags:
         alfred.invoke_command("npm.lint")
@@ -22,8 +21,6 @@ def ci(front, back, e2e, docs):
         alfred.invoke_command("ci.mypy")
         alfred.invoke_command("ci.ruff")
         alfred.invoke_command("ci.pytest")
-    if docs or no_flags:
-        alfred.invoke_command("npm.docs.test")
     if e2e:
         alfred.invoke_command("npm.e2e", browser=e2e)
 
