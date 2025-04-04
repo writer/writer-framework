@@ -264,7 +264,7 @@ class WorkflowRunner:
         for node in nodes:
             graph[node.id] = node
             tools[node.id] = None
-            out_node_ids = set(map(lambda x: x.get("toNodeId"), node.outs or []))
+            out_node_ids = {out.get("toNodeId") for out in (node.outs or [])}
             for node_id in out_node_ids:
                 in_degree[node_id] += 1
 
