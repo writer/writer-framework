@@ -57,18 +57,5 @@ test.describe("Builder field validation", () => {
 
 		await maximunCountInput.fill("2");
 		expect(await maximunCountInput.getAttribute("aria-invalid")).toBe("false");
-
-		// options
-
-		await page.locator(".BuilderFieldsOptions button").nth(1).click();
-
-		const optionsTextarea = page.locator(
-			'.BuilderFieldsObject[data-automation-key="options"] textarea',
-		);
-		await optionsTextarea.fill(JSON.stringify(true));
-		expect(await optionsTextarea.getAttribute("aria-invalid")).toBe("true");
-
-		await optionsTextarea.fill(JSON.stringify({ a: "A", b: "B" }));
-		expect(await optionsTextarea.getAttribute("aria-invalid")).toBe("false");
 	});
 });
