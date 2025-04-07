@@ -73,7 +73,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, onMounted } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	inject,
+	onMounted,
+	onUnmounted,
+} from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
 import injectionKeys from "@/injectionKeys";
@@ -137,7 +143,7 @@ const {
 	isGoToParentAllowed,
 	pasteComponent,
 	copyComponent,
-	removeComponentSubtree,
+	removeComponentsSubtree,
 	goToParent,
 } = useComponentActions(wf, ssbm);
 
@@ -173,8 +179,10 @@ function handleKeydown(ev: KeyboardEvent): void {
 		ssbm.firstSelectedItem.value;
 
 	if (ev.key == "Delete") {
-		if (!isDeleteAllowed(selectedId)) return;
-		removeComponentSubtree(selectedId);
+		const componentIds = ssbm.selection.value
+			.filter((s) => isDeleteAllowed(s.componentId))
+			.map((s) => s.componentId);
+		removeComponentsSubtree(...componentIds);
 		return;
 	}
 	if (ev.key == "ArrowUp" && isModifierKeyActive && ev.shiftKey) {
@@ -283,9 +291,14 @@ function handleRendererDragEnd(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
 }
 
+const abort = new AbortController();
+
 onMounted(() => {
-	document.addEventListener("keydown", handleKeydown);
+	document.addEventListener("keydown", handleKeydown, {
+		signal: abort.signal,
+	});
 });
+onUnmounted(() => abort.abort());
 </script>
 
 <style scoped>
