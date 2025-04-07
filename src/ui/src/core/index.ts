@@ -42,7 +42,9 @@ export function generateCore() {
 	 * @returns
 	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
-	const isCloud = ref(false);
+	const writerApplication = ref<
+		{ id: string; organizationId: string } | undefined
+	>();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const sourceFiles = shallowRef<SourceFiles>({
@@ -106,7 +108,7 @@ export function generateCore() {
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
-		isCloud.value = Boolean(initData.isCloud);
+		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
 		// Only returned for edit (Builder) mode
@@ -797,7 +799,7 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
-		isCloud: readonly(isCloud),
+		writerApplication: readonly(writerApplication),
 	};
 
 	return core;

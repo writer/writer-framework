@@ -49,7 +49,7 @@
 				:loading="deploymentStatus === DeploymentStatus.InProgress"
 				@click="requestDeployment"
 			>
-				Deploy
+				{{ deployLabel }}
 			</WdsButton>
 			<WdsStateDot
 				:state="stateDotState"
@@ -87,13 +87,16 @@ const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
-const {
-	isCloudApp: canDeploy,
-	deploymentStatus,
-	requestDeployment,
-} = useApplicationCloud(wf);
+const { canDeploy, deploymentStatus, requestDeployment, hasBeenPublished } =
+	useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
+
+const deployLabel = computed(() => {
+	if (hasBeenPublished.value === true) return "Deploy changes";
+	if (hasBeenPublished.value === false) return "Configure deployment";
+	return "Configure deployment";
+});
 
 const syncHealthStatus = computed(() => {
 	let s = "";

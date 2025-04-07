@@ -1,13 +1,6 @@
+import { WriterApi, WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
-import { onBeforeUnmount, onMounted, readonly, ref } from "vue";
-
-const enum IFrameRequestMessage {
-	Deploy = "deploy",
-}
-const enum IFrameResponseMessage {
-	DeployStarted = "deployStarted",
-	DeployFinished = "deployFinished",
-}
+import { computed, readonly, ref, shallowRef, watch } from "vue";
 
 export const enum DeploymentStatus {
 	Unknown = "unknown",
@@ -17,36 +10,76 @@ export const enum DeploymentStatus {
 
 export function useApplicationCloud(wf: Core) {
 	const abort = new AbortController();
-	const isCloudApp = wf.isCloud;
+	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
 
-	onMounted(() => {
-		window.addEventListener(
-			"message",
-			(e) => {
-				switch (e.data) {
-					case IFrameResponseMessage.DeployStarted:
-						deploymentStatus.value = DeploymentStatus.InProgress;
-						break;
-					case IFrameResponseMessage.DeployFinished:
-						deploymentStatus.value = DeploymentStatus.Done;
-						break;
-				}
-			},
-			{ signal: abort.signal },
+	const writerApi = new WriterApi({
+		signal: abort.signal,
+		// TODO: remove this
+		baseUrl: "https://app.qordobadev.com/",
+	});
+
+	const deploymentInformation = shallowRef<
+		WriterApiApplicationDeployment | undefined
+	>();
+	const canDeploy = computed(
+		() => isCloudApp.value && deploymentInformation.value !== undefined,
+	);
+
+	watch(
+		wf.writerApplication,
+		() => {
+			if (!wf.writerApplication.value) return;
+			fetchApplicationDeployment();
+		},
+		{ immediate: true },
+	);
+
+	const hasBeenPublished = computed(() => {
+		if (deploymentInformation.value === undefined) return undefined;
+		return (
+			deploymentInformation.value.writer !== undefined &&
+			deploymentInformation.value.lastDeployedAt !== undefined
 		);
 	});
 
-	onBeforeUnmount(abort.abort);
+	async function fetchApplicationDeployment() {
+		if (!wf.writerApplication.value) return;
+
+		deploymentInformation.value =
+			await writerApi.fetchApplicationDeployment(
+				Number(wf.writerApplication.value.organizationId),
+				wf.writerApplication.value.id,
+			);
+	}
+
+	async function publishApplication() {
+		if (!wf.writerApplication.value) return;
+		deploymentStatus.value = DeploymentStatus.InProgress;
+		try {
+			await writerApi.publishApplication(
+				Number(wf.writerApplication.value.organizationId),
+				wf.writerApplication.value.id,
+				{
+					applicationVersionId:
+						deploymentInformation.value.applicationVersion.id,
+					applicationVersionDataId:
+						deploymentInformation.value.applicationVersionData.id,
+				},
+			);
+			await fetchApplicationDeployment();
+			deploymentStatus.value = DeploymentStatus.Done;
+		} catch (e) {
+			// TODO: display error
+		}
+	}
 
 	const deploymentStatus = ref(DeploymentStatus.Unknown);
 
-	function requestDeployment() {
-		window.parent.postMessage(IFrameRequestMessage.Deploy, "*");
-	}
-
 	return {
 		isCloudApp,
-		requestDeployment,
+		canDeploy,
+		hasBeenPublished,
+		requestDeployment: publishApplication,
 		deploymentStatus: readonly(deploymentStatus),
 	};
 }

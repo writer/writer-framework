@@ -268,7 +268,7 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
             abstractTemplates=abstract.templates,
-            isCloud=payload.isCloud,
+            writerApplication=payload.writerApplication,
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -286,7 +286,7 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
             abstractTemplates=abstract.templates,
-            isCloud=payload.isCloud,
+            writerApplication=payload.writerApplication,
         )
 
     @app.get("/api/health")
