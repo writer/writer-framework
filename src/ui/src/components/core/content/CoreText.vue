@@ -14,9 +14,9 @@
 				:style="contentStyle"
 			>
 			</BaseMarkdown>
-			<div v-else class="plainText" :style="contentStyle">
+			<p v-else class="plainText" :style="contentStyle">
 				{{ fields.text.value }}
-			</div>
+			</p>
 		</template>
 	</div>
 </template>
@@ -132,6 +132,11 @@ function handleClick(ev: MouseEvent) {
 	overflow: hidden;
 	font-size: 0.875rem;
 	font-weight: 400;
+}
+
+.CoreText:deep(p) {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .CoreText ol,

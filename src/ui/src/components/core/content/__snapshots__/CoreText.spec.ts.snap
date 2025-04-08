@@ -25,7 +25,7 @@ exports[`CoreText > should render in non-markdown mode 1`] = `
   style="cursor: pointer;"
 >
   
-  <div
+  <p
     class="plainText"
     data-v-810f69c0=""
     style="text-align: center;"
@@ -33,7 +33,7 @@ exports[`CoreText > should render in non-markdown mode 1`] = `
     # Hello
 
 I'm the **content**.
-  </div>
+  </p>
   
 </div>
 `;
