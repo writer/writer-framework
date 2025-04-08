@@ -46,7 +46,7 @@
 			<WdsButton
 				v-if="canDeploy"
 				size="small"
-				:loading="deploymentStatus === DeploymentStatus.InProgress"
+				:loading="isDeploying"
 				@click="requestDeployment"
 			>
 				{{ deployLabel }}
@@ -76,10 +76,7 @@ import WdsModal from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
-import {
-	useApplicationCloud,
-	DeploymentStatus,
-} from "@/composables/useApplicationCloud";
+import { useApplicationCloud } from "@/composables/useApplicationCloud";
 import WdsButton from "@/wds/WdsButton.vue";
 
 const wf = inject(injectionKeys.core);
@@ -87,7 +84,7 @@ const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
-const { canDeploy, deploymentStatus, requestDeployment, hasBeenPublished } =
+const { canDeploy, isDeploying, requestDeployment, hasBeenPublished } =
 	useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());

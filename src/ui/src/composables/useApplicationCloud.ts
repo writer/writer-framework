@@ -1,22 +1,38 @@
 import { WriterApi, WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
 import { computed, readonly, ref, shallowRef, watch } from "vue";
-
-export const enum DeploymentStatus {
-	Unknown = "unknown",
-	InProgress = "inProgress",
-	Done = "done",
-}
+import { useLogger } from "./useLogger";
+import { useToasts } from "@/builder/useToast";
 
 export function useApplicationCloud(wf: Core) {
+	const logger = useLogger();
+	const { pushToast } = useToasts();
+
 	const abort = new AbortController();
 	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
+	const isDeploying = ref(false);
+	const deployError = shallowRef();
+
+	// TODO: define the host
+	const apiBaseUrl = "https://app.qordobadev.com/";
 
 	const writerApi = new WriterApi({
 		signal: abort.signal,
-		// TODO: remove this
-		baseUrl: "https://app.qordobadev.com/",
+		baseUrl: apiBaseUrl,
 	});
+	const deployUrl = computed(
+		() =>
+			new URL(
+				`/aistudio/organization/${wf.writerApplication.value?.organizationId}/agent/${wf.writerApplication.value?.id}/deploy`,
+				apiBaseUrl,
+			),
+	);
+
+	const liveUrl = computed(
+		() =>
+			deploymentInformation.value.applicationVersionData.data
+				?.deploymentUrl,
+	);
 
 	const deploymentInformation = shallowRef<
 		WriterApiApplicationDeployment | undefined
@@ -36,9 +52,9 @@ export function useApplicationCloud(wf: Core) {
 
 	const hasBeenPublished = computed(() => {
 		if (deploymentInformation.value === undefined) return undefined;
-		return (
-			deploymentInformation.value.writer !== undefined &&
-			deploymentInformation.value.lastDeployedAt !== undefined
+		return Boolean(
+			deploymentInformation.value.writer &&
+				deploymentInformation.value.lastDeployedAt,
 		);
 	});
 
@@ -54,7 +70,15 @@ export function useApplicationCloud(wf: Core) {
 
 	async function publishApplication() {
 		if (!wf.writerApplication.value) return;
-		deploymentStatus.value = DeploymentStatus.InProgress;
+
+		if (!hasBeenPublished.value) {
+			window.open(deployUrl.value, "_blank");
+			return;
+		}
+
+		isDeploying.value = true;
+		deployError.value = undefined;
+
 		try {
 			await writerApi.publishApplication(
 				Number(wf.writerApplication.value.organizationId),
@@ -67,19 +91,33 @@ export function useApplicationCloud(wf: Core) {
 				},
 			);
 			await fetchApplicationDeployment();
-			deploymentStatus.value = DeploymentStatus.Done;
+			pushToast({
+				type: "success",
+				message: "agent deployed",
+				action: {
+					label: "See it live",
+					func: () => {
+						console.log(deploymentInformation.value);
+						window.open(liveUrl.value, "_blank");
+					},
+					icon: "open_in_new",
+				},
+			});
 		} catch (e) {
+			deployError.value = e;
+			logger.error("Deploy failed", e);
+			pushToast({ type: "error", message: "deploy failed" });
 			// TODO: display error
+		} finally {
+			isDeploying.value = false;
 		}
 	}
-
-	const deploymentStatus = ref(DeploymentStatus.Unknown);
 
 	return {
 		isCloudApp,
 		canDeploy,
 		hasBeenPublished,
 		requestDeployment: publishApplication,
-		deploymentStatus: readonly(deploymentStatus),
+		isDeploying: readonly(isDeploying),
 	};
 }
