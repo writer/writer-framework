@@ -3,7 +3,7 @@ import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
 import type { Component, InstancePath, UserFunction } from "@/writerTypes";
 import { vi } from "vitest";
-import { ref } from "vue";
+import { shallowRef } from "vue";
 import { SourceFiles } from "../writerTypes";
 
 export const mockComponentId = "component-id-test";
@@ -28,19 +28,33 @@ export function buildMockComponent(component: Partial<Component>) {
 
 export function buildMockCore() {
 	const core = generateCore();
-	const userState = ref({});
-	const sourceFiles = ref<SourceFiles>({ type: "directory", children: {} });
-	const userFunctions = ref<UserFunction[]>([]);
-	const featureFlags = ref<string[]>([]);
+	const userState = shallowRef({});
+	const sourceFiles = shallowRef<SourceFiles>({
+		type: "directory",
+		children: {},
+	});
+	const userFunctions = shallowRef<UserFunction[]>([]);
+	const featureFlags = shallowRef<string[]>([]);
+	const writerApplication = shallowRef<
+		{ id: string; organizationId: string } | undefined
+	>();
 
 	core.userFunctions = userFunctions;
 	core.userState = userState;
 	core.sourceFiles = sourceFiles;
 	core.featureFlags = featureFlags;
+	core.writerApplication = writerApplication;
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
-	return { core, userState, sourceFiles, userFunctions, featureFlags };
+	return {
+		core,
+		userState,
+		sourceFiles,
+		userFunctions,
+		featureFlags,
+		writerApplication,
+	};
 }
 
 export const mockProvides: Record<symbol, unknown> = {

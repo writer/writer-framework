@@ -49,6 +49,7 @@
 				:loading="isDeploying"
 				:data-writer-tooltip="deployTooltip"
 				data-writer-tooltip-placement="bottom"
+				data-automation-key="deploy"
 				@click="requestDeployment"
 			>
 				{{ deployLabel }}
@@ -57,6 +58,7 @@
 					title="Are you sure you want to deploy these changes?"
 					size="normal"
 					:actions="confirmDeployModalActions"
+					data-automation-key="deployConfirmModal"
 				>
 					<p>
 						This will replace the current live version of this agent
