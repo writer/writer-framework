@@ -9,9 +9,11 @@ export function useApplicationCloud(wf: Core) {
 	const { pushToast } = useToasts();
 
 	const abort = new AbortController();
-	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
 	const isDeploying = ref(false);
 	const deployError = shallowRef();
+	const deploymentInformation = shallowRef<
+		WriterApiApplicationDeployment | undefined
+	>();
 
 	// TODO: define the host
 	const apiBaseUrl = "https://app.qordobadev.com/";
@@ -20,23 +22,28 @@ export function useApplicationCloud(wf: Core) {
 		signal: abort.signal,
 		baseUrl: apiBaseUrl,
 	});
-	const deployUrl = computed(
-		() =>
-			new URL(
-				`/aistudio/organization/${wf.writerApplication.value?.organizationId}/agent/${wf.writerApplication.value?.id}/deploy`,
-				apiBaseUrl,
-			),
-	);
 
-	const liveUrl = computed(
-		() =>
-			deploymentInformation.value.applicationVersionData.data
-				?.deploymentUrl,
-	);
+	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
+	const orgId = computed(() => wf.writerApplication.value?.organizationId);
+	const appId = computed(() => wf.writerApplication.value?.id);
 
-	const deploymentInformation = shallowRef<
-		WriterApiApplicationDeployment | undefined
-	>();
+	const deployUrl = computed(() => {
+		return new URL(
+			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
+			apiBaseUrl,
+		);
+	});
+
+	const liveUrl = computed(() => {
+		return deploymentInformation.value.applicationVersionData.data
+			?.deploymentUrl;
+	});
+	const lastDeployedAt = computed(() => {
+		return deploymentInformation.value.lastDeployedAt
+			? new Date(deploymentInformation.value.lastDeployedAt)
+			: undefined;
+	});
+
 	const canDeploy = computed(
 		() => isCloudApp.value && deploymentInformation.value !== undefined,
 	);
@@ -96,10 +103,7 @@ export function useApplicationCloud(wf: Core) {
 				message: "agent deployed",
 				action: {
 					label: "See it live",
-					func: () => {
-						console.log(deploymentInformation.value);
-						window.open(liveUrl.value, "_blank");
-					},
+					func: () => window.open(liveUrl.value, "_blank"),
 					icon: "open_in_new",
 				},
 			});
@@ -117,7 +121,8 @@ export function useApplicationCloud(wf: Core) {
 		isCloudApp,
 		canDeploy,
 		hasBeenPublished,
-		requestDeployment: publishApplication,
+		publishApplication,
 		isDeploying: readonly(isDeploying),
+		lastDeployedAt,
 	};
 }

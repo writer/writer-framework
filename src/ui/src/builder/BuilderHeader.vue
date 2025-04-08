@@ -47,9 +47,22 @@
 				v-if="canDeploy"
 				size="small"
 				:loading="isDeploying"
+				:data-writer-tooltip="deployTooltip"
+				data-writer-tooltip-placement="bottom"
 				@click="requestDeployment"
 			>
 				{{ deployLabel }}
+				<WdsModal
+					v-if="confirmDeployModalOpen"
+					title="Are you sure you want to deploy these changes?"
+					size="normal"
+					:actions="confirmDeployModalActions"
+				>
+					<p>
+						This will replace the current live version of this agent
+						everywhere it is currently deployed.
+					</p>
+				</WdsModal>
 			</WdsButton>
 			<WdsStateDot
 				:state="stateDotState"
@@ -72,7 +85,7 @@
 import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
-import WdsModal from "@/wds/WdsModal.vue";
+import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
@@ -84,11 +97,50 @@ const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
-const { canDeploy, isDeploying, requestDeployment, hasBeenPublished } =
-	useApplicationCloud(wf);
+const {
+	canDeploy,
+	isDeploying,
+	publishApplication,
+	hasBeenPublished,
+	lastDeployedAt,
+} = useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
+const dateFormater = new Intl.DateTimeFormat(undefined, {
+	weekday: "long",
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+	hour: "numeric",
+	minute: "numeric",
+});
+
+async function requestDeployment() {
+	if (hasBeenPublished.value) {
+		confirmDeployModalOpen.value = true;
+	} else {
+		await publishApplication();
+	}
+}
+
+const confirmDeployModalOpen = ref(false);
+const confirmDeployModalActions: ModalAction[] = [
+	{ desc: "Cancel", fn: () => (confirmDeployModalOpen.value = false) },
+	{
+		desc: "Yes, deploy changes",
+		fn: async () => {
+			confirmDeployModalOpen.value = false;
+			await publishApplication();
+		},
+	},
+];
+
+const deployTooltip = computed(() => {
+	if (!lastDeployedAt.value) return;
+	const date = dateFormater.format(lastDeployedAt.value);
+	return `Editor Last saved ${date}`;
+});
 const deployLabel = computed(() => {
 	if (hasBeenPublished.value === true) return "Deploy changes";
 	if (hasBeenPublished.value === false) return "Configure deployment";
