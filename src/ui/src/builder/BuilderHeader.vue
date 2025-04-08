@@ -1,6 +1,19 @@
 <template>
 	<div class="BuilderHeader">
-		<img src="../assets/logo.svg" alt="Writer Framework logo" />
+		<div v-if="canDeploy" class="BuilderHeader__appTitle">
+			<a
+				:href="writerDeployUrl.toString()"
+				class="BuilderHeader__appTitle__goBack"
+			>
+				<i class="material-symbols-outlined">arrow_back</i>
+			</a>
+			<input
+				v-model="applicationName"
+				type="text"
+				class="BuilderHeader__appTitle__input"
+			/>
+		</div>
+		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
 		<BuilderSwitcher />
 		<div class="gap"></div>
 		<div class="BuilderHeader__toolbar">
@@ -105,6 +118,8 @@ const {
 	publishApplication,
 	hasBeenPublished,
 	lastDeployedAt,
+	name: applicationName,
+	writerDeployUrl,
 } = useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
@@ -201,6 +216,34 @@ function showStateExplorer() {
 	gap: 16px;
 	padding-top: 1px;
 	border-bottom: 1px solid var(--builderAreaSeparatorColor);
+}
+
+.BuilderHeader__appTitle {
+	height: 100%;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	width: calc(var(--builderSidebarWidth) - 16px);
+	padding-right: 16px;
+	border-right: 1px solid var(--wdsColorGray5);
+}
+.BuilderHeader__appTitle__goBack {
+	text-decoration: none;
+}
+.BuilderHeader__appTitle__input {
+	background-color: transparent;
+	width: 100%;
+	border: none;
+	font-weight: 500;
+	font-size: 18px;
+	border-radius: 4px;
+	padding: 4px;
+	height: 32px;
+}
+.BuilderHeader__appTitle__input:hover,
+.BuilderHeader__appTitle__input:focus {
+	outline: none;
+	background-color: var(--wdsColorGray5);
 }
 
 .BuilderHeader__toolbar {

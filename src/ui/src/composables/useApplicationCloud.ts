@@ -3,6 +3,7 @@ import { Core } from "@/writerTypes";
 import { computed, onMounted, readonly, ref, shallowRef, watch } from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
+import { useDebouncer } from "./useDebouncer";
 
 export function useApplicationCloud(wf: Core) {
 	const logger = useLogger();
@@ -15,6 +16,36 @@ export function useApplicationCloud(wf: Core) {
 	const deploymentInformation = shallowRef<
 		WriterApiApplicationDeployment | undefined
 	>();
+
+	const root = computed(() => wf.getComponentById("root"));
+
+	const updateAppName = useDebouncer(async () => {
+		if (isCloudApp.value && wf.mode.value === "edit") {
+			writerApi.updateApplicationMetadata(orgId.value, appId.value, {
+				name: name.value,
+			});
+		}
+		await wf.sendComponentUpdate();
+	}, 1_000);
+
+	const name = computed<string>({
+		get: () => {
+			return root.value.content["appName"];
+		},
+		set: (value) => {
+			if (root.value.content["appName"] === value) return;
+			root.value.content["appName"] = value;
+			updateAppName();
+		},
+	});
+
+	watch(() => root.value.content["appName"], updateAppName);
+	watch(deploymentInformation, () => {
+		const deployName = deploymentInformation.value?.name;
+
+		if (deployName === undefined) return;
+		name.value = deployName;
+	});
 
 	const apiBaseUrl =
 		// @ts-expect-error use injected variable from Vite to specify the host on local env
@@ -31,7 +62,7 @@ export function useApplicationCloud(wf: Core) {
 	});
 	const appId = computed(() => wf.writerApplication.value?.id);
 
-	const deployUrl = computed(() => {
+	const writerDeployUrl = computed(() => {
 		return new URL(
 			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
 			apiBaseUrl,
@@ -94,10 +125,10 @@ export function useApplicationCloud(wf: Core) {
 	}
 
 	async function publishApplication() {
-		if (!wf.writerApplication.value) return;
+		if (!wf.writerApplication.value || wf.mode.value !== "edit") return;
 
 		if (!hasBeenPublished.value) {
-			window.open(deployUrl.value, "_blank");
+			window.open(writerDeployUrl.value, "_blank");
 			return;
 		}
 
@@ -131,6 +162,8 @@ export function useApplicationCloud(wf: Core) {
 	}
 
 	return {
+		writerDeployUrl,
+		name,
 		isCloudApp,
 		canDeploy,
 		hasBeenPublished,
