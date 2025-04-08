@@ -16,8 +16,9 @@ export function useApplicationCloud(wf: Core) {
 		WriterApiApplicationDeployment | undefined
 	>();
 
-	// TODO: define the host
-	const apiBaseUrl = "https://app.qordobadev.com/";
+	const apiBaseUrl =
+		// @ts-expect-error use injected variable from Vite to specify the host on local env
+		import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
 
 	const writerApi = new WriterApi({
 		signal: abort.signal,

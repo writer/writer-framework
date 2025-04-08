@@ -1,10 +1,10 @@
 export class WriterApi {
 	#signal: AbortSignal | undefined;
-	#baseUrl: string | undefined;
+	#baseUrl: string;
 
 	constructor(opts?: { signal?: AbortSignal; baseUrl?: string }) {
 		this.#signal = opts?.signal;
-		this.#baseUrl = opts?.baseUrl;
+		this.#baseUrl = opts?.baseUrl ?? window.location.origin;
 	}
 
 	async fetchApplicationDeployment(
