@@ -1,6 +1,6 @@
 import { WriterApi, WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
-import { computed, readonly, ref, shallowRef, watch } from "vue";
+import { computed, onMounted, readonly, ref, shallowRef, watch } from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
 
@@ -9,6 +9,7 @@ export function useApplicationCloud(wf: Core) {
 	const { pushToast } = useToasts();
 
 	const abort = new AbortController();
+
 	const isDeploying = ref(false);
 	const deployError = shallowRef();
 	const deploymentInformation = shallowRef<
@@ -24,7 +25,9 @@ export function useApplicationCloud(wf: Core) {
 	});
 
 	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
-	const orgId = computed(() => wf.writerApplication.value?.organizationId);
+	const orgId = computed(() => {
+		return Number(wf.writerApplication.value?.organizationId) || undefined;
+	});
 	const appId = computed(() => wf.writerApplication.value?.id);
 
 	const deployUrl = computed(() => {
@@ -38,23 +41,15 @@ export function useApplicationCloud(wf: Core) {
 		return deploymentInformation.value.applicationVersionData.data
 			?.deploymentUrl;
 	});
+
 	const lastDeployedAt = computed(() => {
 		return deploymentInformation.value.lastDeployedAt
 			? new Date(deploymentInformation.value.lastDeployedAt)
 			: undefined;
 	});
 
-	const canDeploy = computed(
-		() => isCloudApp.value && deploymentInformation.value !== undefined,
-	);
-
-	watch(
-		wf.writerApplication,
-		() => {
-			if (!wf.writerApplication.value) return;
-			fetchApplicationDeployment();
-		},
-		{ immediate: true },
+	const canDeploy = computed(() =>
+		Boolean(isCloudApp.value && deploymentInformation.value),
 	);
 
 	const hasBeenPublished = computed(() => {
@@ -65,13 +60,30 @@ export function useApplicationCloud(wf: Core) {
 		);
 	});
 
+	watch(wf.writerApplication, fetchApplicationDeployment, {
+		immediate: true,
+	});
+
+	onMounted(() => {
+		// refresh deployment status when user navigates back to the tab
+		document.addEventListener(
+			"visibilitychange",
+			async () => {
+				if (document.visibilityState === "visible") {
+					await fetchApplicationDeployment();
+				}
+			},
+			{ signal: abort.signal },
+		);
+	});
+
 	async function fetchApplicationDeployment() {
 		if (!wf.writerApplication.value) return;
 
 		deploymentInformation.value =
 			await writerApi.fetchApplicationDeployment(
-				Number(wf.writerApplication.value.organizationId),
-				wf.writerApplication.value.id,
+				orgId.value,
+				appId.value,
 			);
 	}
 
@@ -87,16 +99,12 @@ export function useApplicationCloud(wf: Core) {
 		deployError.value = undefined;
 
 		try {
-			await writerApi.publishApplication(
-				Number(wf.writerApplication.value.organizationId),
-				wf.writerApplication.value.id,
-				{
-					applicationVersionId:
-						deploymentInformation.value.applicationVersion.id,
-					applicationVersionDataId:
-						deploymentInformation.value.applicationVersionData.id,
-				},
-			);
+			await writerApi.publishApplication(orgId.value, appId.value, {
+				applicationVersionId:
+					deploymentInformation.value.applicationVersion.id,
+				applicationVersionDataId:
+					deploymentInformation.value.applicationVersionData.id,
+			});
 			await fetchApplicationDeployment();
 			pushToast({
 				type: "success",
@@ -111,7 +119,6 @@ export function useApplicationCloud(wf: Core) {
 			deployError.value = e;
 			logger.error("Deploy failed", e);
 			pushToast({ type: "error", message: "deploy failed" });
-			// TODO: display error
 		} finally {
 			isDeploying.value = false;
 		}
