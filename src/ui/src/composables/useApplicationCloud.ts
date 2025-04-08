@@ -80,11 +80,16 @@ export function useApplicationCloud(wf: Core) {
 	async function fetchApplicationDeployment() {
 		if (!wf.writerApplication.value) return;
 
-		deploymentInformation.value =
-			await writerApi.fetchApplicationDeployment(
-				orgId.value,
-				appId.value,
-			);
+		try {
+			deploymentInformation.value =
+				await writerApi.fetchApplicationDeployment(
+					orgId.value,
+					appId.value,
+				);
+		} catch (e) {
+			logger.error("Failed to fetch deployment information", e);
+			deploymentInformation.value = undefined;
+		}
 	}
 
 	async function publishApplication() {
