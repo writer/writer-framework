@@ -7,19 +7,23 @@
 		class="CoreTags"
 	>
 		<template v-if="Object.entries(fields.tags.value ?? []).length > 0">
-			<div
+			<p
 				v-for="(tagDesc, tagId) in fields.tags.value"
 				:key="tagId"
-				class="tag"
+				class="CoreTags__tag"
 				:style="{ background: generateColor(tagId) }"
 				@click="handleTagClick(tagId)"
 			>
-				<span>{{ tagDesc }}</span>
-			</div>
+				<span
+					:data-writer-tooltip="tagDesc"
+					data-writer-tooltip-strategy="overflow"
+					>{{ tagDesc }}</span
+				>
+			</p>
 		</template>
-		<div v-else class="tag empty">
+		<p v-else class="CoreTags__tag CoreTags__tag--empty">
 			<span>Empty Tags</span>
-		</div>
+		</p>
 	</div>
 </template>
 
@@ -172,7 +176,7 @@ function handleTagClick(tagId: string | number) {
 	align-items: center;
 }
 
-.tag {
+.CoreTags__tag {
 	height: fit-content;
 	padding: 6px 12px 6px 12px;
 	border-radius: 16px;
@@ -186,14 +190,19 @@ function handleTagClick(tagId: string | number) {
 	align-items: center;
 	gap: 4px;
 	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
+	overflow: hidden;
+}
+.CoreTags__tag span {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.tag.empty {
+.CoreTags__tag--empty {
 	background-color: var(--separatorColor);
 	color: var(--primaryTextColor);
 }
 
-.tag.empty span {
+.CoreTags__tag--empty span {
 	opacity: 0.8;
 }
 </style>
