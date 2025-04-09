@@ -12,7 +12,7 @@ class WriterNoCodeApp(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "No-code agent",
+                    "name": "AI Studio Agent",
                     "description": "Runs an Writer AI Studio Agent app by ID.",
                     "category": "Writer",
                     "fields": {
