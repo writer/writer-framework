@@ -38,14 +38,12 @@ export function buildMockCore() {
 	const writerApplication = shallowRef<
 		{ id: string; organizationId: string } | undefined
 	>();
-	const mode = shallowRef<"run" | "edit">(null);
 
 	core.userFunctions = userFunctions;
 	core.userState = userState;
 	core.sourceFiles = sourceFiles;
 	core.featureFlags = featureFlags;
 	core.writerApplication = writerApplication;
-	core.mode = mode;
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
@@ -56,7 +54,6 @@ export function buildMockCore() {
 		userFunctions,
 		featureFlags,
 		writerApplication,
-		mode,
 	};
 }
 

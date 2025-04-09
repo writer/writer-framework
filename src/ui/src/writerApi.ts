@@ -59,51 +59,7 @@ export class WriterApi {
 		const data = await res.json();
 		return data;
 	}
-
-	async updateApplicationMetadata(
-		orgId: number,
-		appId: string,
-		body: Partial<
-			Omit<
-				WriterApiApplicationMetadata,
-				| "id"
-				| "applicationId"
-				| "createdBy"
-				| "createdBy"
-				| "updatedAt"
-				| "updatedBy"
-			>
-		>,
-	): Promise<WriterApiApplicationMetadata> {
-		const url = new URL(
-			`/api/template/organization/${orgId}/application/${appId}/metadata`,
-			this.#baseUrl,
-		);
-
-		const res = await fetch(url, {
-			method: "PUT",
-			body: JSON.stringify(body),
-			signal: this.#signal,
-			credentials: "include",
-		});
-		if (!res.ok) throw Error(await res.text());
-
-		const data = await res.json();
-		return data;
-	}
 }
-
-type WriterApiApplicationMetadata = {
-	id: string;
-	applicationId: string;
-	name: string;
-	description: string | null;
-	shortDescription: string | null;
-	guideUrl: string | null;
-	tutorialUrl: string | null;
-	icon: string | null;
-	idAlias: string | null;
-} & WriterApiBlamable;
 
 type WriterApiUser = {
 	id: number;
