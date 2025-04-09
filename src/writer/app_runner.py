@@ -343,7 +343,7 @@ class AppProcess(multiprocessing.Process):
             type = request.type
 
             if type == "sessionInit":
-                si_req_payload = InitSessionRequestPayload.parse_obj(request.payload)
+                si_req_payload = InitSessionRequestPayload.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
@@ -359,7 +359,7 @@ class AppProcess(multiprocessing.Process):
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
 
             if type == "event":
-                ev_req_payload = WriterEvent.parse_obj(request.payload)
+                ev_req_payload = WriterEvent.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
@@ -389,12 +389,12 @@ class AppProcess(multiprocessing.Process):
                 )
 
             if self.mode == "edit" and type == "componentUpdate":
-                cu_req_payload = ComponentUpdateRequestPayload.parse_obj(request.payload)
+                cu_req_payload = ComponentUpdateRequestPayload.model_validate(request.payload)
                 self._handle_component_update(session, cu_req_payload)
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
 
             if self.mode == "edit" and type == "listResources":
-                list_req_payload = ListResourcesRequestPayload.parse_obj(request.payload)
+                list_req_payload = ListResourcesRequestPayload.model_validate(request.payload)
                 return self._handle_list_resources(session, list_req_payload)
 
             raise MessageHandlingException("Invalid event.")
