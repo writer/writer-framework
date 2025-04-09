@@ -19,11 +19,11 @@ else:
 		:style="rootStyle"
 		:class="severity"
 	>
-		<div v-if="messageWithoutPrefix" class="message">
+		<p v-if="messageWithoutPrefix" class="message">
 			<LoadingSymbol v-if="severity == 'loading'" class="loadingSymbol">
 			</LoadingSymbol>
 			<span>{{ messageWithoutPrefix }}</span>
-		</div>
+		</p>
 		<BaseEmptiness v-else :component-id="componentId" />
 	</div>
 </template>
@@ -156,6 +156,13 @@ const rootStyle = computed(() => {
 	align-items: center;
 	gap: 16px;
 }
+
+.message span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .loadingSymbol {
 	margin: -8px 0 -8px 0;
 }

@@ -1,10 +1,13 @@
 <template>
 	<div class="BuilderHeader">
 		<img src="../assets/logo.svg" alt="Writer Framework logo" />
-		<BuilderSwitcher></BuilderSwitcher>
-		<div class="undoRedo">
-			<button
-				class="undo"
+		<BuilderSwitcher />
+		<div class="gap"></div>
+		<div class="BuilderHeader__toolbar">
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
+				data-automation-key="undo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
 						? `Undo: ${undoRedoSnapshot.undoDesc}`
@@ -14,11 +17,12 @@
 				data-writer-tooltip-placement="bottom"
 				@click="undo()"
 			>
-				<i class="material-symbols-outlined"> undo </i>
-				Undo
-			</button>
-			<button
-				class="redo"
+				<i class="material-symbols-outlined">undo</i>
+			</WdsButton>
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
+				data-automation-key="redo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
 						? `Redo: ${undoRedoSnapshot.redoDesc}`
@@ -28,15 +32,46 @@
 				data-writer-tooltip-placement="bottom"
 				@click="redo()"
 			>
-				<i class="material-symbols-outlined"> redo </i>
-				Redo
-			</button>
-		</div>
-		<div>
-			<button @click="showStateExplorer">
-				<i class="material-symbols-outlined"> mystery </i>
-				State Explorer
-			</button>
+				<i class="material-symbols-outlined">redo</i>
+			</WdsButton>
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
+				data-writer-tooltip="State Explorer"
+				data-writer-tooltip-placement="bottom"
+				@click="showStateExplorer"
+			>
+				<i class="material-symbols-outlined">mystery</i>
+			</WdsButton>
+			<WdsButton
+				v-if="canDeploy"
+				size="small"
+				:loading="isDeploying"
+				:data-writer-tooltip="deployTooltip"
+				data-writer-tooltip-placement="bottom"
+				data-automation-key="deploy"
+				@click="requestDeployment"
+			>
+				{{ deployLabel }}
+				<WdsModal
+					v-if="confirmDeployModalOpen"
+					class="BuilderHeader__toolbar__deployModal"
+					title="Are you sure you want to deploy these changes?"
+					size="normal"
+					:actions="confirmDeployModalActions"
+					data-automation-key="deployConfirmModal"
+				>
+					<p class="BuilderHeader__toolbar__deployModal__text">
+						This will replace the current live version of this agent
+						everywhere it is currently deployed.
+					</p>
+				</WdsModal>
+			</WdsButton>
+			<WdsStateDot
+				:state="stateDotState"
+				:data-writer-tooltip="syncHealthStatus"
+				data-writer-tooltip-placement="left"
+			/>
 			<WdsModal
 				v-if="isStateExplorerShown"
 				title="State Explorer"
@@ -46,15 +81,6 @@
 				<BuilderStateExplorer />
 			</WdsModal>
 		</div>
-		<div class="gap"></div>
-		<div
-			class="syncHealth"
-			:class="wf.syncHealth.value"
-			:title="syncHealthStatus()"
-		>
-			<i class="material-symbols-outlined icon">sync</i
-			><span v-if="wf.syncHealth.value == 'offline'">Offline</span>
-		</div>
 	</div>
 </template>
 
@@ -62,18 +88,69 @@
 import { Ref, computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
-import WdsModal from "@/wds/WdsModal.vue";
+import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
+import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
+import { useApplicationCloud } from "@/composables/useApplicationCloud";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 const isStateExplorerShown: Ref<boolean> = ref(false);
 
+const {
+	canDeploy,
+	isDeploying,
+	publishApplication,
+	hasBeenPublished,
+	lastDeployedAt,
+} = useApplicationCloud(wf);
+
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
-const syncHealthStatus = () => {
+const dateFormater = new Intl.DateTimeFormat(undefined, {
+	weekday: "long",
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+	hour: "numeric",
+	minute: "numeric",
+});
+
+async function requestDeployment() {
+	if (hasBeenPublished.value) {
+		confirmDeployModalOpen.value = true;
+	} else {
+		await publishApplication();
+	}
+}
+
+const confirmDeployModalOpen = ref(false);
+const confirmDeployModalActions: ModalAction[] = [
+	{ desc: "Cancel", fn: () => (confirmDeployModalOpen.value = false) },
+	{
+		desc: "Yes, deploy changes",
+		fn: async () => {
+			confirmDeployModalOpen.value = false;
+			await publishApplication();
+		},
+	},
+];
+
+const deployTooltip = computed(() => {
+	if (!lastDeployedAt.value) return;
+	const date = dateFormater.format(lastDeployedAt.value);
+	return `Editor Last saved ${date}`;
+});
+const deployLabel = computed(() => {
+	if (hasBeenPublished.value === true) return "Deploy changes";
+	if (hasBeenPublished.value === false) return "Configure deployment";
+	return "Configure deployment";
+});
+
+const syncHealthStatus = computed(() => {
 	let s = "";
 	switch (wf.syncHealth.value) {
 		case "offline":
@@ -95,7 +172,18 @@ const syncHealthStatus = () => {
 	}
 
 	return s;
-};
+});
+
+const stateDotState = computed<WdsStateDotState>(() => {
+	switch (wf.syncHealth.value) {
+		case "offline":
+		case "suspended":
+		case "idle":
+			return "error";
+		default:
+			return "deployed";
+	}
+});
 
 function showStateExplorer() {
 	isStateExplorerShown.value = true;
@@ -116,15 +204,20 @@ function showStateExplorer() {
 	border-bottom: 1px solid var(--builderAreaSeparatorColor);
 }
 
-.BuilderHeader img {
-	width: 28px;
-}
-
-.undoRedo {
+.BuilderHeader__toolbar {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
+
+.BuilderHeader__toolbar__deployModal__text {
+	font-size: 14px;
+}
+
+.BuilderHeader img {
+	width: 28px;
+}
+
 .BuilderHeader .gap {
 	flex: 1 0 auto;
 }
@@ -153,52 +246,6 @@ function showStateExplorer() {
 
 .panelToggler .indicator {
 	margin-right: -12px;
-}
-
-.syncHealth {
-	background: var(--builderHeaderBackgroundHoleColor);
-	border-radius: 18px;
-	padding-left: 16px;
-	padding-right: 16px;
-	height: 32px;
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	transition:
-		color,
-		background-color 0.5s ease-in-out;
-}
-
-.syncHealth.offline {
-	background: var(--builderErrorColor);
-}
-
-.syncHealth.suspended {
-	background: var(--builderErrorColor);
-}
-
-.syncHealth.connected {
-	color: var(--builderBackgroundColor);
-}
-
-.syncHealth .icon {
-	transform-origin: center;
-	font-size: 0.875rem;
-}
-
-.syncHealth .icon.beingAnimated {
-	animation-name: activate;
-	animation-duration: 1s;
-	animation-timing-function: ease-in-out;
-}
-
-@keyframes activate {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
 }
 
 button {

@@ -8,7 +8,7 @@ import {
 } from "vue";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import { Core, InstancePath } from "@/writerTypes";
-import { useComponentLinkedWorkflows } from "@/composables/useComponentWorkflows";
+import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 /**
  * Encapsulates repeatable form value logic, including binding.
@@ -74,14 +74,14 @@ export function useFormValueBroker<T = any>(
 		const isHandlerSet = component.value.handlers?.[emitEventType];
 		const isBindingSet =
 			component.value.binding?.eventType == emitEventType;
-		const isWorkflowAttached = useComponentLinkedWorkflows(
+		const isBlueprintAttached = useComponentLinkedBlueprints(
 			wf,
 			componentId,
 			emitEventType,
 		).isLinked.value;
 
 		// Event is not used
-		if (!isHandlerSet && !isBindingSet && !isWorkflowAttached) return;
+		if (!isHandlerSet && !isBindingSet && !isBlueprintAttached) return;
 
 		if (isBusy.value) {
 			// Queued event is overwritten for debouncing purposes

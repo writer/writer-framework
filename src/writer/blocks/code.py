@@ -3,7 +3,7 @@ import sys
 from typing import Any
 
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 INIT_CODE = """
@@ -21,17 +21,17 @@ set_output("a sample result")
 """
 
 
-class CodeBlock(WorkflowBlock):
+class CodeBlock(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(CodeBlock, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Python code",
-                    "description": "Executes Python code.",
+                    "description": "Runs custom Python code. Useful for logic not covered by existing blocks.",
                     "category": "Logic",
                     "fields": {
                         "code": {

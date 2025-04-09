@@ -1,0 +1,5 @@
+{"id": "hywgzgfetx6rpiqz", "type": "blueprints_blueprint", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "blueprints_root", "position": 0}
+{"id": "rbh725i69ilo6gsr", "type": "blueprints_setstate", "content": {"element": "test", "value": "test"}, "handlers": {}, "isCodeManaged": false, "outs": [{"outId": "success", "toNodeId": "f052suq3dgzb5np7"}, {"outId": "success", "toNodeId": "f052suq3dgzb5np7"}], "parentId": "hywgzgfetx6rpiqz", "position": 0, "x": 248, "y": 204}
+{"id": "mw5rz7ay5p8pg2fm", "type": "blueprints_writerclassification", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "hywgzgfetx6rpiqz", "position": 1, "x": 935, "y": 153}
+{"id": "3cy7f577x6xsijiq", "type": "blueprints_runblueprint", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "hywgzgfetx6rpiqz", "position": 2, "x": 645, "y": 328}
+{"id": "c0v1pnroo32gfsye", "type": "blueprints_httprequest", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "hywgzgfetx6rpiqz", "position": 3, "x": 497, "y": 80}

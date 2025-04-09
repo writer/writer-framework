@@ -1,19 +1,19 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class WriterNoCodeApp(WorkflowBlock):
+class WriterNoCodeApp(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterNoCodeApp, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "No-code agent",
-                    "description": "Run a no-code agent.",
+                    "description": "Runs an Writer AI Studio Agent app by ID.",
                     "category": "Writer",
                     "fields": {
                         "appId": {

@@ -16,7 +16,7 @@ export function useComponentDescription(
 		if (type == "html" && content?.["element"]) {
 			return content?.["element"];
 		}
-		if (type == "workflows_workflow") {
+		if (type == "blueprints_blueprint") {
 			return content?.["key"] || "Blueprint";
 		}
 		return def.value?.name ?? `Unknown (${type})`;

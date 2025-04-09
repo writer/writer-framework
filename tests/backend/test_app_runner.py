@@ -45,7 +45,7 @@ class TestAppRunner:
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
-    async def test_init_should_not_load_workflow_component_in_run_mode(
+    async def test_init_should_not_load_blueprint_component_in_run_mode(
         self, setup_app_runner
     ) -> None:
         ar: AppRunner
@@ -56,11 +56,11 @@ class TestAppRunner:
                 )
             )
 
-            assert response.payload.components.get("workflows_root") is None
+            assert response.payload.components.get("blueprints_root") is None
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
-    async def test_init_should_load_workflow_component_in_edit_mode(self, setup_app_runner) -> None:
+    async def test_init_should_load_blueprint_component_in_edit_mode(self, setup_app_runner) -> None:
         ar: AppRunner
         with setup_app_runner(test_app_dir, "edit", load=True) as ar:
             response = await ar.init_session(
@@ -69,11 +69,11 @@ class TestAppRunner:
                 )
             )
 
-            assert response.payload.components.get("workflows_root") is not None
+            assert response.payload.components.get("blueprints_root") is not None
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
-    async def test_backend_ui_event_should_not_load_workflow_component_in_run_mode(
+    async def test_backend_ui_event_should_not_load_blueprint_component_in_run_mode(
         self, setup_app_runner
     ) -> None:
         ar: AppRunner
@@ -109,11 +109,11 @@ class TestAppRunner:
             )
 
             rev = await ar.dispatch_message(self.proposed_session_id, ev_req)
-            assert rev.payload.components.get("workflows_root") is None
+            assert rev.payload.components.get("blueprints_root") is None
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")
-    async def test_backend_ui_event_should_load_workflow_component_in_edit_mode(
+    async def test_backend_ui_event_should_load_blueprint_component_in_edit_mode(
         self, setup_app_runner
     ) -> None:
         ar: AppRunner
@@ -149,7 +149,7 @@ class TestAppRunner:
             )
 
             rev = await ar.dispatch_message(self.proposed_session_id, ev_req)
-            assert rev.payload.components.get("workflows_root") is not None
+            assert rev.payload.components.get("blueprints_root") is not None
 
     @pytest.mark.asyncio
     @pytest.mark.usefixtures("setup_app_runner")

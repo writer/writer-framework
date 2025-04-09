@@ -40,11 +40,11 @@
 						</div>
 					</div>
 				</div>
-				<BuilderLogWorkflowExecution
-					v-if="logEntry.workflowExecution"
-					:execution-log="logEntry.workflowExecution"
+				<BuilderLogBlueprintExecution
+					v-if="logEntry.blueprintExecution"
+					:execution-log="logEntry.blueprintExecution"
 				>
-				</BuilderLogWorkflowExecution>
+				</BuilderLogBlueprintExecution>
 			</template>
 		</div>
 		<div v-if="logEntries.length == 0" class="emptyMessage">
@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
-import BuilderLogWorkflowExecution from "./BuilderLogWorkflowExecution.vue";
+import BuilderLogBlueprintExecution from "./BuilderLogBlueprintExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 

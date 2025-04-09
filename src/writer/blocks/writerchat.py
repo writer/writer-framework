@@ -1,19 +1,19 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class WriterChat(WorkflowBlock):
+class WriterChat(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterChat, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Chat completion",
-                    "description": "Handles chat completions.",
+                    "description": "Generates an AI chat response using the full conversation history. Requires prior messages.",
                     "category": "Writer",
                     "fields": {
                         "conversationStateElement": {
@@ -64,7 +64,7 @@ class WriterChat(WorkflowBlock):
                 self.component.id,
                 f"tools_{tool_name}",
                 expanded_execution_environment,
-                f"Workflow branch execution (chat tool {tool_name})",
+                f"Blueprint branch execution (chat tool {tool_name})",
             )
 
             if return_value is None:

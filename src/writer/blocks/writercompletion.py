@@ -1,21 +1,21 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x-004"
 
 
-class WriterCompletion(WorkflowBlock):
+class WriterCompletion(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterCompletion, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Completion",
-                    "description": "Handles AI text generation, also known as text completions.",
+                    "description": "Generates text using a Writer model. Use for completions, summaries, or creative writing.",
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},

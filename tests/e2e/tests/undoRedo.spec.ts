@@ -29,20 +29,20 @@ test.describe('undo and redo', () => {
 		await page
 			.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 			.dragTo(page.locator(COLUMN1));
-		await page.locator("button.undo").click();
+		await page.locator('.BuilderHeader [data-automation-key="undo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0)
-		await page.locator("button.redo").click();
+		await page.locator('.BuilderHeader [data-automation-key="redo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(1)
 
 		await page.locator(COMPONENT_LOCATOR).dragTo(page.locator(COLUMN2));
-		await page.locator("button.undo").click();
+		await page.locator('.BuilderHeader [data-automation-key="undo"]').click();
 		await expect(
 			page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
 		).toHaveCount(1);
 		await expect(
 			page.locator(COLUMN2 + " " + COMPONENT_LOCATOR),
 		).toHaveCount(0);
-		await page.locator("button.redo").click();
+		await page.locator('.BuilderHeader [data-automation-key="redo"]').click();
 		await expect(
 			page.locator(COLUMN1 + " " + COMPONENT_LOCATOR),
 		).toHaveCount(0);
@@ -55,9 +55,9 @@ test.describe('undo and redo', () => {
 			.locator('.BuilderFieldsText[data-automation-key="text"] input')
 			.fill('cool text');
 		await collapseSettingsBar(page);
-		await page.locator("button.undo").click();
+		await page.locator('.BuilderHeader [data-automation-key="undo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('Button Text')
-		await page.locator("button.redo").click();
+		await page.locator('.BuilderHeader [data-automation-key="redo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText('cool text')
 
 		await page.locator(COMPONENT_LOCATOR).click();
@@ -66,9 +66,9 @@ test.describe('undo and redo', () => {
 				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
 			)
 			.click();
-		await page.locator("button.undo").click();
+		await page.locator('.BuilderHeader [data-automation-key="undo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(1)
-		await page.locator("button.redo").click();
+		await page.locator('.BuilderHeader [data-automation-key="redo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0)
 	});
 });

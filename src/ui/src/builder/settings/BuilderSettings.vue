@@ -35,17 +35,6 @@
 		</div>
 		<div v-if="ssbm.isSingleSelectionActive" class="titleBar">
 			<div>{{ componentDefinition.name }}</div>
-			<WdsButton
-				v-if="Boolean(rawMiniDocs)"
-				:inert="collapsed"
-				class="collapserButton"
-				size="small"
-				variant="neutral"
-				data-writer-tooltip-placement="top"
-				data-writer-tooltip="Toggle mini docs"
-				@click="toggleMiniDocs"
-				><i class="material-symbols-outlined">info</i></WdsButton
-			>
 		</div>
 		<div
 			v-if="ssbm.selectionStatus.value === SelectionStatus.Multiple"
@@ -55,11 +44,6 @@
 		>
 			<p>{{ selectionCount }}</p>
 		</div>
-		<BuilderSettingsMiniDocs
-			v-if="miniDocsActive && rawMiniDocs && !collapsed"
-			class="miniDocs"
-			:raw-mini-docs="rawMiniDocs"
-		></BuilderSettingsMiniDocs>
 		<BuilderSettingsActions class="actions"></BuilderSettingsActions>
 		<BuilderSettingsMain
 			:inert="collapsed"
@@ -74,7 +58,6 @@ import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
-import BuilderSettingsMiniDocs from "./BuilderSettingsMiniDocs.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { SelectionStatus } from "../builderManager";
 
@@ -103,15 +86,9 @@ const componentDefinition = computed(() => {
 	return definition;
 });
 
-const rawMiniDocs = computed(() => componentDefinition.value?.docs?.trim());
-
 watch(component, (newComponent) => {
 	if (!newComponent) ssbm.setSelection(null);
 });
-
-const toggleMiniDocs = () => {
-	miniDocsActive.value = !miniDocsActive.value;
-};
 </script>
 
 <style scoped>
@@ -136,7 +113,7 @@ const toggleMiniDocs = () => {
 	background: var(--builderBackgroundColor);
 	box-shadow: var(--wdsShadowLarge);
 	border-radius: 12px;
-	top: v-bind("ssbm.getMode() == `workflows` ? `82px` : `20px`");
+	top: v-bind("ssbm.getMode() == `blueprints` ? `82px` : `20px`");
 }
 
 .BuilderSettings--collapsed {
@@ -193,14 +170,6 @@ const toggleMiniDocs = () => {
 	flex: 1 0 auto;
 	text-wrap: wrap;
 	max-width: 280px;
-}
-
-.miniDocs {
-	grid-row: 2;
-	grid-column: 1 / 3;
-	background: var(--builderSubtleSeparatorColor);
-	padding: 0 24px 24px 24px;
-	overflow: auto;
 }
 
 .actions {

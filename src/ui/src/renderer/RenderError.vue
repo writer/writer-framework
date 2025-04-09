@@ -1,5 +1,5 @@
 <template>
-	<WorkflowsNode v-if="isWorkflowNode" :draggable="false" />
+	<BlueprintsNode v-if="isBlueprintNode" :draggable="false" />
 	<div v-else class="RenderError" :draggable="draggable">
 		<div class="title">
 			<h2>Error rendering {{ componentType }}</h2>
@@ -15,7 +15,7 @@ import injectionKeys from "@/injectionKeys";
 import { Component } from "@/writerTypes";
 import { computed, inject, PropType } from "vue";
 
-import WorkflowsNode from "@/components/workflows/abstract/WorkflowsNode.vue";
+import BlueprintsNode from "@/components/blueprints/abstract/BlueprintsNode.vue";
 
 defineProps({
 	componentType: {
@@ -32,8 +32,8 @@ const componentId = inject(injectionKeys.componentId);
 const component = computed(() => wf.getComponentById(componentId));
 const parent = computed(() => wf.getComponentById(component.value?.parentId));
 
-const isWorkflowNode = computed(
-	() => parent.value?.type === "workflows_workflow",
+const isBlueprintNode = computed(
+	() => parent.value?.type === "blueprints_blueprint",
 );
 </script>
 

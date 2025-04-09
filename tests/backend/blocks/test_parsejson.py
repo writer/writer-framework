@@ -2,7 +2,7 @@ import json
 
 import pytest
 from writer.blocks.parsejson import ParseJSON
-from writer.workflows import WorkflowRunner
+from writer.blueprints import BlueprintRunner
 
 
 def test_valid_json(session, runner):

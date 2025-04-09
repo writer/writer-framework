@@ -68,9 +68,9 @@ export type WriterComponentDefinitionField = {
 	/** Which control (text, textarea, etc) to use if not the default for the type */
 	control?: FieldControl;
 	options?:
-		| Record<string, string>
-		| string // For predefined functions
-		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
+	| Record<string, string>
+	| string // For predefined functions
+	| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
 	/** Category (Layout, Content, etc) */
@@ -95,7 +95,7 @@ export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
 	docs?: string; // Collapsible mini-docs
-	toolkit?: "core" | "workflows";
+	toolkit?: "core" | "blueprints";
 	deprecated?: boolean;
 	category?: string; // Category (Layout, Content, etc)
 	allowedChildrenTypes?: (string | "*" | "inherit")[]; // Which component types are allowed inside (if any)
@@ -145,7 +145,7 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
-	WorkflowKey = "Workflow Key",
+	BlueprintKey = "Blueprint Key",
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
 	WriterAppId = "App Id",

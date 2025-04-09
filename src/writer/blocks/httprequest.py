@@ -3,21 +3,21 @@ from typing import Any, Optional
 import requests
 
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class HTTPRequest(WorkflowBlock):
+class HTTPRequest(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(HTTPRequest, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "HTTP Request",
-                    "description": "Executes an HTTP request. If the response is JSON, it's automatically parsed.",
+                    "description": "Sends a HTTP request to an API endpoint. Used to fetch data or send data.",
                     "category": "Other",
                     "fields": {
                         "method": {

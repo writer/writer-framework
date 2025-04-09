@@ -1,19 +1,19 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class ChangePage(WorkflowBlock):
+class ChangePage(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(ChangePage, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "Change page",
-                    "description": "Changes the active page.",
+                    "description": "Navigates the user to another page in the app. Requires a valid page key.",
                     "category": "Other",
                     "fields": {
                         "pageKey": {

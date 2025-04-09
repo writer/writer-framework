@@ -28,7 +28,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 
 const description =
-	"A container component for displaying Step components, allowing you to implement a stepped workflow.";
+	"A container component for displaying Step components, allowing you to implement a stepped blueprint.";
 
 export default {
 	writer: {

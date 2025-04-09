@@ -268,6 +268,7 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
             abstractTemplates=abstract.templates,
+            writerApplication=payload.writerApplication,
         )
 
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
@@ -285,6 +286,7 @@ def get_asgi_app(
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
             abstractTemplates=abstract.templates,
+            writerApplication=payload.writerApplication,
         )
 
     @app.get("/api/health")
@@ -357,12 +359,12 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
 
-    @app.post("/api/job/workflow/{workflow_key}")
-    async def create_workflow_job(workflow_key: str, request: Request, response: Response):
+    @app.post("/api/job/blueprint/{blueprint_key}")
+    async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        crypto.verify_message_authorization_signature(f"create_job_{workflow_key}", request)
+        crypto.verify_message_authorization_signature(f"create_job_{blueprint_key}", request)
 
         def serialize_result(data):
             if isinstance(data, list):
@@ -417,7 +419,7 @@ def get_asgi_app(
                 WriterEvent(
                     type="wf-builtin-run",
                     isSafe=True,
-                    handler=f"$runWorkflow_{workflow_key}",
+                    handler=f"$runBlueprint_{blueprint_key}",
                     payload=await _get_payload_as_json(request),
                 ),
             )
@@ -431,7 +433,7 @@ def get_asgi_app(
         return {"id": job_id, "token": crypto.get_hash(f"get_job_{job_id}")}
 
     @app.get("/api/job/{job_id}")
-    async def get_workflow_job(job_id: str, request: Request, response: Response):
+    async def get_blueprint_job(job_id: str, request: Request, response: Response):
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
@@ -539,7 +541,7 @@ def get_asgi_app(
             payload=None,
         )
 
-        # Allows for global events if in edit mode (such as "Run workflow" for previewing a workflow)
+        # Allows for global events if in edit mode (such as "Run blueprint" for previewing a blueprint)
 
         is_safe = serve_mode == "edit"
         res_payload: Optional[Dict[str, Any]] = None

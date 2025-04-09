@@ -5,15 +5,15 @@ import writer.evaluator
 from writer.ss_types import WriterConfigurationError
 
 if TYPE_CHECKING:
+    from writer.blueprints import BlueprintRunner
     from writer.core_ui import Component
     from writer.ss_types import InstancePath
-    from writer.workflows import WorkflowRunner
 
-WorkflowBlock_T = Type["WorkflowBlock"]
-block_map: Dict[str, WorkflowBlock_T] = {}
+BlueprintBlock_T = Type["BlueprintBlock"]
+block_map: Dict[str, BlueprintBlock_T] = {}
 
 
-class WorkflowBlock:
+class BlueprintBlock:
     @classmethod
     def register(cls, type: str):
         block_map[type] = cls
@@ -21,7 +21,7 @@ class WorkflowBlock:
     def __init__(
         self,
         component: writer.core_ui.Component,
-        runner: "WorkflowRunner",
+        runner: "BlueprintRunner",
         execution_environment: Dict,
     ):
         self.outcome: Optional[str] = None

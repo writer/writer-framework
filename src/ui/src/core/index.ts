@@ -42,6 +42,9 @@ export function generateCore() {
 	 * @returns
 	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
+	const writerApplication = ref<
+		{ id: string; organizationId: string } | undefined
+	>();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const sourceFiles = shallowRef<SourceFiles>({
@@ -55,9 +58,9 @@ export function generateCore() {
 	const syncHealth: Ref<"idle" | "connected" | "offline" | "suspended"> =
 		ref("idle");
 	let frontendMessageCounter = 0;
-	const frontendMessageMap: Ref<Map<number, { callback?: Function }>> = ref(
-		new Map(),
-	);
+	const frontendMessageMap: Ref<
+		Map<number, { type: string; callback?: Function }>
+	> = ref(new Map());
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
@@ -105,6 +108,7 @@ export function generateCore() {
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
+		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
 		// Only returned for edit (Builder) mode
@@ -566,17 +570,21 @@ export function generateCore() {
 		const INITIAL_FOLLOWUP_MS = 150;
 		const SUBSEQUENT_FOLLOWUPS_MS = 150;
 
-		const checkIfStateEnquiryRequired = () => {
-			const isPending = frontendMessageMap.value.has(trackingId);
-			if (!isPending) return;
+		const checkIfStateEnquiryRequired = (iteration = 0) => {
+			const pending = frontendMessageMap.value.get(trackingId);
+			if (pending === undefined) return;
+			if (iteration == 0 && pending.type == "stateEnquiry") {
+				return;
+			}
+
 			sendStateEnquiry(() =>
 				setTimeout(
-					checkIfStateEnquiryRequired,
+					() => checkIfStateEnquiryRequired(iteration + 1),
 					SUBSEQUENT_FOLLOWUPS_MS,
 				),
 			);
 		};
-		setTimeout(checkIfStateEnquiryRequired, INITIAL_FOLLOWUP_MS);
+		setTimeout(() => checkIfStateEnquiryRequired(0), INITIAL_FOLLOWUP_MS);
 	}
 
 	async function sendFrontendMessage(
@@ -594,6 +602,7 @@ export function generateCore() {
 		try {
 			if (callback || track) {
 				frontendMessageMap.value.set(trackingId, {
+					type,
 					callback,
 				});
 			}
@@ -637,10 +646,10 @@ export function generateCore() {
 	 */
 	async function sendComponentUpdate(): Promise<void> {
 		/*
- 		Ensure that the backend receives only components 
+			Ensure that the backend receives only components 
 		created by the frontend (Builder-managed components, BMC), 
 		and not the components it generated (Code-managed components, CMC).
- 		*/
+			*/
 
 		const builderManagedComponents = {};
 
@@ -795,6 +804,7 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
+		writerApplication: readonly(writerApplication),
 	};
 
 	return core;

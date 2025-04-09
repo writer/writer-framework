@@ -75,6 +75,12 @@ const displayText = computed(() => {
 </script>
 
 <style scoped>
+.CoreLink {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .CoreLink a {
 	color: var(--primaryTextColor);
 }

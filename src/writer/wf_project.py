@@ -22,8 +22,8 @@ from typing import Any, Dict, List, Tuple
 from writer import core_ui
 from writer.ss_types import ComponentDefinition, MetadataDefinition, SourceFilesDirectory
 
-ROOTS = ['root', 'workflows_root']
-COMPONENT_ROOTS = ['page', 'workflows_workflow']
+ROOTS = ['root', 'blueprints_root']
+COMPONENT_ROOTS = ['page', 'blueprints_blueprint']
 
 shared_queue_write_files: typing.Optional[Queue] = None
 
@@ -51,9 +51,9 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
 
     * the metadata.json file is written in json format
     * a file for the root component written in jsonline format
-    * a file for the workflows_root component written in jsonline format
+    * a file for the blueprints_root component written in jsonline format
     * one file per page is created in the form `components-page-{id}.json` in jsonline format
-    * one file per workflow is created in the form `components-workflows_workflow-{id}.json` in jsonline format
+    * one file per blueprint is created in the form `components-blueprints_blueprint-{id}.json` in jsonline format
 
     >>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
     """
@@ -103,13 +103,13 @@ def read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDe
     """
     Reads project files in the `.wf` folder.
 
-    The components are read in page and workflows_workflow order.
+    The components are read in page and blueprints_blueprint order.
 
     >>> metadata, components = wf_project.read_files('app/hello')
     """
     components: dict[str, ComponentDefinition] = {}
-    roots = ['root', 'workflows_root']
-    component_part_file_type = ['page', 'workflows_workflow']
+    roots = ['root', 'blueprints_root']
+    component_part_file_type = ['page', 'blueprints_blueprint']
 
     meta_data_path = os.path.join(app_path, ".wf", "metadata.json")
     try:
@@ -173,11 +173,11 @@ def migrate_obsolete_ui_json(app_path: str, metadata: MetadataDefinition) -> Non
     logger.warning('project format has changed and has been migrated with success. ui.json file has been removed.')
 
 
-def create_default_workflows_root(abs_path: str) -> None:
-    with io.open(os.path.join(abs_path, '.wf', 'components-workflows_root.jsonl'), 'w') as f:
-        f.write('{"id": "workflows_root", "type": "workflows_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
+def create_default_blueprints_root(abs_path: str) -> None:
+    with io.open(os.path.join(abs_path, '.wf', 'components-blueprints_root.jsonl'), 'w') as f:
+        f.write('{"id": "blueprints_root", "type": "blueprints_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
         logger = logging.getLogger('writer')
-        logger.warning('project format has changed and has been migrated with success. components-workflows_root.jsonl has been added.')
+        logger.warning('project format has changed and has been migrated with success. components-blueprints_root.jsonl has been added.')
 
 
 def _expected_component_fileinfos(components: dict[str, ComponentDefinition]) -> List[Tuple[str, str]]:

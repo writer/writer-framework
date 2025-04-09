@@ -9,7 +9,7 @@
 				v-for="(eventInfo, eventType) in recognisedEvents"
 				:key="eventType"
 			>
-				<BuilderSettingsHandlersWorkflow
+				<BuilderSettingsHandlersBlueprint
 					:component="component"
 					:event-type="eventType"
 					:event-description="eventInfo.desc"
@@ -24,7 +24,7 @@ import { computed, ComputedRef, inject } from "vue";
 
 import injectionKeys from "@/injectionKeys";
 import { WriterComponentDefinition } from "@/writerTypes";
-import BuilderSettingsHandlersWorkflow from "./BuilderSettingsHandlersWorkflow.vue";
+import BuilderSettingsHandlersBlueprint from "./BuilderSettingsHandlersBlueprint.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);

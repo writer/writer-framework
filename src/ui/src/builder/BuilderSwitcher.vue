@@ -1,29 +1,32 @@
 <template>
 	<div class="BuilderSwitcher">
-		<div
+		<button
 			data-automation-action="set-mode-ui"
 			:class="{ active: activeId == 'ui' }"
+			type="button"
 			@click="selectOption('ui')"
 		>
 			<i class="icon material-symbols-outlined"> brush </i>
 			UI
-		</div>
-		<div
-			data-automation-action="set-mode-workflows"
-			:class="{ active: activeId == 'workflows' }"
-			@click="selectOption('workflows')"
+		</button>
+		<button
+			data-automation-action="set-mode-blueprints"
+			:class="{ active: activeId == 'blueprints' }"
+			type="button"
+			@click="selectOption('blueprints')"
 		>
-			<i class="icon material-symbols-outlined"> linked_services </i>
+			<i class="icon material-symbols-outlined">linked_services</i>
 			Blueprints
-		</div>
-		<div
+		</button>
+		<button
 			:class="{ active: activeId == 'preview' }"
 			data-automation-action="set-mode-preview"
+			type="button"
 			@click="selectOption('preview')"
 		>
 			<i class="icon material-symbols-outlined"> preview </i>
 			Preview
-		</div>
+		</button>
 	</div>
 </template>
 
@@ -35,15 +38,15 @@ const ssbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
 
-const selectOption = (optionId: "ui" | "preview" | "workflows") => {
+const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
 	const preMode = ssbm.getMode();
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
 	ssbm.setMode(optionId);
 	if (
 		optionId == "preview" ||
-		preMode == "workflows" ||
-		optionId == "workflows"
+		preMode == "blueprints" ||
+		optionId == "blueprints"
 	) {
 		ssbm.setSelection(null);
 	}
@@ -56,29 +59,32 @@ const activeId = computed(() => ssbm.getMode());
 @import "./sharedStyles.css";
 
 .BuilderSwitcher {
-	background: var(--builderHeaderBackgroundHoleColor);
-	color: white;
-	font-size: 0.75rem;
 	display: flex;
 	gap: 0px;
-	padding: 4px;
-	border-radius: 8px;
 	overflow: hidden;
 }
 
-.BuilderSwitcher div {
+.BuilderSwitcher button {
+	background-color: transparent;
+	color: white;
+	border: none;
+
+	font-size: 14px;
+
 	padding: 4px 12px 4px 12px;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
+	gap: 4px;
+	height: 32px;
+	border-radius: 4px;
 }
 
 .BuilderSwitcher .icon {
 	margin-right: 8px;
 }
 
-.BuilderSwitcher div.active {
-	background: var(--builderHeaderBackgroundColor);
-	border-radius: 4px;
+.BuilderSwitcher .active {
+	background: var(--builderHeaderBackgroundHoleColor);
 }
 </style>

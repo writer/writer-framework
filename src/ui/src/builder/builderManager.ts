@@ -18,7 +18,7 @@ const MAX_LOG_ENTRIES = 100;
 export const panelIds = ["code", "log"];
 export type PanelId = (typeof panelIds)[number];
 
-export type WorkflowExecutionLog = {
+export type BlueprintExecutionLog = {
 	summary: {
 		componentId: Component["id"];
 		outcome: string;
@@ -46,7 +46,7 @@ type LogEntryContents = {
 	title: string;
 	message: string;
 	code?: string;
-	workflowExecution?: WorkflowExecutionLog;
+	blueprintExecution?: BlueprintExecutionLog;
 	id?: string;
 };
 
@@ -65,7 +65,7 @@ export const enum SelectionStatus {
 }
 
 type State = {
-	mode: "ui" | "workflows" | "preview";
+	mode: "ui" | "blueprints" | "preview";
 	selection: {
 		componentId: Component["id"];
 		instancePath: string;
@@ -125,7 +125,7 @@ export function generateBuilderManager() {
 	});
 
 	const activeRootId = computed<Component["id"]>(() =>
-		mode.value == "workflows" ? "workflows_root" : "root",
+		mode.value == "blueprints" ? "blueprints_root" : "root",
 	);
 
 	const setSelection = (
@@ -337,7 +337,7 @@ export function generateBuilderManager() {
 	}
 
 	const handleLogEntry = async (logEntryContents: LogEntryContents) => {
-		const { type, title, message, code, workflowExecution, id } =
+		const { type, title, message, code, blueprintExecution, id } =
 			logEntryContents;
 		const fingerprint = await hashLogEntryContents(logEntryContents);
 
@@ -368,7 +368,7 @@ export function generateBuilderManager() {
 			title,
 			message,
 			code,
-			workflowExecution,
+			blueprintExecution,
 			timestampReceived: new Date(),
 			fingerprint,
 			repeated: 0,

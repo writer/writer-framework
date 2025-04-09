@@ -52,6 +52,7 @@ from writer.ss_types import (
     StateContentResponsePayload,
     StateEnquiryRequest,
     StateEnquiryResponsePayload,
+    WriterApplicationInformation,
     WriterEvent,
 )
 from writer.wf_project import WfProjectContext
@@ -171,6 +172,14 @@ class AppProcess(multiprocessing.Process):
             session.session_component_tree, mode=writer.Config.mode
         )
 
+        writer_application: Optional[WriterApplicationInformation] = None
+        writer_app_id = os.getenv("WRITER_APP_ID")
+        writer_org_id = os.getenv("WRITER_ORG_ID")
+        if writer_app_id is not None and writer_org_id is not None:
+            writer_application = WriterApplicationInformation(
+                id=writer_app_id, organizationId=writer_org_id
+            )
+
         res_payload = InitSessionResponsePayload(
             userState=user_state,
             sessionId=session.session_id,
@@ -178,6 +187,7 @@ class AppProcess(multiprocessing.Process):
             components=ui_component_tree,
             userFunctions=self._get_user_functions(),
             featureFlags=writer.Config.feature_flags,
+            writerApplication=writer_application,
         )
 
         session.session_state.clear_mail()
@@ -333,7 +343,7 @@ class AppProcess(multiprocessing.Process):
             type = request.type
 
             if type == "sessionInit":
-                si_req_payload = InitSessionRequestPayload.parse_obj(request.payload)
+                si_req_payload = InitSessionRequestPayload.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
@@ -349,7 +359,7 @@ class AppProcess(multiprocessing.Process):
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
 
             if type == "event":
-                ev_req_payload = WriterEvent.parse_obj(request.payload)
+                ev_req_payload = WriterEvent.model_validate(request.payload)
                 return AppProcessServerResponse(
                     status="ok",
                     status_message=None,
@@ -379,12 +389,12 @@ class AppProcess(multiprocessing.Process):
                 )
 
             if self.mode == "edit" and type == "componentUpdate":
-                cu_req_payload = ComponentUpdateRequestPayload.parse_obj(request.payload)
+                cu_req_payload = ComponentUpdateRequestPayload.model_validate(request.payload)
                 self._handle_component_update(session, cu_req_payload)
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
 
             if self.mode == "edit" and type == "listResources":
-                list_req_payload = ListResourcesRequestPayload.parse_obj(request.payload)
+                list_req_payload = ListResourcesRequestPayload.model_validate(request.payload)
                 return self._handle_list_resources(session, list_req_payload)
 
             raise MessageHandlingException("Invalid event.")
@@ -887,9 +897,9 @@ class AppRunner:
             wf_project.migrate_obsolete_ui_json(self.app_path, metadata={"writer_version": VERSION})
 
         if not os.path.isfile(
-            os.path.join(self.app_path, ".wf", "components-workflows_root.jsonl")
+            os.path.join(self.app_path, ".wf", "components-blueprints_root.jsonl")
         ):
-            wf_project.create_default_workflows_root(self.app_path)
+            wf_project.create_default_blueprints_root(self.app_path)
 
         if not os.path.isdir(os.path.join(self.app_path, ".wf")):
             logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)

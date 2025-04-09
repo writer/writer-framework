@@ -26,11 +26,11 @@
 					page</WdsButton
 				>
 				<WdsButton
-					v-if="rootComponentId == 'workflows_root'"
+					v-if="rootComponentId == 'blueprints_root'"
 					variant="special"
 					size="small"
-					data-automation-action="add-workflow"
-					@click="addWorkflow"
+					data-automation-action="add-blueprint"
+					@click="addBlueprint"
 				>
 					<i class="material-symbols-outlined"> add </i> Add
 					blueprint</WdsButton
@@ -70,10 +70,10 @@ async function addPage() {
 	wfbm.setSelection(pageId);
 }
 
-async function addWorkflow() {
+async function addBlueprint() {
 	const pageId = createAndInsertComponent(
-		"workflows_workflow",
-		"workflows_root",
+		"blueprints_blueprint",
+		"blueprints_root",
 	);
 	wf.setActivePageId(pageId);
 	await nextTick();

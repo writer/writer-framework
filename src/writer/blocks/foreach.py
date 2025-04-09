@@ -1,19 +1,19 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import WorkflowBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
 
-class ForEach(WorkflowBlock):
+class ForEach(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(ForEach, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
-                baseType="workflows_node",
+                baseType="blueprints_node",
                 writer={
                     "name": "For-each loop",
-                    "description": "Executes a branch repeatedly, based on the items provided.",
+                    "description": "Loops through each item in a list to run the same logic.",
                     "category": "Logic",
                     "fields": {
                         "items": {
@@ -63,27 +63,27 @@ class ForEach(WorkflowBlock):
                 raise ValueError("Items must be a list or dictionary.")
 
             if isinstance(items, list):
-                workflow_environments = [
+                blueprint_environments = [
                     base_execution_environment | {f"{prefix}itemId": i, f"{prefix}item": item}
                     for i, item in enumerate(items)
                 ]
 
                 results = self.runner.run_branch_pool(
-                    self.component.id, "loop", workflow_environments
+                    self.component.id, "loop", blueprint_environments
                 )
                 self.result = results  # Return as a list
 
             elif isinstance(items, dict):
-                workflow_environments = {
+                blueprint_environments = {
                     str(item_id): base_execution_environment
                     | {f"{prefix}itemId": str(item_id), f"{prefix}item": item}
                     for item_id, item in items.items()
                 }
                 results = self.runner.run_branch_pool(
-                    self.component.id, "loop", list(workflow_environments.values())
+                    self.component.id, "loop", list(blueprint_environments.values())
                 )
                 self.result = {
-                    item_id: results[i] for i, item_id in enumerate(workflow_environments.keys())
+                    item_id: results[i] for i, item_id in enumerate(blueprint_environments.keys())
                 }
 
             self.outcome = "success"
