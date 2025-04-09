@@ -4,9 +4,12 @@
 		:class="className"
 		role="button"
 		:style="style"
+		:disabled="disabled || loading"
 	>
-		<WdsLoaderDots v-if="loading" />
-		<slot v-else></slot>
+		<div v-if="loading" class="WdsButton__loader">
+			<WdsLoaderDots color="white" :size="24" />
+		</div>
+		<slot></slot>
 	</button>
 </template>
 
@@ -32,6 +35,7 @@ const props = defineProps({
 	size: { type: String as PropType<WdsButtonSize>, default: "big" },
 	customSize: { type: String, required: false, default: undefined },
 	loading: { type: Boolean, required: false },
+	disabled: { type: Boolean, required: false },
 });
 
 const style = computed<CSSProperties>(() => {
@@ -64,6 +68,18 @@ const className = computed(() => [
 	outline: none;
 	border-style: solid;
 	border-width: 1px;
+	position: relative;
+	overflow: hidden;
+}
+.WdsButton__loader {
+	/* position the loader as absolute to display the loader but keep the original width taken by the content */
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: inherit;
 }
 .WdsButton:disabled {
 	cursor: not-allowed;

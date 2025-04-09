@@ -64,6 +64,11 @@ SourceFiles = Union[SourceFilesFile, SourceFilesDirectory, SourceFilesBinary]
 # Web server models
 
 
+class WriterApplicationInformation(BaseModel):
+    id: str
+    organizationId: str
+
+
 class AutogenRequestBody(BaseModel):
     description: str
 
@@ -82,6 +87,7 @@ class InitResponseBody(BaseModel):
     extensionPaths: List
     featureFlags: List[str]
     abstractTemplates: Dict[str, AbstractTemplate]
+    writerApplication: Optional[WriterApplicationInformation]
 
 
 class InitResponseBodyRun(InitResponseBody):
@@ -191,6 +197,7 @@ class InitSessionResponsePayload(BaseModel):
     userFunctions: List[Dict]
     components: Dict
     featureFlags: List[str]
+    writerApplication: Optional[WriterApplicationInformation]
 
 
 class InitSessionResponse(AppProcessServerResponse):

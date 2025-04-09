@@ -52,6 +52,7 @@ from writer.ss_types import (
     StateContentResponsePayload,
     StateEnquiryRequest,
     StateEnquiryResponsePayload,
+    WriterApplicationInformation,
     WriterEvent,
 )
 from writer.wf_project import WfProjectContext
@@ -171,6 +172,14 @@ class AppProcess(multiprocessing.Process):
             session.session_component_tree, mode=writer.Config.mode
         )
 
+        writer_application: Optional[WriterApplicationInformation] = None
+        writer_app_id = os.getenv("WRITER_APP_ID")
+        writer_org_id = os.getenv("WRITER_ORG_ID")
+        if writer_app_id is not None and writer_org_id is not None:
+            writer_application = WriterApplicationInformation(
+                id=writer_app_id, organizationId=writer_org_id
+            )
+
         res_payload = InitSessionResponsePayload(
             userState=user_state,
             sessionId=session.session_id,
@@ -178,6 +187,7 @@ class AppProcess(multiprocessing.Process):
             components=ui_component_tree,
             userFunctions=self._get_user_functions(),
             featureFlags=writer.Config.feature_flags,
+            writerApplication=writer_application,
         )
 
         session.session_state.clear_mail()

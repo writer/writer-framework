@@ -3,13 +3,14 @@ import { WdsColor } from "./tokens";
 
 defineProps({
 	color: { type: String, required: false, default: WdsColor.Blue5 },
+	size: { type: Number, required: false, default: 16 },
 });
 </script>
 
 <template>
 	<svg
-		width="16"
-		height="16"
+		:width="size"
+		:height="size"
 		viewBox="0 0 16 16"
 		fill="none"
 		xmlns="http://www.w3.org/2000/svg"
