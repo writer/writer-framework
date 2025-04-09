@@ -1,13 +1,7 @@
 <template>
-	<div
-		v-show="isVisible"
-		class="CoreTab"
-		:class="{
-			'CoreTab--bit': isTabBitInstance,
-		}"
-	>
+	<div v-show="isVisible" class="CoreTab">
 		<button
-			v-if="isTabBitInstance"
+			v-if="isTabBit"
 			class="bit"
 			:class="{ active: isTabActive }"
 			tabindex="0"
@@ -16,7 +10,7 @@
 			{{ fields.name.value }}
 		</button>
 		<BaseContainer
-			v-if="isContentInstance"
+			v-if="isContentDisplaying"
 			v-show="isTabActive"
 			class="container"
 			:content-h-align="fields.contentHAlign.value"
@@ -113,18 +107,16 @@ const instanceNumber = computed<number | undefined>(
 	() => tabContainerDirectChildInstanceItem?.value.instanceNumber,
 );
 
-const isTabBitInstance = computed(
+const isTabBit = computed(
 	() => instanceNumber.value === TAB_BIT_INSTANCE_NUMBER,
 );
-const isContentInstance = computed(
+const isContentDisplaying = computed(
 	() => instanceNumber.value === CONTENT_DISPLAYING_INSTANCE_NUMBER,
 );
 
 const isVisible = computed(() => {
 	if (!isComponentVisible(componentId)) return false;
-	return (
-		isTabBitInstance.value || (isContentInstance.value && isTabActive.value)
-	);
+	return isTabBit.value || (isContentDisplaying.value && isTabActive.value);
 });
 
 const getTabContainerData = () => {
@@ -174,7 +166,7 @@ watch(selectedId, (newSelectedId) => {
 
 const isTabActive = computed(() => {
 	let contentDisplayingInstancePath: InstancePath;
-	if (isTabBitInstance.value) {
+	if (isTabBit.value) {
 		contentDisplayingInstancePath = getMatchingTabInstancePath();
 	} else {
 		contentDisplayingInstancePath = instancePath;
@@ -188,7 +180,7 @@ const isTabActive = computed(() => {
 });
 
 onBeforeMount(() => {
-	if (isTabBitInstance.value) return;
+	if (isTabBit.value) return;
 	const tabContainerData = getTabContainerData();
 	const activeTab = tabContainerData.value?.activeTab;
 	if (activeTab) return;
@@ -231,10 +223,5 @@ button.bit.active {
 	font-weight: 500;
 	color: var(--primaryTextColor);
 	border-bottom: 2px solid var(--primaryTextColor);
-}
-
-.CoreTab--bit.selected {
-	outline: unset !important;
-	background-color: unset;
 }
 </style>
