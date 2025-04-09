@@ -4,9 +4,9 @@
 		<BuilderSwitcher />
 		<div class="gap"></div>
 		<div class="BuilderHeader__toolbar">
-			<button
-				type="button"
-				class="BuilderHeader__toolbar__btn"
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
 				data-automation-key="undo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isUndoAvailable
@@ -18,10 +18,10 @@
 				@click="undo()"
 			>
 				<i class="material-symbols-outlined">undo</i>
-			</button>
-			<button
-				type="button"
-				class="BuilderHeader__toolbar__btn"
+			</WdsButton>
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
 				data-automation-key="redo"
 				:data-writer-tooltip="
 					undoRedoSnapshot.isRedoAvailable
@@ -33,16 +33,16 @@
 				@click="redo()"
 			>
 				<i class="material-symbols-outlined">redo</i>
-			</button>
-			<button
-				type="button"
-				class="BuilderHeader__toolbar__btn"
+			</WdsButton>
+			<WdsButton
+				variant="secondary"
+				size="smallIcon"
 				data-writer-tooltip="State Explorer"
 				data-writer-tooltip-placement="bottom"
 				@click="showStateExplorer"
 			>
 				<i class="material-symbols-outlined">mystery</i>
-			</button>
+			</WdsButton>
 			<WdsButton
 				v-if="canDeploy"
 				size="small"
@@ -55,12 +55,13 @@
 				{{ deployLabel }}
 				<WdsModal
 					v-if="confirmDeployModalOpen"
+					class="BuilderHeader__toolbar__deployModal"
 					title="Are you sure you want to deploy these changes?"
 					size="normal"
 					:actions="confirmDeployModalActions"
 					data-automation-key="deployConfirmModal"
 				>
-					<p>
+					<p class="BuilderHeader__toolbar__deployModal__text">
 						This will replace the current live version of this agent
 						everywhere it is currently deployed.
 					</p>
@@ -209,18 +210,7 @@ function showStateExplorer() {
 	gap: 8px;
 }
 
-.BuilderHeader__toolbar__btn {
-	background: var(--builderHeaderBackgroundHoleColor);
-	color: var(--builderBackgroundColor);
-	border: none;
-	border-radius: 50%;
-	height: 32px;
-	width: 32px;
-
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
+.BuilderHeader__toolbar__deployModal__text {
 	font-size: 14px;
 }
 
