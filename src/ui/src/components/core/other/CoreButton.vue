@@ -13,7 +13,7 @@
 		<i v-if="fields.icon.value" class="material-symbols-outlined">{{
 			fields.icon.value
 		}}</i>
-		{{ fields.text.value }}
+		<span class="CoreButton__text">{{ fields.text.value }}</span>
 	</WdsButton>
 </template>
 
@@ -113,5 +113,10 @@ function handleClick(ev: MouseEvent) {
 .CoreButton.selected {
 	color: var(--wdsColorBlue5);
 	opacity: 1;
+}
+
+.CoreButton__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 </style>
