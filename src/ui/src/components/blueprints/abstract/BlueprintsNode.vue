@@ -325,9 +325,6 @@ watch(isEngaged, () => {
 	);
 }
 
-.BlueprintsNode.selected {
-	outline: unset !important;
-}
 .BlueprintsNode.selected.component .extraBorder {
 	background: var(--wdsColorBlue4);
 }

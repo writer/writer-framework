@@ -709,9 +709,6 @@ onUnmounted(() => {
 .CoreDataframe.selected {
 	--dataframeBackgroundColor: var(--builderSelectedColor) !important;
 }
-.CoreDataframe.selected .CoreDataframe__tableWrapper {
-	border-radius: 8px;
-}
 
 .CoreDataframe {
 	font-size: 0.8rem;
