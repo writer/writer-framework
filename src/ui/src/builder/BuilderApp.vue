@@ -20,6 +20,7 @@
 						@dragend="handleRendererDragEnd"
 						@drop="handleRendererDrop"
 						@click.capture="handleRendererClick"
+						@dblclick="handleRendererDblClick"
 					>
 					</ComponentRenderer>
 				</div>
@@ -262,6 +263,9 @@ function handleRendererClick(ev: PointerEvent): void {
 	ev.stopPropagation();
 
 	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
+}
+function handleRendererDblClick() {
+	ssbm.isSettingsBarCollapsed.value = false;
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {
