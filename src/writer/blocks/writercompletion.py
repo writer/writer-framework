@@ -2,11 +2,11 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
+DEFAULT_MODEL = "palmyra-x-004"
 
 class WriterCompletion(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
-        from writer.ai import DEFAULT_COMPLETION_MODEL
         super(WriterCompletion, cls).register(type)
         register_abstract_template(
             type,
@@ -18,7 +18,7 @@ class WriterCompletion(BlueprintBlock):
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},
-                        "modelId": {"name": "Model id", "type": "Text", "default": DEFAULT_COMPLETION_MODEL},
+                        "modelId": {"name": "Model id", "type": "Text", "default": DEFAULT_MODEL},
                         "temperature": {
                             "name": "Temperature",
                             "type": "Number",
@@ -62,7 +62,7 @@ class WriterCompletion(BlueprintBlock):
 
             prompt = self._get_field("prompt")
             temperature = float(self._get_field("temperature", False, "0.7"))
-            model_id = self._get_field("modelId", False, default_field_value=writer.ai.DEFAULT_COMPLETION_MODEL)
+            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             max_tokens = int(self._get_field("max_tokens", False, "1024"))
             config = {"temperature": temperature, "model": model_id, "max_tokens": max_tokens}
             result = writer.ai.complete(prompt, config).strip()

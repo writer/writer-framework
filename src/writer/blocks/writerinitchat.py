@@ -3,6 +3,9 @@ from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 
+DEFAULT_MODEL = "palmyra-x-004"
+
+
 class WriterInitChat(BlueprintBlock):
 
     @classmethod
@@ -24,7 +27,7 @@ class WriterInitChat(BlueprintBlock):
                     "modelId": {
                         "name": "Model id",
                         "type": "Text",
-                        "default": writer.ai.DEFAULT_CHAT_MODEL
+                        "default": DEFAULT_MODEL
                     },
                     "temperature": {
                         "name": "Temperature",
@@ -68,7 +71,7 @@ class WriterInitChat(BlueprintBlock):
 
             conversation_state_element = self._get_field("conversationStateElement")
             temperature = float(self._get_field("temperature", False, "0.7"))
-            model_id = self._get_field("modelId", False, default_field_value=writer.ai.DEFAULT_CHAT_MODEL)
+            model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             max_tokens = int(self._get_field("max_tokens", False, "1024"))
             config = { "temperature": temperature, "model": model_id, "max_tokens": max_tokens }
 
