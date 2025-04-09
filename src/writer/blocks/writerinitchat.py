@@ -9,7 +9,6 @@ class WriterInitChat(BlueprintBlock):
 
     @classmethod
     def register(cls, type: str):
-        import writer.ai
         super(WriterInitChat, cls).register(type)
         register_abstract_template(type, AbstractTemplate(
             baseType="blueprints_node",
