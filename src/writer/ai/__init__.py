@@ -55,6 +55,9 @@ from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
 
 from writer.core import get_app_process
 
+DEFAULT_CHAT_MODEL = "palmyra-x-004"
+DEFAULT_COMPLETION_MODEL = "palmyra-x-004"
+
 
 class APIOptions(TypedDict, total=False):
     extra_headers: Optional[Headers]
@@ -204,18 +207,8 @@ class WriterAIManager:
         :raises RuntimeError: If an API key was not provided to initialize
         SDK client properly.
         """
-        try:
-            self.client = Writer(
-                # This is the default and can be omitted
-                api_key=token,
-            )
-        except WriterError:
-            raise RuntimeError(
-                "Failed to acquire Writer API key. " +
-                "Provide it by either setting a WRITER_API_KEY" +
-                " environment variable, or by initializing the" +
-                " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
-                ) from None
+        self.token = token
+        from writer.core import get_app_process
         current_process = get_app_process()
         setattr(current_process, 'ai_manager', self)
 
@@ -249,7 +242,7 @@ class WriterAIManager:
         :param token: The new token to use for authentication.
         """
         instance = cls.acquire_instance()
-        instance.client = Writer(api_key=token)
+        instance.token = token
 
     @classmethod
     def use_chat_model(cls) -> str:
@@ -258,7 +251,7 @@ class WriterAIManager:
 
         :returns: Name for the chat model.
         """
-        return "palmyra-x-004"
+        return DEFAULT_CHAT_MODEL
 
     @classmethod
     def use_completion_model(cls) -> str:
@@ -267,12 +260,39 @@ class WriterAIManager:
 
         :returns: Name for the completion model.
         """
-        return "palmyra-x-004"
+        return DEFAULT_COMPLETION_MODEL
 
     @classmethod
     def acquire_client(cls) -> Writer:
+        from writer.core import get_session
         instance = cls.acquire_instance()
-        return instance.client
+
+        # Acquire header from session
+        # and set it to the client
+
+        current_session = get_session()
+        custom_headers = {}
+        if current_session:
+            headers = current_session.headers or {}
+            agent_token_header = headers.get("x-agent-token")
+            if agent_token_header:
+                custom_headers = {
+                        "X-Agent-Token": agent_token_header
+                    }
+
+        try:
+            client = Writer(
+                api_key=instance.token,
+                default_headers=custom_headers
+                )
+        except WriterError:
+            raise RuntimeError(
+                "Failed to acquire Writer API key. " +
+                "Provide it by either setting a WRITER_API_KEY" +
+                " environment variable, or by initializing the" +
+                " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
+                ) from None
+        return client
 
 
 class SDKWrapper:
@@ -1389,9 +1409,12 @@ class Conversation:
                     "boolean", "array", "object", "null"
                 }
                 if param_info["type"] not in supported_types:
-                    raise ValueError(
+                    logging.warning(
                         f"Unsupported type '{param_info['type']}' " +
-                        f"for parameter '{param_name}'"
+                        f"for parameter '{param_name}'. " +
+                        "Fallback to 'string' type will be used. " +
+                        "This may lead to unexpected results. " +
+                        f"Supported types are: {supported_types}"
                     )
 
                 # Optional 'description' validation (if provided)
@@ -1720,7 +1743,11 @@ class Conversation:
         elif target_type == "null":
             return None
         else:
-            raise ValueError(f"Unsupported target type: {target_type}")
+            logging.warning(
+                f"Unsupported target type: {target_type}. " +
+                "Falling back to string type. " +
+                "This may lead to unexpected results.")
+            return str(value)
 
     def _check_if_arguments_are_required(self, function_name: str) -> bool:
         callable_entry = self._callable_registry.get(function_name)
@@ -1850,19 +1877,8 @@ class Conversation:
 
         # Accumulate arguments across chunks
         if tool_call_arguments is not None and tool_call_arguments != '':
-            if (
-                tool_call_arguments.startswith("{")
-                and tool_call_arguments.endswith("}")
-            ):
-                # For cases when LLM "bugs" and returns
-                # the whole arguments string as a last chunk
-                fixed_chunk = tool_call_arguments.rsplit("{")[-1]
-                self._ongoing_tool_calls[index]["arguments"] = \
-                    "{" + fixed_chunk
-            else:
-                # Process normally
-                self._ongoing_tool_calls[index]["arguments"] += \
-                    tool_call_arguments
+            self._ongoing_tool_calls[index]["arguments"] += \
+                tool_call_arguments
 
         # Check if we have all necessary data to execute the function
         tool_call_id, tool_call_name, tool_call_arguments = \
