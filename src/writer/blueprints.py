@@ -8,6 +8,7 @@ import time
 from collections import OrderedDict, deque
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
+from contextvars import copy_context
 from typing import Dict, List, Literal, Optional
 
 import writer.blocks
@@ -283,7 +284,9 @@ class BlueprintRunner:
                 while ready:
                     tool = ready.popleft()
                     tool.outcome = "in_progress"
-                    future = executor.submit(self.run_tool, tool)
+                    writer.core._current_session.set(self.session)
+                    ctx = copy_context()
+                    future = executor.submit(ctx.run, self.run_tool, tool)
                     futures.add(future)
 
                 update_log("Executing...")
