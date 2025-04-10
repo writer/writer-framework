@@ -36,9 +36,7 @@ export function useComponentActions(
 		const parent = wf.getComponentById(component.parentId);
 		if (!parent) return;
 
-		const previousSibling = wf
-			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
-			.filter((c) => c.position == position - 1)[0];
+		const previousSibling = findSibling(componentId, -1);
 
 		// MUTATIONS
 
@@ -68,16 +66,8 @@ export function useComponentActions(
 		const position = component.position;
 		if (position == -2) return; // Positionless
 
-		const positionfulSiblings = wf
-			.getComponents(parent.id, { includeBMC: true, includeCMC: false })
-			.filter((c) => c.position !== -2);
-		if (position >= positionfulSiblings.length - 1) {
-			return;
-		}
-
-		const nextSibling = positionfulSiblings.filter(
-			(c) => c.position == position + 1,
-		)[0];
+		const nextSibling = findSibling(componentId, 1);
+		if (!nextSibling) return;
 
 		const transactionId = `move-down-${componentId}`;
 		ssbm.openMutationTransaction(transactionId, `Move down`);
@@ -123,6 +113,50 @@ export function useComponentActions(
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+	}
+
+	function isParentSuitable(
+		targetId: Component["id"],
+		child: Component,
+	): boolean {
+		const targetComponent = wf.getComponentById(targetId);
+		if (!targetComponent) return false;
+		const containableTypes = wf.getContainableTypes(targetId);
+		return (
+			!targetComponent?.isCodeManaged &&
+			!wf.isChildOf(child.id, targetId) &&
+			containableTypes.includes(child.type)
+		);
+	}
+
+	/**
+	 * Moves a component inside the next sibling (if possible)
+	 * @returns the new parent ID of the component
+	 */
+	function moveComponentInsideNextSibling(
+		componentId: Component["id"],
+	): Component["id"] | undefined {
+		const component = wf.getComponentById(componentId);
+		const target = findSibling(componentId, 1);
+		if (!target) return;
+		if (!isParentSuitable(target.id, component)) return;
+		moveComponent(componentId, target.id);
+		return target.id;
+	}
+
+	/**
+	 * Moves a component inside the parent of the container
+	 * @returns the new parent ID of the component
+	 */
+	function moveComponentToParent(
+		componentId: Component["id"],
+	): Component["id"] | undefined {
+		const component = wf.getComponentById(componentId);
+		const targetId = wf.getComponentById(component.parentId).parentId;
+		if (!targetId) return;
+		if (!isParentSuitable(targetId, component)) return;
+		moveComponent(componentId, targetId, 0);
+		return targetId;
 	}
 
 	function createComponent(
@@ -423,7 +457,7 @@ export function useComponentActions(
 		const targetPosition = position + direction;
 
 		return wf
-			.getComponents(parentId)
+			.getComponents(parentId, { includeBMC: true, includeCMC: false })
 			.find(
 				(c) => c.position === targetPosition && c.parentId === parentId,
 			);
@@ -1041,6 +1075,7 @@ export function useComponentActions(
 		isGoToChildAllowed,
 		isGoToNextSiblingAllowed,
 		isGoToPrevSiblingAllowed,
+		repositionHigherSiblings,
 		isDraggingAllowed,
 		getEnabledMoves,
 		goToParent,
@@ -1048,5 +1083,7 @@ export function useComponentActions(
 		goToNextSibling,
 		goToPrevSibling,
 		goToComponentParentPage,
+		moveComponentInsideNextSibling,
+		moveComponentToParent,
 	};
 }
