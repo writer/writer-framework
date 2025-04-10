@@ -124,6 +124,7 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const tracking = useWriterTracking(wf);
+const toasts = useToasts();
 
 const {
 	candidateId,
@@ -146,13 +147,17 @@ const {
 	isCutAllowed,
 	isDeleteAllowed,
 	isGoToParentAllowed,
+	isGoToChildAllowed,
+	isGoToNextSiblingAllowed,
+	isGoToPrevSiblingAllowed,
 	pasteComponent,
 	copyComponent,
 	removeComponentsSubtree,
 	goToParent,
+	goToChild,
+	goToNextSibling,
+	goToPrevSibling,
 } = useComponentActions(wf, ssbm, tracking);
-
-const toasts = useToasts();
 
 const builderMode = computed(() => ssbm.getMode());
 const selectedId = computed(() => ssbm.firstSelectedId.value);
@@ -192,37 +197,58 @@ async function handleKeydown(ev: KeyboardEvent) {
 		removeComponentsSubtree(...componentIds);
 		return;
 	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive && ev.shiftKey) {
-		if (!isGoToParentAllowed(selectedId)) return;
-		goToParent(selectedId, selectedInstancePath);
-		return;
-	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive) {
-		moveComponentUp(selectedId);
-		return;
-	}
-	if (ev.key == "ArrowDown" && isModifierKeyActive) {
-		moveComponentDown(selectedId);
-		return;
-	}
-	if (ev.key == "v" && isModifierKeyActive) {
-		if (!isPasteAllowed(selectedId)) return;
-		try {
-			await pasteComponent(selectedId);
-		} catch (error) {
-			toasts.pushToast({ type: "error", message: String(error) });
+	if (!isModifierKeyActive) return;
+	// console.log(
+	// 	["⌘", ev.shiftKey ? "Shift" : "", ev.key].filter(Boolean).join(" "),
+	// );
+
+	if (ev.shiftKey) {
+		switch (ev.key) {
+			case "ArrowDown":
+				if (isGoToNextSiblingAllowed(selectedId))
+					goToNextSibling(selectedId);
+				break;
+			case "ArrowUp":
+				if (isGoToPrevSiblingAllowed(selectedId))
+					goToPrevSibling(selectedId);
+				break;
+			case "ArrowLeft":
+				if (isGoToParentAllowed(selectedId))
+					goToParent(selectedId, selectedInstancePath);
+				break;
+			case "ArrowRight":
+				if (isGoToChildAllowed(selectedId)) goToChild(selectedId);
+				break;
 		}
-		return;
-	}
-	if (ev.key == "c" && isModifierKeyActive) {
-		if (!isCopyAllowed(selectedId)) return;
-		copyComponent(selectedId);
-		return;
-	}
-	if (ev.key == "x" && isModifierKeyActive) {
-		if (!isCutAllowed(selectedId)) return;
-		cutComponent(selectedId);
-		return;
+	} else {
+		switch (ev.key) {
+			case "ArrowDown":
+				moveComponentDown(selectedId);
+				break;
+			case "ArrowUp":
+				moveComponentUp(selectedId);
+				break;
+			case "ArrowLeft":
+				// TODO
+				break;
+			case "ArrowRight":
+				// TODO
+				break;
+			case "v":
+				if (!isPasteAllowed(selectedId)) return;
+				try {
+					await pasteComponent(selectedId);
+				} catch (error) {
+					toasts.pushToast({ type: "error", message: String(error) });
+				}
+				break;
+			case "c":
+				if (isCopyAllowed(selectedId)) copyComponent(selectedId);
+				break;
+			case "x":
+				if (isCutAllowed(selectedId)) cutComponent(selectedId);
+				break;
+		}
 	}
 }
 
