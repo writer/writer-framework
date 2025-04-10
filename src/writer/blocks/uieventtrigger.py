@@ -31,7 +31,7 @@ class UIEventTrigger(BlueprintTrigger):
                         "defaultResult": {
                             "name": "Default result",
                             "type": "Code",
-                            "desc": "The result that is used when the blueprint is run",
+                            "desc": 'The result that is used when the blueprint is triggered from the "Run blueprint" button',
                         },
                     },
                     "outs": {

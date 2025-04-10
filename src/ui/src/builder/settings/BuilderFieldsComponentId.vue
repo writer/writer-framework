@@ -58,7 +58,7 @@ const options = computed<Option[]>(() => {
 
 		options.push({
 			value,
-			label: previewText.value ?? name.value,
+			label: previewText.value || name.value,
 			detail: previewText.value ? name.value : undefined,
 			icon,
 		});
