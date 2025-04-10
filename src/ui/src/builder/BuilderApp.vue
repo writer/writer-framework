@@ -152,6 +152,8 @@ const {
 	goToChild,
 	goToNextSibling,
 	goToPrevSibling,
+	moveComponentToParent,
+	moveComponentInsideNextSibling,
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
@@ -194,41 +196,46 @@ function handleKeydown(ev: KeyboardEvent): void {
 	}
 
 	if (!isModifierKeyActive) return;
-	// console.log(
-	// 	["⌘", ev.shiftKey ? "Shift" : "", ev.key].filter(Boolean).join(" "),
-	// );
 
 	if (ev.shiftKey) {
 		switch (ev.key) {
 			case "ArrowDown":
+				ev.preventDefault();
 				if (isGoToNextSiblingAllowed(selectedId))
 					goToNextSibling(selectedId);
 				break;
 			case "ArrowUp":
+				ev.preventDefault();
 				if (isGoToPrevSiblingAllowed(selectedId))
 					goToPrevSibling(selectedId);
 				break;
 			case "ArrowLeft":
+				ev.preventDefault();
 				if (isGoToParentAllowed(selectedId))
 					goToParent(selectedId, selectedInstancePath);
 				break;
 			case "ArrowRight":
+				ev.preventDefault();
 				if (isGoToChildAllowed(selectedId)) goToChild(selectedId);
 				break;
 		}
 	} else {
 		switch (ev.key) {
 			case "ArrowDown":
+				ev.preventDefault();
 				moveComponentDown(selectedId);
 				break;
 			case "ArrowUp":
+				ev.preventDefault();
 				moveComponentUp(selectedId);
 				break;
 			case "ArrowLeft":
-				// TODO
+				ev.preventDefault();
+				moveComponentToParent(selectedId);
 				break;
 			case "ArrowRight":
-				// TODO
+				ev.preventDefault();
+				moveComponentInsideNextSibling(selectedId);
 				break;
 			case "v":
 				if (isPasteAllowed(selectedId)) pasteComponent(selectedId);
