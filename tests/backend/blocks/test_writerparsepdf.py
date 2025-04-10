@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 from writer.blocks.writerparsepdf import WriterParsePDF
-from unittest.mock import patch, MagicMock
 
 
 @pytest.mark.asyncio
