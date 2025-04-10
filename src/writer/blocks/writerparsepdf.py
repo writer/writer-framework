@@ -12,17 +12,17 @@ class WriterParsePDF(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Parse PDF Tool",
+                    "name": "Upload & Parse PDF Tool",
                     "description": "Uses Writer API to extract the text content of a PDF file.",
                     "category": "Writer",
                     "fields": {
                         "file": {
                                 "name": "File",
-                                "type": "Object",
-                                "default": "{}",
+                                "type": "Text",
+                                "default": "",
                                 "desc": "A file object to be parsed. You can use files uploaded via the File Input component or specify dictionaries with data, type and name.",
                                 "validator": {
-                                    "type": "object",
+                                    "type": "string",
                                 }
                             },
                         "markdown": {
@@ -85,6 +85,75 @@ class WriterParsePDF(BlueprintBlock):
 
             response = client.tools.parse_pdf(
                 prepared_file.id,
+                format="markdown" if markdown_input else "text"
+            )
+
+            self.result = response.content
+            self.outcome = "success"
+
+            writer.ai.delete_file(prepared_file.id)
+
+        except BaseException as e:
+            self.outcome = "error"
+            raise e
+
+
+class WriterParsePDFByFileID(BlueprintBlock):
+    @classmethod
+    def register(cls, type: str):
+        super(WriterParsePDFByFileID, cls).register(type)
+        register_abstract_template(
+            type,
+            AbstractTemplate(
+                baseType="blueprints_node",
+                writer={
+                    "name": "Parse PDF Tool",
+                    "description": "Uses Writer API to extract the text content of a PDF file stored in Writer cloud.",
+                    "category": "Writer",
+                    "fields": {
+                        "file": {
+                                "name": "File",
+                                "type": "Text",
+                                "default": "",
+                                "desc": "UUID of a file object in Files API.",
+                                "validator": {
+                                    "type": "string",
+                                }
+                            },
+                        "markdown": {
+                            "name": "Use Markdown",
+                            "type": "Text",
+                            "default": "yes",
+                            "options": {"yes": "Yes", "no": "No"},
+                        }
+                    },
+                    "outs": {
+                        "success": {
+                            "name": "Success",
+                            "description": "If the execution was successful.",
+                            "style": "success",
+                        },
+                        "error": {
+                            "name": "Error",
+                            "description": "If the function raises an Exception.",
+                            "style": "error",
+                        },
+                    },
+                },
+            ),
+        )
+
+    def run(self):
+        try:
+            import writer.ai
+
+            file_uuid = self._get_field("file")
+            markdown_input = self._get_field("markdown", False, "yes") == "yes"
+
+            client = writer.ai.WriterAIManager.acquire_client()
+
+            response = client.tools.parse_pdf(
+                file_uuid,
                 format="markdown" if markdown_input else "text"
             )
 
