@@ -274,7 +274,8 @@ class WriterAIManager:
         current_session = _current_session.get(None)
         custom_headers = {}
         if current_session:
-            agent_token_header = current_session.headers.get("x-agent-token")
+            headers = current_session.headers or {}
+            agent_token_header = headers.get("x-agent-token")
             if agent_token_header:
                 custom_headers = {
                         "X-Agent-Token": agent_token_header
