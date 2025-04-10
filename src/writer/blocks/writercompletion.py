@@ -13,7 +13,7 @@ class WriterCompletion(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Text Generation",
+                    "name": "Text generation",
                     "description": "Generates text using a Writer model. Use for completions, summaries, or creative writing.",
                     "category": "Writer",
                     "fields": {

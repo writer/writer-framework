@@ -12,7 +12,7 @@ class WriterChat(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Generate Chat Reply",
+                    "name": "Generate chat reply",
                     "description": "Generates an AI chat response using the full conversation history. Requires prior messages.",
                     "category": "Writer",
                     "fields": {

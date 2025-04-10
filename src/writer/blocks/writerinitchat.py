@@ -13,7 +13,7 @@ class WriterInitChat(BlueprintBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="blueprints_node",
             writer={
-                "name": "Start Chat Conversation",
+                "name": "Start chat conversation",
                 "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",
                 "category": "Writer",
                 "fields": {
