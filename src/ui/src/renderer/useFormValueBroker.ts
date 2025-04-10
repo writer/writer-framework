@@ -1,11 +1,4 @@
-import {
-	ComponentPublicInstance,
-	computed,
-	onMounted,
-	Ref,
-	ref,
-	watch,
-} from "vue";
+import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import { Core, InstancePath } from "@/writerTypes";
 import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
@@ -33,16 +26,6 @@ export function useFormValueBroker<T = any>(
 	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => wf.getComponentById(componentId));
 	const { evaluateExpression } = useEvaluator(wf);
-
-	function initializeFormValueBroker() {
-		const bindingEventType = component.value.binding?.eventType;
-		if (!bindingEventType) return;
-		handleInput(defaultValue, bindingEventType);
-	}
-
-	onMounted(() => {
-		initializeFormValueBroker();
-	});
 
 	function getBindingValue() {
 		const component = wf.getComponentById(componentId);
@@ -144,6 +127,5 @@ export function useFormValueBroker<T = any>(
 	return {
 		formValue,
 		handleInput,
-		initializeFormValueBroker,
 	};
 }
