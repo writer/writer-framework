@@ -70,7 +70,6 @@ class CurrentRequest:
 
 
 _current_request: ContextVar[Optional[CurrentRequest]] = ContextVar("current_request", default=None)
-_current_session: ContextVar[Optional['WriterSession']] = ContextVar("current_session", default=None)
 
 
 @contextlib.contextmanager

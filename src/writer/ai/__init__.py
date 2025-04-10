@@ -55,7 +55,6 @@ from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
 
 from writer.core import get_app_process
 
-
 DEFAULT_CHAT_MODEL = "palmyra-x-004"
 DEFAULT_COMPLETION_MODEL = "palmyra-x-004"
 
@@ -265,13 +264,13 @@ class WriterAIManager:
 
     @classmethod
     def acquire_client(cls) -> Writer:
-        from writer.core import _current_session
+        from writer.core import get_session
         instance = cls.acquire_instance()
 
         # Acquire header from session
         # and set it to the client
 
-        current_session = _current_session.get(None)
+        current_session = get_session()
         custom_headers = {}
         if current_session:
             headers = current_session.headers or {}

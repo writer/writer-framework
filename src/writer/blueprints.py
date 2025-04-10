@@ -284,7 +284,6 @@ class BlueprintRunner:
                 while ready:
                     tool = ready.popleft()
                     tool.outcome = "in_progress"
-                    writer.core._current_session.set(self.session)
                     ctx = copy_context()
                     future = executor.submit(ctx.run, self.run_tool, tool)
                     futures.add(future)

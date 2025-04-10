@@ -256,7 +256,7 @@ def _get_main_prompt(description: str):
     return prompt
 
 
-def generate_blueprint(description: str):
+def generate_blueprint(description: str, token_header: Optional[str] = None):
     prompt = _get_main_prompt(description)
     messages = [
         {
@@ -281,6 +281,9 @@ def generate_blueprint(description: str):
             tool_choice="required",
             tools=tools,
             stream=False,  # type: ignore
+            extra_headers={
+                "X-Agent-Token": token_header
+            }
         )
 
         response_message = response.choices[0].message
