@@ -12,7 +12,7 @@ class WriterParsePDF(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Upload & Parse PDF Tool",
+                    "name": "Upload & parse PDF tool",
                     "description": "Uses Writer API to extract the text content of a PDF file.",
                     "category": "Writer",
                     "fields": {
@@ -107,7 +107,7 @@ class WriterParsePDFByFileID(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Parse PDF Tool",
+                    "name": "Parse PDF tool",
                     "description": "Uses Writer API to extract the text content of a PDF file stored in Writer cloud.",
                     "category": "Writer",
                     "fields": {
