@@ -142,10 +142,16 @@ const {
 	isCutAllowed,
 	isDeleteAllowed,
 	isGoToParentAllowed,
+	isGoToChildAllowed,
+	isGoToNextSiblingAllowed,
+	isGoToPrevSiblingAllowed,
 	pasteComponent,
 	copyComponent,
 	removeComponentsSubtree,
 	goToParent,
+	goToChild,
+	goToNextSibling,
+	goToPrevSibling,
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
@@ -186,33 +192,54 @@ function handleKeydown(ev: KeyboardEvent): void {
 		removeComponentsSubtree(...componentIds);
 		return;
 	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive && ev.shiftKey) {
-		if (!isGoToParentAllowed(selectedId)) return;
-		goToParent(selectedId, selectedInstancePath);
-		return;
-	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive) {
-		moveComponentUp(selectedId);
-		return;
-	}
-	if (ev.key == "ArrowDown" && isModifierKeyActive) {
-		moveComponentDown(selectedId);
-		return;
-	}
-	if (ev.key == "v" && isModifierKeyActive) {
-		if (!isPasteAllowed(selectedId)) return;
-		pasteComponent(selectedId);
-		return;
-	}
-	if (ev.key == "c" && isModifierKeyActive) {
-		if (!isCopyAllowed(selectedId)) return;
-		copyComponent(selectedId);
-		return;
-	}
-	if (ev.key == "x" && isModifierKeyActive) {
-		if (!isCutAllowed(selectedId)) return;
-		cutComponent(selectedId);
-		return;
+
+	if (!isModifierKeyActive) return;
+	// console.log(
+	// 	["⌘", ev.shiftKey ? "Shift" : "", ev.key].filter(Boolean).join(" "),
+	// );
+
+	if (ev.shiftKey) {
+		switch (ev.key) {
+			case "ArrowDown":
+				if (isGoToNextSiblingAllowed(selectedId))
+					goToNextSibling(selectedId);
+				break;
+			case "ArrowUp":
+				if (isGoToPrevSiblingAllowed(selectedId))
+					goToPrevSibling(selectedId);
+				break;
+			case "ArrowLeft":
+				if (isGoToParentAllowed(selectedId))
+					goToParent(selectedId, selectedInstancePath);
+				break;
+			case "ArrowRight":
+				if (isGoToChildAllowed(selectedId)) goToChild(selectedId);
+				break;
+		}
+	} else {
+		switch (ev.key) {
+			case "ArrowDown":
+				moveComponentDown(selectedId);
+				break;
+			case "ArrowUp":
+				moveComponentUp(selectedId);
+				break;
+			case "ArrowLeft":
+				// TODO
+				break;
+			case "ArrowRight":
+				// TODO
+				break;
+			case "v":
+				if (isPasteAllowed(selectedId)) pasteComponent(selectedId);
+				break;
+			case "c":
+				if (isCopyAllowed(selectedId)) copyComponent(selectedId);
+				break;
+			case "x":
+				if (isCutAllowed(selectedId)) cutComponent(selectedId);
+				break;
+		}
 	}
 }
 
