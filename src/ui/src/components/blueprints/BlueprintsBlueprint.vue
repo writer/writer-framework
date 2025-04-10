@@ -12,6 +12,30 @@
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
+				<defs>
+					<pattern
+						id="grid"
+						:width="GRID_TICK"
+						:height="GRID_TICK"
+						patternUnits="userSpaceOnUse"
+					>
+						<circle
+							:cx="GRID_TICK / 2"
+							:cy="GRID_TICK / 2"
+							r="1"
+							:fill="WdsColor.Gray2"
+						/>
+						<path
+							v-if="false"
+							d="M 16 0 L 0 0 0 16"
+							fill="none"
+							:stroke="WdsColor.Gray3"
+							stroke-width="0.5"
+						/>
+					</pattern>
+				</defs>
+
+				<rect width="100%" height="100%" fill="url(#grid)" />
 				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
@@ -86,8 +110,11 @@ import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
+import { WdsColor } from "@/wds/tokens";
 
 const { log } = useLogger();
+
+const GRID_TICK = 24;
 
 const description =
 	"A container component representing a single blueprint within the application.";
@@ -517,6 +544,13 @@ function computeDistance(a: Point, b: Point): number {
 	return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 }
 
+function computePointInTheGrid({ x, y }: Point): Point {
+	return {
+		x: x - (x % GRID_TICK) + GRID_TICK / 2,
+		y: y - (y % GRID_TICK) + GRID_TICK / 2,
+	};
+}
+
 function moveNode(ev: MouseEvent) {
 	const { nodeId, offset } = activeNodeMove.value;
 	const { x, y } = getAdjustedCoordinates(ev);
@@ -528,7 +562,7 @@ function moveNode(ev: MouseEvent) {
 
 	const distance = computeDistance(
 		{ x: component.x, y: component.y },
-		{ x: newX, y: newY },
+		computePointInTheGrid({ x: newX, y: newY }),
 	);
 
 	if (distance > 10) {
@@ -547,7 +581,7 @@ function moveNode(ev: MouseEvent) {
 		// if the user moves a node that is not selected, we don't move other selected nodes
 		temporaryNodeCoordinates.value = {
 			...temporaryNodeCoordinates.value,
-			[nodeId]: { x: newX, y: newY },
+			[nodeId]: computePointInTheGrid({ x: newX, y: newY }),
 		};
 		return;
 	}
@@ -559,17 +593,17 @@ function moveNode(ev: MouseEvent) {
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
 		)
 		.reduce<Record<string, Point>>((acc, component) => {
-			acc[component.id] = {
+			acc[component.id] = computePointInTheGrid({
 				x: component.x + translationX,
 				y: component.y + translationY,
-			};
+			});
 			return acc;
 		}, {});
 
 	temporaryNodeCoordinates.value = {
 		...temporaryNodeCoordinates.value,
 		...otherSelectedComponents,
-		[nodeId]: { x: newX, y: newY },
+		[nodeId]: computePointInTheGrid({ x: newX, y: newY }),
 	};
 }
 
@@ -643,10 +677,15 @@ async function handleMouseup(ev: MouseEvent) {
 }
 
 function createNode(type: string, { x, y }: Point) {
-	createAndInsertComponent(type, blueprintComponentId, undefined, {
-		x: Math.floor(x),
-		y: Math.floor(y),
-	});
+	createAndInsertComponent(
+		type,
+		blueprintComponentId,
+		undefined,
+		computePointInTheGrid({
+			x: Math.floor(x),
+			y: Math.floor(y),
+		}),
+	);
 }
 
 function findAndCenterBlock(componentId: Component["id"]) {
