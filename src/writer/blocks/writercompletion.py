@@ -4,7 +4,6 @@ from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x-004"
 
-
 class WriterCompletion(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
@@ -14,7 +13,7 @@ class WriterCompletion(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Completion",
+                    "name": "Text generation",
                     "description": "Generates text using a Writer model. Use for completions, summaries, or creative writing.",
                     "category": "Writer",
                     "fields": {
@@ -30,6 +29,16 @@ class WriterCompletion(BlueprintBlock):
                                 "maximum": 1,
                             },
                         },
+                        "max_tokens": {
+                            "name": "Max output tokens",
+                            "type": "Number",
+                            "default": "1024",
+                            "validator": {
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 8192,
+                            }
+                        }
                     },
                     "outs": {
                         "success": {
@@ -54,7 +63,8 @@ class WriterCompletion(BlueprintBlock):
             prompt = self._get_field("prompt")
             temperature = float(self._get_field("temperature", False, "0.7"))
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
-            config = {"temperature": temperature, "model": model_id}
+            max_tokens = int(self._get_field("max_tokens", False, "1024"))
+            config = {"temperature": temperature, "model": model_id, "max_tokens": max_tokens}
             result = writer.ai.complete(prompt, config).strip()
             self.result = result
             self.outcome = "success"

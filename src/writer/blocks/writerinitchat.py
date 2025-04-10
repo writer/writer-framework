@@ -13,7 +13,7 @@ class WriterInitChat(BlueprintBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="blueprints_node",
             writer={
-                "name": "Initialize chat",
+                "name": "Start chat conversation",
                 "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",
                 "category": "Writer",
                 "fields": {
@@ -35,6 +35,16 @@ class WriterInitChat(BlueprintBlock):
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1,
+                        }
+                    },
+                    "max_tokens": {
+                        "name": "Max output tokens",
+                        "type": "Number",
+                        "default": "1024",
+                        "validator": {
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8192,
                         }
                     }
                 },
@@ -60,7 +70,8 @@ class WriterInitChat(BlueprintBlock):
             conversation_state_element = self._get_field("conversationStateElement")
             temperature = float(self._get_field("temperature", False, "0.7"))
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
-            config = { "temperature": temperature, "model": model_id}
+            max_tokens = int(self._get_field("max_tokens", False, "1024"))
+            config = { "temperature": temperature, "model": model_id, "max_tokens": max_tokens }
 
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 

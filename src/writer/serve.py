@@ -296,8 +296,12 @@ def get_asgi_app(
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
         import writer.autogen
+        agent_token_header = request.headers.get('x-agent-token')
 
-        return writer.autogen.generate_blueprint(requestBody.description)
+        return writer.autogen.generate_blueprint(
+            requestBody.description,
+            agent_token_header
+            )
 
     @app.post("/api/init")
     async def init(

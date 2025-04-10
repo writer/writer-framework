@@ -544,7 +544,7 @@ def emulate_app_process(request):
     marker = request.node.get_closest_marker('set_token')
     if marker:
         token = marker.args[0]
-    with patch('writer.ai.get_app_process') as mock_get_app_process:
+    with patch('writer.core.get_app_process') as mock_get_app_process:
         fake_process = create_fake_app_process(token)
         mock_get_app_process.return_value = fake_process
         yield fake_process
@@ -973,7 +973,7 @@ def test_generate_content_from_app(
 def test_init_writer_ai_manager(emulate_app_process):
     manager = init("fake_token")
     assert isinstance(manager, WriterAIManager)
-    assert manager.client.api_key == "fake_token"
+    assert manager.token == "fake_token"
 
 
 def test_create_graph(mock_graphs_accessor):
