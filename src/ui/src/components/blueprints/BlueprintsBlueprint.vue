@@ -313,11 +313,10 @@ function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 			const nodeBCR = getNodeBoundingClientRect(node.id);
 			if (!nodeBCR) return;
 			nodeDimensions.set(node.id, {
-				height: nodeBCR.height * (1 / zoomLevel.value),
+				height: nodeBCR.height * zoomRatio.value,
 			});
-			height +=
-				nodeBCR.height * (1 / zoomLevel.value) + AUTOARRANGE_ROW_GAP_PX;
-			width = Math.max(width, nodeBCR.width * (1 / zoomLevel.value));
+			height += nodeBCR.height * zoomRatio.value + AUTOARRANGE_ROW_GAP_PX;
+			width = Math.max(width, nodeBCR.width * zoomRatio.value);
 		});
 		columnDimensions.set(layer, {
 			height: height - AUTOARRANGE_ROW_GAP_PX,
@@ -401,8 +400,8 @@ function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	const nodeEl = document.querySelector(`[data-writer-id="${nodeId}"]`);
 	const nodeBCR = nodeEl.getBoundingClientRect();
 
-	const x = (ev.pageX - nodeBCR.x) * (1 / zoomLevel.value);
-	const y = (ev.pageY - nodeBCR.y) * (1 / zoomLevel.value);
+	const x = (ev.pageX - nodeBCR.x) * zoomRatio.value;
+	const y = (ev.pageY - nodeBCR.y) * zoomRatio.value;
 
 	activeNodeMove.value = {
 		nodeId,
@@ -418,6 +417,7 @@ function handleNodeOutMousedown(
 	activeConnection.value = { fromNodeId, fromOutId };
 }
 
+const zoomRatio = computed(() => 1 / zoomLevel.value);
 function getAdjustedCoordinates(ev: MouseEvent) {
 	const canvasBCR = rootEl.value.getBoundingClientRect();
 	const x =
@@ -472,21 +472,21 @@ function calculateArrow(
 	if (!canvasBCR) {
 		return;
 	}
-	x2 = (toCoordinates?.x - canvasBCR.x) * (1 / zoomLevel.value);
-	y2 = (toCoordinates?.y - canvasBCR.y) * (1 / zoomLevel.value);
+	x2 = (toCoordinates?.x - canvasBCR.x) * zoomRatio.value;
+	y2 = (toCoordinates?.y - canvasBCR.y) * zoomRatio.value;
 	const fromEl = document.querySelector(
 		`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${fromOutId}"]`,
 	);
 	if (!fromEl) return;
 	const fromBCR = fromEl.getBoundingClientRect();
-	x1 = (fromBCR.x - canvasBCR.x + fromBCR.width / 2) * (1 / zoomLevel.value);
-	y1 = (fromBCR.y - canvasBCR.y + fromBCR.height / 2) * (1 / zoomLevel.value);
+	x1 = (fromBCR.x - canvasBCR.x + fromBCR.width / 2) * zoomRatio.value;
+	y1 = (fromBCR.y - canvasBCR.y + fromBCR.height / 2) * zoomRatio.value;
 	if (!fromEl) return;
 	if (typeof toNodeId !== "undefined") {
 		const toEl = document.querySelector(`[data-writer-id="${toNodeId}"]`);
 		const toBCR = toEl.getBoundingClientRect();
-		x2 = (toBCR.x - canvasBCR.x) * (1 / zoomLevel.value);
-		y2 = (toBCR.y - canvasBCR.y + toBCR.height / 2) * (1 / zoomLevel.value);
+		x2 = (toBCR.x - canvasBCR.x) * zoomRatio.value;
+		y2 = (toBCR.y - canvasBCR.y + toBCR.height / 2) * zoomRatio.value;
 	}
 
 	return {
@@ -651,8 +651,8 @@ function moveCanvas(ev: MouseEvent) {
 	activeCanvasMove.value = { isPerfected: true, offset: { x, y } };
 
 	changeRenderOffset(
-		renderOffset.value.x + (prevX - x) * 1 * (1 / zoomLevel.value),
-		renderOffset.value.y + (prevY - y) * 1 * (1 / zoomLevel.value),
+		renderOffset.value.x + (prevX - x) * 1 * zoomRatio.value,
+		renderOffset.value.y + (prevY - y) * 1 * zoomRatio.value,
 	);
 }
 
@@ -783,8 +783,8 @@ function changeRenderOffset(x: number, y: number) {
 
 function handleWheelScroll(ev: WheelEvent) {
 	changeRenderOffset(
-		renderOffset.value.x + ev.deltaX * (1 / zoomLevel.value),
-		renderOffset.value.y + ev.deltaY * (1 / zoomLevel.value),
+		renderOffset.value.x + ev.deltaX * zoomRatio.value,
+		renderOffset.value.y + ev.deltaY * zoomRatio.value,
 	);
 }
 
@@ -809,12 +809,12 @@ function handleWheelZoom(ev: WheelEvent) {
 		w:
 			canvasBCR.width *
 			(1 / preZoom) *
-			(1 / zoomLevel.value) *
+			zoomRatio.value *
 			(zoomLevel.value - preZoom),
 		h:
 			canvasBCR.height *
 			(1 / preZoom) *
-			(1 / zoomLevel.value) *
+			zoomRatio.value *
 			(zoomLevel.value - preZoom),
 	};
 
@@ -854,13 +854,11 @@ async function resetZoom() {
 			return {
 				maxY: Math.max(
 					acc.maxY,
-					(rect.bottom - y) * (1 / zoomLevel.value) +
-						renderOffset.value.y,
+					(rect.bottom - y) * zoomRatio.value + renderOffset.value.y,
 				),
 				maxX: Math.max(
 					acc.maxX,
-					(rect.right - x) * (1 / zoomLevel.value) +
-						renderOffset.value.x,
+					(rect.right - x) * zoomRatio.value + renderOffset.value.x,
 				),
 			};
 		},
