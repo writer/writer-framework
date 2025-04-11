@@ -295,6 +295,13 @@ function organizeNodesInColumns() {
 	return columns;
 }
 
+function getNodeBoundingClientRect(nodeId: Component["id"]) {
+	const selector = `[data-writer-id="${nodeId}"]`;
+	const nodeEl = nodeContainerEl.value.querySelector(selector);
+	if (!nodeEl) return;
+	return nodeEl.getBoundingClientRect();
+}
+
 function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 	const columnDimensions: Map<number, { height: number; width: number }> =
 		new Map();
@@ -303,11 +310,8 @@ function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 		let height = 0;
 		let width = 0;
 		nodes.forEach((node) => {
-			const nodeEl = nodeContainerEl.value.querySelector(
-				`[data-writer-id="${node.id}"]`,
-			);
-			if (!nodeEl) return;
-			const nodeBCR = nodeEl.getBoundingClientRect();
+			const nodeBCR = getNodeBoundingClientRect(node.id);
+			if (!nodeBCR) return;
 			nodeDimensions.set(node.id, {
 				height: nodeBCR.height * (1 / zoomLevel.value),
 			});
@@ -700,10 +704,10 @@ function createNode(type: string, { x, y }: Point) {
 }
 
 function findAndCenterBlock(componentId: Component["id"]) {
-	const el = rootEl.value.querySelector(`[data-writer-id="${componentId}"]`);
+	const componentBCR = getNodeBoundingClientRect(componentId);
 	const canvasBCR = rootEl.value?.getBoundingClientRect();
-	if (!el || !canvasBCR) return;
-	const { width, height } = el.getBoundingClientRect();
+	if (!componentBCR || !canvasBCR) return;
+	const { width, height } = componentBCR;
 	const component = wf.getComponentById(componentId);
 	if (!component) return;
 
