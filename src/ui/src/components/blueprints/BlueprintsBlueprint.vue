@@ -388,12 +388,12 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 		const { width, height } = columnDimensions.get(i);
 		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
 		nodes.forEach((node) => {
-			coordinates[node.id] = computePointInTheGrid({ x, y });
+			coordinates[node.id] = { x, y };
 			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
 		});
 		x += width + AUTOARRANGE_COLUMN_GAP_PX;
 	}
-	changeCoordinatesMultiple(coordinates);
+	changeCoordinatesMultipleWithCheck(coordinates);
 }
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
@@ -415,10 +415,7 @@ function handleNodeOutMousedown(
 	fromNodeId: Component["id"],
 	fromOutId: string,
 ) {
-	activeConnection.value = {
-		fromNodeId,
-		fromOutId,
-	};
+	activeConnection.value = { fromNodeId, fromOutId };
 }
 
 function getAdjustedCoordinates(ev: MouseEvent) {
@@ -539,30 +536,53 @@ function clearActiveOperations() {
 	activeNodeMove.value = null;
 }
 
-function saveNodeMove() {
-	changeCoordinatesMultiple(
-		Object.entries(temporaryNodeCoordinates.value).reduce(
-			(acc, [id, point]) => {
-				acc[id] = computePointInTheGrid(point);
-				return acc;
-			},
-			{},
-		),
+function isCollising(bcr: DOMRect, otherBCRs: DOMRect[]): boolean {
+	return otherBCRs.some((otherBCR) => {
+		return !(
+			bcr.right <= otherBCR.left ||
+			bcr.left >= otherBCR.right ||
+			bcr.bottom <= otherBCR.top ||
+			bcr.top >= otherBCR.bottom
+		);
+	});
+}
+
+function changeCoordinatesMultipleWithCheck(
+	nodeCoordinates: Record<Component["id"], Point>,
+) {
+	const coordinatesFixed = Object.entries(nodeCoordinates).reduce(
+		(acc, [id, point]) => {
+			let newPoint = computePointInTheGrid(point);
+
+			const otherBCRs = nodes.value
+				.filter((c) => c.y && c.y && c.id !== id)
+				.map((c) => getNodeBoundingClientRect(c.id))
+				.filter(Boolean);
+
+			const bcr = getNodeBoundingClientRect(id);
+
+			if (!isCollising(bcr, otherBCRs)) acc[id] = newPoint;
+			return acc;
+		},
+		{},
 	);
+	changeCoordinatesMultiple(coordinatesFixed);
+}
+
+function saveNodeMove() {
+	changeCoordinatesMultipleWithCheck(temporaryNodeCoordinates.value);
 	temporaryNodeCoordinates.value = {};
 }
 
-function computeDistance(a: Point, b: Point): number {
-	return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+function computeDistance(a: Point, b: Point) {
+	return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
-function computePointAxisInTheGrid(xOrY: number): number {
-	return xOrY - (xOrY % GRID_TICK) + GRID_TICK / 2;
-}
 function computePointInTheGrid({ x, y }: Point): Point {
+	const halfTick = GRID_TICK / 2;
 	return {
-		x: computePointAxisInTheGrid(x),
-		y: computePointAxisInTheGrid(y),
+		x: x - (x % GRID_TICK) + halfTick,
+		y: y - (y % GRID_TICK) + halfTick,
 	};
 }
 
@@ -884,11 +904,53 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 	}
 });
 
+function handleKeydown(event: KeyboardEvent) {
+	function getVector(): Point | undefined {
+		switch (event.key) {
+			case "ArrowDown":
+				return { x: 0, y: GRID_TICK };
+			case "ArrowUp":
+				return { x: 0, y: -GRID_TICK };
+			case "ArrowLeft":
+				return { x: -GRID_TICK, y: 0 };
+			case "ArrowRight":
+				return { x: GRID_TICK, y: 0 };
+		}
+	}
+	const vector = getVector();
+	if (vector === undefined) return;
+
+	if (!wfbm.selection.value.length) return;
+	event.preventDefault();
+
+	const coordinates = wfbm.selection.value
+		.map((s) => wf.getComponentById(s.componentId))
+		.filter((c) => c?.x && c?.y)
+		.reduce<Record<Component["id"], Point>>((acc, c) => {
+			acc[c.id] = {
+				x: c.x + vector.x,
+				y: c.y + vector.y,
+			};
+
+			return acc;
+		}, {});
+
+	changeCoordinatesMultipleWithCheck(coordinates);
+}
+
+const abort = new AbortController();
+
 onMounted(async () => {
 	await resetZoom();
 	await nextTick();
 	refreshArrows();
-	rootEl.value?.addEventListener("wheel", handleWheel);
+	rootEl.value?.addEventListener("wheel", handleWheel, {
+		signal: abort.signal,
+	});
+	// TODO: bind to other things than document (triggered when input)
+	document.addEventListener("keydown", handleKeydown, {
+		signal: abort.signal,
+	});
 	arrowRefresherObserver.observe(nodeContainerEl.value, {
 		attributes: true,
 		attributeFilter: ["style"],
@@ -902,7 +964,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-	rootEl.value?.removeEventListener("wheel", handleWheel);
+	abort.abort();
 	arrowRefresherObserver.disconnect();
 });
 </script>
