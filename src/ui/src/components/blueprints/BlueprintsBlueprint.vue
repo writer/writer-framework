@@ -172,6 +172,13 @@ import {
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+import {
+	areRectangesColliding,
+	computeDistance,
+	Point,
+	positionateRectangleWithoutColision,
+	Rectangle,
+} from "@/utils/geometry";
 
 const BlueprintToolbar = defineAsyncComponent({
 	loader: () => import("./base/BlueprintToolbar.vue"),
@@ -199,8 +206,6 @@ const AUTOARRANGE_COLUMN_GAP_PX = 128;
 const nodes = computed(() =>
 	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
 );
-
-type Point = { x: number; y: number };
 
 const {
 	createAndInsertComponent,
@@ -300,6 +305,20 @@ function getNodeBoundingClientRect(nodeId: Component["id"]) {
 	const nodeEl = nodeContainerEl.value.querySelector(selector);
 	if (!nodeEl) return;
 	return nodeEl.getBoundingClientRect();
+}
+
+function getNodeRectange(nodeId: Component["id"]): Rectangle {
+	const bcr = getNodeBoundingClientRect(nodeId);
+	if (!bcr) return undefined;
+	const canvasBCR = rootEl.value?.getBoundingClientRect();
+	if (!canvasBCR) return;
+
+	return {
+		x: Math.round((bcr.x - canvasBCR.x) * zoomRatio.value),
+		y: Math.round((bcr.y - canvasBCR.y) * zoomRatio.value),
+		width: Math.floor(bcr.width * zoomRatio.value),
+		height: Math.floor(bcr.height * zoomRatio.value),
+	};
 }
 
 function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
@@ -536,32 +555,25 @@ function clearActiveOperations() {
 	activeNodeMove.value = null;
 }
 
-function isCollising(bcr: DOMRect, otherBCRs: DOMRect[]): boolean {
-	return otherBCRs.some((otherBCR) => {
-		return !(
-			bcr.right <= otherBCR.left ||
-			bcr.left >= otherBCR.right ||
-			bcr.bottom <= otherBCR.top ||
-			bcr.top >= otherBCR.bottom
-		);
-	});
-}
-
 function changeCoordinatesMultipleWithCheck(
 	nodeCoordinates: Record<Component["id"], Point>,
 ) {
 	const coordinatesFixed = Object.entries(nodeCoordinates).reduce(
 		(acc, [id, point]) => {
-			let newPoint = computePointInTheGrid(point);
+			const newPoint = computePointInTheGrid(point);
+			const rectange = { ...getNodeRectange(id), ...newPoint };
 
-			const otherBCRs = nodes.value
-				.filter((c) => c.y && c.y && c.id !== id)
-				.map((c) => getNodeBoundingClientRect(c.id))
+			const otherRectangles = nodes.value
+				.filter((n) => n.id !== id)
+				.map((c) => getNodeRectange(c.id))
 				.filter(Boolean);
 
-			const bcr = getNodeBoundingClientRect(id);
+			const { x, y } = positionateRectangleWithoutColision(
+				rectange,
+				otherRectangles,
+			);
 
-			if (!isCollising(bcr, otherBCRs)) acc[id] = newPoint;
+			acc[id] = { x, y };
 			return acc;
 		},
 		{},
@@ -572,10 +584,6 @@ function changeCoordinatesMultipleWithCheck(
 function saveNodeMove() {
 	changeCoordinatesMultipleWithCheck(temporaryNodeCoordinates.value);
 	temporaryNodeCoordinates.value = {};
-}
-
-function computeDistance(a: Point, b: Point) {
-	return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
 function computePointInTheGrid({ x, y }: Point): Point {
