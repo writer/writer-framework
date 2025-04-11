@@ -536,7 +536,15 @@ function clearActiveOperations() {
 }
 
 function saveNodeMove() {
-	changeCoordinatesMultiple(temporaryNodeCoordinates.value);
+	changeCoordinatesMultiple(
+		Object.entries(temporaryNodeCoordinates.value).reduce(
+			(acc, [id, point]) => {
+				acc[id] = computePointInTheGrid(point);
+				return acc;
+			},
+			{},
+		),
+	);
 	temporaryNodeCoordinates.value = {};
 }
 
@@ -565,7 +573,7 @@ function moveNode(ev: MouseEvent) {
 
 	const distance = computeDistance(
 		{ x: component.x, y: component.y },
-		computePointInTheGrid({ x: newX, y: newY }),
+		{ x: newX, y: newY },
 	);
 
 	if (distance > 10) {
@@ -584,7 +592,7 @@ function moveNode(ev: MouseEvent) {
 		// if the user moves a node that is not selected, we don't move other selected nodes
 		temporaryNodeCoordinates.value = {
 			...temporaryNodeCoordinates.value,
-			[nodeId]: computePointInTheGrid({ x: newX, y: newY }),
+			[nodeId]: { x: newX, y: newY },
 		};
 		return;
 	}
@@ -596,17 +604,17 @@ function moveNode(ev: MouseEvent) {
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
 		)
 		.reduce<Record<string, Point>>((acc, component) => {
-			acc[component.id] = computePointInTheGrid({
+			acc[component.id] = {
 				x: component.x + translationX,
 				y: component.y + translationY,
-			});
+			};
 			return acc;
 		}, {});
 
 	temporaryNodeCoordinates.value = {
 		...temporaryNodeCoordinates.value,
 		...otherSelectedComponents,
-		[nodeId]: computePointInTheGrid({ x: newX, y: newY }),
+		[nodeId]: { x: newX, y: newY },
 	};
 }
 
