@@ -384,7 +384,7 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 		const { width, height } = columnDimensions.get(i);
 		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
 		nodes.forEach((node) => {
-			coordinates[node.id] = { x, y };
+			coordinates[node.id] = computePointInTheGrid({ x, y });
 			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
 		});
 		x += width + AUTOARRANGE_COLUMN_GAP_PX;
@@ -544,10 +544,13 @@ function computeDistance(a: Point, b: Point): number {
 	return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 }
 
+function computePointAxisInTheGrid(xOrY: number): number {
+	return xOrY - (xOrY % GRID_TICK) + GRID_TICK / 2;
+}
 function computePointInTheGrid({ x, y }: Point): Point {
 	return {
-		x: x - (x % GRID_TICK) + GRID_TICK / 2,
-		y: y - (y % GRID_TICK) + GRID_TICK / 2,
+		x: computePointAxisInTheGrid(x),
+		y: computePointAxisInTheGrid(y),
 	};
 }
 
