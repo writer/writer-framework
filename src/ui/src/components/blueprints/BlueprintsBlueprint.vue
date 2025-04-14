@@ -86,6 +86,7 @@ import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
+import { mathCeilToMultiple } from "@/utils/math";
 
 const { log } = useLogger();
 
@@ -290,10 +291,14 @@ function getNodeRectange(nodeId: Component["id"]): Rectangle {
 	if (!canvasBCR) return;
 
 	return {
-		x: Math.round((bcr.x - canvasBCR.x) * zoomRatio.value),
-		y: Math.round((bcr.y - canvasBCR.y) * zoomRatio.value),
-		width: Math.floor(bcr.width * zoomRatio.value),
-		height: Math.floor(bcr.height * zoomRatio.value),
+		x: Math.round(
+			renderOffset.value.x + (bcr.x - canvasBCR.x) * zoomRatio.value,
+		),
+		y: Math.round(
+			renderOffset.value.y + (bcr.y - canvasBCR.y) * zoomRatio.value,
+		),
+		width: mathCeilToMultiple(bcr.width * zoomRatio.value, GRID_TICK) - 1,
+		height: mathCeilToMultiple(bcr.height * zoomRatio.value, GRID_TICK) - 1,
 	};
 }
 
