@@ -14,8 +14,17 @@ describe(doRectanglesOverlap.name, () => {
 		{ x: 19, y: 19, width: 10, height: 10 },
 		{ x: 12, y: 12, width: 2, height: 2 },
 		{ x: 0, y: 0, width: 30, height: 30 },
+		{ x: 15, y: 15, width: 10, height: 15 },
 	])("should overlap for %s", (rect) => {
 		expect(doRectanglesOverlap(initialRect, rect)).toBe(true);
+	});
+	it("should overlap for", () => {
+		expect(
+			doRectanglesOverlap(
+				{ width: 240, height: 124, x: 48, y: 120 },
+				{ width: 240, height: 167, x: 72, y: 96 },
+			),
+		).toBe(true);
 	});
 
 	it.each([

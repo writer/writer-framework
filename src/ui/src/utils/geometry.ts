@@ -26,30 +26,30 @@ function getRectangeCenterPoint(rect: Rectangle): Point {
 function isInRange(value: number, min: number, max: number) {
 	return value >= min && value <= max;
 }
-
-function computeRectanglePoints(
-	rect: Rectangle,
-): [x1: number, x2: number, y1: number, y2: number] {
-	return [rect.x, rect.x + rect.width, rect.y, rect.y + rect.height];
-}
-
-export function isRectangleInside(a: Rectangle, b: Rectangle): boolean {
-	const [aX1, aX2, aY1, aY2] = computeRectanglePoints(a);
-	const [bX1, bX2, bY1, bY2] = computeRectanglePoints(b);
-	const isXContained = isInRange(aX1, bX1, bX2) && isInRange(aX2, bX1, bX2);
-	const isYContained = isInRange(aY1, bY1, bY2) && isInRange(aY2, bY1, bY2);
-	return isXContained && isYContained;
+function doRangeOverlap(a1: number, a2: number, b1: number, b2: number) {
+	return (
+		isInRange(a1, b1, b2) ||
+		isInRange(a2, b1, b2) ||
+		isInRange(b1, a1, a2) ||
+		isInRange(b2, a1, a2)
+	);
 }
 
 export function doRectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
-	const [aX1, aX2, aY1, aY2] = computeRectanglePoints(a);
-	const [bX1, bX2, bY1, bY2] = computeRectanglePoints(b);
+	const isXOverlaping = doRangeOverlap(
+		a.x,
+		a.x + a.width,
+		b.x,
+		b.x + b.width,
+	);
+	const isYOverlaping = doRangeOverlap(
+		a.y,
+		a.y + a.height,
+		b.y,
+		b.y + b.height,
+	);
 
-	const isXOverlaping = isInRange(bX1, aX1, aX2) || isInRange(bX2, aX1, aX2);
-	const isYOverlaping = isInRange(bY1, aY1, aY2) || isInRange(bY2, aY1, aY2);
-	if (isXOverlaping && isYOverlaping) return true;
-
-	return isRectangleInside(a, b) || isRectangleInside(b, a);
+	return isXOverlaping && isYOverlaping;
 }
 
 /**
