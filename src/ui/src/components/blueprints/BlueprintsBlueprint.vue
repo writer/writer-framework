@@ -882,7 +882,12 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 });
 
 function handleKeydown(event: KeyboardEvent) {
-	function getVector(): Point | undefined {
+	if (!wfbm.selection.value.length) return;
+
+	const target = event.target as HTMLElement;
+	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+
+	function getDirection(): Point | undefined {
 		switch (event.key) {
 			case "ArrowDown":
 				return { x: 0, y: GRID_TICK };
@@ -894,17 +899,16 @@ function handleKeydown(event: KeyboardEvent) {
 				return { x: GRID_TICK, y: 0 };
 		}
 	}
-	const vector = getVector();
-	if (vector === undefined) return;
+	const direction = getDirection();
+	if (direction === undefined) return;
 
-	if (!wfbm.selection.value.length) return;
 	event.preventDefault();
 
 	const coordinates = wfbm.selection.value
 		.map((s) => wf.getComponentById(s.componentId))
 		.filter((c) => c?.x !== undefined && c?.y !== undefined)
 		.reduce<Record<Component["id"], Point>>((acc, c) => {
-			acc[c.id] = translatePoint({ x: c.x, y: c.y }, vector);
+			acc[c.id] = translatePoint({ x: c.x, y: c.y }, direction);
 			return acc;
 		}, {});
 
@@ -920,7 +924,7 @@ onMounted(async () => {
 	rootEl.value?.addEventListener("wheel", handleWheel, {
 		signal: abort.signal,
 	});
-	// TODO: bind to other things than document (triggered when input)
+
 	document.addEventListener("keydown", handleKeydown, {
 		signal: abort.signal,
 	});

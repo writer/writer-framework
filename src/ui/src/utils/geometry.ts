@@ -53,7 +53,9 @@ export function doRectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
 }
 
 /**
+ * Find the correct position for a given rectangle, avoiding placing the rectangle on top of another.
  *
+ * It'll try the first position, and then move in every direction until it finds the best spot.
  */
 export function positionateRectangleWithoutOverlap(
 	target: Rectangle,
@@ -119,7 +121,6 @@ export function positionateRectangleWithoutOverlap(
 	const point = solutions
 		.sort((a, b) => getDistanceFromTarget(a) - getDistanceFromTarget(b))
 		.shift();
-	if (point) return buildRectangleFromPoint(point);
 
-	return;
+	return point ? buildRectangleFromPoint(point) : undefined;
 }
