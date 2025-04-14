@@ -178,6 +178,7 @@ import {
 	Point,
 	positionateRectangleWithoutColision,
 	Rectangle,
+	translatePoint,
 } from "@/utils/geometry";
 
 const BlueprintToolbar = defineAsyncComponent({
@@ -571,6 +572,7 @@ function changeCoordinatesMultipleWithCheck(
 			const { x, y } = positionateRectangleWithoutColision(
 				rectange,
 				otherRectangles,
+				GRID_TICK,
 			);
 
 			acc[id] = { x, y };
@@ -605,8 +607,7 @@ function moveNode(ev: MouseEvent) {
 		activeNodeMove.value = { ...activeNodeMove.value, isPerfected: true };
 	}
 
-	const translationX = newX - component.x;
-	const translationY = newY - component.y;
+	const trans = { x: newX - component.x, y: newY - component.y };
 
 	const isMovingNodeSelected = wfbm.selection.value.some(
 		(c) => c.componentId === nodeId,
@@ -628,10 +629,10 @@ function moveNode(ev: MouseEvent) {
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
 		)
 		.reduce<Record<string, Point>>((acc, component) => {
-			acc[component.id] = {
-				x: component.x + translationX,
-				y: component.y + translationY,
-			};
+			acc[component.id] = translatePoint(
+				{ x: component.x, y: component.y },
+				trans,
+			);
 			return acc;
 		}, {});
 
@@ -921,11 +922,7 @@ function handleKeydown(event: KeyboardEvent) {
 		.map((s) => wf.getComponentById(s.componentId))
 		.filter((c) => c?.x && c?.y)
 		.reduce<Record<Component["id"], Point>>((acc, c) => {
-			acc[c.id] = {
-				x: c.x + vector.x,
-				y: c.y + vector.y,
-			};
-
+			acc[c.id] = translatePoint({ x: c.x, y: c.y }, vector);
 			return acc;
 		}, {});
 
