@@ -86,7 +86,6 @@ import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
-import { WdsColor } from "@/wds/tokens";
 
 const { log } = useLogger();
 
@@ -152,7 +151,7 @@ import {
 	computeDistance,
 	computePointInTheGrid,
 	Point,
-	positionateRectangleWithoutColision,
+	positionateRectangleWithoutOverlap,
 	Rectangle,
 	translatePoint,
 } from "@/utils/geometry";
@@ -177,8 +176,8 @@ const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
 
-const AUTOARRANGE_ROW_GAP_PX = 64;
-const AUTOARRANGE_COLUMN_GAP_PX = 128;
+const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
+const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
 
 const nodes = computed(() =>
 	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
@@ -343,6 +342,7 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 								fromOutId: out.outId,
 							})),
 					)
+					.filter(Boolean)
 					.flat(),
 			);
 
@@ -535,8 +535,12 @@ function clearActiveOperations() {
 function changeCoordinatesMultipleWithCheck(
 	nodeCoordinates: Record<Component["id"], Point>,
 ) {
-	const coordinatesFixed = Object.entries(nodeCoordinates).reduce(
-		(acc, [id, point]) => {
+	const coordinatesFixed = Object.entries(nodeCoordinates)
+		.filter(([id, point]) => {
+			const c = wf.getComponentById(id);
+			return c?.x !== point.x || c?.y !== point.y;
+		})
+		.reduce((acc, [id, point]) => {
 			const newPoint = computePointInTheGrid(point, GRID_TICK);
 			const rectange = { ...getNodeRectange(id), ...newPoint };
 
@@ -545,7 +549,7 @@ function changeCoordinatesMultipleWithCheck(
 				.map((c) => getNodeRectange(c.id))
 				.filter(Boolean);
 
-			const { x, y } = positionateRectangleWithoutColision(
+			const { x, y } = positionateRectangleWithoutOverlap(
 				rectange,
 				otherRectangles,
 				GRID_TICK,
@@ -553,9 +557,7 @@ function changeCoordinatesMultipleWithCheck(
 
 			acc[id] = { x, y };
 			return acc;
-		},
-		{},
-	);
+		}, {});
 	changeCoordinatesMultiple(coordinatesFixed);
 }
 
@@ -688,12 +690,16 @@ async function handleMouseup(ev: MouseEvent) {
 	});
 }
 
-function createNode(type: string, { x, y }: Point) {
-	const point = computePointInTheGrid(
-		{ x: Math.floor(x), y: Math.floor(y) },
+function createNode(type: string, point: Point) {
+	const otherRectangles = nodes.value
+		.map((c) => getNodeRectange(c.id))
+		.filter(Boolean);
+	const { x, y } = positionateRectangleWithoutOverlap(
+		{ ...point, width: 240, height: 180 },
+		otherRectangles,
 		GRID_TICK,
 	);
-	createAndInsertComponent(type, blueprintComponentId, undefined, point);
+	createAndInsertComponent(type, blueprintComponentId, undefined, { x, y });
 }
 
 function findAndCenterBlock(componentId: Component["id"]) {

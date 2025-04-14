@@ -3,7 +3,7 @@ import {
 	Rectangle,
 	doRectanglesOverlap,
 	computePointInTheGrid,
-	positionateRectangleWithoutColision,
+	positionateRectangleWithoutOverlap,
 } from "./geometry";
 
 describe(doRectanglesOverlap.name, () => {
@@ -51,7 +51,7 @@ describe(computePointInTheGrid.name, () => {
 	});
 });
 
-describe(positionateRectangleWithoutColision.name, () => {
+describe(positionateRectangleWithoutOverlap.name, () => {
 	const rectangles: Rectangle[] = [{ x: 10, y: 10, width: 10, height: 10 }];
 
 	it.each([
@@ -73,7 +73,7 @@ describe(positionateRectangleWithoutColision.name, () => {
 		},
 	])("should positionate the rectange $input", ({ input, expected }) => {
 		expect(
-			positionateRectangleWithoutColision(input, rectangles, 1),
+			positionateRectangleWithoutOverlap(input, rectangles, 1),
 		).toStrictEqual(expected);
 	});
 });

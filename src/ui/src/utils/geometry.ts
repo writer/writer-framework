@@ -55,7 +55,7 @@ export function doRectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
 /**
  *
  */
-export function positionateRectangleWithoutColision(
+export function positionateRectangleWithoutOverlap(
 	target: Rectangle,
 	otherRectangles: Rectangle[],
 	gridTick: number,
