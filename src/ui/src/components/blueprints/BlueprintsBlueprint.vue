@@ -896,7 +896,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 	const coordinates = wfbm.selection.value
 		.map((s) => wf.getComponentById(s.componentId))
-		.filter((c) => c?.x && c?.y)
+		.filter((c) => c?.x !== undefined && c?.y !== undefined)
 		.reduce<Record<Component["id"], Point>>((acc, c) => {
 			acc[c.id] = translatePoint({ x: c.x, y: c.y }, vector);
 			return acc;
