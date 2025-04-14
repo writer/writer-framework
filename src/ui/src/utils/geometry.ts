@@ -27,26 +27,29 @@ function isInRange(value: number, min: number, max: number) {
 	return value >= min && value <= max;
 }
 
-export function areRectanglesColliding(a: Rectangle, b: Rectangle): boolean {
-	return (
-		isInRange(a.x, b.x, b.x + b.width) ||
-		isInRange(b.x, a.x, a.x + a.width) ||
-		isInRange(a.y, b.y, b.y + b.height) ||
-		isInRange(b.y, a.y, a.y + a.height)
-	);
+function computeRectanglePoints(
+	rect: Rectangle,
+): [x1: number, x2: number, y1: number, y2: number] {
+	return [rect.x, rect.x + rect.width, rect.y, rect.y + rect.height];
+}
 
-	if (isInRange(a.x, b.x, b.x + b.width)) return true;
-	if (isInRange(b.x, a.x, a.x + a.width)) return true;
-	if (isInRange(a.y, b.y, b.y + b.height)) return true;
-	if (isInRange(b.y, a.y, a.y + a.height)) return true;
-	return false;
-	// if (isInRange(b.x, a.x, a.x + a.width)) return true;
-	return !(
-		a.x + a.width <= b.x ||
-		a.x >= b.x + b.width ||
-		a.y + a.height <= b.y ||
-		a.y >= b.y + b.height
-	);
+export function isRectangleInside(a: Rectangle, b: Rectangle): boolean {
+	const [aX1, aX2, aY1, aY2] = computeRectanglePoints(a);
+	const [bX1, bX2, bY1, bY2] = computeRectanglePoints(b);
+	const isXContained = isInRange(aX1, bX1, bX2) && isInRange(aX2, bX1, bX2);
+	const isYContained = isInRange(aY1, bY1, bY2) && isInRange(aY2, bY1, bY2);
+	return isXContained && isYContained;
+}
+
+export function doRectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
+	const [aX1, aX2, aY1, aY2] = computeRectanglePoints(a);
+	const [bX1, bX2, bY1, bY2] = computeRectanglePoints(b);
+
+	const isXOverlaping = isInRange(bX1, aX1, aX2) || isInRange(bX2, aX1, aX2);
+	const isYOverlaping = isInRange(bY1, aY1, aY2) || isInRange(bY2, aY1, aY2);
+	if (isXOverlaping && isYOverlaping) return true;
+
+	return isRectangleInside(a, b) || isRectangleInside(b, a);
 }
 
 /**
@@ -78,7 +81,7 @@ export function positionateRectangleWithoutColision(
 	function isPointValid(point: Point) {
 		if (point.x < 0 || point.y < 0) return false;
 		const rect = buildRectangleFromPoint(point);
-		return !otherRectangles.some((r) => areRectanglesColliding(rect, r));
+		return !otherRectangles.some((r) => doRectanglesOverlap(rect, r));
 	}
 
 	function addQueue(p: Point) {

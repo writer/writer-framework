@@ -1,51 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
 	Rectangle,
-	areRectanglesColliding,
+	doRectanglesOverlap,
 	computePointInTheGrid,
 	positionateRectangleWithoutColision,
 } from "./geometry";
 
-describe(areRectanglesColliding.name, () => {
-	it("should overlap on y and y", () => {
-		expect(
-			areRectanglesColliding(
-				{ x: 0, y: 0, width: 10, height: 10 },
-				{ x: 9, y: 9, width: 10, height: 10 },
-			),
-		).toBe(true);
+describe(doRectanglesOverlap.name, () => {
+	const initialRect: Rectangle = { x: 10, y: 10, width: 10, height: 10 };
+
+	it.each([
+		{ x: 0, y: 0, width: 10, height: 10 },
+		{ x: 19, y: 19, width: 10, height: 10 },
+		{ x: 12, y: 12, width: 2, height: 2 },
+		{ x: 0, y: 0, width: 30, height: 30 },
+	])("should overlap for %s", (rect) => {
+		expect(doRectanglesOverlap(initialRect, rect)).toBe(true);
 	});
-	it("should overlap on x", () => {
-		expect(
-			areRectanglesColliding(
-				{ x: 7, y: 10, width: 10, height: 10 },
-				{ x: 0, y: 0, width: 10, height: 10 },
-			),
-		).toBe(true);
-	});
-	it("should overlap with width", () => {
-		expect(
-			areRectanglesColliding(
-				{ x: 10, y: 10, width: 10, height: 10 },
-				{ x: 5, y: 5, width: 10, height: 10 },
-			),
-		).toBe(true);
-	});
-	it("should overlap when contains the other", () => {
-		expect(
-			areRectanglesColliding(
-				{ x: 10, y: 10, width: 10, height: 10 },
-				{ x: 0, y: 0, width: 30, height: 30 },
-			),
-		).toBe(true);
-	});
-	it("should not overlap", () => {
-		expect(
-			areRectanglesColliding(
-				{ x: 0, y: 0, width: 10, height: 10 },
-				{ x: 20, y: 20, width: 10, height: 10 },
-			),
-		).toBe(false);
+
+	it.each([
+		{ x: 0, y: 0, width: 1, height: 1 },
+		{ x: 30, y: 30, width: 10, height: 10 },
+	])("should not overlap for %s", (rect) => {
+		expect(doRectanglesOverlap(initialRect, rect)).toBe(false);
 	});
 });
 
@@ -66,26 +43,26 @@ describe(computePointInTheGrid.name, () => {
 });
 
 describe(positionateRectangleWithoutColision.name, () => {
-	const rectangles: Rectangle[] = [{ x: 0, y: 0, width: 10, height: 10 }];
+	const rectangles: Rectangle[] = [{ x: 10, y: 10, width: 10, height: 10 }];
 
 	it.each([
 		{
 			input: { x: 20, y: 20, width: 10, height: 10 },
-			expected: { x: 20, y: 20, width: 10, height: 10 },
+			expected: { x: 20, y: 21, width: 10, height: 10 },
 		},
 		{
 			input: { x: 9, y: 9, width: 10, height: 10 },
-			expected: { x: 11, y: 11, width: 10, height: 10 },
+			expected: { x: 9, y: 21, width: 10, height: 10 },
 		},
 		{
 			input: { x: 1, y: 1, width: 10, height: 10 },
-			expected: { x: 11, y: 11, width: 10, height: 10 },
+			expected: { x: 1, y: 21, width: 10, height: 10 },
 		},
 		{
 			input: { x: 0, y: 10, width: 10, height: 10 },
-			expected: { x: 11, y: 11, width: 10, height: 10 },
+			expected: { x: 0, y: 21, width: 10, height: 10 },
 		},
-	])("should positionate the rectange", ({ input, expected }) => {
+	])("should positionate the rectange $input", ({ input, expected }) => {
 		expect(
 			positionateRectangleWithoutColision(input, rectangles, 1),
 		).toStrictEqual(expected);

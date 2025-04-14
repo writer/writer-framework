@@ -12,30 +12,6 @@
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
-				<defs>
-					<pattern
-						id="grid"
-						:width="GRID_TICK"
-						:height="GRID_TICK"
-						patternUnits="userSpaceOnUse"
-					>
-						<circle
-							:cx="GRID_TICK / 2"
-							:cy="GRID_TICK / 2"
-							r="1"
-							:fill="WdsColor.Gray2"
-						/>
-						<path
-							v-if="false"
-							d="M 16 0 L 0 0 0 16"
-							fill="none"
-							:stroke="WdsColor.Gray3"
-							stroke-width="0.5"
-						/>
-					</pattern>
-				</defs>
-
-				<rect width="100%" height="100%" fill="url(#grid)" />
 				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
