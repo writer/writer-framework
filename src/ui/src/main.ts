@@ -22,10 +22,12 @@ const logger = useLogger();
 async function load() {
 	await wf.init();
 	const mode = wf.mode.value;
-	const ssbm = mode == "edit" ? generateBuilderManager() : undefined;
+	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
 
-	if (ssbm) {
-		wf.addMailSubscription("logEntry", ssbm.handleLogEntry);
+	if (wfbm) {
+		wf.addMailSubscription("logEntry", wfbm.handleLogEntry);
+		// eslint-disable-next-line no-undef
+		globalThis.wfbm = wfbm;
 	}
 
 	logger.log(`Mounting app in mode ${mode}...`);
@@ -38,7 +40,7 @@ async function load() {
 	const app = createApp(componentRenderer || builderApp);
 	app.use(VueDOMPurifyHTML);
 	app.provide(injectionKeys.core, wf);
-	app.provide(injectionKeys.builderManager, ssbm);
+	app.provide(injectionKeys.builderManager, wfbm);
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");
