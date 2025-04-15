@@ -1,3 +1,5 @@
+import { mathRoundToMultiple } from "./math";
+
 export type Point = { x: number; y: number };
 
 export function computeDistance(a: Point, b: Point) {
@@ -8,8 +10,8 @@ export function computePointInTheGrid(
 	gridTick: number,
 ): Point {
 	return {
-		x: x - (x % gridTick),
-		y: y - (y % gridTick),
+		x: mathRoundToMultiple(x, gridTick),
+		y: mathRoundToMultiple(y, gridTick),
 	};
 }
 

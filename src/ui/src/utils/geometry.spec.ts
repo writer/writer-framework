@@ -38,7 +38,7 @@ describe(doRectanglesOverlap.name, () => {
 describe(computePointInTheGrid.name, () => {
 	it("should round the axis", () => {
 		expect(computePointInTheGrid({ x: 0.6, y: 1.4 }, 1)).toStrictEqual({
-			x: 0,
+			x: 1,
 			y: 1,
 		});
 	});
