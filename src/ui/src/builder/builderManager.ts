@@ -1,4 +1,4 @@
-import { computed, ref, Ref } from "vue";
+import { computed, readonly, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
 import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 
@@ -407,6 +407,7 @@ export function generateBuilderManager() {
 		selection: computed(() => state.value.selection),
 		setClipboard,
 		getClipboard,
+		mutationTransactions: readonly(mutationTransactions),
 		openMutationTransaction,
 		registerPreMutation,
 		registerPostMutation,
