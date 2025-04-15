@@ -55,11 +55,9 @@
 				{{ deployLabel }}
 				<WdsModal
 					v-if="confirmDeployModalOpen"
-					class="BuilderHeader__toolbar__deployModal"
 					title="Are you sure you want to deploy these changes?"
 					size="normal"
 					:actions="confirmDeployModalActions"
-					data-automation-key="deployConfirmModal"
 				>
 					<p class="BuilderHeader__toolbar__deployModal__text">
 						This will replace the current live version of this agent
