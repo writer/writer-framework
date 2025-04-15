@@ -12,6 +12,25 @@
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
+				<defs>
+					<pattern
+						id="grid"
+						:width="GRID_TICK"
+						:height="GRID_TICK"
+						patternUnits="userSpaceOnUse"
+						:x="-renderOffset.x - GRID_TICK / 2"
+						:y="-renderOffset.y - GRID_TICK / 2"
+					>
+						<circle
+							:cx="GRID_TICK / 2"
+							:cy="GRID_TICK / 2"
+							r="1"
+							:fill="WdsColor.Gray2"
+						/>
+					</pattern>
+				</defs>
+
+				<rect width="100%" height="100%" fill="url(#grid)" fil />
 				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
@@ -87,6 +106,7 @@ import WdsModal from "@/wds/WdsModal.vue";
 import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
+import { WdsColor } from "@/wds/tokens";
 
 const { log } = useLogger();
 
