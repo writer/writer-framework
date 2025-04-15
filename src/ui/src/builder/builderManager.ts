@@ -1,6 +1,7 @@
 import { computed, readonly, ref, Ref } from "vue";
 import { Component, ClipboardOperation } from "@/writerTypes";
 import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
+import { useLogger } from "@/composables/useLogger.js";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
 
@@ -17,6 +18,7 @@ const MAX_LOG_ENTRIES = 100;
 
 export const panelIds = ["code", "log"];
 export type PanelId = (typeof panelIds)[number];
+const logger = useLogger();
 
 export type BlueprintExecutionLog = {
 	summary: {
@@ -284,7 +286,14 @@ export function generateBuilderManager() {
 	};
 
 	const closeMutationTransaction = (transactionId: string) => {
-		if (activeMutationTransaction.id !== transactionId) return;
+		if (activeMutationTransaction.id !== transactionId) {
+			logger.warn(
+				"Mutation transaction mismatch.",
+				transactionId,
+				activeMutationTransaction.id,
+			);
+			return;
+		};
 		activeMutationTransaction.timestamp = Date.now();
 		mutationTransactions.push(activeMutationTransaction);
 		activeMutationTransaction = null;
