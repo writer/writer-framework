@@ -109,6 +109,7 @@ const options = computed(() =>
 
 <style lang="css" scoped>
 .BlueprintToolbarBlocksDropdown {
+	min-width: 185px;
 	border: 1px solid var(--wdsColorGray2);
 	border: none;
 	background: #fff;
@@ -122,12 +123,12 @@ const options = computed(() =>
 
 	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
+	color: var(--wdsColorGray6);
 
 	max-height: 300px;
 	overflow-y: auto;
 }
 .BlueprintToolbarBlocksDropdown__header {
-	color: var(--wdsColorGray6);
 	font-size: 12px;
 	text-transform: uppercase;
 	font-weight: 500;
