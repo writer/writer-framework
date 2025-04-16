@@ -310,15 +310,17 @@ function getNodeRectange(nodeId: Component["id"]): Rectangle {
 	const canvasBCR = rootEl.value?.getBoundingClientRect();
 	if (!canvasBCR) return;
 
+	const getDimension = (v: number) => {
+		const dimension = mathCeilToMultiple(v, GRID_TICK);
+		// if the dimension correspond to the exact unit, we add 1 to add a gap
+		return dimension === v ? dimension + 1 : dimension - 1;
+	};
+
 	return {
-		x: Math.round(
-			renderOffset.value.x + (bcr.x - canvasBCR.x) * zoomRatio.value,
-		),
-		y: Math.round(
-			renderOffset.value.y + (bcr.y - canvasBCR.y) * zoomRatio.value,
-		),
-		width: mathCeilToMultiple(bcr.width * zoomRatio.value, GRID_TICK) - 1,
-		height: mathCeilToMultiple(bcr.height * zoomRatio.value, GRID_TICK) - 1,
+		x: renderOffset.value.x + (bcr.x - canvasBCR.x) * zoomRatio.value,
+		y: renderOffset.value.y + (bcr.y - canvasBCR.y) * zoomRatio.value,
+		width: getDimension(bcr.width * zoomRatio.value),
+		height: getDimension(bcr.height * zoomRatio.value),
 	};
 }
 
@@ -406,14 +408,18 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 			ySortStrategies[ySortStrategyKey],
 		);
 		const { width, height } = columnDimensions.get(i);
-		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
+		let y = mathCeilToMultiple(
+			(maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX,
+			GRID_TICK,
+		);
 		nodes.forEach((node) => {
-			coordinates[node.id] = { x, y };
+			const point = computePointInTheGrid({ x, y }, GRID_TICK);
+			coordinates[node.id] = point;
 			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
 		});
-		x += width + AUTOARRANGE_COLUMN_GAP_PX;
+		x += mathCeilToMultiple(width + AUTOARRANGE_COLUMN_GAP_PX, GRID_TICK);
 	}
-	changeCoordinatesMultipleWithCheck(coordinates);
+	changeCoordinatesMultiple(coordinates);
 }
 
 function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
@@ -567,7 +573,8 @@ function changeCoordinatesMultipleWithCheck(
 		})
 		.reduce((acc, [id, point]) => {
 			const newPoint = computePointInTheGrid(point, GRID_TICK);
-			const rectange = { ...getNodeRectange(id), ...newPoint };
+			const currentRectangle = getNodeRectange(id);
+			const rectange = { ...currentRectangle, ...newPoint };
 
 			const otherRectangles = nodes.value
 				.filter((n) => n.id !== id)
@@ -579,10 +586,15 @@ function changeCoordinatesMultipleWithCheck(
 				otherRectangles,
 				GRID_TICK,
 			);
+			if (currentRectangle.x !== x || currentRectangle.y !== y) {
+				acc[id] = { x, y };
+			}
 
-			acc[id] = { x, y };
 			return acc;
 		}, {});
+
+	if (Object.keys(coordinatesFixed).length === 0) return;
+
 	changeCoordinatesMultiple(coordinatesFixed);
 }
 
