@@ -25,7 +25,7 @@
 							:cx="GRID_TICK / 2"
 							:cy="GRID_TICK / 2"
 							r="1"
-							:fill="WdsColor.Gray2"
+							:fill="WdsColor.Gray3"
 						/>
 					</pattern>
 				</defs>
@@ -978,7 +978,7 @@ onUnmounted(() => {
 	display: flex;
 	width: 100%;
 	min-height: 100%;
-	background: var(--builderSubtleSeparatorColor);
+	background: var(--wdsColorGray0);
 	flex: 1 0 auto;
 	flex-direction: row;
 	align-items: stretch;
