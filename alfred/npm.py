@@ -22,10 +22,6 @@ def npm_build():
 def npm_build_custom_components():
     alfred.run("npm run ui:custom.build")
 
-@alfred.command("npm.docs.test", help="test against documentation")
-def npm_docs_test():
-    alfred.run("npm run docs:test")
-
 @alfred.command("npm.storybook", help="build storybook for continuous integration")
 def npm_storybook():
     os.chdir("src/ui")
@@ -34,4 +30,3 @@ def npm_storybook():
 @alfred.command("npm.codegen", help="generate code for low code ui")
 def npm_codegen():
     alfred.run("npm run ui:codegen")
-    alfred.run("npm run docs:codegen")
