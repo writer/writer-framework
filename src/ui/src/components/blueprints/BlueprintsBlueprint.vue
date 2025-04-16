@@ -30,7 +30,13 @@
 					</pattern>
 				</defs>
 
-				<rect width="100%" height="100%" fill="url(#grid)" fil />
+				<rect
+					v-if="displayGrid"
+					width="100%"
+					height="100%"
+					fill="url(#grid)"
+					fil
+				/>
 				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
@@ -228,6 +234,17 @@ const activeCanvasMove = shallowRef<{
 	offset: Point;
 	isPerfected: boolean;
 } | null>(null);
+
+const displayGrid = useDisplayGridSetting();
+
+function useDisplayGridSetting() {
+	const key = "blueprint__hideGrid";
+	const displayGrid = ref(localStorage.getItem(key) === null);
+	watch(displayGrid, (v) =>
+		v ? localStorage.removeItem(key) : localStorage.setItem(key, "1"),
+	);
+	return displayGrid;
+}
 
 function refreshArrows() {
 	arrows.value = nodes.value.reduce((acc, node) => {
@@ -919,6 +936,17 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 });
 
 function handleKeydown(event: KeyboardEvent) {
+	const isModifiedKey = isModifierKeyActive(event);
+
+	// toggle grid with "cmd + `" (like Figma)
+	if (
+		isModifiedKey &&
+		(event.code === "Backquote" || event.code === "Backslash")
+	) {
+		displayGrid.value = !displayGrid.value;
+		return;
+	}
+
 	if (!wfbm.selection.value.length) return;
 
 	const target = event.target as HTMLElement;
