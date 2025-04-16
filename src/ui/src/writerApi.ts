@@ -27,22 +27,11 @@ export class WriterApi {
 	async publishApplication(
 		orgId: number,
 		appId: string,
-		body?: {
+		body: {
 			applicationVersionId: string;
 			applicationVersionDataId: string;
 		},
 	): Promise<WriterApiDeployResult> {
-		if (body === undefined) {
-			const deployInformation = await this.fetchApplicationDeployment(
-				orgId,
-				appId,
-			);
-			body = {
-				applicationVersionId: deployInformation.applicationVersion.id,
-				applicationVersionDataId:
-					deployInformation.applicationVersionData.id,
-			};
-		}
 		const url = new URL(
 			`/api/template/organization/${orgId}/application/${appId}/publish`,
 			this.#baseUrl,
@@ -76,16 +65,7 @@ type WriterApiBlamable = {
 	updatedAt: string;
 };
 
-export type WriterApiApplicationDeployment = {
-	id: string;
-	name: string;
-	type: "framework";
-	status: "deployed";
-	protected: boolean;
-	createdAt: string;
-	createdBy: WriterApiUser;
-	lastDeployedAt: string;
-	lastDeployedBy: WriterApiUser;
+export type WriterApiApplicationDeployment = WriterApiDeployResult & {
 	tagIds: [];
 	applicationVersion: {
 		id: string;
@@ -105,8 +85,6 @@ export type WriterApiApplicationDeployment = {
 		data: {
 			type: "framework";
 			apiId: string;
-			deploymentUrl: string;
-			agentEditorUrl: string;
 			tokenEncryptionKey: string | null;
 		};
 	} & WriterApiBlamable;
@@ -121,15 +99,15 @@ export type WriterApiApplicationDeployment = {
 		beta: boolean;
 	} | null;
 	slack: null;
-	cloud: null;
+	cloud: { id: string; requiresWriterLogin: boolean } | null;
 };
 
 export type WriterApiDeployResult = {
 	id: string;
 	name: string;
 	type: "framework";
-	status: "deployed";
-	protected: true;
+	status: "deployed" | "draft";
+	protected: boolean;
 	createdAt: string;
 	createdBy: WriterApiUser;
 	lastDeployedAt: string;

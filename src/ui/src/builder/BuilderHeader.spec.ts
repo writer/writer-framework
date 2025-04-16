@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vitest, vi } from "vitest";
 import { buildMockCore } from "@/tests/mocks";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import BuilderHeader from "./BuilderHeader.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import { generateBuilderManager } from "./builderManager";
 
@@ -125,11 +126,7 @@ describe("BuilderHeader", () => {
 				.trigger("click");
 			await flushPromises();
 
-			expect(
-				wrapper
-					.find('[data-automation-key="deployConfirmModal"]')
-					.exists(),
-			).toBe(false);
+			expect(wrapper.findComponent(WdsModal).exists()).toBe(false);
 		});
 	});
 });
