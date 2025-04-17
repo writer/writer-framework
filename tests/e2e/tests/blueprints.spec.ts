@@ -86,7 +86,7 @@ test.describe("Blueprints", () => {
 		await runBlueprintBlock.click();
 		await page
 			.locator(`.BuilderFieldsBlueprintKey[data-automation-key="blueprintKey"]`)
-			.locator(".BuilderSelect__trigger")
+			.locator(".WdsSelect__trigger")
 			.click();
 		await page
 			.locator(`.BuilderFieldsBlueprintKey[data-automation-key="blueprintKey"]`)

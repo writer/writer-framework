@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderFieldsHandler" :data-automation-key="props.fieldKey">
-		<BuilderSelect v-model="selectedHandler" :options="options" />
+		<WdsSelect v-model="selectedHandler" :options="options" />
 	</div>
 </template>
 
@@ -8,11 +8,9 @@
 import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
-import { Option } from "../BuilderSelect.vue";
+import { Option } from "@/wds/WdsSelect.vue";
 
-const BuilderSelect = defineAsyncComponent(
-	() => import("../BuilderSelect.vue"),
-);
+const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
