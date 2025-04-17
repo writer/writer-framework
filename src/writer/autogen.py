@@ -267,6 +267,13 @@ def generate_blueprint(description: str, token_header: Optional[str] = None):
     tools = _get_tools()
     print(json.dumps(tools))
 
+    if token_header:
+        extra_headers = {
+            "X-Agent-Token": token_header
+        }
+    else:
+        extra_headers = {}
+
     for i in range(MAX_ITERATIONS):
         if i > 0:
             messages += [
@@ -281,9 +288,7 @@ def generate_blueprint(description: str, token_header: Optional[str] = None):
             tool_choice="required",
             tools=tools,
             stream=False,  # type: ignore
-            extra_headers={
-                "X-Agent-Token": token_header
-            }
+            extra_headers=extra_headers
         )
 
         response_message = response.choices[0].message
