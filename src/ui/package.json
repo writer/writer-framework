@@ -67,7 +67,7 @@
 		"prettier": "3.2.5",
 		"storybook": "8.0.5",
 		"vite": "^5.2.7",
-		"vitest": "^2.1.6",
+		"vitest": "^3.1.0",
 		"volar-service-vetur": "*"
 	}
 }

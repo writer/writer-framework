@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vitest, vi } from "vitest";
+import { beforeEach, describe, expect, it, vitest, vi, Mock } from "vitest";
 import { buildMockCore } from "@/tests/mocks";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import BuilderHeader from "./BuilderHeader.vue";
@@ -50,11 +50,14 @@ describe("BuilderHeader", () => {
 	});
 
 	describe("cloud app", () => {
+		let windowOpen: Mock;
 		beforeEach(() => {
 			mockCore.writerApplication.value = {
 				id: "app-lication-uuid",
 				organizationId: "1",
 			};
+			windowOpen = vi.fn();
+			window.open = windowOpen;
 		});
 
 		it("should display deploy button for undeployed app", async () => {
