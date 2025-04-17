@@ -5,6 +5,7 @@ from writer.ss_types import AbstractTemplate
 DEFAULT_MODEL = "palmyra-x-004"
 
 class WriterToolCalling(BlueprintBlock):
+
     @classmethod
     def register(cls, type: str):
         super(WriterToolCalling, cls).register(type)
@@ -17,7 +18,7 @@ class WriterToolCalling(BlueprintBlock):
                     "description": "Connects the Agent to external tools to complete tasks it cannot handle directly.",
                     "category": "Writer",
                     "fields": {
-                        "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea", "desc": "The prompt to trigger tool calling. Mention including <DONE> to stop iterating."},
+                        "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea", "desc": "The task that needs to be carried out."},
                         "modelId": {
                             "name": "Model id",
                             "type": "Text",
@@ -121,14 +122,17 @@ class WriterToolCalling(BlueprintBlock):
 
             thought = kwargs.get("thought")
             action = kwargs.get("action")
+            status = kwargs.get("status")
 
-            message = f"💡 Thought: {thought}. ⚡️ Action: {action}."
-            self.execution_environment.get("trace").append(
-                {"type": "reasoning", "time": time.time(), "thought": thought, "action": action}
-            )
-            self.runner.session.session_state.add_log_entry(
-                "info", "Reasoning...", message, id="reasoning"
-            )
+            self.execution_environment.get("trace").append({
+                "type": "reasoning",
+                "time": time.time(),
+                "thought": thought,
+                "action": action
+            })
+            if status == "DONE":
+                self.is_complete = True
+                
 
         reasoning_tool = {
             "type": "function",
@@ -144,6 +148,10 @@ class WriterToolCalling(BlueprintBlock):
                     "type": "string",
                     "description": "A summary of the actions you took and why.",
                 },
+                "status": {
+                    "type": "string",
+                    "description": "Set to DONE if you consider the task complete. Set to INCOMPLETE if you wish to keep iterating."
+                }
             },
         }
 
@@ -151,22 +159,35 @@ class WriterToolCalling(BlueprintBlock):
 
         return tools
 
+    def _get_react_prompt(self, base_prompt: str):
+        return f"""
+        You're a ReAct agent.
+        Disclose your reasoning using the provided function.
+        
+        Task: {base_prompt}
+        """
+
+
     def run(self):
         import writer.ai
+        self.is_complete = False
 
         try:
             prompt = self._get_field("prompt")
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
-            max_iterations = int(self._get_field("maxIterations", False, 10))
+            max_iterations = int(self._get_field("maxIterations", False, "10"))
             conversation = writer.ai.Conversation()
             tools = self._get_tools()
 
             for i in range(max_iterations):
-                conversation += {"role": "user", "content": prompt}
+                conversation += {
+                    "role": "user",
+                    "content": self._get_react_prompt(prompt)
+                }
                 config = {"model": model_id}
                 msg = conversation.complete(tools=tools, config=config)
                 conversation += msg
-                if "<DONE>" in msg.get("content"):
+                if self.is_complete:
                     break
 
             self.result = msg.get("content")
