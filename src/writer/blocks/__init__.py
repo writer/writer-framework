@@ -17,6 +17,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.writerparsepdf import WriterParsePDF, WriterParsePDFByFileID
 from writer.blocks.writertoolcalling import WriterToolCalling
 
 SetState.register("blueprints_setstate")
@@ -38,4 +39,6 @@ WriterAddToKG.register("blueprints_writeraddtokg")
 UIEventTrigger.register("blueprints_uieventtrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
+WriterParsePDF.register("blueprints_writerparsepdf")
+WriterParsePDFByFileID.register("blueprints_writerparsepdfbyfileid")
 WriterToolCalling.register("blueprints_writertoolcalling")
