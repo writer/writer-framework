@@ -46,7 +46,7 @@ const options = computed(() =>
 			id: block.id,
 			disabled: !isRunnable(block),
 			title,
-			description,
+			description: title === description ? undefined : description,
 		};
 	}),
 );
