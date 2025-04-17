@@ -12,6 +12,31 @@
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
 			<svg>
+				<defs>
+					<pattern
+						id="grid"
+						:width="GRID_TICK"
+						:height="GRID_TICK"
+						patternUnits="userSpaceOnUse"
+						:x="-renderOffset.x - GRID_TICK / 2"
+						:y="-renderOffset.y - GRID_TICK / 2"
+					>
+						<circle
+							:cx="GRID_TICK / 2"
+							:cy="GRID_TICK / 2"
+							r="1"
+							:fill="WdsColor.Gray3"
+						/>
+					</pattern>
+				</defs>
+
+				<rect
+					v-if="displayGrid"
+					width="100%"
+					height="100%"
+					fill="url(#grid)"
+					fil
+				/>
 				<BlueprintArrow
 					v-for="(arrow, arrowId) in arrows"
 					:key="arrowId"
@@ -86,8 +111,12 @@ import { isModifierKeyActive } from "@/core/detectPlatform";
 import WdsModal from "@/wds/WdsModal.vue";
 import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
+import { mathCeilToMultiple } from "@/utils/math";
+import { WdsColor } from "@/wds/tokens";
 
 const { log } = useLogger();
+
+const GRID_TICK = 24;
 
 const description =
 	"A container component representing a single blueprint within the application.";
@@ -145,6 +174,14 @@ import {
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
 import injectionKeys from "@/injectionKeys";
+import {
+	computeDistance,
+	computePointInTheGrid,
+	Point,
+	positionateRectangleWithoutOverlap,
+	Rectangle,
+	translatePoint,
+} from "@/utils/geometry";
 
 const BlueprintToolbar = defineAsyncComponent({
 	loader: () => import("./base/BlueprintToolbar.vue"),
@@ -166,14 +203,12 @@ const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
 
-const AUTOARRANGE_ROW_GAP_PX = 64;
-const AUTOARRANGE_COLUMN_GAP_PX = 128;
+const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
+const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
 
 const nodes = computed(() =>
 	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
 );
-
-type Point = { x: number; y: number };
 
 const {
 	createAndInsertComponent,
@@ -199,6 +234,17 @@ const activeCanvasMove = shallowRef<{
 	offset: Point;
 	isPerfected: boolean;
 } | null>(null);
+
+const displayGrid = useDisplayGridSetting();
+
+function useDisplayGridSetting() {
+	const key = "blueprint__hideGrid";
+	const displayGrid = ref(localStorage.getItem(key) === null);
+	watch(displayGrid, (v) =>
+		v ? localStorage.removeItem(key) : localStorage.setItem(key, "1"),
+	);
+	return displayGrid;
+}
 
 function refreshArrows() {
 	arrows.value = nodes.value.reduce((acc, node) => {
@@ -268,6 +314,33 @@ function organizeNodesInColumns() {
 	return columns;
 }
 
+function getNodeBoundingClientRect(nodeId: Component["id"]) {
+	const selector = `[data-writer-id="${nodeId}"]`;
+	const nodeEl = nodeContainerEl.value.querySelector(selector);
+	if (!nodeEl) return;
+	return nodeEl.getBoundingClientRect();
+}
+
+function getNodeRectange(nodeId: Component["id"]): Rectangle {
+	const bcr = getNodeBoundingClientRect(nodeId);
+	if (!bcr) return undefined;
+	const canvasBCR = rootEl.value?.getBoundingClientRect();
+	if (!canvasBCR) return;
+
+	const getDimension = (v: number) => {
+		const dimension = mathCeilToMultiple(v, GRID_TICK);
+		// if the dimension correspond to the exact unit, we add 1 to add a gap
+		return dimension === v ? dimension + 1 : dimension - 1;
+	};
+
+	return {
+		x: renderOffset.value.x + (bcr.x - canvasBCR.x) * zoomRatio.value,
+		y: renderOffset.value.y + (bcr.y - canvasBCR.y) * zoomRatio.value,
+		width: getDimension(bcr.width * zoomRatio.value),
+		height: getDimension(bcr.height * zoomRatio.value),
+	};
+}
+
 function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 	const columnDimensions: Map<number, { height: number; width: number }> =
 		new Map();
@@ -276,17 +349,13 @@ function calculateAutoArrangeDimensions(columns: Map<number, Set<Component>>) {
 		let height = 0;
 		let width = 0;
 		nodes.forEach((node) => {
-			const nodeEl = nodeContainerEl.value.querySelector(
-				`[data-writer-id="${node.id}"]`,
-			);
-			if (!nodeEl) return;
-			const nodeBCR = nodeEl.getBoundingClientRect();
+			const nodeBCR = getNodeBoundingClientRect(node.id);
+			if (!nodeBCR) return;
 			nodeDimensions.set(node.id, {
-				height: nodeBCR.height * (1 / zoomLevel.value),
+				height: nodeBCR.height * zoomRatio.value,
 			});
-			height +=
-				nodeBCR.height * (1 / zoomLevel.value) + AUTOARRANGE_ROW_GAP_PX;
-			width = Math.max(width, nodeBCR.width * (1 / zoomLevel.value));
+			height += nodeBCR.height * zoomRatio.value + AUTOARRANGE_ROW_GAP_PX;
+			width = Math.max(width, nodeBCR.width * zoomRatio.value);
 		});
 		columnDimensions.set(layer, {
 			height: height - AUTOARRANGE_ROW_GAP_PX,
@@ -317,6 +386,7 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 								fromOutId: out.outId,
 							})),
 					)
+					.filter(Boolean)
 					.flat(),
 			);
 
@@ -355,12 +425,16 @@ function autoArrange(ySortStrategyKey: "currentY" | "socketPosition") {
 			ySortStrategies[ySortStrategyKey],
 		);
 		const { width, height } = columnDimensions.get(i);
-		let y = (maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX;
+		let y = mathCeilToMultiple(
+			(maxColumnHeight - height) / 2 + AUTOARRANGE_ROW_GAP_PX,
+			GRID_TICK,
+		);
 		nodes.forEach((node) => {
-			coordinates[node.id] = { x, y };
+			const point = computePointInTheGrid({ x, y }, GRID_TICK);
+			coordinates[node.id] = point;
 			y += nodeDimensions.get(node.id).height + AUTOARRANGE_ROW_GAP_PX;
 		});
-		x += width + AUTOARRANGE_COLUMN_GAP_PX;
+		x += mathCeilToMultiple(width + AUTOARRANGE_COLUMN_GAP_PX, GRID_TICK);
 	}
 	changeCoordinatesMultiple(coordinates);
 }
@@ -370,8 +444,8 @@ function handleNodeMousedown(ev: MouseEvent, nodeId: Component["id"]) {
 	const nodeEl = document.querySelector(`[data-writer-id="${nodeId}"]`);
 	const nodeBCR = nodeEl.getBoundingClientRect();
 
-	const x = (ev.pageX - nodeBCR.x) * (1 / zoomLevel.value);
-	const y = (ev.pageY - nodeBCR.y) * (1 / zoomLevel.value);
+	const x = (ev.pageX - nodeBCR.x) * zoomRatio.value;
+	const y = (ev.pageY - nodeBCR.y) * zoomRatio.value;
 
 	activeNodeMove.value = {
 		nodeId,
@@ -384,12 +458,10 @@ function handleNodeOutMousedown(
 	fromNodeId: Component["id"],
 	fromOutId: string,
 ) {
-	activeConnection.value = {
-		fromNodeId,
-		fromOutId,
-	};
+	activeConnection.value = { fromNodeId, fromOutId };
 }
 
+const zoomRatio = computed(() => 1 / zoomLevel.value);
 function getAdjustedCoordinates(ev: MouseEvent) {
 	const canvasBCR = rootEl.value.getBoundingClientRect();
 	const x =
@@ -444,21 +516,21 @@ function calculateArrow(
 	if (!canvasBCR) {
 		return;
 	}
-	x2 = (toCoordinates?.x - canvasBCR.x) * (1 / zoomLevel.value);
-	y2 = (toCoordinates?.y - canvasBCR.y) * (1 / zoomLevel.value);
+	x2 = (toCoordinates?.x - canvasBCR.x) * zoomRatio.value;
+	y2 = (toCoordinates?.y - canvasBCR.y) * zoomRatio.value;
 	const fromEl = document.querySelector(
 		`[data-writer-id="${fromNodeId}"] [data-writer-socket-id="${fromOutId}"]`,
 	);
 	if (!fromEl) return;
 	const fromBCR = fromEl.getBoundingClientRect();
-	x1 = (fromBCR.x - canvasBCR.x + fromBCR.width / 2) * (1 / zoomLevel.value);
-	y1 = (fromBCR.y - canvasBCR.y + fromBCR.height / 2) * (1 / zoomLevel.value);
+	x1 = (fromBCR.x - canvasBCR.x + fromBCR.width / 2) * zoomRatio.value;
+	y1 = (fromBCR.y - canvasBCR.y + fromBCR.height / 2) * zoomRatio.value;
 	if (!fromEl) return;
 	if (typeof toNodeId !== "undefined") {
 		const toEl = document.querySelector(`[data-writer-id="${toNodeId}"]`);
 		const toBCR = toEl.getBoundingClientRect();
-		x2 = (toBCR.x - canvasBCR.x) * (1 / zoomLevel.value);
-		y2 = (toBCR.y - canvasBCR.y + toBCR.height / 2) * (1 / zoomLevel.value);
+		x2 = (toBCR.x - canvasBCR.x) * zoomRatio.value;
+		y2 = (toBCR.y - canvasBCR.y + toBCR.height / 2) * zoomRatio.value;
 	}
 
 	return {
@@ -508,13 +580,44 @@ function clearActiveOperations() {
 	activeNodeMove.value = null;
 }
 
-function saveNodeMove() {
-	changeCoordinatesMultiple(temporaryNodeCoordinates.value);
-	temporaryNodeCoordinates.value = {};
+function changeCoordinatesMultipleWithCheck(
+	nodeCoordinates: Record<Component["id"], Point>,
+) {
+	const coordinatesFixed = Object.entries(nodeCoordinates)
+		.filter(([id, point]) => {
+			const c = wf.getComponentById(id);
+			return c?.x !== point.x || c?.y !== point.y;
+		})
+		.reduce((acc, [id, point]) => {
+			const newPoint = computePointInTheGrid(point, GRID_TICK);
+			const currentRectangle = getNodeRectange(id);
+			const rectange = { ...currentRectangle, ...newPoint };
+
+			const otherRectangles = nodes.value
+				.filter((n) => n.id !== id)
+				.map((c) => getNodeRectange(c.id))
+				.filter(Boolean);
+
+			const { x, y } = positionateRectangleWithoutOverlap(
+				rectange,
+				otherRectangles,
+				GRID_TICK,
+			);
+			if (currentRectangle.x !== x || currentRectangle.y !== y) {
+				acc[id] = { x, y };
+			}
+
+			return acc;
+		}, {});
+
+	if (Object.keys(coordinatesFixed).length === 0) return;
+
+	changeCoordinatesMultiple(coordinatesFixed);
 }
 
-function computeDistance(a: Point, b: Point): number {
-	return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+function saveNodeMove() {
+	changeCoordinatesMultipleWithCheck(temporaryNodeCoordinates.value);
+	temporaryNodeCoordinates.value = {};
 }
 
 function moveNode(ev: MouseEvent) {
@@ -536,8 +639,7 @@ function moveNode(ev: MouseEvent) {
 		activeNodeMove.value = { ...activeNodeMove.value, isPerfected: true };
 	}
 
-	const translationX = newX - component.x;
-	const translationY = newY - component.y;
+	const trans = { x: newX - component.x, y: newY - component.y };
 
 	const isMovingNodeSelected = wfbm.selection.value.some(
 		(c) => c.componentId === nodeId,
@@ -559,10 +661,10 @@ function moveNode(ev: MouseEvent) {
 			(c) => c.id !== nodeId && c.x !== undefined && c.y !== undefined,
 		)
 		.reduce<Record<string, Point>>((acc, component) => {
-			acc[component.id] = {
-				x: component.x + translationX,
-				y: component.y + translationY,
-			};
+			acc[component.id] = translatePoint(
+				{ x: component.x, y: component.y },
+				trans,
+			);
 			return acc;
 		}, {});
 
@@ -582,8 +684,8 @@ function moveCanvas(ev: MouseEvent) {
 	activeCanvasMove.value = { isPerfected: true, offset: { x, y } };
 
 	changeRenderOffset(
-		renderOffset.value.x + (prevX - x) * 1 * (1 / zoomLevel.value),
-		renderOffset.value.y + (prevY - y) * 1 * (1 / zoomLevel.value),
+		renderOffset.value.x + (prevX - x) * 1 * zoomRatio.value,
+		renderOffset.value.y + (prevY - y) * 1 * zoomRatio.value,
 	);
 }
 
@@ -642,18 +744,23 @@ async function handleMouseup(ev: MouseEvent) {
 	});
 }
 
-function createNode(type: string, { x, y }: Point) {
-	createAndInsertComponent(type, blueprintComponentId, undefined, {
-		x: Math.floor(x),
-		y: Math.floor(y),
-	});
+function createNode(type: string, point: Point) {
+	const otherRectangles = nodes.value
+		.map((c) => getNodeRectange(c.id))
+		.filter(Boolean);
+	const { x, y } = positionateRectangleWithoutOverlap(
+		{ ...point, width: 240, height: 180 },
+		otherRectangles,
+		GRID_TICK,
+	);
+	createAndInsertComponent(type, blueprintComponentId, undefined, { x, y });
 }
 
 function findAndCenterBlock(componentId: Component["id"]) {
-	const el = rootEl.value.querySelector(`[data-writer-id="${componentId}"]`);
+	const componentBCR = getNodeBoundingClientRect(componentId);
 	const canvasBCR = rootEl.value?.getBoundingClientRect();
-	if (!el || !canvasBCR) return;
-	const { width, height } = el.getBoundingClientRect();
+	if (!componentBCR || !canvasBCR) return;
+	const { width, height } = componentBCR;
 	const component = wf.getComponentById(componentId);
 	if (!component) return;
 
@@ -709,8 +816,8 @@ function changeRenderOffset(x: number, y: number) {
 
 function handleWheelScroll(ev: WheelEvent) {
 	changeRenderOffset(
-		renderOffset.value.x + ev.deltaX * (1 / zoomLevel.value),
-		renderOffset.value.y + ev.deltaY * (1 / zoomLevel.value),
+		renderOffset.value.x + ev.deltaX * zoomRatio.value,
+		renderOffset.value.y + ev.deltaY * zoomRatio.value,
 	);
 }
 
@@ -735,12 +842,12 @@ function handleWheelZoom(ev: WheelEvent) {
 		w:
 			canvasBCR.width *
 			(1 / preZoom) *
-			(1 / zoomLevel.value) *
+			zoomRatio.value *
 			(zoomLevel.value - preZoom),
 		h:
 			canvasBCR.height *
 			(1 / preZoom) *
-			(1 / zoomLevel.value) *
+			zoomRatio.value *
 			(zoomLevel.value - preZoom),
 	};
 
@@ -780,13 +887,11 @@ async function resetZoom() {
 			return {
 				maxY: Math.max(
 					acc.maxY,
-					(rect.bottom - y) * (1 / zoomLevel.value) +
-						renderOffset.value.y,
+					(rect.bottom - y) * zoomRatio.value + renderOffset.value.y,
 				),
 				maxX: Math.max(
 					acc.maxX,
-					(rect.right - x) * (1 / zoomLevel.value) +
-						renderOffset.value.x,
+					(rect.right - x) * zoomRatio.value + renderOffset.value.x,
 				),
 			};
 		},
@@ -830,11 +935,64 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 	}
 });
 
+function handleKeydown(event: KeyboardEvent) {
+	const isModifiedKey = isModifierKeyActive(event);
+
+	// toggle grid with "cmd + `" (like Figma)
+	if (
+		isModifiedKey &&
+		(event.code === "Backquote" || event.code === "Backslash")
+	) {
+		displayGrid.value = !displayGrid.value;
+		return;
+	}
+
+	if (!wfbm.selection.value.length) return;
+
+	const target = event.target as HTMLElement;
+	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+
+	function getDirection(): Point | undefined {
+		switch (event.key) {
+			case "ArrowDown":
+				return { x: 0, y: GRID_TICK };
+			case "ArrowUp":
+				return { x: 0, y: -GRID_TICK };
+			case "ArrowLeft":
+				return { x: -GRID_TICK, y: 0 };
+			case "ArrowRight":
+				return { x: GRID_TICK, y: 0 };
+		}
+	}
+	const direction = getDirection();
+	if (direction === undefined) return;
+
+	event.preventDefault();
+
+	const coordinates = wfbm.selection.value
+		.map((s) => wf.getComponentById(s.componentId))
+		.filter((c) => c?.x !== undefined && c?.y !== undefined)
+		.reduce<Record<Component["id"], Point>>((acc, c) => {
+			acc[c.id] = translatePoint({ x: c.x, y: c.y }, direction);
+			return acc;
+		}, {});
+
+	changeCoordinatesMultipleWithCheck(coordinates);
+}
+
+const abort = new AbortController();
+
 onMounted(async () => {
 	await resetZoom();
 	await nextTick();
 	refreshArrows();
-	rootEl.value?.addEventListener("wheel", handleWheel);
+	rootEl.value?.addEventListener("wheel", handleWheel, {
+		signal: abort.signal,
+	});
+
+	document.addEventListener("keydown", handleKeydown, {
+		signal: abort.signal,
+	});
 	arrowRefresherObserver.observe(nodeContainerEl.value, {
 		attributes: true,
 		attributeFilter: ["style"],
@@ -848,7 +1006,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-	rootEl.value?.removeEventListener("wheel", handleWheel);
+	abort.abort();
 	arrowRefresherObserver.disconnect();
 });
 </script>
@@ -860,7 +1018,7 @@ onUnmounted(() => {
 	display: flex;
 	width: 100%;
 	min-height: 100%;
-	background: var(--builderSubtleSeparatorColor);
+	background: var(--wdsColorGray0);
 	flex: 1 0 auto;
 	flex-direction: row;
 	align-items: stretch;
