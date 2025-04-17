@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineProps, useId } from "vue";
+import { computed, useId } from "vue";
 
 const props = defineProps({
 	label: { type: String, required: false, default: undefined },

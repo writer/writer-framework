@@ -142,10 +142,18 @@ const {
 	isCutAllowed,
 	isDeleteAllowed,
 	isGoToParentAllowed,
+	isGoToChildAllowed,
+	isGoToNextSiblingAllowed,
+	isGoToPrevSiblingAllowed,
 	pasteComponent,
 	copyComponent,
 	removeComponentsSubtree,
 	goToParent,
+	goToChild,
+	goToNextSibling,
+	goToPrevSibling,
+	moveComponentToParent,
+	moveComponentInsideNextSibling,
 } = useComponentActions(wf, ssbm);
 
 const builderMode = computed(() => ssbm.getMode());
@@ -186,33 +194,59 @@ function handleKeydown(ev: KeyboardEvent): void {
 		removeComponentsSubtree(...componentIds);
 		return;
 	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive && ev.shiftKey) {
-		if (!isGoToParentAllowed(selectedId)) return;
-		goToParent(selectedId, selectedInstancePath);
-		return;
-	}
-	if (ev.key == "ArrowUp" && isModifierKeyActive) {
-		moveComponentUp(selectedId);
-		return;
-	}
-	if (ev.key == "ArrowDown" && isModifierKeyActive) {
-		moveComponentDown(selectedId);
-		return;
-	}
-	if (ev.key == "v" && isModifierKeyActive) {
-		if (!isPasteAllowed(selectedId)) return;
-		pasteComponent(selectedId);
-		return;
-	}
-	if (ev.key == "c" && isModifierKeyActive) {
-		if (!isCopyAllowed(selectedId)) return;
-		copyComponent(selectedId);
-		return;
-	}
-	if (ev.key == "x" && isModifierKeyActive) {
-		if (!isCutAllowed(selectedId)) return;
-		cutComponent(selectedId);
-		return;
+
+	if (!isModifierKeyActive) return;
+
+	if (ev.shiftKey) {
+		switch (ev.key) {
+			case "ArrowDown":
+				ev.preventDefault();
+				if (isGoToNextSiblingAllowed(selectedId))
+					goToNextSibling(selectedId);
+				break;
+			case "ArrowUp":
+				ev.preventDefault();
+				if (isGoToPrevSiblingAllowed(selectedId))
+					goToPrevSibling(selectedId);
+				break;
+			case "ArrowLeft":
+				ev.preventDefault();
+				if (isGoToParentAllowed(selectedId))
+					goToParent(selectedId, selectedInstancePath);
+				break;
+			case "ArrowRight":
+				ev.preventDefault();
+				if (isGoToChildAllowed(selectedId)) goToChild(selectedId);
+				break;
+		}
+	} else {
+		switch (ev.key) {
+			case "ArrowDown":
+				ev.preventDefault();
+				moveComponentDown(selectedId);
+				break;
+			case "ArrowUp":
+				ev.preventDefault();
+				moveComponentUp(selectedId);
+				break;
+			case "ArrowLeft":
+				ev.preventDefault();
+				moveComponentToParent(selectedId);
+				break;
+			case "ArrowRight":
+				ev.preventDefault();
+				moveComponentInsideNextSibling(selectedId);
+				break;
+			case "v":
+				if (isPasteAllowed(selectedId)) pasteComponent(selectedId);
+				break;
+			case "c":
+				if (isCopyAllowed(selectedId)) copyComponent(selectedId);
+				break;
+			case "x":
+				if (isCutAllowed(selectedId)) cutComponent(selectedId);
+				break;
+		}
 	}
 }
 
