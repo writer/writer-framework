@@ -56,7 +56,9 @@ test.describe("Blueprints", () => {
 	test("Create blueprint and run blueprint repeat_payload from it", async ({
 		page,
 	}) => {
-		await page.locator(`[data-automation-action="set-mode-blueprints"]`).click();
+		await page
+			.locator(`[data-automation-action="set-mode-blueprints"]`)
+			.click();
 		await page.locator(`[data-automation-action="add-blueprint"]`).click();
 
 		await page
