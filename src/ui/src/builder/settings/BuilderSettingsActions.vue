@@ -91,12 +91,8 @@
 			size="small"
 			:data-writer-tooltip="`Paste (${getModifierKeyName()}V)`"
 			data-writer-tooltip-placement="left"
-			:disabled="!shortcutsInfo?.isPasteEnabled"
-			@click="
-				shortcutsInfo?.isPasteEnabled
-					? pasteComponent(selectedId)
-					: undefined
-			"
+			:disabled="!isPasteEnabled"
+			@click="isPasteEnabled ? pasteComponent(selectedId) : undefined"
 		>
 			<i class="material-symbols-outlined">content_paste</i>
 		</WdsButton>
@@ -223,10 +219,14 @@ const shortcutsInfo: Ref<{
 	isMoveDownEnabled: boolean;
 	isCopyEnabled: boolean;
 	isCutEnabled: boolean;
-	isPasteEnabled: boolean;
 	isGoToParentEnabled: boolean;
 	isDeleteEnabled: boolean;
 }> = ref(null);
+
+const isPasteEnabled = computed(() => {
+	if (!ssbm.firstSelectedId.value) return false;
+	return isPasteAllowed(ssbm.firstSelectedId.value);
+});
 
 const validChildrenTypes = computed(() => {
 	const types = wf.getContainableTypes(selectedId.value);
@@ -268,7 +268,6 @@ function reprocessShorcutsInfo(): void {
 		isMoveDownEnabled,
 		isCopyEnabled: isCopyAllowed(selectedId.value),
 		isCutEnabled: isCutAllowed(selectedId.value),
-		isPasteEnabled: isPasteAllowed(selectedId.value),
 		isGoToParentEnabled: isGoToParentAllowed(selectedId.value),
 		isDeleteEnabled: isDeleteAllowed(selectedId.value),
 	};
