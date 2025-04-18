@@ -68,9 +68,9 @@ export type WriterComponentDefinitionField = {
 	/** Which control (text, textarea, etc) to use if not the default for the type */
 	control?: FieldControl;
 	options?:
-	| Record<string, string>
-	| string // For predefined functions
-	| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
+		| Record<string, string>
+		| string // For predefined functions
+		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
 	/** Category (Layout, Content, etc) */
@@ -123,11 +123,6 @@ export type WriterComponentDefinition = {
 };
 
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
-
-export const enum ClipboardOperation {
-	Cut = "cut",
-	Copy = "copy",
-}
 
 export const enum FieldType {
 	Text = "Text",
