@@ -1,5 +1,5 @@
 import { computed, readonly, ref, Ref } from "vue";
-import { Component, ClipboardOperation } from "@/writerTypes";
+import { Component } from "@/writerTypes";
 import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 import { useLogger } from "@/composables/useLogger.js";
 
@@ -73,10 +73,6 @@ type State = {
 		instancePath: string;
 		source: SelectionSource;
 	}[];
-	clipboard: {
-		operation: ClipboardOperation;
-		jsonSubtree: string;
-	};
 	mutationTransactionsSnapshot: {
 		undo: ComponentMutationTransaction;
 		redo: ComponentMutationTransaction;
@@ -91,7 +87,6 @@ export function generateBuilderManager() {
 	const initState: State = {
 		mode: modeCache.value ?? "ui",
 		selection: [],
-		clipboard: null,
 		mutationTransactionsSnapshot: {
 			undo: null,
 			redo: null,
@@ -213,14 +208,6 @@ export function generateBuilderManager() {
 		() => state.value.selection[0]?.componentId,
 	);
 
-	const setClipboard = (clipboard: State["clipboard"]) => {
-		state.value.clipboard = clipboard;
-	};
-
-	const getClipboard = () => {
-		return state.value.clipboard;
-	};
-
 	const openMutationTransaction = (
 		transactionId: string,
 		transactionDesc: string,
@@ -293,7 +280,7 @@ export function generateBuilderManager() {
 				activeMutationTransaction.id,
 			);
 			return;
-		};
+		}
 		activeMutationTransaction.timestamp = Date.now();
 		mutationTransactions.push(activeMutationTransaction);
 		activeMutationTransaction = null;
@@ -414,8 +401,6 @@ export function generateBuilderManager() {
 		appendSelection,
 		handleSelectionFromEvent,
 		selection: computed(() => state.value.selection),
-		setClipboard,
-		getClipboard,
 		mutationTransactions: readonly(mutationTransactions),
 		openMutationTransaction,
 		registerPreMutation,

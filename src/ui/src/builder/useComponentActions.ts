@@ -1,11 +1,7 @@
 import { getContainableTypes } from "../core/typeHierarchy";
-import {
-	Core,
-	BuilderManager,
-	Component,
-	ClipboardOperation,
-	ComponentMap,
-} from "@/writerTypes";
+import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
+import { useComponentClipboard } from "./useComponentClipboard";
+import { toRaw } from "vue";
 
 export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function generateNewComponentId() {
@@ -420,16 +416,18 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function isPasteAllowed(targetId: Component["id"]): boolean {
 		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) return false;
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return false;
-		const { jsonSubtree } = clipboard;
-		const subtree: Component[] = JSON.parse(jsonSubtree);
-		if (subtree.length == 0) return false;
+		if (componentClipboard.value.length === 0) return false;
 
 		// Mutate the subtree to reflect tentative parent
+		const futureSubTree: Component[] = [
+			{
+				...componentClipboard.value[0],
+				parentId: targetId,
+			},
+			...componentClipboard.value.slice(1),
+		];
 
-		subtree[0].parentId = targetId;
-		return isSubtreeIngestable(subtree);
+		return isSubtreeIngestable(futureSubTree);
 	}
 
 	/**
@@ -470,6 +468,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			component.position < positionableSiblingCount - 1;
 		return { up: isUpEnabled, down: isDownEnabled };
 	}
+	const componentClipboard = useComponentClipboard();
 
 	/**
 	 * Cuts a component and its descendents and places them in the internal clipboard.
@@ -478,10 +477,8 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function cutComponent(componentId: Component["id"]): void {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Cut,
-			jsonSubtree: JSON.stringify(getFlatComponentSubtree(componentId)),
-		});
+		const components = getFlatComponentSubtree(componentId);
+		componentClipboard.value = components;
 		ssbm.setSelection(null);
 		removeComponentSubtree(componentId);
 		wf.sendComponentUpdate();
@@ -529,11 +526,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 		const subtree = getFlatComponentSubtree(componentId);
 		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(newSubtree),
-		});
+		componentClipboard.value = newSubtree;
 	}
 
 	/**
@@ -544,10 +537,8 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		const targetParent = wf.getComponentById(targetParentId);
 		if (!targetParent) return;
 
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return;
-		const { operation, jsonSubtree } = clipboard;
-		const subtree = JSON.parse(jsonSubtree);
+		if (!componentClipboard.value.length) return;
+		const subtree = componentClipboard.value;
 
 		const rootComponent = subtree[0];
 		if (
@@ -557,38 +548,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			rootComponent.outs = [];
 		}
 
-		if (operation == ClipboardOperation.Cut)
-			return pasteCutComponent(targetParentId, subtree);
-		if (operation == ClipboardOperation.Copy)
-			return pasteCopyComponent(targetParentId, subtree);
-	}
-
-	/**
-	 * Pastes a subtree that has been obtained by a cut operation.
-	 */
-	function pasteCutComponent(
-		targetParentId: Component["id"],
-		subtree: Component[],
-	) {
-		// MUTATION
-
-		ssbm.setClipboard(null);
-		const rootComponent = subtree[0];
-
-		rootComponent.parentId = targetParentId;
-		rootComponent.position = getNextInsertionPosition(
-			targetParentId,
-			rootComponent.type,
-		);
-
-		const transactionId = `paste-cut-${targetParentId}`;
-		ssbm.openMutationTransaction(transactionId, `Paste from cut`);
-		subtree.map((c) => {
-			wf.addComponent(c);
-			ssbm.registerPostMutation(c);
-		});
-		ssbm.closeMutationTransaction(transactionId);
-		wf.sendComponentUpdate();
+		return pasteCopyComponent(targetParentId, subtree);
 	}
 
 	/**
@@ -598,14 +558,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		targetParentId: Component["id"],
 		subtree: Component[],
 	) {
-		// Regenerate clipboard for future pastes
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(
-				getNewSubtreeWithRegeneratedIds(subtree),
-			),
-		});
+		componentClipboard.value = getNewSubtreeWithRegeneratedIds(subtree);
 
 		// MUTATION
 
