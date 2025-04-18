@@ -11,6 +11,7 @@ import {
 } from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
+import { useDebouncer } from "./useDebouncer";
 
 export function useApplicationCloud(wf: Core) {
 	const logger = useLogger();
@@ -24,6 +25,36 @@ export function useApplicationCloud(wf: Core) {
 		WriterApiApplicationDeployment | undefined
 	>();
 
+	const root = computed(() => wf.getComponentById("root"));
+
+	const updateAppName = useDebouncer(async () => {
+		if (isCloudApp.value && wf.mode.value === "edit") {
+			writerApi.updateApplicationMetadata(orgId.value, appId.value, {
+				name: name.value,
+			});
+		}
+		await wf.sendComponentUpdate();
+	}, 1_000);
+
+	const name = computed<string>({
+		get: () => {
+			return root.value.content["appName"];
+		},
+		set: (value) => {
+			if (root.value.content["appName"] === value) return;
+			root.value.content["appName"] = value;
+			updateAppName();
+		},
+	});
+
+	watch(() => root.value.content["appName"], updateAppName);
+	watch(deploymentInformation, () => {
+		const deployName = deploymentInformation.value?.name;
+
+		if (deployName === undefined) return;
+		name.value = deployName;
+	});
+
 	const apiBaseUrl =
 		// @ts-expect-error use injected variable from Vite to specify the host on local env
 		import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
@@ -33,11 +64,18 @@ export function useApplicationCloud(wf: Core) {
 		baseUrl: apiBaseUrl,
 	});
 
-	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
+	const isCloudApp = computed(() => Boolean(wf.writerApplication.value));
 	const orgId = computed(() => {
 		return Number(wf.writerApplication.value?.organizationId) || undefined;
 	});
 	const appId = computed(() => wf.writerApplication.value?.id);
+
+	const writerDeployUrl = computed(() => {
+		return new URL(
+			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
+			apiBaseUrl,
+		);
+	});
 
 	const liveUrl = computed(() => {
 		const teamId = deploymentInformation.value.writer?.teamIds?.[0];
@@ -93,12 +131,10 @@ export function useApplicationCloud(wf: Core) {
 	}
 
 	async function publishApplication() {
-		if (!wf.writerApplication.value) return;
+		if (!wf.writerApplication.value || wf.mode.value !== "edit") return;
 
 		if (!hasBeenPublished.value) {
-			const path = `/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`;
-			const deployUrl = new URL(path, apiBaseUrl);
-			window.open(deployUrl, "_blank");
+			window.open(writerDeployUrl.value, "_blank");
 			return;
 		}
 
@@ -133,6 +169,8 @@ export function useApplicationCloud(wf: Core) {
 	onUnmounted(() => abort.abort());
 
 	return {
+		writerDeployUrl,
+		name,
 		isCloudApp,
 		canDeploy,
 		hasBeenPublished,
