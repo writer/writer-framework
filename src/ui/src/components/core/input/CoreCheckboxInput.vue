@@ -62,7 +62,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
-		name: "Checkbox Input",
+		name: "Checkbox input",
 		description,
 		category: "Input",
 		fields: {

@@ -26,7 +26,7 @@ const description =
 
 export default {
 	writer: {
-		name: "HTML Element",
+		name: "HTML element",
 		description,
 		category: "Other",
 		allowedChildrenTypes: ["*"],

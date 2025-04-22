@@ -48,7 +48,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
-		name: "Multiselect Input",
+		name: "Multiselect input",
 		description,
 		category: "Input",
 		fields: {

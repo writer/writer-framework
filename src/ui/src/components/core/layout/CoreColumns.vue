@@ -9,7 +9,7 @@ import { cssClasses } from "@/renderer/sharedStyleFields";
 
 export default {
 	writer: {
-		name: "Column Container",
+		name: "Column container",
 		description: "Serves as container for Column components",
 		allowedChildrenTypes: ["column", "repeater", "separator"],
 		category: "Layout",

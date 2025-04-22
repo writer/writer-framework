@@ -59,8 +59,8 @@
 
 <script lang="ts">
 /**
- * This component follows a logic similar to the one seen in Tab and Tab Container.
- * Most of the complexity arises from allowing Repeater components between the Step Container (parent) and the Step (child).
+ * This component follows a logic similar to the one seen in Tab and Tab container.
+ * Most of the complexity arises from allowing Repeater components between the Step container (parent) and the Step (child).
  */
 
 const STEP_BIT_INSTANCE_NUMBER = 0;
@@ -77,7 +77,7 @@ import {
 import { onBeforeUnmount } from "vue";
 
 const description =
-	"A container component that displays its child components as a step inside a Step Container.";
+	"A container component that displays its child components as a step inside a Step container.";
 
 export default {
 	writer: {
@@ -130,7 +130,7 @@ const selectedId = computed(() => ssbm?.firstSelectedId.value);
 const stepContainerData: Ref<StepsData> = getStepContainerData();
 
 /**
- * Gets the negative index in the instancePath for the steps (Step Container) component
+ * Gets the negative index in the instancePath for the steps (Step container) component
  * that governs this step.
  *
  * In line with Array.at(), -1 is the last element, -2 the previous in the chain.
@@ -148,7 +148,7 @@ function getStepContainerNegativeIndex(): number {
 }
 
 /**
- * Returns the InstanceData for the parent Step Container.
+ * Returns the InstanceData for the parent Step container.
  */
 function getStepContainerData(): Ref<StepsData> {
 	const negativeIndex = getStepContainerNegativeIndex();
@@ -160,7 +160,7 @@ function getStepContainerData(): Ref<StepsData> {
  * Returns the InstancePath of the main instance (content-displaying) of this Step component.
  */
 function getMatchingStepInstancePath() {
-	const i = getStepContainerNegativeIndex() + 1; // Gets negative index for direct child of Step Container
+	const i = getStepContainerNegativeIndex() + 1; // Gets negative index for direct child of Step container
 	const itemsBefore = instancePath.slice(0, i);
 	const itemsAfter = i + 1 < 0 ? instancePath.slice(i + 1) : [];
 	const matchingInstancePath = [
@@ -242,7 +242,7 @@ watch(selectedId, (newSelectedId) => {
 
 /*
 Determine whether this step is active by checking whether this step's InstancePath matches the 
-active step's in the parent Step Container.
+active step's in the parent Step container.
 */
 const isStepActive = computed(() => {
 	let contentDisplayingInstancePath: InstancePath;
@@ -288,7 +288,7 @@ onBeforeMount(() => {
 	)
 		return;
 
-	// Register steps in the Step Container
+	// Register steps in the Step container
 
 	if (
 		typeof stepContainerData.value.steps.find(

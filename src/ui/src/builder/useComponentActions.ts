@@ -385,7 +385,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		 * created by inheritance mechanisms in component parenting.
 		 *
 		 * For example, a Repeater with a nested Repeater with a Column
-		 * can only be pasted in a Column Container. But a Repeater with a Section
+		 * can only be pasted in a Column container. But a Repeater with a Section
 		 * can be pasted almost anywhere.
 		 */
 
