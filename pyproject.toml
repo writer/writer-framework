@@ -9,7 +9,7 @@ description = "An open-source, Python framework for building feature-rich apps t
 authors = ["Writer, Inc."]
 readme = "README.md"
 homepage = "https://www.writer.com"
-repository = "https://www.github.com/streamsync-cloud/streamsync"
+repository = "https://github.com/writer/writer-framework"
 documentation = "https://dev.writer.com/framework"
 keywords = ["data apps", "gui", "ui", "framework", "writer framework"]
 classifiers = [
@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Development Status :: 5 - Production/Stable"
 ]
 packages = [
