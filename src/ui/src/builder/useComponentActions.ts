@@ -825,15 +825,16 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function changeCoordinatesMultiple(
 		coordinates: Record<Component["id"], { x: number; y: number }>,
 	) {
-		const transactionId = "change-multiple-coordinates";
+		const entries = Object.entries(coordinates);
+		if (entries.length == 0) return;
+
+		const transactionId = `change-multiple-coordinates-${Object.keys(coordinates).join(",")}`;
 		ssbm.openMutationTransaction(
 			transactionId,
 			"Change coordinates",
 			false,
 		);
 
-		const entries = Object.entries(coordinates);
-		if (entries.length == 0) return;
 		entries.forEach(([componentId, { x, y }]) => {
 			const component = wf.getComponentById(componentId);
 			if (!component) return;
@@ -965,7 +966,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	): Component["id"] {
 		const component = wf.getComponentById(componentId);
 		if (!component || component.type == "root") return null;
-		if (component.type == "page" || component.type == "blueprints_blueprint")
+		if (
+			component.type == "page" ||
+			component.type == "blueprints_blueprint"
+		)
 			return componentId;
 		return getContainingPageId(component.parentId);
 	}

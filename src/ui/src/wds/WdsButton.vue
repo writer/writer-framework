@@ -13,10 +13,9 @@
 	</button>
 </template>
 
-<script setup lang="ts">
-import { computed, CSSProperties, defineAsyncComponent, PropType } from "vue";
+<script lang="ts">
 /** See Variants on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonVariant =
+export type WdsButtonVariant =
 	| "primary"
 	| "secondary"
 	| "tertiary"
@@ -24,7 +23,11 @@ type WdsButtonVariant =
 	| "neutral";
 
 /** See Sizes on [Figma](https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/WDS-Writer-Design-System?node-id=67-701) */
-type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
+export type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
+</script>
+
+<script setup lang="ts">
+import { computed, CSSProperties, defineAsyncComponent, PropType } from "vue";
 
 const WdsLoaderDots = defineAsyncComponent(
 	() => import("@/wds/WdsLoaderDots.vue"),

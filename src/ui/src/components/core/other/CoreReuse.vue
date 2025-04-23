@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { computed, defineProps, h, inject, ref, watch } from "vue";
+import { computed, h, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 export default {

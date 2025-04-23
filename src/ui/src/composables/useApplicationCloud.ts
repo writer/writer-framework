@@ -1,6 +1,14 @@
 import { WriterApi, WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
-import { computed, onMounted, readonly, ref, shallowRef, watch } from "vue";
+import {
+	computed,
+	onMounted,
+	onUnmounted,
+	readonly,
+	ref,
+	shallowRef,
+	watch,
+} from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
 
@@ -31,16 +39,11 @@ export function useApplicationCloud(wf: Core) {
 	});
 	const appId = computed(() => wf.writerApplication.value?.id);
 
-	const deployUrl = computed(() => {
-		return new URL(
-			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
-			apiBaseUrl,
-		);
-	});
-
 	const liveUrl = computed(() => {
-		return deploymentInformation.value.applicationVersionData.data
-			?.deploymentUrl;
+		const teamId = deploymentInformation.value.writer?.teamIds?.[0];
+		if (!teamId) return undefined;
+		const path = `/organization/${orgId.value}/team/${teamId}/framework/${appId.value}`;
+		return new URL(path, apiBaseUrl);
 	});
 
 	const lastDeployedAt = computed(() => {
@@ -54,11 +57,7 @@ export function useApplicationCloud(wf: Core) {
 	);
 
 	const hasBeenPublished = computed(() => {
-		if (deploymentInformation.value === undefined) return undefined;
-		return Boolean(
-			deploymentInformation.value.writer &&
-				deploymentInformation.value.lastDeployedAt,
-		);
+		return deploymentInformation.value?.status === "deployed";
 	});
 
 	watch(wf.writerApplication, fetchApplicationDeployment, {
@@ -97,7 +96,9 @@ export function useApplicationCloud(wf: Core) {
 		if (!wf.writerApplication.value) return;
 
 		if (!hasBeenPublished.value) {
-			window.open(deployUrl.value, "_blank");
+			const path = `/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`;
+			const deployUrl = new URL(path, apiBaseUrl);
+			window.open(deployUrl, "_blank");
 			return;
 		}
 
@@ -112,15 +113,14 @@ export function useApplicationCloud(wf: Core) {
 					deploymentInformation.value.applicationVersionData.id,
 			});
 			await fetchApplicationDeployment();
-			pushToast({
-				type: "success",
-				message: "agent deployed",
-				action: {
-					label: "See it live",
-					func: () => window.open(liveUrl.value, "_blank"),
-					icon: "open_in_new",
-				},
-			});
+			const action = liveUrl.value
+				? {
+						label: "See it live",
+						func: () => window.open(liveUrl.value, "_blank"),
+						icon: "open_in_new",
+					}
+				: undefined;
+			pushToast({ type: "success", message: "agent deployed", action });
 		} catch (e) {
 			deployError.value = e;
 			logger.error("Deploy failed", e);
@@ -129,6 +129,8 @@ export function useApplicationCloud(wf: Core) {
 			isDeploying.value = false;
 		}
 	}
+
+	onUnmounted(() => abort.abort());
 
 	return {
 		isCloudApp,
