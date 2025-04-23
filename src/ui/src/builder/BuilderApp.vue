@@ -92,6 +92,7 @@ import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -121,6 +122,8 @@ const BuilderInsertionLabel = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
+const tracking = useSegmentTracking(wf);
+
 const {
 	candidateId,
 	candidateInstancePath,
@@ -146,7 +149,7 @@ const {
 	copyComponent,
 	removeComponentsSubtree,
 	goToParent,
-} = useComponentActions(wf, ssbm);
+} = useComponentActions(wf, ssbm, tracking);
 
 const builderMode = computed(() => ssbm.getMode());
 const selectedId = computed(() => ssbm.firstSelectedId.value);
@@ -229,7 +232,17 @@ function handleRendererDrop(ev: DragEvent) {
 	const { draggedType, draggedId, parentId, position } = dropInfo;
 
 	if (!draggedId) {
-		createAndInsertComponent(draggedType, parentId, position);
+		const componentId = createAndInsertComponent(
+			draggedType,
+			parentId,
+			position,
+		);
+		tracking.track(
+			builderMode.value === "blueprints"
+				? "blueprints_block_added"
+				: "ui_block_added",
+			{ componentId },
+		);
 	} else {
 		moveComponent(draggedId, parentId, position);
 	}

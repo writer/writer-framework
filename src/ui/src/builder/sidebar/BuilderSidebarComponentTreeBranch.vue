@@ -69,6 +69,7 @@ import { useComponentActions } from "../useComponentActions";
 import TreeBranch from "../BuilderTree.vue";
 import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
 import { useComponentDescription } from "../useComponentDescription";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -81,12 +82,14 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const collapsed = ref(false);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
+
+const tracking = useSegmentTracking(wf);
 const {
 	createAndInsertComponent,
 	moveComponent,
 	goToComponentParentPage,
 	isDraggingAllowed,
-} = useComponentActions(wf, wfbm);
+} = useComponentActions(wf, wfbm, tracking);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(wf);
 const { isComponentVisible } = useEvaluator(wf);

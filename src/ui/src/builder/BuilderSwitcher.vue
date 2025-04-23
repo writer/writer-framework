@@ -33,15 +33,30 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
+const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
+
+const tracking = useSegmentTracking(wf);
 
 const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
 	const preMode = ssbm.getMode();
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
+	switch (optionId) {
+		case "ui":
+			tracking.track("nav_ui_opened");
+			break;
+		case "preview":
+			tracking.track("nav_preview_opened");
+			break;
+		case "blueprints":
+			tracking.track("nav_blueprints_opened");
+			break;
+	}
 	ssbm.setMode(optionId);
 	if (
 		optionId == "preview" ||

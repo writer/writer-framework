@@ -5,6 +5,7 @@ import WdsButtonSplit from "@/wds/WdsButtonSplit.vue";
 import injectionKeys from "@/injectionKeys";
 import { computed, inject, shallowRef, toRaw, useTemplateRef } from "vue";
 import BlueprintToolbarBlocksDropdown from "./BlueprintToolbarBlocksDropdown.vue";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 defineEmits({
 	autogenClick: () => true,
@@ -15,6 +16,8 @@ const wfbm = inject(injectionKeys.builderManager);
 const blueprintComponentId = inject(injectionKeys.componentId);
 
 const runBlueprintBtn = useTemplateRef("runBlueprintBtn");
+
+const tracking = useSegmentTracking(wf);
 
 const { run: handleRun, isRunning } = useBlueprintRun(wf, blueprintComponentId);
 

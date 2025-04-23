@@ -176,9 +176,12 @@ import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import { SelectionStatus } from "../builderManager";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const tracking = useSegmentTracking(wf);
 
 const {
 	createAndInsertComponent,
@@ -196,9 +199,9 @@ const {
 	getEnabledMoves,
 	removeComponentsSubtree,
 	goToParent,
-} = useComponentActions(wf, ssbm);
+} = useComponentActions(wf, ssbm, tracking);
 
-function deleteSelectedComponents() {
+async function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;
 	const componentIds = ssbm.selection.value.map((c) => c.componentId);
 	if (componentIds.length === 0) return;

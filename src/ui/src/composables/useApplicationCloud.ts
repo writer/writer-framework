@@ -1,4 +1,4 @@
-import { WriterApi, WriterApiApplicationDeployment } from "@/writerApi";
+import { WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
 import {
 	computed,
@@ -11,27 +11,23 @@ import {
 } from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
+import { useWriterApi } from "./useWriterClient";
+import { useSegmentTracking } from "./useSegmentTracking";
 
 export function useApplicationCloud(wf: Core) {
+	const abort = new AbortController();
+
+	const tracking = useSegmentTracking(wf);
+
 	const logger = useLogger();
 	const { pushToast } = useToasts();
-
-	const abort = new AbortController();
+	const { writerApi, apiBaseUrl } = useWriterApi({ signal: abort.signal });
 
 	const isDeploying = ref(false);
 	const deployError = shallowRef();
 	const deploymentInformation = shallowRef<
 		WriterApiApplicationDeployment | undefined
 	>();
-
-	const apiBaseUrl =
-		// @ts-expect-error use injected variable from Vite to specify the host on local env
-		import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
-
-	const writerApi = new WriterApi({
-		signal: abort.signal,
-		baseUrl: apiBaseUrl,
-	});
 
 	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
 	const orgId = computed(() => {
@@ -121,7 +117,10 @@ export function useApplicationCloud(wf: Core) {
 					}
 				: undefined;
 			pushToast({ type: "success", message: "agent deployed", action });
+
+			tracking.track("deployment_succeeded");
 		} catch (e) {
+			tracking.track("deployment_failed", { error: String(e) });
 			deployError.value = e;
 			logger.error("Deploy failed", e);
 			pushToast({ type: "error", message: "deploy failed" });

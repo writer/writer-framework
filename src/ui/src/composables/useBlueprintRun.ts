@@ -1,16 +1,51 @@
 import type { generateCore } from "@/core";
 import { computed, readonly, Ref, ref, unref } from "vue";
+import { useSegmentTracking } from "./useSegmentTracking";
+
+interface RunBlueprintResponse {
+	ok: boolean;
+	payload: {
+		mail: {
+			payload: {
+				type: "info" | "error";
+				title: string;
+			};
+		}[];
+		result: {
+			ok: boolean;
+		};
+	};
+}
 
 function runBlueprint(
 	wf: ReturnType<typeof generateCore>,
 	blueprintComponentId: string,
 	branchId?: string,
 ) {
-	return new Promise((res, rej) => {
+	return new Promise<void>((res, rej) => {
+		const tracking = useSegmentTracking(wf);
+		const trackPayload = {
+			blueprintComponentId,
+			branchId,
+		};
+		tracking.track("blueprints_run_started", trackPayload);
+
+		function callback(result: RunBlueprintResponse) {
+			const hasError = result.payload?.mail?.some(
+				(m) => m.payload?.type === "error",
+			);
+			if (hasError) {
+				tracking.track("blueprints_run_failed", trackPayload);
+			} else {
+				tracking.track("blueprints_run_succeeded", trackPayload);
+			}
+			res(undefined);
+		}
+
 		wf.forwardEvent(
 			new CustomEvent("wf-builtin-run", {
 				detail: {
-					callback: res,
+					callback,
 					handler: branchId
 						? `$runBlueprintTriggerBranchById_${branchId}`
 						: `$runBlueprintById_${blueprintComponentId}`,
@@ -18,7 +53,13 @@ function runBlueprint(
 			}),
 			null,
 			true,
-		).catch(rej);
+		).catch((err) => {
+			tracking.track("blueprints_run_failed", {
+				...trackPayload,
+				error: String(err),
+			});
+			rej(err);
+		});
 	});
 }
 

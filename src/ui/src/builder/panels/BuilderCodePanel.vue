@@ -107,6 +107,7 @@ import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
 import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const SharedMoreDropdown = defineAsyncComponent(
 	() => import("@/components/shared/SharedMoreDropdown.vue"),
@@ -127,6 +128,8 @@ const moreOptions: Option[] = [
 	{ label: "Rename file", value: "rename", icon: "edit" },
 	{ label: "Delete file", value: "delete", icon: "delete" },
 ];
+
+const tracking = useSegmentTracking(wf);
 
 const {
 	sourceFileDraft,
@@ -213,6 +216,7 @@ watch(wf.sessionTimestamp, () => {
 
 function onOpenPanel(open: boolean) {
 	if (!open) return;
+	tracking.track("nav_code_opened");
 	if (filepathOpen.value === undefined) openFile(["main.py"]);
 }
 
@@ -262,6 +266,7 @@ async function handleSave() {
 	try {
 		await save(isRenaming.value ? filename.value.split("/") : undefined);
 		pushToast({ type: "success", message: "The file was saved" });
+		tracking.track("nav_code_file_updated", { path: filepathOpen.value });
 	} catch (error) {
 		logger.error("The file hasn't been saved.", error);
 		pushToast({ type: "error", message: "The file hasn't been saved" });

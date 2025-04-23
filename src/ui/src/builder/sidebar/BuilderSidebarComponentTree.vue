@@ -48,12 +48,14 @@ import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBran
 import WdsButton from "@/wds/WdsButton.vue";
 import { useComponentActions } from "../useComponentActions";
 import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const query = ref("");
 
-const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+const tracking = useSegmentTracking(wf);
+const { createAndInsertComponent } = useComponentActions(wf, wfbm, tracking);
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -68,6 +70,7 @@ async function addPage() {
 	wf.setActivePageId(pageId);
 	await nextTick();
 	wfbm.setSelection(pageId);
+	tracking.track("ui_page_added");
 }
 
 async function addBlueprint() {
@@ -78,6 +81,7 @@ async function addBlueprint() {
 	wf.setActivePageId(pageId);
 	await nextTick();
 	wfbm.setSelection(pageId);
+	tracking.track("blueprints_new_added");
 }
 </script>
 

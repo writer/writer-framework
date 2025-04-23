@@ -113,6 +113,7 @@ import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
+import { useSegmentTracking } from "@/composables/useSegmentTracking";
 
 const { log } = useLogger();
 
@@ -210,12 +211,13 @@ const nodes = computed(() =>
 	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
 );
 
+const tracking = useSegmentTracking(wf);
 const {
 	createAndInsertComponent,
 	addOut,
 	removeOut,
 	changeCoordinatesMultiple,
-} = useComponentActions(wf, wfbm);
+} = useComponentActions(wf, wfbm, tracking);
 const { getComponentInfoFromDrag } = useDragDropComponent(wf);
 
 const activeConnection = shallowRef<{
