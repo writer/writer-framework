@@ -33,6 +33,7 @@ import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
+import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -94,7 +95,7 @@ function alterIds(components: Component[]) {
 async function handleAutogen() {
 	const description = prompt.value;
 	isBusy.value = true;
-	const response = await fetch("/api/autogen", {
+	const response = await fetch(convertAbsolutePathtoFullURL("/api/autogen"), {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
