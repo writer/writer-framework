@@ -18,7 +18,6 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
-from writer.blocks.writerremovefromkg import WriterRemoveFromKG
 from writer.blocks.writertoolcalling import WriterToolCalling
 
 SetState.register("blueprints_setstate")
@@ -37,7 +36,6 @@ AddToStateList.register("blueprints_addtostatelist")
 ReturnValue.register("blueprints_returnvalue")
 WriterInitChat.register("blueprints_writerinitchat")
 WriterAddToKG.register("blueprints_writeraddtokg")
-WriterRemoveFromKG.register("blueprints_writerremovefromkg")
 UIEventTrigger.register("blueprints_uieventtrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
