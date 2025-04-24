@@ -1,6 +1,4 @@
-from typing import Any, Optional
-
-import requests
+import json
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
@@ -93,46 +91,61 @@ class HTTPRequest(BlueprintBlock):
         )
 
     def run(self):
-        import json
-
         try:
             method = self._get_field("method", False, "GET")
             url = self._get_field("url")
-            headers = self._get_field("headers", True)
+            headers = self._get_field(
+                "headers", True, default_field_value="{}"
+                )
             body_type = self._get_field("bodyType")
             body = None
             raw_body = None
+
             if body_type == "JSON":
                 body = self._get_field("body", as_json=True)
                 raw_body = json.dumps(body)
+                headers.setdefault("Content-Type", "application/json")
             else:
                 body = self._get_field("body", as_json=False)
                 raw_body = body
 
-            res = requests.request(method, url, headers=headers, data=raw_body)
+            with self.acquire_httpx_client() as client:
+                res = client.request(
+                    method,
+                    url,
+                    headers=headers,
+                    content=raw_body
+                    )
 
-            content_type = res.headers.get("Content-Type")
-            is_response_json = content_type and "application/json" in content_type
+                content_type = res.headers.get("Content-Type", "")
+                is_response_json = "application/json" in content_type
 
-            self.result = {
-                "request": {
-                    "url": str(res.request.url),
-                    "headers": dict(res.request.headers),
-                    "body": str(res.request.body),
-                },
-                "headers": dict(res.headers),
-                "status_code": res.status_code,
-                "body": res.json() if is_response_json else res.text,
-            }
-            if res.ok:
-                self.outcome = "success"
-            else:
-                self.outcome = "responseError"
-                raise RuntimeError("HTTP response with code " + str(res.status_code))
+                self.result = {
+                    "request": {
+                        "url": str(res.request.url),
+                        "headers": dict(res.request.headers),
+                        "body": res.request.content.decode(
+                            "utf-8", errors="replace"
+                            ),
+                    },
+                    "headers": dict(res.headers),
+                    "status_code": res.status_code,
+                    "body": res.json() if is_response_json else res.text,
+                }
+
+                if res.is_success:
+                    self.outcome = "success"
+                else:
+                    self.outcome = "responseError"
+                    raise RuntimeError(
+                        f"HTTP response with code {res.status_code}"
+                        f" and message {res.text}"
+                        )
+
         except json.JSONDecodeError as e:
             self.outcome = "responseError"
             raise e
-        except BaseException as e:
-            if self.outcome is None or self.outcome not in ("responseError"):
+        except Exception as e:
+            if self.outcome is None or self.outcome not in ("responseError",):
                 self.outcome = "connectionError"
             raise e
