@@ -10,27 +10,12 @@ from writer.blocks.returnvalue import ReturnValue
 from writer.blocks.runblueprint import RunBlueprint
 from writer.blocks.setstate import SetState
 from writer.blocks.uieventtrigger import UIEventTrigger
-from writer.blocks.writer_kg_crud_list import (
-    WriterCreateGraph,
-    WriterDeleteGraph,
-    WriterListGraphs,
-    WriterRetrieveGraph,
-    WriterUpdateGraph,
-)
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
-from writer.blocks.writerfileapi import (
-    WriterDeleteFile,
-    WriterDownloadFile,
-    WriterListFiles,
-    WriterRetrieveFile,
-    WriterRetryFiles,
-    WriterUploadFile,
-)
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerremovefromkg import WriterRemoveFromKG
@@ -57,15 +42,4 @@ UIEventTrigger.register("blueprints_uieventtrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
 WriterToolCalling.register("blueprints_writertoolcalling")
-WriterCreateGraph.register("blueprints_writercreategraph")
-WriterRetrieveGraph.register("blueprints_writerretrievegraph")
-WriterUpdateGraph.register("blueprints_writerupdategraph")
-WriterDeleteGraph.register("blueprints_writerdeletegraph")
-WriterListGraphs.register("blueprints_writerlistgraphs")
 WriterAskGraphQuestion.register("blueprints_writeraskgraphquestion")
-WriterUploadFile.register("blueprints_writeruploadfile")
-WriterListFiles.register("blueprints_writerlistfiles")
-WriterDeleteFile.register("blueprints_writerdeletefile")
-WriterDownloadFile.register("blueprints_writerdownloadfile")
-WriterRetryFiles.register("blueprints_writerretryfiles")
-WriterRetrieveFile.register("blueprints_writerretrievefile")
