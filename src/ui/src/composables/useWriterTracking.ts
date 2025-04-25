@@ -1,5 +1,5 @@
 import type { generateCore } from "@/core";
-import { useWriterApi } from "./useWriterClient";
+import { useWriterApi } from "./useWriterApi";
 import { computed, onMounted, ref } from "vue";
 import { useLogger } from "./useLogger";
 
@@ -104,12 +104,9 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	) {
 		if (wf.mode.value !== "edit" || !isCloudApp.value) return;
 
-		const propertiesEnhaced =
-			expandEventPropertiesWithResources(properties);
-
 		return writerApi.analyticsTrack(
 			`${EVENT_PREFIX} ${eventName}`,
-			propertiesEnhaced,
+			expandEventPropertiesWithResources(properties),
 		);
 	}
 
@@ -118,16 +115,14 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 			wf.mode.value !== "edit" ||
 			!isCloudApp.value ||
 			!organizationId.value
-		)
+		) {
 			return;
-
-		const propertiesEnhaced =
-			expandEventPropertiesWithResources(properties);
+		}
 
 		return writerApi.analyticsPage(
 			`${EVENT_PREFIX} ${name}`,
 			organizationId.value,
-			propertiesEnhaced,
+			expandEventPropertiesWithResources(properties),
 		);
 	}
 

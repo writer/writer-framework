@@ -54,10 +54,7 @@ function runBlueprint(
 			null,
 			true,
 		).catch((err) => {
-			tracking.track("blueprints_run_failed", {
-				...trackPayload,
-				error: String(err),
-			});
+			tracking.track("blueprints_run_failed", { error: String(err) });
 			rej(err);
 		});
 	});

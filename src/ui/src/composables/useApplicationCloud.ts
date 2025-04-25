@@ -11,7 +11,7 @@ import {
 } from "vue";
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
-import { useWriterApi } from "./useWriterClient";
+import { useWriterApi } from "./useWriterApi";
 import { useWriterTracking } from "./useWriterTracking";
 
 export function useApplicationCloud(wf: Core) {

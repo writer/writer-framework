@@ -201,7 +201,7 @@ const {
 	goToParent,
 } = useComponentActions(wf, ssbm, tracking);
 
-async function deleteSelectedComponents() {
+function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;
 	const componentIds = ssbm.selection.value.map((c) => c.componentId);
 	if (componentIds.length === 0) return;
