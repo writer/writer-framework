@@ -232,17 +232,7 @@ function handleRendererDrop(ev: DragEvent) {
 	const { draggedType, draggedId, parentId, position } = dropInfo;
 
 	if (!draggedId) {
-		const componentId = createAndInsertComponent(
-			draggedType,
-			parentId,
-			position,
-		);
-		tracking.track(
-			builderMode.value === "blueprints"
-				? "blueprints_block_added"
-				: "ui_block_added",
-			{ componentId },
-		);
+		createAndInsertComponent(draggedType, parentId, position);
 	} else {
 		moveComponent(draggedId, parentId, position);
 	}

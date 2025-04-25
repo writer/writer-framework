@@ -24,16 +24,16 @@ function runBlueprint(
 ) {
 	return new Promise<void>((res, rej) => {
 		const tracking = useWriterTracking(wf);
-		const trackPayload = {
-			blueprintComponentId,
-			branchId,
-		};
-		tracking.track("blueprints_run_started", trackPayload);
+		tracking.track("blueprints_run_started");
+		const startedAt = new Date().getTime();
 
 		function callback(result: RunBlueprintResponse) {
 			const hasError = result.payload?.mail?.some(
 				(m) => m.payload?.type === "error",
 			);
+			const trackPayload = {
+				durationMs: new Date().getTime() - startedAt,
+			};
 			if (hasError) {
 				tracking.track("blueprints_run_failed", trackPayload);
 			} else {

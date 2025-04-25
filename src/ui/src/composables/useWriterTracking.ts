@@ -6,32 +6,32 @@ import { useLogger } from "./useLogger";
 const isIdentified = ref(false);
 
 type WriterTrackingEventName =
-	| "nav_ui_opened" //ok
-	| "nav_blueprints_opened" //ok
-	| "nav_preview_opened" //ok
-	| "nav_deploy_clicked" // ok
-	| "nav_logs_opened" // ok
-	| "nav_code_opened" // ok
+	| "nav_ui_opened"
+	| "nav_blueprints_opened"
+	| "nav_preview_opened"
+	| "nav_deploy_clicked"
+	| "nav_logs_opened"
+	| "nav_code_opened"
 	| "nav_code_file_updated"
-	| "deployment_succeeded" // ok
-	| "deployment_failed" // ok
-	| "nav_state_explorer_opened" // ok
-	| "ui_page_added" // ok
-	| "ui_block_added" // ok
-	| "ui_block_deleted" // ok
+	| "deployment_succeeded"
+	| "deployment_failed"
+	| "nav_state_explorer_opened"
+	| "ui_page_added"
+	| "ui_block_added"
+	| "ui_block_deleted"
 	| "ui_blueprint_connected"
 	| "ui_block_styles_updated"
-	| "blueprints_auto_gen_opened" // ok
-	| "blueprints_auto_gen_started" // ok
-	| "blueprints_auto_gen_completed" // ok
+	| "blueprints_auto_gen_opened"
+	| "blueprints_auto_gen_started"
+	| "blueprints_auto_gen_completed"
 	| "blueprints_auto_gen_feedback_completed"
-	| "blueprints_block_added" // ok
-	| "blueprints_block_deleted" // ok
-	| "blueprints_run_started" // ok
-	| "blueprints_run_failed" // ok
-	| "blueprints_run_succeeded" // ok
+	| "blueprints_block_added"
+	| "blueprints_block_deleted"
+	| "blueprints_run_started"
+	| "blueprints_run_failed"
+	| "blueprints_run_succeeded"
 	| "blueprints_logs_trace_opened"
-	| "blueprints_new_added" // ok
+	| "blueprints_new_added"
 	| "blueprints_block_output_copied";
 
 type EventProperties = {

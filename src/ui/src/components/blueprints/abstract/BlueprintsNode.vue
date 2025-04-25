@@ -228,7 +228,7 @@ const dynamicOuts = computed<
 	return processedOuts;
 });
 
-function handleOutMousedown(ev: DragEvent, outId: string) {
+function handleOutMousedown(ev: DragEvent, outId: string | number) {
 	ev.stopPropagation();
 	emit("outMousedown", outId);
 }

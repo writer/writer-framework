@@ -194,7 +194,7 @@ export function useComponentActions(
 		tracking?.track(
 			type.startsWith("blueprints_")
 				? "blueprints_block_added"
-				: "blueprints_block_added",
+				: "ui_block_added",
 			{ componentId: component.id },
 		);
 		return component.id;
@@ -786,6 +786,10 @@ export function useComponentActions(
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+		tracking?.track("ui_blueprint_connected", {
+			componentIds: [componentId, out.toNodeId],
+			outId: out.outId,
+		});
 	}
 
 	/**
