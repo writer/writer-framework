@@ -43,7 +43,7 @@ interface EventPropertiesWithResources extends EventProperties {
 	componentIds?: string[];
 }
 
-const EVENT_PREFIX = "[AgentEditor] ";
+const EVENT_PREFIX = "[AgentEditor]";
 
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();

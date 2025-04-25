@@ -3,7 +3,7 @@ import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
 import type { Component, InstancePath, UserFunction } from "@/writerTypes";
 import { vi } from "vitest";
-import { shallowRef } from "vue";
+import { ref, shallowRef } from "vue";
 import { SourceFiles } from "../writerTypes";
 
 export const mockComponentId = "component-id-test";
@@ -28,6 +28,7 @@ export function buildMockComponent(component: Partial<Component>) {
 
 export function buildMockCore() {
 	const core = generateCore();
+	const mode = ref<"run" | "edit">("run");
 	const userState = shallowRef({});
 	const sourceFiles = shallowRef<SourceFiles>({
 		type: "directory",
@@ -40,15 +41,18 @@ export function buildMockCore() {
 	>();
 
 	core.userFunctions = userFunctions;
+	core.userFunctions = userFunctions;
 	core.userState = userState;
 	core.sourceFiles = sourceFiles;
 	core.featureFlags = featureFlags;
 	core.writerApplication = writerApplication;
+	core.mode = mode;
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
 	return {
 		core,
+		mode,
 		userState,
 		sourceFiles,
 		userFunctions,
