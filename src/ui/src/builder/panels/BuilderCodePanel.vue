@@ -107,7 +107,7 @@ import { useToasts } from "../useToast";
 import { useLogger } from "@/composables/useLogger";
 import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const SharedMoreDropdown = defineAsyncComponent(
 	() => import("@/components/shared/SharedMoreDropdown.vue"),
@@ -129,7 +129,7 @@ const moreOptions: Option[] = [
 	{ label: "Delete file", value: "delete", icon: "delete" },
 ];
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 const {
 	sourceFileDraft,

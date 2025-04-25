@@ -48,13 +48,13 @@ import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBran
 import WdsButton from "@/wds/WdsButton.vue";
 import { useComponentActions } from "../useComponentActions";
 import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const query = ref("");
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 const { createAndInsertComponent } = useComponentActions(wf, wfbm, tracking);
 
 const rootComponentId = wfbm.activeRootId;

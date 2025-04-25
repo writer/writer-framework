@@ -113,7 +113,7 @@ import BlueprintsAutogen from "./BlueprintsAutogen.vue";
 import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const { log } = useLogger();
 
@@ -211,7 +211,7 @@ const nodes = computed(() =>
 	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
 );
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 const {
 	createAndInsertComponent,
 	addOut,

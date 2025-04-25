@@ -1,6 +1,6 @@
 import type { generateCore } from "@/core";
 import { computed, readonly, Ref, ref, unref } from "vue";
-import { useSegmentTracking } from "./useSegmentTracking";
+import { useWriterTracking } from "./useWriterTracking";
 
 interface RunBlueprintResponse {
 	ok: boolean;
@@ -23,7 +23,7 @@ function runBlueprint(
 	branchId?: string,
 ) {
 	return new Promise<void>((res, rej) => {
-		const tracking = useSegmentTracking(wf);
+		const tracking = useWriterTracking(wf);
 		const trackPayload = {
 			blueprintComponentId,
 			branchId,

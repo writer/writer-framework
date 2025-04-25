@@ -92,7 +92,7 @@ import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -122,7 +122,7 @@ const BuilderInsertionLabel = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 const {
 	candidateId,

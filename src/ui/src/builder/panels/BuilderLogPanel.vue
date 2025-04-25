@@ -64,7 +64,7 @@ import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
 import BuilderLogBlueprintExecution from "./BuilderLogBlueprintExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 defineProps<{
 	contentsTeleportEl: HTMLElement;
@@ -73,7 +73,7 @@ defineProps<{
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 function onOpenPanel(open: boolean) {
 	if (open) tracking.track("nav_logs_opened");

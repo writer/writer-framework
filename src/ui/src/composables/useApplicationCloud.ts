@@ -12,12 +12,12 @@ import {
 import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
 import { useWriterApi } from "./useWriterClient";
-import { useSegmentTracking } from "./useSegmentTracking";
+import { useWriterTracking } from "./useWriterTracking";
 
 export function useApplicationCloud(wf: Core) {
 	const abort = new AbortController();
 
-	const tracking = useSegmentTracking(wf);
+	const tracking = useWriterTracking(wf);
 
 	const logger = useLogger();
 	const { pushToast } = useToasts();

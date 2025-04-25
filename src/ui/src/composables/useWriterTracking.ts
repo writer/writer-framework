@@ -5,7 +5,7 @@ import { useLogger } from "./useLogger";
 
 const isIdentified = ref(false);
 
-type SegmentTrackingEventName =
+type WriterTrackingEventName =
 	| "nav_ui_opened" //ok
 	| "nav_blueprints_opened" //ok
 	| "nav_preview_opened" //ok
@@ -45,7 +45,7 @@ interface EventPropertiesWithResources extends EventProperties {
 
 const EVENT_PREFIX = "[AgentEditor] ";
 
-export function useSegmentTracking(wf: ReturnType<typeof generateCore>) {
+export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
 	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
@@ -99,7 +99,7 @@ export function useSegmentTracking(wf: ReturnType<typeof generateCore>) {
 	}
 
 	function track(
-		eventName: SegmentTrackingEventName,
+		eventName: WriterTrackingEventName,
 		properties: EventProperties = {},
 	) {
 		if (wf.mode.value !== "edit" || !isCloudApp.value) return;

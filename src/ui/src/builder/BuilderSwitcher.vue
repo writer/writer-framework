@@ -33,14 +33,14 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
 	const preMode = ssbm.getMode();

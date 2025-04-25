@@ -92,14 +92,14 @@ import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useApplicationCloud } from "@/composables/useApplicationCloud";
 import WdsButton from "@/wds/WdsButton.vue";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
 const isStateExplorerShown = ref(false);
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 

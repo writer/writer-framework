@@ -1,4 +1,4 @@
-import type { useSegmentTracking } from "@/composables/useSegmentTracking";
+import type { useWriterTracking } from "@/composables/useWriterTracking";
 import { getContainableTypes } from "../core/typeHierarchy";
 import {
 	Core,
@@ -11,7 +11,7 @@ import {
 export function useComponentActions(
 	wf: Core,
 	ssbm: BuilderManager,
-	tracking?: ReturnType<typeof useSegmentTracking>,
+	tracking?: ReturnType<typeof useWriterTracking>,
 ) {
 	function generateNewComponentId() {
 		const radix = 36;

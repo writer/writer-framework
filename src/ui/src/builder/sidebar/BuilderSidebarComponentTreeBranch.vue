@@ -69,7 +69,7 @@ import { useComponentActions } from "../useComponentActions";
 import TreeBranch from "../BuilderTree.vue";
 import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
 import { useComponentDescription } from "../useComponentDescription";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -83,7 +83,7 @@ const wfbm = inject(injectionKeys.builderManager);
 const collapsed = ref(false);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
 
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 const {
 	createAndInsertComponent,
 	moveComponent,

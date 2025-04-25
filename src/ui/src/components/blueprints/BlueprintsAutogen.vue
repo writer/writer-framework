@@ -33,14 +33,14 @@ import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
-import { useSegmentTracking } from "@/composables/useSegmentTracking";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
 const { generateNewComponentId } = useComponentActions(wf, wfbm);
-const tracking = useSegmentTracking(wf);
+const tracking = useWriterTracking(wf);
 
 const isBusy = ref(false);
 const prompt = ref("");
