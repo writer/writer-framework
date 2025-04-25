@@ -9,12 +9,14 @@ import { generateBuilderManager } from "./builderManager";
 const fetchApplicationDeployment = vi.fn();
 const publishApplication = vi.fn();
 const fetchUserProfile = vi.fn();
+const analyticsIdentify = vi.fn();
 
 vitest.mock("@/writerApi", () => ({
 	WriterApi: class {
 		fetchApplicationDeployment = fetchApplicationDeployment;
 		publishApplication = publishApplication;
 		fetchUserProfile = fetchUserProfile;
+		analyticsIdentify = analyticsIdentify;
 	},
 }));
 
@@ -29,6 +31,7 @@ describe("BuilderHeader", () => {
 		fetchApplicationDeployment.mockReset();
 		publishApplication.mockReset();
 		fetchUserProfile.mockReset();
+		analyticsIdentify.mockReset();
 	});
 
 	describe("non-cloud app", () => {

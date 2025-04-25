@@ -1,15 +1,9 @@
 import type { generateCore } from "@/core";
-import type {
-	AnalyticsBrowser,
-	EventProperties,
-} from "@segment/analytics-next";
 import { useWriterApi } from "./useWriterClient";
-import { onMounted, ref } from "vue";
-import { WriterApiUserProfile } from "@/writerApi";
+import { computed, onMounted, ref } from "vue";
 import { useLogger } from "./useLogger";
 
 const isIdentified = ref(false);
-let fetchUserProfilePromise: Promise<WriterApiUserProfile>;
 
 type SegmentTrackingEventName =
 	| "nav_ui_opened" //ok
@@ -23,16 +17,16 @@ type SegmentTrackingEventName =
 	| "deployment_failed" // ok
 	| "nav_state_explorer_opened" // ok
 	| "ui_page_added" // ok
-	| "ui_block_added"
-	| "ui_block_deleted"
+	| "ui_block_added" // ok
+	| "ui_block_deleted" // ok
 	| "ui_blueprint_connected"
 	| "ui_block_styles_updated"
 	| "blueprints_auto_gen_opened" // ok
 	| "blueprints_auto_gen_started" // ok
 	| "blueprints_auto_gen_completed" // ok
 	| "blueprints_auto_gen_feedback_completed"
-	| "blueprints_block_added"
-	| "blueprints_block_deleted"
+	| "blueprints_block_added" // ok
+	| "blueprints_block_deleted" // ok
 	| "blueprints_run_started" // ok
 	| "blueprints_run_failed" // ok
 	| "blueprints_run_succeeded" // ok
@@ -40,90 +34,43 @@ type SegmentTrackingEventName =
 	| "blueprints_new_added" // ok
 	| "blueprints_block_output_copied";
 
-interface WriterEventProperties extends EventProperties {
+type EventProperties = {
+	[key: string]: unknown;
+};
+
+interface EventPropertiesWithResources extends EventProperties {
 	componentId?: string;
 	componentIds?: string[];
 }
 
-// keep only one instance of Segment analytics as promise
-const analyticsPromise = (async function getAnalytics() {
-	// @ts-expect-error use injected variable from Vite
-	if (import.meta.env.MODE === "test") return;
-
-	try {
-		window.Q = { CONF: {} };
-		// @ts-expect-error import global variable from outside
-		await import("/conf/app_conf.js?url");
-
-		// @ts-expect-error use injected variable from Vite
-		const writeKey = window.Q.CONF.SEGMENT_ID;
-		if (!writeKey) return;
-
-		const module = await import("@segment/analytics-next");
-		return module.AnalyticsBrowser.load({ writeKey });
-	} catch {
-		return null;
-	}
-})();
-
-async function getAnalytics() {
-	const analytics = await analyticsPromise;
-	if (!analytics) return;
-	return analytics[0];
-}
+const EVENT_PREFIX = "[AgentEditor] ";
 
 export function useSegmentTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
+	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
+	const organizationId = computed(
+		() => Number(wf.writerApplication.value?.organizationId) || undefined,
+	);
+
 	const { writerApi } = useWriterApi({ signal: abortControler.signal });
 	const logger = useLogger();
 
-	// keep only one promise to avoid concurent API call
-	if (!fetchUserProfilePromise) {
-		fetchUserProfilePromise = writerApi.fetchUserProfile();
-	}
-
-	async function getUserId() {
-		try {
-			const userProfile = await fetchUserProfilePromise;
-			return String(userProfile.id);
-		} catch {
-			return undefined;
-		}
-	}
-
 	onMounted(async () => {
-		const analytics = await getAnalytics();
-		if (!analytics) return;
-
-		if (isIdentified.value) return;
+		if (!isCloudApp.value || isIdentified.value) return;
+		isIdentified.value = true;
 		try {
-			const userId = await getUserId();
-			const userProfile = await fetchUserProfilePromise;
-			await analytics.identify(userId, {
-				id: userProfile.id,
-				email: userProfile.email,
-				avatar: userProfile.avatar,
-				firstName: userProfile.firstName,
-				lastName: userProfile.lastName,
-				title: userProfile.jobTitle,
-				phone: userProfile.phone,
-				createdAt: userProfile.createdAt,
-			});
+			await writerApi.analyticsIdentify();
 		} catch (e) {
 			logger.error(
 				"Failed to identify the current user for analytics",
 				e,
 			);
-		} finally {
-			isIdentified.value = true;
 		}
 	});
 
-	type TrackFn = AnalyticsBrowser["track"];
-
-	function enhanceEventProperties(
-		properties: WriterEventProperties,
+	function expandEventPropertiesWithResources(
+		properties: EventPropertiesWithResources,
 	): EventProperties {
 		const copy = structuredClone(properties);
 
@@ -143,46 +90,45 @@ export function useSegmentTracking(wf: ReturnType<typeof generateCore>) {
 		};
 	}
 
-	async function track(
-		eventName: SegmentTrackingEventName,
-		properties: WriterEventProperties = {},
-	): ReturnType<TrackFn> {
-		if (wf.mode.value !== "edit") return;
-		const analytics = await getAnalytics();
-		if (!analytics) return;
-
-		const propertiesEnhaced = enhanceEventProperties(properties);
-		logger.log(`[track] ${eventName}`, propertiesEnhaced);
-
-		const res = await analytics.track(eventName, propertiesEnhaced, {
-			userId: await getUserId(),
-		});
-		return res;
-	}
-
-	async function page(
-		category: string,
-		name: string,
-		properties: WriterEventProperties = {},
-	) {
-		if (wf.mode.value !== "edit") return;
-		const analytics = await getAnalytics();
-		if (!analytics) return;
-
-		const propertiesEnhaced = enhanceEventProperties(properties);
-
-		const res = await analytics.page(category, name, propertiesEnhaced, {
-			userId: await getUserId(),
-		});
-		return res;
-	}
-
 	function getComponentInformation(componentId: string) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return {};
 		const def = wf.getComponentDefinition(component.type);
 		if (!def) return {};
 		return { name: def.name, category: def.category };
+	}
+
+	function track(
+		eventName: SegmentTrackingEventName,
+		properties: EventProperties = {},
+	) {
+		if (wf.mode.value !== "edit" || !isCloudApp.value) return;
+
+		const propertiesEnhaced =
+			expandEventPropertiesWithResources(properties);
+
+		return writerApi.analyticsTrack(
+			`${EVENT_PREFIX} ${eventName}`,
+			propertiesEnhaced,
+		);
+	}
+
+	function page(name: string, properties: EventProperties = {}) {
+		if (
+			wf.mode.value !== "edit" ||
+			!isCloudApp.value ||
+			!organizationId.value
+		)
+			return;
+
+		const propertiesEnhaced =
+			expandEventPropertiesWithResources(properties);
+
+		return writerApi.analyticsPage(
+			`${EVENT_PREFIX} ${name}`,
+			organizationId.value,
+			propertiesEnhaced,
+		);
 	}
 
 	return { track, page };

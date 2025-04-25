@@ -59,6 +59,65 @@ export class WriterApi {
 
 		return res.json();
 	}
+
+	async analyticsIdentify() {
+		const url = new URL(`/api/analytics/identify`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({ traits: {} }),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
+
+	async analyticsTrack(
+		eventName: string,
+		properties: Record<string, unknown>,
+	) {
+		const url = new URL(`/api/analytics/track`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({
+				eventName,
+				properties,
+			}),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
+
+	async analyticsPage(
+		name: string,
+		organizationId: number,
+		properties: Record<string, unknown>,
+	) {
+		const url = new URL(`/api/analytics/page`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({
+				name,
+				organizationId,
+				properties,
+			}),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
 }
 
 type WriterApiUser = {
