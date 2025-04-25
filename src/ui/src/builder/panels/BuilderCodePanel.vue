@@ -181,7 +181,7 @@ function useKeydownCmdS(callback: () => void | Promise<void>) {
 			{ signal: abortController.signal },
 		);
 	});
-	onUnmounted(abortController.abort);
+	onUnmounted(() => abortController.abort());
 }
 useKeydownCmdS(handleSave);
 
