@@ -1,9 +1,9 @@
 import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { useLogger } from "./useLogger";
 
-const isIdentified = ref(false);
+let isIdentified = false;
 
 type WriterTrackingEventName =
 	| "nav_ui_opened"
@@ -48,7 +48,7 @@ const EVENT_PREFIX = "[AgentEditor]";
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
-	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
+	const isCloudApp = computed(() => Boolean(wf.writerApplication.value?.id));
 	const organizationId = computed(
 		() => Number(wf.writerApplication.value?.organizationId) || undefined,
 	);
@@ -57,8 +57,8 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const logger = useLogger();
 
 	onMounted(async () => {
-		if (!isCloudApp.value || isIdentified.value) return;
-		isIdentified.value = true;
+		if (!isCloudApp.value || isIdentified) return;
+		isIdentified = true;
 		try {
 			await writerApi.analyticsIdentify();
 		} catch (e) {
