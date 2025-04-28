@@ -1,11 +1,10 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import BlueprintBlock
+from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x-004"
 
-class WriterToolCalling(BlueprintBlock):
-
+class WriterToolCalling(WriterBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterToolCalling, cls).register(type)

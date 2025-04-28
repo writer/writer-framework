@@ -3,7 +3,7 @@ from writer.ai import Conversation
 from writer.blocks.writerinitchat import WriterInitChat
 
 
-def test_init_chat_already_initialized(session, runner):
+def test_init_chat_already_initialized(session, runner, fake_client):
     session.session_state["convo"] = Conversation()
     component = session.add_fake_component(
         {
@@ -15,7 +15,7 @@ def test_init_chat_already_initialized(session, runner):
     assert block.outcome == "success"
 
 
-def test_init_chat_already_initialized_with_rubbish(session, runner):
+def test_init_chat_already_initialized_with_rubbish(session, runner, fake_client):
     session.session_state["convo"] = (
         "-hello -hello there. This is a conversation but not the right kind."
     )
@@ -30,7 +30,7 @@ def test_init_chat_already_initialized_with_rubbish(session, runner):
         block.run()
 
 
-def test_init_chat_from_scratch(session, runner):
+def test_init_chat_from_scratch(session, runner, fake_client):
     component = session.add_fake_component(
         {
             "conversationStateElement": "convo",

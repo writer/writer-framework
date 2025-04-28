@@ -62,3 +62,18 @@ def session():
 @pytest.fixture
 def runner(session):
     yield BlockTesterMockBlueprintRunner(session)
+
+@pytest.fixture
+def fake_client(monkeypatch):
+    class MockClient:
+        def __init__(self):
+            pass
+
+        def acquire_client(self):
+            return self
+
+    monkeypatch.setattr(
+        "writer.ai.WriterAIManager.acquire_client",
+        lambda custom_httpx_client, force_new_client: MockClient()
+        )
+    return MockClient()

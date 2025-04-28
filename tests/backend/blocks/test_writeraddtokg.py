@@ -24,7 +24,7 @@ def mock_upload_file(data, type, name):
     return MockFile()
 
 
-def test_add_to_kg(monkeypatch, session, runner):
+def test_add_to_kg(monkeypatch, session, runner, fake_client):
     monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
     monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
 
@@ -38,7 +38,7 @@ def test_add_to_kg(monkeypatch, session, runner):
     assert block.outcome == "success"
 
 
-def test_add_to_kg_missing_type(monkeypatch, session, runner):
+def test_add_to_kg_missing_type(monkeypatch, session, runner, fake_client):
     monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
     monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
 
@@ -50,7 +50,7 @@ def test_add_to_kg_missing_type(monkeypatch, session, runner):
         block.run()
 
 
-def test_add_to_kg_wrong_type(monkeypatch, session, runner):
+def test_add_to_kg_wrong_type(monkeypatch, session, runner, fake_client):
     monkeypatch.setattr("writer.ai.retrieve_graph", mock_retrieve_graph)
     monkeypatch.setattr("writer.ai.upload_file", mock_upload_file)
 
