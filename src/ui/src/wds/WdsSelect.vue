@@ -52,19 +52,21 @@
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
 		</div>
-		<WdsDropdownMenu
-			v-if="isOpen"
-			ref="dropdown"
-			:enable-search="enableSearch"
-			:enable-multi-selection="enableMultiSelection"
-			:hide-icons="hideIcons"
-			:loading="loading"
-			:options="options"
-			:selected="currentValue"
-			:style="floatingStyles"
-			@select="onSelect"
-			@search="updateFloatingStyle"
-		/>
+		<BaseTransitionSlideFade>
+			<WdsDropdownMenu
+				v-if="isOpen"
+				ref="dropdown"
+				:enable-search="enableSearch"
+				:enable-multi-selection="enableMultiSelection"
+				:hide-icons="hideIcons"
+				:loading="loading"
+				:options="options"
+				:selected="currentValue"
+				:style="floatingStyles"
+				@select="onSelect"
+				@search="updateFloatingStyle"
+			/>
+		</BaseTransitionSlideFade>
 	</div>
 </template>
 
@@ -87,6 +89,7 @@ import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 
 const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),
