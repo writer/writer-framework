@@ -27,7 +27,7 @@ const { toasts, removeToast } = useToasts();
 	position: fixed;
 	bottom: 12px;
 	right: 12px;
-	z-index: 1;
+	z-index: 5;
 }
 
 .BuilderToasts__toast {

@@ -92,7 +92,7 @@
 			:data-writer-tooltip="`Paste (${getModifierKeyName()}V)`"
 			data-writer-tooltip-placement="left"
 			:disabled="!isPasteEnabled"
-			@click="isPasteEnabled ? pasteComponent(selectedId) : undefined"
+			@click="handlePasteComponent"
 		>
 			<i class="material-symbols-outlined">content_paste</i>
 		</WdsButton>
@@ -173,6 +173,7 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import { SelectionStatus } from "../builderManager";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useToasts } from "../useToast";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -196,6 +197,16 @@ const {
 	removeComponentsSubtree,
 	goToParent,
 } = useComponentActions(wf, ssbm, tracking);
+
+const toasts = useToasts();
+
+async function handlePasteComponent() {
+	try {
+		await pasteComponent(selectedId.value);
+	} catch (error) {
+		toasts.pushToast({ type: "error", message: String(error) });
+	}
+}
 
 function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;

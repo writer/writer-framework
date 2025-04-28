@@ -8,6 +8,8 @@ export function useComponentActions(
 	ssbm: BuilderManager,
 	tracking?: ReturnType<typeof useWriterTracking>,
 ) {
+	const componentClipboard = useComponentClipboard();
+
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -433,18 +435,7 @@ export function useComponentActions(
 	function isPasteAllowed(targetId: Component["id"]): boolean {
 		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) return false;
-		if (componentClipboard.value.length === 0) return false;
-
-		// Mutate the subtree to reflect tentative parent
-		const futureSubTree: Component[] = [
-			{
-				...componentClipboard.value[0],
-				parentId: targetId,
-			},
-			...componentClipboard.value.slice(1),
-		];
-
-		return isSubtreeIngestable(futureSubTree);
+		return true;
 	}
 
 	/**
@@ -485,7 +476,6 @@ export function useComponentActions(
 			component.position < positionableSiblingCount - 1;
 		return { up: isUpEnabled, down: isDownEnabled };
 	}
-	const componentClipboard = useComponentClipboard();
 
 	/**
 	 * Cuts a component and its descendents and places them in the internal clipboard.
@@ -495,7 +485,7 @@ export function useComponentActions(
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const components = getFlatComponentSubtree(componentId);
-		componentClipboard.value = components;
+		componentClipboard.set(components);
 		ssbm.setSelection(null);
 		removeComponentSubtree(componentId);
 		wf.sendComponentUpdate();
@@ -543,19 +533,22 @@ export function useComponentActions(
 		if (!component) return;
 		const subtree = getFlatComponentSubtree(componentId);
 		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
-		componentClipboard.value = newSubtree;
+		componentClipboard.set(newSubtree);
 	}
 
 	/**
 	 * Pastes the contents of the clipboard into a given component
 	 * @param targetParentId Id of the component where to paste the clipboard
 	 */
-	function pasteComponent(targetParentId: Component["id"]): void {
+	async function pasteComponent(targetParentId: Component["id"]) {
 		const targetParent = wf.getComponentById(targetParentId);
 		if (!targetParent) return;
 
-		if (!componentClipboard.value.length) return;
-		const subtree = componentClipboard.value;
+		const subtree = await componentClipboard.get();
+
+		if (!subtree) throw Error("The clipboard doesn't contain Writer data");
+		if (!subtree.length)
+			throw Error("The clipboard doesn't contain components");
 
 		const rootComponent = subtree[0];
 		if (
@@ -575,7 +568,7 @@ export function useComponentActions(
 		targetParentId: Component["id"],
 		subtree: Component[],
 	) {
-		componentClipboard.value = getNewSubtreeWithRegeneratedIds(subtree);
+		componentClipboard.set(getNewSubtreeWithRegeneratedIds(subtree));
 
 		// MUTATION
 
@@ -585,6 +578,10 @@ export function useComponentActions(
 			targetParentId,
 			rootComponent.type,
 		);
+
+		if (!isSubtreeIngestable(subtree)) {
+			throw Error("Could not paste the components here");
+		}
 
 		const transactionId = `paste-copy-${targetParentId}`;
 		ssbm.openMutationTransaction(transactionId, `Paste from copy`);
