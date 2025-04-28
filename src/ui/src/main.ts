@@ -63,7 +63,7 @@ async function load() {
 	app.mount("#app");
 
 	if (wf.isWriterCloudApp.value && collaborationManager) {
-		await enableCollaboration(collaborationManager);
+		await enableCollaboration(collaborationManager).catch(logger.error);
 	}
 	if (wf.isWriterCloudApp.value && secretsManager) {
 		secretsManager.load().catch(logger.error);

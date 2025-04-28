@@ -44,7 +44,7 @@ export function useCollaborationManager(wf: Core) {
 		incomingPing: UserCollaborationPing,
 	) {
 		const incomingUserId = incomingPing.userId;
-		if (typeof incomingUserId == "undefined") return;
+		if (incomingUserId === undefined || incomingUserId === null) return;
 
 		if (incomingPing.action == "leave") {
 			delete collaborationSnapshot.value[incomingUserId];

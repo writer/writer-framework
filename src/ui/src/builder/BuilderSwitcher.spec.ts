@@ -11,7 +11,6 @@ const publishApplication = vi.fn();
 const fetchUserProfile = vi.fn();
 const analyticsIdentify = vi.fn();
 const updateApplicationMetadata = vi.fn();
-const loadAndIdentifyChameleon = vi.fn();
 
 vitest.mock("@/writerApi", () => ({
 	WriterApi: class {
@@ -20,7 +19,6 @@ vitest.mock("@/writerApi", () => ({
 		fetchUserProfile = fetchUserProfile;
 		analyticsIdentify = analyticsIdentify;
 		updateApplicationMetadata = updateApplicationMetadata;
-		loadAndIdentifyChameleon = loadAndIdentifyChameleon;
 	},
 }));
 
