@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
@@ -33,12 +33,14 @@ import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
 const { generateNewComponentId } = useComponentActions(wf, wfbm);
+const tracking = useWriterTracking(wf);
 
 const isBusy = ref(false);
 const prompt = ref("");
@@ -48,6 +50,10 @@ const emits = defineEmits(["blockGeneration"]);
 function handleCancel() {
 	emits("blockGeneration", null);
 }
+
+onMounted(() => {
+	tracking.track("blueprints_auto_gen_opened");
+});
 
 /**
  * The generation happens with simple ids (aig1, aig2, ...).
@@ -95,6 +101,7 @@ function alterIds(components: Component[]) {
 async function handleAutogen() {
 	const description = prompt.value;
 	isBusy.value = true;
+	tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
 	const response = await fetch(convertAbsolutePathtoFullURL("/api/autogen"), {
 		method: "POST",
 		headers: {
@@ -113,6 +120,8 @@ async function handleAutogen() {
 
 	const components: Component[] = alterIds(data.blueprint?.components);
 	emits("blockGeneration", { components });
+
+	tracking.track("blueprints_auto_gen_completed");
 }
 </script>
 

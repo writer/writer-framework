@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, computed, inject, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
 import { useComponentActions } from "./useComponentActions";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
@@ -92,11 +92,16 @@ import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useApplicationCloud } from "@/composables/useApplicationCloud";
 import WdsButton from "@/wds/WdsButton.vue";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const isStateExplorerShown = ref(false);
+
+const tracking = useWriterTracking(wf);
+
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
-const isStateExplorerShown: Ref<boolean> = ref(false);
 
 const {
 	canDeploy,
@@ -118,6 +123,7 @@ const dateFormater = new Intl.DateTimeFormat(undefined, {
 });
 
 async function requestDeployment() {
+	tracking.track("nav_deploy_clicked");
 	if (hasBeenPublished.value) {
 		confirmDeployModalOpen.value = true;
 	} else {
@@ -184,6 +190,7 @@ const stateDotState = computed<WdsStateDotState>(() => {
 });
 
 function showStateExplorer() {
+	tracking.track("nav_state_explorer_opened");
 	isStateExplorerShown.value = true;
 }
 </script>

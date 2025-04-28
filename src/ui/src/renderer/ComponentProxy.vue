@@ -13,6 +13,7 @@ import ComponentProxy from "./ComponentProxy.vue";
 import RenderError from "./RenderError.vue";
 import { flattenInstancePath } from "./instancePath";
 import { useEvaluator } from "./useEvaluator";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 export default {
 	props: {
@@ -30,6 +31,7 @@ export default {
 		const instanceData = props.instanceData;
 		const { getEvaluatedFields, isComponentVisible } = useEvaluator(wf);
 		const evaluatedFields = getEvaluatedFields(instancePath);
+		const tracking = useWriterTracking(wf);
 
 		const children = computed(() =>
 			wf.getComponents(componentId, { sortedByPosition: true }),
@@ -191,7 +193,10 @@ export default {
 					return acc;
 				}, {});
 		});
-		watch(styleFields, () => (isSelected.value = false));
+		watch(styleFields, () => {
+			isSelected.value = false;
+			tracking.track("ui_block_styles_updated");
+		});
 
 		const isChildless = computed(() => children.value.length == 0);
 		const isVisible = computed(() =>

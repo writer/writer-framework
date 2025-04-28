@@ -1,3 +1,4 @@
+import type { useWriterTracking } from "@/composables/useWriterTracking";
 import { getContainableTypes } from "../core/typeHierarchy";
 import {
 	Core,
@@ -7,7 +8,11 @@ import {
 	ComponentMap,
 } from "@/writerTypes";
 
-export function useComponentActions(wf: Core, ssbm: BuilderManager) {
+export function useComponentActions(
+	wf: Core,
+	ssbm: BuilderManager,
+	tracking?: ReturnType<typeof useWriterTracking>,
+) {
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -185,6 +190,13 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+
+		tracking?.track(
+			type.startsWith("blueprints_")
+				? "blueprints_block_added"
+				: "ui_block_added",
+			{ componentId: component.id },
+		);
 		return component.id;
 	}
 
@@ -263,7 +275,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Delete`);
 
 		for (const component of components) {
-			if (wf.getComponentById(component.id).parentId) {
+			if (component.parentId) {
 				repositionHigherSiblings(component.id, -1);
 			}
 			const dependencies = getNodeDependencies(component.id);
@@ -273,6 +285,12 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 					...c.outs.filter((out) => out.toNodeId !== component.id),
 				];
 			}
+			tracking?.track(
+				component.type.startsWith("blueprints_")
+					? "blueprints_block_deleted"
+					: "ui_block_deleted",
+				{ componentId: component.id },
+			);
 			const subtree = getFlatComponentSubtree(component.id);
 			for (const c of subtree) {
 				ssbm.registerPreMutation(c);
@@ -768,6 +786,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+		tracking?.track("ui_blueprint_connected", {
+			componentIds: [componentId, out.toNodeId],
+			outId: out.outId,
+		});
 	}
 
 	/**

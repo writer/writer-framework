@@ -7,6 +7,7 @@
 		:scrollable="true"
 		keyboard-shortcut-key="K"
 		class="BuilderLogPanel"
+		@openned="onOpenPanel"
 	>
 		<template #titleCompanion>
 			<BuilderLogIndicator></BuilderLogIndicator>
@@ -63,12 +64,20 @@ import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
 import BuilderLogBlueprintExecution from "./BuilderLogBlueprintExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 defineProps<{
 	contentsTeleportEl: HTMLElement;
 }>();
 
+const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+
+const tracking = useWriterTracking(wf);
+
+function onOpenPanel(open: boolean) {
+	if (open) tracking.track("nav_logs_opened");
+}
 
 const actions: BuilderPanelAction[] = [
 	{
