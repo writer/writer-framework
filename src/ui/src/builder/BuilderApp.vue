@@ -93,6 +93,7 @@ import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useToasts } from "./useToast";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -151,10 +152,12 @@ const {
 	goToParent,
 } = useComponentActions(wf, ssbm, tracking);
 
+const toasts = useToasts();
+
 const builderMode = computed(() => ssbm.getMode());
 const selectedId = computed(() => ssbm.firstSelectedId.value);
 
-function handleKeydown(ev: KeyboardEvent): void {
+async function handleKeydown(ev: KeyboardEvent) {
 	if (ev.key == "Escape") {
 		ssbm.setSelection(null);
 		return;
@@ -204,7 +207,11 @@ function handleKeydown(ev: KeyboardEvent): void {
 	}
 	if (ev.key == "v" && isModifierKeyActive) {
 		if (!isPasteAllowed(selectedId)) return;
-		pasteComponent(selectedId);
+		try {
+			await pasteComponent(selectedId);
+		} catch (error) {
+			toasts.pushToast({ type: "error", message: String(error) });
+		}
 		return;
 	}
 	if (ev.key == "c" && isModifierKeyActive) {

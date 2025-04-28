@@ -1,18 +1,15 @@
 import type { useWriterTracking } from "@/composables/useWriterTracking";
 import { getContainableTypes } from "../core/typeHierarchy";
-import {
-	Core,
-	BuilderManager,
-	Component,
-	ClipboardOperation,
-	ComponentMap,
-} from "@/writerTypes";
+import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
+import { useComponentClipboard } from "./useComponentClipboard";
 
 export function useComponentActions(
 	wf: Core,
 	ssbm: BuilderManager,
 	tracking?: ReturnType<typeof useWriterTracking>,
 ) {
+	const componentClipboard = useComponentClipboard();
+
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -438,16 +435,7 @@ export function useComponentActions(
 	function isPasteAllowed(targetId: Component["id"]): boolean {
 		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) return false;
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return false;
-		const { jsonSubtree } = clipboard;
-		const subtree: Component[] = JSON.parse(jsonSubtree);
-		if (subtree.length == 0) return false;
-
-		// Mutate the subtree to reflect tentative parent
-
-		subtree[0].parentId = targetId;
-		return isSubtreeIngestable(subtree);
+		return true;
 	}
 
 	/**
@@ -496,10 +484,8 @@ export function useComponentActions(
 	function cutComponent(componentId: Component["id"]): void {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Cut,
-			jsonSubtree: JSON.stringify(getFlatComponentSubtree(componentId)),
-		});
+		const components = getFlatComponentSubtree(componentId);
+		componentClipboard.set(components);
 		ssbm.setSelection(null);
 		removeComponentSubtree(componentId);
 		wf.sendComponentUpdate();
@@ -547,25 +533,22 @@ export function useComponentActions(
 		if (!component) return;
 		const subtree = getFlatComponentSubtree(componentId);
 		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(newSubtree),
-		});
+		componentClipboard.set(newSubtree);
 	}
 
 	/**
 	 * Pastes the contents of the clipboard into a given component
 	 * @param targetParentId Id of the component where to paste the clipboard
 	 */
-	function pasteComponent(targetParentId: Component["id"]): void {
+	async function pasteComponent(targetParentId: Component["id"]) {
 		const targetParent = wf.getComponentById(targetParentId);
 		if (!targetParent) return;
 
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return;
-		const { operation, jsonSubtree } = clipboard;
-		const subtree = JSON.parse(jsonSubtree);
+		const subtree = await componentClipboard.get();
+
+		if (!subtree) throw Error("The clipboard doesn't contain Writer data");
+		if (!subtree.length)
+			throw Error("The clipboard doesn't contain components");
 
 		const rootComponent = subtree[0];
 		if (
@@ -575,38 +558,7 @@ export function useComponentActions(
 			rootComponent.outs = [];
 		}
 
-		if (operation == ClipboardOperation.Cut)
-			return pasteCutComponent(targetParentId, subtree);
-		if (operation == ClipboardOperation.Copy)
-			return pasteCopyComponent(targetParentId, subtree);
-	}
-
-	/**
-	 * Pastes a subtree that has been obtained by a cut operation.
-	 */
-	function pasteCutComponent(
-		targetParentId: Component["id"],
-		subtree: Component[],
-	) {
-		// MUTATION
-
-		ssbm.setClipboard(null);
-		const rootComponent = subtree[0];
-
-		rootComponent.parentId = targetParentId;
-		rootComponent.position = getNextInsertionPosition(
-			targetParentId,
-			rootComponent.type,
-		);
-
-		const transactionId = `paste-cut-${targetParentId}`;
-		ssbm.openMutationTransaction(transactionId, `Paste from cut`);
-		subtree.map((c) => {
-			wf.addComponent(c);
-			ssbm.registerPostMutation(c);
-		});
-		ssbm.closeMutationTransaction(transactionId);
-		wf.sendComponentUpdate();
+		return pasteCopyComponent(targetParentId, subtree);
 	}
 
 	/**
@@ -616,14 +568,7 @@ export function useComponentActions(
 		targetParentId: Component["id"],
 		subtree: Component[],
 	) {
-		// Regenerate clipboard for future pastes
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(
-				getNewSubtreeWithRegeneratedIds(subtree),
-			),
-		});
+		componentClipboard.set(getNewSubtreeWithRegeneratedIds(subtree));
 
 		// MUTATION
 
@@ -633,6 +578,10 @@ export function useComponentActions(
 			targetParentId,
 			rootComponent.type,
 		);
+
+		if (!isSubtreeIngestable(subtree)) {
+			throw Error("Could not paste the components here");
+		}
 
 		const transactionId = `paste-copy-${targetParentId}`;
 		ssbm.openMutationTransaction(transactionId, `Paste from copy`);

@@ -132,7 +132,7 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { BlueprintExecutionLog } from "../builderManager";
-import { computed, inject, nextTick, onMounted, toRaw } from "vue";
+import { computed, inject, nextTick, onMounted } from "vue";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { Component } from "@/writerTypes";
