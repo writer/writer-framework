@@ -114,7 +114,7 @@ const model = computed<string[]>({
 		return formValue.value;
 	},
 	set(value) {
-		handleInput(value, "wf-options-change");
+		handleInput(value, "wf-option-change");
 	},
 });
 </script>
