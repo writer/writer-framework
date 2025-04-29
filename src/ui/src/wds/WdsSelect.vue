@@ -259,6 +259,7 @@ function handleRemoveValue(value: string) {
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	gap: 8px;
+	min-height: 24px;
 }
 .WdsSelect__trigger__multiSelectLabel__placeholder {
 	color: var(--wdsColorGray5);
