@@ -16,6 +16,7 @@ from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
+from writer.blocks.writerfileapi import WriterUploadFile
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerparsepdf import WriterParsePDFByFileID
@@ -43,3 +44,4 @@ ChangePage.register("blueprints_changepage")
 WriterToolCalling.register("blueprints_writertoolcalling")
 WriterAskGraphQuestion.register("blueprints_writeraskgraphquestion")
 WriterParsePDFByFileID.register("blueprints_writerparsepdf")
+WriterUploadFile.register("blueprints_writeruploadfile")
