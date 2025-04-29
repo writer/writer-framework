@@ -48,6 +48,76 @@ export class WriterApi {
 		const data = await res.json();
 		return data;
 	}
+
+	async fetchUserProfile(): Promise<WriterApiUserProfile> {
+		const url = new URL(`/api/user/v2/profile`, this.#baseUrl);
+		const res = await fetch(url, {
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	async analyticsIdentify() {
+		const url = new URL(`/api/analytics/identify`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({ traits: {} }),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
+
+	async analyticsTrack(
+		eventName: string,
+		properties: Record<string, unknown>,
+	) {
+		const url = new URL(`/api/analytics/track`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({
+				eventName,
+				properties,
+			}),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
+
+	async analyticsPage(
+		name: string,
+		organizationId: number,
+		properties: Record<string, unknown>,
+	) {
+		const url = new URL(`/api/analytics/page`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			body: JSON.stringify({
+				name,
+				organizationId,
+				properties,
+			}),
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+	}
 }
 
 type WriterApiUser = {
@@ -116,4 +186,29 @@ export type WriterApiDeployResult = {
 	lastEditedAt: string;
 	icon: string | null;
 	recentlyUsedAt: string | null;
+};
+
+export type WriterApiUserProfile = {
+	id: number;
+	clientId: null | unknown;
+	avatar: string;
+	accountStatus: "signed_up";
+	firstName: string;
+	lastName: string;
+	fullName: string;
+	email: string;
+	jobTitle: null | string;
+	timezone: string;
+	phone: null | string;
+	lastOnlineTime: string;
+	hasPassword: boolean;
+	hasSaml: boolean;
+	allowUserCreation: boolean;
+	allowDirectPasswordLogin: boolean;
+	invited: boolean;
+	invitedBy: null;
+	creator: boolean;
+	createdAt: string;
+	authType: string;
+	billingGroupName: null;
 };

@@ -12,11 +12,14 @@ from writer.blocks.setstate import SetState
 from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
+from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
+from writer.blocks.writerfileapi import WriterUploadFile
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
+from writer.blocks.writerparsepdf import WriterParsePDFByFileID
 from writer.blocks.writertoolcalling import WriterToolCalling
 
 SetState.register("blueprints_setstate")
@@ -39,3 +42,6 @@ UIEventTrigger.register("blueprints_uieventtrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
 WriterToolCalling.register("blueprints_writertoolcalling")
+WriterAskGraphQuestion.register("blueprints_writeraskgraphquestion")
+WriterParsePDFByFileID.register("blueprints_writerparsepdf")
+WriterUploadFile.register("blueprints_writeruploadfile")

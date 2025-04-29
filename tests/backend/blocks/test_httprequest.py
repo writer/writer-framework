@@ -1,7 +1,7 @@
 import json
 
+import httpx
 import pytest
-import requests
 from writer.blocks.httprequest import HTTPRequest
 
 
@@ -10,19 +10,23 @@ class FakeRequest:
         self.body = "requestbody"
         self.headers = {"Content-Type": "application/fake"}
         self.url = "https://www.example.com"
+        self.content = "requestbody".encode("utf-8")
 
 
 class FakeResponse:
     def __init__(self, status_code=200, ok=True, headers={}, text=None):
         self.status_code = status_code
-        self.ok = ok
         self.headers = headers
         self.text = text
         self.json = lambda: json.loads(text)
         self.request = FakeRequest()
+        self.content = "requestbody".encode("utf-8")
+        self.is_success = ok
 
 
-def fake_request(method, url, headers={}, data=""):
+def fake_request(_, method, url, headers={}, content="", **kwargs):
+    # First argument omitted to mimick `self`
+    # in the signature of httpx.Client.request
     if not headers.get("TestHeader", "not-a-sec-ret"):
         raise RuntimeError("Test header not present.")
     if method == "GET" and url == "https://www.duck.com":
@@ -30,7 +34,7 @@ def fake_request(method, url, headers={}, data=""):
     if method == "POST" and url == "https://www.elephant.com":
         return FakeResponse(
             headers={"Content-Type": "application/json"},
-            text='{ "elephant_name": "Momo", "request_body": "' + data + '" }',
+            text='{ "elephant_name": "Momo", "request_body": "' + content + '" }',
         )
     if method == "POST" and url == "https://www.elephant.com/history":
         return FakeResponse(
@@ -40,7 +44,7 @@ def fake_request(method, url, headers={}, data=""):
             text='{ "error_message": "Page not found." }',
         )
 
-    raise requests.ConnectionError()
+    raise httpx.ConnectError("Connection error")
 
 
 @pytest.mark.explicit
@@ -58,7 +62,7 @@ def test_actual_failing_request(session, runner):
         {"url": "https://www.site-that-does-not-exist-3017673369.com"}
     )
     block = HTTPRequest(component, runner, {})
-    with pytest.raises(requests.ConnectionError):
+    with pytest.raises(httpx.ConnectError):
         block.run()
     assert block.outcome == "connectionError"
 
@@ -73,7 +77,7 @@ def test_actual_request_with_bad_path(session, runner):
 
 
 def test_patched_request(session, runner, monkeypatch):
-    monkeypatch.setattr("requests.request", fake_request)
+    monkeypatch.setattr("httpx.Client.request", fake_request)
     component = session.add_fake_component({"url": "https://www.duck.com"})
     block = HTTPRequest(component, runner, {})
     block.run()
@@ -82,16 +86,16 @@ def test_patched_request(session, runner, monkeypatch):
 
 
 def test_patched_request_to_nowhere(session, runner, monkeypatch):
-    monkeypatch.setattr("requests.request", fake_request)
+    monkeypatch.setattr("httpx.Client.request", fake_request)
     component = session.add_fake_component({"url": "https://www.cat.com"})
     block = HTTPRequest(component, runner, {})
-    with pytest.raises(requests.ConnectionError):
+    with pytest.raises(httpx.ConnectError):
         block.run()
     assert block.outcome == "connectionError"
 
 
 def test_patched_request_with_json(session, runner, monkeypatch):
-    monkeypatch.setattr("requests.request", fake_request)
+    monkeypatch.setattr("httpx.Client.request", fake_request)
     component = session.add_fake_component(
         {"url": "https://www.elephant.com", "method": "POST", "body": "Posting the elephant."}
     )
@@ -103,7 +107,7 @@ def test_patched_request_with_json(session, runner, monkeypatch):
 
 
 def test_patched_request_with_json_and_bad_path(session, runner, monkeypatch):
-    monkeypatch.setattr("requests.request", fake_request)
+    monkeypatch.setattr("httpx.Client.request", fake_request)
     component = session.add_fake_component(
         {
             "url": "https://www.elephant.com/history",

@@ -44,7 +44,7 @@ def conversation():
     return MockConversation()
 
 
-def test_chat_complete(session, runner, conversation):
+def test_chat_complete(session, runner, conversation, fake_client):
     conversation.add("user", "Hi, where's the bat?")
     session.session_state["convo"] = conversation
     component = session.add_fake_component(
@@ -55,7 +55,7 @@ def test_chat_complete(session, runner, conversation):
     assert conversation.messages[1].get("content") == "Next to the grill."
 
 
-def test_chat_stream_complete(session, runner, conversation):
+def test_chat_stream_complete(session, runner, conversation, fake_client):
     conversation.add("user", "Hi, where's the bat?")
     session.session_state["convo"] = conversation
     component = session.add_fake_component(
@@ -69,7 +69,7 @@ def test_chat_stream_complete(session, runner, conversation):
     assert conversation.messages[1].get("content") == "On the car's roof."
 
 
-def test_chat_stream_complete_with_tools(session, runner, conversation):
+def test_chat_stream_complete_with_tools(session, runner, conversation, fake_client):
     conversation.add("user", "Hi, where's the bat?")
     session.session_state["convo"] = conversation
     component = session.add_fake_component(
@@ -98,7 +98,7 @@ def test_chat_stream_complete_with_tools(session, runner, conversation):
     assert conversation.messages[1].get("content") == "On the car's roof."
 
 
-def test_chat_stream_complete_no_conversation(session, runner, conversation):
+def test_chat_stream_complete_no_conversation(session, runner, conversation, fake_client):
     conversation.add("user", "Hi, where's the bat?")
     session.session_state["convo"] = "not_a_conversation"
     component = session.add_fake_component(

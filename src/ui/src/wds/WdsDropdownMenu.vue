@@ -58,6 +58,7 @@
 				:label="option.label"
 				:detail="option.detail"
 				:data-automation-key="option.value"
+				:disabled="option.disabled"
 				:model-value="isSelected(option.value)"
 				@update:model-value="onSelect(option.value)"
 			/>
@@ -73,6 +74,7 @@
 					'WdsDropdownMenu__item--hideIcon': hideIcons,
 				}"
 				:data-automation-key="option.value"
+				:disabled="option.disabled"
 				@click="onSelect(option.value)"
 			>
 				<template v-if="!hideIcons">
@@ -123,6 +125,7 @@ export type WdsDropdownMenuOption = {
 	 * A font icon or an array of image URL
 	 */
 	icon?: string | string[];
+	disabled?: boolean;
 };
 </script>
 
@@ -312,6 +315,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	z-index: 2;
 }
 
 .WdsDropdownMenu__header__search {

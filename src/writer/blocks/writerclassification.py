@@ -1,11 +1,11 @@
 import json
 
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import BlueprintBlock
+from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
 
 
-class WriterClassification(BlueprintBlock):
+class WriterClassification(WriterBlock):
     @classmethod
     def register(cls, type: str):
         super(WriterClassification, cls).register(type)

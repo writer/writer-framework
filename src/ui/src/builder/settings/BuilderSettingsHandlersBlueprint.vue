@@ -11,6 +11,7 @@ import { WdsColor } from "@/wds/tokens";
 import BuilderBlueprintState from "../BuilderBlueprintState.vue";
 import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -21,8 +22,10 @@ const props = defineProps({
 	eventDescription: { type: String, required: false, default: undefined },
 });
 
+const tracking = useWriterTracking(wf);
+
 const { createAndInsertComponent, removeComponentsSubtree } =
-	useComponentActions(wf, wfbm);
+	useComponentActions(wf, wfbm, tracking);
 
 const eventTypeFormated = computed(() =>
 	props.eventType.replace(/^wf-/, "").replaceAll("-", " "),

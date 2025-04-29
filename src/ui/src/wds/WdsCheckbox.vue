@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineProps, useId } from "vue";
+import { computed, useId } from "vue";
 
 const props = defineProps({
 	label: { type: String, required: false, default: undefined },
@@ -23,13 +23,7 @@ function onChange(event: InputEvent) {
 </script>
 
 <template>
-	<label
-		:for="id"
-		class="WdsCheckbox"
-		:class="classes"
-		@mousedown.prevent
-		@click.prevent="checked = !checked"
-	>
+	<label :for="id" class="WdsCheckbox" :class="classes" @mousedown.prevent>
 		<div class="WdsCheckbox__checkbox">
 			<i class="WdsCheckbox__checkbox__check material-symbols-outlined"
 				>check</i
@@ -56,6 +50,11 @@ function onChange(event: InputEvent) {
 	column-gap: 12px;
 	row-gap: 2px;
 	cursor: pointer;
+	text-align: center;
+}
+.WdsCheckbox--disabled {
+	opacity: 40%;
+	cursor: not-allowed;
 }
 .WdsCheckbox__checkbox {
 	border: 1px solid var(--wdsColorGray4);
@@ -75,7 +74,8 @@ function onChange(event: InputEvent) {
 	display: none;
 }
 
-.WdsCheckbox:hover:not(.WdsCheckbox--checked) .WdsCheckbox__checkbox__check {
+.WdsCheckbox:hover:not(.WdsCheckbox--checked):not(.WdsCheckbox--disabled)
+	.WdsCheckbox__checkbox__check {
 	display: block;
 	color: var(--wdsColorGray4);
 }

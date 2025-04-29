@@ -132,14 +132,17 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { BlueprintExecutionLog } from "../builderManager";
-import { computed, inject, nextTick } from "vue";
+import { computed, inject, nextTick, onMounted } from "vue";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+
+const tracking = useWriterTracking(wf);
 
 const emit = defineEmits(["closeModal"]);
 
@@ -160,6 +163,10 @@ const callStack = computed(() => {
 
 const trace = computed(() => {
 	return props.executionItem.executionEnvironment?.["trace"] ?? [];
+});
+
+onMounted(() => {
+	tracking.track("blueprints_logs_trace_opened");
 });
 
 async function selectBlock(componentId: Component["id"]) {

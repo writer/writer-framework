@@ -1,13 +1,15 @@
+import type { useWriterTracking } from "@/composables/useWriterTracking";
 import { getContainableTypes } from "../core/typeHierarchy";
-import {
-	Core,
-	BuilderManager,
-	Component,
-	ClipboardOperation,
-	ComponentMap,
-} from "@/writerTypes";
+import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
+import { useComponentClipboard } from "./useComponentClipboard";
 
-export function useComponentActions(wf: Core, ssbm: BuilderManager) {
+export function useComponentActions(
+	wf: Core,
+	ssbm: BuilderManager,
+	tracking?: ReturnType<typeof useWriterTracking>,
+) {
+	const componentClipboard = useComponentClipboard();
+
 	function generateNewComponentId() {
 		const radix = 36;
 		let newId = "";
@@ -185,6 +187,13 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+
+		tracking?.track(
+			type.startsWith("blueprints_")
+				? "blueprints_block_added"
+				: "ui_block_added",
+			{ componentId: component.id },
+		);
 		return component.id;
 	}
 
@@ -263,7 +272,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.openMutationTransaction(transactionId, `Delete`);
 
 		for (const component of components) {
-			if (wf.getComponentById(component.id).parentId) {
+			if (component.parentId) {
 				repositionHigherSiblings(component.id, -1);
 			}
 			const dependencies = getNodeDependencies(component.id);
@@ -273,6 +282,12 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 					...c.outs.filter((out) => out.toNodeId !== component.id),
 				];
 			}
+			tracking?.track(
+				component.type.startsWith("blueprints_")
+					? "blueprints_block_deleted"
+					: "ui_block_deleted",
+				{ componentId: component.id },
+			);
 			const subtree = getFlatComponentSubtree(component.id);
 			for (const c of subtree) {
 				ssbm.registerPreMutation(c);
@@ -420,16 +435,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function isPasteAllowed(targetId: Component["id"]): boolean {
 		const component = wf.getComponentById(targetId);
 		if (!component || component.isCodeManaged) return false;
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return false;
-		const { jsonSubtree } = clipboard;
-		const subtree: Component[] = JSON.parse(jsonSubtree);
-		if (subtree.length == 0) return false;
-
-		// Mutate the subtree to reflect tentative parent
-
-		subtree[0].parentId = targetId;
-		return isSubtreeIngestable(subtree);
+		return true;
 	}
 
 	/**
@@ -478,10 +484,8 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 	function cutComponent(componentId: Component["id"]): void {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Cut,
-			jsonSubtree: JSON.stringify(getFlatComponentSubtree(componentId)),
-		});
+		const components = getFlatComponentSubtree(componentId);
+		componentClipboard.set(components);
 		ssbm.setSelection(null);
 		removeComponentSubtree(componentId);
 		wf.sendComponentUpdate();
@@ -529,25 +533,22 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		if (!component) return;
 		const subtree = getFlatComponentSubtree(componentId);
 		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(newSubtree),
-		});
+		componentClipboard.set(newSubtree);
 	}
 
 	/**
 	 * Pastes the contents of the clipboard into a given component
 	 * @param targetParentId Id of the component where to paste the clipboard
 	 */
-	function pasteComponent(targetParentId: Component["id"]): void {
+	async function pasteComponent(targetParentId: Component["id"]) {
 		const targetParent = wf.getComponentById(targetParentId);
 		if (!targetParent) return;
 
-		const clipboard = ssbm.getClipboard();
-		if (clipboard === null) return;
-		const { operation, jsonSubtree } = clipboard;
-		const subtree = JSON.parse(jsonSubtree);
+		const subtree = await componentClipboard.get();
+
+		if (!subtree) throw Error("The clipboard doesn't contain Writer data");
+		if (!subtree.length)
+			throw Error("The clipboard doesn't contain components");
 
 		const rootComponent = subtree[0];
 		if (
@@ -557,38 +558,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			rootComponent.outs = [];
 		}
 
-		if (operation == ClipboardOperation.Cut)
-			return pasteCutComponent(targetParentId, subtree);
-		if (operation == ClipboardOperation.Copy)
-			return pasteCopyComponent(targetParentId, subtree);
-	}
-
-	/**
-	 * Pastes a subtree that has been obtained by a cut operation.
-	 */
-	function pasteCutComponent(
-		targetParentId: Component["id"],
-		subtree: Component[],
-	) {
-		// MUTATION
-
-		ssbm.setClipboard(null);
-		const rootComponent = subtree[0];
-
-		rootComponent.parentId = targetParentId;
-		rootComponent.position = getNextInsertionPosition(
-			targetParentId,
-			rootComponent.type,
-		);
-
-		const transactionId = `paste-cut-${targetParentId}`;
-		ssbm.openMutationTransaction(transactionId, `Paste from cut`);
-		subtree.map((c) => {
-			wf.addComponent(c);
-			ssbm.registerPostMutation(c);
-		});
-		ssbm.closeMutationTransaction(transactionId);
-		wf.sendComponentUpdate();
+		return pasteCopyComponent(targetParentId, subtree);
 	}
 
 	/**
@@ -598,14 +568,7 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		targetParentId: Component["id"],
 		subtree: Component[],
 	) {
-		// Regenerate clipboard for future pastes
-
-		ssbm.setClipboard({
-			operation: ClipboardOperation.Copy,
-			jsonSubtree: JSON.stringify(
-				getNewSubtreeWithRegeneratedIds(subtree),
-			),
-		});
+		componentClipboard.set(getNewSubtreeWithRegeneratedIds(subtree));
 
 		// MUTATION
 
@@ -615,6 +578,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 			targetParentId,
 			rootComponent.type,
 		);
+
+		if (!isSubtreeIngestable(subtree)) {
+			throw Error("Could not paste the components here");
+		}
 
 		const transactionId = `paste-copy-${targetParentId}`;
 		ssbm.openMutationTransaction(transactionId, `Paste from copy`);
@@ -768,6 +735,10 @@ export function useComponentActions(wf: Core, ssbm: BuilderManager) {
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
+		tracking?.track("ui_blueprint_connected", {
+			componentIds: [componentId, out.toNodeId],
+			outId: out.outId,
+		});
 	}
 
 	/**

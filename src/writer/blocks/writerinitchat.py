@@ -1,11 +1,11 @@
 from writer.abstract import register_abstract_template
-from writer.blocks.base_block import BlueprintBlock
+from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
 DEFAULT_MODEL = "palmyra-x-004"
 
 
-class WriterInitChat(BlueprintBlock):
+class WriterInitChat(WriterBlock):
 
     @classmethod
     def register(cls, type: str):

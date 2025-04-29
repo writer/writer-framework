@@ -4,7 +4,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { buildMockCore, buildMockComponent, mockProvides } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
 import { generateBuilderManager } from "../builderManager";
-import BuilderSelect from "../BuilderSelect.vue";
+import WdsSelect from "@/wds/WdsSelect.vue";
 import type { generateCore } from "@/core";
 
 describe("BuilderFieldsHandler", () => {
@@ -25,9 +25,6 @@ describe("BuilderFieldsHandler", () => {
 				fieldKey,
 			},
 			global: {
-				stubs: {
-					BaseSelect: true,
-				},
 				provide: {
 					...mockProvides,
 					[injectionKeys.builderManager as symbol]: ssbm,
@@ -55,7 +52,7 @@ describe("BuilderFieldsHandler", () => {
 
 		expect(wrapper.attributes("data-automation-key")).toBe(fieldKey);
 
-		const select = wrapper.getComponent(BuilderSelect);
+		const select = wrapper.getComponent(WdsSelect);
 
 		expect(select.props("modelValue")).toBe("");
 
@@ -72,7 +69,7 @@ describe("BuilderFieldsHandler", () => {
 		const wrapper = buildWrapper(component1.id);
 		await flushPromises();
 
-		const select = wrapper.getComponent(BuilderSelect);
+		const select = wrapper.getComponent(WdsSelect);
 
 		select.vm.$emit("update:modelValue", "func1");
 
@@ -94,7 +91,7 @@ describe("BuilderFieldsHandler", () => {
 		const wrapper = buildWrapper(component2.id);
 		await flushPromises();
 
-		const select = wrapper.getComponent(BuilderSelect);
+		const select = wrapper.getComponent(WdsSelect);
 
 		expect(select.props("modelValue")).toBe(unexstingHandler);
 

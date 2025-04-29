@@ -91,12 +91,8 @@
 			size="small"
 			:data-writer-tooltip="`Paste (${getModifierKeyName()}V)`"
 			data-writer-tooltip-placement="left"
-			:disabled="!shortcutsInfo?.isPasteEnabled"
-			@click="
-				shortcutsInfo?.isPasteEnabled
-					? pasteComponent(selectedId)
-					: undefined
-			"
+			:disabled="!isPasteEnabled"
+			@click="handlePasteComponent"
 		>
 			<i class="material-symbols-outlined">content_paste</i>
 		</WdsButton>
@@ -176,9 +172,13 @@ import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import { SelectionStatus } from "../builderManager";
+import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useToasts } from "../useToast";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const tracking = useWriterTracking(wf);
 
 const {
 	createAndInsertComponent,
@@ -196,7 +196,17 @@ const {
 	getEnabledMoves,
 	removeComponentsSubtree,
 	goToParent,
-} = useComponentActions(wf, ssbm);
+} = useComponentActions(wf, ssbm, tracking);
+
+const toasts = useToasts();
+
+async function handlePasteComponent() {
+	try {
+		await pasteComponent(selectedId.value);
+	} catch (error) {
+		toasts.pushToast({ type: "error", message: String(error) });
+	}
+}
 
 function deleteSelectedComponents() {
 	if (!shortcutsInfo.value.isDeleteEnabled) return;
@@ -220,10 +230,14 @@ const shortcutsInfo: Ref<{
 	isMoveDownEnabled: boolean;
 	isCopyEnabled: boolean;
 	isCutEnabled: boolean;
-	isPasteEnabled: boolean;
 	isGoToParentEnabled: boolean;
 	isDeleteEnabled: boolean;
 }> = ref(null);
+
+const isPasteEnabled = computed(() => {
+	if (!ssbm.firstSelectedId.value) return false;
+	return isPasteAllowed(ssbm.firstSelectedId.value);
+});
 
 const validChildrenTypes = computed(() => {
 	const types = wf.getContainableTypes(selectedId.value);
@@ -265,7 +279,6 @@ function reprocessShorcutsInfo(): void {
 		isMoveDownEnabled,
 		isCopyEnabled: isCopyAllowed(selectedId.value),
 		isCutEnabled: isCutAllowed(selectedId.value),
-		isPasteEnabled: isPasteAllowed(selectedId.value),
 		isGoToParentEnabled: isGoToParentAllowed(selectedId.value),
 		isDeleteEnabled: isDeleteAllowed(selectedId.value),
 	};

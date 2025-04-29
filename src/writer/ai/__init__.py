@@ -1,5 +1,6 @@
 import json
 import logging
+from contextvars import ContextVar
 from datetime import datetime
 from typing import (
     Any,
@@ -18,7 +19,7 @@ from typing import (
 from uuid import uuid4
 
 from httpx import Timeout
-from writerai import Writer
+from writerai import DefaultHttpxClient, Writer
 from writerai._exceptions import WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
@@ -57,6 +58,9 @@ from writer.core import get_app_process
 
 DEFAULT_CHAT_MODEL = "palmyra-x-004"
 DEFAULT_COMPLETION_MODEL = "palmyra-x-004"
+
+
+_ai_client: ContextVar[Optional[Writer]] = ContextVar("ai_client", default=None)
 
 
 class APIOptions(TypedDict, total=False):
@@ -263,7 +267,11 @@ class WriterAIManager:
         return DEFAULT_COMPLETION_MODEL
 
     @classmethod
-    def acquire_client(cls) -> Writer:
+    def acquire_client(
+        cls,
+        custom_httpx_client: Optional[DefaultHttpxClient] = None,
+        force_new_client: Optional[bool] = False
+    ) -> Writer:
         from writer.core import get_session
         instance = cls.acquire_instance()
 
@@ -272,6 +280,7 @@ class WriterAIManager:
 
         current_session = get_session()
         custom_headers = {}
+
         if current_session:
             headers = current_session.headers or {}
             agent_token_header = headers.get("x-agent-token")
@@ -281,10 +290,17 @@ class WriterAIManager:
                     }
 
         try:
-            client = Writer(
-                api_key=instance.token,
-                default_headers=custom_headers
-                )
+            context_client = _ai_client.get(None)
+            if force_new_client or not context_client:
+                client = Writer(
+                    api_key=instance.token,
+                    default_headers=custom_headers,
+                    http_client=custom_httpx_client
+                    )
+                _ai_client.set(client)
+                return client
+            else:
+                return context_client
         except WriterError:
             raise RuntimeError(
                 "Failed to acquire Writer API key. " +
@@ -292,7 +308,6 @@ class WriterAIManager:
                 " environment variable, or by initializing the" +
                 " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
                 ) from None
-        return client
 
 
 class SDKWrapper:

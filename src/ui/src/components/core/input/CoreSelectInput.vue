@@ -4,33 +4,28 @@
 		:label="fields.label.value"
 		class="CoreSelectInput"
 	>
-		<BaseSelect
-			:base-id="flattenedInstancePath"
-			:active-value="formValue ? [formValue] : []"
+		<WdsSelect
+			v-model="model"
 			:options="options"
-			:maximum-count="1"
-			mode="single"
 			:placeholder="fields.placeholder.value"
-			@change="handleChange"
-		></BaseSelect>
+			hide-icons
+		/>
 	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
 import { computed, inject } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "@/writerTypes";
+import { FieldType } from "@/writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
 	cssClasses,
 	primaryTextColor,
-	secondaryTextColor,
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
-import { WdsColor } from "@/wds/tokens";
 import { validatorObjectRecordNotNested } from "@/constants/validators";
 import { validatorPositiveNumber } from "@/constants/validators";
 
@@ -75,16 +70,7 @@ export default {
 				validator: validatorPositiveNumber,
 			},
 			accentColor,
-			chipTextColor: {
-				name: "Chip text",
-				type: FieldType.Color,
-				default: WdsColor.White,
-				desc: "The color of the text in the chips.",
-				category: FieldCategory.Style,
-				applyStyleVariable: true,
-			},
 			primaryTextColor,
-			secondaryTextColor,
 			containerBackgroundColor,
 			separatorColor,
 			cssClasses,
@@ -103,13 +89,11 @@ export default {
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import BaseSelect from "../base/BaseSelect.vue";
+import WdsSelect, { Option } from "@/wds/WdsSelect.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const options = computed(() => fields.options.value);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
-const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 const instancePath = inject(injectionKeys.instancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
@@ -118,10 +102,21 @@ const { formValue, handleInput } = useFormValueBroker(
 	rootInstance,
 );
 
-function handleChange(selectedOptions: string[]) {
-	const selectedOption = selectedOptions?.[0] ?? null;
-	handleInput(selectedOption, "wf-option-change");
-}
+const options = computed(() =>
+	Object.entries(fields.options.value).map<Option>(([key, value]) => ({
+		value: key,
+		label: String(value),
+	})),
+);
+
+const model = computed<string[]>({
+	get() {
+		return formValue.value;
+	},
+	set(value) {
+		handleInput(value, "wf-option-change");
+	},
+});
 </script>
 
 <style scoped>
@@ -132,5 +127,15 @@ function handleChange(selectedOptions: string[]) {
 	max-width: 70ch;
 	width: 100%;
 	position: relative;
+}
+
+/* Override WDS components from component's styles */
+
+:deep(.WdsSelect__trigger) {
+	border-color: var(--separatorColor);
+	background-color: var(--containerBackgroundColor);
+}
+:deep(.WdsSelect__trigger):focus {
+	border: 1px solid var(--separatorColor);
 }
 </style>

@@ -2,7 +2,7 @@ import writer.ai
 from writer.blocks.writercompletion import WriterCompletion
 
 
-def test_complete(monkeypatch, session, runner):
+def test_complete(monkeypatch, session, runner, fake_client):
     def fake_complete(prompt, config):
         assert config.get("temperature") == 0.9
         assert config.get("model") == "buenos-aires-x-004"
@@ -19,7 +19,7 @@ def test_complete(monkeypatch, session, runner):
     assert block.outcome == "success"
 
 
-def test_complete_missing_text(monkeypatch, session, runner):
+def test_complete_missing_text(monkeypatch, session, runner, fake_client):
     def fake_complete(prompt, config):
         assert config.get("temperature") == 0.9
         assert config.get("model") == "buenos-aires-x-004"
