@@ -121,7 +121,8 @@ const { title, actions } = toRefs(props);
 	max-width: 240ch;
 }
 
-.WdsModal--overflow .WdsModal__main {
+.WdsModal--overflow .WdsModal__main,
+.WdsModal--overflow .WdsModal__main__content {
 	overflow: unset;
 }
 

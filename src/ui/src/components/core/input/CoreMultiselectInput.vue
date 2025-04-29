@@ -4,20 +4,18 @@
 		:label="fields.label.value"
 		class="CoreMultiselectInput"
 	>
-		<BaseSelect
-			:base-id="flattenedInstancePath"
-			:active-value="formValue"
+		<WdsSelect
+			v-model="model"
 			:options="options"
-			:maximum-count="maximumCount"
-			mode="multiple"
 			:placeholder="fields.placeholder.value"
-			@change="handleChange"
-		></BaseSelect>
+			enable-multi-selection
+			hide-icons
+		/>
 	</BaseInputWrapper>
 </template>
 
 <script lang="ts">
-import { computed, inject, Ref } from "vue";
+import { computed, inject } from "vue";
 import { ref } from "vue";
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
@@ -25,7 +23,6 @@ import {
 	containerBackgroundColor,
 	cssClasses,
 	primaryTextColor,
-	secondaryTextColor,
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
@@ -89,7 +86,6 @@ export default {
 				applyStyleVariable: true,
 			},
 			primaryTextColor,
-			secondaryTextColor,
 			containerBackgroundColor,
 			separatorColor,
 			cssClasses,
@@ -109,15 +105,12 @@ export default {
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import BaseSelect from "../base/BaseSelect.vue";
+import WdsSelect, { Option } from "@/wds/WdsSelect.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
-const options = computed(() => fields.options.value);
-const maximumCount: Ref<number> = computed(() => fields.maximumCount.value);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const flattenedInstancePath = inject(injectionKeys.flattenedInstancePath);
 
 const { formValue, handleInput } = useFormValueBroker(
 	wf,
@@ -125,9 +118,27 @@ const { formValue, handleInput } = useFormValueBroker(
 	rootInstance,
 );
 
-function handleChange(selectedOptions: string[]) {
-	handleInput(selectedOptions, "wf-options-change");
-}
+const hasReachSelectionLimit = computed(() => {
+	if (!fields.maximumCount.value) return false;
+	return model.value.length >= fields.maximumCount.value;
+});
+
+const options = computed(() => {
+	return Object.entries(fields.options.value).map<Option>(([key, value]) => ({
+		value: key,
+		label: String(value),
+		disabled: hasReachSelectionLimit.value && !model.value.includes(key),
+	}));
+});
+
+const model = computed<string[]>({
+	get() {
+		return formValue.value ?? [];
+	},
+	set(value) {
+		handleInput(value, "wf-options-change");
+	},
+});
 </script>
 
 <style scoped>
@@ -138,5 +149,23 @@ function handleChange(selectedOptions: string[]) {
 	max-width: 70ch;
 	width: 100%;
 	position: relative;
+}
+
+/* Override WDS components from component's styles */
+
+:deep(.WdsTag) {
+	background-color: var(--accentColor);
+	color: var(--chipTextColor);
+}
+:deep(.WdsTag):hover {
+	background-color: var(--accentColor);
+	color: var(--chipTextColor);
+}
+:deep(.WdsSelect__trigger) {
+	border-color: var(--separatorColor);
+	background-color: var(--containerBackgroundColor);
+}
+:deep(.WdsSelect__trigger):focus {
+	border: 1px solid var(--separatorColor);
 }
 </style>

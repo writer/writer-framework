@@ -3,7 +3,7 @@
 		class="BuilderFieldsBlueprintKey"
 		:data-automation-key="props.fieldKey"
 	>
-		<BuilderSelect v-model="selectedBlueprintKey" :options="options" />
+		<WdsSelect v-model="selectedBlueprintKey" :options="options" />
 		<WdsButton
 			v-if="selectedBlueprintComponentId"
 			variant="neutral"
@@ -21,11 +21,9 @@ import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
-import { Option } from "../BuilderSelect.vue";
+import { Option } from "@/wds/WdsSelect.vue";
 
-const BuilderSelect = defineAsyncComponent(
-	() => import("../BuilderSelect.vue"),
-);
+const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

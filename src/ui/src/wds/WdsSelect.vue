@@ -1,9 +1,12 @@
 <template>
-	<div ref="trigger" class="BuilderSelect">
-		<button
-			class="BuilderSelect__trigger"
+	<div ref="trigger" class="WdsSelect">
+		<!-- use a `<div>` instead of button because Firefox has an issue with draggable `<button>` https://bugzilla.mozilla.org/show_bug.cgi?id=568313 -->
+		<div
+			class="WdsSelect__trigger"
 			role="button"
+			tabindex="0"
 			@click="isOpen = !isOpen"
+			@keydown.enter="isOpen = !isOpen"
 		>
 			<template
 				v-if="
@@ -21,7 +24,7 @@
 			</template>
 			<div
 				v-if="enableMultiSelection"
-				class="BuilderSelect__trigger__multiSelectLabel"
+				class="WdsSelect__trigger__multiSelectLabel"
 			>
 				<WdsTag
 					v-for="option of selectedOptions"
@@ -30,32 +33,40 @@
 					closable
 					@close="handleRemoveValue(option.value)"
 				/>
+				<p
+					v-if="selectedOptions.length === 0 && placeholder"
+					class="WdsSelect__trigger__multiSelectLabel__placeholder"
+				>
+					{{ placeholder }}
+				</p>
 			</div>
 			<div
 				v-else
-				class="BuilderSelect__trigger__label"
+				class="WdsSelect__trigger__label"
 				data-writer-tooltip-strategy="overflow"
 				:data-writer-tooltip="currentLabel"
 			>
-				{{ currentLabel }}
+				{{ currentLabel ?? placeholder }}
 			</div>
-			<div class="BuilderSelect__trigger__arrow">
+			<div class="WdsSelect__trigger__arrow">
 				<i class="material-symbols-outlined">{{ expandIcon }}</i>
 			</div>
-		</button>
-		<WdsDropdownMenu
-			v-if="isOpen"
-			ref="dropdown"
-			:enable-search="enableSearch"
-			:enable-multi-selection="enableMultiSelection"
-			:hide-icons="hideIcons"
-			:loading="loading"
-			:options="options"
-			:selected="currentValue"
-			:style="floatingStyles"
-			@select="onSelect"
-			@search="updateFloatingStyle"
-		/>
+		</div>
+		<BaseTransitionSlideFade>
+			<WdsDropdownMenu
+				v-if="isOpen"
+				ref="dropdown"
+				:enable-search="enableSearch"
+				:enable-multi-selection="enableMultiSelection"
+				:hide-icons="hideIcons"
+				:loading="loading"
+				:options="options"
+				:selected="currentValue"
+				:style="floatingStyles"
+				@select="onSelect"
+				@search="updateFloatingStyle"
+			/>
+		</BaseTransitionSlideFade>
 	</div>
 </template>
 
@@ -78,6 +89,7 @@ import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 
 const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),
@@ -90,6 +102,7 @@ const props = defineProps({
 		>,
 		default: () => [],
 	},
+	placeholder: { type: String, required: false, default: undefined },
 	defaultIcon: { type: String, required: false, default: undefined },
 	hideIcons: { type: Boolean, required: false },
 	enableSearch: { type: Boolean, required: false },
@@ -190,14 +203,14 @@ function handleRemoveValue(value: string) {
 </script>
 
 <style scoped>
-.BuilderSelect {
+.WdsSelect {
 	position: relative;
 	user-select: none;
 	width: 100%;
 	font-size: 0.875rem;
 }
 
-.BuilderSelect__trigger {
+.WdsSelect__trigger {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -213,23 +226,23 @@ function handleRemoveValue(value: string) {
 	font-size: 0.875rem;
 
 	color: var(--primaryTextColor);
-	background: transparent;
+	background: var(--wdsColorWhite);
 
 	cursor: pointer;
 }
-.BuilderSelect__trigger:focus {
+.WdsSelect__trigger:focus {
 	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 	outline: none;
 }
-.BuilderSelect__trigger__label {
+.WdsSelect__trigger__label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-grow: 1;
 	text-align: left;
 	white-space: nowrap;
 }
-.BuilderSelect__trigger__arrow {
+.WdsSelect__trigger__arrow {
 	border: none;
 	background-color: transparent;
 	display: flex;
@@ -239,12 +252,16 @@ function handleRemoveValue(value: string) {
 	cursor: pointer;
 }
 
-.BuilderSelect__trigger__multiSelectLabel {
+.WdsSelect__trigger__multiSelectLabel {
 	flex-grow: 1;
 
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	gap: 8px;
+	min-height: 24px;
+}
+.WdsSelect__trigger__multiSelectLabel__placeholder {
+	color: var(--wdsColorGray5);
 }
 </style>

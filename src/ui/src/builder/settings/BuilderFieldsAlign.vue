@@ -13,7 +13,7 @@
 
 		<div v-if="mode == 'pick' || mode == 'css'" class="main">
 			<div v-if="mode == 'pick'" class="pickerContainer">
-				<BuilderSelect
+				<WdsSelect
 					ref="pickerEl"
 					:model-value="subMode"
 					:options="selectOptions"
@@ -58,8 +58,8 @@ import {
 } from "./constants/builderFieldsCssTabs";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 
-const BuilderSelect = defineAsyncComponent({
-	loader: () => import("../BuilderSelect.vue"),
+const WdsSelect = defineAsyncComponent({
+	loader: () => import("@/wds/WdsSelect.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 
