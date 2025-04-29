@@ -677,8 +677,8 @@ class AppRunner:
     """
 
     UPDATE_CHECK_INTERVAL_SECONDS = 0.2
-    WF_PROJECT_SAVE_INTERVAL = 0.2
-    MAX_WAIT_NOTIFY_SECONDS = 10
+    WF_PROJECT_SAVE_INTERVAL = 5
+    MAX_WAIT_NOTIFY_SECONDS = 30
 
     def __init__(self, app_path: str, mode: str):
         self.server_conn: Optional[multiprocessing.connection.Connection] = None
