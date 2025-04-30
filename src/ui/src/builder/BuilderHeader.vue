@@ -1,6 +1,14 @@
 <template>
 	<div class="BuilderHeader">
-		<img src="../assets/logo.svg" alt="Writer Framework logo" />
+		<a
+			v-if="writerDeployUrl"
+			:href="writerDeployUrl.toString()"
+			target="_blank"
+			class="BuilderHeader__goBack"
+		>
+			<img src="../assets/logo.svg" alt="Writer Framework logo" />
+		</a>
+		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
 		<BuilderSwitcher />
 		<div class="gap"></div>
 		<div class="BuilderHeader__toolbar">
@@ -109,6 +117,7 @@ const {
 	publishApplication,
 	hasBeenPublished,
 	lastDeployedAt,
+	writerDeployUrl,
 } = useApplicationCloud(wf);
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
@@ -207,6 +216,12 @@ function showStateExplorer() {
 	gap: 16px;
 	padding-top: 1px;
 	border-bottom: 1px solid var(--builderAreaSeparatorColor);
+}
+
+.BuilderHeader__goBack {
+	text-decoration: none;
+	display: flex;
+	align-items: center;
 }
 
 .BuilderHeader__toolbar {
