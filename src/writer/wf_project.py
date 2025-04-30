@@ -75,11 +75,12 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
         os.fsync(f.fileno())
 
     logger = logging.getLogger("writer")
+    time_start = time.time()
     logger.info("Saving project...")
     _write_root_files(wf_directory, components)
     _write_component_files(wf_directory, components)
     _remove_obsolete_component_files(wf_directory, components)
-    logger.info("Saved.")
+    logger.info("Saved. Time elapsed: %.4fs", time.time() - time_start)
 
 
 def start_process_write_files_async(context: WfProjectContext, save_interval: float) -> None:
