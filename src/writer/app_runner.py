@@ -836,6 +836,8 @@ class AppRunner:
 
         with open(path, mode, encoding=encoding) as f:
             f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
 
         self.source_files = wf_project.build_source_files(self.app_path)
 
@@ -978,6 +980,8 @@ class AppRunner:
 
         with open(filepath, "w") as f:
             f.write(code)
+            f.flush()
+            os.fsync(f.fileno())
 
         self.source_files = wf_project.build_source_files(self.app_path)
 
