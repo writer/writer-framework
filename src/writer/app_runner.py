@@ -677,7 +677,7 @@ class AppRunner:
     """
 
     UPDATE_CHECK_INTERVAL_SECONDS = 0.2
-    WF_PROJECT_SAVE_INTERVAL = 5
+    WF_PROJECT_SAVE_INTERVAL = float(os.getenv("WRITER_SAVE_INTERVAL", "0.2"))
     MAX_WAIT_NOTIFY_SECONDS = 30
 
     def __init__(self, app_path: str, mode: str):
