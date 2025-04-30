@@ -42,6 +42,14 @@ export function useApplicationCloud(wf: Core) {
 		return new URL(path, apiBaseUrl);
 	});
 
+	const writerDeployUrl = computed(() => {
+		if (!orgId.value || !appId.value) return;
+		return new URL(
+			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
+			apiBaseUrl,
+		);
+	});
+
 	const lastDeployedAt = computed(() => {
 		return deploymentInformation.value.lastDeployedAt
 			? new Date(deploymentInformation.value.lastDeployedAt)
@@ -134,6 +142,7 @@ export function useApplicationCloud(wf: Core) {
 	return {
 		isCloudApp,
 		canDeploy,
+		writerDeployUrl,
 		hasBeenPublished,
 		publishApplication,
 		isDeploying: readonly(isDeploying),
