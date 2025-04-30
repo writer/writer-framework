@@ -71,6 +71,8 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
 
     with io.open(os.path.join(wf_directory, "metadata.json"), "w") as f:
         json.dump(metadata, f, indent=4)
+        f.flush()
+        os.fsync(f.fileno())
 
     _write_root_files(wf_directory, components)
     _write_component_files(wf_directory, components)
@@ -185,6 +187,8 @@ def create_default_blueprints_root(abs_path: str) -> None:
         f.write('{"id": "blueprints_root", "type": "blueprints_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
         logger = logging.getLogger('writer')
         logger.warning('project format has changed and has been migrated with success. components-blueprints_root.jsonl has been added.')
+        f.flush()
+        os.fsync(f.fileno())
 
 
 def _expected_component_fileinfos(components: dict[str, ComponentDefinition]) -> List[Tuple[str, str]]:
@@ -257,6 +261,8 @@ def _write_component_files(wf_directory: str, components: Dict[str, ComponentDef
         with io.open(os.path.join(wf_directory, filename), "w") as f:
             for p in _order_components(filtered_components):
                 f.write(json.dumps(_sort_wf_component_keys(p)) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
 
 
 def _write_root_files(wf_directory, components):
@@ -265,6 +271,8 @@ def _write_root_files(wf_directory, components):
         if root_component:
             with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
                 f.write(json.dumps(_sort_wf_component_keys(root_component)))
+                f.flush()
+                os.fsync(f.fileno())
 
 
 def _order_components(components: Dict[str, ComponentDefinition]) -> List[ComponentDefinition]:
