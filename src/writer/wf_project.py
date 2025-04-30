@@ -43,6 +43,13 @@ def write_files_async(context: WfProjectContext, metadata: MetadataDefinition, c
 
     >>> wf_project.write_files_async('app/hello', metadata={"writer_version": "0.1" }, components=...)
     """
+    
+    while not context.write_files_async_queue.empty():
+        try:
+            context.write_files_async_queue.get_nowait()
+        except queue.Empty:
+            break
+
     context.write_files_async_queue.put((context.app_path, metadata, components))
 
 def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
