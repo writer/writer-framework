@@ -144,10 +144,17 @@ const actions = computed<ModalAction[]>(() => [
 	},
 ]);
 
-const tabs: WdsTabOptions<Mode>[] = [
-	{ label: "List", value: "assisted" },
-	{ label: "JSON", value: "freehand" },
-];
+const tabs = computed<WdsTabOptions<Mode>[]>(() => {
+	let listDisabled =
+		mode.value === "freehand" && !isValid.value
+			? "The JSON is not valid"
+			: undefined;
+
+	return [
+		{ label: "List", value: "assisted", disabled: listDisabled },
+		{ label: "JSON", value: "freehand" },
+	];
+});
 </script>
 
 <style scoped>
