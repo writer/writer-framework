@@ -20,7 +20,10 @@
 					:value="optionKey"
 				>
 					<template
-						v-if="option.toLowerCase() !== optionKey.toLowerCase()"
+						v-if="
+							option.toLowerCase() !==
+							String(optionKey).toLowerCase()
+						"
 					>
 						{{ option }}
 					</template>
@@ -46,8 +49,10 @@
 
 		<div
 			v-if="autocompleteOptions.length"
+			ref="dropdown"
 			class="fieldStateAutocomplete"
 			tabindex="-1"
+			:style="floatingStyles"
 		>
 			<button
 				v-for="(option, optionKey) in autocompleteOptions"
@@ -72,12 +77,14 @@ import {
 	PropType,
 	inject,
 	nextTick,
-	ref,
+	onUnmounted,
 	shallowRef,
-	ComponentInstance,
+	useTemplateRef,
+	watch,
 } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
+import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 
 const emit = defineEmits(["input", "update:value"]);
 
@@ -105,8 +112,46 @@ const props = defineProps({
 });
 
 const ss = inject(injectionKeys.core);
+
+const input = useTemplateRef("input");
+const dropdown = useTemplateRef("dropdown");
+
 const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
-const input = ref<ComponentInstance<typeof WdsTextInput> | null>(null);
+
+const { floatingStyles, update } = useFloating(input, dropdown, {
+	placement: "bottom-start",
+	middleware: [
+		flip(),
+		// take the width of the reference element
+		size({
+			apply({ rects, elements }) {
+				Object.assign(elements.floating.style, {
+					minWidth: `${rects.reference.width}px`,
+				});
+			},
+		}),
+	],
+	strategy: "fixed",
+});
+useFloatingAutoUpdate();
+
+function useFloatingAutoUpdate() {
+	let autoUpdateCleanup: ReturnType<typeof autoUpdate> | undefined;
+
+	function cleanup() {
+		if (autoUpdateCleanup) autoUpdateCleanup();
+		autoUpdateCleanup = undefined;
+	}
+
+	watch(dropdown, () => {
+		cleanup();
+		if (dropdown.value) {
+			autoUpdateCleanup = autoUpdate(input, dropdown.value, update);
+		}
+	});
+
+	onUnmounted(() => cleanup());
+}
 
 defineExpose({
 	focus: () => input.value?.focus(),
@@ -116,7 +161,7 @@ function _get(object: object, path: string[]) {
 	return path.reduce((acc, key) => acc?.[key], object);
 }
 
-const handleComplete = (selectedText: string) => {
+function handleComplete(selectedText: string) {
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const text = newValue.slice(0, selectionStart);
@@ -134,15 +179,15 @@ const handleComplete = (selectedText: string) => {
 		input.value.setSelectionEnd(replaced.length);
 		input.value.setSelectionStart(replaced.length);
 	});
-};
+}
 
-const typeToString = (val) => {
+function typeToString(val: unknown) {
 	if (val === null) return "null";
 	if (val === undefined) return "undefined";
 	return typeof val;
-};
+}
 
-const getPath = (text) => {
+function getPath(text: string) {
 	if ((props.type ?? "template") === "state") {
 		return text.split(".");
 	}
@@ -152,22 +197,22 @@ const getPath = (text) => {
 	}
 	const raw = m?.[1] ?? "";
 	return raw.split(".");
-};
+}
 
 /**
  * Escape a key to support the "." and "\" in a state variable
  */
-const escapeVariable = (key) => {
+function escapeVariable(key: string) {
 	return key.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
-};
+}
 
-const handleInput = (ev) => {
+function handleInput(ev) {
 	emit("input", ev);
 	emit("update:value", ev.target.value);
 	showAutocomplete();
-};
+}
 
-const showAutocomplete = () => {
+function showAutocomplete() {
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const newValue = input.value?.value;
 	const collapsed = selectionStart === selectionEnd;
@@ -205,7 +250,7 @@ const showAutocomplete = () => {
 		const { item } = match;
 		return item;
 	});
-};
+}
 
 let closeAutocompletionJob: ReturnType<typeof setTimeout> | null;
 
@@ -241,7 +286,6 @@ function abortClosingAutocompletion() {
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	max-height: 200px;
 	overflow-y: auto;
-	width: 100%;
 	z-index: 2;
 }
 

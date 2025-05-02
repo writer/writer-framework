@@ -20,7 +20,10 @@
 					<i class="material-symbols-outlined">close</i>
 				</WdsButton>
 				<div v-if="title || description" class="WdsModal__main__title">
-					<h2>{{ title }}</h2>
+					<div class="WdsModal__main__title__header">
+						<h2>{{ title }}</h2>
+						<slot name="titleActions" />
+					</div>
 					<summary v-if="description">
 						{{ description }}
 					</summary>
@@ -157,7 +160,16 @@ const { title, actions } = toRefs(props);
 	margin-bottom: 32px;
 }
 
-.WdsModal__main__title h2 {
+/* center the actions slot if the slot is provided */
+.WdsModal__main__title__header {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+}
+.WdsModal__main__title__header > *:only-child {
+	grid-column: 1 / -1;
+}
+
+.WdsModal__main__title__header h2 {
 	margin: 0;
 	font-size: 24px;
 	font-style: normal;
