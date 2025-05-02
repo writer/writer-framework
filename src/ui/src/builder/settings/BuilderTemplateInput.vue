@@ -100,7 +100,7 @@ const props = defineProps({
 	type: {
 		type: String as PropType<"state" | "template">,
 		required: false,
-		default: undefined,
+		default: "template",
 	},
 	options: {
 		type: Object as PropType<Record<string, string>>,
@@ -169,8 +169,12 @@ function handleComplete(selectedText: string) {
 	if (full === null) return;
 	const keyword = full.at(-1);
 	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
-	const replaced = text.replace(new RegExp(regexKeyword), selectedText);
-	newValue = replaced + newValue.slice(selectionEnd);
+	const replaced = text.replace(
+		new RegExp(regexKeyword),
+		`${selectedText}${props.type === "template" ? "}" : ""}`,
+	);
+	const afterText = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
+	newValue = replaced.concat(afterText);
 	emit("input", { target: { value: newValue } });
 	emit("update:value", newValue);
 	autocompleteOptions.value = [];

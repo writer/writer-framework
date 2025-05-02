@@ -30,7 +30,7 @@ test.describe("state autocompletion", () => {
 			page.locator('.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")').click();
 			await expect(page
 				.locator('.BuilderFieldsText[data-automation-key="text"] textarea'))
-				.toHaveValue("@{types.string");
+				.toHaveValue("@{types.string}");
 		});
 		test("counter", async ({ page }) => {
 			await setTextField(page, "@{counter");
@@ -84,7 +84,7 @@ test.describe("state autocompletion", () => {
 			await expect(assistedKeyField.locator(`.fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(assistedKeyField.locator(`.fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			await assistedKeyField.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`).click();
-			await expect(assistedKeyFieldInput).toHaveValue("@{types.string");
+			await expect(assistedKeyFieldInput).toHaveValue("@{types.string}");
 
 			// value
 
@@ -95,7 +95,7 @@ test.describe("state autocompletion", () => {
 			await expect(assistedValueField.locator(`.fieldStateAutocomplete span.prop`)).toHaveText(["none", "string", "integer", "float"]);
 			await expect(assistedValueField.locator(`.fieldStateAutocomplete span.type`)).toHaveText(["null", "string", "number", "number"]);
 			await assistedValueField.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`).click();
-			await expect(assistedKeyValueInput).toHaveValue("@{types.string");
+			await expect(assistedKeyValueInput).toHaveValue("@{types.string}");
 		});
 	});
 
@@ -114,7 +114,7 @@ test.describe("state autocompletion", () => {
 			page.locator(`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`).click();
 			await expect(page
 				.locator(`${FIELD} .BuilderTemplateInput input`))
-				.toHaveValue("@{types.string");
+				.toHaveValue("@{types.string}");
 		});
 	}
 
