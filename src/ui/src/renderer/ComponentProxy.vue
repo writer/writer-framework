@@ -182,6 +182,7 @@ export default {
 			(isNowSelected) => {
 				isSelected.value = isNowSelected;
 			},
+			{ immediate: true },
 		);
 
 		// keep track on style fields changed to remove the "selected" state if a style change (it helps the user to see his modifications)
