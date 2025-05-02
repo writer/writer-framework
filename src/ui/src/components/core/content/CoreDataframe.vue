@@ -319,6 +319,7 @@ export default {
 import injectionKeys from "@/injectionKeys";
 import type * as aq from "arquero";
 import type { Table } from "apache-arrow";
+import { dataUrlToBase64, base64ToArrayBuffer } from "@/utils/base64";
 
 /**
  * If the table is massive, only a certain amount of rows is rendered at a time,
@@ -559,12 +560,10 @@ async function loadData() {
 	isLoadingData.value = true;
 	const aq = await import("arquero");
 	const { tableFromIPC } = await import("apache-arrow");
-	const url = fields.dataframe.value;
 
 	try {
-		const res = await fetch(url);
-		const blob = await res.blob();
-		const buffer = await blob.arrayBuffer();
+		const base64 = dataUrlToBase64(fields.dataframe.value);
+		const buffer = base64ToArrayBuffer(base64);
 		const arrowTable = tableFromIPC(buffer);
 		tableIndex.value = getIndexFromArrowTable(arrowTable);
 		const aqTable = aq.fromArrow(arrowTable);
