@@ -13,14 +13,6 @@
 			>
 				<i class="material-symbols-outlined">edit</i>
 			</WdsButton>
-			<WdsButton
-				variant="neutral"
-				size="smallIcon"
-				data-automation-key="openFreehandMode"
-				@click="modalMode = 'freehand'"
-			>
-				<i class="material-symbols-outlined">code</i>
-			</WdsButton>
 		</div>
 		<BuilderFieldsKeyValueModal
 			v-if="modalMode"
