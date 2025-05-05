@@ -209,7 +209,7 @@ function showStateExplorer() {
 .BuilderHeader {
 	background: var(--wdsColorBlack);
 	color: var(--builderBackgroundColor);
-	padding: 0 12px 0 16px;
+	padding: 0 12px 0 10px;
 	display: grid;
 	grid-template-columns: 1fr auto 1fr;
 	align-items: center;
