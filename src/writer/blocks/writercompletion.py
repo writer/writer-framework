@@ -18,7 +18,17 @@ class WriterCompletion(WriterBlock):
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},
-                        "modelId": {"name": "Model id", "type": "Text", "default": DEFAULT_MODEL},
+                        "modelId": {
+                            "name": "Model id",
+                            "type": "Text",
+                            "default": DEFAULT_MODEL,
+                            "options": {
+                                "palmyra-vision": "palmyra-vision",
+                                "palmyra-med": "palmyra-med",
+                                "palmyra-x": "palmyra-x",
+                                "palmyra-x4": "palmyra-x4",
+                            }
+                        },
                         "temperature": {
                             "name": "Temperature",
                             "type": "Number",
