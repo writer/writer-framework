@@ -38,10 +38,6 @@ def apps_update(app: str = None):
         if not os.path.isdir(abs_path):
             continue
 
-        if os.path.isfile(os.path.join(abs_path, "ui.json")):
-            print(f'{app} : migrate ui.json')
-            wf_project.migrate_obsolete_ui_json(abs_path, {"writer_version": VERSION})
-
         if not os.path.isfile(os.path.join(abs_path, ".wf", 'components-workflows_root.jsonl')):
             wf_project.create_default_workflows_root(abs_path)
 
@@ -51,5 +47,5 @@ def apps_update(app: str = None):
         else:
             metadata['writer_version'] = writer.VERSION
             components = audit_and_fix.fix_components(components)
-            wf_project.write_files(abs_path, metadata, components)
+            wf_project.write_files(abs_path, metadata, components, context=wf_project.WfProjectContext(app_path=abs_path))
             print(f"{app} : app is up to date")
