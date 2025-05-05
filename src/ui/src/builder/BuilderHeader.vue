@@ -9,8 +9,7 @@
 			<img src="../assets/logo.svg" alt="Writer Framework logo" />
 		</a>
 		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
-		<BuilderSwitcher />
-		<div class="gap"></div>
+		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
 			<WdsButton
 				variant="secondary"
@@ -208,10 +207,11 @@ function showStateExplorer() {
 @import "./sharedStyles.css";
 
 .BuilderHeader {
-	background: var(--builderHeaderBackgroundColor);
+	background: var(--wdsColorBlack);
 	color: var(--builderBackgroundColor);
 	padding: 0 12px 0 16px;
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
 	align-items: center;
 	gap: 16px;
 	padding-top: 1px;
@@ -227,6 +227,7 @@ function showStateExplorer() {
 .BuilderHeader__toolbar {
 	display: flex;
 	align-items: center;
+	justify-content: flex-end;
 	gap: 8px;
 }
 
@@ -236,10 +237,6 @@ function showStateExplorer() {
 
 .BuilderHeader img {
 	width: 28px;
-}
-
-.BuilderHeader .gap {
-	flex: 1 0 auto;
 }
 
 .panelToggler,

@@ -75,7 +75,8 @@ const activeId = computed(() => ssbm.getMode());
 
 .BuilderSwitcher {
 	display: flex;
-	gap: 0px;
+	align-items: center;
+	gap: 8px;
 	overflow: hidden;
 }
 
@@ -94,12 +95,15 @@ const activeId = computed(() => ssbm.getMode());
 	height: 32px;
 	border-radius: 4px;
 }
+.BuilderSwitcher button:hover {
+	background: var(--wdsColorGray5);
+}
 
 .BuilderSwitcher .icon {
 	margin-right: 8px;
 }
 
 .BuilderSwitcher .active {
-	background: var(--builderHeaderBackgroundHoleColor);
+	background: var(--wdsColorGray6);
 }
 </style>
