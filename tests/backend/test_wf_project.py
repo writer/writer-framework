@@ -7,7 +7,7 @@ from typing import List
 from writer import VERSION, core_ui, wf_project
 from writer.ss_types import ComponentDefinition
 
-from tests.backend import test_app_dir, testobsoleteapp
+from tests.backend import test_app_dir
 from tests.backend.fixtures import file_fixtures, load_fixture_content
 
 
@@ -114,55 +114,6 @@ def test_wf_project_should_remove_obsolete_pages_in_wf_directory():
 
         # Then
         assert os.path.isfile(os.path.join(_test_app_dir, '.wf', 'components-page-0-bb4d0e86-619e-4367-a180-be28ab6059f4.jsonl')) is False
-
-
-def test_wf_project_migrate_obsolete_ui_json_should_migrate_ui_json_into_wf_directory():
-    with tempfile.TemporaryDirectory('wf_project_migrate_obsolete_ui_json') as tmp_app_dir:
-        shutil.copytree(testobsoleteapp, tmp_app_dir, dirs_exist_ok=True)
-
-        # When
-        wf_project.migrate_obsolete_ui_json(tmp_app_dir, {"writer_version": VERSION})
-
-        # Then
-        assert not os.path.isfile(os.path.join(tmp_app_dir, 'ui.json'))
-        assert os.path.isfile(os.path.join(tmp_app_dir, '.wf', 'metadata.json'))
-        assert os.path.isfile(os.path.join(tmp_app_dir, '.wf', 'components-root.jsonl'))
-
-
-def test_wf_project_is_project_work_on_current_project():
-    with tempfile.TemporaryDirectory('wf_project_migrate_obsolete_ui_json') as tmp_app_dir:
-        shutil.copytree(testobsoleteapp, tmp_app_dir, dirs_exist_ok=True)
-
-        # When
-        is_wf_project = wf_project.is_project(tmp_app_dir)
-
-        # Then
-        assert is_wf_project is True
-
-
-def test_wf_project_is_project_work_on_obsolete_project():
-    with tempfile.TemporaryDirectory('test_wf_project_write_files') as tmp_app_dir:
-        shutil.copytree(test_app_dir, tmp_app_dir, dirs_exist_ok=True)
-
-        # When
-        is_wf_project = wf_project.is_project(tmp_app_dir)
-
-        # Then
-        assert is_wf_project is True
-
-
-def test_wf_project_can_create_project_does_not_work_on_project_with_ui_json():
-    with tempfile.TemporaryDirectory('test_wf_project_write_files') as tmp_app_dir:
-        shutil.copytree(testobsoleteapp, tmp_app_dir, dirs_exist_ok=True)
-        os.remove(os.path.join(tmp_app_dir, 'main.py'))
-
-        # When
-        is_wf_project = wf_project.is_project(tmp_app_dir)
-        can_create_wf_project = wf_project.can_create_project(tmp_app_dir)
-
-        # Then
-        assert is_wf_project is False
-        assert can_create_wf_project is False
 
 
 def test_wf_project_can_create_project_does_not_work_on_project_with_a_directory():

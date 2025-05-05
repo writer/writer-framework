@@ -895,8 +895,6 @@ class AppRunner:
 
     def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
         logger = logging.getLogger("writer")
-        if os.path.isfile(os.path.join(self.app_path, "ui.json")):
-            wf_project.migrate_obsolete_ui_json(self.app_path, metadata={"writer_version": VERSION})
 
         if not os.path.isfile(
             os.path.join(self.app_path, ".wf", "components-blueprints_root.jsonl")

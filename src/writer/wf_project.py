@@ -161,31 +161,6 @@ def read_files(app_path: str) -> Tuple[MetadataDefinition, dict[str, ComponentDe
     return metadata, components
 
 
-def migrate_obsolete_ui_json(app_path: str, metadata: MetadataDefinition) -> None:
-    """
-    Migrates a project that uses ui.json file to the current project format
-
-    The ui.json file is removed after the migration.
-
-    >>> wf_project.migrate_obsolete_ui_json('app/hello')
-    """
-    assert os.path.isfile(os.path.join(app_path, "ui.json")), f"ui.json file required for migration into {app_path}"
-
-    logger = logging.getLogger('writer')
-    with io.open(os.path.join(app_path, "ui.json"), "r") as f:
-        parsed_file = json.load(f)
-
-    if not isinstance(parsed_file, dict):
-        raise ValueError("No dictionary found in components file.")
-
-    file_payload = parsed_file
-    # metadata = file_payload.get("metadata", {})
-    components = file_payload.get("components", {})
-    write_files(app_path, metadata, components)
-    os.remove(os.path.join(app_path, "ui.json"))
-    logger.warning('project format has changed and has been migrated with success. ui.json file has been removed.')
-
-
 def create_default_blueprints_root(abs_path: str) -> None:
     with io.open(os.path.join(abs_path, '.wf', 'components-blueprints_root.jsonl'), 'w') as f:
         f.write('{"id": "blueprints_root", "type": "blueprints_root", "content": {}, "isCodeManaged": false, "position": 0, "handlers": {}, "visible": {"expression": true, "binding": "", "reversed": false}}')
@@ -322,9 +297,8 @@ def is_project(path: str) -> bool:
     """
     has_main_py = os.path.isfile(os.path.join(path, "main.py"))
     has_wf_directory = os.path.isdir(os.path.join(path, ".wf"))
-    has_ui_json_file = os.path.isfile(os.path.join(path, "ui.json"))
 
-    return has_main_py and (has_wf_directory or has_ui_json_file)
+    return has_main_py and has_wf_directory
 
 
 def can_create_project(path: str) -> bool:
