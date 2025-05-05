@@ -47,5 +47,5 @@ def apps_update(app: str = None):
         else:
             metadata['writer_version'] = writer.VERSION
             components = audit_and_fix.fix_components(components)
-            wf_project.write_files(abs_path, metadata, components)
+            wf_project.write_files(abs_path, metadata, components, context=wf_project.WfProjectContext(app_path=abs_path))
             print(f"{app} : app is up to date")

@@ -7,6 +7,7 @@ This module manipulates the folder of a wf project stored into `wf`.
 """
 import dataclasses
 import glob
+import hashlib
 import io
 import json
 import logging
@@ -33,6 +34,7 @@ class WfProjectContext:
     write_files_async_queue: Queue = Queue()
     write_files_async_process: typing.Optional[multiprocessing.Process] = None
     write_files_async_stop: Any = multiprocessing.Event() # Note: Event is a function, not a class in python, it can't be typed
+    file_hashes: Dict[str, str] = dataclasses.field(default_factory=dict)
 
 
 def write_files_async(context: WfProjectContext, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
@@ -52,7 +54,7 @@ def write_files_async(context: WfProjectContext, metadata: MetadataDefinition, c
 
     context.write_files_async_queue.put((context.app_path, metadata, components))
 
-def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition]) -> None:
+def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[str, ComponentDefinition], context: WfProjectContext) -> None:
     """
     Writes the meta data of the WF project to the `.wf` directory (metadata, components, ...).
 
@@ -62,7 +64,7 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
     * one file per page is created in the form `components-page-{id}.json` in jsonline format
     * one file per blueprint is created in the form `components-blueprints_blueprint-{id}.json` in jsonline format
 
-    >>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=...)
+    >>> wf_project.write_files('app/hello', metadata={"writer_version": "0.1" }, components=..., context=wf_project.WfProjectContext(app_path="app/path"))
     """
 
     wf_directory = os.path.join(app_path, ".wf")
@@ -77,8 +79,8 @@ def write_files(app_path: str, metadata: MetadataDefinition, components: Dict[st
     logger = logging.getLogger("writer")
     time_start = time.time()
     logger.info("Saving project...")
-    _write_root_files(wf_directory, components)
-    _write_component_files(wf_directory, components)
+    _write_root_files(wf_directory, components, context)
+    _write_component_files(wf_directory, components, context)
     _remove_obsolete_component_files(wf_directory, components)
     logger.info("Saved. Time elapsed: %.4fs", time.time() - time_start)
 
@@ -228,7 +230,7 @@ def _sort_wf_component_keys(obj: typing.Union[ComponentDefinition, dict]) -> Any
     return OrderedDict((k, _sort_wf_component_keys(v)) for k, v in sorted_items)
 
 
-def _write_component_files(wf_directory: str, components: Dict[str, ComponentDefinition]) -> None:
+def _write_component_files(wf_directory: str, components: Dict[str, ComponentDefinition], context: WfProjectContext) -> None:
     """
     Writes the component files in the .wf folder. It preserve obsolete files.
 
@@ -237,21 +239,48 @@ def _write_component_files(wf_directory: str, components: Dict[str, ComponentDef
     for component_id, filename in _expected_component_fileinfos(components):
         filtered_components = core_ui.filter_components_by(components, parent=component_id)
 
-        with io.open(os.path.join(wf_directory, filename), "w") as f:
-            for p in _order_components(filtered_components):
-                f.write(json.dumps(_sort_wf_component_keys(p)) + "\n")
+        file_path = os.path.join(wf_directory, filename)
+        file_contents = "".join(
+            [json.dumps(_sort_wf_component_keys(p)) + "\n" for p in _order_components(filtered_components)]
+        )
+
+        has_changed = _has_file_hash_changed(filename, file_contents, context)
+        if not has_changed:
+            continue
+
+        with io.open(file_path, "w") as f:
+            f.write(file_contents)
             f.flush()
             os.fsync(f.fileno())
 
 
-def _write_root_files(wf_directory, components):
+def _write_root_files(wf_directory, components, context: WfProjectContext):
     for root in ROOTS:
         root_component = components.get(root, None)
         if root_component:
+            file_contents = json.dumps(_sort_wf_component_keys(root_component))
+
+            has_changed = _has_file_hash_changed(f"components-{root}.jsonl", file_contents, context)
+            if not has_changed:
+                continue
+
             with io.open(os.path.join(wf_directory, f"components-{root}.jsonl"), "w") as f:
-                f.write(json.dumps(_sort_wf_component_keys(root_component)))
+                f.write(file_contents)
                 f.flush()
                 os.fsync(f.fileno())
+
+
+def _has_file_hash_changed(file_name: str, new_contents: str, context: WfProjectContext) -> bool:
+    """
+    Returns whether a hash of a file changed given new file contents;
+
+    Missing file counts as hash invalidation and return True.
+    """
+    new_hash = hashlib.md5(new_contents.encode('utf-8')).hexdigest()
+
+    old_hash = context.file_hashes.get(file_name)
+    context.file_hashes[file_name] = new_hash
+    return old_hash != new_hash
 
 
 def _order_components(components: Dict[str, ComponentDefinition]) -> List[ComponentDefinition]:
@@ -284,7 +313,7 @@ def _start_process_write_files_async_process(context: WfProjectContext, save_int
 
         if obj is not None:
             app_path, metadata, components = obj
-            write_files(app_path, metadata, components)
+            write_files(app_path, metadata, components, context)
 
         time.sleep(save_interval)
 
