@@ -854,7 +854,16 @@ class AppRunner:
         self._check_file_in_app_path(to_path_abs)
 
         os.makedirs(os.path.dirname(to_path_abs), exist_ok=True)
-        os.rename(from_path_abs, to_path_abs)
+
+        try:
+            os.rename(from_path_abs, to_path_abs)
+        except OSError as e:
+            # If the error is due to the function not being implemented (like S3/Fuse), we fallback to copy/delete
+            if e.errno == 38:
+                shutil.copy2(from_path_abs, to_path_abs)
+                os.remove(from_path_abs)
+            else:
+                raise e
 
         self.source_files = wf_project.build_source_files(self.app_path)
 
