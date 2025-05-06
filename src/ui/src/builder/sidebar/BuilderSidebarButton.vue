@@ -3,11 +3,16 @@ defineProps({
 	icon: { type: String, required: true },
 	active: { type: Boolean },
 	disabled: { type: Boolean },
+	href: { type: String, required: false, default: undefined },
 });
 </script>
 
 <template>
+	<a v-if="href" class="BuilderSidebarButton" :href="href">
+		<span class="material-symbols-outlined">{{ icon }}</span>
+	</a>
 	<button
+		v-else
 		class="BuilderSidebarButton"
 		:class="{ 'BuilderSidebarButton--active': active }"
 		role="button"
@@ -33,6 +38,7 @@ defineProps({
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	text-decoration: none;
 }
 .BuilderSidebarButton[disabled] {
 	opacity: 50%;

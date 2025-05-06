@@ -47,13 +47,12 @@
 				/>
 			</div>
 			<div class="BuilderSidebar__toolbar__bottom">
-				<a
-					class="BuilderSidebar__toolbar__bottom__help"
+				<BuilderSidebarButton
 					href="https://dev.writer.com/framework/"
-					target="_blank"
-				>
-					<span class="material-symbols-outlined">help</span>
-				</a>
+					icon="help"
+					data-writer-tooltip-placement="right"
+					data-writer-tooltip="Docs"
+				/>
 			</div>
 		</div>
 		<div v-if="activePane && !isPreview" class="BuilderSidebar__pane">
@@ -170,21 +169,6 @@ function changeActivePane(value: Pane) {
 	border: none;
 	border-top: 1px solid var(--wdsColorGray6);
 	width: 100%;
-}
-
-.BuilderSidebar__toolbar__bottom__help {
-	text-decoration: none;
-	border-radius: 8px;
-	background-color: transparent;
-	color: white;
-	border: none;
-	height: 32px;
-	width: 32px;
-	font-size: 16px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 .BuilderSidebar__pane {
