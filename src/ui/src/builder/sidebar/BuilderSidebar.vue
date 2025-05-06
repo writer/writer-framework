@@ -5,7 +5,7 @@
 				<BuilderSidebarButton
 					icon="stacks"
 					data-writer-tooltip-placement="right"
-					:data-writer-tooltip="PANE_TITLE.layers"
+					:data-writer-tooltip="paneTitles.layers"
 					:active="activePane === 'layers'"
 					data-automation-action="sidebar-layers"
 					@click="changeActivePane('layers')"
@@ -13,7 +13,7 @@
 				<BuilderSidebarButton
 					icon="dashboard_customize"
 					data-writer-tooltip-placement="right"
-					:data-writer-tooltip="PANE_TITLE.add"
+					:data-writer-tooltip="paneTitles.add"
 					:active="activePane === 'add'"
 					data-automation-action="sidebar-add"
 					@click="changeActivePane('add')"
@@ -58,7 +58,7 @@
 		</div>
 		<div v-if="activePane && !isPreview" class="BuilderSidebar__pane">
 			<div class="BuilderSidebar__pane__header">
-				<h2>{{ PANE_TITLE[activePane] }}</h2>
+				<h2>{{ paneTitles[activePane] }}</h2>
 				<WdsButton
 					variant="neutral"
 					size="smallIcon"
@@ -118,10 +118,10 @@ watch(isPreview, () => {
 	if (isPreview.value) activePane.value === undefined;
 });
 
-const PANE_TITLE: Record<Pane, string> = {
-	layers: "Layers",
+const paneTitles = computed<Record<Pane, string>>(() => ({
+	layers: wfbm.mode.value === "ui" ? "Interface Layers" : "Blueprint Layers",
 	add: "Add block",
-};
+}));
 
 function changeActivePane(value: Pane) {
 	activePane.value = activePane.value === value ? undefined : value;
