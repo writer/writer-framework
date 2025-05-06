@@ -6,8 +6,8 @@
 			type="button"
 			@click="selectOption('ui')"
 		>
-			<i class="icon material-symbols-outlined"> brush </i>
-			UI
+			<i class="icon material-symbols-outlined">grid_3x3</i>
+			Interface
 		</button>
 		<button
 			data-automation-action="set-mode-blueprints"
@@ -24,7 +24,7 @@
 			type="button"
 			@click="selectOption('preview')"
 		>
-			<i class="icon material-symbols-outlined"> preview </i>
+			<i class="icon material-symbols-outlined">visibility</i>
 			Preview
 		</button>
 	</div>

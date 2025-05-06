@@ -11,6 +11,7 @@
 		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
 		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
+			<hr />
 			<WdsButton
 				variant="secondary"
 				size="smallIcon"
@@ -18,7 +19,7 @@
 				data-writer-tooltip-placement="bottom"
 				@click="showStateExplorer"
 			>
-				<i class="material-symbols-outlined">mystery</i>
+				<i class="material-symbols-outlined">code</i>
 			</WdsButton>
 			<WdsButton
 				v-if="canDeploy"
@@ -193,6 +194,11 @@ function showStateExplorer() {
 	align-items: center;
 	justify-content: flex-end;
 	gap: 8px;
+}
+.BuilderHeader__toolbar hr {
+	border: none;
+	border-left: 1px solid var(--wdsColorGray6);
+	height: 26px;
 }
 
 .BuilderHeader__toolbar__deployModal__text {
