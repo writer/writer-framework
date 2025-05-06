@@ -14,36 +14,6 @@
 			<WdsButton
 				variant="secondary"
 				size="smallIcon"
-				data-automation-key="undo"
-				:data-writer-tooltip="
-					undoRedoSnapshot.isUndoAvailable
-						? `Undo: ${undoRedoSnapshot.undoDesc}`
-						: 'Nothing to undo'
-				"
-				:disabled="!undoRedoSnapshot.isUndoAvailable"
-				data-writer-tooltip-placement="bottom"
-				@click="undo()"
-			>
-				<i class="material-symbols-outlined">undo</i>
-			</WdsButton>
-			<WdsButton
-				variant="secondary"
-				size="smallIcon"
-				data-automation-key="redo"
-				:data-writer-tooltip="
-					undoRedoSnapshot.isRedoAvailable
-						? `Redo: ${undoRedoSnapshot.redoDesc}`
-						: 'Nothing to redo'
-				"
-				:disabled="!undoRedoSnapshot.isRedoAvailable"
-				data-writer-tooltip-placement="bottom"
-				@click="redo()"
-			>
-				<i class="material-symbols-outlined">redo</i>
-			</WdsButton>
-			<WdsButton
-				variant="secondary"
-				size="smallIcon"
 				data-writer-tooltip="State Explorer"
 				data-writer-tooltip-placement="bottom"
 				@click="showStateExplorer"
@@ -92,7 +62,6 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
-import { useComponentActions } from "./useComponentActions";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
@@ -102,13 +71,10 @@ import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
 
 const isStateExplorerShown = ref(false);
 
 const tracking = useWriterTracking(wf);
-
-const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 
 const {
 	canDeploy,
@@ -118,8 +84,6 @@ const {
 	lastDeployedAt,
 	writerDeployUrl,
 } = useApplicationCloud(wf);
-
-const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
 const dateFormater = new Intl.DateTimeFormat(undefined, {
 	weekday: "long",

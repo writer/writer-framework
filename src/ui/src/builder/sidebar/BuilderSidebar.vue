@@ -1,18 +1,58 @@
 <template>
 	<div class="BuilderSidebar">
 		<div class="BuilderSidebar__toolbar">
-			<template v-if="!isPreview">
+			<div v-if="!isPreview" class="BuilderSidebar__toolbar__top">
 				<BuilderSidebarButton
 					icon="stacks"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="PANE_TITLE.layers"
 					:active="activePane === 'layers'"
 					@click="changeActivePane('layers')"
 				/>
 				<BuilderSidebarButton
 					icon="dashboard_customize"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="PANE_TITLE.add"
 					:active="activePane === 'add'"
 					@click="changeActivePane('add')"
 				/>
-			</template>
+			</div>
+			<div v-if="!isPreview" class="BuilderSidebar__toolbar__center">
+				<hr />
+				<BuilderSidebarButton
+					icon="undo"
+					data-automation-key="undo"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="
+						undoRedoSnapshot.isUndoAvailable
+							? `Undo: ${undoRedoSnapshot.undoDesc}`
+							: 'Nothing to undo'
+					"
+					:disabled="!undoRedoSnapshot.isUndoAvailable"
+					@click="undo()"
+				/>
+				<BuilderSidebarButton
+					data-automation-key="redo"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="
+						undoRedoSnapshot.isRedoAvailable
+							? `Redo: ${undoRedoSnapshot.redoDesc}`
+							: 'Nothing to redo'
+					"
+					icon="redo"
+					:disabled="!undoRedoSnapshot.isRedoAvailable"
+					@click="redo()"
+				/>
+			</div>
+			<div class="BuilderSidebar__toolbar__bottom">
+				<a
+					class="BuilderSidebar__toolbar__bottom__help"
+					href="https://dev.writer.com/framework/"
+					target="_blank"
+				>
+					<span class="material-symbols-outlined">help</span>
+				</a>
+			</div>
 		</div>
 		<div v-if="activePane && !isPreview" class="BuilderSidebar__pane">
 			<div class="BuilderSidebar__pane__header">
@@ -40,6 +80,7 @@ import BuilderSidebarButton from "./BuilderSidebarButton.vue";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
+import { useComponentActions } from "../useComponentActions";
 
 const BuilderSidebarToolkit = defineAsyncComponent({
 	loader: () => import("./BuilderSidebarToolkit.vue"),
@@ -56,7 +97,11 @@ function isPane(v: unknown): v is Pane {
 	return typeof v === "string" && ["layers", "add"].includes(v);
 }
 
+const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+
+const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
+const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, wfbm);
 
 const isPreview = computed(() => wfbm.mode.value === "preview");
 
@@ -79,8 +124,6 @@ const PANE_TITLE: Record<Pane, string> = {
 function changeActivePane(value: Pane) {
 	activePane.value = activePane.value === value ? undefined : value;
 }
-
-// v-if="builderMode !== 'preview'"
 </script>
 
 <style scoped>
@@ -94,13 +137,52 @@ function changeActivePane(value: Pane) {
 }
 
 .BuilderSidebar__toolbar {
-	padding-top: 12px;
+	padding: 12px 8px;
 	background: var(--wdsColorBlack);
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	gap: 12px;
+}
+
+.BuilderSidebar__toolbar__top,
+.BuilderSidebar__toolbar__center,
+.BuilderSidebar__toolbar__bottom {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
 	gap: 12px;
+}
+
+.BuilderSidebar__toolbar__top {
+	grid-row: 1 / 1;
+}
+.BuilderSidebar__toolbar__center {
+	grid-row: 2 / 2;
+}
+.BuilderSidebar__toolbar__bottom {
+	grid-row: 3 / 3;
+}
+
+.BuilderSidebar__toolbar__center hr {
+	border: none;
+	border-top: 1px solid var(--wdsColorGray6);
+	width: 100%;
+}
+
+.BuilderSidebar__toolbar__bottom__help {
+	text-decoration: none;
+	border-radius: 8px;
+	background-color: transparent;
+	color: white;
+	border: none;
+	height: 32px;
+	width: 32px;
+	font-size: 16px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .BuilderSidebar__pane {
