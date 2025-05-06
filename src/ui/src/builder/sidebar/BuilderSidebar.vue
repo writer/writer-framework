@@ -7,6 +7,7 @@
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="PANE_TITLE.layers"
 					:active="activePane === 'layers'"
+					data-automation-action="sidebar-layers"
 					@click="changeActivePane('layers')"
 				/>
 				<BuilderSidebarButton
@@ -14,6 +15,7 @@
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="PANE_TITLE.add"
 					:active="activePane === 'add'"
+					data-automation-action="sidebar-add"
 					@click="changeActivePane('add')"
 				/>
 			</div>

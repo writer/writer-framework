@@ -14,33 +14,26 @@ test.describe("sidebar", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url, {waitUntil: "domcontentloaded"});
+		await page.goto(url, { waitUntil: "domcontentloaded" });
 		test.setTimeout(5000);
 	});
 
 	test.describe("Toolkit", () => {
 		test("should filter", async ({ page }) => {
+			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 			// click on icon to begin search
-			await page
-				.locator(
-					`.BuilderSidebarToolkit input`,
-				)
-				.click();
+			await page.locator(`.BuilderSidebarToolkit input`).click();
 
 			// search a button
-			await page
-				.locator(`.BuilderSidebarToolkit input`)
-				.fill("button");
+			await page.locator(`.BuilderSidebarToolkit input`).fill("button");
 
 			// should have only one result
-			expect(
-				await page.locator(`.BuilderSidebarToolkit .tool`).count(),
-			).toBe(1);
+			expect(await page.locator(`.BuilderSidebarToolkit .tool`).count()).toBe(
+				1,
+			);
 
 			// search a button
-			await page
-				.locator(`.BuilderSidebarToolkit input`)
-				.fill("");
+			await page.locator(`.BuilderSidebarToolkit input`).fill("");
 
 			// should reset the search
 			expect(
