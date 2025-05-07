@@ -147,37 +147,10 @@ class BlueprintRunner:
         hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
         return hashed_id
 
-    def _safe_snapshot(self, data):
-        """
-        Safely create a snapshot of the data to avoid issues with
-        concurrent modifications.
-        This is a workaround for the issue where the execution environment
-        is being modified concurrently, causing a RuntimeError during deepcopy.
-        """
-        retries = 3
-        for attempt in range(retries):
-            try:
-                return copy.deepcopy(data)
-            except RuntimeError as e:
-                if "dictionary changed size" in str(e):
-                    # Execution environment is being modified concurrently.
-                    # Retry the deepcopy operation.
-                    # Another option would be to use a lock, but that
-                    # could lead to deadlocks.
-                    logging.warning(
-                        "Retrying deepcopy due to concurrent "
-                        f"mutation (attempt {attempt+1})"
-                        )
-                    time.sleep(0.01)
-                else:
-                    raise  # Unrelated RuntimeError — re-raise
-        logging.error(
-            "Failed to create a stable snapshot of data after 3 attempts."
-            )
-        return {}  # As a last resort — still risky, but at least log it
-
     def _summarize_data_for_log(self, data):
-        data = self._safe_snapshot(data)
+        with threading.Lock():
+            # Prevent concurrent access to the data
+            data = copy.deepcopy(data)
         MAX_ROWS = 100
         if isinstance(data, list):
             return [self._summarize_data_for_log(item) for item in data[:MAX_ROWS]]
