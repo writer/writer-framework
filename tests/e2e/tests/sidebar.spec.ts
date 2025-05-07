@@ -22,23 +22,19 @@ test.describe("sidebar", () => {
 		test("should filter", async ({ page }) => {
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 			// click on icon to begin search
-			await page.locator(`.BuilderSidebarToolkit input`).click();
+			const panel = page.locator(`.BuilderSidebarToolkit`);
 
 			// search a button
-			await page.locator(`.BuilderSidebarToolkit input`).fill("button");
+			await panel.locator(`input`).fill("button");
 
 			// should have only one result
-			expect(await page.locator(`.BuilderSidebarToolkit .tool`).count()).toBe(
-				1,
-			);
+			expect(await panel.locator(`.tool`).count()).toBe(1);
 
 			// search a button
-			await page.locator(`.BuilderSidebarToolkit input`).fill("");
+			await panel.locator(`input`).fill("");
 
 			// should reset the search
-			expect(
-				await page.locator(`.BuilderSidebarToolkit .tool`).count(),
-			).not.toBe(1);
+			expect(await panel.locator(`.tool`).count()).not.toBe(1);
 		});
 	});
 });
