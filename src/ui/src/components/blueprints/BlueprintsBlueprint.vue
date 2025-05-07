@@ -79,6 +79,10 @@
 				></component>
 			</template>
 		</div>
+		<SharedCollaborationCanvas
+			:render-offset="renderOffset"
+			:zoom-level="zoomLevel"
+		></SharedCollaborationCanvas>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
 			@autogen-click="isAutogenShown = true"
@@ -103,7 +107,11 @@
 </template>
 
 <script lang="ts">
-import { type Component, FieldType } from "@/writerTypes";
+import {
+	type Component,
+	FieldType,
+	UserCollaborationPing,
+} from "@/writerTypes";
 import BlueprintArrow from "./base/BlueprintArrow.vue";
 import { watch } from "vue";
 import BlueprintNavigator from "./base/BlueprintNavigator.vue";
@@ -114,6 +122,7 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import SharedCollaborationCanvas from "../shared/SharedCollaborationCanvas.vue";
 
 const { log } = useLogger();
 
@@ -203,6 +212,14 @@ const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
+
+/*
+send ping onmount
+update coordinates on mousemove
+send updates every second, or on select
+*/
+
+const emit = defineEmits(["collaborationUpdate"]);
 
 const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
 const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
@@ -692,6 +709,11 @@ function moveCanvas(ev: MouseEvent) {
 }
 
 function handleMousemove(ev: MouseEvent) {
+	emit("collaborationUpdate", {
+		x: ev.clientX,
+		y: ev.clientY,
+	});
+
 	if (ev.buttons != 1) return;
 
 	if (activeConnection.value) {

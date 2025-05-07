@@ -9,6 +9,7 @@ import {
 	MailItem,
 	SourceFiles,
 	UserFunction,
+	UserCollaborationPing,
 } from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
@@ -371,6 +372,22 @@ export function generateCore() {
 		});
 
 		sendFrontendMessage("event", messagePayload, callback, true);
+	}
+
+	async function sendCollaborationPing(
+		ping: UserCollaborationPing,
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				resolve();
+			};
+
+			sendFrontendMessage("collaborationPing", ping, messageCallback);
+		});
 	}
 
 	/**
@@ -789,6 +806,7 @@ export function generateCore() {
 		requestSourceFileLoading,
 		sendListResourcesRequest,
 		sendComponentUpdate,
+		sendCollaborationPing,
 		addComponent,
 		deleteComponent,
 		getComponentById,

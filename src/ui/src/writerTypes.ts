@@ -230,3 +230,8 @@ export type WriterApplication = {
 	status: string;
 	organization_id?: string;
 };
+
+export type UserCollaborationPing = {
+	x?: number;
+	y?: number;
+};
