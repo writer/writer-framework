@@ -23,6 +23,7 @@ import {
 	PropType,
 	defineAsyncComponent,
 	useTemplateRef,
+	watch
 } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
@@ -93,6 +94,24 @@ const selected = computed<string>({
 		setContentValue(component.value.id, fieldKey.value, String(value));
 	},
 });
+
+watch(
+   () => selected.value,
+   async (newAppId) => {
+     if (props.resourceType !== "application" || !newAppId) return;
+
+     const appData = selectorEl.value?.selectedData;
+     const inputsList = appData?.inputs;
+
+     if (!inputsList || typeof inputsList !== "object") return;
+
+     setContentValue(
+       component.value.id,
+       "appInputs",
+       JSON.stringify(inputsList)
+     );
+   }
+ );
 </script>
 
 <style scoped>
