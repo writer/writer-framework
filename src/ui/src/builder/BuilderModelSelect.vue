@@ -10,7 +10,7 @@ import {
 import { useListResources } from "@/composables/useListResources";
 import type { Option } from "@/wds/WdsSelect.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
-import type { WriterGraph } from "@/writerTypes";
+import type { WriterModel } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 const WdsSelect = defineAsyncComponent({
@@ -30,15 +30,15 @@ const currentValue = defineModel({
 });
 
 const {
-	load: loadGraphs,
-	data: graphs,
+	load: loadModels,
+	data: models,
 	isLoading,
-} = useListResources<WriterGraph>(wf, "models");
+} = useListResources<WriterModel>(wf, "models");
 
-onMounted(loadGraphs);
+onMounted(loadModels);
 
 const options = computed(() =>
-	graphs.value
+	models.value
 		.map<Option>((model) => ({
 			label: model.name,
 			value: model.id,
@@ -63,8 +63,8 @@ const selectedData = computed(() => {
 	if (currentValue.value === undefined) return undefined;
 
 	return typeof currentValue.value === "string"
-		? graphs.value.find((g) => g.id === currentValue.value)
-		: graphs.value.filter((g) => currentValue.value.includes(g.id));
+		? models.value.find((m) => m.id === currentValue.value)
+		: models.value.filter((m) => currentValue.value.includes(m.id));
 });
 
 defineExpose({ selectedData });
@@ -73,7 +73,7 @@ defineExpose({ selectedData });
 <template>
 	<div class="BuilderModelSelect--text">
 		<WdsSelect
-			v-if="graphs.length > 0 || isLoading"
+			v-if="models.length > 0 || isLoading"
 			v-model="currentValue"
 			:options="options"
 			hide-icons

@@ -336,8 +336,7 @@ class AppProcess(multiprocessing.Process):
                 raw_models = [
                     {
                         "name": model.name,
-                        "id": model.id,
-                        "organization_id": organization_id
+                        "id": model.id
                     }
                     for model in models
                 ]

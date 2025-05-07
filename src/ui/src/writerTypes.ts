@@ -231,3 +231,8 @@ export type WriterApplication = {
 	status: string;
 	organization_id?: string;
 };
+
+export type WriterModel = {
+	id: string;
+	name: string;
+};
