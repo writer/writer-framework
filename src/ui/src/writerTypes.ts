@@ -144,6 +144,7 @@ export const enum FieldType {
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
 	WriterAppId = "App Id",
+	WriterModelId = "Model Id",
 	ComponentId = "Component Id",
 	ComponentEventType = "Component Event Type",
 }

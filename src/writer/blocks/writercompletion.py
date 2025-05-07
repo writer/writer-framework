@@ -18,7 +18,7 @@ class WriterCompletion(WriterBlock):
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea"},
-                        "modelId": {"name": "Model id", "type": "Text", "default": DEFAULT_MODEL},
+                        "modelId": {"name": "Model", "type": "Model Id", "default": DEFAULT_MODEL},
                         "temperature": {
                             "name": "Temperature",
                             "type": "Number",
