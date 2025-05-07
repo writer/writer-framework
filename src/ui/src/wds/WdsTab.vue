@@ -3,6 +3,8 @@
 		class="WdsTab"
 		:class="{ 'WdsTab--disabled': disabled, 'WdsTab--selected': selected }"
 		type="button"
+		:disabled="Boolean(disabled)"
+		:data-writer-tooltip="tooltip"
 		@click="$emit('click')"
 	>
 		<slot />
@@ -10,10 +12,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
-	disabled: { type: Boolean },
+import { computed } from "vue";
+
+const props = defineProps({
+	disabled: { type: [Boolean, String], default: undefined },
 	selected: { type: Boolean },
 });
+
+const tooltip = computed(() =>
+	typeof props.disabled === "string" ? props.disabled : undefined,
+);
 
 defineEmits({
 	click: () => true,
@@ -38,6 +46,7 @@ defineEmits({
 
 .WdsTab--disabled {
 	color: var(--wdsColorGray4);
+	cursor: not-allowed;
 }
 
 .WdsTab--selected {

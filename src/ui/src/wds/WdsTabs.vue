@@ -15,7 +15,7 @@
 export interface WdsTabOptions<Value extends string = string> {
 	label: string;
 	value: Value;
-	disabled?: boolean;
+	disabled?: boolean | string;
 }
 </script>
 

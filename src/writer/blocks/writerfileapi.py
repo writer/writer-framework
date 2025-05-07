@@ -23,24 +23,7 @@ class WriterUploadFile(WriterBlock):
                         "default": "[]",
                         "desc": "A list of files to be uploaded and added to the knowledge graph. You can use files uploaded via the File Input component or specify dictionaries with data, type and name.",
                         "validator": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "data": {
-                                        "type": "string",
-                                        "format": "base64"
-                                    },
-                                    "type": {
-                                        "type": "string",
-                                        "format": "mime-type"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": ["data", "type", "name"]
-                            }
+                            "type": "array"
                         }
                     },
                 },
