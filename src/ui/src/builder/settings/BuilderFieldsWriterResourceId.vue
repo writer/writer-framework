@@ -56,19 +56,17 @@ const component = computed(() => wf.getComponentById(componentId.value));
 const selectorEl = useTemplateRef("selectorEl");
 
 const selector = computed(() => {
-		switch (props.resourceType) {
-			case "model":
-				return BuilderModelSelect;
-			case "graph":
-				return BuilderGraphSelect;
-			case "application":
-				return BuilderApplicationSelect;
-			default:
-				console.warn(`Unexpected resourceType: ${props.resourceType}`);
-				return BuilderApplicationSelect;
-		}
+	switch (props.resourceType) {
+		case "model":
+			return BuilderModelSelect;
+		case "graph":
+			return BuilderGraphSelect;
+		case "application":
+			return BuilderApplicationSelect;
+		default:
+			throw new Error(`Unexpected resourceType: ${props.resourceType}`);
 	}
-);
+});
 
 const linkTooltip = computed(() => {
 	switch (props.resourceType) {
@@ -109,7 +107,10 @@ const fieldDefinition = computed(() => {
 });
 
 const selected = computed<string>({
-	get: () => component.value.content[props.fieldKey] || fieldDefinition.value.default || "",
+	get: () =>
+		component.value.content[props.fieldKey] ||
+		fieldDefinition.value.default ||
+		"",
 	set(value) {
 		setContentValue(component.value.id, fieldKey.value, String(value));
 	},
