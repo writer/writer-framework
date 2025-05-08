@@ -857,7 +857,7 @@ class AppRunner:
 
         try:
             os.rename(from_path_abs, to_path_abs)
-        except OSError as e:
+        except OSError:
             # If the error is due to the function not being implemented (like S3/Fuse), we fallback to copy/delete
             shutil.copy2(from_path_abs, to_path_abs)
             os.remove(from_path_abs)
