@@ -277,7 +277,7 @@ class BlueprintRunner:
                 in_tool = tools.get(input.get("nodeId"))
                 if not in_tool:
                     continue
-                if not in_tool or in_tool.outcome != input.get("outId"):
+                if in_tool.outcome != input.get("outId"):
                     continue
                 at_least_one = True
 
