@@ -45,7 +45,7 @@ const searchRightText = computed(() => {
 	width: 100%;
 	position: relative;
 	overflow-x: auto;
-	overflow-y: scroll;
+	overflow-y: auto;
 }
 
 .BuilderSidebarPanel__inputContainer {

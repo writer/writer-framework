@@ -5,21 +5,22 @@ test.describe("image", () => {
 	const COMPONENT_LOCATOR = `div.CoreImage.component`;
 	let url: string;
 
-	test.beforeAll(async ({request}) => {
+	test.beforeAll(async ({ request }) => {
 		const response = await request.post(`/preset/section`);
 		expect(response.ok()).toBeTruthy();
-		({url} = await response.json());
+		({ url } = await response.json());
 	});
 
-	test.afterAll(async ({request}) => {
+	test.afterAll(async ({ request }) => {
 		await request.delete(url);
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url, {waitUntil: "domcontentloaded"});
+		await page.goto(url, { waitUntil: "domcontentloaded" });
 	});
 
 	test("configure", async ({ page }) => {
+		await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		await page
 			.locator(`.BuilderSidebarToolkit [data-component-type="${TYPE}"]`)
 			.dragTo(page.locator(".CoreSection .ChildlessPlaceholder"));

@@ -34,6 +34,7 @@
 				class="BuilderTree__main__name"
 				:class="{
 					'BuilderTree__main__name--disabled': disabled,
+					'BuilderTree__main__name--root': variant === 'root',
 				}"
 				:data-writer-tooltip="name"
 				data-writer-tooltip-strategy="overflow"
@@ -55,6 +56,9 @@
 			<div
 				v-show="!collapsed && hasChildren"
 				class="BuilderTree__children"
+				:class="{
+					'BuilderTree__children--noNestedSpace': noNestedSpace,
+				}"
 			>
 				<slot name="children" />
 			</div>
@@ -74,6 +78,15 @@ const SharedMoreDropdown = defineAsyncComponent(
 const props = defineProps({
 	name: { type: String, required: true },
 	query: { type: String, required: false, default: undefined },
+	variant: {
+		type: String as PropType<"root">,
+		required: false,
+		default: undefined,
+	},
+	noNestedSpace: {
+		type: Boolean,
+		required: false,
+	},
 	dataAutomationKey: { type: String, required: false, default: undefined },
 	hasChildren: { type: Boolean },
 	draggable: { type: Boolean },
@@ -179,5 +192,13 @@ function toggleCollapse(newCollapse?: boolean) {
 	flex-grow: 1;
 	display: flex;
 	justify-content: flex-end;
+}
+
+.BuilderTree__main__name--root {
+	font-weight: 500;
+	text-transform: uppercase;
+}
+.BuilderTree__children--noNestedSpace {
+	margin-left: unset;
 }
 </style>

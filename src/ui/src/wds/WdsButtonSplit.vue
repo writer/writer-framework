@@ -90,7 +90,7 @@ defineExpose({ toggleDropdown });
 	box-shadow: var(--buttonShadow);
 	border: 1px solid transparent;
 	align-items: center;
-	height: 42px;
+	height: 40px;
 	gap: 8px;
 	padding-left: 12px;
 	padding-right: 12px;

@@ -1,47 +1,19 @@
 <template>
 	<div class="BuilderHeader">
-		<a
-			v-if="writerDeployUrl"
-			:href="writerDeployUrl.toString()"
-			target="_blank"
-			class="BuilderHeader__goBack"
-		>
-			<img src="../assets/logo.svg" alt="Writer Framework logo" />
-		</a>
-		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
-		<BuilderSwitcher />
-		<div class="gap"></div>
+		<div>
+			<a
+				v-if="writerDeployUrl"
+				:href="writerDeployUrl.toString()"
+				target="_blank"
+				class="BuilderHeader__goBack"
+			>
+				<img src="../assets/logo.svg" alt="Writer Framework logo" />
+			</a>
+			<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
+		</div>
+		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
-			<WdsButton
-				variant="secondary"
-				size="smallIcon"
-				data-automation-key="undo"
-				:data-writer-tooltip="
-					undoRedoSnapshot.isUndoAvailable
-						? `Undo: ${undoRedoSnapshot.undoDesc}`
-						: 'Nothing to undo'
-				"
-				:disabled="!undoRedoSnapshot.isUndoAvailable"
-				data-writer-tooltip-placement="bottom"
-				@click="undo()"
-			>
-				<i class="material-symbols-outlined">undo</i>
-			</WdsButton>
-			<WdsButton
-				variant="secondary"
-				size="smallIcon"
-				data-automation-key="redo"
-				:data-writer-tooltip="
-					undoRedoSnapshot.isRedoAvailable
-						? `Redo: ${undoRedoSnapshot.redoDesc}`
-						: 'Nothing to redo'
-				"
-				:disabled="!undoRedoSnapshot.isRedoAvailable"
-				data-writer-tooltip-placement="bottom"
-				@click="redo()"
-			>
-				<i class="material-symbols-outlined">redo</i>
-			</WdsButton>
+			<hr />
 			<WdsButton
 				variant="secondary"
 				size="smallIcon"
@@ -49,7 +21,7 @@
 				data-writer-tooltip-placement="bottom"
 				@click="showStateExplorer"
 			>
-				<i class="material-symbols-outlined">mystery</i>
+				<i class="material-symbols-outlined">code</i>
 			</WdsButton>
 			<WdsButton
 				v-if="canDeploy"
@@ -93,7 +65,6 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
-import { useComponentActions } from "./useComponentActions";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
@@ -103,13 +74,10 @@ import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
 
 const isStateExplorerShown = ref(false);
 
 const tracking = useWriterTracking(wf);
-
-const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, ssbm);
 
 const {
 	canDeploy,
@@ -119,8 +87,6 @@ const {
 	lastDeployedAt,
 	writerDeployUrl,
 } = useApplicationCloud(wf);
-
-const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 
 const dateFormater = new Intl.DateTimeFormat(undefined, {
 	weekday: "long",
@@ -208,10 +174,11 @@ function showStateExplorer() {
 @import "./sharedStyles.css";
 
 .BuilderHeader {
-	background: var(--builderHeaderBackgroundColor);
+	background: var(--wdsColorBlack);
 	color: var(--builderBackgroundColor);
-	padding: 0 12px 0 16px;
-	display: flex;
+	padding: 0 12px 0 10px;
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
 	align-items: center;
 	gap: 16px;
 	padding-top: 1px;
@@ -220,14 +187,20 @@ function showStateExplorer() {
 
 .BuilderHeader__goBack {
 	text-decoration: none;
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 }
 
 .BuilderHeader__toolbar {
 	display: flex;
 	align-items: center;
+	justify-content: flex-end;
 	gap: 8px;
+}
+.BuilderHeader__toolbar hr {
+	border: none;
+	border-left: 1px solid var(--wdsColorGray6);
+	height: 26px;
 }
 
 .BuilderHeader__toolbar__deployModal__text {
@@ -236,10 +209,6 @@ function showStateExplorer() {
 
 .BuilderHeader img {
 	width: 28px;
-}
-
-.BuilderHeader .gap {
-	flex: 1 0 auto;
 }
 
 .panelToggler,
