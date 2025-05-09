@@ -11,7 +11,7 @@
 		@mouseup="handleMouseup"
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
-			<svg>
+			<svg class="BlueprintsBlueprint__svg">
 				<defs>
 					<pattern
 						id="grid"
@@ -78,6 +78,11 @@
 					"
 				></component>
 			</template>
+			<BuilderComment
+				v-for="node in comments"
+				:key="node.id"
+				:component-id="node.id"
+			/>
 		</div>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
@@ -114,6 +119,7 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import BuilderComment from "@/builder/comment/BuilderComment.vue";
 
 const { log } = useLogger();
 
@@ -208,8 +214,19 @@ const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
 const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
 
 const nodes = computed(() =>
-	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
+	wf
+		.getComponents(blueprintComponentId, { sortedByPosition: true })
+		.filter((c) => c.type !== "comment"),
 );
+
+const comments = computed(() =>
+	wf
+		.getComponents(blueprintComponentId, { sortedByPosition: true })
+		.filter((c) => c.type === "comment"),
+);
+watch(comments, () => console.log("##comments", comments.value), {
+	immediate: true,
+});
 
 const tracking = useWriterTracking(wf);
 const {
@@ -1059,7 +1076,7 @@ onUnmounted(() => {
 	transform: scale(v-bind("zoomLevel"));
 }
 
-svg {
+.BlueprintsBlueprint__svg {
 	position: absolute;
 	top: 0;
 	left: 0;

@@ -99,6 +99,8 @@ export function generateBuilderManager() {
 	let mutationTransactionOffset = 0;
 	const mutationTransactions: ComponentMutationTransaction[] = [];
 
+	const isAnnotating = ref(false);
+
 	/**
 	 * @deprecated use {@link mode} instead
 	 */
@@ -413,6 +415,7 @@ export function generateBuilderManager() {
 		getLogEntryCount,
 		clearLogEntries,
 		getLogEntries,
+		isAnnotating,
 	};
 
 	return builder;

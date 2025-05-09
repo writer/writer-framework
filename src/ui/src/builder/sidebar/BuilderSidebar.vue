@@ -18,6 +18,14 @@
 					data-automation-action="sidebar-add"
 					@click="changeActivePane('add')"
 				/>
+				<BuilderSidebarButton
+					icon="comment"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="`${paneTitles.comments} (${modifierKeyName}B)`"
+					:active="activePane === 'comments'"
+					data-automation-action="sidebar-comments"
+					@click="changeActivePane('comments')"
+				/>
 			</div>
 			<div v-if="!isPreview" class="BuilderSidebar__toolbar__center">
 				<hr />
@@ -62,6 +70,7 @@
 			</div>
 			<BuilderSidebarToolkit v-if="activePane === 'add'" />
 			<BuilderSidebarComponentTree v-if="activePane === 'layers'" />
+			<div v-if="activePane === 'comments'">TODO: add notes here</div>
 		</div>
 	</div>
 </template>
@@ -93,7 +102,7 @@ const BuilderSidebarComponentTree = defineAsyncComponent({
 	loadingComponent: BuilderAsyncLoader,
 });
 
-type Pane = "layers" | "add";
+type Pane = "layers" | "add" | "comments";
 
 function isPane(v: unknown): v is Pane {
 	return typeof v === "string" && ["layers", "add"].includes(v);
@@ -114,6 +123,13 @@ const activePane = ref<Pane>(
 );
 
 watch(activePane, () => (activePaneLocalStorage.value = activePane.value));
+watch(
+	activePane,
+	() => {
+		wfbm.isAnnotating.value = activePane.value === "comments";
+	},
+	{ immediate: true },
+);
 watch(isPreview, () => {
 	if (isPreview.value) activePane.value === undefined;
 });
@@ -121,6 +137,7 @@ watch(isPreview, () => {
 const paneTitles = computed<Record<Pane, string>>(() => ({
 	layers: wfbm.mode.value === "ui" ? "Interface Layers" : "Blueprint Layers",
 	add: "Add block",
+	comments: "Notes",
 }));
 
 const modifierKeyName = getModifierKeyName();

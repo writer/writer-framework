@@ -134,6 +134,11 @@ export default {
 					}),
 				);
 
+			console.log("renderInsertionSlot", renderInsertionSlot(0));
+			console.log("slotComponents", slotComponents);
+			console.log("bmcVNodes", bmcVNodes);
+			console.log("cmcVNodes", cmcVNodes);
+
 			return [
 				...renderInsertionSlot(0),
 				...bmcVNodes

@@ -77,6 +77,7 @@ import type {
 	WriterComponentDefinition,
 } from "@/writerTypes";
 import { h } from "vue";
+import CoreComment from "@/components/core/other/CoreComment.vue";
 
 const templateMap: TemplateMap = {
 	root: CoreRoot,
@@ -138,6 +139,7 @@ const templateMap: TemplateMap = {
 	blueprints_root: BlueprintsRoot,
 	blueprints_blueprint: BlueprintsBlueprint,
 	progressbar: CoreProgressBar,
+	comment: CoreComment,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};

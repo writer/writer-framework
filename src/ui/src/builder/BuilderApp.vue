@@ -93,6 +93,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
+import { useNotesManager } from "./useNotesManager";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -273,6 +274,8 @@ function handleRendererDrop(ev: DragEvent) {
 	}
 }
 
+const notesManager = useNotesManager(wf, ssbm);
+
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
@@ -285,8 +288,14 @@ function handleRendererClick(ev: PointerEvent): void {
 		"[data-writer-id]",
 	);
 	if (!targetEl) return;
+
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
+
+	if (ssbm.isAnnotating.value) {
+		ev.preventDefault();
+		notesManager.createNote(targetId, { x: ev.x, y: ev.y });
+	}
 
 	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
 
