@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderSidebarPanel">
-		<div class="BuilderSidebarPanel__inputContainer">
+		<div v-if="!hideSearchBar" class="BuilderSidebarPanel__inputContainer">
 			<WdsTextInput
 				v-model="model"
 				class="searchInput"
@@ -22,10 +22,11 @@
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import { computed } from "vue";
 
-const model = defineModel<string>();
+const model = defineModel({ type: String, required: false, default: "" });
 
 const props = defineProps({
-	placeholder: { type: String, required: true },
+	hideSearchBar: { type: Boolean, required: false },
+	placeholder: { type: String, required: false, default: "" },
 	searchCount: { type: Number, required: false, default: undefined },
 });
 

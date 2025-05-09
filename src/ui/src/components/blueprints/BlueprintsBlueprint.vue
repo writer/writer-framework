@@ -79,7 +79,7 @@
 				></component>
 			</template>
 			<BuilderComment
-				v-for="node in comments"
+				v-for="node in notes"
 				:key="node.id"
 				:component-id="node.id"
 			/>
@@ -120,6 +120,7 @@ import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderComment from "@/builder/comment/BuilderComment.vue";
+import { useBuilderNotes } from "@/builder/useBuilderNotes";
 
 const { log } = useLogger();
 
@@ -219,12 +220,12 @@ const nodes = computed(() =>
 		.filter((c) => c.type !== "comment"),
 );
 
-const comments = computed(() =>
-	wf
-		.getComponents(blueprintComponentId, { sortedByPosition: true })
-		.filter((c) => c.type === "comment"),
+const builderNotes = useBuilderNotes(wf, wfbm);
+
+const notes = computed(() =>
+	Array.from(builderNotes.getNotes(blueprintComponentId)),
 );
-watch(comments, () => console.log("##comments", comments.value), {
+watch(notes, () => console.log("##comments", notes.value), {
 	immediate: true,
 });
 

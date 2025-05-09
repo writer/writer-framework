@@ -7,7 +7,12 @@
 			<BuilderHeader class="builderHeader"></BuilderHeader>
 			<BuilderSidebar class="sidebar" />
 			<div class="builderMain">
-				<div class="rendererWrapper">
+				<div
+					class="rendererWrapper"
+					:class="{
+						'rendererWrapper--annotating': ssbm.isAnnotating.value,
+					}"
+				>
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
@@ -93,7 +98,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
-import { useNotesManager } from "./useNotesManager";
+import { useBuilderNotes } from "./useBuilderNotes";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -274,7 +279,7 @@ function handleRendererDrop(ev: DragEvent) {
 	}
 }
 
-const notesManager = useNotesManager(wf, ssbm);
+const builderNotes = useBuilderNotes(wf, ssbm);
 
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
@@ -294,7 +299,7 @@ function handleRendererClick(ev: PointerEvent): void {
 
 	if (ssbm.isAnnotating.value) {
 		ev.preventDefault();
-		notesManager.createNote(targetId, { x: ev.x, y: ev.y });
+		builderNotes.createNote(targetId, { x: ev.x, y: ev.y });
 	}
 
 	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
@@ -443,6 +448,9 @@ onUnmounted(() => abort.abort());
 	flex-direction: column;
 	height: 100%;
 	overflow-y: auto;
+}
+.rendererWrapper--annotating {
+	cursor: context-menu;
 }
 
 .componentRenderer {

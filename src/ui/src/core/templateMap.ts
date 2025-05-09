@@ -139,6 +139,7 @@ const templateMap: TemplateMap = {
 	blueprints_root: BlueprintsRoot,
 	blueprints_blueprint: BlueprintsBlueprint,
 	progressbar: CoreProgressBar,
+	// TODO: rename as notes
 	comment: CoreComment,
 };
 

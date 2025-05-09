@@ -4,7 +4,7 @@ import { useComponentActions } from "./useComponentActions";
 import { generateBuilderManager } from "./builderManager";
 import { useLogger } from "@/composables/useLogger";
 
-export function useNotesManager(
+export function useBuilderNotes(
 	wf: ReturnType<typeof generateCore>,
 	wfbm: ReturnType<typeof generateBuilderManager>,
 ) {
@@ -28,5 +28,16 @@ export function useNotesManager(
 		logger.log("##useNotesManager.createNote", component);
 	}
 
-	return { createNote };
+	function* getAllNotes() {
+		yield* getNotes("root");
+		yield* getNotes("blueprints_root");
+	}
+
+	function* getNotes(parentId: string) {
+		for (const component of wf.getComponentsNested(parentId)) {
+			if (component.type === "comment") yield component;
+		}
+	}
+
+	return { createNote, getNotes, getAllNotes };
 }
