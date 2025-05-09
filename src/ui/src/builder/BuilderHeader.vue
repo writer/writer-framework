@@ -1,14 +1,16 @@
 <template>
 	<div class="BuilderHeader">
-		<a
-			v-if="writerDeployUrl"
-			:href="writerDeployUrl.toString()"
-			target="_blank"
-			class="BuilderHeader__goBack"
-		>
-			<img src="../assets/logo.svg" alt="Writer Framework logo" />
-		</a>
-		<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
+		<div>
+			<a
+				v-if="writerDeployUrl"
+				:href="writerDeployUrl.toString()"
+				target="_blank"
+				class="BuilderHeader__goBack"
+			>
+				<img src="../assets/logo.svg" alt="Writer Framework logo" />
+			</a>
+			<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
+		</div>
 		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
 			<hr />
@@ -185,7 +187,7 @@ function showStateExplorer() {
 
 .BuilderHeader__goBack {
 	text-decoration: none;
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 }
 
