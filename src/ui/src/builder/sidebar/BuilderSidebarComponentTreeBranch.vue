@@ -1,5 +1,5 @@
 <template>
-	<TreeBranch
+	<BuilderTree
 		ref="treeBranch"
 		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
@@ -10,6 +10,10 @@
 		:draggable="isDraggingAllowed(componentId)"
 		:matched="matched"
 		:selected="selected"
+		:variant="
+			COMPONENT_TYPES_TOP_LEVEL.has(component.type) ? 'root' : undefined
+		"
+		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
 		@select="select"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
@@ -48,7 +52,7 @@
 				@expand-branch="expand"
 			/>
 		</template>
-	</TreeBranch>
+	</BuilderTree>
 </template>
 
 <script setup lang="ts">
@@ -66,7 +70,7 @@ import { useEvaluator } from "@/renderer/useEvaluator";
 import { useDragDropComponent } from "../useDragDropComponent";
 import { useComponentActions } from "../useComponentActions";
 
-import TreeBranch from "../BuilderTree.vue";
+import BuilderTree from "../BuilderTree.vue";
 import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
 import { useComponentDescription } from "../useComponentDescription";
 import { useWriterTracking } from "@/composables/useWriterTracking";
@@ -76,7 +80,7 @@ const props = defineProps({
 	query: { type: String, required: false, default: "" },
 });
 
-const treeBranch = ref<ComponentPublicInstance<typeof TreeBranch>>();
+const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -98,6 +102,13 @@ const emit = defineEmits(["expandBranch"]);
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
 const component = computed(() => wf.getComponentById(props.componentId));
+
+const COMPONENT_TYPES_ROOT = new Set(["root", "blueprints_root"]);
+const COMPONENT_TYPES_TOP_LEVEL = new Set([
+	...COMPONENT_TYPES_ROOT,
+	"page",
+	"blueprints_blueprint",
+]);
 
 const { hasMatchingChildren, matched } = useComponentsTreeSearchForComponent(
 	wf,
