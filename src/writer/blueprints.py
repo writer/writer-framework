@@ -259,17 +259,14 @@ class BlueprintRunner:
         graph = {}
         in_degree = {node.id: 0 for node in nodes}
 
-        def calculate_inputs():
-            inputs = {}
-            for node in nodes:
-                outs = node.outs or []
-                for out in outs:
-                    to_node_id = out.get("toNodeId")
-                    if to_node_id not in inputs:
-                        inputs[to_node_id] = []
-                    inputs[to_node_id].append({"nodeId": node.id, "outId": out.get("outId")})
-            return inputs
-        inputs = calculate_inputs()
+        inputs = {}
+        for node in nodes:
+            outs = node.outs or []
+            for out in outs:
+                to_node_id = out.get("toNodeId")
+                if to_node_id not in inputs:
+                    inputs[to_node_id] = []
+                inputs[to_node_id].append({"nodeId": node.id, "outId": out.get("outId")})
 
         def check_requirements(tool):
             node_id = tool.component.id
