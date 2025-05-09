@@ -33,6 +33,9 @@ const BuilderApplicationSelect = defineAsyncComponent(
 const BuilderGraphSelect = defineAsyncComponent(
 	() => import("../BuilderGraphSelect.vue"),
 );
+const BuilderModelSelect = defineAsyncComponent(
+	() => import("../BuilderModelSelect.vue"),
+);
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -43,7 +46,7 @@ const props = defineProps({
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
 	resourceType: {
-		type: String as PropType<"graph" | "application">,
+		type: String as PropType<"graph" | "application" | "model">,
 		required: true,
 	},
 });
@@ -52,11 +55,18 @@ const component = computed(() => wf.getComponentById(componentId.value));
 
 const selectorEl = useTemplateRef("selectorEl");
 
-const selector = computed(() =>
-	props.resourceType === "graph"
-		? BuilderGraphSelect
-		: BuilderApplicationSelect,
-);
+const selector = computed(() => {
+	switch (props.resourceType) {
+		case "model":
+			return BuilderModelSelect;
+		case "graph":
+			return BuilderGraphSelect;
+		case "application":
+			return BuilderApplicationSelect;
+		default:
+			throw new Error(`Unexpected resourceType: ${props.resourceType}`);
+	}
+});
 
 const linkTooltip = computed(() => {
 	switch (props.resourceType) {
@@ -64,6 +74,8 @@ const linkTooltip = computed(() => {
 			return "Edit knowledge graph";
 		case "application":
 			return "Edit agent";
+		case "model":
+			return "About models";
 		default:
 			return undefined;
 	}
@@ -82,13 +94,23 @@ const ressourceUrl = computed(() => {
 		}
 		case "application":
 			return `https://app.writer.com/aistudio/organization/${orgId}/app/${selected.value}`;
+		case "model":
+			return `https://dev.writer.com/home/models#model-overview`;
 		default:
 			return undefined;
 	}
 });
 
+const fieldDefinition = computed(() => {
+	const def = wf.getComponentDefinition(component.value.type);
+	return def?.fields?.[props.fieldKey];
+});
+
 const selected = computed<string>({
-	get: () => component.value.content[props.fieldKey] ?? "",
+	get: () =>
+		component.value.content[props.fieldKey] ||
+		fieldDefinition.value.default ||
+		"",
 	set(value) {
 		setContentValue(component.value.id, fieldKey.value, String(value));
 	},
