@@ -11,7 +11,12 @@
 		@click="focus"
 	>
 		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
-		<input ref="input" v-model="model" v-bind="$attrs" />
+		<input
+			ref="input"
+			v-model="model"
+			:autofocus="autofocus"
+			v-bind="$attrs"
+		/>
 		<p v-if="rightText" class="WdsTextInput__rightText">{{ rightText }}</p>
 		<button
 			v-if="enableClearButton && model"
@@ -27,6 +32,7 @@
 		v-bind="$attrs"
 		ref="input"
 		v-model="model"
+		:autofocus="autofocus"
 		:aria-invalid="invalid"
 		class="WdsTextInput colorTransformer"
 		:class="{ 'WdsTextInput--ghost': variant === 'ghost' }"
@@ -34,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, useTemplateRef } from "vue";
+import { computed, onMounted, PropType, useTemplateRef } from "vue";
 
 const model = defineModel({ type: String });
 
@@ -47,6 +53,7 @@ const props = defineProps({
 	variant: { type: String as PropType<"ghost">, default: undefined },
 	enableClearButton: { type: Boolean, required: false },
 	rightText: { type: String, required: false, default: "" },
+	autofocus: { type: Boolean },
 });
 
 defineExpose({
@@ -58,6 +65,10 @@ defineExpose({
 });
 
 const input = useTemplateRef("input");
+
+onMounted(() => {
+	if (props.autofocus) focus();
+});
 
 const gridTemplateColumns = computed(() =>
 	[

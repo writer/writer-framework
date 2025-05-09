@@ -4,13 +4,20 @@
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
 		>
-			<BuilderHeader class="builderHeader"></BuilderHeader>
+			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
 				v-show="builderMode !== 'preview'"
 				class="sidebar"
 			/>
 			<div class="builderMain">
-				<div class="rendererWrapper">
+				<div
+					class="rendererWrapper"
+					:class="{
+						addNoteCursor:
+							notesManager.isAnnotating.value &&
+							ssbm.mode.value !== 'preview',
+					}"
+				>
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
@@ -276,6 +283,8 @@ function handleRendererDrop(ev: DragEvent) {
 	}
 }
 
+const notesManager = inject(injectionKeys.notesManager);
+
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
@@ -288,8 +297,14 @@ function handleRendererClick(ev: PointerEvent): void {
 		"[data-writer-id]",
 	);
 	if (!targetEl) return;
+
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
+
+	if (notesManager.isAnnotating.value && ssbm.mode.value !== "preview") {
+		ev.preventDefault();
+		// notesManager.createNote(targetId, { x: ev.x, y: ev.y });
+	}
 
 	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
 
@@ -437,6 +452,9 @@ onUnmounted(() => abort.abort());
 	flex-direction: column;
 	height: 100%;
 	overflow-y: auto;
+}
+.rendererWrapper--annotating {
+	cursor: context-menu;
 }
 
 .componentRenderer {

@@ -2,6 +2,7 @@ import type { Component as VueComponent } from "vue";
 import { generateCore } from "./core";
 import { generateBuilderManager } from "./builder/builderManager";
 import type { SchemaObject } from "ajv";
+import { useBuilderNotes } from "./builder/useBuilderNotes";
 
 export type Core = ReturnType<typeof generateCore>;
 
@@ -123,6 +124,8 @@ export type WriterComponentDefinition = {
 };
 
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
+
+export type NotesManager = ReturnType<typeof useBuilderNotes>;
 
 export const enum FieldType {
 	Text = "Text",

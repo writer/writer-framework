@@ -19,6 +19,15 @@
 					data-automation-action="sidebar-add"
 					@click="changeActivePane('add')"
 				/>
+				<BuilderSidebarButton
+					v-if="isCloudApp"
+					icon="comment"
+					data-writer-tooltip-placement="right"
+					:data-writer-tooltip="`${paneTitles.notes}`"
+					:active="activePane === 'notes'"
+					data-automation-action="sidebar-notes"
+					@click="changeActivePane('notes')"
+				/>
 			</div>
 			<div v-if="!isPreview" class="BuilderSidebar__toolbar__center">
 				<hr />
@@ -51,8 +60,25 @@
 			</div>
 		</div>
 		<div v-if="activePane && !isPreview" class="BuilderSidebar__pane">
-			<div class="BuilderSidebar__pane__header">
-				<h2>{{ paneTitles[activePane] }}</h2>
+			<div
+				class="BuilderSidebar__pane__header"
+				:class="{
+					'BuilderSidebar__pane__header--goBack': activePaneGoBack,
+				}"
+			>
+				<template v-if="activePaneGoBack">
+					<button
+						type="button"
+						class="BuilderSidebar__pane__header__btn"
+						@click="goBack"
+					>
+						<span class="material-symbols-outlined">
+							arrow_back
+						</span>
+					</button>
+					<h2>Back</h2>
+				</template>
+				<h2 v-else>{{ paneTitles[activePane] }}</h2>
 				<button
 					type="button"
 					class="BuilderSidebar__pane__header__btn"
@@ -65,6 +91,7 @@
 			</div>
 			<BuilderSidebarToolkit v-if="activePane === 'add'" />
 			<BuilderSidebarComponentTree v-if="activePane === 'layers'" />
+			<BuilderSidebarNotes v-if="activePane === 'notes'" />
 		</div>
 	</div>
 </template>
@@ -85,6 +112,7 @@ import injectionKeys from "@/injectionKeys";
 import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 import { useComponentActions } from "../useComponentActions";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
+import BuilderSidebarNotes from "./BuilderSidebarNotes.vue";
 
 const BuilderSidebarToolkit = defineAsyncComponent({
 	loader: () => import("./BuilderSidebarToolkit.vue"),
@@ -95,7 +123,7 @@ const BuilderSidebarComponentTree = defineAsyncComponent({
 	loadingComponent: BuilderAsyncLoader,
 });
 
-type Pane = "layers" | "add";
+type Pane = "layers" | "add" | "notes";
 
 function isPane(v: unknown): v is Pane {
 	return typeof v === "string" && ["layers", "add"].includes(v);
@@ -103,6 +131,9 @@ function isPane(v: unknown): v is Pane {
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const notesManager = inject(injectionKeys.notesManager);
+
+const isCloudApp = computed(() => Boolean(wf.writerApplication.value));
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, wfbm);
@@ -115,14 +146,38 @@ const activePane = ref<Pane>(
 	isPreview.value ? undefined : activePaneLocalStorage.value,
 );
 
+const activePaneGoBack = computed(() => {
+	if (activePane.value !== "notes") return false;
+
+	return notesManager.selectedNoteId.value !== undefined;
+});
+
+function goBack() {
+	if (activePane.value === "notes") {
+		notesManager.selectNote(undefined);
+	}
+}
+
 watch(activePane, () => (activePaneLocalStorage.value = activePane.value));
+watch(
+	activePane,
+	() => {
+		notesManager.isAnnotating.value = activePane.value === "notes";
+	},
+	{ immediate: true },
+);
 watch(isPreview, () => {
 	if (isPreview.value) activePane.value === undefined;
+});
+watch(notesManager.selectedNoteId, () => {
+	if (!notesManager.selectedNoteId.value) return;
+	activePane.value = "notes";
 });
 
 const paneTitles = computed<Record<Pane, string>>(() => ({
 	layers: wfbm.mode.value === "ui" ? "Interface Layers" : "Blueprint Layers",
 	add: "Add block",
+	notes: "Notes",
 }));
 
 const modifierKeyName = getModifierKeyName();
@@ -213,12 +268,17 @@ function changeActivePane(value: Pane) {
 }
 .BuilderSidebar__pane__header {
 	padding: 16px 16px 0 16px;
-	display: grid;
-	grid-template-columns: 1fr auto;
+	display: flex;
+	gap: 8px;
 	align-items: center;
+}
+.BuilderSidebar__pane__header--goBack {
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--wdsColorGray2);
 }
 .BuilderSidebar__pane__header h2 {
 	color: var(--wdsColorGray6);
+	flex-grow: 1;
 	font-weight: 500;
 	font-size: 16px;
 }
