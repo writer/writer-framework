@@ -315,6 +315,7 @@ class AppProcess(multiprocessing.Process):
                         "type": app.type,
                         "status": app.status,
                         "organization_id": organization_id,
+                        "inputs": {i.name: "" for i in app.inputs},
                     }
                     for app in applications
                 ]
