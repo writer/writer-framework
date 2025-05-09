@@ -3,7 +3,9 @@
 </template>
 
 <script lang="ts">
+// TODO: rename component to `CoreNote`
 import BuilderComment from "@/builder/comment/BuilderComment.vue";
+import { FieldType } from "@/writerTypes";
 
 const description = "TODO";
 
@@ -12,7 +14,16 @@ export default {
 		name: "Comment",
 		description,
 		category: "Other",
-		fields: {},
+		fields: {
+			createdAt: {
+				name: "Created At",
+				type: FieldType.Text,
+			},
+			createdBy: {
+				name: "Created By",
+				type: FieldType.Text,
+			},
+		},
 	},
 };
 </script>

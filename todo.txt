@@ -1,0 +1,4 @@
+parse the date
+implement searching ine the notes
+let the ability to discuss over a note
+fix the position of the notes
