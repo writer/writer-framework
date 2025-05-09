@@ -3,7 +3,7 @@ name: ci
 on:
   push:
     branches:
-      - 'test-trigger'
+      - 'dev'
 
 jobs:
   build:
