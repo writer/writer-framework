@@ -27,7 +27,7 @@ defineEmits({
 		<span class="WdsTag__text">{{ text }}</span>
 		<button
 			v-if="closable"
-			role="button"
+			type="button"
 			class="WdsTag__close"
 			@click.stop="$emit('close')"
 		>
