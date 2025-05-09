@@ -259,7 +259,7 @@ class BlueprintRunner:
         graph = {}
         in_degree = {node.id: 0 for node in nodes}
 
-        inputs = {}
+        inputs: Dict[str, List] = {}
         for node in nodes:
             outs = node.outs or []
             for out in outs:
