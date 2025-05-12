@@ -32,7 +32,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Step Container",
+		name: "Step container",
 		description,
 		category: "Layout",
 		allowedChildrenTypes: ["step", "repeater"],

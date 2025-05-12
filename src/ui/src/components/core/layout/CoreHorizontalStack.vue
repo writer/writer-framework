@@ -23,7 +23,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Horizontal Stack",
+		name: "Horizontal stack",
 		description,
 		allowedChildrenTypes: ["*"],
 		category: "Layout",

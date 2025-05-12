@@ -24,9 +24,9 @@
 <script lang="ts">
 /**
  * This component renders differently depending on the instance number of
- * the direct child of the relevant Tab Container.
+ * the direct child of the relevant Tab container.
  *
- * In standard usage, the Tab will be a direct child of the Tab Container.
+ * In standard usage, the Tab will be a direct child of the Tab container.
  * Hence, the Tab instance number is used.
  * However, if using a Repeater with a Tab inside, the instance number of the
  * Repeater is used for this purpose.
@@ -47,7 +47,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 
 const description =
-	"A container component that displays its child components as a tab inside a Tab Container.";
+	"A container component that displays its child components as a tab inside a Tab container.";
 
 export default {
 	writer: {

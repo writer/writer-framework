@@ -28,7 +28,7 @@ const defaultSpec = {
 
 export default {
 	writer: {
-		name: "Plotly Graph",
+		name: "Plotly graph",
 		description,
 		category: "Content",
 		fields: {

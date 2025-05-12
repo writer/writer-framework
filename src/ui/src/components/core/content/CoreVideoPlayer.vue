@@ -33,7 +33,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Video Player",
+		name: "Video player",
 		description,
 		category: "Content",
 		fields: {
