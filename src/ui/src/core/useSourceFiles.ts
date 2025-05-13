@@ -157,6 +157,11 @@ export function useSourceFiles(wf: Core) {
 		switch (openedFileExtension.value) {
 			case "py":
 				return "python";
+			case "js":
+			case "mjs":
+				return "javascript";
+			case "ts":
+				return "typescript";
 			case "md":
 			case "markdown":
 				return "markdown";

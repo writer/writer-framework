@@ -14,6 +14,10 @@ vitest.mock("@/writerApi", () => ({
 	},
 }));
 
+vitest.mock("@/utils/writerCloudEnvConfig", () => ({
+	getWriterCloudEnvConfig: vi.fn().mockResolvedValue({}),
+}));
+
 describe(useWriterTracking.name, () => {
 	let mockCore: ReturnType<typeof buildMockCore>;
 

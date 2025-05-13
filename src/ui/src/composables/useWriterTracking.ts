@@ -2,6 +2,7 @@ import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
 import { computed, onMounted } from "vue";
 import { useLogger } from "./useLogger";
+import { getWriterCloudEnvConfig } from "@/utils/writerCloudEnvConfig";
 
 let isIdentified = false;
 
@@ -46,26 +47,39 @@ interface EventPropertiesWithResources extends EventProperties {
 const EVENT_PREFIX = "[AgentEditor]";
 
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
-	const abortControler = new AbortController();
+	let abortControler = new AbortController();
+
+	const logger = useLogger();
+	const { writerApi } = useWriterApi({ signal: abortControler.signal });
+
+	async function getFullstoryOrgId() {
+		if (!isCloudApp.value) return undefined;
+		const config = await getWriterCloudEnvConfig();
+		return config["FULLSTORY_ORG_ID"]
+			? String(config["FULLSTORY_ORG_ID"])
+			: undefined;
+	}
 
 	const isCloudApp = computed(() => Boolean(wf.writerApplication.value?.id));
 	const organizationId = computed(
 		() => Number(wf.writerApplication.value?.organizationId) || undefined,
 	);
-
-	const { writerApi } = useWriterApi({ signal: abortControler.signal });
-	const logger = useLogger();
+	const canTrack = computed(
+		() => wf.mode.value === "edit" && isCloudApp.value,
+	);
 
 	onMounted(async () => {
+		abortControler = new AbortController();
 		if (!isCloudApp.value || isIdentified) return;
 		isIdentified = true;
+
 		try {
-			await writerApi.analyticsIdentify();
+			await Promise.all([
+				writerApi.analyticsIdentify(),
+				initializeFullStory(),
+			]);
 		} catch (e) {
-			logger.error(
-				"Failed to identify the current user for analytics",
-				e,
-			);
+			logger.error("Failed to setup analytics", e);
 		}
 	});
 
@@ -90,6 +104,34 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		};
 	}
 
+	async function initializeFullStory() {
+		if (!canTrack.value) return;
+		const fullstoryOrgId = await getFullstoryOrgId();
+		if (!fullstoryOrgId) return;
+
+		const module = await import("@fullstory/browser");
+		if (module.isInitialized()) return;
+
+		await new Promise((res) => {
+			module.init(
+				{
+					orgId: fullstoryOrgId,
+				},
+				res,
+			);
+		});
+
+		try {
+			const profile = await writerApi.fetchUserProfile();
+			await module.FullStory("setIdentityAsync", {
+				uid: String(profile.id),
+				properties: profile,
+			});
+		} catch (e) {
+			logger.error("Failed to set FullStory identity", e);
+		}
+	}
+
 	function getComponentInformation(componentId: string) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return {};
@@ -98,26 +140,42 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		return { name: def.name, category: def.category };
 	}
 
-	function track(
+	async function trackWithFullStory(
+		eventName: string,
+		properties: EventProperties,
+	) {
+		if (!canTrack.value) return;
+		const fullstoryOrgId = await getFullstoryOrgId();
+		if (!fullstoryOrgId) return;
+
+		const { FullStory } = await import("@fullstory/browser");
+		return FullStory("trackEventAsync", { name: eventName, properties });
+	}
+
+	function trackWithApi(eventName: string, properties: EventProperties) {
+		if (!canTrack.value) return;
+		return writerApi.analyticsTrack(eventName, properties);
+	}
+
+	async function track(
 		eventName: WriterTrackingEventName,
 		properties: EventProperties = {},
 	) {
-		if (wf.mode.value !== "edit" || !isCloudApp.value) return;
+		if (!canTrack.value) return;
 
-		return writerApi.analyticsTrack(
-			`${EVENT_PREFIX} ${eventName}`,
-			expandEventPropertiesWithResources(properties),
-		);
+		const eventNameFormated = `${EVENT_PREFIX} ${eventName}`;
+		const propertiesExpanded =
+			expandEventPropertiesWithResources(properties);
+		logger.log("[tracking]", eventNameFormated, propertiesExpanded);
+
+		return await Promise.all([
+			trackWithApi(eventNameFormated, propertiesExpanded),
+			trackWithFullStory(eventNameFormated, propertiesExpanded),
+		]).catch(logger.error);
 	}
 
 	function page(name: string, properties: EventProperties = {}) {
-		if (
-			wf.mode.value !== "edit" ||
-			!isCloudApp.value ||
-			!organizationId.value
-		) {
-			return;
-		}
+		if (!canTrack.value || !organizationId.value) return;
 
 		return writerApi.analyticsPage(
 			`${EVENT_PREFIX} ${name}`,
