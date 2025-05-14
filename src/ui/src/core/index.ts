@@ -22,6 +22,7 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
+import { handleIncomingCollaborationUpdate } from "@/composables/useCollaboration";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -219,6 +220,14 @@ export function generateCore() {
 			) {
 				webSocket.close();
 				initSession();
+				return;
+			}
+
+			if (
+				message.messageType == "announcement" &&
+				message.payload.type == "collaborationUpdate"
+			) {
+				handleIncomingCollaborationUpdate(message.payload.payload);
 				return;
 			}
 

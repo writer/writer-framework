@@ -107,11 +107,7 @@
 </template>
 
 <script lang="ts">
-import {
-	type Component,
-	FieldType,
-	UserCollaborationPing,
-} from "@/writerTypes";
+import { type Component, FieldType } from "@/writerTypes";
 import BlueprintArrow from "./base/BlueprintArrow.vue";
 import { watch } from "vue";
 import BlueprintNavigator from "./base/BlueprintNavigator.vue";
@@ -183,6 +179,7 @@ import {
 } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
+import { collaborationSnapshot } from "@/composables/useCollaboration";
 import injectionKeys from "@/injectionKeys";
 import {
 	computeDistance,
@@ -212,12 +209,6 @@ const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
-
-/*
-send ping onmount
-update coordinates on mousemove
-send updates every second, or on select
-*/
 
 const emit = defineEmits(["collaborationUpdate"]);
 
@@ -957,6 +948,10 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 	if (newSelection.source !== "click") {
 		findAndCenterBlock(newSelection.componentId);
 	}
+});
+
+watch(collaborationSnapshot, (newSnapshot) => {
+	console.log("new snapshot", newSnapshot);
 });
 
 function handleKeydown(event: KeyboardEvent) {

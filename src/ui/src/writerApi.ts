@@ -118,6 +118,21 @@ export class WriterApi {
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
+
+	async profile() {
+		const url = new URL(`api/user/v2/profile`, this.#baseUrl);
+		const res = await fetch(url, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+		return res.json();
+	}
 }
 
 type WriterApiUser = {

@@ -7,6 +7,9 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
+import { useApplicationCloud } from "@/composables/useApplicationCloud";
+import { useWriterApi } from "@/composables/useWriterApi.js";
+import { userCollaborationProfile, useCollaboration } from "@/composables/useCollaboration.js";
 
 const wf = generateCore();
 
@@ -21,6 +24,7 @@ const logger = useLogger();
 
 async function load() {
 	await wf.init();
+
 	const mode = wf.mode.value;
 	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
 
@@ -44,6 +48,27 @@ async function load() {
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");
+
+	const { isCloudApp } = useApplicationCloud(wf);
+	if (isCloudApp) {
+		await enableCollaboration();
+	}
+}
+
+async function enableCollaboration() {
+	const collaboration = useCollaboration(wf);
+	const { writerApi } = useWriterApi();
+	const writerProfile = await writerApi.profile();
+	console.log(writerProfile);
+	userCollaborationProfile.userId = writerProfile.id;
+	userCollaborationProfile.name = `${writerProfile.firstName} ${writerProfile.lastName}`;
+	collaboration.updateOutgoingPing({ action: "join" });
+	collaboration.sendCollaborationPing();
+	collaboration.groomSnapshot();
+	window.addEventListener("beforeunload", function () {
+		collaboration.updateOutgoingPing({ action: "leave" });
+		collaboration.sendCollaborationPing();
+	});
 }
 
 logger.log("Initialising core...");
@@ -55,3 +80,8 @@ load()
 		logger.error("Core initialisation failed.", reason);
 		document.write(reason);
 	});
+
+	function startCollaboration() {
+		collaboration.updateOutgoingPing({ action: "join" });
+		collaboration.sendCollaborationPing();
+	}

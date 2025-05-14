@@ -36,6 +36,15 @@
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
+			<BuilderInstanceTracker
+				key="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
+				class="insertionOverlayTracker"
+				:is-off-bounds-allowed="true"
+				instance-path="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
+				:match-size="true"
+			>
+				padlock
+			</BuilderInstanceTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -80,6 +89,7 @@ import {
 	inject,
 	onMounted,
 	onUnmounted,
+	watch,
 } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
@@ -94,6 +104,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
+import { useCollaboration } from "@/composables/useCollaboration";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -125,6 +136,7 @@ const ssbm = inject(injectionKeys.builderManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
+const collaboration = useCollaboration(wf);
 
 const {
 	candidateId,
@@ -340,12 +352,23 @@ function handleRendererDragEnd(ev: DragEvent) {
 
 const abort = new AbortController();
 
+watch(ssbm.selection, () => {
+	collaboration.updateOutgoingPing({
+		action: "select",
+		componentIds: ssbm.selection.value.map((s) => s.componentId),
+	});
+	collaboration.sendCollaborationPing();
+});
+
 onMounted(() => {
 	document.addEventListener("keydown", handleKeydown, {
 		signal: abort.signal,
 	});
 });
-onUnmounted(() => abort.abort());
+
+onUnmounted(() => {
+	abort.abort();
+});
 </script>
 
 <style scoped>

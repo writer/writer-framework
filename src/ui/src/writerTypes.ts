@@ -232,6 +232,14 @@ export type WriterApplication = {
 };
 
 export type UserCollaborationPing = {
+	action: "join" | "select" | "leave" | "auto";
+	profile: {
+		userId: number;
+		name?: string;
+		avatar?: string;
+	};
+	time: Date;
+	componentIds?: Component["id"][];
 	x?: number;
 	y?: number;
 };
