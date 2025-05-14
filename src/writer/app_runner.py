@@ -859,7 +859,10 @@ class AppRunner:
             os.rename(from_path_abs, to_path_abs)
         except OSError:
             # If the error is due to the function not being implemented (like S3/Fuse), we fallback to copy/delete
-            shutil.copy2(from_path_abs, to_path_abs)
+            with open(from_path_abs, "r") as original_file:
+                content = original_file.read()
+                with open(to_path_abs, "w") as new_file:
+                    new_file.write(content)
             os.remove(from_path_abs)
 
         self.source_files = wf_project.build_source_files(self.app_path)
