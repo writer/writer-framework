@@ -1059,7 +1059,7 @@ onUnmounted(() => {
 	transform: scale(v-bind("zoomLevel"));
 }
 
-svg {
+.nodeContainer svg {
 	position: absolute;
 	top: 0;
 	left: 0;
