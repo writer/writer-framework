@@ -1,7 +1,7 @@
 <docs lang="md">
-_Separator_ components are used to separate layout elements. They can be used in most containers, including _Column Container_ to separate columns.
+_Separator_ components are used to separate layout elements. They can be used in most containers, including _Column container_ to separate columns.
 
-If the container flows horizontally (like a _Horizontal Stack_ or a _Column Container_) the _Separator_ will be a vertical line. Otherwise, it'll be a horizontal line.
+If the container flows horizontally (like a _Horizontal stack_ or a _Column container_) the _Separator_ will be a vertical line. Otherwise, it'll be a horizontal line.
 </docs>
 
 <template>

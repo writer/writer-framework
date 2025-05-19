@@ -29,7 +29,7 @@ import {
 const description = "A component to explore JSON data as a hierarchy.";
 
 const initialData = {
-	name: "JSON Viewer",
+	name: "JSON viewer",
 	description: "A JSON tree viewer where you can expand the keys.",
 	sample: {
 		description: "This sample is opened by default",
@@ -44,7 +44,7 @@ const initialData = {
 };
 
 const definition: WriterComponentDefinition = {
-	name: "JSON Viewer",
+	name: "JSON viewer",
 	description,
 	category: "Content",
 	fields: {

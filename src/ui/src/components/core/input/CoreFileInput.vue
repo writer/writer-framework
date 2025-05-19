@@ -72,7 +72,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
-		name: "File Input",
+		name: "File input",
 		description,
 		category: "Input",
 		fields: {
