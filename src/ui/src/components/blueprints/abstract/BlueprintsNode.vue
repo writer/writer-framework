@@ -19,7 +19,7 @@
 		</div>
 		<div class="main">
 			<div class="title">
-				<SharedImgWithFallback :urls="possibleImageUrls" />
+				<SharedImgWithFallback :urls="possibleImageUrls" class="icon" />
 				<BlueprintsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"
@@ -303,6 +303,10 @@ watch(isEngaged, () => {
 		--Gradients-Summer-Dawn-2,
 		linear-gradient(180deg, #ffd5f8 0%, #bfcbff 95.5%)
 	);
+}
+
+.icon {
+	pointer-events: none;
 }
 
 .extraBorder {
