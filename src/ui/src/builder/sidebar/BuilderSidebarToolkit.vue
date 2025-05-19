@@ -66,7 +66,7 @@ const displayedCategories = [
 ];
 
 const activeToolkit = computed(() => {
-	if (wfbm.getMode() == "blueprints") {
+	if (wfbm.mode.value == "blueprints") {
 		return "blueprints";
 	}
 	return "core";
