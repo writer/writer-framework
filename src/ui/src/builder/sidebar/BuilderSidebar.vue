@@ -2,6 +2,7 @@
 	<div class="BuilderSidebar">
 		<div class="BuilderSidebar__toolbar">
 			<div v-if="!isPreview" class="BuilderSidebar__toolbar__top">
+				<hr />
 				<BuilderSidebarButton
 					icon="stacks"
 					data-writer-tooltip-placement="right"
@@ -39,7 +40,9 @@
 				/>
 			</div>
 			<div class="BuilderSidebar__toolbar__bottom">
+				<hr />
 				<BuilderSidebarButton
+					target="_blank"
 					href="https://dev.writer.com/framework/"
 					icon="help"
 					data-writer-tooltip-placement="right"
@@ -50,15 +53,15 @@
 		<div v-if="activePane && !isPreview" class="BuilderSidebar__pane">
 			<div class="BuilderSidebar__pane__header">
 				<h2>{{ paneTitles[activePane] }}</h2>
-				<WdsButton
-					variant="neutral"
-					size="smallIcon"
+				<button
+					type="button"
+					class="BuilderSidebar__pane__header__btn"
 					@click="activePane = undefined"
 				>
 					<span class="material-symbols-outlined">
 						left_panel_close
 					</span>
-				</WdsButton>
+				</button>
 			</div>
 			<BuilderSidebarToolkit v-if="activePane === 'add'" />
 			<BuilderSidebarComponentTree v-if="activePane === 'layers'" />
@@ -67,7 +70,6 @@
 </template>
 
 <script setup lang="ts">
-import WdsButton from "@/wds/WdsButton.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import BuilderSidebarButton from "./BuilderSidebarButton.vue";
 import {
@@ -168,7 +170,10 @@ function changeActivePane(value: Pane) {
 }
 
 .BuilderSidebar__toolbar {
-	padding: 12px 8px;
+	padding-top: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-bottom: 12px;
 	background: var(--wdsColorBlack);
 	display: grid;
 	grid-template-rows: auto 1fr auto;
@@ -195,7 +200,7 @@ function changeActivePane(value: Pane) {
 	grid-row: 3 / 3;
 }
 
-.BuilderSidebar__toolbar__center hr {
+.BuilderSidebar__toolbar hr {
 	border: none;
 	border-top: 1px solid var(--wdsColorGray6);
 	width: 100%;
@@ -216,5 +221,13 @@ function changeActivePane(value: Pane) {
 	color: var(--wdsColorGray6);
 	font-weight: 500;
 	font-size: 16px;
+}
+.BuilderSidebar__pane__header__btn {
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
 }
 </style>

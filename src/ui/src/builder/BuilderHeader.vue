@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderHeader">
-		<div>
+		<div class="BuilderHeader__logo">
 			<a
 				v-if="writerDeployUrl"
 				:href="writerDeployUrl.toString()"
@@ -10,6 +10,7 @@
 				<img src="../assets/logo.svg" alt="Writer Framework logo" />
 			</a>
 			<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
+			<hr />
 		</div>
 		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
@@ -185,7 +186,13 @@ function showStateExplorer() {
 	border-bottom: 1px solid var(--builderAreaSeparatorColor);
 }
 
-.BuilderHeader__goBack {
+.BuilderHeader__logo {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.BuilderHeader__logo a {
 	text-decoration: none;
 	display: inline-flex;
 	align-items: center;
@@ -197,7 +204,7 @@ function showStateExplorer() {
 	justify-content: flex-end;
 	gap: 8px;
 }
-.BuilderHeader__toolbar hr {
+.BuilderHeader hr {
 	border: none;
 	border-left: 1px solid var(--wdsColorGray6);
 	height: 26px;
@@ -208,7 +215,7 @@ function showStateExplorer() {
 }
 
 .BuilderHeader img {
-	width: 28px;
+	width: 32px;
 }
 
 .panelToggler,
