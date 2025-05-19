@@ -324,6 +324,28 @@ class AppProcess(multiprocessing.Process):
             except (RuntimeError, APIConnectionError) as e:
                 return AppProcessServerResponse(status="error", status_message=str(e), payload=None)
 
+        if req.resource_type == "models":
+            from writerai import APIConnectionError
+
+            from writer.ai import WriterAIManager
+
+            try:
+                client = WriterAIManager.acquire_client()
+                models_response = client.models.list()
+                models = models_response.models
+                raw_models = [
+                    {
+                        "name": model.name,
+                        "id": model.id
+                    }
+                    for model in models
+                ]
+                return AppProcessServerResponse(
+                    status="ok", status_message=None, payload={"data": raw_models}
+                )
+            except (RuntimeError, APIConnectionError) as e:
+                return AppProcessServerResponse(status="error", status_message=str(e), payload=None)
+
         return AppProcessServerResponse(
             status="error",
             status_message=f"could not load unknow resources {req.resource_type}",
@@ -859,7 +881,7 @@ class AppRunner:
             os.rename(from_path_abs, to_path_abs)
         except OSError:
             # If the error is due to the function not being implemented (like S3/Fuse), we fallback to copy/delete
-            shutil.copy2(from_path_abs, to_path_abs)
+            shutil.copyfile(from_path_abs, to_path_abs)
             os.remove(from_path_abs)
 
         self.source_files = wf_project.build_source_files(self.app_path)

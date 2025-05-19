@@ -59,7 +59,9 @@ test.describe("Blueprints", () => {
 		await page
 			.locator(`[data-automation-action="set-mode-blueprints"]`)
 			.click();
+		await page.locator(`[data-automation-action="sidebar-layers"]`).click();
 		await page.locator(`[data-automation-action="add-blueprint"]`).click();
+		await page.locator(`[data-automation-action="sidebar-add"]`).click();
 
 		await page
 			.locator(
@@ -136,7 +138,9 @@ test.describe("Blueprints", () => {
 			await page
 				.locator(`[data-automation-action="set-mode-blueprints"]`)
 				.click();
+			await page.locator(`[data-automation-action="sidebar-layers"]`).click();
 			await page.locator(`[data-automation-action="add-blueprint"]`).click();
+			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 
 			await page
 				.locator(

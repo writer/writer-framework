@@ -19,8 +19,8 @@ class WriterToolCalling(WriterBlock):
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea", "desc": "The task that needs to be carried out."},
                         "modelId": {
-                            "name": "Model id",
-                            "type": "Text",
+                            "name": "Model",
+                            "type": "Model Id",
                             "default": DEFAULT_MODEL
                         },
                         "maxIterations": {

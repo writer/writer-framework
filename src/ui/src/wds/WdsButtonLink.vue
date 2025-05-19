@@ -3,7 +3,7 @@
 		class="WdsButtonLink"
 		:disabled="disbaled"
 		:class="className"
-		role="button"
+		type="button"
 	>
 		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
 		<span class="WdsButtonLink__text">{{ text }}</span>

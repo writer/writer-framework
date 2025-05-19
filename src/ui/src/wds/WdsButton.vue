@@ -2,7 +2,7 @@
 	<button
 		class="WdsButton colorTransformer"
 		:class="className"
-		role="button"
+		type="button"
 		:style="style"
 		:disabled="disabled || loading"
 	>

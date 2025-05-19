@@ -23,8 +23,8 @@ class WriterInitChat(WriterBlock):
                         "type": "Text",
                     },
                     "modelId": {
-                        "name": "Model id",
-                        "type": "Text",
+                        "name": "Model",
+                        "type": "Model Id",
                         "default": DEFAULT_MODEL
                     },
                     "temperature": {

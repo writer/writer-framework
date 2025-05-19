@@ -31,9 +31,9 @@ shared_queue_write_files: typing.Optional[Queue] = None
 @dataclasses.dataclass
 class WfProjectContext:
     app_path: str
-    write_files_async_queue: Queue = Queue()
+    write_files_async_queue: Queue = dataclasses.field(default_factory=Queue)
     write_files_async_process: typing.Optional[multiprocessing.Process] = None
-    write_files_async_stop: Any = multiprocessing.Event() # Note: Event is a function, not a class in python, it can't be typed
+    write_files_async_stop: Any = dataclasses.field(default_factory=multiprocessing.Event)  # Note: Event is a function, not a class in python, it can't be typed
     file_hashes: Dict[str, str] = dataclasses.field(default_factory=dict)
 
 
