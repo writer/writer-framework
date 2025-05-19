@@ -5,7 +5,10 @@
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
 		>
 			<BuilderHeader class="builderHeader"></BuilderHeader>
-			<BuilderSidebar class="sidebar" />
+			<BuilderSidebar
+				v-show="builderMode !== 'preview'"
+				class="sidebar"
+			/>
 			<div class="builderMain">
 				<div class="rendererWrapper">
 					<ComponentRenderer
