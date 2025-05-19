@@ -160,6 +160,13 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="application"
 					/>
+					<BuilderFieldsWriterResourceId
+						v-if="fieldValue.type == FieldType.WriterModelId"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+						resource-type="model"
+					/>
 					<BuilderFieldsComponentId
 						v-if="fieldValue.type == FieldType.ComponentId"
 						:field-key="fieldKey"
