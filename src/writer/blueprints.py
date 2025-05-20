@@ -326,6 +326,7 @@ class BlueprintRunner:
                         tool = future.result()
                     except BaseException:
                         is_cancelled = True
+                        continue
                     else:
                         update_log("Executing...")
                     if tool.return_value is not None:
