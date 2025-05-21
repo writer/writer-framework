@@ -258,6 +258,7 @@ class BlueprintRunner:
         tools: OrderedDict[str, Optional[writer.blocks.base_block.BlueprintBlock]] = OrderedDict()
         graph = {}
         in_degree = {node.id: 0 for node in nodes}
+        is_cancelled = False
 
         inputs: Dict[str, List] = {}
         for node in nodes:
@@ -269,6 +270,8 @@ class BlueprintRunner:
                 inputs[to_node_id].append({"nodeId": node.id, "outId": out.get("outId")})
 
         def check_requirements(tool):
+            if is_cancelled:
+                return False
             node_id = tool.component.id
             if node_id not in inputs:
                 return True
@@ -322,8 +325,8 @@ class BlueprintRunner:
                     try:
                         tool = future.result()
                     except BaseException:
-                        update_log("Execution failed", entry_type="error")
-                        return None
+                        is_cancelled = True
+                        continue
                     else:
                         update_log("Executing...")
                     if tool.return_value is not None:
@@ -353,7 +356,10 @@ class BlueprintRunner:
                             tools.move_to_end(to_node_id)
                             tools[to_node_id] = to_tool
                             ready.append(to_tool)
-            update_log("Execution completed.")
+            if is_cancelled:
+                update_log("Execution failed.", entry_type="error")
+            else:
+                update_log("Execution completed.")
 
     def _get_tool(self, node: writer.core_ui.Component, execution_environment: Dict):
         tool_class = writer.blocks.base_block.block_map.get(node.type)
