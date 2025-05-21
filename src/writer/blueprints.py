@@ -393,7 +393,7 @@ class BlueprintRunner:
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
             else:
-                tool.message = repr(e)
+                tool.message = tool.message or repr(e)
             raise e
         finally:
             tool.execution_time_in_seconds = time.time() - start_time
