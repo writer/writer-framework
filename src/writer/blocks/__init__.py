@@ -1,4 +1,5 @@
 from writer.blocks.addtostatelist import AddToStateList
+from writer.blocks.apitrigger import APITrigger
 from writer.blocks.calleventhandler import CallEventHandler
 from writer.blocks.changepage import ChangePage
 from writer.blocks.code import CodeBlock
@@ -39,6 +40,7 @@ ReturnValue.register("blueprints_returnvalue")
 WriterInitChat.register("blueprints_writerinitchat")
 WriterAddToKG.register("blueprints_writeraddtokg")
 UIEventTrigger.register("blueprints_uieventtrigger")
+APITrigger.register("blueprints_apitrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
 WriterToolCalling.register("blueprints_writertoolcalling")

@@ -29,6 +29,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from writer import VERSION, abstract, crypto
 from writer.ai import Graph
 from writer.app_runner import AppRunner
+from writer.core import get_app_process
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -368,8 +369,6 @@ def get_asgi_app(
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        crypto.verify_message_authorization_signature(f"create_job_{blueprint_key}", request)
-
         def serialize_result(data):
             if isinstance(data, list):
                 return [serialize_result(item) for item in data]
@@ -416,6 +415,25 @@ def get_asgi_app(
         if not is_session_ok:
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
+        # Check if the blueprint is registered
+        is_available_check = await app_runner.handle_event(
+            session_id,
+            WriterEvent(
+                type="wf-builtin-run",
+                isSafe=True,
+                handler=f"$confirmBlueprintAPI_{blueprint_key}",
+                payload={}
+            )
+        )
+        check_result = is_available_check.payload.result
+        if not check_result.get("ok"):
+            raise HTTPException(
+                status_code=400,
+                detail=""
+                f"Blueprint '{blueprint_key}' is not exposed via API."
+                " Add an API trigger to make it available."
+                )
+
         loop = asyncio.get_running_loop()
         task = loop.create_task(
             app_runner.handle_event(
@@ -423,7 +441,7 @@ def get_asgi_app(
                 WriterEvent(
                     type="wf-builtin-run",
                     isSafe=True,
-                    handler=f"$runBlueprint_{blueprint_key}",
+                    handler=f"$runBlueprintViaAPI_{blueprint_key}",
                     payload=await _get_payload_as_json(request),
                 ),
             )
