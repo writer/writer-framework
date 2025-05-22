@@ -1639,15 +1639,28 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
+    def _confirm_blueprint_api_availability(self, blueprint_key: str):
+        def fn(payload, context, session):
+            if not self.blueprint_runner.is_blueprint_api_available(blueprint_key):
+                raise RuntimeError(
+                    f"Blueprint '{blueprint_key}' is not exposed as an API. Add an API trigger to make it available. "
+                )
+            return True
+
+        return fn
+
     def _get_blueprint_callable(
         self,
         blueprint_key: Optional[str] = None,
         blueprint_id: Optional[str] = None,
         branch_id: Optional[str] = None,
+        via_api: Optional[bool] = False,
     ):
         def fn(payload, context, session):
             execution_environment = {"payload": payload, "context": context, "session": session}
             if blueprint_key:
+                if via_api:
+                    return self.blueprint_runner.run_blueprint_via_api(blueprint_key, execution_environment)
                 return self.blueprint_runner.run_blueprint_by_key(blueprint_key, execution_environment)
             elif blueprint_id:
                 return self.blueprint_runner.run_blueprint(
@@ -1664,9 +1677,20 @@ class EventHandler:
         return fn
 
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
+        if handler.startswith("$confirmBlueprintAPI_"):
+            blueprint_key = handler[21:]
+            return self._confirm_blueprint_api_availability(blueprint_key=blueprint_key)
+
         if handler.startswith("$runBlueprint_"):
             blueprint_key = handler[14:]
             return self._get_blueprint_callable(blueprint_key=blueprint_key)
+
+        if handler.startswith("$runBlueprintViaAPI_"):
+            blueprint_key = handler[20:]
+            return self._get_blueprint_callable(
+                blueprint_key=blueprint_key,
+                via_api=True
+                )
 
         if handler.startswith("$runBlueprintById_"):
             blueprint_id = handler[18:]

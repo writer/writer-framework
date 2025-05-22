@@ -16,8 +16,8 @@ def get_hash(message: str):
     return hashlib.sha256(combined.encode()).hexdigest()
 
 def verify_message_authorization_signature(message: str, request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
+    token = request.query_params.get("token")
+    if not token:
         raise HTTPException(status_code=401, detail="Unauthorized. Token not specified.")
-    if auth_header != f"Bearer {get_hash(message)}":
+    if token != get_hash(message):
         raise HTTPException(status_code=403, detail="Forbidden. Incorrect token.")
