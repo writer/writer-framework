@@ -96,7 +96,7 @@ const selected = computed<string>({
 });
 
 watch(
-	() => selected.value,
+	selected,
 	async (newAppId) => {
 		if (props.resourceType !== "application" || !newAppId) return;
 
