@@ -148,7 +148,9 @@ class BlueprintRunner:
         return hashed_id
 
     def _summarize_data_for_log(self, data):
-        data = copy.deepcopy(data)
+        with threading.Lock():
+            # Prevent concurrent access to the data
+            data = copy.deepcopy(data)
         MAX_ROWS = 100
         if isinstance(data, list):
             return [self._summarize_data_for_log(item) for item in data[:MAX_ROWS]]
