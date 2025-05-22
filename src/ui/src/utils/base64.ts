@@ -13,3 +13,17 @@ export function base64ToArrayBuffer(base64: string) {
 	}
 	return bytes.buffer;
 }
+
+export function dataURLToArrayBuffer(dataURL: string) {
+	const base64String = dataUrlToBase64(dataURL);
+	const binaryString = atob(base64String);
+
+	const buffer = new ArrayBuffer(binaryString.length);
+	const bytes = new Uint8Array(buffer);
+
+	for (let i = 0; i < binaryString.length; i++) {
+		bytes[i] = binaryString.charCodeAt(i);
+	}
+
+	return buffer;
+}
