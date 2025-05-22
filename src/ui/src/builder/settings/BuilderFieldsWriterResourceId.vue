@@ -95,23 +95,20 @@ const selected = computed<string>({
 	},
 });
 
-watch(
-	selected,
-	async (newAppId) => {
-		if (props.resourceType !== "application" || !newAppId) return;
+watch(selected, async (newAppId) => {
+	if (props.resourceType !== "application" || !newAppId) return;
 
-		const appData = selectorEl.value?.selectedData;
-		const inputsList = appData?.inputs;
+	const appData = selectorEl.value?.selectedData;
+	const inputsList = appData?.inputs;
 
-		if (!inputsList || typeof inputsList !== "object") return;
+	if (!inputsList || typeof inputsList !== "object") return;
 
-		setContentValue(
-			component.value.id,
-			"appInputs",
-			JSON.stringify(inputsList),
-		);
-	},
-);
+	setContentValue(
+		component.value.id,
+		"appInputs",
+		JSON.stringify(inputsList),
+	);
+});
 </script>
 
 <style scoped>
