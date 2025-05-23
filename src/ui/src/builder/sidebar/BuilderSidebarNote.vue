@@ -1,53 +1,3 @@
-<template>
-	<div
-		class="BuilderSidebarNote"
-		:data-note-id="component.id"
-		tabindex="0"
-		@click="$emit('select')"
-	>
-		<div class="BuilderSidebarNote__header">
-			<div class="BuilderSidebarNote__header__avatar">
-				<div class="BuilderSidebarNote__header__avatar__type">
-					<i class="icon material-symbols-outlined">{{
-						BUILDER_MANAGER_MODE_ICONS[type]
-					}}</i>
-				</div>
-				<WdsSkeletonLoader
-					v-if="displayUserLoader || !avatarUrl"
-					class="BuilderSidebarNote__header__avatar__loader"
-				/>
-				<img v-else :src="avatarUrl" />
-			</div>
-
-			<div class="BuilderSidebarNote__header__info">
-				<WdsSkeletonLoader
-					v-if="displayUserLoader"
-					class="BuilderSidebarNote__header__info__loader"
-				/>
-				<p v-else>{{ completeName }}</p>
-				<p>{{ createdAtFormatted }}</p>
-			</div>
-
-			<div
-				v-if="dropdownOptions"
-				class="BuilderSidebarNote__header__actions"
-			>
-				<SharedMoreDropdown
-					:options="dropdownOptions"
-					trigger-custom-size="16px"
-					@select="onDropdownSelect"
-				/>
-			</div>
-		</div>
-		<div v-if="content" class="BuilderSidebarNote__content">
-			<p v-if="excerpt">{{ contentExcerpt }}</p>
-			<p v-for="(paragraph, i) of contentParagraphs" v-else :key="i">
-				{{ paragraph }}
-			</p>
-		</div>
-	</div>
-</template>
-
 <script setup lang="ts">
 import { computed, inject, PropType } from "vue";
 import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
@@ -132,6 +82,56 @@ function onDropdownSelect(value: string) {
 	}
 }
 </script>
+
+<template>
+	<div
+		class="BuilderSidebarNote"
+		:data-note-id="component.id"
+		tabindex="0"
+		@click="$emit('select')"
+	>
+		<div class="BuilderSidebarNote__header">
+			<div class="BuilderSidebarNote__header__avatar">
+				<div class="BuilderSidebarNote__header__avatar__type">
+					<i class="icon material-symbols-outlined">{{
+						BUILDER_MANAGER_MODE_ICONS[type]
+					}}</i>
+				</div>
+				<WdsSkeletonLoader
+					v-if="displayUserLoader || !avatarUrl"
+					class="BuilderSidebarNote__header__avatar__loader"
+				/>
+				<img v-else :src="avatarUrl" />
+			</div>
+
+			<div class="BuilderSidebarNote__header__info">
+				<WdsSkeletonLoader
+					v-if="displayUserLoader"
+					class="BuilderSidebarNote__header__info__loader"
+				/>
+				<p v-else>{{ completeName }}</p>
+				<p>{{ createdAtFormatted }}</p>
+			</div>
+
+			<div
+				v-if="dropdownOptions"
+				class="BuilderSidebarNote__header__actions"
+			>
+				<SharedMoreDropdown
+					:options="dropdownOptions"
+					trigger-custom-size="16px"
+					@select="onDropdownSelect"
+				/>
+			</div>
+		</div>
+		<div v-if="content" class="BuilderSidebarNote__content">
+			<p v-if="excerpt">{{ contentExcerpt }}</p>
+			<p v-for="(paragraph, i) of contentParagraphs" v-else :key="i">
+				{{ paragraph }}
+			</p>
+		</div>
+	</div>
+</template>
 
 <style scoped>
 .BuilderSidebarNote {

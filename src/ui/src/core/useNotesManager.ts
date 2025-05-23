@@ -1,21 +1,17 @@
 import type { generateCore } from "@/core";
 import type { Point } from "@/utils/geometry";
-import { useComponentActions } from "./useComponentActions";
-import { generateBuilderManager } from "./builderManager";
+import { useComponentActions } from "../builder/useComponentActions";
+import { generateBuilderManager } from "../builder/builderManager";
 import { ref, computed, unref, MaybeRef, readonly } from "vue";
 import { Component, InstancePath } from "@/writerTypes";
-import { useWriterApi } from "@/composables/useWriterApi";
-import {
-	fetchWriterApiCurrentUserProfile,
-	useWriterApiCurrentUserProfile,
-} from "@/composables/useWriterApiUser";
-import { useToasts } from "./useToast";
+import { fetchWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
+import { useToasts } from "../builder/useToast";
 import { flattenInstancePath } from "@/renderer/instancePath";
 
 export type NoteState = "default" | "hover" | "active" | "new" | "cursor";
 export type NoteSelectionMode = "show" | "edit";
 
-export function useBuilderNotes(
+export function useNotesManager(
 	wf: ReturnType<typeof generateCore>,
 	wfbm: ReturnType<typeof generateBuilderManager>,
 ) {
@@ -101,7 +97,7 @@ export function useBuilderNotes(
 					: flattenInstancePath(options.instancePath);
 		}
 
-		const profile = await getCurrentUserProfile();
+		const profile = await fetchWriterApiCurrentUserProfile();
 		const noteId = createAndInsertComponent("note", parentId, undefined, {
 			content: {
 				parentInstancePath,
