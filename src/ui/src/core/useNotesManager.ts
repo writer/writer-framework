@@ -108,7 +108,8 @@ export function useNotesManager(
 			x: "x" in options ? options.x : undefined,
 			y: "y" in options ? options.y : undefined,
 		});
-		selectNote(noteId, "edit");
+		await selectNote(noteId, "edit");
+		return noteId;
 	}
 
 	async function deleteNote(componentId: string) {
