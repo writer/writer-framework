@@ -5,7 +5,7 @@
 		:style="rootStyle"
 		:class="{ loadingActive: isMessagePending }"
 	>
-		<RendererNotifications class="notifications"></RendererNotifications>
+		<RendererNotifications class="notifications" />
 		<div class="loadingBar"></div>
 		<div class="rootComponentArea">
 			<ComponentProxy

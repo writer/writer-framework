@@ -125,7 +125,11 @@ watch(
 );
 
 const children = computed(() => {
-	return wf.getComponents(props.componentId, { sortedByPosition: true });
+	return wf
+		.getComponents(props.componentId, { sortedByPosition: true })
+		.filter(
+			(c) => wf.getComponentDefinition(c.type)?.category !== "Internal",
+		);
 });
 
 const { name, previewText } = useComponentDescription(wf, component);

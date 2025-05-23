@@ -6,7 +6,9 @@
 			type="button"
 			@click="selectOption('ui')"
 		>
-			<i class="icon material-symbols-outlined">grid_3x3</i>
+			<i class="icon material-symbols-outlined">{{
+				BUILDER_MANAGER_MODE_ICONS.ui
+			}}</i>
 			Interface
 		</button>
 		<button
@@ -15,7 +17,9 @@
 			type="button"
 			@click="selectOption('blueprints')"
 		>
-			<i class="icon material-symbols-outlined">linked_services</i>
+			<i class="icon material-symbols-outlined">{{
+				BUILDER_MANAGER_MODE_ICONS.blueprints
+			}}</i>
 			Blueprints
 		</button>
 		<button
@@ -24,7 +28,9 @@
 			type="button"
 			@click="selectOption('preview')"
 		>
-			<i class="icon material-symbols-outlined">visibility</i>
+			<i class="icon material-symbols-outlined">{{
+				BUILDER_MANAGER_MODE_ICONS.preview
+			}}</i>
 			Preview
 		</button>
 	</div>
@@ -34,6 +40,7 @@
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

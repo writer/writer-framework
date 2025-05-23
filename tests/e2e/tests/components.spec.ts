@@ -21,6 +21,7 @@ const mapComponents = {
 	column: { ignore: true },
 	tab: { ignore: true },
 	step: { ignore: true },
+	note: { ignore: true },
 	dropdowninput: { locator: ".component.wf-type-dropdowninput label" },
 	section: { test: "basic" },
 	columns: { test: "basic" },

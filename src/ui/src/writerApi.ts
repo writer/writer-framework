@@ -24,6 +24,33 @@ export class WriterApi {
 		return res.json();
 	}
 
+	async fetchOrganizationUsers(
+		orgId: number,
+		filters: {
+			search?: string;
+			userType?: "individual" | "application";
+			offset?: number;
+			limit?: number;
+		} = {},
+	): Promise<WriterApiOrganizationUsers> {
+		const url = new URL(
+			`/api/user/v2/organization/${orgId}`,
+			this.#baseUrl,
+		);
+		const params = new URLSearchParams();
+		for (const [key, value] of Object.entries(filters)) {
+			params.append(key, String(value));
+		}
+
+		const res = await fetch(`${url}?${params.toString()}`, {
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
 	async publishApplication(
 		orgId: number,
 		appId: string,
@@ -51,6 +78,17 @@ export class WriterApi {
 
 	async fetchUserProfile(): Promise<WriterApiUserProfile> {
 		const url = new URL(`/api/user/v2/profile`, this.#baseUrl);
+		const res = await fetch(url, {
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	async fetchUserById(userId: number): Promise<WriterApiUser> {
+		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
 		const res = await fetch(url, {
 			signal: this.#signal,
 			credentials: "include",
@@ -120,19 +158,38 @@ export class WriterApi {
 	}
 }
 
-type WriterApiUser = {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	avatar: string | null;
-};
+export type WriterApiUser = Pick<
+	WriterApiUserProfile,
+	"id" | "avatar" | "firstName" | "lastName" | "email"
+>;
 
 type WriterApiBlamable = {
 	createdBy: number;
 	updatedBy: number;
 	createdAt: string;
 	updatedAt: string;
+};
+
+export type WriterApiOrganizationUsers = {
+	result: {
+		user: WriterApiUserProfile;
+		managedByScim: boolean;
+		role: "member" | "admin";
+		consoleRole: "View" | "Draft" | "FullAccess" | null;
+		teams: {
+			id: number;
+			name: string;
+			role: "member" | "admin";
+		}[];
+		approvedByInviter: boolean;
+		userStatus: "active" | "invite_pending" | "approval_pending";
+		billingGroup: null;
+	}[];
+	pagination: {
+		offset: number | null;
+		limit: number;
+	};
+	totalCount: number;
 };
 
 export type WriterApiApplicationDeployment = WriterApiDeployResult & {

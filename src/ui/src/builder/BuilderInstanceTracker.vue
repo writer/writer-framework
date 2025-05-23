@@ -4,12 +4,12 @@
 	</div>
 </template>
 <script setup lang="ts">
+import { useAbortController } from "@/composables/useAbortController";
 import {
-	nextTick,
+	CSSProperties,
 	onMounted,
 	onUnmounted,
-	Ref,
-	ref,
+	shallowRef,
 	toRefs,
 	useTemplateRef,
 } from "vue";
@@ -32,19 +32,16 @@ const {
 	preventSettingsBarOverlap,
 } = toRefs(props);
 
-type RootStyle = {
-	top: string;
-	left: string;
-	width: string;
-	height: string;
-};
+type RootStyle = Partial<
+	Pick<CSSProperties, "top" | "left" | "width" | "height">
+>;
 
-const rootStyle: Ref<RootStyle> = ref(null);
-const timerId = ref(0);
+const rootStyle = shallowRef<RootStyle>({});
+let timerId = 0;
 const rootEl = useTemplateRef("rootEl");
 const MIN_TOP_PX = 36;
 
-const trackElement = (el: HTMLElement) => {
+function trackElement(el: Element) {
 	const rendererEl = document.querySelector(".ComponentRenderer");
 	const { top: elY, left: elX } = el.getBoundingClientRect();
 	const { clientHeight: bodyHeight } = document.body;
@@ -55,7 +52,10 @@ const trackElement = (el: HTMLElement) => {
 		left: Infinity,
 	};
 	let { clientHeight: contentsHeight, clientWidth: contentsWidth } =
-		matchSize?.value ? el : rootEl.value;
+		(matchSize?.value ? el : rootEl.value) ?? {};
+
+	if (contentsHeight === undefined || contentsWidth === undefined) return;
+
 	let yAdjustment = verticalOffsetPixels?.value
 		? verticalOffsetPixels.value
 		: 0;
@@ -88,13 +88,12 @@ const trackElement = (el: HTMLElement) => {
 		width: `${contentsWidth}px`,
 		height: `${contentsHeight}px`,
 	};
-};
+}
 
-const triggerTrack = () => {
-	let el: HTMLElement = document.querySelector(
+function triggerTrack() {
+	let el = document.querySelector(
 		`.ComponentRenderer [data-writer-instance-path="${instancePath.value}"]`,
 	);
-	scheduleNextTrigger();
 	if (!el) return;
 	const elStyle = getComputedStyle(el);
 	if (!elStyle) return;
@@ -103,26 +102,36 @@ const triggerTrack = () => {
 	}
 	if (!el) return;
 	trackElement(el);
-};
+}
 
-const scheduleNextTrigger = () => {
-	timerId.value = setTimeout(triggerTrack, REFRESH_INTERVAL_MS);
-};
+function scheduleNextTrigger() {
+	timerId = requestAnimationFrame(async () => {
+		triggerTrack();
+		if (abort.signal.aborted) return;
+		await new Promise((res) => setTimeout(res, REFRESH_INTERVAL_MS));
+		scheduleNextTrigger();
+	});
+}
+
+const abort = useAbortController();
+
+defineExpose({
+	refresh: triggerTrack,
+});
 
 onMounted(async () => {
-	await nextTick();
-	triggerTrack();
+	window.addEventListener("scroll", triggerTrack, { signal: abort.signal });
+	scheduleNextTrigger();
 });
 
 onUnmounted(() => {
-	clearTimeout(timerId.value);
+	cancelAnimationFrame(timerId);
 });
 </script>
 
 <style scoped>
 .BuilderInstanceTracker {
 	position: absolute;
-	transition: all 0.2s ease-in-out;
 	pointer-events: none;
 	z-index: 1;
 }

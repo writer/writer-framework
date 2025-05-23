@@ -5,11 +5,13 @@ import {
 	Core,
 	InstancePath,
 	InstancePathItem,
+	NotesManager,
 } from "./writerTypes";
 
 export default {
 	core: Symbol() as InjectionKey<Core>,
 	builderManager: Symbol() as InjectionKey<BuilderManager>,
+	notesManager: Symbol() as InjectionKey<NotesManager>,
 	evaluatedFields: Symbol() as InjectionKey<Record<string, ComputedRef<any>>>,
 	componentId: Symbol() as InjectionKey<Component["id"]>,
 	isBeingEdited: Symbol() as InjectionKey<Ref<boolean>>,

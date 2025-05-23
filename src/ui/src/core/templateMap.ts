@@ -77,6 +77,7 @@ import type {
 	WriterComponentDefinition,
 } from "@/writerTypes";
 import { h } from "vue";
+import CoreNote from "@/components/core/internal/CoreNote.vue";
 
 const templateMap: TemplateMap = {
 	root: CoreRoot,
@@ -138,6 +139,7 @@ const templateMap: TemplateMap = {
 	blueprints_root: BlueprintsRoot,
 	blueprints_blueprint: BlueprintsBlueprint,
 	progressbar: CoreProgressBar,
+	note: CoreNote,
 };
 
 const abstractTemplateMap: Record<string, AbstractTemplate> = {};

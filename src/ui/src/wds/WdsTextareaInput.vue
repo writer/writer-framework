@@ -1,14 +1,20 @@
 <template>
-	<textarea ref="input" v-model="model" :aria-invalid="invalid"></textarea>
+	<textarea
+		ref="input"
+		v-model="model"
+		:aria-invalid="invalid"
+		:autofocus="autofocus"
+	></textarea>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { onMounted, useTemplateRef } from "vue";
 
 const model = defineModel<string>();
 
-defineProps({
+const props = defineProps({
 	invalid: { type: Boolean, required: false },
+	autofocus: { type: Boolean },
 });
 
 defineExpose({
@@ -20,6 +26,10 @@ defineExpose({
 });
 
 const input = useTemplateRef("input");
+
+onMounted(() => {
+	if (props.autofocus) focus();
+});
 
 function setSelectionStart(value: number) {
 	if (input.value) input.value.selectionStart = value;

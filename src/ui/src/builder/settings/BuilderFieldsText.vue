@@ -13,6 +13,7 @@
 				:placeholder="templateField?.default"
 				:options="options"
 				:error="error"
+				:autofocus="autofocus"
 				@input="handleInput"
 			/>
 		</template>
@@ -25,6 +26,7 @@
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:error="error"
+				:autofocus="autofocus"
 				@input="handleInput"
 			/>
 		</template>
@@ -46,6 +48,7 @@ const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
+	autofocus: { type: Boolean },
 });
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));

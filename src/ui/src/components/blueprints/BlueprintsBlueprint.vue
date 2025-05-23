@@ -11,7 +11,7 @@
 		@mouseup="handleMouseup"
 	>
 		<div ref="nodeContainerEl" class="nodeContainer">
-			<svg>
+			<svg class="BlueprintsBlueprint__svg">
 				<defs>
 					<pattern
 						id="grid"
@@ -78,6 +78,15 @@
 					"
 				></component>
 			</template>
+			<BaseNote
+				v-for="node in notes"
+				:key="node.id"
+				:component-id="node.id"
+				:style="{
+					top: `${(temporaryNodeCoordinates?.[node.id]?.y ?? node.y) - renderOffset.y}px`,
+					left: `${(temporaryNodeCoordinates?.[node.id]?.x ?? node.x) - renderOffset.x}px`,
+				}"
+			/>
 		</div>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
@@ -114,6 +123,7 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { instance } from "@apache-arrow/ts/visitor/set";
 
 const { log } = useLogger();
 
@@ -183,6 +193,7 @@ import {
 	Rectangle,
 	translatePoint,
 } from "@/utils/geometry";
+import BaseNote from "@/components/core/base/BaseNote.vue";
 
 const BlueprintToolbar = defineAsyncComponent({
 	loader: () => import("./base/BlueprintToolbar.vue"),
@@ -190,6 +201,7 @@ const BlueprintToolbar = defineAsyncComponent({
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const notesManager = inject(injectionKeys.notesManager);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const blueprintComponentId = inject(injectionKeys.componentId);
 
@@ -208,7 +220,13 @@ const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
 const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
 
 const nodes = computed(() =>
-	wf.getComponents(blueprintComponentId, { sortedByPosition: true }),
+	wf
+		.getComponents(blueprintComponentId, { sortedByPosition: true })
+		.filter((c) => c.type !== "note"),
+);
+
+const notes = computed(() =>
+	Array.from(notesManager.getNotes(blueprintComponentId)),
 );
 
 const tracking = useWriterTracking(wf);
@@ -275,8 +293,16 @@ const isUnselectable = computed(() => {
 	return true;
 });
 
-function handleClick() {
+function handleClick(ev: MouseEvent) {
 	selectedArrow.value = null;
+
+	if (!(ev.target instanceof Element)) return;
+	if (ev.target.closest("[data-writer-unselectable]")) return;
+
+	if (notesManager.isAnnotating.value) {
+		const { x, y } = getAdjustedCoordinates(ev);
+		notesManager.createNote(blueprintComponentId, { x, y });
+	}
 }
 
 function organizeNodesInColumns() {
@@ -1059,7 +1085,7 @@ onUnmounted(() => {
 	transform: scale(v-bind("zoomLevel"));
 }
 
-.nodeContainer svg {
+.BlueprintsBlueprint__svg {
 	position: absolute;
 	top: 0;
 	left: 0;
