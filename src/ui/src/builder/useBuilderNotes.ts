@@ -3,10 +3,11 @@ import type { Point } from "@/utils/geometry";
 import { useComponentActions } from "./useComponentActions";
 import { generateBuilderManager } from "./builderManager";
 import { ref, computed, unref, MaybeRef, readonly } from "vue";
-import { Component } from "@/writerTypes";
+import { Component, InstancePath } from "@/writerTypes";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
 import { useToasts } from "./useToast";
+import { flattenInstancePath } from "@/renderer/instancePath";
 
 export type NoteState = "default" | "hover" | "active" | "new" | "cursor";
 export type NoteSelectionMode = "show" | "edit";
@@ -84,16 +85,28 @@ export function useBuilderNotes(
 		}
 	}
 
-	async function createNote(parentId: Component["id"], coordinates: Point) {
+	async function createNote(
+		parentId: Component["id"],
+		options: { instancePath: InstancePath | string } | Partial<Point>,
+	) {
+		let parentInstancePath = undefined;
+		if ("instancePath" in options) {
+			parentInstancePath =
+				typeof options.instancePath === "string"
+					? options.instancePath
+					: flattenInstancePath(options.instancePath);
+		}
+
 		const profile = await getCurrentUserProfile();
 		const noteId = createAndInsertComponent("note", parentId, undefined, {
 			content: {
+				parentInstancePath,
 				content: "",
 				createdBy: String(profile.id),
 				createdAt: new Date().toISOString(),
 			},
-			x: coordinates.x,
-			y: coordinates.y,
+			x: "x" in options ? options.x : undefined,
+			y: "y" in options ? options.y : undefined,
 		});
 		selectNote(noteId, "edit");
 	}
@@ -160,6 +173,10 @@ export function useBuilderNotes(
 
 		const createdAt = computed(() => unref(component).content.createdAt);
 
+		const parentInstancePath = computed<string | undefined>(() => {
+			return unref(component).content.parentInstancePath;
+		});
+
 		const createdBy = computed(() => {
 			const createdBy = unref(component).content?.createdBy;
 			return createdBy ? Number(createdBy) : undefined;
@@ -189,6 +206,7 @@ export function useBuilderNotes(
 			createdAt,
 			createdAtFormatted,
 			state,
+			parentInstancePath,
 		};
 	}
 

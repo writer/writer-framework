@@ -32,8 +32,8 @@ import {
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import { onMounted } from "vue";
-import { onUnmounted } from "vue";
 import { getKeydown } from "@/renderer/syntheticEvents";
+import { useAbortController } from "@/composables/useAbortController";
 
 const ssKeydownStub = `
 def handle_keydown(state, payload):
@@ -119,11 +119,33 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject, useTemplateRef } from "vue";
+import { inject, useTemplateRef, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
+const wfbm = inject(injectionKeys.builderManager);
+const notesManager = inject(injectionKeys.notesManager);
+
+const abort = useAbortController();
+
+function handleMousedown(ev: MouseEvent) {
+	const target = ev.target;
+	if (!(target instanceof Element)) return;
+	if (target.closest("[data-writer-unselectable]")) return;
+
+	const targetEl = target.closest("[data-writer-id]");
+	const targetId = (targetEl as HTMLElement)?.dataset.writerId;
+	if (!targetId) return;
+
+	// @ts-expect-error get dataset prop
+	const targetInstancePath = targetEl.dataset?.writerInstancePath;
+
+	if (notesManager.isAnnotating.value && wfbm.mode.value !== "preview") {
+		ev.preventDefault();
+		notesManager.createNote(targetId, { instancePath: targetInstancePath });
+	}
+}
 
 function handleKeydown(ev: KeyboardEvent) {
 	const ssEv = getKeydown(ev);
@@ -142,13 +164,18 @@ function emitPageOpenEvent() {
 	rootEl.value.dispatchEvent(event);
 }
 
-onMounted(async () => {
-	document.addEventListener("keydown", handleKeydown);
-	emitPageOpenEvent();
+watch(rootEl, () => {
+	if (!rootEl.value) return;
+	rootEl.value.addEventListener("mousedown", handleMousedown, {
+		signal: abort.signal,
+	});
 });
 
-onUnmounted(() => {
-	document.removeEventListener("keydown", handleKeydown);
+onMounted(async () => {
+	document.addEventListener("keydown", handleKeydown, {
+		signal: abort.signal,
+	});
+	emitPageOpenEvent();
 });
 </script>
 

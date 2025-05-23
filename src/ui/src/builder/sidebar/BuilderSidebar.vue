@@ -133,6 +133,11 @@ const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
 
+const emits = defineEmits({
+	activePaneChanged: (value: Pane | undefined) =>
+		value === undefined || typeof value === "string",
+});
+
 const isCloudApp = computed(() => Boolean(wf.writerApplication.value));
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
@@ -158,7 +163,6 @@ function goBack() {
 	}
 }
 
-watch(activePane, () => (activePaneLocalStorage.value = activePane.value));
 watch(
 	activePane,
 	() => {
@@ -209,8 +213,10 @@ onMounted(() => {
 });
 onUnmounted(() => abort.abort());
 
-function changeActivePane(value: Pane) {
+function changeActivePane(value: Pane | undefined) {
 	activePane.value = activePane.value === value ? undefined : value;
+	activePaneLocalStorage.value = activePane.value;
+	emits("activePaneChanged", value);
 }
 </script>
 

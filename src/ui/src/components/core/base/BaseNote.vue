@@ -45,7 +45,7 @@ function onClick() {
 <template>
 	<button
 		type="button"
-		class="BuilderNote"
+		class="BaseNote"
 		data-writer-unselectable="true"
 		@mouseenter="notesManager.hoveredNoteId.value = componentId"
 		@mouseleave="notesManager.hoveredNoteId.value = undefined"
@@ -56,7 +56,7 @@ function onClick() {
 </template>
 
 <style lang="css" scoped>
-.BuilderNote {
+.BaseNote {
 	position: absolute;
 	cursor: pointer;
 

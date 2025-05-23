@@ -8,6 +8,7 @@
 			<BuilderSidebar
 				v-show="builderMode !== 'preview'"
 				class="sidebar"
+				@active-pane-changed="refreshNotesPosition"
 			/>
 			<div class="builderMain">
 				<div
@@ -17,6 +18,7 @@
 							notesManager.isAnnotating.value &&
 							ssbm.mode.value !== 'preview',
 					}"
+					@scroll="refreshNotesPosition"
 				>
 					<ComponentRenderer
 						class="componentRenderer"
@@ -52,7 +54,7 @@
 					:instance-path="candidateInstancePath"
 					:match-size="true"
 				>
-					<BuilderInsertionOverlay></BuilderInsertionOverlay>
+					<BuilderInsertionOverlay />
 				</BuilderInstanceTracker>
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -70,13 +72,33 @@
 				</BuilderInstanceTracker>
 			</template>
 		</template>
+
+		<!-- NOTES -->
+
+		<template v-if="builderMode === 'ui'">
+			<BuilderInstanceTracker
+				v-for="note of notes"
+				:key="note.id"
+				ref="noteEl"
+				class="BuilderApp__noteTracker"
+				:is-off-bounds-allowed="true"
+				:instance-path="note.parentInstancePath"
+				:match-size="true"
+			>
+				<BaseNote
+					class="BuilderApp__noteTracker__note"
+					:component-id="note.id"
+				/>
+			</BuilderInstanceTracker>
+		</template>
+
 		<!-- MODAL -->
 
 		<div id="modal"></div>
 
 		<!-- TOOLTIP -->
 
-		<BuilderTooltip id="tooltip"></BuilderTooltip>
+		<BuilderTooltip id="tooltip" />
 		<BuilderToasts />
 	</div>
 </template>
@@ -88,6 +110,7 @@ import {
 	inject,
 	onMounted,
 	onUnmounted,
+	useTemplateRef,
 } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
@@ -103,6 +126,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
+import BaseNote from "@/components/core/base/BaseNote.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -127,9 +151,16 @@ const BuilderInsertionLabel = defineAsyncComponent({
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+const notesManager = inject(injectionKeys.notesManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
+
+const noteEl = useTemplateRef("noteEl");
+
+function refreshNotesPosition() {
+	for (const el of noteEl.value) el.refresh();
+}
 
 const {
 	candidateId,
@@ -166,8 +197,18 @@ const {
 	moveComponentInsideNextSibling,
 } = useComponentActions(wf, ssbm, tracking);
 
-const builderMode = computed(() => ssbm.getMode());
-const selectedId = computed(() => ssbm.firstSelectedId.value);
+const builderMode = ssbm.mode;
+const selectedId = ssbm.firstSelectedId;
+
+const notes = computed(() =>
+	Array.from(notesManager.getNotes(wf.activePageId.value))
+		.map((n) => ({
+			...n,
+			parentInstancePath:
+				notesManager.useNoteInformation(n).parentInstancePath.value,
+		}))
+		.filter((n) => n.parentInstancePath !== undefined),
+);
 
 async function handleKeydown(ev: KeyboardEvent) {
 	if (ev.key == "Escape") {
@@ -283,8 +324,6 @@ function handleRendererDrop(ev: DragEvent) {
 	}
 }
 
-const notesManager = inject(injectionKeys.notesManager);
-
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
@@ -300,11 +339,6 @@ function handleRendererClick(ev: PointerEvent): void {
 
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
-
-	if (notesManager.isAnnotating.value && ssbm.mode.value !== "preview") {
-		ev.preventDefault();
-		// notesManager.createNote(targetId, { x: ev.x, y: ev.y });
-	}
 
 	const isAlreadySelected = ssbm.isComponentIdSelected(targetId);
 
@@ -406,6 +440,14 @@ onUnmounted(() => abort.abort());
 	position: relative;
 	overflow: hidden;
 	background: var(--builderBackgroundColor);
+}
+
+.BuilderApp__noteTracker {
+	pointer-events: auto !important;
+}
+.BuilderApp__noteTracker__note {
+	margin-top: -30px;
+	padding: 0;
 }
 
 .mainGrid {
