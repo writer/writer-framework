@@ -1,17 +1,42 @@
 import { WriterApiUserProfile, WriterApiUser } from "@/writerApi";
-import { ComputedRef, readonly, ref, shallowRef, watch } from "vue";
+import { ComputedRef, onMounted, readonly, ref, shallowRef, watch } from "vue";
 import { useWriterApi } from "./useWriterApi";
+
+let fetchCurrentUser: Promise<WriterApiUserProfile> | undefined;
+
+export async function fetchWriterApiCurrentUserProfile(
+	writerApi = useWriterApi().writerApi,
+) {
+	fetchCurrentUser ??= writerApi.fetchUserProfile();
+	return await fetchCurrentUser;
+}
 
 export function useWriterApiCurrentUserProfile(
 	writerApi = useWriterApi().writerApi,
 ) {
-	let cache: WriterApiUserProfile | undefined;
+	const user = shallowRef<WriterApiUserProfile | undefined>();
+	const error = shallowRef();
+	const isLoading = ref(false);
 
-	return async () => {
-		if (cache) return cache;
+	async function fetchUser() {
+		error.value = undefined;
+		isLoading.value = true;
+		try {
+			user.value = await fetchWriterApiCurrentUserProfile(writerApi);
+		} catch (e) {
+			error.value = e;
+			user.value = undefined;
+		} finally {
+			isLoading.value = false;
+		}
+	}
 
-		cache = await writerApi.fetchUserProfile();
-		return cache;
+	onMounted(fetchUser);
+
+	return {
+		user: readonly(user),
+		isLoading: readonly(isLoading),
+		error: readonly(error),
 	};
 }
 

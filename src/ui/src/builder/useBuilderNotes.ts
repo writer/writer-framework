@@ -5,7 +5,10 @@ import { generateBuilderManager } from "./builderManager";
 import { ref, computed, unref, MaybeRef, readonly } from "vue";
 import { Component, InstancePath } from "@/writerTypes";
 import { useWriterApi } from "@/composables/useWriterApi";
-import { useWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
+import {
+	fetchWriterApiCurrentUserProfile,
+	useWriterApiCurrentUserProfile,
+} from "@/composables/useWriterApiUser";
 import { useToasts } from "./useToast";
 import { flattenInstancePath } from "@/renderer/instancePath";
 
@@ -16,10 +19,7 @@ export function useBuilderNotes(
 	wf: ReturnType<typeof generateCore>,
 	wfbm: ReturnType<typeof generateBuilderManager>,
 ) {
-	const { writerApi } = useWriterApi();
 	const toasts = useToasts();
-
-	const getCurrentUserProfile = useWriterApiCurrentUserProfile(writerApi);
 
 	const { createAndInsertComponent, removeComponentSubtree } =
 		useComponentActions(wf, wfbm);
@@ -33,6 +33,12 @@ export function useBuilderNotes(
 		return selectedNoteId.value ? getNote(selectedNoteId.value) : undefined;
 	});
 
+	async function isOwnedByCurrentUser(note: Component) {
+		const createdBy = useNoteInformation(note).createdBy.value;
+		const currentUser = await fetchWriterApiCurrentUserProfile();
+		return createdBy === currentUser.id;
+	}
+
 	async function selectNote(
 		componentId: Component["id"] | undefined,
 		mode: NoteSelectionMode = "show",
@@ -45,9 +51,7 @@ export function useBuilderNotes(
 
 		if (mode === "edit") {
 			const note = getNote(componentId);
-			const createdBy = useNoteInformation(note).createdBy.value;
-			const currentUser = await getCurrentUserProfile();
-			if (createdBy !== currentUser.id) {
+			if (!(await isOwnedByCurrentUser(note))) {
 				return toasts.pushToast({
 					type: "error",
 					message:
@@ -111,7 +115,15 @@ export function useBuilderNotes(
 		selectNote(noteId, "edit");
 	}
 
-	function deleteNote(componentId: string) {
+	async function deleteNote(componentId: string) {
+		const note = getNote(componentId);
+		if (!(await isOwnedByCurrentUser(note))) {
+			return toasts.pushToast({
+				type: "error",
+				message:
+					"You cannot delete this note because it was created by another user",
+			});
+		}
 		selectNote(undefined);
 		removeComponentSubtree(componentId);
 	}

@@ -13,7 +13,7 @@
 					}}</i>
 				</div>
 				<WdsSkeletonLoader
-					v-if="displayUserLoader"
+					v-if="displayUserLoader || !avatarUrl"
 					class="BuilderSidebarNote__header__avatar__loader"
 				/>
 				<img v-else :src="avatarUrl" />
@@ -28,7 +28,10 @@
 				<p>{{ createdAtFormatted }}</p>
 			</div>
 
-			<div class="BuilderSidebarNote__header__actions">
+			<div
+				v-if="dropdownOptions"
+				class="BuilderSidebarNote__header__actions"
+			>
 				<SharedMoreDropdown
 					:options="dropdownOptions"
 					trigger-custom-size="16px"
@@ -51,7 +54,10 @@ import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
 import SharedMoreDropdown, {
 	Option,
 } from "@/components/shared/SharedMoreDropdown.vue";
-import { useWriterApiUserProfile } from "@/composables/useWriterApiUser";
+import {
+	useWriterApiCurrentUserProfile,
+	useWriterApiUserProfile,
+} from "@/composables/useWriterApiUser";
 import injectionKeys from "@/injectionKeys";
 import { Component } from "@/writerTypes";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
@@ -60,6 +66,8 @@ const props = defineProps({
 	component: { type: Object as PropType<Component>, required: true },
 	excerpt: { type: Boolean },
 });
+
+const { user: currentUser } = useWriterApiCurrentUserProfile();
 
 const emits = defineEmits({
 	select: () => true,
@@ -97,19 +105,23 @@ const completeName = computed(() => {
 		.join(" ");
 });
 
-const dropdownOptions: Option[] = [
-	{
-		value: "edit",
-		label: "Edit",
-		icon: "edit",
-	},
-	{
-		value: "delete",
-		label: "Delete",
-		icon: "delete",
-		variant: "danger",
-	},
-];
+const dropdownOptions = computed<Option[]>(() => {
+	if (currentUser.value?.id !== createdBy.value) return undefined;
+
+	return [
+		{
+			value: "edit",
+			label: "Edit",
+			icon: "edit",
+		},
+		{
+			value: "delete",
+			label: "Delete",
+			icon: "delete",
+			variant: "danger",
+		},
+	];
+});
 
 function onDropdownSelect(value: string) {
 	switch (value) {
@@ -136,6 +148,8 @@ function onDropdownSelect(value: string) {
 
 .BuilderSidebarNote__header__avatar {
 	position: relative;
+	display: flex;
+	align-items: center;
 }
 
 .BuilderSidebarNote__header__avatar__type {
@@ -160,17 +174,25 @@ function onDropdownSelect(value: string) {
 .BuilderSidebarNote__header__info {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 2px;
+	font-size: 10px;
+	font-weight: 500;
+	color: var(--wdsColorGray4);
 }
 .BuilderSidebarNote__header__info__loader {
 	/* takes extra space to avoid layout shift */
 	margin-top: 3px;
 	margin-bottom: 4px;
 }
+.BuilderSidebarNote__header__actions {
+	display: flex;
+	align-items: center;
+}
 
 .BuilderSidebarNote__content {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	font-size: 12;
 }
 </style>
