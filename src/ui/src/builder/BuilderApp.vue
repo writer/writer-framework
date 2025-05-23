@@ -159,6 +159,11 @@ const toasts = useToasts();
 const noteEl = useTemplateRef("noteEl");
 
 function refreshNotesPosition() {
+	const isNotesIterable =
+		noteEl.value != null &&
+		typeof noteEl.value[Symbol.iterator] === "function";
+	if (!isNotesIterable) return;
+
 	for (const el of noteEl.value) el.refresh();
 }
 
