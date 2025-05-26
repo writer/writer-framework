@@ -447,12 +447,10 @@ onUnmounted(() => abort.abort());
 	background: var(--builderBackgroundColor);
 }
 
-.BuilderApp__noteTracker {
-	pointer-events: auto !important;
-}
 .BuilderApp__noteTracker__note {
 	margin-top: -30px;
 	padding: 0;
+	pointer-events: auto;
 }
 
 .mainGrid {
