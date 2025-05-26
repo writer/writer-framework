@@ -240,6 +240,7 @@ export type UserCollaborationPing = {
 	x?: number;
 	y?: number;
 };
+
 export type WriterModel = {
 	id: string;
 	name: string;
