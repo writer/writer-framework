@@ -6,12 +6,14 @@
 		>
 			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
-				v-show="builderMode !== 'preview'"
+				v-show="builderMode === 'ui' || builderMode === 'blueprints'"
 				class="sidebar"
 				@active-pane-changed="refreshNotesPosition"
 			/>
 			<div class="builderMain">
+				<BuilderVault v-if="builderMode === 'vault'" />
 				<div
+					v-else
 					class="rendererWrapper"
 					:class="{
 						addNoteCursor:
@@ -38,9 +40,9 @@
 				<BuilderSettings
 					v-if="ssbm.isSingleSelectionActive"
 					:key="selectedId ?? 'noneSelected'"
-				></BuilderSettings>
+				/>
 			</div>
-			<BuilderPanelSwitcher class="panelSwitcher"></BuilderPanelSwitcher>
+			<BuilderPanelSwitcher class="panelSwitcher" />
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -149,6 +151,10 @@ const BuilderInsertionOverlay = defineAsyncComponent({
 });
 const BuilderInsertionLabel = defineAsyncComponent({
 	loader: () => import("./BuilderInsertionLabel.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
+const BuilderVault = defineAsyncComponent({
+	loader: () => import("./BuilderVault.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 
