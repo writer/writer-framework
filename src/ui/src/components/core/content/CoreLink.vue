@@ -45,7 +45,7 @@ export default {
 					_top: "Top",
 				},
 				desc: "Specifies where to open the linked document.",
-				default: "_self",
+				default: "_blank",
 			},
 			rel: {
 				name: "Rel",
