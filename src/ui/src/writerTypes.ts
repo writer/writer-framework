@@ -144,6 +144,7 @@ export const enum FieldType {
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
 	WriterAppId = "App Id",
+	WriterModelId = "Model Id",
 	ComponentId = "Component Id",
 	ComponentEventType = "Component Event Type",
 }
@@ -238,4 +239,8 @@ export type UserCollaborationPing = {
 	componentIds?: Component["id"][];
 	x?: number;
 	y?: number;
+};
+export type WriterModel = {
+	id: string;
+	name: string;
 };

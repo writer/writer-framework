@@ -13,7 +13,7 @@
 				</div>
 				<button
 					class="WdsDropdownMenu__header__multiSelect__clear"
-					role="button"
+					type="button"
 					@click="$emit('select', [])"
 				>
 					Clear all

@@ -101,7 +101,7 @@
 			class="actionButton"
 			variant="neutral"
 			size="small"
-			:data-writer-tooltip="`Go to parent (${getModifierKeyName()}Shift ↑)`"
+			:data-writer-tooltip="`Go to parent (${getModifierKeyName()}⇧↑)`"
 			data-writer-tooltip-placement="left"
 			:disabled="!shortcutsInfo?.isGoToParentEnabled"
 			@click="

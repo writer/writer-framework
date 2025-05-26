@@ -19,6 +19,7 @@ test.describe("Builder field validation", () => {
 	});
 
 	test("should display error for invalid button fields", async ({ page }) => {
+		await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		await page
 			.locator(`.BuilderSidebarToolkit [data-component-type="button"]`)
 			.dragTo(page.locator(".CoreSection"));
@@ -39,6 +40,7 @@ test.describe("Builder field validation", () => {
 	test("should display error for invalid multiselectinput fields", async ({
 		page,
 	}) => {
+		await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		await page
 			.locator(
 				`.BuilderSidebarToolkit [data-component-type="multiselectinput"]`,

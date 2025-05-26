@@ -5,9 +5,10 @@
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
 		>
 			<BuilderHeader class="builderHeader"></BuilderHeader>
-			<div v-if="builderMode !== 'preview'" class="sidebar">
-				<BuilderSidebar></BuilderSidebar>
-			</div>
+			<BuilderSidebar
+				v-show="builderMode !== 'preview'"
+				class="sidebar"
+			/>
 			<div class="builderMain">
 				<div class="rendererWrapper">
 					<ComponentRenderer
@@ -99,6 +100,7 @@ import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
 import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
+import BuilderSidebar from "./sidebar/BuilderSidebar.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
@@ -108,10 +110,6 @@ import { useCollaboration } from "@/composables/useCollaboration";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
-	loadingComponent: BuilderAsyncLoader,
-});
-const BuilderSidebar = defineAsyncComponent({
-	loader: () => import("./sidebar/BuilderSidebar.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
 const ComponentRenderer = defineAsyncComponent({
@@ -421,11 +419,7 @@ onUnmounted(() => {
 .mainGrid {
 	width: 100vw;
 	height: 100vh;
-	grid-template-columns:
-		v-bind(
-			"ssbm.getMode() !== 'preview' ? 'var(--builderSidebarWidth)' : '0px'"
-		)
-		1fr;
+	grid-template-columns: auto 1fr;
 	grid-template-rows:
 		var(--builderTopBarHeight)
 		1fr

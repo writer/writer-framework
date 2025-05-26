@@ -56,18 +56,20 @@ async function runBlueprint(componentId?: string) {
 <template>
 	<div ref="root" class="BlueprintToolbar" :data-writer-unselectable="true">
 		<WdsButton
-			variant="secondary"
+			variant="tertiary"
+			size="icon"
 			data-automation-action="run-autogen"
+			data-writer-tooltip="Autogen"
+			data-writer-tooltip-placement="bottom"
 			@click="$emit('autogenClick')"
 		>
-			<i class="material-symbols-outlined">bolt</i>
-			Autogen
+			<i class="material-symbols-outlined">wand_shine</i>
 		</WdsButton>
 		<WdsButtonSplit
 			v-if="triggerComponents.length"
 			ref="runBlueprintBtn"
 			class="BlueprintToolbar__runBlueprintDropdown"
-			variant="secondary"
+			variant="special"
 			:disabled="isRunning"
 			@main-click="runBlueprint()"
 			@dropdown-open="onDropdownOpen"
@@ -89,7 +91,7 @@ async function runBlueprint(componentId?: string) {
 			v-else
 			class="BlueprintToolbar__runBlueprint"
 			data-automation-action="run-blueprint"
-			variant="secondary"
+			variant="special"
 			:disabled="isRunning"
 			@click="runBlueprint()"
 		>

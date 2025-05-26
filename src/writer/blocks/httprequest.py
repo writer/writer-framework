@@ -114,7 +114,8 @@ class HTTPRequest(BlueprintBlock):
                     method,
                     url,
                     headers=headers,
-                    content=raw_body
+                    content=raw_body,
+                    timeout=180
                     )
 
                 content_type = res.headers.get("Content-Type", "")

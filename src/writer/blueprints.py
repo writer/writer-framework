@@ -258,6 +258,33 @@ class BlueprintRunner:
         tools: OrderedDict[str, Optional[writer.blocks.base_block.BlueprintBlock]] = OrderedDict()
         graph = {}
         in_degree = {node.id: 0 for node in nodes}
+        is_cancelled = False
+
+        inputs: Dict[str, List] = {}
+        for node in nodes:
+            outs = node.outs or []
+            for out in outs:
+                to_node_id = out.get("toNodeId")
+                if to_node_id not in inputs:
+                    inputs[to_node_id] = []
+                inputs[to_node_id].append({"nodeId": node.id, "outId": out.get("outId")})
+
+        def check_requirements(tool):
+            if is_cancelled:
+                return False
+            node_id = tool.component.id
+            if node_id not in inputs:
+                return True
+            at_least_one = False
+            for input in inputs[node_id]:
+                in_tool = tools.get(input.get("nodeId"))
+                if not in_tool:
+                    continue
+                if in_tool.outcome != input.get("outId"):
+                    continue
+                at_least_one = True
+
+            return at_least_one
 
         def update_log(message: str, entry_type="info"):
             self._generate_run_log(tools, title, entry_type, msg=message, run_id=run_id)
@@ -283,6 +310,8 @@ class BlueprintRunner:
             while ready or futures:
                 while ready:
                     tool = ready.popleft()
+                    if not check_requirements(tool):
+                        break
                     tool.outcome = "in_progress"
                     ctx = copy_context()
                     future = executor.submit(ctx.run, self.run_tool, tool)
@@ -296,8 +325,8 @@ class BlueprintRunner:
                     try:
                         tool = future.result()
                     except BaseException:
-                        update_log("Execution failed", entry_type="error")
-                        return None
+                        is_cancelled = True
+                        continue
                     else:
                         update_log("Executing...")
                     if tool.return_value is not None:
@@ -306,9 +335,9 @@ class BlueprintRunner:
                     for out in node.outs or []:
                         to_node_id = out.get("toNodeId")
                         out_id = out.get("outId")
+                        in_degree[to_node_id] -= 1
                         if tool.outcome != out_id:
                             continue
-                        in_degree[to_node_id] -= 1
                         if in_degree[to_node_id] == 0:
                             new_call_stack = tool.execution_environment.get("call_stack", []) + [
                                 node.id
@@ -327,7 +356,10 @@ class BlueprintRunner:
                             tools.move_to_end(to_node_id)
                             tools[to_node_id] = to_tool
                             ready.append(to_tool)
-            update_log("Execution completed.")
+            if is_cancelled:
+                update_log("Execution failed.", entry_type="error")
+            else:
+                update_log("Execution completed.")
 
     def _get_tool(self, node: writer.core_ui.Component, execution_environment: Dict):
         tool_class = writer.blocks.base_block.block_map.get(node.type)
@@ -367,7 +399,7 @@ class BlueprintRunner:
             if isinstance(e, WriterConfigurationError):
                 tool.message = str(e)
             else:
-                tool.message = repr(e)
+                tool.message = tool.message or repr(e)
             raise e
         finally:
             tool.execution_time_in_seconds = time.time() - start_time
