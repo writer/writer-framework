@@ -60,6 +60,7 @@ if TYPE_CHECKING:
     import pandas
 
     from writer.app_runner import AppProcess
+    from writer.blueprints import BlueprintRunner
     from writer.ss_types import AppProcessServerRequest
 
 
@@ -1201,8 +1202,76 @@ class EventHandlerRegistry:
         callable: Callable
         meta: "EventHandlerRegistry.HandlerMeta"
 
+    # === BLUEPRINT HANLDERS ===
+
+    @staticmethod
+    def run_blueprint_by_id(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner'):
+        blueprint_id = payload.pop("blueprint_id", None)
+        if not blueprint_id:
+            raise ValueError("Missing blueprint_id in payload")
+        execution_environment = {"payload": payload, "context": context, "session": session}
+        return blueprint_runner.run_blueprint(component_id=blueprint_id, execution_environment=execution_environment, title="Blueprint execution triggered on demand")
+
+    @staticmethod
+    def run_blueprint_by_key(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner'):
+        blueprint_key = payload.pop("blueprint_key", None)
+        if not blueprint_key:
+            raise ValueError("Missing blueprint_id in payload")
+        execution_environment = {"payload": payload, "context": context, "session": session}
+        return blueprint_runner.run_blueprint_by_key(blueprint_key=blueprint_key, execution_environment=execution_environment)
+
+    @staticmethod
+    def run_blueprint_via_api(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner'):
+        """
+        This handler is used to run a blueprint via the API.
+        It is used by the frontend to run a blueprint when the user clicks on a button.
+        """
+        blueprint_key = payload.pop("blueprint_key", None)
+        if not blueprint_key:
+            raise ValueError("Missing blueprint_key in payload")
+        execution_environment = {"payload": payload, "context": context, "session": session}
+        return blueprint_runner.run_blueprint_via_api(blueprint_key=blueprint_key, execution_environment=execution_environment)
+
+    @staticmethod
+    def run_blueprint_branch(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner'):
+        branch_id = payload.pop("branch_id", None)
+        if not branch_id:
+            raise ValueError("Missing branch_id in payload")
+        execution_environment = {"payload": payload, "context": context, "session": session}
+        return blueprint_runner.run_branch(start_node_id=branch_id, branch_out_id=None, execution_environment=execution_environment, title="Branch execution triggered by demand")
+
     def __init__(self):
-        self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {}  # type: ignore
+        self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = \
+            {
+                "run_blueprint_by_key": {
+                   "callable": self.run_blueprint_by_key,
+                   "meta": {
+                        "name": "run_blueprint_by_key",
+                        "args": ["payload", "context", "session", "blueprint_runner"]
+                   }
+                },
+                "run_blueprint_by_id": {
+                    "callable": self.run_blueprint_by_id,
+                    "meta": {
+                        "name": "run_blueprint_by_id",
+                        "args": ["payload", "context", "session", "blueprint_runner"]
+                    }
+                },
+                "run_blueprint_via_api": {
+                    "callable": self.run_blueprint_via_api,
+                    "meta": {
+                        "name": "run_blueprint_via_api",
+                        "args": ["payload", "context", "session", "blueprint_runner"]
+                    }
+                },
+                "run_blueprint_branch": {
+                    "callable": self.run_blueprint_branch,
+                    "meta": {
+                        "name": "run_blueprint_branch",
+                        "args": ["payload", "context", "session", "blueprint_runner"]
+                    }
+                }
+            }
 
     def __iter__(self):
         return iter(self.handler_map.keys())
@@ -1639,67 +1708,7 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
-    def _confirm_blueprint_api_availability(self, blueprint_key: str):
-        def fn(payload, context, session):
-            if not self.blueprint_runner.is_blueprint_api_available(blueprint_key):
-                raise RuntimeError(
-                    f"Blueprint '{blueprint_key}' is not exposed as an API. Add an API trigger to make it available. "
-                )
-            return True
-
-        return fn
-
-    def _get_blueprint_callable(
-        self,
-        blueprint_key: Optional[str] = None,
-        blueprint_id: Optional[str] = None,
-        branch_id: Optional[str] = None,
-        via_api: Optional[bool] = False,
-    ):
-        def fn(payload, context, session):
-            execution_environment = {"payload": payload, "context": context, "session": session}
-            if blueprint_key:
-                if via_api:
-                    return self.blueprint_runner.run_blueprint_via_api(blueprint_key, execution_environment)
-                return self.blueprint_runner.run_blueprint_by_key(blueprint_key, execution_environment)
-            elif blueprint_id:
-                return self.blueprint_runner.run_blueprint(
-                    blueprint_id, execution_environment, "Blueprint execution triggered on demand"
-                )
-            elif branch_id:
-                return self.blueprint_runner.run_branch(
-                    branch_id,
-                    None,
-                    execution_environment,
-                    "Blueprint branch execution triggered on demand",
-                )
-
-        return fn
-
     def _get_handler_callable(self, handler: str) -> Optional[Callable]:
-        if handler.startswith("$confirmBlueprintAPI_"):
-            blueprint_key = handler[21:]
-            return self._confirm_blueprint_api_availability(blueprint_key=blueprint_key)
-
-        if handler.startswith("$runBlueprint_"):
-            blueprint_key = handler[14:]
-            return self._get_blueprint_callable(blueprint_key=blueprint_key)
-
-        if handler.startswith("$runBlueprintViaAPI_"):
-            blueprint_key = handler[20:]
-            return self._get_blueprint_callable(
-                blueprint_key=blueprint_key,
-                via_api=True
-                )
-
-        if handler.startswith("$runBlueprintById_"):
-            blueprint_id = handler[18:]
-            return self._get_blueprint_callable(blueprint_id=blueprint_id)
-
-        if handler.startswith("$runBlueprintTriggerBranchById_"):
-            branch_id = handler[31:]
-            return self._get_blueprint_callable(branch_id=branch_id)
-
         current_app_process = get_app_process()
         handler_registry = current_app_process.handler_registry
         callable_handler = handler_registry.find_handler_callable(handler)
@@ -1714,6 +1723,7 @@ class EventHandler:
             "context": context_data,
             "session": _event_handler_session_info(),
             "ui": _event_handler_ui_manager(),
+            "blueprint_runner": self.blueprint_runner
         }
 
     def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
@@ -1878,7 +1888,7 @@ class EventHandlerExecutor:
     def invoke_with_middlewares(
         middlewares_executors: List[MiddlewareExecutor],
         callable_handler: Callable,
-        writer_args: dict,
+        writer_args: dict
     ) -> Any:
         """
         Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware

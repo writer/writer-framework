@@ -415,34 +415,15 @@ def get_asgi_app(
         if not is_session_ok:
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
-        # Check if the blueprint is registered
-        is_available_check = await app_runner.handle_event(
-            session_id,
-            WriterEvent(
-                type="wf-builtin-run",
-                isSafe=True,
-                handler=f"$confirmBlueprintAPI_{blueprint_key}",
-                payload={}
-            )
-        )
-        check_result = is_available_check.payload.result
-        if not check_result.get("ok"):
-            raise HTTPException(
-                status_code=400,
-                detail=""
-                f"Blueprint '{blueprint_key}' is not exposed via API."
-                " Add an API trigger to make it available."
-                )
-
         loop = asyncio.get_running_loop()
         task = loop.create_task(
             app_runner.handle_event(
                 session_id,
                 WriterEvent(
-                    type="wf-builtin-run",
+                    type="wf-run-blueprint-via-api",
                     isSafe=True,
-                    handler=f"$runBlueprintViaAPI_{blueprint_key}",
-                    payload=await _get_payload_as_json(request),
+                    handler="run_blueprint_via_api",
+                    payload={"blueprint_key": blueprint_key} | await _get_payload_as_json(request),
                 ),
             )
         )
