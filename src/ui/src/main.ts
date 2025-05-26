@@ -9,7 +9,7 @@ import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
 import { useApplicationCloud } from "@/composables/useApplicationCloud";
 import { useWriterApi } from "@/composables/useWriterApi.js";
-import { userCollaborationProfile, useCollaboration } from "@/composables/useCollaboration.js";
+import { useCollaboration } from "@/composables/useCollaboration.js";
 
 const wf = generateCore();
 
@@ -59,10 +59,10 @@ async function enableCollaboration() {
 	const collaboration = useCollaboration(wf);
 	const { writerApi } = useWriterApi();
 	const writerProfile = await writerApi.profile();
-	console.log(writerProfile);
-	userCollaborationProfile.userId = writerProfile.id;
-	userCollaborationProfile.name = `${writerProfile.firstName} ${writerProfile.lastName}`;
-	collaboration.updateOutgoingPing({ action: "join" });
+	collaboration.updateOutgoingPing({
+		userId: writerProfile.id,
+		action: "join",
+	});
 	collaboration.sendCollaborationPing();
 	collaboration.groomSnapshot();
 	window.addEventListener("beforeunload", function () {
@@ -80,8 +80,3 @@ load()
 		logger.error("Core initialisation failed.", reason);
 		document.write(reason);
 	});
-
-	function startCollaboration() {
-		collaboration.updateOutgoingPing({ action: "join" });
-		collaboration.sendCollaborationPing();
-	}

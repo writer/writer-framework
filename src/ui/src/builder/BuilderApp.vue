@@ -38,10 +38,10 @@
 		<template v-if="builderMode !== 'preview'">
 			<BuilderInstanceTracker
 				key="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
-				class="insertionOverlayTracker"
-				:is-off-bounds-allowed="true"
+				class="collaborationTracker"
+				:is-off-bounds-allowed="false"
 				instance-path="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
-				:match-size="true"
+				:vertical-offset-pixels="-48"
 			>
 				padlock
 			</BuilderInstanceTracker>
@@ -482,7 +482,7 @@ onUnmounted(() => {
 	grid-row: 3;
 }
 
-.shortcutsTracker,
+.collaborationTracker,
 .insertionLabelTracker {
 	z-index: 3;
 }

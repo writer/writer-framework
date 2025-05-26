@@ -41,7 +41,6 @@ const users = [{ componentId: "k7kdqwxfn5ea5ubv", userId: 12, x: 90, y: 90 }];
 function updatePosition(event: MouseEvent) {
 	outgoingPing.x = event.clientX;
 	outgoingPing.y = event.clientY;
-	console.log(outgoingPing);
 }
 </script>
 

@@ -156,11 +156,14 @@ export function generateBuilderManager() {
 				componentFirstElement?.dataset.writerInstancePath;
 		}
 
-		state.value.selection.push({
-			componentId,
-			instancePath: resolvedInstancePath,
-			source,
-		});
+		state.value.selection = [
+			...state.value.selection,
+			{
+				componentId,
+				instancePath: resolvedInstancePath,
+				source,
+			},
+		];
 	};
 
 	const handleSelectionFromEvent = (

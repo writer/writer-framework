@@ -68,9 +68,9 @@ export type WriterComponentDefinitionField = {
 	/** Which control (text, textarea, etc) to use if not the default for the type */
 	control?: FieldControl;
 	options?:
-		| Record<string, string>
-		| string // For predefined functions
-		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
+	| Record<string, string>
+	| string // For predefined functions
+	| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
 	/** Category (Layout, Content, etc) */
@@ -233,11 +233,7 @@ export type WriterApplication = {
 
 export type UserCollaborationPing = {
 	action: "join" | "select" | "leave" | "auto";
-	profile: {
-		userId: number;
-		name?: string;
-		avatar?: string;
-	};
+	userId: number;
 	time: Date;
 	componentIds?: Component["id"][];
 	x?: number;

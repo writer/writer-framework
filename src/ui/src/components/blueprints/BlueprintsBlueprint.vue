@@ -79,10 +79,6 @@
 				></component>
 			</template>
 		</div>
-		<SharedCollaborationCanvas
-			:render-offset="renderOffset"
-			:zoom-level="zoomLevel"
-		></SharedCollaborationCanvas>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
 			@autogen-click="isAutogenShown = true"
@@ -118,7 +114,6 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
-import SharedCollaborationCanvas from "../shared/SharedCollaborationCanvas.vue";
 
 const { log } = useLogger();
 
@@ -179,7 +174,6 @@ import {
 } from "vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useDragDropComponent } from "@/builder/useDragDropComponent";
-import { collaborationSnapshot } from "@/composables/useCollaboration";
 import injectionKeys from "@/injectionKeys";
 import {
 	computeDistance,
@@ -209,8 +203,6 @@ const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
-
-const emit = defineEmits(["collaborationUpdate"]);
 
 const AUTOARRANGE_ROW_GAP_PX = GRID_TICK * 4;
 const AUTOARRANGE_COLUMN_GAP_PX = GRID_TICK * 6;
@@ -700,11 +692,6 @@ function moveCanvas(ev: MouseEvent) {
 }
 
 function handleMousemove(ev: MouseEvent) {
-	emit("collaborationUpdate", {
-		x: ev.clientX,
-		y: ev.clientY,
-	});
-
 	if (ev.buttons != 1) return;
 
 	if (activeConnection.value) {
@@ -948,10 +935,6 @@ watch(wfbm.firstSelectedItem, (newSelection) => {
 	if (newSelection.source !== "click") {
 		findAndCenterBlock(newSelection.componentId);
 	}
-});
-
-watch(collaborationSnapshot, (newSnapshot) => {
-	console.log("new snapshot", newSnapshot);
 });
 
 function handleKeydown(event: KeyboardEvent) {
