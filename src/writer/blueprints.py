@@ -146,7 +146,7 @@ class BlueprintRunner:
         if execution_environment is None:
             execution_environment = {}
 
-        trigger_id = self.get_blueprint_api_trigger_2(blueprint_key)
+        trigger_id = self.get_blueprint_api_trigger(blueprint_key)
 
         return self.run_branch(
             trigger_id,
