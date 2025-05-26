@@ -33,6 +33,17 @@
 			}}</i>
 			Preview
 		</button>
+		<button
+			:class="{ active: activeId == 'vault' }"
+			data-automation-action="set-mode-vault"
+			type="button"
+			@click="selectOption('vault')"
+		>
+			<i class="icon material-symbols-outlined">{{
+				BUILDER_MANAGER_MODE_ICONS.vault
+			}}</i>
+			Vault
+		</button>
 	</div>
 </template>
 
@@ -41,6 +52,7 @@ import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
+import type { BuilderManagerMode } from "./builderManager";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -49,7 +61,7 @@ let selectedId: Ref<string> = ref(null);
 
 const tracking = useWriterTracking(wf);
 
-const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
+const selectOption = (optionId: BuilderManagerMode) => {
 	const preMode = ssbm.getMode();
 	if (preMode == optionId) return;
 	selectedId.value = optionId;
@@ -63,8 +75,11 @@ const selectOption = (optionId: "ui" | "preview" | "blueprints") => {
 		case "blueprints":
 			tracking.track("nav_blueprints_opened");
 			break;
+		case "vault":
+			tracking.track("nav_vault_opened");
+			break;
 	}
-	ssbm.setMode(optionId);
+	ssbm.mode.value = optionId;
 	if (
 		optionId == "preview" ||
 		preMode == "blueprints" ||
