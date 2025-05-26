@@ -5,8 +5,11 @@ import type { Component } from "@/writerTypes";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import BuilderSidebarNote from "./BuilderSidebarNote.vue";
 import BuilderSidebarNotesEmpty from "./BuilderSidebarNotesEmpty.vue";
-import BuilderFieldsText from "../settings/BuilderFieldsText.vue";
+import BuilderSidebarNoteForm from "./BuilderSidebarNoteForm.vue";
+import { useComponentActions } from "../useComponentActions";
 
+const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 const {
 	selectedNote,
 	selectNote,
@@ -18,6 +21,8 @@ const {
 	hoveredNoteId,
 	useNoteInformation,
 } = inject(injectionKeys.notesManager);
+
+const { setContentValue } = useComponentActions(wf, wfbm);
 
 const query = ref("");
 
@@ -41,6 +46,11 @@ function sortNotes(a: Component, b: Component) {
 function getNoteState(component: Component) {
 	return useNoteInformation(component).state.value;
 }
+
+function onSaveNoteContent(content: string) {
+	setContentValue(selectedNoteId.value, "content", content);
+	selectNote(undefined);
+}
 </script>
 
 <template>
@@ -50,11 +60,11 @@ function getNoteState(component: Component) {
 		:hide-search-bar="hideSearchBar"
 	>
 		<div v-if="selectedNote" class="BuilderSidebarNotes__note">
-			<BuilderFieldsText
+			<BuilderSidebarNoteForm
 				v-if="selectedNoteMode === 'edit'"
-				:component-id="selectedNote.id"
-				field-key="content"
+				:component="selectedNote"
 				autofocus
+				@submit="onSaveNoteContent"
 			/>
 			<BuilderSidebarNote
 				v-else

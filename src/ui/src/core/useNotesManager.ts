@@ -40,6 +40,10 @@ export function useNotesManager(
 		mode: NoteSelectionMode = "show",
 	) {
 		if (componentId === undefined) {
+			// remove empty selected note
+			const content = useNoteInformation(selectedNote).content.value;
+			if (!content) wf.deleteComponent(selectedNoteId.value);
+
 			selectedNoteId.value = undefined;
 			selectedNoteMode.value = "show";
 			return;
@@ -160,6 +164,9 @@ export function useNotesManager(
 		if (component?.type === "note") return component;
 	}
 
+	const getNoteContent = (note: Component) =>
+		String(note.content.content ?? "");
+
 	function useNoteInformation(component: MaybeRef<Component>) {
 		const formatter = new Intl.DateTimeFormat(undefined, {
 			dateStyle: "short",
@@ -178,7 +185,7 @@ export function useNotesManager(
 			return "default";
 		});
 
-		const content = computed(() => unref(component).content.content);
+		const content = computed(() => getNoteContent(unref(component)));
 
 		const createdAt = computed(() => unref(component).content.createdAt);
 
@@ -232,5 +239,6 @@ export function useNotesManager(
 		selectedNote,
 		hoveredNoteId,
 		useNoteInformation,
+		getNoteContent,
 	};
 }
