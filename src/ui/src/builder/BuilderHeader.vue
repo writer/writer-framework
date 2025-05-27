@@ -46,13 +46,7 @@
 					</p>
 				</WdsModal>
 			</WdsButton>
-			{{ collaborationSnapshot }}
-			<WdsButtonSplit variant="secondary">
-				<template #button>
-					<i class="material-symbols-outlined">play_arrow</i>
-				</template>
-				<template #dropdown> hello </template>
-			</WdsButtonSplit>
+			<BuilderHeaderConnected></BuilderHeaderConnected>
 			<WdsStateDot
 				:state="stateDotState"
 				:data-writer-tooltip="syncHealthStatus"
@@ -80,8 +74,7 @@ import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useApplicationCloud } from "@/composables/useApplicationCloud";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
-import { collaborationSnapshot } from "@/composables/useCollaboration";
-import WdsButtonSplit from "@/wds/WdsButtonSplit.vue";
+import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
 
 const wf = inject(injectionKeys.core);
 

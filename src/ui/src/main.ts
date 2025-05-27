@@ -58,9 +58,9 @@ async function load() {
 async function enableCollaboration() {
 	const collaboration = useCollaboration(wf);
 	const { writerApi } = useWriterApi();
-	const writerProfile = await writerApi.profile();
+	const writerProfile = await writerApi.fetchUserProfile();
 	collaboration.updateOutgoingPing({
-		userId: writerProfile.id,
+		userId: writerProfile.id.toString(),
 		action: "join",
 	});
 	collaboration.sendCollaborationPing();

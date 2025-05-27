@@ -37,15 +37,7 @@
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
-			<BuilderInstanceTracker
-				key="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
-				class="collaborationTracker"
-				:is-off-bounds-allowed="false"
-				instance-path="blueprints_root:0,t84xyhxau9ej3823:0,45o08yveht7ik3yy:0"
-				:vertical-offset-pixels="-48"
-			>
-				padlock
-			</BuilderInstanceTracker>
+			<BuilderCollaborationTracker class="collaborationTracker"></BuilderCollaborationTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -107,6 +99,7 @@ import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
 import { useCollaboration } from "@/composables/useCollaboration";
+import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
