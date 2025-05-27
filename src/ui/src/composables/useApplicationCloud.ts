@@ -29,23 +29,17 @@ export function useApplicationCloud(wf: Core) {
 		WriterApiApplicationDeployment | undefined
 	>();
 
-	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
-	const orgId = computed(() => {
-		return Number(wf.writerApplication.value?.organizationId) || undefined;
-	});
-	const appId = computed(() => wf.writerApplication.value?.id);
-
 	const liveUrl = computed(() => {
 		const teamId = deploymentInformation.value.writer?.teamIds?.[0];
 		if (!teamId) return undefined;
-		const path = `/organization/${orgId.value}/team/${teamId}/framework/${appId.value}`;
+		const path = `/organization/${wf.writerOrgId.value}/team/${teamId}/framework/${wf.writerAppId.value}`;
 		return new URL(path, apiBaseUrl);
 	});
 
 	const writerDeployUrl = computed(() => {
-		if (!orgId.value || !appId.value) return;
+		if (!wf.writerOrgId.value || !wf.writerAppId.value) return;
 		return new URL(
-			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
+			`/aistudio/organization/${wf.writerOrgId.value}/agent/${wf.writerAppId.value}/deploy`,
 			apiBaseUrl,
 		);
 	});
@@ -57,7 +51,7 @@ export function useApplicationCloud(wf: Core) {
 	});
 
 	const canDeploy = computed(() =>
-		Boolean(isCloudApp.value && deploymentInformation.value),
+		Boolean(wf.isWriterCloudApp.value && deploymentInformation.value),
 	);
 
 	const hasBeenPublished = computed(() => {
@@ -87,8 +81,8 @@ export function useApplicationCloud(wf: Core) {
 		try {
 			deploymentInformation.value =
 				await writerApi.fetchApplicationDeployment(
-					orgId.value,
-					appId.value,
+					wf.writerOrgId.value,
+					wf.writerAppId.value,
 				);
 		} catch (e) {
 			logger.error("Failed to fetch deployment information", e);
@@ -100,7 +94,7 @@ export function useApplicationCloud(wf: Core) {
 		if (!wf.writerApplication.value) return;
 
 		if (!hasBeenPublished.value) {
-			const path = `/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`;
+			const path = `/aistudio/organization/${wf.writerOrgId.value}/agent/${wf.writerAppId.value}/deploy`;
 			const deployUrl = new URL(path, apiBaseUrl);
 			window.open(deployUrl, "_blank");
 			return;
@@ -110,12 +104,16 @@ export function useApplicationCloud(wf: Core) {
 		deployError.value = undefined;
 
 		try {
-			await writerApi.publishApplication(orgId.value, appId.value, {
-				applicationVersionId:
-					deploymentInformation.value.applicationVersion.id,
-				applicationVersionDataId:
-					deploymentInformation.value.applicationVersionData.id,
-			});
+			await writerApi.publishApplication(
+				wf.writerOrgId.value,
+				wf.writerAppId.value,
+				{
+					applicationVersionId:
+						deploymentInformation.value.applicationVersion.id,
+					applicationVersionDataId:
+						deploymentInformation.value.applicationVersionData.id,
+				},
+			);
 			await fetchApplicationDeployment();
 			const action = liveUrl.value
 				? {
@@ -140,8 +138,6 @@ export function useApplicationCloud(wf: Core) {
 	onUnmounted(() => abort.abort());
 
 	return {
-		orgId,
-		isCloudApp,
 		canDeploy,
 		writerDeployUrl,
 		hasBeenPublished,

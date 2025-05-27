@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { readonly, ref, Ref, shallowRef, toRaw } from "vue";
+import { computed, readonly, ref, Ref, shallowRef, toRaw } from "vue";
 import {
 	AbstractTemplate,
 	Component,
@@ -64,6 +64,14 @@ export function generateCore() {
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
+
+	const isWriterCloudApp = computed(
+		() => writerApplication.value !== undefined,
+	);
+	const writerOrgId = computed(
+		() => Number(writerApplication.value?.organizationId) || undefined,
+	);
+	const writerAppId = computed(() => writerApplication.value?.id);
 
 	/**
 	 * Initialise the core.
@@ -804,7 +812,11 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
+		// writer cloud variables
 		writerApplication: readonly(writerApplication),
+		isWriterCloudApp,
+		writerOrgId,
+		writerAppId,
 	};
 
 	return core;
