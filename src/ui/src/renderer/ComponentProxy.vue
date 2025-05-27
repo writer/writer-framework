@@ -34,7 +34,14 @@ export default {
 		const tracking = useWriterTracking(wf);
 
 		const children = computed(() =>
-			wf.getComponents(componentId, { sortedByPosition: true }),
+			wf
+				.getComponents(componentId, { sortedByPosition: true })
+				// exclude Internal component as children (i.e. Notes)
+				.filter(
+					(c) =>
+						wf.getComponentDefinition(c.type)?.category !==
+						"Internal",
+				),
 		);
 		const isBeingEdited = computed(
 			() => !!ssbm && ssbm.getMode() != "preview",
