@@ -16,6 +16,11 @@ describe(useComponentActions.name, () => {
 		const components: Component[] = [
 			{ id: "root", type: "root", position: 0 } as Component,
 			{
+				id: "blueprints_root",
+				type: "blueprints_root",
+				position: 0,
+			} as Component,
+			{
 				id: "page-id",
 				type: "page",
 				content: { key: "page" },
@@ -73,9 +78,32 @@ describe(useComponentActions.name, () => {
 				parentId: "page-id",
 				position: 1,
 			},
+			{
+				id: "blueprints_blueprint-id",
+				type: "blueprints_blueprint",
+				content: {},
+				handlers: {},
+				isCodeManaged: false,
+				parentId: "blueprints_root",
+				position: 1,
+			},
 		];
 
 		components.forEach((c) => core.addComponent(c));
+	});
+
+	describe("isDeleteAllowed", () => {
+		it("should handle UI components", () => {
+			const { isDeleteAllowed } = useComponentActions(core, ssbm);
+			expect(isDeleteAllowed("root")).toBeFalsy();
+			expect(isDeleteAllowed("page-id")).toBeTruthy();
+		});
+
+		it("should handle blueprint components", () => {
+			const { isDeleteAllowed } = useComponentActions(core, ssbm);
+			expect(isDeleteAllowed("blueprints_root")).toBeFalsy();
+			expect(isDeleteAllowed("blueprints_blueprint-id")).toBeTruthy();
+		});
 	});
 
 	describe("removeComponentSubtree", () => {

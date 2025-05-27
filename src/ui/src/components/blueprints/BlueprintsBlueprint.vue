@@ -123,7 +123,6 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
-import { instance } from "@apache-arrow/ts/visitor/set";
 
 const { log } = useLogger();
 

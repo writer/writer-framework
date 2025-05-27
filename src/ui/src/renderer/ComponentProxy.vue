@@ -14,6 +14,7 @@ import RenderError from "./RenderError.vue";
 import { flattenInstancePath } from "./instancePath";
 import { useEvaluator } from "./useEvaluator";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 
 export default {
 	props: {
@@ -50,14 +51,13 @@ export default {
 			() =>
 				isBeingEdited.value &&
 				!component.value.isCodeManaged &&
-				component.value.type !== "root" &&
-				component.value.type !== "blueprints_root" &&
+				!COMPONENT_TYPES_ROOT.has(component.value.type) &&
 				componentDefinition.value?.toolkit !== "blueprints",
 		);
 
 		const isParentSuitable = (parentId, childType) => {
 			const allowedTypes = !parentId
-				? ["root", "blueprints_root"]
+				? [...COMPONENT_TYPES_ROOT]
 				: wf.getContainableTypes(parentId);
 			return allowedTypes.includes(childType);
 		};

@@ -3,6 +3,7 @@ import {
 	getComponentDefinition,
 	getSupportedComponentTypes,
 } from "./templateMap";
+import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 
 function getDisallowedSet(
 	components: ComponentMap,
@@ -30,7 +31,7 @@ function getAllowedSet(
 ): Set<Component["type"]> {
 	const { type, parentId } = components[componentId];
 	const supportedTypes = getSupportedComponentTypes().filter(
-		(t) => t !== "root" && t !== "blueprints_root",
+		(t) => !COMPONENT_TYPES_ROOT.has(t),
 	);
 	const { allowedChildrenTypes, toolkit } = getComponentDefinition(type);
 	if (!allowedChildrenTypes) return new Set([]);
