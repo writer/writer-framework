@@ -2,7 +2,6 @@ import os
 import shutil
 from typing import Optional
 
-import tempfile
 import click
 
 import writer.serve
@@ -63,6 +62,8 @@ def edit(
     verbose: bool = False
 ):
     """Run the app from PATH folder in edit mode."""
+    buffer = None
+    
     if enable_file_buffering:
         buffer = FileBuffering(
             dest_dir=path,
@@ -71,6 +72,9 @@ def edit(
         )
         print(f"Using temporary buffer path: {buffer.path}")
         buffer.init()
+        buffer.watch_changes()
+        print("File buffering started in background")
+        
         project_path = buffer.path
     else:
         project_path = path
@@ -91,9 +95,15 @@ def edit(
         wf_project.can_create_project(project_path) is False:
         raise click.ClickException(f"There’s no Writer Framework project at this location : {abs_path}")
 
-    writer.serve.serve(
-        abs_path, mode="edit", port=port, host=host,
-        enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup, enable_jobs_api=enable_jobs_api)
+    try:
+        writer.serve.serve(
+            abs_path, mode="edit", port=port, host=host,
+            enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup, 
+            enable_jobs_api=enable_jobs_api)
+    finally:
+        if buffer:
+            print("Stopping file buffering...")
+            buffer.stop()
 
 @main.command()
 @click.argument('path')
