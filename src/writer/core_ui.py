@@ -467,6 +467,10 @@ def export_component_tree(component_tree: ComponentTree, mode: ServeMode, only_u
         _components.append(_root_component)
         _components += component_tree.get_descendents(root)
 
+    # filters notes in run mode
+    if mode == "run":
+        _components = [c for c in _components if c.type != "note"]
+
     return {c.id: c.to_dict() for c in _components}
 
 class UIError(Exception):
