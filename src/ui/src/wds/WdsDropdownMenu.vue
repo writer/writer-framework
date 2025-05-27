@@ -72,10 +72,12 @@
 				:class="{
 					'WdsDropdownMenu__item--selected': isSelected(option.value),
 					'WdsDropdownMenu__item--hideIcon': hideIcons,
+					'WdsDropdownMenu__item--danger':
+						option.variant === 'danger',
 				}"
 				:data-automation-key="option.value"
 				:disabled="option.disabled"
-				@click="onSelect(option.value)"
+				@click.stop="onSelect(option.value)"
 			>
 				<template v-if="!hideIcons">
 					<div
@@ -126,6 +128,7 @@ export type WdsDropdownMenuOption = {
 	 */
 	icon?: string | string[];
 	disabled?: boolean;
+	variant?: "danger";
 };
 </script>
 
@@ -286,6 +289,9 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 .WdsDropdownMenu__item--hideIcon {
 	grid-template-columns: 1fr auto;
+}
+.WdsDropdownMenu__item--danger {
+	color: var(--wdsColorOrange5);
 }
 
 .WdsDropdownMenu__item__detail,

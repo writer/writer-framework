@@ -7,6 +7,7 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
+import { useNotesManager } from "./core/useNotesManager.js";
 
 const wf = generateCore();
 
@@ -23,6 +24,7 @@ async function load() {
 	await wf.init();
 	const mode = wf.mode.value;
 	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
+	const notesManager = useNotesManager(wf, wfbm);
 
 	if (wfbm) {
 		wf.addMailSubscription("logEntry", wfbm.handleLogEntry);
@@ -41,6 +43,7 @@ async function load() {
 	app.use(VueDOMPurifyHTML);
 	app.provide(injectionKeys.core, wf);
 	app.provide(injectionKeys.builderManager, wfbm);
+	app.provide(injectionKeys.notesManager, notesManager);
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");

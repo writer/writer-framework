@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderSidebarPanel">
-		<div class="BuilderSidebarPanel__inputContainer">
+		<div v-if="!hideSearchBar" class="BuilderSidebarPanel__inputContainer">
 			<WdsTextInput
 				v-model="model"
 				class="searchInput"
@@ -22,10 +22,11 @@
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import { computed } from "vue";
 
-const model = defineModel<string>();
+const model = defineModel({ type: String, required: false, default: "" });
 
 const props = defineProps({
-	placeholder: { type: String, required: true },
+	hideSearchBar: { type: Boolean, required: false },
+	placeholder: { type: String, required: false, default: "" },
 	searchCount: { type: Number, required: false, default: undefined },
 });
 
@@ -39,7 +40,7 @@ const searchRightText = computed(() => {
 <style scoped>
 .BuilderSidebarPanel {
 	display: grid;
-	grid-template-rows: auto 1fr;
+	grid-template-rows: 1fr;
 	grid-template-columns: 100%;
 	height: 100%;
 	width: 100%;
@@ -48,12 +49,17 @@ const searchRightText = computed(() => {
 	overflow-y: auto;
 }
 
+.BuilderSidebarPanel:has(.BuilderSidebarPanel__inputContainer) {
+	grid-template-rows: auto 1fr;
+}
+
 .BuilderSidebarPanel__inputContainer {
 	position: sticky;
 	top: 0;
 	left: 0;
 	right: 0;
 	padding: 16px 16px 0 16px;
+	margin-bottom: 16px;
 	background: var(--builderBackgroundColor);
 	z-index: 2;
 }
@@ -65,7 +71,8 @@ const searchRightText = computed(() => {
 
 .BuilderSidebarPanel__main {
 	display: flex;
-	padding: 16px;
+	padding-left: 16px;
+	padding-right: 16px;
 	gap: 16px;
 	flex-direction: column;
 }
