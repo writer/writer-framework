@@ -41,8 +41,8 @@ const displayUserLoader = computed(
 
 const contentExcerpt = computed(() => {
 	if (content.value.length < 100) return content.value;
-	const exerpt = content.value.slice(0, 100);
-	return `${exerpt}...`;
+  const excerpt = content.value.slice(0, 100);
+  return `${excerpt}...`;
 });
 
 const contentParagraphs = computed(() => content.value.split("\n"));
