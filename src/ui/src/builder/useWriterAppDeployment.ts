@@ -9,12 +9,12 @@ import {
 	shallowRef,
 	watch,
 } from "vue";
-import { useLogger } from "./useLogger";
 import { useToasts } from "@/builder/useToast";
-import { useWriterApi } from "./useWriterApi";
-import { useWriterTracking } from "./useWriterTracking";
+import { useLogger } from "@/composables/useLogger";
+import { useWriterApi } from "@/composables/useWriterApi";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
-export function useApplicationCloud(wf: Core) {
+export function useWriterAppDeployment(wf: Core) {
 	const abort = new AbortController();
 
 	const tracking = useWriterTracking(wf);
