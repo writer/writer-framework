@@ -32,7 +32,7 @@ class OperationQueues:
                 len(self.dirs_to_delete) > 0
             )
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         with self.lock:
             self.files_to_update.clear()
             self.files_to_delete.clear()
@@ -47,7 +47,7 @@ class FolderSyncHandler(FileSystemEventHandler):
         self.verbose = verbose
         self.operation_queues = operation_queues
 
-    def log(self, *args):
+    def log(self, *args) -> None:
         if self.verbose:
             print(*args)
 
@@ -58,7 +58,7 @@ class FolderSyncHandler(FileSystemEventHandler):
         rel_path = self.rel(src_path)
         return str(self.dest_dir / rel_path)
 
-    def on_created(self, event):
+    def on_created(self, event) -> None:
         if event.is_directory:
             with self.operation_queues.lock:
                 self.operation_queues.dirs_to_create.add(event.src_path)
@@ -69,14 +69,14 @@ class FolderSyncHandler(FileSystemEventHandler):
                 self.operation_queues.files_to_update[dest] = event.src_path
             self.log("Queued add:", self.rel(event.src_path))
 
-    def on_modified(self, event):
+    def on_modified(self, event) -> None:
         if not event.is_directory:
             dest = self.dest_path(event.src_path)
             with self.operation_queues.lock:
                 self.operation_queues.files_to_update[dest] = event.src_path
             self.log("Queued change:", self.rel(event.src_path))
 
-    def on_deleted(self, event):
+    def on_deleted(self, event) -> None:
         if event.is_directory:
             with self.operation_queues.lock:
                 self.operation_queues.dirs_to_delete.add(event.src_path)
@@ -89,7 +89,7 @@ class FolderSyncHandler(FileSystemEventHandler):
                 self.operation_queues.files_to_update.pop(dest, None)
             self.log("Queued remove:", self.rel(event.src_path))
 
-    def on_moved(self, event):
+    def on_moved(self, event) -> None:
         # Handle moves as delete + create
         self.on_deleted(type('MockEvent', (), {'src_path': event.src_path, 'is_directory': event.is_directory})())
         self.on_created(type('MockEvent', (), {'src_path': event.dest_path, 'is_directory': event.is_directory})())
@@ -108,7 +108,7 @@ class FileBuffering:
         self.sync_timer = None
         self.running = False
 
-    def log(self, *args):
+    def log(self, *args) -> None:
         if self.verbose:
             print(*args)
 
@@ -148,15 +148,15 @@ class FileBuffering:
         except Exception:
             return True
 
-    def ensure_dir(self, path: str):
+    def ensure_dir(self, path: str) -> None:
         Path(path).mkdir(parents=True, exist_ok=True)
 
-    def copy_file(self, src: str, dest: str):
+    def copy_file(self, src: str, dest: str) -> None:
         dest_path = Path(dest)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dest)
 
-    def remove_path(self, path: str):
+    def remove_path(self, path: str) -> None:
         path_obj = Path(path)
         if path_obj.exists():
             if path_obj.is_dir():
@@ -231,7 +231,7 @@ class FileBuffering:
         # Run synchronously since it's the initial sync
         sync_recursively()
 
-    def process_batched_operations(self):
+    def process_batched_operations(self) -> None:
         if self.is_sync_in_progress:
             return
         if not self.operation_queues.has_pending_operations():
@@ -286,7 +286,7 @@ class FileBuffering:
         # Compare directories after processing
         self.compare_directories(str(self.src_dir), str(self.dest_dir), self.verbose)
 
-    def schedule_batch_processing(self):
+    def schedule_batch_processing(self) -> None:
         if not self.running:
             return
             
@@ -370,7 +370,11 @@ class FileBuffering:
         
         return divergent_files
 
-    def watch_changes(self):
+    def watch_changes(self) -> None:
+        """
+        Set up file system monitoring and start the periodic sync process.
+        This method returns immediately after setting up the background watchers.
+        """
         handler = FolderSyncHandler(str(self.src_dir), str(self.dest_dir), self.verbose, self.operation_queues)
         self.observer = Observer()
         self.observer.schedule(handler, str(self.src_dir), recursive=True)
@@ -383,7 +387,7 @@ class FileBuffering:
         self.running = True
         self.schedule_batch_processing()
 
-    async def run(self):
+    async def run(self) -> None:
         await self.initial_sync()
         self.watch_changes()
         
@@ -394,7 +398,7 @@ class FileBuffering:
             print("\nShutting down...")
             self.stop()
 
-    def stop(self):
+    def stop(self) -> None:
         self.running = False
         if self.sync_timer:
             self.sync_timer.cancel()
