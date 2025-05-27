@@ -4,13 +4,22 @@
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
 		>
-			<BuilderHeader class="builderHeader"></BuilderHeader>
+			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
 				v-show="builderMode !== 'preview'"
 				class="sidebar"
+				@active-pane-changed="refreshNotesPosition"
 			/>
 			<div class="builderMain">
-				<div class="rendererWrapper">
+				<div
+					class="rendererWrapper"
+					:class="{
+						addNoteCursor:
+							notesManager.isAnnotating.value &&
+							ssbm.mode.value !== 'preview',
+					}"
+					@scroll="refreshNotesPosition"
+				>
 					<ComponentRenderer
 						class="componentRenderer"
 						:class="{
@@ -37,7 +46,9 @@
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
-			<BuilderCollaborationTracker class="collaborationTracker"></BuilderCollaborationTracker>
+			<BuilderCollaborationTracker
+				class="collaborationTracker"
+			></BuilderCollaborationTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -46,7 +57,7 @@
 					:instance-path="candidateInstancePath"
 					:match-size="true"
 				>
-					<BuilderInsertionOverlay></BuilderInsertionOverlay>
+					<BuilderInsertionOverlay />
 				</BuilderInstanceTracker>
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -64,13 +75,33 @@
 				</BuilderInstanceTracker>
 			</template>
 		</template>
+
+		<!-- NOTES -->
+
+		<template v-if="builderMode === 'ui'">
+			<BuilderInstanceTracker
+				v-for="note of notes"
+				:key="note.id"
+				ref="noteEl"
+				class="BuilderApp__noteTracker"
+				:is-off-bounds-allowed="true"
+				:instance-path="note.parentInstancePath"
+				:match-size="true"
+			>
+				<BaseNote
+					class="BuilderApp__noteTracker__note"
+					:component-id="note.id"
+				/>
+			</BuilderInstanceTracker>
+		</template>
+
 		<!-- MODAL -->
 
 		<div id="modal"></div>
 
 		<!-- TOOLTIP -->
 
-		<BuilderTooltip id="tooltip"></BuilderTooltip>
+		<BuilderTooltip id="tooltip" />
 		<BuilderToasts />
 	</div>
 </template>
@@ -83,6 +114,7 @@ import {
 	onMounted,
 	onUnmounted,
 	watch,
+	useTemplateRef,
 } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
 import { useComponentActions } from "./useComponentActions";
@@ -100,6 +132,7 @@ import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
 import { useCollaboration } from "@/composables/useCollaboration";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
+import BaseNote from "@/components/core/base/BaseNote.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -124,10 +157,22 @@ const BuilderInsertionLabel = defineAsyncComponent({
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+const notesManager = inject(injectionKeys.notesManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
 const collaboration = useCollaboration(wf);
+
+const noteEl = useTemplateRef("noteEl");
+
+function refreshNotesPosition() {
+	const isNotesIterable =
+		noteEl.value != null &&
+		typeof noteEl.value[Symbol.iterator] === "function";
+	if (!isNotesIterable) return;
+
+	for (const el of noteEl.value) el.refresh();
+}
 
 const {
 	candidateId,
@@ -164,8 +209,18 @@ const {
 	moveComponentInsideNextSibling,
 } = useComponentActions(wf, ssbm, tracking);
 
-const builderMode = computed(() => ssbm.getMode());
-const selectedId = computed(() => ssbm.firstSelectedId.value);
+const builderMode = ssbm.mode;
+const selectedId = ssbm.firstSelectedId;
+
+const notes = computed(() =>
+	Array.from(notesManager.getNotes(wf.activePageId.value))
+		.map((n) => ({
+			...n,
+			parentInstancePath:
+				notesManager.useNoteInformation(n).parentInstancePath.value,
+		}))
+		.filter((n) => n.parentInstancePath !== undefined),
+);
 
 async function handleKeydown(ev: KeyboardEvent) {
 	if (ev.key == "Escape") {
@@ -293,6 +348,7 @@ function handleRendererClick(ev: PointerEvent): void {
 		"[data-writer-id]",
 	);
 	if (!targetEl) return;
+
 	const targetId = targetEl.dataset.writerId;
 	const targetInstancePath = targetEl.dataset.writerInstancePath;
 
@@ -409,6 +465,12 @@ onUnmounted(() => {
 	background: var(--builderBackgroundColor);
 }
 
+.BuilderApp__noteTracker__note {
+	margin-top: -30px;
+	padding: 0;
+	pointer-events: auto;
+}
+
 .mainGrid {
 	width: 100vw;
 	height: 100vh;
@@ -453,6 +515,9 @@ onUnmounted(() => {
 	flex-direction: column;
 	height: 100%;
 	overflow-y: auto;
+}
+.rendererWrapper--annotating {
+	cursor: context-menu;
 }
 
 .componentRenderer {

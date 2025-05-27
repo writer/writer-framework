@@ -55,6 +55,8 @@ import {
 } from "@/renderer/sharedStyleFields";
 import WdsControl from "@/wds/WdsControl.vue";
 import { validatorArrayOfString } from "@/constants/validators";
+import type { PDFSrc } from "@tato30/vue-pdf";
+import { dataURLToArrayBuffer } from "@/utils/base64";
 
 const description = "A component to embed PDF documents.";
 
@@ -135,12 +137,35 @@ const loading = ref(false);
 const pagesLoaded = ref(0);
 const highlightsList = ref([]);
 
+const pdfData = computed(() => {
+	if (!fields.source?.value) return undefined;
+	try {
+		return dataURLToArrayBuffer(fields.source.value);
+	} catch {
+		return undefined;
+	}
+});
+
+const pdfSource = computed<PDFSrc>(() => ({
+	data: pdfData.value, // convert source to binary data to avoid fetching DataURL (which is forbidden by some CSP rules)
+	isEvalSupported: false,
+}));
+
 onMounted(async () => {
+	// @ts-expect-error usage of Vite env
 	if (import.meta.env.SSR) return;
 	const VuePDFLib = await import("@tato30/vue-pdf");
+
+	// setup the worker URL ourself to avoid importing the module from a DataURL (which is forbidden by some CSP rules)
+	const PDFJS = await import("pdfjs-dist");
+	PDFJS.GlobalWorkerOptions.workerSrc = new URL(
+		"pdfjs-dist/build/pdf.worker.min.mjs",
+		import.meta.url,
+	).toString();
+
 	VuePDF = VuePDFLib.VuePDF;
 	const usePDF = VuePDFLib.usePDF;
-	({ pdf, pages } = usePDF(fields.source));
+	({ pdf, pages } = usePDF(pdfSource));
 	reload();
 });
 

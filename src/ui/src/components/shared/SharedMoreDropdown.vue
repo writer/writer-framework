@@ -5,7 +5,7 @@
 			size="smallIcon"
 			:disabled="disabled"
 			:custom-size="triggerCustomSize"
-			@click="isOpen = !isOpen"
+			@click.stop="isOpen = !isOpen"
 		>
 			<i class="material-symbols-outlined">more_horiz</i>
 		</WdsButton>

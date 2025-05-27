@@ -140,6 +140,7 @@ export function useApplicationCloud(wf: Core) {
 	onUnmounted(() => abort.abort());
 
 	return {
+		orgId,
 		isCloudApp,
 		canDeploy,
 		writerDeployUrl,

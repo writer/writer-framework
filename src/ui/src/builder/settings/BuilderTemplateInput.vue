@@ -10,6 +10,7 @@
 				:placeholder="props.placeholder"
 				:list="props.options ? `list-${props.inputId}` : undefined"
 				:invalid="error !== undefined"
+				:autofocus="autofocus"
 				@input="handleInput"
 				@blur="closeAutocompletion"
 			/>
@@ -43,6 +44,7 @@
 				rows="3"
 				:placeholder="props.placeholder"
 				:invalid="error !== undefined"
+				:autofocus="autofocus"
 				@input="handleInput"
 			/>
 		</template>
@@ -109,6 +111,7 @@ const props = defineProps({
 	},
 	placeholder: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
+	autofocus: { type: Boolean },
 });
 
 const ss = inject(injectionKeys.core);

@@ -126,7 +126,12 @@ const wf = inject(injectionKeys.core);
 
 const moreOptions: Option[] = [
 	{ label: "Rename file", value: "rename", icon: "edit" },
-	{ label: "Delete file", value: "delete", icon: "delete" },
+	{
+		label: "Delete file",
+		value: "delete",
+		icon: "delete",
+		variant: "danger",
+	},
 ];
 
 const tracking = useWriterTracking(wf);
