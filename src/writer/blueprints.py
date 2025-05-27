@@ -133,7 +133,7 @@ class BlueprintRunner:
     def run_blueprint_via_api(
         self,
         blueprint_key: str,
-        execution_environment: Dict[str, Any] = None
+        execution_environment: Optional[Dict[str, Any]] = None
     ):
         """
         Executes a blueprint by its key via the API.
