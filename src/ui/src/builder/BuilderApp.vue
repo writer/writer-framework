@@ -130,7 +130,6 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
-import { useCollaboration } from "@/composables/useCollaboration";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 
@@ -158,10 +157,10 @@ const BuilderInsertionLabel = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
+const collaborationManager = inject(injectionKeys.collaborationManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
-const collaboration = useCollaboration(wf);
 
 const noteEl = useTemplateRef("noteEl");
 
@@ -400,11 +399,12 @@ function handleRendererDragEnd(ev: DragEvent) {
 const abort = new AbortController();
 
 watch(ssbm.selection, () => {
-	collaboration.updateOutgoingPing({
+	if (!collaborationManager) return;
+	collaborationManager.updateOutgoingPing({
 		action: "select",
-		componentIds: ssbm.selection.value.map((s) => s.componentId),
+		selection: ssbm.selection.value,
 	});
-	collaboration.sendCollaborationPing();
+	collaborationManager.sendCollaborationPing();
 });
 
 onMounted(() => {

@@ -1,6 +1,7 @@
 import { ComputedRef, InjectionKey, Ref, VNode } from "vue";
 import {
 	BuilderManager,
+	CollaborationManager,
 	Component,
 	Core,
 	InstancePath,
@@ -12,6 +13,7 @@ export default {
 	core: Symbol() as InjectionKey<Core>,
 	builderManager: Symbol() as InjectionKey<BuilderManager>,
 	notesManager: Symbol() as InjectionKey<NotesManager>,
+	collaborationManager: Symbol() as InjectionKey<CollaborationManager>,
 	evaluatedFields: Symbol() as InjectionKey<Record<string, ComputedRef<any>>>,
 	componentId: Symbol() as InjectionKey<Component["id"]>,
 	isBeingEdited: Symbol() as InjectionKey<Ref<boolean>>,

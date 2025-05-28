@@ -22,7 +22,6 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
-import { handleIncomingCollaborationUpdate } from "@/composables/useCollaboration";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -65,6 +64,8 @@ export function generateCore() {
 	> = ref(new Map());
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
+	const collaborationPingSubscriptions: { fn: Function }[] = [];
+
 	const activePageId: Ref<Component["id"]> = ref(null);
 
 	/**
@@ -227,7 +228,9 @@ export function generateCore() {
 				message.messageType == "announcement" &&
 				message.payload.type == "collaborationUpdate"
 			) {
-				handleIncomingCollaborationUpdate(message.payload.payload);
+				collaborationPingSubscriptions.forEach((ps) =>
+					ps.fn(message.payload.payload),
+				);
 				return;
 			}
 
@@ -325,6 +328,10 @@ export function generateCore() {
 
 			relevantSubscriptions.forEach((ms) => ms.fn(item.payload));
 		});
+	}
+
+	function addCollaborationPingSubscription(fn: Function) {
+		collaborationPingSubscriptions.push({ fn });
 	}
 
 	function addMailSubscription(mailType: string, fn: Function) {
@@ -802,6 +809,7 @@ export function generateCore() {
 		userFunctions: readonly(userFunctions),
 		addMailSubscription,
 		removeMailSubscription,
+		addCollaborationPingSubscription,
 		init,
 		forwardEvent,
 		hashMessage,

@@ -1,8 +1,9 @@
 import type { Component as VueComponent } from "vue";
 import { generateCore } from "./core";
-import { generateBuilderManager } from "./builder/builderManager";
+import { generateBuilderManager, Selection } from "./builder/builderManager";
 import type { SchemaObject } from "ajv";
 import type { useNotesManager } from "./core/useNotesManager";
+import type { useCollaborationManager } from "./composables/useCollaborationManager";
 
 export type Core = ReturnType<typeof generateCore>;
 
@@ -127,6 +128,8 @@ export type BuilderManager = ReturnType<typeof generateBuilderManager>;
 
 export type NotesManager = ReturnType<typeof useNotesManager>;
 
+export type CollaborationManager = ReturnType<typeof useCollaborationManager>;
+
 export const enum FieldType {
 	Text = "Text",
 	Boolean = "Boolean",
@@ -239,7 +242,7 @@ export type UserCollaborationPing = {
 	action: "join" | "select" | "leave" | "auto";
 	userId: string;
 	time: Date;
-	componentIds?: Component["id"][];
+	selection?: Selection;
 	x?: number;
 	y?: number;
 };

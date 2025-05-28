@@ -15,12 +15,15 @@
 </template>
 
 <script setup lang="ts">
-import { connectedProfiles } from "@/composables/useCollaboration";
-import { computed } from "vue";
+import injectionKeys from "@/injectionKeys";
+import { computed, inject } from "vue";
+const collaborationManager = inject(injectionKeys.collaborationManager);
 
-const connectedCount = computed(() => connectedProfiles.value.length);
+const connectedCount = computed(
+	() => collaborationManager.connectedProfiles.value.length,
+);
 const initialFirstUser = computed(() => {
-	const name = connectedProfiles.value?.[0].displayName;
+	const name = collaborationManager.connectedProfiles.value?.[0].displayName;
 	if (name == "Unknown") return "?";
 	return name.charAt(0);
 });
@@ -28,7 +31,7 @@ const initialFirstUser = computed(() => {
 const tooltip = computed(() => {
 	const message =
 		"Also editing: " +
-		connectedProfiles.value
+		collaborationManager.connectedProfiles.value
 			.map((profile) => profile.displayName)
 			.join(", ");
 	return message;
@@ -36,7 +39,6 @@ const tooltip = computed(() => {
 </script>
 
 <style scoped>
-
 .BuilderHeaderConnected {
 }
 
@@ -63,5 +65,4 @@ const tooltip = computed(() => {
 	background-repeat: no-repeat;
 	background-position: center;
 }
-
 </style>
