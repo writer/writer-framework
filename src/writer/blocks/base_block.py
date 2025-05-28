@@ -47,6 +47,10 @@ class BlueprintBlock:
         self.runner = runner
         self.execution_time_in_seconds = -1.0
         self.execution_environment = execution_environment
+        # A stable snapshot of the execution environment taken after the block
+        # has finished running. Used when generating logs to avoid concurrent
+        # mutations while serialising.
+        self.execution_environment_snapshot: Optional[Dict] = None
         self.result = None
         self.return_value = None
         self.instance_path: InstancePath = [{"componentId": component.id, "instanceNumber": 0}]
