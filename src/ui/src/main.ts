@@ -7,9 +7,9 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
-import { useApplicationCloud } from "@/composables/useApplicationCloud";
-import { useWriterApi } from "@/composables/useWriterApi.js";
-import { useCollaborationManager } from "@/composables/useCollaborationManager.js";
+import { useApplicationCloud } from "./composables/useApplicationCloud";
+import { useWriterApi } from "./composables/useWriterApi.js";
+import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
 
