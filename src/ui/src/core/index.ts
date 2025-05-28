@@ -65,13 +65,13 @@ export function generateCore() {
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const activePageId: Ref<Component["id"]> = ref(null);
 
-	const isWriterCloudApp = computed(
-		() => writerApplication.value !== undefined,
-	);
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
 	const writerAppId = computed(() => writerApplication.value?.id);
+	const isWriterCloudApp = computed(() =>
+		Boolean(writerAppId.value || writerOrgId.value),
+	);
 
 	/**
 	 * Initialise the core.

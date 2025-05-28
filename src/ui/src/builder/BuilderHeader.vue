@@ -11,6 +11,13 @@
 			</a>
 			<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
 			<hr />
+			<input
+				v-if="wf.isWriterCloudApp.value"
+				v-model="applicationName"
+				type="text"
+				:disabled="!!lastDeployedAt"
+				class="BuilderHeader__logo__appTitle"
+			/>
 		</div>
 		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
@@ -87,6 +94,7 @@ const {
 	hasBeenPublished,
 	lastDeployedAt,
 	writerDeployUrl,
+	name: applicationName,
 } = useWriterAppDeployment(wf);
 
 const dateFormater = new Intl.DateTimeFormat(undefined, {
@@ -196,6 +204,25 @@ function showStateExplorer() {
 	text-decoration: none;
 	display: inline-flex;
 	align-items: center;
+}
+.BuilderHeader__logo__appTitle {
+	background-color: transparent;
+	width: 100%;
+	border: none;
+	font-weight: 500;
+	font-size: 16px;
+	border-radius: 4px;
+	padding: 4px;
+	height: 32px;
+	text-overflow: ellipsis;
+}
+.BuilderHeader__logo__appTitle:focus {
+	outline: none;
+}
+.BuilderHeader__logo__appTitle:not([disabled]):hover,
+.BuilderHeader__logo__appTitle:not([disabled]):focus {
+	outline: none;
+	background-color: var(--wdsColorGray5);
 }
 
 .BuilderHeader__toolbar {
