@@ -3,7 +3,7 @@ import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
 import type { Component, InstancePath, UserFunction } from "@/writerTypes";
 import { vi } from "vitest";
-import { ref, shallowRef } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import { SourceFiles } from "../writerTypes";
 
 export const mockComponentId = "component-id-test";
@@ -47,6 +47,14 @@ export function buildMockCore() {
 	core.featureFlags = featureFlags;
 	core.writerApplication = writerApplication;
 	core.mode = mode;
+
+	core.isWriterCloudApp = computed(
+		() => writerApplication.value !== undefined,
+	);
+	core.writerOrgId = computed(
+		() => Number(writerApplication.value?.organizationId) || undefined,
+	);
+	core.writerAppId = computed(() => writerApplication.value?.id);
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 

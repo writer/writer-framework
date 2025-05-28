@@ -70,7 +70,7 @@ import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
-import { useApplicationCloud } from "@/composables/useApplicationCloud";
+import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 
@@ -87,7 +87,7 @@ const {
 	hasBeenPublished,
 	lastDeployedAt,
 	writerDeployUrl,
-} = useApplicationCloud(wf);
+} = useWriterAppDeployment(wf);
 
 const dateFormater = new Intl.DateTimeFormat(undefined, {
 	weekday: "long",

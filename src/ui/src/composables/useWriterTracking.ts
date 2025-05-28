@@ -1,6 +1,6 @@
 import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
-import { computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useLogger } from "./useLogger";
 
 let isIdentified = false;
@@ -48,16 +48,11 @@ const EVENT_PREFIX = "[AgentEditor]";
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
-	const isCloudApp = computed(() => Boolean(wf.writerApplication.value?.id));
-	const organizationId = computed(
-		() => Number(wf.writerApplication.value?.organizationId) || undefined,
-	);
-
 	const { writerApi } = useWriterApi({ signal: abortControler.signal });
 	const logger = useLogger();
 
 	onMounted(async () => {
-		if (!isCloudApp.value || isIdentified) return;
+		if (!wf.isWriterCloudApp || isIdentified) return;
 		isIdentified = true;
 		try {
 			await writerApi.analyticsIdentify();
@@ -84,8 +79,8 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		}
 
 		return {
-			writerApplicationId: wf.writerApplication.value?.id,
-			writerOrganizationId: wf.writerApplication.value?.organizationId,
+			writerApplicationId: wf.writerAppId.value,
+			writerOrganizationId: String(wf.writerOrgId.value),
 			...copy,
 		};
 	}
@@ -102,7 +97,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		eventName: WriterTrackingEventName,
 		properties: EventProperties = {},
 	) {
-		if (wf.mode.value !== "edit" || !isCloudApp.value) return;
+		if (wf.mode.value !== "edit" || !wf.isWriterCloudApp.value) return;
 
 		return writerApi.analyticsTrack(
 			`${EVENT_PREFIX} ${eventName}`,
@@ -113,15 +108,15 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	function page(name: string, properties: EventProperties = {}) {
 		if (
 			wf.mode.value !== "edit" ||
-			!isCloudApp.value ||
-			!organizationId.value
+			!wf.isWriterCloudApp.value ||
+			!wf.writerOrgId.value
 		) {
 			return;
 		}
 
 		return writerApi.analyticsPage(
 			`${EVENT_PREFIX} ${name}`,
-			organizationId.value,
+			wf.writerOrgId.value,
 			expandEventPropertiesWithResources(properties),
 		);
 	}
