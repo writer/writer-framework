@@ -27,17 +27,26 @@ class BlueprintRunner:
 
     @contextmanager
     def _get_executor(self):
-        new_executor = None
+        """Return the application's thread pool executor.
 
+        In normal operation we reuse the main executor provided by the running
+        application process. In situations where that process is unavailable
+        (for example during tests) a temporary executor is created.
+        """
+
+        new_executor = None
         try:
-            current_app_process = writer.core.get_app_process()
-            yield current_app_process.executor
-        except RuntimeError:
-            logging.info(
-                "The main pool executor isn't being reused. This is only expected in test or debugging situations."
-            )
-            new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
-            yield new_executor
+            try:
+                current_app_process = writer.core.get_app_process()
+                executor = current_app_process.executor
+            except RuntimeError:
+                logging.info(
+                    "The main pool executor isn't being reused. This is only expected in test or debugging situations."
+                )
+                new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
+                executor = new_executor
+
+            yield executor
         finally:
             if new_executor:
                 new_executor.shutdown()
@@ -148,7 +157,13 @@ class BlueprintRunner:
         return hashed_id
 
     def _summarize_data_for_log(self, data):
-        data = copy.deepcopy(data)
+        """Convert arbitrary data into a log friendly representation."""
+
+        try:
+            data = copy.deepcopy(data)
+        except Exception:  # pragma: no cover - best effort defensive code
+            logging.debug("Couldn't deepcopy data for log entry", exc_info=True)
+
         MAX_ROWS = 100
         if isinstance(data, list):
             return [self._summarize_data_for_log(item) for item in data[:MAX_ROWS]]
@@ -158,12 +173,9 @@ class BlueprintRunner:
                 for i, (k, v) in enumerate(data.items())
                 if i < MAX_ROWS
             }
-        if isinstance(data, list):
-            return [self._summarize_data_for_log(item) for item in data]
-        if isinstance(data, dict):
-            return {k: self._summarize_data_for_log(v) for k, v in data.items()}
         if isinstance(data, (str, int, float, bool, type(None))):
             return data
+
         try:
             return json.loads(json.dumps(data))
         except (TypeError, OverflowError):
@@ -204,7 +216,7 @@ class BlueprintRunner:
                     "result": self._summarize_data_for_log(tool.result),
                     "returnValue": self._summarize_data_for_log(tool.return_value),
                     "executionEnvironment": self._summarize_data_for_log(
-                        tool.execution_environment
+                        getattr(tool, "execution_environment_snapshot", None)
                     ),
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
@@ -403,5 +415,8 @@ class BlueprintRunner:
             raise e
         finally:
             tool.execution_time_in_seconds = time.time() - start_time
+            tool.execution_environment_snapshot = copy.deepcopy(
+                tool.execution_environment
+            )
 
         return tool
