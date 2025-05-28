@@ -82,7 +82,7 @@ class BasicAuth(Auth):
     >>>     login=os.getenv('LOGIN'),
     >>>     password=os.getenv('PASSWORD'),
     >>>     delay_after_failure=5,
-    >>>     block_webserver_after_failure=False
+    >>>     block_user_after_failure=False
     >>> )
     """
     login: str
