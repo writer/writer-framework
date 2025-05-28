@@ -99,36 +99,41 @@ function alterIds(components: Component[]) {
 }
 
 async function handleAutogen() {
-        const description = prompt.value;
-        isBusy.value = true;
-        tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
+	const description = prompt.value;
+	isBusy.value = true;
+	tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
 
-        try {
-                const response = await fetch(convertAbsolutePathtoFullURL("/api/autogen"), {
-                        method: "POST",
-                        headers: {
-                                "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ description }),
-                });
+	try {
+		const response = await fetch(
+			convertAbsolutePathtoFullURL("/api/autogen"),
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ description }),
+			},
+		);
 
-                if (!response.ok) {
-                        const reason = await response.text().catch(() => response.statusText);
-                        window.alert(`Autogen failed: ${reason}`);
-                        return;
-                }
+		if (!response.ok) {
+			const reason = await response
+				.text()
+				.catch(() => response.statusText);
+			window.alert(`Autogen failed: ${reason}`);
+			return;
+		}
 
-                const data = await response.json(); // Assuming the response is JSON
+		const data = await response.json(); // Assuming the response is JSON
 
-                const components: Component[] = alterIds(data.blueprint?.components);
-                emits("blockGeneration", { components });
+		const components: Component[] = alterIds(data.blueprint?.components);
+		emits("blockGeneration", { components });
 
-                tracking.track("blueprints_auto_gen_completed");
-        } catch (error) {
-                window.alert(`Autogen failed: ${error}`);
-        } finally {
-                isBusy.value = false;
-        }
+		tracking.track("blueprints_auto_gen_completed");
+	} catch (error) {
+		window.alert(`Autogen failed: ${error}`);
+	} finally {
+		isBusy.value = false;
+	}
 }
 </script>
 
