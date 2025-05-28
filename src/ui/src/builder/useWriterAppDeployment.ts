@@ -1,21 +1,15 @@
 import { WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
-import {
-	computed,
-	onMounted,
-	onUnmounted,
-	readonly,
-	ref,
-	shallowRef,
-	watch,
-} from "vue";
+import { computed, onMounted, readonly, ref, shallowRef, watch } from "vue";
 import { useToasts } from "@/builder/useToast";
 import { useLogger } from "@/composables/useLogger";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useDebouncer } from "@/composables/useDebouncer";
+import { useAbortController } from "@/composables/useAbortController";
 
 export function useWriterAppDeployment(wf: Core) {
-	const abort = new AbortController();
+	const abort = useAbortController();
 
 	const tracking = useWriterTracking(wf);
 
@@ -23,11 +17,48 @@ export function useWriterAppDeployment(wf: Core) {
 	const { pushToast } = useToasts();
 	const { writerApi, apiBaseUrl } = useWriterApi({ signal: abort.signal });
 
+	const root = computed(() => wf.getComponentById("root"));
 	const isDeploying = ref(false);
 	const deployError = shallowRef();
 	const deploymentInformation = shallowRef<
 		WriterApiApplicationDeployment | undefined
 	>();
+
+	const updateAppName = useDebouncer(async () => {
+		if (
+			wf.isWriterCloudApp.value &&
+			wf.mode.value === "edit" &&
+			!lastDeployedAt.value
+		) {
+			writerApi.updateApplicationMetadata(
+				wf.writerOrgId.value,
+				wf.writerAppId.value,
+				{
+					name: name.value,
+				},
+			);
+		}
+		await wf.sendComponentUpdate();
+	}, 1_000);
+
+	const name = computed<string>({
+		get: () => {
+			return root.value.content["appName"];
+		},
+		set: (value) => {
+			if (root.value.content["appName"] === value) return;
+			root.value.content["appName"] = value;
+			updateAppName();
+		},
+	});
+
+	watch(() => root.value.content["appName"], updateAppName);
+	watch(deploymentInformation, () => {
+		const deployName = deploymentInformation.value?.name;
+
+		if (deployName === undefined) return;
+		name.value = deployName;
+	});
 
 	const liveUrl = computed(() => {
 		const teamId = deploymentInformation.value.writer?.teamIds?.[0];
@@ -45,7 +76,7 @@ export function useWriterAppDeployment(wf: Core) {
 	});
 
 	const lastDeployedAt = computed(() => {
-		return deploymentInformation.value.lastDeployedAt
+		return deploymentInformation.value?.lastDeployedAt
 			? new Date(deploymentInformation.value.lastDeployedAt)
 			: undefined;
 	});
@@ -135,9 +166,8 @@ export function useWriterAppDeployment(wf: Core) {
 		}
 	}
 
-	onUnmounted(() => abort.abort());
-
 	return {
+		name,
 		canDeploy,
 		writerDeployUrl,
 		hasBeenPublished,
