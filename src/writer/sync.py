@@ -3,20 +3,22 @@ import asyncio
 import os
 import shutil
 import stat
+import tempfile
 import threading
 import time
-import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Set
+from threading import Timer
+from typing import Any, Dict, List, Optional, Set
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.api import BaseObserver
 
 
 class OperationQueues:
-    def __init__(self):
+    def __init__(self) -> None:
         self.files_to_update: Dict[str, str] = {}  # Maps dest paths to their source paths
         self.files_to_delete: Set[str] = set()
         self.dirs_to_create: Set[str] = set()
@@ -41,7 +43,7 @@ class OperationQueues:
 
 
 class FolderSyncHandler(FileSystemEventHandler):
-    def __init__(self, src_dir: str, dest_dir: str, verbose: bool, operation_queues: OperationQueues):
+    def __init__(self, src_dir: str, dest_dir: str, verbose: bool, operation_queues: OperationQueues) -> None:
         self.src_dir = Path(src_dir).resolve()
         self.dest_dir = Path(dest_dir).resolve()
         self.verbose = verbose
@@ -96,7 +98,7 @@ class FolderSyncHandler(FileSystemEventHandler):
 
 
 class FileBuffering:
-    def __init__(self, dest_dir: str, verbose: bool = False, interval: int = 10):
+    def __init__(self, dest_dir: str, verbose: bool = False, interval: int = 10) -> None:
         self.path = tempfile.mkdtemp()
         self.src_dir = Path(self.path).resolve()
         self.dest_dir = Path(dest_dir).resolve()
@@ -104,8 +106,8 @@ class FileBuffering:
         self.sync_interval = interval
         self.operation_queues = OperationQueues()
         self.is_sync_in_progress = False
-        self.observer = None
-        self.sync_timer = None
+        self.observer: Optional[BaseObserver] = None
+        self.sync_timer: Optional[Timer] = None
         self.running = False
 
     def log(self, *args) -> None:
@@ -164,7 +166,7 @@ class FileBuffering:
             else:
                 path_obj.unlink()
 
-    def init(self):
+    def init(self) -> None:
         """Initialize by copying all files from destination to source directory."""
         self.log(f"Initializing: copying files from {self.dest_dir} to {self.src_dir}")
         
@@ -200,7 +202,7 @@ class FileBuffering:
         copy_recursively()
         self.log("Initialization complete. All files copied to temporary directory.")
         
-    def initial_sync(self):
+    def initial_sync(self) -> None:
         self.log("Starting initial sync...")
         
         def sync_recursively(relative: str = ""):
@@ -294,7 +296,8 @@ class FileBuffering:
         
         # Schedule next processing
         self.sync_timer = threading.Timer(self.sync_interval, self.schedule_batch_processing)
-        self.sync_timer.start()
+        if self.sync_timer:  # This check is redundant but satisfies mypy
+            self.sync_timer.start()
 
     def get_all_files(self, directory: str, base_dir: str) -> Dict[str, str]:
         files = {}
@@ -324,8 +327,8 @@ class FileBuffering:
                 print(f"Error comparing files {file1} and {file2}: {e}")
             return False
 
-    def compare_directories(self, dir1: str, dir2: str, verbose: bool = False):
-        divergent_files = []
+    def compare_directories(self, dir1: str, dir2: str, verbose: bool = False) -> List[Dict[str, str]]:
+        divergent_files: List[Dict[str, str]] = []
         
         def log_verbose(*args):
             if verbose:
@@ -377,8 +380,9 @@ class FileBuffering:
         """
         handler = FolderSyncHandler(str(self.src_dir), str(self.dest_dir), self.verbose, self.operation_queues)
         self.observer = Observer()
-        self.observer.schedule(handler, str(self.src_dir), recursive=True)
-        self.observer.start()
+        if self.observer:  # This check is redundant but satisfies mypy
+            self.observer.schedule(handler, str(self.src_dir), recursive=True)
+            self.observer.start()
         
         print(f"Watching for changes in {self.src_dir}...")
         print(f"Files will be synchronized every {self.sync_interval} seconds")
@@ -388,7 +392,8 @@ class FileBuffering:
         self.schedule_batch_processing()
 
     async def run(self) -> None:
-        await self.initial_sync()
+        # Call initial_sync without awaiting it since it's not an async function
+        self.initial_sync()
         self.watch_changes()
         
         try:
