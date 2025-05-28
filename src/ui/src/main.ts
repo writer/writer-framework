@@ -7,7 +7,10 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
+import { useWriterApi } from "./composables/useWriterApi.js";
+import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
+import { CollaborationManager } from "./writerTypes.js";
 
 const wf = generateCore();
 
@@ -22,12 +25,19 @@ const logger = useLogger();
 
 async function load() {
 	await wf.init();
+
 	const mode = wf.mode.value;
 	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
 	const notesManager = useNotesManager(wf, wfbm);
+	const collaborationManager =
+		mode == "edit" ? useCollaborationManager(wf) : undefined;
 
 	if (wfbm) {
 		wf.addMailSubscription("logEntry", wfbm.handleLogEntry);
+		wf.addCollaborationPingSubscription(
+			collaborationManager.handleIncomingCollaborationUpdate,
+		);
+
 		// eslint-disable-next-line no-undef
 		globalThis.wfbm = wfbm;
 	}
@@ -44,9 +54,29 @@ async function load() {
 	app.provide(injectionKeys.core, wf);
 	app.provide(injectionKeys.builderManager, wfbm);
 	app.provide(injectionKeys.notesManager, notesManager);
+	app.provide(injectionKeys.collaborationManager, collaborationManager);
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");
+
+	if (wf.isWriterCloudApp.value && collaborationManager) {
+		await enableCollaboration(collaborationManager);
+	}
+}
+
+async function enableCollaboration(collaborationManager: CollaborationManager) {
+	const { writerApi } = useWriterApi();
+	const writerProfile = await writerApi.fetchUserProfile();
+	collaborationManager.updateOutgoingPing({
+		userId: writerProfile.id.toString(),
+		action: "join",
+	});
+	collaborationManager.sendCollaborationPing();
+	collaborationManager.groomSnapshot();
+	window.addEventListener("beforeunload", function () {
+		collaborationManager.updateOutgoingPing({ action: "leave" });
+		collaborationManager.sendCollaborationPing();
+	});
 }
 
 logger.log("Initialising core...");

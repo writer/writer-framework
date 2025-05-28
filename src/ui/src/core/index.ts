@@ -9,6 +9,7 @@ import {
 	MailItem,
 	SourceFiles,
 	UserFunction,
+	UserCollaborationPing,
 } from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
@@ -63,6 +64,8 @@ export function generateCore() {
 	> = ref(new Map());
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
+	const collaborationPingSubscriptions: { fn: Function }[] = [];
+
 	const activePageId: Ref<Component["id"]> = ref(null);
 
 	const writerOrgId = computed(
@@ -231,6 +234,16 @@ export function generateCore() {
 
 			if (
 				message.messageType == "announcement" &&
+				message.payload.type == "collaborationUpdate"
+			) {
+				collaborationPingSubscriptions.forEach((ps) =>
+					ps.fn(message.payload.payload),
+				);
+				return;
+			}
+
+			if (
+				message.messageType == "announcement" &&
 				message.payload.type == "componentUpdate"
 			) {
 				const cmc = {};
@@ -325,6 +338,10 @@ export function generateCore() {
 		});
 	}
 
+	function addCollaborationPingSubscription(fn: Function) {
+		collaborationPingSubscriptions.push({ fn });
+	}
+
 	function addMailSubscription(mailType: string, fn: Function) {
 		mailSubscriptions.push({ mailType, fn });
 		collateMail();
@@ -379,6 +396,22 @@ export function generateCore() {
 		});
 
 		sendFrontendMessage("event", messagePayload, callback, true);
+	}
+
+	async function sendCollaborationPing(
+		ping: UserCollaborationPing,
+	): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: {
+				ok: boolean;
+				payload?: Record<string, any>;
+			}) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				resolve();
+			};
+
+			sendFrontendMessage("collaborationPing", ping, messageCallback);
+		});
 	}
 
 	/**
@@ -784,6 +817,7 @@ export function generateCore() {
 		userFunctions: readonly(userFunctions),
 		addMailSubscription,
 		removeMailSubscription,
+		addCollaborationPingSubscription,
 		init,
 		forwardEvent,
 		hashMessage,
@@ -797,6 +831,7 @@ export function generateCore() {
 		requestSourceFileLoading,
 		sendListResourcesRequest,
 		sendComponentUpdate,
+		sendCollaborationPing,
 		addComponent,
 		deleteComponent,
 		getComponentById,

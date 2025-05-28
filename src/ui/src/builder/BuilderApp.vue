@@ -46,6 +46,9 @@
 		<!-- INSTANCE TRACKERS -->
 
 		<template v-if="builderMode !== 'preview'">
+			<BuilderCollaborationTracker
+				class="collaborationTracker"
+			></BuilderCollaborationTracker>
 			<template v-if="candidateId && !isCandidacyConfirmed">
 				<BuilderInstanceTracker
 					:key="candidateInstancePath"
@@ -110,6 +113,7 @@ import {
 	inject,
 	onMounted,
 	onUnmounted,
+	watch,
 	useTemplateRef,
 } from "vue";
 import { useDragDropComponent } from "./useDragDropComponent";
@@ -126,6 +130,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
+import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 
 const BuilderSettings = defineAsyncComponent({
@@ -152,6 +157,7 @@ const BuilderInsertionLabel = defineAsyncComponent({
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
+const collaborationManager = inject(injectionKeys.collaborationManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
@@ -392,12 +398,24 @@ function handleRendererDragEnd(ev: DragEvent) {
 
 const abort = new AbortController();
 
+watch(ssbm.selection, () => {
+	if (!collaborationManager) return;
+	collaborationManager.updateOutgoingPing({
+		action: "select",
+		selection: ssbm.selection.value,
+	});
+	collaborationManager.sendCollaborationPing();
+});
+
 onMounted(() => {
 	document.addEventListener("keydown", handleKeydown, {
 		signal: abort.signal,
 	});
 });
-onUnmounted(() => abort.abort());
+
+onUnmounted(() => {
+	abort.abort();
+});
 </script>
 
 <style scoped>
@@ -516,7 +534,7 @@ onUnmounted(() => abort.abort());
 	grid-row: 3;
 }
 
-.shortcutsTracker,
+.collaborationTracker,
 .insertionLabelTracker {
 	z-index: 3;
 }

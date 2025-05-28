@@ -53,6 +53,7 @@
 					</p>
 				</WdsModal>
 			</WdsButton>
+			<BuilderHeaderConnected></BuilderHeaderConnected>
 			<WdsStateDot
 				:state="stateDotState"
 				:data-writer-tooltip="syncHealthStatus"
@@ -80,6 +81,7 @@ import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
 
 const wf = inject(injectionKeys.core);
 

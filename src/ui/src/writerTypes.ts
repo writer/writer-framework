@@ -1,8 +1,9 @@
 import type { Component as VueComponent } from "vue";
 import { generateCore } from "./core";
-import { generateBuilderManager } from "./builder/builderManager";
+import { generateBuilderManager, Selection } from "./builder/builderManager";
 import type { SchemaObject } from "ajv";
 import type { useNotesManager } from "./core/useNotesManager";
+import type { useCollaborationManager } from "./composables/useCollaborationManager";
 
 export type Core = ReturnType<typeof generateCore>;
 
@@ -69,9 +70,9 @@ export type WriterComponentDefinitionField = {
 	/** Which control (text, textarea, etc) to use if not the default for the type */
 	control?: FieldControl;
 	options?:
-		| Record<string, string>
-		| string // For predefined functions
-		| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
+	| Record<string, string>
+	| string // For predefined functions
+	| ((wf?: Core, componentId?: ComponentId) => Record<string, string>); // List of values to be provided as autocomplete options
 	/** Data type for the field */
 	type: FieldType;
 	/** Category (Layout, Content, etc) */
@@ -126,6 +127,8 @@ export type WriterComponentDefinition = {
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
 
 export type NotesManager = ReturnType<typeof useNotesManager>;
+
+export type CollaborationManager = ReturnType<typeof useCollaborationManager>;
 
 export const enum FieldType {
 	Text = "Text",
@@ -233,6 +236,15 @@ export type WriterApplication = {
 	type: string;
 	status: string;
 	organization_id?: string;
+};
+
+export type UserCollaborationPing = {
+	action: "join" | "select" | "leave" | "auto";
+	userId: string;
+	time: Date;
+	selection?: Selection;
+	x?: number;
+	y?: number;
 };
 
 export type WriterModel = {

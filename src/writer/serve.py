@@ -582,11 +582,10 @@ def get_asgi_app(
             await app_runner.queue_announcement_async(
                 "componentUpdate", req_message.payload["components"], session_id
             )
-        elif req_message.type == "collaborationUpdate":
-            pass
-            # await app_runner.queue_announcement_async(
-            #     "collaborationAnnouncement", req_message.payload, exclude_session_id=session_id
-            # )
+        elif req_message.type == "collaborationPing":
+            await app_runner.queue_announcement_async(
+                "collaborationUpdate", req_message.payload, exclude_session_id=session_id
+            )
         elif req_message.type == "codeSaveRequest":
             app_runner.save_code(
                 session_id, req_message.payload["code"], req_message.payload["path"]

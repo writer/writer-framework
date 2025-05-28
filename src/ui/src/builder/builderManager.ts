@@ -60,6 +60,12 @@ type LogEntry = LogEntryContents & {
 
 type SelectionSource = "click" | "tree" | "log";
 
+export type Selection = {
+	componentId: Component["id"];
+	instancePath: string;
+	source: SelectionSource;
+}[];
+
 export const enum SelectionStatus {
 	None = 0,
 	Single = 1,
@@ -68,11 +74,7 @@ export const enum SelectionStatus {
 
 type State = {
 	mode: "ui" | "blueprints" | "preview";
-	selection: {
-		componentId: Component["id"];
-		instancePath: string;
-		source: SelectionSource;
-	}[];
+	selection: Selection;
 	mutationTransactionsSnapshot: {
 		undo: ComponentMutationTransaction;
 		redo: ComponentMutationTransaction;
@@ -156,11 +158,14 @@ export function generateBuilderManager() {
 				componentFirstElement?.dataset.writerInstancePath;
 		}
 
-		state.value.selection.push({
-			componentId,
-			instancePath: resolvedInstancePath,
-			source,
-		});
+		state.value.selection = [
+			...state.value.selection,
+			{
+				componentId,
+				instancePath: resolvedInstancePath,
+				source,
+			},
+		];
 	};
 
 	const handleSelectionFromEvent = (

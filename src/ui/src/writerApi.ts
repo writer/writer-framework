@@ -188,6 +188,17 @@ export class WriterApi {
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
+
+	async fetchThirdUserProfile(userId: string): Promise<WriterApiThirdUserProfile> {
+		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
+		const res = await fetch(url, {
+			signal: this.#signal,
+			credentials: "include",
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
 }
 
 export type WriterApiUser = Pick<
@@ -312,4 +323,13 @@ export type WriterApiUserProfile = {
 	createdAt: string;
 	authType: string;
 	billingGroupName: null;
+};
+
+export type WriterApiThirdUserProfile = {
+	id: number;
+	firstName: string;
+	lastName: string;
+	fullName: string;
+	email: string;
+	avatar: null | string;
 };
