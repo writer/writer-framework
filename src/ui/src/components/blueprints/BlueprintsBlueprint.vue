@@ -112,7 +112,11 @@
 </template>
 
 <script lang="ts">
-import { type Component, FieldType } from "@/writerTypes";
+import {
+	type Component,
+	FieldType,
+	type WriterComponentDefinition,
+} from "@/writerTypes";
 import BlueprintArrow from "./base/BlueprintArrow.vue";
 import { watch } from "vue";
 import BlueprintNavigator from "./base/BlueprintNavigator.vue";
@@ -123,6 +127,7 @@ import { useLogger } from "@/composables/useLogger";
 import { mathCeilToMultiple } from "@/utils/math";
 import { WdsColor } from "@/wds/tokens";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { buildValidatorBlueprintKeyUniq } from "@/constants/validators";
 
 const { log } = useLogger();
 
@@ -144,9 +149,10 @@ export default {
 				name: "Blueprint key",
 				desc: "Unique identifier. It's needed to enable navigation to this Blueprint.",
 				type: FieldType.IdKey,
+				validator: buildValidatorBlueprintKeyUniq,
 			},
 		},
-	},
+	} satisfies WriterComponentDefinition,
 };
 
 export type BlueprintArrowData = {

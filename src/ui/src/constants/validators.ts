@@ -1,6 +1,8 @@
 import injectionKeys from "@/injectionKeys";
+import type { Core } from "@/writerTypes";
 import Ajv, { Format, type SchemaObject } from "ajv";
 import { inject } from "vue";
+import AjvErrors from "ajv-errors";
 
 export enum ValidatorCustomFormat {
 	/**
@@ -55,6 +57,31 @@ export const validatorCssSize: SchemaObject = {
 	type: "string",
 	format: ValidatorCustomFormat.CssSize,
 };
+
+export function buildValidatorBlueprintKeyUniq(
+	core: Core,
+	componentId: string,
+): SchemaObject | undefined {
+	const blueprintKeys = core
+		.getComponents()
+		.filter(
+			(c) =>
+				c.type === "blueprints_blueprint" &&
+				c.id !== componentId &&
+				c.content?.key,
+		)
+		.map((c) => c.content.key);
+
+	if (blueprintKeys.length === 0) return undefined;
+
+	return {
+		type: "string",
+		not: {
+			enum: [...new Set(blueprintKeys)],
+		},
+		errorMessage: "Must be unique",
+	};
+}
 
 export const validatorArrayOfString: SchemaObject = {
 	$id: generateSchemaId("arrayOfString"),
@@ -177,7 +204,9 @@ export const validatorUri: SchemaObject = {
 export const ajv = new Ajv({
 	strict: true,
 	allowUnionTypes: true,
+	allErrors: true,
 });
+AjvErrors(ajv);
 
 /**
  * Compile and cache schema on demand
