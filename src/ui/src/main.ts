@@ -7,7 +7,6 @@ import "./fonts";
 import injectionKeys from "./injectionKeys";
 import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
-import { useApplicationCloud } from "./composables/useApplicationCloud";
 import { useWriterApi } from "./composables/useWriterApi.js";
 import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
@@ -60,8 +59,7 @@ async function load() {
 
 	app.mount("#app");
 
-	const { isCloudApp } = useApplicationCloud(wf);
-	if (isCloudApp && collaborationManager) {
+	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager);
 	}
 }
