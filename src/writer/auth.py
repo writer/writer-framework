@@ -82,7 +82,7 @@ class BasicAuth(Auth):
     >>>     login=os.getenv('LOGIN'),
     >>>     password=os.getenv('PASSWORD'),
     >>>     delay_after_failure=5,
-    >>>     block_webserver_after_failure=False
+    >>>     block_user_after_failure=False
     >>> )
     """
     login: str
@@ -405,6 +405,11 @@ def _client_ip(request: Request) -> str:
         ip = x_forwarded_for.split(",")[0].strip()
     else:
         # Otherwise, use the direct connection IP
-        ip = request.headers.get("X-Real-IP", request.client.host)  # type: ignore
+        x_real_ip = request.headers.get("X-Real-IP")
+        if x_real_ip is not None:
+            ip = x_real_ip
+        else:
+            client = request.client
+            ip = client.host if client is not None else ""
 
     return ip

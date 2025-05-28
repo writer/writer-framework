@@ -393,11 +393,11 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
                     content = load_persisted_script(relative_path)
                     extension = os.path.splitext(relative_path)[1]
                     # limit only the first 100 characters to limit bandwidth usage, the rest will be lazy loaded
-                    exerpt = content if extension == '.py' else content[0:100]
+                    excerpt = content if extension == '.py' else content[0:100]
                     current_level["children"][part] = {
                         "type": "file",
-                        "content": exerpt,
-                        "complete": exerpt == content,
+                        "content": excerpt,
+                        "complete": excerpt == content,
                     }
                 except UnicodeDecodeError:
                     # TODO: get mimetype

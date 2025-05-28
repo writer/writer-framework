@@ -43,7 +43,7 @@ const screenEl = useTemplateRef("screenEl");
 	background: var(--builderBackgroundColor);
 	grid-template-rows: 48px;
 	grid-template-columns: 1fr;
-	z-index: 1; /* makes sure it's on top of `.ComponentRenderer` */
+	z-index: 2; /* makes sure it's on top of `.ComponentRenderer` */
 }
 
 .BuilderPanelSwitcher.openPanels {

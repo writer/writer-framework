@@ -1,21 +1,15 @@
 import { WriterApiApplicationDeployment } from "@/writerApi";
 import { Core } from "@/writerTypes";
-import {
-	computed,
-	onMounted,
-	onUnmounted,
-	readonly,
-	ref,
-	shallowRef,
-	watch,
-} from "vue";
-import { useLogger } from "./useLogger";
+import { computed, onMounted, readonly, ref, shallowRef, watch } from "vue";
 import { useToasts } from "@/builder/useToast";
-import { useWriterApi } from "./useWriterApi";
-import { useWriterTracking } from "./useWriterTracking";
+import { useLogger } from "@/composables/useLogger";
+import { useWriterApi } from "@/composables/useWriterApi";
+import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useDebouncer } from "@/composables/useDebouncer";
+import { useAbortController } from "@/composables/useAbortController";
 
-export function useApplicationCloud(wf: Core) {
-	const abort = new AbortController();
+export function useWriterAppDeployment(wf: Core) {
+	const abort = useAbortController();
 
 	const tracking = useWriterTracking(wf);
 
@@ -23,41 +17,72 @@ export function useApplicationCloud(wf: Core) {
 	const { pushToast } = useToasts();
 	const { writerApi, apiBaseUrl } = useWriterApi({ signal: abort.signal });
 
+	const root = computed(() => wf.getComponentById("root"));
 	const isDeploying = ref(false);
 	const deployError = shallowRef();
 	const deploymentInformation = shallowRef<
 		WriterApiApplicationDeployment | undefined
 	>();
 
-	const isCloudApp = computed(() => wf.writerApplication.value !== undefined);
-	const orgId = computed(() => {
-		return Number(wf.writerApplication.value?.organizationId) || undefined;
+	const updateAppName = useDebouncer(async () => {
+		if (
+			wf.isWriterCloudApp.value &&
+			wf.mode.value === "edit" &&
+			!lastDeployedAt.value
+		) {
+			writerApi.updateApplicationMetadata(
+				wf.writerOrgId.value,
+				wf.writerAppId.value,
+				{
+					name: name.value,
+				},
+			);
+		}
+		await wf.sendComponentUpdate();
+	}, 1_000);
+
+	const name = computed<string>({
+		get: () => {
+			return root.value.content["appName"];
+		},
+		set: (value) => {
+			if (root.value.content["appName"] === value) return;
+			root.value.content["appName"] = value;
+			updateAppName();
+		},
 	});
-	const appId = computed(() => wf.writerApplication.value?.id);
+
+	watch(() => root.value.content["appName"], updateAppName);
+	watch(deploymentInformation, () => {
+		const deployName = deploymentInformation.value?.name;
+
+		if (deployName === undefined) return;
+		name.value = deployName;
+	});
 
 	const liveUrl = computed(() => {
 		const teamId = deploymentInformation.value.writer?.teamIds?.[0];
 		if (!teamId) return undefined;
-		const path = `/organization/${orgId.value}/team/${teamId}/framework/${appId.value}`;
+		const path = `/organization/${wf.writerOrgId.value}/team/${teamId}/framework/${wf.writerAppId.value}`;
 		return new URL(path, apiBaseUrl);
 	});
 
 	const writerDeployUrl = computed(() => {
-		if (!orgId.value || !appId.value) return;
+		if (!wf.writerOrgId.value || !wf.writerAppId.value) return;
 		return new URL(
-			`/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`,
+			`/aistudio/organization/${wf.writerOrgId.value}/agent/${wf.writerAppId.value}/deploy`,
 			apiBaseUrl,
 		);
 	});
 
 	const lastDeployedAt = computed(() => {
-		return deploymentInformation.value.lastDeployedAt
+		return deploymentInformation.value?.lastDeployedAt
 			? new Date(deploymentInformation.value.lastDeployedAt)
 			: undefined;
 	});
 
 	const canDeploy = computed(() =>
-		Boolean(isCloudApp.value && deploymentInformation.value),
+		Boolean(wf.isWriterCloudApp.value && deploymentInformation.value),
 	);
 
 	const hasBeenPublished = computed(() => {
@@ -87,8 +112,8 @@ export function useApplicationCloud(wf: Core) {
 		try {
 			deploymentInformation.value =
 				await writerApi.fetchApplicationDeployment(
-					orgId.value,
-					appId.value,
+					wf.writerOrgId.value,
+					wf.writerAppId.value,
 				);
 		} catch (e) {
 			logger.error("Failed to fetch deployment information", e);
@@ -100,7 +125,7 @@ export function useApplicationCloud(wf: Core) {
 		if (!wf.writerApplication.value) return;
 
 		if (!hasBeenPublished.value) {
-			const path = `/aistudio/organization/${orgId.value}/agent/${appId.value}/deploy`;
+			const path = `/aistudio/organization/${wf.writerOrgId.value}/agent/${wf.writerAppId.value}/deploy`;
 			const deployUrl = new URL(path, apiBaseUrl);
 			window.open(deployUrl, "_blank");
 			return;
@@ -110,12 +135,16 @@ export function useApplicationCloud(wf: Core) {
 		deployError.value = undefined;
 
 		try {
-			await writerApi.publishApplication(orgId.value, appId.value, {
-				applicationVersionId:
-					deploymentInformation.value.applicationVersion.id,
-				applicationVersionDataId:
-					deploymentInformation.value.applicationVersionData.id,
-			});
+			await writerApi.publishApplication(
+				wf.writerOrgId.value,
+				wf.writerAppId.value,
+				{
+					applicationVersionId:
+						deploymentInformation.value.applicationVersion.id,
+					applicationVersionDataId:
+						deploymentInformation.value.applicationVersionData.id,
+				},
+			);
 			await fetchApplicationDeployment();
 			const action = liveUrl.value
 				? {
@@ -137,11 +166,8 @@ export function useApplicationCloud(wf: Core) {
 		}
 	}
 
-	onUnmounted(() => abort.abort());
-
 	return {
-		orgId,
-		isCloudApp,
+		name,
 		canDeploy,
 		writerDeployUrl,
 		hasBeenPublished,

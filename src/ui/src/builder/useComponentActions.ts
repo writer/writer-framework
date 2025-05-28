@@ -2,6 +2,7 @@ import type { useWriterTracking } from "@/composables/useWriterTracking";
 import { getContainableTypes } from "../core/typeHierarchy";
 import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
 import { useComponentClipboard } from "./useComponentClipboard";
+import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 
 export function useComponentActions(
 	wf: Core,
@@ -347,7 +348,7 @@ export function useComponentActions(
 	 * Whether a target component is the root
 	 */
 	function isRoot(targetId: Component["id"]): boolean {
-		return targetId == "root";
+		return COMPONENT_TYPES_ROOT.has(targetId);
 	}
 
 	/**

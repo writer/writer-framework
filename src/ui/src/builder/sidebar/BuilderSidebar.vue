@@ -20,7 +20,7 @@
 					@click="changeActivePane('add')"
 				/>
 				<BuilderSidebarButton
-					v-if="isCloudApp"
+					v-if="wf.isWriterCloudApp.value"
 					icon="comment"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`${paneTitles.notes}`"
@@ -137,8 +137,6 @@ const emits = defineEmits({
 	activePaneChanged: (value: Pane | undefined) =>
 		value === undefined || typeof value === "string",
 });
-
-const isCloudApp = computed(() => Boolean(wf.writerApplication.value));
 
 const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, wfbm);

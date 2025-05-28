@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { readonly, ref, Ref, shallowRef, toRaw } from "vue";
+import { computed, readonly, ref, Ref, shallowRef, toRaw } from "vue";
 import {
 	AbstractTemplate,
 	Component,
@@ -67,6 +67,14 @@ export function generateCore() {
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
 
 	const activePageId: Ref<Component["id"]> = ref(null);
+
+	const writerOrgId = computed(
+		() => Number(writerApplication.value?.organizationId) || undefined,
+	);
+	const writerAppId = computed(() => writerApplication.value?.id);
+	const isWriterCloudApp = computed(() =>
+		Boolean(writerAppId.value || writerOrgId.value),
+	);
 
 	/**
 	 * Initialise the core.
@@ -839,7 +847,11 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
+		// writer cloud variables
 		writerApplication: readonly(writerApplication),
+		isWriterCloudApp,
+		writerOrgId,
+		writerAppId,
 	};
 
 	return core;

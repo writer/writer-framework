@@ -74,6 +74,10 @@ import BuilderTree from "../BuilderTree.vue";
 import { useComponentsTreeSearchForComponent } from "./composables/useComponentsTreeSearch";
 import { useComponentDescription } from "../useComponentDescription";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import {
+	COMPONENT_TYPES_ROOT,
+	COMPONENT_TYPES_TOP_LEVEL,
+} from "@/constants/component";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -102,13 +106,6 @@ const emit = defineEmits(["expandBranch"]);
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
 const component = computed(() => wf.getComponentById(props.componentId));
-
-const COMPONENT_TYPES_ROOT = new Set(["root", "blueprints_root"]);
-const COMPONENT_TYPES_TOP_LEVEL = new Set([
-	...COMPONENT_TYPES_ROOT,
-	"page",
-	"blueprints_blueprint",
-]);
 
 const { hasMatchingChildren, matched } = useComponentsTreeSearchForComponent(
 	wf,

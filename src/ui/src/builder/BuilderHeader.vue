@@ -11,6 +11,13 @@
 			</a>
 			<img v-else src="../assets/logo.svg" alt="Writer Framework logo" />
 			<hr />
+			<input
+				v-if="wf.isWriterCloudApp.value"
+				v-model="applicationName"
+				type="text"
+				:disabled="!!lastDeployedAt"
+				class="BuilderHeader__logo__appTitle"
+			/>
 		</div>
 		<BuilderSwitcher class="BuilderHeader__switcher" />
 		<div class="BuilderHeader__toolbar">
@@ -71,7 +78,7 @@ import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
-import { useApplicationCloud } from "@/composables/useApplicationCloud";
+import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
@@ -89,7 +96,8 @@ const {
 	hasBeenPublished,
 	lastDeployedAt,
 	writerDeployUrl,
-} = useApplicationCloud(wf);
+	name: applicationName,
+} = useWriterAppDeployment(wf);
 
 const dateFormater = new Intl.DateTimeFormat(undefined, {
 	weekday: "long",
@@ -198,6 +206,25 @@ function showStateExplorer() {
 	text-decoration: none;
 	display: inline-flex;
 	align-items: center;
+}
+.BuilderHeader__logo__appTitle {
+	background-color: transparent;
+	width: 100%;
+	border: none;
+	font-weight: 500;
+	font-size: 16px;
+	border-radius: 4px;
+	padding: 4px;
+	height: 32px;
+	text-overflow: ellipsis;
+}
+.BuilderHeader__logo__appTitle:focus {
+	outline: none;
+}
+.BuilderHeader__logo__appTitle:not([disabled]):hover,
+.BuilderHeader__logo__appTitle:not([disabled]):focus {
+	outline: none;
+	background-color: var(--wdsColorGray5);
 }
 
 .BuilderHeader__toolbar {
