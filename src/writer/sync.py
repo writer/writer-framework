@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from threading import Timer
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -98,8 +98,8 @@ class FolderSyncHandler(FileSystemEventHandler):
 
 
 class FileBuffering:
-    def __init__(self, dest_dir: str, verbose: bool = False, interval: int = 10) -> None:
-        self.path = tempfile.mkdtemp()
+    def __init__(self, dest_dir: str, *, src_dir: Optional[str] = None, verbose: bool = False, interval: int = 10) -> None:
+        self.path = src_dir if src_dir is not None else tempfile.mkdtemp()
         self.src_dir = Path(self.path).resolve()
         self.dest_dir = Path(dest_dir).resolve()
         self.verbose = verbose

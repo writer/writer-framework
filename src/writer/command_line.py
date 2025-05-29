@@ -45,6 +45,7 @@ def run(path: str, host: str, port: Optional[int], enable_jobs_api: bool):
 @click.option('--enable-server-setup', help="Set this flag to enable server setup hook in edit mode.", is_flag=True)
 @click.option('--enable-file-buffering', help="Set this flag to enable file buffering in edit mode.", is_flag=True)
 @click.option('--buffer-sync-interval', default=10, type=int, help="Interval in seconds for synchronizing the file buffer.")
+@click.option('--buffer-path', default=None, type=str, help="Path to the file buffer directory. If not provided, a temporary directory will be used.")
 @click.option("--no-interactive", help="Set this flag to run the app without asking anything to the user.", is_flag=True)
 @click.option("--enable-jobs-api", help="Set this flag to enable the Jobs API, allowing you to execute jobs without user interaction.", is_flag=True)
 @click.option('--verbose', '-v', is_flag=True, help="Enable verbose output.")
@@ -57,6 +58,7 @@ def edit(
     enable_server_setup: bool,
     enable_file_buffering: bool,
     buffer_sync_interval: int,
+    buffer_path: Optional[str],
     no_interactive: bool,
     enable_jobs_api: bool,
     verbose: bool = False
@@ -67,6 +69,7 @@ def edit(
     if enable_file_buffering:
         buffer = FileBuffering(
             dest_dir=path,
+            src_dir=os.path.abspath(buffer_path) if buffer_path else None,
             verbose=verbose,
             interval=buffer_sync_interval,
         )
