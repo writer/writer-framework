@@ -33,6 +33,7 @@ const content = ref(notesManager.getNoteContent(props.component));
 			class="BuilderSidebarNoteForm__submit"
 			variant="secondary"
 			size="smallIcon"
+			:disabled="!content"
 			@click="$emit('submit', content)"
 		>
 			<span class="material-symbols-outlined">send</span>
