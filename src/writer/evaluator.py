@@ -227,6 +227,9 @@ class Evaluator:
             elif isinstance(context_ref, dict) and accessor in context_ref:
                 context_ref = context_ref.get(accessor)
                 result = context_ref
+            elif isinstance(context_ref, list) and context_ref[int(accessor)] is not None:
+                context_ref = context_ref[int(accessor)]
+                result = context_ref
 
         if isinstance(result, writer.core.StateProxy):
             return result.to_dict()
