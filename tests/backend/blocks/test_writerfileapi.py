@@ -1,3 +1,5 @@
+from datetime import datetime as dt
+
 import pytest
 from writer.blocks.writerfileapi import WriterUploadFile
 from writer.ss_types import WriterConfigurationError
@@ -11,7 +13,7 @@ class MockFile:
         self.id = "file-123"
         self.name = "myfile.pdf"
         self.status = "processed"
-        self.created_at = "2024-01-01T00:00:00Z"
+        self.created_at = dt.strptime("2024-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ")
         self.graph_ids = ["g1", "g2"]
 
 

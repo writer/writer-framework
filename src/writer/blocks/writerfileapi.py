@@ -73,7 +73,7 @@ class WriterUploadFile(WriterBlock):
                     "id": file.id,
                     "name": file.name,
                     "status": file.status,
-                    "created_at": file.created_at,
+                    "created_at": file.created_at.isoformat(),
                     "graph_ids": file.graph_ids
                 })
             if len(outputs) == 0:
