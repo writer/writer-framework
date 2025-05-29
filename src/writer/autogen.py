@@ -1,39 +1,53 @@
 import json
 import logging
-from typing import Dict, List, Optional, cast
+from collections import defaultdict
+from collections.abc import Mapping
+from copy import deepcopy
+from typing import Dict, List, Optional, Tuple
 
 from writerai import Writer
+from writerai.types.shared.tool_call import ToolCall
 
 import writer.abstract
+from writer.ss_types import AutogenState, ComponentDefinition
 
 client = Writer()
 MAX_ITERATIONS = 5
+TOOL_CALL_ORDER = ["generate_blueprint", "link_blocks"]
 
-
-def _validate_blueprint_nodes(nodes: List[Dict]) -> bool:
+def _validate_blueprint_nodes(nodes) -> Dict[str, Mapping]:
     if not nodes:
         raise ValueError("Blueprint must contain at least one node")
 
-    relationship_counts = {node.get("id"): 0 for node in nodes if node.get("id")}
     errors = []
-    graph = {}
+    id_to_node = {}
 
     for i, node in enumerate(nodes):
         node_id = node.get("id")
         if not node_id:
             errors.append(f"A node at index {i} is missing its id.")
             continue
-        if node_id in graph:
+        if node_id in id_to_node:
             errors.append(f"Node id {node_id} is duplicated.")
-        graph[node_id] = node
+        id_to_node[node_id] = node
 
-    for node in nodes:
-        node_id = node.get("id")
+    if errors:
+        raise ValueError(" | ".join(errors))
+
+    return id_to_node
+
+
+def _validate_blueprint_edges(id_to_node: Dict[str, Dict]) -> bool:
+    relationship_counts = {node: 0 for node in id_to_node}
+    errors = []
+
+    for node in id_to_node.values():
+        node_id = node["id"]
         outs = node.get("outs", [])
         for out in outs:
             to_node_id = out.get("toNodeId")
             relationship_counts[node_id] += 1
-            if to_node_id not in graph:
+            if to_node_id not in id_to_node:
                 errors.append(f"Node {node_id} connects to non-existent node {to_node_id}.")
             else:
                 relationship_counts[to_node_id] += 1
@@ -41,10 +55,9 @@ def _validate_blueprint_nodes(nodes: List[Dict]) -> bool:
     for node_id, count in relationship_counts.items():
         if count == 0:
             errors.append(
-                f"Block {node_id} has no incoming or outgoing edges. The block needs to connect to another block somehow."
+                f"Block {node_id} has no incoming or outgoing edges. The block needs to connect to another block somehow. Try using link_blocks tool"
             )
 
-    # Raise all errors at once
     if errors:
         raise ValueError(" | ".join(errors))
 
@@ -150,16 +163,47 @@ def _get_tools():
                     },
                 },
             },
-        }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "link_blocks",
+                "description": """
+                    Connect blocks from the generated blueprint to be after already existing blocks with ids from the <existing-blueprint>
+                """,
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["hg_id", "aig_id"],
+                        "description": "Link from an existing block with id=hg_id to a generated block with id=aig_id",
+                        "additionalProperties": False,
+                        "properties": {
+                            "hg_id": {
+                                "type": "string",
+                                "pattern": "^hg\\d+$",
+                                "description": "Id of the block in the <existing-blueprint>.",
+                            },
+                            "aig_id": {
+                                "type": "string",
+                                "pattern": "^aig\\d+$",
+                                "description": "Id of a generated block.",
+                            }
+                        }
+                    },
+                },
+            },
+        },
     ]
 
 
-def _get_main_prompt(description: str):
+def _get_main_prompt(description: str, components: dict):
     prompt = """
 <governing>
     You're using the Writer Agent Editor, a solution that combines reusable blocks to get to an outcome.
     The blocks are combined into a blueprint.
-    You make function calls to create blueprints.   
+    You make function calls to create blueprints.
+    If you can, reuse existing blocks under <existing-blueprint> and use link_blocks to link them to newly generated blocks.
 </governing>
 <examples>
     <example>
@@ -253,19 +297,179 @@ def _get_main_prompt(description: str):
     -----
     {description}
     </task>"""
+    prompt += f"""
+    <existing-blueprint>
+        {"\n".join([str({"id": component_id, **component_definition}) for component_id, component_definition in components.items()])}
+    </existing-blueprint>"""
     return prompt
 
-
-def generate_blueprint(description: str, token_header: Optional[str] = None):
-    prompt = _get_main_prompt(description)
-    messages = [
-        {
-            "role": "user",
-            "content": prompt,
+def _preprocess_components(components: Dict[str, ComponentDefinition]) -> Tuple[Dict, Dict[str, ComponentDefinition]]:
+    """
+    Processes components to make them more AI-friendly before passing them to Autogen.
+    Includes:
+      - swapping IDs to "^hg\\d+$"; we'll need to swap back, so returns the mapping;
+      - leaving only type and content.
+    """
+    preprocessed = {}
+    reverse_mapping: Dict[str, ComponentDefinition] = {}
+    for i, component_definition in enumerate(components.values()):
+        if not component_definition["type"].startswith("blueprints"):
+            continue
+        if component_definition["type"] in ["blueprints_blueprint", "blueprints_root"]:
+            continue
+        preprocessed[f"hg{i}"] = {
+            "type": component_definition["type"],
+            "content": component_definition["content"],
         }
-    ]
+        reverse_mapping[f"hg{i}"] = component_definition
+    return preprocessed, reverse_mapping
+
+def _decode_tool_args(tool_call: ToolCall, autogen_state: AutogenState) -> Optional[Dict]:
+    try:
+        return json.loads(tool_call.function.arguments, strict=False)
+    except json.JSONDecodeError:
+        autogen_state["messages"].append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "name": "link_blocks",
+            "content": "The JSON structure is incorrect. Please make sure you're abiding by the schema.",
+        })
+    return None
+
+def _process_generate_blueprint(tool_call: List[ToolCall], autogen_state: AutogenState
+) -> Optional[Dict[str, Mapping]]:
+    if not tool_call:
+        autogen_state["messages"].append({
+            "role": "user",
+            "content": "A generate_blueprint tool call is required.",
+        })
+        return None
+
+    call_args = _decode_tool_args(tool_call[0], autogen_state)
+    if call_args is None:
+        return None
+
+    try:
+        id_to_generated_node = _validate_blueprint_nodes(call_args.get("components"))
+    except BaseException as exception:
+        autogen_state["messages"].append({
+            "role": "tool",
+            "tool_call_id": tool_call[0].id,
+            "name": "generate_blueprint",
+            "content": "An error occurred. " + repr(exception),
+        })
+        return None
+
+    autogen_state["generated_blocks"] = id_to_generated_node
+    autogen_state["actions"].append({"type": "create", "components": list(id_to_generated_node.values())})
+    return id_to_generated_node
+
+
+def _process_link_blocks(tool_call: List[ToolCall], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
+    if not tool_call:
+        return autogen_state["final_graph"]
+
+    call_args = _decode_tool_args(tool_call[0], autogen_state)
+    if call_args is None:
+        return None
+
+    id_to_node = deepcopy(autogen_state["generated_blocks"])
+    links = []
+
+    for link in call_args.values():
+        mapped_block_id = link.get("hg_id")
+        existing_block = autogen_state["preprocessed_components"].get(mapped_block_id)
+        if existing_block is None:
+            autogen_state["messages"].append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call[0].id,
+                    "name": "link_blocks",
+                    "content": f"Block with id {mapped_block_id} doesn't exist. Existing blocks: {autogen_state["preprocessed_components"].keys()}",
+                }
+            )
+            continue
+
+        generated_block_id = link.get("aig_id")
+        generated_block = id_to_node.get(generated_block_id)
+        if generated_block is None:
+            autogen_state["messages"].append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call[0].id,
+                    "name": "link_blocks",
+                    "content": f"Block with id {generated_block_id} was not generated. Generated blocks: {list(autogen_state["generated_blocks"].keys())}",
+                }
+            )
+            continue
+
+        original_block = deepcopy(autogen_state["artificial_id_to_component"][mapped_block_id])
+        original_block["outs"].append({"toNodeId": generated_block_id, "outId": "success"})
+        id_to_node[original_block["id"]] = original_block
+        links.append(
+            {
+                "id": original_block["id"],
+                "newOut": {"toNodeId": generated_block_id, "outId": "success"},
+            }
+        )
+
+    if not links:
+        return None
+
+    autogen_state["actions"].append({"type": "link", "links": links})
+    return id_to_node
+
+
+def _split_tool_calls(tool_calls: List[ToolCall]) -> Mapping[str, List[ToolCall]]:
+    calls_by_function = defaultdict(list)
+    errors = []
+    for tool_call in tool_calls:
+        if tool_call.function.name is None:
+            errors.append(f"Tool call {tool_call.id} has no name")
+            continue
+        calls_by_function[tool_call.function.name].append(tool_call)
+
+    if errors:
+        raise ValueError(" | ".join(errors))
+
+    return calls_by_function
+
+def _call_tools(tool_calls: list[ToolCall], autogen_state: AutogenState):
+    if not tool_calls:
+        return autogen_state["messages"].append(
+            {
+                "role": "user",
+                "content": "A tool call is required.",
+            }
+        )
+    try:
+        calls_by_function = _split_tool_calls(tool_calls)
+    except ValueError as exception:
+        return autogen_state["messages"].append({
+            "role": "user",
+            "content": "An error occurred. " + repr(exception),
+        })
+    
+    for tool_name in TOOL_CALL_ORDER:
+        tool_function = globals()[f"_process_{tool_name}"]
+        tool_call = calls_by_function.get(tool_name, [])
+        autogen_state["final_graph"] = tool_function(tool_call, autogen_state)
+        if autogen_state["final_graph"] is None:
+            break
+
+
+def generate_blueprint(description: str, components: Dict[str, ComponentDefinition], token_header: Optional[str] = None):
+    preprocessed_components, artificial_id_to_component = _preprocess_components(components)
+    prompt = _get_main_prompt(description, preprocessed_components)
     tools = _get_tools()
-    print(json.dumps(tools))
+    autogen_state: AutogenState = {
+        "preprocessed_components": preprocessed_components,
+        "artificial_id_to_component": artificial_id_to_component,
+        "messages": [{"role": "user", "content": prompt}],
+        "actions": [],
+        "final_graph": None,
+        "generated_blocks": {},
+    }
 
     if token_header:
         extra_headers = {
@@ -275,15 +479,16 @@ def generate_blueprint(description: str, token_header: Optional[str] = None):
         extra_headers = {}
 
     for i in range(MAX_ITERATIONS):
+        autogen_state["actions"] = []
         if i > 0:
-            messages += [
+            autogen_state["messages"] += [
                 {
                     "role": "user",
                     "content": "Please try again using the errors brought to your attention after the function call. Challenge your own reasoning.",
                 }
             ]
         response = client.chat.chat(
-            messages=messages,
+            messages=autogen_state["messages"],
             model="palmyra-x-004-turbo",
             tool_choice="required",
             tools=tools,
@@ -292,44 +497,28 @@ def generate_blueprint(description: str, token_header: Optional[str] = None):
         )
 
         response_message = response.choices[0].message
-        tool_calls = response_message.tool_calls
-        messages.append(response_message)
+        autogen_state["messages"].append(response_message)
 
-        if tool_calls:
-            tool_call = tool_calls[0]
-            tool_call_id = tool_call.id
+        _call_tools(response_message.tool_calls, autogen_state)
+        if autogen_state["final_graph"] is None:
+            continue
 
-            try:
-                print(tool_call.function.arguments)
-                blueprint = json.loads(tool_call.function.arguments, strict=False)
-                _validate_blueprint_nodes(blueprint.get("components"))
-            except BaseException as exception:
-                message: Optional[str] = None
-                if isinstance(exception, json.JSONDecodeError):
-                    message = "The JSON structure is incorrect. Please make sure you're abiding by the schema."
-                else:
-                    message = "An error occurred. " + repr(exception)
-                logging.error(f"Autogen error. {message}")
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tool_call_id,
-                        "name": "generate_blueprint",
-                        "content": message,
-                    }
-                )
-            else:
-                return {"blueprint": blueprint, "messages": messages}
-        else:
-            messages.append(
-                {
-                    "role": "user",
-                    "content": "A tool call is required.",
-                }
-            )
+        try:
+            _validate_blueprint_edges(autogen_state["final_graph"])
+        except BaseException as exception:
+            autogen_state["messages"].append({
+                "role": "user",
+                "content": "An error occurred. " + repr(exception),
+            })
+            continue
 
-    return {"blueprint": None, "messages": messages}
+        return {
+            "actions": autogen_state["actions"],
+            "messages": autogen_state["messages"]
+        }
+
+    return {"actions": [], "messages": autogen_state["messages"]}
 
 
 if __name__ == "__main__":
-    generate_blueprint("Log message hello")
+    generate_blueprint("Log message hello", {})

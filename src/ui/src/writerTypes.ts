@@ -239,3 +239,28 @@ export type WriterModel = {
 	id: string;
 	name: string;
 };
+
+type CreateAction = {
+	type: "create";
+	components: Component[];
+};
+
+export type LinkActionInfo = {
+	id: ComponentId;
+	newOut: {
+		outId: string;
+		toNodeId: string;
+	};
+};
+
+type LinkAction = {
+	type: "link";
+	links: LinkActionInfo[];
+};
+
+export type AutogenAction = CreateAction | LinkAction;
+
+export type AutogenResult = {
+	actions: (CreateAction | LinkAction)[];
+	messages: string[];
+};

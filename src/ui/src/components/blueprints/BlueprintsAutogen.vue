@@ -30,7 +30,7 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
 import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
-import { Component } from "@/writerTypes";
+import { AutogenAction, AutogenResult } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
@@ -59,43 +59,52 @@ onMounted(() => {
  * The generation happens with simple ids (aig1, aig2, ...).
  * Component ids are altered to preserve uniqueness across blueprints.
  */
-function alterIds(components: Component[]) {
+function alterIds(actions: AutogenAction[]) {
 	const mapping: Record<string, string> = {};
 
-	// Switch ids
-
-	components.forEach((c) => {
-		const newId = generateNewComponentId();
-		mapping[c.id] = newId;
-		c.id = newId;
-	});
-
-	// Switch out ids
-
-	components.forEach((c) => {
-		c.outs?.forEach((out) => {
-			out.toNodeId = mapping[out.toNodeId];
-		});
-	});
-
-	// Switch results
-
-	components.forEach((c) => {
-		Object.entries(mapping).forEach(([originalId, newId]) => {
-			const regex = new RegExp(
-				`(@{\\s*results\\.)aig${originalId}\\b`,
-				"g",
-			);
-			Object.entries(c.content).forEach(([fieldKey, field]) => {
-				const newField = field.replace(regex, (_match, capturedAig) =>
-					_match.replace(capturedAig, newId),
-				);
-				c.content[fieldKey] = newField;
+	actions.forEach((a) => {
+		if (a.type == "create") {
+			// Switch ids
+			a.components.forEach((c) => {
+				const newId = generateNewComponentId();
+				mapping[c.id] = newId;
+				c.id = newId;
 			});
-		});
+
+			// Switch out ids
+
+			a.components.forEach((c) => {
+				c.outs?.forEach((out) => {
+					out.toNodeId = mapping[out.toNodeId];
+				});
+			});
+
+			// Switch results
+
+			a.components.forEach((c) => {
+				Object.entries(mapping).forEach(([originalId, newId]) => {
+					const regex = new RegExp(
+						`(@{\\s*results\\.)aig${originalId}\\b`,
+						"g",
+					);
+					Object.entries(c.content).forEach(([fieldKey, field]) => {
+						const newField = field.replace(
+							regex,
+							(_match, capturedAig) =>
+								_match.replace(capturedAig, newId),
+						);
+						c.content[fieldKey] = newField;
+					});
+				});
+			});
+		} else if (a.type == "link") {
+			a.links.forEach((l) => {
+				l.newOut.toNodeId = mapping[l.newOut.toNodeId];
+			});
+		}
 	});
 
-	return components;
+	return actions;
 }
 
 async function handleAutogen() {
@@ -116,10 +125,10 @@ async function handleAutogen() {
 		throw new Error(`Error: ${response.status} - ${response.statusText}`);
 	}
 
-	const data = await response.json(); // Assuming the response is JSON
+	const data = (await response.json()) as AutogenResult; // Assuming the response is JSON
 
-	const components: Component[] = alterIds(data.blueprint?.components);
-	emits("blockGeneration", { components });
+	const actions: AutogenAction[] = alterIds(data.actions);
+	emits("blockGeneration", { actions });
 
 	tracking.track("blueprints_auto_gen_completed");
 }

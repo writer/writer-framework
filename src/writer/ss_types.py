@@ -1,3 +1,4 @@
+from collections.abc import Mapping, MutableMapping
 from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
 
 from pydantic import BaseModel
@@ -290,6 +291,16 @@ class ComponentDefinition(TypedDict):
 
 class BlueprintExecutionLog(BaseModel):
     summary: List[Dict]
+
+
+class AutogenState(TypedDict):
+    preprocessed_components: Dict[str, Dict]
+    artificial_id_to_component: Dict[str, ComponentDefinition]
+
+    messages: List[Dict]
+    actions: List[Dict]
+    generated_blocks: MutableMapping[str, Mapping]
+    final_graph: Optional[Dict[str, Dict]]
 
 
 class WriterConfigurationError(ValueError):
