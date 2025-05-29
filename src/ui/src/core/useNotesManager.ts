@@ -212,7 +212,9 @@ export function useNotesManager(
 		}
 	}
 
-	function getNote(componentId: string): ComponentNote | ComponentNoteDraft {
+	function getNote(
+		componentId: string,
+	): ComponentNote | ComponentNoteDraft | undefined {
 		const component = wf.getComponentById(componentId);
 		if (component?.type === "note") return component;
 

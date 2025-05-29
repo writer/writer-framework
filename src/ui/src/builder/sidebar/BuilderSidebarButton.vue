@@ -40,6 +40,9 @@ defineProps({
 	justify-content: center;
 	text-decoration: none;
 }
+.BuilderSidebarButton:focus-visible {
+	outline: 2px solid var(--wdsColorBlue5);
+}
 .BuilderSidebarButton[disabled] {
 	opacity: 50%;
 	cursor: not-allowed;
