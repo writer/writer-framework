@@ -38,8 +38,6 @@ export enum WdsColor {
 	Green3 = "#a9f9e1",
 	Green5 = "#3bdcab",
 	Green6 = "#078660",
-
-	Puprple3 = "#E4C9FF",
 }
 
 /**
