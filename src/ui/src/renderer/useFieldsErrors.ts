@@ -19,10 +19,11 @@ export function useFieldsErrors(
 ) {
 	const { getEvaluatedFields } = useEvaluator(wf);
 
+	const componentId = computed(() => instancePath.value.at(-1)?.componentId);
+
 	const componentFields = computed(() => {
-		const componentId = instancePath.value.at(-1)?.componentId;
-		if (componentId === undefined) return {};
-		const component = wf.getComponentById(componentId);
+		if (componentId.value === undefined) return {};
+		const component = wf.getComponentById(componentId.value);
 		if (!component) return {};
 
 		return wf.getComponentDefinition(component.type).fields ?? {};
@@ -36,7 +37,12 @@ export function useFieldsErrors(
 		return Object.entries(componentFields.value).reduce(
 			(acc, [key, definition]) => {
 				const value = evaluatedFields.value[key].value;
-				acc[key] = computeFieldErrors(definition, value);
+				acc[key] = computeFieldErrors(
+					wf,
+					componentId.value,
+					definition,
+					value,
+				);
 				return acc;
 			},
 			{},
@@ -45,6 +51,8 @@ export function useFieldsErrors(
 }
 
 function computeFieldErrors(
+	wf: Core,
+	componentId: string,
 	field: WriterComponentDefinitionField,
 	value: unknown,
 ) {
@@ -58,6 +66,8 @@ function computeFieldErrors(
 	) {
 		// set an automatic enum schema for options fields
 		schema = buildJsonSchemaForEnum(Object.keys(field.options));
+	} else if (typeof schema === "function") {
+		schema = schema(wf, componentId);
 	}
 
 	if (schema === undefined) return undefined;

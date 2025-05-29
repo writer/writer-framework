@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+	buildValidatorBlueprintKeyUniq,
 	getJsonSchemaValidator,
 	validatorChatBotMessage,
 	validatorCssClassname,
 	validatorCssSize,
 	validatorRepeaterObject,
 } from "./validators";
+import { buildMockComponent, buildMockCore } from "@/tests/mocks";
 
 describe("validators", () => {
 	describe("CSS Classname", () => {
@@ -115,6 +117,69 @@ describe("validators", () => {
 				],
 			});
 			expect(result).toBe(true);
+		});
+	});
+
+	describe(buildValidatorBlueprintKeyUniq.name, () => {
+		const errorMessage = "Must be unique";
+		it("should returns undefined when not blueprint exists", () => {
+			const mockCore = buildMockCore();
+
+			expect(
+				buildValidatorBlueprintKeyUniq(mockCore.core, "component-id"),
+			).toBeUndefined();
+		});
+
+		it("should forbid other bluprints keys", () => {
+			const mockCore = buildMockCore();
+
+			[1, 2, 3].forEach((i) => {
+				mockCore.core.addComponent(
+					buildMockComponent({
+						id: String(i),
+						type: "blueprints_blueprint",
+						content: {
+							key: String(i),
+						},
+					}),
+				);
+			});
+
+			expect(
+				buildValidatorBlueprintKeyUniq(mockCore.core, "1"),
+			).toStrictEqual({
+				errorMessage,
+				not: {
+					enum: ["2", "3"],
+				},
+				type: "string",
+			});
+		});
+
+		it("should handle existing duplicates blueprints keys", () => {
+			const mockCore = buildMockCore();
+
+			[2, 2].forEach((i) => {
+				mockCore.core.addComponent(
+					buildMockComponent({
+						id: String(i),
+						type: "blueprints_blueprint",
+						content: {
+							key: String(i),
+						},
+					}),
+				);
+			});
+
+			expect(
+				buildValidatorBlueprintKeyUniq(mockCore.core, "1"),
+			).toStrictEqual({
+				errorMessage,
+				not: {
+					enum: ["2"],
+				},
+				type: "string",
+			});
 		});
 	});
 });

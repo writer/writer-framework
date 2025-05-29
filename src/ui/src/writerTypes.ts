@@ -79,7 +79,9 @@ export type WriterComponentDefinitionField = {
 	category?: FieldCategory;
 	/** Use the value of this field as a CSS variable */
 	applyStyleVariable?: boolean;
-	validator?: SchemaObject;
+	validator?:
+		| SchemaObject
+		| ((wf?: Core, componentId?: ComponentId) => SchemaObject); // dynamic schema depending on the context;
 };
 
 export type WriterComponentDefinitionEvent = {
