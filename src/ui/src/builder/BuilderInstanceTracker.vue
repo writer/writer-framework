@@ -33,7 +33,7 @@ const {
 } = toRefs(props);
 
 type RootStyle = Partial<
-	Pick<CSSProperties, "top" | "left" | "width" | "height">
+	Pick<CSSProperties, "top" | "left" | "width" | "height" | "display">
 >;
 
 const rootStyle = shallowRef<RootStyle>({});
@@ -83,6 +83,7 @@ function trackElement(el: Element) {
 	}
 
 	rootStyle.value = {
+		display: "block",
 		top: `${trackerY}px`,
 		left: `${trackerX}px`,
 		width: `${contentsWidth}px`,
@@ -90,17 +91,32 @@ function trackElement(el: Element) {
 	};
 }
 
+function hide() {
+	rootStyle.value = {
+		display: "none",
+	};
+}
+
 function triggerTrack() {
 	let el = document.querySelector(
 		`.ComponentRenderer [data-writer-instance-path="${instancePath.value}"]`,
 	);
-	if (!el) return;
+	if (!el) {
+		hide();
+		return;
+	}
 	const elStyle = getComputedStyle(el);
-	if (!elStyle) return;
+	if (!elStyle) {
+		hide();
+		return;
+	}
 	if (elStyle.display == "contents") {
 		el = el.querySelector("[data-writer-id]");
 	}
-	if (!el) return;
+	if (!el) {
+		hide();
+		return;
+	}
 	trackElement(el);
 }
 
