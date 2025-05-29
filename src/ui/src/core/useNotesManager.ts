@@ -19,10 +19,12 @@ import { flattenInstancePath } from "@/renderer/instancePath";
 export type NoteState = "default" | "hover" | "active" | "new" | "cursor";
 export type NoteSelectionMode = "show" | "edit";
 export interface ComponentNote extends Component {
-	content: Record<
-		"parentInstancePath" | "content" | "createdBy" | "createdAt",
-		string
-	>;
+	content: {
+		parentInstancePath: string | undefined;
+		content: string;
+		createdBy: string;
+		createdAt: string;
+	};
 }
 export type ComponentNoteDraft = Pick<
 	ComponentNote,
@@ -170,7 +172,6 @@ export function useNotesManager(
 	function* getAllNotes() {
 		yield* getNotes("root");
 		yield* getNotes("blueprints_root");
-		if (noteDraft.value) yield readonly(noteDraft.value);
 	}
 
 	function* searchNotes(query: string) {
@@ -196,7 +197,7 @@ export function useNotesManager(
 		parentId: string,
 	): Generator<ComponentNote | ComponentNoteDraft> {
 		for (const component of wf.getComponentsNested(parentId)) {
-			if (component.type === "note") yield component;
+			if (component.type === "note") yield component as ComponentNote;
 		}
 
 		if (noteDraft.value) {
@@ -216,7 +217,7 @@ export function useNotesManager(
 		componentId: string,
 	): ComponentNote | ComponentNoteDraft | undefined {
 		const component = wf.getComponentById(componentId);
-		if (component?.type === "note") return component;
+		if (component?.type === "note") return component as ComponentNote;
 
 		// fallback to draft note if not found
 		if (noteDraft.value?.id === componentId) {

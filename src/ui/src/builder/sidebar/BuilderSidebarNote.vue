@@ -100,7 +100,7 @@ function onDropdownSelect(value: string) {
 						BUILDER_MANAGER_MODE_ICONS[type]
 					}}</i>
 				</div>
-				<SharedWriterAvatar :user-id="createdBy" :size-px="32" />
+				<SharedWriterAvatar :user-id="createdBy" />
 			</div>
 
 			<div class="BuilderSidebarNote__header__info">

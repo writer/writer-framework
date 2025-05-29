@@ -17,6 +17,11 @@ const avatarUrl = computed(() => user.value?.avatar ?? "");
 const initials = computed(() => {
 	return (user.value?.firstName ?? "?").at(0);
 });
+
+const imgAlt = computed(() => {
+	if (!user.value) return `Avatar of the user ID ${userId.value}`;
+	return `Avatar of ${user.value.firstName ?? ""} ${user.value.lastName ?? ""}`;
+});
 </script>
 
 <template>
@@ -26,16 +31,19 @@ const initials = computed(() => {
 			class="SharedWriterAvatar__loader"
 		/>
 
-		<img
-			v-if="!!avatarUrl"
-			v-show="imgLoaded"
-			:src="avatarUrl"
-			class="SharedWriterAvatar__img"
-			@load="imgLoaded = true"
-		/>
-		<div v-else class="SharedWriterAvatar__initials">
-			{{ initials }}
-		</div>
+		<template v-if="!isLoading">
+			<img
+				v-if="!!avatarUrl"
+				v-show="imgLoaded"
+				:src="avatarUrl"
+				:alt="imgAlt"
+				class="SharedWriterAvatar__img"
+				@load="imgLoaded = true"
+			/>
+			<div v-else class="SharedWriterAvatar__initials">
+				{{ initials }}
+			</div>
+		</template>
 	</div>
 </template>
 
