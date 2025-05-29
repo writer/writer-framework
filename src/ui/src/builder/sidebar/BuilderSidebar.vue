@@ -214,6 +214,7 @@ onUnmounted(() => abort.abort());
 function changeActivePane(value: Pane | undefined) {
 	activePane.value = activePane.value === value ? undefined : value;
 	activePaneLocalStorage.value = activePane.value;
+	notesManager.selectNote(undefined);
 	emits("activePaneChanged", value);
 }
 </script>

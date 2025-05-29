@@ -2,7 +2,15 @@ import type { generateCore } from "@/core";
 import type { Point } from "@/utils/geometry";
 import { useComponentActions } from "../builder/useComponentActions";
 import { generateBuilderManager } from "../builder/builderManager";
-import { ref, computed, unref, MaybeRef, readonly } from "vue";
+import {
+	ref,
+	computed,
+	unref,
+	MaybeRef,
+	readonly,
+	shallowRef,
+	watch,
+} from "vue";
 import { Component, InstancePath } from "@/writerTypes";
 import { fetchWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
 import { useToasts } from "../builder/useToast";
@@ -10,6 +18,18 @@ import { flattenInstancePath } from "@/renderer/instancePath";
 
 export type NoteState = "default" | "hover" | "active" | "new" | "cursor";
 export type NoteSelectionMode = "show" | "edit";
+export interface ComponentNote extends Component {
+	content: {
+		parentInstancePath: string | undefined;
+		content: string;
+		createdBy: string;
+		createdAt: string;
+	};
+}
+export type ComponentNoteDraft = Pick<
+	ComponentNote,
+	"id" | "content" | "x" | "y" | "parentId" | "type"
+>;
 
 export function useNotesManager(
 	wf: ReturnType<typeof generateCore>,
@@ -17,7 +37,7 @@ export function useNotesManager(
 ) {
 	const toasts = useToasts();
 
-	const { createAndInsertComponent, removeComponentSubtree } =
+	const { removeComponentSubtree, generateNewComponentId } =
 		useComponentActions(wf, wfbm);
 
 	const isAnnotating = ref(false);
@@ -25,11 +45,17 @@ export function useNotesManager(
 	const selectedNoteMode = ref<NoteSelectionMode>("show");
 	const hoveredNoteId = ref<Component["id"] | undefined>();
 
-	const selectedNote = computed<Component | undefined>(() => {
+	const noteDraft = shallowRef<ComponentNoteDraft | undefined>();
+
+	const selectedNote = computed<
+		ComponentNote | ComponentNoteDraft | undefined
+	>(() => {
 		return selectedNoteId.value ? getNote(selectedNoteId.value) : undefined;
 	});
 
-	async function isOwnedByCurrentUser(note: Component) {
+	async function isOwnedByCurrentUser(
+		note: ComponentNote | ComponentNoteDraft,
+	) {
 		const createdBy = useNoteInformation(note).createdBy.value;
 		const currentUser = await fetchWriterApiCurrentUserProfile();
 		return createdBy === currentUser.id;
@@ -40,10 +66,7 @@ export function useNotesManager(
 		mode: NoteSelectionMode = "show",
 	) {
 		if (componentId === undefined) {
-			// remove empty selected note
-			const content = useNoteInformation(selectedNote).content.value;
-			if (!content) wf.deleteComponent(selectedNoteId.value);
-
+			noteDraft.value = undefined;
 			selectedNoteId.value = undefined;
 			selectedNoteMode.value = "show";
 			return;
@@ -89,6 +112,9 @@ export function useNotesManager(
 		}
 	}
 
+	/**
+	 * Setup a temporary `noteDraft` component that is not insterted in the tree yet
+	 */
 	async function createNote(
 		parentId: Component["id"],
 		options: { instancePath: InstancePath | string } | Partial<Point>,
@@ -102,7 +128,13 @@ export function useNotesManager(
 		}
 
 		const profile = await fetchWriterApiCurrentUserProfile();
-		const noteId = createAndInsertComponent("note", parentId, undefined, {
+
+		const noteId = generateNewComponentId();
+
+		noteDraft.value = {
+			id: noteId,
+			type: "note",
+			parentId,
 			content: {
 				parentInstancePath,
 				content: "",
@@ -111,10 +143,18 @@ export function useNotesManager(
 			},
 			x: "x" in options ? options.x : undefined,
 			y: "y" in options ? options.y : undefined,
-		});
+		};
+
 		await selectNote(noteId, "edit");
 		return noteId;
 	}
+
+	// remove the draft if the selection change
+	watch(selectedNoteId, () => {
+		if (noteDraft.value && noteDraft.value.id !== selectedNoteId.value) {
+			noteDraft.value = undefined;
+		}
+	});
 
 	async function deleteNote(componentId: string) {
 		const note = getNote(componentId);
@@ -153,28 +193,53 @@ export function useNotesManager(
 		}
 	}
 
-	function* getNotes(parentId: string) {
+	function* getNotes(
+		parentId: string,
+	): Generator<ComponentNote | ComponentNoteDraft> {
 		for (const component of wf.getComponentsNested(parentId)) {
-			if (component.type === "note") yield component;
+			if (component.type === "note") yield component as ComponentNote;
+		}
+
+		if (noteDraft.value) {
+			let noteParentId = noteDraft.value.parentId;
+
+			while (noteParentId) {
+				if (noteParentId === parentId) {
+					yield readonly(noteDraft.value);
+					return;
+				}
+				noteParentId = wf.getComponentById(noteParentId)?.parentId;
+			}
 		}
 	}
 
-	function getNote(componentId: string) {
+	function getNote(
+		componentId: string,
+	): ComponentNote | ComponentNoteDraft | undefined {
 		const component = wf.getComponentById(componentId);
-		if (component?.type === "note") return component;
+		if (component?.type === "note") return component as ComponentNote;
+
+		// fallback to draft note if not found
+		if (noteDraft.value?.id === componentId) {
+			return readonly(noteDraft.value);
+		}
 	}
 
-	const getNoteContent = (note: Component) =>
-		String(note.content.content ?? "");
+	const getNoteContent = (
+		note: Component | ComponentNote | ComponentNoteDraft,
+	) => String(note.content?.content ?? "");
 
-	function useNoteInformation(component: MaybeRef<Component>) {
+	function useNoteInformation(
+		component: MaybeRef<Component | ComponentNote | ComponentNoteDraft>,
+	) {
 		const formatter = new Intl.DateTimeFormat(undefined, {
 			dateStyle: "short",
 			timeStyle: "short",
 		});
 
 		const state = computed<NoteState>(() => {
-			const { id, content } = unref(component);
+			const id = unref(component)?.id;
+			const content = unref(component)?.content;
 			if (hoveredNoteId.value === id) return "hover";
 
 			const isActive = selectedNote.value?.id === id;

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
-import type { Component } from "@/writerTypes";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import BuilderSidebarNote from "./BuilderSidebarNote.vue";
 import BuilderSidebarNotesEmpty from "./BuilderSidebarNotesEmpty.vue";
 import BuilderSidebarNoteForm from "./BuilderSidebarNoteForm.vue";
 import { useComponentActions } from "../useComponentActions";
+import { ComponentNote, ComponentNoteDraft } from "@/core/useNotesManager";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -22,7 +22,10 @@ const {
 	useNoteInformation,
 } = inject(injectionKeys.notesManager);
 
-const { setContentValue } = useComponentActions(wf, wfbm);
+const { setContentValue, createAndInsertComponent } = useComponentActions(
+	wf,
+	wfbm,
+);
 
 const query = ref("");
 
@@ -37,18 +40,34 @@ const hideSearchBar = computed(() => {
 	return false;
 });
 
-function sortNotes(a: Component, b: Component) {
+function sortNotes(a: ComponentNote, b: ComponentNote) {
 	const aDate = useNoteInformation(a).createdAt.value;
 	const bDate = useNoteInformation(b).createdAt.value;
 	return new Date(bDate).getTime() - new Date(aDate).getTime();
 }
 
-function getNoteState(component: Component) {
+function getNoteState(component: ComponentNote | ComponentNoteDraft) {
 	return useNoteInformation(component).state.value;
 }
 
 function onSaveNoteContent(content: string) {
-	setContentValue(selectedNoteId.value, "content", content);
+	if (wf.getComponentById(selectedNoteId.value)) {
+		setContentValue(selectedNoteId.value, "content", content);
+	} else {
+		createAndInsertComponent(
+			selectedNote.value.type,
+			selectedNote.value.parentId,
+			undefined,
+			{
+				content: {
+					...selectedNote.value.content,
+					content,
+				},
+				x: selectedNote.value.x,
+				y: selectedNote.value.y,
+			},
+		);
+	}
 	selectNote(undefined);
 }
 </script>

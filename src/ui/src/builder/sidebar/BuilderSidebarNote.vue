@@ -9,11 +9,15 @@ import {
 	useWriterApiUserProfile,
 } from "@/composables/useWriterApiUser";
 import injectionKeys from "@/injectionKeys";
-import { Component } from "@/writerTypes";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
+import SharedWriterAvatar from "@/components/shared/SharedWriterAvatar.vue";
+import type { ComponentNote, ComponentNoteDraft } from "@/core/useNotesManager";
 
 const props = defineProps({
-	component: { type: Object as PropType<Component>, required: true },
+	component: {
+		type: Object as PropType<ComponentNote | ComponentNoteDraft>,
+		required: true,
+	},
 	excerpt: { type: Boolean },
 });
 
@@ -47,7 +51,6 @@ const contentExcerpt = computed(() => {
 
 const contentParagraphs = computed(() => content.value.split("\n"));
 
-const avatarUrl = computed(() => user.value?.avatar ?? "");
 const completeName = computed(() => {
 	if (!user.value) return "";
 	return [user.value.firstName, user.value.lastName]
@@ -97,11 +100,7 @@ function onDropdownSelect(value: string) {
 						BUILDER_MANAGER_MODE_ICONS[type]
 					}}</i>
 				</div>
-				<WdsSkeletonLoader
-					v-if="displayUserLoader || !avatarUrl"
-					class="BuilderSidebarNote__header__avatar__loader"
-				/>
-				<img v-else :src="avatarUrl" />
+				<SharedWriterAvatar :user-id="createdBy" />
 			</div>
 
 			<div class="BuilderSidebarNote__header__info">
@@ -164,12 +163,6 @@ function onDropdownSelect(value: string) {
 	justify-content: center;
 	border: 1px solid var(--wdsColorGray2);
 	transform: translate(-50%, -50%);
-}
-.BuilderSidebarNote__header__avatar img,
-.BuilderSidebarNote__header__avatar__loader {
-	border-radius: 50%;
-	height: 32px;
-	width: 32px;
 }
 .BuilderSidebarNote__header__info {
 	display: flex;

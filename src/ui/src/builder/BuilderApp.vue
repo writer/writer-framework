@@ -360,6 +360,8 @@ function handleRendererClick(ev: PointerEvent): void {
 		return;
 	}
 
+	if (notesManager.isAnnotating.value) return;
+
 	ev.preventDefault();
 	ev.stopPropagation();
 

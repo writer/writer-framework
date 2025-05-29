@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { inject, PropType, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { Component } from "@/writerTypes";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import type { ComponentNote, ComponentNoteDraft } from "@/core/useNotesManager";
 
 const props = defineProps({
-	component: { type: Object as PropType<Component>, required: true },
+	component: {
+		type: Object as PropType<ComponentNote | ComponentNoteDraft>,
+		required: true,
+	},
 	autofocus: { type: Boolean },
 });
 
@@ -30,6 +33,7 @@ const content = ref(notesManager.getNoteContent(props.component));
 			class="BuilderSidebarNoteForm__submit"
 			variant="secondary"
 			size="smallIcon"
+			:disabled="!content"
 			@click="$emit('submit', content)"
 		>
 			<span class="material-symbols-outlined">send</span>
