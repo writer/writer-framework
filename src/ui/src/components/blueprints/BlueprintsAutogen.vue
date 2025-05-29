@@ -116,10 +116,9 @@ async function handleAutogen() {
 		);
 
 		if (!response.ok) {
-			const reason = await response
-				.text()
-				.catch(() => response.statusText);
-			window.alert(`Autogen failed: ${reason}`);
+			window.alert(
+				`Autogen failed. Please try again with a different prompt.`,
+			);
 			return;
 		}
 
