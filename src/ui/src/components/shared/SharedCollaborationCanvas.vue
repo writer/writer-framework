@@ -32,7 +32,7 @@ const props = defineProps<{
 	zoomLevel: number;
 }>();
 
-const emit = defineEmits({
+defineEmits({
 	toggle: (open: boolean) => typeof open === "boolean",
 });
 
