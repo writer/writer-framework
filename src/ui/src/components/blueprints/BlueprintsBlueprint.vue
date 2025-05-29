@@ -983,7 +983,13 @@ function handleKeydown(event: KeyboardEvent) {
 	if (!wfbm.selection.value.length) return;
 
 	const target = event.target as HTMLElement;
-	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+	if (
+		target.tagName === "INPUT" ||
+		target.tagName === "TEXTAREA" ||
+		target.getAttribute("contenteditable") === "true"
+	) {
+		return;
+	}
 
 	function getDirection(): Point | undefined {
 		switch (event.key) {
