@@ -4,15 +4,89 @@ import { useKeyValueEditor } from "./settings/composables/useKeyValueEditor";
 import BuilderTemplateInput from "./settings/BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
+import { JSONValue } from "./settings/BuilderFieldsKeyValue.vue";
+
+function useSecretsManager() {
+	const secrets = shallowRef<JSONValue>({});
+	const isLoading = ref(false);
+	const isSaving = ref(false);
+	const errror = ref(false);
+
+	async function load() {
+		isLoading.value = true;
+		errror.value = false;
+
+		try {
+			await new Promise((res) => setTimeout(res, 500));
+			// TODO: real implementation
+			secrets.value = {
+				GOOGLE_SECRET: "foo",
+				WRITER_API_KEY: "foo",
+			};
+		} catch (e) {
+			errror.value = e;
+			secrets.value = {};
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	async function update(newSecrets: JSONValue) {
+		isSaving.value = true;
+		errror.value = false;
+
+		try {
+			await new Promise((res) => setTimeout(res, 500));
+			// TODO: real implementation
+			secrets.value = newSecrets;
+		} catch (e) {
+			errror.value = e;
+		} finally {
+			isSaving.value = false;
+		}
+	}
+
+	return {
+		secrets,
+		load,
+		readonly: computed(() => isLoading.value || isSaving.value),
+		isLoading,
+		update,
+	};
+}
 
 const {
+	secrets,
+	load: loadSecrets,
+	readonly,
+	isLoading: isSecretsLoading,
+	update: updateSecrets,
+} = useSecretsManager();
+
+const {
+	currentValue,
 	assistedEntries,
 	getAssistedEntryError,
 	updateAssistedEntryKey,
 	updateAssistedEntryValue,
+	updateAssistedEntries,
 	removeAssistedEntry,
 	addAssistedEntry,
 } = useKeyValueEditor({});
+
+function save() {
+	if (typeof currentValue.value !== "object" || currentValue.value === null)
+		return;
+	updateSecrets(currentValue.value);
+}
+
+onMounted(async () => {
+	await loadSecrets();
+	if (typeof secrets.value !== "object" || secrets.value === null) return;
+	updateAssistedEntries(secrets.value);
+});
 </script>
 
 <template>
@@ -33,12 +107,24 @@ const {
 			<div class="BuilderVault__editor__form">
 				<p class="BuilderVault__editor__form__labelKey">Key</p>
 				<p class="BuilderVault__editor__form__labelValue">Value</p>
-				<template v-for="(entry, id) of assistedEntries" :key="id">
+				<template v-if="isSecretsLoading">
+					<WdsSkeletonLoader style="height: 40px" />
+					<WdsSkeletonLoader style="height: 40px" />
+					<WdsSkeletonLoader style="height: 40px" />
+					<WdsSkeletonLoader style="height: 40px" />
+					<WdsSkeletonLoader style="height: 40px" />
+				</template>
+				<template
+					v-for="(entry, id) of assistedEntries"
+					v-else
+					:key="id"
+				>
 					<WdsFieldWrapper :error="getAssistedEntryError(id)">
 						<BuilderTemplateInput
 							placeholder="Type a key..."
 							:value="entry.key"
 							:error="getAssistedEntryError(id)"
+							:readonly="readonly"
 							@update:value="updateAssistedEntryKey(id, $event)"
 						/>
 					</WdsFieldWrapper>
@@ -46,6 +132,7 @@ const {
 						<BuilderTemplateInput
 							placeholder="Type a value..."
 							:value="entry.value"
+							:readonly="readonly"
 							@update:value="updateAssistedEntryValue(id, $event)"
 						/>
 					</WdsFieldWrapper>
@@ -54,6 +141,7 @@ const {
 							variant="neutral"
 							size="smallIcon"
 							class="BuilderVault__editor__form__deleteBtn"
+							:disabled="readonly"
 							@click="removeAssistedEntry(id)"
 						>
 							<span class="material-symbols-outlined"
@@ -63,11 +151,23 @@ const {
 					</div>
 				</template>
 			</div>
-
-			<WdsButton variant="special" size="small" @click="addAssistedEntry"
-				><span class="material-symbols-outlined">add</span>Add a
-				pair</WdsButton
-			>
+			<div class="BuilderVault__editor__toolbar">
+				<WdsButton
+					variant="tertiary"
+					size="small"
+					:disabled="readonly"
+					@click="addAssistedEntry"
+					><span class="material-symbols-outlined">add</span>Add a
+					pair</WdsButton
+				>
+				<WdsButton
+					variant="primary"
+					size="small"
+					:disabled="readonly"
+					@click="save"
+					>Save</WdsButton
+				>
+			</div>
 		</div>
 	</div>
 </template>
@@ -98,6 +198,11 @@ const {
 	align-items: flex-start;
 	gap: 10px;
 	margin-bottom: 22px;
+}
+.BuilderVault__editor__toolbar {
+	display: flex;
+	gap: 8px;
+	justify-content: space-between;
 }
 
 .BuilderVault__editor__form__deleteBtn {
