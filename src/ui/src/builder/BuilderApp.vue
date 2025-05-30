@@ -539,10 +539,12 @@ onUnmounted(() => {
 .collaborationTracker,
 .insertionLabelTracker {
 	z-index: 3;
+	isolation: isolate;
 }
 
 .insertionOverlayTracker {
 	z-index: 1;
+	isolation: isolate;
 }
 
 #modal {

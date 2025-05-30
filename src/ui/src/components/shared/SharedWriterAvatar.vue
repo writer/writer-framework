@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 
 const props = defineProps({
 	userId: { type: Number, required: true },
+	showTooltip: { type: Boolean, required: false },
 });
 
 const userId = computed(() => props.userId);
@@ -17,6 +18,10 @@ const avatarUrl = computed(() => user.value?.avatar ?? "");
 const initials = computed(() => {
 	return (user.value?.firstName ?? "?").at(0);
 });
+const tooltip = computed(() => {
+	if (!props.showTooltip || !user.value) return undefined;
+	return `${user.value.firstName ?? ""} ${user.value.lastName ?? ""}`;
+});
 
 const imgAlt = computed(() => {
 	if (!user.value) return `Avatar of the user ID ${userId.value}`;
@@ -25,7 +30,7 @@ const imgAlt = computed(() => {
 </script>
 
 <template>
-	<div class="SharedWriterAvatar">
+	<div class="SharedWriterAvatar" :data-writer-tooltip="tooltip">
 		<WdsSkeletonLoader
 			v-if="isLoading || (avatarUrl && !imgLoaded)"
 			class="SharedWriterAvatar__loader"

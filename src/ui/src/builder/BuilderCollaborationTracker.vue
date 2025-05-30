@@ -1,8 +1,8 @@
 <template>
 	<div ref="rootEl" class="BuilderCollaborationTracker">
 		<template
-			v-for="(profiles, instancePath) in collaborationManager
-				.connectedProfilesByInstancePath.value"
+			v-for="(userIds, instancePath) in collaborationManager
+				.connectedUsersByInstancePath.value"
 			:key="instancePath"
 		>
 			<BuilderInstanceTracker
@@ -14,14 +14,12 @@
 			>
 				<div class="bubble">
 					<div class="main">
-						<div
-							v-for="profile in profiles"
-							:key="profile.userId"
-							class="profile"
-							:data-writer-tooltip="profile.displayName"
-						>
-							{{ profile.displayName.charAt(0) }}
-						</div>
+						<SharedWriterAvatar
+							v-for="userId in userIds"
+							:show-tooltip="true"
+							:key="userId"
+							:user-id="userId"
+						/>
 					</div>
 					<div class="triangle"></div>
 				</div>
@@ -33,6 +31,7 @@
 import { inject } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
+import SharedWriterAvatar from "@/components/shared/SharedWriterAvatar.vue";
 import { parseInstancePathString } from "@/renderer/instancePath";
 
 const collaborationManager = inject(injectionKeys.collaborationManager);
@@ -46,6 +45,7 @@ function isTrackable(instancePathStr: string) {
 
 <style scoped>
 .BuilderCollaborationTracker {
+	--sharedWriterAvatarSize: 24px;
 }
 
 .instanceTracker {
@@ -86,15 +86,5 @@ function isTrackable(instancePathStr: string) {
 	align-items: center;
 	justify-content: center;
 	gap: 4px;
-}
-
-.profile {
-	background: #e4c9ff;
-	height: 24px;
-	width: 24px;
-	border-radius: 12px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 </style>

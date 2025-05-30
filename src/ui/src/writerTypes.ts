@@ -242,7 +242,7 @@ export type WriterApplication = {
 
 export type UserCollaborationPing = {
 	action: "join" | "select" | "leave" | "auto";
-	userId: string;
+	userId: number;
 	time: Date;
 	selection?: Selection;
 	x?: number;
