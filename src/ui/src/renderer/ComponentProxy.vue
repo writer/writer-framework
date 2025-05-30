@@ -25,12 +25,16 @@ export default {
 	setup(props) {
 		const wf = inject(injectionKeys.core);
 		const ssbm = inject(injectionKeys.builderManager);
+		const secretsManager = inject(injectionKeys.secretsManager);
 		const componentId = props.componentId;
 		const component = computed(() => wf.getComponentById(componentId));
 		const template = getTemplate(component.value.type);
 		const instancePath = props.instancePath;
 		const instanceData = props.instanceData;
-		const { getEvaluatedFields, isComponentVisible } = useEvaluator(wf);
+		const { getEvaluatedFields, isComponentVisible } = useEvaluator(
+			wf,
+			secretsManager,
+		);
 		const evaluatedFields = getEvaluatedFields(instancePath);
 		const tracking = useWriterTracking(wf);
 
