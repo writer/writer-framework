@@ -379,8 +379,8 @@ def build_source_files(app_path: str) -> SourceFilesDirectory:
         parts = relative_path.split(os.sep)
         current_level: SourceFilesDirectory = file_tree
 
-        for part in parts:
-            if os.path.isdir(os.path.join(app_path, *parts[:parts.index(part) + 1])):
+        for i, part in enumerate(parts):
+            if os.path.isdir(os.path.join(app_path, *parts[: i + 1])):
                 if part not in current_level["children"]:
                     current_level["children"][part] = { "type": "directory", "children": {} }
 
