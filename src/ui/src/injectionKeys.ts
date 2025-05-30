@@ -7,6 +7,7 @@ import {
 	InstancePath,
 	InstancePathItem,
 	NotesManager,
+	SecretsManager,
 } from "./writerTypes";
 
 export default {
@@ -14,6 +15,7 @@ export default {
 	builderManager: Symbol() as InjectionKey<BuilderManager>,
 	notesManager: Symbol() as InjectionKey<NotesManager>,
 	collaborationManager: Symbol() as InjectionKey<CollaborationManager>,
+	secretsManager: Symbol() as InjectionKey<SecretsManager>,
 	evaluatedFields: Symbol() as InjectionKey<Record<string, ComputedRef<any>>>,
 	componentId: Symbol() as InjectionKey<Component["id"]>,
 	isBeingEdited: Symbol() as InjectionKey<Ref<boolean>>,

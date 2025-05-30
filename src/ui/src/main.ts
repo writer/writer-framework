@@ -11,6 +11,7 @@ import { useWriterApi } from "./composables/useWriterApi.js";
 import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
+import { useSecretsManager } from "./core/useSecretsManager.js";
 
 const wf = generateCore();
 
@@ -29,6 +30,7 @@ async function load() {
 	const mode = wf.mode.value;
 	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
 	const notesManager = useNotesManager(wf, wfbm);
+	const secretsManager = useSecretsManager();
 	const collaborationManager =
 		mode == "edit" ? useCollaborationManager(wf) : undefined;
 
@@ -55,6 +57,7 @@ async function load() {
 	app.provide(injectionKeys.builderManager, wfbm);
 	app.provide(injectionKeys.notesManager, notesManager);
 	app.provide(injectionKeys.collaborationManager, collaborationManager);
+	app.provide(injectionKeys.secretsManager, secretsManager);
 	setCaptureTabsDirective(app);
 
 	app.mount("#app");

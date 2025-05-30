@@ -32,6 +32,16 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 	const assistedEntries = shallowRef<Record<string, AssistedEntry>>({});
 	initializeAssistedEntries(originalValue);
 
+	function updateAssistedEntries(value: Record<string, unknown>) {
+		assistedEntries.value = Object.entries(value).reduce(
+			(acc, [key, value]) => {
+				acc[getId()] = { key, value: String(value) };
+				return acc;
+			},
+			{},
+		);
+	}
+
 	function addAssistedEntry() {
 		assistedEntries.value = {
 			...assistedEntries.value,
@@ -145,6 +155,7 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 		updateAssistedEntryValue,
 		removeAssistedEntry,
 		getAssistedEntryError,
+		updateAssistedEntries,
 		freehandValue,
 		isValid,
 		currentValue,

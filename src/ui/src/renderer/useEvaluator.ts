@@ -1,7 +1,13 @@
 import { ComputedRef, computed } from "vue";
-import { Component, Core, FieldType, InstancePath } from "@/writerTypes";
+import {
+	Component,
+	Core,
+	FieldType,
+	InstancePath,
+	SecretsManager,
+} from "@/writerTypes";
 
-export function useEvaluator(wf: Core) {
+export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 	const templateRegex = /[\\]?@{([^}]*)}/g;
 
 	/**
@@ -66,7 +72,11 @@ export function useEvaluator(wf: Core) {
 			? getContextData(instancePath)
 			: undefined;
 		let contextRef = contextData;
-		let stateRef = wf.userState.value;
+		const secrets = secretsManager?.secrets.value ?? {};
+		let stateRef = {
+			...wf.userState.value,
+			...(secrets ? { vault: secrets } : {}),
+		};
 		const accessors = parseExpression(expr, instancePath);
 
 		for (let i = 0; i < accessors.length; i++) {

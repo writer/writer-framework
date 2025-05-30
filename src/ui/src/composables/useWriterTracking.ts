@@ -9,6 +9,7 @@ type WriterTrackingEventName =
 	| "nav_ui_opened"
 	| "nav_blueprints_opened"
 	| "nav_preview_opened"
+	| "nav_vault_opened"
 	| "nav_deploy_clicked"
 	| "nav_logs_opened"
 	| "nav_code_opened"
