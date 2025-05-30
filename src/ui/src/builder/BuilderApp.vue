@@ -130,6 +130,7 @@ import { SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
+import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 
@@ -141,10 +142,7 @@ const ComponentRenderer = defineAsyncComponent({
 	loader: () => import("@/renderer/ComponentRenderer.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
-const BuilderInstanceTracker = defineAsyncComponent({
-	loader: () => import("./BuilderInstanceTracker.vue"),
-	loadingComponent: BuilderAsyncLoader,
-});
+
 const BuilderInsertionOverlay = defineAsyncComponent({
 	loader: () => import("./BuilderInsertionOverlay.vue"),
 	loadingComponent: BuilderAsyncLoader,
