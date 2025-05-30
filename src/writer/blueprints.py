@@ -9,7 +9,7 @@ from collections import OrderedDict, deque
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from contextvars import copy_context
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import writer.blocks
 import writer.blocks.base_block
@@ -24,6 +24,10 @@ class BlueprintRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
         self.executor_lock = threading.Lock()
+
+    @property
+    def api_blueprints(self):
+        return self._gather_api_blueprints()
 
     @contextmanager
     def _get_executor(self):
@@ -76,6 +80,88 @@ class BlueprintRunner:
         blueprint = blueprints[0]
         return self.run_blueprint(
             blueprint.id, execution_environment, f"Blueprint execution ({blueprint_key})"
+        )
+
+    def is_blueprint_api_available(
+        self, blueprint_key: str
+    ):
+        """
+        Checks if a blueprint with the given key is available for API execution.
+
+        :param blueprint_key: The blueprint identifier.
+        :return: True if the blueprint is available for API execution, False otherwise.
+        """
+        return blueprint_key in self.api_blueprints
+
+    def get_blueprint_api_trigger(
+        self, blueprint_key: str
+    ):
+        """
+        Retrieves the API trigger for a given blueprint key.
+
+        :param blueprint_key: The blueprint identifier.
+        :return: The API trigger component.
+        """
+        if not self.is_blueprint_api_available(blueprint_key):
+            raise ValueError(
+                f'API trigger not found for blueprint "{blueprint_key}".'
+            )
+        return self.api_blueprints[blueprint_key]
+
+    def _gather_api_blueprints(self):
+        """
+        Gathers all blueprints that have an API trigger.
+
+        :return: A set of blueprint keys that have an API trigger.
+        """
+        triggers = [
+            c for c in self.session.session_component_tree.components.values()
+            if c.type == "blueprints_apitrigger"
+            ]
+        api_blueprints = {}
+
+        for trigger in triggers:
+            parent_blueprint_id = \
+                self.session.session_component_tree.get_parent(trigger.id)[0]
+            parent_blueprint = \
+                self.session.session_component_tree.get_component(
+                    parent_blueprint_id
+                    )
+
+            if (
+                parent_blueprint
+                and
+                parent_blueprint.type == "blueprints_blueprint"
+            ):
+                # Store the blueprint key against its trigger ID
+                api_blueprints[parent_blueprint.content.get("key")] = \
+                    trigger.id
+
+        return api_blueprints
+
+    def run_blueprint_via_api(
+        self,
+        blueprint_key: str,
+        execution_environment: Optional[Dict[str, Any]] = None
+    ):
+        """
+        Executes a blueprint by its key via the API.
+
+        :param blueprint_key: The blueprint identifier.
+        :param execution_environment: The execution environment for
+        the blueprint.
+        :return: The result of the blueprint execution.
+        """
+        if execution_environment is None:
+            execution_environment = {}
+
+        trigger_id = self.get_blueprint_api_trigger(blueprint_key)
+
+        return self.run_branch(
+            trigger_id,
+            None,
+            execution_environment,
+            f"API trigger execution ({blueprint_key})"
         )
 
     def run_blueprint_pool(self, blueprint_key: str, execution_environments: List[Dict]):

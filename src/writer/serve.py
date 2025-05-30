@@ -29,6 +29,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from writer import VERSION, abstract, crypto
 from writer.ai import Graph
 from writer.app_runner import AppRunner
+from writer.core import get_app_process
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -368,8 +369,6 @@ def get_asgi_app(
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        crypto.verify_message_authorization_signature(f"create_job_{blueprint_key}", request)
-
         def serialize_result(data):
             if isinstance(data, list):
                 return [serialize_result(item) for item in data]
@@ -416,15 +415,51 @@ def get_asgi_app(
         if not is_session_ok:
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
+        # fast-fail if we already know the request is impossible
+        # 500 if no components were defined
+        if not app_runner.bmc_components:
+            raise HTTPException(
+                status_code=500,
+                detail="Cannot run blueprint. No blueprints "
+                       "are defined in the agent.",
+            )
+        # 404 if the blueprint does not exist
+        blueprint_keys = {
+            c["content"].get("key"): c["id"]
+            for _, c in app_runner.bmc_components.items()
+            if c["type"] == "blueprints_blueprint"
+            and c["content"]  # if no content, there's no key
+            }
+        if blueprint_key not in blueprint_keys:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Blueprint “{blueprint_key}” was not found."
+            )
+        # 400 if the blueprint does not have an API trigger
+        has_trigger = True if {
+            c["id"]
+            for _, c in app_runner.bmc_components.items()
+            if c["type"] == "blueprints_apitrigger"
+            and c["parentId"] == blueprint_keys[blueprint_key]
+        } else False
+        if not has_trigger:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Blueprint “{blueprint_key}” does not "
+                       "have an API trigger. "
+                       "Please add a trigger to the blueprint "
+                       "before running it via API."
+            )
+
         loop = asyncio.get_running_loop()
         task = loop.create_task(
             app_runner.handle_event(
                 session_id,
                 WriterEvent(
-                    type="wf-builtin-run",
+                    type="wf-run-blueprint-via-api",
                     isSafe=True,
-                    handler=f"$runBlueprint_{blueprint_key}",
-                    payload=await _get_payload_as_json(request),
+                    handler="run_blueprint_via_api",
+                    payload={"blueprint_key": blueprint_key} | await _get_payload_as_json(request),
                 ),
             )
         )
