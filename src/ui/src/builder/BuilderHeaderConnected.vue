@@ -6,7 +6,9 @@
 		data-writer-tooltip-placement="bottom"
 	>
 		<div v-if="connectedCount == 1" class="profile">
-			{{ initialFirstUser }}
+			<SharedWriterAvatar
+				:user-id="firstUser.userId"
+			></SharedWriterAvatar>
 		</div>
 		<div v-if="connectedCount > 1" class="profile">
 			+{{ connectedCount }}
@@ -15,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import SharedWriterAvatar from "@/components/shared/SharedWriterAvatar.vue";
 import injectionKeys from "@/injectionKeys";
 import { computed, inject } from "vue";
 const collaborationManager = inject(injectionKeys.collaborationManager);
@@ -22,10 +25,9 @@ const collaborationManager = inject(injectionKeys.collaborationManager);
 const connectedCount = computed(
 	() => collaborationManager.connectedProfiles.value.length,
 );
-const initialFirstUser = computed(() => {
-	const name = collaborationManager.connectedProfiles.value?.[0].displayName;
-	if (name == "Unknown") return "?";
-	return name.charAt(0);
+
+const firstUser = computed(() => {
+	return collaborationManager.connectedProfiles.value?.[0];
 });
 
 const tooltip = computed(() => {
@@ -39,9 +41,6 @@ const tooltip = computed(() => {
 </script>
 
 <style scoped>
-.BuilderHeaderConnected {
-}
-
 .profile {
 	width: 32px;
 	height: 32px;
@@ -53,16 +52,5 @@ const tooltip = computed(() => {
 	justify-content: center;
 	overflow: hidden;
 	position: relative;
-}
-
-.profile .avatar {
-	width: 32px;
-	height: 32px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	background-size: 32px 32px;
-	background-repeat: no-repeat;
-	background-position: center;
 }
 </style>

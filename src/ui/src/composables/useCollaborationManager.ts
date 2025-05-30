@@ -7,7 +7,7 @@ const SNAPSHOT_GROOMING_INTERVAL_MS = 1000;
 const MAX_SNAPSHOT_AGE_MS = 5000;
 
 type UserCollaborationProfile = {
-	userId: string;
+	userId: number;
 	displayName: string;
 	avatar?: string;
 	email?: string;
@@ -20,13 +20,13 @@ export function useCollaborationManager(wf: Core) {
 
 	const collaborationSnapshot: Ref<Record<string, UserCollaborationPing>> =
 		ref({});
-	const userId: Ref<string> = ref(null);
+	const userId: Ref<number> = ref(null);
 	const profiles: Ref<Record<string, UserCollaborationProfile>> = ref({});
 	const connectedProfiles: Ref<UserCollaborationProfile[]> = ref([]);
 	const { writerApi } = useWriterApi();
 
-	const connectedProfilesByInstancePath = computed(() => {
-		const r: Record<string, UserCollaborationProfile[]> = {};
+	const connectedUsersByInstancePath = computed(() => {
+		const r: Record<string, UserCollaborationProfile["userId"][]> = {};
 		connectedProfiles.value.forEach((profile) => {
 			const userId = profile.userId;
 			const instancePaths =
@@ -34,7 +34,7 @@ export function useCollaborationManager(wf: Core) {
 					(s) => s.instancePath,
 				) ?? [];
 			instancePaths.forEach((instancePath) => {
-				r[instancePath] = [...(r[instancePath] ?? []), profile];
+				r[instancePath] = [...(r[instancePath] ?? []), userId];
 			});
 		});
 		return r;
@@ -71,7 +71,7 @@ export function useCollaborationManager(wf: Core) {
 		return "Unknown";
 	}
 
-	async function getProfile(userId: string) {
+	async function getProfile(userId: number) {
 		const profile = profiles.value[userId];
 		if (profile) {
 			return profile;
@@ -94,7 +94,7 @@ export function useCollaborationManager(wf: Core) {
 	async function getConnectedProfiles() {
 		const connectedUserIds = Object.keys(collaborationSnapshot.value);
 		const connectedProfiles = connectedUserIds.map((userId) =>
-			getProfile(userId),
+			getProfile(parseInt(userId)),
 		);
 		return Promise.all(connectedProfiles);
 	}
@@ -142,6 +142,6 @@ export function useCollaborationManager(wf: Core) {
 		sendCollaborationPing,
 		handleIncomingCollaborationUpdate,
 		connectedProfiles,
-		connectedProfilesByInstancePath,
+		connectedUsersByInstancePath,
 	};
 }

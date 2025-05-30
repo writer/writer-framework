@@ -189,7 +189,7 @@ export class WriterApi {
 		if (!res.ok) throw Error(await res.text());
 	}
 
-	async fetchThirdUserProfile(userId: string): Promise<WriterApiThirdUserProfile> {
+	async fetchThirdUserProfile(userId: number): Promise<WriterApiThirdUserProfile> {
 		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
 		const res = await fetch(url, {
 			signal: this.#signal,
