@@ -34,6 +34,7 @@
 			Preview
 		</button>
 		<button
+			v-if="wf.isWriterCloudApp.value"
 			:class="{ active: activeId == 'vault' }"
 			data-automation-action="set-mode-vault"
 			type="button"
