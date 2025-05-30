@@ -28,6 +28,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from writer import VERSION, abstract, crypto
 from writer.ai import Graph
+from writer.api.clients import KeyValueAPIClient
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -61,6 +62,7 @@ class JobVault:
 
     def __init__(self):
         self.counter = 0
+        self.requires_put = False
         self.vault = {}
 
     def generate_job_id(self):
@@ -72,6 +74,13 @@ class JobVault:
 
     def get(self, job_id: str):
         return self.vault.get(job_id)
+
+    def put(self, job_id: str, value: Any):
+        """
+        This method should be implemented by subclasses to handle
+        the actual storage of the job data.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
 
     @classmethod
     def register(cls, klass: Type["JobVault"]):
@@ -144,6 +153,75 @@ class RedisJobVault(JobVault):
         if not json_str:
             return None
         return json.loads(json_str)
+
+
+class WriterKVJobVault(JobVault):
+    """
+    A JobVault implementation that uses the KeyValueAPIClient to store jobs.
+    """
+    SCHEMES = ["writer-kv://"]
+
+    def __init__(self):
+        super().__init__()
+        self.requires_put = True
+        self.api_client = KeyValueAPIClient()
+
+        # dunder to prevent overlap with user data
+        self.counter_key = "__job_counter__"
+        self.default_key_prefix = "__job_"
+
+        # Init the counter from the API or set it to 0 if it doesn't exist
+        self.counter_data = self.api_client.get_value(self.counter_key)
+        if self.counter_data is None:
+            # If the counter does not exist, initialize it to 0
+            self.counter = self.api_client.set_value(self.counter_key, 0)
+        else:
+            self.counter = self.counter_data
+
+    def _increment_counter(self):
+        try:
+            self.counter += 1
+            self.api_client.set_value(self.counter_key, self.counter)
+        except Exception as e:
+            logging.error(f"Failed to increment job counter: {e}")
+            self.counter -= 1
+            raise e
+
+    def generate_job_id(self):
+        self._increment_counter()
+        # Return the current counter value as the job ID
+        # The default key prefix will be used in set/get/delete/put methods
+        # to ensure that job IDs are unique and do not overlap with user data
+        return str(self.counter)
+
+    def set(self, key: str, value: Any, user_id: Optional[str] = None):
+        self.api_client.set_value(
+            f"{self.default_key_prefix}{key}",
+            value,
+            user_id=user_id
+            )
+
+    def get(self, key: str, user_id: Optional[str] = None) -> Any:
+        return self.api_client.get_value(
+            f"{self.default_key_prefix}{key}",
+            user_id=user_id
+            )
+
+    def delete(self, key: str, user_id: Optional[str] = None):
+        self.api_client.delete_value(
+            f"{self.default_key_prefix}{key}",
+            user_id=user_id
+            )
+
+    def put(self, key: str, value: Any, user_id: Optional[str] = None):
+        """
+        This method is used to update the job data.
+        """
+        self.api_client.put_value(
+            f"{self.default_key_prefix}{key}",
+            value,
+            user_id=user_id
+            )
 
 
 class WriterState(typing.Protocol):
@@ -387,7 +465,10 @@ def get_asgi_app(
             if not current_job_info:
                 raise RuntimeError("Job not found.")
             merged_info = current_job_info | {"finished_at": int(time.time())} | job_info
-            app.state.job_vault.set(job_id, merged_info)
+            if app.state.job_vault.requires_put:
+                app.state.job_vault.put(job_id, merged_info)
+            else:
+                app.state.job_vault.set(job_id, merged_info)
 
         def job_done_callback(task: asyncio.Task, job_id: str):
             try:
@@ -765,6 +846,7 @@ def get_asgi_app(
         )
 
     JobVault.register(RedisJobVault)
+    JobVault.register(WriterKVJobVault)
 
     # Return
     if enable_server_setup is True:
