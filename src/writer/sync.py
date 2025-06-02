@@ -248,9 +248,12 @@ class FileBuffering:
                 if self.operation_queues.dirs_to_create:
                     self.log(f"Creating {len(self.operation_queues.dirs_to_create)} directories")
                     for dir_path in self.operation_queues.dirs_to_create.copy():
-                        self.log("Dir add:", self.rel(dir_path))
-                        to = self.dest_path(dir_path)
-                        self.ensure_dir(to)
+                        try:
+                            self.log("Dir add:", self.rel(dir_path))
+                            to = self.dest_path(dir_path)
+                            self.ensure_dir(to)
+                        except Exception as e:
+                            print(f"Error creating directory {dir_path}: {e}")
                     self.operation_queues.dirs_to_create.clear()
                 
                 # Process file updates
@@ -258,26 +261,35 @@ class FileBuffering:
                     self.log(f"Updating {len(self.operation_queues.files_to_update)} files")
                     for dest_path, src_path in self.operation_queues.files_to_update.copy().items():
                         if self.should_copy(src_path, dest_path):
-                            self.log("File update:", self.rel(src_path))
-                            self.copy_file(src_path, dest_path)
+                            try:
+                                self.log("File update:", self.rel(src_path))
+                                self.copy_file(src_path, dest_path)
+                            except Exception as e:
+                                print(f"Error updating file {src_path} to {dest_path}: {e}")
                     self.operation_queues.files_to_update.clear()
                 
                 # Process file deletions
                 if self.operation_queues.files_to_delete:
                     self.log(f"Deleting {len(self.operation_queues.files_to_delete)} files")
                     for file_path in self.operation_queues.files_to_delete.copy():
-                        self.log("File remove:", self.rel(file_path))
-                        to = self.dest_path(file_path)
-                        self.remove_path(to)
+                        try:
+                            self.log("File remove:", self.rel(file_path))
+                            to = self.dest_path(file_path)
+                            self.remove_path(to)
+                        except Exception as e:
+                            print(f"Error deleting file {file_path}: {e}")
                     self.operation_queues.files_to_delete.clear()
                 
                 # Process directory deletions last
                 if self.operation_queues.dirs_to_delete:
                     self.log(f"Deleting {len(self.operation_queues.dirs_to_delete)} directories")
                     for dir_path in self.operation_queues.dirs_to_delete.copy():
-                        self.log("Dir remove:", self.rel(dir_path))
-                        to = self.dest_path(dir_path)
-                        self.remove_path(to)
+                        try:
+                            self.log("Dir remove:", self.rel(dir_path))
+                            to = self.dest_path(dir_path)
+                            self.remove_path(to)
+                        except Exception as e:
+                            print(f"Error deleting directory {dir_path}: {e}")
                     self.operation_queues.dirs_to_delete.clear()
                     
         except Exception as error:
