@@ -7,7 +7,7 @@ import tempfile
 import threading
 import time
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Timer
 from typing import Any, Dict, List, Optional, Set, Union
@@ -60,9 +60,6 @@ class FolderSyncHandler(FileSystemEventHandler):
         rel_path = self.rel(src_path)
         return str(self.dest_dir / rel_path)
 
-    def on_any_event(self, event: FileSystemEvent) -> None:
-        print(event)
-
     def on_created(self, event) -> None:
         if event.is_directory:
             with self.operation_queues.lock:
@@ -112,6 +109,9 @@ class FileBuffering:
         self.observer: Optional[BaseObserver] = None
         self.sync_timer: Optional[Timer] = None
         self.running = False
+        self.last_comparison_time: datetime = datetime.now()
+        self.check_interval = 10
+        self.check_timer: Optional[Timer] = None
 
     def log(self, *args) -> None:
         if self.verbose:
@@ -308,11 +308,23 @@ class FileBuffering:
             return
             
         self.process_batched_operations()
+
         
         # Schedule next processing
         self.sync_timer = threading.Timer(self.sync_interval, self.schedule_batch_processing)
         if self.sync_timer:  # This check is redundant but satisfies mypy
             self.sync_timer.start()
+
+    def schedule_sanity_check(self) -> None:
+
+        if self.last_comparison_time < datetime.now() - timedelta(seconds=5):
+            self.compare_directories(str(self.src_dir), str(self.dest_dir), self.verbose)
+
+        self.check_timer = threading.Timer(self.check_interval, self.schedule_sanity_check)
+        if self.check_timer:  # This check is redundant but satisfies mypy
+            self.check_timer.start()
+
+
 
     def get_all_files(self, directory: str, base_dir: str) -> Dict[str, str]:
         files = {}
@@ -344,19 +356,15 @@ class FileBuffering:
 
     def compare_directories(self, dir1: str, dir2: str, verbose: bool = False) -> List[Dict[str, str]]:
         divergent_files: List[Dict[str, str]] = []
+        self.last_comparison_time = datetime.now()
         
         def log_verbose(*args):
             if verbose:
                 print(*args)
         
-        log_verbose(f"Starting deep comparison between {dir1} and {dir2}...")
-        
         # Get all files from both directories
         dir1_files = self.get_all_files(dir1, dir1)
         dir2_files = self.get_all_files(dir2, dir2)
-        
-        log_verbose(f"Found {len(dir1_files)} files in {dir1}")
-        log_verbose(f"Found {len(dir2_files)} files in {dir2}")
         
         # Compare files that exist in both directories
         for relative_path, full_path1 in dir1_files.items():
@@ -405,18 +413,7 @@ class FileBuffering:
         # Start the batch processing scheduler
         self.running = True
         self.schedule_batch_processing()
-
-    async def run(self) -> None:
-        # Call initial_sync without awaiting it since it's not an async function
-        self.initial_sync()
-        self.watch_changes()
-        
-        try:
-            while self.running:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            print("\nShutting down...")
-            self.stop()
+        self.schedule_sanity_check()
 
     def stop(self) -> None:
         self.running = False
