@@ -300,6 +300,7 @@ def get_asgi_app(
 
         return writer.autogen.generate_blueprint(
             requestBody.description,
+            app.state.app_runner.bmc_components,
             agent_token_header
             )
 

@@ -113,6 +113,7 @@
 
 <script lang="ts">
 import {
+	AutogenAction,
 	type Component,
 	FieldType,
 	type WriterComponentDefinition,
@@ -941,18 +942,26 @@ async function resetZoom() {
 }
 
 async function handleBlockGeneration(
-	payload: { components: Component[] } | null,
+	payload: { actions: AutogenAction[] } | null,
 ) {
 	isAutogenShown.value = false;
 	if (!payload) return;
-	const { components } = payload;
-	components.forEach((component) => {
-		createAndInsertComponent(
-			component.type,
-			blueprintComponentId,
-			undefined,
-			component,
-		);
+	const { actions } = payload;
+	actions.forEach((action) => {
+		if (action.type == "create") {
+			action.components.forEach((component) => {
+				createAndInsertComponent(
+					component.type,
+					blueprintComponentId,
+					undefined,
+					component,
+				);
+			});
+		} else if (action.type == "link") {
+			action.links.forEach((link) => {
+				addOut(link.id, link.newOut);
+			});
+		}
 	});
 
 	await nextTick();
