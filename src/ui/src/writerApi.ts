@@ -1,10 +1,15 @@
 export class WriterApi {
 	#signal: AbortSignal | undefined;
 	#baseUrl: string;
+	#requestInitBase: Pick<RequestInit, "signal" | "credentials">;
 
 	constructor(opts?: { signal?: AbortSignal; baseUrl?: string }) {
 		this.#signal = opts?.signal;
 		this.#baseUrl = opts?.baseUrl ?? window.location.origin;
+		this.#requestInitBase = {
+			signal: this.#signal,
+			credentials: "include",
+		};
 	}
 
 	async fetchApplicationDeployment(
@@ -15,10 +20,7 @@ export class WriterApi {
 			`/api/template/organization/${orgId}/application/${appId}/deployment`,
 			this.#baseUrl,
 		);
-		const res = await fetch(url, {
-			signal: this.#signal,
-			credentials: "include",
-		});
+		const res = await fetch(url, this.#requestInitBase);
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
@@ -42,10 +44,10 @@ export class WriterApi {
 			params.append(key, String(value));
 		}
 
-		const res = await fetch(`${url}?${params.toString()}`, {
-			signal: this.#signal,
-			credentials: "include",
-		});
+		const res = await fetch(
+			`${url}?${params.toString()}`,
+			this.#requestInitBase,
+		);
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
@@ -65,15 +67,13 @@ export class WriterApi {
 		);
 
 		const res = await fetch(url, {
+			...this.#requestInitBase,
 			method: "PUT",
 			body: JSON.stringify(body),
-			signal: this.#signal,
-			credentials: "include",
 		});
 		if (!res.ok) throw Error(await res.text());
 
-		const data = await res.json();
-		return data;
+		return res.json();
 	}
 
 	async updateApplicationMetadata(
@@ -97,23 +97,18 @@ export class WriterApi {
 		);
 
 		const res = await fetch(url, {
+			...this.#requestInitBase,
 			method: "PUT",
 			body: JSON.stringify(body),
-			signal: this.#signal,
-			credentials: "include",
 		});
 		if (!res.ok) throw Error(await res.text());
 
-		const data = await res.json();
-		return data;
+		return res.json();
 	}
 
 	async fetchUserProfile(): Promise<WriterApiUserProfile> {
 		const url = new URL(`/api/user/v2/profile`, this.#baseUrl);
-		const res = await fetch(url, {
-			signal: this.#signal,
-			credentials: "include",
-		});
+		const res = await fetch(url, this.#requestInitBase);
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
@@ -121,10 +116,7 @@ export class WriterApi {
 
 	async fetchUserById(userId: number): Promise<WriterApiUser> {
 		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
-		const res = await fetch(url, {
-			signal: this.#signal,
-			credentials: "include",
-		});
+		const res = await fetch(url, this.#requestInitBase);
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
@@ -133,14 +125,13 @@ export class WriterApi {
 	async analyticsIdentify() {
 		const url = new URL(`/api/analytics/identify`, this.#baseUrl);
 		const res = await fetch(url, {
+			...this.#requestInitBase,
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				"X-Client": "Framework",
 			},
 			body: JSON.stringify({ traits: {} }),
-			signal: this.#signal,
-			credentials: "include",
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
@@ -151,17 +142,13 @@ export class WriterApi {
 	) {
 		const url = new URL(`/api/analytics/track`, this.#baseUrl);
 		const res = await fetch(url, {
+			...this.#requestInitBase,
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				"X-Client": "Framework",
 			},
-			body: JSON.stringify({
-				eventName,
-				properties,
-			}),
-			signal: this.#signal,
-			credentials: "include",
+			body: JSON.stringify({ eventName, properties }),
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
@@ -189,15 +176,81 @@ export class WriterApi {
 		if (!res.ok) throw Error(await res.text());
 	}
 
-	async fetchThirdUserProfile(userId: number): Promise<WriterApiThirdUserProfile> {
+	async fetchThirdUserProfile(
+		userId: number,
+	): Promise<WriterApiThirdUserProfile> {
 		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
-		const res = await fetch(url, {
-			signal: this.#signal,
-			credentials: "include",
+		const res = await fetch(url, this.#requestInitBase);
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	// secrets
+
+	async createSecret(
+		orgId: number,
+		appId: string,
+		key: string,
+		data: unknown,
+	): Promise<WriterApiSecretResponse> {
+		const res = await fetch(this.#getSecretUrl(orgId, appId), {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({ key, secret: data }),
 		});
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
+	}
+
+	async fetchSecret(
+		orgId: number,
+		appId: string,
+		key: string,
+	): Promise<WriterApiSecretResponse> {
+		const res = await fetch(
+			this.#getSecretUrl(orgId, appId, key),
+			this.#requestInitBase,
+		);
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	async deleteSecret(orgId: number, appId: string, key: string) {
+		const res = await fetch(
+			this.#getSecretUrl(orgId, appId, key),
+			this.#requestInitBase,
+		);
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	async updateSecret(
+		orgId: number,
+		appId: string,
+		key: string,
+		data: unknown,
+	): Promise<WriterApiSecretResponse> {
+		const res = await fetch(this.#getSecretUrl(orgId, appId, key), {
+			...this.#requestInitBase,
+			method: "PUT",
+			body: JSON.stringify({ key, secret: data }),
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	#getSecretUrl(orgId: number, appId: string, key?: string) {
+		const url = new URL(
+			`/api/template/organization/${orgId}/agent/${appId}/secret`,
+			this.#baseUrl,
+		);
+
+		return key ? `${url}/${key}` : url;
 	}
 }
 
@@ -332,4 +385,9 @@ export type WriterApiThirdUserProfile = {
 	fullName: string;
 	email: string;
 	avatar: null | string;
+};
+
+export type WriterApiSecretResponse = {
+	name: string;
+	secret: Record<string, string>;
 };

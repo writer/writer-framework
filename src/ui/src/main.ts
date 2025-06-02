@@ -30,7 +30,7 @@ async function load() {
 	const mode = wf.mode.value;
 	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
 	const notesManager = useNotesManager(wf, wfbm);
-	const secretsManager = useSecretsManager();
+	const secretsManager = mode == "edit" ? useSecretsManager(wf) : undefined;
 	const collaborationManager =
 		mode == "edit" ? useCollaborationManager(wf) : undefined;
 
@@ -64,6 +64,9 @@ async function load() {
 
 	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager);
+	}
+	if (wf.isWriterCloudApp.value && secretsManager) {
+		secretsManager.load().catch(logger.error);
 	}
 }
 
