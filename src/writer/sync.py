@@ -12,7 +12,7 @@ from pathlib import Path
 from threading import Timer
 from typing import Any, Dict, List, Optional, Set, Union
 
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver
 
@@ -59,6 +59,9 @@ class FolderSyncHandler(FileSystemEventHandler):
     def dest_path(self, src_path: str) -> str:
         rel_path = self.rel(src_path)
         return str(self.dest_dir / rel_path)
+
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        print(event)
 
     def on_created(self, event) -> None:
         if event.is_directory:
@@ -156,7 +159,7 @@ class FileBuffering:
     def copy_file(self, src: str, dest: str) -> None:
         dest_path = Path(dest)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dest)
+        shutil.copyfile(src, dest)
 
     def remove_path(self, path: str) -> None:
         path_obj = Path(path)
