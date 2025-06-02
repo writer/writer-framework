@@ -1,6 +1,7 @@
 import io
 import sys
 import traceback
+from contextlib import redirect_stdout
 from typing import Any
 
 from writer.abstract import register_abstract_template
@@ -76,10 +77,14 @@ class CodeBlock(BlueprintBlock):
                 | writeruserapp.__dict__
                 | {"set_output": self.set_output}
             )
-            exec(
-                code,
-                block_globals,
-            )
+
+            captured_stdout = None
+            with redirect_stdout(io.StringIO()) as f:
+                exec(code, block_globals)
+                captured_stdout = f.getvalue()
+
+            if captured_stdout:
+                self.runner.session.session_state.add_log_entry("info", "Captured stdout", captured_stdout)
 
             self.outcome = "success"
         except BaseException as e:
