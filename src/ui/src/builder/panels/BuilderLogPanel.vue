@@ -154,6 +154,7 @@ const logEntries = computed(() => {
 	grid-column: 2 / 4;
 	grid-row: 2 / 3;
 	overflow: hidden;
+	white-space: pre-line;
 }
 
 .entry .content .codeContainer {
