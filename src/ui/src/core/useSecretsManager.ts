@@ -1,7 +1,7 @@
 import { JSONValue } from "@/builder/settings/BuilderFieldsKeyValue.vue";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { Core } from "@/writerTypes";
-import { shallowRef, ref, computed } from "vue";
+import { shallowRef, ref, computed, readonly } from "vue";
 
 export function useSecretsManager(wf: Core) {
 	const SECRET_KEY_NAME = "vault";
@@ -76,7 +76,8 @@ export function useSecretsManager(wf: Core) {
 		secrets,
 		load,
 		readonly: computed(() => isLoading.value || isSaving.value),
-		isLoading,
+		isLoading: readonly(isLoading),
+		isSaving: readonly(isSaving),
 		update,
 	};
 }

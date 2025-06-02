@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
 import { useKeyValueEditor } from "./settings/composables/useKeyValueEditor";
-import BuilderTemplateInput from "./settings/BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import { inject, onMounted } from "vue";
+import { computed, inject, onMounted } from "vue";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import injectionKeys from "@/injectionKeys";
+import isEqual from "lodash/isEqual";
+import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 const {
 	secrets,
@@ -14,6 +15,7 @@ const {
 	readonly,
 	isLoading: isSecretsLoading,
 	update: updateSecrets,
+	isSaving,
 } = inject(injectionKeys.secretsManager);
 
 const {
@@ -26,6 +28,19 @@ const {
 	removeAssistedEntry,
 	addAssistedEntry,
 } = useKeyValueEditor({});
+
+const currentValueFiltered = computed(() => {
+	return Object.entries(currentValue.value).reduce((acc, [key, value]) => {
+		if (key && value) acc[key] = value;
+		return acc;
+	}, {});
+});
+
+const canSave = computed(() => {
+	if (readonly.value || isSecretsLoading.value) return false;
+	// if (Object.keys(currentValueFiltered.value).length === 0) return false;
+	return !isEqual(currentValueFiltered.value, secrets.value);
+});
 
 function save() {
 	if (typeof currentValue.value !== "object" || currentValue.value === null)
@@ -71,20 +86,26 @@ onMounted(async () => {
 					:key="id"
 				>
 					<WdsFieldWrapper :error="getAssistedEntryError(id)">
-						<BuilderTemplateInput
+						<WdsTextInput
 							placeholder="Type a key..."
-							:value="entry.key"
+							:model-value="entry.key"
 							:error="getAssistedEntryError(id)"
 							:readonly="readonly"
-							@update:value="updateAssistedEntryKey(id, $event)"
+							@update:model-value="
+								updateAssistedEntryKey(id, $event)
+							"
 						/>
 					</WdsFieldWrapper>
 					<WdsFieldWrapper>
-						<BuilderTemplateInput
+						<WdsTextInput
+							type="password"
+							autocomplete="off"
 							placeholder="Type a value..."
-							:value="entry.value"
+							:model-value="entry.value"
 							:readonly="readonly"
-							@update:value="updateAssistedEntryValue(id, $event)"
+							@update:model-value="
+								updateAssistedEntryValue(id, $event)
+							"
 						/>
 					</WdsFieldWrapper>
 					<div>
@@ -114,7 +135,8 @@ onMounted(async () => {
 				<WdsButton
 					variant="primary"
 					size="small"
-					:disabled="readonly"
+					:disabled="!canSave"
+					:loading="isSaving"
 					@click="save"
 					>Save</WdsButton
 				>
