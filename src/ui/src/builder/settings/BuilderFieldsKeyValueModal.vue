@@ -105,7 +105,7 @@ const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 
 const props = defineProps({
 	data: {
-		type: Object as PropType<JSONValue>,
+		type: [Object, String] as PropType<JSONValue>,
 		required: true,
 	},
 	initialMode: {
@@ -121,6 +121,7 @@ const {
 	freehandValue,
 	isValid,
 	currentValue,
+	isInBindingMode,
 	addAssistedEntry,
 	updateAssistedEntryValue,
 	updateAssistedEntryKey,
@@ -145,10 +146,13 @@ const actions = computed<ModalAction[]>(() => [
 ]);
 
 const tabs = computed<WdsTabOptions<Mode>[]>(() => {
-	let listDisabled =
-		mode.value === "freehand" && !isValid.value
-			? "The JSON is not valid"
-			: undefined;
+	let listDisabled = undefined;
+
+	if (isInBindingMode.value) {
+		listDisabled = "The value is binded to the state";
+	} else if (mode.value === "freehand" && !isValid.value) {
+		listDisabled = "The JSON is not valid";
+	}
 
 	return [
 		{ label: "List", value: "assisted", disabled: listDisabled },

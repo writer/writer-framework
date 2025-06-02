@@ -4,28 +4,43 @@ import type { JSONValue } from "../BuilderFieldsKeyValue.vue";
 type AssistedEntry = { key: string; value: string };
 export type Mode = "assisted" | "freehand";
 
-export function useKeyValueEditor(originalValue: JSONValue) {
+function isEvaluatedValue(value: unknown): value is string {
+	return typeof value === "string" && value.startsWith("@{");
+}
+
+export function useKeyValueEditor(originalValue: JSONValue | string) {
 	const getId = useId();
 
 	const mode = ref<Mode>("assisted");
+
 	function setMode(newMode: Mode) {
 		if (mode.value === newMode) return;
 		switch (newMode) {
 			case "assisted":
+				if (isInBindingMode.value) {
+					mode.value = "freehand";
+					return;
+				}
 				initializeAssistedEntries(currentValue.value);
 				break;
 			case "freehand":
-				freehandValue.value = JSON.stringify(
-					currentValue.value,
-					undefined,
-					2,
-				);
+				if (!isInBindingMode.value) {
+					freehandValue.value = JSON.stringify(
+						currentValue.value,
+						undefined,
+						2,
+					);
+				}
 				break;
 		}
 		mode.value = newMode;
 	}
 
-	const freehandValue = ref();
+	const freehandValue = ref("");
+
+	const isInBindingMode = computed(() =>
+		isEvaluatedValue(freehandValue.value),
+	);
 
 	// assisted entries
 
@@ -73,7 +88,14 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 		}
 	}
 
-	function initializeAssistedEntries(object: JSONValue) {
+	function initializeAssistedEntries(object: JSONValue | string) {
+		if (isEvaluatedValue(object)) {
+			assistedEntries.value = {};
+			freehandValue.value = object;
+			mode.value = "freehand";
+			return;
+		}
+
 		assistedEntries.value = Object.entries(object).reduce<
 			Record<string, AssistedEntry>
 		>((acc, [key, value]) => {
@@ -107,6 +129,7 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 			case "assisted":
 				return assitedEntriesDuplicatedKeys.value.size === 0;
 			case "freehand":
+				if (isInBindingMode.value) return true;
 				try {
 					JSON.parse(freehandValue.value);
 					return true;
@@ -126,6 +149,10 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 					return acc;
 				}, {});
 			case "freehand":
+				if (isInBindingMode.value) {
+					return freehandValue.value;
+				}
+
 				try {
 					return JSON.parse(freehandValue.value);
 				} catch {
@@ -138,6 +165,7 @@ export function useKeyValueEditor(originalValue: JSONValue) {
 
 	return {
 		mode: computed<Mode>({ get: () => mode.value, set: setMode }),
+		isInBindingMode,
 		assistedEntries: readonly(assistedEntries),
 		addEntryDisabled: addAssistedEntryDisabled,
 		addAssistedEntry,
