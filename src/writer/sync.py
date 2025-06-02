@@ -260,12 +260,12 @@ class FileBuffering:
                 if self.operation_queues.files_to_update:
                     self.log(f"Updating {len(self.operation_queues.files_to_update)} files")
                     for dest_path, src_path in self.operation_queues.files_to_update.copy().items():
-                        if self.should_copy(src_path, dest_path):
-                            try:
+                        try:
+                            if self.should_copy(src_path, dest_path):
                                 self.log("File update:", self.rel(src_path))
                                 self.copy_file(src_path, dest_path)
-                            except Exception as e:
-                                print(f"Error updating file {src_path} to {dest_path}: {e}")
+                        except Exception as e:
+                            print(f"Error updating file {src_path} to {dest_path}: {e}")
                     self.operation_queues.files_to_update.clear()
                 
                 # Process file deletions
