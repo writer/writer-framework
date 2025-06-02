@@ -60,6 +60,9 @@ class FolderSyncHandler(FileSystemEventHandler):
         rel_path = self.rel(src_path)
         return str(self.dest_dir / rel_path)
 
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        print(f"Event type: {event.event_type}, Path: {event.src_path}")
+
     def on_created(self, event) -> None:
         if event.is_directory:
             with self.operation_queues.lock:
@@ -130,6 +133,7 @@ class FileBuffering:
             dest_path = Path(dest)
             
             if not dest_path.exists():
+                self.log('NE')
                 return True
                 
             src_stat = src_path.stat()
@@ -137,17 +141,18 @@ class FileBuffering:
             
             # Compare size
             if src_stat.st_size != dest_stat.st_size:
-                return True
-            
-            # Compare modification time (with 1 second tolerance)
-            if src_stat.st_mtime > dest_stat.st_mtime + 1:
+                self.log('SIZE')
                 return True
             
             # Compare content
             try:
                 with open(src, 'rb') as f1, open(dest, 'rb') as f2:
-                    return f1.read() != f2.read()
+                    different = f1.read() != f2.read()
+                    if different:
+                        self.log('CONTENT')
+                    return different
             except Exception:
+                self.log('ERROR')
                 return True
                 
         except Exception:
@@ -361,6 +366,8 @@ class FileBuffering:
         def log_verbose(*args):
             if verbose:
                 print(*args)
+
+        log_verbose(f"Comparing directories: {dir1} and {dir2}")
         
         # Get all files from both directories
         dir1_files = self.get_all_files(dir1, dir1)
@@ -369,22 +376,23 @@ class FileBuffering:
         # Compare files that exist in both directories
         for relative_path, full_path1 in dir1_files.items():
             full_path2 = dir2_files.get(relative_path)
+            log_verbose(f"Comparing: {relative_path}")
             
             if not full_path2:
                 # File exists in dir1 but not in dir2
+                log_verbose(f"File only in source: {relative_path}")
                 divergent_files.append({'path': relative_path, 'reason': 'missing in target'})
                 dest = self.dest_path(full_path1)
                 with self.operation_queues.lock:
                     self.operation_queues.files_to_update[dest] = full_path1
-                log_verbose(f"File only in source: {relative_path}")
             else:
                 # File exists in both, compare content
-                if not self.files_have_same_content(full_path1, full_path2):
+                if self.should_copy(full_path1, full_path2):
+                    log_verbose(f"Content differs: {relative_path}")
                     divergent_files.append({'path': relative_path, 'reason': 'content differs'})
                     dest = self.dest_path(full_path1)
                     with self.operation_queues.lock:
                         self.operation_queues.files_to_update[dest] = full_path1
-                    log_verbose(f"Content differs: {relative_path}")
         
         # Check for files in dir2 that don't exist in dir1
         for relative_path in dir2_files.keys():
