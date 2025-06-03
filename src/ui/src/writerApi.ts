@@ -211,10 +211,10 @@ export class WriterApi {
 	}
 
 	async deleteSecret(orgId: number, appId: string, key: string) {
-		const res = await fetch(
-			this.#getSecretUrl(orgId, appId, key),
-			this.#requestInitBase,
-		);
+		const res = await fetch(this.#getSecretUrl(orgId, appId, key), {
+			...this.#requestInitBase,
+			method: "DELETE",
+		});
 		if (!res.ok) throw Error(await res.text());
 
 		return res.json();

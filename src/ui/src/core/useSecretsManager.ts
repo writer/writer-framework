@@ -9,7 +9,7 @@ export function useSecretsManager(wf: Core) {
 	const secrets = shallowRef<JSONValue>({});
 	const isLoading = ref(false);
 	const isSaving = ref(false);
-	const errror = ref(false);
+	const error = ref(false);
 
 	const { writerApi } = useWriterApi();
 
@@ -30,7 +30,7 @@ export function useSecretsManager(wf: Core) {
 		if (!wf.isWriterCloudApp.value) return;
 
 		isLoading.value = true;
-		errror.value = false;
+		error.value = false;
 
 		try {
 			const exisitingVault = await fetchExisitingVault();
@@ -43,7 +43,7 @@ export function useSecretsManager(wf: Core) {
 	async function update(newSecrets: JSONValue) {
 		if (!wf.isWriterCloudApp.value) return;
 		isSaving.value = true;
-		errror.value = false;
+		error.value = false;
 
 		const exisitingVault = await fetchExisitingVault();
 
@@ -66,7 +66,7 @@ export function useSecretsManager(wf: Core) {
 
 			secrets.value = newSecrets;
 		} catch (e) {
-			errror.value = e;
+			error.value = e;
 		} finally {
 			isSaving.value = false;
 		}

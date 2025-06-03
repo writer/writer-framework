@@ -13,7 +13,6 @@ import multiprocessing
 import numbers
 import os
 import re
-import requests
 import secrets
 import time
 import traceback
@@ -43,6 +42,7 @@ from typing import (
 )
 
 import pyarrow  # type: ignore
+import requests
 
 import writer.blocks
 import writer.evaluator
