@@ -430,6 +430,34 @@ class AppProcess(multiprocessing.Process):
         import io
         from contextlib import redirect_stdout
 
+        try:
+            import writerai
+
+            # Patch the writerai Writer init method
+            _original_writer_init = writerai.Writer.__init__
+            _original_async_writer_init = writerai.AsyncWriter.__init__
+
+            def _patched_init(self, *args, **kwargs):
+                headers = kwargs.setdefault("default_headers", {})
+                headers["X-Writer-Agent-Tenancy"] = \
+                    "multi" if os.getenv("WRITER_APP_ID") else "single"
+                _original_writer_init(self, *args, **kwargs)
+
+            def _patched_async_init(self, *args, **kwargs):
+                headers = kwargs.setdefault("default_headers", {})
+                headers["X-Writer-Agent-Tenancy"] = \
+                    "multi" if os.getenv("WRITER_APP_ID") else "single"
+                _original_async_writer_init(self, *args, **kwargs)
+
+            # Intentionally monkey-patching user-exposed constructors to inject headers
+            # MyPy will complain about method assignment — we silence it intentionally.
+            writerai.Writer.__init__ = _patched_init  # type: ignore[method-assign]
+            writerai.AsyncWriter.__init__ = _patched_async_init  # type: ignore[method-assign]
+
+        except ImportError:
+            # writerai module is not present - skipping the patches
+            pass
+
         import writer
 
         writeruserapp = sys.modules.get("writeruserapp")
