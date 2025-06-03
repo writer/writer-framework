@@ -452,37 +452,22 @@ class MutableValue:
 
 
 # TODO: move in a better place
-class VaultProxy:
-    def __init__(self):
-        self.state: Dict[str, Any] = {}
+def fetch_writer_vault() -> Dict:
+    print('## fetch_writer_vault')
+    # TODO: move the API call to a service
+    url = f"{os.getenv('WRITER_BASE_URL')}/v1/agent_secret/vault"
+    headers = {
+        "Authorization": f"Bearer {os.getenv('WRITER_API_KEY')}",
+        "X-Organization-Id": os.getenv("WRITER_ORG_ID"),
+        "X-Agent-Id": os.getenv("WRITER_APP_ID"),
+    }
 
-    def refresh(self):
-        # TODO: move the API call to a service
-        url = f"{os.getenv('WRITER_BASE_URL')}/v1/agent_secret/vault"
-        headers = {
-            "Authorization": f"Bearer {os.getenv('WRITER_API_KEY')}",
-            "X-Organization-Id": os.getenv("WRITER_ORG_ID"),
-            "X-Agent-Id": os.getenv("WRITER_APP_ID"),
-        }
+    response = requests.get(url, headers=headers)
 
-        response = requests.get(url, headers=headers)
-
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Parse the JSON response
-            data = response.json()
-            self.state = data.get("secret")
-        else:
-            self.state = {}
-
-    def get_from_accessor(self, accessors: List[str]):
-        current_level = self.state
-        for key in accessors:
-            if isinstance(current_level, dict) and key in current_level:
-                current_level = current_level[key]
-            else:
-                return None
-        return current_level
+    if response.status_code == 200:
+        return response.json().get('secret')
+    else:
+        return {}
 
 
 class StateProxy:
@@ -1662,6 +1647,8 @@ class EventHandler:
         self.session_state = session.session_state
         self.session_component_tree = session.session_component_tree
         self.deser = EventDeserialiser(session)
+        # TODO: refresh it if needed
+        self.writer_vault = fetch_writer_vault()
         self.evaluator = writer.evaluator.Evaluator(
             session.session_state, session.session_component_tree
         )
@@ -1682,9 +1669,16 @@ class EventHandler:
         branch_id: Optional[str] = None,
     ):
         def fn(payload, context, session):
-            execution_environment = {"payload": payload, "context": context, "session": session}
+            execution_environment = {
+                "payload": payload,
+                "context": context,
+                "session": session,
+                "vault": self.writer_vault,
+            }
             if blueprint_key:
-                return self.blueprint_runner.run_blueprint_by_key(blueprint_key, execution_environment)
+                return self.blueprint_runner.run_blueprint_by_key(
+                    blueprint_key, execution_environment
+                )
             elif blueprint_id:
                 return self.blueprint_runner.run_blueprint(
                     blueprint_id, execution_environment, "Blueprint execution triggered on demand"

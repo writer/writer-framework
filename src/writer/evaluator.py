@@ -28,7 +28,6 @@ class Evaluator:
         self.state = state
         self.component_tree = component_tree
         self.serializer = writer.core.StateSerialiser()
-        self.vault = writer.core.VaultProxy()
 
     def evaluate_field(
         self,
@@ -218,25 +217,19 @@ class Evaluator:
         state_ref: Any = self.state.user_state
         accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
 
-        if accessors[0] == "vault":
-            state_ref = self.vault
-            # TODO: not refresh here
-            self.vault.refresh()
-            result = self.vault.get_from_accessor(accessors[1:])
-        else:
-            for accessor in accessors:
-                if isinstance(state_ref, (writer.core.StateProxy, dict)) and accessor in state_ref:
-                    state_ref = state_ref.get(accessor)
-                    result = state_ref
-                elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
-                    state_ref = state_ref[int(accessor)]
-                    result = state_ref
-                elif isinstance(context_ref, dict) and accessor in context_ref:
-                    context_ref = context_ref.get(accessor)
-                    result = context_ref
-                elif isinstance(context_ref, list) and context_ref[int(accessor)] is not None:
-                    context_ref = context_ref[int(accessor)]
-                    result = context_ref
+        for accessor in accessors:
+            if isinstance(state_ref, (writer.core.StateProxy, dict)) and accessor in state_ref:
+                state_ref = state_ref.get(accessor)
+                result = state_ref
+            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
+                state_ref = state_ref[int(accessor)]
+                result = state_ref
+            elif isinstance(context_ref, dict) and accessor in context_ref:
+                context_ref = context_ref.get(accessor)
+                result = context_ref
+            elif isinstance(context_ref, list) and context_ref[int(accessor)] is not None:
+                context_ref = context_ref[int(accessor)]
+                result = context_ref
 
         if isinstance(result, writer.core.StateProxy):
             return result.to_dict()

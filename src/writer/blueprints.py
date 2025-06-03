@@ -206,6 +206,14 @@ class BlueprintRunner:
                     }
                 )
                 continue
+
+            # TODO: find a better way?
+            execution_environment_safe = copy.deepcopy(
+                getattr(tool, "execution_environment_snapshot", None)
+            )
+            if execution_environment_safe is not None:
+                execution_environment_safe.pop("vault", None)
+
             exec_log.summary.append(
                 {
                     "componentId": component_id,
@@ -213,9 +221,7 @@ class BlueprintRunner:
                     "message": tool.message,
                     "result": self._summarize_data_for_log(tool.result),
                     "returnValue": self._summarize_data_for_log(tool.return_value),
-                    "executionEnvironment": self._summarize_data_for_log(
-                        getattr(tool, "execution_environment_snapshot", None)
-                    ),
+                    "executionEnvironment": execution_environment_safe,
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
             )
