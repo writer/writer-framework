@@ -1,7 +1,7 @@
 export class WriterApi {
 	#signal: AbortSignal | undefined;
 	#baseUrl: string;
-	#requestInitBase: Pick<RequestInit, "signal" | "credentials">;
+	#requestInitBase: Pick<RequestInit, "signal" | "credentials" | "headers">;
 
 	constructor(opts?: { signal?: AbortSignal; baseUrl?: string }) {
 		this.#signal = opts?.signal;
@@ -9,6 +9,10 @@ export class WriterApi {
 		this.#requestInitBase = {
 			signal: this.#signal,
 			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Client": "Framework",
+			},
 		};
 	}
 
@@ -127,10 +131,6 @@ export class WriterApi {
 		const res = await fetch(url, {
 			...this.#requestInitBase,
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Client": "Framework",
-			},
 			body: JSON.stringify({ traits: {} }),
 		});
 		if (!res.ok) throw Error(await res.text());
@@ -144,10 +144,6 @@ export class WriterApi {
 		const res = await fetch(url, {
 			...this.#requestInitBase,
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Client": "Framework",
-			},
 			body: JSON.stringify({ eventName, properties }),
 		});
 		if (!res.ok) throw Error(await res.text());
@@ -161,10 +157,6 @@ export class WriterApi {
 		const url = new URL(`/api/analytics/page`, this.#baseUrl);
 		const res = await fetch(url, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Client": "Framework",
-			},
 			body: JSON.stringify({
 				name,
 				organizationId,
