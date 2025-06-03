@@ -8,6 +8,7 @@ import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import injectionKeys from "@/injectionKeys";
 import isEqual from "lodash/isEqual";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsPasswordInput from "@/wds/WdsPasswordInput.vue";
 
 const {
 	secrets,
@@ -97,8 +98,7 @@ onMounted(async () => {
 						/>
 					</WdsFieldWrapper>
 					<WdsFieldWrapper>
-						<WdsTextInput
-							type="password"
+						<WdsPasswordInput
 							autocomplete="off"
 							placeholder="Type a value..."
 							:model-value="entry.value"
