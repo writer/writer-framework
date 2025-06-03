@@ -11,7 +11,9 @@ import logging
 import math
 import multiprocessing
 import numbers
+import os
 import re
+import requests
 import secrets
 import time
 import traceback
@@ -447,6 +449,40 @@ class MutableValue:
         :return:
         """
         self._mutated = False
+
+
+# TODO: move in a better place
+class VaultProxy:
+    def __init__(self):
+        self.state: Dict[str, Any] = {}
+
+    def refresh(self):
+        # TODO: move the API call to a service
+        url = f"{os.getenv('WRITER_BASE_URL')}/v1/agent_secret/vault"
+        headers = {
+            "Authorization": f"Bearer {os.getenv('WRITER_API_KEY')}",
+            "X-Organization-Id": os.getenv("WRITER_ORG_ID"),
+            "X-Agent-Id": os.getenv("WRITER_APP_ID"),
+        }
+
+        response = requests.get(url, headers=headers)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the JSON response
+            data = response.json()
+            self.state = data.get("secret")
+        else:
+            self.state = {}
+
+    def get_from_accessor(self, accessors: List[str]):
+        current_level = self.state
+        for key in accessors:
+            if isinstance(current_level, dict) and key in current_level:
+                current_level = current_level[key]
+            else:
+                return None
+        return current_level
 
 
 class StateProxy:
