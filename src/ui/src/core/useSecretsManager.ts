@@ -13,7 +13,7 @@ export function useSecretsManager(wf: Core) {
 
 	const { writerApi } = useWriterApi();
 
-	async function fetchExisitingVault() {
+	async function fetchExistingVault() {
 		try {
 			const res = await writerApi.fetchSecret(
 				wf.writerOrgId.value,
@@ -33,7 +33,7 @@ export function useSecretsManager(wf: Core) {
 		error.value = false;
 
 		try {
-			const exisitingVault = await fetchExisitingVault();
+			const exisitingVault = await fetchExistingVault();
 			secrets.value = exisitingVault ?? {};
 		} finally {
 			isLoading.value = false;
@@ -45,7 +45,7 @@ export function useSecretsManager(wf: Core) {
 		isSaving.value = true;
 		error.value = false;
 
-		const exisitingVault = await fetchExisitingVault();
+		const exisitingVault = await fetchExistingVault();
 
 		try {
 			if (exisitingVault === undefined) {

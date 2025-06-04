@@ -207,13 +207,6 @@ class BlueprintRunner:
                 )
                 continue
 
-            # TODO: find a better way?
-            execution_environment_safe = copy.deepcopy(
-                getattr(tool, "execution_environment_snapshot", None)
-            )
-            if execution_environment_safe is not None:
-                execution_environment_safe.pop("vault", None)
-
             exec_log.summary.append(
                 {
                     "componentId": component_id,
@@ -221,7 +214,7 @@ class BlueprintRunner:
                     "message": tool.message,
                     "result": self._summarize_data_for_log(tool.result),
                     "returnValue": self._summarize_data_for_log(tool.return_value),
-                    "executionEnvironment": execution_environment_safe,
+                    "executionEnvironment": getattr(tool, "execution_environment_snapshot", None),
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
             )
@@ -420,9 +413,9 @@ class BlueprintRunner:
         finally:
             tool.execution_time_in_seconds = time.time() - start_time
             try:
-                tool.execution_environment_snapshot = copy.deepcopy(
-                    tool.execution_environment
-                )
+                tool.execution_environment_snapshot = {
+                    k: v for k, v in tool.execution_environment.items() if k != "vault"
+                }
             except Exception:
                 # pragma: no cover - best effort defensive code
                 logging.debug(

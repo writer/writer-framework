@@ -844,7 +844,6 @@ export function generateCore() {
 		requestSourceFileLoading,
 		sendListResourcesRequest,
 		sendComponentUpdate,
-
 		sendWriterVaultUpdate,
 		sendCollaborationPing,
 		addComponent,

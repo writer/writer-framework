@@ -91,12 +91,7 @@ import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 
-const {
-	secrets,
-	load: loadSecrets,
-	isLoading: isSecretsLoading,
-	update: updateSecrets,
-} = inject(injectionKeys.secretsManager);
+const { secrets } = inject(injectionKeys.secretsManager);
 
 const emit = defineEmits(["input", "update:value"]);
 

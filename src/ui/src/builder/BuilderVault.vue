@@ -41,7 +41,6 @@ const currentValueFiltered = computed(() => {
 
 const canSave = computed(() => {
 	if (readonly.value || isSecretsLoading.value) return false;
-	// if (Object.keys(currentValueFiltered.value).length === 0) return false;
 	return !isEqual(currentValueFiltered.value, secrets.value);
 });
 
@@ -78,11 +77,21 @@ onMounted(async () => {
 				<p class="BuilderVault__editor__form__labelKey">Key</p>
 				<p class="BuilderVault__editor__form__labelValue">Value</p>
 				<template v-if="isSecretsLoading">
-					<WdsSkeletonLoader style="height: 40px" />
-					<WdsSkeletonLoader style="height: 40px" />
-					<WdsSkeletonLoader style="height: 40px" />
-					<WdsSkeletonLoader style="height: 40px" />
-					<WdsSkeletonLoader style="height: 40px" />
+					<WdsSkeletonLoader
+						class="BuilderVault__editor__form__loader"
+					/>
+					<WdsSkeletonLoader
+						class="BuilderVault__editor__form__loader"
+					/>
+					<WdsSkeletonLoader
+						class="BuilderVault__editor__form__loader"
+					/>
+					<WdsSkeletonLoader
+						class="BuilderVault__editor__form__loader"
+					/>
+					<WdsSkeletonLoader
+						class="BuilderVault__editor__form__loader"
+					/>
 				</template>
 				<template
 					v-for="(entry, id) of assistedEntries"
@@ -174,6 +183,9 @@ onMounted(async () => {
 	align-items: flex-start;
 	gap: 10px;
 	margin-bottom: 22px;
+}
+.BuilderVault__editor__form__loader {
+	height: 40px;
 }
 .BuilderVault__editor__toolbar {
 	display: flex;
