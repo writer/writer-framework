@@ -1,17 +1,16 @@
 import json
-from collections import defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple
 
 from writerai import Writer
-from writerai.types.shared.tool_call import ToolCall
+from writerai.types.chat_completion import ChatCompletion
 
 import writer.abstract
 from writer.ss_types import AbstractTemplate, AutogenState
 
 client = Writer()
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 3
 TOOL_CALL_ORDER = ["generate_blueprint", "link_blocks"]
 
 
@@ -181,61 +180,43 @@ def _get_possible_links(artificial_id_to_component: Dict[str, Dict]):
     return possible_links
 
 
-def _get_tools(artificial_id_to_component: Dict[str, Dict]):
-    return [
-        {
-            "type": "function",
-            "function": {
-                "name": "generate_blueprint",
-                "description": """
-                    Generate a blueprint.
-                    When an application integration node isn't available, use an HTTP request.
-                    To use a value from state as part of a field, use the syntax @{my_var}, this will fetch the value "my_var" from state.
-                    All property or index access is via dots, for example @{my_arr.0.subprop} or @{my_obj.subprop}
-                    To get the result of the latest block, use @{result}, this will fetch the value from the execution environment, which is combined with state during runtime.
-                    To access the result of a block that's not the latest use @{results.[id]} for example @{results.aig1}
-                    All nodes must be connected to each other via "outs", either by being the source or destination of an out.
-                    No circular references are allowed.
-                    The system has built-in mechanisms to announce errors, success, so don't add anything for that.
-                    Make sure the "outs", "type", "id" and "content" are all inside the component, because sometimes you get confused about the structure. Also, sometimes you try to include things twice, make sure you don't duplicate. Follow the schema to a tee - it's the most important thing.
-                """,
-                "parameters": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "components": {
-                            "type": "array",
-                            "items": {
-                                "oneOf": _get_block_definitions(),
-                            },
-                        },
+def _get_tools_schema(existing_components: Dict[str, Dict]):
+    return {
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["generate_blueprint"],
+            "properties": {
+                "generate_blueprint": {
+                    "description": """
+                        Generate a blueprint.
+                        Duplicating existing components from <existing-blueprint> is forbidden. Use link_blocks instead.
+                        When an application integration node isn't available, use an HTTP request.
+                        To use a value from state as part of a field, use the syntax @{my_var}, this will fetch the value "my_var" from state.
+                        All property or index access is via dots, for example @{my_arr.0.subprop} or @{my_obj.subprop}
+                        To get the result of the latest block, use @{result}, this will fetch the value from the execution environment, which is combined with state during runtime.
+                        To access the result of a block that's not the latest use @{results.[id]} for example @{results.aig1}
+                        No circular references are allowed.
+                        The system has built-in mechanisms to announce errors, success, so don't add anything for that.
+                        Make sure the "outs", "type", "id" and "content" are all inside the component, because sometimes you get confused about the structure. Also, sometimes you try to include things twice, make sure you don't duplicate. Follow the schema to a tee - it's the most important thing.
+                    """,
+                    "type": "array",
+                    "items": {
+                        "oneOf": _get_block_definitions(),
+                    },
+                },
+                "link_blocks": {
+                    "description": """
+                        Connect blocks from the generated blueprint to be after already existing blocks from the <existing-blueprint>
+                    """,
+                    "type": "array",
+                    "items": {
+                        "oneOf": _get_possible_links(existing_components),
                     },
                 },
             },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "link_blocks",
-                "description": """
-                    Connect blocks from the generated blueprint to be after already existing blocks with ids from the <existing-blueprint>.
-                    Prefer linking last block of a branch. Last block is the one that has no outs.
-                """,
-                "parameters": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "links": {
-                            "type": "array",
-                            "items": {
-                                "oneOf": _get_possible_links(artificial_id_to_component),
-                            },
-                        },
-                    }
-                }
-            },
-        },
-    ]
+        }
+    }
 
 
 def _get_main_prompt(description: str, components: Dict):
@@ -243,9 +224,10 @@ def _get_main_prompt(description: str, components: Dict):
 <governing>
     You're using the Writer Agent Editor, a solution that combines reusable blocks to get to an outcome.
     The blocks are combined into a blueprint.
-    You make function calls to create blueprints.
-    If you can, reuse existing blocks under <existing-blueprint> and use link_blocks to link them to newly generated blocks.
-    Try not to duplicate existing blocks.
+    You make function calls to create blueprints and link existing blocks.
+    Reuse existing blocks under <existing-blueprint> and use link_blocks to link them to newly generated blocks.
+    All nodes must be connected to each other via "outs", either by being the source or destination of an out.
+    Only send the structured JSON schema without the reasoning.
 </governing>
 <examples>
     <example>
@@ -373,7 +355,7 @@ def _preprocess_components(components: Dict[str, Dict]) -> Tuple[Dict, Dict[str,
         preprocessed[f"ec{i}"] = {
             "type": component_definition["type"],
             "content": deepcopy(component_definition["content"]),
-            "outs": deepcopy(component_definition["outs"]),
+            "outs": deepcopy(component_definition.get("outs", [])),
         }
         reverse_mapping[f"ec{i}"] = component_definition
     
@@ -383,39 +365,38 @@ def _preprocess_components(components: Dict[str, Dict]) -> Tuple[Dict, Dict[str,
 
     return preprocessed, reverse_mapping
 
-def _decode_tool_args(tool_call: ToolCall, autogen_state: AutogenState) -> Optional[Dict]:
+
+def _sanitize_content(raw_content: str) -> str:
+    sanitized = raw_content.strip("\n")
+    if raw_content.endswith("<|python_end|>"):
+        sanitized = raw_content[:-14]
+    return sanitized
+
+def _decode_content(raw_content: str, autogen_state: AutogenState) -> Optional[Dict[str, List]]:
     try:
-        return json.loads(tool_call.function.arguments, strict=False)
-    except json.JSONDecodeError:
+        return json.loads(raw_content, strict=False)
+    except json.JSONDecodeError as e:
         autogen_state["messages"].append({
-            "role": "tool",
-            "tool_call_id": tool_call.id,
-            "name": tool_call.function.name,
-            "content": "The JSON structure is incorrect. Please make sure you're abiding by the schema.",
+            "role": "user",
+            "content": f"The JSON structure is incorrect. Error: {e}.",
         })
     return None
 
 
-def _process_generate_blueprint(tool_call: List[ToolCall], autogen_state: AutogenState
+def _process_generate_blueprint(arguments: List[Dict], autogen_state: AutogenState
 ) -> Optional[Dict[str, Mapping]]:
-    if not tool_call:
+    if not arguments:
         autogen_state["messages"].append({
             "role": "user",
             "content": "A generate_blueprint tool call is required.",
         })
         return None
 
-    call_args = _decode_tool_args(tool_call[0], autogen_state)
-    if call_args is None:
-        return None
-
     try:
-        id_to_generated_node = _validate_blueprint_nodes(call_args.get("components"))
+        id_to_generated_node = _validate_blueprint_nodes(arguments)
     except BaseException as exception:
         autogen_state["messages"].append({
-            "role": "tool",
-            "tool_call_id": tool_call[0].id,
-            "name": "generate_blueprint",
+            "role": "user",
             "content": "An error occurred. " + repr(exception),
         })
         return None
@@ -425,40 +406,33 @@ def _process_generate_blueprint(tool_call: List[ToolCall], autogen_state: Autoge
     return id_to_generated_node
 
 
-def _process_link_blocks(tool_call: List[ToolCall], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
-    if not tool_call:
+def _process_link_blocks(arguments: List[Dict[str, str]], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
+    if not arguments:
         return autogen_state["final_graph"]
-
-    call_args = _decode_tool_args(tool_call[0], autogen_state)
-    if call_args is None:
-        return None
 
     id_to_node = deepcopy(autogen_state["generated_blocks"])
     links = []
 
-    for link in call_args.get("links", []):
-        mapped_block_id = link.get("ec_id")
+    for link in arguments:
+        mapped_block_id = link.get("ec_id", "")
         existing_block = autogen_state["preprocessed_components"].get(mapped_block_id)
         if existing_block is None:
             autogen_state["messages"].append(
                 {
-                    "role": "tool",
-                    "tool_call_id": tool_call[0].id,
-                    "name": "link_blocks",
+                    "role": "user",
                     "content": f"Block with id {mapped_block_id} doesn't exist. Existing blocks: {','.join(autogen_state['preprocessed_components'].keys())}",
                 }
             )
             continue
 
-        generated_block_id = link.get("aig_id")
+        generated_block_id = link.get("aig_id", "")
         generated_block = id_to_node.get(generated_block_id)
         if generated_block is None:
             autogen_state["messages"].append(
                 {
-                    "role": "tool",
-                    "tool_call_id": tool_call[0].id,
-                    "name": "link_blocks",
-                    "content": f"Block with id {generated_block_id} was not generated. Generated blocks: {','.join(autogen_state['generated_blocks'].keys())}",
+                    "role": "user",
+                    "content": f"Block with id {generated_block_id} doesn't exist. Existing blocks: {','.join(autogen_state['generated_blocks'].keys())}",
+
                 }
             )
             continue
@@ -482,21 +456,7 @@ def _process_link_blocks(tool_call: List[ToolCall], autogen_state: AutogenState)
     return id_to_node
 
 
-def _split_tool_calls(tool_calls: List[ToolCall]) -> Mapping[str, List[ToolCall]]:
-    calls_by_function = defaultdict(list)
-    errors = []
-    for tool_call in tool_calls:
-        if tool_call.function.name is None:
-            errors.append(f"Tool call {tool_call.id} has no name")
-            continue
-        calls_by_function[tool_call.function.name].append(tool_call)
-
-    if errors:
-        raise ValueError(" | ".join(errors))
-
-    return calls_by_function
-
-def _call_tools(tool_calls: List[ToolCall], autogen_state: AutogenState):
+def _call_tools(tool_calls: Dict[str, List], autogen_state: AutogenState):
     if not tool_calls:
         autogen_state["messages"].append(
             {
@@ -505,18 +465,10 @@ def _call_tools(tool_calls: List[ToolCall], autogen_state: AutogenState):
             }
         )
         return
-    try:
-        calls_by_function = _split_tool_calls(tool_calls)
-    except ValueError as exception:
-        autogen_state["messages"].append({
-            "role": "user",
-            "content": "An error occurred. " + repr(exception),
-        })
-        return
     
     for tool_name in TOOL_CALL_ORDER:
         tool_function = globals()[f"_process_{tool_name}"]
-        tool_call = calls_by_function.get(tool_name, [])
+        tool_call = tool_calls.get(tool_name, [])
         autogen_state["final_graph"] = tool_function(tool_call, autogen_state)
         if autogen_state["final_graph"] is None:
             break
@@ -535,7 +487,7 @@ def generate_blueprint(description: str, components: Dict[str, Dict], token_head
     components = _filter_components(components)
     preprocessed_components, artificial_id_to_component = _preprocess_components(components)
     prompt = _get_main_prompt(description, preprocessed_components)
-    tools = _get_tools(artificial_id_to_component)
+    tools_schema = _get_tools_schema(artificial_id_to_component)
     autogen_state: AutogenState = {
         "preprocessed_components": preprocessed_components,
         "artificial_id_to_component": artificial_id_to_component,
@@ -561,11 +513,10 @@ def generate_blueprint(description: str, components: Dict[str, Dict], token_head
                     "content": "Please try again using the errors brought to your attention after the function call. Challenge your own reasoning.",
                 }
             ]
-        response = client.chat.chat(
+        response: ChatCompletion = client.chat.chat(
             messages=autogen_state["messages"],
             model="palmyra-x5",
-            tool_choice="required",
-            tools=tools,
+            response_format={"type": "json_schema", "json_schema": tools_schema},
             stream=False,  # type: ignore
             extra_headers=extra_headers
         )
@@ -573,7 +524,12 @@ def generate_blueprint(description: str, components: Dict[str, Dict], token_head
         response_message = response.choices[0].message
         autogen_state["messages"].append(response_message)
 
-        _call_tools(response_message.tool_calls, autogen_state)
+        raw_content = _sanitize_content(response_message.content)
+        content = _decode_content(raw_content, autogen_state)
+        if content is None:
+            continue
+
+        _call_tools(content, autogen_state)
         if autogen_state["final_graph"] is None:
             continue
 

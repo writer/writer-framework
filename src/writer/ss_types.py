@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
 
 from pydantic import BaseModel
 from typing_extensions import Literal, TypedDict
+from writerai.types.chat_completion_message import ChatCompletionMessage
 
 
 class WriterFileItem(TypedDict):
@@ -297,7 +298,7 @@ class AutogenState(TypedDict):
     preprocessed_components: Dict[str, Dict]
     artificial_id_to_component: Dict[str, Dict]
 
-    messages: List[Dict]
+    messages: List[Union[Dict, ChatCompletionMessage]]
     actions: List[Dict]
     generated_blocks: MutableMapping[str, Mapping]
     final_graph: Optional[Dict[str, Dict]]
