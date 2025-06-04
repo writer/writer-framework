@@ -10,6 +10,8 @@ import isEqual from "lodash/isEqual";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsPasswordInput from "@/wds/WdsPasswordInput.vue";
 
+const wf = inject(injectionKeys.core);
+
 const {
 	secrets,
 	load: loadSecrets,
@@ -43,10 +45,11 @@ const canSave = computed(() => {
 	return !isEqual(currentValueFiltered.value, secrets.value);
 });
 
-function save() {
+async function save() {
 	if (typeof currentValue.value !== "object" || currentValue.value === null)
 		return;
-	updateSecrets(currentValue.value);
+	await updateSecrets(currentValue.value);
+	await wf.sendWriterVaultUpdate();
 }
 
 onMounted(async () => {

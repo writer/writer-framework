@@ -36,6 +36,7 @@ MessageType = Literal[
     "stateContent",
     "hashRequest",
     "listResources",
+    "writerVaultUpdate",
 ]
 
 
@@ -147,6 +148,10 @@ class ListResourcesRequestPayload(BaseModel):
 class ListResourcesRequest(AppProcessServerRequest):
     type: Literal["listResources"]
     payload: ListResourcesRequestPayload
+
+
+class WriterVaultUpdateRequest(AppProcessServerRequest):
+    type: Literal["writerVaultUpdate"]
 
 
 class WriterEvent(BaseModel):

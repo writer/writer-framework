@@ -160,7 +160,7 @@ class Evaluator:
 
         if not isinstance(expr, str):
             raise ValueError(
-                f'Expression must be of type string. Value of type "{type(expr)}" found.'
+                f'Expression must be of type string. Value of type "{ type(expr) }" found.'
             )
 
         accessors: List[str] = []
