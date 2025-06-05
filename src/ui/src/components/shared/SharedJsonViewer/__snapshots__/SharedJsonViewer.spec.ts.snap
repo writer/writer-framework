@@ -20,7 +20,7 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
         class="SharedCollapsible__summary__icon material-symbols-outlined"
         data-v-55c4d015=""
       >
-        keyboard_arrow_down
+        keyboard_arrow_right
       </span>
       
       <div
@@ -71,7 +71,7 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
                 class="SharedCollapsible__summary__icon material-symbols-outlined"
                 data-v-55c4d015=""
               >
-                keyboard_arrow_down
+                keyboard_arrow_right
               </span>
               
               <div
@@ -128,7 +128,7 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
                 class="SharedCollapsible__summary__icon material-symbols-outlined"
                 data-v-55c4d015=""
               >
-                keyboard_arrow_down
+                keyboard_arrow_right
               </span>
               
               <div
@@ -199,7 +199,7 @@ exports[`SharedJsonViewer > should render an array 1`] = `
         class="SharedCollapsible__summary__icon material-symbols-outlined"
         data-v-55c4d015=""
       >
-        keyboard_arrow_down
+        keyboard_arrow_right
       </span>
       
       <div

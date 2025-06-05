@@ -2,7 +2,7 @@
 	<SharedCollapsible
 		:open="open"
 		:disabled="disabled"
-		:icons="{ open: 'keyboard_arrow_right', close: 'keyboard_arrow_down' }"
+		:icons="{ close: 'keyboard_arrow_right', open: 'keyboard_arrow_down' }"
 		@toggle="$emit('toggle', $event)"
 	>
 		<template #title>
