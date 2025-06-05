@@ -79,6 +79,10 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 		};
 		const accessors = parseExpression(expr, instancePath);
 
+		const isSecrets = accessors[0] === "vault";
+
+		if (isSecrets) return `@{${expr}}`;
+
 		for (let i = 0; i < accessors.length; i++) {
 			contextRef = contextRef?.[accessors[i]];
 			stateRef = stateRef?.[accessors[i]];
