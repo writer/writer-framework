@@ -216,6 +216,7 @@ import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+const secretsManager = inject(injectionKeys.secretsManager);
 
 const expandedFields = ref(new Set());
 
@@ -243,7 +244,11 @@ function isExpansible(field: WriterComponentDefinitionField) {
 	);
 }
 
-const errorsByFields = useFieldsErrors(wf, selectedInstancePath);
+const errorsByFields = useFieldsErrors(
+	wf,
+	selectedInstancePath,
+	secretsManager,
+);
 
 const fieldCategories = computed(() => {
 	return [

@@ -84,9 +84,10 @@ const props = defineProps({
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+const secretsManager = inject(injectionKeys.secretsManager);
 
 const { setContentValue } = useComponentActions(wf, ssbm);
-const { getEvaluatedFields } = useEvaluator(wf);
+const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
 
 const componentId = toRef(props, "componentId");
 const fieldKey = toRef(props, "fieldKey");

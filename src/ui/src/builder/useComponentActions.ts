@@ -1038,6 +1038,7 @@ export function useComponentActions(
 
 	async function goToComponentParentPage(componentId: Component["id"]) {
 		const component = wf.getComponentById(componentId);
+		if (!component) return;
 		const componentDefinition = wf.getComponentDefinition(
 			component.type,
 		)?.name;

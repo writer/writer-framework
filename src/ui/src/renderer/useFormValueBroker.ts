@@ -1,6 +1,6 @@
 import { ComponentPublicInstance, computed, Ref, ref, watch } from "vue";
 import { useEvaluator } from "@/renderer/useEvaluator";
-import { Core, InstancePath } from "@/writerTypes";
+import { Core, InstancePath, SecretsManager } from "@/writerTypes";
 import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 /**
@@ -17,6 +17,7 @@ export function useFormValueBroker<T = any>(
 	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
 	// @ts-expect-error keep default string for compatibility reason
 	defaultValue: T = "",
+	secretsManager?: SecretsManager,
 ) {
 	const formValue: Ref<T> = ref();
 	const isBusy = ref(false);
@@ -25,7 +26,7 @@ export function useFormValueBroker<T = any>(
 
 	const componentId = instancePath.at(-1).componentId;
 	const component = computed(() => wf.getComponentById(componentId));
-	const { evaluateExpression } = useEvaluator(wf);
+	const { evaluateExpression } = useEvaluator(wf, secretsManager);
 
 	function getBindingValue() {
 		const component = wf.getComponentById(componentId);

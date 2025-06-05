@@ -1,6 +1,7 @@
 import type {
 	Core,
 	InstancePath,
+	SecretsManager,
 	WriterComponentDefinitionField,
 } from "@/writerTypes";
 import { computed, ComputedRef } from "vue";
@@ -16,8 +17,9 @@ import type { ErrorObject } from "ajv";
 export function useFieldsErrors(
 	wf: Core,
 	instancePath: ComputedRef<InstancePath>,
+	secretsManager?: SecretsManager,
 ) {
-	const { getEvaluatedFields } = useEvaluator(wf);
+	const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
 
 	const componentId = computed(() => instancePath.value.at(-1)?.componentId);
 
