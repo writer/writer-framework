@@ -45,7 +45,8 @@ import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const templateEvaluator = useEvaluator(wf);
+const secretsManager = inject(injectionKeys.secretsManager);
+const templateEvaluator = useEvaluator(wf, secretsManager);
 const importedModulesSpecifiers: Record<string, string> = {};
 const lastActivePageId = ref({});
 

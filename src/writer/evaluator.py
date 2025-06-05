@@ -58,7 +58,7 @@ class Evaluator:
         replaced = None
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
-        def replacer(matched):
+        def replacer(matched: re.Match):
             if matched.string[0] == "\\":  # Escaped @, don't evaluate
                 return matched.string
             expr = matched.group(1).strip()
@@ -66,7 +66,10 @@ class Evaluator:
             if full_match is not None:
                 return expr_value
             if as_json:
-                return json.dumps(expr_value)
+                if field_value[matched.start(0)] == '"':
+                    return json.dumps(expr_value)
+                else:
+                    return expr_value
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
             return expr_value
