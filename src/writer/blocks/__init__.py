@@ -20,6 +20,7 @@ from writer.blocks.writerfileapi import WriterUploadFile
 from writer.blocks.writerinitchat import WriterInitChat
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerparsepdf import WriterParsePDFByFileID
+from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 
 SetState.register("blueprints_setstate")
@@ -41,6 +42,7 @@ WriterAddToKG.register("blueprints_writeraddtokg")
 UIEventTrigger.register("blueprints_uieventtrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
+WriterStructuredOutput.register("blueprints_writerstructuredoutput")
 WriterToolCalling.register("blueprints_writertoolcalling")
 WriterAskGraphQuestion.register("blueprints_writeraskgraphquestion")
 WriterParsePDFByFileID.register("blueprints_writerparsepdf")
