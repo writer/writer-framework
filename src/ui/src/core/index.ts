@@ -715,6 +715,19 @@ export function generateCore() {
 		});
 	}
 
+	/**
+	 * Signal the backend that Vault secrets changed and need to invalidate the cache
+	 */
+	async function sendWriterVaultUpdate(): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const messageCallback = (r: { ok: boolean }) => {
+				if (!r.ok) return reject("Couldn't connect to the server.");
+				resolve();
+			};
+			sendFrontendMessage("writerVaultUpdate", {}, messageCallback);
+		});
+	}
+
 	function getComponentById(componentId: Component["id"]): Component {
 		return components.value[componentId];
 	}
@@ -831,6 +844,7 @@ export function generateCore() {
 		requestSourceFileLoading,
 		sendListResourcesRequest,
 		sendComponentUpdate,
+		sendWriterVaultUpdate,
 		sendCollaborationPing,
 		addComponent,
 		deleteComponent,

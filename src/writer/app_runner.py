@@ -19,7 +19,7 @@ import watchdog.events
 from pydantic import ValidationError
 from watchdog.observers.polling import PollingObserver
 
-from writer import VERSION, audit_and_fix, core_ui, crypto, wf_project
+from writer import VERSION, audit_and_fix, core_ui, crypto, vault, wf_project
 from writer.core import (
     Config,
     EventHandlerRegistry,
@@ -54,6 +54,7 @@ from writer.ss_types import (
     StateEnquiryResponsePayload,
     WriterApplicationInformation,
     WriterEvent,
+    WriterVaultUpdateRequest,
 )
 from writer.wf_project import WfProjectContext
 
@@ -419,6 +420,14 @@ class AppProcess(multiprocessing.Process):
             if self.mode == "edit" and type == "listResources":
                 list_req_payload = ListResourcesRequestPayload.model_validate(request.payload)
                 return self._handle_list_resources(session, list_req_payload)
+
+            if self.mode == "edit" and type == "writerVaultUpdate":
+                vault.writer_vault.refresh()
+                return AppProcessServerResponse(
+                    status="ok",
+                    status_message=None,
+                    payload=None,
+                )
 
             raise MessageHandlingException("Invalid event.")
 
@@ -972,6 +981,10 @@ class AppRunner:
             raise PermissionError("Cannot update components in non-update mode.")
         message_payload = ListResourcesRequestPayload(resource_type=resource_type)
         message = ListResourcesRequest(type="listResources", payload=message_payload)
+        return await self.dispatch_message(session_id, message)
+
+    async def writer_vault_refresh(self, session_id: str) -> AppProcessServerResponse:
+        message = WriterVaultUpdateRequest(type="writerVaultUpdate")
         return await self.dispatch_message(session_id, message)
 
     async def handle_event(self, session_id: str, event: WriterEvent) -> AppProcessServerResponse:

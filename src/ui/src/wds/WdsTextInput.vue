@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="leftIcon || enableClearButton"
+		v-if="leftIcon || enableClearButton || rightIcon"
 		class="WdsTextInput WdsTextInput--leftIcon colorTransformer"
 		:class="{ 'WdsTextInput--ghost': variant === 'ghost' }"
 		v-bind="$attrs"
@@ -19,12 +19,12 @@
 		/>
 		<p v-if="rightText" class="WdsTextInput__rightText">{{ rightText }}</p>
 		<button
-			v-if="enableClearButton && model"
-			class="WdsTextInput__clearBtn"
+			v-if="rightIcon && model"
+			class="WdsTextInput__rightIcon"
 			type="button"
-			@click="model = ''"
+			@click="$emit('rightIconClick')"
 		>
-			<i class="material-symbols-outlined">close</i>
+			<i class="material-symbols-outlined">{{ rightIcon }}</i>
 		</button>
 	</div>
 	<input
@@ -49,11 +49,16 @@ defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
+	rightIcon: { type: String, required: false, default: undefined },
 	invalid: { type: Boolean, required: false },
 	variant: { type: String as PropType<"ghost">, default: undefined },
 	enableClearButton: { type: Boolean, required: false },
 	rightText: { type: String, required: false, default: "" },
 	autofocus: { type: Boolean },
+});
+
+defineEmits({
+	rightIconClick: () => true,
 });
 
 defineExpose({
@@ -75,7 +80,7 @@ const gridTemplateColumns = computed(() =>
 		props.leftIcon ? "auto" : undefined,
 		"1fr",
 		props.rightText ? "auto" : undefined,
-		props.enableClearButton ? "auto" : undefined,
+		props.rightIcon ? "auto" : undefined,
 	]
 		.filter(Boolean)
 		.join(" "),
@@ -165,7 +170,7 @@ function focus() {
 	outline: none;
 }
 
-.WdsTextInput__clearBtn {
+.WdsTextInput__rightIcon {
 	border: none;
 	background-color: transparent;
 	display: flex;

@@ -44,7 +44,7 @@ import pyarrow  # type: ignore
 
 import writer.blocks
 import writer.evaluator
-from writer import core_ui
+from writer import core_ui, vault
 from writer.core_ui import Component
 from writer.ss_types import (
     BlueprintExecutionLog,
@@ -1646,9 +1646,16 @@ class EventHandler:
         branch_id: Optional[str] = None,
     ):
         def fn(payload, context, session):
-            execution_environment = {"payload": payload, "context": context, "session": session}
+            execution_environment = {
+                "payload": payload,
+                "context": context,
+                "session": session,
+                "vault": vault.writer_vault.get_secrets(),
+            }
             if blueprint_key:
-                return self.blueprint_runner.run_blueprint_by_key(blueprint_key, execution_environment)
+                return self.blueprint_runner.run_blueprint_by_key(
+                    blueprint_key, execution_environment
+                )
             elif blueprint_id:
                 return self.blueprint_runner.run_blueprint(
                     blueprint_id, execution_environment, "Blueprint execution triggered on demand"

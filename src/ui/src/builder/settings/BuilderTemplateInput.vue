@@ -11,6 +11,7 @@
 				:list="props.options ? `list-${props.inputId}` : undefined"
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
+				:readonly="readonly"
 				@input="handleInput"
 				@blur="closeAutocompletion"
 			/>
@@ -45,6 +46,7 @@
 				:placeholder="props.placeholder"
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
+				:readonly="readonly"
 				@input="handleInput"
 			/>
 		</template>
@@ -77,6 +79,7 @@ import Fuse from "fuse.js";
 import injectionKeys from "@/injectionKeys";
 import {
 	PropType,
+	computed,
 	inject,
 	nextTick,
 	onUnmounted,
@@ -87,6 +90,8 @@ import {
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
+
+const { secrets } = inject(injectionKeys.secretsManager);
 
 const emit = defineEmits(["input", "update:value"]);
 
@@ -112,6 +117,7 @@ const props = defineProps({
 	placeholder: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
+	readonly: { type: Boolean },
 });
 
 const ss = inject(injectionKeys.core);
@@ -219,6 +225,16 @@ function handleInput(ev) {
 	showAutocomplete();
 }
 
+const autoCompletionState = computed(() => {
+	const userState = ss.userState.value ?? {};
+	if (!secrets.value) return userState;
+
+	return {
+		...userState,
+		vault: secrets.value,
+	};
+});
+
 function showAutocomplete() {
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const newValue = input.value?.value;
@@ -236,12 +252,12 @@ function showAutocomplete() {
 	const keyword = full.at(-1);
 	const path = full.slice(0, -1);
 
-	const allOptions = Object.entries(_get(ss.userState.value, path) ?? {}).map(
-		([key, val]) => ({
-			text: escapeVariable(key),
-			type: typeToString(val),
-		}),
-	);
+	const allOptions = Object.entries(
+		_get(autoCompletionState.value, path) ?? {},
+	).map(([key, val]) => ({
+		text: escapeVariable(key),
+		type: typeToString(val),
+	}));
 
 	const fuse = new Fuse(allOptions, {
 		findAllMatches: true,

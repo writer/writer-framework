@@ -72,8 +72,10 @@ export const enum SelectionStatus {
 	Multiple = 2,
 }
 
+export type BuilderManagerMode = "ui" | "blueprints" | "preview" | "vault";
+
 type State = {
-	mode: "ui" | "blueprints" | "preview";
+	mode: BuilderManagerMode;
 	selection: Selection;
 	mutationTransactionsSnapshot: {
 		undo: ComponentMutationTransaction;
@@ -104,7 +106,7 @@ export function generateBuilderManager() {
 	/**
 	 * @deprecated use {@link mode} instead
 	 */
-	const setMode = (newMode: State["mode"]): void => {
+	const setMode = (newMode: BuilderManagerMode): void => {
 		mode.value = newMode;
 	};
 

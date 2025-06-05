@@ -630,6 +630,8 @@ def get_asgi_app(
                 response.payload = {"sourceFiles": app_runner.source_files}
             except Exception as error:
                 response.payload = {"error": str(error)}
+        elif req_message.type == "writerVaultUpdate":
+            await app_runner.writer_vault_refresh(session_id)
 
         await websocket.send_json(response.model_dump())
 

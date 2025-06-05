@@ -8,7 +8,8 @@
 				data-automation-action="search"
 				:placeholder="placeholder"
 				:right-text="searchRightText"
-				enable-clear-button
+				right-icon="close"
+				@right-icon-click="model = ''"
 			/>
 		</div>
 		<div class="BuilderSidebarPanel__main"><slot></slot></div>
