@@ -45,7 +45,7 @@ from writerai.types.applications import (
     JobRetryResponse,
 )
 from writerai.types.applications.application_graphs_response import ApplicationGraphsResponse
-from writerai.types.chat_chat_params import GraphData, ToolChoice
+from writerai.types.chat_chat_params import GraphData, ResponseFormat, ToolChoice
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_completion_message import ChatCompletionMessage
 from writerai.types.question import Question
@@ -79,6 +79,7 @@ class ChatOptions(APIOptions, total=False):
                 ],
             NotGiven
         ]
+    response_format: Union[ResponseFormat, NotGiven]
     logprobs: Union[bool, NotGiven]
     max_tokens: Union[int, NotGiven]
     n: Union[int, NotGiven]
@@ -1708,6 +1709,7 @@ class Conversation:
             logprobs=request_data.get('logprobs', NotGiven()),
             tools=request_data.get('tools', NotGiven()),
             tool_choice=request_data.get('tool_choice', NotGiven()),
+            response_format=request_data.get('response_format', NotGiven()),
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
             stop=request_data.get('stop', NotGiven()),
@@ -2124,6 +2126,7 @@ class Conversation:
                     ]  # can be an instance of tool or a list of instances
                 ] = None,
             max_tool_depth: int = 5,
+            response_format: Optional[ResponseFormat] = None
             ) -> 'Conversation.Message':
         """
         Processes the conversation with the current messages and additional
@@ -2134,6 +2137,7 @@ class Conversation:
         :param tools: Optional tools to use for processing.
         :param config: Optional parameters to pass for processing.
         :param max_tool_depth: Maximum depth for tool calls processing.
+        :param response_format: Optional JSON schema used to format the model's output.
         :return: Generated message.
         :raises RuntimeError: If response data was not properly formatted
         to retrieve model text.
@@ -2150,6 +2154,13 @@ class Conversation:
         request_data: ChatOptions = {**config, **self.config}
         if prepared_tools:
             request_data |= {"tools": prepared_tools}
+        if response_format:
+            if not isinstance(response_format, dict):
+                raise ValueError(
+                    "Invalid schema for response_format: "
+                    f"dictionary required, got {type(response_format)}"
+                    )
+            request_data |= {"response_format": response_format}
         request_model = \
             request_data.get("model") or WriterAIManager.use_chat_model()
 
@@ -2184,7 +2195,8 @@ class Conversation:
                     List[Union[Graph, GraphTool, FunctionTool]]
                     ]  # can be an instance of tool or a list of instances
                 ] = None,
-            max_tool_depth: int = 5
+            max_tool_depth: int = 5,
+            response_format: Optional[ResponseFormat] = None
             ) -> Generator[dict, None, None]:
         """
         Initiates a stream to receive chunks of the model's reply.
@@ -2208,6 +2220,13 @@ class Conversation:
         request_data: ChatOptions = {**config, **self.config}
         if prepared_tools:
             request_data |= {"tools": prepared_tools}
+        if response_format:
+            if not isinstance(response_format, dict):
+                raise ValueError(
+                    "Invalid schema for response_format: "
+                    f"dictionary required, got {type(response_format)}"
+                    )
+            request_data |= {"response_format": response_format}
         request_model = \
             request_data.get("model") or WriterAIManager.use_chat_model()
 
