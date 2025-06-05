@@ -68,8 +68,8 @@ onMounted(async () => {
 		</h1>
 		<p>
 			Save the key value pairs for all of your integrations and secrets
-			here, then reference them with <code>@{}</code> from any block in
-			your blueprint.
+			here, then reference them with <code>@{vault}</code> from any block
+			in your blueprint.
 		</p>
 
 		<div class="BuilderVault__editor">
