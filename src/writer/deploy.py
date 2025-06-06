@@ -19,7 +19,7 @@ DEPLOY_TIMEOUT = int(os.getenv("WRITER_DEPLOY_TIMEOUT", 20))
 
 @click.group()
 def cloud():
-    """A group of commands to deploy the app on writer cloud"""
+    """[DEPRECATED] A group of commands to deploy the app on writer cloud"""
     pass
 
 @cloud.command()
@@ -36,43 +36,10 @@ def cloud():
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 @click.argument('path')
 def deploy(path, api_key, env, verbose, force):
-    """Deploy the app from PATH folder."""
-
-    deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
-    sleep_interval = int(os.getenv("WRITER_DEPLOY_SLEEP_INTERVAL", '5'))
-
-    if not force:
-        check_app(deploy_url, api_key)
-
-    abs_path = os.path.abspath(path)
-    if not os.path.isdir(abs_path):
-        raise click.ClickException("A path to a folder containing a Writer Framework app is required. For example: writer cloud deploy my_app")
-
-    env = _validate_env_vars(env)
-    tar = pack_project(abs_path)
-    try:
-        upload_package(deploy_url, tar, api_key, env, verbose=verbose, sleep_interval=sleep_interval)
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 401:
-            unauthorized_error()
-        else:
-            on_error_print_and_raise(e.response, verbose=verbose)
-    except Exception as e:
-        print(e)
-        print("Error deploying app")
-        sys.exit(1)
-    finally:
-        tar.close()
-
-def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
-    if env is None:
-        return None
-    for var in env:
-        regex = r"^[a-zA-Z_]+[a-zA-Z0-9_]*=.*$"
-        if not re.match(regex, var):
-            logging.error(f"Invalid environment variable: {var}, please use the format ENV_VAR=value")
-            sys.exit(1)
-    return env
+    """[NO LONGER SUPPORTED] Deploy the app from PATH folder."""
+    
+    print("[ATTENTION] This command is no longer supported and does nothing. Please use Agent Builder at https://app.writer.com/aistudio to deploy your app.")
+    return
 
 @cloud.command()
 @click.option('--api-key',
@@ -85,7 +52,7 @@ def _validate_env_vars(env: Union[List[str], None]) -> Union[List[str], None]:
 )
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 def undeploy(api_key, verbose):
-    """Stop the app, app would not be available anymore."""
+    """[DEPRECATED] Stop the app, app would not be available anymore."""
     try:
         print("Undeploying app")
         deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
@@ -109,7 +76,7 @@ def undeploy(api_key, verbose):
 )
 @click.option('--verbose', '-v', default=False, is_flag=True, help="Enable verbose mode")
 def logs(api_key, verbose):
-    """Fetch logs from the deployed app."""
+    """[DEPRECATED] Fetch logs from the deployed app."""
 
     deploy_url = os.getenv("WRITER_DEPLOY_URL", "https://api.writer.com/v1/deployment/apps")
     sleep_interval = int(os.getenv("WRITER_DEPLOY_SLEEP_INTERVAL", '5'))
