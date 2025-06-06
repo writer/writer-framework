@@ -81,7 +81,7 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 
 		const isSecrets = accessors[0] === "vault";
 
-		if (isSecrets) return `@{${expr}}`;
+		if (isSecrets) return `********`;
 
 		for (let i = 0; i < accessors.length; i++) {
 			contextRef = contextRef?.[accessors[i]];
