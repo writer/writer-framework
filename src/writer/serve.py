@@ -28,6 +28,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from writer import VERSION, abstract, crypto
 from writer.ai import Graph
+from writer.api.clients import KeyValueAPIClient
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -61,6 +62,7 @@ class JobVault:
 
     def __init__(self):
         self.counter = 0
+        self.requires_put = False
         self.vault = {}
 
     def generate_job_id(self):
@@ -72,6 +74,13 @@ class JobVault:
 
     def get(self, job_id: str):
         return self.vault.get(job_id)
+
+    def put(self, job_id: str, value: Any):
+        """
+        This method should be implemented by subclasses to handle
+        the actual storage of the job data.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
 
     @classmethod
     def register(cls, klass: Type["JobVault"]):
@@ -144,6 +153,53 @@ class RedisJobVault(JobVault):
         if not json_str:
             return None
         return json.loads(json_str)
+
+
+class WriterKVJobVault(JobVault):
+    """
+    A JobVault implementation that uses the KeyValueAPIClient to store jobs.
+    """
+    SCHEMES = ["writer-kv://"]
+
+    def __init__(self):
+        super().__init__()
+        self.requires_put = True
+        self.api_client = KeyValueAPIClient()
+
+        self.default_key_prefix = "job-"
+
+    def generate_job_id(self):
+        import uuid
+        return str(uuid.uuid4())
+
+    def set(self, job_id: str, value: Any, user_id: Optional[str] = None):
+        self.api_client.set_value(
+            f"{self.default_key_prefix}{job_id}",
+            value,
+            user_id=user_id
+            )
+
+    def get(self, job_id: str, user_id: Optional[str] = None) -> Any:
+        return self.api_client.get_value(
+            f"{self.default_key_prefix}{job_id}",
+            user_id=user_id
+            )
+
+    def delete(self, job_id: str, user_id: Optional[str] = None):
+        self.api_client.delete_value(
+            f"{self.default_key_prefix}{job_id}",
+            user_id=user_id
+            )
+
+    def put(self, job_id: str, value: Any, user_id: Optional[str] = None):
+        """
+        This method is used to update the job data.
+        """
+        self.api_client.put_value(
+            f"{self.default_key_prefix}{job_id}",
+            value,
+            user_id=user_id
+            )
 
 
 class WriterState(typing.Protocol):
@@ -387,7 +443,10 @@ def get_asgi_app(
             if not current_job_info:
                 raise RuntimeError("Job not found.")
             merged_info = current_job_info | {"finished_at": int(time.time())} | job_info
-            app.state.job_vault.set(job_id, merged_info)
+            if app.state.job_vault.requires_put:
+                app.state.job_vault.put(job_id, merged_info)
+            else:
+                app.state.job_vault.set(job_id, merged_info)
 
         def job_done_callback(task: asyncio.Task, job_id: str):
             try:
@@ -767,6 +826,7 @@ def get_asgi_app(
         )
 
     JobVault.register(RedisJobVault)
+    JobVault.register(WriterKVJobVault)
 
     # Return
     if enable_server_setup is True:
