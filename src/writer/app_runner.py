@@ -28,6 +28,7 @@ from writer.core import (
     use_request_context,
 )
 from writer.core_ui import ingest_bmc_component_tree
+from writer.logs import capture_logs
 from writer.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -58,6 +59,7 @@ from writer.ss_types import (
 )
 from writer.wf_project import WfProjectContext
 
+user_code_logger = logging.getLogger("user_code")
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
@@ -445,15 +447,27 @@ class AppProcess(multiprocessing.Process):
         if writeruserapp is None:
             raise ValueError("Couldn't find app module (writeruserapp).")
 
+        logs_buffer = io.StringIO()
         code_path = os.path.join(self.app_path, "main.py")
-        with redirect_stdout(io.StringIO()) as f:
+        with (
+            redirect_stdout(io.StringIO()) as f,
+            capture_logs(user_code_logger, buffer=logs_buffer) as wrapped_logger
+        ):
+            writeruserapp.__dict__["logger"] = wrapped_logger
             code = compile(self.run_code, code_path, "exec")
             exec(code, writeruserapp.__dict__)
+
+        captured_logs = logs_buffer.getvalue()
         captured_stdout = f.getvalue()
 
         if captured_stdout:
             writer.core.initial_state.add_log_entry(
                 "info", "Stdout message during initialization", captured_stdout
+            )
+
+        if captured_logs:
+            writer.core.initial_state.add_log_entry(
+                "info", "Logs during initialization", captured_logs
             )
 
         # Register non-private functions as handlers

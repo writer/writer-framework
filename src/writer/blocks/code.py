@@ -1,4 +1,5 @@
 import io
+import logging
 import sys
 import traceback
 from contextlib import redirect_stdout
@@ -6,7 +7,11 @@ from typing import Any
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
+from writer.logs import capture_logs
 from writer.ss_types import AbstractTemplate
+
+exec_logger = logging.getLogger("exec_logger")
+exec_logger.setLevel(logging.DEBUG)
 
 INIT_CODE = """
 # State is accessible as a global variable. For example:
@@ -16,6 +21,7 @@ state["counter"] = 10
 result # Result from the execution of the last block
 results # Dictionary with the execution results of each block, with the block id as key
 payload # When executing via API or via an UI event with a payload
+logger # logging.Logger object for capturing logs
 
 # To set the output of this block, which will be available via result to the next block:
 set_output("a sample result")
@@ -79,8 +85,11 @@ class CodeBlock(BlueprintBlock):
             )
 
             captured_stdout = None
-            with redirect_stdout(io.StringIO()) as f:
-                exec(code, block_globals)
+            with (
+                redirect_stdout(io.StringIO()) as f,
+                capture_logs(exec_logger, self.runner.session.session_state) as wrapped_logger
+            ):
+                exec(code, block_globals | {"logger": wrapped_logger})
                 captured_stdout = f.getvalue()
 
             if captured_stdout:
