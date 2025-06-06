@@ -36,6 +36,31 @@ import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
+type AutogenCreateAction = {
+	type: "create";
+	components: Component[];
+};
+
+export type AutogenLinkActionInfo = {
+	id: string;
+	newOut: {
+		outId: string;
+		toNodeId: string;
+	};
+};
+
+type AutogenLinkAction = {
+	type: "link";
+	links: AutogenLinkActionInfo[];
+};
+
+export type AutogenAction = AutogenCreateAction | AutogenLinkAction;
+
+export type AutogenResult = {
+	actions: (AutogenCreateAction | AutogenLinkAction)[];
+	messages: string[];
+};
+
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
@@ -59,43 +84,63 @@ onMounted(() => {
  * The generation happens with simple ids (aig1, aig2, ...).
  * Component ids are altered to preserve uniqueness across blueprints.
  */
-function alterIds(components: Component[]) {
-	const mapping: Record<string, string> = {};
-
-	// Switch ids
-
-	components.forEach((c) => {
+function alterIdForCreate(
+	action: AutogenAction & { type: "create" },
+	mapping: Record<string, string>,
+) {
+	action.components.forEach((component) => {
 		const newId = generateNewComponentId();
-		mapping[c.id] = newId;
-		c.id = newId;
+		mapping[component.id] = newId;
+		component.id = newId;
 	});
 
 	// Switch out ids
 
-	components.forEach((c) => {
-		c.outs?.forEach((out) => {
+	action.components.forEach((component) => {
+		component.outs?.forEach((out) => {
 			out.toNodeId = mapping[out.toNodeId];
 		});
 	});
 
 	// Switch results
 
-	components.forEach((c) => {
+	action.components.forEach((component) => {
 		Object.entries(mapping).forEach(([originalId, newId]) => {
 			const regex = new RegExp(
 				`(@{\\s*results\\.)aig${originalId}\\b`,
 				"g",
 			);
-			Object.entries(c.content).forEach(([fieldKey, field]) => {
+			Object.entries(component.content).forEach(([fieldKey, field]) => {
 				const newField = field.replace(regex, (_match, capturedAig) =>
 					_match.replace(capturedAig, newId),
 				);
-				c.content[fieldKey] = newField;
+				component.content[fieldKey] = newField;
 			});
 		});
 	});
+}
 
-	return components;
+function alterIdForLink(
+	action: AutogenAction & { type: "link" },
+	mapping: Record<string, string>,
+) {
+	action.links.forEach((link) => {
+		link.newOut.toNodeId = mapping[link.newOut.toNodeId];
+	});
+}
+
+function alterIds(actions: AutogenAction[]) {
+	const mapping: Record<string, string> = {};
+
+	actions.forEach((action) => {
+		if (action.type == "create") {
+			alterIdForCreate(action, mapping);
+		} else if (action.type == "link") {
+			alterIdForLink(action, mapping);
+		}
+	});
+
+	return actions;
 }
 
 async function handleAutogen() {
@@ -116,10 +161,10 @@ async function handleAutogen() {
 		throw new Error(`Error: ${response.status} - ${response.statusText}`);
 	}
 
-	const data = await response.json(); // Assuming the response is JSON
+	const data = (await response.json()) as AutogenResult; // Assuming the response is JSON
 
-	const components: Component[] = alterIds(data.blueprint?.components);
-	emits("blockGeneration", { components });
+	const actions: AutogenAction[] = alterIds(data.actions);
+	emits("blockGeneration", { actions });
 
 	tracking.track("blueprints_auto_gen_completed");
 }
