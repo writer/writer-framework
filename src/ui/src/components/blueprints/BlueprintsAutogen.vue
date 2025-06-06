@@ -1,6 +1,15 @@
 <template>
 	<div class="BlueprintsAutogen">
-		<template v-if="!isBusy">
+		<template v-if="errorMessage">
+			<div class="error-message">
+				{{ errorMessage }}
+			</div>
+			<WdsButton variant="tertiary" @click="handleGoBack">
+				Go back
+			</WdsButton>
+		</template>
+
+		<template v-else-if="!isBusy">
 			<div class="main">
 				<WdsTextareaInput
 					v-model="prompt"
@@ -44,11 +53,17 @@ const tracking = useWriterTracking(wf);
 
 const isBusy = ref(false);
 const prompt = ref("");
+const errorMessage = ref<string | null>(null); // Track error messages
 
 const emits = defineEmits(["blockGeneration"]);
 
 function handleCancel() {
 	emits("blockGeneration", null);
+}
+
+function handleGoBack() {
+	errorMessage.value = null;
+	isBusy.value = false;
 }
 
 onMounted(() => {
@@ -101,6 +116,7 @@ function alterIds(components: Component[]) {
 async function handleAutogen() {
 	const description = prompt.value;
 	isBusy.value = true;
+	errorMessage.value = null;
 	tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
 	const response = await fetch(convertAbsolutePathtoFullURL("/api/autogen"), {
 		method: "POST",
@@ -113,13 +129,19 @@ async function handleAutogen() {
 	isBusy.value = false;
 
 	if (!response.ok) {
+		errorMessage.value = `Generation failed. Try again`;
 		throw new Error(`Error: ${response.status} - ${response.statusText}`);
 	}
 
 	const data = await response.json(); // Assuming the response is JSON
 
-	const components: Component[] = alterIds(data.blueprint?.components);
-	emits("blockGeneration", { components });
+	try {
+		const components: Component[] = alterIds(data.blueprint?.components);
+		emits("blockGeneration", { components });
+	} catch (e) {
+		errorMessage.value = `Generation failed. Try again`;
+		throw e;
+	}
 
 	tracking.track("blueprints_auto_gen_completed");
 }
@@ -148,5 +170,11 @@ h2 {
 .buttons {
 	display: flex;
 	gap: 16px;
+}
+
+.error-message {
+	color: red;
+	font-size: 18px;
+	font-weight: 500;
 }
 </style>
