@@ -143,6 +143,7 @@ export const enum FieldType {
 	Shadow = "Shadow",
 	Number = "Number",
 	Object = "Object",
+	JSONInput = "JSON",
 	IdKey = "Identifying Key",
 	Width = "Width",
 	HAlign = "Align (H)",

@@ -102,6 +102,14 @@
 						:error="errorsByFields[fieldKey]"
 					></BuilderFieldsObject>
 
+					<BuilderFieldsCode
+						v-if="fieldValue.type == FieldType.JSONInput"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:is-expanded="expandedFields.has(fieldKey)"
+						:input-language="'json'"
+					></BuilderFieldsCode>
+
 					<BuilderFieldsWidth
 						v-if="fieldValue.type == FieldType.Width"
 						:field-key="fieldKey"
@@ -144,6 +152,7 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:is-expanded="expandedFields.has(fieldKey)"
+						:input-language="'python'"
 					>
 					</BuilderFieldsCode>
 					<BuilderFieldsWriterResourceId
@@ -239,6 +248,7 @@ const fields = computed(() => {
 function isExpansible(field: WriterComponentDefinitionField) {
 	return (
 		field.type === FieldType.Code ||
+		field.type === FieldType.JSONInput ||
 		field.type === FieldType.Object ||
 		field.control === FieldControl.Textarea
 	);
