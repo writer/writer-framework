@@ -16,8 +16,8 @@
 					<div class="main">
 						<SharedWriterAvatar
 							v-for="userId in userIds"
-							:show-tooltip="true"
 							:key="userId"
+							:show-tooltip="true"
 							:user-id="userId"
 						/>
 					</div>
