@@ -1,7 +1,7 @@
 <template>
 	<BuilderEmbeddedCodeEditor
 		v-model="code"
-		language="python"
+		:language="inputLanguage"
 		:variant="isExpanded ? 'full' : 'minimal'"
 		class="BuilderFieldsCode"
 	>
@@ -37,6 +37,10 @@ const props = defineProps({
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
 	isExpanded: { type: Boolean, required: true },
+	inputLanguage: {
+		type: String as PropType<"python" | "json">,
+		required: true,
+	},
 });
 const { componentId, fieldKey } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
