@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
 
 from pydantic import BaseModel
 from typing_extensions import Literal, TypedDict
-from writerai.types.chat_completion_message import ChatCompletionMessage
+from writerai.types.chat_chat_params import Message
 
 
 class WriterFileItem(TypedDict):
@@ -300,10 +300,22 @@ class BlueprintExecutionLog(BaseModel):
 
 
 class AutogenState(TypedDict):
+    """
+    State object for autogen blueprint generation process.
+    
+    Fields:
+        preprocessed_components: Filtered and remapped existing components for AI consumption
+        artificial_id_to_component: Mapping of simplified IDs to original components
+        messages: Chat messages exchanged during generation
+        actions: List of autogen actions (create/link) produced
+        generated_blocks: Mapping of generated blueprint blocks
+        final_graph: Final blueprint graph after linking operations. If not present, generation failed
+    """
+
     preprocessed_components: Dict[str, Dict]
     artificial_id_to_component: Dict[str, Dict]
 
-    messages: List[Union[Dict, ChatCompletionMessage]]
+    messages: List[Message]
     actions: List[Dict]
     generated_blocks: MutableMapping[str, Mapping]
     final_graph: Optional[Dict[str, Dict]]

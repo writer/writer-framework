@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import ctypes
 import importlib.util
 import logging
 import logging.handlers
@@ -58,6 +59,8 @@ from writer.ss_types import (
     WriterVaultUpdateRequest,
 )
 from writer.wf_project import WfProjectContext
+
+FEATURE_FLAGS_MAX_SIZE = 1024
 
 user_code_logger = logging.getLogger("user_code")
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -120,6 +123,7 @@ class AppProcess(multiprocessing.Process):
         self.handler_registry = EventHandlerRegistry()
         self.middleware_registry = MiddlewareRegistry()
         self.executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+        self.feature_flags = multiprocessing.Array(ctypes.c_char, FEATURE_FLAGS_MAX_SIZE)
 
     def _load_module(self) -> ModuleType:
         """
@@ -182,6 +186,8 @@ class AppProcess(multiprocessing.Process):
             writer_application = WriterApplicationInformation(
                 id=writer_app_id, organizationId=writer_org_id
             )
+
+        self.feature_flags.value = ",".join(writer.Config.feature_flags).encode()
 
         res_payload = InitSessionResponsePayload(
             userState=user_state,

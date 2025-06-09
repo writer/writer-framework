@@ -1,10 +1,10 @@
 import json
-from collections import defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, cast
 
 from writerai import Writer
+from writerai.types.chat_chat_params import Message
 from writerai.types.chat_completion import ChatCompletion
 from writerai.types.shared import ToolCall
 
@@ -12,16 +12,17 @@ import writer.abstract
 from writer.ss_types import AbstractTemplate, AutogenState
 
 client = Writer()
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 3
 TOOL_CALL_ORDER = ["generate_blueprint", "link_blocks"]
+STRUCTURED_OUTPUTS_FLAG = "autogen_structured"
 
 
-def _validate_blueprint_nodes(nodes) -> Dict[str, Mapping]:
+def _validate_blueprint_nodes(nodes: List[Dict]) -> Dict[str, Mapping]:
     if not nodes:
         raise ValueError("Blueprint must contain at least one node")
 
     errors = []
-    id_to_node = {}
+    id_to_node: Dict[str, Mapping] = {}
 
     for i, node in enumerate(nodes):
         node_id = node.get("id")
@@ -39,7 +40,7 @@ def _validate_blueprint_nodes(nodes) -> Dict[str, Mapping]:
 
 
 def _validate_blueprint_edges(id_to_node: Dict[str, Dict]) -> bool:
-    relationship_counts = {node: 0 for node in id_to_node}
+    relationship_counts = dict.fromkeys(id_to_node, 0)
     errors = []
 
     for node_id, node in id_to_node.items():
@@ -182,13 +183,10 @@ def _get_possible_links(artificial_id_to_component: Dict[str, Dict]):
     return possible_links
 
 
-def _get_tools_schema(artificial_id_to_component: Dict[str, Dict]):
-    return [
-        {
-            "type": "function",
-            "function": {
-                "name": "generate_blueprint",
-                "description": """
+def _get_tools_schema(artificial_id_to_component: Dict[str, Dict]) -> Dict[str, Dict]:
+    return {
+        "generate_blueprint": {
+            "description": """
 Generate additions to the <existing-blueprint>.
 Duplicating logic from components in the <existing-blueprint> is forbidden, just use link_blocks.
 When an application integration node isn't available, use an HTTP request.
@@ -200,45 +198,70 @@ All nodes must be connected to each other via "outs", either by being the source
 No circular references are allowed.
 The system has built-in mechanisms to announce errors, success, so don't add anything for that.
 Make sure the "outs", "type", "id" and "content" are all inside the component, because sometimes you get confused about the structure. Also, sometimes you try to include things twice, make sure you don't duplicate. Follow the schema to a tee - it's the most important thing.
-                """,
-                "parameters": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "components": {
-                            "type": "array",
-                            "items": {
-                                "oneOf": _get_block_definitions(),
-                            },
+""",
+            "parameters": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "components": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": _get_block_definitions(),
                         },
                     },
                 },
             },
         },
-        {
-            "type": "function",
-            "function": {
-                "name": "link_blocks",
-                "description": """
-                    Connect blocks from the generated blueprint to be after already existing blocks with ids from the <existing-blueprint>.
-                    Prefer linking last block of a branch. Last block is the one that has no outs.
-                """,
-                "parameters": {
+        "link_blocks": {
+            "description": """
+                Connect blocks from the generated blueprint to be after already existing blocks with ids from the <existing-blueprint>.
+                Prefer linking last block of a branch. Last block is the one that has no outs.
+            """,
+            "parameters": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": _get_possible_links(artificial_id_to_component),
+                        },
+                    },
+                }
+            }
+        }
+    }
+
+def _construct_tool_calling_kwargs(artificial_id_to_component: Dict[str, Dict]):
+    tools_schemas = _get_tools_schema(artificial_id_to_component)
+    return {
+        "tool_choice": "required",
+        "tools": [
+            {
+                "type": "function",
+                "function": {"name": name, **schema}
+            }
+            for name, schema in tools_schemas.items()
+        ],
+        "model": "palmyra-x-004-turbo",
+    }
+
+def _construct_structured_outputs_kwargs(artificial_id_to_component: Dict[str, Dict]):
+    tools_schemas = _get_tools_schema(artificial_id_to_component)
+    return {
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "schema": {
                     "type": "object",
                     "additionalProperties": False,
-                    "properties": {
-                        "links": {
-                            "type": "array",
-                            "items": {
-                                "oneOf": _get_possible_links(artificial_id_to_component),
-                            },
-                        },
-                    }
+                    "required": list(tools_schemas.keys()),
+                    "properties": tools_schemas
                 }
-            },
+            }
         },
-    ]
-
+        "model": "palmyra-x5",
+    }
 
 def _get_main_prompt(description: str, components: Dict):
     prompt = """
@@ -373,7 +396,7 @@ def _preprocess_components(components: Dict[str, Dict]) -> Tuple[Dict, Dict[str,
         preprocessed[f"ec{i}"] = {
             "type": component_definition["type"],
             "content": deepcopy(component_definition["content"]),
-            "outs": deepcopy(component_definition["outs"]),
+            "outs": deepcopy(component_definition.get("outs", [])),
         }
         reverse_mapping[f"ec{i}"] = component_definition
     
@@ -383,39 +406,64 @@ def _preprocess_components(components: Dict[str, Dict]) -> Tuple[Dict, Dict[str,
 
     return preprocessed, reverse_mapping
 
-def _decode_tool_args(tool_call: ToolCall, autogen_state: AutogenState) -> Optional[Dict]:
+
+def _decode_content(raw_content: str, autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
     try:
-        return json.loads(tool_call.function.arguments, strict=False)
-    except json.JSONDecodeError:
+        return json.loads(raw_content, strict=False)
+    except json.JSONDecodeError as e:
         autogen_state["messages"].append({
-            "role": "tool",
-            "tool_call_id": tool_call.id,
-            "name": tool_call.function.name,
-            "content": "The JSON structure is incorrect. Please make sure you're abiding by the schema.",
+            "role": "user",
+            "content": f"The JSON structure is incorrect. Error: {e}.",
         })
     return None
 
 
-def _process_generate_blueprint(tool_call: List[ToolCall], autogen_state: AutogenState
+def _split_tool_calls(tool_calls: Optional[List[ToolCall]], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
+    if not tool_calls:
+        autogen_state["messages"].append(
+            {
+                "role": "user",
+                "content": "A tool call is required.",
+            }
+        )
+        return None
+
+    args_by_function = {}
+    for tool_call in tool_calls:
+        if tool_call.function.name is None:
+            autogen_state["messages"].append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": tool_call.function.name,
+                    "content": "Tool call has no name",
+                }
+            )
+            return None
+
+        args = _decode_content(tool_call.function.arguments, autogen_state)
+        if args is None:
+            return None
+
+        args_by_function[tool_call.function.name] = args
+
+    return args_by_function
+
+
+def _process_generate_blueprint(arguments: Optional[Dict], autogen_state: AutogenState
 ) -> Optional[Dict[str, Mapping]]:
-    if not tool_call:
+    if arguments is None:
         autogen_state["messages"].append({
             "role": "user",
             "content": "A generate_blueprint tool call is required.",
         })
         return None
 
-    call_args = _decode_tool_args(tool_call[0], autogen_state)
-    if call_args is None:
-        return None
-
     try:
-        id_to_generated_node = _validate_blueprint_nodes(call_args.get("components"))
+        id_to_generated_node = _validate_blueprint_nodes(arguments.get("components", []))
     except BaseException as exception:
         autogen_state["messages"].append({
-            "role": "tool",
-            "tool_call_id": tool_call[0].id,
-            "name": "generate_blueprint",
+            "role": "user",
             "content": "An error occurred. " + repr(exception),
         })
         return None
@@ -425,40 +473,32 @@ def _process_generate_blueprint(tool_call: List[ToolCall], autogen_state: Autoge
     return id_to_generated_node
 
 
-def _process_link_blocks(tool_call: List[ToolCall], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
-    if not tool_call:
+def _process_link_blocks(arguments: Optional[Dict[str, List[Dict]]], autogen_state: AutogenState) -> Optional[Mapping[str, Mapping]]:
+    if arguments is None:
         return autogen_state["final_graph"]
-
-    call_args = _decode_tool_args(tool_call[0], autogen_state)
-    if call_args is None:
-        return None
 
     id_to_node = deepcopy(autogen_state["generated_blocks"])
     links = []
 
-    for link in call_args.get("links", []):
-        mapped_block_id = link.get("ec_id")
+    for link in arguments.get("links", []):
+        mapped_block_id = link.get("ec_id", "")
         existing_block = autogen_state["preprocessed_components"].get(mapped_block_id)
         if existing_block is None:
             autogen_state["messages"].append(
                 {
-                    "role": "tool",
-                    "tool_call_id": tool_call[0].id,
-                    "name": "link_blocks",
+                    "role": "user",
                     "content": f"Block with id {mapped_block_id} doesn't exist. Existing blocks: {','.join(autogen_state['preprocessed_components'].keys())}",
                 }
             )
             continue
 
-        generated_block_id = link.get("aig_id")
+        generated_block_id = link.get("aig_id", "")
         generated_block = id_to_node.get(generated_block_id)
         if generated_block is None:
             autogen_state["messages"].append(
                 {
-                    "role": "tool",
-                    "tool_call_id": tool_call[0].id,
-                    "name": "link_blocks",
-                    "content": f"Block with id {generated_block_id} was not generated. Generated blocks: {','.join(autogen_state['generated_blocks'].keys())}",
+                    "role": "user",
+                    "content": f"Block with id {generated_block_id} doesn't exist. Existing blocks: {','.join(autogen_state['generated_blocks'].keys())}",
                 }
             )
             continue
@@ -482,21 +522,7 @@ def _process_link_blocks(tool_call: List[ToolCall], autogen_state: AutogenState)
     return id_to_node
 
 
-def _split_tool_calls(tool_calls: List[ToolCall]) -> Mapping[str, List[ToolCall]]:
-    calls_by_function = defaultdict(list)
-    errors = []
-    for tool_call in tool_calls:
-        if tool_call.function.name is None:
-            errors.append(f"Tool call {tool_call.id} has no name")
-            continue
-        calls_by_function[tool_call.function.name].append(tool_call)
-
-    if errors:
-        raise ValueError(" | ".join(errors))
-
-    return calls_by_function
-
-def _call_tools(tool_calls: List[ToolCall], autogen_state: AutogenState):
+def _call_tools(tool_calls: Mapping[str, Mapping], autogen_state: AutogenState):
     if not tool_calls:
         autogen_state["messages"].append(
             {
@@ -504,25 +530,17 @@ def _call_tools(tool_calls: List[ToolCall], autogen_state: AutogenState):
                 "content": "A tool call is required.",
             }
         )
-        return
-    try:
-        calls_by_function = _split_tool_calls(tool_calls)
-    except ValueError as exception:
-        autogen_state["messages"].append({
-            "role": "user",
-            "content": "An error occurred. " + repr(exception),
-        })
-        return
+        return None
     
     for tool_name in TOOL_CALL_ORDER:
         tool_function = globals()[f"_process_{tool_name}"]
-        tool_call = calls_by_function.get(tool_name, [])
+        tool_call = tool_calls.get(tool_name)
         autogen_state["final_graph"] = tool_function(tool_call, autogen_state)
         if autogen_state["final_graph"] is None:
             break
 
 
-def generate_blueprint(description: str, components: Dict[str, Dict], token_header: Optional[str] = None):
+def generate_blueprint(description: str, components: Dict[str, Dict], feature_flags: Optional[List[str]] = None, token_header: Optional[str] = None):
     """
     Generate a blueprint with AI assistance, optionally linking to existing components.
 
@@ -532,21 +550,33 @@ def generate_blueprint(description: str, components: Dict[str, Dict], token_head
 
     :return: dict containing actions for generation and exchanged messages
     """
+    if feature_flags is None:
+        feature_flags = []
+
     components = _filter_components(components)
     preprocessed_components, artificial_id_to_component = _preprocess_components(components)
     prompt = _get_main_prompt(description, preprocessed_components)
-    tools_schema = _get_tools_schema(artificial_id_to_component)
     autogen_state: AutogenState = {
         "preprocessed_components": preprocessed_components,
         "artificial_id_to_component": artificial_id_to_component,
-        "messages": [
-            {"role": "system", "content": "All responses should be in JSON."},
-            {"role": "user", "content": prompt}
-        ],
+        "messages": [{"role": "user", "content": prompt}],
         "actions": [],
         "final_graph": None,
         "generated_blocks": {},
     }
+
+    if STRUCTURED_OUTPUTS_FLAG in feature_flags:
+        tools_kwargs = _construct_structured_outputs_kwargs(artificial_id_to_component)
+
+        autogen_state["messages"].append({"role": "system", "content": "All responses should be in JSON."})
+        autogen_state["messages"].append(
+            {
+                "role": "user",
+                "content": json.dumps(tools_kwargs["response_format"]["json_schema"]),
+            }
+        )
+    else:
+        tools_kwargs = _construct_tool_calling_kwargs(artificial_id_to_component)
 
     if token_header:
         extra_headers = {
@@ -566,17 +596,22 @@ def generate_blueprint(description: str, components: Dict[str, Dict], token_head
             ]
         response: ChatCompletion = client.chat.chat(
             messages=autogen_state["messages"],
-            model="palmyra-x5",
-            tool_choice="required",
-            tools=tools_schema,
-            stream=False,  # type: ignore
-            extra_headers=extra_headers
+            stream=False,
+            extra_headers=extra_headers,
+            **tools_kwargs,
         )
 
         response_message = response.choices[0].message
-        autogen_state["messages"].append(response_message)
+        autogen_state["messages"].append(cast(Message, response_message.model_dump()))
 
-        _call_tools(response_message.tool_calls, autogen_state)
+        if STRUCTURED_OUTPUTS_FLAG in feature_flags:
+            tool_calls = _decode_content(response_message.content, autogen_state)
+        else:
+            tool_calls = _split_tool_calls(response_message.tool_calls, autogen_state)
+        if tool_calls is None:
+            continue
+
+        _call_tools(tool_calls, autogen_state)
         if autogen_state["final_graph"] is None:
             continue
 

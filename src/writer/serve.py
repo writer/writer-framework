@@ -301,8 +301,9 @@ def get_asgi_app(
         return writer.autogen.generate_blueprint(
             requestBody.description,
             app.state.app_runner.bmc_components,
-            agent_token_header
-            )
+            app.state.app_runner.app_process.feature_flags.value.decode().split(","),
+            agent_token_header,
+        )
 
     @app.post("/api/init")
     async def init(
