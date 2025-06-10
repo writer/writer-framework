@@ -214,7 +214,7 @@ class BlueprintRunner:
                     "message": tool.message,
                     "result": self._summarize_data_for_log(tool.result),
                     "returnValue": self._summarize_data_for_log(tool.return_value),
-                    "executionEnvironment": getattr(tool, "execution_environment_snapshot", None),
+                    "executionEnvironment": self._summarize_data_for_log(getattr(tool, "execution_environment_snapshot", None)),
                     "executionTimeInSeconds": tool.execution_time_in_seconds,
                 }
             )

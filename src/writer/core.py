@@ -44,7 +44,8 @@ import pyarrow  # type: ignore
 
 import writer.blocks
 import writer.evaluator
-from writer import core_ui, vault
+from writer import core_ui
+from writer.vault import writer_vault
 from writer.core_ui import Component
 from writer.ss_types import (
     BlueprintExecutionLog,
@@ -1639,19 +1640,22 @@ class EventHandler:
             return
         self.evaluator.set_state(binding["stateRef"], instance_path, payload)
 
+    def _get_blueprint_execution_environment(self, payload, context, session, vault):
+        return {
+            "payload": payload,
+            "context": context,
+            "session": session,
+            "vault": vault,
+        }
+
     def _get_blueprint_callable(
         self,
         blueprint_key: Optional[str] = None,
         blueprint_id: Optional[str] = None,
         branch_id: Optional[str] = None,
     ):
-        def fn(payload, context, session):
-            execution_environment = {
-                "payload": payload,
-                "context": context,
-                "session": session,
-                "vault": vault.writer_vault.get_secrets(),
-            }
+        def fn(payload, context, session, vault):
+            execution_environment = self._get_blueprint_execution_environment(payload, context, session, vault)
             if blueprint_key:
                 return self.blueprint_runner.run_blueprint_by_key(
                     blueprint_key, execution_environment
@@ -1697,6 +1701,7 @@ class EventHandler:
             "context": context_data,
             "session": _event_handler_session_info(),
             "ui": _event_handler_ui_manager(),
+            "vault": writer_vault.get_secrets()
         }
 
     def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
@@ -1769,7 +1774,12 @@ class EventHandler:
             target_component = cast(Component, self.session_component_tree.get_component(target_id))
             self._handle_binding(ev.type, target_component, instance_path, ev.payload)
             calling_arguments = self._get_calling_arguments(ev, instance_path)
-            self.blueprint_runner.execute_ui_trigger(target_id, ev.type, calling_arguments)
+            execution_environment = self._get_blueprint_execution_environment(
+                calling_arguments.get("payload"),
+                calling_arguments.get("context"),
+                calling_arguments.get("session"),
+                calling_arguments.get("vault"))
+            self.blueprint_runner.execute_ui_trigger(target_id, ev.type, execution_environment)
             if not target_component.handlers:
                 return None
             handler = target_component.handlers.get(ev.type)
