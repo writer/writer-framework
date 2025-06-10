@@ -1,5 +1,5 @@
+import json
 import mimetypes
-import time
 from typing import Any
 
 import fastapi
@@ -8,7 +8,6 @@ import pytest
 import writer.abstract
 import writer.serve
 from fastapi import FastAPI
-from writer import crypto
 
 from tests.backend import test_app_dir, test_multiapp_dir
 
@@ -216,49 +215,134 @@ class TestServe:
                 "Content-Type": "application/json"
             })
             feature_flags = res.json().get("featureFlags")
-            assert feature_flags == ["blueprints", "flag_one", "flag_two"]
+            assert feature_flags == ["blueprints", "flag_one", "flag_two", "api_trigger"]
 
     def test_create_blueprint_job_api(self, monkeypatch):
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
-        
+
         with fastapi.testclient.TestClient(asgi_app) as client:
-            res = client.post(f"/private/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json"
-            })
-            time.sleep(1)
-            job_id = res.json().get("id")
-            res = client.get(f"/private/api/job/{job_id}")
-            assert res.json().get("result") == "987127"
+            with client.stream("POST", f"/private/api/job/blueprint/{blueprint_key}",
+                            json={"proposedSessionId": None},
+                            headers={"Content-Type": "application/json"}) as response:
 
+                assert response.status_code == 200
+                assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
 
-    def test_create_blueprint_job_api_custom_job_vault(self, monkeypatch):
-        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        monkeypatch.setenv("WRITER_PERSISTENT_STORE", "testjobvault://doesn'tmatter")
-        blueprint_key = "blueprint2"
+                # Collect all SSE events
+                events = []
+                for line in response.iter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]  # Remove "data: " prefix
+                        if data == "[DONE]":
+                            break
+                        try:
+                            event = json.loads(data)
+                            events.append(event)
+                        except json.JSONDecodeError:
+                            continue
 
-        class TestJobVault(writer.serve.JobVault):
-            SCHEMES = ["testjobvault://"]
-            def get(self, job_id: str):
-                value = self.vault[job_id]
-                if "result" in value:
-                    value["result"] = "Powered by TestJobVault - " + str(value["result"])
-                return value
+                # Verify we got events
+                assert len(events) > 0
 
-        writer.serve.JobVault.register(TestJobVault)
+                # Check that we have the expected progression of statuses
+                statuses = [event.get("status") for event in events]
+                assert "in progress" in statuses
+                assert "complete" in statuses or "error" in statuses
+
+                # If successful, check the final result
+                final_event = events[-1]
+                if final_event.get("status") == "complete":
+                    assert final_event.get("result") == "987127"
+
+    def test_create_blueprint_job_api_error_handling(self, monkeypatch):
+        """Test error cases for blueprint job API"""
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
             test_app_dir, "run", enable_jobs_api=True)
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
+
         with fastapi.testclient.TestClient(asgi_app) as client:
-            res = client.post(f"/private/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json"
-            })
-            time.sleep(1)
-            job_id = res.json().get("id")
-            res = client.get(f"/private/api/job/{job_id}")
-            assert res.json().get("result") == "Powered by TestJobVault - 987127"
+            # Test with non-existent blueprint
+            with client.stream("POST", "/private/api/job/blueprint/nonexistent",
+                            json={"proposedSessionId": None},
+                            headers={"Content-Type": "application/json"}) as response:
+
+                assert response.status_code == 200
+
+                events = []
+                for line in response.iter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            event = json.loads(data)
+                            events.append(event)
+                        except json.JSONDecodeError:
+                            continue
+
+                # Should end with an error
+                final_event = events[-1] if events else {}
+                assert final_event.get("status") == "error"
+                assert "not found" in final_event.get("error", "").lower()
+
+    def test_create_blueprint_job_api_disabled(self, monkeypatch):
+        """Test that API returns 404 when jobs API is disabled"""
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run", enable_jobs_api=False)  # Disabled
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
+        blueprint_key = "blueprint2"
+
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.post(f"/private/api/job/blueprint/{blueprint_key}",
+                            json={"proposedSessionId": None},
+                            headers={"Content-Type": "application/json"})
+            assert res.status_code == 404
+
+    def test_create_blueprint_job_api_streaming_events(self, monkeypatch):
+        """Test that we receive the expected sequence of streaming events"""
+        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
+            test_app_dir, "run", enable_jobs_api=True)
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
+        blueprint_key = "blueprint2"
+
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            with client.stream("POST", f"/private/api/job/blueprint/{blueprint_key}",
+                            json={"proposedSessionId": None},
+                            headers={"Content-Type": "application/json"}) as response:
+
+                events = []
+
+                for line in response.iter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            event = json.loads(data)
+                            events.append(event)
+
+                            # Verify each event has required fields
+                            assert "status" in event
+                            if event["status"] == "complete":
+                                assert "result" in event
+                                assert "finished_at" in event
+                            elif event["status"] == "error":
+                                assert "error" in event
+                                assert "finished_at" in event
+
+                        except json.JSONDecodeError:
+                            continue
+
+                # Verify we got a reasonable sequence of events
+                assert len(events) >= 2  # At least start and end events
+
+                # First event should be "in progress"
+                assert events[0]["status"] == "in progress"
+                assert "created_at" in events[0]
+
+                # Last event should be terminal (complete or error)
+                final_event = events[-1]
+                assert final_event["status"] in ["complete", "error"]

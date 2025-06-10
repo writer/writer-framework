@@ -15,12 +15,24 @@ import time
 import typing
 from contextlib import asynccontextmanager
 from importlib.machinery import ModuleSpec
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
@@ -382,129 +394,148 @@ def get_asgi_app(
         return payload
 
     @app.post("/private/api/job/blueprint/{blueprint_key}")
-    async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
-        if not enable_jobs_api:
-            raise HTTPException(status_code=404)
-
-        def serialize_result(data):
+    async def create_blueprint_job(
+        blueprint_key: str,
+        request: Request,
+        response: Response
+    ):
+        def serialize_result(data: Any) -> Any:
+            if isinstance(data, (str, int, float, bool, type(None))):
+                return data
             if isinstance(data, list):
                 return [serialize_result(item) for item in data]
             if isinstance(data, dict):
                 return {k: serialize_result(v) for k, v in data.items()}
-            if isinstance(data, (str, int, float, bool, type(None))):
-                return data
             try:
                 return json.loads(json.dumps(data))
             except (TypeError, OverflowError):
-                return f"Can't be displayed. Value of type: {str(type(data))}."
+                return f"Can't be displayed. Value of type: {type(data)}."
 
-        def update_job(job_id: str, job_info: dict):
-            current_job_info = app.state.job_vault.get(job_id)
-            if not current_job_info:
-                raise RuntimeError("Job not found.")
-            merged_info = current_job_info | {"finished_at": int(time.time())} | job_info
-            app.state.job_vault.set(job_id, merged_info)
+        async def send_chunk(chunk: Dict[str, Any]) -> str:
+            return f"data: {json.dumps(chunk)}\n\n"
 
-        def job_done_callback(task: asyncio.Task, job_id: str):
-            try:
-                apsr: Optional[AppProcessServerResponse] = task.result()
-                if apsr is None or apsr.status != "ok":
-                    update_job(job_id, {"status": "error"})
-                    return
-                result = None
-                if apsr.payload and apsr.payload.result:
-                    result = apsr.payload.result.get("result")
-                update_job(job_id, {"status": "complete", "result": serialize_result(result)})
-            except Exception as e:
-                update_job(job_id, {"status": "error"})
-                raise e
+        async def init_session_and_validate(
+            app_runner: AppRunner,
+            cookies: Dict[str, Any],
+            headers: Dict[str, Any],
+        ) -> str:
+            sess_resp = await app_runner.init_session(InitSessionRequestPayload(
+                cookies=cookies, headers=headers, proposedSessionId=None
+            ))
+            if not sess_resp or not sess_resp.payload:
+                raise RuntimeError("Cannot initialize session.")
+            sid = sess_resp.payload.sessionId
+            if not await app_runner.check_session(sid):
+                raise RuntimeError("Cannot initialize session.")
+            return sid
 
-        app_response = await app_runner.init_session(
-            InitSessionRequestPayload(
-                cookies=dict(request.cookies), headers=dict(request.headers), proposedSessionId=None
-            )
-        )
-
-        if not app_response or not app_response.payload:
-            raise HTTPException(status_code=500, detail="Cannot initialize session.")
-        session_id = app_response.payload.sessionId
-        is_session_ok = await app_runner.check_session(session_id)
-        if not is_session_ok:
-            raise HTTPException(status_code=500, detail="Cannot initialize session.")
-
-        # fast-fail if we already know the request is impossible
-        # 500 if no components were defined
-        if not app_runner.bmc_components:
-            raise HTTPException(
-                status_code=500,
-                detail="Cannot run blueprint. No blueprints "
-                       "are defined in the agent.",
-            )
-        # 404 if the blueprint does not exist
-        blueprint_keys = {
-            c["content"].get("key"): c["id"]
-            for _, c in app_runner.bmc_components.items()
-            if c["type"] == "blueprints_blueprint"
-            and c["content"]  # if no content, there's no key
-            }
-        if blueprint_key not in blueprint_keys:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Blueprint “{blueprint_key}” was not found."
-            )
-        # 400 if the blueprint does not have an API trigger
-        has_trigger = bool({
-            c["id"]
-            for _, c in app_runner.bmc_components.items()
-            if c["type"] == "blueprints_apitrigger"
-            and c["parentId"] == blueprint_keys[blueprint_key]
-        })
-        if not has_trigger:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Blueprint “{blueprint_key}” does not "
-                       "have an API trigger. "
-                       "Please add a trigger to the blueprint "
-                       "before running it via API."
-            )
-
-        loop = asyncio.get_running_loop()
-        task = loop.create_task(
-            app_runner.handle_event(
-                session_id,
-                WriterEvent(
-                    type="wf-run-blueprint-via-api",
-                    isSafe=True,
-                    handler="run_blueprint_via_api",
-                    payload={"blueprint_key": blueprint_key}
-                    | (await _get_payload_as_json(request) or {}),
+        def find_blueprint_id(app_runner: AppRunner, key: str) -> Optional[str]:
+            if not app_runner.bmc_components:
+                return None
+            return next(
+                (
+                    comp["id"]
+                    for comp in app_runner.bmc_components.values()
+                    if comp["type"] == "blueprints_blueprint"
+                    and comp.get("content", {}).get("key") == key
                 ),
+                None
             )
-        )
 
-        job_id = app.state.job_vault.generate_job_id()
-        app.state.job_vault.set(
-            job_id, {"id": job_id, "status": "in progress", "created_at": int(time.time())}
-        )
-        task.add_done_callback(lambda t: job_done_callback(t, job_id))
-        return {"id": job_id}
+        def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
+            if not app_runner.bmc_components:
+                return False
+            return any(
+                comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
+                for comp in app_runner.bmc_components.values()
+            )
 
-    @app.get("/private/api/job/{job_id}")
-    async def get_blueprint_job(job_id: str, request: Request, response: Response):
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        job = app.state.job_vault.get(job_id)
+        try:
+            payload = await request.json()
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            payload = {}
 
-        if not job:
-            return JSONResponse(status_code=404, content={"id": job_id, "status": "not found"})
+        async def event_stream() -> AsyncGenerator[str, None]:
+            try:
+                yield await send_chunk({"status": "in progress", "created_at": int(time.time())})
+                yield await send_chunk({"status": "initializing", "message": "Initializing session..."})
 
-        status_code = 200
-        if job.get("status") == "error":
-            status_code = 400
+                session_id = await init_session_and_validate(
+                    app_runner, dict(request.cookies), dict(request.headers)
+                )
 
-        return JSONResponse(status_code=status_code, content=job)
+                yield await send_chunk({"status": "validating", "message": "Validating blueprint..."})
+                if not app_runner.bmc_components:
+                    raise RuntimeError("No blueprints are defined in the agent.")
 
+                blueprint_id = find_blueprint_id(app_runner, blueprint_key)
+                if not blueprint_id:
+                    yield await send_chunk({
+                        "status": "error",
+                        "error": f"Blueprint '{blueprint_key}' was not found.",
+                        "finished_at": int(time.time())
+                    })
+                    return
+
+                if not has_api_trigger(app_runner, blueprint_id):
+                    yield await send_chunk({
+                        "status": "error",
+                        "error": f"Blueprint '{blueprint_key}' lacks an API trigger. Please add one before running via API.",
+                        "finished_at": int(time.time())
+                    })
+                    return
+
+                yield await send_chunk({"status": "executing", "message": f"Executing blueprint: {blueprint_key}..."})
+                task = asyncio.create_task(
+                    app_runner.handle_event(
+                        session_id,
+                        WriterEvent(
+                            type="wf-run-blueprint-via-api",
+                            isSafe=True,
+                            handler="run_blueprint_via_api",
+                            payload={"blueprint_key": blueprint_key, **payload},
+                        )
+                    )
+                )
+                yield await send_chunk({"status": "running", "message": "Blueprint is running. Awaiting output..."})
+
+                apsr = await asyncio.wait_for(task, timeout=600)
+                yield await send_chunk({"status": "processing", "message": "Processing blueprint result..."})
+
+                if not apsr or apsr.status != "ok":
+                    raise RuntimeError("Blueprint execution failed.")
+
+                result = serialize_result(
+                    apsr.payload.result.get("result") if apsr.payload and apsr.payload.result else None
+                )
+                yield await send_chunk({
+                    "status": "complete",
+                    "result": result,
+                    "finished_at": int(time.time())
+                })
+
+            except Exception as exc:
+                yield await send_chunk({
+                    "status": "error",
+                    "error": str(exc),
+                    "finished_at": int(time.time())
+                })
+            finally:
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control",
+            },
+        )
     # Streaming
 
     async def _stream_session_init(websocket: WebSocket):
