@@ -45,7 +45,6 @@ import pyarrow  # type: ignore
 import writer.blocks
 import writer.evaluator
 from writer import core_ui
-from writer.vault import writer_vault
 from writer.core_ui import Component
 from writer.ss_types import (
     BlueprintExecutionLog,
@@ -56,6 +55,7 @@ from writer.ss_types import (
     WriterEventResult,
     WriterFileItem,
 )
+from writer.vault import writer_vault
 
 if TYPE_CHECKING:
     import pandas
