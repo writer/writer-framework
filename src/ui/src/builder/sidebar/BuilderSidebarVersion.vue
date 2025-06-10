@@ -25,7 +25,6 @@ defineProps({
 	background: var(--wdsColorGray6);
 	white-space: nowrap;
 	font-size: 13px;
-	font-family: Poppins, sans-serif;
 	transform: rotate(-90deg);
 	border-radius: 4px;
 	padding: 1px 8px;
