@@ -101,6 +101,7 @@
 </template>
 
 <script setup lang="ts">
+/* global FRAMEWORK_VERSION */
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import BuilderSidebarButton from "./BuilderSidebarButton.vue";
 import BuilderSidebarVersion from "./BuilderSidebarVersion.vue";

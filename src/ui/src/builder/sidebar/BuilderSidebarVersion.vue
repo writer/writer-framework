@@ -6,14 +6,12 @@ defineProps({
 
 <template>
 	<span class="BuilderSidebarVersion">
-		<span class="BuilderSidebarVersion__capsule">
-			BETA {{ version }}
-		</span>
+		<span class="BuilderSidebarVersion__capsule"> BETA {{ version }} </span>
 	</span>
 </template>
 
 <style lang="css" scoped>
-.BuilderSidebarVersion{
+.BuilderSidebarVersion {
 	background-color: transparent;
 	color: var(--wdsColorWhite);
 	margin: 0 auto;
@@ -32,6 +30,5 @@ defineProps({
 	border-radius: 4px;
 	padding: 1px 8px;
 	gap: 8px;
-
 }
 </style>
