@@ -49,6 +49,10 @@
 				/>
 			</div>
 			<div class="BuilderSidebar__toolbar__bottom">
+				<BuilderSidebarVersion
+					v-if="frameworkVersion"
+					:version="frameworkVersion"
+				/>
 				<hr />
 				<BuilderSidebarButton
 					target="_blank"
@@ -97,8 +101,10 @@
 </template>
 
 <script setup lang="ts">
+/* global WRITER_FRAMEWORK_VERSION */
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import BuilderSidebarButton from "./BuilderSidebarButton.vue";
+import BuilderSidebarVersion from "./BuilderSidebarVersion.vue";
 import {
 	computed,
 	defineAsyncComponent,
@@ -142,6 +148,7 @@ const undoRedoSnapshot = computed(() => getUndoRedoSnapshot());
 const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, wfbm);
 
 const isPreview = computed(() => wfbm.mode.value === "preview");
+const frameworkVersion = WRITER_FRAMEWORK_VERSION;
 
 const activePaneLocalStorage = useLocalStorageJSON<Pane>("activePane", isPane);
 
