@@ -10,6 +10,7 @@ export default defineConfig({
 	includeWriterComponentPath: false,
 	define: {
 		WRITER_LIVE_CCT: JSON.stringify("yes"),
+		FRAMEWORK_VERSION: JSON.stringify(process.env.FRAMEWORK_VERSION || ""),
 	},
 	publicDir: false,
 	build: {

@@ -11,6 +11,7 @@ export default defineConfig({
 	includeWriterComponentPath: false,
 	define: {
 		WRITER_LIVE_CCT: JSON.stringify("no"),
+		FRAMEWORK_VERSION: JSON.stringify(process.env.FRAMEWORK_VERSION || ""),
 	},
 	css: {
 		postcss: {
