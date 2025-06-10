@@ -115,6 +115,7 @@ onMounted(async () => {
 							placeholder="Type a value..."
 							:model-value="entry.value"
 							:readonly="readonly"
+							:revealable="false"
 							@update:model-value="
 								updateAssistedEntryValue(id, $event)
 							"

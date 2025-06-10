@@ -3,11 +3,11 @@
 		v-model="model"
 		class="WdsPasswordInput"
 		:type="type"
-		:right-icon="rightIcon"
+		:right-icon="revealable ? rightIcon : undefined"
 		:autofocus="autofocus"
 		:invalid="invalid"
 		:variant="variant"
-		@right-icon-click="isShown = !isShown"
+		@right-icon-click="revealable ? (isShown = !isShown) : undefined"
 	/>
 </template>
 
@@ -19,6 +19,7 @@ const model = defineModel({ type: String });
 
 defineProps({
 	invalid: { type: Boolean, required: false },
+	revealable: { type: Boolean, default: true, required: false },
 	variant: { type: String as PropType<"ghost">, default: undefined },
 	rightText: { type: String, required: false, default: "" },
 	autofocus: { type: Boolean },
