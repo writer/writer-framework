@@ -26,7 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract, crypto
+from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
 from writer.ss_types import (
@@ -257,6 +257,20 @@ def get_asgi_app(
 
     # Init
 
+    def _apply_feature_flags_to_templates(
+        templates: Dict[str, Any], feature_flags: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Applies feature flags to the templates by removing the ones that are not enabled.
+        """
+        # Restirct API trigger by feature flag
+        if "api_trigger" not in feature_flags:
+            templates = {
+                k: v for k, v in templates.items() if k != "blueprints_apitrigger"
+            }
+
+        return templates
+
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
             mode="run",
@@ -274,6 +288,10 @@ def get_asgi_app(
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
 
+        prepared_templates = _apply_feature_flags_to_templates(
+            abstract.templates, payload.featureFlags
+        )
+
         return InitResponseBodyEdit(
             mode="edit",
             sessionId=payload.sessionId,
@@ -285,7 +303,7 @@ def get_asgi_app(
             sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=abstract.templates,
+            abstractTemplates=prepared_templates,
             writerApplication=payload.writerApplication,
         )
 
@@ -363,12 +381,10 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
 
-    @app.post("/api/job/blueprint/{blueprint_key}")
+    @app.post("/private/api/job/blueprint/{blueprint_key}")
     async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
-
-        crypto.verify_message_authorization_signature(f"create_job_{blueprint_key}", request)
 
         def serialize_result(data):
             if isinstance(data, list):
@@ -416,15 +432,52 @@ def get_asgi_app(
         if not is_session_ok:
             raise HTTPException(status_code=500, detail="Cannot initialize session.")
 
+        # fast-fail if we already know the request is impossible
+        # 500 if no components were defined
+        if not app_runner.bmc_components:
+            raise HTTPException(
+                status_code=500,
+                detail="Cannot run blueprint. No blueprints "
+                       "are defined in the agent.",
+            )
+        # 404 if the blueprint does not exist
+        blueprint_keys = {
+            c["content"].get("key"): c["id"]
+            for _, c in app_runner.bmc_components.items()
+            if c["type"] == "blueprints_blueprint"
+            and c["content"]  # if no content, there's no key
+            }
+        if blueprint_key not in blueprint_keys:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Blueprint “{blueprint_key}” was not found."
+            )
+        # 400 if the blueprint does not have an API trigger
+        has_trigger = bool({
+            c["id"]
+            for _, c in app_runner.bmc_components.items()
+            if c["type"] == "blueprints_apitrigger"
+            and c["parentId"] == blueprint_keys[blueprint_key]
+        })
+        if not has_trigger:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Blueprint “{blueprint_key}” does not "
+                       "have an API trigger. "
+                       "Please add a trigger to the blueprint "
+                       "before running it via API."
+            )
+
         loop = asyncio.get_running_loop()
         task = loop.create_task(
             app_runner.handle_event(
                 session_id,
                 WriterEvent(
-                    type="wf-builtin-run",
+                    type="wf-run-blueprint-via-api",
                     isSafe=True,
-                    handler=f"$runBlueprint_{blueprint_key}",
-                    payload=await _get_payload_as_json(request),
+                    handler="run_blueprint_via_api",
+                    payload={"blueprint_key": blueprint_key}
+                    | (await _get_payload_as_json(request) or {}),
                 ),
             )
         )
@@ -434,14 +487,13 @@ def get_asgi_app(
             job_id, {"id": job_id, "status": "in progress", "created_at": int(time.time())}
         )
         task.add_done_callback(lambda t: job_done_callback(t, job_id))
-        return {"id": job_id, "token": crypto.get_hash(f"get_job_{job_id}")}
+        return {"id": job_id}
 
-    @app.get("/api/job/{job_id}")
+    @app.get("/private/api/job/{job_id}")
     async def get_blueprint_job(job_id: str, request: Request, response: Response):
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        crypto.verify_message_authorization_signature(f"get_job_{job_id}", request)
         job = app.state.job_vault.get(job_id)
 
         if not job:

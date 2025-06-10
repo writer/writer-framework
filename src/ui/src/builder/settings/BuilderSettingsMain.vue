@@ -21,7 +21,6 @@
 				<BuilderSettingsHandlers />
 				<BuilderSettingsVisibility />
 			</template>
-			<BuilderSettingsAPICode>Execute via API</BuilderSettingsAPICode>
 		</div>
 
 		<div class="sections debug">
@@ -44,7 +43,6 @@ import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderCopyText from "../BuilderCopyText.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
-import BuilderSettingsAPICode from "./BuilderSettingsAPICode.vue";
 
 const BuilderSettingsHandlers = defineAsyncComponent({
 	loader: () => import("./BuilderSettingsHandlers.vue"),
