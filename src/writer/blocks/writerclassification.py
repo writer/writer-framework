@@ -1,4 +1,5 @@
 import json
+import re
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
@@ -27,7 +28,7 @@ class WriterClassification(WriterBlock):
                             "name": "Categories",
                             "type": "Key-Value",
                             "default": "{}",
-                            "desc": "The keys should be the categories you want to classify the text in, for example 'valid' and 'invalid', and the values the criteria for each category.",
+                            "desc": "The keys should be the categories you want to classify the text in, for example 'valid' and 'invalid', and the values the criteria for each category. Category names should contain only letters of the English alphabet, digits and underscores.",
                         },
                         "additionalContext": {
                             "name": "Additional context",
@@ -55,6 +56,11 @@ class WriterClassification(WriterBlock):
             text = self._get_field("text", required=True)
             additional_context = self._get_field("additionalContext")
             categories = self._get_field("categories", as_json=True, required=True)
+
+            invalid_categories = [category for category in categories if not re.fullmatch(r"\w+", category, flags=re.ASCII)]
+            if invalid_categories:
+                self.outcome = "error"
+                raise ValueError(f"Category names should contain only letters of the English alphabet, digits and underscores. Invalid categories: {', '.join(invalid_categories)}")
 
             config = {}
 

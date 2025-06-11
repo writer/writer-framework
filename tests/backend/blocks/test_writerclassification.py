@@ -29,6 +29,22 @@ def test_classify(monkeypatch, session, runner, fake_client):
     assert block.outcome == "category_dog"
 
 
+def test_classify_invalid_category(monkeypatch, session, runner, fake_client):
+    monkeypatch.setattr("writer.ai.complete", fake_complete)
+    categories = json.dumps(
+        {
+            "apple": "is an apple",
+            "banana": "is a banana",
+            "other!": "is another fruit"
+        }
+    )
+    component = session.add_fake_component({"text": "fruits", "categories": categories})
+    block = WriterClassification(component, runner, {})
+
+    with pytest.raises(ValueError):
+        block.run()
+
+
 def test_classify_missing_categories(monkeypatch, session, runner, fake_client):
     monkeypatch.setattr("writer.ai.complete", fake_complete)
     component = session.add_fake_component({"text": "canine", "categories": json.dumps({})})
