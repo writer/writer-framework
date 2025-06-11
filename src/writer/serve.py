@@ -13,7 +13,7 @@ import socket
 import textwrap
 import time
 import typing
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from importlib.machinery import ModuleSpec
 from typing import (
     Any,
@@ -64,6 +64,8 @@ if typing.TYPE_CHECKING:
     from .auth import Auth, Unauthorized
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201 * 1024 * 1024
+BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_EXECUTION_TIMEOUT", "600"))
+BLUEPRINT_API_RETRY_TIMEOUT = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_RETRY_TIMEOUT", "10000"))
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -394,31 +396,19 @@ def get_asgi_app(
         return payload
 
     @app.post("/private/api/job/blueprint/{blueprint_key}")
-    async def create_blueprint_job(
-        blueprint_key: str,
-        request: Request,
-        response: Response
-    ):
-        def serialize_result(data: Any) -> Any:
-            if isinstance(data, (str, int, float, bool, type(None))):
-                return data
-            if isinstance(data, list):
-                return [serialize_result(item) for item in data]
-            if isinstance(data, dict):
-                return {k: serialize_result(v) for k, v in data.items()}
-            try:
-                return json.loads(json.dumps(data))
-            except (TypeError, OverflowError):
-                return f"Can't be displayed. Value of type: {type(data)}."
+    async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
+        # Keep-alive interval for SSE streaming
+        KEEPALIVE_INTERVAL = 15
+        payload = await _get_payload_as_json(request)
 
-        async def send_chunk(chunk: Dict[str, Any]) -> str:
-            return f"data: {json.dumps(chunk)}\n\n"
+        # --- Session initialization ---
 
         async def init_session_and_validate(
             app_runner: AppRunner,
             cookies: Dict[str, Any],
             headers: Dict[str, Any],
         ) -> str:
+            # Initialize session with passed cookies/headers
             sess_resp = await app_runner.init_session(InitSessionRequestPayload(
                 cookies=cookies, headers=headers, proposedSessionId=None
             ))
@@ -429,7 +419,10 @@ def get_asgi_app(
                 raise RuntimeError("Cannot initialize session.")
             return sid
 
+        # --- Blueprint discovery logic ---
+
         def find_blueprint_id(app_runner: AppRunner, key: str) -> Optional[str]:
+            # Locate blueprint component by its key
             if not app_runner.bmc_components:
                 return None
             return next(
@@ -443,6 +436,7 @@ def get_asgi_app(
             )
 
         def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
+            # Check if blueprint has at least one API trigger component
             if not app_runner.bmc_components:
                 return False
             return any(
@@ -450,45 +444,66 @@ def get_asgi_app(
                 for comp in app_runner.bmc_components.values()
             )
 
-        if not enable_jobs_api:
-            raise HTTPException(status_code=404)
+        # --- Result serialization (recursive) ---
 
-        try:
-            payload = await request.json()
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            payload = {}
-
-        async def event_stream() -> AsyncGenerator[str, None]:
+        def serialize_result(data: Any) -> Any:
+            # Convert blueprint output into JSON-serializable structure
+            if isinstance(data, (str, int, float, bool, type(None))):
+                return data
+            if isinstance(data, list):
+                return [serialize_result(item) for item in data]
+            if isinstance(data, dict):
+                return {k: serialize_result(v) for k, v in data.items()}
             try:
-                yield await send_chunk({"status": "in progress", "created_at": int(time.time())})
-                yield await send_chunk({"status": "initializing", "message": "Initializing session..."})
+                return json.loads(json.dumps(data))
+            except (TypeError, OverflowError):
+                return f"Can't be displayed. Value of type: {type(data)}."
 
+        # --- SSE formatting utilities ---
+
+        async def format_event(event_type: str, data: Dict[str, Any]) -> str:
+            # Format a proper Server-Sent Event chunk
+            return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
+
+        async def format_keepalive() -> str:
+            # Send a SSE comment line as keep-alive (spec compliant)
+            return ": keep-alive\n\n"
+
+        # --- The main worker logic that produces events ---
+
+        async def event_logic(queue: asyncio.Queue):
+            try:
+                await queue.put(await format_event("status", {"status": "in progress", "created_at": int(time.time())}))
+                await queue.put(await format_event("status", {"status": "initializing", "msg": "Initializing session..."}))
+
+                # Validate session & credentials
                 session_id = await init_session_and_validate(
                     app_runner, dict(request.cookies), dict(request.headers)
                 )
 
-                yield await send_chunk({"status": "validating", "message": "Validating blueprint..."})
+                await queue.put(await format_event("status", {"status": "validating", "msg": "Validating blueprint..."}))
+
                 if not app_runner.bmc_components:
-                    raise RuntimeError("No blueprints are defined in the agent.")
+                    raise RuntimeError("No blueprints defined in the agent.")
 
                 blueprint_id = find_blueprint_id(app_runner, blueprint_key)
                 if not blueprint_id:
-                    yield await send_chunk({
-                        "status": "error",
-                        "error": f"Blueprint '{blueprint_key}' was not found.",
+                    await queue.put(await format_event("error", {
+                        "msg": f"Blueprint '{blueprint_key}' was not found.",
                         "finished_at": int(time.time())
-                    })
+                    }))
                     return
 
                 if not has_api_trigger(app_runner, blueprint_id):
-                    yield await send_chunk({
-                        "status": "error",
-                        "error": f"Blueprint '{blueprint_key}' lacks an API trigger. Please add one before running via API.",
+                    await queue.put(await format_event("error", {
+                        "msg": f"Blueprint '{blueprint_key}' lacks an API trigger.",
                         "finished_at": int(time.time())
-                    })
+                    }))
                     return
 
-                yield await send_chunk({"status": "executing", "message": f"Executing blueprint: {blueprint_key}..."})
+                await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_key}..."}))
+
+                # Kick off actual blueprint execution as background task
                 task = asyncio.create_task(
                     app_runner.handle_event(
                         session_id,
@@ -496,38 +511,93 @@ def get_asgi_app(
                             type="wf-run-blueprint-via-api",
                             isSafe=True,
                             handler="run_blueprint_via_api",
-                            payload={"blueprint_key": blueprint_key, **payload},
+                            payload={"blueprint_key": blueprint_key, **(payload or {})},
                         )
                     )
                 )
-                yield await send_chunk({"status": "running", "message": "Blueprint is running. Awaiting output..."})
 
-                apsr = await asyncio.wait_for(task, timeout=600)
-                yield await send_chunk({"status": "processing", "message": "Processing blueprint result..."})
+                await queue.put(await format_event("status", {"status": "running", "msg": "Blueprint is running. Awaiting output..."}))
+
+                # Await blueprint execution with timeout protection
+                apsr = await asyncio.wait_for(task, timeout=BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS)
+
+                await queue.put(await format_event("status", {"status": "processing", "msg": "Processing blueprint result..."}))
 
                 if not apsr or apsr.status != "ok":
                     raise RuntimeError("Blueprint execution failed.")
 
                 result = serialize_result(
-                    apsr.payload.result.get("result") if apsr.payload and apsr.payload.result else None
+                    apsr.payload.result.get("result")
+                    if apsr.payload and apsr.payload.result else None
                 )
-                yield await send_chunk({
-                    "status": "complete",
-                    "result": result,
-                    "finished_at": int(time.time())
-                })
 
-            except Exception as exc:
-                yield await send_chunk({
-                    "status": "error",
-                    "error": str(exc),
+                await queue.put(await format_event("artifact", {
+                    "artifact": result,
                     "finished_at": int(time.time())
-                })
+                }))
+
+            except Exception as e:
+                # Bubble up any unexpected error as 'error' SSE event
+                await queue.put(await format_event("error", {
+                    "msg": str(e),
+                    "finished_at": int(time.time())
+                }))
             finally:
-                yield "data: [DONE]\n\n"
+                # Always mark stream completion for consumer
+                await queue.put("data: [DONE]\n\n")
+
+        # --- The streaming loop that multiplexes events and keep-alives ---
+
+        async def merged_stream() -> AsyncGenerator[str, None]:
+            # Type annotation required by mypy
+            queue: asyncio.Queue = asyncio.Queue()
+            producer_task = asyncio.create_task(event_logic(queue))
+
+            yield f"retry: {BLUEPRINT_API_RETRY_TIMEOUT}\n\n"
+
+            try:
+                while True:
+                    try:
+                        # Race between event producer and keep-alive interval
+                        done, _ = await asyncio.wait(
+                            [
+                                asyncio.create_task(queue.get()),
+                                asyncio.create_task(asyncio.sleep(KEEPALIVE_INTERVAL))
+                            ],
+                            return_when=asyncio.FIRST_COMPLETED
+                        )
+
+                        # Collect all results up front,
+                        # check if any result is a string
+                        # (i.e. queue.get() produced something)
+                        results = filter(
+                            lambda r: isinstance(r, str),
+                            [task.result() for task in done]
+                            )
+
+                        for result in results:
+                            yield result
+                            if result == "data: [DONE]\n\n":
+                                return
+                        else:
+                            # Timeout: send keepalive
+                            yield await format_keepalive()
+
+                    except asyncio.CancelledError:
+                        # Client disconnected, break streaming loop
+                        break
+            finally:
+                # Always cancel producer to prevent orphaned task
+                producer_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await producer_task
+
+        # Fast-fail if feature is disabled
+        if not enable_jobs_api:
+            raise HTTPException(status_code=404)
 
         return StreamingResponse(
-            event_stream(),
+            merged_stream(),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -536,6 +606,7 @@ def get_asgi_app(
                 "Access-Control-Allow-Headers": "Cache-Control",
             },
         )
+
     # Streaming
 
     async def _stream_session_init(websocket: WebSocket):
