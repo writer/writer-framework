@@ -100,12 +100,14 @@ import { computed, inject, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
+import { useComponentActions } from "@/builder/useComponentActions";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const { removeOut } = useComponentActions(wf, wfbm);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -227,6 +229,27 @@ const dynamicOuts = computed<
 	});
 	return processedOuts;
 });
+
+watch(
+	dynamicOuts,
+	() => {
+		const allDynamicOuts = Object.values(dynamicOuts.value).flatMap(
+			Object.keys,
+		);
+
+		const outsToRemove =
+			component.value?.outs?.filter(
+				(out) => !allDynamicOuts.includes(out.outId),
+			) ?? [];
+
+		outsToRemove.forEach((out) => {
+			if (component.value) {
+				removeOut(component.value.id, out);
+			}
+		});
+	},
+	{ immediate: true },
+);
 
 function handleOutMousedown(ev: DragEvent, outId: string | number) {
 	ev.stopPropagation();
