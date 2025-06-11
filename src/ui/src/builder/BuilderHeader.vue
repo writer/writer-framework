@@ -108,6 +108,7 @@ import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
+import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
 
@@ -117,6 +118,7 @@ const isStateExplorerShown = ref(false);
 const isInviteCollaboratorsShown = ref(false);
 
 const tracking = useWriterTracking(wf);
+const toasts = useToasts();
 
 const {
 	canDeploy,
@@ -213,11 +215,28 @@ function showInviteCollaborators() {
 	isInviteCollaboratorsShown.value = true;
 }
 
-function copyInviteCollaboratorsURL() {
+async function copyInviteCollaboratorsURL() {
 	const url = location.href;
-	navigator.clipboard.writeText(url).catch((err) => {
-		console.error("Failed to copy url to clipboard: ", err);
-	});
+	try {
+		if (navigator.clipboard?.writeText) {
+			await navigator.clipboard.writeText(url);
+		} else {
+			const tmp = document.createElement("textarea");
+			tmp.value = url;
+			tmp.style.position = "fixed";
+			tmp.style.opacity = "0";
+			document.body.appendChild(tmp);
+			tmp.select();
+			document.execCommand("copy");
+			document.body.removeChild(tmp);
+		}
+		toasts.pushToast({
+			type: "success",
+			message: "Edit link copied to clipboard.",
+		});
+	} catch {
+		toasts.pushToast({ type: "error", message: "Could not copy link." });
+	}
 }
 </script>
 
