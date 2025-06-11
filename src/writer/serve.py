@@ -13,20 +13,32 @@ import socket
 import textwrap
 import time
 import typing
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from importlib.machinery import ModuleSpec
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract, crypto
+from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
 from writer.ss_types import (
@@ -52,6 +64,8 @@ if typing.TYPE_CHECKING:
     from .auth import Auth, Unauthorized
 
 MAX_WEBSOCKET_MESSAGE_SIZE = 201 * 1024 * 1024
+BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_EXECUTION_TIMEOUT", "600"))
+BLUEPRINT_API_RETRY_TIMEOUT = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_RETRY_TIMEOUT", "10000"))
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -257,6 +271,20 @@ def get_asgi_app(
 
     # Init
 
+    def _apply_feature_flags_to_templates(
+        templates: Dict[str, Any], feature_flags: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Applies feature flags to the templates by removing the ones that are not enabled.
+        """
+        # Restirct API trigger by feature flag
+        if "api_trigger" not in feature_flags:
+            templates = {
+                k: v for k, v in templates.items() if k != "blueprints_apitrigger"
+            }
+
+        return templates
+
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
             mode="run",
@@ -274,6 +302,10 @@ def get_asgi_app(
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
 
+        prepared_templates = _apply_feature_flags_to_templates(
+            abstract.templates, payload.featureFlags
+        )
+
         return InitResponseBodyEdit(
             mode="edit",
             sessionId=payload.sessionId,
@@ -285,7 +317,7 @@ def get_asgi_app(
             sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=abstract.templates,
+            abstractTemplates=prepared_templates,
             writerApplication=payload.writerApplication,
         )
 
@@ -363,95 +395,217 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
 
-    @app.post("/api/job/blueprint/{blueprint_key}")
+    @app.post("/private/api/job/blueprint/{blueprint_key}")
     async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
-        if not enable_jobs_api:
-            raise HTTPException(status_code=404)
+        # Keep-alive interval for SSE streaming
+        KEEPALIVE_INTERVAL = 15
+        payload = await _get_payload_as_json(request)
 
-        crypto.verify_message_authorization_signature(f"create_job_{blueprint_key}", request)
+        # --- Session initialization ---
 
-        def serialize_result(data):
+        async def init_session_and_validate(
+            app_runner: AppRunner,
+            cookies: Dict[str, Any],
+            headers: Dict[str, Any],
+        ) -> str:
+            # Initialize session with passed cookies/headers
+            sess_resp = await app_runner.init_session(InitSessionRequestPayload(
+                cookies=cookies, headers=headers, proposedSessionId=None
+            ))
+            if not sess_resp or not sess_resp.payload:
+                raise RuntimeError("Cannot initialize session.")
+            sid = sess_resp.payload.sessionId
+            if not await app_runner.check_session(sid):
+                raise RuntimeError("Cannot initialize session.")
+            return sid
+
+        # --- Blueprint discovery logic ---
+
+        def find_blueprint_id(app_runner: AppRunner, key: str) -> Optional[str]:
+            # Locate blueprint component by its key
+            if not app_runner.bmc_components:
+                return None
+            return next(
+                (
+                    comp["id"]
+                    for comp in app_runner.bmc_components.values()
+                    if comp["type"] == "blueprints_blueprint"
+                    and comp.get("content", {}).get("key") == key
+                ),
+                None
+            )
+
+        def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
+            # Check if blueprint has at least one API trigger component
+            if not app_runner.bmc_components:
+                return False
+            return any(
+                comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
+                for comp in app_runner.bmc_components.values()
+            )
+
+        # --- Result serialization (recursive) ---
+
+        def serialize_result(data: Any) -> Any:
+            # Convert blueprint output into JSON-serializable structure
+            if isinstance(data, (str, int, float, bool, type(None))):
+                return data
             if isinstance(data, list):
                 return [serialize_result(item) for item in data]
             if isinstance(data, dict):
                 return {k: serialize_result(v) for k, v in data.items()}
-            if isinstance(data, (str, int, float, bool, type(None))):
-                return data
             try:
                 return json.loads(json.dumps(data))
             except (TypeError, OverflowError):
-                return f"Can't be displayed. Value of type: {str(type(data))}."
+                return f"Can't be displayed. Value of type: {type(data)}."
 
-        def update_job(job_id: str, job_info: dict):
-            current_job_info = app.state.job_vault.get(job_id)
-            if not current_job_info:
-                raise RuntimeError("Job not found.")
-            merged_info = current_job_info | {"finished_at": int(time.time())} | job_info
-            app.state.job_vault.set(job_id, merged_info)
+        # --- SSE formatting utilities ---
 
-        def job_done_callback(task: asyncio.Task, job_id: str):
+        async def format_event(event_type: str, data: Dict[str, Any]) -> str:
+            # Format a proper Server-Sent Event chunk
+            return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
+
+        async def format_keepalive() -> str:
+            # Send a SSE comment line as keep-alive (spec compliant)
+            return ": keep-alive\n\n"
+
+        # --- The main worker logic that produces events ---
+
+        async def event_logic(queue: asyncio.Queue):
             try:
-                apsr: Optional[AppProcessServerResponse] = task.result()
-                if apsr is None or apsr.status != "ok":
-                    update_job(job_id, {"status": "error"})
+                await queue.put(await format_event("status", {"status": "in progress", "created_at": int(time.time())}))
+                await queue.put(await format_event("status", {"status": "initializing", "msg": "Initializing session..."}))
+
+                # Validate session & credentials
+                session_id = await init_session_and_validate(
+                    app_runner, dict(request.cookies), dict(request.headers)
+                )
+
+                await queue.put(await format_event("status", {"status": "validating", "msg": "Validating blueprint..."}))
+
+                if not app_runner.bmc_components:
+                    raise RuntimeError("No blueprints defined in the agent.")
+
+                blueprint_id = find_blueprint_id(app_runner, blueprint_key)
+                if not blueprint_id:
+                    await queue.put(await format_event("error", {
+                        "msg": f"Blueprint '{blueprint_key}' was not found.",
+                        "finished_at": int(time.time())
+                    }))
                     return
-                result = None
-                if apsr.payload and apsr.payload.result:
-                    result = apsr.payload.result.get("result")
-                update_job(job_id, {"status": "complete", "result": serialize_result(result)})
+
+                if not has_api_trigger(app_runner, blueprint_id):
+                    await queue.put(await format_event("error", {
+                        "msg": f"Blueprint '{blueprint_key}' lacks an API trigger.",
+                        "finished_at": int(time.time())
+                    }))
+                    return
+
+                await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_key}..."}))
+
+                # Kick off actual blueprint execution as background task
+                task = asyncio.create_task(
+                    app_runner.handle_event(
+                        session_id,
+                        WriterEvent(
+                            type="wf-run-blueprint-via-api",
+                            isSafe=True,
+                            handler="run_blueprint_via_api",
+                            payload={"blueprint_key": blueprint_key, **(payload or {})},
+                        )
+                    )
+                )
+
+                await queue.put(await format_event("status", {"status": "running", "msg": "Blueprint is running. Awaiting output..."}))
+
+                # Await blueprint execution with timeout protection
+                apsr = await asyncio.wait_for(task, timeout=BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS)
+
+                await queue.put(await format_event("status", {"status": "processing", "msg": "Processing blueprint result..."}))
+
+                if not apsr or apsr.status != "ok":
+                    raise RuntimeError("Blueprint execution failed.")
+
+                result = serialize_result(
+                    apsr.payload.result.get("result")
+                    if apsr.payload and apsr.payload.result else None
+                )
+
+                await queue.put(await format_event("artifact", {
+                    "artifact": result,
+                    "finished_at": int(time.time())
+                }))
+
             except Exception as e:
-                update_job(job_id, {"status": "error"})
-                raise e
+                # Bubble up any unexpected error as 'error' SSE event
+                await queue.put(await format_event("error", {
+                    "msg": str(e),
+                    "finished_at": int(time.time())
+                }))
+            finally:
+                # Always mark stream completion for consumer
+                await queue.put("data: [DONE]\n\n")
 
-        app_response = await app_runner.init_session(
-            InitSessionRequestPayload(
-                cookies=dict(request.cookies), headers=dict(request.headers), proposedSessionId=None
-            )
-        )
+        # --- The streaming loop that multiplexes events and keep-alives ---
 
-        if not app_response or not app_response.payload:
-            raise HTTPException(status_code=500, detail="Cannot initialize session.")
-        session_id = app_response.payload.sessionId
-        is_session_ok = await app_runner.check_session(session_id)
-        if not is_session_ok:
-            raise HTTPException(status_code=500, detail="Cannot initialize session.")
+        async def merged_stream() -> AsyncGenerator[str, None]:
+            # Type annotation required by mypy
+            queue: asyncio.Queue = asyncio.Queue()
+            producer_task = asyncio.create_task(event_logic(queue))
 
-        loop = asyncio.get_running_loop()
-        task = loop.create_task(
-            app_runner.handle_event(
-                session_id,
-                WriterEvent(
-                    type="wf-builtin-run",
-                    isSafe=True,
-                    handler=f"$runBlueprint_{blueprint_key}",
-                    payload=await _get_payload_as_json(request),
-                ),
-            )
-        )
+            yield f"retry: {BLUEPRINT_API_RETRY_TIMEOUT}\n\n"
 
-        job_id = app.state.job_vault.generate_job_id()
-        app.state.job_vault.set(
-            job_id, {"id": job_id, "status": "in progress", "created_at": int(time.time())}
-        )
-        task.add_done_callback(lambda t: job_done_callback(t, job_id))
-        return {"id": job_id, "token": crypto.get_hash(f"get_job_{job_id}")}
+            try:
+                while True:
+                    try:
+                        # Race between event producer and keep-alive interval
+                        done, _ = await asyncio.wait(
+                            [
+                                asyncio.create_task(queue.get()),
+                                asyncio.create_task(asyncio.sleep(KEEPALIVE_INTERVAL))
+                            ],
+                            return_when=asyncio.FIRST_COMPLETED
+                        )
 
-    @app.get("/api/job/{job_id}")
-    async def get_blueprint_job(job_id: str, request: Request, response: Response):
+                        # Collect all results up front,
+                        # check if any result is a string
+                        # (i.e. queue.get() produced something)
+                        results = filter(
+                            lambda r: isinstance(r, str),
+                            [task.result() for task in done]
+                            )
+
+                        for result in results:
+                            yield result
+                            if result == "data: [DONE]\n\n":
+                                return
+                        else:
+                            # Timeout: send keepalive
+                            yield await format_keepalive()
+
+                    except asyncio.CancelledError:
+                        # Client disconnected, break streaming loop
+                        break
+            finally:
+                # Always cancel producer to prevent orphaned task
+                producer_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await producer_task
+
+        # Fast-fail if feature is disabled
         if not enable_jobs_api:
             raise HTTPException(status_code=404)
 
-        crypto.verify_message_authorization_signature(f"get_job_{job_id}", request)
-        job = app.state.job_vault.get(job_id)
-
-        if not job:
-            return JSONResponse(status_code=404, content={"id": job_id, "status": "not found"})
-
-        status_code = 200
-        if job.get("status") == "error":
-            status_code = 400
-
-        return JSONResponse(status_code=status_code, content=job)
+        return StreamingResponse(
+            merged_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control",
+            },
+        )
 
     # Streaming
 

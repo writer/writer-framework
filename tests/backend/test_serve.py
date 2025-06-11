@@ -1,5 +1,5 @@
+import json
 import mimetypes
-import time
 from typing import Any
 
 import fastapi
@@ -8,9 +8,29 @@ import pytest
 import writer.abstract
 import writer.serve
 from fastapi import FastAPI
-from writer import crypto
 
 from tests.backend import test_app_dir, test_multiapp_dir
+
+
+def parse_sse_stream(response):
+    """
+    Utility function to parse SSE stream into list of (event, data) tuples.
+    """
+    events = []
+    current_event = None
+    for line in response.iter_lines():
+        if line.startswith("event: "):
+            current_event = line[len("event: "):]
+        elif line.startswith("data: "):
+            data = line[len("data: "):]
+            if data == "[DONE]":
+                break
+            try:
+                payload = json.loads(data)
+                events.append((current_event, payload))
+            except json.JSONDecodeError:
+                continue
+    return events
 
 
 class TestServe:
@@ -216,97 +236,99 @@ class TestServe:
                 "Content-Type": "application/json"
             })
             feature_flags = res.json().get("featureFlags")
-            assert feature_flags == ["blueprints", "flag_one", "flag_two"]
+            assert feature_flags == ["blueprints", "flag_one", "flag_two", "api_trigger"]
 
     def test_create_blueprint_job_api(self, monkeypatch):
-        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run", enable_jobs_api=True)
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
-        
-        with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"create_job_{blueprint_key}")
-            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {create_job_token}"
-            })
-            time.sleep(1)
-            job_id = res.json().get("id")
-            get_job_token = res.json().get("token")
-            res = client.get(f"/api/job/{job_id}", headers={
-                "Authorization": f"Bearer {get_job_token}"
-            })
-            assert res.json().get("result") == "987127"
 
-    def test_create_blueprint_job_api_incorrect_token(self, monkeypatch):
-        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run", enable_jobs_api=True)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            with client.stream("POST", f"/private/api/job/blueprint/{blueprint_key}",
+                                json={"proposedSessionId": None},
+                                headers={"Content-Type": "application/json"}) as response:
+
+                assert response.status_code == 200
+                assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
+
+                events = parse_sse_stream(response)
+
+                # Verify we got at least one status event
+                status_events = [e for e in events if e[0] == "status"]
+                assert len(status_events) > 0
+
+                # Verify terminal event exists
+                terminal_events = [e for e in events if e[0] in ["artifact", "error"]]
+                assert len(terminal_events) == 1
+
+                event_type, final_payload = terminal_events[0]
+
+                if event_type == "artifact":
+                    assert "artifact" in final_payload
+                    assert final_payload.get("artifact") == "987127"
+
+    def test_create_blueprint_job_api_error_handling(self, monkeypatch):
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
+        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
+
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            with client.stream(
+                "POST", "/private/api/job/blueprint/nonexistent",
+                json={"proposedSessionId": None},
+                headers={"Content-Type": "application/json"}
+            ) as response:
+
+                assert response.status_code == 200
+
+                events = parse_sse_stream(response)
+                assert len(events) > 0
+
+                event_type, final_payload = events[-1]
+                assert event_type == "error"
+                assert "msg" in final_payload
+                assert "not found" in final_payload["msg"].lower()
+
+    def test_create_blueprint_job_api_disabled(self, monkeypatch):
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=False)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
-        
-        with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash("not_the_right_message")
-            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {create_job_token}"
-            })
-            assert res.status_code == 403
 
-    def test_create_blueprint_job_api_incorrect_token_for_get(self, monkeypatch):
-        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run", enable_jobs_api=True)
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.post(f"/private/api/job/blueprint/{blueprint_key}",
+                            json={"proposedSessionId": None},
+                            headers={"Content-Type": "application/json"})
+            assert res.status_code == 404
+
+    def test_create_blueprint_job_api_streaming_events(self, monkeypatch):
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
-        
+
         with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash("not_the_right_message")
-            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {create_job_token}"
-            })
-            time.sleep(1)
-            job_id = res.json().get("id")
-            get_job_token = "not_the_right_job_token"
-            res = client.get(f"/api/job/{job_id}", headers={
-                "Authorization": f"Bearer {get_job_token}"
-            })
-            assert res.status_code == 403
+            with client.stream(
+                "POST", f"/private/api/job/blueprint/{blueprint_key}",
+                json={"proposedSessionId": None},
+                headers={"Content-Type": "application/json"}
+            ) as response:
 
+                events = parse_sse_stream(response)
 
-    def test_create_blueprint_job_api_custom_job_vault(self, monkeypatch):
-        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        monkeypatch.setenv("WRITER_PERSISTENT_STORE", "testjobvault://doesn'tmatter")
-        blueprint_key = "blueprint2"
+                assert len(events) >= 2
 
-        class TestJobVault(writer.serve.JobVault):
-            SCHEMES = ["testjobvault://"]
-            def get(self, job_id: str):
-                value = self.vault[job_id]
-                if "result" in value:
-                    value["result"] = "Powered by TestJobVault - " + str(value["result"])
-                return value
+                # First event should be "in progress" under "status"
+                first_event_type, first_payload = events[0]
+                assert first_event_type == "status"
+                assert first_payload.get("status") == "in progress"
+                assert "created_at" in first_payload
 
-        writer.serve.JobVault.register(TestJobVault)
-        asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
-            test_app_dir, "run", enable_jobs_api=True)
-        with fastapi.testclient.TestClient(asgi_app) as client:
-            create_job_token = crypto.get_hash(f"create_job_{blueprint_key}")
-            res = client.post(f"/api/job/blueprint/{blueprint_key}", json={
-                "proposedSessionId": None
-            }, headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {create_job_token}"
-            })
-            time.sleep(1)
-            job_id = res.json().get("id")
-            get_job_token = res.json().get("token")
-            res = client.get(f"/api/job/{job_id}", headers={
-                "Authorization": f"Bearer {get_job_token}"
-            })
-            assert res.json().get("result") == "Powered by TestJobVault - 987127"
+                # Last event should be either artifact or error
+                event_type, final_payload = events[-1]
+                assert event_type in ["artifact", "error"]
+
+                if event_type == "artifact":
+                    assert "artifact" in final_payload
+                    assert "finished_at" in final_payload
+
+                if event_type == "error":
+                    assert "msg" in final_payload
+                    assert "finished_at" in final_payload

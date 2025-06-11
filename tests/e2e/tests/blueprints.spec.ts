@@ -35,7 +35,7 @@ test.describe("Blueprints", () => {
 			const rowsLocator = page.locator(
 				".BuilderPanelSwitcher div.BuilderListItem",
 			);
-			await expect(rowsLocator).toHaveCount(3);
+			await expect(rowsLocator).toHaveCount(4);
 			const rowLocator = rowsLocator.filter({ hasText: "Return value" });
 			await rowLocator.getByRole("button", { name: "Trace" }).click();
 			await expect(page.locator(".WdsModal")).toBeVisible();

@@ -43,14 +43,27 @@ function runBlueprint(
 		}
 
 		wf.forwardEvent(
-			new CustomEvent("wf-builtin-run", {
-				detail: {
-					callback,
-					handler: branchId
-						? `$runBlueprintTriggerBranchById_${branchId}`
-						: `$runBlueprintById_${blueprintComponentId}`,
-				},
-			}),
+			branchId ?
+			new CustomEvent(
+				"wf-run-blueprint-branch", 
+				{
+					detail: {
+						callback,
+						handler: "run_blueprint_branch",
+						payload: { "branch_id": branchId }
+					},
+				}
+			) :
+			new CustomEvent(
+				"wf-run-blueprint", 
+				{
+					detail: {
+						callback,
+						handler: "run_blueprint_by_id",
+						payload: { blueprint_id: blueprintComponentId },
+					},
+				}
+			),
 			null,
 			true,
 		).catch((err) => {

@@ -13,6 +13,7 @@ from writer import WriterUIManager
 writer.Config.feature_flags.append("blueprints")
 writer.Config.feature_flags.append("flag_one")
 writer.Config.feature_flags.append("flag_two")
+writer.Config.feature_flags.append("api_trigger")
 
 @wf.middleware()
 def my_middleware(state):
