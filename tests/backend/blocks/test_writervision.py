@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from writer.blocks.writervision import WriterVision
 from writer.ss_types import WriterConfigurationError
