@@ -32,6 +32,15 @@
 				<i class="material-symbols-outlined">code</i>
 			</WdsButton>
 			<WdsButton
+				variant="secondary"
+				size="smallIcon"
+				data-writer-tooltip="Invite collaborators"
+				data-writer-tooltip-placement="bottom"
+				@click="showInviteCollaborators"
+			>
+				<i class="material-symbols-outlined">share</i>
+			</WdsButton>
+			<WdsButton
 				v-if="canDeploy"
 				size="small"
 				:loading="isDeploying"
@@ -67,6 +76,25 @@
 			>
 				<BuilderStateExplorer />
 			</WdsModal>
+			<WdsModal
+				v-if="isInviteCollaboratorsShown"
+				title="Share edit link with collaborators"
+				description="All AI Studio builders in your org can edit this agent. Copy the link below to point them directly to editing this agent."
+				display-close-button
+				:actions="[
+					{
+						desc: 'Close',
+						fn: () => (isInviteCollaboratorsShown = false),
+					},
+					{
+						desc: 'Copy edit link',
+						fn: () => copyInviteCollaboratorsURL(),
+						icon: 'content_copy',
+					},
+				]"
+				@close="isInviteCollaboratorsShown = false"
+			>
+			</WdsModal>
 		</div>
 	</div>
 </template>
@@ -80,14 +108,17 @@ import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
+import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
 
 const wf = inject(injectionKeys.core);
 
 const isStateExplorerShown = ref(false);
+const isInviteCollaboratorsShown = ref(false);
 
 const tracking = useWriterTracking(wf);
+const toasts = useToasts();
 
 const {
 	canDeploy,
@@ -178,6 +209,34 @@ const stateDotState = computed<WdsStateDotState>(() => {
 function showStateExplorer() {
 	tracking.track("nav_state_explorer_opened");
 	isStateExplorerShown.value = true;
+}
+
+function showInviteCollaborators() {
+	isInviteCollaboratorsShown.value = true;
+}
+
+async function copyInviteCollaboratorsURL() {
+	const url = location.href;
+	try {
+		if (navigator.clipboard?.writeText) {
+			await navigator.clipboard.writeText(url);
+		} else {
+			const tmp = document.createElement("textarea");
+			tmp.value = url;
+			tmp.style.position = "fixed";
+			tmp.style.opacity = "0";
+			document.body.appendChild(tmp);
+			tmp.select();
+			document.execCommand("copy");
+			document.body.removeChild(tmp);
+		}
+		toasts.pushToast({
+			type: "success",
+			message: "Edit link copied to clipboard.",
+		});
+	} catch {
+		toasts.pushToast({ type: "error", message: "Could not copy link." });
+	}
 }
 </script>
 
