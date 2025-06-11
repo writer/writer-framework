@@ -51,6 +51,11 @@
 							:disabled="action.disabled"
 							@click="action.fn"
 						>
+							<i
+								v-if="action.icon"
+								class="material-symbols-outlined"
+								>{{ action.icon }}</i
+							>
 							{{ action.desc }}
 						</WdsButton>
 					</div>
@@ -67,8 +72,8 @@ import { PropType, toRefs } from "vue";
 export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
-
 	disabled?: boolean;
+	icon?: string;
 };
 
 const props = defineProps({
