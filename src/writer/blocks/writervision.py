@@ -1,3 +1,4 @@
+import re
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
@@ -96,6 +97,7 @@ class WriterVision(WriterBlock):
                     "Images list cannot be empty. Please provide "
                     "at least one image."
                     )
+            placeholders = set(re.findall(r"\{\{(\w+)\}\}", prompt))
             for image in images:
                 if not isinstance(image, dict):
                     raise ValueError(
@@ -108,7 +110,7 @@ class WriterVision(WriterBlock):
                         "An image specified as a dictionary must contain "
                         "`name` and `file_id` attributes."
                         )
-                if "{{" + image["name"] + "}}" not in prompt:
+                if image["name"] not in placeholders:
                     raise ValueError(
                         f"Image name '{image['name']}' not found in the prompt. "
                         "Please ensure the prompt includes the image name in the format {{image_name}}."
