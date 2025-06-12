@@ -239,7 +239,9 @@ watch(
 
 		const outsToRemove =
 			component.value?.outs?.filter(
-				(out) => !allDynamicOuts.includes(out.outId),
+				(out) =>
+					!allDynamicOuts.includes(out.outId) &&
+					!(out.outId in staticOuts.value),
 			) ?? [];
 
 		outsToRemove.forEach((out) => {
