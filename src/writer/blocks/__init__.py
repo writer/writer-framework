@@ -23,6 +23,7 @@ from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerparsepdf import WriterParsePDFByFileID
 from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
+from writer.blocks.writervision import WriterVision
 
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
@@ -49,3 +50,4 @@ WriterToolCalling.register("blueprints_writertoolcalling")
 WriterAskGraphQuestion.register("blueprints_writeraskgraphquestion")
 WriterParsePDFByFileID.register("blueprints_writerparsepdf")
 WriterUploadFile.register("blueprints_writeruploadfile")
+WriterVision.register("blueprints_writervision")

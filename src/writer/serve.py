@@ -277,10 +277,17 @@ def get_asgi_app(
         """
         Applies feature flags to the templates by removing the ones that are not enabled.
         """
-        # Restirct API trigger by feature flag
-        if "api_trigger" not in feature_flags:
-            templates = {
-                k: v for k, v in templates.items() if k != "blueprints_apitrigger"
+
+        # Restrict blocks by feature flags
+        restricted = {
+            "blueprints_apitrigger": "api_trigger",
+            "blueprints_writervision": "vision_block",
+        }
+
+        templates = {
+                k: v for k, v in templates.items()
+                if restricted.get(k, "") in feature_flags
+                or restricted.get(k) is None
             }
 
         return templates
