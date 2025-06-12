@@ -1,4 +1,5 @@
 import re
+
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
