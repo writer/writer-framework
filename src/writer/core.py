@@ -1250,15 +1250,36 @@ class EventHandlerRegistry:
         return blueprint_runner.run_branch(start_node_id=branch_id, branch_out_id=None, execution_environment=execution_environment, title="Branch execution triggered by demand")
 
     def __init__(self):
-        self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {}
-        for handler in [
-            self.run_blueprint_by_id,
-            self.run_blueprint_by_key,
-            self.run_blueprint_via_api,
-            self.run_blueprint_branch,
-        ]:
-            # Register built-in blueprint handlers
-            self.register_handler(handler)
+        self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {
+                "run_blueprint_by_key": {
+                   "callable": self.run_blueprint_by_key,
+                   "meta": {
+                        "name": "run_blueprint_by_key",
+                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
+                   }
+                },
+                "run_blueprint_by_id": {
+                    "callable": self.run_blueprint_by_id,
+                    "meta": {
+                        "name": "run_blueprint_by_id",
+                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
+                    }
+                },
+                "run_blueprint_via_api": {
+                    "callable": self.run_blueprint_via_api,
+                    "meta": {
+                        "name": "run_blueprint_via_api",
+                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
+                    }
+                },
+                "run_blueprint_branch": {
+                    "callable": self.run_blueprint_branch,
+                    "meta": {
+                        "name": "run_blueprint_branch",
+                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
+                    }
+                }
+            }
 
     def __iter__(self):
         return iter(self.handler_map.keys())
