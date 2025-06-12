@@ -190,7 +190,7 @@ def get_asgi_app(
     enable_server_setup: bool = True,
     on_load: Optional[Callable] = None,
     on_shutdown: Optional[Callable] = None,
-    enable_jobs_api: bool = False,
+    enable_jobs_api: bool = True,
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -976,7 +976,7 @@ def serve(
     host,
     enable_remote_edit=False,
     enable_server_setup=False,
-    enable_jobs_api=False,
+    enable_jobs_api=True,
 ):
     """Initialises the web server."""
 
