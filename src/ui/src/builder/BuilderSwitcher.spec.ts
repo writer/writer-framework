@@ -30,6 +30,7 @@ describe("BuilderSwitcher", () => {
 
 	beforeEach(() => {
 		mockCore = buildMockCore();
+		mockCore.featureFlags.value = ['vault'];
 		mockCore.core.addComponent(
 			buildMockComponent({
 				id: "root",
