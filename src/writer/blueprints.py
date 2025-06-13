@@ -456,7 +456,7 @@ class BlueprintRunner:
             if is_cancelled:
                 update_log("Execution failed.", entry_type="error")
                 raise BlueprintExecutionError(
-                    f"Blueprint execution was cancelled due to an error: {first_exception}"
+                    f"Blueprint execution was cancelled due to an error - {first_exception.__class__.__name__}: {first_exception}"
                     ) from first_exception
             else:
                 update_log("Execution completed.")
