@@ -414,13 +414,15 @@ class BlueprintRunner:
 
                 update_log("Executing...")
                 done, _ = wait(futures, return_when=FIRST_COMPLETED)
-
+                first_exception: Optional[BaseException] = None
                 for future in done:
                     futures.remove(future)
                     try:
                         tool = future.result()
-                    except BaseException:
+                    except BaseException as e:
                         is_cancelled = True
+                        if first_exception is None:
+                            first_exception = e
                         continue
                     else:
                         update_log("Executing...")
@@ -453,7 +455,9 @@ class BlueprintRunner:
                             ready.append(to_tool)
             if is_cancelled:
                 update_log("Execution failed.", entry_type="error")
-                raise BlueprintExecutionError("Blueprint execution was cancelled due to an error.")
+                raise BlueprintExecutionError(
+                    f"Blueprint execution was cancelled due to an error: {first_exception}"
+                    ) from first_exception
             else:
                 update_log("Execution completed.")
 
