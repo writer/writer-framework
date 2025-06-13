@@ -79,7 +79,7 @@
 			<WdsModal
 				v-if="isInviteCollaboratorsShown"
 				title="Share edit link with collaborators"
-				description="All AI Studio builders in your org can edit this agent. Copy the link below to point them directly to editing this agent."
+				description="All AI Studio builders in your org can edit this agent with you in real time. Copy the link below to point them directly to editing this agent."
 				display-close-button
 				:actions="[
 					{
