@@ -402,6 +402,7 @@ class BlueprintRunner:
 
         with self._get_executor() as executor:
             futures: set[Future] = set()
+            first_exception: Optional[BaseException] = None
             while ready or futures:
                 while ready:
                     tool = ready.popleft()
@@ -414,7 +415,6 @@ class BlueprintRunner:
 
                 update_log("Executing...")
                 done, _ = wait(futures, return_when=FIRST_COMPLETED)
-                first_exception: Optional[BaseException] = None
                 for future in done:
                     futures.remove(future)
                     try:
@@ -455,9 +455,12 @@ class BlueprintRunner:
                             ready.append(to_tool)
             if is_cancelled:
                 update_log("Execution failed.", entry_type="error")
-                raise BlueprintExecutionError(
-                    f"Blueprint execution was cancelled due to an error - {first_exception.__class__.__name__}: {first_exception}"
-                    ) from first_exception
+                if first_exception is not None:
+                    raise BlueprintExecutionError(
+                        f"Blueprint execution was cancelled due to an error - {first_exception.__class__.__name__}: {first_exception}"
+                        ) from first_exception
+                else:
+                    raise BlueprintExecutionError("Blueprint execution was cancelled.")
             else:
                 update_log("Execution completed.")
 
