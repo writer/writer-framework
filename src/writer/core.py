@@ -47,6 +47,7 @@ import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
 from writer.ss_types import (
+    BlueprintExecutionError,
     BlueprintExecutionLog,
     InstancePath,
     Readable,
@@ -1818,17 +1819,21 @@ class EventHandler:
             calling_arguments = self._get_calling_arguments(ev, instance_path=None)
             return self._call_handler_callable(handler_callable, calling_arguments)
         except BaseException as e:
-            self.session_state.add_notification(
-                "error",
-                "Runtime Error",
-                f"An error occurred when processing event '{ ev.type }'.",
-            )
-            self.session_state.add_log_entry(
-                "error",
-                "Runtime Exception",
-                f"A runtime exception was raised when processing event '{ ev.type }'.",
-                traceback.format_exc(),
-            )
+            if not isinstance(e, BlueprintExecutionError):
+                # Only create a notification and log entry
+                # for non-blueprint errors, as blueprint errors
+                # have their own logging mechanism
+                self.session_state.add_notification(
+                    "error",
+                    "Runtime Error",
+                    f"An error occurred when processing event '{ ev.type }'.",
+                )
+                self.session_state.add_log_entry(
+                    "error",
+                    "Runtime Exception",
+                    f"A runtime exception was raised when processing event '{ ev.type }'.",
+                    traceback.format_exc(),
+                )
             raise e
 
     def _handle_component_event(self, ev: WriterEvent):

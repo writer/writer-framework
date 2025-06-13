@@ -239,12 +239,12 @@ class TestServe:
             assert feature_flags == ["blueprints", "flag_one", "flag_two", "api_trigger"]
 
     def test_create_blueprint_job_api(self, monkeypatch):
-        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
 
         with fastapi.testclient.TestClient(asgi_app) as client:
-            with client.stream("POST", f"/private/api/job/blueprint/{blueprint_key}",
+            with client.stream("POST", f"/private/api/blueprint/{blueprint_key}",
                                 json={"proposedSessionId": None},
                                 headers={"Content-Type": "application/json"}) as response:
 
@@ -268,12 +268,12 @@ class TestServe:
                     assert final_payload.get("artifact") == "987127"
 
     def test_create_blueprint_job_api_error_handling(self, monkeypatch):
-        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
 
         with fastapi.testclient.TestClient(asgi_app) as client:
             with client.stream(
-                "POST", "/private/api/job/blueprint/nonexistent",
+                "POST", "/private/api/blueprint/nonexistent",
                 json={"proposedSessionId": None},
                 headers={"Content-Type": "application/json"}
             ) as response:
@@ -288,25 +288,14 @@ class TestServe:
                 assert "msg" in final_payload
                 assert "not found" in final_payload["msg"].lower()
 
-    def test_create_blueprint_job_api_disabled(self, monkeypatch):
-        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=False)
-        monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        blueprint_key = "blueprint2"
-
-        with fastapi.testclient.TestClient(asgi_app) as client:
-            res = client.post(f"/private/api/job/blueprint/{blueprint_key}",
-                            json={"proposedSessionId": None},
-                            headers={"Content-Type": "application/json"})
-            assert res.status_code == 404
-
     def test_create_blueprint_job_api_streaming_events(self, monkeypatch):
-        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run", enable_jobs_api=True)
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
         blueprint_key = "blueprint2"
 
         with fastapi.testclient.TestClient(asgi_app) as client:
             with client.stream(
-                "POST", f"/private/api/job/blueprint/{blueprint_key}",
+                "POST", f"/private/api/blueprint/{blueprint_key}",
                 json={"proposedSessionId": None},
                 headers={"Content-Type": "application/json"}
             ) as response:

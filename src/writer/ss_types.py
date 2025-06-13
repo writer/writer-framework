@@ -297,5 +297,16 @@ class BlueprintExecutionLog(BaseModel):
     summary: List[Dict]
 
 
+class BlueprintExecutionError(Exception):
+    """Exception raised when a blueprint execution fails."""
+    def __init__(
+            self,
+            message: Optional[str] = "An error occurred "
+                                     "during blueprint execution."
+    ):
+        super().__init__(message)
+        self.message = message
+
+
 class WriterConfigurationError(ValueError):
     pass

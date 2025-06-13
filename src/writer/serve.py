@@ -69,101 +69,9 @@ BLUEPRINT_API_RETRY_TIMEOUT = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_RETRY_T
 logging.getLogger().setLevel(logging.INFO)
 
 
-class JobVault:
-    SCHEMES: List[str] = []
-    job_vault_implementations: List[Type["JobVault"]] = []
-
-    def __init__(self):
-        self.counter = 0
-        self.vault = {}
-
-    def generate_job_id(self):
-        self.counter += 1
-        return str(self.counter)
-
-    def set(self, job_id: str, value: Any):
-        self.vault[job_id] = value
-
-    def get(self, job_id: str):
-        return self.vault.get(job_id)
-
-    @classmethod
-    def register(cls, klass: Type["JobVault"]):
-        cls.job_vault_implementations.insert(0, klass)
-
-    @classmethod
-    def _get_matching_implementation(cls, connection_string):
-        for job_vault_implementation in cls.job_vault_implementations:
-            for scheme in job_vault_implementation.SCHEMES:
-                if connection_string.startswith(scheme):
-                    return job_vault_implementation
-
-    @classmethod
-    def create_vault(cls):
-        connection_string = os.getenv("WRITER_PERSISTENT_STORE")
-        if not connection_string:
-            return cls()
-
-        matching_implementation = cls._get_matching_implementation(connection_string)
-        if not matching_implementation:
-            supported_schemes = [
-                scheme
-                for implementation in JobVault.job_vault_implementations
-                for scheme in implementation.SCHEMES
-            ]
-            supported_schemes_msg = ", ".join(supported_schemes)
-            logging.error(f"No matching implementation found for { connection_string }. Falling back to in-memory JobVault. \
-                          Supported schemes: {supported_schemes_msg}.")
-            return cls()
-
-        try:
-            return matching_implementation()
-        except Exception as e:
-            logging.error(
-                f"There was an error connecting to { connection_string }. Falling back to in-memory JobVault. {repr(e)}"
-            )
-            return cls()
-
-
-class RedisJobVault(JobVault):
-    SCHEMES = ["redis://", "rediss://", "redis-socket://", "redis-sentinel://"]
-    DEFAULT_TTL = 86400
-
-    def __init__(self):
-        import redis  # type: ignore
-
-        super().__init__()
-        redis_connection_string = os.getenv("WRITER_PERSISTENT_STORE")
-        self.redis_client = redis.from_url(
-            redis_connection_string, decode_responses=True, socket_timeout=30
-        )
-        self.counter_key = "job_counter"
-        if not self.redis_client.exists(self.counter_key):
-            self.redis_client.set(self.counter_key, 0)
-
-    def generate_job_id(self):
-        job_id = self.redis_client.incr(self.counter_key)
-        return str(job_id)
-
-    def set(self, job_id: str, value: Any):
-        ttl = RedisJobVault.DEFAULT_TTL
-        env_ttl = os.getenv("WRITER_PERSISTENT_STORE_TTL")
-        if env_ttl is not None:
-            ttl = int(env_ttl)
-        json_str = json.dumps(value)
-        self.redis_client.set(f"job:{job_id}", json_str, ex=ttl)
-
-    def get(self, job_id: str):
-        json_str = self.redis_client.get(f"job:{job_id}")
-        if not json_str:
-            return None
-        return json.loads(json_str)
-
-
 class WriterState(typing.Protocol):
     app_runner: AppRunner
     writer_app: bool
-    job_vault: JobVault
     is_server_static_mounted: bool
     meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]]  # meta tags for SEO
     opengraph_tags: Union[
@@ -189,8 +97,7 @@ def get_asgi_app(
     enable_remote_edit: bool = False,
     enable_server_setup: bool = True,
     on_load: Optional[Callable] = None,
-    on_shutdown: Optional[Callable] = None,
-    enable_jobs_api: bool = True,
+    on_shutdown: Optional[Callable] = None
 ) -> WriterFastAPI:
     """
     Builds an ASGI server that can be injected into another ASGI application
@@ -402,7 +309,7 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
 
-    @app.post("/private/api/job/blueprint/{blueprint_key}")
+    @app.post("/private/api/blueprint/{blueprint_key}")
     async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
         # Keep-alive interval for SSE streaming
         KEEPALIVE_INTERVAL = 15
@@ -533,20 +440,30 @@ def get_asgi_app(
                 if not apsr or apsr.status != "ok":
                     raise RuntimeError("Blueprint execution failed.")
 
-                result = serialize_result(
-                    apsr.payload.result.get("result")
-                    if apsr.payload and apsr.payload.result else None
-                )
+                if apsr.payload and apsr.payload.result:
+                    task_status = apsr.payload.result.get("ok", False)
+                    result = serialize_result(
+                        apsr.payload.result.get("result")
+                    )
+                else:
+                    task_status = False
+                    result = "No result returned from blueprint execution."
 
-                await queue.put(await format_event("artifact", {
-                    "artifact": result,
-                    "finished_at": int(time.time())
-                }))
+                if not task_status:
+                    await queue.put(await format_event("error", {
+                        "msg": result,
+                        "finished_at": int(time.time())
+                    }))
+                else:
+                    await queue.put(await format_event("artifact", {
+                        "artifact": result,
+                        "finished_at": int(time.time())
+                    }))
 
             except Exception as e:
                 # Bubble up any unexpected error as 'error' SSE event
                 await queue.put(await format_event("error", {
-                    "msg": str(e),
+                    "msg": f"Agent Builder internal error: {str(e)}",
                     "finished_at": int(time.time())
                 }))
             finally:
@@ -565,31 +482,15 @@ def get_asgi_app(
             try:
                 while True:
                     try:
-                        # Race between event producer and keep-alive interval
-                        done, _ = await asyncio.wait(
-                            [
-                                asyncio.create_task(queue.get()),
-                                asyncio.create_task(asyncio.sleep(KEEPALIVE_INTERVAL))
-                            ],
-                            return_when=asyncio.FIRST_COMPLETED
-                        )
-
-                        # Collect all results up front,
-                        # check if any result is a string
-                        # (i.e. queue.get() produced something)
-                        results = filter(
-                            lambda r: isinstance(r, str),
-                            [task.result() for task in done]
+                        result = await asyncio.wait_for(
+                            queue.get(),
+                            timeout=KEEPALIVE_INTERVAL
                             )
-
-                        for result in results:
-                            yield result
-                            if result == "data: [DONE]\n\n":
-                                return
-                        else:
-                            # Timeout: send keepalive
-                            yield await format_keepalive()
-
+                        if result == "data: [DONE]\n\n":
+                            return
+                        yield result
+                    except asyncio.TimeoutError:
+                        yield await format_keepalive()
                     except asyncio.CancelledError:
                         # Client disconnected, break streaming loop
                         break
@@ -598,10 +499,6 @@ def get_asgi_app(
                 producer_task.cancel()
                 with suppress(asyncio.CancelledError):
                     await producer_task
-
-        # Fast-fail if feature is disabled
-        if not enable_jobs_api:
-            raise HTTPException(status_code=404)
 
         return StreamingResponse(
             merged_stream(),
@@ -927,13 +824,9 @@ def get_asgi_app(
             )
         )
 
-    JobVault.register(RedisJobVault)
-
     # Return
     if enable_server_setup is True:
         _execute_server_setup_hook(user_app_path)
-
-    app.state.job_vault = JobVault.create_vault()
 
     return app
 
@@ -982,8 +875,7 @@ def serve(
     port: Optional[int],
     host,
     enable_remote_edit=False,
-    enable_server_setup=False,
-    enable_jobs_api=True,
+    enable_server_setup=False
 ):
     """Initialises the web server."""
 
@@ -1008,8 +900,7 @@ def serve(
         mode,
         enable_remote_edit,
         on_load=on_load,
-        enable_server_setup=enable_server_setup,
-        enable_jobs_api=enable_jobs_api,
+        enable_server_setup=enable_server_setup
     )
     log_level = "warning"
     uvicorn.run(

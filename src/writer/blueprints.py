@@ -15,7 +15,7 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
-from writer.ss_types import BlueprintExecutionLog, WriterConfigurationError
+from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 
 class BlueprintRunner:
@@ -453,6 +453,7 @@ class BlueprintRunner:
                             ready.append(to_tool)
             if is_cancelled:
                 update_log("Execution failed.", entry_type="error")
+                raise BlueprintExecutionError("Blueprint execution was cancelled due to an error.")
             else:
                 update_log("Execution completed.")
 
