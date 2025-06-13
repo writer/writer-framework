@@ -21,13 +21,8 @@ def main():
 @main.command()
 @click.option('--host', default="127.0.0.1", help="Host to run the app on")
 @click.option('--port', default=None, help="Port to run the app on")
-@click.option(
-    "--disable-jobs-api",
-    help="Disable the Jobs API, preventing job execution without user interaction.",
-    is_flag=True,
-)
 @click.argument('path')
-def run(path: str, host: str, port: Optional[int], disable_jobs_api: bool):
+def run(path: str, host: str, port: Optional[int]):
     """Run the app from PATH folder in run mode."""
 
     abs_path = os.path.abspath(path)
@@ -44,8 +39,7 @@ def run(path: str, host: str, port: Optional[int], disable_jobs_api: bool):
         mode="run",
         port=port,
         host=host,
-        enable_server_setup=True,
-        enable_jobs_api=not disable_jobs_api,
+        enable_server_setup=True
     )
 
 @main.command()
@@ -57,11 +51,6 @@ def run(path: str, host: str, port: Optional[int], disable_jobs_api: bool):
 @click.option('--buffer-sync-interval', default=10, type=int, help="Interval in seconds for synchronizing the file buffer.")
 @click.option('--buffer-path', default=None, type=str, help="Path to the file buffer directory. If not provided, a temporary directory will be used.")
 @click.option("--no-interactive", help="Set this flag to run the app without asking anything to the user.", is_flag=True)
-@click.option(
-    "--disable-jobs-api",
-    help="Disable the Jobs API, preventing job execution without user interaction.",
-    is_flag=True,
-)
 @click.option('--verbose', '-v', is_flag=True, help="Enable verbose output.")
 @click.argument('path')
 def edit(
@@ -74,7 +63,6 @@ def edit(
     buffer_sync_interval: int,
     buffer_path: Optional[str],
     no_interactive: bool,
-    disable_jobs_api: bool,
     verbose: bool = False
 ):
     """Run the app from PATH folder in edit mode."""
@@ -116,7 +104,7 @@ def edit(
         writer.serve.serve(
             abs_path, mode="edit", port=port, host=host,
             enable_remote_edit=enable_remote_edit, enable_server_setup=enable_server_setup,
-            enable_jobs_api=not disable_jobs_api)
+            )
     finally:
         if buffer:
             print("Stopping file buffering...")
