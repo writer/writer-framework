@@ -102,26 +102,37 @@ async function handleAutogen() {
 	const description = prompt.value;
 	isBusy.value = true;
 	tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
-	const response = await fetch(convertAbsolutePathtoFullURL("/api/autogen"), {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ description }),
-	});
 
-	isBusy.value = false;
+	try {
+		const response = await fetch(
+			convertAbsolutePathtoFullURL("/api/autogen"),
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ description }),
+			},
+		);
 
-	if (!response.ok) {
-		throw new Error(`Error: ${response.status} - ${response.statusText}`);
+		if (!response.ok) {
+			window.alert(
+				`Autogen failed. Please try again with a different prompt.`,
+			);
+			return;
+		}
+
+		const data = await response.json(); // Assuming the response is JSON
+
+		const components: Component[] = alterIds(data.blueprint?.components);
+		emits("blockGeneration", { components });
+
+		tracking.track("blueprints_auto_gen_completed");
+	} catch (error) {
+		window.alert(`Autogen failed: ${error}`);
+	} finally {
+		isBusy.value = false;
 	}
-
-	const data = await response.json(); // Assuming the response is JSON
-
-	const components: Component[] = alterIds(data.blueprint?.components);
-	emits("blockGeneration", { components });
-
-	tracking.track("blueprints_auto_gen_completed");
 }
 </script>
 
