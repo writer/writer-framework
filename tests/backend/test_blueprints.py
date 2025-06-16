@@ -4,7 +4,6 @@ from typing import Dict, Type
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
 from writer.blueprints import Graph, GraphBuilder, GraphRunner
 from writer.core_ui import Component
