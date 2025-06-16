@@ -59,8 +59,8 @@ class Evaluator:
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
         def replacer(matched: re.Match):
-            if matched.string[0] == "\\":  # Escaped @, don't evaluate
-                return matched.string
+            if matched.group(0)[0] == "\\":  # Escaped @, don't evaluate
+                return matched.group(0)
             expr = matched.group(1).strip()
             expr_value = self.evaluate_expression(expr, instance_path, base_context)
             if full_match is not None:

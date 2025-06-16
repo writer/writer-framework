@@ -129,6 +129,8 @@ class TestEvaluator:
             "boolean_with_text": "TEXT true TEXT",
             "none": "null",
             "none_with_text": "TEXT null TEXT",
+            "escaped": "\\@{escaped}",
+            "escaped_with_text": "TEXT \\@{escaped} TEXT",
         }
 
     def test_set_state(self) -> None:
