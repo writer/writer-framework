@@ -657,8 +657,8 @@ function moveNode(ev: MouseEvent) {
 	const { nodeId, offset } = activeNodeMove.value;
 	const { x, y } = getAdjustedCoordinates(ev);
 
-	const newX = Math.floor(x - offset.x);
-	const newY = Math.floor(y - offset.y);
+	const newX = Math.max(Math.floor(x - offset.x), 0);
+	const newY = Math.max(Math.floor(y - offset.y), 0);
 
 	const component = wf.getComponentById(nodeId);
 
@@ -757,21 +757,21 @@ async function handleMouseup(ev: MouseEvent) {
 	if (activeNodeMove.value) {
 		saveNodeMove();
 	}
-	if (activeConnection.value === null) {
+	const connectionValue = activeConnection.value;
+	clearActiveOperations();
+	if (connectionValue === null) {
 		return;
 	}
 	const hoveredId = getHoveredNodeId(ev);
 	if (!hoveredId) {
-		activeConnection.value = null;
 		return;
 	}
-	const { fromNodeId, fromOutId } = activeConnection.value;
+	const { fromNodeId, fromOutId } = connectionValue;
 	if (fromNodeId == hoveredId) {
-		activeConnection.value = null;
 		return;
 	}
 
-	addOut(activeConnection.value.fromNodeId, {
+	addOut(connectionValue.fromNodeId, {
 		toNodeId: hoveredId,
 		outId: fromOutId,
 	});
