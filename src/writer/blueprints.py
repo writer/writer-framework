@@ -166,24 +166,16 @@ class BlueprintRunner:
 
     def run_blueprint_pool(self, blueprint_key: str, execution_environments: List[Dict]):
         """
-        Executes the same blueprint multiple times in parallel with different execution environments.
+        Executes the same blueprint multiple times sequentially with different execution environments.
 
         :param blueprint_key: The blueprint identifier (same blueprint for all executions).
         :param execution_environments: A list of execution environments, one per execution.
         :return: A list of results in the same order as execution_environments.
         """
-
-        with self._get_executor() as executor:
-            futures = [
-                executor.submit(self.run_blueprint_by_key, blueprint_key, env)
-                for env in execution_environments
-            ]
-
-        wait(futures)  # Important to preserve order, don't switch to as_completed
-
         results = []
-        for future in futures:
-            results.append(future.result())
+        for env in execution_environments:
+            result = self.run_blueprint_by_key(blueprint_key, env)
+            results.append(result)
 
         return results
 
@@ -212,20 +204,12 @@ class BlueprintRunner:
         self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
     ):
         """
-        Executes the same branch multiple times in parallel with different execution environments.
+        Executes the same branch multiple times sequentially with different execution environments.
         """
-
-        with self._get_executor() as executor:
-            futures = [
-                executor.submit(self.run_branch, base_component_id, base_outcome, env)
-                for env in execution_environments
-            ]
-
-        wait(futures)  # Important to preserve order, don't switch to as_completed
-
         results = []
-        for future in futures:
-            results.append(future.result())
+        for env in execution_environments:
+            result = self.run_branch(base_component_id, base_outcome, env)
+            results.append(result)
 
         return results
 
