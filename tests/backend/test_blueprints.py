@@ -81,10 +81,11 @@ class MockFailingBlock(BlueprintBlock):
 class MockRunner:
     def __init__(self):
         self.session = MagicMock()
-        self.session.session_state = {}
+        self.session.session_state = MagicMock()
 
     def _generate_run_id(self):
         return "mock_run_id"
+
     @contextmanager
     def _get_executor(self):
         new_executor = None

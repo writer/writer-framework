@@ -377,16 +377,12 @@ class GraphRunner:
                             )
                             #executor.shutdown(wait=False)
                             return node.return_value
-                        print("Tool executed:", node.debug_info() if node else "Unknown node")
                     except BaseException as e:
                         #executor.shutdown(wait=False)
                         self.status_logger.log("Execution failed.", entry_type="error")
                         raise BlueprintExecutionError(
                             f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
                         ) from e 
-                    else:
-                        #log
-                        pass
                     for output in node.outputs:
                         to_node_id = output.get("toNodeId")
                         next_node = self.graph.get_node(to_node_id)
