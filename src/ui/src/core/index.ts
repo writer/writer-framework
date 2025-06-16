@@ -29,6 +29,7 @@ import {
 	isSourceFilesFile,
 	moveFileToSourceFiles,
 } from "./sourceFiles";
+import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;
@@ -66,7 +67,10 @@ export function generateCore() {
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
 
-	const activePageId: Ref<Component["id"]> = ref(null);
+	const activePageId = useLocalStorageJSON<Component["id"]>(
+		"generateCore__activePageId",
+		(v) => typeof v === "string",
+	);
 
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,
