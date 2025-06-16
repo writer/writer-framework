@@ -1,11 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from typing import Dict, Type
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
+from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
 from writer.blueprints import Graph, GraphBuilder, GraphRunner
 from writer.core_ui import Component
-from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
+
 
 def run_graph(graph: Graph) -> None:
     return GraphRunner(graph=graph, execution_environment={}, runner=MockRunner(), title="Test Execution").run()
