@@ -2,7 +2,10 @@
 	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
 		<div
 			class="mainGrid"
-			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
+			:class="{
+				'mainGrid--openPanels': hasPanelOpenned === 'open',
+				'mainGrid--openPanelsFull': hasPanelOpenned === 'full',
+			}"
 		>
 			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
@@ -128,7 +131,7 @@ import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import BuilderSidebar from "./sidebar/BuilderSidebar.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
-import { SelectionStatus } from "./builderManager";
+import { PanelState, SelectionStatus } from "./builderManager";
 import BuilderToasts from "./BuilderToasts.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "./useToast";
@@ -214,6 +217,15 @@ const {
 
 const builderMode = ssbm.mode;
 const selectedId = ssbm.firstSelectedId;
+
+const hasPanelOpenned = computed<PanelState | undefined>(() => {
+	let state = undefined;
+	for (const panelState of ssbm.openPanels.value.values()) {
+		if (panelState === "full") return "full";
+		state = panelState;
+	}
+	return state;
+});
 
 const notes = computed(() =>
 	Array.from(notesManager.getNotes(wf.activePageId.value))
@@ -488,11 +500,17 @@ onUnmounted(() => {
 	display: grid;
 }
 
-.mainGrid.openPanels {
+.mainGrid--openPanels {
 	grid-template-rows:
 		var(--builderTopBarHeight)
 		1fr
 		var(--builderPanelSwitcherExpandedHeight);
+}
+.mainGrid--openPanelsFull {
+	grid-template-rows:
+		var(--builderTopBarHeight)
+		0px
+		1fr;
 }
 
 .builderHeader {

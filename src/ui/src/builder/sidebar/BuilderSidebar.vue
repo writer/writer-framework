@@ -9,6 +9,7 @@
 					:data-writer-tooltip="`${paneTitles.layers} (${modifierKeyName}I)`"
 					:active="activePane === 'layers'"
 					data-automation-action="sidebar-layers"
+					:disabled="hasPanelOpennedInFullView"
 					@click="changeActivePane('layers')"
 				/>
 				<BuilderSidebarButton
@@ -17,6 +18,7 @@
 					:data-writer-tooltip="`${paneTitles.add} (${modifierKeyName}B)`"
 					:active="activePane === 'add'"
 					data-automation-action="sidebar-add"
+					:disabled="hasPanelOpennedInFullView"
 					@click="changeActivePane('add')"
 				/>
 				<BuilderSidebarButton
@@ -26,6 +28,7 @@
 					:data-writer-tooltip="`${paneTitles.notes}`"
 					:active="activePane === 'notes'"
 					data-automation-action="sidebar-notes"
+					:disabled="hasPanelOpennedInFullView"
 					@click="changeActivePane('notes')"
 				/>
 			</div>
@@ -181,6 +184,19 @@ watch(isPreview, () => {
 watch(notesManager.selectedNoteId, () => {
 	if (!notesManager.selectedNoteId.value) return;
 	activePane.value = "notes";
+});
+
+const hasPanelOpennedInFullView = computed(() => {
+	for (const state of wfbm.openPanels.value.values()) {
+		if (state === "full") return true;
+	}
+	return false;
+});
+
+watch(hasPanelOpennedInFullView, () => {
+	if (hasPanelOpennedInFullView.value) {
+		activePane.value = undefined;
+	}
 });
 
 const paneTitles = computed<Record<Pane, string>>(() => ({
