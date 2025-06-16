@@ -84,9 +84,17 @@ type State = {
 	logEntries: LogEntry[];
 };
 
+function isBuilderManagerMode(v: unknown): v is BuilderManagerMode {
+	return (
+		typeof v === "string" &&
+		["ui", "blueprints", "preview", "vault"].includes(v)
+	);
+}
+
 export function generateBuilderManager() {
-	const modeCache = useLocalStorageJSON<State["mode"]>(
+	const modeCache = useLocalStorageJSON<BuilderManagerMode>(
 		"generateBuilderManager__mode",
+		isBuilderManagerMode,
 	);
 	const initState: State = {
 		mode: modeCache.value ?? "ui",

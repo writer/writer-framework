@@ -1,4 +1,4 @@
-import { computed } from "vue";
+import { computed, shallowRef } from "vue";
 
 /**
  * Get/Set the JSON object in localStorage
@@ -8,24 +8,31 @@ export function useLocalStorageJSON<T>(
 	key: string,
 	validator?: (value: T) => boolean,
 ) {
-	return computed<T | undefined>({
-		get() {
-			const value = localStorage.getItem(key);
-			if (!value) return undefined;
+	const actualValue = shallowRef<T | undefined>(get());
 
-			try {
-				const data = JSON.parse(value);
-				if (validator?.(data) === false) {
-					localStorage.removeItem(key);
-					return undefined;
-				}
-				return data;
-			} catch {
+	function get() {
+		const value = localStorage.getItem(key);
+		if (!value) return undefined;
+
+		try {
+			const data = JSON.parse(value);
+			if (validator?.(data) === false) {
 				localStorage.removeItem(key);
 				return undefined;
 			}
+			return data;
+		} catch {
+			localStorage.removeItem(key);
+			return undefined;
+		}
+	}
+
+	return computed<T | undefined>({
+		get() {
+			return actualValue.value;
 		},
 		set(value) {
+			actualValue.value = value;
 			value === undefined
 				? localStorage.removeItem(key)
 				: localStorage.setItem(key, JSON.stringify(value));
