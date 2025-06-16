@@ -74,6 +74,13 @@ export const enum SelectionStatus {
 
 export type BuilderManagerMode = "ui" | "blueprints" | "preview" | "vault";
 
+const BUILDER_MANAGER_MODES = new Set<BuilderManagerMode>([
+	"ui",
+	"blueprints",
+	"preview",
+	"vault",
+]);
+
 type State = {
 	mode: BuilderManagerMode;
 	selection: Selection;
@@ -87,7 +94,7 @@ type State = {
 function isBuilderManagerMode(v: unknown): v is BuilderManagerMode {
 	return (
 		typeof v === "string" &&
-		["ui", "blueprints", "preview", "vault"].includes(v)
+		BUILDER_MANAGER_MODES.has(v as BuilderManagerMode)
 	);
 }
 

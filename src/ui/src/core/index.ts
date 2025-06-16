@@ -856,7 +856,7 @@ export function generateCore() {
 		getComponents,
 		getComponentsNested,
 		setActivePageId,
-		activePageId: computed(() => activePageId.value),
+		activePageId: readonly(activePageId),
 		setActivePageFromKey,
 		getComponentDefinition,
 		getSupportedComponentTypes,

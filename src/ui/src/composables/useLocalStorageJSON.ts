@@ -2,7 +2,7 @@ import { computed, shallowRef } from "vue";
 
 /**
  * Get/Set the JSON object in localStorage
- * @param validator validate that the data has a given shape, remote the localStorage value if returns `false`
+ * @param validator Validate that the data has a given shape; remove the localStorage value if the validator returns `false`.
  */
 export function useLocalStorageJSON<T>(
 	key: string,
