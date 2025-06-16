@@ -164,7 +164,7 @@ class BlueprintRunner:
             f"API trigger execution ({blueprint_key})"
         )
 
-    def run_blueprint_pool(self, blueprint_key: str, execution_environments: List[Dict]):
+    def run_blueprint_batch(self, blueprint_key: str, execution_environments: List[Dict]):
         """
         Executes the same blueprint multiple times sequentially with different execution environments.
 
@@ -200,7 +200,7 @@ class BlueprintRunner:
         nodes = self.filter_branch(blueprint_nodes, start_node_id, branch_out_id)
         return self.execute_dag(nodes, execution_environment, title)
 
-    def run_branch_pool(
+    def run_branch_batch(
         self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
     ):
         """

@@ -68,7 +68,7 @@ class ForEach(BlueprintBlock):
                     for i, item in enumerate(items)
                 ]
 
-                results = self.runner.run_branch_pool(
+                results = self.runner.run_branch_batch(
                     self.component.id, "loop", blueprint_environments
                 )
                 self.result = results  # Return as a list
@@ -79,7 +79,7 @@ class ForEach(BlueprintBlock):
                     | {f"{prefix}itemId": str(item_id), f"{prefix}item": item}
                     for item_id, item in items.items()
                 }
-                results = self.runner.run_branch_pool(
+                results = self.runner.run_branch_batch(
                     self.component.id, "loop", list(blueprint_environments.values())
                 )
                 self.result = {
