@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from typing import Dict, Type
 import pytest
 from unittest.mock import MagicMock, patch
-from writer.blueprints.executor import Graph, GraphBuilder, GraphRunner
+from writer.blueprints import Graph, GraphBuilder, GraphRunner
 from writer.core_ui import Component
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
 
