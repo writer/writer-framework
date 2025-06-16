@@ -10,7 +10,16 @@ export function useLocalStorageJSON<T>(
 ) {
 	const actualValue = shallowRef<T | undefined>(get());
 
+	function hasLocalStorage() {
+		return (
+			typeof window !== "undefined" &&
+			typeof window.localStorage !== "undefined"
+		);
+	}
+
 	function get() {
+		if (!hasLocalStorage()) return undefined;
+
 		const value = localStorage.getItem(key);
 		if (!value) return undefined;
 
@@ -33,6 +42,7 @@ export function useLocalStorageJSON<T>(
 		},
 		set(value) {
 			actualValue.value = value;
+			if (!hasLocalStorage()) return;
 			value === undefined
 				? localStorage.removeItem(key)
 				: localStorage.setItem(key, JSON.stringify(value));
