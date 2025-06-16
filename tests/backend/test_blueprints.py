@@ -308,7 +308,56 @@ def test_node_requirements_not_met():
 
     node = graph.get_node("next-component")
     assert node is not None
-    assert node.outcome is None
+    assert node.outcome == "skipped"
+
+def test_deep_tree():
+    graph = Graph(nodes=[
+        create_component("t1", "mock_block", outs=[
+            {"toNodeId": "t2", "outId": "success"},
+        ]),
+        create_component("t2", "mock_block", outs=[
+            {"toNodeId": "t3", "outId": "success"},
+        ]),
+        create_component("t3", "mock_block", outs=[
+            {"toNodeId": "t4", "outId": "success"},
+        ]),
+        create_component("t4", "mock_pass_block"),
+    ], tools=tools)
+
+    run_graph(graph)
+
+    node = graph.get_node("t4")
+    assert node is not None
+    assert node.outcome == "success"
+    assert node.result == "test result"
+
+def test_run_branch_deep_tree():
+    builder = GraphBuilder(components=[
+        create_component("dummy", "mock_block", outs=[
+            {"toNodeId": "next-component", "outId": "success"},
+        ]),
+        create_component("t1", "mock_block", outs=[
+            {"toNodeId": "t2", "outId": "success"},
+        ]),
+        create_component("t2", "mock_block", outs=[
+            {"toNodeId": "t3", "outId": "success"},
+        ]),
+        create_component("t3", "mock_block", outs=[
+            {"toNodeId": "t4", "outId": "success"},
+        ]),
+        create_component("t4", "mock_pass_block"),
+    ], tools=tools)
+    builder.set_start_node("t1")
+
+    graph = builder.build()
+    run_graph(graph)
+    start_node = graph.get_node("t4")
+    assert start_node is not None
+    assert start_node.outcome == "success"
+    assert start_node.result == "test result"
+
+    dummy_node = graph.get_node("dummy")
+    assert dummy_node is None
 
 
 def test_run_branch():
@@ -361,3 +410,31 @@ def test_run_branch_with_out_id():
     assert node.inputs == []
     dummy_node = graph.get_node("dummy")
     assert dummy_node is None
+
+def test_error_deep_in_branch():
+    builder = GraphBuilder(components=[
+        create_component("t1", "mock_block", outs=[
+            {"toNodeId": "t2", "outId": "success"},
+            {"toNodeId": "t4", "outId": "success"},
+        ]),
+        create_component("t2", "mock_failing_block", outs=[
+            {"toNodeId": "t3", "outId": "success"},
+            {"toNodeId": "error_handling", "outId": "error"},
+        ]),
+        create_component("t3", "mock_block", outs=[
+            {"toNodeId": "t4", "outId": "success"},
+        ]),
+        create_component("t4", "mock_pass_block"),
+        create_component("error_handling", "mock_pass_block"),
+    ], tools=tools)
+
+    graph = builder.build()
+    run_graph(graph)
+
+    node = graph.get_node("t3")
+    assert node is not None
+    assert node.outcome == "skipped"
+    node = graph.get_node("t4")
+    assert node is not None
+    assert node.outcome == "success"
+    assert node.result == "test result"

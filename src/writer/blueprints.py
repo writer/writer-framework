@@ -31,6 +31,7 @@ class GraphNode:
         tool_class = graph.tools.get(component.type)
         self.inputs = []
         self.outputs = []
+        self.status: Optional[str] = None
         if not tool_class:
             raise WriterConfigurationError(
                 f"Component type '{component.type}' is not registered as a block."
@@ -50,6 +51,8 @@ class GraphNode:
 
     @property
     def outcome(self) -> Optional[str]:
+        if self.status:
+            return self.status
         if self.tool:
             return self.tool.outcome
         return None
@@ -131,14 +134,24 @@ class GraphNode:
             from_node = self.graph.get_node(input["fromNodeId"])
             if not from_node or from_node.outcome is None or from_node.outcome == "in_progress":
                 return False
-        # at least one input must fulfilled
+        return True
+
+    def _is_skipped(self) -> bool:
+        if not self.inputs:
+            return False
         for input in self.inputs:
             from_node = self.graph.get_node(input["fromNodeId"])
             if from_node and from_node.outcome == input.get("outId"):
-                return True
-        return False
+                return False
+        return True
 
     def run(self, execution_environment: Dict, runner, executor):
+        if self._is_skipped():
+            self.status = "skipped"
+            future = Future()
+            future.set_result(self)
+            return future
+
         self.tool = self.tool_class(self.component, runner, self._get_env(execution_environment))
         self.tool.outcome = "in_progress"
         ctx = copy_context()
@@ -240,11 +253,11 @@ class GraphBuilder:
             return self.components
         component_map = {component.id: component for component in self.components}
         # todo: remove duplicates
-        filtered_components = []
+        filtered_components = set()
         queue = [component_map[component_id] for component_id in self.start_ids if component_id in component_map] 
         while queue:
             component = queue.pop(0)
-            filtered_components.append(component)
+            filtered_components.add(component.id)
             if component.outs is None:
                 continue
             for out in component.outs:
@@ -252,7 +265,10 @@ class GraphBuilder:
                 if next_component_id in component_map:
                     queue.append(component_map[next_component_id])
 
-        return filtered_components
+        return [ 
+            component_map[component_id] for component_id in filtered_components
+            if component_id in component_map
+        ]
 
 
 class StatusLogger:
@@ -280,12 +296,12 @@ class StatusLogger:
             if node.tool is None:
                 exec_log.summary.append({"componentId": node.id})
                 continue
-            if node.tool.outcome == "in_progress":
+            if node.outcome == "in_progress":
                 exec_log.summary.append(
                     {
                         "componentId": node.id,
-                        "outcome": node.tool.outcome,
-                        "message": node.tool.message,
+                        "outcome": node.outcome,
+                        "message": node.message,
                         "executionTimeInSeconds": node.tool.execution_time_in_seconds,
                     }
                 )
@@ -294,10 +310,10 @@ class StatusLogger:
             exec_log.summary.append(
                 {
                     "componentId": node.id,
-                    "outcome": node.tool.outcome,
-                    "message": node.tool.message,
-                    "result": self._summarize_data_for_log(node.tool.result),
-                    "returnValue": self._summarize_data_for_log(node.tool.return_value),
+                    "outcome": node.outcome,
+                    "message": node.message,
+                    "result": self._summarize_data_for_log(node.result),
+                    "returnValue": self._summarize_data_for_log(node.return_value),
                     "executionEnvironment": self._summarize_data_for_log(getattr(node.tool, "execution_environment_snapshot", None)),
                     "executionTimeInSeconds": node.tool.execution_time_in_seconds,
                 }
@@ -338,6 +354,8 @@ class StatusLogger:
 
 
 class GraphRunner:
+    MAX_DAG_DEPTH = 32
+
     def __init__(self, 
         graph: Graph,
         execution_environment: Dict,
@@ -366,11 +384,17 @@ class GraphRunner:
 
                 self.status_logger.log("Executing...")
                 done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                self.status_logger.log("Executing...")
                 for future in done:
                     futures.remove(future)
                     try:
                         node = future.result()
                         if node.return_value is not None:
+                            #for f in futures:
+                            #    f.cancel()
+                            #for n in self.graph.nodes:
+                            #    if n.tool and n.tool.outcome == "in_progress":
+                            #        n.tool.outcome = "cancelled"
                             self.status_logger.log(
                                 f"Execution completed, node {node.id} returned value: {node.return_value}",
                                 entry_type="info"
