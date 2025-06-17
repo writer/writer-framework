@@ -91,6 +91,48 @@ class TestEvaluator:
         assert e.evaluate_field(
             instance_path_2, "text") == "The id is js and the name is JavaScript"
 
+    def test_evaluate_field_json(self) -> None:
+        instance_path = [
+            {"componentId": "blueprints_root", "instanceNumber": 0},
+            {"componentId": "hywgzgfetx6rpiqy", "instanceNumber": 0},
+            {"componentId": "mw5rz7ay5p8pg2fm", "instanceNumber": 0}
+        ]
+        session.session_state = WriterState(
+            {
+                "plain": "P_VALUE",
+                "quotes": "'Q_VALUE'",
+                "double_quotes": '"DQ_VALUE"',
+                "array": ["1", "2"],
+                "nested_json": {"a": 1, "b": 2},
+                "number": 1.1,
+                "boolean": True,
+                "none": None,
+                "escaped": "\\",
+            }
+        )
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
+        evaluated = e.evaluate_field(instance_path, "categories", as_json=True)
+        assert evaluated == {
+            "plain": "P_VALUE",
+            "quotes": "'Q_VALUE'",
+            "double_quotes": "\"DQ_VALUE\"",
+            "plain_with_text": "TEXT P_VALUE TEXT",
+            "quotes_with_text": "TEXT 'Q_VALUE' TEXT",
+            "double_quotes_with_text": "TEXT \"DQ_VALUE\" TEXT",
+            "array": '["1", "2"]',
+            "array_with_text": 'TEXT ["1", "2"] TEXT',
+            "nested_json": '{"a": 1, "b": 2}',
+            "nested_json_with_text": 'TEXT {"a": 1, "b": 2} TEXT',
+            "number": "1.1",
+            "number_with_text": "TEXT 1.1 TEXT",
+            "boolean": "true",
+            "boolean_with_text": "TEXT true TEXT",
+            "none": "null",
+            "none_with_text": "TEXT null TEXT",
+            "escaped": "\\@{escaped}",
+            "escaped_with_text": "TEXT \\@{escaped} TEXT",
+        }
+
     def test_set_state(self) -> None:
         instance_path = [
             {"componentId": "root", "instanceNumber": 0}

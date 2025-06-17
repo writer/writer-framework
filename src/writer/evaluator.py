@@ -59,33 +59,27 @@ class Evaluator:
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
         def replacer(matched: re.Match):
-            if matched.string[0] == "\\":  # Escaped @, don't evaluate
-                return matched.string
+            if matched.group(0)[0] == "\\":  # Escaped @, don't evaluate
+                return matched.group(0)
             expr = matched.group(1).strip()
             expr_value = self.evaluate_expression(expr, instance_path, base_context)
             if full_match is not None:
                 return expr_value
             if as_json:
-                if field_value[matched.start(0)] == '"':
-                    return json.dumps(expr_value)
-                else:
-                    return expr_value
+                dumped = expr_value
+                if not isinstance(dumped, str):
+                    dumped = json.dumps(dumped)
+                return re.sub(r'(?<!\\)"', r'\"', dumped)
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
             return expr_value
 
         if full_match is None:
-            replaced = field_value
-            if as_json:
-                # First pass to remove quotes around @{my_var}
-                replaced = re.sub(r'"(@{\s*[^"]+?\s*})"', r"\1", field_value)
-            replaced = self.TEMPLATE_REGEX.sub(replacer, replaced)
-            if as_json:
-                replaced = decode_json(replaced)
+            replaced = self.TEMPLATE_REGEX.sub(replacer, field_value)
         else:
             replaced = replacer(full_match)
-            if as_json:
-                replaced = decode_json(replaced)
+        if as_json:
+            replaced = decode_json(replaced)
 
         return replaced
 
