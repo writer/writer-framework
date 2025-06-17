@@ -175,11 +175,11 @@ class AppProcess(multiprocessing.Process):
             session.session_component_tree, mode=writer.Config.mode
         )
 
-        if None in os.getenv("WRITER_APP_ID"):
-            os.environ["WRITER_APP_ID"] = payload.headers.get("x-agent-id")
+        if os.getenv("WRITER_APP_ID") is None:
+            os.environ["WRITER_APP_ID"] = (payload.headers or {}).get("x-agent-id") or ""
 
-        if None in os.getenv("WRITER_ORG_ID"):
-            os.environ["WRITER_ORG_ID"] = payload.headers.get("x-organization-id")
+        if os.getenv("WRITER_ORG_ID") is None:
+            os.environ["WRITER_ORG_ID"] = (payload.headers or {}).get("x-organization-id") or ""
 
         writer_application: Optional[WriterApplicationInformation] = None
         writer_app_id = os.getenv("WRITER_APP_ID")
