@@ -14,6 +14,7 @@
 				:options="options"
 				:error="error"
 				:autofocus="autofocus"
+				:component-id="componentId"
 				@input="handleInput"
 			/>
 		</template>
@@ -27,6 +28,7 @@
 				:placeholder="templateField?.default"
 				:error="error"
 				:autofocus="autofocus"
+				:component-id="componentId"
 				@input="handleInput"
 			/>
 		</template>

@@ -84,12 +84,14 @@ import {
 	nextTick,
 	onUnmounted,
 	shallowRef,
+	toRef,
 	useTemplateRef,
 	watch,
 } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
+import { useBlueprintUserState } from "../useBlueprintUserState";
 
 const { secrets } = inject(injectionKeys.secretsManager);
 
@@ -118,9 +120,10 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	readonly: { type: Boolean },
+	componentId: { type: String, required: false, default: undefined },
 });
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 
 const input = useTemplateRef("input");
 const dropdown = useTemplateRef("dropdown");
@@ -225,14 +228,20 @@ function handleInput(ev) {
 	showAutocomplete();
 }
 
-const autoCompletionState = computed(() => {
-	const userState = ss.userState.value ?? {};
-	if (!secrets.value) return userState;
+const blueprintUserState = useBlueprintUserState(
+	wf,
+	toRef(props, "componentId"),
+);
 
-	return {
-		...userState,
-		vault: secrets.value,
+const autoCompletionState = computed(() => {
+	const state: Record<string, unknown> = {
+		...(wf.userState.value ?? {}),
+		...blueprintUserState.value,
 	};
+
+	if (secrets.value) state.vault = secrets.value;
+
+	return state;
 });
 
 function showAutocomplete() {
