@@ -47,11 +47,6 @@ class BlueprintRunner:
                 new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
                 executor = new_executor
 
-            if not executor:
-                raise RuntimeError(
-                    "The main pool executor isn't available. This is only expected in test or debugging situations."
-                )
-
             yield executor
         finally:
             if new_executor:
@@ -605,7 +600,6 @@ class GraphRunner:
         self.runner = runner
         self.graph = graph
         self.execution_environment = execution_environment
-        self.tools: OrderedDict[str, Optional[writer.blocks.base_block.BlueprintBlock]] = OrderedDict()
         self.status_logger = StatusLogger(self.graph, self.runner, title)
 
     def run(self):
@@ -642,7 +636,6 @@ class GraphRunner:
                             #executor.shutdown(wait=False)
                             return node.return_value
                     except BaseException as e:
-                        #executor.shutdown(wait=False)
                         self.status_logger.log("Execution failed.", entry_type="error")
                         raise BlueprintExecutionError(
                             f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
