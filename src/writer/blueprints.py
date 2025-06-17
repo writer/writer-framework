@@ -15,9 +15,9 @@ import writer.core
 import writer.core_ui
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
-class BlueprintRunner:
-    MAX_DAG_DEPTH = 32
+MAX_DAG_DEPTH = 32
 
+class BlueprintRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
         self.executor_lock = threading.Lock()
@@ -244,16 +244,19 @@ class BlueprintRunner:
     def run_blueprint(
         self, component_id: str, execution_environment: Dict, title="Blueprint execution"
     ):
-        graph = Graph(
-            nodes=self._get_blueprint_nodes(component_id),
+        builder = GraphBuilder(
+            components=self._get_blueprint_nodes(component_id),
             tools=writer.blocks.base_block.block_map
         )
+
         return GraphRunner(
-            graph,
-            execution_environment,
-            self,
-            title=title
+            builder.build(),
+            execution_environment, self, title=title
         ).run()
+
+    def cancel_blueprint_execution(self, run_id: str):
+        pass
+
 
 class GraphNode:
     tool_class: writer.blocks.base_block.BlueprintBlock_T
@@ -263,6 +266,8 @@ class GraphNode:
     # filrered lists of inputs and outputs with only edges from graph
     inputs: List[Any]
     outputs: List[Any]
+    status: Optional[str] = None
+    _message: Optional[str] = None
 
     def __init__(self, component: writer.core_ui.Component, graph: "Graph"):
         self.component = component
@@ -270,7 +275,6 @@ class GraphNode:
         tool_class = graph.tools.get(component.type)
         self.inputs = []
         self.outputs = []
-        self.status: Optional[str] = None
         if not tool_class:
             raise WriterConfigurationError(
                 f"Component type '{component.type}' is not registered as a block."
@@ -298,9 +302,15 @@ class GraphNode:
 
     @property
     def message(self) -> Optional[str]:
+        if self._message:
+            return self._message
         if self.tool:
             return self.tool.message
         return None
+
+    @message.setter
+    def message(self, value: str):
+        self._message = value
 
     @property
     def return_value(self) -> Optional[Any]:
@@ -310,13 +320,25 @@ class GraphNode:
 
     def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock):
         start_time = time.time()
-        tool.execution_environment["call_stack"] = []
+
+        call_stack = tool.execution_environment.get("call_stack", []) + [self.id]
+        call_depth = call_stack.count(tool.component.id)
+        if call_depth > MAX_DAG_DEPTH:
+            error_message = f"Maximum call depth ({MAX_DAG_DEPTH}) exceeded. Check that you don't have any unintended circular references."
+            tool.outcome = "error"
+            tool.message = error_message
+            raise RuntimeError(error_message)
+        tool.execution_environment["call_stack"] = call_stack
         tool.execution_environment["trace"] = []
 
         try:
             tool.outcome = "in_progress"
             tool.run()
+            if self.outcome == "cancelled":
+                return
             tool.outcome = tool.outcome or "success"
+        except BlueprintExecutionError as e:
+                raise e
         except BaseException as e:
             if not tool.outcome or tool.outcome == "in_progress":
                 tool.outcome = "error"
@@ -360,6 +382,7 @@ class GraphNode:
                 out_id = inputs.get("outId")
                 if out_id and from_node.outcome == out_id:
                     result = from_node.result
+                    env['call_stack'] = from_node.tool.execution_environment.get('call_stack', [])
                     env['result'] = result
                     env['message'] = from_node.tool.message
         env['results'] = self.graph.get_results()
@@ -385,6 +408,8 @@ class GraphNode:
         return True
 
     def run(self, execution_environment: Dict, runner, executor):
+        if self.outcome is not None:
+            return
         if self._is_skipped():
             self.status = "skipped"
             future = Future()
@@ -410,6 +435,7 @@ class GraphNode:
         }
 
 class Graph:
+    status: Optional[str] = None
     def __init__(self, 
         nodes: List[writer.core_ui.Component],
         tools: Dict[str, writer.blocks.base_block.BlueprintBlock_T]
@@ -484,8 +510,44 @@ class GraphBuilder:
                     if out.get("outId") == out_id:
                         self.start_ids.append(out.get("toNodeId"))
 
+    def validate_graph(self, graph: Graph):
+        """Validates the graph for cycles and unreachable nodes and marks them as errors."""
+        visited = set()
+        stack = set()
+        has_cycle = False
+
+        def visit(node: GraphNode):
+            if node.status == "error":
+                return
+            if node.id in stack:
+                node.status = "error"
+                node.message = "Circular dependency detected."
+                nonlocal has_cycle
+                has_cycle = True
+            if node.id in visited:
+                return
+            visited.add(node.id)
+            stack.add(node.id)
+            for output in node.outputs:
+                next_node = graph.get_node(output["toNodeId"])
+                if next_node:
+                    visit(next_node)
+            stack.remove(node.id)
+
+        for node in graph.nodes:
+            if node.id not in visited:
+                visit(node)
+
+        for node in graph.nodes:
+            if node.id not in visited:
+                node.status = "error"
+        if has_cycle:
+            graph.status = "error"
+
     def build(self) -> Graph:
-        return Graph(self._filter_components(), self.tools)
+        graph = Graph(self._filter_components(), self.tools)
+        self.validate_graph(graph)
+        return graph
 
     def _filter_components(self) -> List[writer.core_ui.Component]:
         if not self.start_ids:
@@ -533,8 +595,20 @@ class StatusLogger:
         for node in self.graph.nodes:
             #print(node.debug_info())
             if node.tool is None:
-                exec_log.summary.append({"componentId": node.id})
-                continue
+                if node.outcome is None:
+                    exec_log.summary.append({"componentId": node.id })
+                    continue
+                else:
+                    exec_log.summary.append({
+                        "componentId": node.id,
+                        "outcome": node.outcome,
+                        "message": node.message,
+                        "result": None,
+                        "returnValue": None,
+                        "executionEnvironment": {},
+                        "executionTimeInSeconds": 0,
+                    })
+                    continue
             if node.outcome == "in_progress":
                 exec_log.summary.append(
                     {
@@ -593,7 +667,6 @@ class StatusLogger:
 
 
 class GraphRunner:
-    MAX_DAG_DEPTH = 32
 
     def __init__(self, 
         graph: Graph,
@@ -607,6 +680,9 @@ class GraphRunner:
         self.status_logger = StatusLogger(self.graph, self.runner, title)
 
     def run(self):
+        if self.graph.status == "error":
+            self.status_logger.log("Execution failed due to graph validation errors.", entry_type="error")
+            return
         #print(json.dumps(self.graph.debug_info(), indent=2))
         queue = self.graph.get_start_nodes()
         futures = []
@@ -630,16 +706,21 @@ class GraphRunner:
                         if node.return_value is not None:
                             #for f in futures:
                             #    f.cancel()
-                            #for n in self.graph.nodes:
-                            #    if n.tool and n.tool.outcome == "in_progress":
-                            #        n.tool.outcome = "cancelled"
+                            for n in self.graph.nodes:
+                                if n.outcome == "in_progress":
+                                    n.status = "cancelled"
                             self.status_logger.log(
                                 f"Execution completed, node {node.id} returned value: {node.return_value}",
                                 entry_type="info"
                             )
                             #executor.shutdown(wait=False)
                             return node.return_value
+                    except BlueprintExecutionError as e:
+                        raise e
                     except BaseException as e:
+                        for n in self.graph.nodes:
+                            if n.outcome == "in_progress":
+                                n.status = "cancelled"
                         self.status_logger.log("Execution failed.", entry_type="error")
                         raise BlueprintExecutionError(
                             f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"

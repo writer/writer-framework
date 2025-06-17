@@ -1,16 +1,16 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from typing import Dict, Type
+from typing import Dict, Optional, Type
 from unittest.mock import MagicMock, patch
 
 import pytest
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
-from writer.blueprints import Graph, GraphBuilder, GraphRunner
+from writer.blueprints import Graph, GraphBuilder, GraphRunner, MAX_DAG_DEPTH
 from writer.core_ui import Component
 
 
-def run_graph(graph: Graph) -> None:
-    return GraphRunner(graph=graph, execution_environment={}, runner=MockRunner(), title="Test Execution").run()
+def run_graph(graph: Graph, env: Optional[Dict] = None) -> None:
+    return GraphRunner(graph=graph, execution_environment=env if env is not None else {}, runner=MockRunner(), title="Test Execution").run()
 
 tools: Dict[str,BlueprintBlock_T]  = {}
 
@@ -82,6 +82,7 @@ class MockRunner:
     def __init__(self):
         self.session = MagicMock()
         self.session.session_state = MagicMock()
+        self.session.session_state.add_log_entry = MagicMock()
 
     def _generate_run_id(self):
         return "mock_run_id"
@@ -438,3 +439,44 @@ def test_error_deep_in_branch():
     assert node is not None
     assert node.outcome == "success"
     assert node.result == "test result"
+
+def test_circular_dependency():
+    builder = GraphBuilder(components=[
+        create_component("test-component", "mock_block", outs=[
+            {"toNodeId": "next-component", "outId": "success"},
+        ]),
+        create_component("next-component", "mock_block", outs=[
+            {"toNodeId": "test-component", "outId": "success"},
+        ]),
+    ], tools=tools)
+    graph = builder.build()
+    assert graph.status == "error"
+    node = graph.get_node("test-component")
+    assert node is not None
+    assert node.outcome == "error"
+    assert node.message == "Circular dependency detected."
+
+def test_max_dag_deplth():
+    class MockCallGraph(BlueprintBlock):
+        def run(self):
+            call_graph(self.execution_environment)
+            self.result = "test result"
+            self.outcome = "success"
+    local_tools = tools.copy()
+    local_tools["call_graph"] = MockCallGraph
+
+    components = [
+        create_component(f"test", "call_graph")
+    ]
+
+    def call_graph(env):
+        builder = GraphBuilder(components=components, tools=local_tools)
+        graph = builder.build()
+        return run_graph(graph, env)
+    
+    with pytest.raises(Exception) as exc_info:
+       call_graph({})
+    assert type(exc_info.value).__name__ == "BlueprintExecutionError"
+    assert str(exc_info.value) == "Blueprint execution was cancelled due to an error - RuntimeError: Maximum call depth ({0}) exceeded. Check that you don't have any unintended circular references.".format(MAX_DAG_DEPTH)
+
+
