@@ -145,9 +145,6 @@ const completionStyle = computed(() => {
 
 const latestKnownOutcome = computed(() => {
 	const logEntries = wfbm.getLogEntries();
-	console.log(
-		JSON.parse(JSON.stringify(logEntries))
-	)
 
 	for (let i = 0; i < logEntries.length; i++) {
 		const logEntry = logEntries[i];
@@ -155,7 +152,6 @@ const latestKnownOutcome = computed(() => {
 		if (!we) continue;
 		for (let j = 0; j < we.summary.length; j++) {
 			const item = we.summary[j];
-			//console.log(JSON.parse(JSON.stringify(item)), component.value.id);
 			if (item.componentId !== component.value.id) continue;
 			return item.outcome;
 		}
