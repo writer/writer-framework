@@ -1,12 +1,10 @@
 import { useLogger } from "@/composables/useLogger";
-import {
-	deepMerge,
-	getValueAtPath,
-	isObject,
-	setValueAtPath,
-} from "@/utils/object";
 import type { Component, Core } from "@/writerTypes";
 import { MaybeRef, computed, unref } from "vue";
+import set from "lodash/set";
+import get from "lodash/get";
+import merge from "lodash/merge";
+import isPlainObject from "lodash/isPlainObject";
 
 type UserState = Record<string, unknown>;
 
@@ -57,16 +55,16 @@ function getBlueprintUserState(
 			}
 		}
 
-		const existingValue = getValueAtPath(state, element);
+		const existingValue = get(state, element);
 		if (existingValue !== undefined) {
 			// as we get previous dependency by order of call, we keep the latest value, and merge with the previous ones if possible
 			value =
-				isObject(existingValue) && isObject(value)
-					? deepMerge(value, existingValue)
+				isPlainObject(existingValue) && isPlainObject(value)
+					? merge({}, value, existingValue)
 					: existingValue;
 		}
 
-		setValueAtPath(state, element, value);
+		set(state, element, value);
 	}
 
 	return state;

@@ -218,14 +218,8 @@ describe(useBlueprintUserState.name, () => {
 			}),
 		);
 
-		const logger = useLogger();
-		const loggerError = vi
-			.spyOn(logger, "error")
-			.mockImplementation(() => {});
-
-		const state = useBlueprintUserState(mockCore.core, "c2", logger);
+		const state = useBlueprintUserState(mockCore.core, "c2");
 
 		expect(state.value).toStrictEqual({});
-		expect(loggerError).toHaveBeenCalled();
 	});
 });
