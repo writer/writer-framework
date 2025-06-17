@@ -30,22 +30,39 @@ class WriterVault:
         """Force refresh of secrets from the vault service."""
         self.secrets = self._fetch()
 
+    def _get_agent_ids(self):
+        from writer.core import get_session
+        current_session = get_session()
+
+        if current_session:
+            headers = current_session.headers or {}
+            agent_id = headers.get("x-agent-id") or os.getenv("WRITER_APP_ID")
+            org_id = headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID")
+            return (agent_id, org_id)
+
+        agent_id = os.getenv("WRITER_APP_ID")
+        org_id = os.getenv("WRITER_ORG_ID")
+        return (agent_id, org_id)
+
     def _fetch(self) -> Dict:
         # TODO: move the API call to a service
         base_url = os.getenv("WRITER_BASE_URL")
         api_key = os.getenv("WRITER_API_KEY")
-        ord_id = os.getenv("WRITER_ORG_ID")
-        app_id = os.getenv("WRITER_APP_ID")
+        (agent_id, org_id) = self._get_agent_ids()
 
-        if None in (base_url, api_key, ord_id, app_id):
+        if None in (base_url, api_key):
             logging.warning("Missing required environment variables for vault access")
+            return {}
+
+        if None in (agent_id, org_id):
+            logging.warning("Missing Org Id or Agent Id for vault access")
             return {}
 
         url = f"{base_url}/v1/agent_secret/vault"
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "X-Organization-Id": ord_id,
-            "X-Agent-Id": app_id,
+            "X-Organization-Id": org_id,
+            "X-Agent-Id": agent_id,
         }
 
         try:
