@@ -47,6 +47,10 @@ class BlueprintRunner:
                 new_executor = ThreadPoolExecutor(20)  # New executor for debugging/testing
                 executor = new_executor
 
+            if not executor:
+                raise RuntimeError(
+                    "The main pool executor isn't available. This is only expected in test or debugging situations."
+                )
             yield executor
         finally:
             if new_executor:
