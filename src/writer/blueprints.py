@@ -408,11 +408,9 @@ class GraphNode:
         return True
 
     def run(self, execution_environment: Dict, runner, executor):
-        if self.outcome is not None:
-            return
-        if self._is_skipped():
+        if self.outcome is not None or self._is_skipped():
             self.status = "skipped"
-            future = Future()
+            future: Future = Future()
             future.set_result(self)
             return future
 

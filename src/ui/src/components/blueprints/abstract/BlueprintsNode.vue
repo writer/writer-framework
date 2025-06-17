@@ -135,7 +135,7 @@ const isDeprecated = computed(() => {
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
-	if (latestKnownOutcome.value == "skipped") return 'skipped';
+	if (latestKnownOutcome.value == "skipped") return "skipped";
 	if (latestKnownOutcome.value == "in_progress") return "running";
 
 	// Any dynamic out is considered success

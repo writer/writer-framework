@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
-from writer.blueprints import Graph, GraphBuilder, GraphRunner, MAX_DAG_DEPTH
+from writer.blueprints import MAX_DAG_DEPTH, Graph, GraphBuilder, GraphRunner
 from writer.core_ui import Component
 
 
@@ -466,7 +466,7 @@ def test_max_dag_deplth():
     local_tools["call_graph"] = MockCallGraph
 
     components = [
-        create_component(f"test", "call_graph")
+        create_component("test", "call_graph")
     ]
 
     def call_graph(env):
