@@ -1,6 +1,7 @@
 .component, .colorTransformer {
 	--softenedAccentColor: var(--accentColor);
 	--intensifiedAccentColor: var(--accentColor);
+	--softenedButtonColor: var(--wdsColorBlue6);
 	--intensifiedButtonColor: var(--buttonColor);
     --softenedSeparatorColor: var(--separatorColor);
     --intensifiedSeparatorColor: var(--separatorColor);
@@ -13,6 +14,9 @@
 		);
 		--intensifiedAccentColor: hsl(
 			from var(--accentColor) calc(h + 1) calc(s - 0.33) calc(l - 0.1)
+		);
+		--softenedButtonColor: hsl(
+			from var(--buttonColor, var(--wdsColorBlue6)) calc(h - 12) calc(s + 0) calc(l + 0.21)
 		);
 		--intensifiedButtonColor: hsl(
 			from var(--buttonColor) calc(h + 1) calc(s - 33) calc(l - 10)
