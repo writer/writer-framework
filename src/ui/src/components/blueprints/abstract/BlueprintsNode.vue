@@ -7,6 +7,7 @@
 			'BlueprintsNode--deprecated': isDeprecated,
 			'BlueprintsNode--running': completionStyle == 'running',
 			'BlueprintsNode--success': completionStyle == 'success',
+			'BlueprintsNode--skipped': completionStyle == 'skipped',
 			'BlueprintsNode--error': completionStyle == 'error',
 		}"
 	>
@@ -134,6 +135,7 @@ const isDeprecated = computed(() => {
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
+	if (latestKnownOutcome.value == "skipped") return 'skipped';
 	if (latestKnownOutcome.value == "in_progress") return "running";
 
 	// Any dynamic out is considered success
@@ -259,7 +261,7 @@ function handleOutMousedown(ev: DragEvent, outId: string | number) {
 }
 
 const possibleImageUrls = computed(() => {
-	if (["success", "error"].includes(completionStyle.value)) {
+	if (["success", "error", "skipped"].includes(completionStyle.value)) {
 		const path = `/status/${completionStyle.value}.svg`;
 		return [convertAbsolutePathtoFullURL(path)];
 	}
@@ -293,6 +295,10 @@ watch(isEngaged, () => {
 
 .BlueprintsNode--success {
 	background: var(--wdsColorGreen3) !important;
+}
+
+.BlueprintsNode--skipped {
+	background: var(--wdsColorGray3) !important;
 }
 
 .BlueprintsNode--error {
