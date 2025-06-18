@@ -585,7 +585,7 @@ class AppProcess(multiprocessing.Process):
             pass
 
         self.is_app_process_server_ready.set()
-        while True:  # Starts app message server
+        while True and not is_app_process_server_terminated.is_set():  # Starts app message server
             try:
                 if not self.server_conn.poll(1):
                     continue
@@ -595,10 +595,7 @@ class AppProcess(multiprocessing.Process):
                     terminate_server()
                     return
                 self._handle_app_process_server_packet(packet)
-            except InterruptedError:
-                terminate_server()
-                return
-            except BaseException as e:
+            except Exception as e:
                 self.logger.error(f"Unexpected exception in AppProcess server.\n{repr(e)}")
                 terminate_server()
                 return
