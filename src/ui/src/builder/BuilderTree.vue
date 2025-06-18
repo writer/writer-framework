@@ -17,7 +17,7 @@
 			@drop="$emit('drop', $event)"
 		>
 			<WdsButton
-				v-if="hasChildren"
+				v-if="hasChildren && !disableCollapse"
 				class="BuilderTree__main__collapser"
 				variant="neutral"
 				size="icon"
@@ -98,6 +98,7 @@ const props = defineProps({
 		required: false,
 		default: undefined,
 	},
+	disableCollapse: { type: Boolean, required: false },
 });
 
 const emit = defineEmits({

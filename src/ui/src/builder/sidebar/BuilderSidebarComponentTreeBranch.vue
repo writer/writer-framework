@@ -13,6 +13,7 @@
 		:variant="
 			COMPONENT_TYPES_TOP_LEVEL.has(component.type) ? 'root' : undefined
 		"
+		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
 		@select="select"
 		@dragover="handleDragOver"
@@ -75,6 +76,7 @@ import { useComponentsTreeSearchForComponent } from "./composables/useComponents
 import { useComponentDescription } from "../useComponentDescription";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import {
+	COMPONENT_TYPES_PAGE,
 	COMPONENT_TYPES_ROOT,
 	COMPONENT_TYPES_TOP_LEVEL,
 } from "@/constants/component";
@@ -88,7 +90,6 @@ const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const collapsed = ref(false);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
 
 const tracking = useWriterTracking(wf);
@@ -141,7 +142,6 @@ async function select(ev: MouseEvent | KeyboardEvent) {
 function expand() {
 	if (!treeBranch.value) return;
 	treeBranch.value.expand();
-	collapsed.value = false;
 	emit("expandBranch");
 }
 
