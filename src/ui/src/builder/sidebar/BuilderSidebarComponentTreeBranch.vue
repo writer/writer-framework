@@ -1,5 +1,6 @@
 <template>
 	<BuilderTree
+		v-if="component"
 		ref="treeBranch"
 		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
