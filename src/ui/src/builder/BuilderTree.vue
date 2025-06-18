@@ -99,6 +99,7 @@ const props = defineProps({
 		default: undefined,
 	},
 	disableCollapse: { type: Boolean, required: false },
+	startCollapsed: { type: Boolean, required: false },
 });
 
 const emit = defineEmits({
@@ -113,7 +114,7 @@ const emit = defineEmits({
 
 defineExpose({ expand, toggleCollapse });
 
-const collapsed = ref(false);
+const collapsed = ref(props.startCollapsed);
 const isMainHovered = ref(false);
 
 const notMatched = computed(() => !props.matched);

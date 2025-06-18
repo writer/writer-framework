@@ -15,6 +15,7 @@
 		"
 		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
+		:start-collapsed="isOutsideActivePage"
 		@select="select"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
@@ -188,6 +189,18 @@ function handleDrop(ev: DragEvent) {
 
 	removeInsertionCandidacy(ev);
 }
+
+const isOutsideActivePage = computed(
+	() =>
+		COMPONENT_TYPES_PAGE.has(component.value.type) &&
+		props.componentId !== wf.activePageId.value,
+);
+
+watch(wf.activePageId, () => {
+	if (isOutsideActivePage.value) {
+		treeBranch.value?.toggleCollapse(true);
+	}
+});
 
 watch(
 	wfbm.firstSelectedItem,
