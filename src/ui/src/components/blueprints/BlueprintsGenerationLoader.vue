@@ -1,30 +1,27 @@
 <template>
-	<div class="BlueprintsLifeLoading">
-		<div class="logoContainer">
-			<img src="../../assets/logo.svg" alt="Writer Framework logo" />
-			<WdsLoaderDots class="dot-loader" color="black" />
-			<p class="rotating-text">
-				<span
-					v-for="(text, index) in texts"
-					:key="index"
-					:class="{ active: currentTextIndex === index }"
-				>
-					{{ text }}
-				</span>
-			</p>
-		</div>
-		<div class="background">
-			<GradientCircle class="rotating-circle left" />
-			<GradientCircle class="rotating-circle center" />
-			<GradientCircle class="rotating-circle right" />
-		</div>
+	<div class="BlueprintsGenerationLoader">
+		<img
+			src="../../assets/logo.svg"
+			alt="Writer Framework logo"
+			width="72px"
+			height="72px"
+		/>
+		<WdsLoaderDots class="dot-loader" color="black" />
+		<p class="rotating-text">
+			<span
+				v-for="(text, index) in texts"
+				:key="index"
+				:class="{ active: currentTextIndex === index }"
+			>
+				{{ text }}
+			</span>
+		</p>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onUnmounted, ref } from "vue";
 import WdsLoaderDots from "@/wds/WdsLoaderDots.vue";
-import GradientCircle from "./GradientCircle.vue";
 
 const texts = [
 	"Analyzing requirements",
@@ -45,16 +42,7 @@ onUnmounted(() => clearInterval(intervalId));
 </script>
 
 <style scoped>
-.BlueprintsLifeLoading {
-	position: relative;
-	height: 306px;
-	background: linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%);
-	overflow: hidden;
-	width: 100%;
-	border-radius: 8px;
-}
-
-.logoContainer {
+.BlueprintsGenerationLoader {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -70,10 +58,6 @@ onUnmounted(() => clearInterval(intervalId));
 .dot-loader {
 	margin-top: 25px;
 	z-index: 10;
-}
-
-.background {
-	height: 100%;
 }
 
 .rotating-text {
@@ -94,51 +78,5 @@ onUnmounted(() => clearInterval(intervalId));
 
 .rotating-text span.active {
 	opacity: 1;
-}
-
-@keyframes rotateCounterClockwise {
-	from {
-		transform: rotate(45deg);
-	}
-
-	to {
-		transform: rotate(-315deg);
-	}
-}
-
-@keyframes rotateClockwise {
-	from {
-		transform: rotate(-45deg);
-	}
-
-	to {
-		transform: rotate(315deg);
-	}
-}
-
-.rotating-circle {
-	transform-origin: center;
-	position: absolute;
-}
-
-.rotating-circle.left {
-	animation: rotateCounterClockwise 12s linear infinite;
-	top: -50%;
-	left: -30%;
-	z-index: 1;
-}
-
-.rotating-circle.center {
-	animation: rotateClockwise 16s linear infinite;
-	top: -50%;
-	left: 17%;
-	z-index: 2;
-}
-
-.rotating-circle.right {
-	animation: rotateClockwise 20s linear infinite;
-	top: -50%;
-	right: -30%;
-	z-index: 3;
 }
 </style>
