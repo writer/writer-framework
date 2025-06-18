@@ -67,10 +67,7 @@ export function generateCore() {
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
 
-	const activePageId = useLocalStorageJSON<Component["id"]>(
-		"generateCore__activePageId",
-		(v) => typeof v === "string",
-	);
+	const activePageId = ref<Component["id"] | undefined>();
 
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,

@@ -1,5 +1,6 @@
 <template>
 	<BuilderTree
+		v-if="component"
 		ref="treeBranch"
 		class="BuilderSidebarComponentTreeBranch"
 		:component-id="componentId"
@@ -13,7 +14,9 @@
 		:variant="
 			COMPONENT_TYPES_TOP_LEVEL.has(component.type) ? 'root' : undefined
 		"
+		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
+		:collapsed="isOutsideActivePage"
 		@select="select"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
@@ -75,6 +78,7 @@ import { useComponentsTreeSearchForComponent } from "./composables/useComponents
 import { useComponentDescription } from "../useComponentDescription";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import {
+	COMPONENT_TYPES_PAGE,
 	COMPONENT_TYPES_ROOT,
 	COMPONENT_TYPES_TOP_LEVEL,
 } from "@/constants/component";
@@ -88,7 +92,6 @@ const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const collapsed = ref(false);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
 
 const tracking = useWriterTracking(wf);
@@ -141,7 +144,6 @@ async function select(ev: MouseEvent | KeyboardEvent) {
 function expand() {
 	if (!treeBranch.value) return;
 	treeBranch.value.expand();
-	collapsed.value = false;
 	emit("expandBranch");
 }
 
@@ -188,6 +190,29 @@ function handleDrop(ev: DragEvent) {
 
 	removeInsertionCandidacy(ev);
 }
+
+const isOutsideActivePage = computed(() => {
+	if (!wf.activePageId.value) return false;
+
+	// activate page can be relative to UI or Blueprint
+	const isActivePageMatchingMode = wf
+		.getComponents(wfbm.activeRootId.value)
+		.some((c) => c.id === wf.activePageId.value);
+
+	const isPage = COMPONENT_TYPES_PAGE.has(component.value.type);
+
+	return (
+		isPage &&
+		isActivePageMatchingMode &&
+		props.componentId !== wf.activePageId.value
+	);
+});
+
+watch(wf.activePageId, () => {
+	if (wf.activePageId.value && isOutsideActivePage.value) {
+		treeBranch.value?.toggleCollapse(true);
+	}
+});
 
 watch(
 	wfbm.firstSelectedItem,
