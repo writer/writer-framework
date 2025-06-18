@@ -67,7 +67,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, PropType, ref } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	PropType,
+	ref,
+	toRef,
+	watch,
+} from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
@@ -99,7 +106,6 @@ const props = defineProps({
 		default: undefined,
 	},
 	disableCollapse: { type: Boolean, required: false },
-	startCollapsed: { type: Boolean, required: false },
 });
 
 const emit = defineEmits({
@@ -114,7 +120,12 @@ const emit = defineEmits({
 
 defineExpose({ expand, toggleCollapse });
 
-const collapsed = ref(props.startCollapsed);
+const collapsed = defineModel("collapsed", {
+	type: Boolean,
+	required: false,
+	default: false,
+});
+
 const isMainHovered = ref(false);
 
 const notMatched = computed(() => !props.matched);

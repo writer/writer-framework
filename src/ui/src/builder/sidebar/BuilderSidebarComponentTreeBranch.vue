@@ -16,7 +16,7 @@
 		"
 		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
-		:start-collapsed="isOutsideActivePage"
+		:collapsed="isOutsideActivePage"
 		@select="select"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
@@ -191,14 +191,25 @@ function handleDrop(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
 }
 
-const isOutsideActivePage = computed(
-	() =>
-		COMPONENT_TYPES_PAGE.has(component.value.type) &&
-		props.componentId !== wf.activePageId.value,
-);
+const isOutsideActivePage = computed(() => {
+	if (!wf.activePageId.value) return false;
+
+	// activate page can be relative to UI or Blueprint
+	const isActivePageMatchingMode = wf
+		.getComponents(wfbm.activeRootId.value)
+		.some((c) => c.id === wf.activePageId.value);
+
+	const isPage = COMPONENT_TYPES_PAGE.has(component.value.type);
+
+	return (
+		isPage &&
+		isActivePageMatchingMode &&
+		props.componentId !== wf.activePageId.value
+	);
+});
 
 watch(wf.activePageId, () => {
-	if (isOutsideActivePage.value) {
+	if (wf.activePageId.value && isOutsideActivePage.value) {
 		treeBranch.value?.toggleCollapse(true);
 	}
 });
