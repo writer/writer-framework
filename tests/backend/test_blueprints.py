@@ -1,11 +1,12 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
+from threading import Event
 from typing import Dict, Optional, Type
 from unittest.mock import MagicMock, patch
 
 import pytest
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T
-from writer.blueprints import MAX_DAG_DEPTH, Graph, GraphBuilder, GraphRunner
+from writer.blueprints import MAX_DAG_DEPTH, BlueprintRunManager, Graph, GraphBuilder, GraphRunner
 from writer.core_ui import Component
 
 
@@ -27,6 +28,34 @@ class MockBlock(BlueprintBlock):
         tools[type] = cls
 
     def run(self):
+        event = self.component.content.get("event")
+        if isinstance(event, Event):
+            event.wait(timeout=5)
+
+        callback = self.component.content.get("callback")
+        if callback is not None:
+            try:
+                callback(self.execution_environment)
+            except Exception as e:
+                self.outcome = "error"
+                self.message = str(e)
+                raise e
+
+        code = self.component.content.get("code")
+        if code is not None:
+            try:
+                exec(code, self.execution_environment | {"set_output": self.set_output, "state": self.runner.session.session_state})
+                self.outcome = "success"
+                return
+            except Exception as e:
+                self.outcome = "error"
+                self.message = str(e)
+                raise e
+
+        ret = self.component.content.get("return_value")
+        if ret is not None:
+            self.return_value = ret
+
         self.result = "test result"
         self.outcome = "success"
 
@@ -50,6 +79,30 @@ class MockPassBlock(BlueprintBlock):
             self.result = self.execution_environment.get("message")
         if self.result is None:
             self.result = "No value"
+        self.outcome = "success"
+
+class MockEventBlock(BlueprintBlock):
+    @classmethod
+    def register(cls, type: str):
+        tools[type] = cls
+
+    def run(self):
+        event = self.component.content.get("event")
+        if isinstance(event, Event):
+            event.wait(timeout=5)
+        self.result = "ok"
+        self.outcome = "success"
+
+class MockCallGraphBlock(BlueprintBlock):
+    @classmethod
+    def register(cls, type: str):
+        tools[type] = cls
+
+    def run(self):
+        graph = self.component.content.get("graph")
+        if isinstance(graph, Graph):
+            run_graph(graph, self.execution_environment)
+        self.result = "test result"
         self.outcome = "success"
 
 class CodeBlock(BlueprintBlock):
@@ -83,6 +136,7 @@ class MockRunner:
         self.session = MagicMock()
         self.session.session_state = MagicMock()
         self.session.session_state.add_log_entry = MagicMock()
+        self.run_manager = BlueprintRunManager()
 
     def _generate_run_id(self):
         return "mock_run_id"
@@ -99,6 +153,8 @@ class MockRunner:
             if new_executor:
                 new_executor.shutdown()
 
+MockEventBlock.register("event")
+MockCallGraphBlock.register("call_graph")
 CodeBlock.register("code")
 MockReturnBlock.register("return")
 MockFailingBlock.register("mock_failing_block")
@@ -116,12 +172,12 @@ def create_component(id: str, type: str, outs=None, fields=None):
     )
 
 def test_single_component_execution():
-    graph = Graph(nodes=[
+    builder = GraphBuilder(components=[
         create_component("test-component", "mock_block", outs=[])
     ], tools=tools)
 
+    graph = builder.build()
     run_graph(graph)
-
     graph_node = graph.get_node("test-component")
     assert graph_node is not None
     assert graph_node.outcome == "success"
@@ -480,3 +536,73 @@ def test_max_dag_deplth():
     assert str(exc_info.value) == "Blueprint execution was cancelled due to an error - RuntimeError: Maximum call depth ({0}) exceeded. Check that you don't have any unintended circular references.".format(MAX_DAG_DEPTH)
 
 
+
+def test_cancellation_simple():
+    event = Event()
+    builder = GraphBuilder(components=[
+        create_component("test-component", "event", fields={
+            "event": event 
+        }),
+    ], tools=tools)
+
+    graph = builder.build()
+    
+    runner = MockRunner()
+    run = GraphRunner(
+        graph=graph, 
+        execution_environment={"run_id": "test"},
+        runner=MockRunner(), 
+        title="Test Execution"
+    )
+    
+    with runner._get_executor() as executor:
+        future: Future = executor.submit(run.run)
+        wait([future], timeout=0.01)
+        run.cancel()
+        wait([future], timeout=0.01)
+        event.set()
+
+    node = graph.get_node("test-component")
+    assert node is not None
+    assert node.outcome == "cancelled"
+
+#def test_cancellation_nested():
+#    event = Event()
+#    b2 = GraphBuilder(components=[
+#        create_component("nested1", "mock_block", fields={
+#            "event": event
+#        }),
+#        create_component("nested2", "mock_block")
+#    ], tools=tools)
+#
+#    builder = GraphBuilder(components=[
+#        create_component('next', "call_graph", fields= {
+#            "graph": b2.build()
+#        }),
+#        create_component("test-component", "event", fields={
+#            "event": event 
+#        }),
+#    ], tools=tools)
+#
+#
+#    graph = builder.build()
+#    
+#    runner = MockRunner()
+#    run = GraphRunner(
+#        graph=graph, 
+#        execution_environment={"run_id": "test"},
+#        runner=MockRunner(), 
+#        title="Test Execution"
+#    )
+#    
+#    with runner._get_executor() as executor:
+#        import time
+#        future: Future = executor.submit(run.run)
+#        time.sleep(0.1)
+#        run.cancel()
+#        wait([future], timeout=1)
+#        event.set()
+#
+#    node = graph.get_node("test-component")
+#    assert node is not None
+#    assert node.outcome == "cancelled"

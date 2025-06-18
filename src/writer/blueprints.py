@@ -17,10 +17,43 @@ from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, Writ
 
 MAX_DAG_DEPTH = 32
 
+class BlueprintRunManager:
+    def __init__(self):
+        self._runs: Dict[str, List[GraphRunner]] = {}
+        self._lock = threading.Lock()
+
+    @contextmanager
+    def register(self, run_id: str, graph_runner: "GraphRunner"):
+        self.register_run(run_id, graph_runner)
+        try:
+            yield
+        finally:
+            self.deregister_run(run_id, graph_runner)
+
+    def register_run(self, run_id: str, graph_runner: "GraphRunner"):
+        with self._lock:
+            if run_id not in self._runs:
+                self._runs[run_id] = []
+            self._runs[run_id].append(graph_runner)
+
+    def deregister_run(self, run_id: str, graph_runner: "GraphRunner"):
+        with self._lock:
+            if run_id in self._runs:
+                self._runs[run_id].remove(graph_runner)
+                if not self._runs[run_id]:
+                    del self._runs[run_id]
+
+    def cancel_run(self, run_id: str):
+        with self._lock:
+            if run_id in self._runs:
+                for runner in self._runs[run_id]:
+                    runner.cancel()
+
 class BlueprintRunner:
     def __init__(self, session: writer.core.WriterSession):
         self.session = session
         self.executor_lock = threading.Lock()
+        self.run_manager = BlueprintRunManager()
 
     @property
     def api_blueprints(self):
@@ -255,13 +288,13 @@ class BlueprintRunner:
         ).run()
 
     def cancel_blueprint_execution(self, run_id: str):
-        pass
+        self.run_manager.cancel_run(run_id)
 
 
 class GraphNode:
     tool_class: writer.blocks.base_block.BlueprintBlock_T
     component: writer.core_ui.Component
-    future: Optional[Future] = None
+    future: Optional[Future["GraphNode"]] = None
     tool: Optional[writer.blocks.base_block.BlueprintBlock] = None
     # filrered lists of inputs and outputs with only edges from graph
     inputs: List[Any]
@@ -318,7 +351,7 @@ class GraphNode:
             return self.tool.return_value
         return None
 
-    def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock):
+    def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock) -> "GraphNode":
         start_time = time.time()
 
         call_stack = tool.execution_environment.get("call_stack", []) + [self.id]
@@ -335,7 +368,7 @@ class GraphNode:
             tool.outcome = "in_progress"
             tool.run()
             if self.outcome == "cancelled":
-                return
+                return self
             tool.outcome = tool.outcome or "success"
         except BlueprintExecutionError as e:
                 raise e
@@ -407,7 +440,7 @@ class GraphNode:
                 return False
         return True
 
-    def run(self, execution_environment: Dict, runner, executor):
+    def run(self, execution_environment: Dict, runner, executor) -> Future["GraphNode"]:
         if self.outcome is not None or self._is_skipped():
             self.status = "skipped"
             future: Future = Future()
@@ -418,6 +451,10 @@ class GraphNode:
         self.tool.outcome = "in_progress"
         ctx = copy_context()
         self.future = executor.submit(ctx.run, self.run_tool, self.tool)
+        if not isinstance(self.future, Future):
+            raise WriterConfigurationError(
+                f"Unable to run tool {self.tool.component.id} - the executor did not return a Future."
+            )
         return self.future
 
     def debug_info(self) -> Dict[str, Any]:
@@ -574,6 +611,7 @@ class StatusLogger:
     def __init__(self,
         graph: Graph,
         runner,
+        run_id: Optional[str] = None,
         title: str = "Blueprint execution"
     ):
         self.runner = runner
@@ -607,6 +645,16 @@ class StatusLogger:
                         "executionTimeInSeconds": 0,
                     })
                     continue
+            if node.outcome == "cancelled":
+                exec_log.summary.append(
+                    {
+                        "componentId": node.id,
+                        "outcome": node.outcome,
+                        "message": node.message,
+                        "executionTimeInSeconds": node.tool.execution_time_in_seconds,
+                    }
+                )
+                continue
             if node.outcome == "in_progress":
                 exec_log.summary.append(
                     {
@@ -633,12 +681,6 @@ class StatusLogger:
             entry_type, self.title, msg, blueprint_execution=exec_log, id=run_id
         )
 
-    def _generate_run_id(self):
-        timestamp = str(int(time.time() * 1000))
-        salt = os.urandom(8).hex()
-        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
-        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
-        return hashed_id
 
     def _summarize_data_for_log(self, data):
         """Convert arbitrary data into a log friendly representation."""
@@ -663,9 +705,14 @@ class StatusLogger:
         except (TypeError, OverflowError):
             return f"Can't be displayed in the log. Value of type: {str(type(data))}."
 
+    def _generate_run_id(self):
+        timestamp = str(int(time.time() * 1000))
+        salt = os.urandom(8).hex()
+        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
+        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
+        return hashed_id
 
 class GraphRunner:
-
     def __init__(self, 
         graph: Graph,
         execution_environment: Dict,
@@ -675,58 +722,105 @@ class GraphRunner:
         self.runner = runner
         self.graph = graph
         self.execution_environment = execution_environment
-        self.status_logger = StatusLogger(self.graph, self.runner, title)
+        self.run_id = execution_environment.get("run_id", self._generate_run_id())
+        self.execution_environment["run_id"] = self.run_id
+        self.status_logger = StatusLogger(self.graph, self.runner, run_id=self.run_id, title=title)
+        self._stopped = threading.Event()
+        self.queue = self.graph.get_start_nodes()
+        self.futures: List[Future[GraphNode]] = []
+
+    def cancel(self):
+        self._stopped.set()
 
     def run(self):
         if self.graph.status == "error":
             self.status_logger.log("Execution failed due to graph validation errors.", entry_type="error")
             return
-        #print(json.dumps(self.graph.debug_info(), indent=2))
-        queue = self.graph.get_start_nodes()
-        futures = []
-        if not queue:
+        if not self.queue:
             raise WriterConfigurationError("No start nodes found in the blueprint.")
-        with self.runner._get_executor() as executor:
-            while queue or futures:
-                while queue:
-                    node = queue.pop(0)
-                    #print(node.debug_info())
-                    if node.can_run() and node.outcome is None:
-                        futures.append(node.run(self.execution_environment, self.runner, executor))
 
-                self.status_logger.log("Executing...")
-                done, _ = wait(futures, return_when=FIRST_COMPLETED)
-                self.status_logger.log("Executing...")
-                for future in done:
-                    futures.remove(future)
-                    try:
-                        node = future.result()
-                        if node.return_value is not None:
-                            #for f in futures:
-                            #    f.cancel()
-                            for n in self.graph.nodes:
-                                if n.outcome == "in_progress":
-                                    n.status = "cancelled"
-                            self.status_logger.log(
-                                f"Execution completed, node {node.id} returned value: {node.return_value}",
-                                entry_type="info"
-                            )
-                            #executor.shutdown(wait=False)
-                            return node.return_value
-                    except BlueprintExecutionError as e:
-                        raise e
-                    except BaseException as e:
-                        for n in self.graph.nodes:
-                            if n.outcome == "in_progress":
-                                n.status = "cancelled"
-                        self.status_logger.log("Execution failed.", entry_type="error")
-                        raise BlueprintExecutionError(
-                            f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
-                        ) from e 
-                    for output in node.outputs:
-                        to_node_id = output.get("toNodeId")
-                        next_node = self.graph.get_node(to_node_id)
-                        if next_node:
-                            queue.append(next_node)
+        with self.runner._get_executor() as executor:
+            with self.runner.run_manager.register(self.run_id, self):
+                stopped = self.create_stopped_future(executor)
+                try:
+                    return self._execute(executor, stopped)
+                finally:
+                    self._stopped.set()
+                    stopped.cancel()
+
+    def _execute(self, executor: ThreadPoolExecutor, stopped_future: Future):
+        while self.queue or self.futures:
+            while self.queue:
+                node: GraphNode = self.queue.pop(0)
+                if node.can_run() and node.outcome is None:
+                    self.futures.append(node.run(self.execution_environment, self.runner, executor))
+
+            self.status_logger.log("Executing...")
+            done, _ = wait(self.futures + [stopped_future], return_when=FIRST_COMPLETED)
+            self.status_logger.log("Executing...")
+            for future in done:
+                if future in self.futures:
+                    self.futures.remove(future)
+                try:
+                    result = future.result()
+                    if result == "stopped":
+                        self._cancel_all_jobs()
+                        self.status_logger.log("Execution stopped by user.", entry_type="info")
+                        return
+                    if not isinstance(result, GraphNode):
+                        raise WriterConfigurationError(
+                            f"Expected GraphNode, got {type(result).__name__}."
+                        )
+                    node: GraphNode = result
+                except BlueprintExecutionError as e:
+                    raise e
+                except BaseException as e:
+                    for n in self.graph.nodes:
+                        if n.outcome == "in_progress":
+                            n.status = "cancelled"
+                    self.status_logger.log("Execution failed.", entry_type="error")
+                    raise BlueprintExecutionError(
+                        f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
+                    ) from e 
+                if node.outcome == "cancelled":
+                   return
+                if node.return_value is not None:
+                    self._cancel_all_jobs()
+                    self.status_logger.log(
+                        f"Execution completed, node {node.id} returned value: {node.return_value}",
+                        entry_type="info"
+                    )
+                    return node.return_value
+                for output in node.outputs:
+                    to_node_id = output.get("toNodeId")
+                    next_node = self.graph.get_node(to_node_id)
+                    if next_node:
+                        self.queue.append(next_node)
+
         self.status_logger.log("Execution completed.")
 
+    def create_stopped_future(self, executor) -> Future:
+        def wait_for_cancel():
+            self._stopped.wait()
+            return "stopped"
+            
+        return executor.submit(wait_for_cancel)
+
+    def _cancel_all_jobs(self):
+        self.queue.clear()
+        self._stopped.set()
+        for future in self.futures:
+            if not future.done():
+                future.cancel()
+        for node in self.graph.nodes:
+            if node.outcome == "in_progress":
+                node.status = "cancelled"
+        self.status_logger.log("Cancelled")
+        self.runner.run_manager.cancel_run(self.run_id)
+
+    def _generate_run_id(self):
+        timestamp = str(int(time.time() * 1000))
+        salt = os.urandom(8).hex()
+        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
+        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
+        return hashed_id
