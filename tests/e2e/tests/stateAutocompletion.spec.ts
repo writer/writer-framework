@@ -21,6 +21,7 @@ test.describe("state autocompletion", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test.describe("text", () => {

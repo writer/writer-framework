@@ -27,6 +27,7 @@ test.describe("undo and redo", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("create, drag and drop, property change and remove", async ({

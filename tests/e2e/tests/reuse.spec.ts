@@ -109,6 +109,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 
@@ -167,6 +168,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 
@@ -239,6 +241,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 

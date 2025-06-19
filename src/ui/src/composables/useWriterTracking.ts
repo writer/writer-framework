@@ -54,7 +54,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 
 	if (!isIdentified) {
 		onMounted(async () => {
-			if (!wf.isWriterCloudApp || isIdentified) return;
+			if (!wf.isWriterCloudApp.value || isIdentified) return;
 			isIdentified = true;
 			try {
 				await writerApi.analyticsIdentify();

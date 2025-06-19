@@ -104,7 +104,7 @@ export function generateBuilderManager() {
 		isBuilderManagerMode,
 	);
 	const initState: State = {
-		mode: modeCache.value ?? "ui",
+		mode: modeCache.value ?? "preview",
 		selection: [],
 		mutationTransactionsSnapshot: {
 			undo: null,
