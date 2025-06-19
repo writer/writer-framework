@@ -90,9 +90,9 @@
 		</div>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
-			@autogen-click="isAutogenShown = true"
+			@autogen-click="showAutogen"
 		/>
-		<WdsModal v-if="isAutogenShown">
+		<WdsModal v-if="isAutogenModalShown">
 			<BlueprintsAutogen
 				@block-generation="handleBlockGeneration"
 			></BlueprintsAutogen>
@@ -210,13 +210,20 @@ const notesManager = inject(injectionKeys.notesManager);
 const renderProxiedComponent = inject(injectionKeys.renderProxiedComponent);
 const blueprintComponentId = inject(injectionKeys.componentId);
 
+const isAutogenModalShown = inject(
+	injectionKeys.isAutogenModalShown,
+	ref(false),
+);
+function showAutogen() {
+	isAutogenModalShown.value = true;
+}
+
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");
 
 const arrows = shallowRef<BlueprintArrowData[]>([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
 const selectedArrow = shallowRef(null);
-const isAutogenShown = ref(false);
 const zoomLevel = ref(ZOOM_SETTINGS.initialLevel);
 const arrowRefresherObserver = new MutationObserver(refreshArrows);
 const temporaryNodeCoordinates = shallowRef<Record<Component["id"], Point>>({});
@@ -943,7 +950,7 @@ async function resetZoom() {
 async function handleBlockGeneration(
 	payload: { components: Component[] } | null,
 ) {
-	isAutogenShown.value = false;
+	isAutogenModalShown.value = false;
 	if (!payload) return;
 	const { components } = payload;
 	components.forEach((component) => {

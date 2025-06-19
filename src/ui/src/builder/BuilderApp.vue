@@ -115,6 +115,8 @@ import {
 	inject,
 	onMounted,
 	onUnmounted,
+	provide,
+	ref,
 	watch,
 	useTemplateRef,
 } from "vue";
@@ -135,6 +137,8 @@ import { useToasts } from "./useToast";
 import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
+
+provide(injectionKeys.isAutogenModalShown, ref(false));
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
