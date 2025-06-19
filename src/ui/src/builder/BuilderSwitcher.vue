@@ -23,17 +23,6 @@
 			Blueprints
 		</button>
 		<button
-			:class="{ active: activeId == 'preview' }"
-			data-automation-action="set-mode-preview"
-			type="button"
-			@click="selectOption('preview')"
-		>
-			<i class="icon material-symbols-outlined">{{
-				BUILDER_MANAGER_MODE_ICONS.preview
-			}}</i>
-			Preview
-		</button>
-		<button
 			v-if="wf.isWriterCloudApp.value"
 			:class="{ active: activeId == 'vault' }"
 			data-automation-action="set-mode-vault"
@@ -44,6 +33,17 @@
 				BUILDER_MANAGER_MODE_ICONS.vault
 			}}</i>
 			Vault
+		</button>
+		<button
+			:class="{ active: activeId == 'preview' }"
+			data-automation-action="set-mode-preview"
+			type="button"
+			@click="selectOption('preview')"
+		>
+			<i class="icon material-symbols-outlined">{{
+				BUILDER_MANAGER_MODE_ICONS.preview
+			}}</i>
+			Preview
 		</button>
 	</div>
 </template>
