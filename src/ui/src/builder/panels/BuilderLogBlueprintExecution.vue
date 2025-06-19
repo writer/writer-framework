@@ -146,11 +146,21 @@ type EnrichedExecutionLog = BlueprintExecutionLog & {
 	}[];
 };
 
+const outcomeSeverity = {
+	in_progress: 5,
+	error: 4,
+	success: 3,
+	cancelled: 2,
+	skipped: 1,
+	none: 0,
+};
+
 const enrichedExecutionLog = computed(() => {
 	const eLog: EnrichedExecutionLog = {
 		summary: [
 			...props.executionLog.summary
 				.filter((item) => Boolean(item.outcome))
+				.filter((item) => (outcomeSeverity[item.outcome] ?? outcomeSeverity.success > 1))
 				.map((item) => ({
 					...item,
 					component: wf.getComponentById(item.componentId),
