@@ -556,12 +556,14 @@ class StatusLogger:
     def __init__(self,
         graph: Graph,
         runner,
+        run_id: str,
         title: str = "Blueprint execution"
     ):
         self.runner = runner
         self.graph = graph
         self.title = title
-        self.run_id = self._generate_run_id()
+        self.run_id = run_id
+        self.log_id = self._generate_run_id()
 
     def log(
         self,
@@ -570,8 +572,8 @@ class StatusLogger:
     ):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
-        run_id = self.run_id
-        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(summary=[])
+        log_id = self.log_id
+        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(runId=self.run_id, summary=[])
         for node in self.graph.nodes:
             #print(node.debug_info())
             if node.tool is None:
@@ -612,7 +614,7 @@ class StatusLogger:
                 }
             )
         self.runner.session.session_state.add_log_entry(
-            entry_type, self.title, msg, blueprint_execution=exec_log, id=run_id
+            entry_type, self.title, msg, blueprint_execution=exec_log, id=log_id
         )
 
     def _generate_run_id(self):
@@ -647,7 +649,6 @@ class StatusLogger:
 
 
 class GraphRunner:
-
     def __init__(self, 
         graph: Graph,
         execution_environment: Dict,
@@ -657,7 +658,9 @@ class GraphRunner:
         self.runner = runner
         self.graph = graph
         self.execution_environment = execution_environment
-        self.status_logger = StatusLogger(self.graph, self.runner, title)
+        self.run_id = execution_environment.get("blueprint_run_id", self._generate_run_id())
+        execution_environment["blueprint_run_id"] = self.run_id
+        self.status_logger = StatusLogger(self.graph, self.runner, self.run_id, title)
 
     def run(self):
         if self.graph.status == "error":
@@ -712,3 +715,9 @@ class GraphRunner:
                             queue.append(next_node)
         self.status_logger.log("Execution completed.")
 
+    def _generate_run_id(self):
+        timestamp = str(int(time.time() * 1000))
+        salt = os.urandom(8).hex()
+        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
+        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
+        return hashed_id

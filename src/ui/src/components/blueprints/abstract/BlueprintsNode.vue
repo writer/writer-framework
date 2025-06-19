@@ -145,21 +145,51 @@ const completionStyle = computed(() => {
 	);
 });
 
-const latestKnownOutcome = computed(() => {
+const latestRun = computed(() => {
 	const logEntries = wfbm.getLogEntries();
+	const runId =
+		logEntries.find((entry) => {
+			return !!entry.blueprintExecution;
+		})?.blueprintExecution?.runId ?? null;
+	return logEntries.filter((entry) => {
+		return entry?.blueprintExecution?.runId === runId;
+	});
+});
 
-	for (let i = 0; i < logEntries.length; i++) {
-		const logEntry = logEntries[i];
-		const we = logEntry.blueprintExecution;
-		if (!we) continue;
-		for (let j = 0; j < we.summary.length; j++) {
-			const item = we.summary[j];
-			if (item.componentId !== component.value.id) continue;
-			return item.outcome;
-		}
+const outcomeSeverity = {
+	in_progress: 5,
+	error: 4,
+	success: 3,
+	cancelled: 2,
+	skipped: 1,
+	none: 0,
+};
+
+const latestKnownOutcome = computed(() => {
+	const executionLogs = latestRun.value
+		.map((entry) => {
+			return entry.blueprintExecution;
+		})
+		.filter(Boolean);
+	let outcome = "none";
+	executionLogs.forEach((log) => {
+		log.summary
+			.filter((item) => item.componentId === component.value.id)
+			.forEach((item) => {
+				const severity = Object.keys(outcomeSeverity).includes(
+					item.outcome,
+				)
+					? outcomeSeverity[item.outcome]
+					: outcomeSeverity.success;
+				if (severity > outcomeSeverity[outcome]) {
+					outcome = item.outcome;
+				}
+			});
+	});
+	if (outcome === "none") {
+		return null;
 	}
-
-	return null;
+	return outcome;
 });
 
 const isEngaged = computed(() => {
