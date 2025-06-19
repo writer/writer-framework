@@ -55,12 +55,12 @@ test.describe("state autocompletion", () => {
 				page.locator(
 					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop',
 				),
-			).toHaveText(["none", "string", "integer", "float"]);
+			).toHaveText(["float", "integer", "none", "string"]);
 			await expect(
 				page.locator(
 					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.type',
 				),
-			).toHaveText(["null", "string", "number", "number"]);
+			).toHaveText(["number", "number", "null", "string"]);
 		});
 
 		test("deeply nested", async ({ page }) => {
@@ -123,10 +123,10 @@ test.describe("state autocompletion", () => {
 
 			await expect(
 				assistedKeyField.locator(`.fieldStateAutocomplete span.prop`),
-			).toHaveText(["none", "string", "integer", "float"]);
+			).toHaveText(["float", "integer", "none", "string"]);
 			await expect(
 				assistedKeyField.locator(`.fieldStateAutocomplete span.type`),
-			).toHaveText(["null", "string", "number", "number"]);
+			).toHaveText(["number", "number", "null", "string"]);
 			await assistedKeyField
 				.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`)
 				.click();
@@ -144,10 +144,10 @@ test.describe("state autocompletion", () => {
 			await assistedKeyValueInput.fill("@{types.");
 			await expect(
 				assistedValueField.locator(`.fieldStateAutocomplete span.prop`),
-			).toHaveText(["none", "string", "integer", "float"]);
+			).toHaveText(["float", "integer", "none", "string"]);
 			await expect(
 				assistedValueField.locator(`.fieldStateAutocomplete span.type`),
-			).toHaveText(["null", "string", "number", "number"]);
+			).toHaveText(["number", "number", "null", "string"]);
 			await assistedValueField
 				.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`)
 				.click();
@@ -166,10 +166,10 @@ test.describe("state autocompletion", () => {
 				.fill("@{types.");
 			await expect(
 				page.locator(`${FIELD} .fieldStateAutocomplete span.prop`),
-			).toHaveText(["none", "string", "integer", "float"]);
+			).toHaveText(["float", "integer", "none", "string"]);
 			await expect(
 				page.locator(`${FIELD} .fieldStateAutocomplete span.type`),
-			).toHaveText(["null", "string", "number", "number"]);
+			).toHaveText(["number", "number", "null", "string"]);
 			page
 				.locator(
 					`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`,
