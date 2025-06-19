@@ -543,7 +543,7 @@ class GraphBuilder:
                 continue
             for out in component.outs:
                 next_component_id = out["toNodeId"]
-                if next_component_id in component_map:
+                if next_component_id in component_map and next_component_id not in filtered_components:
                     queue.append(component_map[next_component_id])
 
         return [ 
