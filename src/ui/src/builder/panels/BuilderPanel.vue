@@ -63,7 +63,6 @@
 									action.icon
 								}}</i></WdsButton
 							>
-							<BuilderPanelExpanderBtn :panel-id="panelId" />
 						</div>
 						<div class="BuilderPanel__mainContents">
 							<slot></slot>
@@ -94,15 +93,13 @@ import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import BuilderDropFileZone from "../BuilderDropFileZone.vue";
-import BuilderPanelExpanderBtn from "./BuilderPanelExpanderBtn.vue";
-import { PanelId } from "../builderManager";
 
 const wfbm = inject(injectionKeys.builderManager);
 
-const panelIds: PanelId[] = ["code", "log"];
+const panelIds: ("code" | "log")[] = ["code", "log"];
 
 const props = defineProps<{
-	panelId: PanelId;
+	panelId: (typeof panelIds)[number];
 	name: string;
 	actions: BuilderPanelAction[];
 	contentsTeleportEl: HTMLElement;
@@ -139,14 +136,12 @@ function handleDrop(event: DragEvent) {
 	const files: File[] = [];
 
 	if (event.dataTransfer.items) {
-		// @ts-expect-error can't type it
 		for (const item of event.dataTransfer.items) {
 			if (item.kind !== "file") continue;
 			const file = item.getAsFile();
 			if (file) files.push(file);
 		}
 	} else {
-		// @ts-expect-error can't type it
 		for (const file of event.dataTransfer.files) {
 			files.push(file);
 		}
@@ -164,7 +159,7 @@ function togglePanel(panelId: typeof props.panelId) {
 		emits("openned", false);
 		return;
 	}
-	wfbm.openPanels.value.set(panelId, "open");
+	wfbm.openPanels.value.add(panelId);
 	emits("openned", true);
 }
 

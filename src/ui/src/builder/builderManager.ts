@@ -17,8 +17,7 @@ const MUTATIONTRANSACTION_DEBOUNCE_MS = 1000;
 const MAX_LOG_ENTRIES = 100;
 
 export const panelIds = ["code", "log"];
-export type PanelId = "code" | "log";
-export type PanelState = "open" | "full";
+export type PanelId = (typeof panelIds)[number];
 const logger = useLogger();
 
 export type BlueprintExecutionLog = {
@@ -407,22 +406,12 @@ export function generateBuilderManager() {
 		return state.value.logEntries;
 	};
 
-	const openPanels = ref(new Map<PanelId, PanelState>());
-
-	const isPanelOpennedInFullView = computed(() => {
-		for (const state of openPanels.value.values()) {
-			if (state === "full") return true;
-		}
-		return false;
-	});
-
 	const builder = {
 		setMode,
 		getMode,
 		mode,
 		activeRootId,
-		openPanels,
-		isPanelOpennedInFullView,
+		openPanels: ref(new Set<"code" | "log">()),
 		isSettingsBarCollapsed: ref(false),
 		isComponentIdSelected,
 		selectionStatus,
