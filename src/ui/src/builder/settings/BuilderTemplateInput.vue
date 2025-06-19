@@ -90,7 +90,7 @@ import {
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
-import { useBlueprintUserState } from "../useBlueprintUserState";
+import { useDynamicUserState } from "../useDynamicUserState";
 
 const { secrets } = inject(injectionKeys.secretsManager);
 
@@ -128,7 +128,7 @@ const dropdown = useTemplateRef("dropdown");
 
 const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
 
-const blueprintUserState = useBlueprintUserState(wf);
+const { blueprintsUserState, bindingsUserState } = useDynamicUserState(wf);
 
 const { floatingStyles, update } = useFloating(input, dropdown, {
 	placement: "bottom-start",
@@ -230,7 +230,8 @@ function handleInput(ev) {
 
 const autoCompletionState = computed(() => {
 	const state: Record<string, unknown> = {
-		...blueprintUserState.value,
+		...bindingsUserState.value,
+		...blueprintsUserState.value,
 		...(wf.userState.value ?? {}),
 	};
 

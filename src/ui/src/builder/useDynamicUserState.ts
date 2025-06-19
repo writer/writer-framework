@@ -5,11 +5,12 @@ import set from "lodash/set";
 import get from "lodash/get";
 import merge from "lodash/merge";
 import isPlainObject from "lodash/isPlainObject";
+import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 
 type UserState = Record<string, unknown>;
 
-export function useBlueprintUserState(wf: Core, logger = useLogger()) {
-	return computed<UserState>(() => {
+export function useDynamicUserState(wf: Core, logger = useLogger()) {
+	const blueprintsUserState = computed<UserState>(() => {
 		try {
 			return getBlueprintUserState(wf);
 		} catch (e) {
@@ -17,12 +18,37 @@ export function useBlueprintUserState(wf: Core, logger = useLogger()) {
 			return {};
 		}
 	});
+
+	const bindingsUserState = computed<UserState>(() => {
+		try {
+			return getBindingsUserState(wf);
+		} catch (e) {
+			logger.error("Cannot compute Bindings user state", e);
+			return {};
+		}
+	});
+
+	return { blueprintsUserState, bindingsUserState };
+}
+
+function getBindingsUserState(wf: Core): UserState {
+	const state: UserState = {};
+
+	for (const rootId of COMPONENT_TYPES_ROOT) {
+		for (const component of wf.getComponentsNested(rootId)) {
+			if (component.binding?.stateRef) {
+				set(state, component.binding?.stateRef, "unknown value");
+			}
+		}
+	}
+
+	return state;
 }
 
 function getBlueprintUserState(wf: Core): UserState {
 	const state: UserState = {};
 
-	function* getSetStateNode() {
+	function* getSetStateContent() {
 		for (const node of wf.getComponentsNested("blueprints_root")) {
 			if (node.type === "blueprints_setstate" && node.content) {
 				yield node.content;
@@ -30,7 +56,7 @@ function getBlueprintUserState(wf: Core): UserState {
 		}
 	}
 
-	for (const { element, valueType, value } of getSetStateNode()) {
+	for (const { element, valueType, value } of getSetStateContent()) {
 		const isInvalid = [element, value, valueType].some(
 			(v) => typeof v !== "string",
 		);
@@ -53,7 +79,6 @@ function getBlueprintUserState(wf: Core): UserState {
 					? merge({}, existingValue, parsedValue)
 					: parsedValue;
 		}
-
 		set(state, element, parsedValue);
 	}
 
