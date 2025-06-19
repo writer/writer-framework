@@ -327,6 +327,10 @@ onMounted(() => {
 	background: var(--builderSelectedColor);
 }
 
+.actionButton {
+	min-height: 32px;
+}
+
 .actionButton:not([disabled]).delete {
 	color: var(--builderErrorColor);
 }

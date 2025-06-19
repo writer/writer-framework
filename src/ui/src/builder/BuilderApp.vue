@@ -10,39 +10,52 @@
 				class="sidebar"
 				@active-pane-changed="refreshNotesPosition"
 			/>
-			<div class="builderMain">
-				<BuilderVault v-if="builderMode === 'vault'" />
-				<div
-					v-else
-					class="rendererWrapper"
-					:class="{
-						addNoteCursor:
-							notesManager.isAnnotating.value &&
-							ssbm.mode.value !== 'preview',
-					}"
-					@scroll="refreshNotesPosition"
-				>
-					<ComponentRenderer
-						class="componentRenderer"
-						:class="{
-							settingsOpen: ssbm.isSingleSelectionActive,
-						}"
-						@dragover="handleRendererDragover"
-						@dragstart="handleRendererDragStart"
-						@dragend="handleRendererDragEnd"
-						@drop="handleRendererDrop"
-						@click.capture="handleRendererClick"
-						@dblclick="handleRendererDblClick"
-					>
-					</ComponentRenderer>
-				</div>
 
-				<BuilderSettings
-					v-if="ssbm.isSingleSelectionActive"
-					:key="selectedId ?? 'noneSelected'"
-				/>
-			</div>
-			<BuilderPanelSwitcher class="panelSwitcher" />
+			<ShareResizeVertical
+				:initial-bottom-size="isPanelOpen ? 440 : 48"
+				:disabled="!isPanelOpen"
+				:class="{
+					'mainGrid--fullWidth':
+						builderMode === 'preview' || builderMode === 'vault',
+				}"
+			>
+				<template #top>
+					<div class="builderMain">
+						<BuilderVault v-if="builderMode === 'vault'" />
+						<div
+							v-else
+							class="rendererWrapper"
+							:class="{
+								addNoteCursor:
+									notesManager.isAnnotating.value &&
+									ssbm.mode.value !== 'preview',
+							}"
+							@scroll="refreshNotesPosition"
+						>
+							<ComponentRenderer
+								class="componentRenderer"
+								:class="{
+									settingsOpen: ssbm.isSingleSelectionActive,
+								}"
+								@dragover="handleRendererDragover"
+								@dragstart="handleRendererDragStart"
+								@dragend="handleRendererDragEnd"
+								@drop="handleRendererDrop"
+								@click.capture="handleRendererClick"
+								@dblclick="handleRendererDblClick"
+							>
+							</ComponentRenderer>
+						</div>
+						<BuilderSettings
+							v-if="ssbm.isSingleSelectionActive"
+							:key="selectedId ?? 'noneSelected'"
+						/>
+					</div>
+				</template>
+				<template #bottom>
+					<BuilderPanelSwitcher class="panelSwitcher" />
+				</template>
+			</ShareResizeVertical>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -135,6 +148,7 @@ import { useToasts } from "./useToast";
 import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
+import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 
 const BuilderSettings = defineAsyncComponent({
 	loader: () => import("./settings/BuilderSettings.vue"),
@@ -214,6 +228,8 @@ const {
 
 const builderMode = ssbm.mode;
 const selectedId = ssbm.firstSelectedId;
+
+const isPanelOpen = computed(() => ssbm.openPanels.value.size > 0);
 
 const notes = computed(() =>
 	Array.from(notesManager.getNotes(wf.activePageId.value))
@@ -481,18 +497,8 @@ onUnmounted(() => {
 	width: 100vw;
 	height: 100vh;
 	grid-template-columns: auto 1fr;
-	grid-template-rows:
-		var(--builderTopBarHeight)
-		1fr
-		var(--builderPanelSwitcherHeight);
+	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
-}
-
-.mainGrid.openPanels {
-	grid-template-rows:
-		var(--builderTopBarHeight)
-		1fr
-		var(--builderPanelSwitcherExpandedHeight);
 }
 
 .builderHeader {
@@ -512,8 +518,11 @@ onUnmounted(() => {
 	background: var(--builderBackgroundColor);
 	overflow: hidden;
 	position: relative;
-	grid-column: 2 / 3;
-	grid-row: 2;
+	height: 100%;
+}
+
+.mainGrid--fullWidth {
+	grid-column: 1 / -1;
 }
 
 .rendererWrapper {
