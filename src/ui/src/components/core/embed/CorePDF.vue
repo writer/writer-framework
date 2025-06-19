@@ -291,7 +291,7 @@ const decrementScale = () => {
 
 watch(pagesLoaded, () => {
 	if (pagesLoaded.value === pages.value) {
-		if (fields.page.value) {
+		if (fields.page?.value) {
 			gotoPage(fields.page.value);
 		}
 	}
