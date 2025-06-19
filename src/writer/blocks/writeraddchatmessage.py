@@ -59,7 +59,7 @@ class WriterAddChatMessage(BlueprintBlock):
             conversation = self.evaluator.evaluate_expression(conversation_state_element, self.instance_path, self.execution_environment)
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
-                raise WriterConfigurationError("The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'.")
+                raise WriterConfigurationError("The state element specified doesn't contain a conversation. Initialize one using the block 'Start chat conversation'.")
             
             writer.ai.Conversation.validate_message(message)
             conversation += message
