@@ -89,7 +89,9 @@ const linkTooltip = computed(() => {
 });
 
 const ressourceUrl = computed(() => {
-	const value = Array.isArray(selected.value) ? selected.value[0] : selected.value;
+	const value = Array.isArray(selected.value)
+		? selected.value[0]
+		: selected.value;
 	if (!value) return;
 
 	const orgId = selectorEl.value?.selectedData?.organization_id;
@@ -118,13 +120,13 @@ const selected = computed<string | string[]>({
 	get() {
 		if (enableMultiSelection.value) {
 			const raw =
-					component.value.content[props.fieldKey] ??
-					fieldDefinition.value.default ??
-					"[]";
+				component.value.content[props.fieldKey] ??
+				fieldDefinition.value.default ??
+				"[]";
 			try {
-					return JSON.parse(raw);
+				return JSON.parse(raw);
 			} catch {
-					return [];
+				return [];
 			}
 		}
 		return (
@@ -138,7 +140,7 @@ const selected = computed<string | string[]>({
 			setContentValue(
 				component.value.id,
 				fieldKey.value,
-				JSON.stringify(value)
+				JSON.stringify(value),
 			);
 		} else {
 			setContentValue(component.value.id, fieldKey.value, String(value));
