@@ -5,7 +5,7 @@ import type {
 	WriterComponentDefinitionField,
 } from "@/writerTypes";
 import { computed, ComputedRef } from "vue";
-import { useEvaluator } from "./useEvaluator";
+import { TEMPLATE_REGEX, useEvaluator } from "./useEvaluator";
 import {
 	buildJsonSchemaForEnum,
 	getJsonSchemaValidator,
@@ -21,14 +21,19 @@ export function useFieldsErrors(
 ) {
 	const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
 
+	function includesTemplate(template: string) {
+		return Boolean(TEMPLATE_REGEX.exec(template));
+	}
+
 	const componentId = computed(() => instancePath.value.at(-1)?.componentId);
 
-	const componentFields = computed(() => {
-		if (componentId.value === undefined) return {};
-		const component = wf.getComponentById(componentId.value);
-		if (!component) return {};
+	const component = computed(() => {
+		if (componentId.value === undefined) return undefined;
+		return wf.getComponentById(componentId.value);
+	});
 
-		return wf.getComponentDefinition(component.type).fields ?? {};
+	const componentFields = computed(() => {
+		return wf.getComponentDefinition(component.value.type).fields ?? {};
 	});
 
 	const evaluatedFields = computed(() =>
@@ -38,7 +43,12 @@ export function useFieldsErrors(
 	return computed(() => {
 		return Object.entries(componentFields.value).reduce(
 			(acc, [key, definition]) => {
+				// skip validation if the value contains a template var
+				const plainValue = component.value.content?.[key] ?? "";
+				if (includesTemplate(plainValue)) return acc;
+
 				const value = evaluatedFields.value[key].value;
+
 				acc[key] = computeFieldErrors(
 					wf,
 					componentId.value,

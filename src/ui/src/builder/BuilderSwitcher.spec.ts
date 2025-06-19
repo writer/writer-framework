@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vitest, vi, Mock } from "vitest";
+import { beforeEach, describe, expect, it, vitest, vi } from "vitest";
 import { buildMockComponent, buildMockCore } from "@/tests/mocks";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import BuilderSwitcher from "./BuilderSwitcher.vue";
@@ -30,7 +30,6 @@ describe("BuilderSwitcher", () => {
 
 	beforeEach(() => {
 		mockCore = buildMockCore();
-		mockCore.featureFlags.value = ['vault'];
 		mockCore.core.addComponent(
 			buildMockComponent({
 				id: "root",
@@ -58,6 +57,42 @@ describe("BuilderSwitcher", () => {
 			},
 		});
 	}
+
+	it("should restore the previous page", async () => {
+		mockCore.core.addComponent(
+			buildMockComponent({
+				id: "A",
+			}),
+		);
+		mockCore.core.addComponent(
+			buildMockComponent({
+				id: "B",
+			}),
+		);
+
+		wfbm.mode.value = "ui";
+		mockCore.core.setActivePageId("A");
+
+		const wrapper = mountBuilderSwitcher();
+
+		// navigates to blueprint and change active page
+		await wrapper
+			.get('[data-automation-action="set-mode-blueprints"]')
+			.trigger("click");
+		mockCore.core.setActivePageId("B");
+
+		// navigate back to UI
+		await wrapper
+			.get('[data-automation-action="set-mode-ui"]')
+			.trigger("click");
+		expect(mockCore.core.activePageId.value).toBe("A");
+
+		// navigate back to Blueprints
+		await wrapper
+			.get('[data-automation-action="set-mode-blueprints"]')
+			.trigger("click");
+		expect(mockCore.core.activePageId.value).toBe("B");
+	});
 
 	describe("non-cloud app", () => {
 		beforeEach(() => {

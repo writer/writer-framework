@@ -12,6 +12,7 @@ import { generateBuilderManager } from "../builderManager";
 import { flattenInstancePath } from "@/renderer/instancePath";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import templateMap from "@/core/templateMap";
+import { useSecretsManager } from "@/core/useSecretsManager";
 
 describe("BuilderSettingsProperties", () => {
 	it.each(Object.keys(templateMap))(
@@ -34,6 +35,8 @@ describe("BuilderSettingsProperties", () => {
 						...mockProvides,
 						[injectionKeys.builderManager as symbol]: ssbm,
 						[injectionKeys.core as symbol]: core,
+						[injectionKeys.secretsManager as symbol]:
+							useSecretsManager(core),
 					},
 				},
 			});

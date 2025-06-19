@@ -105,8 +105,8 @@ const className = computed(() => [
 }
 .WdsButton--primary:disabled,
 .WdsButton--primary[aria-disabled="true"] {
-	border-color: var(--wdsColorBlue6);
-	background-color: var(--wdsColorBlue6);
+	border-color: var(--softenedButtonColor);
+	background-color: var(--softenedButtonColor);
 	opacity: 40%;
 }
 

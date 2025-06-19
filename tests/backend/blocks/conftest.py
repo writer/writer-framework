@@ -23,7 +23,7 @@ class BlockTesterMockBlueprintRunner(BlueprintRunner):
     def __init__(self, session):
         super().__init__(session)
 
-    def run_branch_pool(
+    def run_branch_batch(
         self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
     ):
         return len(execution_environments) * [4]

@@ -90,6 +90,7 @@ import {
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
+import { useBlueprintUserState } from "../useBlueprintUserState";
 
 const { secrets } = inject(injectionKeys.secretsManager);
 
@@ -120,12 +121,14 @@ const props = defineProps({
 	readonly: { type: Boolean },
 });
 
-const ss = inject(injectionKeys.core);
+const wf = inject(injectionKeys.core);
 
 const input = useTemplateRef("input");
 const dropdown = useTemplateRef("dropdown");
 
 const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
+
+const blueprintUserState = useBlueprintUserState(wf);
 
 const { floatingStyles, update } = useFloating(input, dropdown, {
 	placement: "bottom-start",
@@ -226,13 +229,14 @@ function handleInput(ev) {
 }
 
 const autoCompletionState = computed(() => {
-	const userState = ss.userState.value ?? {};
-	if (!secrets.value) return userState;
-
-	return {
-		...userState,
-		vault: secrets.value,
+	const state: Record<string, unknown> = {
+		...blueprintUserState.value,
+		...(wf.userState.value ?? {}),
 	};
+
+	if (secrets.value) state.vault = secrets.value;
+
+	return state;
 });
 
 function showAutocomplete() {
