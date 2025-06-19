@@ -177,15 +177,14 @@ const latestKnownOutcome = computed(() => {
 			.filter((item) => item.componentId === component.value.id)
 			.filter((item) => Boolean(item.outcome))
 			.forEach((item) => {
-				const severity = outcomeSeverity[item.outcome] ?? outcomeSeverity.success;
+				const severity =
+					outcomeSeverity[item.outcome] ?? outcomeSeverity.success;
 				if (severity > outcomeSeverity[outcome]) {
 					outcome = item.outcome;
 				}
 			});
 	});
-	return outcome === "none" 
-		? null 
-		: outcome;
+	return outcome === "none" ? null : outcome;
 });
 
 const isEngaged = computed(() => {
