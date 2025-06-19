@@ -162,11 +162,13 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="graph"
 					/>
-					<BuilderFieldsWriterGraphIds
+					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterGraphIds"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
+						resource-type="graph"
+						enable-multi-selection
 					/>
 					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterAppId"
@@ -225,7 +227,6 @@ import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsBlueprintKey from "./BuilderFieldsBlueprintKey.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
-import BuilderFieldsWriterGraphIds from "./BuilderFieldsWriterGraphIds.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
