@@ -124,6 +124,7 @@ const contentBgColor = computed(() => {
 .CoreChatbotMessage__content__text {
 	line-height: 2;
 	padding: 12px 16px 12px 16px;
+	white-space: pre-wrap;
 }
 
 .CoreChatbotMessage__content__actions {
