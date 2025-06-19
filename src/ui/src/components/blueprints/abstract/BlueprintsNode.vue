@@ -173,18 +173,18 @@ const latestKnownOutcome = computed(() => {
 		.filter(Boolean);
 	let outcome = "none";
 	executionLogs.forEach((log) => {
-		log.summary.forEach((item) => {
-			if (item.outcome && item.componentId === component.value.id) {
-				const severity = !Object.keys(outcomeSeverity).includes(
+		log.summary
+			.filter((item) => item.componentId === component.value.id)
+			.forEach((item) => {
+				const severity = Object.keys(outcomeSeverity).includes(
 					item.outcome,
 				)
-					? outcomeSeverity.success
-					: outcomeSeverity[item.outcome];
+					? outcomeSeverity[item.outcome]
+					: outcomeSeverity.success;
 				if (severity > outcomeSeverity[outcome]) {
 					outcome = item.outcome;
 				}
-			}
-		});
+			});
 	});
 	if (outcome === "none") {
 		return null;
