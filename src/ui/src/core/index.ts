@@ -29,7 +29,6 @@ import {
 	isSourceFilesFile,
 	moveFileToSourceFiles,
 } from "./sourceFiles";
-import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
 
 const RECONNECT_DELAY_MS = 1000;
 const KEEP_ALIVE_DELAY_MS = 60000;

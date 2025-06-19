@@ -7,8 +7,10 @@ import {
 	SecretsManager,
 } from "@/writerTypes";
 
+export const TEMPLATE_REGEX = /[\\]?@{([^}]*)}/;
+
 export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
-	const templateRegex = /[\\]?@{([^}]*)}/g;
+	const templateRegex = new RegExp(TEMPLATE_REGEX.source, "g");
 
 	/**
 	 * Returns the expression as an array of static accessors.
@@ -19,8 +21,8 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 		expr: string,
 		instancePath?: InstancePath,
 	): string[] {
-		let accessors = [],
-			s = "";
+		const accessors = [];
+		let s = "";
 		let level = 0;
 
 		let i = 0;
