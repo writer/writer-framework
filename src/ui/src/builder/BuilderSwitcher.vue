@@ -34,10 +34,7 @@
 			Preview
 		</button>
 		<button
-			v-if="
-				wf.isWriterCloudApp.value &&
-				wf.featureFlags.value.includes('vault')
-			"
+			v-if="wf.isWriterCloudApp.value"
 			:class="{ active: activeId == 'vault' }"
 			data-automation-action="set-mode-vault"
 			type="button"
@@ -57,17 +54,32 @@ import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
 import type { BuilderManagerMode } from "./builderManager";
+import { Component } from "@/writerTypes";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
+const wfbm = inject(injectionKeys.builderManager);
 
 let selectedId: Ref<string> = ref(null);
 
 const tracking = useWriterTracking(wf);
 
-const selectOption = (optionId: BuilderManagerMode) => {
-	const preMode = ssbm.getMode();
+const previousActivePage: Record<"ui" | "blueprints", Component["id"]> = {
+	ui: undefined,
+	blueprints: undefined,
+};
+
+function canHaveActivePage(mode: BuilderManagerMode) {
+	return mode === "blueprints" || mode === "ui";
+}
+
+function selectOption(optionId: BuilderManagerMode) {
+	const preMode = wfbm.mode.value;
 	if (preMode == optionId) return;
+
+	if (canHaveActivePage(preMode) && wf.activePageId.value) {
+		previousActivePage[preMode] = wf.activePageId.value;
+	}
+
 	selectedId.value = optionId;
 	switch (optionId) {
 		case "ui":
@@ -83,17 +95,28 @@ const selectOption = (optionId: BuilderManagerMode) => {
 			tracking.track("nav_vault_opened");
 			break;
 	}
-	ssbm.mode.value = optionId;
+
+	wfbm.mode.value = optionId;
+
+	// restore the previous active page
+	if (
+		canHaveActivePage(optionId) &&
+		previousActivePage[optionId] &&
+		wf.getComponentById(previousActivePage[optionId])
+	) {
+		wf.setActivePageId(previousActivePage[optionId]);
+	}
+
 	if (
 		optionId == "preview" ||
 		preMode == "blueprints" ||
 		optionId == "blueprints"
 	) {
-		ssbm.setSelection(null);
+		wfbm.setSelection(null);
 	}
-};
+}
 
-const activeId = computed(() => ssbm.getMode());
+const activeId = computed(() => wfbm.getMode());
 </script>
 
 <style scoped>

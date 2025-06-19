@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootEl" class="BlueprintsRoot" data-writer-container>
+	<div class="BlueprintsRoot" data-writer-container>
 		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
@@ -24,13 +24,13 @@ export default {
 	},
 };
 </script>
+
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue";
+import { computed, inject, onMounted } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const wf = inject(injectionKeys.core);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
-const rootEl = useTemplateRef("rootEl");
 
 const displayedBlueprintId = computed(() => {
 	const activePageId = wf.activePageId.value;
@@ -46,6 +46,15 @@ const displayedBlueprintId = computed(() => {
 	if (pageComponents.length == 0) return null;
 
 	return pageComponents[0].id;
+});
+
+onMounted(() => {
+	if (
+		displayedBlueprintId.value &&
+		wf.activePageId.value !== displayedBlueprintId.value
+	) {
+		wf.setActivePageId(displayedBlueprintId.value);
+	}
 });
 </script>
 

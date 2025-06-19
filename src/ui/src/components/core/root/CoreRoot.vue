@@ -28,6 +28,7 @@ import {
 	contentWidth,
 } from "@/renderer/sharedStyleFields";
 import { useEvaluator } from "@/renderer/useEvaluator";
+import { useAbortController } from "@/composables/useAbortController";
 
 const ssHashChangeStub = `
 def handle_hashchange(state, payload):
@@ -121,6 +122,7 @@ import {
 	nextTick,
 	onBeforeMount,
 	useTemplateRef,
+	onMounted,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { changePageInHash, serializeParsedHash } from "@/core/navigation";
@@ -146,6 +148,15 @@ const displayedPageId = computed(() => {
 	const visiblePages = pageComponents.filter((c) => isComponentVisible(c.id));
 	if (visiblePages.length == 0) return null;
 	return visiblePages[0].id;
+});
+
+onMounted(() => {
+	if (
+		displayedPageId.value &&
+		wf.activePageId.value !== displayedPageId.value
+	) {
+		wf.setActivePageId(displayedPageId.value);
+	}
 });
 
 function handleHashChange() {
@@ -175,9 +186,11 @@ watch(displayedPageId, (newPageId) => {
 	changePageInHash(pageKey);
 });
 
+const abort = useAbortController();
+
 onBeforeMount(() => {
-	window.addEventListener("hashchange", () => {
-		handleHashChange();
+	window.addEventListener("hashchange", () => handleHashChange(), {
+		signal: abort.signal,
 	});
 	handleHashChange();
 });

@@ -68,6 +68,7 @@ onMounted(() => {
 		value: modelValue.value,
 		language: props.language,
 		readOnly: props.disabled,
+		fixedOverflowWidgets: true,
 		...VARIANTS_SETTINGS[props.variant],
 	});
 	editor.getModel().onDidChangeContent(() => {
