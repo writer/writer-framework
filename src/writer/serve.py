@@ -308,6 +308,35 @@ def get_asgi_app(
         except json.JSONDecodeError:
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
+    
+    def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
+        # Check if blueprint has at least one API trigger component
+        if not app_runner.bmc_components:
+            return False
+        return any(
+            comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
+            for comp in app_runner.bmc_components.values()
+        )
+
+    @app.get("/private/api/blueprints")
+    async def get_blueprints(request: Request):
+        """
+        Returns a list of blueprints available in the agent.
+        """
+        if not app_runner.bmc_components:
+            return JSONResponse(content=[])
+
+        blueprints = [
+            {
+                "id": comp["id"],
+                "key": comp.get("content", {}).get("key")
+            }
+            for comp in app_runner.bmc_components.values()
+            if comp["type"] == "blueprints_blueprint"
+            and has_api_trigger(app_runner, comp["id"])
+        ]
+
+        return JSONResponse(content=blueprints)
 
     @app.post("/private/api/blueprint/{blueprint_key}")
     async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
@@ -347,15 +376,6 @@ def get_asgi_app(
                     and comp.get("content", {}).get("key") == key
                 ),
                 None
-            )
-
-        def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
-            # Check if blueprint has at least one API trigger component
-            if not app_runner.bmc_components:
-                return False
-            return any(
-                comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
-                for comp in app_runner.bmc_components.values()
             )
 
         # --- Result serialization (recursive) ---
