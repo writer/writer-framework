@@ -160,7 +160,7 @@ const enrichedExecutionLog = computed(() => {
 		summary: [
 			...props.executionLog.summary
 				.filter((item) => Boolean(item.outcome))
-				.filter((item) => (outcomeSeverity[item.outcome] ?? outcomeSeverity.success > 1))
+				.filter((item) => (outcomeSeverity[item.outcome] ?? outcomeSeverity.success) > 1)
 				.map((item) => ({
 					...item,
 					component: wf.getComponentById(item.componentId),
