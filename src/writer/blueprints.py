@@ -319,7 +319,7 @@ class GraphNode:
             tool.outcome = "in_progress"
             tool.run()
             if self.outcome == "cancelled":
-                return
+                return self
             tool.outcome = tool.outcome or "success"
         except BlueprintExecutionError as e:
                 raise e
@@ -331,10 +331,8 @@ class GraphNode:
             else:
                 tool.message = repr(e)
             if self._is_error_handled(tool.component, tool.outcome):
-                print("Error handled in component:", tool.component.id, tool.message)
                 return self 
             else:
-                print("Error not handled in component:", tool.component.id, tool.message)
                 raise e
         finally:
             tool.execution_time_in_seconds = time.time() - start_time
@@ -475,7 +473,7 @@ class Graph:
         }
 
 class GraphBuilder:
-    def __init__(self, components: List[writer.core_ui.Component] = [], tools: Dict[str, writer.blocks.base_block.BlueprintBlock_T] = {}):
+    def __init__(self, components: List[writer.core_ui.Component], tools: Dict[str, writer.blocks.base_block.BlueprintBlock_T]):
         self.components = components 
         self.tools = tools
         self.start_ids: List[str] = []
