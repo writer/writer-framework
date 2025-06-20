@@ -115,7 +115,7 @@ import {
 	watch,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
+import { useSessionStorageJSON } from "@/composables/useStorageJSON";
 import { useComponentActions } from "../useComponentActions";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
 import BuilderSidebarNotes from "./BuilderSidebarNotes.vue";
@@ -150,7 +150,10 @@ const { undo, redo, getUndoRedoSnapshot } = useComponentActions(wf, wfbm);
 const isPreview = computed(() => wfbm.mode.value === "preview");
 const frameworkVersion = WRITER_FRAMEWORK_VERSION;
 
-const activePaneLocalStorage = useLocalStorageJSON<Pane>("activePane", isPane);
+const activePaneLocalStorage = useSessionStorageJSON<Pane>(
+	"activePane",
+	isPane,
+);
 
 const activePane = ref<Pane>(
 	isPreview.value ? undefined : activePaneLocalStorage.value,

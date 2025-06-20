@@ -17,7 +17,7 @@ describe(useListResources.name, () => {
 			removeItem: vi.fn(),
 		};
 
-		vi.stubGlobal("localStorage", localStorage);
+		vi.stubGlobal("sessionStorage", localStorage);
 
 		core = buildMockCore().core;
 	});
