@@ -939,8 +939,13 @@ class AppRunner:
                 raise error
 
     def _check_file_in_app_path(self, path):
-        if not os.path.abspath(path).startswith(os.path.abspath((self.app_path))):
-            raise PermissionError(f"{path} is outside of application ({self.app_path})")
+        app_path = os.path.abspath(self.app_path)
+        file_path = os.path.abspath(path)
+        if file_path == app_path or not file_path.startswith(app_path):
+            raise PermissionError(f"{path} should be inside of application ({self.app_path})")
+        wf_path = os.path.abspath(os.path.join(self.app_path, ".wf"))
+        if file_path.startswith(wf_path):
+            raise PermissionError(f"{path} should not be inside of Writer Framework files ({wf_path})")
 
     def _load_persisted_components(self) -> Dict[str, ComponentDefinition]:
         logger = logging.getLogger("writer")
