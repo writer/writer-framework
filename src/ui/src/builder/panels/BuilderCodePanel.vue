@@ -268,8 +268,21 @@ async function handleSave() {
 
 	isDisabled.value = true;
 
+	const pathSegments = isRenaming.value
+		? filename.value.split("/")
+		: undefined;
+	if (pathSegments) {
+		const errorMessage = checkRenamePath(pathSegments);
+		if (errorMessage) {
+			return pushToast({
+				type: "error",
+				message: errorMessage,
+			});
+		}
+	}
+
 	try {
-		await save(isRenaming.value ? filename.value.split("/") : undefined);
+		await save(pathSegments);
 		pushToast({ type: "success", message: "The file was saved" });
 		tracking.track("nav_code_file_updated", { path: filepathOpen.value });
 	} catch (error) {
@@ -279,6 +292,15 @@ async function handleSave() {
 	} finally {
 		isDisabled.value = false;
 	}
+}
+
+function checkRenamePath(pathSegments: string[]): string | null {
+	if (pathSegments[0] === "") return "Path should not have a leading slash";
+	if (pathSegments[0] === ".wf")
+		return ".wf is reserved for Writer Framework";
+	if (pathSegments.some((segment) => segment === "")) return "Invalid path";
+
+	return null;
 }
 </script>
 
