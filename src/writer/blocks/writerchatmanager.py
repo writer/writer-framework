@@ -147,8 +147,11 @@ class WriterChatManager(WriterBlock):
             init_model_id = self._get_field(
                 "initModelId", False, default_field_value=DEFAULT_MODEL
             )
-            init_temperature = float(self._get_field("initTemperature", False, "0.7"))
-            init_max_tokens = int(self._get_field("initMaxTokens", False, "1024"))
+            try:
+                init_temperature = float(self._get_field("initTemperature", False, "0.7"))
+                init_max_tokens = int(self._get_field("initMaxTokens", False, "1024"))
+            except ValueError as e:
+                raise WriterConfigurationError(f"Invalid numeric value in configuration: {e}")
             use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
             generate_reply = self._get_field("generateReply", False, "no") == "yes"
             tools_raw = self._get_field("tools", True)
