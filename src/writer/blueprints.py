@@ -754,7 +754,7 @@ class GraphRunner:
                         raise WriterConfigurationError(
                             f"Expected GraphNode, got {type(result).__name__}."
                         )
-                    node: GraphNode = result
+                    result_node: GraphNode = result
                 except BlueprintExecutionError as e:
                     raise e
                 except BaseException as e:
@@ -765,16 +765,16 @@ class GraphRunner:
                     raise BlueprintExecutionError(
                         f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
                     ) from e 
-                if node.outcome == "cancelled":
+                if result_node.outcome == "cancelled":
                    return
-                if node.return_value is not None:
+                if result_node.return_value is not None:
                     self._cancel_all_jobs()
                     self.status_logger.log(
-                        f"Execution completed, node {node.id} returned value: {node.return_value}",
+                        f"Execution completed, node {result_node.id} returned value: {result_node.return_value}",
                         entry_type="info"
                     )
-                    return node.return_value
-                for output in node.outputs:
+                    return result_node.return_value
+                for output in result_node.outputs:
                     to_node_id = output.get("toNodeId")
                     next_node = self.graph.get_node(to_node_id)
                     if next_node:

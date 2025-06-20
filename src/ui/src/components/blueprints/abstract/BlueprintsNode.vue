@@ -288,7 +288,11 @@ function handleOutMousedown(ev: DragEvent, outId: string | number) {
 }
 
 const possibleImageUrls = computed(() => {
-	if (["success", "error", "skipped", "cancelled"].includes(completionStyle.value)) {
+	if (
+		["success", "error", "skipped", "cancelled"].includes(
+			completionStyle.value,
+		)
+	) {
 		const path = `/status/${completionStyle.value}.svg`;
 		return [convertAbsolutePathtoFullURL(path)];
 	}
