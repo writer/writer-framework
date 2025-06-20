@@ -16,6 +16,7 @@ class WriterInitChat(WriterBlock):
                 "name": "Start chat conversation",
                 "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",
                 "category": "Writer",
+                "deprecated": True,
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",

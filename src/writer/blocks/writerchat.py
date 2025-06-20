@@ -15,6 +15,7 @@ class WriterChat(WriterBlock):
                     "name": "Generate chat reply",
                     "description": "Generates an AI chat response using the full conversation history. Requires prior messages.",
                     "category": "Writer",
+                    "deprecated": True,
                     "fields": {
                         "conversationStateElement": {
                             "name": "Conversation state element",

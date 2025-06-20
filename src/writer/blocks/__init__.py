@@ -15,6 +15,7 @@ from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
+from writer.blocks.writerchatmanager import WriterChatManager
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerfileapi import WriterUploadFile
@@ -28,6 +29,7 @@ from writer.blocks.writervision import WriterVision
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
 WriterCompletion.register("blueprints_writercompletion")
+WriterChatManager.register("blueprints_writerchatmanager")
 HTTPRequest.register("blueprints_httprequest")
 RunBlueprint.register("blueprints_runblueprint")
 WriterNoCodeApp.register("blueprints_writernocodeapp")
