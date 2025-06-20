@@ -89,9 +89,8 @@ const linkTooltip = computed(() => {
 });
 
 const ressourceUrl = computed(() => {
-	const value = Array.isArray(selected.value)
-		? selected.value[0]
-		: selected.value;
+	if (Array.isArray(selected.value)) return;
+	const value = selected.value;
 	if (!value) return;
 
 	const orgId = selectorEl.value?.selectedData?.organization_id;
