@@ -7,7 +7,7 @@
 			:custom-size="triggerCustomSize"
 			@click.stop="isOpen = !isOpen"
 		>
-			<i class="material-symbols-outlined">more_horiz</i>
+			<i class="material-symbols-outlined">{{ triggerIcon }}</i>
 		</WdsButton>
 		<WdsDropdownMenu
 			v-if="isOpen"
@@ -55,6 +55,7 @@ const props = defineProps({
 		default: () => [],
 	},
 	triggerCustomSize: { type: String, default: "smallIcon" },
+	triggerIcon: { type: String, default: "more_horiz" },
 	disabled: { type: Boolean },
 	hideIcons: { type: Boolean, required: false },
 	dropdownPlacement: {

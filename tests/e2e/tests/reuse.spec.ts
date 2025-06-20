@@ -75,11 +75,8 @@ test.describe("Reuse component", () => {
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
 		await page.locator(selector).click();
-		await page
-			.locator(
-				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
-			)
-			.click();
+		await page.keyboard.press("Delete");
+
 		await expect(page.locator(selector)).not.toBeVisible();
 		await expect(page.locator(selector)).toHaveCount(0);
 	};
@@ -151,7 +148,6 @@ test.describe("Reuse component", () => {
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(
 				/invalid-context/,
 			);
-			collapseSettingsBar(page);
 		});
 	});
 
