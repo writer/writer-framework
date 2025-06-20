@@ -114,7 +114,7 @@ class WriterChat(WriterBlock):
 
             if conversation is None or not isinstance(conversation, writer.ai.Conversation):
                 raise ValueError(
-                    "The state element specified doesn't contain a conversation. Initialize one using the block 'Initialize chat'."
+                    "The state element specified doesn't contain a conversation. Initialize one using the block 'Start chat conversation'."
                 )
 
             msg = ""

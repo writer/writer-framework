@@ -81,30 +81,6 @@ class MockPassBlock(BlueprintBlock):
             self.result = "No value"
         self.outcome = "success"
 
-class MockEventBlock(BlueprintBlock):
-    @classmethod
-    def register(cls, type: str):
-        tools[type] = cls
-
-    def run(self):
-        event = self.component.content.get("event")
-        if isinstance(event, Event):
-            event.wait(timeout=5)
-        self.result = "ok"
-        self.outcome = "success"
-
-class MockCallGraphBlock(BlueprintBlock):
-    @classmethod
-    def register(cls, type: str):
-        tools[type] = cls
-
-    def run(self):
-        graph = self.component.content.get("graph")
-        if isinstance(graph, Graph):
-            run_graph(graph, self.execution_environment)
-        self.result = "test result"
-        self.outcome = "success"
-
 class CodeBlock(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
@@ -153,8 +129,6 @@ class MockRunner:
             if new_executor:
                 new_executor.shutdown()
 
-MockEventBlock.register("event")
-MockCallGraphBlock.register("call_graph")
 CodeBlock.register("code")
 MockReturnBlock.register("return")
 MockFailingBlock.register("mock_failing_block")

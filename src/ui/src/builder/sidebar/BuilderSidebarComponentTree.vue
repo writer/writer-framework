@@ -116,9 +116,9 @@ async function addBlueprint() {
 }
 
 .add {
-	flex: 0 0 48px;
+	flex: 0 0 var(--builderPanelSwitcherHeight);
 	bottom: 0;
-	height: 48px;
+	height: var(--builderPanelSwitcherHeight);
 	display: flex;
 	align-items: center;
 	justify-content: center;

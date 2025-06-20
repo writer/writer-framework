@@ -90,7 +90,7 @@ import {
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
-import { useBlueprintUserState } from "../useBlueprintUserState";
+import { useDynamicUserState } from "../useDynamicUserState";
 
 const { secrets } = inject(injectionKeys.secretsManager);
 
@@ -126,9 +126,10 @@ const wf = inject(injectionKeys.core);
 const input = useTemplateRef("input");
 const dropdown = useTemplateRef("dropdown");
 
-const autocompleteOptions = shallowRef<{ text: string; type: string }[]>([]);
+type AutocompleteOption = { text: string; type: string };
+const autocompleteOptions = shallowRef<AutocompleteOption[]>([]);
 
-const blueprintUserState = useBlueprintUserState(wf);
+const { blueprintsUserState, bindingsUserState } = useDynamicUserState(wf);
 
 const { floatingStyles, update } = useFloating(input, dropdown, {
 	placement: "bottom-start",
@@ -230,7 +231,8 @@ function handleInput(ev) {
 
 const autoCompletionState = computed(() => {
 	const state: Record<string, unknown> = {
-		...blueprintUserState.value,
+		...bindingsUserState.value,
+		...blueprintsUserState.value,
 		...(wf.userState.value ?? {}),
 	};
 
@@ -256,12 +258,26 @@ function showAutocomplete() {
 	const keyword = full.at(-1);
 	const path = full.slice(0, -1);
 
-	const allOptions = Object.entries(
-		_get(autoCompletionState.value, path) ?? {},
-	).map(([key, val]) => ({
-		text: escapeVariable(key),
-		type: typeToString(val),
-	}));
+	function computeAllOptions(object: Record<string, unknown>, prefix = []) {
+		if (prefix.length > 10) return; // avoid too long recursion
+
+		const currentPath = [...path, ...prefix];
+		for (const [key, val] of Object.entries(
+			_get(object, currentPath) ?? {},
+		)) {
+			const type = typeToString(val);
+			const text = [...prefix, escapeVariable(key)].join(".");
+			allOptions.push({ text, type });
+
+			if (type === "object" && !Array.isArray(val) && val !== null) {
+				computeAllOptions(object, [...prefix, key]);
+			}
+		}
+	}
+
+	const allOptions: AutocompleteOption[] = [];
+	computeAllOptions(autoCompletionState.value);
+	allOptions.sort((a, b) => a.text.localeCompare(b.text));
 
 	const fuse = new Fuse(allOptions, {
 		findAllMatches: true,

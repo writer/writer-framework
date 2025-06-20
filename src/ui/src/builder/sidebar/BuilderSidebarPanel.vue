@@ -40,18 +40,12 @@ const searchRightText = computed(() => {
 
 <style scoped>
 .BuilderSidebarPanel {
-	display: grid;
-	grid-template-rows: 1fr;
-	grid-template-columns: 100%;
+	display: flex;
+	flex-direction: column;
 	height: 100%;
 	width: 100%;
 	position: relative;
-	overflow-x: auto;
-	overflow-y: auto;
-}
-
-.BuilderSidebarPanel:has(.BuilderSidebarPanel__inputContainer) {
-	grid-template-rows: auto 1fr;
+	overflow: hidden;
 }
 
 .BuilderSidebarPanel__inputContainer {
@@ -75,9 +69,12 @@ const searchRightText = computed(() => {
 	padding-left: 16px;
 	padding-right: 16px;
 	gap: 16px;
+	flex: 1;
 	flex-direction: column;
+	overflow: auto;
 }
 .BuilderSidebarPanel__footer {
+	background: var(--builderBackgroundColor);
 	position: sticky;
 	bottom: 0px;
 	left: 0px;

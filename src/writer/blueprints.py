@@ -278,7 +278,7 @@ class BlueprintRunner:
 class GraphNode:
     tool_class: writer.blocks.base_block.BlueprintBlock_T
     component: writer.core_ui.Component
-    future: Optional[Future["GraphNode"]] = None
+    future: Optional[Future] = None
     tool: Optional[writer.blocks.base_block.BlueprintBlock] = None
     # filrered lists of inputs and outputs with only edges from graph
     inputs: List[Any]
@@ -422,7 +422,7 @@ class GraphNode:
                 return False
         return True
 
-    def run(self, execution_environment: Dict, runner, executor) -> Future["GraphNode"]:
+    def run(self, execution_environment: Dict, runner, executor) -> Future:
         if self.outcome is not None or self._is_skipped():
             self.status = "skipped"
             future: Future = Future()
@@ -580,7 +580,7 @@ class GraphBuilder:
                 continue
             for out in component.outs:
                 next_component_id = out["toNodeId"]
-                if next_component_id in component_map:
+                if next_component_id in component_map and next_component_id not in filtered_components:
                     queue.append(component_map[next_component_id])
 
         return [ 
@@ -593,13 +593,14 @@ class StatusLogger:
     def __init__(self,
         graph: Graph,
         runner,
-        run_id: Optional[str] = None,
+        run_id: str,
         title: str = "Blueprint execution"
     ):
         self.runner = runner
         self.graph = graph
         self.title = title
-        self.run_id = self._generate_run_id()
+        self.run_id = run_id
+        self.log_id = self._generate_run_id()
 
     def log(
         self,
@@ -608,8 +609,8 @@ class StatusLogger:
     ):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
-        run_id = self.run_id
-        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(summary=[])
+        log_id = self.log_id
+        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(runId=self.run_id, summary=[])
         for node in self.graph.nodes:
             #print(node.debug_info())
             if node.tool is None:
@@ -660,9 +661,15 @@ class StatusLogger:
                 }
             )
         self.runner.session.session_state.add_log_entry(
-            entry_type, self.title, msg, blueprint_execution=exec_log, id=run_id
+            entry_type, self.title, msg, blueprint_execution=exec_log, id=log_id
         )
 
+    def _generate_run_id(self):
+        timestamp = str(int(time.time() * 1000))
+        salt = os.urandom(8).hex()
+        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
+        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
+        return hashed_id
 
     def _summarize_data_for_log(self, data):
         """Convert arbitrary data into a log friendly representation."""
@@ -687,13 +694,6 @@ class StatusLogger:
         except (TypeError, OverflowError):
             return f"Can't be displayed in the log. Value of type: {str(type(data))}."
 
-    def _generate_run_id(self):
-        timestamp = str(int(time.time() * 1000))
-        salt = os.urandom(8).hex()
-        raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
-        hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
-        return hashed_id
-
 class GraphRunner:
     def __init__(self, 
         graph: Graph,
@@ -704,9 +704,10 @@ class GraphRunner:
         self.runner = runner
         self.graph = graph
         self.execution_environment = execution_environment
-        self.run_id = execution_environment.get("run_id", self._generate_run_id())
-        self.execution_environment["run_id"] = self.run_id
-        self.status_logger = StatusLogger(self.graph, self.runner, run_id=self.run_id, title=title)
+        self.run_id = execution_environment.get("blueprint_run_id", self._generate_run_id())
+        execution_environment["blueprint_run_id"] = self.run_id
+        self.status_logger = StatusLogger(self.graph, self.runner, self.run_id, title)
+
         self._stopped = threading.Event()
         self.queue = self.graph.get_start_nodes()
         self.futures: List[Future[GraphNode]] = []
@@ -723,7 +724,7 @@ class GraphRunner:
 
         with self.runner._get_executor() as executor:
             with self.runner.run_manager.register(self.run_id, self):
-                stopped = self.create_stopped_future(executor)
+                stopped = self._create_stopped_future(executor)
                 try:
                     return self._execute(executor, stopped)
                 finally:
@@ -781,7 +782,7 @@ class GraphRunner:
 
         self.status_logger.log("Execution completed.")
 
-    def create_stopped_future(self, executor) -> Future:
+    def _create_stopped_future(self, executor) -> Future:
         def wait_for_cancel():
             self._stopped.wait()
             return "stopped"

@@ -33,12 +33,27 @@
 				</div>
 			</div>
 		</div>
+
+		<template v-if="rootComponentId == 'blueprints_root'" #footer>
+			<div class="BuilderSidebarPanel__footer__autogen">
+				<WdsButton
+					variant="special"
+					size="small"
+					class="BuilderSidebarPanel__footer__btn"
+					@click="showAutogen"
+				>
+					<i class="material-symbols-outlined">wand_shine</i>
+					Autogenerate
+				</WdsButton>
+			</div>
+		</template>
 	</BuilderSidebarPanel>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
+import WdsButton from "@/wds/WdsButton.vue";
 import {
 	getComponentDefinition,
 	getSupportedComponentTypes,
@@ -49,10 +64,20 @@ import { Component } from "@/writerTypes";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 
+const isAutogenModalShown = inject(
+	injectionKeys.isAutogenModalShown,
+	ref(false),
+);
+function showAutogen() {
+	isAutogenModalShown.value = true;
+}
+
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
+
+const rootComponentId = wfbm.activeRootId;
 
 const displayedCategories = [
 	"Layout",
@@ -175,5 +200,23 @@ watch(activeToolkit, () => {
 
 .tool:hover {
 	background: var(--builderSubtleSeparatorColor);
+}
+
+.BuilderSidebarPanel__footer__autogen {
+	flex: 0 0 var(--builderPanelSwitcherHeight);
+	bottom: 0;
+	height: var(--builderPanelSwitcherHeight);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-top: 1px solid var(--builderSeparatorColor);
+	background: var(--builderBackgroundColor);
+}
+
+.BuilderSidebarPanel__footer__btn {
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 180%;
+	min-width: 190px;
 }
 </style>

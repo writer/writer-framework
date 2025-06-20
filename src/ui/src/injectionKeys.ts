@@ -33,4 +33,5 @@ export default {
 	instancePath: Symbol() as InjectionKey<InstancePath>,
 	flattenedInstancePath: Symbol() as InjectionKey<string>,
 	instanceData: Symbol() as InjectionKey<Ref[]>,
+	isAutogenModalShown: Symbol() as InjectionKey<Ref<boolean>>,
 };

@@ -56,7 +56,7 @@
 				<hr />
 				<BuilderSidebarButton
 					target="_blank"
-					href="https://dev.writer.com/framework/"
+					href="https://dev.writer.com/agent-builder/overview"
 					icon="help"
 					data-writer-tooltip-placement="right"
 					data-writer-tooltip="Docs"
