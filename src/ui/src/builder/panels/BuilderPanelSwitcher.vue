@@ -44,6 +44,7 @@ const screenEl = useTemplateRef("screenEl");
 	grid-template-rows: var(--builderPanelSwitcherHeight);
 	grid-template-columns: 1fr;
 	z-index: 2; /* makes sure it's on top of `.ComponentRenderer` */
+	height: 100%;
 }
 
 .BuilderPanelSwitcher.openPanels {

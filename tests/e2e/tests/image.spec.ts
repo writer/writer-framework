@@ -17,6 +17,7 @@ test.describe("image", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("configure", async ({ page }) => {

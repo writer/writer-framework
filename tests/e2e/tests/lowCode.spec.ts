@@ -57,6 +57,7 @@ test.describe("low-code UI", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("init_ui -  ui initialization", async ({ page }) => {

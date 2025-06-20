@@ -52,18 +52,20 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const { writerApi } = useWriterApi({ signal: abortControler.signal });
 	const logger = useLogger();
 
-	onMounted(async () => {
-		if (!wf.isWriterCloudApp || isIdentified) return;
-		isIdentified = true;
-		try {
-			await writerApi.analyticsIdentify();
-		} catch (e) {
-			logger.error(
-				"Failed to identify the current user for analytics",
-				e,
-			);
-		}
-	});
+	if (!isIdentified) {
+		onMounted(async () => {
+			if (!wf.isWriterCloudApp.value || isIdentified) return;
+			isIdentified = true;
+			try {
+				await writerApi.analyticsIdentify();
+			} catch (e) {
+				logger.error(
+					"Failed to identify the current user for analytics",
+					e,
+				);
+			}
+		});
+	}
 
 	function expandEventPropertiesWithResources(
 		properties: EventPropertiesWithResources,

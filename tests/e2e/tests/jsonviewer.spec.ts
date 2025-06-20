@@ -14,7 +14,8 @@ test.describe("JSON viewer", () => {
 	});
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto(url, {waitUntil: "domcontentloaded"});
+		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 		test.setTimeout(5000);
 	});
 

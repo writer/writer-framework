@@ -16,6 +16,7 @@ test.describe("sidebar", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
 		test.setTimeout(5000);
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test.describe("Toolkit", () => {

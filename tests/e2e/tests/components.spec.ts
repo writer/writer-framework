@@ -107,6 +107,7 @@ function fullTest({ type, locator }: ComponentTestData) {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 		});
 
 		test("create, drag and drop and remove", async ({ page }) => {
@@ -160,6 +161,7 @@ function basicTest({ type, locator }: ComponentTestData) {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 		});
 
 		test("create and remove", async ({ page }) => {

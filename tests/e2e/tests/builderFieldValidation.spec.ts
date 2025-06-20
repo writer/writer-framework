@@ -16,6 +16,7 @@ test.describe("Builder field validation", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
 		test.setTimeout(5000);
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("should display error for invalid button fields", async ({ page }) => {
