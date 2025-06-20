@@ -3,7 +3,12 @@
 		class="BuilderFieldsWriterResourceId"
 		:data-automation-key="props.fieldKey"
 	>
-		<component :is="selector" ref="selectorEl" v-model="selected" />
+		<component
+			:is="selector"
+			ref="selectorEl"
+			v-model="selected"
+			:enable-multi-selection="enableMultiSelection"
+		/>
 		<a
 			v-if="ressourceUrl"
 			class="BuilderFieldsWriterResourceId__link"
@@ -50,8 +55,9 @@ const props = defineProps({
 		type: String as PropType<"graph" | "application" | "model">,
 		required: true,
 	},
+	enableMultiSelection: { type: Boolean, required: false, default: false },
 });
-const { componentId, fieldKey } = toRefs(props);
+const { componentId, fieldKey, enableMultiSelection } = toRefs(props);
 const component = computed(() => wf.getComponentById(componentId.value));
 
 const selectorEl = useTemplateRef("selectorEl");
@@ -83,18 +89,20 @@ const linkTooltip = computed(() => {
 });
 
 const ressourceUrl = computed(() => {
-	if (!selected.value) return;
+	if (Array.isArray(selected.value)) return;
+	const value = selected.value;
+	if (!value) return;
 
 	const orgId = selectorEl.value?.selectedData?.organization_id;
 	if (!orgId) return;
 
 	switch (props.resourceType) {
 		case "graph": {
-			const params = new URLSearchParams({ graphId: selected.value });
+			const params = new URLSearchParams({ graphId: value });
 			return `https://app.writer.com/aistudio/organization/${orgId}/knowledge-graph?${params}`;
 		}
 		case "application":
-			return `https://app.writer.com/aistudio/organization/${orgId}/app/${selected.value}`;
+			return `https://app.writer.com/aistudio/organization/${orgId}/app/${value}`;
 		case "model":
 			return `https://dev.writer.com/home/models#model-overview`;
 		default:
@@ -107,13 +115,35 @@ const fieldDefinition = computed(() => {
 	return def?.fields?.[props.fieldKey];
 });
 
-const selected = computed<string>({
-	get: () =>
-		component.value.content[props.fieldKey] ||
-		fieldDefinition.value.default ||
-		"",
-	set(value) {
-		setContentValue(component.value.id, fieldKey.value, String(value));
+const selected = computed<string | string[]>({
+	get() {
+		if (enableMultiSelection.value) {
+			const raw =
+				component.value.content[props.fieldKey] ??
+				fieldDefinition.value.default ??
+				"[]";
+			try {
+				return JSON.parse(raw);
+			} catch {
+				return [];
+			}
+		}
+		return (
+			component.value.content[props.fieldKey] ||
+			fieldDefinition.value.default ||
+			""
+		);
+	},
+	set(value: string | string[]) {
+		if (enableMultiSelection.value) {
+			setContentValue(
+				component.value.id,
+				fieldKey.value,
+				JSON.stringify(value),
+			);
+		} else {
+			setContentValue(component.value.id, fieldKey.value, String(value));
+		}
 	},
 });
 
