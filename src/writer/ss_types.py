@@ -294,6 +294,7 @@ class ComponentDefinition(TypedDict):
 
 
 class BlueprintExecutionLog(BaseModel):
+    runId: str
     summary: List[Dict]
 
 

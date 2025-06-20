@@ -7,6 +7,7 @@
 			'BlueprintsNode--deprecated': isDeprecated,
 			'BlueprintsNode--running': completionStyle == 'running',
 			'BlueprintsNode--success': completionStyle == 'success',
+			'BlueprintsNode--skipped': completionStyle == 'skipped',
 			'BlueprintsNode--error': completionStyle == 'error',
 		}"
 	>
@@ -134,6 +135,7 @@ const isDeprecated = computed(() => {
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
+	if (latestKnownOutcome.value == "skipped") return "skipped";
 	if (latestKnownOutcome.value == "in_progress") return "running";
 
 	// Any dynamic out is considered success
@@ -143,21 +145,46 @@ const completionStyle = computed(() => {
 	);
 });
 
-const latestKnownOutcome = computed(() => {
+const latestRun = computed(() => {
 	const logEntries = wfbm.getLogEntries();
+	const runId =
+		logEntries.find((entry) => {
+			return !!entry.blueprintExecution;
+		})?.blueprintExecution?.runId ?? null;
+	return logEntries.filter((entry) => {
+		return entry?.blueprintExecution?.runId === runId;
+	});
+});
 
-	for (let i = 0; i < logEntries.length; i++) {
-		const logEntry = logEntries[i];
-		const we = logEntry.blueprintExecution;
-		if (!we) continue;
-		for (let j = 0; j < we.summary.length; j++) {
-			const item = we.summary[j];
-			if (item.componentId !== component.value.id) continue;
-			return item.outcome;
-		}
-	}
+const outcomeSeverity = {
+	in_progress: 5,
+	error: 4,
+	success: 3,
+	cancelled: 2,
+	skipped: 1,
+	none: 0,
+};
 
-	return null;
+const latestKnownOutcome = computed(() => {
+	const executionLogs = latestRun.value
+		.map((entry) => {
+			return entry.blueprintExecution;
+		})
+		.filter(Boolean);
+	let outcome = "none";
+	executionLogs.forEach((log) => {
+		log.summary
+			.filter((item) => item.componentId === component.value.id)
+			.filter((item) => Boolean(item.outcome))
+			.forEach((item) => {
+				const severity =
+					outcomeSeverity[item.outcome] ?? outcomeSeverity.success;
+				if (severity > outcomeSeverity[outcome]) {
+					outcome = item.outcome;
+				}
+			});
+	});
+	return outcome === "none" ? null : outcome;
 });
 
 const isEngaged = computed(() => {
@@ -259,7 +286,7 @@ function handleOutMousedown(ev: DragEvent, outId: string | number) {
 }
 
 const possibleImageUrls = computed(() => {
-	if (["success", "error"].includes(completionStyle.value)) {
+	if (["success", "error", "skipped"].includes(completionStyle.value)) {
 		const path = `/status/${completionStyle.value}.svg`;
 		return [convertAbsolutePathtoFullURL(path)];
 	}
@@ -293,6 +320,10 @@ watch(isEngaged, () => {
 
 .BlueprintsNode--success {
 	background: var(--wdsColorGreen3) !important;
+}
+
+.BlueprintsNode--skipped {
+	background: var(--wdsColorGray3) !important;
 }
 
 .BlueprintsNode--error {
