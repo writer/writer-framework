@@ -1,6 +1,6 @@
 import { computed, readonly, ref, Ref } from "vue";
 import { Component } from "@/writerTypes";
-import { useLocalStorageJSON } from "@/composables/useLocalStorageJSON";
+import { useSessionStorageJSON } from "@/composables/useStorageJSON";
 import { useLogger } from "@/composables/useLogger.js";
 
 export const CANDIDATE_CONFIRMATION_DELAY_MS = 1500;
@@ -99,7 +99,7 @@ function isBuilderManagerMode(v: unknown): v is BuilderManagerMode {
 }
 
 export function generateBuilderManager() {
-	const modeCache = useLocalStorageJSON<BuilderManagerMode>(
+	const modeCache = useSessionStorageJSON<BuilderManagerMode>(
 		"generateBuilderManager__mode",
 		isBuilderManagerMode,
 	);
