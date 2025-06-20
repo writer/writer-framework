@@ -54,7 +54,7 @@ def test_init_and_add_message(session, runner, fake_client):
     block = WriterChatManager(component, runner, {})
     block.run()
     assert isinstance(session.session_state["convo"], writer.ai.Conversation)
-    assert session.session_state["convo"].messages[0]["content"] == "hi"
+    assert session.session_state["convo"].messages[1]["content"] == "hi"
 
 
 def test_add_message_existing(session, runner, fake_client):
