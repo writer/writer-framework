@@ -472,8 +472,6 @@ onUnmounted(() => {
 	--builderWarningTextColor: white;
 	--builderWarningColor: var(--wdsColorOrange5);
 	--builderPanelSwitcherHeight: 48px;
-	--builderPanelSwitcherExpandedHeight: calc(50% - 24px);
-
 	--buttonColor: var(--wdsColorBlue5);
 	--buttonTextColor: white;
 	--accentColor: var(--builderAccentColor);
