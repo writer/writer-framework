@@ -28,7 +28,11 @@ class APITrigger(BlueprintTrigger):
                             "style": "success",
                         },
                     },
+                    "featureFlags": [
+                        "api_trigger"
+                    ]
                 },
+                
             ),
         )
 

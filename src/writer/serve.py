@@ -178,27 +178,6 @@ def get_asgi_app(
 
     # Init
 
-    def _apply_feature_flags_to_templates(
-        templates: Dict[str, Any], feature_flags: List[str]
-    ) -> Dict[str, Any]:
-        """
-        Applies feature flags to the templates by removing the ones that are not enabled.
-        """
-
-        # Restrict blocks by feature flags
-        restricted = {
-            "blueprints_apitrigger": "api_trigger",
-            "blueprints_writervision": "vision_block",
-        }
-
-        templates = {
-                k: v for k, v in templates.items()
-                if restricted.get(k, "") in feature_flags
-                or restricted.get(k) is None
-            }
-
-        return templates
-
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
             mode="run",
@@ -216,10 +195,6 @@ def get_asgi_app(
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
 
-        prepared_templates = _apply_feature_flags_to_templates(
-            abstract.templates, payload.featureFlags
-        )
-
         return InitResponseBodyEdit(
             mode="edit",
             sessionId=payload.sessionId,
@@ -231,7 +206,7 @@ def get_asgi_app(
             sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=prepared_templates,
+            abstractTemplates=abstract.templates,
             writerApplication=payload.writerApplication,
         )
 

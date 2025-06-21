@@ -15,6 +15,7 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
+	setActiveFeatureFlags,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -119,6 +120,7 @@ export function generateCore() {
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
+		setActiveFeatureFlags(featureFlags.value);
 		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
