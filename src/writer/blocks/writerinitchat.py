@@ -2,7 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
-DEFAULT_MODEL = "palmyra-x-004"
+DEFAULT_MODEL = "palmyra-x5"
 
 
 class WriterInitChat(WriterBlock):
