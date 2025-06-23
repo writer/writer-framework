@@ -47,6 +47,7 @@ from writer.ss_types import (
     InitSessionResponsePayload,
     ListResourcesRequest,
     ListResourcesRequestPayload,
+    QueueMessageRequest,
     ServeMode,
     SourceFilesDirectory,
     StateContentRequest,
@@ -404,6 +405,17 @@ class AppProcess(multiprocessing.Process):
 
             if type == "setUserinfo":
                 session.userinfo = request.payload
+                return AppProcessServerResponse(status="ok", status_message=None, payload=None)
+
+            if type == "queueMessage":
+                session.queued_messages.append(request.payload)
+                return AppProcessServerResponse(status="ok", status_message=None, payload=None)
+
+            if type == "retrieveMessages":
+                return AppProcessServerResponse(status="ok", status_message=None, payload=session.queued_messages)
+
+            if type == "clearMessages":
+                session.queued_messages = []
                 return AppProcessServerResponse(status="ok", status_message=None, payload=None)
 
             if self.mode == "edit" and type == "hashRequest":
@@ -962,6 +974,23 @@ class AppRunner:
         _, components = wf_project.read_files(self.app_path)
         components = audit_and_fix.fix_components(components)
         return components
+
+    async def queue_message(self, session_id: str, data: Any) -> AppProcessServerResponse:
+        return await self.dispatch_message(session_id, QueueMessageRequest(type="queueMessage", payload=data))
+
+    async def retrieve_messages(self, session_id: str) -> list:
+        response = await self.dispatch_message(
+            session_id, AppProcessServerRequest(type="retrieveMessages", payload=None)
+        )
+        if isinstance(response.payload, list):
+            return response.payload
+        return []
+
+    async def clear_messages(self, session_id: str) -> AppProcessServerResponse:
+        response = await self.dispatch_message(
+            session_id, AppProcessServerRequest(type="clearMessages", payload=None)
+        )
+        return response
 
     async def check_session(self, session_id: str) -> bool:
         response = await self.dispatch_message(
