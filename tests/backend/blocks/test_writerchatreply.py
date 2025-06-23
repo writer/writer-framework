@@ -2,7 +2,7 @@ import json
 
 import pytest
 import writer.ai
-from blocks.writerchatreply import WriterChatReply
+from writer.blocks.writerchatreply import WriterChatReply
 
 
 class MockConversation(writer.ai.Conversation):
