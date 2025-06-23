@@ -88,11 +88,10 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, computed, defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
-import type { JSONValue } from "./BuilderFieldsKeyValue.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { Mode, useKeyValueEditor } from "./composables/useKeyValueEditor";
@@ -105,13 +104,8 @@ const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 
 const props = defineProps({
 	data: {
-		type: [Object, String] as PropType<JSONValue>,
+		type: String,
 		required: true,
-	},
-	initialMode: {
-		type: String as PropType<Mode>,
-		required: false,
-		default: "assisted",
 	},
 });
 
@@ -121,17 +115,15 @@ const {
 	freehandValue,
 	isValid,
 	currentValue,
-	isInBindingMode,
 	addAssistedEntry,
 	updateAssistedEntryValue,
 	updateAssistedEntryKey,
 	removeAssistedEntry,
 	getAssistedEntryError,
 } = useKeyValueEditor(props.data);
-mode.value = props.initialMode;
 
 const emits = defineEmits({
-	submit: (data: JSONValue) => typeof data === "object" && data !== undefined,
+	submit: (data: string) => typeof data === "string",
 	close: () => true,
 });
 
@@ -139,26 +131,14 @@ const actions = computed<ModalAction[]>(() => [
 	{
 		desc: "Save",
 		fn: () => emits("submit", currentValue.value),
-		disabled:
-			JSON.stringify(props.data) === JSON.stringify(currentValue.value) ||
-			!isValid.value,
+		disabled: props.data === currentValue.value || !isValid.value,
 	},
 ]);
 
-const tabs = computed<WdsTabOptions<Mode>[]>(() => {
-	let listDisabled = undefined;
-
-	if (isInBindingMode.value) {
-		listDisabled = "The value is binded to the state";
-	} else if (mode.value === "freehand" && !isValid.value) {
-		listDisabled = "The JSON is not valid";
-	}
-
-	return [
-		{ label: "List", value: "assisted", disabled: listDisabled },
-		{ label: "JSON", value: "freehand" },
-	];
-});
+const tabs: WdsTabOptions<Mode>[] = [
+	{ label: "List", value: "assisted" },
+	{ label: "JSON", value: "freehand" },
+];
 </script>
 
 <style scoped>
