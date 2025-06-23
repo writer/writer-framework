@@ -1,3 +1,4 @@
+import bisect
 import json
 import os
 import re
@@ -55,6 +56,7 @@ class Evaluator:
             raise ValueError(f'Component with id "{component_id}" not found.')
 
         field_value = component.content.get(field_key) or default_field_value
+        unescaped_quotes = self._find_unescaped_quotes(field_value)
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
         def replacer(matched: re.Match):
@@ -66,11 +68,13 @@ class Evaluator:
                 return expr_value
             if as_json:
                 dumped = expr_value
-                if not isinstance(dumped, str):
-                    dumped = json.dumps(dumped)
+                if self._is_inside_string(unescaped_quotes, matched.start()):
+                    if not isinstance(dumped, str):
+                        dumped = json.dumps(dumped)
+                    dumped = re.sub(r'(?<!\\)"', r'\"', dumped)
                 else:
                     dumped = json.dumps(dumped)[1:-1]
-                return re.sub(r'(?<!\\)"', r'\"', dumped)
+                return dumped
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
             return expr_value
@@ -83,6 +87,31 @@ class Evaluator:
             replaced = decode_json(replaced)
 
         return replaced
+
+    def _find_unescaped_quotes(self, json_str: str) -> List[int]:
+        """
+        Find the indices of unescaped double-quotes in a JSON string.
+
+        - \" is considered escaped (odd number of backslashes → skip)
+        - \\" is considered unescaped (even number of backslashes → treat as real quote)
+        """
+        indices = []
+        backslash_count = 0
+
+        for i, char in enumerate(json_str):
+            if char == '\\':
+                backslash_count += 1
+            else:
+                if char == '"':
+                    if backslash_count % 2 == 0:
+                        indices.append(i)
+                backslash_count = 0
+
+        return indices
+    
+    def _is_inside_string(self, boundaries: List[int], index: int):
+        quote_count_before = bisect.bisect_right(boundaries, index)
+        return quote_count_before % 2 == 1
 
     def get_context_data(self, instance_path: InstancePath, base_context={}) -> Dict[str, Any]:
         context: Dict[str, Any] = base_context
