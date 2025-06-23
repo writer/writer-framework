@@ -37,6 +37,9 @@ MessageType = Literal[
     "hashRequest",
     "listResources",
     "writerVaultUpdate",
+    "queueMessage",
+    "retrieveMessages",
+    "clearMessages"
 ]
 
 
@@ -183,6 +186,10 @@ class HashRequest(AppProcessServerRequest):
     type: Literal["hashRequest"]
     payload: HashRequestPayload
 
+
+class QueueMessageRequest(AppProcessServerRequest):
+    type: Literal["queueMessage"]
+    payload: Any
 
 AppProcessServerRequestPacket = Tuple[int, str, AppProcessServerRequest]
 

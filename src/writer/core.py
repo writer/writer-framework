@@ -160,6 +160,7 @@ class WriterSession:
         self.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
         self.event_handler = EventHandler(self)
         self.userinfo: Optional[dict] = None
+        self.queued_messages = []
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
