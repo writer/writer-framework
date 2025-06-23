@@ -1,51 +1,57 @@
 import { computed, readonly, ref, shallowRef } from "vue";
 import type { JSONValue } from "../BuilderFieldsKeyValue.vue";
+import { TEMPLATE_REGEX } from "@/renderer/useEvaluator";
 
 type AssistedEntry = { key: string; value: string };
 export type Mode = "assisted" | "freehand";
 
-function isEvaluatedValue(value: unknown): value is string {
-	return typeof value === "string" && value.startsWith("@{");
+function isValidJSON(value: string) {
+	try {
+		JSON.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+function tryToParse(value: string) {
+	try {
+		return JSON.parse(value);
+	} catch {
+		return {};
+	}
 }
 
-export function useKeyValueEditor(originalValue: JSONValue | string) {
+export function useKeyValueEditor(originalValue: string | JSONValue) {
 	const getId = useId();
 
-	const mode = ref<Mode>("assisted");
+	const mode = ref<Mode>(computeInitialMode(originalValue));
+	const freehandValue = ref(
+		typeof originalValue === "string"
+			? originalValue
+			: JSON.stringify(originalValue),
+	);
+	const assistedEntries = shallowRef<Record<string, AssistedEntry>>({});
+
+	initializeAssistedEntries(originalValue);
 
 	function setMode(newMode: Mode) {
 		if (mode.value === newMode) return;
 		switch (newMode) {
 			case "assisted":
-				if (isInBindingMode.value) {
-					mode.value = "freehand";
-					return;
-				}
 				initializeAssistedEntries(currentValue.value);
 				break;
 			case "freehand":
-				if (!isInBindingMode.value) {
-					freehandValue.value = JSON.stringify(
-						currentValue.value,
-						undefined,
-						2,
-					);
-				}
+				freehandValue.value = JSON.stringify(
+					currentValueObject.value,
+					undefined,
+					2,
+				);
 				break;
 		}
 		mode.value = newMode;
 	}
 
-	const freehandValue = ref("");
-
-	const isInBindingMode = computed(() =>
-		isEvaluatedValue(freehandValue.value),
-	);
-
 	// assisted entries
-
-	const assistedEntries = shallowRef<Record<string, AssistedEntry>>({});
-	initializeAssistedEntries(originalValue);
 
 	function updateAssistedEntries(value: Record<string, unknown>) {
 		assistedEntries.value = Object.entries(value).reduce(
@@ -98,13 +104,19 @@ export function useKeyValueEditor(originalValue: JSONValue | string) {
 		}
 	}
 
-	function initializeAssistedEntries(object: JSONValue | string) {
-		if (isEvaluatedValue(object)) {
-			assistedEntries.value = {};
-			freehandValue.value = object;
-			mode.value = "freehand";
-			return;
-		}
+	function computeInitialMode(objectOrString: string | JSONValue): Mode {
+		return typeof objectOrString === "string" &&
+			(TEMPLATE_REGEX.exec(objectOrString) ||
+				!isValidJSON(objectOrString))
+			? "freehand"
+			: "assisted";
+	}
+
+	function initializeAssistedEntries(objectOrString: string | JSONValue) {
+		const object =
+			typeof objectOrString === "string"
+				? tryToParse(objectOrString)
+				: objectOrString;
 
 		assistedEntries.value = Object.entries(object).reduce<
 			Record<string, AssistedEntry>
@@ -139,43 +151,38 @@ export function useKeyValueEditor(originalValue: JSONValue | string) {
 			case "assisted":
 				return assitedEntriesDuplicatedKeys.value.size === 0;
 			case "freehand":
-				if (isInBindingMode.value) return true;
-				try {
-					JSON.parse(freehandValue.value);
-					return true;
-				} catch {
-					return false;
-				}
+				return true;
 			default:
 				return false;
 		}
 	});
 
-	const currentValue = computed<JSONValue>(() => {
+	const currentValue = computed<string>(() => {
 		switch (mode.value) {
-			case "assisted":
-				return Object.values(assistedEntries.value).reduce((acc, v) => {
-					acc[v.key] = v.value;
-					return acc;
-				}, {});
+			case "assisted": {
+				const obj = Object.values(assistedEntries.value).reduce(
+					(acc, v) => {
+						acc[v.key] = v.value;
+						return acc;
+					},
+					{},
+				);
+				return JSON.stringify(obj);
+			}
 			case "freehand":
-				if (isInBindingMode.value) {
-					return freehandValue.value;
-				}
+				return freehandValue.value;
 
-				try {
-					return JSON.parse(freehandValue.value);
-				} catch {
-					return {};
-				}
 			default:
-				return {};
+				return "";
 		}
 	});
 
+	const currentValueObject = computed<JSONValue>(() =>
+		tryToParse(currentValue.value),
+	);
+
 	return {
 		mode: computed<Mode>({ get: () => mode.value, set: setMode }),
-		isInBindingMode,
 		assistedEntries: readonly(assistedEntries),
 		addEntryDisabled: addAssistedEntryDisabled,
 		addAssistedEntry,
@@ -187,6 +194,7 @@ export function useKeyValueEditor(originalValue: JSONValue | string) {
 		freehandValue,
 		isValid,
 		currentValue,
+		currentValueObject,
 	};
 }
 

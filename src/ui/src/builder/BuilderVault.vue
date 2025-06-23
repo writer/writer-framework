@@ -22,7 +22,7 @@ const {
 } = inject(injectionKeys.secretsManager);
 
 const {
-	currentValue,
+	currentValueObject: currentValue,
 	assistedEntries,
 	getAssistedEntryError,
 	updateAssistedEntryKey,
