@@ -55,7 +55,6 @@ class Evaluator:
             raise ValueError(f'Component with id "{component_id}" not found.')
 
         field_value = component.content.get(field_key) or default_field_value
-        replaced = None
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
         def replacer(matched: re.Match):
