@@ -25,7 +25,7 @@ from writer.blocks.writerparsepdf import WriterParsePDFByFileID
 from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 from writer.blocks.writervision import WriterVision
-
+ 
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
 WriterCompletion.register("blueprints_writercompletion")
