@@ -21,7 +21,7 @@ class WriterChatReply(WriterBlock):
                         "conversationStateElement": {
                             "name": "Conversation state element",
                             "desc": "Where the conversation will be stored",
-                            "default": "@{chat}",
+                            "init": "chat",
                             "type": "Text",
                         },
                         "systemPrompt": {
@@ -34,7 +34,7 @@ class WriterChatReply(WriterBlock):
                         "message": {
                             "name": "Message",
                             "type": "Object",
-                            "default": '@{result}',
+                            "init": '@{result}',
                             "desc": "The message to add to the conversation. Must be an object including role and content.",
                             "validator": {
                                 "type": "object",

@@ -2,7 +2,7 @@ import json
 
 import pytest
 import writer.ai
-from writer.blocks.writerreply import WriterReply
+from blocks.writerchatreply import WriterChatReply
 
 
 class MockConversation(writer.ai.Conversation):
@@ -51,7 +51,7 @@ def test_init_and_add_message(session, runner, fake_client):
             "generateReply": "no",
         }
     )
-    block = WriterReply(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert isinstance(session.session_state["convo"], writer.ai.Conversation)
     assert session.session_state["convo"].messages[1]["content"] == "hi"
@@ -66,7 +66,7 @@ def test_add_message_existing(session, runner, fake_client):
             "generateReply": "no",
         }
     )
-    block = WriterReply(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert len(session.session_state["convo"].messages) == 1
 
@@ -81,7 +81,7 @@ def test_generate_complete(session, runner, conversation, fake_client):
             "useStreaming": "no",
         }
     )
-    block = WriterReply(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert conversation.messages[1].get("content") == "Next to the grill."
 
@@ -111,6 +111,6 @@ def test_generate_stream(session, runner, conversation, fake_client):
             ),
         }
     )
-    block = WriterReply(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert conversation.messages[1].get("content") == "On the car's roof."
