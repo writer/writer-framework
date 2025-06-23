@@ -5,22 +5,23 @@ from writer.ss_types import AbstractTemplate, WriterConfigurationError
 DEFAULT_MODEL = "palmyra-x5"
 
 
-class WriterChatManager(WriterBlock):
+class WriterChatReply(WriterBlock):
     @classmethod
     def register(cls, type: str):
-        super(WriterChatManager, cls).register(type)
+        super(WriterChatReply, cls).register(type)
         register_abstract_template(
             type,
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Chat manager",
-                    "description": "Initializes conversations, adds messages, and can generate replies.",
+                    "name": "Chat reply",
+                    "description": "Initializes conversations, adds messages, and generates replies.",
                     "category": "Writer",
                     "fields": {
                         "conversationStateElement": {
                             "name": "Conversation state element",
                             "desc": "Where the conversation will be stored",
+                            "default": "@{chat}",
                             "type": "Text",
                         },
                         "systemPrompt": {
@@ -33,8 +34,8 @@ class WriterChatManager(WriterBlock):
                         "message": {
                             "name": "Message",
                             "type": "Object",
-                            "init": '{ "role": "assistant", "content": "Hello" }',
-                            "desc": "The message to add to the conversation. Can be left empty if only generating a reply from AI.",
+                            "default": '@{result}',
+                            "desc": "The message to add to the conversation. Must be an object including role and content.",
                             "validator": {
                                 "type": "object",
                                 "properties": {
@@ -68,13 +69,6 @@ class WriterChatManager(WriterBlock):
                                 "minimum": 1,
                                 "maximum": 8192,
                             },
-                        },
-                        "generateReply": {
-                            "name": "Generate reply",
-                            "type": "Text",
-                            "default": "no",
-                            "desc": "If set to 'yes', the block will generate a reply based on the conversation. If set to 'no', it will only add the message to the conversation.",
-                            "options": {"yes": "Yes", "no": "No"},
                         },
                         "useStreaming": {
                             "name": "Use streaming",
@@ -153,7 +147,6 @@ class WriterChatManager(WriterBlock):
             except ValueError as e:
                 raise WriterConfigurationError(f"Invalid numeric value in configuration: {e}")
             use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
-            generate_reply = self._get_field("generateReply", False, "no") == "yes"
             tools_raw = self._get_field("tools", True)
             tools = []
 
@@ -200,24 +193,21 @@ class WriterChatManager(WriterBlock):
                 writer.ai.Conversation.validate_message(message)
                 conversation += message
 
-            result_text = None
-            if generate_reply:
-                msg = ""
-                if not use_streaming:
-                    reply = conversation.complete(tools=tools)
-                    msg = reply.get("content") or ""
-                    conversation += reply
+            msg = ""
+            if not use_streaming:
+                reply = conversation.complete(tools=tools)
+                msg = reply.get("content") or ""
+                conversation += reply
+                self._set_state(conversation_state_element, conversation)
+            else:
+                for chunk in conversation.stream_complete(tools=tools):
+                    if chunk.get("content") is None:
+                        chunk["content"] = ""
+                    msg += chunk.get("content")
+                    conversation += chunk
                     self._set_state(conversation_state_element, conversation)
-                else:
-                    for chunk in conversation.stream_complete(tools=tools):
-                        if chunk.get("content") is None:
-                            chunk["content"] = ""
-                        msg += chunk.get("content")
-                        conversation += chunk
-                        self._set_state(conversation_state_element, conversation)
-                result_text = msg
+            self.result = msg
             self._set_state(conversation_state_element, conversation)
-            self.result = result_text
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
