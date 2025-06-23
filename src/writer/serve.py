@@ -789,10 +789,9 @@ def get_asgi_app(
             queued_messages = await app_runner.retrieve_messages(session_id)
             for message in queued_messages:
                 await websocket.send_json(message)
-        except WebSocketDisconnect:
-            return
-        else:
             await app_runner.clear_messages(session_id)
+        except (WebSocketDisconnect, RuntimeError):
+            return
 
         task1 = asyncio.create_task(_stream_incoming_requests(websocket, session_id))
         task2 = asyncio.create_task(_stream_outgoing_announcements(websocket, session_id))

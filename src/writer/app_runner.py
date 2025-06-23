@@ -977,9 +977,11 @@ class AppRunner:
         response = await self.dispatch_message(
             session_id, AppProcessServerRequest(type="retrieveMessages", payload=None)
         )
-        return response.payload
+        if isinstance(response.payload, list):
+            return response.payload
+        return []
 
-    async def clear_messages(self, session_id: str) -> None:
+    async def clear_messages(self, session_id: str) -> AppProcessServerResponse:
         response = await self.dispatch_message(
             session_id, AppProcessServerRequest(type="clearMessages", payload=None)
         )
