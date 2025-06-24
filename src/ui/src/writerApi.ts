@@ -136,6 +136,23 @@ export class WriterApi {
 		if (!res.ok) throw Error(await res.text());
 	}
 
+	async loadAndIdentifyChameleon() {
+		const chameleon = await import("@chamaeleonidae/chmln");
+		chameleon.init(
+			"S6dr31v4MO4wuteztVhxysLkoA9HsZ6HnDaOTDLqNXHYZq-1P02ek-E3BR4Zgv4pMwdoYO",
+			{
+				fastUrl: "https://fast.chameleon.io/",
+			},
+		);
+		const profile = await this.fetchUserProfile();
+		chameleon.identify(profile.id, {
+			email: profile?.email,
+			name:
+				profile?.fullName ??
+				`${profile?.firstName} ${profile.lastName}`,
+		});
+	}
+
 	async analyticsTrack(
 		eventName: string,
 		properties: Record<string, unknown>,

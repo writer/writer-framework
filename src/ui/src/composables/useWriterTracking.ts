@@ -58,6 +58,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 			isIdentified = true;
 			try {
 				await writerApi.analyticsIdentify();
+				await writerApi.loadAndIdentifyChameleon();
 			} catch (e) {
 				logger.error(
 					"Failed to identify the current user for analytics",
