@@ -4,7 +4,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
 
-DEFAULT_MODEL = "palmyra-x4"
+DEFAULT_MODEL = "palmyra-x5"
 
 
 class WriterStructuredOutput(WriterBlock):
@@ -32,6 +32,16 @@ class WriterStructuredOutput(WriterBlock):
                             "type": "JSON",
                             "default": "{}"
                         },
+                        "max_tokens": {
+                            "name": "Max output tokens",
+                            "type": "Number",
+                            "default": "1024",
+                            "validator": {
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 16384,
+                            }
+                        }
                     },
                     "outs": {
                         "success": {
@@ -57,6 +67,7 @@ class WriterStructuredOutput(WriterBlock):
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             conversation = writer.ai.Conversation()
             schema = self._get_field("jsonSchema", True, default_field_value="{}")
+            max_tokens = int(self._get_field("max_tokens", False, "1024"))
 
             response_format = {
                 "type": "json_schema",
@@ -69,7 +80,7 @@ class WriterStructuredOutput(WriterBlock):
                 "role": "user",
                 "content": prompt,
             }
-            config = {"model": model_id}
+            config = { "model": model_id, "max_tokens": max_tokens }
             msg = conversation.complete(response_format=response_format, config=config)
             conversation += msg
 

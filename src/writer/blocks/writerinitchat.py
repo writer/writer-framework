@@ -45,7 +45,7 @@ class WriterInitChat(WriterBlock):
                         "validator": {
                             "type": "number",
                             "minimum": 1,
-                            "maximum": 8192,
+                            "maximum": 16384,
                         }
                     }
                 },
