@@ -5,6 +5,7 @@ import { getModifierKeyName } from "@/core/detectPlatform";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "../useToast";
 import { Option } from "@/components/shared/SharedMoreDropdown.vue";
+import { SelectionStatus } from "../builderManager";
 
 export enum BuilderSettingsDropdownActions {
 	Add = "add",
@@ -19,7 +20,7 @@ export enum BuilderSettingsDropdownActions {
 
 export function useBuilderSettingsActions(
 	wf: Core,
-	ssbm: BuilderManager,
+	wfbm: BuilderManager,
 	tracking?: ReturnType<typeof useWriterTracking>,
 	callbacks: Partial<Record<BuilderSettingsDropdownActions, () => void>> = {},
 ) {
@@ -38,13 +39,16 @@ export function useBuilderSettingsActions(
 		getEnabledMoves,
 		removeComponentsSubtree,
 		goToParent,
-	} = useComponentActions(wf, ssbm, tracking);
+	} = useComponentActions(wf, wfbm, tracking);
 
 	const toasts = useToasts();
 
-	const selectedId = ssbm.firstSelectedId;
+	const selectedId = wfbm.firstSelectedId;
 	const selectedInstancePath = computed(
-		() => ssbm.firstSelectedItem.value?.instancePath,
+		() => wfbm.firstSelectedItem.value?.instancePath,
+	);
+	const selectedIds = computed(() =>
+		wfbm.selection.value.map((c) => c.componentId),
 	);
 
 	const shortcutsInfo = computed(() => {
@@ -52,12 +56,16 @@ export function useBuilderSettingsActions(
 		if (!component) return {};
 		const { up: isMoveUpEnabled, down: isMoveDownEnabled } =
 			getEnabledMoves(selectedId.value);
+
+		const isMutlipte =
+			wfbm.selectionStatus.value === SelectionStatus.Multiple;
+
 		return {
-			isAddEnabled: isAddAllowed(selectedId.value),
+			isAddEnabled: !isMutlipte && isAddAllowed(selectedId.value),
 			componentTypeName: wf.getComponentDefinition(component.type)?.name,
 			toolkit: wf.getComponentDefinition(component.type)?.toolkit,
-			isMoveUpEnabled,
-			isMoveDownEnabled,
+			isMoveUpEnabled: !isMutlipte && isMoveUpEnabled,
+			isMoveDownEnabled: !isMutlipte && isMoveDownEnabled,
 			isCopyEnabled: isCopyAllowed(selectedId.value),
 			isCutEnabled: isCutAllowed(selectedId.value),
 			isGoToParentEnabled: isGoToParentAllowed(selectedId.value),
@@ -66,8 +74,8 @@ export function useBuilderSettingsActions(
 	});
 
 	const isPasteEnabled = computed(() => {
-		if (!ssbm.firstSelectedId.value) return false;
-		return isPasteAllowed(ssbm.firstSelectedId.value);
+		if (!wfbm.firstSelectedId.value) return false;
+		return isPasteAllowed(wfbm.firstSelectedId.value);
 	});
 
 	async function handlePasteComponent() {
@@ -80,7 +88,7 @@ export function useBuilderSettingsActions(
 
 	function deleteSelectedComponents() {
 		if (!shortcutsInfo.value.isDeleteEnabled) return;
-		const componentIds = ssbm.selection.value.map((c) => c.componentId);
+		const componentIds = wfbm.selection.value.map((c) => c.componentId);
 		if (componentIds.length === 0) return;
 		removeComponentsSubtree(...componentIds);
 	}
@@ -148,8 +156,14 @@ export function useBuilderSettingsActions(
 		return options;
 	});
 
-	function handleDropdownSelect(selected: BuilderSettingsDropdownActions) {
-		switch (selected) {
+	function handleDropdownSelect(action: BuilderSettingsDropdownActions) {
+		const dropdownOption = dropdownOptions.value.find(
+			(o) => o.value === action,
+		);
+
+		if (!dropdownOption || dropdownOption?.disabled) return;
+
+		switch (action) {
 			case BuilderSettingsDropdownActions.Add:
 				// Handled by callback
 				break;
@@ -160,10 +174,10 @@ export function useBuilderSettingsActions(
 				moveComponentDown(selectedId.value);
 				break;
 			case BuilderSettingsDropdownActions.Cut:
-				cutComponent(selectedId.value);
+				cutComponent(...selectedIds.value);
 				break;
 			case BuilderSettingsDropdownActions.Copy:
-				copyComponent(selectedId.value);
+				copyComponent(...selectedIds.value);
 				break;
 			case BuilderSettingsDropdownActions.Paste:
 				handlePasteComponent();
@@ -176,7 +190,7 @@ export function useBuilderSettingsActions(
 				break;
 		}
 
-		callbacks[selected]?.();
+		callbacks[action]?.();
 	}
 
 	return {

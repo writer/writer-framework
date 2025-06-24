@@ -13,6 +13,21 @@
 			<i class="material-symbols-outlined">close</i>
 		</WdsButton>
 		<WdsButton
+			v-if="
+				ssbm.selectionStatus.value === SelectionStatus.Multiple &&
+				ssbm.mode.value === 'blueprints'
+			"
+			class="actionButton"
+			variant="neutral"
+			size="small"
+			:data-writer-tooltip="`Copy (${getModifierKeyName()}C)`"
+			data-writer-tooltip-placement="left"
+			:disabled="isCopyDisabled"
+			@click="copySelectedComponents"
+		>
+			<i class="material-symbols-outlined">content_copy</i>
+		</WdsButton>
+		<WdsButton
 			class="BuilderSettingsActions__btn BuilderSettingsActions__btn--delete"
 			variant="neutral"
 			size="small"
@@ -30,6 +45,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
+import { getModifierKeyName } from "@/core/detectPlatform";
 import WdsButton from "@/wds/WdsButton.vue";
 import { SelectionStatus } from "../builderManager";
 import { useWriterTracking } from "@/composables/useWriterTracking";
@@ -52,10 +68,20 @@ const { dropdownOptions, handleDropdownSelect } = useBuilderSettingsActions(
 function deleteSelectedComponents() {
 	handleDropdownSelect(BuilderSettingsDropdownActions.Delete);
 }
+function copySelectedComponents() {
+	handleDropdownSelect(BuilderSettingsDropdownActions.Copy);
+}
 
 const isDeleteDisabled = computed(() => {
 	const option = dropdownOptions.value.find(
 		(o) => o.value === BuilderSettingsDropdownActions.Delete,
+	);
+	if (!option) return true;
+	return option.disabled;
+});
+const isCopyDisabled = computed(() => {
+	const option = dropdownOptions.value.find(
+		(o) => o.value === BuilderSettingsDropdownActions.Copy,
 	);
 	if (!option) return true;
 	return option.disabled;
