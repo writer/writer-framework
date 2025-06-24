@@ -2,7 +2,7 @@ import json
 
 import pytest
 import writer.ai
-from writer.blocks.writerchatmanager import WriterChatManager
+from writer.blocks.writerchatreply import WriterChatReply
 
 
 class MockConversation(writer.ai.Conversation):
@@ -43,32 +43,31 @@ def conversation():
     return MockConversation()
 
 
-def test_init_and_add_message(session, runner, fake_client):
+def test_init_and_add_message(session, conversation, runner, fake_client):
+    session.session_state["convo"] = conversation
     component = session.add_fake_component(
         {
             "conversationStateElement": "convo",
             "message": '{"role": "user", "content": "hi"}',
-            "generateReply": "no",
         }
     )
-    block = WriterChatManager(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert isinstance(session.session_state["convo"], writer.ai.Conversation)
-    assert session.session_state["convo"].messages[1]["content"] == "hi"
+    assert session.session_state["convo"].messages[0]["content"] == "hi"
 
 
-def test_add_message_existing(session, runner, fake_client):
-    session.session_state["convo"] = writer.ai.Conversation()
+def test_add_message_existing(session, runner, conversation, fake_client):
+    session.session_state["convo"] = conversation
     component = session.add_fake_component(
         {
             "conversationStateElement": "convo",
             "message": '{"role": "user", "content": "hi"}',
-            "generateReply": "no",
         }
     )
-    block = WriterChatManager(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
-    assert len(session.session_state["convo"].messages) == 1
+    assert len(session.session_state["convo"].messages) == 2
 
 
 def test_generate_complete(session, runner, conversation, fake_client):
@@ -81,7 +80,7 @@ def test_generate_complete(session, runner, conversation, fake_client):
             "useStreaming": "no",
         }
     )
-    block = WriterChatManager(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert conversation.messages[1].get("content") == "Next to the grill."
 
@@ -111,6 +110,6 @@ def test_generate_stream(session, runner, conversation, fake_client):
             ),
         }
     )
-    block = WriterChatManager(component, runner, {})
+    block = WriterChatReply(component, runner, {})
     block.run()
     assert conversation.messages[1].get("content") == "On the car's roof."
