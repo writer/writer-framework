@@ -34,7 +34,7 @@ class WriterChatReply(WriterBlock):
                         "message": {
                             "name": "Message",
                             "type": "Object",
-                            "init": '@{result}',
+                            "init": '{ "role": "assistant", "content": "Hello" }',
                             "desc": "The message to add to the conversation. Must be an object including role and content.",
                             "validator": {
                                 "type": "object",
