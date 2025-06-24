@@ -24,7 +24,7 @@ const props = defineProps({
 
 const tracking = useWriterTracking(wf);
 
-const { createAndInsertComponent, removeComponentsSubtree } =
+const { createAndInsertComponentsTree, removeComponentsSubtree } =
 	useComponentActions(wf, wfbm, tracking);
 
 const eventTypeFormated = computed(() =>
@@ -70,35 +70,32 @@ async function createLinkedBlueprint() {
 		defaultResult = JSON.stringify(defaultResult);
 	}
 
-	const blueprintId = createAndInsertComponent(
-		"blueprints_blueprint",
-		"blueprints_root",
-		undefined,
+	const [blueprintId] = createAndInsertComponentsTree("blueprints_root", [
 		{
-			content: {
-				key,
+			type: "blueprints_blueprint",
+			initProperties: {
+				content: {
+					key,
+				},
 			},
 		},
-		(parentId) => {
-			createAndInsertComponent(
-				"blueprints_uieventtrigger",
-				parentId,
-				undefined,
-				{
-					content: {
-						alias,
-						refComponentId: props.component.id,
-						refEventType: props.eventType,
-						defaultResult: defaultResult
-							? String(defaultResult)
-							: undefined,
-					},
-					x: 96,
-					y: 96,
+		{
+			type: "blueprints_uieventtrigger",
+			initProperties: {
+				content: {
+					alias,
+					refComponentId: props.component.id,
+					refEventType: props.eventType,
+					defaultResult: defaultResult
+						? String(defaultResult)
+						: undefined,
 				},
-			);
+				x: 96,
+				y: 96,
+			},
 		},
-	);
+	]);
+
 	pushToast({
 		type: "success",
 		message: `${alias} added`,
