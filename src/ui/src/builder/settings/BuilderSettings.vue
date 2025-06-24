@@ -42,8 +42,9 @@
 			<p class="BuilderSettings__titleBar__title">
 				{{ componentDefinition.name }}
 			</p>
-			<div v-if="resultId" class="BuilderSettings__titleBar__actions">
+			<div class="BuilderSettings__titleBar__actions">
 				<WdsButton
+					v-if="resultId"
 					size="smallIcon"
 					variant="neutral"
 					data-writer-tooltip-placement="bottom"
@@ -53,6 +54,13 @@
 					@click.prevent="copyComponentId"
 					>@</WdsButton
 				>
+				<SharedMoreDropdown
+					data-automation-action="settings-actions-dropdown"
+					:options="dropdownOptions"
+					trigger-custom-size="32px"
+					trigger-icon="more_vert"
+					@select="handleDropdownSelect"
+				/>
 			</div>
 		</div>
 		<div
@@ -63,21 +71,39 @@
 		>
 			<p>{{ selectionCount }}</p>
 		</div>
-		<BuilderSettingsActions class="BuilderSettings__actions" />
+		<BuilderSettingsActions
+			v-if="
+				collapsed &&
+				ssbm.selectionStatus.value === SelectionStatus.Multiple
+			"
+			class="BuilderSettings__actions"
+		/>
 		<BuilderSettingsMain class="BuilderSettings__main" :inert="collapsed" />
+		<BuilderSettingsAddComponentModal
+			v-if="ssbm.isSingleSelectionActive.value"
+			v-model:is-open="isAddModalOpen"
+			:selected-id="ssbm.firstSelectedId.value"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, computed, watch } from "vue";
+import { inject, computed, watch, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { SelectionStatus } from "../builderManager";
 import { useButtonClipboard } from "../useButtonClipboard";
 import { COMPONENT_TYPES_PAGE } from "@/constants/component";
+import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
+import { useWriterTracking } from "@/composables/useWriterTracking";
+import BuilderSettingsActions from "./BuilderSettingsActions.vue";
+import {
+	BuilderSettingsDropdownActions,
+	useBuilderSettingsActions,
+} from "./useBuilderSettingsActions";
+import BuilderSettingsAddComponentModal from "./BuilderSettingsAddComponentModal.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -100,6 +126,20 @@ const resultId = computed(() => {
 
 const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
 	useButtonClipboard(resultId);
+
+const tracking = useWriterTracking(wf);
+
+const isAddModalOpen = ref(false);
+
+const { dropdownOptions, handleDropdownSelect } = useBuilderSettingsActions(
+	wf,
+	ssbm,
+	tracking,
+	{
+		[BuilderSettingsDropdownActions.Add]: () =>
+			(isAddModalOpen.value = true),
+	},
+);
 
 const collapsed = computed(() => {
 	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) return true;
@@ -182,13 +222,17 @@ watch(component, (newComponent) => {
 	grid-row: 1;
 	grid-column: 2;
 	z-index: 2;
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
 	align-items: center;
 	padding-right: 12px;
-	overflow: hidden;
 	background: var(--builderSubtleSeparatorColor);
 }
 .BuilderSettings__titleBar__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .BuilderSettings__titleBar__title {
@@ -213,8 +257,7 @@ watch(component, (newComponent) => {
 .BuilderSettings__main {
 	width: 332px;
 	grid-row: 3;
-	grid-column: 2;
-	border-left: 1px solid var(--builderSeparatorColor);
+	grid-column: 1 / -1;
 	overflow-x: hidden;
 	overflow-y: auto;
 	margin-top: 0;
@@ -225,5 +268,6 @@ watch(component, (newComponent) => {
 	overflow: hidden;
 	max-height: 400px;
 	margin-top: -400px;
+	grid-column: 2;
 }
 </style>

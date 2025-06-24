@@ -266,23 +266,23 @@ async function handleKeydown(ev: KeyboardEvent) {
 		return;
 	}
 
-	if (!ssbm.isSingleSelectionActive.value || !ssbm.firstSelectedItem.value) {
-		return;
-	}
-
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
 		ssbm.firstSelectedItem.value;
+	const selectedIds = ssbm.selection.value.map((c) => c.componentId);
 
 	if (ev.key == "Delete") {
-		const componentIds = ssbm.selection.value
-			.filter((s) => isDeleteAllowed(s.componentId))
-			.map((s) => s.componentId);
+		const componentIds = selectedIds.filter((i) => isDeleteAllowed(i));
 		removeComponentsSubtree(...componentIds);
 		return;
 	}
 	if (!isModifierKeyActive) return;
 
+	const isMultipeSelection =
+		ssbm.selectionStatus.value === SelectionStatus.Multiple;
+
 	if (ev.shiftKey) {
+		if (isMultipeSelection) return;
+
 		switch (ev.key) {
 			case "ArrowDown":
 				ev.preventDefault();
@@ -307,22 +307,27 @@ async function handleKeydown(ev: KeyboardEvent) {
 	} else {
 		switch (ev.key) {
 			case "ArrowDown":
+				if (isMultipeSelection) return;
 				ev.preventDefault();
 				moveComponentDown(selectedId);
 				break;
 			case "ArrowUp":
+				if (isMultipeSelection) return;
 				ev.preventDefault();
 				moveComponentUp(selectedId);
 				break;
 			case "ArrowLeft":
+				if (isMultipeSelection) return;
 				ev.preventDefault();
 				moveComponentToParent(selectedId);
 				break;
 			case "ArrowRight":
+				if (isMultipeSelection) return;
 				ev.preventDefault();
 				moveComponentInsideNextSibling(selectedId);
 				break;
 			case "v":
+				if (isMultipeSelection) return;
 				if (!isPasteAllowed(selectedId)) return;
 				try {
 					await pasteComponent(selectedId);
@@ -331,10 +336,11 @@ async function handleKeydown(ev: KeyboardEvent) {
 				}
 				break;
 			case "c":
-				if (isCopyAllowed(selectedId)) copyComponent(selectedId);
+				if (isCopyAllowed(...selectedIds))
+					copyComponent(...selectedIds);
 				break;
 			case "x":
-				if (isCutAllowed(selectedId)) cutComponent(selectedId);
+				if (isCutAllowed(...selectedIds)) cutComponent(...selectedIds);
 				break;
 		}
 	}

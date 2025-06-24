@@ -373,24 +373,39 @@ export function useComponentActions(
 	/**
 	 * Whether a component can be copied into the clipboard.
 	 */
-	function isCopyAllowed(targetId: Component["id"]): boolean {
-		return !isRoot(targetId);
+	function isCopyAllowed(...targetIds: Component["id"][]): boolean {
+		if (targetIds.length === 0) return false;
+		if (targetIds.length > 1 && ssbm.mode.value !== "blueprints")
+			return false;
+		return !targetIds.some(isRoot);
 	}
 
 	/**
 	 * Whether a component can be cut and placed in the clipboard.
 	 */
-	function isCutAllowed(targetId: Component["id"]): boolean {
-		const component = wf.getComponentById(targetId);
-		return !isRoot(targetId) && !component?.isCodeManaged;
+	function isCutAllowed(...targetIds: Component["id"][]): boolean {
+		if (targetIds.length === 0) return false;
+		if (targetIds.length > 1 && ssbm.mode.value !== "blueprints")
+			return false;
+
+		for (const targetId of targetIds) {
+			const component = wf.getComponentById(targetId);
+			const isAllowed = !isRoot(targetId) && !component?.isCodeManaged;
+			if (!isAllowed) return false;
+		}
+		return true;
 	}
 
 	/**
 	 * Whether a component can be deleted.
 	 */
-	function isDeleteAllowed(targetId: Component["id"]): boolean {
-		const component = wf.getComponentById(targetId);
-		return !isRoot(targetId) && !component?.isCodeManaged;
+	function isDeleteAllowed(...targetIds: Component["id"][]): boolean {
+		for (const targetId of targetIds) {
+			const component = wf.getComponentById(targetId);
+			const isAllowed = !isRoot(targetId) && !component?.isCodeManaged;
+			if (!isAllowed) return false;
+		}
+		return true;
 	}
 
 	/** Whether it's possible to go to (select) a component's parent. */
@@ -572,13 +587,10 @@ export function useComponentActions(
 	 * Cuts a component and its descendents and places them in the internal clipboard.
 	 * @param componentId Id of the component to be cut
 	 */
-	function cutComponent(componentId: Component["id"]): void {
-		const component = wf.getComponentById(componentId);
-		if (!component) return;
-		const components = getFlatComponentSubtree(componentId);
-		componentClipboard.set(components);
+	function cutComponent(...componentIds: Component["id"][]): void {
+		copyComponent(...componentIds);
 		ssbm.setSelection(null);
-		removeComponentSubtree(componentId);
+		removeComponentsSubtree(...componentIds);
 		wf.sendComponentUpdate();
 	}
 
@@ -619,12 +631,14 @@ export function useComponentActions(
 	 * @param componentId Id of the component to be copied
 	 * @returns
 	 */
-	function copyComponent(componentId: Component["id"]): void {
-		const component = wf.getComponentById(componentId);
-		if (!component) return;
-		const subtree = getFlatComponentSubtree(componentId);
-		const newSubtree = getNewSubtreeWithRegeneratedIds(subtree);
-		componentClipboard.set(newSubtree);
+	function copyComponent(...componentIds: Component["id"][]): void {
+		const components = componentIds.flatMap((componentId) => {
+			const component = wf.getComponentById(componentId);
+			if (!component) return;
+			const subtree = getFlatComponentSubtree(componentId);
+			return getNewSubtreeWithRegeneratedIds(subtree);
+		});
+		componentClipboard.set(components);
 	}
 
 	/**
