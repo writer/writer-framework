@@ -419,6 +419,12 @@ class FileBuffering:
         self.running = False
         if self.sync_timer:
             self.sync_timer.cancel()
+            self.sync_timer.join()
+            self.sync_timer = None
+        if self.check_timer:
+            self.check_timer.cancel()
+            self.check_timer.join()
+            self.check_timer = None
         if self.observer:
             self.observer.stop()
             self.observer.join()
