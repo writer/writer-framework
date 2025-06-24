@@ -8,6 +8,10 @@ import writer.abstract
 
 client = Writer()
 MAX_ITERATIONS = 5
+ALLOWED_BLOCK_TYPES = {
+    type_: template for type_, template in writer.abstract.templates.items()
+    if not template.writer.get("deprecated", False)
+}
 
 
 def _validate_blueprint_nodes(nodes: List[Dict]) -> bool:
@@ -23,6 +27,11 @@ def _validate_blueprint_nodes(nodes: List[Dict]) -> bool:
         if not node_id:
             errors.append(f"A node at index {i} is missing its id.")
             continue
+        block_type = node.get("type")
+        if not block_type:
+            errors.append(f"Node at index {i} is missing a block type.")
+        elif block_type not in ALLOWED_BLOCK_TYPES:
+            errors.append(f"Node at index {i} has unknown block type: {block_type}.")
         if node_id in graph:
             errors.append(f"Node id {node_id} is duplicated.")
         graph[node_id] = node
@@ -53,7 +62,7 @@ def _validate_blueprint_nodes(nodes: List[Dict]) -> bool:
 
 def _get_block_definitions():
     block_definitions = []
-    for type, template in writer.abstract.templates.items():
+    for type, template in ALLOWED_BLOCK_TYPES.items():
         field_properties = {}
         for field_key, field in template.writer.get("fields", {}).items():
             field_properties[field_key] = {
@@ -239,13 +248,21 @@ def _get_main_prompt(description: str):
 		</blueprint>
 	</example>
     <example>
-            <description>
-                Iterate over a hardcoded list of Sabrina Carpenter songs, iterate over a hardcoded list of Tupac songs, compare the songs with AI
-            </description>
-            <blueprint>
-                [{"id":"ybalvr6zo1q0td5z","type":"blueprints_foreach","content":{"alias":"Iterate over Sabrina Carpenter songs","items":"[\"Espresso\", \"Please Please Please\", \"Thumbs\"]","prefix":"sabrina"},"outs":[{"toNodeId":"63aqcc35n0ps1lil","outId":"loop"}]},{"id":"63aqcc35n0ps1lil","type":"blueprints_foreach","content":{"alias":"Iterate over Tupac songs","items":"[\"Changes\", \"California Love\"]"},"outs":[{"toNodeId":"xvi8hg1uxd4ac4pz","outId":"loop"}]},{"id":"xvi8hg1uxd4ac4pz","type":"blueprints_writerclassification","content":{"alias":"Compare songs with AI","categories":"{\"similar\": \"The songs are similar in theme or style\", \"different\": \"The songs are different in theme or style\"}","text":"Compare @{sabrina_item} with @{item}"},"outs":[{"outId":"category_similar","toNodeId":"xj7kc1mfy5mzwbp1"},{"outId":"category_different","toNodeId":"ylnluee85qwvbi4y"}]},{"id":"xj7kc1mfy5mzwbp1","type":"blueprints_logmessage","content":{"type":"info","alias":"Log similar comparison","message":"The songs @{sabrina_item} and @{item_tupac} are similar."},"outs":[]},{"id":"ylnluee85qwvbi4y","type":"blueprints_logmessage","content":{"type":"info","alias":"Log different comparison","message":"The songs @{sabrina_item} and @{item} are different."},"outs":[]}]
-            </blueprint>
-        </example>
+        <description>
+            Iterate over a hardcoded list of Sabrina Carpenter songs, iterate over a hardcoded list of Tupac songs, compare the songs with AI
+        </description>
+        <blueprint>
+            [{"id":"ybalvr6zo1q0td5z","type":"blueprints_foreach","content":{"alias":"Iterate over Sabrina Carpenter songs","items":"[\"Espresso\", \"Please Please Please\", \"Thumbs\"]","prefix":"sabrina"},"outs":[{"toNodeId":"63aqcc35n0ps1lil","outId":"loop"}]},{"id":"63aqcc35n0ps1lil","type":"blueprints_foreach","content":{"alias":"Iterate over Tupac songs","items":"[\"Changes\", \"California Love\"]"},"outs":[{"toNodeId":"xvi8hg1uxd4ac4pz","outId":"loop"}]},{"id":"xvi8hg1uxd4ac4pz","type":"blueprints_writerclassification","content":{"alias":"Compare songs with AI","categories":"{\"similar\": \"The songs are similar in theme or style\", \"different\": \"The songs are different in theme or style\"}","text":"Compare @{sabrina_item} with @{item}"},"outs":[{"outId":"category_similar","toNodeId":"xj7kc1mfy5mzwbp1"},{"outId":"category_different","toNodeId":"ylnluee85qwvbi4y"}]},{"id":"xj7kc1mfy5mzwbp1","type":"blueprints_logmessage","content":{"type":"info","alias":"Log similar comparison","message":"The songs @{sabrina_item} and @{item_tupac} are similar."},"outs":[]},{"id":"ylnluee85qwvbi4y","type":"blueprints_logmessage","content":{"type":"info","alias":"Log different comparison","message":"The songs @{sabrina_item} and @{item} are different."},"outs":[]}]
+        </blueprint>
+    </example>
+    <example>
+        <description>
+            Create a chatbot that acts as a customer support agent
+        </description>
+        <blueprint>
+            [{"id":"jozm6cm910p9rt6i","type":"blueprints_uieventtrigger","content":{"alias":"Chatbot - wf-chatbot-message","defaultResult":"{\"role\":\"user\",\"content\":\"I'm building a Chatbot\"}","refComponentId":"j26lfnf2znk4brwn","refEventType":"wf-chatbot-message"},"outs":[{"toNodeId":"e1p3d3zhdgsuxwky","outId":"trigger"}]},{"id":"e1p3d3zhdgsuxwky","type":"blueprints_writerchatmanager","content":{"conversationStateElement":"chat","message":"@{payload}","systemPrompt":"You are a technical support assistant for Agent Builder, designed to help users troubleshoot issues, debug problems, and navigate our documentation.\n\nYour goal is to understand the user's issue clearly, ask clarifying questions if needed, and provide helpful, accurate, and concise solutions.\n\nYou have access to product documentation and common troubleshooting steps.\n\nAlways include:\n• Links or references to relevant docs\n• Step-by-step instructions if applicable\n• Warnings or caveats for edge cases\n\nYou are polite, clear, and technical. When in doubt, you ask follow-up questions before giving advice.\n\nUse this structure:\nIssue Summary: (Briefly restate the user's problem)\nSuggested Fix: (Provide 1-2 options with steps)\nReference: (Link to doc or mention relevant section)","tools":"{}","generateReply":"yes"}}]
+        </blueprint>
+    </example>
 </examples>"""
     prompt += f"""
     <task>
