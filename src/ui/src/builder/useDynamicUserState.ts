@@ -57,10 +57,7 @@ function getBlueprintUserState(wf: Core): UserState {
 	}
 
 	for (const { element, valueType, value } of getSetStateContent()) {
-		const isInvalid = [element, value, valueType].some(
-			(v) => typeof v !== "string",
-		);
-		if (isInvalid) continue;
+		if (!element || typeof element !== "string") continue;
 
 		let parsedValue: unknown = value;
 
@@ -70,6 +67,8 @@ function getBlueprintUserState(wf: Core): UserState {
 			} catch {
 				parsedValue = {};
 			}
+		} else if (valueType === undefined || value === undefined) {
+			parsedValue = "";
 		}
 
 		const existingValue = get(state, element);
