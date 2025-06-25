@@ -151,6 +151,23 @@ describe(useDynamicUserState.name, () => {
 			expect(blueprintsUserState.value).toStrictEqual({ foo: "bar" });
 		});
 
+		it("should handle unexisting value text", () => {
+			mockCore.core.addComponent(
+				buildMockComponent({
+					...baseComponent,
+					content: {
+						element: "foo",
+						valueType: undefined,
+						value: undefined,
+					},
+				}),
+			);
+
+			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
+
+			expect(blueprintsUserState.value).toStrictEqual({ foo: "" });
+		});
+
 		it("should handle static text with nested text", () => {
 			mockCore.core.addComponent(
 				buildMockComponent({
