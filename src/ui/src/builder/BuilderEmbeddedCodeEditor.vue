@@ -11,19 +11,26 @@
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
 import "./builderEditorWorker";
-import { onMounted, onUnmounted, toRefs, useTemplateRef, watch } from "vue";
+import {
+	onMounted,
+	onUnmounted,
+	PropType,
+	toRefs,
+	useTemplateRef,
+	watch,
+} from "vue";
 
 const rootEl = useTemplateRef("rootEl");
 const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
-const props = defineProps<{
-	language: string;
-	variant: "full" | "minimal";
-	modelValue: string;
-	disabled?: boolean;
-}>();
+const props = defineProps({
+	language: { type: String, required: false, default: "" },
+	variant: { type: String as PropType<"full" | "minimal">, required: true },
+	modelValue: { type: String, required: false, default: "" },
+	disabled: { type: Boolean, required: false },
+});
 
 const { modelValue, disabled, language } = toRefs(props);
 const emit = defineEmits(["update:modelValue"]);
@@ -65,7 +72,7 @@ watch(language, () => {
 
 onMounted(() => {
 	editor = monaco.editor.create(editorContainerEl.value, {
-		value: modelValue.value,
+		value: modelValue.value ?? "",
 		language: props.language,
 		readOnly: props.disabled,
 		fixedOverflowWidgets: true,
