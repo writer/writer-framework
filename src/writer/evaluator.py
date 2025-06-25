@@ -55,7 +55,6 @@ class Evaluator:
             raise ValueError(f'Component with id "{component_id}" not found.')
 
         field_value = component.content.get(field_key) or default_field_value
-        replaced = None
         full_match = self.TEMPLATE_REGEX.fullmatch(field_value)
 
         def replacer(matched: re.Match):
@@ -69,6 +68,8 @@ class Evaluator:
                 dumped = expr_value
                 if not isinstance(dumped, str):
                     dumped = json.dumps(dumped)
+                else:
+                    dumped = json.dumps(dumped)[1:-1]
                 return re.sub(r'(?<!\\)"', r'\"', dumped)
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
