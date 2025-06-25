@@ -6,11 +6,13 @@ import { flushPromises, shallowMount } from "@vue/test-utils";
 
 const analyticsIdentify = vi.fn();
 const analyticsTrack = vi.fn();
+const loadAndIdentifyChameleon = vi.fn();
 
 vitest.mock("@/writerApi", () => ({
 	WriterApi: class {
 		analyticsIdentify = analyticsIdentify;
 		analyticsTrack = analyticsTrack;
+		loadAndIdentifyChameleon = loadAndIdentifyChameleon;
 	},
 }));
 
