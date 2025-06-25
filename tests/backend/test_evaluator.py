@@ -108,6 +108,7 @@ class TestEvaluator:
                 "boolean": True,
                 "none": None,
                 "escaped": "\\",
+                "invalid_chars": "\ \" \f \n \t \b \r \u1234"
             }
         )
         e = evaluator.Evaluator(session.session_state, session.session_component_tree)
@@ -131,6 +132,8 @@ class TestEvaluator:
             "none_with_text": "TEXT null TEXT",
             "escaped": "\\@{escaped}",
             "escaped_with_text": "TEXT \\@{escaped} TEXT",
+            "invalid_chars": "\ \" \f \n \t \b \r \u1234",
+            "invalid_chars_with_text": "TEXT \ \" \f \n \t \b \r \u1234 TEXT"
         }
 
     def test_evaluate_field_full_match(self) -> None:

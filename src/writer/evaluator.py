@@ -68,6 +68,8 @@ class Evaluator:
                 dumped = expr_value
                 if not isinstance(dumped, str):
                     dumped = json.dumps(dumped)
+                else:
+                    dumped = json.dumps(dumped)[1:-1]
                 return re.sub(r'(?<!\\)"', r'\"', dumped)
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
