@@ -39,10 +39,17 @@ export function useComponentDescription(
 	});
 
 	const possibleImageUrls = computed(() => {
+		const componentType = unref(component).type;
+		const category = def.value.category;
 		return [
-			`/components/${unref(component).type}.svg`,
-			`/components/category_${def.value.category}.svg`,
-		].map((p) => convertAbsolutePathtoFullURL(p));
+			`/components/${componentType}.svg`,
+			`/components/category_${category}.svg`,
+			componentType.startsWith("blueprints_")
+				? `/components/blueprints_category_${category}.svg`
+				: undefined,
+		]
+			.filter(Boolean)
+			.map((p) => convertAbsolutePathtoFullURL(p));
 	});
 
 	return { name, previewText, possibleImageUrls };

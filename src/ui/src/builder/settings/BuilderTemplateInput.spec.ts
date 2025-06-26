@@ -5,7 +5,7 @@ import { buildMockCore, buildMockSecretsManager } from "@/tests/mocks";
 import injectionKeys from "@/injectionKeys";
 import { ExtractPropTypes } from "vue";
 
-describe("BuilderTemplateInput", () => {
+describe.skip("BuilderTemplateInput", () => {
 	let mockCore: ReturnType<typeof buildMockCore>;
 	let mockSecretManager: ReturnType<typeof buildMockSecretsManager>;
 

@@ -19,7 +19,7 @@
 		/>
 		<p v-if="rightText" class="WdsTextInput__rightText">{{ rightText }}</p>
 		<button
-			v-if="rightIcon && model"
+			v-if="rightIcon"
 			class="WdsTextInput__rightIcon"
 			type="button"
 			@click="$emit('rightIconClick')"

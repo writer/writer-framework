@@ -65,60 +65,14 @@
 		</template>
 
 		<template v-else>
-			<button
+			<WdsDropdownMenuItem
 				v-for="option in optionsFiltered"
 				:key="option.value"
-				class="WdsDropdownMenu__item"
-				:class="{
-					'WdsDropdownMenu__item--selected': isSelected(option.value),
-					'WdsDropdownMenu__item--hideIcon': hideIcons,
-					'WdsDropdownMenu__item--danger':
-						option.variant === 'danger',
-				}"
+				:option="option"
 				:data-automation-key="option.value"
-				:disabled="option.disabled"
+				:selected="isSelected(option.value)"
 				@click.stop="onSelect(option.value)"
-			>
-				<template v-if="!hideIcons">
-					<div
-						v-if="Array.isArray(option.icon)"
-						class="WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--img"
-					>
-						<SharedImgWithFallback :urls="option.icon" />
-					</div>
-					<i
-						v-else
-						class="material-symbols-outlined WdsDropdownMenu__item__icon"
-						>{{ getOptionIcon(option) }}</i
-					>
-				</template>
-				<div
-					class="WdsDropdownMenu__item__label"
-					:data-writer-tooltip="option.label"
-					data-writer-tooltip-strategy="overflow"
-				>
-					<span>{{ option.label }}</span>
-					<span
-						v-if="option.shortcut"
-						class="WdsDropdownMenu__item__label__shortcut"
-						>{{ option.shortcut }}</span
-					>
-				</div>
-				<div
-					v-if="option.detail"
-					class="WdsDropdownMenu__item__detail"
-					:data-writer-tooltip="option.detail"
-					data-writer-tooltip-strategy="overflow"
-				>
-					{{ option.detail }}
-				</div>
-				<i
-					v-if="isSelected(option.value)"
-					class="material-symbols-outlined"
-				>
-					check
-				</i>
-			</button>
+			/>
 		</template>
 	</div>
 </template>
@@ -133,6 +87,7 @@ export type WdsDropdownMenuOption = {
 	 * A font icon or an array of image URL
 	 */
 	icon?: string | string[];
+	iconColor?: string;
 	disabled?: boolean;
 	variant?: "danger";
 };
@@ -143,7 +98,7 @@ export type WdsDropdownMenuOption = {
 import { computed, PropType, ref, watch } from "vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
-import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
+import WdsDropdownMenuItem from "./WdsDropdownMenuItem.vue";
 
 const props = defineProps({
 	options: {
@@ -189,11 +144,6 @@ const optionsFiltered = computed(() => {
 			option.detail?.toLowerCase().includes(query),
 	);
 });
-
-function getOptionIcon(option: WdsDropdownMenuOption) {
-	if (props.hideIcons) return "";
-	return option.icon ?? "help_center";
-}
 
 function isSelected(value: string) {
 	return Array.isArray(props.selected)
@@ -270,65 +220,6 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	cursor: pointer;
 	transition: all 0.2s;
 	pointer-events: all;
-}
-.WdsDropdownMenu__item:disabled {
-	opacity: 40%;
-	cursor: not-allowed !important;
-}
-.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon) {
-	grid-template-columns: auto 1fr auto;
-}
-.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon)
-	.WdsDropdownMenu__item__detail {
-	grid-column-start: 2;
-}
-.WdsDropdownMenu__item__icon {
-	grid-row-start: 1;
-	grid-row-end: -1;
-	display: flex;
-	align-items: center;
-}
-
-.WdsDropdownMenu__item:hover {
-	cursor: pointer;
-	background-color: var(--wdsColorBlue1);
-}
-
-.WdsDropdownMenu__item--selected {
-	background-color: var(--wdsColorBlue2);
-}
-.WdsDropdownMenu__item--hideIcon {
-	grid-template-columns: 1fr auto;
-}
-.WdsDropdownMenu__item--danger {
-	color: var(--wdsColorOrange5);
-}
-
-.WdsDropdownMenu__item__detail,
-.WdsDropdownMenu__item__label {
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	text-align: left;
-}
-
-.WdsDropdownMenu__item__label {
-	display: flex;
-	justify-content: space-between;
-	gap: 4px;
-	width: 100%;
-}
-.WdsDropdownMenu__item__label__shortcut {
-	color: var(--wdsColorGray4);
-}
-
-.WdsDropdownMenu__item:has(.WdsDropdownMenu__item__detail) {
-	grid-template-rows: auto auto;
-}
-
-.WdsDropdownMenu__item__detail {
-	grid-row: 2;
-	color: var(--wdsColorGray4);
 }
 
 .WdsDropdownMenu__header {

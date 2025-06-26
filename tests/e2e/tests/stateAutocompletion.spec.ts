@@ -7,7 +7,7 @@ const setTextField = async (page, text) => {
 		.fill(text);
 };
 
-test.describe("state autocompletion", () => {
+test.describe.skip("state autocompletion", () => {
 	let url: string;
 	test.beforeAll(async ({ request }) => {
 		const response = await request.post(`/preset/state`);

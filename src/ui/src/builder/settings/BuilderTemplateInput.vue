@@ -1,5 +1,5 @@
 <template>
-	<div class="BuilderTemplateInput">
+	<div ref="root" class="BuilderTemplateInput">
 		<template v-if="!props.multiline">
 			<WdsTextInput
 				ref="input"
@@ -13,8 +13,9 @@
 				:autofocus="autofocus"
 				:readonly="readonly"
 				:left-icon="type === 'state' ? 'alternate_email' : undefined"
+				:right-icon="rightIcon"
+				@right-icon-click="showAutocompletions = !showAutocompletions"
 				@input="handleInput"
-				@blur="closeAutocompletion"
 			/>
 			<datalist v-if="props.options" :id="`list-${props.inputId}`">
 				<option
@@ -53,52 +54,39 @@
 		</template>
 
 		<div
-			v-if="autocompleteOptions.length"
+			v-if="showAutocompletions"
 			ref="dropdown"
 			class="fieldStateAutocomplete"
-			tabindex="-1"
 			:style="floatingStyles"
 		>
-			<button
-				v-for="(option, optionKey) in autocompleteOptions"
-				:key="optionKey"
-				class="fieldStateAutocompleteOption"
-				:value="optionKey"
-				@focusout="closeAutocompletion"
-				@focusin="abortClosingAutocompletion"
-				@click="() => handleComplete(option.text)"
-			>
-				<span class="prop">{{ option.text }}</span
-				><span class="type">{{ option.type }}</span>
-			</button>
+			<BuilderStateSelectorDropdown
+				:hide-secrets="hideDropdownSecrets"
+				:hide-blueprint-results="hideDropdownBlueprintResults"
+				:query="dropdownQuery"
+				:component-id="componentId"
+				@update:model-value="onSelectAutocomplete"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import Fuse from "fuse.js";
-import injectionKeys from "@/injectionKeys";
-import {
-	PropType,
-	computed,
-	inject,
-	nextTick,
-	onUnmounted,
-	shallowRef,
-	useTemplateRef,
-	watch,
-} from "vue";
+import { PropType, ref, useTemplateRef, nextTick, watch, computed } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
-import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
-import { useDynamicUserState } from "../useDynamicUserState";
-
-const { secrets } = inject(injectionKeys.secretsManager);
+import { useFloating, size, flip } from "@floating-ui/vue";
+import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
+import {
+	autocompleteTemplateVariable,
+	getCurrentOpenedTemplate,
+} from "@/utils/template";
+import { useFocusWithin } from "@/composables/useFocusWithin";
 
 const emit = defineEmits(["input", "update:value"]);
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
+	componentId: { type: String, required: false, default: undefined },
 	value: { type: String, required: false, default: undefined },
 	multiline: { type: Boolean, required: false },
 	variant: {
@@ -120,19 +108,17 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	readonly: { type: Boolean },
+	hideDropdownSecrets: { type: Boolean, required: false },
+	hideDropdownBlueprintResults: { type: Boolean, required: false },
 });
 
-const wf = inject(injectionKeys.core);
-
+const root = useTemplateRef("root");
 const input = useTemplateRef("input");
 const dropdown = useTemplateRef("dropdown");
 
-type AutocompleteOption = { text: string; type: string };
-const autocompleteOptions = shallowRef<AutocompleteOption[]>([]);
+const showAutocompletions = ref(false);
 
-const { blueprintsUserState, bindingsUserState } = useDynamicUserState(wf);
-
-const { floatingStyles, update } = useFloating(input, dropdown, {
+const { floatingStyles } = useFloating(root, dropdown, {
 	placement: "bottom-start",
 	middleware: [
 		flip(),
@@ -145,185 +131,87 @@ const { floatingStyles, update } = useFloating(input, dropdown, {
 			},
 		}),
 	],
-	strategy: "fixed",
 });
-useFloatingAutoUpdate();
-
-function useFloatingAutoUpdate() {
-	let autoUpdateCleanup: ReturnType<typeof autoUpdate> | undefined;
-
-	function cleanup() {
-		if (autoUpdateCleanup) autoUpdateCleanup();
-		autoUpdateCleanup = undefined;
-	}
-
-	watch(dropdown, () => {
-		cleanup();
-		if (dropdown.value) {
-			autoUpdateCleanup = autoUpdate(input, dropdown.value, update);
-		}
-	});
-
-	onUnmounted(() => cleanup());
-}
 
 defineExpose({
 	focus: () => input.value?.focus(),
 });
 
-function _get(object: object, path: string[]) {
-	return path.reduce((acc, key) => acc?.[key], object);
-}
+const rightIcon = computed(() => {
+	if (props.type === "template" || props.multiline) return undefined;
 
-function handleComplete(selectedText: string) {
+	return showAutocompletions.value
+		? "keyboard_arrow_up"
+		: "keyboard_arrow_down";
+});
+
+const dropdownQuery = computed(() => {
+	if (!props.value) return "";
+
+	let newValue = input.value?.value ?? "";
+	const { selectionStart } = input.value?.getSelection() ?? {};
+
+	if (props.type === "template") {
+		const before = newValue.slice(0, selectionStart);
+		return getCurrentOpenedTemplate(before);
+	} else {
+		return props.value;
+	}
+});
+
+const hasFocusInRoot = useFocusWithin(root);
+watch(hasFocusInRoot, () => {
+	if (!hasFocusInRoot.value) {
+		nextTick().then(() => (showAutocompletions.value = false));
+	}
+});
+
+async function onSelectAutocomplete(selectedText: string) {
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
-	const text = newValue.slice(0, selectionStart);
-	const path = getPath(text);
-	if (path === undefined) return;
-	const keyword = path.at(-1);
-	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
+	let newSelectionStart = selectionStart ?? newValue.length;
 
-	const replacePrefix =
-		props.type === "template" && /@\{[^}]*$/.exec(text) === null ? "{" : "";
+	if (props.type === "template") {
+		const before = newValue.slice(0, selectionStart);
+		const after = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
 
-	const replaced = text.replace(
-		new RegExp(regexKeyword),
-		`${replacePrefix}${selectedText}${props.type === "template" ? "}" : ""}`,
-	);
-	const afterText = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
-	newValue = replaced.concat(afterText);
+		const newBefore = autocompleteTemplateVariable(before, selectedText);
+
+		newValue = `${newBefore}${after}`;
+		newSelectionStart = newBefore.length;
+	} else {
+		newValue = selectedText;
+		newSelectionStart = selectedText.length;
+	}
+
 	emit("input", { target: { value: newValue } });
 	emit("update:value", newValue);
-	autocompleteOptions.value = [];
+
+	if (!input.value) return;
+
 	input.value.focus();
-	nextTick(() => {
-		input.value.setSelectionEnd(replaced.length);
-		input.value.setSelectionStart(replaced.length);
-	});
-}
+	showAutocompletions.value = false;
 
-function typeToString(val: unknown) {
-	if (val === null) return "null";
-	if (val === undefined) return "undefined";
-	return typeof val;
-}
-
-function getPath(text: string) {
-	if ((props.type ?? "template") === "state") {
-		return text.split(".");
-	}
-
-	// support autocompletion for `@{` and `@`
-	for (const re of [/@\{([^}{@]*)$/, /@([^@]*)$/]) {
-		const m = text.match(re);
-		if (m) {
-			const raw = m?.[1] ?? "";
-			return raw.split(".");
-		}
-	}
-}
-
-/**
- * Escape a key to support the "." and "\" in a state variable
- */
-function escapeVariable(key: string) {
-	return key.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
+	await nextTick();
+	input.value.setSelectionEnd(newSelectionStart);
+	input.value.setSelectionStart(newSelectionStart);
 }
 
 function handleInput(ev) {
 	emit("input", ev);
 	emit("update:value", ev.target.value);
-	showAutocomplete();
-}
 
-const autoCompletionState = computed(() => {
-	const state: Record<string, unknown> = {
-		...bindingsUserState.value,
-		...blueprintsUserState.value,
-		...(wf.userState.value ?? {}),
-	};
+	if (props.type === "template") {
+		let newValue = input.value?.value ?? "";
+		const { selectionStart } = input.value?.getSelection() ?? {};
+		const text = newValue.slice(0, selectionStart);
 
-	if (
-		props.type === "template" &&
-		secrets.value &&
-		Object.values(secrets.value).length > 0
-	) {
-		state.vault = secrets.value;
+		showAutocompletions.value = [/@\{([^}{@]*)$/, /@([^@]*)$/].some((re) =>
+			text.match(re),
+		);
+	} else {
+		showAutocompletions.value = true;
 	}
-
-	return state;
-});
-
-function showAutocomplete() {
-	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
-	const newValue = input.value?.value;
-	if (newValue === undefined) return;
-	const collapsed = selectionStart === selectionEnd;
-	if (!collapsed) {
-		autocompleteOptions.value = [];
-		return;
-	}
-	const text = newValue.slice(0, selectionStart);
-	const full = getPath(text);
-	if (full === undefined) {
-		autocompleteOptions.value = [];
-		return;
-	}
-	const keyword = full.at(-1);
-	const path = full.slice(0, -1);
-
-	function computeAllOptions(object: Record<string, unknown>, prefix = []) {
-		if (prefix.length > 10) return; // avoid too long recursion
-
-		const currentPath = [...path, ...prefix];
-		for (const [key, val] of Object.entries(
-			_get(object, currentPath) ?? {},
-		)) {
-			const type = typeToString(val);
-			const text = [...prefix, escapeVariable(key)].join(".");
-			allOptions.push({ text, type });
-
-			if (type === "object" && !Array.isArray(val) && val !== null) {
-				computeAllOptions(object, [...prefix, key]);
-			}
-		}
-	}
-
-	const allOptions: AutocompleteOption[] = [];
-	computeAllOptions(autoCompletionState.value);
-	allOptions.sort((a, b) => a.text.localeCompare(b.text));
-
-	const fuse = new Fuse(allOptions, {
-		findAllMatches: true,
-		includeMatches: true,
-		keys: ["text"],
-	});
-
-	if (keyword === "") {
-		autocompleteOptions.value = allOptions;
-		return;
-	}
-	autocompleteOptions.value = fuse.search(keyword).map((match) => {
-		const { item } = match;
-		return item;
-	});
-}
-
-let closeAutocompletionJob: ReturnType<typeof setTimeout> | null;
-
-function closeAutocompletion() {
-	// let some time in case user focused on an autocomplete field
-	closeAutocompletionJob = setTimeout(() => {
-		autocompleteOptions.value = [];
-		closeAutocompletionJob = null;
-	}, 300);
-}
-
-function abortClosingAutocompletion() {
-	if (!closeAutocompletionJob) return;
-	clearTimeout(closeAutocompletionJob);
-	closeAutocompletionJob = null;
 }
 </script>
 
@@ -337,50 +225,9 @@ function abortClosingAutocompletion() {
 }
 
 .fieldStateAutocomplete {
-	position: absolute;
-	background-color: var(--builderBackgroundColor);
-	border: 1px solid var(--builderSeparatorColor);
-	border-radius: 4px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	max-height: 200px;
-	overflow-y: auto;
-	z-index: 2;
-}
-
-.fieldStateAutocompleteOption {
-	/* reset button style */
-	background-color: inherit;
-	border: none;
 	width: 100%;
-	text-align: left;
-	border-radius: 0;
-
-	padding: 8px 12px;
-	cursor: pointer;
-	display: flex;
-	flex-direction: row;
-}
-
-.fieldStateAutocompleteOption span.prop {
-	flex: 1 1;
-	line-height: 24px;
-	vertical-align: middle;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.fieldStateAutocompleteOption span.type {
-	flex: 0;
-	width: fit-content;
-	padding: 4px 8px;
-	border-radius: 4px;
-	background-color: var(--builderSubtleHighlightColor);
-}
-
-.fieldStateAutocompleteOption:hover {
-	color: inherit;
-	background-color: var(--builderSubtleHighlightColorSolid);
+	position: absolute;
+	z-index: 2;
 }
 
 textarea {

@@ -1096,7 +1096,9 @@ export function useComponentActions(
 			component.type,
 		)?.name;
 		if (!componentDefinition) return; // Unknown component, not rendered
-		wf.setActivePageId(getContainingPageId(componentId));
+		const pageId = getContainingPageId(componentId);
+		wf.setActivePageId(pageId);
+		return pageId;
 	}
 
 	return {
