@@ -46,6 +46,7 @@ import writer.blocks
 import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
+from writer.logs import use_stdout_redirect
 from writer.ss_types import (
     BlueprintExecutionError,
     BlueprintExecutionLog,
@@ -1791,7 +1792,7 @@ class EventHandler:
         captured_stdout = None
         with (
             core_ui.use_component_tree(self.session.session_component_tree),
-            contextlib.redirect_stdout(io.StringIO()) as f,
+            use_stdout_redirect() as f,
         ):
             middlewares_executors = current_app_process.middleware_registry.executors()
             result = EventHandlerExecutor.invoke_with_middlewares(

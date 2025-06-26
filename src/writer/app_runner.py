@@ -28,7 +28,7 @@ from writer.core import (
     use_request_context,
 )
 from writer.core_ui import ingest_bmc_component_tree
-from writer.logs import capture_logs
+from writer.logs import use_logging_redirect, use_stdout_redirect
 from writer.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -450,7 +450,6 @@ class AppProcess(multiprocessing.Process):
         """
 
         import io
-        from contextlib import redirect_stdout
 
         import writer
 
@@ -458,18 +457,17 @@ class AppProcess(multiprocessing.Process):
         if writeruserapp is None:
             raise ValueError("Couldn't find app module (writeruserapp).")
 
-        logs_buffer = io.StringIO()
         code_path = os.path.join(self.app_path, "main.py")
         with (
-            redirect_stdout(io.StringIO()) as f,
-            capture_logs(user_code_logger, buffer=logs_buffer) as wrapped_logger
+            use_stdout_redirect() as stdout_buffer,
+            use_logging_redirect() as logging_buffer,
         ):
-            writeruserapp.__dict__["logger"] = wrapped_logger
+            writeruserapp.__dict__["logger"] = user_code_logger
             code = compile(self.run_code, code_path, "exec")
             exec(code, writeruserapp.__dict__)
 
-        captured_logs = logs_buffer.getvalue()
-        captured_stdout = f.getvalue()
+            captured_stdout = stdout_buffer.getvalue()
+            captured_logs = logging_buffer.getvalue()
 
         if captured_stdout:
             writer.core.initial_state.add_log_entry(

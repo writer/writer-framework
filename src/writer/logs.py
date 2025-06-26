@@ -3,35 +3,161 @@ import json
 import logging
 import logging.config
 import os
-import sys
 import time
-from contextlib import contextmanager
-from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from contextlib import contextmanager, redirect_stdout
+from contextvars import ContextVar
+from typing import Any, Dict, Optional, Tuple
 
-if TYPE_CHECKING:
-    from writer.core import WriterState
-
-
-WF_LOG = os.getenv("WF_LOG", "INFO")
+WF_LOG_LEVEL = os.getenv("WF_LOG_LEVEL", "INFO")
 WF_ENV = os.getenv("WF_ENV", "local")
+
+
+_stdout_routing_key: ContextVar[Optional[int]] = ContextVar("stdout_routing_key", default=None)
+
+
+def get_stdout_routing_key() -> Optional[int]:
+    return _stdout_routing_key.get()
+
+
+_logging_routing_key: ContextVar[Optional[int]] = ContextVar("logging_routing_key", default=None)
+
+
+def get_logging_routing_key() -> Optional[int]:
+    return _logging_routing_key.get()
+
+
+class RoutingMap():
+    """
+    Maintains a map of routing keys to in-memory output buffers (io.StringIO).
+    Used for capturing logs or stdout output in different contexts.
+    """
+
+    def __init__(self) -> None:
+        # It's not expected that this will be used without context.
+        # But just in case a fail-over buffer is provided
+        self._buffer_map: Dict[int, io.StringIO] = {
+            -1: io.StringIO(),
+        }
+    
+    def get_buffer(self, routing_key: Optional[int] = None) -> io.StringIO:
+        """
+        Retrieve the buffer associated with a routing key.
+
+        If key is None uses a fail-over buffer
+        """
+        if routing_key is None:
+            routing_key = -1
+        return self._buffer_map[routing_key]
+    
+    def add_buffer(self) -> Tuple[io.StringIO, int]:
+        """
+        Add a new buffer with a unique routing key.
+        """
+        key = time.monotonic_ns()
+        buffer = io.StringIO()
+        self._buffer_map[key] = buffer
+        return buffer, key
+    
+    def remove_buffer(self, key: int) -> None:
+        """
+        Remove the buffer associated with the specified key.
+        """
+        self._buffer_map.pop(key, None)
+
+
+routing_map = RoutingMap()
+
+
+class RoutingStream(io.StringIO):
+    """
+    Custom stream that re-routes stdout to the correct io.StringIO buffer
+    based on the current context routing key.
+    """
+
+    def write(self, s) -> int:
+        if s.strip():
+            logging.getLogger("stdout").info(s)
+        routing_key = get_stdout_routing_key()
+        return routing_map.get_buffer(routing_key).write(s)
+    
+    def getvalue(self) -> str:
+        routing_key = get_stdout_routing_key()
+        return routing_map.get_buffer(routing_key).getvalue()
+
+
+class RoutingHandler(logging.StreamHandler):
+    """
+    Custom logging handler that re-routes logs to different buffers
+    based on the current context routing key.
+
+    Overwritten methods are mirroring original ones from logging.StreamHandler.
+    The only difference is how 'stream' object is acquired
+    """
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            routing_key = get_logging_routing_key()
+            stream = routing_map.get_buffer(routing_key)
+            stream.write(msg + self.terminator)
+            self.flush()
+        except RecursionError:
+            raise
+        except Exception:
+            self.handleError(record)
+
+    def flush(self):
+        routing_key = get_logging_routing_key()
+        stream = routing_map.get_buffer(routing_key)
+        with self.lock:
+            if stream and hasattr(stream, "flush"):
+                stream.flush()
+
+
+@contextmanager
+def use_stdout_redirect():
+    """
+    Context manager that redirects stdout to a context-specific buffer.
+    """
+
+    buffer, key = routing_map.add_buffer()
+    token = _stdout_routing_key.set(key)
+
+    with redirect_stdout(RoutingStream()):
+        yield buffer
+
+    routing_map.remove_buffer(key)
+    _stdout_routing_key.reset(token)
+
+
+@contextmanager
+def use_logging_redirect():
+    """
+    Context manager that redirects logging to a context-specific buffer.
+    """
+
+    buffer, key = routing_map.add_buffer()
+    token = _logging_routing_key.set(key)
+
+    yield buffer
+
+    routing_map.remove_buffer(key)
+    _logging_routing_key.reset(token)
 
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord, **kwargs) -> str:
-        super(JSONFormatter, self).format(record)
-        # if record.args.0 is a dict add to the json dict
+        super().format(record)
         data = {
+            "severity": record.levelname.upper(),
             "message": record.message,
-            "name": record.name,
-            "module": record.module,
+            "logger_name": record.name,
             "processName": record.processName,
-            "threadName": record.threadName,
-            "severity": record.levelname.upper()
         }
         if isinstance(record.args, dict):
             data.update(record.args)
 
+        # if record.args[0] is a dict add to the json dict
         if isinstance(record.args, tuple):
             if len(record.args) > 0 and isinstance(record.args[0], dict):
                 data.update(record.args[0])
@@ -41,49 +167,34 @@ class JSONFormatter(logging.Formatter):
 
 class LocalFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        super(LocalFormatter, self).format(record)
+        super().format(record)
         return f"{record.levelname}[{record.name}]: {record.msg}\n"
 
 
 ENV_TO_FORMATTER = {
-    "local": (logging.Formatter, "local_formatter"),
-    "prod": (JSONFormatter, "json_formatter"),
+    "local": "local_formatter",
+    "prod": "json_formatter",
 }
 
 
-def get_formatter(env: str = WF_ENV, as_str: bool = False):
-    if as_str:
-        return ENV_TO_FORMATTER[env][1]
-    return ENV_TO_FORMATTER[env][0](fmt="%(levelname)s - %(message)s")
+def get_formatter(env: str = WF_ENV):
+    return ENV_TO_FORMATTER[env]
 
 
-def get_handler(env: str = WF_ENV, as_dict: bool = False):
-    if as_dict:
-        return {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": get_formatter(env, as_str=True),
-        }
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(get_formatter(env))
-    return handler
+def get_handler(env: str = WF_ENV, level: str = WF_LOG_LEVEL):
+    return {
+        "level": level,
+        "class": "logging.StreamHandler",
+        "formatter": get_formatter(env),
+    }
 
 
-def get_logger(logger_name: str | None = None, level: str = WF_LOG, env: str = WF_ENV, as_dict: bool = False):
-    if as_dict:
-        return {
-            "handlers": ["basic"],
-            "level": level,
-            "propagate": False,
-        }
-
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(level)
-    handler = get_handler(env)
-
-    logger.handlers = []
-    logger.addHandler(handler)
-    return logger
+def get_logger(level: str = WF_LOG_LEVEL):
+    return {
+        "handlers": ["basic"],
+        "level": level,
+        "propagate": False,
+    }
 
 
 LOGGING_CONFIG: Dict[str, Any] = {
@@ -96,114 +207,42 @@ LOGGING_CONFIG: Dict[str, Any] = {
         "json_formatter": {
             "()": JSONFormatter,
         },
+        "user_formatter": {
+            "format": "%(levelname)s - %(message)s"
+        }
     },
     "handlers": {
-        "basic": get_handler(as_dict=True),
+        "basic": get_handler(),
+        "stdout": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "json_formatter" if WF_ENV == "prod" else None
+        },
+        "routing": {
+            "()": RoutingHandler,
+            "formatter": "user_formatter",
+        }
     },
     "loggers": {
-        "root": get_logger(as_dict=True),
-        "writer": get_logger(as_dict=True),
-        "app": get_logger(as_dict=True),
-        "from_app": get_logger(as_dict=True),
-        "exec_logger": get_logger(as_dict=True),
-        "user_code": get_logger(as_dict=True),
+        "root": get_logger(),
+        "writer": get_logger(),
+        "app": get_logger(),
+        "from_app": get_logger(),
+        "exec_logger": {
+            "handlers": ["basic", "routing"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "user_code": {
+            "handlers": ["basic", "routing"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "stdout": {
+            "handlers": ["stdout"],
+            "propagate": False,
+        }
     }
 }
 
-logging.basicConfig(level=WF_LOG)
 logging.config.dictConfig(LOGGING_CONFIG)
-
-
-def _add_routing_key(routing_key: int):
-    """
-    A decorator to add a `routing_key` to the `extra` dict for the logging calls.
-
-    :param routing_key: The routing key to be added to the log record.
-    """
-    def inner(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if "extra" not in kwargs:
-                kwargs["extra"] = {}
-            kwargs["extra"]["routing_key"] = routing_key
-            return func(self, *args, **kwargs)
-        return wrapper
-    return inner
-
-
-class RoutingKeyFilter(logging.Filter):
-    """
-    A logging filter that allows log records to be filtered based on a routing key.
-    
-    The filter compares the `routing_key` attribute of the log record with the routing key
-    passed during initialization.
-
-    :param routing_key: The routing key to be added to the log record.
-    """
-    def __init__(self, routing_key: int):
-        self._routing_key = routing_key
-
-    def filter(self, record):
-        if hasattr(record, "routing_key"):
-            return record.routing_key == self._routing_key
-        return False
-
-
-class LoggerProxy:
-    """
-    A proxy class that wraps around a logger instance and modifies its behavior
-    by adding a routing key to log records for logging methods (`debug`, `info`, etc.)
-
-    :param target_logger: The logger instance being proxied.
-    """
-    def __init__(self, target_logger: logging.Logger):
-        self._target_logger = target_logger
-        self.routing_key = time.monotonic_ns()
-
-    def __getattr__(self, attr):
-        attr_value = getattr(self._target_logger, attr)
-        if attr in ("debug", "info", "warning", "warn", "error", "exception", "critical"):
-            attr_value = _add_routing_key(self.routing_key)(attr_value)
-        return attr_value
-
-    def __setattr__(self, attr, value):
-        if attr in ["_target_logger", "routing_key"]:
-            super().__setattr__(attr, value)
-        else:
-            setattr(self._target_logger, attr, value)
-
-
-@contextmanager
-def capture_logs(logger: logging.Logger, session_state: Optional["WriterState"] = None, buffer: Optional[io.StringIO] = None):
-    """
-    Context manager that captures logs generated by the specified logger and stores them in a buffer.
-
-    This context manager allows logs to be captured, filtered by a routing key, and optionally
-    added to a session state.
-
-    :param logger: The logger whose logs are to be captured.
-    :param session_state: An optional state object where captured logs can be stored.
-    :param buffer: A buffer to capture the logs. If not provided, a new buffer will be created.
-
-    :yields: A proxy object for the logger that captures logs with a routing key.
-    """
-    if buffer is None:
-        buffer = io.StringIO()
-
-    original_propagate = logger.propagate
-    logger.propagate = False
-    logger_proxy = LoggerProxy(logger)
-    handler = logging.StreamHandler(buffer)
-    handler.setFormatter(get_formatter())
-    handler.addFilter(RoutingKeyFilter(routing_key=logger_proxy.routing_key))
-    logger.addHandler(handler)
-
-    try:
-        yield logger_proxy
-    finally:
-        logger.removeHandler(handler)
-        handler.close()
-        captured_logs = handler.stream.getvalue()
-        if session_state is not None and captured_logs:
-            session_state.add_log_entry("info", "Captured logs", captured_logs)
-        logger.propagate = original_propagate
