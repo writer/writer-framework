@@ -37,7 +37,7 @@ class WriterAskGraphQuestion(WriterBlock):
                     },
                     "stateElement": {
                         "name": "State Element",
-                        "type": "Text",
+                        "type": "Binding",
                         "desc": "State variable to store or stream the response into. Reference the state element directly, i.e. use \"my_var\" instead of \"@{my_var}\".",
                     },
                     "graphIds": {

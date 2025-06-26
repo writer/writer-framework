@@ -17,9 +17,9 @@ class SetState(BlueprintBlock):
                     "category": "Other",
                     "fields": {
                         "element": {
-                            "name": "State element",
-                            "type": "Text",
-                            "desc": "The name of the state element. If set to 'my_var' the value will be available at @{my_var} when using as part of a template.",
+                            "name": "Link Variable",
+                            "type": "Binding",
+                            "desc": "Set the variable here and use it across your agent",
                         },
                         "valueType": {
                             "name": "Value type",

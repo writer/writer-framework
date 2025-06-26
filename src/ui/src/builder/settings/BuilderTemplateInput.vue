@@ -12,6 +12,7 @@
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
 				:readonly="readonly"
+				:left-icon="type === 'state' ? 'alternate_email' : undefined"
 				@input="handleInput"
 				@blur="closeAutocompletion"
 			/>

@@ -17,7 +17,7 @@ class AddToStateList(BlueprintBlock):
                 "fields": {
                     "element": {
                         "name": "State element",
-                        "type": "Text"
+                        "type": "Binding",
                     },
                     "value": {
                         "name": "Value",
