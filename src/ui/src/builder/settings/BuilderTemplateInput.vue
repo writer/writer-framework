@@ -258,6 +258,7 @@ const autoCompletionState = computed(() => {
 function showAutocomplete() {
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const newValue = input.value?.value;
+	if (newValue === undefined) return;
 	const collapsed = selectionStart === selectionEnd;
 	if (!collapsed) {
 		autocompleteOptions.value = [];
