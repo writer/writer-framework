@@ -61,7 +61,6 @@ from writer.ss_types import (
 from writer.wf_project import WfProjectContext
 
 user_code_logger = logging.getLogger("user_code")
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 class MessageHandlingException(Exception):
@@ -713,8 +712,6 @@ class LogListener(threading.Thread):
         super().__init__(name="LogListenerThread")
         self.log_queue = log_queue
         self.logger = logging.getLogger("from_app")
-        self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
 
     def run(self) -> None:
         while True:
@@ -771,7 +768,7 @@ class AppRunner:
         self.serve_loop = asyncio.get_running_loop()
 
     def _set_logger(self):
-        logger = logging.getLogger("app")
+        logger = logging.getLogger("app_runner")
         logger.addHandler(logging.handlers.QueueHandler(self.log_queue))
         self.log_listener = LogListener(self.log_queue)
         self.log_listener.start()

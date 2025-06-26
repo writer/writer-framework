@@ -11,7 +11,6 @@ from writer.logs import capture_logs
 from writer.ss_types import AbstractTemplate
 
 exec_logger = logging.getLogger("exec_logger")
-exec_logger.setLevel(logging.DEBUG)
 
 INIT_CODE = """
 # State is accessible as a global variable. For example:
