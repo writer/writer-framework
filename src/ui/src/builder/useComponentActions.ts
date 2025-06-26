@@ -190,6 +190,10 @@ export function useComponentActions(
 		return component;
 	}
 
+	type CreateComponentProps = Partial<
+		Omit<Component, "type" | "parent" | "handlers" | "position">
+	>;
+
 	/**
 	 * Creates a component of the given type and inserts it.
 	 *
@@ -202,10 +206,7 @@ export function useComponentActions(
 		type: string,
 		parentId: Component["id"],
 		position?: number,
-		initProperties?: Partial<
-			Omit<Component, "type" | "parent" | "handlers" | "position">
-		>,
-		initializer?: (parentId: Component["id"]) => void,
+		initProperties?: CreateComponentProps,
 	): Component["id"] {
 		const component = createComponent(
 			type,
@@ -218,7 +219,6 @@ export function useComponentActions(
 		ssbm.openMutationTransaction(transactionId, `Create`);
 		wf.addComponent(component);
 		repositionHigherSiblings(component.id, 1);
-		initializer?.(component.id);
 		ssbm.registerPostMutation(component);
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
@@ -230,6 +230,59 @@ export function useComponentActions(
 			{ componentId: component.id },
 		);
 		return component.id;
+	}
+
+	function createAndInsertComponentsTree(
+		parentId: Component["id"],
+		componentsTreeData: {
+			type: string;
+			position?: number;
+			initProperties?: CreateComponentProps;
+		}[],
+	): Component["id"][] {
+		if (componentsTreeData.length === 0) return [];
+
+		const components = componentsTreeData.reduce<Component[]>(
+			(acc, { type, position, initProperties }, index) => {
+				const currentParentId =
+					index === 0 ? parentId : acc.at(-1).id ?? parentId;
+
+				const component = createComponent(
+					type,
+					currentParentId,
+					position,
+					initProperties,
+				);
+				component.id = initProperties?.id ?? component.id;
+
+				acc.push(component);
+
+				return acc;
+			},
+			[],
+		);
+
+		const componentIds = components.map((c) => c.id);
+
+		const transactionId = `create-${componentIds.join("-")}`;
+		ssbm.openMutationTransaction(transactionId, `Create`);
+
+		for (const component of components) {
+			wf.addComponent(component);
+			repositionHigherSiblings(component.id, 1);
+			ssbm.registerPostMutation(component);
+			tracking?.track(
+				component.type.startsWith("blueprints_")
+					? "blueprints_block_added"
+					: "ui_block_added",
+				{ componentId: component.id },
+			);
+		}
+		ssbm.closeMutationTransaction(transactionId);
+
+		wf.sendComponentUpdate();
+
+		return componentIds;
 	}
 
 	/**
@@ -1055,6 +1108,7 @@ export function useComponentActions(
 		copyComponent,
 		pasteComponent,
 		createAndInsertComponent,
+		createAndInsertComponentsTree,
 		removeComponentSubtree,
 		removeComponentsSubtree,
 		isPasteAllowed,

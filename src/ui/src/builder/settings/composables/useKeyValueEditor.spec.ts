@@ -31,7 +31,7 @@ describe(useKeyValueEditor.name, () => {
 			);
 		});
 
-		it("shoul update an entry", () => {
+		it("should update an entry", () => {
 			const {
 				assistedEntries,
 				addAssistedEntry,
@@ -73,18 +73,6 @@ describe(useKeyValueEditor.name, () => {
 	});
 
 	describe("freehand mode", () => {
-		it("should handle invalid JSON", () => {
-			const { mode, freehandValue, currentValue, isValid } =
-				useKeyValueEditor({
-					foo: "bar",
-				});
-			mode.value = "freehand";
-
-			freehandValue.value = '{"foo';
-			expect(currentValue.value).toStrictEqual({});
-			expect(isValid.value).toBe(false);
-		});
-
 		it("should reflect changes when moving from freehand mode to assisted mode", () => {
 			const { assistedEntries, mode, freehandValue } = useKeyValueEditor({
 				foo: "bar",
@@ -121,7 +109,7 @@ describe(useKeyValueEditor.name, () => {
 			expect(freehandValue.value).toStrictEqual(
 				JSON.stringify({ hello: "bar" }, undefined, 2),
 			);
-			expect(currentValue.value).toStrictEqual({ hello: "bar" });
+			expect(currentValue.value).toBe(freehandValue.value);
 		});
 
 		it("should reflect changes when moving from freehand mode to assisted mode", () => {

@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it, Mock, vi } from "vitest";
-import { useLocalStorageJSON } from "./useLocalStorageJSON";
+import { useLocalStorageJSON } from "./useStorageJSON";
 
 describe(useLocalStorageJSON.name, () => {
 	let localStorage: { getItem: Mock; setItem: Mock; removeItem: Mock };

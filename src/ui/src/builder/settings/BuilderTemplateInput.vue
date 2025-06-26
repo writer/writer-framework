@@ -178,13 +178,17 @@ function handleComplete(selectedText: string) {
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const text = newValue.slice(0, selectionStart);
-	const full = getPath(text);
-	if (full === null) return;
-	const keyword = full.at(-1);
+	const path = getPath(text);
+	if (path === undefined) return;
+	const keyword = path.at(-1);
 	const regexKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"; // escape the keyword to handle properly on a regex
+
+	const replacePrefix =
+		props.type === "template" && /@\{[^}]*$/.exec(text) === null ? "{" : "";
+
 	const replaced = text.replace(
 		new RegExp(regexKeyword),
-		`${selectedText}${props.type === "template" ? "}" : ""}`,
+		`${replacePrefix}${selectedText}${props.type === "template" ? "}" : ""}`,
 	);
 	const afterText = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
 	newValue = replaced.concat(afterText);
@@ -208,12 +212,15 @@ function getPath(text: string) {
 	if ((props.type ?? "template") === "state") {
 		return text.split(".");
 	}
-	const m = text.match(/@\{([^}{@]*)$/);
-	if (!m) {
-		return null;
+
+	// support autocompletion for `@{` and `@`
+	for (const re of [/@\{([^}{@]*)$/, /@([^@]*)$/]) {
+		const m = text.match(re);
+		if (m) {
+			const raw = m?.[1] ?? "";
+			return raw.split(".");
+		}
 	}
-	const raw = m?.[1] ?? "";
-	return raw.split(".");
 }
 
 /**
@@ -236,7 +243,13 @@ const autoCompletionState = computed(() => {
 		...(wf.userState.value ?? {}),
 	};
 
-	if (secrets.value) state.vault = secrets.value;
+	if (
+		props.type === "template" &&
+		secrets.value &&
+		Object.values(secrets.value).length > 0
+	) {
+		state.vault = secrets.value;
+	}
 
 	return state;
 });
@@ -251,7 +264,7 @@ function showAutocomplete() {
 	}
 	const text = newValue.slice(0, selectionStart);
 	const full = getPath(text);
-	if (full === null) {
+	if (full === undefined) {
 		autocompleteOptions.value = [];
 		return;
 	}

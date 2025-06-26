@@ -107,6 +107,7 @@ function fullTest({ type, locator }: ComponentTestData) {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 		});
 
 		test("create, drag and drop and remove", async ({ page }) => {
@@ -130,10 +131,13 @@ function fullTest({ type, locator }: ComponentTestData) {
 			);
 
 			await page.locator(COMPONENT_LOCATOR).click();
-			await page
-				.locator(
-					'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
-				)
+
+			const actionDropdown = page
+				.locator(".BuilderSettings")
+				.locator('[data-automation-action="settings-actions-dropdown"]');
+			await actionDropdown.locator("button").click();
+			await actionDropdown
+				.locator('button[data-automation-key="delete"]')
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).not.toBeVisible();
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0);
@@ -160,6 +164,7 @@ function basicTest({ type, locator }: ComponentTestData) {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 		});
 
 		test("create and remove", async ({ page }) => {
@@ -172,10 +177,12 @@ function basicTest({ type, locator }: ComponentTestData) {
 			);
 
 			await page.locator(COMPONENT_LOCATOR).click();
-			await page
-				.locator(
-					'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
-				)
+			const actionDropdown = page
+				.locator(".BuilderSettings")
+				.locator('[data-automation-action="settings-actions-dropdown"]');
+			await actionDropdown.locator("button").click();
+			await actionDropdown
+				.locator('button[data-automation-key="delete"]')
 				.click();
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(0);
 		});

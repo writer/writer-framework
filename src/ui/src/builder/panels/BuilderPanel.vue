@@ -3,7 +3,7 @@
 		<div class="BuilderPanel__collapser">
 			<WdsButton
 				variant="neutral"
-				size="smallIcon"
+				size="small"
 				data-automation-action="toggle-panel"
 				:data-automation-key="panelId"
 				:data-writer-tooltip="`Toggle ${name} (${getModifierKeyName()}${keyboardShortcutKey})`"
@@ -12,9 +12,11 @@
 				<i class="material-symbols-outlined">{{
 					collapsed ? "expand_less" : "expand_more"
 				}}</i>
+				<span class="BuilderPanel__title">
+					{{ name }}
+				</span>
 			</WdsButton>
 		</div>
-		<div class="BuilderPanel__title">{{ name }}</div>
 		<div class="BuilderPanel__titleCompanion">
 			<slot name="titleCompanion"></slot>
 		</div>

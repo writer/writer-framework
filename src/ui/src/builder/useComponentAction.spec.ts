@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useComponentActions } from "./useComponentActions";
-import { Component, Core } from "@/writerTypes.js";
+import { Component } from "@/writerTypes.js";
 import { generateBuilderManager } from "./builderManager";
 import { buildMockComponent, buildMockCore } from "@/tests/mocks";
 
 describe(useComponentActions.name, () => {
-	let core: Core;
-	let ssbm: ReturnType<typeof generateBuilderManager>;
+	let mockCore: ReturnType<typeof buildMockCore>;
+	let wfbm: ReturnType<typeof generateBuilderManager>;
 
 	beforeEach(() => {
-		ssbm = generateBuilderManager();
+		wfbm = generateBuilderManager();
 
-		core = buildMockCore().core;
+		mockCore = buildMockCore();
 
 		const components: Component[] = [
 			{ id: "root", type: "root", position: 0 } as Component,
@@ -89,18 +89,24 @@ describe(useComponentActions.name, () => {
 			},
 		];
 
-		components.forEach((c) => core.addComponent(c));
+		components.forEach((c) => mockCore.core.addComponent(c));
 	});
 
 	describe("isDeleteAllowed", () => {
 		it("should handle UI components", () => {
-			const { isDeleteAllowed } = useComponentActions(core, ssbm);
+			const { isDeleteAllowed } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
 			expect(isDeleteAllowed("root")).toBeFalsy();
 			expect(isDeleteAllowed("page-id")).toBeTruthy();
 		});
 
 		it("should handle blueprint components", () => {
-			const { isDeleteAllowed } = useComponentActions(core, ssbm);
+			const { isDeleteAllowed } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
 			expect(isDeleteAllowed("blueprints_root")).toBeFalsy();
 			expect(isDeleteAllowed("blueprints_blueprint-id")).toBeTruthy();
 		});
@@ -108,18 +114,21 @@ describe(useComponentActions.name, () => {
 
 	describe("removeComponentSubtree", () => {
 		it("should delete the component in a transaction", () => {
-			core.addComponent(buildMockComponent({ id: "1" }));
+			mockCore.core.addComponent(buildMockComponent({ id: "1" }));
 
-			const { removeComponentSubtree } = useComponentActions(core, ssbm);
+			const { removeComponentSubtree } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
 
 			const openMutationTransaction = vi.spyOn(
-				ssbm,
+				wfbm,
 				"openMutationTransaction",
 			);
 
 			removeComponentSubtree("1");
 
-			expect(core.sendComponentUpdate).toHaveBeenCalledOnce();
+			expect(mockCore.core.sendComponentUpdate).toHaveBeenCalledOnce();
 			expect(openMutationTransaction).toHaveBeenNthCalledWith(
 				1,
 				"delete-1",
@@ -130,16 +139,19 @@ describe(useComponentActions.name, () => {
 
 	describe("removeComponentsSubtree", () => {
 		it("should delete the component in a transaction", () => {
-			const { removeComponentsSubtree } = useComponentActions(core, ssbm);
+			const { removeComponentsSubtree } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
 
 			const openMutationTransaction = vi.spyOn(
-				ssbm,
+				wfbm,
 				"openMutationTransaction",
 			);
 
 			removeComponentsSubtree("1", "2");
 
-			expect(core.sendComponentUpdate).toHaveBeenCalledOnce();
+			expect(mockCore.core.sendComponentUpdate).toHaveBeenCalledOnce();
 			expect(openMutationTransaction).toHaveBeenNthCalledWith(
 				1,
 				"delete-1,2",
@@ -151,55 +163,85 @@ describe(useComponentActions.name, () => {
 	describe("components movements", () => {
 		it("should go to the parent", () => {
 			const { isGoToParentAllowed, goToParent } = useComponentActions(
-				core,
-				ssbm,
+				mockCore.core,
+				wfbm,
 			);
 			expect(isGoToParentAllowed("root")).toBe(false);
 			expect(isGoToParentAllowed("1")).toBe(true);
 			expect(isGoToParentAllowed("1.1")).toBe(true);
 
 			goToParent("1.1");
-			expect(ssbm.firstSelectedId.value).toBe("1");
+			expect(wfbm.firstSelectedId.value).toBe("1");
 		});
 
 		it("should go to the child", () => {
 			const { isGoToChildAllowed, goToChild } = useComponentActions(
-				core,
-				ssbm,
+				mockCore.core,
+				wfbm,
 			);
 			expect(isGoToChildAllowed("root")).toBe(true);
 			expect(isGoToChildAllowed("1")).toBe(true);
 			expect(isGoToChildAllowed("1.1.1")).toBe(false);
 
 			goToChild("1");
-			expect(ssbm.firstSelectedId.value).toBe("1.1");
+			expect(wfbm.firstSelectedId.value).toBe("1.1");
 		});
 
 		it("should go to the previous sibling", () => {
 			const { isGoToPrevSiblingAllowed, goToPrevSibling } =
-				useComponentActions(core, ssbm);
+				useComponentActions(mockCore.core, wfbm);
 			expect(isGoToPrevSiblingAllowed("root")).toBe(false);
 			expect(isGoToPrevSiblingAllowed("1")).toBe(false);
 			expect(isGoToPrevSiblingAllowed("1.1")).toBe(false);
 			expect(isGoToPrevSiblingAllowed("1.2")).toBe(true);
 
 			goToPrevSibling("1.2");
-			expect(ssbm.firstSelectedId.value).toBe("1.1");
+			expect(wfbm.firstSelectedId.value).toBe("1.1");
 		});
 
 		it("should go to the next sibling", () => {
 			const { isGoToNextSiblingAllowed, goToNextSibling } =
-				useComponentActions(core, ssbm);
+				useComponentActions(mockCore.core, wfbm);
 			expect(isGoToNextSiblingAllowed("root")).toBe(false);
 			expect(isGoToNextSiblingAllowed("1")).toBe(true);
 			expect(isGoToNextSiblingAllowed("1.1")).toBe(true);
 			expect(isGoToNextSiblingAllowed("1.2")).toBe(false);
 
 			goToNextSibling("1.1");
-			expect(ssbm.firstSelectedId.value).toBe("1.2");
+			expect(wfbm.firstSelectedId.value).toBe("1.2");
 
 			goToNextSibling("1");
-			expect(ssbm.firstSelectedId.value).toBe("2");
+			expect(wfbm.firstSelectedId.value).toBe("2");
+		});
+	});
+
+	describe("createAndInsertComponentsTree", () => {
+		it("should create the tree in a single transaction", () => {
+			const { createAndInsertComponentsTree, undo } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
+
+			const [pageId, buttonId] = createAndInsertComponentsTree("root", [
+				{ type: "page" },
+				{
+					type: "button",
+					initProperties: {
+						content: { text: "bar" },
+					},
+				},
+			]);
+
+			expect(mockCore.core.getComponents(pageId)).toHaveLength(1);
+			const button = mockCore.core.getComponentById(buttonId);
+			expect(button).not.toBeUndefined();
+			expect(button.content.text).toStrictEqual("bar");
+
+			undo();
+
+			expect(mockCore.core.getComponents(pageId)).toHaveLength(0);
+			expect(mockCore.core.getComponentById(pageId)).toBeUndefined();
+			expect(mockCore.core.getComponentById(buttonId)).toBeUndefined();
 		});
 	});
 });

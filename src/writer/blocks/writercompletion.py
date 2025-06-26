@@ -2,7 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
 
-DEFAULT_MODEL = "palmyra-x-004"
+DEFAULT_MODEL = "palmyra-x5"
 
 class WriterCompletion(WriterBlock):
     @classmethod
@@ -36,7 +36,7 @@ class WriterCompletion(WriterBlock):
                             "validator": {
                                 "type": "number",
                                 "minimum": 1,
-                                "maximum": 8192,
+                                "maximum": 16384,
                             }
                         }
                     },

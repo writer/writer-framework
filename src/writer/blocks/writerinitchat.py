@@ -2,7 +2,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate, WriterConfigurationError
 
-DEFAULT_MODEL = "palmyra-x-004"
+DEFAULT_MODEL = "palmyra-x5"
 
 
 class WriterInitChat(WriterBlock):
@@ -16,6 +16,7 @@ class WriterInitChat(WriterBlock):
                 "name": "Start chat conversation",
                 "description": "Starts a new chat conversation. Use to initialize context for AI interactions.",
                 "category": "Writer",
+                "deprecated": True,
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",
@@ -44,7 +45,7 @@ class WriterInitChat(WriterBlock):
                         "validator": {
                             "type": "number",
                             "minimum": 1,
-                            "maximum": 8192,
+                            "maximum": 16384,
                         }
                     }
                 },

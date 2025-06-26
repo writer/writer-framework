@@ -45,7 +45,6 @@
 						v-if="executionItem?.result"
 						:data="executionItem.result"
 						:initial-depth="1"
-						class="data"
 					/>
 					<div v-else class="nothing">No result.</div>
 				</div>
@@ -62,7 +61,6 @@
 						v-if="executionItem?.returnValue"
 						:data="executionItem.returnValue"
 						:initial-depth="1"
-						class="data"
 					/>
 					<template v-else> No return value. </template>
 				</div>
@@ -80,7 +78,6 @@
 					v-if="executionItem?.executionEnvironment"
 					:data="executionItem.executionEnvironment"
 					:initial-depth="1"
-					class="data"
 				/>
 				<div v-else class="nothing">Empty execution environment.</div>
 			</div>

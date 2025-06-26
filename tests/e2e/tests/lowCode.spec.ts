@@ -57,6 +57,7 @@ test.describe("low-code UI", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("init_ui -  ui initialization", async ({ page }) => {
@@ -119,7 +120,7 @@ with ui.find('results'):
 	test("settings should be enabled for bmc", async ({ page }) => {
 		await page.locator(`.results`).click({ force: true });
 		await expect(
-			page.locator(`.BuilderSettingsMain > .sections:not(.debug)`),
+			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
 		).not.toHaveAttribute("inert");
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),
@@ -139,7 +140,7 @@ with ui.find('results'):
 			.locator(`.results .wf-type-text.component.out`)
 			.click({ force: true });
 		await expect(
-			page.locator(`.BuilderSettingsMain > .sections:not(.debug)`),
+			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
 		).toHaveAttribute("inert");
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),

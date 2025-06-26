@@ -18,6 +18,7 @@ test.describe("button", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
 		test.setTimeout(5000);
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("configure", async ({ page }) => {

@@ -56,8 +56,8 @@ from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
 
 from writer.core import get_app_process
 
-DEFAULT_CHAT_MODEL = "palmyra-x-004"
-DEFAULT_COMPLETION_MODEL = "palmyra-x-004"
+DEFAULT_CHAT_MODEL = "palmyra-x5"
+DEFAULT_COMPLETION_MODEL = "palmyra-x5"
 
 
 _ai_client: ContextVar[Optional[Writer]] = ContextVar("ai_client", default=None)

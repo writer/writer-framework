@@ -97,7 +97,12 @@
 					:data-writer-tooltip="option.label"
 					data-writer-tooltip-strategy="overflow"
 				>
-					{{ option.label }}
+					<span>{{ option.label }}</span>
+					<span
+						v-if="option.shortcut"
+						class="WdsDropdownMenu__item__label__shortcut"
+						>{{ option.shortcut }}</span
+					>
 				</div>
 				<div
 					v-if="option.detail"
@@ -123,6 +128,7 @@ export type WdsDropdownMenuOption = {
 	value: string;
 	label: string;
 	detail?: string;
+	shortcut?: string;
 	/**
 	 * A font icon or an array of image URL
 	 */
@@ -265,6 +271,10 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	transition: all 0.2s;
 	pointer-events: all;
 }
+.WdsDropdownMenu__item:disabled {
+	opacity: 40%;
+	cursor: not-allowed !important;
+}
 .WdsDropdownMenu__item:has(.WdsDropdownMenu__item__icon) {
 	grid-template-columns: auto 1fr auto;
 }
@@ -300,6 +310,16 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	white-space: nowrap;
 	overflow: hidden;
 	text-align: left;
+}
+
+.WdsDropdownMenu__item__label {
+	display: flex;
+	justify-content: space-between;
+	gap: 4px;
+	width: 100%;
+}
+.WdsDropdownMenu__item__label__shortcut {
+	color: var(--wdsColorGray4);
 }
 
 .WdsDropdownMenu__item:has(.WdsDropdownMenu__item__detail) {

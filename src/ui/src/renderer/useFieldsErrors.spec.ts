@@ -158,4 +158,15 @@ describe(useFieldsErrors.name, () => {
 
 		expect(errors.value).toStrictEqual({ value: undefined });
 	});
+
+	it("should handle unknow component", () => {
+		vi.spyOn(mockCore.core, "getComponentDefinition").mockReturnValue(
+			undefined,
+		);
+
+		mockComponentFieldValue("test");
+
+		const errors = useFieldsErrors(mockCore.core, instancePath);
+		expect(errors.value).toStrictEqual({});
+	});
 });

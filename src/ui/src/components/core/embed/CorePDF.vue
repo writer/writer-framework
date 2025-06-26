@@ -258,7 +258,7 @@ const gotoHighlight = (matchIdx: number) => {
 };
 
 const gotoPage = (page: number) => {
-	if (page < 1 || page > pages.value) {
+	if (page < 1 || page > pages?.value) {
 		return;
 	}
 	const pageEl = rootEl.value.querySelector("div[page='" + page + "']");
@@ -290,8 +290,8 @@ const decrementScale = () => {
 };
 
 watch(pagesLoaded, () => {
-	if (pagesLoaded.value === pages.value) {
-		if (fields.page.value) {
+	if (pagesLoaded.value === pages?.value) {
+		if (fields.page?.value) {
 			gotoPage(fields.page.value);
 		}
 	}
@@ -299,8 +299,9 @@ watch(pagesLoaded, () => {
 
 watch([highlightsList, pagesLoaded], () => {
 	if (
-		(!highlightText.value || highlightsList.value.length === pages.value) &&
-		pagesLoaded.value === pages.value
+		(!highlightText.value ||
+			highlightsList.value.length === pages?.value) &&
+		pagesLoaded.value === pages?.value
 	) {
 		renderingComplete();
 		loading.value = false;

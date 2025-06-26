@@ -1,10 +1,16 @@
 import { generateCore } from "@/core";
 import injectionKeys from "@/injectionKeys";
 import { flattenInstancePath } from "@/renderer/instancePath";
-import type { Component, InstancePath, UserFunction } from "@/writerTypes";
+import type {
+	Component,
+	Core,
+	InstancePath,
+	UserFunction,
+} from "@/writerTypes";
 import { vi } from "vitest";
 import { computed, ref, shallowRef } from "vue";
 import { SourceFiles } from "../writerTypes";
+import { useSecretsManager } from "@/core/useSecretsManager";
 
 export const mockComponentId = "component-id-test";
 
@@ -66,6 +72,20 @@ export function buildMockCore() {
 		userFunctions,
 		featureFlags,
 		writerApplication,
+	};
+}
+
+export function buildMockSecretsManager(core: Core) {
+	const secretsManager = useSecretsManager(core);
+	const secrets = shallowRef<Record<string, string>>({});
+
+	secretsManager.secrets = secrets;
+
+	vi.spyOn(secretsManager, "load").mockImplementation(async () => {});
+
+	return {
+		secretsManager,
+		secrets,
 	};
 }
 

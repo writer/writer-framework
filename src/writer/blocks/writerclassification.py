@@ -56,6 +56,7 @@ class WriterClassification(WriterBlock):
             text = self._get_field("text", required=True)
             additional_context = self._get_field("additionalContext")
             categories = self._get_field("categories", as_json=True, required=True)
+            conversation = writer.ai.Conversation()
 
             invalid_categories = [category for category in categories if not re.fullmatch(r"[\w ]+", category, flags=re.ASCII)]
             if invalid_categories:
@@ -79,9 +80,39 @@ CONTENT:
 ------
 { text }
 """
-            result = writer.ai.complete(prompt, config).strip()
-            self.result = result
-            self.outcome = f"category_{result}"
+            
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": {
+                        "type": "string",
+                        "enum": list(categories.keys())
+                    }
+                }
+            }
+
+            conversation += {
+                "role": "user",
+                "content": prompt,
+            }
+
+            msg = conversation.complete(response_format=response_format, config=config)
+            raw_content = msg.get("content")
+            if not raw_content:
+                self.outcome = "error"
+                raise RuntimeError("No content returned from the model. Please validate the prompt and model configuration.")
+
+            try:
+                # Attempt to parse the raw content as JSON
+                category_result = json.loads(raw_content)
+            except json.JSONDecodeError:
+                self.outcome = "error"
+                raise RuntimeError(
+                    f"Failed to decode JSON content. The raw content was: {raw_content}. Please validate the prompt and model configuration."
+                )
+
+            self.result = category_result
+            self.outcome = f"category_{category_result}"
         except BaseException as e:
             self.outcome = "error"
             raise e

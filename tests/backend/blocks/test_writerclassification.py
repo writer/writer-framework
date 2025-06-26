@@ -5,17 +5,12 @@ import writer.ai
 from writer.blocks.writerclassification import WriterClassification
 
 
-def fake_complete(prompt, config):
-    additional_context = "It's about animal classification."
-    if "canine" in prompt and additional_context in prompt:
-        return "dog"
-    if "feline" in prompt and additional_context in prompt:
-        return "cat"
-    return "other"
+def fake_conversation_complete(self, response_format, config):
+    return {"role": "assistant", "content": "\"dog\""}
 
 
 def test_classify(monkeypatch, session, runner, fake_client):
-    monkeypatch.setattr("writer.ai.complete", fake_complete)
+    monkeypatch.setattr(writer.ai.Conversation, "complete", fake_conversation_complete)
     component = session.add_fake_component(
         {
             "text": "canine",
@@ -30,7 +25,7 @@ def test_classify(monkeypatch, session, runner, fake_client):
 
 
 def test_classify_invalid_category(monkeypatch, session, runner, fake_client):
-    monkeypatch.setattr("writer.ai.complete", fake_complete)
+    monkeypatch.setattr(writer.ai.Conversation, "complete", fake_conversation_complete)
     categories = json.dumps(
         {
             "apple": "is an apple",
@@ -46,7 +41,7 @@ def test_classify_invalid_category(monkeypatch, session, runner, fake_client):
 
 
 def test_classify_missing_categories(monkeypatch, session, runner, fake_client):
-    monkeypatch.setattr("writer.ai.complete", fake_complete)
+    monkeypatch.setattr(writer.ai.Conversation, "complete", fake_conversation_complete)
     component = session.add_fake_component({"text": "canine", "categories": json.dumps({})})
     block = WriterClassification(component, runner, {})
 

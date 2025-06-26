@@ -33,7 +33,8 @@ export function useFieldsErrors(
 	});
 
 	const componentFields = computed(() => {
-		return wf.getComponentDefinition(component.value.type).fields ?? {};
+		if (!component.value?.type) return {};
+		return wf.getComponentDefinition(component.value.type)?.fields ?? {};
 	});
 
 	const evaluatedFields = computed(() =>

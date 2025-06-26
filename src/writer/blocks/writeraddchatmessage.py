@@ -14,6 +14,7 @@ class WriterAddChatMessage(BlueprintBlock):
                 "name": "Add chat message",
                 "description": "Adds a message to the conversation history. Use for displaying user or AI messages.",
                 "category": "Writer",
+                "deprecated": True,
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",

@@ -23,7 +23,9 @@ test.describe("Reuse component", () => {
 	};
 
 	const getSelectedComponentId = async (page: Page): Promise<string> => {
-		return await page.locator(".BuilderSettings .BuilderCopyText").innerText();
+		return await page
+			.locator(".BuilderSettings .BuilderSettingsMain__componentId__text")
+			.innerText();
 	};
 
 	const setReuseTarget = async (page: Page, id: string) => {
@@ -73,11 +75,8 @@ test.describe("Reuse component", () => {
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
 		await page.locator(selector).click();
-		await page
-			.locator(
-				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
-			)
-			.click();
+		await page.keyboard.press("Delete");
+
 		await expect(page.locator(selector)).not.toBeVisible();
 		await expect(page.locator(selector)).toHaveCount(0);
 	};
@@ -109,6 +108,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 
@@ -148,7 +148,6 @@ test.describe("Reuse component", () => {
 			await expect(page.locator(COMPONENT_LOCATOR)).toHaveClass(
 				/invalid-context/,
 			);
-			collapseSettingsBar(page);
 		});
 	});
 
@@ -167,6 +166,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 
@@ -239,6 +239,7 @@ test.describe("Reuse component", () => {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 			await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		});
 

@@ -43,6 +43,7 @@
 			<WdsButton
 				v-if="canDeploy"
 				size="small"
+				class="BuilderHeader__toolbar__deployBtn"
 				:loading="isDeploying"
 				:data-writer-tooltip="deployTooltip"
 				data-writer-tooltip-placement="bottom"
@@ -248,7 +249,7 @@ async function copyInviteCollaboratorsURL() {
 	color: var(--builderBackgroundColor);
 	padding: 0 12px 0 10px;
 	display: grid;
-	grid-template-columns: 1fr auto 1fr;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 	align-items: center;
 	gap: 16px;
 	padding-top: 1px;
@@ -291,6 +292,13 @@ async function copyInviteCollaboratorsURL() {
 	align-items: center;
 	justify-content: flex-end;
 	gap: 8px;
+}
+.BuilderHeader__toolbar__deployBtn {
+	text-wrap: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	display: block;
 }
 .BuilderHeader hr {
 	border: none;

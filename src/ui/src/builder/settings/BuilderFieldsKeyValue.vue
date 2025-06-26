@@ -9,17 +9,16 @@
 				variant="neutral"
 				size="smallIcon"
 				data-automation-key="openAssistedMode"
-				@click="modalMode = 'assisted'"
+				@click="isModalOpen = true"
 			>
 				<i class="material-symbols-outlined">edit</i>
 			</WdsButton>
 		</div>
 		<BuilderFieldsKeyValueModal
-			v-if="modalMode"
+			v-if="isModalOpen"
 			:data="field"
-			:initial-mode="modalMode"
 			@submit="onModalSubmit"
-			@close="modalMode = undefined"
+			@close="isModalOpen = undefined"
 		/>
 
 		<div
@@ -30,7 +29,7 @@
 			<WdsButton
 				variant="special"
 				size="small"
-				@click="modalMode = 'assisted'"
+				@click="isModalOpen = true"
 			>
 				<i class="material-symbols-outlined">keyboard_backspace</i>
 				Edit
@@ -73,7 +72,6 @@ import type { InstancePath } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
 import BuilderFieldsKeyValueModal from "./BuilderFieldsKeyValueModal.vue";
-import type { Mode } from "./composables/useKeyValueEditor";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -92,7 +90,7 @@ const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
 const componentId = toRef(props, "componentId");
 const fieldKey = toRef(props, "fieldKey");
 
-const modalMode = ref<Mode | undefined>();
+const isModalOpen = ref(false);
 
 const evaluatedValue = computed<JSONValue>(
 	() => getEvaluatedFields(props.instancePath)[fieldKey.value].value,
@@ -100,24 +98,15 @@ const evaluatedValue = computed<JSONValue>(
 
 const component = computed(() => wf.getComponentById(componentId.value));
 
-const field = computed(() => {
-	const value = component.value.content?.[fieldKey.value];
-	if (value === undefined) return evaluatedValue.value;
+const field = computed(
+	() =>
+		component.value.content?.[fieldKey.value] ??
+		JSON.stringify(evaluatedValue.value),
+);
 
-	try {
-		return JSON.parse(value);
-	} catch {
-		return {};
-	}
-});
-
-function onModalSubmit(data: JSONValue) {
-	modalMode.value = undefined;
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		JSON.stringify(data, null, 2),
-	);
+function onModalSubmit(data: string) {
+	isModalOpen.value = undefined;
+	setContentValue(component.value.id, fieldKey.value, String(data));
 }
 </script>
 

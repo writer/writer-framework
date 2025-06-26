@@ -27,6 +27,7 @@ test.describe("undo and redo", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(url, { waitUntil: "domcontentloaded" });
+		await page.locator(`[data-automation-action="set-mode-ui"]`).click();
 	});
 
 	test("create, drag and drop, property change and remove", async ({
@@ -68,10 +69,12 @@ test.describe("undo and redo", () => {
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText("cool text");
 
 		await page.locator(COMPONENT_LOCATOR).click();
-		await page
-			.locator(
-				'.BuilderSettingsActions .actionButton[data-automation-action="delete"]',
-			)
+		const actionDropdown = page
+			.locator(".BuilderSettings")
+			.locator('[data-automation-action="settings-actions-dropdown"]');
+		await actionDropdown.locator("button").click();
+		await actionDropdown
+			.locator('button[data-automation-key="delete"]')
 			.click();
 		await page.locator('[data-automation-key="undo"]').click();
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveCount(1);

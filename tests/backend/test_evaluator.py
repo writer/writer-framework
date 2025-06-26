@@ -108,6 +108,7 @@ class TestEvaluator:
                 "boolean": True,
                 "none": None,
                 "escaped": "\\",
+                "invalid_chars": "\ \" \f \n \t \b \r \u1234"
             }
         )
         e = evaluator.Evaluator(session.session_state, session.session_component_tree)
@@ -131,7 +132,29 @@ class TestEvaluator:
             "none_with_text": "TEXT null TEXT",
             "escaped": "\\@{escaped}",
             "escaped_with_text": "TEXT \\@{escaped} TEXT",
+            "invalid_chars": "\ \" \f \n \t \b \r \u1234",
+            "invalid_chars_with_text": "TEXT \ \" \f \n \t \b \r \u1234 TEXT"
         }
+
+    def test_evaluate_field_full_match(self) -> None:
+        instance_path = [
+            {"componentId": "blueprints_root", "instanceNumber": 0},
+            {"componentId": "hywgzgfetx6rpiqy", "instanceNumber": 0},
+            {"componentId": "67h6k2j3te9g4o6t", "instanceNumber": 0}
+        ]
+        session.session_state = WriterState(
+            {
+                "full_match": {"a": 1, "b": [2]},
+                "full_match_text": "null",
+            }
+        )
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
+        evaluated = e.evaluate_field(instance_path, "categories", as_json=True)
+        assert evaluated == {"a": 1, "b": [2]}
+
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
+        evaluated = e.evaluate_field(instance_path, "text")
+        assert evaluated == "null"
 
     def test_set_state(self) -> None:
         instance_path = [

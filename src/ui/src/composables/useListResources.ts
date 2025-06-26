@@ -1,6 +1,6 @@
 import { generateCore } from "@/core";
 import { readonly, ref, shallowRef } from "vue";
-import { useLocalStorageJSON } from "./useLocalStorageJSON";
+import { useSessionStorageJSON } from "./useStorageJSON";
 
 export function useListResources<T>(
 	wf: ReturnType<typeof generateCore>,
@@ -9,7 +9,7 @@ export function useListResources<T>(
 	const isLoading = ref(false);
 	const error = ref();
 
-	const cache = useLocalStorageJSON<T[]>(
+	const cache = useSessionStorageJSON<T[]>(
 		`useListResources(${type})`,
 		Array.isArray,
 	);

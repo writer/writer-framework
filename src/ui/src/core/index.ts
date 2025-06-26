@@ -30,7 +30,7 @@ import {
 	moveFileToSourceFiles,
 } from "./sourceFiles";
 
-const RECONNECT_DELAY_MS = 1000;
+const RECONNECT_DELAY_MS = 5000;
 const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {
@@ -92,6 +92,8 @@ export function generateCore() {
 	 * @returns
 	 */
 	async function initSession() {
+		clearFrontendMap();
+
 		const response = await fetch("./api/init", {
 			method: "post",
 			cache: "no-store",
@@ -214,7 +216,6 @@ export function generateCore() {
 		webSocket = new WebSocket(url.href);
 
 		webSocket.onopen = () => {
-			clearFrontendMap();
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
@@ -304,6 +305,7 @@ export function generateCore() {
 			setTimeout(async () => {
 				try {
 					await startSync();
+					logger.info("Reconnected.");
 				} catch {
 					logger.error("Couldn't reconnect.");
 				}
@@ -401,12 +403,8 @@ export function generateCore() {
 	async function sendCollaborationPing(
 		ping: UserCollaborationPing,
 	): Promise<void> {
-		return new Promise((resolve, reject) => {
-			const messageCallback = (r: {
-				ok: boolean;
-				payload?: Record<string, any>;
-			}) => {
-				if (!r.ok) return reject("Couldn't connect to the server.");
+		return new Promise((resolve) => {
+			const messageCallback = () => {
 				resolve();
 			};
 
@@ -822,6 +820,10 @@ export function generateCore() {
 		return typeHierarchy.getContainableTypes(components.value, componentId);
 	}
 
+	function getWebSocket() {
+		return webSocket;
+	}
+
 	const core = {
 		webSocket,
 		syncHealth,
@@ -861,6 +863,7 @@ export function generateCore() {
 		userState: readonly(userState),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
+		getWebSocket,
 		// writer cloud variables
 		writerApplication: readonly(writerApplication),
 		isWriterCloudApp,

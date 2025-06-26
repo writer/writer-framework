@@ -102,7 +102,6 @@ async function addBlueprint() {
 }
 
 .rootBranch {
-	margin-top: -8px;
 	flex: 1 0 auto;
 }
 

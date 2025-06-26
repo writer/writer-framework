@@ -120,6 +120,7 @@ def get_asgi_app(
 
     _fix_mimetype()
     app_runner = AppRunner(user_app_path, serve_mode)
+    pending_tasks: Set[asyncio.Task] = set()
 
     @asynccontextmanager
     async def lifespan(asgi_app: FastAPI):
@@ -139,6 +140,13 @@ def get_asgi_app(
             yield
         except asyncio.CancelledError:
             pass
+
+        for pending_task in pending_tasks.copy():
+            pending_task.cancel()
+            try:
+                await pending_task
+            except asyncio.CancelledError:
+                pass
 
         app_runner.shut_down()
         if on_shutdown is not None:
@@ -308,6 +316,35 @@ def get_asgi_app(
         except json.JSONDecodeError:
             raise HTTPException(status_code=400, detail="Cannot parse the payload.")
         return payload
+    
+    def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
+        # Check if blueprint has at least one API trigger component
+        if not app_runner.bmc_components:
+            return False
+        return any(
+            comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
+            for comp in app_runner.bmc_components.values()
+        )
+
+    @app.get("/private/api/blueprints")
+    async def get_blueprints(request: Request):
+        """
+        Returns a list of blueprints available in the agent.
+        """
+        if not app_runner.bmc_components:
+            return JSONResponse(content=[])
+
+        blueprints = [
+            {
+                "id": comp["id"],
+                "key": comp.get("content", {}).get("key")
+            }
+            for comp in app_runner.bmc_components.values()
+            if comp["type"] == "blueprints_blueprint"
+            and has_api_trigger(app_runner, comp["id"])
+        ]
+
+        return JSONResponse(content=blueprints)
 
     @app.post("/private/api/blueprint/{blueprint_key}")
     async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
@@ -347,15 +384,6 @@ def get_asgi_app(
                     and comp.get("content", {}).get("key") == key
                 ),
                 None
-            )
-
-        def has_api_trigger(app_runner: AppRunner, blueprint_id: str) -> bool:
-            # Check if blueprint has at least one API trigger component
-            if not app_runner.bmc_components:
-                return False
-            return any(
-                comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
-                for comp in app_runner.bmc_components.values()
             )
 
         # --- Result serialization (recursive) ---
@@ -513,6 +541,12 @@ def get_asgi_app(
 
     # Streaming
 
+    async def _send_json_or_queue(session_id: str, data: Any, websocket: WebSocket):
+        try:
+            await websocket.send_json(data)
+        except (RuntimeError, WebSocketDisconnect):
+            await app_runner.queue_message(session_id, data)
+
     async def _stream_session_init(websocket: WebSocket):
         """
         Waits for the client to provide a session id to initialise the stream.
@@ -537,8 +571,6 @@ def get_asgi_app(
         """
         Handles incoming requests from client.
         """
-
-        pending_tasks: Set[asyncio.Task] = set()
 
         try:
             while True:
@@ -581,18 +613,9 @@ def get_asgi_app(
                     pending_tasks.add(new_task)
                     new_task.add_done_callback(pending_tasks.discard)
         except WebSocketDisconnect:
-            pass
+            return
         except asyncio.CancelledError:
             raise
-        finally:
-            # Cancel pending tasks
-
-            for pending_task in pending_tasks.copy():
-                pending_task.cancel()
-                try:
-                    await pending_task
-                except asyncio.CancelledError:
-                    pass
 
     async def _handle_incoming_event(
         websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
@@ -622,7 +645,7 @@ def get_asgi_app(
             res_payload = typing.cast(EventResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
-        await websocket.send_json(response.model_dump())
+        await _send_json_or_queue(session_id, response.model_dump(), websocket)
 
     async def _handle_incoming_edit_message(
         websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
@@ -691,7 +714,7 @@ def get_asgi_app(
         elif req_message.type == "writerVaultUpdate":
             await app_runner.writer_vault_refresh(session_id)
 
-        await websocket.send_json(response.model_dump())
+        await _send_json_or_queue(session_id, response.model_dump(), websocket)
 
     async def _handle_keep_alive_message(
         websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
@@ -699,7 +722,7 @@ def get_asgi_app(
         response = WriterWebsocketOutgoing(
             messageType="keepAliveResponse", trackingId=req_message.trackingId, payload=None
         )
-        await websocket.send_json(response.model_dump())
+        await _send_json_or_queue(session_id, response.model_dump(), websocket)
 
     async def _handle_state_enquiry_message(
         websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
@@ -716,7 +739,7 @@ def get_asgi_app(
             res_payload = typing.cast(StateEnquiryResponsePayload, apsr.payload).model_dump()
         if res_payload is not None:
             response.payload = res_payload
-        await websocket.send_json(response.model_dump())
+        await _send_json_or_queue(session_id, response.model_dump(), websocket)
 
     async def _handle_hash_request(
         websocket: WebSocket, session_id: str, req_message: WriterWebsocketIncoming
@@ -732,7 +755,7 @@ def get_asgi_app(
         )
         if apsr is not None and apsr.payload is not None:
             response.payload = typing.cast(HashRequestResponsePayload, apsr.payload).model_dump()
-        await websocket.send_json(response.model_dump())
+        await _send_json_or_queue(session_id, response.model_dump(), websocket)
 
     async def _stream_outgoing_announcements(websocket: WebSocket, session_id: str):
         """
@@ -748,11 +771,14 @@ def get_asgi_app(
                 announcement = WriterWebsocketOutgoing(
                     messageType="announcement", trackingId=-1, payload=announcement_data
                 )
-                await websocket.send_json(announcement.dict())
+                if websocket.application_state == WebSocketState.CONNECTED:
+                    await websocket.send_json(announcement.dict())
                 if announcement_data.get("type") == "codeUpdate":
                     return
         except WebSocketDisconnect:
             pass
+        except asyncio.CancelledError:
+            raise
         finally:
             if app_runner.announcement_queues.get(session_id) is None:
                 return
@@ -777,6 +803,14 @@ def get_asgi_app(
         is_session_ok = await app_runner.check_session(session_id)
         if not is_session_ok:
             await websocket.close(code=1008)  # Invalid permissions
+            return
+        
+        try:
+            queued_messages = await app_runner.retrieve_messages(session_id)
+            for message in queued_messages:
+                await websocket.send_json(message)
+            await app_runner.clear_messages(session_id)
+        except (WebSocketDisconnect, RuntimeError):
             return
 
         task1 = asyncio.create_task(_stream_incoming_requests(websocket, session_id))

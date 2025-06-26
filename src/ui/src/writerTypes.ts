@@ -155,6 +155,7 @@ export const enum FieldType {
 	BlueprintKey = "Blueprint Key",
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
+	WriterGraphIds = "Graph Ids",
 	WriterAppId = "App Id",
 	WriterModelId = "Model Id",
 	ComponentId = "Component Id",

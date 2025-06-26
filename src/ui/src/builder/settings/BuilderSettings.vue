@@ -4,13 +4,15 @@
 		class="BuilderSettings"
 		:class="{
 			'BuilderSettings--collapsed': collapsed,
-			'BuilderSettings--miniDocActive': miniDocsActive,
 		}"
 	>
-		<div v-if="ssbm.isSingleSelectionActive.value" class="collapser">
+		<div
+			v-if="ssbm.isSingleSelectionActive.value"
+			class="BuilderSettings__collapser"
+		>
 			<WdsButton
 				v-if="collapsed"
-				class="collapserButton"
+				class="BuilderSettings__collapser__btn"
 				size="smallIcon"
 				variant="neutral"
 				data-writer-tooltip-placement="left"
@@ -21,7 +23,7 @@
 			>
 			<WdsButton
 				v-else
-				class="collapserButton"
+				class="BuilderSettings__collapser__btn"
 				size="smallIcon"
 				variant="neutral"
 				data-writer-tooltip-placement="left"
@@ -33,8 +35,33 @@
 				></WdsButton
 			>
 		</div>
-		<div v-if="ssbm.isSingleSelectionActive" class="titleBar">
-			<div>{{ componentDefinition.name }}</div>
+		<div
+			v-if="ssbm.isSingleSelectionActive"
+			class="BuilderSettings__titleBar"
+		>
+			<p class="BuilderSettings__titleBar__title">
+				{{ componentDefinition.name }}
+			</p>
+			<div class="BuilderSettings__titleBar__actions">
+				<WdsButton
+					v-if="resultId"
+					size="smallIcon"
+					variant="neutral"
+					data-writer-tooltip-placement="bottom"
+					:data-writer-tooltip="
+						isComponentIdCopied ? 'Copied!' : 'Copy result variable'
+					"
+					@click.prevent="copyComponentId"
+					>@</WdsButton
+				>
+				<SharedMoreDropdown
+					data-automation-action="settings-actions-dropdown"
+					:options="dropdownOptions"
+					trigger-custom-size="32px"
+					trigger-icon="more_vert"
+					@select="handleDropdownSelect"
+				/>
+			</div>
 		</div>
 		<div
 			v-if="ssbm.selectionStatus.value === SelectionStatus.Multiple"
@@ -44,29 +71,74 @@
 		>
 			<p>{{ selectionCount }}</p>
 		</div>
-		<BuilderSettingsActions class="actions"></BuilderSettingsActions>
-		<BuilderSettingsMain
-			:inert="collapsed"
-			class="main"
-		></BuilderSettingsMain>
+		<BuilderSettingsActions
+			v-if="
+				collapsed &&
+				ssbm.selectionStatus.value === SelectionStatus.Multiple
+			"
+			class="BuilderSettings__actions"
+		/>
+		<BuilderSettingsMain class="BuilderSettings__main" :inert="collapsed" />
+		<BuilderSettingsAddComponentModal
+			v-if="ssbm.isSingleSelectionActive.value"
+			v-model:is-open="isAddModalOpen"
+			:selected-id="ssbm.firstSelectedId.value"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, computed, ref, watch } from "vue";
+import { inject, computed, watch, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 
-import BuilderSettingsActions from "./BuilderSettingsActions.vue";
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { SelectionStatus } from "../builderManager";
+import { useButtonClipboard } from "../useButtonClipboard";
+import { COMPONENT_TYPES_PAGE } from "@/constants/component";
+import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
+import { useWriterTracking } from "@/composables/useWriterTracking";
+import BuilderSettingsActions from "./BuilderSettingsActions.vue";
+import {
+	BuilderSettingsDropdownActions,
+	useBuilderSettingsActions,
+} from "./useBuilderSettingsActions";
+import BuilderSettingsAddComponentModal from "./BuilderSettingsAddComponentModal.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const miniDocsActive = ref(false);
 
 const component = computed(() =>
 	wf.getComponentById(ssbm.firstSelectedId.value),
+);
+
+const resultId = computed(() => {
+	const componentType = component.value?.type;
+
+	const hasResultId =
+		componentType &&
+		!COMPONENT_TYPES_PAGE.has(componentType) &&
+		component.value?.type.startsWith("blueprints_") &&
+		componentDefinition.value?.outs?.["success"] !== undefined;
+
+	return hasResultId ? `@{results.${component.value.id}}` : "";
+});
+
+const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
+	useButtonClipboard(resultId);
+
+const tracking = useWriterTracking(wf);
+
+const isAddModalOpen = ref(false);
+
+const { dropdownOptions, handleDropdownSelect } = useBuilderSettingsActions(
+	wf,
+	ssbm,
+	tracking,
+	{
+		[BuilderSettingsDropdownActions.Add]: () =>
+			(isAddModalOpen.value = true),
+	},
 );
 
 const collapsed = computed(() => {
@@ -97,7 +169,7 @@ watch(component, (newComponent) => {
 .BuilderSettings {
 	display: grid;
 	grid-template-columns: 50px min-content;
-	grid-template-rows: min-content auto;
+	grid-template-rows: min-content 0 auto;
 	overflow: hidden;
 	background: var(--builderBackgroundColor);
 	position: absolute;
@@ -122,10 +194,6 @@ watch(component, (newComponent) => {
 	bottom: unset;
 }
 
-.BuilderSettings:not(.BuilderSettings--miniDocActive) {
-	grid-template-rows: min-content 0 auto;
-}
-
 .BuilderSettings__selectionCount {
 	background-color: var(--wdsColorBlue3);
 	color: var(--wdsColorBlue5);
@@ -136,7 +204,7 @@ watch(component, (newComponent) => {
 	justify-content: center;
 }
 
-.collapser {
+.BuilderSettings__collapser {
 	grid-row: 1;
 	grid-column: 1;
 	padding: 8px;
@@ -146,22 +214,29 @@ watch(component, (newComponent) => {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.collapserButton:focus {
+.BuilderSettings__collapser__btn:focus {
 	border: 1px solid var(--builderSeparatorColor);
 }
 
-.titleBar {
+.BuilderSettings__titleBar {
 	grid-row: 1;
 	grid-column: 2;
 	z-index: 2;
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
 	align-items: center;
 	padding-right: 12px;
-	overflow: hidden;
 	background: var(--builderSubtleSeparatorColor);
 }
+.BuilderSettings__titleBar__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
 
-.titleBar > div {
+.BuilderSettings__titleBar__title {
+	margin: 0;
 	padding: 12px 0 12px 0;
 	font-family: Poppins;
 	font-size: 16px;
@@ -172,71 +247,27 @@ watch(component, (newComponent) => {
 	max-width: 280px;
 }
 
-.actions {
+.BuilderSettings__actions {
 	grid-row: 3;
 	grid-column: 1;
 	max-height: 320px;
 	overflow-y: auto;
 }
 
-.main {
+.BuilderSettings__main {
 	width: 332px;
 	grid-row: 3;
-	grid-column: 2;
-	border-left: 1px solid var(--builderSeparatorColor);
+	grid-column: 1 / -1;
 	overflow-x: hidden;
 	overflow-y: auto;
 	margin-top: 0;
 	transition: 0.2s margin linear;
 }
 
-.BuilderSettings--collapsed .main {
+.BuilderSettings--collapsed .BuilderSettings__main {
 	overflow: hidden;
 	max-height: 400px;
 	margin-top: -400px;
-}
-
-.docs {
-	font-size: 0.75rem;
-	padding: 24px;
-	line-height: 1.5;
-	background: var(--builderSubtleHighlightColorSolid);
-	border-top: 1px solid var(--builderSubtleSeparatorColor);
-	white-space: pre-wrap;
-}
-
-.docs div:not(:first-child) {
-	margin-top: 16px;
-	border-top: 1px solid var(--builderSubtleSeparatorColor);
-	padding-top: 16px;
-}
-
-.sections {
-	background: var(--builderBackgroundColor);
-}
-
-.sections[inert] {
-	opacity: 0.7;
-}
-
-.sections > *:not(:first-child) {
-	border-top: 1px solid var(--builderSeparatorColor);
-}
-
-.debug {
-	color: var(--builderSecondaryTextColor);
-	border-top: 1px solid var(--builderSeparatorColor);
-	padding: 24px;
-}
-
-.warning {
-	display: flex;
-	align-items: center;
-	background: var(--builderWarningColor);
-	color: var(--builderWarningTextColor);
-	border-radius: 4px;
-	gap: 12px;
-	margin: 12px 12px 0;
-	padding: 12px;
+	grid-column: 2;
 }
 </style>

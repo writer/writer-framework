@@ -42,7 +42,7 @@ class WriterAskGraphQuestion(WriterBlock):
                     },
                     "graphIds": {
                         "name": "Graph Ids",
-                        "type": "Object",
+                        "type": "Graph Ids",
                         "desc": "IDs of the graphs to query.",
                         "default": "[]",
                         "validator": {

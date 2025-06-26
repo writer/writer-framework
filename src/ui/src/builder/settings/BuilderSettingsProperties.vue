@@ -163,6 +163,14 @@
 						resource-type="graph"
 					/>
 					<BuilderFieldsWriterResourceId
+						v-if="fieldValue.type == FieldType.WriterGraphIds"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+						resource-type="graph"
+						enable-multi-selection
+					/>
+					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterAppId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
