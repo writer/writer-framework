@@ -8,15 +8,13 @@
 			:key="propertyCategory"
 			class="BuilderSettingsProperties__category"
 		>
-			<h4
+			<WdsTitle2
 				v-if="
 					fieldsByCategory[propertyCategory].length > 0 &&
 					propertyCategory !== 'General'
 				"
-				class="BuilderSettingsProperties__category__title"
+				>{{ propertyCategory }}</WdsTitle2
 			>
-				{{ propertyCategory }}
-			</h4>
 			<div
 				v-for="[fieldKey, fieldValue] in fieldsByCategory[
 					propertyCategory
@@ -228,6 +226,7 @@ import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
+import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -316,11 +315,5 @@ function handleShrink(fieldKey: string) {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-}
-
-.BuilderSettingsProperties__category__title {
-	color: var(--builderSecondaryTextColor);
-	font-weight: 500;
-	font-size: 12px;
 }
 </style>

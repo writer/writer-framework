@@ -1,6 +1,6 @@
 <template>
 	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsVisibility">
-		<BuilderSectionTitle icon="visibility" label="Visibility" />
+		<WdsTitle2>Visibility</WdsTitle2>
 		<div class="main">
 			<WdsTabs v-model="tab" :tabs="tabs" />
 			<WdsFieldWrapper
@@ -50,8 +50,8 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import BuilderSectionTitle from "./BuilderSectionTitle.vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
+import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 type Mode = "yes" | "no" | "custom";
 
