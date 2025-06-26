@@ -26,22 +26,29 @@
 				<BlueprintsGenerationLoader />
 			</template>
 		</BlueprintsAutogenContents>
-		<template v-if="!isBusy">
-			<div class="BlueprintsAutogen__panel">
-				<p class="BlueprintsAutogen__error">
-					{{ errorMessage }}
-				</p>
-				<div class="BlueprintsAutogen__buttons">
-					<WdsButton variant="tertiary" @click="handleCancel">
-						Skip
+		<div class="BlueprintsAutogen__panel">
+			<p class="BlueprintsAutogen__error">
+				{{ errorMessage }}
+			</p>
+			<div class="BlueprintsAutogen__buttons">
+				<template v-if="isBusy">
+					<WdsButton variant="tertiary" @click="handleBack">
+						Back
 					</WdsButton>
-					<WdsButton variant="secondary" @click="handleAutogen">
-						<i class="material-symbols-outlined">bolt</i>
-						Autogenerate agent
-					</WdsButton>
-				</div>
+				</template>
+				<WdsButton variant="tertiary" @click="handleCancel">
+					Skip
+				</WdsButton>
+				<WdsButton
+					variant="secondary"
+					:disabled="isBusy"
+					@click="handleAutogen"
+				>
+					<i class="material-symbols-outlined">bolt</i>
+					{{ isBusy ? "Autogenerating..." : "Autogenerate agent" }}
+				</WdsButton>
 			</div>
-		</template>
+		</div>
 	</div>
 </template>
 
@@ -67,10 +74,14 @@ const tracking = useWriterTracking(wf);
 const isBusy = ref(false);
 const prompt = ref("");
 const errorMessage = ref<string | null>(null); // Track error messages
+let autogenController: AbortController | null = null;
 
 const emits = defineEmits(["blockGeneration"]);
 
 function handleCancel() {
+	if (autogenController) {
+		autogenController.abort();
+	}
 	emits("blockGeneration", null);
 }
 
@@ -125,6 +136,13 @@ async function handleAutogen() {
 	const description = prompt.value;
 	isBusy.value = true;
 	errorMessage.value = null;
+
+	if (autogenController) {
+		autogenController.abort();
+	}
+
+	autogenController = new AbortController();
+
 	tracking.track("blueprints_auto_gen_started", { prompt: prompt.value });
 
 	try {
@@ -136,6 +154,7 @@ async function handleAutogen() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ description }),
+				signal: autogenController.signal,
 			},
 		);
 		if (!response.ok) {
@@ -146,14 +165,24 @@ async function handleAutogen() {
 		const data = await response.json(); // Assuming the response is JSON
 		const components: Component[] = alterIds(data.blueprint?.components);
 		emits("blockGeneration", { components });
-	} catch {
-		errorMessage.value = `Agent failed to generate. Try again.`;
+	} catch (err) {
+		if (err.name !== "AbortError") {
+			errorMessage.value = `Agent failed to generate. Try again.`;
+		}
 		return;
 	} finally {
 		isBusy.value = false;
+		autogenController = null;
 	}
 
 	tracking.track("blueprints_auto_gen_completed");
+}
+
+function handleBack() {
+	if (autogenController) {
+		autogenController.abort();
+	}
+	isBusy.value = false;
 }
 </script>
 
