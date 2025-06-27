@@ -726,10 +726,10 @@ class GraphRunner:
         self.queue = self.graph.get_start_nodes()
         self.futures: List[Future[GraphNode]] = []
 
-    def run(self):
+    def run(self) -> Optional[Any]:
         if self.graph.status == "error":
             self.status_logger.log("Execution failed due to graph validation errors.", entry_type="error", exit="graph_validation_error")
-            return
+            return None
         if not self.queue:
             raise WriterConfigurationError("No start nodes found in the blueprint.")
 
@@ -751,7 +751,7 @@ class GraphRunner:
                 if abort_event.is_set():
                     self._cancel_all_jobs()
                     self.status_logger.log("Terminated.", entry_type="info", exit="aborted")
-                    return "stopped"
+                    return None
                 else:
                     continue
             self.status_logger.log("Executing...")
@@ -789,6 +789,7 @@ class GraphRunner:
                         self.queue.append(next_node)
 
         self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
+        return None
 
     def _cancel_all_jobs(self):
         self.queue.clear()
