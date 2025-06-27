@@ -111,7 +111,7 @@ import "@tato30/vue-pdf/style.css";
 
 type MatchType = { str: string; page: number; index: number };
 
-const fields = inject(injectionKeys.evaluatedFields);
+const fields = inject(injectionKeys.evaluatedFields, {});
 
 let pdf, pages, VuePDF;
 
@@ -146,10 +146,17 @@ const pdfData = computed(() => {
 	}
 });
 
-const pdfSource = computed<PDFSrc>(() => ({
-	data: pdfData.value, // convert source to binary data to avoid fetching DataURL (which is forbidden by some CSP rules)
-	isEvalSupported: false,
-}));
+const pdfSource = computed<PDFSrc>(() => {
+	return pdfData.value === undefined
+		? {
+				url: fields.source.value,
+				isEvalSupported: false,
+			}
+		: {
+				data: pdfData.value, // convert source to binary data to avoid fetching DataURL (which is forbidden by some CSP rules)
+				isEvalSupported: false,
+			};
+});
 
 onMounted(async () => {
 	// @ts-expect-error usage of Vite env
