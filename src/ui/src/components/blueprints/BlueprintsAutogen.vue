@@ -61,6 +61,7 @@ import BlueprintsAutogenContents from "./BlueprintsAutogenContents.vue";
 import BlueprintsGenerationLoader from "./BlueprintsGenerationLoader.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "@/builder/useComponentActions";
+import { useToasts } from "@/builder/useToast";
 import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
@@ -70,6 +71,8 @@ const wfbm = inject(injectionKeys.builderManager);
 
 const { generateNewComponentId } = useComponentActions(wf, wfbm);
 const tracking = useWriterTracking(wf);
+
+const { pushToast } = useToasts();
 
 const isBusy = ref(false);
 const prompt = ref("");
@@ -134,6 +137,13 @@ function alterIds(components: Component[]) {
 
 async function handleAutogen() {
 	const description = prompt.value;
+
+	if (!description) {
+		errorMessage.value =
+			"Please add instructions to create your blueprint.";
+		return;
+	}
+
 	isBusy.value = true;
 	errorMessage.value = null;
 
@@ -165,6 +175,10 @@ async function handleAutogen() {
 		const data = await response.json(); // Assuming the response is JSON
 		const components: Component[] = alterIds(data.blueprint?.components);
 		emits("blockGeneration", { components });
+		pushToast({
+			type: "success",
+			message: `Blueprint generated`,
+		});
 	} catch (err) {
 		if (err.name !== "AbortError") {
 			errorMessage.value = `Agent failed to generate. Try again.`;
