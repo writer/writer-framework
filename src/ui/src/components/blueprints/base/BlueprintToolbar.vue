@@ -16,7 +16,11 @@ const blueprintComponentId = inject(injectionKeys.componentId);
 
 const runBlueprintBtn = useTemplateRef("runBlueprintBtn");
 
-const { run: handleRun, stop: handleStop, isRunning } = useBlueprintRun(wf, wfbm, blueprintComponentId);
+const {
+	run: handleRun,
+	stop: handleStop,
+	isRunning,
+} = useBlueprintRun(wf, wfbm, blueprintComponentId);
 
 const triggerComponents = computed(() =>
 	wf
@@ -55,7 +59,6 @@ async function runBlueprint(componentId?: string) {
 async function stopBlueprintRun() {
 	await handleStop();
 }
-
 </script>
 
 <template>
@@ -98,8 +101,10 @@ async function stopBlueprintRun() {
 			variant="special"
 			@click="isRunning ? stopBlueprintRun() : runBlueprint()"
 		>
-				<i class="material-symbols-outlined">{{ isRunning ? "stop" : "play_arrow" }}</i>
-				{{ isRunning ? "Stop run" : "Run blueprint" }}
+			<i class="material-symbols-outlined">{{
+				isRunning ? "stop" : "play_arrow"
+			}}</i>
+			{{ isRunning ? "Stop run" : "Run blueprint" }}
 		</WdsButton>
 	</div>
 </template>
