@@ -671,7 +671,7 @@ class StatusLogger:
     def file_log(self, data: Dict = {}):
         dat = data.copy()
         with self.lock:
-            with open(f"/tmp/framework.jsonl", "a") as f:
+            with open("/tmp/framework.jsonl", "a") as f:
                 dat['runId'] = self.run_id
                 line = json.dumps(dat)
                 line.replace("\n", '__n__')
