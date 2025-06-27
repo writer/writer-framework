@@ -1,9 +1,6 @@
 <template>
 	<div v-if="shoudBeDisplayed" class="BuilderSettingsHandlers">
-		<div class="BuilderSettingsHandlers__title">
-			<i class="material-symbols-outlined">linked_services</i>
-			<h3>Blueprints</h3>
-		</div>
+		<WdsTitle2 class="BuilderSettingsHandlers__title">Blueprints</WdsTitle2>
 		<div class="BuilderSettingsHandlers__list">
 			<div
 				v-for="(eventInfo, eventType) in recognisedEvents"
@@ -25,6 +22,7 @@ import { computed, ComputedRef, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { WriterComponentDefinition } from "@/writerTypes";
 import BuilderSettingsHandlersBlueprint from "./BuilderSettingsHandlersBlueprint.vue";
+import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -62,11 +60,7 @@ const shoudBeDisplayed = computed(() => {
 }
 
 .BuilderSettingsHandlers__title {
-	padding-bottom: 24px;
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	font-size: 1rem;
+	padding-bottom: 16px;
 }
 
 .BuilderSettingsHandlers__list {

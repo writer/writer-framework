@@ -19,8 +19,8 @@ class WriterChat(WriterBlock):
                     "fields": {
                         "conversationStateElement": {
                             "name": "Conversation state element",
-                            "desc": "Where the conversation will be stored",
-                            "type": "Text",
+                            "desc": "The variable that has your conversation object.",
+                            "type": "Binding",
                         },
                         "useStreaming": {
                             "name": "Use streaming",

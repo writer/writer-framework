@@ -18,8 +18,8 @@ class WriterAddChatMessage(BlueprintBlock):
                 "fields": {
                     "conversationStateElement": {
                         "name": "Conversation state element",
-                        "desc": "Where the conversation is stored",
-                        "type": "Text",
+                        "desc": "The variable that has your conversation object.",
+                        "type": "Binding",
                     },
                     "message": {
                         "name": "Message",

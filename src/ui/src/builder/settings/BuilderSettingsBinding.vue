@@ -1,8 +1,8 @@
 <template>
 	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
-		<BuilderSectionTitle icon="link" label="Binding" />
+		<WdsTitle2>Binding</WdsTitle2>
 		<div class="main">
-			<WdsFieldWrapper label="State element" :hint="hint">
+			<WdsFieldWrapper label="Link Variable" :hint="hint">
 				<BuilderTemplateInput
 					type="state"
 					:value="component.binding?.stateRef"
@@ -26,10 +26,10 @@ import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import BuilderSectionTitle from "./BuilderSectionTitle.vue";
+import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 const hint =
-	'Links this component to a state element, in a two-way fashion. Reference the state element directly, i.e. use "my_var" instead of "@{my_var}".';
+	"Connect the result of this block to a dynamic variable you can use across this agent";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);

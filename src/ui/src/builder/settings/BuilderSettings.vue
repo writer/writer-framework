@@ -52,7 +52,9 @@
 						isComponentIdCopied ? 'Copied!' : 'Copy result variable'
 					"
 					@click.prevent="copyComponentId"
-					>@</WdsButton
+					><i class="material-symbols-outlined"
+						>alternate_email</i
+					></WdsButton
 				>
 				<SharedMoreDropdown
 					data-automation-action="settings-actions-dropdown"

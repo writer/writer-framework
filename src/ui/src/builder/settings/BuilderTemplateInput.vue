@@ -12,6 +12,7 @@
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
 				:readonly="readonly"
+				:left-icon="type === 'state' ? 'alternate_email' : undefined"
 				@input="handleInput"
 				@blur="closeAutocompletion"
 			/>
@@ -257,6 +258,7 @@ const autoCompletionState = computed(() => {
 function showAutocomplete() {
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	const newValue = input.value?.value;
+	if (newValue === undefined) return;
 	const collapsed = selectionStart === selectionEnd;
 	if (!collapsed) {
 		autocompleteOptions.value = [];

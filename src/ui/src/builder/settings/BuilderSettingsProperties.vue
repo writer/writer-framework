@@ -8,15 +8,13 @@
 			:key="propertyCategory"
 			class="BuilderSettingsProperties__category"
 		>
-			<h4
+			<WdsTitle2
 				v-if="
 					fieldsByCategory[propertyCategory].length > 0 &&
 					propertyCategory !== 'General'
 				"
-				class="BuilderSettingsProperties__category__title"
+				>{{ propertyCategory }}</WdsTitle2
 			>
-				{{ propertyCategory }}
-			</h4>
 			<div
 				v-for="[fieldKey, fieldValue] in fieldsByCategory[
 					propertyCategory
@@ -42,14 +40,14 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsColor>
+					/>
 
 					<BuilderFieldsShadow
 						v-if="fieldValue.type == FieldType.Shadow"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsShadow>
+					/>
 
 					<BuilderFieldsKeyValue
 						v-if="fieldValue.type == FieldType.KeyValue"
@@ -57,50 +55,44 @@
 						:component-id="selectedComponent.id"
 						:instance-path="selectedInstancePath"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsKeyValue>
+					/>
 
 					<BuilderFieldsText
 						v-if="
 							fieldValue.type == FieldType.Text ||
-							fieldValue.type == FieldType.Boolean
+							fieldValue.type == FieldType.Boolean ||
+							fieldValue.type == FieldType.Number ||
+							fieldValue.type == FieldType.Binding ||
+							fieldValue.type == FieldType.IdKey
+						"
+						:type="
+							fieldValue.type == FieldType.Binding
+								? 'state'
+								: 'template'
 						"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsText>
+					/>
 
 					<BuilderFieldsBlueprintKey
 						v-if="fieldValue.type == FieldType.BlueprintKey"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
-					></BuilderFieldsBlueprintKey>
+					/>
 
 					<BuilderFieldsHandler
 						v-if="fieldValue.type == FieldType.Handler"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
-					></BuilderFieldsHandler>
-
-					<BuilderFieldsText
-						v-if="fieldValue.type == FieldType.Number"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsText>
-
-					<BuilderFieldsText
-						v-if="fieldValue.type == FieldType.IdKey"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsText>
+					/>
 
 					<BuilderFieldsObject
 						v-if="fieldValue.type == FieldType.Object"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsObject>
+					/>
 
 					<BuilderFieldsCode
 						v-if="fieldValue.type == FieldType.JSONInput"
@@ -108,14 +100,14 @@
 						:component-id="selectedComponent.id"
 						:is-expanded="expandedFields.has(fieldKey)"
 						:input-language="'json'"
-					></BuilderFieldsCode>
+					/>
 
 					<BuilderFieldsWidth
 						v-if="fieldValue.type == FieldType.Width"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsWidth>
+					/>
 
 					<BuilderFieldsAlign
 						v-if="fieldValue.type == FieldType.HAlign"
@@ -123,7 +115,7 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsAlign>
+					/>
 
 					<BuilderFieldsAlign
 						v-if="fieldValue.type == FieldType.VAlign"
@@ -131,21 +123,20 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsAlign>
+					/>
 
 					<BuilderFieldsPadding
 						v-if="fieldValue.type == FieldType.Padding"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-					></BuilderFieldsPadding>
+					/>
 
 					<BuilderFieldsTools
 						v-if="fieldValue.type == FieldType.Tools"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
-					>
-					</BuilderFieldsTools>
+					/>
 
 					<BuilderFieldsCode
 						v-if="fieldValue.type == FieldType.Code"
@@ -153,8 +144,8 @@
 						:component-id="selectedComponent.id"
 						:is-expanded="expandedFields.has(fieldKey)"
 						:input-language="'python'"
-					>
-					</BuilderFieldsCode>
+					/>
+
 					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterGraphId"
 						:field-key="fieldKey"
@@ -162,6 +153,7 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="graph"
 					/>
+
 					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterGraphIds"
 						:field-key="fieldKey"
@@ -170,6 +162,7 @@
 						resource-type="graph"
 						enable-multi-selection
 					/>
+
 					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterAppId"
 						:field-key="fieldKey"
@@ -177,6 +170,7 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="application"
 					/>
+
 					<BuilderFieldsWriterResourceId
 						v-if="fieldValue.type == FieldType.WriterModelId"
 						:field-key="fieldKey"
@@ -184,12 +178,14 @@
 						:error="errorsByFields[fieldKey]"
 						resource-type="model"
 					/>
+
 					<BuilderFieldsComponentId
 						v-if="fieldValue.type == FieldType.ComponentId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
 					/>
+
 					<BuilderFieldsComponentEventType
 						v-if="fieldValue.type == FieldType.ComponentEventType"
 						:field-key="fieldKey"
@@ -230,6 +226,7 @@ import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
+import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -318,11 +315,5 @@ function handleShrink(fieldKey: string) {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-}
-
-.BuilderSettingsProperties__category__title {
-	color: var(--builderSecondaryTextColor);
-	font-weight: 500;
-	font-size: 12px;
 }
 </style>

@@ -137,6 +137,7 @@ export type CollaborationManager = ReturnType<typeof useCollaborationManager>;
 
 export const enum FieldType {
 	Text = "Text",
+	Binding = "Binding",
 	Boolean = "Boolean",
 	KeyValue = "Key-Value",
 	Color = "Color",

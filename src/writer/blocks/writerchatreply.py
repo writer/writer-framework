@@ -19,10 +19,10 @@ class WriterChatReply(WriterBlock):
                     "category": "Writer",
                     "fields": {
                         "conversationStateElement": {
-                            "name": "Conversation state element",
-                            "desc": "Where the conversation will be stored",
+                            "name": "Conversation Object",
+                            "desc": "The variable that has your conversation object.",
                             "init": "chat",
-                            "type": "Text",
+                            "type": "Binding",
                         },
                         "systemPrompt": {
                             "name": "System prompt",
@@ -35,7 +35,7 @@ class WriterChatReply(WriterBlock):
                             "name": "Message",
                             "type": "Object",
                             "init": '{ "role": "user", "content": "Hello" }',
-                            "desc": "The message to add to the conversation. Must be an object including role and content.",
+                            "desc": "An array with messages or a variable to contain save your conversation as an object. ",
                             "validator": {
                                 "type": "object",
                                 "properties": {
