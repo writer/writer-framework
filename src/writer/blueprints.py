@@ -602,16 +602,18 @@ class StatusLogger:
         self.title = title
         self.run_id = run_id
         self.log_id = self._generate_run_id()
+        self.lock = threading.Lock()
 
     def log(
         self,
         msg: str = "",
         entry_type: Literal["info", "error"] = "info",
+        exit: Optional[str] = None,
     ):
         if not writer.core.Config.is_mail_enabled_for_log:
             return
         log_id = self.log_id
-        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(runId=self.run_id, summary=[])
+        exec_log: BlueprintExecutionLog = BlueprintExecutionLog(runId=self.run_id, summary=[], exit=exit)
         for node in self.graph.nodes:
             #print(node.debug_info())
             if node.tool is None:
@@ -661,9 +663,21 @@ class StatusLogger:
                     "executionTimeInSeconds": node.tool.execution_time_in_seconds,
                 }
             )
+        #self.file_log(exec_log.__dict__)
         self.runner.session.session_state.add_log_entry(
             entry_type, self.title, msg, blueprint_execution=exec_log, id=log_id
         )
+
+    def file_log(self, data: Dict = {}):
+        dat = data.copy()
+        with self.lock:
+            with open(f"/tmp/framework.jsonl", "a") as f:
+                dat['runId'] = self.run_id
+                line = json.dumps(dat)
+                line.replace("\n", '__n__')
+                f.write(line + '\n')
+                f.flush()
+
 
     def _generate_run_id(self):
         timestamp = str(int(time.time() * 1000))
@@ -714,7 +728,7 @@ class GraphRunner:
 
     def run(self):
         if self.graph.status == "error":
-            self.status_logger.log("Execution failed due to graph validation errors.", entry_type="error")
+            self.status_logger.log("Execution failed due to graph validation errors.", entry_type="error", exit="graph_validation_error")
             return
         if not self.queue:
             raise WriterConfigurationError("No start nodes found in the blueprint.")
@@ -736,7 +750,7 @@ class GraphRunner:
                 print("Terminating execution due to abort event.")
                 if abort_event.is_set():
                     self._cancel_all_jobs()
-                    self.status_logger.log("Terminated.", entry_type="info")
+                    self.status_logger.log("Terminated.", entry_type="info", exit="aborted")
                     return "stopped"
                 else:
                     continue
@@ -747,22 +761,25 @@ class GraphRunner:
                 try:
                     result_node: GraphNode = future.result()
                 except BlueprintExecutionError as e:
+                    self._cancel_all_jobs()
+                    self.status_logger.log("Execution failed", entry_type="error", exit=str(e))
                     raise e
                 except BaseException as e:
                     abort_event.set()
                     self._cancel_all_jobs()
-                    self.status_logger.log("Execution failed.", entry_type="error")
+                    self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
                     raise BlueprintExecutionError(
                         f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
                     ) from e 
                 if result_node.outcome == "cancelled":
-                   return
+                    continue 
                 if result_node.return_value is not None:
                     abort_event.set()
                     self._cancel_all_jobs()
                     self.status_logger.log(
                         f"Execution completed, node {result_node.id} returned value: {result_node.return_value}",
-                        entry_type="info"
+                        entry_type="info",
+                        exit="return"
                     )
                     return result_node.return_value
                 for output in result_node.outputs:
@@ -771,7 +788,7 @@ class GraphRunner:
                     if next_node:
                         self.queue.append(next_node)
 
-        self.status_logger.log("Execution completed.")
+        self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
 
     def _cancel_all_jobs(self):
         self.queue.clear()

@@ -16,7 +16,7 @@ const blueprintComponentId = inject(injectionKeys.componentId);
 
 const runBlueprintBtn = useTemplateRef("runBlueprintBtn");
 
-const { run: handleRun, isRunning } = useBlueprintRun(wf, blueprintComponentId);
+const { run: handleRun, stop: handleStop, isRunning } = useBlueprintRun(wf, wfbm, blueprintComponentId);
 
 const triggerComponents = computed(() =>
 	wf
@@ -51,6 +51,11 @@ async function runBlueprint(componentId?: string) {
 	runBlueprintBtn.value?.toggleDropdown(false);
 	await handleRun(componentId);
 }
+
+async function stopBlueprintRun() {
+	await handleStop();
+}
+
 </script>
 
 <template>
@@ -66,18 +71,17 @@ async function runBlueprint(componentId?: string) {
 			<i class="material-symbols-outlined">wand_shine</i>
 		</WdsButton>
 		<WdsButtonSplit
-			v-if="triggerComponents.length"
+			v-if="triggerComponents.length && !isRunning"
 			ref="runBlueprintBtn"
 			class="BlueprintToolbar__runBlueprintDropdown"
 			variant="special"
-			:disabled="isRunning"
 			@main-click="runBlueprint()"
 			@dropdown-open="onDropdownOpen"
 			@dropdown-close="onDropdownClose"
 		>
 			<template #button>
 				<i class="material-symbols-outlined">play_arrow</i>
-				{{ isRunning ? "Running..." : "Run blueprint" }}
+				Run blueprint
 			</template>
 			<template #dropdown>
 				<BlueprintToolbarBlocksDropdown
@@ -92,11 +96,10 @@ async function runBlueprint(componentId?: string) {
 			class="BlueprintToolbar__runBlueprint"
 			data-automation-action="run-blueprint"
 			variant="special"
-			:disabled="isRunning"
-			@click="runBlueprint()"
+			@click="isRunning ? stopBlueprintRun() : runBlueprint()"
 		>
-			<i class="material-symbols-outlined">play_arrow</i>
-			{{ isRunning ? "Running..." : "Run blueprint" }}
+				<i class="material-symbols-outlined">{{ isRunning ? "stop" : "play_arrow" }}</i>
+				{{ isRunning ? "Stop run" : "Run blueprint" }}
 		</WdsButton>
 	</div>
 </template>

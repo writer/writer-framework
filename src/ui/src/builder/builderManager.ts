@@ -406,6 +406,22 @@ export function generateBuilderManager() {
 		return state.value.logEntries;
 	};
 
+	const activeBlueprintRunId = computed(() => {
+		const logEntries = getLogEntries();
+		const runId =
+			logEntries.find((entry) => {
+				return !!entry.blueprintExecution;
+			})?.blueprintExecution?.runId ?? null;
+		const isActive = !logEntries
+			.filter((entry) => {
+				return entry?.blueprintExecution?.runId === runId;
+			})
+			.find( (entry) => {
+				return entry.exit
+			});
+		return isActive ? runId : null;
+	});
+
 	const builder = {
 		setMode,
 		getMode,
@@ -435,6 +451,7 @@ export function generateBuilderManager() {
 		getLogEntryCount,
 		clearLogEntries,
 		getLogEntries,
+		activeBlueprintRunId,
 	};
 
 	return builder;
