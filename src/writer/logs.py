@@ -3,27 +3,24 @@ import json
 import logging
 import logging.config
 import os
-import time
 from contextlib import contextmanager, redirect_stdout
-from contextvars import ContextVar
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
-WF_LOG_LEVEL = os.getenv("WF_LOG_LEVEL", "INFO")
-WF_ENV = os.getenv("WF_ENV", "local")
+WRITER_LOG_LEVEL = os.getenv("WRITER_LOG_LEVEL", "INFO")
+WRITER_LOG_FORMAT = os.getenv("WRITER_LOG_FORMAT", "text")  # 'text' or 'json'
 
-
-_stdout_routing_key: ContextVar[Optional[int]] = ContextVar("stdout_routing_key", default=None)
-
-
-def get_stdout_routing_key() -> Optional[int]:
-    return _stdout_routing_key.get()
+FAILOVER_ROUTING_KEY = "unset"
+FAILOVER_BUFFER = "failover"
 
 
-_logging_routing_key: ContextVar[Optional[int]] = ContextVar("logging_routing_key", default=None)
+def get_routing_key(prefix: Optional[str] = None) -> str:
+    from writer.blueprints import get_current_block
 
-
-def get_logging_routing_key() -> Optional[int]:
-    return _logging_routing_key.get()
+    current_block = get_current_block()
+    key = FAILOVER_ROUTING_KEY
+    if current_block is not None:
+        key = current_block.component.id
+    return f"{prefix}-{key}"
 
 
 class RoutingMap():
@@ -35,30 +32,27 @@ class RoutingMap():
     def __init__(self) -> None:
         # It's not expected that this will be used without context.
         # But just in case a fail-over buffer is provided
-        self._buffer_map: Dict[int, io.StringIO] = {
-            -1: io.StringIO(),
+        self._buffer_map: Dict[str, io.StringIO] = {
+            FAILOVER_BUFFER: io.StringIO(),
         }
     
-    def get_buffer(self, routing_key: Optional[int] = None) -> io.StringIO:
+    def get_buffer(self, key: str) -> io.StringIO:
         """
         Retrieve the buffer associated with a routing key.
 
-        If key is None uses a fail-over buffer
+        If buffer for the key is not present uses a fail-over buffer
         """
-        if routing_key is None:
-            routing_key = -1
-        return self._buffer_map[routing_key]
-    
-    def add_buffer(self) -> Tuple[io.StringIO, int]:
+        return self._buffer_map.get(key, self._buffer_map[FAILOVER_BUFFER])
+
+    def add_buffer(self, key: str) -> io.StringIO:
         """
-        Add a new buffer with a unique routing key.
+        Add a new buffer with the given key.
         """
-        key = time.monotonic_ns()
         buffer = io.StringIO()
         self._buffer_map[key] = buffer
-        return buffer, key
-    
-    def remove_buffer(self, key: int) -> None:
+        return buffer
+
+    def remove_buffer(self, key: str) -> None:
         """
         Remove the buffer associated with the specified key.
         """
@@ -74,14 +68,14 @@ class RoutingStream(io.StringIO):
     based on the current context routing key.
     """
 
-    def write(self, s) -> int:
+    def write(self, s: str) -> int:
         if s.strip():
             logging.getLogger("stdout").info(s)
-        routing_key = get_stdout_routing_key()
+        routing_key = get_routing_key(prefix="stdout")
         return routing_map.get_buffer(routing_key).write(s)
     
     def getvalue(self) -> str:
-        routing_key = get_stdout_routing_key()
+        routing_key = get_routing_key(prefix="stdout")
         return routing_map.get_buffer(routing_key).getvalue()
 
 
@@ -97,7 +91,7 @@ class RoutingHandler(logging.StreamHandler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            routing_key = get_logging_routing_key()
+            routing_key = get_routing_key(prefix="logging")
             stream = routing_map.get_buffer(routing_key)
             stream.write(msg + self.terminator)
             self.flush()
@@ -107,7 +101,7 @@ class RoutingHandler(logging.StreamHandler):
             self.handleError(record)
 
     def flush(self):
-        routing_key = get_logging_routing_key()
+        routing_key = get_routing_key(prefix="logging")
         stream = routing_map.get_buffer(routing_key)
         with self.lock:
             if stream and hasattr(stream, "flush"):
@@ -120,14 +114,13 @@ def use_stdout_redirect():
     Context manager that redirects stdout to a context-specific buffer.
     """
 
-    buffer, key = routing_map.add_buffer()
-    token = _stdout_routing_key.set(key)
+    key = get_routing_key(prefix="stdout")
+    buffer = routing_map.add_buffer(key)
 
     with redirect_stdout(RoutingStream()):
         yield buffer
 
     routing_map.remove_buffer(key)
-    _stdout_routing_key.reset(token)
 
 
 @contextmanager
@@ -136,24 +129,47 @@ def use_logging_redirect():
     Context manager that redirects logging to a context-specific buffer.
     """
 
-    buffer, key = routing_map.add_buffer()
-    token = _logging_routing_key.set(key)
+    key = get_routing_key(prefix="logging")
+    buffer = routing_map.add_buffer(key)
 
     yield buffer
 
     routing_map.remove_buffer(key)
-    _logging_routing_key.reset(token)
 
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord, **kwargs) -> str:
-        super().format(record)
-        data = {
+        from writer.blueprints import get_current_block
+        from writer.core import get_app_process, get_session
+
+        data: Dict[str, Any] = {
             "severity": record.levelname.upper(),
-            "message": record.message,
+            "message": super().format(record),
             "logger_name": record.name,
-            "processName": record.processName,
+            "process": {
+                "name": record.processName
+            },
         }
+
+        current_block = get_current_block()
+        if current_block is not None:
+            data["component"] = {
+                "id": current_block.component.id,
+                "type": current_block.component.type
+            }
+
+        session = get_session()
+        if session is not None:
+            data["session"] = {
+                "id": session.session_id,
+            }
+
+        try:
+            app_process = get_app_process()
+            data["process"]["mode"] = app_process.mode
+        except RuntimeError:
+            pass
+
         if isinstance(record.args, dict):
             data.update(record.args)
 
@@ -165,31 +181,15 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(data)
 
 
-class LocalFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        super().format(record)
-        return f"{record.levelname}[{record.name}]: {record.msg}\n"
-
-
-ENV_TO_FORMATTER = {
-    "local": "local_formatter",
-    "prod": "json_formatter",
-}
-
-
-def get_formatter(env: str = WF_ENV):
-    return ENV_TO_FORMATTER[env]
-
-
-def get_handler(env: str = WF_ENV, level: str = WF_LOG_LEVEL):
+def get_handler(format: str = WRITER_LOG_FORMAT, level: str = WRITER_LOG_LEVEL):
     return {
         "level": level,
         "class": "logging.StreamHandler",
-        "formatter": get_formatter(env),
+        "formatter": format,
     }
 
 
-def get_logger(level: str = WF_LOG_LEVEL):
+def get_logger(level: str = WRITER_LOG_LEVEL):
     return {
         "handlers": ["basic"],
         "level": level,
@@ -201,13 +201,13 @@ LOGGING_CONFIG: Dict[str, Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "local_formatter": {
+        "text": {
             "format": "%(levelname)s - %(name)s - %(message)s",
         },
-        "json_formatter": {
+        "json": {
             "()": JSONFormatter,
         },
-        "user_formatter": {
+        "user": {
             "format": "%(levelname)s - %(message)s"
         }
     },
@@ -216,11 +216,11 @@ LOGGING_CONFIG: Dict[str, Any] = {
         "stdout": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "json_formatter" if WF_ENV == "prod" else None
+            "formatter": "json" if WRITER_LOG_FORMAT == "json" else None
         },
         "routing": {
             "()": RoutingHandler,
-            "formatter": "user_formatter",
+            "formatter": "user",
         }
     },
     "loggers": {
