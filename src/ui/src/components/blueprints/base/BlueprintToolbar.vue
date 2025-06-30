@@ -56,9 +56,6 @@ async function runBlueprint(componentId?: string) {
 	await handleRun(componentId);
 }
 
-async function stopBlueprintRun() {
-	await handleStop();
-}
 </script>
 
 <template>
@@ -99,7 +96,7 @@ async function stopBlueprintRun() {
 			class="BlueprintToolbar__runBlueprint"
 			data-automation-action="run-blueprint"
 			variant="special"
-			@click="isRunning ? stopBlueprintRun() : runBlueprint()"
+			@click="isRunning ? handleStop() : runBlueprint()"
 		>
 			<i class="material-symbols-outlined">{{
 				isRunning ? "stop" : "play_arrow"

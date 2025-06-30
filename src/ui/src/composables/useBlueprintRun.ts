@@ -120,11 +120,7 @@ export function useBlueprintRun(
 	async function stop() {
 		const activeRunId = wfbm.activeBlueprintRunId.value;
 		if(!activeRunId) return;
-		try {
-			await stopBlueprintRun(wf, activeRunId);
-		} catch (err) {
-			console.error("Failed to stop blueprint run:", err);
-		}
+		await stopBlueprintRun(wf, activeRunId);
 	}
 
 	return { isRunning: readonly(isRunning), run, stop };

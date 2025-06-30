@@ -411,14 +411,15 @@ export function generateBuilderManager() {
 		const runId =
 			logEntries.find((entry) => {
 				return !!entry.blueprintExecution;
-			})?.blueprintExecution?.runId ?? null;
-		const isActive = !logEntries
-			.filter((entry) => {
-				return entry?.blueprintExecution?.runId === runId;
-			})
-			.find( (entry) => {
-				return entry?.blueprintExecution?.exit
-			});
+			})?.blueprintExecution?.runId;
+		if (!runId) return null;
+		const isActive = Boolean(
+			logEntries
+				.filter((entry) => {
+					return entry?.blueprintExecution?.runId === runId
+						&& !entry?.blueprintExecution?.exit;
+				})?.[0]
+		)
 		return isActive ? runId : null;
 	});
 
