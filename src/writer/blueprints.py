@@ -710,6 +710,8 @@ class StatusLogger:
             return f"Can't be displayed in the log. Value of type: {str(type(data))}."
 
 class GraphRunner:
+    CANCELATION_CHECK_INTERVAL = 0.1
+
     def __init__(self, 
         graph: Graph,
         execution_environment: Dict,
@@ -745,9 +747,8 @@ class GraphRunner:
                     self.futures.append(node.run(self.execution_environment, self.runner, executor))
 
             self.status_logger.log("Executing...")
-            done, _ = wait(self.futures, timeout=0.1, return_when=FIRST_COMPLETED)
+            done, _ = wait(self.futures, timeout=self.CANCELATION_CHECK_INTERVAL, return_when=FIRST_COMPLETED)
             if not done:
-                print("Terminating execution due to abort event.")
                 if abort_event.is_set():
                     self._cancel_all_jobs()
                     self.status_logger.log("Terminated.", entry_type="info", exit="aborted")

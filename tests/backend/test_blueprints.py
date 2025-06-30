@@ -10,8 +10,21 @@ from writer.blueprints import MAX_DAG_DEPTH, BlueprintRunManager, Graph, GraphBu
 from writer.core_ui import Component
 
 
-def run_graph(graph: Graph, env: Optional[Dict] = None) -> None:
-    return GraphRunner(graph=graph, execution_environment=env if env is not None else {}, runner=MockRunner(), title="Test Execution").run()
+
+def run_graph(graph: Graph, env: Optional[Dict] = None, runner = None) -> None:
+    if runner is None:
+        runner = MockRunner()
+    run = GraphRunner(graph=graph, execution_environment=env if env is not None else {}, runner=runner, title="Test Execution")
+    run.CANCELATION_CHECK_INTERVAL = 0.001
+    return run.run()
+
+def run_graph_async(executor, graph: Graph, env: Optional[Dict] = None, runner = None) -> Future:
+    if runner is None:
+        runner = MockRunner()
+    run = GraphRunner(graph=graph, execution_environment=env if env is not None else {}, runner=runner, title="Test Execution")
+    run.CANCELATION_CHECK_INTERVAL = 0.001
+    return executor.submit(run.run)
+
 
 tools: Dict[str,BlueprintBlock_T]  = {}
 
@@ -101,6 +114,8 @@ class MockRunner:
         finally:
             if new_executor:
                 new_executor.shutdown()
+    def cancel_blueprint_execution(self, run_id: str):
+        self.run_manager.cancel_run(run_id)
 
 MockBlock.register("mock_block")
 
@@ -507,71 +522,148 @@ class TestCancellation:
     """Tests for execution cancellation scenarios"""
     
     def test_cancellation_simple(self):
+        runner = MockRunner()
         event = Event()
-        builder = GraphBuilder(components=[
+
+        graph  = GraphBuilder(components=[
             create_component("N1", fields={
                 "event": event 
             }),
-        ], tools=tools)
-
-        graph = builder.build()
-        
-        runner = MockRunner()
-        run = GraphRunner(
-            graph=graph, 
-            execution_environment={"run_id": "test"},
-            runner=MockRunner(), 
-            title="Test Execution"
-        )
+        ], tools=tools).build()
         
         with runner._get_executor() as executor:
-            future: Future = executor.submit(run.run)
+            future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
             wait([future], timeout=0.01)
-            run.cancel()
+            runner.cancel_blueprint_execution("test")
             wait([future], timeout=0.01)
             event.set()
+            wait([future], timeout=0.01)
 
         node = graph.get_node("N1")
         assert node is not None
         assert node.outcome == "cancelled"
 
-#def test_cancellation_nested():
-#    event = Event()
-#    b2 = GraphBuilder(components=[
-#        create_component("N1", fields={
-#            "event": event
-#        }),
-#        create_component("N2")
-#    ], tools=tools)
-#
-#    builder = GraphBuilder(components=[
-#        create_component('next', fields= {
-#            "graph": b2.build()
-#        }),
-#        create_component("N1", fields={
-#            "event": event 
-#        }),
-#    ], tools=tools)
-#
-#
-#    graph = builder.build()
-#    
-#    runner = MockRunner()
-#    run = GraphRunner(
-#        graph=graph, 
-#        execution_environment={"run_id": "test"},
-#        runner=MockRunner(), 
-#        title="Test Execution"
-#    )
-#
-#    with runner._get_executor() as executor:
-#        import time
-#        future: Future = executor.submit(run.run)
-#        time.sleep(0.1)
-#        run.cancel()
-#        wait([future], timeout=1)
-#        event.set()
-#
-#    node = graph.get_node("N1")
-#    assert node is not None
-#    assert node.outcome == "cancelled"
+    def test_cancel_nodes_on_error(self):
+        runner = MockRunner()
+        event = Event()
+
+        graph = GraphBuilder(components=[
+            create_component("N1", fields={
+                "event": event 
+            }),
+            create_component("N2", fields={
+                "should_fail": True
+            })
+        ], tools=tools).build()
+
+        with runner._get_executor() as executor:
+            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+            wait([future], timeout=0.01)
+            event.set()
+            wait([future], timeout=0.01)
+
+        node1 = graph.get_node("N1")
+        node2 = graph.get_node("N2")
+        
+        assert node1 is not None
+        assert node1.outcome == "cancelled"
+        
+        assert node2 is not None
+        assert node2.outcome == "error"
+    
+    def test_cancelation_of_nested_workflows_on_error(self):
+        runner = MockRunner()
+        event = Event()
+        nested_event = Event()
+
+        nested_graph = GraphBuilder(components=[
+            create_component("nested", fields={
+                "event": nested_event 
+            }),
+        ], tools=tools).build()
+
+        graph = GraphBuilder(components=[
+            create_component('next', fields= {
+                "callback": lambda env: run_graph(nested_graph, env, runner)
+            }),
+            create_component("N1", fields={
+                "event": event,
+                "should_fail": True
+            }),
+        ], tools=tools).build()
+        
+        with runner._get_executor() as executor:
+            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+            wait([future], timeout=0.01)
+            event.set()
+            wait([future], timeout=0.01)
+            nested_event.set()
+            wait([future], timeout=0.01)
+
+        node = nested_graph.get_node("nested")
+        assert node is not None
+        assert node.outcome == "cancelled"
+
+    def test_cancelation_on_nested_workflows_error(self):
+        runner = MockRunner()
+        event = Event()
+
+        nested_graph = GraphBuilder(components=[
+            create_component("nested", fields={
+                "should_fail": True
+            }),
+        ], tools=tools).build()
+
+        graph = GraphBuilder(components=[
+            create_component('next', fields= {
+                "callback": lambda env: run_graph(nested_graph, env, runner)
+            }),
+            create_component("N1", fields={
+                "event": event,
+            }),
+        ], tools=tools).build()
+
+        with runner._get_executor() as executor:
+            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+            wait([future], timeout=0.01)
+            event.set()
+            wait([future], timeout=0.1)
+
+        node = graph.get_node("N1")
+        assert node is not None
+        assert node.outcome == "cancelled"
+    def test_nested_cancel(self):
+        runner = MockRunner()
+        event = Event()
+        nested_event = Event()
+
+        nested_graph = GraphBuilder(components=[
+            create_component("nested", fields={
+                "event": nested_event
+            }),
+        ], tools=tools).build()
+
+        graph = GraphBuilder(components=[
+            create_component('next', fields= {
+                "callback": lambda env: run_graph(nested_graph, env, runner)
+            }),
+            create_component("N1", fields={
+                "event": event,
+            }),
+        ], tools=tools).build()
+
+        with runner._get_executor() as executor:
+            future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
+            wait([future], timeout=0.01)
+            runner.cancel_blueprint_execution("test")
+            wait([future], timeout=0.01)
+            nested_event.set()
+            event.set()
+            wait([future], timeout=0.1)
+
+        node = graph.get_node("N1")
+        nested = nested_graph.get_node("nested")
+        assert node is not None
+        assert node.outcome == "cancelled"
+        assert nested is not None
+        assert nested.outcome == "cancelled"
