@@ -55,7 +55,6 @@ async function runBlueprint(componentId?: string) {
 	runBlueprintBtn.value?.toggleDropdown(false);
 	await handleRun(componentId);
 }
-
 </script>
 
 <template>
