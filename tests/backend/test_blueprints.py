@@ -10,7 +10,6 @@ from writer.blueprints import MAX_DAG_DEPTH, BlueprintRunManager, Graph, GraphBu
 from writer.core_ui import Component
 
 
-
 def run_graph(graph: Graph, env: Optional[Dict] = None, runner = None) -> None:
     if runner is None:
         runner = MockRunner()
