@@ -663,21 +663,9 @@ class StatusLogger:
                     "executionTimeInSeconds": node.tool.execution_time_in_seconds,
                 }
             )
-        #self.file_log(exec_log.__dict__)
         self.runner.session.session_state.add_log_entry(
             entry_type, self.title, msg, blueprint_execution=exec_log, id=log_id
         )
-
-    def file_log(self, data: Dict = {}):
-        dat = data.copy()
-        with self.lock:
-            with open("/tmp/framework.jsonl", "a") as f:
-                dat['runId'] = self.run_id
-                line = json.dumps(dat)
-                line.replace("\n", '__n__')
-                f.write(line + '\n')
-                f.flush()
-
 
     def _generate_run_id(self):
         timestamp = str(int(time.time() * 1000))

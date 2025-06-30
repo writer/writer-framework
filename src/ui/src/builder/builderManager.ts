@@ -417,7 +417,7 @@ export function generateBuilderManager() {
 				return entry?.blueprintExecution?.runId === runId;
 			})
 			.find( (entry) => {
-				return entry.exit
+				return entry?.blueprintExecution?.exit
 			});
 		return isActive ? runId : null;
 	});

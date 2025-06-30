@@ -1,8 +1,8 @@
 from concurrent.futures import Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from threading import Event
-from typing import Dict, Optional, Type
-from unittest.mock import MagicMock, patch
+from typing import Dict, Optional
+from unittest.mock import MagicMock
 
 import pytest
 from writer.blocks.base_block import BlueprintBlock, BlueprintBlock_T

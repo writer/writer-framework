@@ -1208,7 +1208,6 @@ class EventHandlerRegistry:
     # === BLUEPRINT HANLDERS ===
     @staticmethod
     def stop_blueprint_run(payload: dict, blueprint_runner: 'BlueprintRunner'):
-        print("Stopping blueprint run")
         run_id = payload.pop("run_id", None)
         if not run_id:
             raise ValueError("Missing run_id in payload")
