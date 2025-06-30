@@ -6,14 +6,18 @@ import { flushPromises, shallowMount } from "@vue/test-utils";
 
 const analyticsIdentify = vi.fn();
 const analyticsTrack = vi.fn();
-const loadAndIdentifyChameleon = vi.fn();
+const fetchUserProfile = vi.fn().mockResolvedValue({ id: 1 });
 
 vitest.mock("@/writerApi", () => ({
 	WriterApi: class {
 		analyticsIdentify = analyticsIdentify;
 		analyticsTrack = analyticsTrack;
-		loadAndIdentifyChameleon = loadAndIdentifyChameleon;
+		fetchUserProfile = fetchUserProfile;
 	},
+}));
+
+vitest.mock("@/utils/writerCloudEnvConfig", () => ({
+	getWriterCloudEnvConfig: vi.fn().mockResolvedValue({}),
 }));
 
 describe(useWriterTracking.name, () => {

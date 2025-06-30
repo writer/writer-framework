@@ -1,7 +1,8 @@
 import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
-import { onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useLogger } from "./useLogger";
+import { getWriterCloudEnvConfig } from "@/utils/writerCloudEnvConfig";
 
 let isIdentified = false;
 
@@ -49,23 +50,117 @@ const EVENT_PREFIX = "[AgentEditor]";
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
-	const { writerApi } = useWriterApi({ signal: abortControler.signal });
 	const logger = useLogger();
+	const { writerApi } = useWriterApi({ signal: abortControler.signal });
+
+	const canTrack = computed(
+		() => wf.mode.value === "edit" && wf.isWriterCloudApp.value,
+	);
+
+	async function getFullstoryOrgId() {
+		if (!wf.isWriterCloudApp.value) return undefined;
+		const config = await getWriterCloudEnvConfig();
+		return config["FULLSTORY_ORG_ID"]
+			? String(config["FULLSTORY_ORG_ID"])
+			: undefined;
+	}
 
 	if (!isIdentified) {
-		onMounted(async () => {
-			if (!wf.isWriterCloudApp.value || isIdentified) return;
-			isIdentified = true;
-			try {
-				await writerApi.analyticsIdentify();
-				await writerApi.loadAndIdentifyChameleon();
-			} catch (e) {
-				logger.error(
-					"Failed to identify the current user for analytics",
-					e,
-				);
-			}
+		const stop = watch(
+			canTrack,
+			async () => {
+				if (isIdentified || !canTrack.value) return;
+				isIdentified = true;
+				try {
+					const fetchUserProfile = writerApi.fetchUserProfile();
+					await Promise.all([
+						writerApi.analyticsIdentify(),
+						initializeChameleon(fetchUserProfile),
+						initializeFullStory(fetchUserProfile),
+					]);
+				} catch (e) {
+					logger.error(
+						"Failed to identify the current user for analytics",
+						e,
+					);
+				} finally {
+					stop();
+				}
+			},
+			{ immediate: true },
+		);
+	}
+
+	async function initializeChameleon(
+		fetchUserProfile = writerApi.fetchUserProfile(),
+	) {
+		const chameleon = await import("@chamaeleonidae/chmln");
+		chameleon.init(
+			"S6dr31v4MO4wuteztVhxysLkoA9HsZ6HnDaOTDLqNXHYZq-1P02ek-E3BR4Zgv4pMwdoYO",
+			{
+				fastUrl: "https://fast.chameleon.io/",
+			},
+		);
+		const profile = await fetchUserProfile;
+		chameleon.identify(profile.id, {
+			email: profile?.email,
+			name:
+				profile?.fullName ??
+				`${profile?.firstName} ${profile.lastName}`,
 		});
+	}
+
+	async function initializeFullStory(
+		fetchUserProfile = writerApi.fetchUserProfile(),
+	) {
+		if (!canTrack.value) return;
+		const fullstoryOrgId = await getFullstoryOrgId();
+		if (!fullstoryOrgId) return;
+
+		const module = await import("@fullstory/browser");
+		if (module.isInitialized()) return;
+
+		module.init({
+			orgId: fullstoryOrgId,
+			// @ts-expect-error importing vite variable
+			devMode: import.meta.env.DEV,
+		});
+
+		try {
+			const profile = await fetchUserProfile;
+			await module.FullStory("setIdentityAsync", {
+				uid: `segment-prefix-${profile.id}`,
+				properties: profile,
+				consent: true,
+			});
+		} catch (e) {
+			logger.error("Failed to set FullStory identity", e);
+		}
+	}
+
+	async function trackWithFullStory(
+		eventName: string,
+		properties: EventProperties,
+	) {
+		if (!canTrack.value) return;
+		const fullstoryOrgId = await getFullstoryOrgId();
+		if (!fullstoryOrgId) return;
+
+		const { FullStory } = await import("@fullstory/browser");
+		return FullStory("trackEventAsync", { name: eventName, properties });
+	}
+
+	function trackWithApi(eventName: string, properties: EventProperties) {
+		if (!canTrack.value) return;
+		return writerApi.analyticsTrack(eventName, properties);
+	}
+
+	function getComponentInformation(componentId: string) {
+		const component = wf.getComponentById(componentId);
+		if (!component) return {};
+		const def = wf.getComponentDefinition(component.type);
+		if (!def) return {};
+		return { name: def.name, category: def.category };
 	}
 
 	function expandEventPropertiesWithResources(
@@ -89,32 +184,26 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		};
 	}
 
-	function getComponentInformation(componentId: string) {
-		const component = wf.getComponentById(componentId);
-		if (!component) return {};
-		const def = wf.getComponentDefinition(component.type);
-		if (!def) return {};
-		return { name: def.name, category: def.category };
-	}
-
-	function track(
+	async function track(
 		eventName: WriterTrackingEventName,
 		properties: EventProperties = {},
 	) {
-		if (wf.mode.value !== "edit" || !wf.isWriterCloudApp.value) return;
+		if (!canTrack.value) return;
 
-		return writerApi.analyticsTrack(
-			`${EVENT_PREFIX} ${eventName}`,
-			expandEventPropertiesWithResources(properties),
-		);
+		const eventNameFormated = `${EVENT_PREFIX} ${eventName}`;
+		const propertiesExpanded =
+			expandEventPropertiesWithResources(properties);
+		logger.log("[tracking]", eventNameFormated, propertiesExpanded);
+
+		return await Promise.all([
+			trackWithApi(eventNameFormated, propertiesExpanded),
+			trackWithFullStory(eventNameFormated, propertiesExpanded),
+		]).catch(logger.error);
 	}
 
 	function page(name: string, properties: EventProperties = {}) {
-		if (
-			wf.mode.value !== "edit" ||
-			!wf.isWriterCloudApp.value ||
-			!wf.writerOrgId.value
-		) {
+		if (!canTrack.value) return;
+		if (!wf.writerOrgId.value) {
 			return;
 		}
 
