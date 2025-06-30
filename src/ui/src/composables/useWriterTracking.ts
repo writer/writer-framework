@@ -1,8 +1,7 @@
 import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
-import { computed, onMounted, watch } from "vue";
+import { computed, watch } from "vue";
 import { useLogger } from "./useLogger";
-import { getWriterCloudEnvConfig } from "@/utils/writerCloudEnvConfig";
 
 let isIdentified = false;
 
@@ -57,14 +56,6 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		() => wf.mode.value === "edit" && wf.isWriterCloudApp.value,
 	);
 
-	async function getFullstoryOrgId() {
-		if (!wf.isWriterCloudApp.value) return undefined;
-		const config = await getWriterCloudEnvConfig();
-		return config["FULLSTORY_ORG_ID"]
-			? String(config["FULLSTORY_ORG_ID"])
-			: undefined;
-	}
-
 	if (!isIdentified) {
 		const stop = watch(
 			canTrack,
@@ -73,7 +64,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 				isIdentified = true;
 				try {
 					const fetchUserProfile = writerApi.fetchUserProfile();
-					await Promise.all([
+					await Promise.allSettled([
 						writerApi.analyticsIdentify(),
 						initializeChameleon(fetchUserProfile),
 						initializeFullStory(fetchUserProfile),
@@ -114,15 +105,12 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		fetchUserProfile = writerApi.fetchUserProfile(),
 	) {
 		if (!canTrack.value) return;
-		const fullstoryOrgId = await getFullstoryOrgId();
-		if (!fullstoryOrgId) return;
 
 		const module = await import("@fullstory/browser");
 		if (module.isInitialized()) return;
 
 		module.init({
-			orgId: fullstoryOrgId,
-			// @ts-expect-error importing vite variable
+			orgId: "o-2316W7-na1",
 			devMode: import.meta.env.DEV,
 		});
 
@@ -143,8 +131,6 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		properties: EventProperties,
 	) {
 		if (!canTrack.value) return;
-		const fullstoryOrgId = await getFullstoryOrgId();
-		if (!fullstoryOrgId) return;
 
 		const { FullStory } = await import("@fullstory/browser");
 		return FullStory("trackEventAsync", { name: eventName, properties });
