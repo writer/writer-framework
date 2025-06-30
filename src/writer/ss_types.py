@@ -303,6 +303,7 @@ class ComponentDefinition(TypedDict):
 class BlueprintExecutionLog(BaseModel):
     runId: str
     summary: List[Dict]
+    exit: Optional[str] = None
 
 
 class BlueprintExecutionError(Exception):

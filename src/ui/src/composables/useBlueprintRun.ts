@@ -1,4 +1,5 @@
 import type { generateCore } from "@/core";
+import { generateBuilderManager } from "@/builder/builderManager";
 import { computed, readonly, Ref, ref, unref } from "vue";
 import { useWriterTracking } from "./useWriterTracking";
 
@@ -73,8 +74,35 @@ function runBlueprint(
 	});
 }
 
+function stopBlueprintRun(
+	wf: ReturnType<typeof generateCore>,
+	runId: string,
+) {
+	return new Promise<void>((res, rej) => {
+		const tracking = useWriterTracking(wf);
+		tracking.track("blueprints_run_stopped");
+
+		wf.forwardEvent(
+			new CustomEvent("wf-stop-blueprint", {
+				detail: {
+					handler: "stop_blueprint_run",
+					payload: { run_id: runId},
+				},
+			}),
+			null,
+			true,
+		)
+			.then(() => res())
+			.catch((err) => {
+				tracking.track("blueprints_run_stop_failed", { error: String(err) });
+				rej(err);
+			});
+	});
+}
+
 export function useBlueprintRun(
 	wf: ReturnType<typeof generateCore>,
+	wfbm: ReturnType<typeof generateBuilderManager>,
 	blueprintComponentId: string | Ref<string>,
 ) {
 	const isRunning = ref(false);
@@ -89,7 +117,13 @@ export function useBlueprintRun(
 		}
 	}
 
-	return { isRunning: readonly(isRunning), run };
+	async function stop() {
+		const activeRunId = wfbm.activeBlueprintRunId.value;
+		if(!activeRunId) return;
+		await stopBlueprintRun(wf, activeRunId);
+	}
+
+	return { isRunning: readonly(isRunning), run, stop };
 }
 
 export type BlueprintsRunListItem = { blueprintId: string; branchId: string };

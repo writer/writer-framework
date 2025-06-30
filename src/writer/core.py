@@ -1206,6 +1206,12 @@ class EventHandlerRegistry:
         meta: "EventHandlerRegistry.HandlerMeta"
 
     # === BLUEPRINT HANLDERS ===
+    @staticmethod
+    def stop_blueprint_run(payload: dict, blueprint_runner: 'BlueprintRunner'):
+        run_id = payload.pop("run_id", None)
+        if not run_id:
+            raise ValueError("Missing run_id in payload")
+        return blueprint_runner.cancel_blueprint_execution(run_id=run_id)
 
     @staticmethod
     def run_blueprint_by_id(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
@@ -1253,6 +1259,13 @@ class EventHandlerRegistry:
 
     def __init__(self):
         self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {
+                "stop_blueprint_run": {
+                    "callable": self.stop_blueprint_run,
+                    "meta": {
+                        "name": "stop_blueprint_run",
+                        "args": ["payload", "blueprint_runner"]
+                    }
+                },
                 "run_blueprint_by_key": {
                    "callable": self.run_blueprint_by_key,
                    "meta": {
