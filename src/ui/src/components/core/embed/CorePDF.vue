@@ -159,7 +159,6 @@ const pdfSource = computed<PDFSrc>(() => {
 });
 
 onMounted(async () => {
-	// @ts-expect-error usage of Vite env
 	if (import.meta.env.SSR) return;
 	const VuePDFLib = await import("@tato30/vue-pdf");
 

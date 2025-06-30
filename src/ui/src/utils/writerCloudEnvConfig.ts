@@ -14,7 +14,6 @@ function isObject(v: unknown) {
 
 async function getWriterCloudEnvConfigText() {
 	const apiBaseUrl =
-		// @ts-expect-error use injected variable from Vite to specify the host on local env
 		import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
 	const url = new URL("/env/config.js", apiBaseUrl);
 
