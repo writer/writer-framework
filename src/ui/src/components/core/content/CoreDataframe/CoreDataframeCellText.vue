@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { nextTick, onMounted, useTemplateRef, watch } from "vue";
 import BaseMarkdown from "../../base/BaseMarkdown.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
@@ -21,6 +21,38 @@ function stopEditing() {
 	if (newValue === props.value) return;
 	emits("change", textarea.value.value);
 }
+
+function autoResizeFromRef() {
+	if (!textarea.value?.ref) return;
+
+	const el = textarea.value.ref as HTMLTextAreaElement;
+
+	const style = getComputedStyle(el);
+	if (!style) return;
+
+	el.style.height = "auto";
+
+	const borderTop = parseFloat(style.borderTopWidth || "0");
+	const borderBottom = parseFloat(style.borderBottomWidth || "0");
+	const verticalBorder = borderTop + borderBottom;
+
+	el.style.height = `${el.scrollHeight + verticalBorder}px`;
+}
+
+onMounted(() => {
+	if (props.wrapText && props.editable) {
+		nextTick(() => autoResizeFromRef());
+	}
+});
+
+watch(
+	() => props.editable || props.value,
+	() => {
+		if (props.wrapText && props.editable) {
+			nextTick(() => autoResizeFromRef());
+		}
+	},
+);
 </script>
 
 <template>
@@ -45,6 +77,11 @@ function stopEditing() {
 .CoreDataframeCellText--text {
 	width: 100%;
 	font-size: inherit;
+	overflow: hidden;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	word-break: break-word;
 }
 
 .CoreDataframeCellText--text {
@@ -54,7 +91,6 @@ function stopEditing() {
 	width: 100%;
 }
 .CoreDataframeCellText__content--noWrap {
-	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
