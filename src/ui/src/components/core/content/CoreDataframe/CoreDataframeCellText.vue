@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { nextTick, useTemplateRef, watch } from "vue";
 import BaseMarkdown from "../../base/BaseMarkdown.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
@@ -21,6 +21,31 @@ function stopEditing() {
 	if (newValue === props.value) return;
 	emits("change", textarea.value.value);
 }
+
+function autoResizeFromRef() {
+	if (!textarea.value?.ref) return;
+
+	const el = textarea.value.ref as HTMLTextAreaElement;
+
+	const style = getComputedStyle(el);
+	if (!style) return;
+
+	const borderTop = parseInt(style.borderTopWidth) || 0;
+	const borderBottom = parseInt(style.borderBottomWidth) || 0;
+	const verticalBorder = borderTop + borderBottom;
+
+	el.style.height = `${el.scrollHeight + verticalBorder}px`;
+}
+
+watch(
+	() => props.editable && props.value,
+	(shouldResize) => {
+		if (props.wrapText && shouldResize) {
+			nextTick(() => autoResizeFromRef());
+		}
+	},
+	{ immediate: true },
+);
 </script>
 
 <template>
@@ -45,6 +70,11 @@ function stopEditing() {
 .CoreDataframeCellText--text {
 	width: 100%;
 	font-size: inherit;
+	overflow: hidden;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	word-break: break-word;
 }
 
 .CoreDataframeCellText--text {

@@ -17,15 +17,16 @@ const props = defineProps({
 	autofocus: { type: Boolean },
 });
 
+const input = useTemplateRef("input");
+
 defineExpose({
 	focus,
 	getSelection,
 	value: model,
+	ref: input,
 	setSelectionEnd,
 	setSelectionStart,
 });
-
-const input = useTemplateRef("input");
 
 onMounted(() => {
 	if (props.autofocus) focus();
