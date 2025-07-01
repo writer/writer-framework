@@ -36,9 +36,9 @@ class WriterAskGraphQuestion(WriterBlock):
                         }
                     },
                     "stateElement": {
-                        "name": "State Element",
+                        "name": "Link Variable",
                         "type": "Binding",
-                        "desc": "State variable to store or stream the response into. Reference the state element directly, i.e. use \"my_var\" instead of \"@{my_var}\".",
+                        "desc": "Set the variable here and use it across your agent.",
                     },
                     "graphIds": {
                         "name": "Graph Ids",
