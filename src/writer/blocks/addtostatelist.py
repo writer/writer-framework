@@ -18,7 +18,7 @@ class AddToStateList(BlueprintBlock):
                     "element": {
                         "name": "Link Variable",
                         "type": "Binding",
-                        "description": "Set the variable here and use it across your agent.",
+                        "desc": "Set the variable here and use it across your agent.",
                     },
                     "value": {
                         "name": "Value",
