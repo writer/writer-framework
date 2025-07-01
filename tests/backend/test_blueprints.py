@@ -266,7 +266,7 @@ class TestErrorHandling:
         try:
             run_graph(graph)
         except Exception as e:
-            assert str(e) == "Blueprint execution was cancelled due to an error - Exception: Error"
+            assert str(e) == "Blueprint execution was stopped due to an error - Exception: Error"
         else:
             assert False, "Expected an exception to be raised"
 
@@ -316,7 +316,7 @@ class TestErrorHandling:
         with pytest.raises(Exception) as exc_info:
            call_graph({})
         assert type(exc_info.value).__name__ == "BlueprintExecutionError"
-        assert str(exc_info.value) == "Blueprint execution was cancelled due to an error - RuntimeError: Maximum call depth ({0}) exceeded. Check that you don't have any unintended circular references.".format(MAX_DAG_DEPTH)
+        assert str(exc_info.value) == "Blueprint execution was stopped due to an error - RuntimeError: Maximum call depth ({0}) exceeded. Check that you don't have any unintended circular references.".format(MAX_DAG_DEPTH)
 
 
 class TestComplexGraphs:
@@ -541,7 +541,7 @@ class TestCancellation:
 
     #    node = graph.get_node("N1")
     #    assert node is not None
-    #    assert node.outcome == "cancelled"
+    #    assert node.outcome == "stopped"
 
     def test_cancel_nodes_on_error(self):
         runner = MockRunner()
@@ -566,7 +566,7 @@ class TestCancellation:
         node2 = graph.get_node("N2")
         
         assert node1 is not None
-        assert node1.outcome == "cancelled"
+        assert node1.outcome == "stopped"
         
         assert node2 is not None
         assert node2.outcome == "error"
@@ -602,7 +602,7 @@ class TestCancellation:
 
         node = nested_graph.get_node("nested")
         assert node is not None
-        assert node.outcome == "cancelled"
+        assert node.outcome == "stopped"
 
     def test_cancelation_on_nested_workflows_error(self):
         runner = MockRunner()
@@ -631,7 +631,7 @@ class TestCancellation:
 
         node = graph.get_node("N1")
         assert node is not None
-        assert node.outcome == "cancelled"
+        assert node.outcome == "stopped"
     def test_nested_cancel(self):
         runner = MockRunner()
         event = Event()
@@ -664,6 +664,6 @@ class TestCancellation:
         node = graph.get_node("N1")
         nested = nested_graph.get_node("nested")
         assert node is not None
-        assert node.outcome == "cancelled"
+        assert node.outcome == "stopped"
         assert nested is not None
-        assert nested.outcome == "cancelled"
+        assert nested.outcome == "stopped"

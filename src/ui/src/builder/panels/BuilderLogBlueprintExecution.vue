@@ -150,7 +150,7 @@ const outcomeSeverity = {
 	in_progress: 5,
 	error: 4,
 	success: 3,
-	cancelled: 2,
+	stopped: 2,
 	skipped: 1,
 	none: 0,
 };

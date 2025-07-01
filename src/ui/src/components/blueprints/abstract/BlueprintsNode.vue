@@ -8,7 +8,7 @@
 			'BlueprintsNode--running': completionStyle == 'running',
 			'BlueprintsNode--success': completionStyle == 'success',
 			'BlueprintsNode--skipped': completionStyle == 'skipped',
-			'BlueprintsNode--cancelled': completionStyle == 'cancelled',
+			'BlueprintsNode--stopped': completionStyle == 'stopped',
 			'BlueprintsNode--error': completionStyle == 'error',
 		}"
 	>
@@ -137,7 +137,7 @@ const isDeprecated = computed(() => {
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
 	if (latestKnownOutcome.value == "skipped") return "skipped";
-	if (latestKnownOutcome.value == "cancelled") return "cancelled";
+	if (latestKnownOutcome.value == "stopped") return "stopped";
 	if (latestKnownOutcome.value == "in_progress") return "running";
 
 	// Any dynamic out is considered success
@@ -162,7 +162,7 @@ const outcomeSeverity = {
 	in_progress: 5,
 	error: 4,
 	success: 3,
-	cancelled: 2,
+	stopped: 2,
 	skipped: 1,
 	none: 0,
 };
@@ -289,7 +289,7 @@ function handleOutMousedown(ev: DragEvent, outId: string | number) {
 
 const possibleImageUrls = computed(() => {
 	if (
-		["success", "error", "skipped", "cancelled"].includes(
+		["success", "error", "skipped", "stopped"].includes(
 			completionStyle.value,
 		)
 	) {
@@ -332,7 +332,7 @@ watch(isEngaged, () => {
 	background: var(--wdsColorGray3) !important;
 }
 
-.BlueprintsNode--cancelled {
+.BlueprintsNode--stopped {
 	background: var(--wdsColorGray3) !important;
 }
 

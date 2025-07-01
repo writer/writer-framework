@@ -352,7 +352,7 @@ class GraphNode:
         try:
             tool.outcome = "in_progress"
             tool.run()
-            if self.outcome == "cancelled":
+            if self.outcome == "stopped":
                 return self
             tool.outcome = tool.outcome or "success"
         except BlueprintExecutionError as e:
@@ -631,7 +631,7 @@ class StatusLogger:
                         "executionTimeInSeconds": 0,
                     })
                     continue
-            if node.outcome == "cancelled":
+            if node.outcome == "stopped":
                 exec_log.summary.append(
                     {
                         "componentId": node.id,
@@ -758,9 +758,9 @@ class GraphRunner:
                     self._cancel_all_jobs()
                     self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
                     raise BlueprintExecutionError(
-                        f"Blueprint execution was cancelled due to an error - {e.__class__.__name__}: {e}"
+                        f"Blueprint execution was stopped due to an error - {e.__class__.__name__}: {e}"
                     ) from e 
-                if result_node.outcome == "cancelled":
+                if result_node.outcome == "stopped":
                     continue 
                 if result_node.return_value is not None:
                     abort_event.set()
@@ -787,8 +787,8 @@ class GraphRunner:
                 future.cancel()
         for node in self.graph.nodes:
             if node.outcome == "in_progress":
-                node.status = "cancelled"
-        self.status_logger.log("Cancelled")
+                node.status = "stopped"
+        self.status_logger.log("Stopped")
         self.runner.cancel_blueprint_execution(self.run_id)
 
     def _generate_run_id(self):
