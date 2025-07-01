@@ -520,28 +520,26 @@ class TestBranchExecution:
 class TestCancellation:
     """Tests for execution cancellation scenarios"""
     
-    #def test_cancellation_simple(self):
-    #    runner = MockRunner()
-    #    event = Event()
+    def test_cancellation_simple(self):
+      runner = MockRunner()
+      event = Event()
 
-    #    graph  = GraphBuilder(components=[
-    #        create_component("N1", fields={
-    #            "event": event 
-    #        }),
-    #    ], tools=tools).build()
-    #    
-    #    with runner._get_executor() as executor:
-    #        future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
-    #        wait([future], timeout=0.1)
-    #        runner.cancel_blueprint_execution("test")
-    #        wait([future], timeout=0.1)
-
-    #        event.set()
-    #        wait([future], timeout=0.1)
-
-    #    node = graph.get_node("N1")
-    #    assert node is not None
-    #    assert node.outcome == "stopped"
+      graph  = GraphBuilder(components=[
+          create_component("N1", fields={
+              "event": event 
+          }),
+      ], tools=tools).build()
+      
+      with runner._get_executor() as executor:
+          future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
+          wait([future], timeout=0.1)
+          runner.cancel_blueprint_execution("test")
+          wait([future], timeout=0.1)
+          event.set()
+          wait([future], timeout=0.1)
+      node = graph.get_node("N1")
+      assert node is not None
+      assert node.outcome == "stopped"
 
     def test_cancel_nodes_on_error(self):
         runner = MockRunner()

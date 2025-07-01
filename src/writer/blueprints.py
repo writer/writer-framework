@@ -782,13 +782,13 @@ class GraphRunner:
 
     def _cancel_all_jobs(self):
         self.queue.clear()
-        for future in self.futures:
-            if not future.done():
-                future.cancel()
         for node in self.graph.nodes:
             if node.outcome == "in_progress":
                 node.status = "stopped"
         self.status_logger.log("Stopped")
+        for future in self.futures:
+            if not future.done():
+                future.cancel()
         self.runner.cancel_blueprint_execution(self.run_id)
 
     def _generate_run_id(self):
