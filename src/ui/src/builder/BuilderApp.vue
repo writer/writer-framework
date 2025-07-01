@@ -273,7 +273,7 @@ async function handleKeydown(ev: KeyboardEvent) {
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
 		ssbm.firstSelectedItem.value;
 
-	if (ev.key == "Delete") {
+	if (ev.key == (isPlatformMac() ? "Backspace" : "Delete")) {
 		const componentIds = ssbm.selection.value
 			.filter((s) => isDeleteAllowed(s.componentId))
 			.map((s) => s.componentId);
