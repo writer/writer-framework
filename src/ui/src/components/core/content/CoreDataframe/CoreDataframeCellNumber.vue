@@ -20,16 +20,15 @@ function onChange(newValue: number) {
 </script>
 
 <template>
-	<div>
+	<div v-if="editable">
 		<WdsNumberInput
-			v-if="editable"
 			class="CoreDataframeCellNumber--input"
 			:model-value="Number(value)"
 			@focusout="onChange($event)"
 		/>
-		<div v-else class="CoreDataframeCellNumber--text">
-			{{ value }}
-		</div>
+	</div>
+	<div v-else class="CoreDataframeCellNumber--text">
+		{{ value }}
 	</div>
 </template>
 

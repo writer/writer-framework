@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, useTemplateRef, watch } from "vue";
+import { nextTick, useTemplateRef, watch } from "vue";
 import BaseMarkdown from "../../base/BaseMarkdown.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
@@ -30,28 +30,21 @@ function autoResizeFromRef() {
 	const style = getComputedStyle(el);
 	if (!style) return;
 
-	el.style.height = "auto";
-
-	const borderTop = parseFloat(style.borderTopWidth || "0");
-	const borderBottom = parseFloat(style.borderBottomWidth || "0");
+	const borderTop = parseInt(style.borderTopWidth) || 0;
+	const borderBottom = parseInt(style.borderBottomWidth) || 0;
 	const verticalBorder = borderTop + borderBottom;
 
 	el.style.height = `${el.scrollHeight + verticalBorder}px`;
 }
 
-onMounted(() => {
-	if (props.wrapText && props.editable) {
-		nextTick(() => autoResizeFromRef());
-	}
-});
-
 watch(
-	() => props.editable || props.value,
-	() => {
-		if (props.wrapText && props.editable) {
+	() => props.editable && props.value,
+	(shouldResize) => {
+		if (props.wrapText && shouldResize) {
 			nextTick(() => autoResizeFromRef());
 		}
 	},
+	{ immediate: true },
 );
 </script>
 
@@ -91,6 +84,7 @@ watch(
 	width: 100%;
 }
 .CoreDataframeCellText__content--noWrap {
+	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
