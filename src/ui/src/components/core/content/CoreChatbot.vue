@@ -187,7 +187,7 @@ export default {
 			conversation: {
 				name: "Conversation",
 				init: "@{chat}",
-				desc: "An array with messages or a writer.ai.Conversation object.",
+				desc: "An array with messages or a variable that contains your conversation as an object.",
 				type: FieldType.Object,
 				validator: validatorChatBotMessages,
 			},
