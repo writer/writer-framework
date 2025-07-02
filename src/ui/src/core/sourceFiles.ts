@@ -140,24 +140,26 @@ export function moveFileToSourceFiles(
 }
 
 export function deleteFileToSourceFiles(path: string[], tree: SourceFiles) {
-	const copy = structuredClone(tree);
-	let node = copy;
+	return deleteFile(path, structuredClone(tree));
+}
 
-	for (let i = 0; i < path.length; i++) {
-		if (!isSourceFilesDirectory(node)) return copy;
+function deleteFile(path: string[], tree: SourceFiles) {
+	if (!isSourceFilesDirectory(tree)) return tree;
 
-		const key = path.at(i);
+	if (!(path.at(0) in tree.children)) return tree;
 
-		if (!(key in node.children)) return copy;
-
-		if (i === path.length - 1) {
-			delete node.children[key];
-			return copy;
-		} else {
-			node.children[key] ??= { type: "directory", children: {} };
-			node = node.children[key];
-		}
+	if (path.length === 1) {
+		delete tree.children[path.at(0)];
+		return tree;
 	}
 
-	return copy;
+	const child = deleteFile(path.slice(1), tree.children[path.at(0)]);
+
+	if (
+		child.type === "directory" &&
+		Object.keys(child.children).length === 0
+	) {
+		delete tree.children[path.at(0)];
+	}
+	return tree;
 }
