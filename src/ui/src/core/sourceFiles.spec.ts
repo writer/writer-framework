@@ -194,10 +194,6 @@ describe(moveFileToSourceFiles.name, () => {
 		expect(result).toStrictEqual({
 			type: "directory",
 			children: {
-				a: {
-					type: "directory",
-					children: {},
-				},
 				b: {
 					type: "directory",
 					children: {
@@ -235,10 +231,6 @@ describe(moveFileToSourceFiles.name, () => {
 		expect(result).toStrictEqual({
 			type: "directory",
 			children: {
-				a: {
-					type: "directory",
-					children: {},
-				},
 				b: {
 					type: "directory",
 					children: {
@@ -274,12 +266,7 @@ describe(deleteFileToSourceFiles.name, () => {
 
 		expect(result).toStrictEqual({
 			type: "directory",
-			children: {
-				a: {
-					type: "directory",
-					children: {},
-				},
-			},
+			children: {},
 		});
 	});
 
@@ -296,5 +283,97 @@ describe(deleteFileToSourceFiles.name, () => {
 		const result = deleteFileToSourceFiles(["x", "y"], initial);
 
 		expect(result).toStrictEqual(initial);
+	});
+
+	const initialComplex: SourceFiles = {
+		type: "directory",
+		children: {
+			a1: {
+				type: "directory",
+				children: {
+					a2: {
+						type: "directory",
+						children: {
+							a3: {
+								type: "directory",
+								children: {
+									"a4.txt": {
+										type: "file",
+										content: "",
+										complete: true,
+									},
+								},
+							},
+						},
+					},
+					"a2.txt": {
+						type: "file",
+						content: "",
+						complete: true,
+					},
+				},
+			},
+			b1: {
+				type: "directory",
+				children: {
+					"b2.txt": {
+						type: "file",
+						content: "",
+						complete: true,
+					},
+				},
+			},
+		},
+	};
+
+	it("should delete the file and empty folders", () => {
+		const result = deleteFileToSourceFiles(
+			["a1", "a2", "a3"],
+			initialComplex,
+		);
+
+		expect(result).toStrictEqual({
+			type: "directory",
+			children: {
+				a1: {
+					type: "directory",
+					children: {
+						"a2.txt": {
+							type: "file",
+							content: "",
+							complete: true,
+						},
+					},
+				},
+				b1: {
+					type: "directory",
+					children: {
+						"b2.txt": {
+							type: "file",
+							content: "",
+							complete: true,
+						},
+					},
+				},
+			},
+		});
+
+		expect(deleteFileToSourceFiles(["a1", "a2.txt"], result)).toStrictEqual(
+			{
+				type: "directory",
+				children: {
+					b1: {
+						type: "directory",
+						children: {
+							"b2.txt": {
+								type: "file",
+								content: "",
+								complete: true,
+							},
+						},
+					},
+				},
+			},
+		);
 	});
 });

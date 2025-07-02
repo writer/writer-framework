@@ -111,6 +111,6 @@ function onSelect(value: string) {
 	position: relative;
 }
 .BuilderMoreDropdown__dropdown {
-	min-width: 150px;
+	min-width: 180px;
 }
 </style>
