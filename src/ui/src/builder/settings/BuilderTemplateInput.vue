@@ -56,12 +56,12 @@
 		<div
 			v-if="showAutocompletions"
 			ref="dropdown"
-			class="fieldStateAutocomplete"
+			class="BuilderTemplateInput__dropdown"
 			:style="floatingStyles"
 		>
 			<BuilderStateSelectorDropdown
-				:hide-secrets="hideDropdownSecrets"
-				:hide-blueprint-results="hideDropdownBlueprintResults"
+				:hide-secrets="type === 'state'"
+				:hide-blueprint-results="type === 'state'"
 				:allow-create="type === 'state'"
 				:query="dropdownQuery"
 				:component-id="componentId"
@@ -140,6 +140,7 @@ const { floatingStyles, update } = useFloating(root, dropdown, {
 			},
 		}),
 	],
+	strategy: "fixed",
 });
 useFloatingAutoUpdate();
 
@@ -229,13 +230,12 @@ function handleInput(ev) {
 	emit("update:value", ev.target.value);
 
 	if (props.type === "template") {
-		let newValue = input.value?.value ?? "";
+		let newValue = String(input.value?.value ?? "");
 		const { selectionStart } = input.value?.getSelection() ?? {};
 		const text = newValue.slice(0, selectionStart);
 
-		showAutocompletions.value = [/@\{([^}{@]*)$/, /@([^@]*)$/].some((re) =>
-			text.match(re),
-		);
+		showAutocompletions.value =
+			!!text.match(/@\{([^}{@]*)$/) || text.endsWith("@");
 	} else {
 		showAutocompletions.value = true;
 	}
@@ -251,9 +251,7 @@ function handleInput(ev) {
 	padding: 0;
 }
 
-.fieldStateAutocomplete {
-	width: 100%;
-	position: absolute;
+.BuilderTemplateInput__dropdown {
 	z-index: 2;
 }
 

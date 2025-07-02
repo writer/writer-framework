@@ -10,7 +10,7 @@ export function autocompleteTemplateVariable(input: string, variable: string) {
 			end: match.index + match[0].length,
 		});
 		if (pattern2.lastIndex === match.index) {
-			pattern2.lastIndex++;
+			pattern2.lastIndex = match.index + 1;
 		}
 	}
 	pattern2.lastIndex = 0;
@@ -23,7 +23,7 @@ export function autocompleteTemplateVariable(input: string, variable: string) {
 			end: match.index + match[0].length,
 		});
 		if (pattern3.lastIndex === match.index) {
-			pattern3.lastIndex++;
+			pattern3.lastIndex = match.index + 1;
 		}
 	}
 	pattern3.lastIndex = 0;
@@ -45,7 +45,7 @@ export function autocompleteTemplateVariable(input: string, variable: string) {
 			matches.push({ start, end });
 		}
 		if (pattern1.lastIndex === match.index) {
-			pattern1.lastIndex++;
+			pattern1.lastIndex = match.index + 1;
 		}
 	}
 	pattern1.lastIndex = 0;

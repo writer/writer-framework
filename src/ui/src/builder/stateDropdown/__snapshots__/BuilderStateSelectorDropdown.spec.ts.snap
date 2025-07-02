@@ -18,14 +18,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
     </p>
     
     <button
-      class="WdsDropdownMenu__item BuilderStateSelectorDropdownItemComponent"
+      class="WdsDropdownMenuItem BuilderStateSelectorDropdownItemComponent"
       data-automation-key="setState"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
     >
       
       <div
-        class="WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--img"
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--img"
         data-v-eb3dac76=""
       >
         <shared-img-with-fallback-stub
@@ -35,7 +35,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </div>
       
       <div
-        class="WdsDropdownMenu__item__label"
+        class="WdsDropdownMenuItem__label"
         data-v-eb3dac76=""
         data-writer-tooltip="setState"
         data-writer-tooltip-strategy="overflow"
@@ -48,7 +48,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <div
-        class="WdsDropdownMenu__item__detail"
+        class="WdsDropdownMenuItem__detail"
         data-v-eb3dac76=""
         data-writer-tooltip="Fallback Component"
         data-writer-tooltip-strategy="overflow"
@@ -56,7 +56,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         Fallback Component
       </div>
       <div
-        class="WdsDropdownMenu__item__action"
+        class="WdsDropdownMenuItem__action"
         data-v-eb3dac76=""
       >
         
@@ -77,14 +77,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
     </p>
     
     <button
-      class="WdsDropdownMenu__item BuilderStateSelectorDropdownItemComponent"
+      class="WdsDropdownMenuItem BuilderStateSelectorDropdownItemComponent"
       data-automation-key="binding"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
     >
       
       <div
-        class="WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--img"
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--img"
         data-v-eb3dac76=""
       >
         <shared-img-with-fallback-stub
@@ -94,7 +94,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </div>
       
       <div
-        class="WdsDropdownMenu__item__label"
+        class="WdsDropdownMenuItem__label"
         data-v-eb3dac76=""
         data-writer-tooltip="binding"
         data-writer-tooltip-strategy="overflow"
@@ -107,7 +107,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <div
-        class="WdsDropdownMenu__item__detail"
+        class="WdsDropdownMenuItem__detail"
         data-v-eb3dac76=""
         data-writer-tooltip="Fallback Component"
         data-writer-tooltip-strategy="overflow"
@@ -115,7 +115,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         Fallback Component
       </div>
       <div
-        class="WdsDropdownMenu__item__action"
+        class="WdsDropdownMenuItem__action"
         data-v-eb3dac76=""
       >
         
@@ -137,14 +137,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
     </p>
     
     <button
-      class="WdsDropdownMenu__item"
+      class="WdsDropdownMenuItem"
       data-automation-key="vault.apiKey"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
     >
       
       <i
-        class="material-symbols-outlined WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--iconColor"
+        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
         data-v-eb3dac76=""
         style="background-color: rgb(255, 233, 153);"
       >
@@ -152,7 +152,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </i>
       
       <div
-        class="WdsDropdownMenu__item__label"
+        class="WdsDropdownMenuItem__label"
         data-v-eb3dac76=""
         data-writer-tooltip="apiKey"
         data-writer-tooltip-strategy="overflow"
@@ -166,7 +166,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </div>
       <!--v-if-->
       <div
-        class="WdsDropdownMenu__item__action"
+        class="WdsDropdownMenuItem__action"
         data-v-eb3dac76=""
       >
         
@@ -187,14 +187,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
     </p>
     
     <button
-      class="WdsDropdownMenu__item"
+      class="WdsDropdownMenuItem"
       data-automation-key="state"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
     >
       
       <i
-        class="material-symbols-outlined WdsDropdownMenu__item__icon WdsDropdownMenu__item__icon--iconColor"
+        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
         data-v-eb3dac76=""
         style="background-color: rgb(212, 255, 242);"
       >
@@ -202,7 +202,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </i>
       
       <div
-        class="WdsDropdownMenu__item__label"
+        class="WdsDropdownMenuItem__label"
         data-v-eb3dac76=""
         data-writer-tooltip="state"
         data-writer-tooltip-strategy="overflow"
@@ -216,7 +216,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       </div>
       <!--v-if-->
       <div
-        class="WdsDropdownMenu__item__action"
+        class="WdsDropdownMenuItem__action"
         data-v-eb3dac76=""
       >
         

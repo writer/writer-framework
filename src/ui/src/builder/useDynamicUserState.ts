@@ -22,7 +22,7 @@ export function useDynamicUserState(wf: Core, logger = useLogger()) {
 		try {
 			return computeBlueprintsSetStates(wf, userStateInitialPaths.value);
 		} catch (e) {
-			logger.error("Cannot compute Blueprint user state", e);
+			logger.error("Cannot compute blueprintsSetStates", e);
 			return {};
 		}
 	});
@@ -31,7 +31,7 @@ export function useDynamicUserState(wf: Core, logger = useLogger()) {
 		try {
 			return computeBindings(wf, userStateInitialPaths.value);
 		} catch (e) {
-			logger.error("Cannot compute Bindings user state", e);
+			logger.error("Cannot compute bindings", e);
 			return {};
 		}
 	});
@@ -40,7 +40,7 @@ export function useDynamicUserState(wf: Core, logger = useLogger()) {
 		try {
 			return computeBlueprintsResults(wf);
 		} catch (e) {
-			logger.error("Cannot compute Bindings user state", e);
+			logger.error("Cannot compute blueprintsResults", e);
 			return {};
 		}
 	});

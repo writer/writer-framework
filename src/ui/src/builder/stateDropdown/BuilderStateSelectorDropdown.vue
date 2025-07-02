@@ -80,26 +80,25 @@ function filterOptions(options: WdsDropdownMenuOption[]) {
 }
 
 function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
-	return Object.entries(dynamicState).flatMap(([path, { components }]) => {
-		if (props.query && !path.includes(props.query)) return [];
+	const options = Object.entries(dynamicState)
+		.map(([path, { components }]) => {
+			// get only the first component defining the state key
+			for (const component of components) {
+				if (component.id === props.componentId) continue;
+				return { componentId: component.id, path };
+			}
+		})
+		.filter(Boolean);
 
-		const options = components
-			.filter((component) => component.id !== props.componentId)
-			.map((component) => ({
-				componentId: component.id,
-				path,
-			}));
+	if (!props.query) return options;
 
-		if (!props.query) return options;
-
-		const fuse = new Fuse(options, {
-			findAllMatches: true,
-			includeMatches: true,
-			keys: ["path"],
-		});
-
-		return fuse.search(props.query).map((res) => res.item);
-	});
+	return new Fuse(options, {
+		findAllMatches: true,
+		includeMatches: true,
+		keys: ["path"],
+	})
+		.search(props.query)
+		.map((res) => res.item);
 }
 
 const canCreateFromQuery = computed(() => {
