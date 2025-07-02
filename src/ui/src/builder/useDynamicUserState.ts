@@ -1,43 +1,94 @@
 import { useLogger } from "@/composables/useLogger";
-import type { Core } from "@/writerTypes";
+import type { Component, Core } from "@/writerTypes";
 import { computed } from "vue";
-import set from "lodash/set";
-import get from "lodash/get";
-import merge from "lodash/merge";
-import isPlainObject from "lodash/isPlainObject";
-import { COMPONENT_TYPES_ROOT } from "@/constants/component";
+import {
+	COMPONENT_TYPES_PAGE,
+	COMPONENT_TYPES_ROOT,
+} from "@/constants/component";
+import { extractObjectPaths } from "@/utils/object";
 
-type UserState = Record<string, unknown>;
+type DynamicUserStateValue = {
+	components: Component[];
+};
+
+export type DynamicUserState = Record<string, DynamicUserStateValue>;
 
 export function useDynamicUserState(wf: Core, logger = useLogger()) {
-	const blueprintsUserState = computed<UserState>(() => {
+	const userStateInitialPaths = computed(() => {
+		return new Set(extractObjectPaths(wf.userStateInitial.value));
+	});
+
+	const blueprintsSetStates = computed<DynamicUserState>(() => {
 		try {
-			return getBlueprintUserState(wf);
+			return computeBlueprintsSetStates(wf, userStateInitialPaths.value);
 		} catch (e) {
 			logger.error("Cannot compute Blueprint user state", e);
 			return {};
 		}
 	});
 
-	const bindingsUserState = computed<UserState>(() => {
+	const bindings = computed<DynamicUserState>(() => {
 		try {
-			return getBindingsUserState(wf);
+			return computeBindings(wf, userStateInitialPaths.value);
 		} catch (e) {
 			logger.error("Cannot compute Bindings user state", e);
 			return {};
 		}
 	});
 
-	return { blueprintsUserState, bindingsUserState };
+	const blueprintsResults = computed<DynamicUserState>(() => {
+		try {
+			return computeBlueprintsResults(wf);
+		} catch (e) {
+			logger.error("Cannot compute Bindings user state", e);
+			return {};
+		}
+	});
+
+	return { blueprintsSetStates, bindings, blueprintsResults };
 }
 
-function getBindingsUserState(wf: Core): UserState {
-	const state: UserState = {};
+function computeBlueprintsResults(
+	wf: Core,
+	ignorePath = new Set<string>(),
+): DynamicUserState {
+	const state: DynamicUserState = {};
+
+	for (const component of wf.getComponentsNested("blueprints_root")) {
+		const componentType = component.type;
+		const componentDefinition = wf.getComponentDefinition(component.type);
+		if (!componentDefinition) continue;
+
+		const hasResultId =
+			component.type &&
+			!COMPONENT_TYPES_PAGE.has(componentType) &&
+			component.type.startsWith("blueprints_") &&
+			componentDefinition?.outs?.["success"] !== undefined;
+
+		if (!hasResultId) continue;
+
+		const key = `results.${component.id}`;
+		if (key && !ignorePath.has(key)) {
+			state[key] ??= { components: [] };
+			state[key].components.push(component);
+		}
+	}
+
+	return state;
+}
+
+function computeBindings(
+	wf: Core,
+	ignorePath = new Set<string>(),
+): DynamicUserState {
+	const state: DynamicUserState = {};
 
 	for (const rootId of COMPONENT_TYPES_ROOT) {
 		for (const component of wf.getComponentsNested(rootId)) {
-			if (component.binding?.stateRef) {
-				set(state, component.binding?.stateRef, "unknown value");
+			const key = component.binding?.stateRef;
+			if (key && !ignorePath.has(key)) {
+				state[key] ??= { components: [] };
+				state[key].components.push(component);
 			}
 		}
 	}
@@ -45,40 +96,27 @@ function getBindingsUserState(wf: Core): UserState {
 	return state;
 }
 
-function getBlueprintUserState(wf: Core): UserState {
-	const state: UserState = {};
-
+function computeBlueprintsSetStates(
+	wf: Core,
+	ignorePath = new Set<string>(),
+): DynamicUserState {
 	function* getSetStateContent() {
 		for (const node of wf.getComponentsNested("blueprints_root")) {
 			if (node.type === "blueprints_setstate" && node.content) {
-				yield node.content;
+				yield node;
 			}
 		}
 	}
 
-	for (const { element, valueType, value } of getSetStateContent()) {
+	const state: DynamicUserState = {};
+
+	for (const component of getSetStateContent()) {
+		const element = component.content?.element;
 		if (!element || typeof element !== "string") continue;
+		if (ignorePath.has(element)) continue;
 
-		let parsedValue: unknown = value;
-
-		if (valueType === "JSON") {
-			try {
-				parsedValue = JSON.parse(String(value));
-			} catch {
-				parsedValue = {};
-			}
-		} else if (valueType === undefined || value === undefined) {
-			parsedValue = "";
-		}
-
-		const existingValue = get(state, element);
-		if (existingValue !== undefined) {
-			parsedValue =
-				isPlainObject(existingValue) && isPlainObject(parsedValue)
-					? merge({}, existingValue, parsedValue)
-					: parsedValue;
-		}
-		set(state, element, parsedValue);
+		state[element] ??= { components: [] };
+		state[element].components.push(component);
 	}
 
 	return state;

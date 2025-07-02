@@ -174,16 +174,15 @@ const rightIcon = computed(() => {
 });
 
 const dropdownQuery = computed(() => {
-	if (!props.value) return "";
-
-	let newValue = input.value?.value ?? "";
+	let value = input.value?.value ?? "";
+	if (!value) return "";
 	const { selectionStart } = input.value?.getSelection() ?? {};
 
 	if (props.type === "template") {
-		const before = newValue.slice(0, selectionStart);
+		const before = value.slice(0, selectionStart);
 		return getCurrentOpenedTemplate(before);
 	} else {
-		return props.value;
+		return value;
 	}
 });
 

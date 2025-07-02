@@ -35,6 +35,7 @@ export function buildMockComponent(component: Partial<Component>) {
 export function buildMockCore() {
 	const core = generateCore();
 	const mode = ref<"run" | "edit">("run");
+	const userStateInitial = shallowRef({});
 	const userState = shallowRef({});
 	const sourceFiles = shallowRef<SourceFiles>({
 		type: "directory",
@@ -49,6 +50,7 @@ export function buildMockCore() {
 	core.userFunctions = userFunctions;
 	core.userFunctions = userFunctions;
 	core.userState = userState;
+	core.userStateInitial = userStateInitial;
 	core.sourceFiles = sourceFiles;
 	core.featureFlags = featureFlags;
 	core.writerApplication = writerApplication;
@@ -68,6 +70,7 @@ export function buildMockCore() {
 		core,
 		mode,
 		userState,
+		userStateInitial,
 		sourceFiles,
 		userFunctions,
 		featureFlags,

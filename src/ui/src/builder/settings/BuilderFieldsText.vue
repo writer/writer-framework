@@ -8,6 +8,7 @@
 		>
 			<BuilderTemplateInput
 				class="content"
+				:component-id="componentId"
 				:input-id="inputId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
@@ -24,6 +25,7 @@
 				variant="text"
 				class="content"
 				:input-id="inputId"
+				:component-id="componentId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:type

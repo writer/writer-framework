@@ -28,7 +28,7 @@ const option = computed<WdsDropdownMenuOption>(() => ({
 	icon: possibleImageUrls.value,
 	label: props.path,
 	detail: previewText.value || name.value,
-	value: props.componentId,
+	value: props.path,
 }));
 
 const { goToComponentParentPage } = useComponentActions(wf, wfbm);

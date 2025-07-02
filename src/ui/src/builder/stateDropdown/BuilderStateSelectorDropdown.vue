@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import Fuse from "fuse.js";
 import { computed, inject } from "vue";
-import {
-	DynamicUserState,
-	useDynamicUserState,
-} from "../useDynamicUserStateV2";
+import { DynamicUserState, useDynamicUserState } from "../useDynamicUserState";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateSelectorDropdownComponent from "./BuilderStateSelectorDropdownComponent.vue";
 import { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { extractObjectPaths } from "@/utils/object";
 import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
 import { WdsColor } from "@/wds/tokens";
-
-const wf = inject(injectionKeys.core)!;
-const secretsManager = inject(injectionKeys.secretsManager)!;
 
 const props = defineProps({
 	componentId: { type: String, required: false, default: undefined },
@@ -22,6 +16,9 @@ const props = defineProps({
 	hideSecrets: { type: Boolean, required: false },
 	hideBlueprintResults: { type: Boolean, required: false },
 });
+
+const wf = inject(injectionKeys.core)!;
+const secretsManager = inject(injectionKeys.secretsManager)!;
 
 const model = defineModel({ type: String });
 
@@ -59,11 +56,11 @@ const secrets = computed<WdsDropdownMenuOption[]>(() => {
 	return filterOptions(options);
 });
 
-const bindingsUserState = computed(() =>
-	computeOptionsFromDynamicState(dynamicState.bindingsUserState.value),
+const bindings = computed(() =>
+	computeOptionsFromDynamicState(dynamicState.bindings.value),
 );
-const blueprintsUserState = computed(() =>
-	computeOptionsFromDynamicState(dynamicState.blueprintsUserState.value),
+const blueprintsSetState = computed(() =>
+	computeOptionsFromDynamicState(dynamicState.blueprintsSetStates.value),
 );
 const blueprintsResults = computed(() => {
 	if (props.hideBlueprintResults) return [];
@@ -105,19 +102,23 @@ function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
 	});
 }
 
-const hasExactMatch = computed(() => {
-	return (
+const canCreateFromQuery = computed(() => {
+	if (!props.allowCreate || !props.query || props.query.endsWith(".")) {
+		return false;
+	}
+
+	const hasExactMatch =
 		userState.value.some((i) => i.value === props.query) ||
 		secrets.value.some((i) => i.value === props.query) ||
 		blueprintsResults.value.some((i) => i.path === props.query) ||
-		bindingsUserState.value.some((i) => i.path === props.query)
-	);
+		bindings.value.some((i) => i.path === props.query);
+	return !hasExactMatch;
 });
 
 const hasResult = computed(() => {
 	if (userState.value.length) return true;
-	if (blueprintsUserState.value.length) return true;
-	if (bindingsUserState.value.length) return true;
+	if (blueprintsSetState.value.length) return true;
+	if (bindings.value.length) return true;
 	if (blueprintsResults.value.length) return true;
 	if (secrets.value.length) return true;
 	return false;
@@ -126,7 +127,7 @@ const hasResult = computed(() => {
 
 <template>
 	<div class="BuilderStateSelectorDropdown">
-		<template v-if="allowCreate && query && !hasExactMatch">
+		<template v-if="canCreateFromQuery">
 			<p class="BuilderStateSelectorDropdown__section__title">
 				Add new variable
 			</p>
@@ -145,14 +146,14 @@ const hasResult = computed(() => {
 			No result
 		</div>
 		<div
-			v-if="blueprintsUserState.length"
+			v-if="blueprintsSetState.length"
 			class="BuilderStateSelectorDropdown__section"
 		>
 			<p class="BuilderStateSelectorDropdown__section__title">
 				Set states
 			</p>
 			<BuilderStateSelectorDropdownComponent
-				v-for="s of blueprintsUserState"
+				v-for="s of blueprintsSetState"
 				:key="s.path"
 				:path="s.path"
 				:component-id="s.componentId"
@@ -161,14 +162,14 @@ const hasResult = computed(() => {
 			/>
 		</div>
 		<div
-			v-if="bindingsUserState.length"
+			v-if="bindings.length"
 			class="BuilderStateSelectorDropdown__section"
 		>
 			<p class="BuilderStateSelectorDropdown__section__title">
 				Interface variables
 			</p>
 			<BuilderStateSelectorDropdownComponent
-				v-for="s of bindingsUserState"
+				v-for="s of bindings"
 				:key="s.path"
 				:path="s.path"
 				:component-id="s.componentId"
