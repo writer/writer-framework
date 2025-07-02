@@ -43,7 +43,17 @@
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
-				rows="3"
+				:rows="
+					props.multilineRows === 'half-screen'
+						? undefined
+						: props.multilineRows
+				"
+				:style="{
+					'min-height':
+						props.multilineRows === 'half-screen'
+							? '50vh'
+							: undefined,
+				}"
 				:placeholder="props.placeholder"
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
@@ -101,6 +111,11 @@ const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
 	value: { type: String, required: false, default: undefined },
 	multiline: { type: Boolean, required: false },
+	multilineRows: {
+		type: [String, Number] as PropType<number | "half-screen">,
+		required: false,
+		default: 3,
+	},
 	variant: {
 		type: String as PropType<"code" | "text">,
 		required: false,

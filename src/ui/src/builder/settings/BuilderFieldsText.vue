@@ -21,6 +21,7 @@
 		<template v-else-if="templateField.control == FieldControl.Textarea">
 			<BuilderTemplateInput
 				multiline
+				:multiline-rows="isExpanded ? 'half-screen' : undefined"
 				variant="text"
 				class="content"
 				:input-id="inputId"
@@ -50,6 +51,7 @@ const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
+	isExpanded: { type: Boolean },
 	autofocus: { type: Boolean },
 	type: {
 		type: String as PropType<"state" | "template">,
