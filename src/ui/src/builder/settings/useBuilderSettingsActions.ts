@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import { Core, BuilderManager } from "@/writerTypes";
-import { getModifierKeyName } from "@/core/detectPlatform";
+import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useToasts } from "../useToast";
 import { Option } from "@/components/shared/SharedMoreDropdown.vue";
@@ -130,7 +130,7 @@ export function useBuilderSettingsActions(
 			},
 			{
 				value: BuilderSettingsDropdownActions.GoToParent,
-				label: `Go to parent`,
+				label: `View parent`,
 				shortcut: `${getModifierKeyName()}⇧↑`,
 				icon: "move_up",
 				disabled: !shortcutsInfo.value.isGoToParentEnabled,
@@ -138,7 +138,7 @@ export function useBuilderSettingsActions(
 			{
 				value: BuilderSettingsDropdownActions.Delete,
 				label: "Delete",
-				shortcut: "Del",
+				shortcut: isPlatformMac() ? "⌫" : "Del",
 				icon: "delete",
 				variant: "danger",
 				disabled: !shortcutsInfo.value.isDeleteEnabled,
