@@ -115,9 +115,13 @@ const { title, actions } = toRefs(props);
 
 .WdsModal__main {
 	padding: 32px;
+	gap: 32px;
+	display: flex;
+	flex-direction: column;
 	background: var(--wdsColorWhite);
 	width: 80%;
 	overflow: hidden;
+	max-height: 80%;
 	max-width: 120ch;
 	border-radius: 8px;
 	border: 1px solid var(--separatorColor);
@@ -141,7 +145,6 @@ const { title, actions } = toRefs(props);
 }
 
 .WdsModal__main__footer {
-	margin-top: 32px;
 	display: flex;
 	align-items: center;
 }
@@ -159,10 +162,6 @@ const { title, actions } = toRefs(props);
 .WdsModal__main__footer:has(:not(.WdsModal__main__footer__hint))
 	.WdsModal__main__footer__actions {
 	flex-grow: 1;
-}
-
-.WdsModal__main__title {
-	margin-bottom: 32px;
 }
 
 /* center the actions slot if the slot is provided */
@@ -190,7 +189,7 @@ const { title, actions } = toRefs(props);
 }
 
 .WdsModal__main__content {
-	max-height: 60vh;
+	flex: 1 1 auto;
 	overflow-x: hidden;
 	overflow-y: auto;
 }
