@@ -656,6 +656,7 @@ class TestCancellation:
             runner.cancel_blueprint_execution("test")
             wait([future], timeout=0.01)
             nested_event.set()
+            wait([future], timeout=0.01)
             event.set()
             wait([future], timeout=0.1)
 
