@@ -219,15 +219,18 @@ class Evaluator:
             if isinstance(state_ref, (writer.core.StateProxy, dict)) and accessor in state_ref:
                 state_ref = state_ref.get(accessor)
                 result = state_ref
-            elif isinstance(state_ref, (list)) and state_ref[int(accessor)] is not None:
+            elif isinstance(state_ref, list) and -len(state_ref) <= int(accessor) < len(state_ref):
                 state_ref = state_ref[int(accessor)]
                 result = state_ref
             elif isinstance(context_ref, dict) and accessor in context_ref:
                 context_ref = context_ref.get(accessor)
                 result = context_ref
-            elif isinstance(context_ref, list) and context_ref[int(accessor)] is not None:
+            elif isinstance(context_ref, list) and -len(context_ref) <= int(accessor) < len(context_ref):
                 context_ref = context_ref[int(accessor)]
                 result = context_ref
+            else:
+                result = None
+                break
 
         if isinstance(result, writer.core.StateProxy):
             return result.to_dict()

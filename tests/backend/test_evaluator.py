@@ -181,6 +181,22 @@ class TestEvaluator:
         assert e.evaluate_expression("features[best_feature]", instance_path) == "green"
         assert e.evaluate_expression("a\.b", instance_path) == 3
 
+        assert e.evaluate_expression("features.nose", instance_path) is None
+        assert e.evaluate_expression("features.eyes.eyelashes", instance_path) is None
+        assert e.evaluate_expression("features.hands.palms", instance_path) is None
+        assert e.evaluate_expression("features.eyes[counter]", instance_path) is None
+        assert e.evaluate_expression("features[best_feature.color]", instance_path) is None
+        assert e.evaluate_expression("features[best_feature.color].hex", instance_path) is None
+
+        assert e.evaluate_expression("interests.2", instance_path) is None
+        assert e.evaluate_expression("interests.1", instance_path) == "cars"
+        assert e.evaluate_expression("interests.0", instance_path) == "lamps"
+        assert e.evaluate_expression("interests.-1", instance_path) == "cars"
+        assert e.evaluate_expression("interests.-2", instance_path) == "lamps"
+        assert e.evaluate_expression("interests.-3", instance_path) is None
+        assert e.evaluate_expression("interests.-3.a", instance_path) is None
+        assert e.evaluate_expression("interests.-3.1", instance_path) is None
+
     def test_get_context_data_should_return_the_target_of_event(self) -> None:
         """
         Test that the target of the event is correctly returned by the get_context_data method
