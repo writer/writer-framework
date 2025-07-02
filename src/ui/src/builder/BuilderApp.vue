@@ -253,7 +253,7 @@ async function handleKeydown(ev: KeyboardEvent) {
 
 	const isModifierKeyActive = isPlatformMac() ? ev.metaKey : ev.ctrlKey;
 	const targetEl = ev.target as HTMLElement;
-	if (targetEl.closest("textarea, input, select")) return;
+	if (targetEl.closest("textarea, input, select, [contenteditable]")) return;
 
 	if (ev.key == "z" && isModifierKeyActive) {
 		ev.preventDefault();
