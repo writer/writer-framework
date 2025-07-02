@@ -88,6 +88,7 @@ export type WdsDropdownMenuOption = {
 	 */
 	icon?: string | string[];
 	iconColor?: string;
+	iconBgColor?: string;
 	disabled?: boolean;
 	variant?: "danger";
 };

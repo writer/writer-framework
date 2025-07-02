@@ -62,6 +62,7 @@
 			<BuilderStateSelectorDropdown
 				:hide-secrets="hideDropdownSecrets"
 				:hide-blueprint-results="hideDropdownBlueprintResults"
+				:allow-create="type === 'state'"
 				:query="dropdownQuery"
 				:component-id="componentId"
 				@update:model-value="onSelectAutocomplete"
@@ -71,10 +72,18 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref, useTemplateRef, nextTick, watch, computed } from "vue";
+import {
+	PropType,
+	ref,
+	useTemplateRef,
+	nextTick,
+	watch,
+	computed,
+	onUnmounted,
+} from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
-import { useFloating, size, flip } from "@floating-ui/vue";
+import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
 import {
 	autocompleteTemplateVariable,
@@ -118,7 +127,7 @@ const dropdown = useTemplateRef("dropdown");
 
 const showAutocompletions = ref(false);
 
-const { floatingStyles } = useFloating(root, dropdown, {
+const { floatingStyles, update } = useFloating(root, dropdown, {
 	placement: "bottom-start",
 	middleware: [
 		flip(),
@@ -132,6 +141,25 @@ const { floatingStyles } = useFloating(root, dropdown, {
 		}),
 	],
 });
+useFloatingAutoUpdate();
+
+function useFloatingAutoUpdate() {
+	let autoUpdateCleanup: ReturnType<typeof autoUpdate> | undefined;
+
+	function cleanup() {
+		if (autoUpdateCleanup) autoUpdateCleanup();
+		autoUpdateCleanup = undefined;
+	}
+
+	watch(dropdown, () => {
+		cleanup();
+		if (dropdown.value) {
+			autoUpdateCleanup = autoUpdate(input, dropdown.value, update);
+		}
+	});
+
+	onUnmounted(() => cleanup());
+}
 
 defineExpose({
 	focus: () => input.value?.focus(),

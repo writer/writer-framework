@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import { PropType } from "vue";
+import { computed, CSSProperties, PropType } from "vue";
 import { WdsDropdownMenuOption } from "./WdsDropdownMenu.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
-defineProps({
+const props = defineProps({
 	selected: { type: Boolean, required: false },
 	option: {
 		type: Object as PropType<WdsDropdownMenuOption>,
 		required: true,
 	},
 	hideIcons: { type: Boolean, required: false },
+});
+
+const iconStyle = computed(() => {
+	const style: CSSProperties = {};
+
+	if (props.option.iconColor) {
+		style.color = props.option.iconColor;
+	}
+
+	if (props.option.iconBgColor) {
+		style["background-color"] = props.option.iconBgColor;
+	}
+
+	return Object.values(style).length > 0 ? style : undefined;
 });
 </script>
 
@@ -35,13 +49,9 @@ defineProps({
 				v-else-if="option.icon"
 				class="material-symbols-outlined WdsDropdownMenu__item__icon"
 				:class="{
-					'WdsDropdownMenu__item__icon--iconColor': option.iconColor,
+					'WdsDropdownMenu__item__icon--iconColor': iconStyle,
 				}"
-				:style="
-					option.iconColor
-						? { backgroundColor: option.iconColor }
-						: undefined
-				"
+				:style="iconStyle"
 				>{{ option.icon }}</i
 			>
 		</template>

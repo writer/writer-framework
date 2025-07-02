@@ -18,6 +18,7 @@ const secretsManager = inject(injectionKeys.secretsManager)!;
 const props = defineProps({
 	componentId: { type: String, required: false, default: undefined },
 	query: { type: String, required: false, default: "" },
+	allowCreate: { type: Boolean, required: false },
 	hideSecrets: { type: Boolean, required: false },
 	hideBlueprintResults: { type: Boolean, required: false },
 });
@@ -34,13 +35,15 @@ const userState = computed<WdsDropdownMenuOption[]>(() => {
 			value: path,
 			label: path,
 			icon: "code",
-			iconColor: WdsColor.Green2,
+			iconBgColor: WdsColor.Green2,
 		});
 	}
 	return options.sort((a, b) => a.label.localeCompare(b.label));
 });
 
 const secrets = computed<WdsDropdownMenuOption[]>(() => {
+	if (props.hideSecrets) return [];
+
 	const options: WdsDropdownMenuOption[] = [];
 	for (const path of extractObjectPaths(secretsManager.secrets.value)) {
 		const value = `vault.${path}`;
@@ -49,7 +52,7 @@ const secrets = computed<WdsDropdownMenuOption[]>(() => {
 			value: `vault.${path}`,
 			label: path,
 			icon: "key",
-			iconColor: WdsColor.Yellow2,
+			iconBgColor: WdsColor.Yellow2,
 		});
 	}
 	options.sort((a, b) => a.label.localeCompare(b.label));
@@ -62,9 +65,10 @@ const bindingsUserState = computed(() =>
 const blueprintsUserState = computed(() =>
 	computeOptionsFromDynamicState(dynamicState.blueprintsUserState.value),
 );
-const blueprintsResults = computed(() =>
-	computeOptionsFromDynamicState(dynamicState.blueprintsResults.value),
-);
+const blueprintsResults = computed(() => {
+	if (props.hideBlueprintResults) return [];
+	return computeOptionsFromDynamicState(dynamicState.blueprintsResults.value);
+});
 
 function filterOptions(options: WdsDropdownMenuOption[]) {
 	if (!props.query) return options;
@@ -100,10 +104,46 @@ function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
 		return fuse.search(props.query).map((res) => res.item);
 	});
 }
+
+const hasExactMatch = computed(() => {
+	return (
+		userState.value.some((i) => i.value === props.query) ||
+		secrets.value.some((i) => i.value === props.query) ||
+		blueprintsResults.value.some((i) => i.path === props.query) ||
+		bindingsUserState.value.some((i) => i.path === props.query)
+	);
+});
+
+const hasResult = computed(() => {
+	if (userState.value.length) return true;
+	if (blueprintsUserState.value.length) return true;
+	if (bindingsUserState.value.length) return true;
+	if (blueprintsResults.value.length) return true;
+	if (secrets.value.length) return true;
+	return false;
+});
 </script>
 
 <template>
 	<div class="BuilderStateSelectorDropdown">
+		<template v-if="allowCreate && query && !hasExactMatch">
+			<p class="BuilderStateSelectorDropdown__section__title">
+				Add new variable
+			</p>
+			<WdsDropdownMenuItem
+				:option="{
+					value: query,
+					label: query,
+					icon: 'add',
+					iconBgColor: WdsColor.Blue4,
+					iconColor: WdsColor.White,
+				}"
+				@click.stop="model = query"
+			/>
+		</template>
+		<div v-else-if="!hasResult" class="BuilderStateSelectorDropdown__empty">
+			No result
+		</div>
 		<div
 			v-if="blueprintsUserState.length"
 			class="BuilderStateSelectorDropdown__section"
@@ -198,9 +238,8 @@ function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
 	box-shadow: var(--wdsShadowMenu);
 	box-sizing: border-box;
 }
-.BuilderStateSelectorDropdown:empty {
-	display: none;
-	/* TODO: do better */
+.BuilderStateSelectorDropdown__empty {
+	color: var(--wdsColorGray4);
 }
 .BuilderStateSelectorDropdown__section__title {
 	text-transform: uppercase;
