@@ -10,8 +10,6 @@
 				type="state"
 				:value="component.binding?.stateRef"
 				:component-id="ssbm.firstSelectedId.value"
-				hide-dropdown-secrets
-				hide-dropdown-blueprint-results
 				@input="
 					(ev: Event) =>
 						setBinding(

@@ -1,11 +1,12 @@
 import { useLogger } from "@/composables/useLogger";
 import type { Component, Core } from "@/writerTypes";
-import { computed } from "vue";
+import { computed, MaybeRef } from "vue";
 import {
 	COMPONENT_TYPES_PAGE,
 	COMPONENT_TYPES_ROOT,
 } from "@/constants/component";
 import { extractObjectPaths } from "@/utils/object";
+import { useComponentPage } from "@/composables/useComponentPage";
 
 type DynamicUserStateValue = {
 	components: Component[];
@@ -13,7 +14,13 @@ type DynamicUserStateValue = {
 
 export type DynamicUserState = Record<string, DynamicUserStateValue>;
 
-export function useDynamicUserState(wf: Core, logger = useLogger()) {
+export function useDynamicUserState(
+	wf: Core,
+	componentId: MaybeRef<string | undefined> = undefined,
+	logger = useLogger(),
+) {
+	const componentPage = useComponentPage(wf, componentId);
+
 	const userStateInitialPaths = computed(() => {
 		return new Set(extractObjectPaths(wf.userStateInitial.value));
 	});
@@ -37,8 +44,9 @@ export function useDynamicUserState(wf: Core, logger = useLogger()) {
 	});
 
 	const blueprintsResults = computed<DynamicUserState>(() => {
+		if (!componentPage.page.value) return {};
 		try {
-			return computeBlueprintsResults(wf);
+			return computeBlueprintsResults(wf, componentPage.page.value.id);
 		} catch (e) {
 			logger.error("Cannot compute blueprintsResults", e);
 			return {};
@@ -50,11 +58,12 @@ export function useDynamicUserState(wf: Core, logger = useLogger()) {
 
 function computeBlueprintsResults(
 	wf: Core,
+	rootId: Component["id"],
 	ignorePath = new Set<string>(),
 ): DynamicUserState {
 	const state: DynamicUserState = {};
 
-	for (const component of wf.getComponentsNested("blueprints_root")) {
+	for (const component of wf.getComponentsNested(rootId)) {
 		const componentType = component.type;
 		const componentDefinition = wf.getComponentDefinition(component.type);
 		if (!componentDefinition) continue;

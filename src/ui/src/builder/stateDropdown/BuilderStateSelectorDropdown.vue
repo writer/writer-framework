@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Fuse from "fuse.js";
-import { computed, inject } from "vue";
+import { computed, inject, toRef } from "vue";
 import { DynamicUserState, useDynamicUserState } from "../useDynamicUserState";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateSelectorDropdownComponent from "./BuilderStateSelectorDropdownComponent.vue";
@@ -22,7 +22,7 @@ const secretsManager = inject(injectionKeys.secretsManager)!;
 
 const model = defineModel({ type: String });
 
-const dynamicState = useDynamicUserState(wf);
+const dynamicState = useDynamicUserState(wf, toRef(props, "componentId"));
 
 const userState = computed<WdsDropdownMenuOption[]>(() => {
 	const options: WdsDropdownMenuOption[] = [];

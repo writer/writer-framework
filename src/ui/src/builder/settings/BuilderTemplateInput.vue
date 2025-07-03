@@ -117,8 +117,6 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	readonly: { type: Boolean },
-	hideDropdownSecrets: { type: Boolean, required: false },
-	hideDropdownBlueprintResults: { type: Boolean, required: false },
 });
 
 const root = useTemplateRef("root");
