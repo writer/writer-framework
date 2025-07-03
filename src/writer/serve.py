@@ -249,7 +249,9 @@ def get_asgi_app(
         return {"status": "ok"}
 
     @app.get("/api/export")
-    async def export():
+    async def export_zip():
+        if serve_mode != "edit":
+            raise PermissionError("Invalid mode.")
         exported_zip_stream = app_runner.export_zip()
         return StreamingResponse(
             exported_zip_stream,
@@ -261,6 +263,8 @@ def get_asgi_app(
 
     @app.post("/api/import")
     async def import_zip(file: UploadFile = File(...)):
+        if serve_mode != "edit":
+            raise PermissionError("Invalid mode.")
         if not file.filename.endswith(".zip"):
             raise HTTPException(status_code=400, detail="Only .zip files are supported.")
 
