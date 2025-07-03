@@ -44,9 +44,9 @@ export function useDynamicUserState(
 	});
 
 	const blueprintsResults = computed<DynamicUserState>(() => {
-		if (!componentPage.page.value) return {};
+		if (!componentPage.value) return {};
 		try {
-			return computeBlueprintsResults(wf, componentPage.page.value.id);
+			return computeBlueprintsResults(wf, componentPage.value.id);
 		} catch (e) {
 			logger.error("Cannot compute blueprintsResults", e);
 			return {};

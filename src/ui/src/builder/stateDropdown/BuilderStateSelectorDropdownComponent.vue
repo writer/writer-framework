@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, nextTick, ref, toRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useComponentDescription } from "../useComponentDescription";
 import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
-import { useComponentActions } from "../useComponentActions";
+import { useComponentPage } from "@/composables/useComponentPage";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
 	path: { type: String, required: true },
 	selected: { type: Boolean, required: false },
 });
+
+const componentId = toRef(props, "componentId");
 
 const wf = inject(injectionKeys.core)!;
 const wfbm = inject(injectionKeys.builderManager)!;
@@ -31,14 +33,10 @@ const option = computed<WdsDropdownMenuOption>(() => ({
 	value: props.path,
 }));
 
-const { goToComponentParentPage } = useComponentActions(wf, wfbm);
+const componentPage = useComponentPage(wf, componentId);
 
 async function goToComponent() {
-	wfbm.setSelection(props.componentId);
-
-	const pageId = await goToComponentParentPage(props.componentId);
-
-	switch (wf.getComponentById(pageId)?.type) {
+	switch (componentPage.value?.type) {
 		case "page":
 			wfbm.mode.value = "ui";
 			break;
@@ -46,6 +44,8 @@ async function goToComponent() {
 			wfbm.mode.value = "blueprints";
 			break;
 	}
+	await nextTick();
+	wfbm.setSelection(props.componentId);
 }
 </script>
 
@@ -60,7 +60,7 @@ async function goToComponent() {
 		<template v-if="isHovered" #action>
 			<i
 				class="material-symbols-outlined"
-				data-writer-tooltip="Expand"
+				data-writer-tooltip="Jump to this block"
 				@click.prevent="goToComponent"
 				@mousemove="isHovered = true"
 				>open_in_new</i
