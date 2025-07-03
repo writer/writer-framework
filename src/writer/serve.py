@@ -32,7 +32,7 @@ from typing import (
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
@@ -251,7 +251,7 @@ def get_asgi_app(
     @app.get("/api/export")
     async def export_zip():
         if serve_mode != "edit":
-            raise PermissionError("Invalid mode.")
+            raise HTTPException(status_code=403, detail="Invalid mode.")
         exported_zip_stream = app_runner.export_zip()
         return StreamingResponse(
             exported_zip_stream,
@@ -264,20 +264,28 @@ def get_asgi_app(
     @app.post("/api/import")
     async def import_zip(file: UploadFile = File(...)):
         if serve_mode != "edit":
-            raise PermissionError("Invalid mode.")
+            raise HTTPException(status_code=403, detail="Invalid mode.")
         if not file.filename or not file.filename.endswith(".zip"):
             raise HTTPException(status_code=400, detail="Only .zip files are supported.")
 
+        MAX_FILE_SIZE = 200 * 1024 * 1024
+
         try:
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                tmp.write(await file.read())
+                # Stream file to disk to avoid memory issues
+                size = 0
+                while chunk := await file.read(8192):
+                    size += len(chunk)
+                    if size > MAX_FILE_SIZE:
+                        tmp.close()
+                        os.unlink(tmp.name)
+                        raise HTTPException(status_code=413, detail=f"File too large. Max file size: {MAX_FILE_SIZE}")
+                    tmp.write(chunk)
                 tmp_path = tmp.name
             await app_runner.import_zip(tmp_path)
             os.remove(tmp_path)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid upload.")
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
