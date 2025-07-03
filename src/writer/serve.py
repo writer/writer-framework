@@ -265,7 +265,7 @@ def get_asgi_app(
     async def import_zip(file: UploadFile = File(...)):
         if serve_mode != "edit":
             raise PermissionError("Invalid mode.")
-        if not file.filename.endswith(".zip"):
+        if not file.filename or not file.filename.endswith(".zip"):
             raise HTTPException(status_code=400, detail="Only .zip files are supported.")
 
         try:
