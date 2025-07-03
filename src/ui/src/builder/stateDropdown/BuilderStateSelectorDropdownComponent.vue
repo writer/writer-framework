@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, toRef } from "vue";
+import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useComponentDescription } from "../useComponentDescription";
 import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
-import { useComponentPage } from "@/composables/useComponentPage";
+import { useComponentActions } from "../useComponentActions";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
 	path: { type: String, required: true },
 	selected: { type: Boolean, required: false },
 });
-
-const componentId = toRef(props, "componentId");
 
 const wf = inject(injectionKeys.core)!;
 const wfbm = inject(injectionKeys.builderManager)!;
@@ -33,18 +31,10 @@ const option = computed<WdsDropdownMenuOption>(() => ({
 	value: props.path,
 }));
 
-const componentPage = useComponentPage(wf, componentId);
+const { goToComponentParentPage } = useComponentActions(wf, wfbm);
 
 async function goToComponent() {
-	switch (componentPage.value?.type) {
-		case "page":
-			wfbm.mode.value = "ui";
-			break;
-		case "blueprints_blueprint":
-			wfbm.mode.value = "blueprints";
-			break;
-	}
-	await nextTick();
+	await goToComponentParentPage(props.componentId);
 	wfbm.setSelection(props.componentId);
 }
 </script>
