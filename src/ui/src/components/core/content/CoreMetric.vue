@@ -34,7 +34,7 @@ export default {
 			},
 			metricValue: {
 				name: "Value",
-				default: "0",
+				default: "-",
 				type: FieldType.Text,
 				desc: "The main value to be displayed. It's not limited to numbers.",
 			},
@@ -134,6 +134,7 @@ const rootStyle = computed(() => {
 h2.value {
 	overflow: hidden;
 	text-overflow: ellipsis;
+	white-space: pre-wrap;
 }
 
 .note {
