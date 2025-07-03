@@ -10,6 +10,7 @@ import os
 import os.path
 import pathlib
 import socket
+import tempfile
 import textwrap
 import time
 import typing
@@ -31,7 +32,7 @@ from typing import (
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
@@ -246,6 +247,33 @@ def get_asgi_app(
     @app.get("/api/health")
     async def health():
         return {"status": "ok"}
+
+    @app.get("/api/export")
+    async def export():
+        exported_zip_stream = app_runner.export_zip()
+        return StreamingResponse(
+            exported_zip_stream,
+            media_type="application/x-zip-compressed",
+            headers={
+                "Content-Disposition": "attachment; filename=exported_agent.zip"
+            }
+        )
+
+    @app.post("/api/import")
+    async def import_zip(file: UploadFile = File(...)):
+        if not file.filename.endswith(".zip"):
+            raise HTTPException(status_code=400, detail="Only .zip files are supported.")
+
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(await file.read())
+                tmp_path = tmp.name
+            await app_runner.import_zip(tmp_path)
+            os.remove(tmp_path)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
