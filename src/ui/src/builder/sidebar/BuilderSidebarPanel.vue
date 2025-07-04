@@ -1,5 +1,10 @@
 <template>
-	<div class="BuilderSidebarPanel">
+	<div
+		class="BuilderSidebarPanel"
+		:class="{
+			'BuilderSidebarPanel--mainScrollSeparator': isScrollSeparatorShown,
+		}"
+	>
 		<div v-if="!hideSearchBar" class="BuilderSidebarPanel__inputContainer">
 			<WdsTextInput
 				v-model="model"
@@ -12,7 +17,9 @@
 				@right-icon-click="model = ''"
 			/>
 		</div>
-		<div class="BuilderSidebarPanel__main"><slot></slot></div>
+		<div class="BuilderSidebarPanel__main" @scroll="handleMainScroll">
+			<slot></slot>
+		</div>
 		<div class="BuilderSidebarPanel__footer">
 			<slot name="footer"></slot>
 		</div>
@@ -21,7 +28,7 @@
 
 <script setup lang="ts">
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const model = defineModel({ type: String, required: false, default: "" });
 
@@ -36,6 +43,14 @@ const searchRightText = computed(() => {
 
 	return `${props.searchCount} result${props.searchCount === 1 ? "" : "s"}`;
 });
+
+const isScrollSeparatorShown = ref(false);
+
+function handleMainScroll(event: Event) {
+	if (event.target instanceof HTMLElement) {
+		isScrollSeparatorShown.value = event.target.scrollTop > 0;
+	}
+}
 </script>
 
 <style scoped>
@@ -46,6 +61,10 @@ const searchRightText = computed(() => {
 	width: 100%;
 	position: relative;
 	overflow: hidden;
+}
+
+.BuilderSidebarPanel--mainScrollSeparator .BuilderSidebarPanel__main {
+	border-top-color: var(--builderSeparatorColor);
 }
 
 .BuilderSidebarPanel__inputContainer {
@@ -72,7 +91,9 @@ const searchRightText = computed(() => {
 	flex: 1;
 	flex-direction: column;
 	overflow: auto;
+	border-top: 1px solid transparent;
 }
+
 .BuilderSidebarPanel__footer {
 	background: var(--builderBackgroundColor);
 	position: sticky;
