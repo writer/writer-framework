@@ -48,7 +48,7 @@ class WriterVision(WriterBlock):
                                         },
                                         "file_id": {
                                             "type": "string",
-                                            "description": "The ID of the image file in Writer Cloud.",
+                                            "description": "The ID of the image file in Writer cloud.",
                                         }
                                     }
                                 }

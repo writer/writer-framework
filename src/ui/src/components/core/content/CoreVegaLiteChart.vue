@@ -40,7 +40,7 @@ const defaultSpec = {
 
 export default {
 	writer: {
-		name: "Vega Lite Chart",
+		name: "Vega Lite chart",
 		description,
 		category: "Content",
 		fields: {

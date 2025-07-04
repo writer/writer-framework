@@ -120,8 +120,8 @@ const searchCount = computed(() => {
 });
 
 const placeholder = computed(() => {
-	if (activeToolkit.value == "core") return "Core toolkit";
-	if (activeToolkit.value == "blueprints") return "Blueprints toolkit";
+	if (activeToolkit.value == "core") return "Interface toolkit";
+	if (activeToolkit.value == "blueprints") return "Blueprint toolkit";
 	return "Toolkit";
 });
 

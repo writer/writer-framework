@@ -16,7 +16,7 @@
 					<WdsTextareaInput
 						v-model="prompt"
 						rows="10"
-						placeholder="Describe the blocks you'd like to generate..."
+						:placeholder="`Describe a workflow\n\nexample:\n- Connect to Google Keyword Planner and get the best keywords for my site www.writer.com\n- Get an article from Wordpress using the API\n- Draft a new article with updates based on the target keywords`"
 						style="height: 100%"
 					></WdsTextareaInput>
 				</div>

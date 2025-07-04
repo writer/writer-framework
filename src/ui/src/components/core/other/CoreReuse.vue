@@ -9,7 +9,7 @@ import injectionKeys from "@/injectionKeys";
 
 export default {
 	writer: {
-		name: "Reuse Component",
+		name: "Reuse component",
 		slot: "*",
 		description:
 			"Those components are used to reuse other components. " +

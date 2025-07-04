@@ -16,7 +16,7 @@ class WriterStructuredOutput(WriterBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "Structured Output",
+                    "name": "Structured output",
                     "description": "Allows to define a JSON response format, which the agent will use to structure its output.",
                     "category": "Writer",
                     "fields": {

@@ -60,7 +60,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
-		name: "Radio Input",
+		name: "Radio input",
 		description,
 		category: "Input",
 		fields: {

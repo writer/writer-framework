@@ -52,7 +52,7 @@ import {
 import { validatorPositiveNumber } from "@/constants/validators";
 
 const description =
-	"A layout component that organizes its child components in columns. Must be inside a Column Container component.";
+	"A layout component that organizes its child components in columns. Must be inside a Column container component.";
 
 export default {
 	writer: {

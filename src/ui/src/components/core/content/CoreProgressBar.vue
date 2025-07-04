@@ -52,12 +52,12 @@ import {
 
 const clickHandlerStub = `
 def handle_progress_bar_click():
-	print("The progress bar was clicked")`;
+	print("The Progress bar was clicked")`;
 
 const description = "A component to display a progression.";
 
 const definition: WriterComponentDefinition = {
-	name: "Progress Bar",
+	name: "Progress bar",
 	description,
 	category: "Content",
 	allowedChildrenTypes: ["*"],
@@ -94,7 +94,7 @@ const definition: WriterComponentDefinition = {
 	},
 	events: {
 		"wf-click": {
-			desc: "Triggered when the progress bar is clicked.",
+			desc: "Triggered when the Progress bar is clicked.",
 			stub: clickHandlerStub.trim(),
 		},
 	},

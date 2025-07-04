@@ -34,7 +34,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
-		name: "Slider Range Input",
+		name: "Slider range input",
 		description,
 		category: "Input",
 		fields: {

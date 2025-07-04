@@ -16,7 +16,7 @@
 			@click="selectOption('blueprints')"
 		>
 			<WdsIcon name="wds-blueprints" />
-			Blueprints
+			Blueprint
 		</button>
 		<button
 			v-if="wf.isWriterCloudApp.value"

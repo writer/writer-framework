@@ -32,7 +32,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Tab Container",
+		name: "Tab container",
 		description,
 		category: "Layout",
 		allowedChildrenTypes: ["tab", "repeater"],
