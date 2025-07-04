@@ -6,7 +6,7 @@
 				<BuilderSidebarButton
 					icon="layers"
 					data-writer-tooltip-placement="right"
-					:data-writer-tooltip="`${paneTitles.layers} (${modifierKeyName}I)`"
+					:data-writer-tooltip="`${paneTitles.layers} (${modifierKeyName}L)`"
 					:active="activePane === 'layers'"
 					data-automation-action="sidebar-layers"
 					@click="changeActivePane('layers')"
@@ -14,7 +14,7 @@
 				<BuilderSidebarButton
 					icon="wds-blocks"
 					data-writer-tooltip-placement="right"
-					:data-writer-tooltip="`${paneTitles.add} (${modifierKeyName}B)`"
+					:data-writer-tooltip="`${paneTitles.add} (${modifierKeyName}Enter)`"
 					:active="activePane === 'add'"
 					data-automation-action="sidebar-add"
 					@click="changeActivePane('add')"
@@ -200,11 +200,11 @@ async function handleKeydown(ev: KeyboardEvent) {
 	if (targetEl.closest("textarea, input, select")) return;
 
 	switch (ev.key) {
-		case "i":
+		case "l":
 			ev.preventDefault();
 			activePane.value = "layers";
 			break;
-		case "b":
+		case "Enter":
 			ev.preventDefault();
 			activePane.value = "add";
 			break;
