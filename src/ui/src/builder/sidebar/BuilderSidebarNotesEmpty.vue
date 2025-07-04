@@ -43,5 +43,6 @@
 }
 .BuilderSidebarNotesEmpty p {
 	font-size: 12px;
+	text-align: center;
 }
 </style>
