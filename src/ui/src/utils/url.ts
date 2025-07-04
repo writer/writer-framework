@@ -12,3 +12,8 @@ export function convertAbsolutePathtoFullURL(
 ) {
 	return new URL(`.${path}`, base).toString();
 }
+
+export function resolveAssetURL(path: string) {
+	if (path.startsWith("/")) return convertAbsolutePathtoFullURL(path);
+	return path;
+}

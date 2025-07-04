@@ -42,6 +42,7 @@ import {
 	serializeParsedHash,
 } from "@/core/navigation";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
+import { resolveAssetURL } from "@/utils/url";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -112,7 +113,7 @@ async function importStylesheet(stylesheetKey: string, path: string) {
 	existingEl?.remove();
 	const el = document.createElement("link");
 	el.dataset.writerStylesheetKey = stylesheetKey;
-	el.setAttribute("href", path);
+	el.setAttribute("href", resolveAssetURL(path));
 	el.setAttribute("rel", "stylesheet");
 	document.head.appendChild(el);
 }
@@ -124,14 +125,15 @@ async function importScript(scriptKey: string, path: string) {
 	existingEl?.remove();
 	const el = document.createElement("script");
 	el.dataset.writerScriptKey = scriptKey;
-	el.src = path;
+	el.src = resolveAssetURL(path);
 	el.setAttribute("rel", "modulepreload");
 	document.head.appendChild(el);
 }
 
 async function importModule(moduleKey: string, specifier: string) {
-	importedModulesSpecifiers[moduleKey] = specifier;
-	await import(/* @vite-ignore */ specifier);
+	const url = resolveAssetURL(specifier);
+	importedModulesSpecifiers[moduleKey] = url;
+	await import(/* @vite-ignore */ url);
 }
 
 async function handleFunctionCall(
