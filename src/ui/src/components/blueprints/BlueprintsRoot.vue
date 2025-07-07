@@ -15,7 +15,7 @@ const description =
 
 export default {
 	writer: {
-		name: "Root",
+		name: "Blueprints Root",
 		toolkit: "blueprints",
 		category: "Root",
 		description,
