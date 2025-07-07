@@ -298,6 +298,7 @@ class ComponentDefinition(TypedDict):
     outs: Optional[Dict[str, str]]
     x: Optional[int]
     y: Optional[int]
+    featureFlags: Optional[List[str]]
 
 
 class BlueprintExecutionLog(BaseModel):

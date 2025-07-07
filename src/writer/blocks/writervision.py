@@ -67,6 +67,9 @@ class WriterVision(WriterBlock):
                             "style": "error",
                         },
                     },
+                    "featureFlags": [
+                        "vision_block"
+                    ]
                 },
             ),
         )

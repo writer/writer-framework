@@ -117,14 +117,15 @@ export type WriterComponentDefinition = {
 	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
 	outs?: Record<
-		string,
-		{
-			name: string;
-			description: string;
-			style: string;
-			field?: keyof WriterComponentDefinition["fields"];
-		}
+			string,
+			{
+					name: string;
+					description: string;
+					style: string;
+					field?: keyof WriterComponentDefinition["fields"];
+			}
 	>;
+	featureFlags?: string[];
 };
 
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
