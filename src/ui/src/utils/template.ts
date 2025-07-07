@@ -40,3 +40,44 @@ export function getCurrentOpenedTemplate(input: string): string {
 
 	return slice.replace(/^@{?/, "");
 }
+
+export function* computeTemplateParts(
+	input: string,
+): Generator<{ content: string; type: "text" | "tag" }, void, unknown> {
+	if (input === undefined) return;
+	let currentText = "";
+	let i = 0;
+	const n = input.length;
+
+	while (i < n) {
+		if (input.startsWith("@{", i)) {
+			if (currentText.length > 0) {
+				yield { content: currentText, type: "text" as const };
+				currentText = "";
+			}
+			let j = i + 2;
+			let foundClosingBrace = false;
+			while (j < n) {
+				if (input[j] === "}") {
+					foundClosingBrace = true;
+					break;
+				}
+				j++;
+			}
+			if (foundClosingBrace) {
+				const tagContent = input.slice(i + 2, j);
+				yield { content: tagContent, type: "tag" as const };
+				i = j + 1;
+			} else {
+				currentText += input.slice(i);
+				i = n;
+			}
+		} else {
+			currentText += input[i];
+			i++;
+		}
+	}
+	if (currentText.length > 0) {
+		yield { content: currentText, type: "text" as const };
+	}
+}

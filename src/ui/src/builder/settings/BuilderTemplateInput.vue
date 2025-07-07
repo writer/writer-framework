@@ -1,8 +1,24 @@
 <template>
 	<div ref="root" class="BuilderTemplateInput">
-		<template v-if="!props.multiline">
+		<BuilderTemplateInputInput
+			ref="input"
+			:model-value="props.value"
+			autocorrect="off"
+			autocomplete="off"
+			spellcheck="false"
+			:placeholder="props.placeholder"
+			:list="props.options ? `list-${props.inputId}` : undefined"
+			:invalid="error !== undefined"
+			:autofocus="autofocus"
+			:readonly="readonly"
+			:left-icon="type === 'state' ? 'alternate_email' : undefined"
+			:right-icon="rightIcon"
+			:multiline
+			@right-icon-click="showAutocompletions = !showAutocompletions"
+			@input="handleInput"
+		/>
+		<template v-if="false && !props.multiline">
 			<WdsTextInput
-				ref="input"
 				:model-value="props.value"
 				autocorrect="off"
 				autocomplete="off"
@@ -80,18 +96,18 @@ import {
 	watch,
 	computed,
 	onUnmounted,
+	inject,
 } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
+import BuilderTemplateInputInput from "./BuilderTemplateInputInput.vue";
 import {
 	autocompleteTemplateVariable,
 	getCurrentOpenedTemplate,
 } from "@/utils/template";
 import { useFocusWithin } from "@/composables/useFocusWithin";
-
-const emit = defineEmits(["input", "update:value"]);
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
@@ -118,6 +134,8 @@ const props = defineProps({
 	autofocus: { type: Boolean },
 	readonly: { type: Boolean },
 });
+
+const emit = defineEmits(["input", "update:value"]);
 
 const root = useTemplateRef("root");
 const input = useTemplateRef("input");
@@ -193,6 +211,7 @@ watch(hasFocusInRoot, () => {
 });
 
 async function onSelectAutocomplete(selectedText: string) {
+	console.log(selectedText);
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	let newSelectionStart = selectionStart ?? newValue.length;
@@ -202,6 +221,7 @@ async function onSelectAutocomplete(selectedText: string) {
 		const after = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
 
 		const newBefore = autocompleteTemplateVariable(before, selectedText);
+		console.log(newBefore);
 
 		newValue = `${newBefore}${after}`;
 		newSelectionStart = newBefore.length;
@@ -219,11 +239,13 @@ async function onSelectAutocomplete(selectedText: string) {
 	showAutocompletions.value = false;
 
 	await nextTick();
-	input.value.setSelectionEnd(newSelectionStart);
+
+	// input.value.setSelectionEnd(newSelectionStart);
 	input.value.setSelectionStart(newSelectionStart);
 }
 
 function handleInput(ev) {
+	console.log("handleInput", ev);
 	emit("input", ev);
 	emit("update:value", ev.target.value);
 
