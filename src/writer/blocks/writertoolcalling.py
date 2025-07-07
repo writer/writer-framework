@@ -171,6 +171,8 @@ class WriterToolCalling(WriterBlock):
         import writer.ai
         self.is_complete = False
 
+        # TODO: Replace for API, no SDK
+
         try:
             prompt = self._get_field("prompt")
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
