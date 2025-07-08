@@ -14,6 +14,21 @@ exports[`CoreText > should render in markdown mode 1`] = `
 I'm the **content**."
     style="text-align: center;"
   />
+  <div
+    class="text-container"
+    data-v-810f69c0=""
+  >
+    <p
+      class="plainText"
+      data-v-810f69c0=""
+      style="text-align: center;"
+    >
+      # Hello
+
+I'm the **content**.
+    </p>
+    <!--v-if-->
+  </div>
   
 </div>
 `;
@@ -25,15 +40,22 @@ exports[`CoreText > should render in non-markdown mode 1`] = `
   style="cursor: pointer;"
 >
   
-  <p
-    class="plainText"
+  <!--v-if-->
+  <div
+    class="text-container"
     data-v-810f69c0=""
-    style="text-align: center;"
   >
-    # Hello
+    <p
+      class="plainText"
+      data-v-810f69c0=""
+      style="text-align: center;"
+    >
+      # Hello
 
 I'm the **content**.
-  </p>
+    </p>
+    <!--v-if-->
+  </div>
   
 </div>
 `;
