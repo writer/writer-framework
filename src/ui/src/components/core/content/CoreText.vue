@@ -26,7 +26,7 @@
 				>
 					<div class="icon">
 						<span class="material-symbols-outlined">
-							{{ isCopied ? "check" : "content_copy" }}
+							{{ isCopied ? "check' : "content_copy" }}
 						</span>
 					</div>
 				</WdsButton>
