@@ -34,6 +34,7 @@ describe(getCurrentOpenedTemplate.name, () => {
 		{ input: "before @var1", result: "var1" },
 		{ input: "before @var1 ", result: "" },
 		{ input: "before @{var1 ", result: "var1 " },
+		{ input: "@{other.var} foo", result: "" },
 	])("should assign %s", ({ input, result }) => {
 		expect(getCurrentOpenedTemplate(input)).toStrictEqual(result);
 	});
