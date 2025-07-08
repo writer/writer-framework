@@ -14,9 +14,14 @@
 				:style="contentStyle"
 			>
 			</BaseMarkdown>
-			<p v-else class="plainText" :style="contentStyle">
-				{{ fields.text.value }}
-			</p>
+			<div>
+				<p class="plainText" :style="contentStyle">
+					{{ fields.text.value }}
+				</p>
+				<WdsButton v-if="fields.quickCopy.value" @click="handleCopy">
+					Copy
+				</WdsButton>
+			</div>
 		</template>
 	</div>
 </template>
@@ -70,6 +75,12 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
+			quickCopy: {
+				...baseYesNoField,
+				name: "Show copy button",
+				desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
+				default: "no",
+			},
 			primaryTextColor,
 			cssClasses,
 		},
@@ -118,6 +129,10 @@ const contentStyle = computed(() => {
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
+}
+
+function handleCopy() {
+	navigator.clipboard.writeText(fields.text.value);
 }
 </script>
 
