@@ -53,7 +53,7 @@ async function goToComponent() {
 				data-writer-tooltip="Jump to this block"
 				@click.prevent="goToComponent"
 				@mousemove="isHovered = true"
-				>open_in_new</i
+				>jump_to_element</i
 			>
 		</template>
 	</WdsDropdownMenuItem>

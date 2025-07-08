@@ -233,7 +233,9 @@ function handleInput(ev) {
 		const text = newValue.slice(0, selectionStart);
 
 		showAutocompletions.value =
-			!!text.match(/@\{([^}{@]*)$/) || text.endsWith("@");
+			!!text.match(/@\{([^}{@]*)$/) ||
+			text.endsWith("@") ||
+			!!dropdownQuery.value;
 	} else {
 		showAutocompletions.value = true;
 	}

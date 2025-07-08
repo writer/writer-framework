@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Fuse from "fuse.js";
 import { computed, inject, toRef } from "vue";
 import { DynamicUserState, useDynamicUserState } from "../useDynamicUserState";
 import injectionKeys from "@/injectionKeys";
@@ -52,8 +51,7 @@ const secrets = computed<WdsDropdownMenuOption[]>(() => {
 			iconBgColor: WdsColor.Yellow2,
 		});
 	}
-	options.sort((a, b) => a.label.localeCompare(b.label));
-	return filterOptions(options);
+	return options.sort((a, b) => a.label.localeCompare(b.label));
 });
 
 const bindings = computed(() =>
@@ -67,20 +65,8 @@ const blueprintsResults = computed(() => {
 	return computeOptionsFromDynamicState(dynamicState.blueprintsResults.value);
 });
 
-function filterOptions(options: WdsDropdownMenuOption[]) {
-	if (!props.query) return options;
-
-	const fuse = new Fuse(options, {
-		findAllMatches: true,
-		includeMatches: true,
-		keys: ["value"],
-	});
-
-	return fuse.search(props.query).map((res) => res.item);
-}
-
 function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
-	const options = Object.entries(dynamicState)
+	return Object.entries(dynamicState)
 		.map(([path, { components }]) => {
 			// get only the first component defining the state key
 			for (const component of components) {
@@ -88,17 +74,11 @@ function computeOptionsFromDynamicState(dynamicState: DynamicUserState) {
 				return { componentId: component.id, path };
 			}
 		})
-		.filter(Boolean);
-
-	if (!props.query) return options;
-
-	return new Fuse(options, {
-		findAllMatches: true,
-		includeMatches: true,
-		keys: ["path"],
-	})
-		.search(props.query)
-		.map((res) => res.item);
+		.filter((item) => {
+			if (!item) return false;
+			if (props.query && !item.path.includes(props.query)) return false;
+			return true;
+		});
 }
 
 const canCreateFromQuery = computed(() => {
