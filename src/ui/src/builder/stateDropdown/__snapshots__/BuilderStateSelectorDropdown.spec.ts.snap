@@ -1,0 +1,229 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
+<div
+  class="BuilderStateSelectorDropdown"
+  data-v-ee0f150a=""
+>
+  <!--v-if-->
+  <div
+    class="BuilderStateSelectorDropdown__section"
+    data-v-ee0f150a=""
+  >
+    <p
+      class="BuilderStateSelectorDropdown__section__title"
+      data-v-ee0f150a=""
+    >
+       Set states 
+    </p>
+    
+    <button
+      class="WdsDropdownMenuItem BuilderStateSelectorDropdownItemComponent"
+      data-automation-key="setState"
+      data-v-eb3dac76=""
+      data-v-ee0f150a=""
+    >
+      
+      <div
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--img"
+        data-v-eb3dac76=""
+      >
+        <shared-img-with-fallback-stub
+          data-v-eb3dac76=""
+          urls="http://localhost:3000/components/blueprints_setstate.svg,http://localhost:3000/components/category_Fallback.svg,http://localhost:3000/components/blueprints_category_Fallback.svg"
+        />
+      </div>
+      
+      <div
+        class="WdsDropdownMenuItem__label"
+        data-v-eb3dac76=""
+        data-writer-tooltip="setState"
+        data-writer-tooltip-strategy="overflow"
+      >
+        <span
+          data-v-eb3dac76=""
+        >
+          setState
+        </span>
+        <!--v-if-->
+      </div>
+      <div
+        class="WdsDropdownMenuItem__detail"
+        data-v-eb3dac76=""
+        data-writer-tooltip="Fallback Component"
+        data-writer-tooltip-strategy="overflow"
+      >
+        Fallback Component
+      </div>
+      <div
+        class="WdsDropdownMenuItem__action"
+        data-v-eb3dac76=""
+      >
+        
+        
+      </div>
+    </button>
+    
+  </div>
+  <div
+    class="BuilderStateSelectorDropdown__section"
+    data-v-ee0f150a=""
+  >
+    <p
+      class="BuilderStateSelectorDropdown__section__title"
+      data-v-ee0f150a=""
+    >
+       Interface variables 
+    </p>
+    
+    <button
+      class="WdsDropdownMenuItem BuilderStateSelectorDropdownItemComponent"
+      data-automation-key="binding"
+      data-v-eb3dac76=""
+      data-v-ee0f150a=""
+    >
+      
+      <div
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--img"
+        data-v-eb3dac76=""
+      >
+        <shared-img-with-fallback-stub
+          data-v-eb3dac76=""
+          urls="http://localhost:3000/components/blueprints_setstate.svg,http://localhost:3000/components/category_Fallback.svg,http://localhost:3000/components/blueprints_category_Fallback.svg"
+        />
+      </div>
+      
+      <div
+        class="WdsDropdownMenuItem__label"
+        data-v-eb3dac76=""
+        data-writer-tooltip="binding"
+        data-writer-tooltip-strategy="overflow"
+      >
+        <span
+          data-v-eb3dac76=""
+        >
+          binding
+        </span>
+        <!--v-if-->
+      </div>
+      <div
+        class="WdsDropdownMenuItem__detail"
+        data-v-eb3dac76=""
+        data-writer-tooltip="Fallback Component"
+        data-writer-tooltip-strategy="overflow"
+      >
+        Fallback Component
+      </div>
+      <div
+        class="WdsDropdownMenuItem__action"
+        data-v-eb3dac76=""
+      >
+        
+        
+      </div>
+    </button>
+    
+  </div>
+  <!--v-if-->
+  <div
+    class="BuilderStateSelectorDropdown__section"
+    data-v-ee0f150a=""
+  >
+    <p
+      class="BuilderStateSelectorDropdown__section__title"
+      data-v-ee0f150a=""
+    >
+      Secrets
+    </p>
+    
+    <button
+      class="WdsDropdownMenuItem"
+      data-automation-key="vault.apiKey"
+      data-v-eb3dac76=""
+      data-v-ee0f150a=""
+    >
+      
+      <i
+        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
+        data-v-eb3dac76=""
+        style="background-color: rgb(255, 233, 153);"
+      >
+        key
+      </i>
+      
+      <div
+        class="WdsDropdownMenuItem__label"
+        data-v-eb3dac76=""
+        data-writer-tooltip="apiKey"
+        data-writer-tooltip-strategy="overflow"
+      >
+        <span
+          data-v-eb3dac76=""
+        >
+          apiKey
+        </span>
+        <!--v-if-->
+      </div>
+      <!--v-if-->
+      <div
+        class="WdsDropdownMenuItem__action"
+        data-v-eb3dac76=""
+      >
+        
+        
+      </div>
+    </button>
+    
+  </div>
+  <div
+    class="BuilderStateSelectorDropdown__section"
+    data-v-ee0f150a=""
+  >
+    <p
+      class="BuilderStateSelectorDropdown__section__title"
+      data-v-ee0f150a=""
+    >
+       main.py variables 
+    </p>
+    
+    <button
+      class="WdsDropdownMenuItem"
+      data-automation-key="state"
+      data-v-eb3dac76=""
+      data-v-ee0f150a=""
+    >
+      
+      <i
+        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
+        data-v-eb3dac76=""
+        style="background-color: rgb(212, 255, 242);"
+      >
+        code
+      </i>
+      
+      <div
+        class="WdsDropdownMenuItem__label"
+        data-v-eb3dac76=""
+        data-writer-tooltip="state"
+        data-writer-tooltip-strategy="overflow"
+      >
+        <span
+          data-v-eb3dac76=""
+        >
+          state
+        </span>
+        <!--v-if-->
+      </div>
+      <!--v-if-->
+      <div
+        class="WdsDropdownMenuItem__action"
+        data-v-eb3dac76=""
+      >
+        
+        
+      </div>
+    </button>
+    
+  </div>
+</div>
+`;

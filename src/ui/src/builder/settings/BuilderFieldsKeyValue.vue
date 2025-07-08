@@ -93,7 +93,7 @@ const fieldKey = toRef(props, "fieldKey");
 const isModalOpen = ref(false);
 
 const evaluatedValue = computed<JSONValue>(
-	() => getEvaluatedFields(props.instancePath)[fieldKey.value].value,
+	() => getEvaluatedFields(props.instancePath)?.[fieldKey.value].value ?? {},
 );
 
 const component = computed(() => wf.getComponentById(componentId.value));

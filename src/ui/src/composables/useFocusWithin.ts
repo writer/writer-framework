@@ -5,7 +5,7 @@ import { ComputedRef, onBeforeUnmount, readonly, Ref, ref, watch } from "vue";
  * Inspired from <https://danburzo.ro/focus-within>.
  */
 export function useFocusWithin(
-	element: ComputedRef<HTMLElement> | Ref<HTMLElement>,
+	element: ComputedRef<HTMLElement | null> | Ref<HTMLElement | null>,
 ) {
 	const focus = ref(false);
 
@@ -46,7 +46,7 @@ export function useFocusWithin(
 			previous.removeEventListener("focusout", onFocusOut);
 		}
 
-		if (!element) return;
+		if (!element?.value) return;
 
 		element.value.addEventListener("focusin", onFocusIn, {
 			signal: abort.signal,

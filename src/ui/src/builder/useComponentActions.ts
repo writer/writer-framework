@@ -3,6 +3,7 @@ import { getContainableTypes } from "../core/typeHierarchy";
 import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
 import { useComponentClipboard } from "./useComponentClipboard";
 import { COMPONENT_TYPES_ROOT } from "@/constants/component";
+import { getComponentPage } from "@/composables/useComponentPage";
 
 export function useComponentActions(
 	wf: Core,
@@ -1076,19 +1077,6 @@ export function useComponentActions(
 		wf.sendComponentUpdate();
 	}
 
-	function getContainingPageId(
-		componentId: Component["id"],
-	): Component["id"] {
-		const component = wf.getComponentById(componentId);
-		if (!component || component.type == "root") return null;
-		if (
-			component.type == "page" ||
-			component.type == "blueprints_blueprint"
-		)
-			return componentId;
-		return getContainingPageId(component.parentId);
-	}
-
 	async function goToComponentParentPage(componentId: Component["id"]) {
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
@@ -1096,7 +1084,20 @@ export function useComponentActions(
 			component.type,
 		)?.name;
 		if (!componentDefinition) return; // Unknown component, not rendered
-		wf.setActivePageId(getContainingPageId(componentId));
+		const page = getComponentPage(wf, componentId);
+		if (!page) return;
+
+		switch (page?.type) {
+			case "page":
+				ssbm.mode.value = "ui";
+				break;
+			case "blueprints_blueprint":
+				ssbm.mode.value = "blueprints";
+				break;
+		}
+
+		wf.setActivePageId(page.id);
+		return page.id;
 	}
 
 	return {
