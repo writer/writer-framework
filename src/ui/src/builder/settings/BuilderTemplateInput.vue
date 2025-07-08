@@ -3,9 +3,6 @@
 		<BuilderTemplateInputInput
 			ref="input"
 			:model-value="props.value"
-			autocorrect="off"
-			autocomplete="off"
-			spellcheck="false"
 			:placeholder="props.placeholder"
 			:list="props.options ? `list-${props.inputId}` : undefined"
 			:invalid="error !== undefined"
@@ -51,24 +48,6 @@
 			</datalist>
 		</template>
 
-		<template v-if="props.multiline">
-			<WdsTextareaInput
-				ref="input"
-				v-capture-tabs
-				:variant="props.variant"
-				:model-value="props.value"
-				autocorrect="off"
-				autocomplete="off"
-				spellcheck="false"
-				rows="3"
-				:placeholder="props.placeholder"
-				:invalid="error !== undefined"
-				:autofocus="autofocus"
-				:readonly="readonly"
-				@input="handleInput"
-			/>
-		</template>
-
 		<div
 			v-if="showAutocompletions"
 			ref="dropdown"
@@ -96,10 +75,8 @@ import {
 	watch,
 	computed,
 	onUnmounted,
-	inject,
 } from "vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
 import BuilderTemplateInputInput from "./BuilderTemplateInputInput.vue";
@@ -211,7 +188,6 @@ watch(hasFocusInRoot, () => {
 });
 
 async function onSelectAutocomplete(selectedText: string) {
-	console.log(selectedText);
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	let newSelectionStart = selectionStart ?? newValue.length;

@@ -19,7 +19,10 @@
 			:multiline
 			@input="onChange"
 		>
-			<StateWithPills :content="model" />
+			<StateWithPills
+				:content="model"
+				:background-colors="backgroundTagColors"
+			/>
 		</SharedContentEditable>
 		<button
 			v-if="rightIcon"
@@ -33,9 +36,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, PropType, ref, useTemplateRef } from "vue";
+import { computed, inject, onMounted, PropType, useTemplateRef } from "vue";
 import StateWithPills from "../stateDropdown/StateWithPills.vue";
 import SharedContentEditable from "@/components/shared/SharedContentEditable.vue";
+import { useDynamicUserState } from "../useDynamicUserState";
+import injectionKeys from "@/injectionKeys";
+import { extractObjectPaths } from "@/utils/object";
+import { WdsColor } from "@/wds/tokens";
 
 const model = defineModel({ type: String });
 
@@ -62,6 +69,30 @@ defineExpose({
 	value: model,
 	setSelectionEnd,
 	setSelectionStart,
+});
+
+const wf = inject(injectionKeys.core);
+const secretsManager = inject(injectionKeys.secretsManager);
+
+const { bindings, blueprintsResults, blueprintsSetStates } =
+	useDynamicUserState(wf);
+
+const backgroundTagColors = computed(() => {
+	return {
+		[WdsColor.Green2]: new Set(
+			extractObjectPaths(wf.userStateInitial.value),
+		),
+		[WdsColor.Gray2]: new Set(extractObjectPaths(bindings.value)),
+		[WdsColor.Blue2]: new Set(
+			...extractObjectPaths(blueprintsSetStates.value),
+			...extractObjectPaths(blueprintsResults.value),
+		),
+		[WdsColor.Yellow2]: new Set(
+			[...extractObjectPaths(secretsManager.secrets.value)].map(
+				(v) => `vault.${v}`,
+			),
+		),
+	};
 });
 
 const input = useTemplateRef("input");

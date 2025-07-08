@@ -7,14 +7,21 @@ import {
 	createTextVNode,
 	type VNode,
 	createElementBlock,
+	PropType,
 } from "vue";
 
 export default defineComponent({
 	props: {
 		content: { type: String, required: false, default: undefined },
+		backgroundColors: {
+			type: Object as PropType<Record<string, Set<string>>>,
+			required: false,
+			default: () => {},
+		},
 	},
 	setup(props) {
 		const content = toRef(props, "content");
+		const backgroundColors = toRef(props, "backgroundColors");
 
 		function createTagVNode(tag: string) {
 			const children = [
@@ -23,7 +30,19 @@ export default defineComponent({
 				createTextVNode(tag),
 				h("span", { class: "StateWithPill__tag__bracket" }, "}"),
 			];
-			return h("span", { class: "StateWithPill__tag" }, children);
+
+			const type = Object.entries(backgroundColors.value).find(([, v]) =>
+				v.has(tag),
+			)?.[0];
+
+			return h(
+				"span",
+				{
+					class: "StateWithPill__tag",
+					style: { backgroundColor: type },
+				},
+				children,
+			);
 		}
 
 		return () => {
