@@ -64,9 +64,9 @@ function getSelection() {
 		) {
 			if (
 				range.startContainer === node.parentNode &&
-				Array.from(node.parentNode.childNodes).indexOf(
-					node as ChildNode,
-				) <= range.startOffset
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				Array.from(node.parentNode.childNodes).indexOf(node as any) <=
+					range.startOffset
 			) {
 				position += 1; // Count <br> as one character
 			} else if (range.startContainer === node) {
@@ -81,7 +81,6 @@ function getSelection() {
 
 function setSelection(targetOffset: number) {
 	if (!root.value) return;
-	console.log("setSelection", targetOffset);
 	previousSelection = targetOffset;
 
 	const walker = document.createTreeWalker(

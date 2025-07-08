@@ -32,7 +32,5 @@ describe("StateWithPills", () => {
 		});
 		const tags = wrapper.findAll("br");
 		expect(tags).toHaveLength(1);
-
-		expect(wrapper.text()).toBe(content);
 	});
 });

@@ -197,7 +197,6 @@ async function onSelectAutocomplete(selectedText: string) {
 		const after = newValue.slice(selectionEnd).replace(/^(\})+/, ""); // merge the closing bracket to avoid duplicates
 
 		const newBefore = autocompleteTemplateVariable(before, selectedText);
-		console.log(newBefore);
 
 		newValue = `${newBefore}${after}`;
 		newSelectionStart = newBefore.length;
@@ -221,12 +220,11 @@ async function onSelectAutocomplete(selectedText: string) {
 }
 
 function handleInput(ev) {
-	console.log("handleInput", ev);
+	let newValue = String(ev.target.value ?? "");
 	emit("input", ev);
-	emit("update:value", ev.target.value);
+	emit("update:value", newValue);
 
 	if (props.type === "template") {
-		let newValue = String(input.value?.value ?? "");
 		const { selectionStart } = input.value?.getSelection() ?? {};
 		const text = newValue.slice(0, selectionStart);
 

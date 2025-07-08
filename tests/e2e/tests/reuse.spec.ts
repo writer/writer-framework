@@ -6,9 +6,8 @@ test.describe("Reuse component", () => {
 
 	const fillSettingsField = async (page: Page, key: string, value: string) => {
 		await page
-			.locator(
-				`.BuilderFieldsText[data-automation-key="${key}"] input, .BuilderFieldsText[data-automation-key="${key}"] textarea`,
-			)
+			.locator(`.BuilderFieldsText[data-automation-key="${key}"]`)
+			.locator(".StateWithPill")
 			.fill(value);
 	};
 

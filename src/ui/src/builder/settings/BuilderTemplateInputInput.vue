@@ -5,7 +5,6 @@
 			'BuilderTemplateInputInput--ghost': variant === 'ghost',
 			'BuilderTemplateInputInput--multiline': multiline,
 		}"
-		v-bind="$attrs"
 		:aria-invalid="invalid"
 		:style="{
 			gridTemplateColumns: gridTemplateColumns,
@@ -46,9 +45,6 @@ import { WdsColor } from "@/wds/tokens";
 
 const model = defineModel({ type: String });
 
-// disable attributes inheritance to apply attr to nested input
-defineOptions({ inheritAttrs: false });
-
 const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
 	rightIcon: { type: String, required: false, default: undefined },
@@ -60,7 +56,7 @@ const props = defineProps({
 
 const emit = defineEmits({
 	rightIconClick: () => true,
-	input: (event) => true,
+	input: (event: InputEvent) => !!event,
 });
 
 defineExpose({
@@ -114,10 +110,8 @@ const gridTemplateColumns = computed(() =>
 async function onChange(value: string) {
 	model.value = value;
 	emit("input", {
-		target: {
-			value,
-		},
-	});
+		target: { value },
+	} as unknown as InputEvent);
 }
 
 function setSelectionStart(value: number) {
@@ -147,8 +141,6 @@ function focus() {
 </script>
 
 <style scoped>
-@import "@/renderer/colorTransformations.css";
-
 .BuilderTemplateInputInput {
 	width: 100%;
 	margin: 0;

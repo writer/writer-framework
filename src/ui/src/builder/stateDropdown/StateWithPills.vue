@@ -31,8 +31,8 @@ export default defineComponent({
 				h("span", { class: "StateWithPill__tag__bracket" }, "}"),
 			];
 
-			const type = Object.entries(backgroundColors.value).find(([, v]) =>
-				v.has(tag),
+			const type = Object.entries(backgroundColors.value ?? {}).find(
+				([, v]) => v.has(tag),
 			)?.[0];
 
 			return h(
@@ -81,8 +81,8 @@ export default defineComponent({
 	height: 100%;
 }
 .StateWithPill__tag {
-	background-color: #d4fff2;
-	color: #000000;
+	background-color: var(--wdsColorGray0);
+	color: var(--wdsColorBlack);
 	padding: 4px 8px;
 	border-radius: 4px;
 }
