@@ -21,10 +21,12 @@
 		<template v-else-if="templateField.control == FieldControl.Textarea">
 			<BuilderTemplateInput
 				multiline
-				:multiline-rows="isExpanded ? 'half-screen' : undefined"
 				variant="text"
 				class="content"
 				:input-id="inputId"
+				:input-style="{
+					'min-height': isExpanded ? '50vh' : undefined,
+				}"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:type

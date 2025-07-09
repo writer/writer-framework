@@ -43,17 +43,8 @@
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
-				:rows="
-					props.multilineRows === 'half-screen'
-						? undefined
-						: props.multilineRows
-				"
-				:style="{
-					'min-height':
-						props.multilineRows === 'half-screen'
-							? '50vh'
-							: undefined,
-				}"
+				:rows="props.multilineRows"
+				:style="props.inputStyle"
 				:placeholder="props.placeholder"
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
@@ -89,6 +80,7 @@
 import Fuse from "fuse.js";
 import injectionKeys from "@/injectionKeys";
 import {
+	type CSSProperties,
 	PropType,
 	computed,
 	inject,
@@ -109,11 +101,14 @@ const emit = defineEmits(["input", "update:value"]);
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
+	inputStyle: {
+		type: Object as PropType<CSSProperties>,
+		default: () => ({}),
+	},
 	value: { type: String, required: false, default: undefined },
 	multiline: { type: Boolean, required: false },
 	multilineRows: {
-		type: [String, Number] as PropType<number | "half-screen">,
-		required: false,
+		type: [Number] as PropType<number>,
 		default: 3,
 	},
 	variant: {
