@@ -5,7 +5,10 @@
 		:invalid
 		:variant
 		class="BuilderTemplateInputInput"
-		:class="{ 'BuilderTemplateInputInput--multiline': multiline }"
+		:class="{
+			'BuilderTemplateInputInput--singleline': !multiline,
+			'BuilderTemplateInputInput--multiline': multiline,
+		}"
 		@right-icon-click="$emit('rightIconClick')"
 		@click="focus"
 	>
@@ -134,5 +137,12 @@ function focus() {
 }
 .BuilderTemplateInputInput--multiline .BuilderTemplateInputInput__input {
 	min-height: 64px;
+	line-height: 26px;
+}
+
+.BuilderTemplateInputInput--singleline .BuilderTemplateInputInput__input {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 </style>
