@@ -181,9 +181,12 @@ const dropdownQuery = computed(() => {
 });
 
 const hasFocusInRoot = useFocusWithin(root);
-watch(hasFocusInRoot, () => {
+watch(hasFocusInRoot, async () => {
 	if (!hasFocusInRoot.value) {
-		nextTick().then(() => (showAutocompletions.value = false));
+		await nextTick();
+		setTimeout(() => {
+			showAutocompletions.value = false;
+		}, 300);
 	}
 });
 

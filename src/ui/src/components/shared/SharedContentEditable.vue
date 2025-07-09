@@ -17,7 +17,11 @@ async function onChange(e: Event) {
 	if (!(e.target instanceof HTMLElement)) return;
 	previousSelection = getSelection();
 	const text = e.target.innerText || "";
-	emits("input", text);
+	if (props.multiline) {
+		emits("input", text);
+	} else {
+		emits("input", text.replace("\n", ""));
+	}
 }
 async function onPressDelete(e: KeyboardEvent) {
 	if (!(e.target instanceof HTMLElement)) return;

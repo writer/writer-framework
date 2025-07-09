@@ -99,7 +99,7 @@ test.describe("Blueprints", () => {
 			.locator(`.BuilderFieldsText[data-automation-key="payload"]`)
 			.locator(".StateWithPill")
 			.fill(payload);
-		await page.locator(`[data-automation-action="collapse-settings"]`).click();
+		// await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
 		await runBlueprintBlock.locator(".ball.success").dragTo(returnValueBlock);
 
