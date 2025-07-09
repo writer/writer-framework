@@ -105,7 +105,7 @@ const props = defineProps({
 	value: { type: String, required: false, default: undefined },
 	multiline: { type: Boolean, required: false },
 	multilineRows: {
-		type: [Number] as PropType<number>,
+		type: Number,
 		default: 3,
 	},
 	variant: {
