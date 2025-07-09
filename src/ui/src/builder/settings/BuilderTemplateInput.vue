@@ -215,7 +215,6 @@ async function onSelectAutocomplete(selectedText: string) {
 
 	await nextTick();
 
-	// input.value.setSelectionEnd(newSelectionStart);
 	input.value.setSelectionStart(newSelectionStart);
 }
 
