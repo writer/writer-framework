@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import importlib.util
+import io
 import logging
 import logging.handlers
 import multiprocessing
@@ -11,7 +12,9 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
+import zipfile
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Union, cast
 
@@ -777,7 +780,8 @@ class AppRunner:
         self.log_listener.start()
 
     def _start_fs_observer(self):
-        self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
+        if self.observer is None:
+            self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
         self.observer.schedule(
             FileEventHandler(self.reload_code_from_saved, patterns=["*.py"]),
             path=self.app_path,
@@ -787,7 +791,8 @@ class AppRunner:
             FileEventHandler(self._install_requirements, patterns=["requirements.txt"]),
             path=self.app_path,
         )
-        self.observer.start()
+        if not self.observer.is_alive():
+            self.observer.start()
 
     def _start_wf_project_process_write_files(self):
         wf_project.start_process_write_files_async(
@@ -1069,6 +1074,59 @@ class AppRunner:
             os.fsync(f.fileno())
 
         self.source_files = wf_project.build_source_files(self.app_path)
+
+    def export_zip(self):
+        if self.mode != "edit":
+            raise PermissionError("Cannot export in non-edit mode.")
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for root, dirs, files in os.walk(self.app_path):
+                for file in files:
+                    if file.endswith('.pyc'):
+                        continue
+                    full_path = os.path.join(root, file)
+                    arcname = os.path.relpath(full_path, start=self.app_path)
+                    zipf.write(full_path, arcname=arcname)
+        zip_buffer.seek(0)
+        return zip_buffer
+
+    async def import_zip(self, zip_path: str):
+        if self.mode != "edit":
+            raise PermissionError("Cannot import in non-edit mode.")
+
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                extracted_path = os.path.join(tmpdir, "imported_agent")
+                os.makedirs(extracted_path, exist_ok=True)
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(extracted_path)
+
+                main_py_dir = None
+                for root, _, files in os.walk(extracted_path):
+                    if "main.py" in files:
+                        main_py_dir = root
+                        break
+
+                if main_py_dir is None:
+                    raise ValueError("main.py not found in the imported archive.")
+
+                wf_dir_path = os.path.join(main_py_dir, ".wf")
+                if not os.path.isdir(wf_dir_path):
+                    raise ValueError(".wf directory not found alongside main.py in the archive.")
+
+                # Passed all checks; replace current app contents
+
+                logging.info("Copying app at %s", main_py_dir)
+                if self.observer is not None:
+                    self.observer.unschedule_all()
+                shutil.rmtree(self.app_path)
+                os.makedirs(self.app_path)
+                shutil.copytree(main_py_dir, self.app_path, dirs_exist_ok=True)
+                self._start_fs_observer()
+                self.bmc_components = self._load_persisted_components()
+                self.reload_code_from_saved()
+        except zipfile.BadZipFile:
+            raise ValueError("Uploaded file is not a valid ZIP.")
 
     def _clean_process(self) -> None:
         # Terminate the AppProcess server by sending an empty message

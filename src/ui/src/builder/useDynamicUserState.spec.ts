@@ -16,23 +16,39 @@ describe(useDynamicUserState.name, () => {
 		mockCore = buildMockCore();
 	});
 
-	describe("bindingsUserState", () => {
+	describe("bindings", () => {
 		it("should get the binding", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					binding: {
-						stateRef: "foo.bar",
-						eventType: "wf-change",
-					},
-				}),
-			);
-
-			const { bindingsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(bindingsUserState.value).toStrictEqual({
-				foo: { bar: "unknown value" },
+			const component = buildMockComponent({
+				...baseComponent,
+				binding: {
+					stateRef: "foo.bar",
+					eventType: "wf-change",
+				},
 			});
+			mockCore.core.addComponent(component);
+
+			const { bindings } = useDynamicUserState(mockCore.core);
+
+			expect(bindings.value).toStrictEqual({
+				"foo.bar": { components: [component] },
+			});
+		});
+
+		it("should not get the binding when key is defined in main.py", () => {
+			mockCore.userStateInitial.value = { foo: { bar: 1 } };
+
+			const component = buildMockComponent({
+				...baseComponent,
+				binding: {
+					stateRef: "foo.bar",
+					eventType: "wf-change",
+				},
+			});
+			mockCore.core.addComponent(component);
+
+			const { bindings } = useDynamicUserState(mockCore.core);
+
+			expect(bindings.value).toStrictEqual({});
 		});
 
 		it("should handle no binding", () => {
@@ -43,165 +59,62 @@ describe(useDynamicUserState.name, () => {
 				}),
 			);
 
-			const { bindingsUserState } = useDynamicUserState(mockCore.core);
+			const { bindings } = useDynamicUserState(mockCore.core);
 
-			expect(bindingsUserState.value).toStrictEqual({});
+			expect(bindings.value).toStrictEqual({});
 		});
 	});
 
-	describe("blueprintsUserState", () => {
-		it("should handle static JSON", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo",
-						valueType: "JSON",
-						value: JSON.stringify({ bar: "baz" }),
-					},
-				}),
-			);
+	describe("blueprintsSetStates", () => {
+		it("should get binding", () => {
+			const component = buildMockComponent({
+				...baseComponent,
+				content: {
+					element: "foo",
+					valueType: "JSON",
+					value: JSON.stringify({ bar: "baz" }),
+				},
+			});
+			mockCore.core.addComponent(component);
 
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
+			const { blueprintsSetStates } = useDynamicUserState(mockCore.core);
 
-			expect(blueprintsUserState.value).toStrictEqual({
-				foo: { bar: "baz" },
+			expect(blueprintsSetStates.value).toStrictEqual({
+				foo: { components: [component] },
 			});
 		});
 
-		it("should handle static JSON with nested key", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo.bar",
-						valueType: "JSON",
-						value: JSON.stringify({ bar: "baz" }),
-					},
-				}),
-			);
-
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({
-				foo: { bar: { bar: "baz" } },
+		it("should not get binding when the key is empty", () => {
+			const component = buildMockComponent({
+				...baseComponent,
+				content: {
+					element: "",
+					valueType: "JSON",
+					value: JSON.stringify({ bar: "baz" }),
+				},
 			});
+			mockCore.core.addComponent(component);
+
+			const { blueprintsSetStates } = useDynamicUserState(mockCore.core);
+
+			expect(blueprintsSetStates.value).toStrictEqual({});
 		});
 
-		it("should try to merge existing key", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					id: "1",
-					content: {
-						element: "foo.two",
-						valueType: "text",
-						value: "2",
-					},
-				}),
-			);
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						id: "2",
-						element: "foo",
-						valueType: "JSON",
-						value: JSON.stringify({ one: "1" }),
-					},
-				}),
-			);
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-			expect(blueprintsUserState.value).toStrictEqual({
-				foo: { one: "1", two: "2" },
+		it("should not get binding when key is defined in main.py", () => {
+			mockCore.userStateInitial.value = { foo: { bar: 1 } };
+			const component = buildMockComponent({
+				...baseComponent,
+				content: {
+					element: "foo.bar",
+					valueType: "JSON",
+					value: JSON.stringify({ bar: "baz" }),
+				},
 			});
-		});
+			mockCore.core.addComponent(component);
 
-		it("should handle static JSON malformed", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo",
-						valueType: "JSON",
-						value: '{ "bar": "baz"',
-					},
-				}),
-			);
+			const { blueprintsSetStates } = useDynamicUserState(mockCore.core);
 
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({ foo: {} });
-		});
-
-		it("should handle static text", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo",
-						valueType: "text",
-						value: "bar",
-					},
-				}),
-			);
-
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({ foo: "bar" });
-		});
-
-		it("should handle unexisting value text", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo",
-						valueType: undefined,
-						value: undefined,
-					},
-				}),
-			);
-
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({ foo: "" });
-		});
-
-		it("should handle static text with nested text", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "foo.bar",
-						valueType: "text",
-						value: "baz",
-					},
-				}),
-			);
-
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({
-				foo: { bar: "baz" },
-			});
-		});
-
-		it("should prevent malicous keys", () => {
-			mockCore.core.addComponent(
-				buildMockComponent({
-					...baseComponent,
-					content: {
-						element: "__proto__",
-						valueType: "text",
-						value: "baz",
-					},
-				}),
-			);
-
-			const { blueprintsUserState } = useDynamicUserState(mockCore.core);
-
-			expect(blueprintsUserState.value).toStrictEqual({});
+			expect(blueprintsSetStates.value).toStrictEqual({});
 		});
 	});
 });

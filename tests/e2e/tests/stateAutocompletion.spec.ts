@@ -27,55 +27,35 @@ test.describe("state autocompletion", () => {
 	test.describe("text", () => {
 		test("completion", async ({ page }) => {
 			await setTextField(page, "@{types.");
-			page
-				.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop:text-matches("string")',
-				)
+
+			const field = page.locator(
+				'.BuilderFieldsText[data-automation-key="text"]',
+			);
+
+			field
+				.locator('.WdsDropdownMenuItem[data-automation-key="types.string"]')
 				.click();
-			await expect(
-				page.locator('.BuilderFieldsText[data-automation-key="text"] textarea'),
-			).toHaveValue("@{types.string}");
+			await expect(field.locator("textarea")).toHaveValue("@{types.string}");
 		});
 		test("counter", async ({ page }) => {
 			await setTextField(page, "@{counter");
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop',
-				),
-			).toContainText(["counter"]);
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.type',
-				),
-			).toContainText(["number"]);
-		});
-
-		test("types", async ({ page }) => {
-			await setTextField(page, "@{types.");
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop',
-				),
-			).toHaveText(["float", "integer", "none", "string"]);
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.type',
-				),
-			).toHaveText(["number", "number", "null", "string"]);
+			const field = page.locator(
+				'.BuilderFieldsText[data-automation-key="text"]',
+			);
+			await expect(field.locator(".WdsDropdownMenuItem")).toContainText([
+				"counter",
+			]);
 		});
 
 		test("deeply nested", async ({ page }) => {
 			await setTextField(page, "@{nested.c.");
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.prop',
-				),
-			).toContainText(["d", "e"]);
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="text"] .fieldStateAutocomplete span.type',
-				),
-			).toContainText(["number", "number"]);
+			const field = page.locator(
+				'.BuilderFieldsText[data-automation-key="text"]',
+			);
+			await expect(field.locator(".WdsDropdownMenuItem")).toContainText([
+				"d",
+				"e",
+			]);
 		});
 	});
 
@@ -123,13 +103,15 @@ test.describe("state autocompletion", () => {
 			await assistedKeyFieldInput.fill("@{types.");
 
 			await expect(
-				assistedKeyField.locator(`.fieldStateAutocomplete span.prop`),
-			).toHaveText(["float", "integer", "none", "string"]);
-			await expect(
-				assistedKeyField.locator(`.fieldStateAutocomplete span.type`),
-			).toHaveText(["number", "number", "null", "string"]);
+				assistedKeyField.locator(`.WdsDropdownMenuItem__label`),
+			).toHaveText([
+				"types.float",
+				"types.integer",
+				"types.none",
+				"types.string",
+			]);
 			await assistedKeyField
-				.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`)
+				.locator('[data-automation-key="types.string"]')
 				.click();
 			await expect(assistedKeyFieldInput).toHaveValue("@{types.string}");
 
@@ -144,13 +126,15 @@ test.describe("state autocompletion", () => {
 
 			await assistedKeyValueInput.fill("@{types.");
 			await expect(
-				assistedValueField.locator(`.fieldStateAutocomplete span.prop`),
-			).toHaveText(["float", "integer", "none", "string"]);
-			await expect(
-				assistedValueField.locator(`.fieldStateAutocomplete span.type`),
-			).toHaveText(["number", "number", "null", "string"]);
+				assistedValueField.locator(`.WdsDropdownMenuItem__label`),
+			).toHaveText([
+				"types.float",
+				"types.integer",
+				"types.none",
+				"types.string",
+			]);
 			await assistedValueField
-				.locator(`.fieldStateAutocomplete span.prop:text-matches("string")`)
+				.locator('[data-automation-key="types.string"]')
 				.click();
 			await expect(assistedKeyValueInput).toHaveValue("@{types.string}");
 		});
@@ -160,25 +144,20 @@ test.describe("state autocompletion", () => {
 		test(`${type} field - state completion`, async ({ page }) => {
 			await page.locator(`[data-automation-action="sidebar-layers"]`).click();
 			const FIELD = `.${type}[data-automation-key="${key}"]`;
+			const field = page.locator(`.${type}[data-automation-key="${key}"]`);
 			await page.locator(componentSelector).click();
-			await page.locator(`${FIELD} button.WdsTab:text-matches("CSS")`).click();
-			await page
-				.locator(`${FIELD} .BuilderTemplateInput input`)
-				.fill("@{types.");
-			await expect(
-				page.locator(`${FIELD} .fieldStateAutocomplete span.prop`),
-			).toHaveText(["float", "integer", "none", "string"]);
-			await expect(
-				page.locator(`${FIELD} .fieldStateAutocomplete span.type`),
-			).toHaveText(["number", "number", "null", "string"]);
-			page
-				.locator(
-					`${FIELD} .fieldStateAutocomplete span.prop:text-matches("string")`,
-				)
-				.click();
-			await expect(
-				page.locator(`${FIELD} .BuilderTemplateInput input`),
-			).toHaveValue("@{types.string}");
+			await field.locator(`button.WdsTab:text-matches("CSS")`).click();
+			await field.locator(`.BuilderTemplateInput input`).fill("@{types.");
+			await expect(field.locator(`.WdsDropdownMenuItem__label`)).toHaveText([
+				"types.float",
+				"types.integer",
+				"types.none",
+				"types.string",
+			]);
+			field.locator('[data-automation-key="types.string"]').click();
+			await expect(field.locator(`.BuilderTemplateInput input`)).toHaveValue(
+				"@{types.string}",
+			);
 		});
 	}
 

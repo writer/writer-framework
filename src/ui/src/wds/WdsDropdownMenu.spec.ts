@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import WdsDropdownMenu from "./WdsDropdownMenu.vue";
 import { WdsDropdownMenuOption } from "./WdsDropdownMenu.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
+import WdsDropdownMenuItem from "./WdsDropdownMenuItem.vue";
 
 describe("WdsDropdownMenu", () => {
 	const options: WdsDropdownMenuOption[] = [
@@ -23,7 +24,8 @@ describe("WdsDropdownMenu", () => {
 			});
 
 			await wrapper
-				.get(`.WdsDropdownMenu__item[data-automation-key="b"]`)
+				.findAllComponents(WdsDropdownMenuItem)
+				.at(1)
 				.trigger("click");
 
 			expect(wrapper.emitted("select").at(0)).toStrictEqual(["b"]);

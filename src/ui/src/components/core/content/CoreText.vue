@@ -14,9 +14,23 @@
 				:style="contentStyle"
 			>
 			</BaseMarkdown>
-			<p v-else class="plainText" :style="contentStyle">
-				{{ fields.text.value }}
-			</p>
+			<div class="text-container">
+				<p class="plainText" :style="contentStyle">
+					{{ fields.text.value }}
+				</p>
+				<WdsButton
+					v-if="fields.quickCopy.value"
+					class="copy-button"
+					:class="{ copied: isCopied }"
+					@click="handleCopy"
+				>
+					<div class="icon">
+						<span class="material-symbols-outlined">
+							{{ isCopied ? "check" : "content_copy" }}
+						</span>
+					</div>
+				</WdsButton>
+			</div>
 		</template>
 	</div>
 </template>
@@ -70,6 +84,12 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
+			quickCopy: {
+				...baseYesNoField,
+				name: "Show copy button",
+				desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
+				default: "no",
+			},
 			primaryTextColor,
 			cssClasses,
 		},
@@ -85,7 +105,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue";
+import { computed, inject, useTemplateRef, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
@@ -98,6 +118,9 @@ const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const isEmpty = computed(() => !fields.text.value);
 const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
+
+// Add reactive state for copy feedback
+const isCopied = ref(false);
 
 const rootStyle = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -118,6 +141,15 @@ const contentStyle = computed(() => {
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
+}
+
+function handleCopy() {
+	navigator.clipboard.writeText(fields.text.value).then(() => {
+		isCopied.value = true;
+		setTimeout(() => {
+			isCopied.value = false;
+		}, 2000);
+	});
 }
 </script>
 
@@ -146,5 +178,47 @@ function handleClick(ev: MouseEvent) {
 
 .CoreText img {
 	width: 100%;
+}
+
+.text-container {
+	position: relative;
+}
+
+.copy-button {
+	position: absolute;
+	right: 10px;
+	top: 40%;
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	margin: 0;
+	font-size: 2em;
+	transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+	transform: scale(1.1);
+}
+
+.copy-button.copied {
+	color: #4caf50;
+	transform: scale(1.1);
+}
+
+.copy-button.copied .icon {
+	animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(1);
+	}
 }
 </style>

@@ -1,22 +1,24 @@
 <template>
 	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
 		<WdsTitle2>Binding</WdsTitle2>
-		<div class="main">
-			<WdsFieldWrapper label="Link Variable" :hint="hint">
-				<BuilderTemplateInput
-					type="state"
-					:value="component.binding?.stateRef"
-					placeholder="my_var"
-					@input="
-						(ev: Event) =>
-							setBinding(
-								component.id,
-								(ev.target as HTMLInputElement).value,
-							)
-					"
-				/>
-			</WdsFieldWrapper>
-		</div>
+		<WdsFieldWrapper
+			class="BuilderSettingsBinding__main"
+			label="Link Variable"
+			:hint="hint"
+		>
+			<BuilderTemplateInput
+				type="state"
+				:value="component.binding?.stateRef"
+				:component-id="ssbm.firstSelectedId.value"
+				@input="
+					(ev: Event) =>
+						setBinding(
+							component.id,
+							(ev.target as HTMLInputElement).value,
+						)
+				"
+			/>
+		</WdsFieldWrapper>
 	</div>
 </template>
 
@@ -31,8 +33,8 @@ import WdsTitle2 from "@/wds/WdsTitle2.vue";
 const hint =
 	"Connect the result of this block to a dynamic variable you can use across this agent";
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
+const wf = inject(injectionKeys.core)!;
+const ssbm = inject(injectionKeys.builderManager)!;
 const { setBinding } = useComponentActions(wf, ssbm);
 
 const component = computed(() =>
@@ -47,12 +49,7 @@ const component = computed(() =>
 	padding: 24px;
 }
 
-.main {
+.BuilderSettingsBinding__main {
 	margin-top: 16px;
-}
-
-.content {
-	padding: 16px 12px 12px 12px;
-	width: 100%;
 }
 </style>

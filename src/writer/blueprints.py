@@ -763,8 +763,7 @@ class GraphRunner:
                 if result_node.outcome == "stopped":
                     continue 
                 if result_node.return_value is not None:
-                    abort_event.set()
-                    self._cancel_all_jobs()
+                    self._cancel_local_jobs()
                     self.status_logger.log(
                         f"Execution completed, node {result_node.id} returned value: {result_node.return_value}",
                         entry_type="info",
@@ -780,7 +779,7 @@ class GraphRunner:
         self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
         return None
 
-    def _cancel_all_jobs(self):
+    def _cancel_local_jobs(self):
         self.queue.clear()
         for node in self.graph.nodes:
             if node.outcome == "in_progress":
@@ -789,6 +788,9 @@ class GraphRunner:
         for future in self.futures:
             if not future.done():
                 future.cancel()
+
+    def _cancel_all_jobs(self):
+        self._cancel_local_jobs()
         self.runner.cancel_blueprint_execution(self.run_id)
 
     def _generate_run_id(self):

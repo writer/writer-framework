@@ -1,10 +1,10 @@
 import type { Core, Component } from "@/writerTypes";
-import { computed, ComputedRef, unref } from "vue";
+import { computed, MaybeRef, unref } from "vue";
 
 export function useComponentLinkedBlueprints(
 	wf: Core,
-	componentId: ComputedRef<string> | string,
-	eventType: ComputedRef<string> | string,
+	componentId: MaybeRef<string>,
+	eventType: MaybeRef<string>,
 ) {
 	function isBlueprintTrigger(c: Component) {
 		return (

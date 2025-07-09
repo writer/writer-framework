@@ -8,6 +8,7 @@
 		>
 			<BuilderTemplateInput
 				class="content"
+				:component-id="componentId"
 				:input-id="inputId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
@@ -27,6 +28,7 @@
 				:input-style="{
 					'min-height': isExpanded ? '50vh' : undefined,
 				}"
+				:component-id="componentId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
 				:type

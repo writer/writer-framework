@@ -19,6 +19,17 @@ import CoreAnnotatedText from "../components/core/content/CoreAnnotatedText.vue"
 import CoreJsonViewer from "../components/core/content/CoreJsonViewer.vue";
 import CoreProgressBar from "../components/core/content/CoreProgressBar.vue";
 
+let activeFeatureFlags: string[] = [];
+
+export function setActiveFeatureFlags(flags: string[]) {
+	activeFeatureFlags = flags ?? [];
+}
+
+function checkFlags(required?: string[]): boolean {
+	if (!required || required.length === 0) return true;
+	return required.some((f) => activeFeatureFlags.includes(f));
+}
+
 // input
 import CoreCheckboxInput from "../components/core/input/CoreCheckboxInput.vue";
 import CoreColorInput from "../components/core/input/CoreColorInput.vue";
@@ -204,21 +215,32 @@ function getMergedAbstractTemplate(type: string) {
 }
 
 export function getTemplate(type: string) {
-	return (
+	const tmpl =
 		getMergedAbstractTemplate(type) ??
 		templateMap[type] ??
-		fallbackTemplate(type)
-	);
+		fallbackTemplate(type);
+
+	const required =
+		(tmpl as any)?.writer?.featureFlags;
+
+	if (!checkFlags(required)) {
+		return fallbackTemplate(type);
+	}
+	return tmpl;
 }
 
 export function getComponentDefinition(
-	type: string,
+        type: string,
 ): WriterComponentDefinition {
-	return getTemplate(type)?.writer;
+        return getTemplate(type)?.writer;
 }
 
 export function getSupportedComponentTypes() {
-	return [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
+        const allTypes = [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
+        return allTypes.filter((t) => {
+			const required = (templateMap[t] as any)?.writer?.featureFlags as string[] | undefined;
+			return checkFlags(required);
+        });
 }
 
 export function registerComponentTemplate(

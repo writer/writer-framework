@@ -161,7 +161,7 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 	function getEvaluatedFields(
 		instancePath: InstancePath,
 	): Record<string, ComputedRef<any>> {
-		const { componentId } = instancePath.at(-1);
+		const componentId = instancePath.at(-1)?.componentId;
 		const component = wf.getComponentById(componentId);
 		if (!component) return;
 		const evaluatedFields: Record<string, ComputedRef<any>> = {};

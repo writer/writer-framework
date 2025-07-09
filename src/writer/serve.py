@@ -10,6 +10,7 @@ import os
 import os.path
 import pathlib
 import socket
+import tempfile
 import textwrap
 import time
 import typing
@@ -31,7 +32,7 @@ from typing import (
 from urllib.parse import urlsplit
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.routing import Mount
 from fastapi.staticfiles import StaticFiles
@@ -186,27 +187,6 @@ def get_asgi_app(
 
     # Init
 
-    def _apply_feature_flags_to_templates(
-        templates: Dict[str, Any], feature_flags: List[str]
-    ) -> Dict[str, Any]:
-        """
-        Applies feature flags to the templates by removing the ones that are not enabled.
-        """
-
-        # Restrict blocks by feature flags
-        restricted = {
-            "blueprints_apitrigger": "api_trigger",
-            "blueprints_writervision": "vision_block",
-        }
-
-        templates = {
-                k: v for k, v in templates.items()
-                if restricted.get(k, "") in feature_flags
-                or restricted.get(k) is None
-            }
-
-        return templates
-
     def _get_run_starter_pack(payload: InitSessionResponsePayload):
         return InitResponseBodyRun(
             mode="run",
@@ -224,10 +204,6 @@ def get_asgi_app(
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
 
-        prepared_templates = _apply_feature_flags_to_templates(
-            abstract.templates, payload.featureFlags
-        )
-
         return InitResponseBodyEdit(
             mode="edit",
             sessionId=payload.sessionId,
@@ -239,13 +215,52 @@ def get_asgi_app(
             sourceFiles=app_runner.source_files,
             extensionPaths=cached_extension_paths,
             featureFlags=payload.featureFlags,
-            abstractTemplates=prepared_templates,
+            abstractTemplates=abstract.templates,
             writerApplication=payload.writerApplication,
         )
 
     @app.get("/api/health")
     async def health():
         return {"status": "ok"}
+
+    @app.get("/api/export")
+    async def export_zip():
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+        exported_zip_stream = app_runner.export_zip()
+        return StreamingResponse(
+            exported_zip_stream,
+            media_type="application/x-zip-compressed",
+            headers={
+                "Content-Disposition": "attachment; filename=exported_agent.zip"
+            }
+        )
+
+    @app.post("/api/import")
+    async def import_zip(file: UploadFile = File(...)):
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+        if not file.filename or not file.filename.endswith(".zip"):
+            raise HTTPException(status_code=400, detail="Only .zip files are supported.")
+
+        MAX_FILE_SIZE = 200 * 1024 * 1024
+
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                # Stream file to disk to avoid memory issues
+                size = 0
+                while chunk := await file.read(8192):
+                    size += len(chunk)
+                    if size > MAX_FILE_SIZE:
+                        tmp.close()
+                        os.unlink(tmp.name)
+                        raise HTTPException(status_code=413, detail=f"File too large. Max file size: {MAX_FILE_SIZE}")
+                    tmp.write(chunk)
+                tmp_path = tmp.name
+            await app_runner.import_zip(tmp_path)
+            os.remove(tmp_path)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid upload.")
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):

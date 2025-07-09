@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed, readonly, ref, Ref, shallowRef, toRaw } from "vue";
+import {
+	computed,
+	readonly,
+	ref,
+	Ref,
+	ShallowRef,
+	shallowRef,
+	toRaw,
+} from "vue";
 import {
 	AbstractTemplate,
 	Component,
@@ -15,6 +23,7 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
+	setActiveFeatureFlags,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
 import { auditAndFixComponents } from "./auditAndFix";
@@ -54,6 +63,7 @@ export function generateCore() {
 	});
 	const components: Ref<ComponentMap> = ref({});
 	const userFunctions: Ref<UserFunction[]> = ref([]);
+	const userStateInitial: ShallowRef<Record<string, unknown>> = ref({});
 	const userState: Ref<Record<string, any>> = ref({});
 	let webSocket: WebSocket;
 	const syncHealth: Ref<"idle" | "connected" | "offline" | "suspended"> =
@@ -117,10 +127,12 @@ export function generateCore() {
 		mode.value = initData.mode;
 		components.value = initData.components;
 		userState.value = initData.userState;
+		userStateInitial.value = initData.userState;
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
 		featureFlags.value = initData.featureFlags;
+		setActiveFeatureFlags(featureFlags.value);
 		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
@@ -861,6 +873,7 @@ export function generateCore() {
 		getContainableTypes,
 		sessionTimestamp: readonly(sessionTimestamp),
 		userState: readonly(userState),
+		userStateInitial: readonly(userStateInitial),
 		isChildOf,
 		featureFlags: readonly(featureFlags),
 		getWebSocket,
