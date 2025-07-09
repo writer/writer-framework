@@ -11,42 +11,14 @@
 			:left-icon="type === 'state' ? 'alternate_email' : undefined"
 			:right-icon="rightIcon"
 			:multiline
-			@right-icon-click="showAutocompletions = !showAutocompletions"
+			@right-icon-click="
+				showAutocompletions = showAutocompletions
+					? undefined
+					: 'template'
+			"
 			@input="handleInput"
+			@click="onClick"
 		/>
-		<template v-if="false && !props.multiline">
-			<WdsTextInput
-				:model-value="props.value"
-				autocorrect="off"
-				autocomplete="off"
-				spellcheck="false"
-				:placeholder="props.placeholder"
-				:list="props.options ? `list-${props.inputId}` : undefined"
-				:invalid="error !== undefined"
-				:autofocus="autofocus"
-				:readonly="readonly"
-				:left-icon="type === 'state' ? 'alternate_email' : undefined"
-				:right-icon="rightIcon"
-				@right-icon-click="showAutocompletions = !showAutocompletions"
-				@input="handleInput"
-			/>
-			<datalist v-if="props.options" :id="`list-${props.inputId}`">
-				<option
-					v-for="(option, optionKey) in options"
-					:key="optionKey"
-					:value="optionKey"
-				>
-					<template
-						v-if="
-							option.toLowerCase() !==
-							String(optionKey).toLowerCase()
-						"
-					>
-						{{ option }}
-					</template>
-				</option>
-			</datalist>
-		</template>
 
 		<div
 			v-if="showAutocompletions"
@@ -55,12 +27,18 @@
 			:style="floatingStyles"
 		>
 			<BuilderStateSelectorDropdown
+				v-if="showAutocompletions === 'template'"
 				:hide-secrets="type === 'state'"
 				:hide-blueprint-results="type === 'state'"
 				:allow-create="type === 'state'"
-				:query="dropdownQuery"
+				:query="templateDropdownQuery"
 				:component-id="componentId"
-				@update:model-value="onSelectAutocomplete"
+				@update:model-value="onSelectTemplateAutocomplete"
+			/>
+			<WdsDropdownMenu
+				v-else-if="staticOptions.length"
+				:options="staticOptions"
+				@select="onSelectStaticAutocomplete"
 			/>
 		</div>
 	</div>
@@ -76,7 +54,6 @@ import {
 	computed,
 	onUnmounted,
 } from "vue";
-import WdsTextInput from "@/wds/WdsTextInput.vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
 import BuilderTemplateInputInput from "./BuilderTemplateInputInput.vue";
@@ -85,6 +62,9 @@ import {
 	getCurrentOpenedTemplate,
 } from "@/utils/template";
 import { useFocusWithin } from "@/composables/useFocusWithin";
+import WdsDropdownMenu, {
+	WdsDropdownMenuOption,
+} from "@/wds/WdsDropdownMenu.vue";
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
@@ -118,7 +98,7 @@ const root = useTemplateRef("root");
 const input = useTemplateRef("input");
 const dropdown = useTemplateRef("dropdown");
 
-const showAutocompletions = ref(false);
+const showAutocompletions = ref<"template" | "static" | undefined>();
 
 const { floatingStyles, update } = useFloating(root, dropdown, {
 	placement: "bottom-start",
@@ -129,6 +109,7 @@ const { floatingStyles, update } = useFloating(root, dropdown, {
 			apply({ rects, elements }) {
 				Object.assign(elements.floating.style, {
 					minWidth: `${rects.reference.width}px`,
+					maxWidth: `${rects.reference.width}px`,
 				});
 			},
 		}),
@@ -167,7 +148,29 @@ const rightIcon = computed(() => {
 		: "keyboard_arrow_down";
 });
 
-const dropdownQuery = computed(() => {
+const staticOptions = computed<WdsDropdownMenuOption[]>(() => {
+	if (!props.options) return [];
+
+	return Object.entries(props.options).reduce<WdsDropdownMenuOption[]>(
+		(acc, [k, v]) => {
+			if (k.includes(props.value)) {
+				acc.push({
+					value: k,
+					label: v,
+				});
+			}
+
+			return acc;
+		},
+		[],
+	);
+});
+
+function onClick() {
+	if (staticOptions.value.length > 0) showAutocompletions.value = "static";
+}
+
+const templateDropdownQuery = computed(() => {
 	let value = input.value?.value ?? "";
 	if (!value) return "";
 	const { selectionStart } = input.value?.getSelection() ?? {};
@@ -185,12 +188,12 @@ watch(hasFocusInRoot, async () => {
 	if (!hasFocusInRoot.value) {
 		await nextTick();
 		setTimeout(() => {
-			showAutocompletions.value = false;
+			showAutocompletions.value = undefined;
 		}, 300);
 	}
 });
 
-async function onSelectAutocomplete(selectedText: string) {
+async function onSelectTemplateAutocomplete(selectedText: string) {
 	let newValue = input.value?.value ?? "";
 	const { selectionStart, selectionEnd } = input.value?.getSelection() ?? {};
 	let newSelectionStart = selectionStart ?? newValue.length;
@@ -214,11 +217,24 @@ async function onSelectAutocomplete(selectedText: string) {
 	if (!input.value) return;
 
 	input.value.focus();
-	showAutocompletions.value = false;
+	showAutocompletions.value = undefined;
 
 	await nextTick();
 
 	input.value.setSelectionStart(newSelectionStart);
+}
+async function onSelectStaticAutocomplete(selectedText: string) {
+	emit("input", { target: { value: selectedText } });
+	emit("update:value", selectedText);
+
+	if (!input.value) return;
+
+	input.value.focus();
+	showAutocompletions.value = undefined;
+
+	await nextTick();
+
+	input.value.setSelectionStart(selectedText.length);
 }
 
 function handleInput(ev) {
@@ -226,17 +242,24 @@ function handleInput(ev) {
 	emit("input", ev);
 	emit("update:value", newValue);
 
-	if (props.type === "template") {
-		const { selectionStart } = input.value?.getSelection() ?? {};
-		const text = newValue.slice(0, selectionStart);
-
-		showAutocompletions.value =
-			!!text.match(/@\{([^}{@]*)$/) ||
-			text.endsWith("@") ||
-			!!dropdownQuery.value;
-	} else {
-		showAutocompletions.value = true;
+	if (props.type === "state") {
+		showAutocompletions.value = "template";
+		return;
 	}
+
+	if (staticOptions.value.some((v) => v.value.includes(newValue))) {
+		showAutocompletions.value = "static";
+		return;
+	}
+
+	const { selectionStart } = input.value?.getSelection() ?? {};
+	const text = newValue.slice(0, selectionStart);
+
+	const shouldShowAutocomplete =
+		!!text.match(/@\{([^}{@]*)$/) ||
+		text.endsWith("@") ||
+		!!templateDropdownQuery.value;
+	showAutocompletions.value = shouldShowAutocomplete ? "template" : undefined;
 }
 </script>
 
