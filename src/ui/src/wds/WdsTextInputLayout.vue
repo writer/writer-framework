@@ -42,7 +42,7 @@ defineEmits({
 const gridTemplateColumns = computed(() =>
 	[
 		props.leftIcon ? "auto" : undefined,
-		"1fr",
+		"minmax(0, 1fr)",
 		props.rightText ? "auto" : undefined,
 		props.rightIcon ? "auto" : undefined,
 	]

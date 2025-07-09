@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onUpdated, useTemplateRef } from "vue";
+import { nextTick, onUpdated, ref, useTemplateRef } from "vue";
 
 const props = defineProps({
 	multiline: { type: Boolean, required: false },
@@ -7,7 +7,7 @@ const props = defineProps({
 
 const root = useTemplateRef("root");
 
-let previousSelection: number | undefined = undefined;
+let previousSelection = ref<number | undefined>();
 
 const emits = defineEmits({
 	input: (value: string) => typeof value === "string",
@@ -15,7 +15,7 @@ const emits = defineEmits({
 
 async function onChange(e: Event) {
 	if (!(e.target instanceof HTMLElement)) return;
-	previousSelection = getSelection();
+	previousSelection.value = getSelection();
 	const text = e.target.innerText || "";
 	if (props.multiline) {
 		emits("input", text);
@@ -34,7 +34,8 @@ async function onPressDelete(e: KeyboardEvent) {
 }
 
 onUpdated(() => {
-	if (previousSelection !== undefined) setSelection(previousSelection);
+	if (previousSelection.value !== undefined)
+		setSelection(previousSelection.value);
 });
 
 function getSelection() {
@@ -85,7 +86,7 @@ function getSelection() {
 
 function setSelection(targetOffset: number) {
 	if (!root.value) return;
-	previousSelection = targetOffset;
+	previousSelection.value = targetOffset;
 
 	const walker = document.createTreeWalker(
 		root.value,
@@ -128,7 +129,7 @@ function setSelection(targetOffset: number) {
 	}
 }
 
-function onPressEnter(e: KeyboardEvent) {
+async function onPressEnter(e: KeyboardEvent) {
 	e.preventDefault();
 	if (!props.multiline) return;
 	if (!(e.target instanceof HTMLElement)) return;
@@ -139,8 +140,10 @@ function onPressEnter(e: KeyboardEvent) {
 	const before = text.slice(0, selection);
 	const after = text.slice(selection);
 
-	previousSelection = selection + 1;
+	previousSelection.value = selection + 1;
 	emits("input", `${before}\n${after}`);
+	await nextTick();
+	setSelection(previousSelection.value);
 }
 
 function focus() {
