@@ -118,18 +118,18 @@ class BlueprintRunner:
         )
 
     def is_blueprint_api_available(
-        self, blueprint_key: str
+        self, blueprint_id: str
     ):
         """
         Checks if a blueprint with the given key is available for API execution.
 
-        :param blueprint_key: The blueprint identifier.
+        :param blueprint_id: The blueprint identifier.
         :return: True if the blueprint is available for API execution, False otherwise.
         """
-        return blueprint_key in self.api_blueprints
+        return blueprint_id in self.api_blueprints
 
     def get_blueprint_api_trigger(
-        self, blueprint_key: str
+        self, blueprint_id: str
     ):
         """
         Retrieves the API trigger for a given blueprint key.
@@ -137,11 +137,11 @@ class BlueprintRunner:
         :param blueprint_key: The blueprint identifier.
         :return: The API trigger component.
         """
-        if not self.is_blueprint_api_available(blueprint_key):
+        if not self.is_blueprint_api_available(blueprint_id):
             raise ValueError(
-                f'API trigger not found for blueprint "{blueprint_key}".'
+                f'API trigger not found for blueprint "{blueprint_id}".'
             )
-        return self.api_blueprints[blueprint_key]
+        return self.api_blueprints[blueprint_id]
 
     def _gather_api_blueprints(self):
         """
@@ -169,20 +169,20 @@ class BlueprintRunner:
                 parent_blueprint.type == "blueprints_blueprint"
             ):
                 # Store the blueprint key against its trigger ID
-                api_blueprints[parent_blueprint.content.get("key")] = \
+                api_blueprints[parent_blueprint_id] = \
                     trigger.id
 
         return api_blueprints
 
     def run_blueprint_via_api(
         self,
-        blueprint_key: str,
+        blueprint_id: str,
         execution_environment: Optional[Dict[str, Any]] = None
     ):
         """
         Executes a blueprint by its key via the API.
 
-        :param blueprint_key: The blueprint identifier.
+        :param blueprint_id: The blueprint identifier.
         :param execution_environment: The execution environment for
         the blueprint.
         :return: The result of the blueprint execution.
@@ -190,13 +190,13 @@ class BlueprintRunner:
         if execution_environment is None:
             execution_environment = {}
 
-        trigger_id = self.get_blueprint_api_trigger(blueprint_key)
+        trigger_id = self.get_blueprint_api_trigger(blueprint_id)
 
         return self.run_branch(
             trigger_id,
             None,
             execution_environment,
-            f"API trigger execution ({blueprint_key})"
+            f"API trigger execution ({blueprint_id})"
         )
 
     def run_blueprint_batch(self, blueprint_key: str, execution_environments: List[Dict]):

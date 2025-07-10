@@ -1239,13 +1239,13 @@ class EventHandlerRegistry:
         This handler is used to run a blueprint via the API.
         It is used by the frontend to run a blueprint when the user clicks on a button.
         """
-        blueprint_key = payload.pop("blueprint_key", None)
-        if not blueprint_key:
-            raise ValueError("Missing blueprint_key in payload")
+        blueprint_id = payload.pop("blueprint_id", None)
+        if not blueprint_id:
+            raise ValueError("Missing blueprint_id in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_blueprint_via_api(blueprint_key=blueprint_key, execution_environment=execution_environment)
+        return blueprint_runner.run_blueprint_via_api(blueprint_id=blueprint_id, execution_environment=execution_environment)
 
     @staticmethod
     def run_blueprint_branch(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
