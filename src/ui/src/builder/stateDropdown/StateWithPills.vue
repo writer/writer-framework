@@ -1,5 +1,6 @@
 <script lang="ts">
 import { computeTemplateParts } from "@/utils/template";
+import StateWithPillsTag from "./StateWithPillsTag.vue";
 import {
 	defineComponent,
 	h,
@@ -8,6 +9,7 @@ import {
 	type VNode,
 	createElementBlock,
 	PropType,
+	createVNode,
 } from "vue";
 
 export default defineComponent({
@@ -22,28 +24,6 @@ export default defineComponent({
 	setup(props) {
 		const content = toRef(props, "content");
 		const backgroundColors = toRef(props, "backgroundColors");
-
-		function createTagVNode(tag: string) {
-			const children = [
-				createTextVNode("@"),
-				h("span", { class: "StateWithPill__tag__bracket" }, "{"),
-				createTextVNode(tag),
-				h("span", { class: "StateWithPill__tag__bracket" }, "}"),
-			];
-
-			const type = Object.entries(backgroundColors.value ?? {}).find(
-				([, v]) => v.has(tag),
-			)?.[0];
-
-			return h(
-				"span",
-				{
-					class: "StateWithPill__tag",
-					style: { backgroundColor: type },
-				},
-				children,
-			);
-		}
 
 		return () => {
 			const children = [];
@@ -61,7 +41,12 @@ export default defineComponent({
 						}, []);
 					children.push(...nodes);
 				} else {
-					children.push(createTagVNode(part.content));
+					children.push(
+						createVNode(StateWithPillsTag, {
+							tag: part.content ?? "",
+							backgroundColors: backgroundColors.value,
+						}),
+					);
 				}
 			}
 
