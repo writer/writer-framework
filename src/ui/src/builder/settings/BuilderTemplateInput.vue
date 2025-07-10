@@ -1,5 +1,5 @@
 <template>
-	<div ref="root" class="BuilderTemplateInput">
+	<div ref="root" class="BuilderTemplateInput" @keydown="onKeydown">
 		<BuilderTemplateInputInput
 			ref="input"
 			:model-value="props.value"
@@ -65,6 +65,7 @@ import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsDropdownMenu, {
 	WdsDropdownMenuOption,
 } from "@/wds/WdsDropdownMenu.vue";
+import { useFocusNavigation } from "@/composables/useFocusNavigation";
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
@@ -164,6 +165,13 @@ const staticOptions = computed<WdsDropdownMenuOption[]>(() => {
 		},
 		[],
 	);
+});
+
+const onKeydown = useFocusNavigation(dropdown, {
+	nextFocusNotFound: () => {
+		showAutocompletions.value = undefined;
+		input.value?.focus();
+	},
 });
 
 function onClick() {
