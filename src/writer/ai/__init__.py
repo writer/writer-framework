@@ -1708,7 +1708,7 @@ class Conversation:
             stream=stream,
             logprobs=request_data.get('logprobs', NotGiven()),
             tools=request_data.get('tools', NotGiven()),
-            tool_choice=request_data.get('tool_choice', NotGiven()),
+            tool_choice=request_data.get('tool_choice', cast(ToolChoice, 'auto')),
             response_format=request_data.get('response_format', NotGiven()),
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
