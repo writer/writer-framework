@@ -44,9 +44,10 @@ function onDblClick() {
 
 <style lang="css" scoped>
 .StateWithPillTag {
+	display: inline-block;
 	background-color: var(--wdsColorGray0);
 	color: var(--wdsColorBlack);
-	padding: 4px 8px;
+	padding: 2px 8px;
 	border-radius: 4px;
 }
 .StateWithPillTag::selection {

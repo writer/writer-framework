@@ -4,17 +4,17 @@
 		:right-icon
 		:invalid
 		:variant
-		class="BuilderTemplateInputInput"
+		class="BuilderTemplateInputTemplate"
 		:class="{
-			'BuilderTemplateInputInput--singleline': !multiline,
-			'BuilderTemplateInputInput--multiline': multiline,
+			'BuilderTemplateInputTemplate--singleline': !multiline,
+			'BuilderTemplateInputTemplate--multiline': multiline,
 		}"
 		@right-icon-click="$emit('rightIconClick')"
 		@click="focus"
 	>
 		<SharedContentEditable
 			ref="input"
-			class="BuilderTemplateInputInput__input"
+			class="BuilderTemplateInputTemplate__input"
 			:multiline
 			@input="onChange"
 		>
@@ -72,10 +72,10 @@ const backgroundTagColors = computed(() => {
 			extractObjectPaths(wf.userStateInitial.value),
 		),
 		[WdsColor.Gray2]: new Set(extractObjectPaths(bindings.value)),
-		[WdsColor.Blue2]: new Set(
+		[WdsColor.Blue2]: new Set([
 			...extractObjectPaths(blueprintsSetStates.value),
 			...extractObjectPaths(blueprintsResults.value),
-		),
+		]),
 		[WdsColor.Yellow2]: new Set(
 			[...extractObjectPaths(secretsManager.secrets.value)].map(
 				(v) => `vault.${v}`,
@@ -124,7 +124,7 @@ function focus() {
 </script>
 
 <style scoped>
-.BuilderTemplateInputInput__input {
+.BuilderTemplateInputTemplate__input {
 	background: transparent;
 	font-size: 14px;
 	border: none;
@@ -132,15 +132,19 @@ function focus() {
 	min-height: 21px;
 	height: 100%;
 }
-.BuilderTemplateInputInput__input:focus {
+.BuilderTemplateInputTemplate__input:focus {
 	outline: none;
 }
-.BuilderTemplateInputInput--multiline .BuilderTemplateInputInput__input {
+.BuilderTemplateInputTemplate--multiline .BuilderTemplateInputTemplate__input {
 	min-height: 64px;
 	line-height: 26px;
 }
 
-.BuilderTemplateInputInput--singleline .BuilderTemplateInputInput__input {
+.BuilderTemplateInputTemplate--singleline {
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+.BuilderTemplateInputTemplate--singleline .BuilderTemplateInputTemplate__input {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;

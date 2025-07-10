@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { shallowMount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import StateWithPills from "./StateWithPills.vue";
+import StateWithPillsTag from "./StateWithPillsTag.vue";
 
 describe("StateWithPills", () => {
 	it("should render simple text", () => {
 		const content = "hello";
-		const wrapper = shallowMount(StateWithPills, {
+		const wrapper = mount(StateWithPills, {
 			props: { content },
 		});
 		const tags = wrapper.findAll(".StateWithPill__tag");
@@ -15,10 +16,10 @@ describe("StateWithPills", () => {
 
 	it("should render text with one tag", () => {
 		const content = "hello @{tag}";
-		const wrapper = shallowMount(StateWithPills, {
+		const wrapper = mount(StateWithPills, {
 			props: { content },
 		});
-		const tags = wrapper.findAll(".StateWithPill__tag");
+		const tags = wrapper.findAllComponents(StateWithPillsTag);
 		expect(tags).toHaveLength(1);
 		expect(tags.at(0).text()).toBe("@{tag}");
 
@@ -27,7 +28,7 @@ describe("StateWithPills", () => {
 
 	it("should render text with breaking lines", () => {
 		const content = "hello @{tag}\nand ${tag}";
-		const wrapper = shallowMount(StateWithPills, {
+		const wrapper = mount(StateWithPills, {
 			props: { content },
 		});
 		const tags = wrapper.findAll("br");

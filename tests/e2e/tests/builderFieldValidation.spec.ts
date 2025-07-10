@@ -30,7 +30,7 @@ test.describe("Builder field validation", () => {
 		const fieldWrapper = page.locator(
 			'.BuilderFieldsText[data-automation-key="cssClasses"]',
 		);
-		const field = fieldWrapper.locator(".BuilderTemplateInputInput");
+		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
 		const fieldEditable = field.locator(".StateWithPill");
 		await fieldEditable.fill("1234");
 
@@ -56,7 +56,7 @@ test.describe("Builder field validation", () => {
 		const fieldWrapper = page.locator(
 			'.BuilderFieldsText[data-automation-key="maximumCount"]',
 		);
-		const field = fieldWrapper.locator(".BuilderTemplateInputInput");
+		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
 		const fieldEditable = field.locator(".StateWithPill");
 		await fieldEditable.fill("1234");
 

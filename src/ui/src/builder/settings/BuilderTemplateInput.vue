@@ -1,6 +1,7 @@
 <template>
 	<div ref="root" class="BuilderTemplateInput" @keydown="onKeydown">
-		<BuilderTemplateInputInput
+		<BuilderTemplateInputTemplate
+			v-if="type === 'template'"
 			ref="input"
 			:model-value="props.value"
 			:placeholder="props.placeholder"
@@ -8,16 +9,26 @@
 			:invalid="error !== undefined"
 			:autofocus="autofocus"
 			:readonly="readonly"
-			:left-icon="type === 'state' ? 'alternate_email' : undefined"
-			:right-icon="rightIcon"
 			:multiline
+			@input="handleInput"
+			@click="onClick"
+		/>
+		<BuilderTemplateInputState
+			v-if="type === 'state'"
+			ref="input"
+			:right-icon="
+				showAutocompletions
+					? 'keyboard_arrow_up'
+					: 'keyboard_arrow_down'
+			"
+			:model-value="props.value"
 			@right-icon-click="
 				showAutocompletions = showAutocompletions
 					? undefined
 					: 'template'
 			"
-			@input="handleInput"
-			@click="onClick"
+			@update:model-value="onChange"
+			@click="input.focus()"
 		/>
 
 		<div
@@ -56,7 +67,8 @@ import {
 } from "vue";
 import { useFloating, size, flip, autoUpdate } from "@floating-ui/vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
-import BuilderTemplateInputInput from "./BuilderTemplateInputInput.vue";
+import BuilderTemplateInputTemplate from "./BuilderTemplateInputTemplate.vue";
+import BuilderTemplateInputState from "./BuilderTemplateInputState.vue";
 import {
 	autocompleteTemplateVariable,
 	getCurrentOpenedTemplate,
@@ -66,6 +78,7 @@ import WdsDropdownMenu, {
 	WdsDropdownMenuOption,
 } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusNavigation } from "@/composables/useFocusNavigation";
+import WdsTextInputLayout from "@/wds/WdsTextInputLayout.vue";
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
@@ -139,14 +152,6 @@ function useFloatingAutoUpdate() {
 
 defineExpose({
 	focus: () => input.value?.focus(),
-});
-
-const rightIcon = computed(() => {
-	if (props.type === "template" || props.multiline) return undefined;
-
-	return showAutocompletions.value
-		? "keyboard_arrow_up"
-		: "keyboard_arrow_down";
 });
 
 const staticOptions = computed<WdsDropdownMenuOption[]>(() => {
@@ -245,6 +250,14 @@ async function onSelectStaticAutocomplete(selectedText: string) {
 	input.value.setSelectionStart(selectedText.length);
 }
 
+function onChange(value: string) {
+	handleInput({
+		target: {
+			value,
+		},
+	});
+}
+
 function handleInput(ev) {
 	let newValue = String(ev.target.value ?? "");
 	emit("input", ev);
@@ -282,6 +295,28 @@ function handleInput(ev) {
 
 .BuilderTemplateInput__dropdown {
 	z-index: 2;
+}
+
+.BuilderTemplateInput__stateInput {
+	display: grid;
+	grid-template-columns: minmax(0, auto) 1fr;
+}
+.BuilderTemplateInput__stateInput__tag {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 4px;
+	background-color: red;
+	padding: 4px 8px;
+	border-radius: 4px;
+}
+.BuilderTemplateInput__stateInput__tag input {
+	background-color: transparent;
+	border: none;
+	field-sizing: content;
+}
+.BuilderTemplateInput__stateInput__tag input:focus {
+	border: none;
 }
 
 textarea {

@@ -6,7 +6,7 @@ import injectionKeys from "@/injectionKeys";
 import { ExtractPropTypes } from "vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
 import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
-import BuilderTemplateInputInput from "./BuilderTemplateInputInput.vue";
+import BuilderTemplateInputTemplate from "./BuilderTemplateInputTemplate.vue";
 
 describe.skip("BuilderTemplateInput", () => {
 	let mockCore: ReturnType<typeof buildMockCore>;
@@ -50,7 +50,7 @@ describe.skip("BuilderTemplateInput", () => {
 			});
 
 			wrapper
-				.getComponent(BuilderTemplateInputInput)
+				.getComponent(BuilderTemplateInputTemplate)
 				.vm.$emit("input", { target: { value: input } });
 			await flushPromises();
 
@@ -73,7 +73,7 @@ describe.skip("BuilderTemplateInput", () => {
 			const wrapper = mountWrapper();
 
 			wrapper
-				.getComponent(BuilderTemplateInputInput)
+				.getComponent(BuilderTemplateInputTemplate)
 				.vm.$emit("input", { target: { value: "@{obj." } });
 			await flushPromises();
 
@@ -98,7 +98,7 @@ describe.skip("BuilderTemplateInput", () => {
 			});
 
 			wrapper
-				.getComponent(BuilderTemplateInputInput)
+				.getComponent(BuilderTemplateInputTemplate)
 				.vm.$emit("input", { target: { value: "foo @{tex" } });
 			await flushPromises();
 
