@@ -31,7 +31,7 @@ from writer.core import (
     use_request_context,
 )
 from writer.core_ui import ingest_bmc_component_tree
-from writer.logs import capture_logs
+from writer.logs import use_logging_redirect, use_stdout_redirect
 from writer.ss_types import (
     AppProcessServerRequest,
     AppProcessServerRequestPacket,
@@ -64,7 +64,6 @@ from writer.ss_types import (
 from writer.wf_project import WfProjectContext
 
 user_code_logger = logging.getLogger("user_code")
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 class MessageHandlingException(Exception):
@@ -454,7 +453,6 @@ class AppProcess(multiprocessing.Process):
         """
 
         import io
-        from contextlib import redirect_stdout
 
         import writer
 
@@ -462,18 +460,17 @@ class AppProcess(multiprocessing.Process):
         if writeruserapp is None:
             raise ValueError("Couldn't find app module (writeruserapp).")
 
-        logs_buffer = io.StringIO()
         code_path = os.path.join(self.app_path, "main.py")
         with (
-            redirect_stdout(io.StringIO()) as f,
-            capture_logs(user_code_logger, buffer=logs_buffer) as wrapped_logger
+            use_stdout_redirect() as stdout_buffer,
+            use_logging_redirect() as logging_buffer,
         ):
-            writeruserapp.__dict__["logger"] = wrapped_logger
+            writeruserapp.__dict__["logger"] = user_code_logger
             code = compile(self.run_code, code_path, "exec")
             exec(code, writeruserapp.__dict__)
 
-        captured_logs = logs_buffer.getvalue()
-        captured_stdout = f.getvalue()
+            captured_stdout = stdout_buffer.getvalue()
+            captured_logs = logging_buffer.getvalue()
 
         if captured_stdout:
             writer.core.initial_state.add_log_entry(
@@ -716,8 +713,6 @@ class LogListener(threading.Thread):
         super().__init__(name="LogListenerThread")
         self.log_queue = log_queue
         self.logger = logging.getLogger("from_app")
-        self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
 
     def run(self) -> None:
         while True:
@@ -774,7 +769,7 @@ class AppRunner:
         self.serve_loop = asyncio.get_running_loop()
 
     def _set_logger(self):
-        logger = logging.getLogger("app")
+        logger = logging.getLogger("app_runner")
         logger.addHandler(logging.handlers.QueueHandler(self.log_queue))
         self.log_listener = LogListener(self.log_queue)
         self.log_listener.start()

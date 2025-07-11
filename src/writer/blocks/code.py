@@ -2,16 +2,14 @@ import io
 import logging
 import sys
 import traceback
-from contextlib import redirect_stdout
 from typing import Any
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
-from writer.logs import capture_logs
+from writer.logs import use_logging_redirect, use_stdout_redirect
 from writer.ss_types import AbstractTemplate
 
 exec_logger = logging.getLogger("exec_logger")
-exec_logger.setLevel(logging.DEBUG)
 
 INIT_CODE = """
 # State is accessible as a global variable. For example:
@@ -86,14 +84,17 @@ class CodeBlock(BlueprintBlock):
 
             captured_stdout = None
             with (
-                redirect_stdout(io.StringIO()) as f,
-                capture_logs(exec_logger, self.runner.session.session_state) as wrapped_logger
+                use_stdout_redirect() as stdout_buffer,
+                use_logging_redirect() as logging_buffer,
             ):
-                exec(code, block_globals | {"logger": wrapped_logger})
-                captured_stdout = f.getvalue()
+                exec(code, block_globals | {"logger": exec_logger})
+                captured_stdout = stdout_buffer.getvalue()
+                captured_logs = logging_buffer.getvalue()
 
             if captured_stdout:
                 self.runner.session.session_state.add_log_entry("info", "Captured stdout", captured_stdout)
+            if captured_logs:
+                self.runner.session.session_state.add_log_entry("info", "Captured logs", captured_logs)
 
             self.outcome = "success"
         except BaseException as e:

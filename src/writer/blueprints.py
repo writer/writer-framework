@@ -6,7 +6,7 @@ import threading
 import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
-from contextvars import copy_context
+from contextvars import ContextVar, copy_context
 from typing import Any, Dict, Generator, List, Literal, Optional, OrderedDict, Union
 
 import writer.blocks
@@ -16,6 +16,10 @@ import writer.core_ui
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 MAX_DAG_DEPTH = 32
+
+_current_block: ContextVar[Optional[writer.blocks.base_block.BlueprintBlock]] = \
+    ContextVar("current_block", default=None)
+
 
 class BlueprintRunManager:
     def __init__(self):
@@ -49,6 +53,7 @@ class BlueprintRunManager:
         with self._lock:
             if run_id in self._runs:
                 self._runs[run_id]["event"].set()
+
 
 class BlueprintRunner:
     def __init__(self, session: writer.core.WriterSession):
@@ -351,7 +356,8 @@ class GraphNode:
 
         try:
             tool.outcome = "in_progress"
-            tool.run()
+            with use_current_block(tool):
+                tool.run()
             if self.outcome == "stopped":
                 return self
             tool.outcome = tool.outcome or "success"
@@ -799,3 +805,14 @@ class GraphRunner:
         raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
         hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
         return hashed_id
+
+
+def get_current_block() -> Optional[writer.blocks.base_block.BlueprintBlock]:
+    return _current_block.get(None)
+
+
+@contextmanager
+def use_current_block(block: writer.blocks.base_block.BlueprintBlock):
+    token = _current_block.set(block)
+    yield
+    _current_block.reset(token)
