@@ -1,14 +1,14 @@
 <template>
 	<div class="BuilderLogIndicator">
-		<div v-if="entryCountByType['error'] > 0" class="number error">
+		<div class="number error">
 			<div class="icon">
-				<i class="material-symbols-outlined">error</i>
+				<WdsIcon name="triangle-alert" />
 			</div>
 			{{ entryCountByType["error"] ?? 0 }}
 		</div>
-		<div v-if="entryCountByType['info'] > 0" class="number info">
+		<div class="number info">
 			<div class="icon">
-				<i class="material-symbols-outlined">info</i>
+				<WdsIcon name="info" />
 			</div>
 			{{ entryCountByType["info"] ?? 0 }}
 		</div>
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const wfbm = inject(injectionKeys.builderManager);
 
@@ -58,6 +59,7 @@ const entryCountByType = computed(() => {
 	color: white;
 	width: 16px;
 	height: 16px;
+	font-size: 12px;
 	display: flex;
 	align-items: center;
 	justify-content: center;

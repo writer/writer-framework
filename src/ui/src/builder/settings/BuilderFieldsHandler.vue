@@ -36,11 +36,11 @@ const options = computed<Option[]>(() => {
 		.map((key) => ({
 			value: key,
 			label: key,
-			icon: "function",
+			icon: "wds-function",
 		}));
 
 	const options: Option[] = [
-		{ value: "", label: "(No handler)", icon: "block" },
+		{ value: "", label: "(No handler)", icon: "ban" },
 		...blueprintsOptions,
 	];
 

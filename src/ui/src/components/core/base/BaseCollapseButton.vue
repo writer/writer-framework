@@ -6,9 +6,7 @@
 		size="icon"
 		@click="isCollapsed = !isCollapsed"
 	>
-		<i class="BaseCollapseIcon__icon material-symbols-outlined">{{
-			icon
-		}}</i>
+		<WdsIcon class="BaseCollapseIcon__icon" :name="icon" />
 	</WdsButton>
 </template>
 
@@ -22,6 +20,7 @@ export type Direction =
 
 <script setup lang="ts">
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { computed, PropType } from "vue";
 
 const props = defineProps({
@@ -33,15 +32,15 @@ const isCollapsed = defineModel({ type: Boolean, required: true });
 const icon = computed(() => {
 	switch (props.direction) {
 		case "left-right":
-			return "chevron_left";
+			return "chevron-left";
 		case "top-bottom":
-			return "keyboard_arrow_up";
+			return "chevron-up";
 		case "right-left":
-			return "chevron_right";
+			return "chevron-right";
 		case "bottom-top":
-			return "keyboard_arrow_down";
+			return "chevron-down";
 		default:
-			return "keyboard_arrow_up";
+			return "chevron-up";
 	}
 });
 </script>
@@ -51,12 +50,12 @@ const icon = computed(() => {
 	border-color: var(--separatorColor);
 }
 
-.BaseCollapseIcon__icon {
+:deep(.BaseCollapseIcon__icon) {
 	transition: all 0.3s ease-in-out;
 	transform: rotate(0deg);
 }
 
-.BaseCollapseIcon--collapsed .BaseCollapseIcon__icon {
+.BaseCollapseIcon--collapsed :deep(.BaseCollapseIcon__icon) {
 	transform: rotate(180deg);
 }
 </style>

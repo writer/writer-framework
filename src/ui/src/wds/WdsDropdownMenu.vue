@@ -20,7 +20,7 @@
 				</button>
 			</div>
 			<div v-if="enableSearch" class="WdsDropdownMenu__header__search">
-				<i class="material-symbols-outlined">search</i>
+				<WdsIcon name="search" />
 				<input
 					ref="searchInput"
 					v-model="searchTerm"
@@ -97,6 +97,7 @@ export type WdsDropdownMenuOption = {
 <script setup lang="ts">
 // from https://www.figma.com/design/jgLDtwVwg3hReC1t4Vw20D/.WDS-Writer-Design-System?node-id=128-396&t=9Gy9MYDycjVV8C2Y-1
 import { computed, PropType, ref, watch } from "vue";
+import WdsIcon from "./WdsIcon.vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
 import WdsDropdownMenuItem from "./WdsDropdownMenuItem.vue";

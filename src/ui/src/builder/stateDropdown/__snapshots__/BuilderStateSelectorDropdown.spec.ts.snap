@@ -143,13 +143,16 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-v-ee0f150a=""
     >
       
-      <i
-        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
+      <div
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
         data-v-eb3dac76=""
         style="background-color: rgb(255, 233, 153);"
       >
-        key
-      </i>
+        <span
+          data-v-eb3dac76=""
+          style="display: contents;"
+        />
+      </div>
       
       <div
         class="WdsDropdownMenuItem__label"
@@ -193,13 +196,16 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-v-ee0f150a=""
     >
       
-      <i
-        class="material-symbols-outlined WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
+      <div
+        class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--iconColor"
         data-v-eb3dac76=""
         style="background-color: rgb(212, 255, 242);"
       >
-        code
-      </i>
+        <span
+          data-v-eb3dac76=""
+          style="display: contents;"
+        />
+      </div>
       
       <div
         class="WdsDropdownMenuItem__label"

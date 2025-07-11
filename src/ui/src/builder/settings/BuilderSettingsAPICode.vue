@@ -48,9 +48,9 @@
 		</WdsModal>
 		<template v-if="blueprintKey">
 			<WdsButton variant="tertiary" size="small" @click="showCode">
-				<i class="material-symbols-outlined"> code </i> Call via
-				API</WdsButton
-			>
+				<WdsIcon name="code" />
+				Call via API
+			</WdsButton>
 		</template>
 		<template v-else>
 			<WdsButton
@@ -60,9 +60,9 @@
 				data-writer-tooltip="You need to specify a blueprint key before this blueprint can be
 				used in the UI or called via API."
 			>
-				<i class="material-symbols-outlined"> code </i> Call via
-				API</WdsButton
-			>
+				<WdsIcon name="code" />
+				Call via API
+			</WdsButton>
 		</template>
 	</div>
 </template>
@@ -73,6 +73,7 @@ import injectionKeys from "@/injectionKeys";
 import WdsModal from "@/wds/WdsModal.vue";
 import BuilderEmbeddedCodeEditor from "../BuilderEmbeddedCodeEditor.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);

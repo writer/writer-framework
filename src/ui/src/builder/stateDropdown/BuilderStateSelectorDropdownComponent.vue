@@ -4,6 +4,8 @@ import injectionKeys from "@/injectionKeys";
 import { useComponentDescription } from "../useComponentDescription";
 import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
+import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useComponentActions } from "../useComponentActions";
 
 const props = defineProps({
@@ -48,13 +50,15 @@ async function goToComponent() {
 		@mouseout="isHovered = false"
 	>
 		<template v-if="isHovered" #action>
-			<i
-				class="material-symbols-outlined"
+			<WdsButton
+				variant="neutral"
+				size="smallIcon"
 				data-writer-tooltip="Jump to this block"
 				@click.prevent="goToComponent"
 				@mousemove="isHovered = true"
-				>jump_to_element</i
 			>
+				<WdsIcon name="square-dashed-mouse-pointer" />
+			</WdsButton>
 		</template>
 	</WdsDropdownMenuItem>
 </template>

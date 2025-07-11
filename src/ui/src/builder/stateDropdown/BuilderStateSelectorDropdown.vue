@@ -47,7 +47,7 @@ const secrets = computed<WdsDropdownMenuOption[]>(() => {
 		options.push({
 			value: `vault.${path}`,
 			label: path,
-			icon: "key",
+			icon: "key-round",
 			iconBgColor: WdsColor.Yellow2,
 		});
 	}
@@ -114,7 +114,7 @@ const hasResult = computed(() => {
 				:option="{
 					value: query,
 					label: query,
-					icon: 'add',
+					icon: 'plus',
 					iconBgColor: WdsColor.Blue4,
 					iconColor: WdsColor.White,
 				}"

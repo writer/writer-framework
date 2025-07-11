@@ -24,7 +24,7 @@
 				/>
 				<div class="BuilderCodePanel__tree__actions">
 					<WdsButtonLink
-						left-icon="add"
+						left-icon="plus"
 						text="Add file"
 						@click="handleAddFile"
 					/>
@@ -70,7 +70,7 @@
 					class="BuilderCodePanel__actionsCompanion__saveBtn"
 					@click="handleSave"
 				>
-					<i class="material-symbols-outlined">keyboard_backspace</i>
+					<WdsIcon name="save" />
 					Save file
 				</WdsButton>
 				<SharedMoreDropdown
@@ -101,6 +101,7 @@ import injectionKeys from "@/injectionKeys";
 import { useSourceFiles } from "@/core/useSourceFiles";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BuilderCodePanelSourceFilesTree from "./BuilderCodePanelSourceFilesTree.vue";
 import { useToasts } from "../useToast";
@@ -125,11 +126,15 @@ defineProps<{
 const wf = inject(injectionKeys.core);
 
 const moreOptions: Option[] = [
-	{ label: "Rename file", value: "rename", icon: "edit" },
+	{
+		label: "Rename file",
+		value: "rename",
+		icon: "pencil",
+	},
 	{
 		label: "Delete file",
 		value: "delete",
-		icon: "delete",
+		icon: "trash-2",
 		variant: "danger",
 	},
 ];

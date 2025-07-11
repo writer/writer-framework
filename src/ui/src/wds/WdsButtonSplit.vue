@@ -11,6 +11,7 @@ export type WdsButtonSplitSize = "default" | "small";
 
 <script setup lang="ts">
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useFloating, offset } from "@floating-ui/vue";
 import { computed, PropType, ref, useTemplateRef } from "vue";
 
@@ -70,9 +71,7 @@ defineExpose({ toggleDropdown });
 			:disabled="disabled"
 			@click.capture="toggleDropdown()"
 		>
-			<i class="material-symbols-outlined">{{
-				isDropdownOpen ? "keyboard_arrow_up" : "keyboard_arrow_down"
-			}}</i>
+			<WdsIcon :name="isDropdownOpen ? 'chevron-up' : 'chevron-down'" />
 		</button>
 		<BaseTransitionSlideFade>
 			<div v-if="isDropdownOpen" ref="dropdown" :style="floatingStyles">

@@ -16,12 +16,13 @@
 			<template v-for="(logEntry, index) in logEntries" :key="index">
 				<div class="entry" :class="logEntry.type">
 					<div class="icon">
-						<i
-							v-if="logEntry.type == 'error'"
-							class="material-symbols-outlined"
-							>error</i
-						>
-						<i v-else class="material-symbols-outlined">info</i>
+						<WdsIcon
+							:name="
+								logEntry.type === 'error'
+									? 'triangle-alert'
+									: 'info'
+							"
+						/>
 					</div>
 					<div class="title">
 						{{ logEntry.title
@@ -65,6 +66,7 @@ import BuilderLogBlueprintExecution from "./BuilderLogBlueprintExecution.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderLogIndicator from "./BuilderLogIndicator.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 defineProps<{
 	contentsTeleportEl: HTMLElement;
@@ -81,7 +83,7 @@ function onOpenPanel(open: boolean) {
 
 const actions: BuilderPanelAction[] = [
 	{
-		icon: "delete",
+		icon: "trash-2",
 		name: "Clear log",
 		callback: () => {
 			wfbm.clearLogEntries();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, PropType } from "vue";
-import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import SharedMoreDropdown, {
 	Option,
 } from "@/components/shared/SharedMoreDropdown.vue";
@@ -65,12 +65,12 @@ const dropdownOptions = computed<Option[]>(() => {
 		{
 			value: "edit",
 			label: "Edit",
-			icon: "edit",
+			icon: "pencil",
 		},
 		{
 			value: "delete",
 			label: "Delete",
-			icon: "delete",
+			icon: "trash-2",
 			variant: "danger",
 		},
 	];
@@ -96,9 +96,11 @@ function onDropdownSelect(value: string) {
 		<div class="BuilderSidebarNote__header">
 			<div class="BuilderSidebarNote__header__avatar">
 				<div class="BuilderSidebarNote__header__avatar__type">
-					<i class="icon material-symbols-outlined">{{
-						BUILDER_MANAGER_MODE_ICONS[type]
-					}}</i>
+					<WdsIcon
+						v-if="type === 'blueprints'"
+						name="wds-blueprints"
+					/>
+					<WdsIcon v-else-if="type === 'ui'" name="frame" />
 				</div>
 				<SharedWriterAvatar :user-id="createdBy" />
 			</div>

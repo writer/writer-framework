@@ -27,8 +27,6 @@ defineProps({
 
 const isShown = ref(false);
 
-const rightIcon = computed(() =>
-	isShown.value ? "visibility_off" : "visibility",
-);
+const rightIcon = computed(() => (isShown.value ? "eye-off" : "eye-off"));
 const type = computed(() => (isShown.value ? "text" : "password"));
 </script>

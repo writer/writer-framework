@@ -17,7 +17,7 @@
 					class="WdsModal__main__closeBtn"
 					@click="$emit('close')"
 				>
-					<i class="material-symbols-outlined">close</i>
+					<WdsIcon name="x" />
 				</WdsButton>
 				<div v-if="title || description" class="WdsModal__main__title">
 					<div class="WdsModal__main__title__header">
@@ -51,11 +51,7 @@
 							:disabled="action.disabled"
 							@click="action.fn"
 						>
-							<i
-								v-if="action.icon"
-								class="material-symbols-outlined"
-								>{{ action.icon }}</i
-							>
+							<WdsIcon v-if="action.icon" :name="action.icon" />
 							{{ action.desc }}
 						</WdsButton>
 					</div>
@@ -67,6 +63,7 @@
 
 <script setup lang="ts">
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { PropType, toRefs } from "vue";
 
 export type ModalAction = {

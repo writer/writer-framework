@@ -3,6 +3,7 @@ import { inject, PropType, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import type { ComponentNote, ComponentNoteDraft } from "@/core/useNotesManager";
 
 const props = defineProps({
@@ -36,7 +37,7 @@ const content = ref(notesManager.getNoteContent(props.component));
 			:disabled="!content"
 			@click="$emit('submit', content)"
 		>
-			<span class="material-symbols-outlined">send</span>
+			<WdsIcon name="send" />
 		</WdsButton>
 	</div>
 </template>

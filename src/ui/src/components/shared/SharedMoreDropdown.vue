@@ -7,7 +7,7 @@
 			:custom-size="triggerCustomSize"
 			@click.stop="isOpen = !isOpen"
 		>
-			<i class="material-symbols-outlined">{{ triggerIcon }}</i>
+			<WdsIcon :name="triggerIcon" />
 		</WdsButton>
 		<WdsDropdownMenu
 			v-if="isOpen"
@@ -44,6 +44,7 @@ import {
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const WdsDropdownMenu = defineAsyncComponent(
 	() => import("@/wds/WdsDropdownMenu.vue"),
@@ -55,7 +56,7 @@ const props = defineProps({
 		default: () => [],
 	},
 	triggerCustomSize: { type: String, default: "smallIcon" },
-	triggerIcon: { type: String, default: "more_horiz" },
+	triggerIcon: { type: String, default: "ellipsis" },
 	disabled: { type: Boolean },
 	hideIcons: { type: Boolean, required: false },
 	dropdownPlacement: {

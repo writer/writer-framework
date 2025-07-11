@@ -22,9 +22,9 @@ describe("WdsSelect", () => {
 			},
 		});
 
-		expect(wrapper.get(".material-symbols-outlined").text()).toBe(
-			"help_center",
-		);
+		const icon = wrapper.findComponent({ name: "WdsIcon" });
+
+		expect(icon.props("name")).toBe("circle-question-mark");
 	});
 
 	it("should support single mode", async () => {

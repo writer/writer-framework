@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBlueprintRun } from "@/composables/useBlueprintRun";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsButtonSplit from "@/wds/WdsButtonSplit.vue";
 import injectionKeys from "@/injectionKeys";
 import { computed, inject, shallowRef, toRaw, useTemplateRef } from "vue";
@@ -67,7 +68,7 @@ async function runBlueprint(componentId?: string) {
 			data-writer-tooltip-placement="bottom"
 			@click="$emit('autogenClick')"
 		>
-			<i class="material-symbols-outlined">wand_shine</i>
+			<WdsIcon name="wand-sparkles" />
 		</WdsButton>
 		<WdsButtonSplit
 			v-if="triggerComponents.length && !isRunning"
@@ -79,7 +80,7 @@ async function runBlueprint(componentId?: string) {
 			@dropdown-close="onDropdownClose"
 		>
 			<template #button>
-				<i class="material-symbols-outlined">play_arrow</i>
+				<WdsIcon name="play" />
 				Run blueprint
 			</template>
 			<template #dropdown>
@@ -97,9 +98,7 @@ async function runBlueprint(componentId?: string) {
 			variant="special"
 			@click="isRunning ? handleStop() : runBlueprint()"
 		>
-			<i class="material-symbols-outlined">{{
-				isRunning ? "stop" : "play_arrow"
-			}}</i>
+			<WdsIcon :name="isRunning ? 'square' : 'play'" />
 			{{ isRunning ? "Stop run" : "Run blueprint" }}
 		</WdsButton>
 	</div>

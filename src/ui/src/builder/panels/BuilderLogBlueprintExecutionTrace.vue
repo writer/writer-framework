@@ -119,7 +119,7 @@
 					data-writer-tooltip="Jump to this block"
 					@click="selectBlock(componentId)"
 				>
-					<i class="material-symbols-outlined">jump_to_element</i>
+					<WdsIcon name="square-dashed-mouse-pointer" />
 				</WdsButton>
 			</div>
 		</div>
@@ -132,6 +132,7 @@ import { BlueprintExecutionLog } from "../builderManager";
 import { computed, inject, nextTick, onMounted } from "vue";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import { useWriterTracking } from "@/composables/useWriterTracking";

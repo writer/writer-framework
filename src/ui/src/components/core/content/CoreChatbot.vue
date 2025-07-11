@@ -47,7 +47,7 @@ See the stubs for more details.
 							</div>
 						</div>
 						<WdsControl @click="handleRemoveFile(fileIndex)">
-							<i class="material-symbols-outlined"> delete </i>
+							<WdsIcon name="trash-2" />
 						</WdsControl>
 					</div>
 				</div>
@@ -58,10 +58,10 @@ See the stubs for more details.
 					title="Upload"
 					@click="handleUploadFiles"
 				>
-					<i class="material-symbols-outlined">upload</i>
+					<WdsIcon name="upload" />
 				</WdsControl>
 				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
-					<i class="material-symbols-outlined">warning</i>
+					<WdsIcon name="triangle-alert" />
 					Size limit of
 					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
 				</div>
@@ -89,7 +89,7 @@ See the stubs for more details.
 				title="Attach files"
 				@click="handleAttachFiles"
 			>
-				<i class="material-symbols-outlined">attach_file</i>
+				<WdsIcon name="paperclip" />
 			</WdsControl>
 		</div>
 	</div>
@@ -111,6 +111,7 @@ import {
 import prettyBytes from "pretty-bytes";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsControl from "@/wds/WdsControl.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorChatBotMessages } from "@/constants/validators";
 

@@ -29,7 +29,7 @@
 				data-writer-tooltip-placement="bottom"
 				@click="showStateExplorer"
 			>
-				<i class="material-symbols-outlined">code</i>
+				<WdsIcon name="compass" />
 			</WdsButton>
 			<WdsButton
 				variant="secondary"
@@ -38,7 +38,7 @@
 				data-writer-tooltip-placement="bottom"
 				@click="showInviteCollaborators"
 			>
-				<i class="material-symbols-outlined">share</i>
+				<WdsIcon name="share-2" />
 			</WdsButton>
 			<WdsButton
 				v-if="canDeploy"
@@ -90,7 +90,7 @@
 					{
 						desc: 'Copy edit link',
 						fn: () => copyInviteCollaboratorsURL(),
-						icon: 'content_copy',
+						icon: 'clipboard',
 					},
 				]"
 				@close="isInviteCollaboratorsShown = false"
@@ -109,6 +109,7 @@ import BuilderStateExplorer from "./BuilderStateExplorer.vue";
 import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";

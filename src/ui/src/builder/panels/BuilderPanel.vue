@@ -9,9 +9,7 @@
 				:data-writer-tooltip="`Toggle ${name} (${getModifierKeyName()}${keyboardShortcutKey})`"
 				@click="togglePanel(panelId)"
 			>
-				<i class="material-symbols-outlined">{{
-					collapsed ? "expand_less" : "expand_more"
-				}}</i>
+				<WdsIcon :name="collapsed ? 'chevron-right' : 'chevron-up'" />
 				<span class="BuilderPanel__title">
 					{{ name }}
 				</span>
@@ -61,10 +59,9 @@
 								size="smallIcon"
 								:disabled="action.isDisabled"
 								@click="action.callback"
-								><i class="material-symbols-outlined">{{
-									action.icon
-								}}</i></WdsButton
 							>
+								<WdsIcon :name="action.icon" />
+							</WdsButton>
 						</div>
 						<div class="BuilderPanel__mainContents">
 							<slot></slot>
@@ -93,6 +90,7 @@ export type BuilderPanelAction = {
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import BuilderDropFileZone from "../BuilderDropFileZone.vue";
 

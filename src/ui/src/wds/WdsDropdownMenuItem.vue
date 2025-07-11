@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, CSSProperties, PropType } from "vue";
 import { WdsDropdownMenuOption } from "./WdsDropdownMenu.vue";
+import WdsIcon from "./WdsIcon.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
 const props = defineProps({
@@ -45,15 +46,16 @@ const iconStyle = computed(() => {
 			>
 				<SharedImgWithFallback :urls="option.icon" />
 			</div>
-			<i
+			<div
 				v-else-if="option.icon"
-				class="material-symbols-outlined WdsDropdownMenuItem__icon"
+				class="WdsDropdownMenuItem__icon"
 				:class="{
 					'WdsDropdownMenuItem__icon--iconColor': iconStyle,
 				}"
 				:style="iconStyle"
-				>{{ option.icon }}</i
 			>
+				<WdsIcon :name="option.icon" />
+			</div>
 		</template>
 		<div
 			class="WdsDropdownMenuItem__label"
@@ -76,7 +78,7 @@ const iconStyle = computed(() => {
 			{{ option.detail }}
 		</div>
 		<div class="WdsDropdownMenuItem__action">
-			<i v-if="selected" class="material-symbols-outlined"> check </i>
+			<WdsIcon v-if="selected" name="check" />
 			<slot v-else name="action" />
 		</div>
 	</button>
@@ -165,8 +167,9 @@ const iconStyle = computed(() => {
 }
 
 .WdsDropdownMenuItem__icon--iconColor {
-	display: block;
-	line-height: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	height: 18px;
 	width: 18px;
 	border-radius: 4px;

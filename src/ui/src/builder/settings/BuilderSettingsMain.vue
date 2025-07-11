@@ -7,7 +7,9 @@
 			{{ componentDefinition.description }}
 		</p>
 		<p v-if="isReadOnly" class="BuilderSettingsMain__warning cmc-warning">
-			<i class="material-symbols-outlined">warning</i>
+			<span>
+				<WdsIcon name="triangle-alert" />
+			</span>
 			<span>
 				This component is instantiated in code. All settings in this
 				panel are read-only and cannot be edited.
@@ -42,9 +44,7 @@
 				data-automation-action="copy-component-id"
 				@click="copyComponentId"
 			>
-				<span class="material-symbols-outlined"
-					>{{ isComponentIdCopied ? "check" : "content_copy" }}
-				</span>
+				<WdsIcon :name="isComponentIdCopied ? 'check' : 'clipboard'" />
 			</WdsButton>
 		</div>
 	</div>
@@ -59,6 +59,7 @@ import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useButtonClipboard } from "../useButtonClipboard";
 
 const BuilderSettingsHandlers = defineAsyncComponent({

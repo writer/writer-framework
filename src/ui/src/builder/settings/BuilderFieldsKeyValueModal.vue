@@ -67,9 +67,7 @@
 								class="BuilderFieldsKeyValueModal__assistedEntries__form__deleteBtn"
 								@click="removeAssistedEntry(id)"
 							>
-								<span class="material-symbols-outlined"
-									>delete</span
-								>
+								<WdsIcon name="trash-2" />
 							</WdsButton>
 						</div>
 					</template>
@@ -79,9 +77,10 @@
 					variant="special"
 					size="small"
 					@click="addAssistedEntry"
-					><span class="material-symbols-outlined">add</span>Add a
-					pair</WdsButton
 				>
+					<WdsIcon name="plus" />
+					Add a pair
+				</WdsButton>
 			</div>
 		</template>
 	</WdsModal>
@@ -93,6 +92,7 @@ import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { Mode, useKeyValueEditor } from "./composables/useKeyValueEditor";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";

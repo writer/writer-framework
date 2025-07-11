@@ -10,7 +10,7 @@
 			data-writer-tooltip-placement="left"
 			@click="ssbm.setSelection(null)"
 		>
-			<i class="material-symbols-outlined">close</i>
+			<WdsIcon name="x" />
 		</WdsButton>
 		<WdsButton
 			class="BuilderSettingsActions__btn BuilderSettingsActions__btn--delete"
@@ -22,7 +22,7 @@
 			:disabled="isDeleteDisabled"
 			@click="deleteSelectedComponents"
 		>
-			<i class="material-symbols-outlined">delete</i>
+			<WdsIcon name="trash-2" />
 		</WdsButton>
 	</div>
 </template>
@@ -31,6 +31,7 @@
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { SelectionStatus } from "../builderManager";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import {

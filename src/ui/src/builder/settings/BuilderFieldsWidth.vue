@@ -134,7 +134,7 @@ const selectOptions = computed(() => {
 		return {
 			value: m.key,
 			label: m.label,
-			icon: "width",
+			icon: "move-horizontal",
 		};
 	});
 });

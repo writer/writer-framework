@@ -5,9 +5,7 @@
 		:class="[fields.size.value, fields.orientation.value]"
 	>
 		<div class="image" :style="imageStyle" @click="handleClick">
-			<i v-if="!fields.imageSrc.value" class="material-symbols-outlined">
-				account_circle
-			</i>
+			<WdsIcon v-if="!fields.imageSrc.value" name="circle-user-round" />
 		</div>
 		<div class="info">
 			<div v-if="fields.name.value" class="name" @click="handleClick">
@@ -32,6 +30,7 @@ import {
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const clickHandlerStub = `
 def handle_avatar_click():

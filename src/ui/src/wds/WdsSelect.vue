@@ -18,9 +18,7 @@
 					v-if="Array.isArray(currentIcon)"
 					:urls="currentIcon"
 				/>
-				<i v-else class="material-symbols-outlined">{{
-					currentIcon
-				}}</i>
+				<WdsIcon v-else :name="currentIcon" />
 			</template>
 			<div
 				v-if="enableMultiSelection"
@@ -49,7 +47,7 @@
 				{{ currentLabel ?? placeholder }}
 			</div>
 			<div class="WdsSelect__trigger__arrow">
-				<i class="material-symbols-outlined">{{ expandIcon }}</i>
+				<WdsIcon :name="isOpen ? 'chevron-up' : 'chevron-down'" />
 			</div>
 		</div>
 		<BaseTransitionSlideFade>
@@ -85,6 +83,7 @@ import {
 } from "vue";
 import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
@@ -134,10 +133,6 @@ const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	},
 );
 
-const expandIcon = computed(() =>
-	isOpen.value ? "keyboard_arrow_up" : "expand_more",
-);
-
 const currentValueArray = computed(() => {
 	if (!currentValue.value) return [];
 	const array = Array.isArray(currentValue.value)
@@ -170,10 +165,12 @@ const currentLabel = computed(() => {
 });
 
 const currentIcon = computed(() => {
-	if (hasUnknowOptionSelected.value) return "help_center";
+	if (hasUnknowOptionSelected.value) return "circle-question-mark";
 	if (props.hideIcons) return "";
 	return (
-		selectedOptions.value.at(0)?.icon ?? props.defaultIcon ?? "help_center"
+		selectedOptions.value.at(0)?.icon ??
+		props.defaultIcon ??
+		"circle-question-mark"
 	);
 });
 

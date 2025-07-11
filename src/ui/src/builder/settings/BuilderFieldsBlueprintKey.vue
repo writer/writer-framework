@@ -11,7 +11,7 @@
 			data-writer-tooltip="Jump to the blueprint"
 			@click="jumpToBlueprint"
 		>
-			<i class="material-symbols-outlined">jump_to_element</i>
+			<WdsIcon name="square-dashed-mouse-pointer" />
 		</WdsButton>
 	</div>
 </template>
@@ -21,6 +21,7 @@ import { toRefs, inject, computed, defineAsyncComponent } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { Option } from "@/wds/WdsSelect.vue";
 
 const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
@@ -54,7 +55,7 @@ const options = computed<Option[]>(() => {
 		.map((key) => ({
 			value: key,
 			label: key,
-			icon: "linked_services",
+			icon: "wds-blueprints",
 		}));
 
 	const options: Option[] = [

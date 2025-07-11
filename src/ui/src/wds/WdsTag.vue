@@ -4,6 +4,7 @@ export type WdsTagSize = "normal" | "small";
 </script>
 <script setup lang="ts">
 import { computed, PropType } from "vue";
+import WdsIcon from "./WdsIcon.vue";
 
 const props = defineProps({
 	text: { type: String, required: true },
@@ -31,7 +32,7 @@ defineEmits({
 			class="WdsTag__close"
 			@click.stop="$emit('close')"
 		>
-			<i class="material-symbols-outlined">close</i>
+			<WdsIcon name="x" />
 		</button>
 	</div>
 </template>

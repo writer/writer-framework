@@ -9,7 +9,7 @@
 			:disabled="!selectedComponent"
 			@click="jumpToElement"
 		>
-			<i class="material-symbols-outlined">jump_to_element</i>
+			<WdsIcon name="square-dashed-mouse-pointer" />
 		</WdsButton>
 	</div>
 </template>
@@ -21,6 +21,7 @@ import injectionKeys from "@/injectionKeys";
 import type { Option } from "@/wds/WdsSelect.vue";
 import { useComponentDescription } from "../useComponentDescription";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 

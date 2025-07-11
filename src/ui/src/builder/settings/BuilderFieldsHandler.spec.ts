@@ -61,7 +61,7 @@ describe("BuilderFieldsHandler", () => {
 		expect(options.at(1)).toStrictEqual({
 			value: "func1",
 			label: "func1",
-			icon: "function",
+			icon: "wds-function",
 		});
 	});
 
