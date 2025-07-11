@@ -48,11 +48,7 @@ function getSelection() {
 	const range = selection.getRangeAt(0);
 	let position = 0;
 
-	const walker = document.createTreeWalker(
-		root.value,
-		NodeFilter.SHOW_ALL,
-		null,
-	);
+	const walker = document.createTreeWalker(root.value, NodeFilter.SHOW_ALL);
 	while (walker.nextNode()) {
 		const node = walker.currentNode;
 
@@ -91,11 +87,7 @@ function setSelection(targetOffset: number) {
 	if (!root.value) return;
 	previousSelection.value = targetOffset;
 
-	const walker = document.createTreeWalker(
-		root.value,
-		NodeFilter.SHOW_ALL,
-		null,
-	);
+	const walker = document.createTreeWalker(root.value, NodeFilter.SHOW_ALL);
 	let position = 0;
 
 	function setSelectionRange(range: Range) {
@@ -113,7 +105,7 @@ function setSelection(targetOffset: number) {
 			if (targetOffset <= position + textLength) {
 				const range = document.createRange();
 				range.setStart(node, targetOffset - position);
-				// range.collapse(true);
+				range.collapse(true);
 				return setSelectionRange(range);
 			}
 			position += textLength;
@@ -123,11 +115,21 @@ function setSelection(targetOffset: number) {
 			if (position === targetOffset) {
 				const range = document.createRange();
 				range.setStartAfter(node.getRootNode());
-				// range.collapse(true);
+				range.collapse(true);
 				return setSelectionRange(range);
 			}
 			position += 1; // Count <br> as one char
 		}
+	}
+
+	// if we traversed the DOM and the requested position is too far, we fallback to the last position
+	if (position < targetOffset) {
+		const child = root.value.children[0];
+		if (!child) return;
+		previousSelection.value = position;
+		const range = document.createRange();
+		range.setStartAfter(child);
+		setSelectionRange(range);
 	}
 }
 

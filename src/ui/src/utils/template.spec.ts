@@ -63,7 +63,53 @@ describe(computeTemplateParts.name, () => {
 				{ content: "tag2", type: "tag" },
 			],
 		},
-	])("should assign %s", ({ input, result }) => {
+		{
+			input: "@{tag\n@{tag2}",
+			result: [
+				{ content: "@{tag", type: "text" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "@{tag1}\n@{tag2}",
+			result: [
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\n@{tag2}",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\nafter@{tag2}",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "after", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\nafter@{tag2}\n",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "after", type: "text" },
+				{ content: "tag2", type: "tag" },
+				{ content: "\n", type: "text" },
+			],
+		},
+	])("should transform $input", ({ input, result }) => {
 		expect(Array.from(computeTemplateParts(input))).toStrictEqual(result);
 	});
 });

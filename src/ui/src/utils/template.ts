@@ -41,7 +41,7 @@ export function getCurrentOpenedTemplate(input: string): string {
 	return slice.replace(/^@{?/, "");
 }
 
-export function* computeTemplateParts(
+function* computeTemplatePartsForLine(
 	input: string,
 ): Generator<{ content: string; type: "text" | "tag" }, void, unknown> {
 	if (input === undefined) return;
@@ -79,5 +79,20 @@ export function* computeTemplateParts(
 	}
 	if (currentText.length > 0) {
 		yield { content: currentText, type: "text" as const };
+	}
+}
+
+export function* computeTemplateParts(
+	input: string,
+): Generator<{ content: string; type: "text" | "tag" }, void, unknown> {
+	if (!input) return;
+	const lines = input.split("\n");
+
+	for (let index = 0; index < lines.length; index++) {
+		const line = lines[index];
+		yield* computeTemplatePartsForLine(line);
+		if (index + 1 !== lines.length) {
+			yield { type: "text", content: "\n" };
+		}
 	}
 }
