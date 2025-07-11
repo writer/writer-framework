@@ -78,7 +78,6 @@ import WdsDropdownMenu, {
 	WdsDropdownMenuOption,
 } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusNavigation } from "@/composables/useFocusNavigation";
-import WdsTextInputLayout from "@/wds/WdsTextInputLayout.vue";
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },

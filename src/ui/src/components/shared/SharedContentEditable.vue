@@ -114,7 +114,7 @@ function setSelection(targetOffset: number) {
 		if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === "BR") {
 			if (position === targetOffset) {
 				const range = document.createRange();
-				range.setStartAfter(node.getRootNode());
+				range.setStartAfter(node);
 				range.collapse(true);
 				return setSelectionRange(range);
 			}

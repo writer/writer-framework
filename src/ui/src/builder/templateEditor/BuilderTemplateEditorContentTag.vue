@@ -55,7 +55,7 @@ function onDblClick() {
 	border-radius: 4px;
 }
 .BuilderTemplateEditorContentTag::selection {
-	background: var(--builderSelectedColor);
+	background: var(--wdsColorBlue3);
 }
 
 .BuilderTemplateEditorContentTag__bracket {
