@@ -143,7 +143,7 @@ class Evaluator:
                 state_ref = state_ref[accessor]
 
         if not isinstance(
-            state_ref, (writer.core.State, writer.core.WriterState, writer.core.StateProxy, dict)
+            state_ref, (writer.core.State, writer.core.WriterState, writer.core.StateDictProxy, dict)
         ):
             raise ValueError(
                 f'Reference "{expr}" cannot be translated to state. Found value of type "{type(state_ref)}".'
@@ -217,7 +217,7 @@ class Evaluator:
 
         result = self._apply_accessors(accessors, state_ref, context_ref)
 
-        if isinstance(result, writer.core.StateProxy):
+        if isinstance(result, writer.core.StateDictProxy):
             return result.to_dict()
 
         if result is None and expr.startswith("$"):
@@ -239,7 +239,7 @@ class Evaluator:
         return result
 
     def _apply_accessor(self, accessor: str, target: Any) -> Any:
-        if isinstance(target, (writer.core.StateProxy, dict)):
+        if isinstance(target, (writer.core.StateDictProxy, dict)):
             return target.get(accessor)
         
         if isinstance(target, list):

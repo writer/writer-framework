@@ -71,7 +71,7 @@ session = wf.session_manager.get_new_session()
 session.session_component_tree.ingest(sc)
 
 
-class TestStateProxy(unittest.TestCase):
+class TestStateDictProxy(unittest.TestCase):
     def setUp(self):
         self.sp = State(raw_state_dict)._state_proxy
         self.sp_simple_dict = State(simple_dict)._state_proxy
@@ -80,13 +80,13 @@ class TestStateProxy(unittest.TestCase):
     def count_initial_mutations(cls, d, count=0):
         """
         Counts the number of mutations that will be performed for a given dictionary
-        when it is converted into a StateProxy.
+        when it is converted into a StateDictProxy.
         """
         for key, value in d.items():
             if not key.startswith("_"):
                 count += 1  # Increment for each key-value pair
                 if isinstance(value, dict):
-                    count = TestStateProxy.count_initial_mutations(value, count)
+                    count = TestStateDictProxy.count_initial_mutations(value, count)
                     # Recurse for nested dictionaries
         return count
 
@@ -99,7 +99,7 @@ class TestStateProxy(unittest.TestCase):
 
     def test_mutations(self) -> None:
         m = self.sp.get_mutations_as_dict()
-        assert len(m) == TestStateProxy.count_initial_mutations(self.sp.to_dict())
+        assert len(m) == TestStateDictProxy.count_initial_mutations(self.sp.to_dict())
         # Mutated after initialization from raw_state_dict
 
         self.sp["age"] = 2
@@ -259,7 +259,7 @@ class TestState:
         self,
     ):
         """
-        Tests that writing a dictionary in a State without schema is transformed into a StateProxy and
+        Tests that writing a dictionary in a State without schema is transformed into a StateDictProxy and
         triggers mutations to update the interface
 
         #>>> _state = writer.init_state({'app': {}})
@@ -592,7 +592,7 @@ class TestState:
     def test_state_shema_should_accept_Dict_generic_typing_for_dict(self):
         """
         A schema must accept a generic typed dictionary for a dictionary
-        and manipulate it as a dictionary, not as a StateProxy.
+        and manipulate it as a dictionary, not as a StateDictProxy.
         """
         with writer_fixtures.new_app_context():
             # Assign
@@ -611,7 +611,7 @@ class TestState:
     def test_state_shema_should_accept_DictTyped_typing_for_dict(self):
         """
         A schema must accept a dictionary typed for a dictionary
-        and manipulate it as a dictionary, not as a StateProxy.
+        and manipulate it as a dictionary, not as a StateDictProxy.
         """
 
         class SpecificDictTyped(typing.TypedDict):
@@ -635,7 +635,7 @@ class TestState:
     def test_state_shema_should_support_convert_dict_into_state_by_default(self):
         """
         A schema must accept a dictionary typed for a dictionary
-        and manipulate it as a dictionary, not as a StateProxy.
+        and manipulate it as a dictionary, not as a StateDictProxy.
         """
 
         class Substate(State):

@@ -454,7 +454,7 @@ class MutableValue:
         self._mutated = False
 
 
-class StateProxy:
+class StateDictProxy:
     """
     The root user state and its children (nested states) are instances of this class.
     Provides proxy functionality to detect state mutations via assignment.
@@ -548,7 +548,7 @@ class StateProxy:
             self._apply_raw(f"+{k}")
             if recursive is True:
                 value = self.state[k]
-                if isinstance(value, StateProxy):
+                if isinstance(value, StateDictProxy):
                     value.apply_mutation_marker(recursive=True)
 
     @staticmethod
@@ -569,7 +569,7 @@ class StateProxy:
             escaped_key = self.escape_key(key)
             serialised_value = None
 
-            if isinstance(value, StateProxy):
+            if isinstance(value, StateDictProxy):
                 if f"+{key}" in self.mutated:
                     serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
@@ -621,7 +621,7 @@ class StateProxy:
 
     def to_raw_state(self):
         """
-        Converts a StateProxy and its children into a python dictionary.
+        Converts a StateDictProxy and its children into a python dictionary.
 
         >>> state = State({'a': 1, 'c': {'a': 1, 'b': 3}})
         >>> _raw_state = state._state_proxy.to_raw_state()
@@ -631,7 +631,7 @@ class StateProxy:
         """
         raw_state = {}
         for key, value in self.state.items():
-            if isinstance(value, StateProxy):
+            if isinstance(value, StateDictProxy):
                 value = value.to_raw_state()
             raw_state[key] = value
 
@@ -709,7 +709,7 @@ class State(metaclass=StateMeta):
     def __init__(self, raw_state: Optional[Dict[str, Any]] = None):
         final_raw_state = raw_state if raw_state is not None else {}
 
-        self._state_proxy: StateProxy = StateProxy(final_raw_state)
+        self._state_proxy: StateDictProxy = StateDictProxy(final_raw_state)
         self.ingest(final_raw_state)
 
         # This step saves the properties associated with the instance
@@ -729,7 +729,7 @@ class State(metaclass=StateMeta):
         self._state_proxy.state = {}
         for key, value in raw_state.items():
             assert not isinstance(
-                value, StateProxy
+                value, StateDictProxy
             ), f"state proxy datatype is not expected in ingest operation, {locals()}"
             self._set_state_item(key, value)
 
@@ -746,7 +746,7 @@ class State(metaclass=StateMeta):
 
     def to_raw_state(self) -> dict:
         """
-        Converts a StateProxy and its children into a python dictionary that can be used to recreate the
+        Converts a StateDictProxy and its children into a python dictionary that can be used to recreate the
         state from scratch.
 
         >>> state = WriterState({'a': 1, 'c': {'a': 1, 'b': 3}})
@@ -772,7 +772,7 @@ class State(metaclass=StateMeta):
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
         assert not isinstance(
-            raw_value, StateProxy
+            raw_value, StateDictProxy
         ), f"state proxy datatype is not expected, {locals()}"
 
         self._set_state_item(key, raw_value)
@@ -785,8 +785,8 @@ class State(metaclass=StateMeta):
 
     def items(self) -> Generator[Tuple[str, Any], None, None]:
         for k, v in self._state_proxy.items():
-            if isinstance(v, StateProxy):
-                # We don't want to expose StateProxy to the user, so
+            if isinstance(v, StateDictProxy):
+                # We don't want to expose StateDictProxy to the user, so
                 # we replace it with relative State
                 yield k, getattr(self, k)
             else:
@@ -799,8 +799,8 @@ class State(metaclass=StateMeta):
         """ """
 
         """
-        At this level, the values that arrive are either States which encapsulate a StateProxy, or another datatype. 
-        If there is a StateProxy, it is a fault in the code.
+        At this level, the values that arrive are either States which encapsulate a StateDictProxy, or another datatype. 
+        If there is a StateDictProxy, it is a fault in the code.
         """
         annotations = get_annotations(self)
         expected_type = annotations.get(key, None)
@@ -958,7 +958,7 @@ class WriterState(State):
         self.mail = copy.deepcopy(mail)
 
     @property
-    def user_state(self) -> StateProxy:
+    def user_state(self) -> StateDictProxy:
         return self._state_proxy
 
     @classmethod
@@ -1987,7 +1987,7 @@ class DictPropertyProxy:
     >>>     bar: int = DictPropertyProxy("proxy_state", "prop2")
     >>>
     >>>     def __init__(self):
-    >>>         self._state_proxy = StateProxy({"prop1": 1, "prop2": 2})
+    >>>         self._state_proxy = StateDictProxy({"prop1": 1, "prop2": 2})
     >>>
     >>> a = A()
     >>> print(a.foo)
@@ -1998,7 +1998,7 @@ class DictPropertyProxy:
     >>> class A:
     >>>
     >>>     def __init__(self):
-    >>>         self._state_proxy = StateProxy({"prop1": 1, "prop2": 2})
+    >>>         self._state_proxy = StateDictProxy({"prop1": 1, "prop2": 2})
     >>>
     >>>     @property
     >>>     def prop1(self):
