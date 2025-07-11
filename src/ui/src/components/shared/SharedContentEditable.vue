@@ -39,13 +39,11 @@ onUpdated(() => {
 });
 
 function getSelection() {
-	if (!root.value) return;
+	if (!root.value) return undefined;
 
 	const selection = window.getSelection();
-	if (selection === null) {
-		return;
-	}
-	if (!selection.rangeCount) return -1;
+	if (selection === null) return undefined;
+	if (!selection.rangeCount) return undefined;
 
 	const range = selection.getRangeAt(0);
 	let position = 0;
@@ -67,18 +65,23 @@ function getSelection() {
 			node.nodeType === Node.ELEMENT_NODE &&
 			node.nodeName === "BR"
 		) {
-			if (
-				range.startContainer === node.parentNode &&
+			if (range.startContainer === node.parentNode) {
+				const siblings = Array.from(node.parentNode.childNodes);
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				Array.from(node.parentNode.childNodes).indexOf(node as any) <=
-					range.startOffset
-			) {
-				position += 1; // Count <br> as one character
-			} else if (range.startContainer === node) {
-				return position;
-			} else {
-				position += 1;
+				const index = siblings.indexOf(node as any);
+				if (index >= 0 && index < range.startOffset) {
+					position += 1;
+				} else if (index === range.startOffset) {
+					return position;
+				}
 			}
+
+			// If the range is directly at the <br> element itself
+			if (range.startContainer === node) {
+				return position;
+			}
+
+			position += 1;
 		}
 	}
 	return undefined;
@@ -95,6 +98,13 @@ function setSelection(targetOffset: number) {
 	);
 	let position = 0;
 
+	function setSelectionRange(range: Range) {
+		const sel = window.getSelection();
+		if (sel === null) throw Error("could not get selection");
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+
 	while (walker.nextNode()) {
 		const node = walker.currentNode;
 
@@ -103,12 +113,8 @@ function setSelection(targetOffset: number) {
 			if (targetOffset <= position + textLength) {
 				const range = document.createRange();
 				range.setStart(node, targetOffset - position);
-				range.collapse(true);
-				const sel = window.getSelection();
-				if (sel === null) throw Error("could not get selection");
-				sel.removeAllRanges();
-				sel.addRange(range);
-				return;
+				// range.collapse(true);
+				return setSelectionRange(range);
 			}
 			position += textLength;
 		}
@@ -116,13 +122,9 @@ function setSelection(targetOffset: number) {
 		if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === "BR") {
 			if (position === targetOffset) {
 				const range = document.createRange();
-				range.setStartAfter(node);
-				range.collapse(true);
-				const sel = window.getSelection();
-				if (sel === null) throw Error("could not get selection");
-				sel.removeAllRanges();
-				sel.addRange(range);
-				return;
+				range.setStartAfter(node.getRootNode());
+				// range.collapse(true);
+				return setSelectionRange(range);
 			}
 			position += 1; // Count <br> as one char
 		}
