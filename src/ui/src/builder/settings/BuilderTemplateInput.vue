@@ -183,16 +183,14 @@ function onClick() {
 }
 
 const templateDropdownQuery = computed(() => {
+	if (props.type === "state") return props.value;
+
 	let value = input.value?.value ?? "";
 	if (!value) return "";
 	const { selectionStart } = input.value?.getSelection() ?? {};
 
-	if (props.type === "template") {
-		const before = value.slice(0, selectionStart);
-		return getCurrentOpenedTemplate(before);
-	} else {
-		return value;
-	}
+	const before = value.slice(0, selectionStart);
+	return getCurrentOpenedTemplate(before);
 });
 
 const hasFocusInRoot = useFocusWithin(root);
