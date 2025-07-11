@@ -1,12 +1,12 @@
 <template>
 	<div class="BuilderLogIndicator">
-		<div class="number error">
+		<div v-if="entryCountByType['error'] > 0" class="number error">
 			<div class="icon">
 				<WdsIcon name="triangle-alert" />
 			</div>
 			{{ entryCountByType["error"] ?? 0 }}
 		</div>
-		<div class="number info">
+		<div v-if="entryCountByType['info'] > 0" class="number info">
 			<div class="icon">
 				<WdsIcon name="info" />
 			</div>
