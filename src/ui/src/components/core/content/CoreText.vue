@@ -8,28 +8,21 @@
 	>
 		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
 		<template v-else>
-			<BaseMarkdown
-				v-if="fields.useMarkdown.value"
-				:raw-text="fields.text.value"
-				:style="contentStyle"
-			>
-			</BaseMarkdown>
-			<div v-else class="text-container">
-				<p class="plainText" :style="contentStyle">
+			<div class="text-container">
+				<BaseMarkdown
+					v-if="fields.useMarkdown.value"
+					:raw-text="fields.text.value"
+					:style="contentStyle"
+				>
+				</BaseMarkdown>
+				<p v-else class="plainText" :style="contentStyle">
 					{{ fields.text.value }}
 				</p>
-				<WdsButton
+				<SharedButtonCopyClipboard
 					v-if="fields.quickCopy.value"
-					class="copy-button"
-					:class="{ copied: isCopied }"
-					@click="handleCopy"
-				>
-					<div class="icon">
-						<span class="material-symbols-outlined">
-							{{ isCopied ? "check" : "content_copy" }}
-						</span>
-					</div>
-				</WdsButton>
+					label="Copy"
+					:content="fields.text.value"
+				/>
 			</div>
 		</template>
 	</div>
@@ -43,6 +36,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
+import SharedButtonCopyClipboard from "@/components/shared/SharedButtonCopyClipboard.vue";
 
 const clickHandlerStub = `
 def click_handler(state):

@@ -1,36 +1,36 @@
 <template>
 	<div v-if="shouldDisplay" class="CoreAnnotatedText">
-		<BaseMarkdownRaw
-			v-if="useMarkdown"
-			:raw-markdown="markdown"
-			class="CoreAnnotatedText__markdown"
-		/>
-		<template v-else>
-			<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
-			<span v-for="(content, i) in text" :key="String(content) + i">
-				<template v-if="typeof content === 'string'">{{
-					content
-				}}</template>
-				<span
-					v-if="Array.isArray(content)"
-					class="CoreAnnotatedText__annotation"
-					:style="{ backgroundColor: getAnnotationBgColor(content) }"
-				>
-					{{ content[0] }}
+		<div class="text-container">
+			<BaseMarkdownRaw
+				v-if="useMarkdown"
+				:raw-markdown="markdown"
+				class="CoreAnnotatedText__markdown"
+			/>
+			<template v-else>
+				<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
+				<span v-for="(content, i) in text" :key="String(content) + i">
+					<template v-if="typeof content === 'string'">{{
+						content
+					}}</template>
 					<span
-						v-if="content[1]"
-						class="CoreAnnotatedText__annotation__subject"
+						v-if="Array.isArray(content)"
+						class="CoreAnnotatedText__annotation"
+						:style="{
+							backgroundColor: getAnnotationBgColor(content),
+						}"
 					>
-						{{ content[1] }}
+						{{ content[0] }}
+						<span
+							v-if="content[1]"
+							class="CoreAnnotatedText__annotation__subject"
+						>
+							{{ content[1] }}
+						</span>
 					</span>
 				</span>
-			</span>
-		</template>
-		<SharedControlBar
-			v-if="fields.copyButtons.value"
-			:copy-raw-content="copyRawContent"
-			:copy-structured-content="copyStructuredContent"
-		/>
+			</template>
+			<SharedButtonCopyClipboard :content="fields.text.value" />
+		</div>
 	</div>
 </template>
 
@@ -42,9 +42,9 @@ import {
 	cssClasses,
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
-import SharedControlBar from "@/components/shared/SharedControlBar.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorAnotatedText } from "@/constants/validators";
+import SharedButtonCopyClipboard from "@/components/shared/SharedButtonCopyClipboard.vue";
 export default {
 	writer: {
 		name: "Annotated text",
@@ -270,6 +270,10 @@ const copyStructuredContent = computed(() => {
 .CoreAnnotatedText {
 	color: var(--primaryTextColor);
 	line-height: 1.8;
+}
+
+.text-container {
+	position: relative;
 }
 
 .CoreAnnotatedText__markdown {

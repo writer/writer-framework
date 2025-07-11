@@ -1,15 +1,17 @@
 <template>
 	<WdsButton
-		size="small"
-		variant="tertiary"
+		size="smallIcon"
+		variant="neutral"
 		:loading="isCoping"
+		class="floating-copy-button"
+		:class="{ copied }"
+		:label="copied ? 'Copied' : 'Copy'"
+		data-writer-tooltip="Copy text"
 		@click="copyToClipboard"
 	>
-		<span v-if="copied" class="material-symbols-outlined">
-			check_circle
-		</span>
-		{{ copied ? "Copied to clipboard" : label }}</WdsButton
-	>
+		<i v-if="copied" class="material-symbols-outlined"> check_circle </i>
+		<i v-else class="material-symbols-outlined"> content_copy </i>
+	</WdsButton>
 </template>
 
 <script setup lang="ts">
@@ -18,7 +20,6 @@ import WdsButton from "@/wds/WdsButton.vue";
 import { onBeforeUnmount, ref, toRef, watch } from "vue";
 
 const props = defineProps({
-	label: { type: String, required: true },
 	content: { type: String, required: true },
 });
 
@@ -54,3 +55,28 @@ onBeforeUnmount(() => {
 	if (timeout) clearTimeout(timeout);
 });
 </script>
+
+<style scoped>
+.floating-copy-button {
+	position: absolute;
+	top: 0;
+	right: 8px;
+	z-index: 10;
+	border-radius: 6px;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	width: 16px;
+}
+
+.floating-copy-button:hover {
+	color: var(--wdsColorBlue4);
+}
+
+/* Animation for copied state */
+.floating-copy-button.copied {
+	color: var(--wdsColorGreen5);
+}
+</style>

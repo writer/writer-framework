@@ -1,32 +1,34 @@
 <template>
-	<template v-if="isJSONObject(data) || isJSONArray(data)">
-		<SharedJsonViewerCollapsible
-			v-if="isRoot"
-			:open="isRootOpen"
-			:data="data"
-			@toggle="$emit('toggle', { path: [], open: $event })"
-		>
+	<div class="json-viewer-container">
+		<template v-if="isJSONObject(data) || isJSONArray(data)">
+			<SharedJsonViewerCollapsible
+				v-if="isRoot"
+				:open="isRootOpen"
+				:data="data"
+				@toggle="$emit('toggle', { path: [], open: $event })"
+			>
+				<SharedJsonViewerObject
+					:data="data"
+					:path="path"
+					:initial-depth="initialDepth"
+					@toggle="$emit('toggle', $event)"
+				/>
+			</SharedJsonViewerCollapsible>
 			<SharedJsonViewerObject
+				v-else
 				:data="data"
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
 			/>
-		</SharedJsonViewerCollapsible>
-		<SharedJsonViewerObject
-			v-else
-			:data="data"
-			:path="path"
-			:initial-depth="initialDepth"
-			@toggle="$emit('toggle', $event)"
+		</template>
+		<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
+		<SharedJsonViewerChildrenCounter v-else :data="{}" />
+		<SharedButtonCopyClipboard
+			v-if="enableCopyToJson"
+			:content="dataAsString"
 		/>
-	</template>
-	<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
-	<SharedJsonViewerChildrenCounter v-else :data="{}" />
-	<SharedControlBar
-		v-if="enableCopyToJson"
-		:copy-structured-content="dataAsString"
-	/>
+	</div>
 </template>
 
 <script lang="ts">
@@ -54,7 +56,7 @@ import SharedJsonViewerCollapsible from "./SharedJsonViewerCollapsible.vue";
 import SharedJsonViewerObject from "./SharedJsonViewerObject.vue";
 import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
-import SharedControlBar from "../SharedControlBar.vue";
+import SharedButtonCopyClipboard from "../SharedButtonCopyClipboard.vue";
 
 const props = defineProps({
 	data: {
@@ -93,3 +95,9 @@ const dataAsString = computed(() => {
 	return JSON.stringify(props.data);
 });
 </script>
+
+<style scoped>
+.json-viewer-container {
+	position: relative;
+}
+</style>
