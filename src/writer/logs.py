@@ -116,11 +116,11 @@ def use_stdout_redirect():
 
     key = get_routing_key(prefix="stdout")
     buffer = routing_map.add_buffer(key)
-
-    with redirect_stdout(RoutingStream()):
-        yield buffer
-
-    routing_map.remove_buffer(key)
+    try:
+        with redirect_stdout(RoutingStream()):
+            yield buffer
+    finally:
+        routing_map.remove_buffer(key)
 
 
 @contextmanager
@@ -131,10 +131,10 @@ def use_logging_redirect():
 
     key = get_routing_key(prefix="logging")
     buffer = routing_map.add_buffer(key)
-
-    yield buffer
-
-    routing_map.remove_buffer(key)
+    try:
+        yield buffer
+    finally:
+        routing_map.remove_buffer(key)
 
 
 class JSONFormatter(logging.Formatter):
