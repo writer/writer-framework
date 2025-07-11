@@ -20,7 +20,6 @@
 				</p>
 				<SharedButtonCopyClipboard
 					v-if="fields.quickCopy.value"
-					label="Copy"
 					:content="fields.text.value"
 				/>
 			</div>

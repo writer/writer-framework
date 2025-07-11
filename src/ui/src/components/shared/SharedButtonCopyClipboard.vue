@@ -2,7 +2,7 @@
 	<WdsButton
 		size="smallIcon"
 		variant="neutral"
-		:loading="isCoping"
+		:loading="isCopying"
 		class="floating-copy-button"
 		:class="{ copied }"
 		:label="copied ? 'Copied' : 'Copy'"
@@ -25,7 +25,7 @@ const props = defineProps({
 
 watch(toRef(props, "content"), () => (copied.value = false));
 
-const isCoping = ref(false);
+const isCopying = ref(false);
 const copied = ref(false);
 let timeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -35,7 +35,7 @@ async function copyToClipboard() {
 		timeout = undefined;
 	}
 
-	isCoping.value = true;
+	isCopying.value = true;
 
 	try {
 		await navigator.clipboard.writeText(props.content);
@@ -47,7 +47,7 @@ async function copyToClipboard() {
 	} catch (error) {
 		useLogger().error(error);
 	} finally {
-		isCoping.value = false;
+		isCopying.value = false;
 	}
 }
 
