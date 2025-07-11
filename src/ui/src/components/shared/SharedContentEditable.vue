@@ -34,8 +34,13 @@ async function onPressDelete(e: KeyboardEvent) {
 }
 
 onUpdated(() => {
-	if (previousSelection.value !== undefined)
+	if (!root.value) return;
+	if (
+		previousSelection.value !== undefined &&
+		root.value.contains(document.activeElement)
+	) {
 		setSelection(previousSelection.value);
+	}
 });
 
 function getSelection() {
