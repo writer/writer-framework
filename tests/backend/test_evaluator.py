@@ -197,6 +197,11 @@ class TestEvaluator:
         assert e.evaluate_expression("interests.-3.a", instance_path) is None
         assert e.evaluate_expression("interests.-3.1", instance_path) is None
 
+        assert e.evaluate_expression("context.best_feature", instance_path, {"context": {}}) is None
+        assert e.evaluate_expression("context.features", instance_path, {"context": {"features": "exist"}}) == "exist"
+        assert e.evaluate_expression("context.interests.1", instance_path, {"context": {"interests": ["A"]}}) is None
+        assert e.evaluate_expression("context.interests.2", instance_path, {"context": {"interests": ["A", "B","C"]}}) == "C"
+
     def test_get_context_data_should_return_the_target_of_event(self) -> None:
         """
         Test that the target of the event is correctly returned by the get_context_data method

@@ -215,22 +215,7 @@ class Evaluator:
         state_ref: Any = self.state.user_state
         accessors: List[str] = self.parse_expression(expr, instance_path, base_context)
 
-        for accessor in accessors:
-            if isinstance(state_ref, (writer.core.StateProxy, dict)) and accessor in state_ref:
-                state_ref = state_ref.get(accessor)
-                result = state_ref
-            elif isinstance(state_ref, list) and -len(state_ref) <= int(accessor) < len(state_ref):
-                state_ref = state_ref[int(accessor)]
-                result = state_ref
-            elif isinstance(context_ref, dict) and accessor in context_ref:
-                context_ref = context_ref.get(accessor)
-                result = context_ref
-            elif isinstance(context_ref, list) and -len(context_ref) <= int(accessor) < len(context_ref):
-                context_ref = context_ref[int(accessor)]
-                result = context_ref
-            else:
-                result = None
-                break
+        result = self._apply_accessors(accessors, state_ref, context_ref)
 
         if isinstance(result, writer.core.StateProxy):
             return result.to_dict()
@@ -239,3 +224,30 @@ class Evaluator:
             return self.get_env_variable_value(expr)
 
         return result
+
+    def _apply_accessors(self, accessors: List[str], state_ref: Any, context_ref: Any = None) -> Any:
+        if not accessors:
+            return state_ref
+        
+        result = self._apply_accessor(accessors[0], state_ref)
+        if result is None:
+            result = self._apply_accessor(accessors[0], context_ref)
+        if result is None:
+            return None
+
+        for accessor in accessors[1:]:
+            result = self._apply_accessor(accessor, result)
+
+        return result
+
+    def _apply_accessor(self, accessor: str, target: Any) -> Any:
+        if isinstance(target, (writer.core.StateProxy, dict)):
+            return target.get(accessor)
+        
+        if isinstance(target, list):
+            try:
+                return target[int(accessor)]
+            except IndexError:
+                pass
+        
+        return None
