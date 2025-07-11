@@ -229,11 +229,9 @@ class Evaluator:
         if not accessors:
             return state_ref
         
-        result = self._apply_accessor(accessors[0], state_ref)
+        result = self._apply_accessor(accessors[0], context_ref)
         if result is None:
-            result = self._apply_accessor(accessors[0], context_ref)
-        if result is None:
-            return None
+            result = self._apply_accessor(accessors[0], state_ref)
 
         for accessor in accessors[1:]:
             result = self._apply_accessor(accessor, result)
