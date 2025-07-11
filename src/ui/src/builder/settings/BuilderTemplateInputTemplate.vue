@@ -12,29 +12,20 @@
 		@right-icon-click="$emit('rightIconClick')"
 		@click="focus"
 	>
-		<SharedContentEditable
+		<BuilderTemplateEditor
 			ref="input"
 			class="BuilderTemplateInputTemplate__input"
 			:multiline
-			@input="onChange"
-		>
-			<StateWithPills
-				:content="model"
-				:background-colors="backgroundTagColors"
-			/>
-		</SharedContentEditable>
+			:model-value="model"
+			@update:model-value="onChange"
+		/>
 	</WdsTextInputLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, PropType, useTemplateRef } from "vue";
-import StateWithPills from "../stateDropdown/StateWithPills.vue";
-import SharedContentEditable from "@/components/shared/SharedContentEditable.vue";
+import { onMounted, PropType, useTemplateRef } from "vue";
 import WdsTextInputLayout from "@/wds/WdsTextInputLayout.vue";
-import { useDynamicUserState } from "../useDynamicUserState";
-import injectionKeys from "@/injectionKeys";
-import { extractObjectPaths } from "@/utils/object";
-import { WdsColor } from "@/wds/tokens";
+import BuilderTemplateEditor from "../templateEditor/BuilderTemplateEditor.vue";
 
 const model = defineModel({ type: String });
 
@@ -60,30 +51,6 @@ defineExpose({
 	setSelectionStart,
 });
 
-const wf = inject(injectionKeys.core);
-const secretsManager = inject(injectionKeys.secretsManager);
-
-const { bindings, blueprintsResults, blueprintsSetStates } =
-	useDynamicUserState(wf);
-
-const backgroundTagColors = computed(() => {
-	return {
-		[WdsColor.Green2]: new Set(
-			extractObjectPaths(wf.userStateInitial.value),
-		),
-		[WdsColor.Gray2]: new Set(extractObjectPaths(bindings.value)),
-		[WdsColor.Blue2]: new Set([
-			...extractObjectPaths(blueprintsSetStates.value),
-			...extractObjectPaths(blueprintsResults.value),
-		]),
-		[WdsColor.Yellow2]: new Set(
-			[...extractObjectPaths(secretsManager.secrets.value)].map(
-				(v) => `vault.${v}`,
-			),
-		),
-	};
-});
-
 const input = useTemplateRef("input");
 
 onMounted(() => {
@@ -98,12 +65,10 @@ async function onChange(value: string) {
 }
 
 function setSelectionStart(value: number) {
-	if (!input.value) return;
-	input.value.setSelection(value);
+	input.value?.setSelectionStart(value);
 }
 function setSelectionEnd(value: number) {
-	if (!input.value) return;
-	input.value.setSelection(value);
+	input.value?.setSelectionEnd(value);
 }
 
 function getSelection() {

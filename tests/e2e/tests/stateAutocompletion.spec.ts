@@ -4,7 +4,7 @@ const setTextField = async (page, text) => {
 	await page.locator("div.CoreText.component").click();
 	await page
 		.locator('.BuilderFieldsText[data-automation-key="text"]')
-		.locator(".StateWithPill")
+		.locator(".BuilderTemplateEditorContent")
 		.fill(text);
 };
 
@@ -36,7 +36,7 @@ test.describe("state autocompletion", () => {
 			field
 				.locator('.WdsDropdownMenuItem[data-automation-key="types.string"]')
 				.click();
-			await expect(field.locator(".StateWithPill")).toHaveText(
+			await expect(field.locator(".BuilderTemplateEditorContent")).toHaveText(
 				"@{types.string}",
 			);
 		});
@@ -67,7 +67,7 @@ test.describe("state autocompletion", () => {
 			await page.locator("div.CoreText.component").click();
 			await page
 				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"]')
-				.locator(".StateWithPill")
+				.locator(".BuilderTemplateEditorContent")
 				.focus();
 			await expect(
 				page.locator(
@@ -153,7 +153,7 @@ test.describe("state autocompletion", () => {
 			await field.locator(`button.WdsTab:text-matches("CSS")`).click();
 			await field
 				.locator(`.BuilderTemplateInput`)
-				.locator(".StateWithPill")
+				.locator(".BuilderTemplateEditorContent")
 				.fill("@{types.");
 			await expect(field.locator(`.WdsDropdownMenuItem__label`)).toHaveText([
 				"types.float",
@@ -163,7 +163,9 @@ test.describe("state autocompletion", () => {
 			]);
 			field.locator('[data-automation-key="types.string"]').click();
 			await expect(
-				field.locator(`.BuilderTemplateInput`).locator(".StateWithPill"),
+				field
+					.locator(`.BuilderTemplateInput`)
+					.locator(".BuilderTemplateEditorContent"),
 			).toHaveText("@{types.string}");
 		});
 	}

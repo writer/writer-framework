@@ -1,6 +1,6 @@
 <script lang="ts">
 import { computeTemplateParts } from "@/utils/template";
-import StateWithPillsTag from "./StateWithPillsTag.vue";
+import BuilderTemplateEditorContentTag from "./BuilderTemplateEditorContentTag.vue";
 import {
 	defineComponent,
 	h,
@@ -42,7 +42,7 @@ export default defineComponent({
 					children.push(...nodes);
 				} else {
 					children.push(
-						createVNode(StateWithPillsTag, {
+						createVNode(BuilderTemplateEditorContentTag, {
 							tag: part.content ?? "",
 							backgroundColors: backgroundColors.value,
 						}),
@@ -52,7 +52,7 @@ export default defineComponent({
 
 			return h(
 				"div",
-				{ class: "StateWithPill", key: content.value },
+				{ class: "BuilderTemplateEditorContent", key: content.value },
 				children.length > 0 ? children : createTextVNode(""),
 			);
 		};
@@ -61,19 +61,8 @@ export default defineComponent({
 </script>
 
 <style lang="css" scoped>
-.StateWithPill {
+.BuilderTemplateEditorContent {
 	width: 100%;
 	height: 100%;
-}
-.StateWithPill__tag {
-	background-color: var(--wdsColorGray0);
-	color: var(--wdsColorBlack);
-	padding: 4px 8px;
-	border-radius: 4px;
-}
-
-.StateWithPill__tag__bracket {
-	color: transparent;
-	caret-color: var(--wdsColorBlack);
 }
 </style>

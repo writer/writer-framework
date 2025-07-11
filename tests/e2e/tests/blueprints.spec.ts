@@ -97,7 +97,7 @@ test.describe("Blueprints", () => {
 		const payload = "blue";
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="payload"]`)
-			.locator(".StateWithPill")
+			.locator(".BuilderTemplateEditorContent")
 			.fill(payload);
 		// await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
@@ -106,7 +106,7 @@ test.describe("Blueprints", () => {
 		await returnValueBlock.click();
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="value"]`)
-			.locator(".StateWithPill")
+			.locator(".BuilderTemplateEditorContent")
 			.fill("@{result}");
 
 		await page.locator(`[data-automation-action="run-blueprint"]`).click();

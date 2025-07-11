@@ -28,7 +28,7 @@ test.describe("image", () => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="caption"]')
-			.locator(".StateWithPill")
+			.locator(".BuilderTemplateEditorContent")
 			.fill("Hello, World!");
 		await expect(page.locator(COMPONENT_LOCATOR)).toContainText(
 			"Hello, World!",

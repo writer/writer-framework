@@ -31,7 +31,7 @@ test.describe("Builder field validation", () => {
 			'.BuilderFieldsText[data-automation-key="cssClasses"]',
 		);
 		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
-		const fieldEditable = field.locator(".StateWithPill");
+		const fieldEditable = field.locator(".BuilderTemplateEditorContent");
 		await fieldEditable.fill("1234");
 
 		expect(await field.getAttribute("aria-invalid")).toBe("true");
@@ -57,7 +57,7 @@ test.describe("Builder field validation", () => {
 			'.BuilderFieldsText[data-automation-key="maximumCount"]',
 		);
 		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
-		const fieldEditable = field.locator(".StateWithPill");
+		const fieldEditable = field.locator(".BuilderTemplateEditorContent");
 		await fieldEditable.fill("1234");
 
 		await fieldEditable.fill("-1");

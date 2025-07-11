@@ -61,7 +61,7 @@ test.describe("undo and redo", () => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="text"]')
-			.locator(".StateWithPill")
+			.locator(".BuilderTemplateEditorContent")
 			.fill("cool text");
 		await collapseSettingsBar(page);
 		await page.locator('[data-automation-key="undo"]').click();

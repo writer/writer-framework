@@ -35,25 +35,30 @@ function onDblClick() {
 </script>
 
 <template>
-	<span ref="root" class="StateWithPillTag" :style @dblclick="onDblClick">
-		<span class="StateWithPillTag__sign">@</span
-		><span class="StateWithPillTag__bracket">{</span>{{ tag
-		}}<span class="StateWithPillTag__bracket">}</span></span
+	<span
+		ref="root"
+		class="BuilderTemplateEditorContentTag"
+		:style
+		@dblclick="onDblClick"
+	>
+		<span class="BuilderTemplateEditorContentTag__sign">@</span
+		><span class="BuilderTemplateEditorContentTag__bracket">{</span>{{ tag
+		}}<span class="BuilderTemplateEditorContentTag__bracket">}</span></span
 	>
 </template>
 
 <style lang="css" scoped>
-.StateWithPillTag {
+.BuilderTemplateEditorContentTag {
 	background-color: var(--wdsColorGray0);
 	color: var(--wdsColorBlack);
 	padding: 2px 8px;
 	border-radius: 4px;
 }
-.StateWithPillTag::selection {
+.BuilderTemplateEditorContentTag::selection {
 	background: var(--builderSelectedColor);
 }
 
-.StateWithPillTag__bracket {
+.BuilderTemplateEditorContentTag__bracket {
 	color: transparent;
 	caret-color: var(--wdsColorBlack);
 	display: inline-block;
