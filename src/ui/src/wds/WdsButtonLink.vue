@@ -1,7 +1,7 @@
 <template>
 	<button
 		class="WdsButtonLink"
-		:disabled="disbaled"
+		:disabled="disabled"
 		:class="className"
 		type="button"
 	>
@@ -32,7 +32,7 @@ const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
 	rightIcon: { type: String, required: false, default: undefined },
 	text: { type: String, required: true },
-	disbaled: { type: Boolean },
+	disabled: { type: Boolean },
 });
 const className = computed(() => [
 	`WdsButtonLink--variant-${props.variant}`,
