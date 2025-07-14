@@ -151,7 +151,11 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <span
           data-v-eb3dac76=""
           style="display: contents;"
-        />
+        >
+          <i
+            data-lucide="key-round"
+          />
+        </span>
       </div>
       
       <div
@@ -204,7 +208,11 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <span
           data-v-eb3dac76=""
           style="display: contents;"
-        />
+        >
+          <i
+            data-lucide="code"
+          />
+        </span>
       </div>
       
       <div

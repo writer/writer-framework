@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, useAttrs, watch } from "vue";
+import { nextTick, ref, toRef, useAttrs, watch } from "vue";
 import { createIcons, icons } from "lucide";
 
 defineOptions({
@@ -36,13 +36,13 @@ function renderIcon(name: string) {
 }
 
 watch(
-	() => props.name,
+	toRef(props, "name"),
 	(newName) => {
 		renderIcon(newName);
 	},
+	{
+		immediate: true,
+		flush: "post",
+	},
 );
-
-onMounted(() => {
-	renderIcon(props.name);
-});
 </script>
