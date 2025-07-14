@@ -44,7 +44,8 @@
 				autocorrect="off"
 				autocomplete="off"
 				spellcheck="false"
-				rows="3"
+				:rows="props.multilineRows"
+				:style="props.inputStyle"
 				:placeholder="props.placeholder"
 				:invalid="error !== undefined"
 				:autofocus="autofocus"
@@ -73,6 +74,7 @@
 
 <script setup lang="ts">
 import {
+	type CSSProperties,
 	PropType,
 	ref,
 	useTemplateRef,
@@ -95,9 +97,17 @@ const emit = defineEmits(["input", "update:value"]);
 
 const props = defineProps({
 	inputId: { type: String, required: false, default: undefined },
+	inputStyle: {
+		type: Object as PropType<CSSProperties>,
+		default: () => ({}),
+	},
 	componentId: { type: String, required: false, default: undefined },
 	value: { type: String, required: false, default: undefined },
 	multiline: { type: Boolean, required: false },
+	multilineRows: {
+		type: Number,
+		default: 3,
+	},
 	variant: {
 		type: String as PropType<"code" | "text">,
 		required: false,

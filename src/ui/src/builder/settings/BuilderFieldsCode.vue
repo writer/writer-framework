@@ -2,7 +2,7 @@
 	<BuilderEmbeddedCodeEditor
 		v-model="code"
 		:language="inputLanguage"
-		:variant="isExpanded ? 'full' : 'minimal'"
+		:variant="isExpanded ? 'half-screen' : 'minimal'"
 		class="BuilderFieldsCode"
 	>
 	</BuilderEmbeddedCodeEditor>

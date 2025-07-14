@@ -25,6 +25,9 @@
 				variant="text"
 				class="content"
 				:input-id="inputId"
+				:input-style="{
+					'min-height': isExpanded ? '50vh' : undefined,
+				}"
 				:component-id="componentId"
 				:value="component.content[fieldKey]"
 				:placeholder="templateField?.default"
@@ -52,6 +55,7 @@ const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
+	isExpanded: { type: Boolean },
 	autofocus: { type: Boolean },
 	type: {
 		type: String as PropType<"state" | "template">,
