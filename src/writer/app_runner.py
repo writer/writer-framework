@@ -459,25 +459,12 @@ class AppProcess(multiprocessing.Process):
 
         code_path = os.path.join(self.app_path, "main.py")
         with (
-            use_stdout_redirect() as stdout_buffer,
-            use_logging_redirect() as logging_buffer,
+            use_stdout_redirect(lambda entry: writer.core.initial_state.add_log_entry("info", "Stdout message during initialization", entry)),
+            use_logging_redirect(lambda entry: writer.core.initial_state.add_log_entry("info", "Logs during initialization", entry)),
         ):
             writeruserapp.__dict__["logger"] = user_code_logger
             code = compile(self.run_code, code_path, "exec")
             exec(code, writeruserapp.__dict__)
-
-            captured_stdout = stdout_buffer.getvalue()
-            captured_logs = logging_buffer.getvalue()
-
-        if captured_stdout:
-            writer.core.initial_state.add_log_entry(
-                "info", "Stdout message during initialization", captured_stdout
-            )
-
-        if captured_logs:
-            writer.core.initial_state.add_log_entry(
-                "info", "Logs during initialization", captured_logs
-            )
 
         # Register non-private functions as handlers
         self.handler_registry.register_module(writeruserapp)
