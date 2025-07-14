@@ -82,19 +82,11 @@ class CodeBlock(BlueprintBlock):
                 | {"set_output": self.set_output}
             )
 
-            captured_stdout = None
             with (
-                use_stdout_redirect() as stdout_buffer,
-                use_logging_redirect() as logging_buffer,
+                use_stdout_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured stdout", entry)),
+                use_logging_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured logs", entry)),
             ):
                 exec(code, block_globals | {"logger": exec_logger})
-                captured_stdout = stdout_buffer.getvalue()
-                captured_logs = logging_buffer.getvalue()
-
-            if captured_stdout:
-                self.runner.session.session_state.add_log_entry("info", "Captured stdout", captured_stdout)
-            if captured_logs:
-                self.runner.session.session_state.add_log_entry("info", "Captured logs", captured_logs)
 
             self.outcome = "success"
         except BaseException as e:

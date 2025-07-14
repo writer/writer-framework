@@ -1789,19 +1789,14 @@ class EventHandler:
     def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
         current_app_process = get_app_process()
         result = None
-        captured_stdout = None
         with (
             core_ui.use_component_tree(self.session.session_component_tree),
-            use_stdout_redirect() as f,
+            use_stdout_redirect(lambda entry: self.session_state.add_log_entry("info", "Stdout message", entry)),
         ):
             middlewares_executors = current_app_process.middleware_registry.executors()
             result = EventHandlerExecutor.invoke_with_middlewares(
                 middlewares_executors, handler_callable, calling_arguments
             )
-            captured_stdout = f.getvalue()
-
-        if captured_stdout:
-            self.session_state.add_log_entry("info", "Stdout message", captured_stdout)
 
         return result
 

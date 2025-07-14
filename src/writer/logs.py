@@ -4,7 +4,7 @@ import logging
 import logging.config
 import os
 from contextlib import contextmanager, redirect_stdout
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 WRITER_LOG_LEVEL = os.getenv("WRITER_LOG_LEVEL", "INFO")
 WRITER_LOG_FORMAT = os.getenv("WRITER_LOG_FORMAT", "text")  # 'text' or 'json'
@@ -109,7 +109,7 @@ class RoutingHandler(logging.StreamHandler):
 
 
 @contextmanager
-def use_stdout_redirect():
+def use_stdout_redirect(add_log_entry_func: Callable[[str], None]):
     """
     Context manager that redirects stdout to a context-specific buffer.
     """
@@ -121,10 +121,13 @@ def use_stdout_redirect():
             yield buffer
     finally:
         routing_map.remove_buffer(key)
+        stdout = buffer.getvalue()
+        if stdout:
+            add_log_entry_func(stdout)
 
 
 @contextmanager
-def use_logging_redirect():
+def use_logging_redirect(add_log_entry_func: Callable[[str], None]):
     """
     Context manager that redirects logging to a context-specific buffer.
     """
@@ -135,6 +138,9 @@ def use_logging_redirect():
         yield buffer
     finally:
         routing_map.remove_buffer(key)
+        logs = buffer.getvalue()
+        if logs:
+            add_log_entry_func(logs)
 
 
 class JSONFormatter(logging.Formatter):
