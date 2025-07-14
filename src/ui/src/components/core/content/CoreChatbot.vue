@@ -81,7 +81,7 @@ See the stubs for more details.
 				title="Send message"
 				@click="handleMessageSent"
 			>
-				<CoreChatbotSentMessageIcon />
+				<WdsIcon name="wds-send" />
 			</WdsControl>
 			<WdsControl
 				v-if="fields.enableFileUpload.value != 'no'"
@@ -299,7 +299,6 @@ import {
 	useTemplateRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
-import CoreChatbotSentMessageIcon from "./CoreChatBot/CoreChatbotSentMessageIcon.vue";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
 
