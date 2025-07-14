@@ -17,6 +17,7 @@ import time
 import traceback
 import typing
 import urllib.request
+from abc import ABC, abstractmethod
 from contextvars import ContextVar
 from multiprocessing.process import BaseProcess
 from types import ModuleType
@@ -27,6 +28,8 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Generic,
+    Iterator,
     List,
     Literal,
     Optional,
@@ -304,6 +307,8 @@ class StateSerialiser:
 
         if isinstance(v, State):
             return self._serialise_dict_recursively(v.to_dict())
+        if isinstance(v, StateProxy):
+            return v.serialise()
         if isinstance(v, Conversation):
             return v.serialized_messages
         if isinstance(v, (FileWrapper, BytesWrapper)):
@@ -454,44 +459,55 @@ class MutableValue:
         self._mutated = False
 
 
-class StateDictProxy:
-    """
-    The root user state and its children (nested states) are instances of this class.
-    Provides proxy functionality to detect state mutations via assignment.
-    """
+StateType = TypeVar("StateType", Dict[str, Any], List[Any])
 
-    def __init__(self, raw_state: Dict = {}):
-        self.state: Dict[str, Any] = {}
+class StateProxy(ABC, Generic[StateType]):
+    state: StateType
+
+    def __init__(self, raw_state: StateType):
+        self.reset_state()
         self.local_mutation_subscriptions: List[MutationSubscription] = []
         self.initial_assignment = True
         self.mutated: Set[str] = set()
         self.ingest(raw_state)
+    
+    @abstractmethod
+    def reset_state(self) -> None:
+        pass
 
     def __repr__(self) -> str:
         return self.state.__repr__()
 
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key) -> bool:
         return self.state.__contains__(key)
 
-    def ingest(self, raw_state: Dict) -> None:
-        for key, raw_value in raw_state.items():
+    @abstractmethod
+    def __getitem__(self, i) -> Any:
+        pass
+
+    def ingest(self, raw_state) -> None:
+        for key, raw_value in self.iterator(raw_state):
             self.__setitem__(key, raw_value)
 
-    def items(self) -> Sequence[Tuple[str, Any]]:
-        return cast(Sequence[Tuple[str, Any]], self.state.items())
+    def __delitem__(self, key) -> None:
+        if key in self.state:
+            del self.state[key]
+            self._apply_raw(f"-{key}")  # Using "-" prefix to indicate deletion
 
-    def get(self, key: str) -> Any:
-        return self.state.get(key)
-
-    def __getitem__(self, key: str) -> Any:
-        return self.state.get(key)
+    def _apply_raw(self, key) -> None:
+        self.mutated.add(key)
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
         with state_recursion_new(key):
             if not isinstance(key, str):
-                raise ValueError(f"State keys must be strings. Received {str(key)} ({type(key)}).")
-            old_value = self.state.get(key)
-            self.state[key] = raw_value
+                raise ValueError(f"State keys must be strings. Received {key} ({type(key)}).")
+            
+            sanitized_key = self._sanitize_key(key)
+            try:
+                old_value = self.state[sanitized_key]
+            except (KeyError, IndexError):
+                old_value = None
+            self.state[sanitized_key] = raw_value
 
             for local_mutation in self.local_mutation_subscriptions:
                 if local_mutation.local_path == key:
@@ -517,16 +533,9 @@ class StateDictProxy:
 
             self._apply_raw(f"+{key}")
 
-    def __delitem__(self, key: str) -> None:
-        if key in self.state:
-            del self.state[key]
-            self._apply_raw(f"-{key}")  # Using "-" prefix to indicate deletion
-
-    def remove(self, key: str) -> None:
-        return self.__delitem__(key)
-
-    def _apply_raw(self, key: str) -> None:
-        self.mutated.add(key)
+    @abstractmethod
+    def _sanitize_key(self, key: Any) -> Any:
+        pass
 
     def apply_mutation_marker(self, key: Optional[str] = None, recursive: bool = False) -> None:
         """
@@ -542,18 +551,18 @@ class StateDictProxy:
 
         >>> self.apply_mutation_marker(recursive=True)
         """
-        keys = [key] if key is not None else self.state.keys()
+        keys = self._get_mutation_marker_keys(key)
 
         for k in keys:
             self._apply_raw(f"+{k}")
             if recursive is True:
                 value = self.state[k]
-                if isinstance(value, StateDictProxy):
+                if isinstance(value, StateProxy):
                     value.apply_mutation_marker(recursive=True)
-
-    @staticmethod
-    def escape_key(key):
-        return key.replace(".", r"\.")
+    
+    @abstractmethod
+    def _get_mutation_marker_keys(self, key: Optional[str] = None) -> List:
+        pass
 
     def get_mutations_as_dict(self) -> Dict[str, Any]:
         serialised_mutations: Dict[str, Union[Dict, List, str, bool, int, float, None]] = {}
@@ -562,14 +571,14 @@ class StateDictProxy:
             child_mutation_flag, child_key = child_key[0], child_key[1:]
             return f"{child_mutation_flag}{base_key}.{child_key}"
 
-        for key, value in list(self.state.items()):
+        for key, value in self.iterator(self.state):
             if key.startswith("_"):
                 continue
 
             escaped_key = self.escape_key(key)
             serialised_value = None
 
-            if isinstance(value, StateDictProxy):
+            if isinstance(value, StateProxy):
                 if f"+{key}" in self.mutated:
                     serialised_mutations[f"+{escaped_key}"] = serialised_value
                 value.initial_assignment = False
@@ -587,7 +596,7 @@ class StateDictProxy:
                         f"""Couldn't serialise value of type "{ type(value) }" for key "{ key }"."""
                     )
                 serialised_mutations[f"+{escaped_key}"] = serialised_value
-            elif isinstance(value, MutableValue) is True and value.mutated():
+            elif isinstance(value, MutableValue) and value.mutated():
                 try:
                     serialised_value = state_serialiser.serialise(value)
                     value.reset_mutation()
@@ -604,7 +613,54 @@ class StateDictProxy:
         self.mutated = set()
         return serialised_mutations
 
-    def to_dict(self) -> Dict[str, Any]:
+    @abstractmethod
+    def serialise(self) -> StateType:
+        pass
+
+    @abstractmethod
+    def to_raw_state(self) -> StateType:
+        pass
+
+    @staticmethod
+    def escape_key(key: str) -> str:
+        return key.replace(".", r"\.")
+    
+    @classmethod
+    @abstractmethod
+    def iterator(cls, val: StateType) -> Iterator[Tuple[str, Any]]:
+        pass
+
+    def items(self) -> Iterator[Tuple[str, Any]]:
+        return self.iterator(self.state)
+
+
+class StateDictProxy(StateProxy[Dict[str, Any]]):
+    """
+    The root user state and its children (nested states) are instances of this class.
+    Provides proxy functionality to detect state mutations via assignment.
+    """
+
+    def reset_state(self):
+        self.state = {}
+
+    def get(self, key: str) -> Any:
+        return self.state.get(key)
+
+    def __getitem__(self, key: str) -> Any:
+        return self.state.get(key)
+
+    def remove(self, key: str) -> None:
+        return self.__delitem__(key)
+
+    def _get_mutation_marker_keys(self, key: Optional[str] = None) -> List[str]:
+        return [key] if key is not None else list(self.state.keys())
+
+    def _sanitize_key(self, key: Any) -> str:
+        if not isinstance(key, str):
+            key = str(key)
+        return key
+
+    def serialise(self):
         serialised = {}
         for key, value in self.state.items():
             if key.startswith("_"):
@@ -631,11 +687,92 @@ class StateDictProxy:
         """
         raw_state = {}
         for key, value in self.state.items():
-            if isinstance(value, StateDictProxy):
+            if isinstance(value, StateProxy):
                 value = value.to_raw_state()
             raw_state[key] = value
 
         return raw_state
+    
+    @classmethod
+    def iterator(cls, val):
+        return val.items()
+
+
+class StateListProxy(StateProxy[List]):
+    """
+    The root user state and its children (nested states) are instances of this class.
+    Provides proxy functionality to detect state mutations via assignment.
+    """
+
+    def reset_state(self):
+        self.state = []
+
+    def __getitem__(self, i) -> Any:
+        try:
+            return self.state.__getitem__(int(i))
+        except IndexError:
+            return None
+
+    def _get_mutation_marker_keys(self, key: Optional[str] = None) -> List[int]:
+        return [int(key)] if key is not None else list(range(len(self.state)))
+
+    def __setitem__(self, key, raw_value):
+        self.state.insert(int(key), None)
+        return super().__setitem__(key, raw_value)
+
+    def _sanitize_key(self, key: Any) -> int:
+        if not isinstance(key, int):
+            key = int(key)
+        return key
+
+    def serialise(self):
+        serialised = []
+        for index, value in enumerate(self.state):
+            try:
+                serialised_value = state_serialiser.serialise(value)
+            except BaseException:
+                raise ValueError(
+                    f"""Couldn't serialise value of type "{ type(value) }" at index "{ index }"."""
+                )
+            serialised.append(serialised_value)
+        return serialised
+
+    def to_raw_state(self):
+        """
+        Converts a StateListProxy and its children into a python list.
+
+        >>> state = State(['a', 'b': {'a': 1, 'b': 3}])
+        >>> _raw_state = state._state_proxy.to_raw_state()
+        >>> ['a', 'b': {'a': 1, 'b': 3}]
+
+        :return: a python list that represents the raw state
+        """
+        raw_state = []
+        for value in self.state:
+            if isinstance(value, StateProxy):
+                value = value.to_raw_state()
+            raw_state.append(value)
+
+        return raw_state
+    
+    @classmethod
+    def iterator(cls, val):
+        return [(str(i), v) for i, v in enumerate(val)]
+
+    def __iadd__(self, other):
+        initial_len = len(self.state)
+        for index, value in enumerate(other):
+            self.__setitem__(str(initial_len + index), value)
+        return self
+
+
+    def __imul__(self, other):
+        initial_len = len(self.state)
+        initial_state = copy.deepcopy(self.state)
+        for j in range(other - 1):
+            for index, value in enumerate(initial_state):
+                self.__setitem__(str(initial_len + index + j), value)
+        return self
 
 
 def get_annotations(instance) -> Dict[str, Any]:
@@ -706,17 +843,22 @@ class StateMeta(type):
 
 
 class State(metaclass=StateMeta):
-    def __init__(self, raw_state: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, raw_state: Optional[Union[Dict[str, Any], List[Any]]] = None):
         final_raw_state = raw_state if raw_state is not None else {}
 
-        self._state_proxy: StateDictProxy = StateDictProxy(final_raw_state)
+        self._state_proxy: StateProxy
+        if isinstance(final_raw_state, list):
+            self._state_proxy = StateListProxy(final_raw_state)
+        else:
+            self._state_proxy = StateDictProxy(final_raw_state)
         self.ingest(final_raw_state)
 
         # This step saves the properties associated with the instance
         for attribute in calculated_properties_per_state_type.get(self.__class__, []):
             getattr(self, attribute)
 
-    def ingest(self, raw_state: Dict[str, Any]) -> None:
+    def ingest(self, raw_state: Union[Dict[str, Any], List[Any]]) -> None:
         """
         hydrates a state from raw data by applying a schema when it is provided.
         The existing content in the state is erased.
@@ -726,10 +868,10 @@ class State(metaclass=StateMeta):
         >>> state.ingest({'a': 1, 'b': 2})
         >>> {'a': 1, 'b': 2}
         """
-        self._state_proxy.state = {}
-        for key, value in raw_state.items():
+        self._state_proxy.reset_state()
+        for key, value in self._state_proxy.iterator(raw_state):
             assert not isinstance(
-                value, StateDictProxy
+                value, StateProxy
             ), f"state proxy datatype is not expected in ingest operation, {locals()}"
             self._set_state_item(key, value)
 
@@ -742,11 +884,11 @@ class State(metaclass=StateMeta):
         >>> state = WriterState({'message': "hello world"})
         >>> return state.to_dict()
         """
-        return self._state_proxy.to_dict()
+        return self._state_proxy.serialise()
 
     def to_raw_state(self) -> dict:
         """
-        Converts a StateDictProxy and its children into a python dictionary that can be used to recreate the
+        Converts a StateProxy and its children into a python object that can be used to recreate the
         state from scratch.
 
         >>> state = WriterState({'a': 1, 'c': {'a': 1, 'b': 3}})
@@ -772,7 +914,7 @@ class State(metaclass=StateMeta):
 
     def __setitem__(self, key: str, raw_value: Any) -> None:
         assert not isinstance(
-            raw_value, StateDictProxy
+            raw_value, StateProxy
         ), f"state proxy datatype is not expected, {locals()}"
 
         self._set_state_item(key, raw_value)
@@ -785,8 +927,8 @@ class State(metaclass=StateMeta):
 
     def items(self) -> Generator[Tuple[str, Any], None, None]:
         for k, v in self._state_proxy.items():
-            if isinstance(v, StateDictProxy):
-                # We don't want to expose StateDictProxy to the user, so
+            if isinstance(v, StateProxy):
+                # We don't want to expose StateProxy to the user, so
                 # we replace it with relative State
                 yield k, getattr(self, k)
             else:
@@ -799,18 +941,27 @@ class State(metaclass=StateMeta):
         """ """
 
         """
-        At this level, the values that arrive are either States which encapsulate a StateDictProxy, or another datatype. 
-        If there is a StateDictProxy, it is a fault in the code.
+        At this level, the values that arrive are either States which encapsulate a StateProxy, or another datatype. 
+        If there is a StateProxy, it is a fault in the code.
         """
         annotations = get_annotations(self)
-        expected_type = annotations.get(key, None)
-        expect_dict = _type_match_dict(expected_type)
-        if isinstance(value, dict) and not expect_dict:
+        annotated_type = annotations.get(key, None)
+        if isinstance(value, dict) and not _type_match(annotated_type, dict):
             """
             When the value is a dictionary and the attribute does not explicitly 
             expect a dictionary, we instantiate a new state to manage mutations.
             """
             state = annotations[key](value) if key in annotations else State()
+            if not isinstance(state, State):
+                raise ValueError(
+                    f"Attribute {key} must inherit of State or requires a dict to accept dictionary"
+                )
+
+            setattr(self, key, state)
+            state.ingest(value)
+            self._state_proxy[key] = state._state_proxy
+        elif isinstance(value, list) and not _type_match(annotated_type, list):
+            state = annotations[key](value) if key in annotations else State(raw_state=[])
             if not isinstance(state, State):
                 raise ValueError(
                     f"Attribute {key} must inherit of State or requires a dict to accept dictionary"
@@ -958,7 +1109,7 @@ class WriterState(State):
         self.mail = copy.deepcopy(mail)
 
     @property
-    def user_state(self) -> StateDictProxy:
+    def user_state(self) -> StateProxy:
         return self._state_proxy
 
     @classmethod
@@ -2305,28 +2456,28 @@ def _deserialize_bigint_format(payload: Optional[Union[dict, list]]):
     return payload
 
 
-def _type_match_dict(expected_type: Type):
+def _type_match(type_to_check: Type, expected_type: Type):
     """
     Checks if the expected type expect a dictionary type
 
-    >>> _type_match_dict(dict) # True
-    >>> _type_match_dict(int) # False
-    >>> _type_match_dict(Dict[str, Any]) # True
+    >>> _type_match_dict(dict, dict) # True
+    >>> _type_match_dict(int, dict) # False
+    >>> _type_match_dict(Dict[str, Any], dict) # True
 
     >>> class SpecifcDict(TypedDict):
     >>>     a: str
     >>>     b: str
     >>>
-    >>> _type_match_dict(SpecifcDict) # True
+    >>> _type_match_dict(SpecifcDict, dict) # True
     """
     if (
-        expected_type is not None
-        and inspect.isclass(expected_type)
-        and issubclass(expected_type, dict)
+        type_to_check is not None
+        and inspect.isclass(type_to_check)
+        and issubclass(type_to_check, expected_type)
     ):
         return True
 
-    if typing.get_origin(expected_type) == dict:
+    if typing.get_origin(type_to_check) == dict:
         return True
 
     return False

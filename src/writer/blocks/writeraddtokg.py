@@ -1,3 +1,5 @@
+import base64
+import re
 from typing import Any
 
 from writer.abstract import register_abstract_template
@@ -57,6 +59,14 @@ class WriterAddToKG(WriterBlock):
 
         if "data" not in raw_file or "type" not in raw_file or "name" not in raw_file:
             raise WriterConfigurationError("A file specified as a dictionary must contain `data`, `type` and `name` attributes.")
+
+        if isinstance(raw_file["data"], str):
+            match = re.match(r'data:(.*?);base64,(.*)', raw_file["data"])
+            if not match:
+                raw_file["data"] = raw_file["data"].encode()
+            else:
+                b64_data = match.group(2)
+                raw_file["data"] = base64.b64decode(b64_data)
 
         return raw_file
 

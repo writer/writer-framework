@@ -7,7 +7,7 @@ def test_empty_list(session, runner):
     block = AddToStateList(component, runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["my_list"] == ["my_value"]
+    assert session.session_state["my_list"]._state_proxy.state == ["my_value"]
 
 
 def test_non_empty_list(session, runner):
@@ -16,7 +16,7 @@ def test_non_empty_list(session, runner):
     block = AddToStateList(component, runner, {})
     block.run()
     assert block.outcome == "success"
-    assert session.session_state["my_list"] == ["a", "b"]
+    assert session.session_state["my_list"]._state_proxy.state == ["a", "b"]
 
 
 def test_non_list_element(session, runner):

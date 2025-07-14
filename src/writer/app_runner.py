@@ -170,7 +170,7 @@ class AppProcess(multiprocessing.Process):
 
         user_state = {}
         try:
-            user_state = session.session_state.user_state.to_dict()
+            user_state = session.session_state.user_state.serialise()
         except BaseException:
             session.session_state.add_log_entry("error", "Serialisation error", tb.format_exc())
 

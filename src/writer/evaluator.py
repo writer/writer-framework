@@ -143,7 +143,7 @@ class Evaluator:
                 state_ref = state_ref[accessor]
 
         if not isinstance(
-            state_ref, (writer.core.State, writer.core.WriterState, writer.core.StateDictProxy, dict)
+            state_ref, (writer.core.State, writer.core.WriterState, writer.core.StateProxy, dict)
         ):
             raise ValueError(
                 f'Reference "{expr}" cannot be translated to state. Found value of type "{type(state_ref)}".'
@@ -217,8 +217,8 @@ class Evaluator:
 
         result = self._apply_accessors(accessors, state_ref, context_ref)
 
-        if isinstance(result, writer.core.StateDictProxy):
-            return result.to_dict()
+        if isinstance(result, writer.core.StateProxy):
+            return result.serialise()
 
         if result is None and expr.startswith("$"):
             return self.get_env_variable_value(expr)
@@ -242,7 +242,7 @@ class Evaluator:
         if isinstance(target, (writer.core.StateDictProxy, dict)):
             return target.get(accessor)
         
-        if isinstance(target, list):
+        if isinstance(target, (writer.core.StateListProxy, list)):
             try:
                 return target[int(accessor)]
             except IndexError:

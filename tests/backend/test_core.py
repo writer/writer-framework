@@ -77,21 +77,30 @@ class TestStateDictProxy(unittest.TestCase):
         self.sp_simple_dict = State(simple_dict)._state_proxy
 
     @classmethod
-    def count_initial_mutations(cls, d, count=0):
+    def count_initial_mutations(cls, obj) -> int:
         """
         Counts the number of mutations that will be performed for a given dictionary
-        when it is converted into a StateDictProxy.
+        when it is converted into a StateProxy.
         """
-        for key, value in d.items():
-            if not key.startswith("_"):
-                count += 1  # Increment for each key-value pair
-                if isinstance(value, dict):
-                    count = TestStateDictProxy.count_initial_mutations(value, count)
-                    # Recurse for nested dictionaries
+        # Subtract 1 to compensate for the "root" state object.
+        # It is counted but doesn't cause a mutation
+        return cls._count_nested(obj) - 1
+    
+    @classmethod
+    def _count_nested(cls, obj) -> int:
+        count = 1
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if not key.startswith("_"):
+                    count += TestStateDictProxy._count_nested(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                count += TestStateDictProxy._count_nested(value)
+
         return count
 
     def test_read(self) -> None:
-        d = self.sp.to_dict()
+        d = self.sp.serialise()
         assert d.get("name") == "Robert"
         assert d.get("age") == 1
         assert d.get("state.with.dots").get("photo.jpeg") == "Not available"
@@ -99,7 +108,7 @@ class TestStateDictProxy(unittest.TestCase):
 
     def test_mutations(self) -> None:
         m = self.sp.get_mutations_as_dict()
-        assert len(m) == TestStateDictProxy.count_initial_mutations(self.sp.to_dict())
+        assert len(m) == TestStateDictProxy.count_initial_mutations(self.sp.serialise())
         # Mutated after initialization from raw_state_dict
 
         self.sp["age"] = 2
@@ -107,21 +116,32 @@ class TestStateDictProxy(unittest.TestCase):
         assert m.get("+age") == 2
         assert len(m) == 1
 
-        self.sp["interests"] += ["dogs"]
+        self.sp["interests"] += ["dogs", "books"]
         self.sp["features"]["height"] = "short"
         m = self.sp.get_mutations_as_dict()
-        assert m.get("+interests") == ["lamps", "cars", "dogs"]
+        assert m.get("+interests") is None
+        assert m.get("+interests.2") == "dogs"
+        assert m.get("+interests.3") == "books"
         assert m.get("+features.height") == "short"
-        assert len(m) == 2
+        assert len(m) == 4
+
+        self.sp["interests"] *= 2
+        m = self.sp.get_mutations_as_dict()
+        assert m.get("+interests") is None
+        assert m.get("+interests.4") == "lamps"
+        assert m.get("+interests.5") == "cars"
+        assert m.get("+interests.6") == "dogs"
+        assert m.get("+interests.7") == "books"
+        assert len(m) == 5
 
         self.sp["state.with.dots"]["photo.jpeg"] = "Corrupted"
         m = self.sp.get_mutations_as_dict()
         assert m.get("+state\\.with\\.dots.photo\\.jpeg") == "Corrupted"
         assert len(m) == 1
 
-        d = self.sp.to_dict()
+        d = self.sp.serialise()
         assert d.get("age") == 2
-        assert d.get("interests") == ["lamps", "cars", "dogs"]
+        assert d.get("interests") == ["lamps", "cars", "dogs", "books", "lamps", "cars", "dogs", "books"]
         assert d.get("features").get("height") == "short"
         assert d.get("state.with.dots").get("photo.jpeg") == "Corrupted"
 
@@ -146,7 +166,7 @@ class TestStateDictProxy(unittest.TestCase):
             "+best_feature": "eyes",
             "+counter": 4,
             "+features": None,
-            "+interests": ["lamps", "cars"],
+            "+interests": None,
             "+name": "Robert",
             "+state\\.with\\.dots": None,
             "+utfࠀ": 23,
@@ -181,7 +201,7 @@ class TestStateDictProxy(unittest.TestCase):
         assert "-items.Lettuce" in m
 
     def test_private_members(self) -> None:
-        d = self.sp.to_dict()
+        d = self.sp.serialise()
         assert d.get("_private") is None
         assert d.get("_private_unserialisable") is None
 
@@ -661,7 +681,7 @@ class TestWriterState:
     base_s = WriterState(raw_state_dict)
 
     def test_dict_json_serialisable(self) -> None:
-        json.dumps(self.base_s.user_state.to_dict())
+        json.dumps(self.base_s.user_state.serialise())
         json.dumps(self.base_s.mail)
 
     def test_read(self) -> None:
@@ -672,9 +692,9 @@ class TestWriterState:
 
     def test_get_clone(self) -> None:
         cloned_s = self.base_s.get_clone()
-        assert self.base_s.user_state.to_dict() == cloned_s.user_state.to_dict()
+        assert self.base_s.user_state.serialise() == cloned_s.user_state.serialise()
         assert self.base_s.mail == cloned_s.mail
-        json.dumps(cloned_s.user_state.to_dict())
+        json.dumps(cloned_s.user_state.serialise())
         json.dumps(cloned_s.mail)
 
     def test_get_new(self) -> None:
@@ -690,7 +710,7 @@ class TestWriterState:
         assert cloned_s["age"] == 2
         assert cloned_s["features"]["eyes"] == "green"
         assert cloned_s["features"]["height"] == "short"
-        json.dumps(cloned_s.user_state.to_dict())
+        json.dumps(cloned_s.user_state.serialise())
         json.dumps(cloned_s.mail)
 
     def test_mail(self) -> None:
@@ -702,7 +722,7 @@ class TestWriterState:
 
         self.base_s.clear_mail()
         assert len(self.base_s.mail) == 0
-        json.dumps(self.base_s.user_state.to_dict())
+        json.dumps(self.base_s.user_state.serialise())
         json.dumps(self.base_s.mail)
 
     def test_non_str_keys(self) -> None:
@@ -721,10 +741,10 @@ class TestWriterState:
         # A substitute state with an error message should be provided
 
         cloned = bad_base_s.get_clone()
-        assert cloned.user_state.to_dict() == {}
+        assert cloned.user_state.serialise() == {}
         assert cloned.mail[0].get("type") == "logEntry"
         assert cloned.mail[0].get("payload").get("type") == "error"
-        json.dumps(cloned.user_state.to_dict())
+        json.dumps(cloned.user_state.serialise())
         json.dumps(cloned.mail)
 
 

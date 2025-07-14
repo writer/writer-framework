@@ -41,7 +41,8 @@ def test_set_state(session, runner):
     block._set_state("my_dict", {"animal": "cat"})
     block.run()
     assert session.session_state["animal"] == "bat"
-    assert session.session_state["my_list"] == [1, 2]
+    assert session.session_state["my_list"]["0"] == 1
+    assert session.session_state["my_list"]["1"] == 2
     assert session.session_state["my_dict"]["animal"] == "cat"
     assert session.session_state["unchanged"] == "unchanged"
     assert block.outcome is None
