@@ -14,9 +14,12 @@ FAILOVER_BUFFER = "failover"
 
 
 def get_routing_key(prefix: Optional[str] = None) -> str:
-    from writer.blueprints import get_current_block
+    try:
+        from writer.blueprints import get_current_block
+        current_block = get_current_block()
+    except RuntimeError:
+        current_block = None
 
-    current_block = get_current_block()
     key = FAILOVER_ROUTING_KEY
     if current_block is not None:
         key = current_block.component.id
@@ -145,8 +148,14 @@ def use_logging_redirect(add_log_entry_func: Callable[[str], None]):
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord, **kwargs) -> str:
-        from writer.blueprints import get_current_block
-        from writer.core import get_app_process, get_session
+        try:
+            from writer.blueprints import get_current_block
+            from writer.core import get_app_process, get_session
+            current_block = get_current_block()
+            app_process = get_app_process()
+            session = get_session()
+        except RuntimeError:
+            current_block = None
 
         data: Dict[str, Any] = {
             "severity": record.levelname.upper(),
@@ -164,17 +173,12 @@ class JSONFormatter(logging.Formatter):
                 "type": current_block.component.type
             }
 
-        session = get_session()
         if session is not None:
             data["session"] = {
                 "id": session.session_id,
             }
 
-        try:
-            app_process = get_app_process()
-            data["process"]["mode"] = app_process.mode
-        except RuntimeError:
-            pass
+        data["process"]["mode"] = app_process.mode
 
         if isinstance(record.args, dict):
             data.update(record.args)
