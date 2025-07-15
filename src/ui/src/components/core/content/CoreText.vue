@@ -43,6 +43,7 @@ import {
 } from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
+import WdsButton from "@/wds/WdsButton.vue";
 
 const clickHandlerStub = `
 def click_handler(state):

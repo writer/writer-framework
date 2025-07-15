@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
 	autocompleteTemplateVariable,
+	computeTemplateParts,
 	getCurrentOpenedTemplate,
 } from "./template";
 
@@ -37,5 +38,78 @@ describe(getCurrentOpenedTemplate.name, () => {
 		{ input: "@{other.var} foo", result: "" },
 	])("should assign %s", ({ input, result }) => {
 		expect(getCurrentOpenedTemplate(input)).toStrictEqual(result);
+	});
+});
+
+describe(computeTemplateParts.name, () => {
+	it.each([
+		{ input: "@", result: [{ content: "@", type: "text" }] },
+		{ input: "@{tag", result: [{ content: "@{tag", type: "text" }] },
+		{ input: "@{tag1}", result: [{ content: "tag1", type: "tag" }] },
+		{
+			input: "before @{tag1} after",
+			result: [
+				{ content: "before ", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: " after", type: "text" },
+			],
+		},
+		{
+			input: "before @{tag.1.var} after @{tag2}",
+			result: [
+				{ content: "before ", type: "text" },
+				{ content: "tag.1.var", type: "tag" },
+				{ content: " after ", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "@{tag\n@{tag2}",
+			result: [
+				{ content: "@{tag", type: "text" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "@{tag1}\n@{tag2}",
+			result: [
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\n@{tag2}",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\nafter@{tag2}",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "after", type: "text" },
+				{ content: "tag2", type: "tag" },
+			],
+		},
+		{
+			input: "before@{tag1}\nafter@{tag2}\n",
+			result: [
+				{ content: "before", type: "text" },
+				{ content: "tag1", type: "tag" },
+				{ content: "\n", type: "text" },
+				{ content: "after", type: "text" },
+				{ content: "tag2", type: "tag" },
+				{ content: "\n", type: "text" },
+			],
+		},
+	])("should transform $input", ({ input, result }) => {
+		expect(Array.from(computeTemplateParts(input))).toStrictEqual(result);
 	});
 });

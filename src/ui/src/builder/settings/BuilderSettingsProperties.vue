@@ -73,7 +73,6 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
-						:is-expanded="expandedFields.has(fieldKey)"
 					/>
 
 					<BuilderFieldsBlueprintKey

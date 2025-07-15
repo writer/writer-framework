@@ -3,7 +3,8 @@ import { test, expect } from "@playwright/test";
 const setTextField = async (page, text) => {
 	await page.locator("div.CoreText.component").click();
 	await page
-		.locator('.BuilderFieldsText[data-automation-key="text"] textarea')
+		.locator('.BuilderFieldsText[data-automation-key="text"]')
+		.locator(".BuilderTemplateEditorContent")
 		.fill(text);
 };
 

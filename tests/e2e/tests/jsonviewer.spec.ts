@@ -25,10 +25,16 @@ test.describe("JSON viewer", () => {
 
 		expect(await page.locator(".CoreJsonViewer details[open]").count()).toBe(0);
 
-		await page.getByRole("combobox").first().fill("1");
+		await page
+			.locator('.BuilderFieldsText[data-automation-key="initialDepth"]')
+			.locator(".BuilderTemplateEditorContent")
+			.fill("1");
 		expect(await page.locator(".CoreJsonViewer details[open]").count()).toBe(1);
 
-		await page.getByRole("combobox").first().fill("-1");
+		await page
+			.locator('.BuilderFieldsText[data-automation-key="initialDepth"]')
+			.locator(".BuilderTemplateEditorContent")
+			.fill("-1");
 		expect(await page.locator(".CoreJsonViewer details[open]").count()).toBe(5);
 	});
 });

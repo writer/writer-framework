@@ -27,15 +27,17 @@ test.describe("Builder field validation", () => {
 		await page.locator(`button.CoreButton.component`).click();
 
 		// css classes
-
-		const cssClasses = page.locator(
-			'.BuilderFieldsText[data-automation-key="cssClasses"] input',
+		const fieldWrapper = page.locator(
+			'.BuilderFieldsText[data-automation-key="cssClasses"]',
 		);
-		await cssClasses.fill("1234");
-		expect(await cssClasses.getAttribute("aria-invalid")).toBe("true");
+		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
+		const fieldEditable = field.locator(".BuilderTemplateEditorContent");
+		await fieldEditable.fill("1234");
 
-		await cssClasses.fill("class1 class2");
-		expect(await cssClasses.getAttribute("aria-invalid")).toBe("false");
+		expect(await field.getAttribute("aria-invalid")).toBe("true");
+
+		await fieldEditable.fill("class1 class2");
+		expect(await field.getAttribute("aria-invalid")).toBe("false");
 	});
 
 	test("should display error for invalid multiselectinput fields", async ({
@@ -51,14 +53,17 @@ test.describe("Builder field validation", () => {
 
 		// maximum count
 
-		const maximunCountInput = page.locator(
-			'.BuilderFieldsText[data-automation-key="maximumCount"] input',
+		const fieldWrapper = page.locator(
+			'.BuilderFieldsText[data-automation-key="maximumCount"]',
 		);
+		const field = fieldWrapper.locator(".BuilderTemplateInputTemplate");
+		const fieldEditable = field.locator(".BuilderTemplateEditorContent");
+		await fieldEditable.fill("1234");
 
-		await maximunCountInput.fill("-1");
-		expect(await maximunCountInput.getAttribute("aria-invalid")).toBe("true");
+		await fieldEditable.fill("-1");
+		expect(await field.getAttribute("aria-invalid")).toBe("true");
 
-		await maximunCountInput.fill("2");
-		expect(await maximunCountInput.getAttribute("aria-invalid")).toBe("false");
+		await fieldEditable.fill("2");
+		expect(await field.getAttribute("aria-invalid")).toBe("false");
 	});
 });

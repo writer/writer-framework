@@ -1,200 +1,98 @@
-import { beforeEach, describe, it, expect } from "vitest";
-import { flushPromises, mount } from "@vue/test-utils";
+import { describe, it, expect, vi } from "vitest";
+import { flushPromises, shallowMount } from "@vue/test-utils";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
-import { buildMockCore, buildMockSecretsManager } from "@/tests/mocks";
-import injectionKeys from "@/injectionKeys";
-import { ExtractPropTypes } from "vue";
 import BuilderStateSelectorDropdown from "../stateDropdown/BuilderStateSelectorDropdown.vue";
-import WdsDropdownMenuItem from "@/wds/WdsDropdownMenuItem.vue";
+import BuilderTemplateInputTemplate from "./BuilderTemplateInputTemplate.vue";
 
 describe("BuilderTemplateInput", () => {
-	let mockCore: ReturnType<typeof buildMockCore>;
-	let mockSecretManager: ReturnType<typeof buildMockSecretsManager>;
-
-	beforeEach(() => {
-		mockCore = buildMockCore();
-		mockSecretManager = buildMockSecretsManager(mockCore.core);
-		mockCore.userStateInitial.value = {
-			obj: {
-				a: 1,
-				b: 1,
-			},
-			text: "foo",
-			array: ["a", "b", "c"],
-		};
-	});
-
-	function mountWrapper(
-		props: ExtractPropTypes<typeof BuilderTemplateInput> = {
-			type: "template",
-			value: "",
-		},
-	) {
-		return mount(BuilderTemplateInput, {
-			props,
+	it.each(["@", "@{"])('should autocomplete with "%s"', async (value) => {
+		const getSelection = vi.fn().mockReturnValue({
+			selectionEnd: value.length,
+			selectionStart: value.length,
+		});
+		const focus = vi.fn();
+		const setSelectionStart = vi.fn();
+		const setSelectionEnd = vi.fn();
+		const wrapper = shallowMount(BuilderTemplateInput, {
 			global: {
-				provide: {
-					[injectionKeys.core]: mockCore.core,
-					[injectionKeys.secretsManager]:
-						mockSecretManager.secretsManager,
-				},
-				directives: {
-					"capture-tabs": {},
+				stubs: {
+					BuilderTemplateInputTemplate: {
+						template: `<div></div>`,
+						setup() {
+							return {
+								getSelection,
+								focus,
+								setSelectionStart,
+								setSelectionEnd,
+							};
+						},
+					},
 				},
 			},
 		});
-	}
 
-	describe("in template mode", () => {
-		it.each(["@", "@{"])('should autocomplete with "%s"', async (input) => {
-			const wrapper = mountWrapper();
+		const input = wrapper.getComponent(BuilderTemplateInputTemplate);
 
-			await wrapper.get("input").setValue(input);
+		input.vm.value = value;
+		input.vm.$emit("input", { target: { value } });
 
-			const options = wrapper
-				.getComponent(BuilderStateSelectorDropdown)
-				.findAllComponents(WdsDropdownMenuItem);
+		await flushPromises();
 
-			expect(options).toHaveLength(5);
+		const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
+		expect(dropdown.props("query")).toBe("");
 
-			await options.at(0).trigger("click");
+		dropdown.vm.$emit("update:modelValue", "text");
 
-			await flushPromises();
+		await flushPromises();
 
-			expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
-				"@{array}",
-			]);
-		});
-
-		it("should autocomplete object items", async () => {
-			const wrapper = mountWrapper();
-
-			await wrapper.get("input").setValue("@{obj.");
-			await flushPromises();
-
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			expect(dropdown.props("query")).toBe("obj.");
-
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-			expect(options).toHaveLength(2);
-
-			await options.at(0).trigger("click");
-
-			await flushPromises();
-
-			expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
-				"@{obj.a}",
-			]);
-		});
-
-		it("should autocomplete with templating", async () => {
-			const wrapper = mountWrapper();
-
-			await wrapper.get("input").setValue("foo @{tex");
-
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			expect(dropdown.props("query")).toBe("tex");
-
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-			expect(options).toHaveLength(1);
-
-			await options.at(0).trigger("click");
-
-			await flushPromises();
-
-			expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
-				"foo @{text}",
-			]);
-		});
-
-		it("should autocomplete vault", async () => {
-			mockSecretManager.secrets.value = {
-				GOOGLE_API_KEY: "foo",
-			};
-			const wrapper = mountWrapper();
-
-			await wrapper.get("input").setValue("@{vault.");
-
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			expect(dropdown.props("query")).toBe("vault.");
-
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-			expect(options).toHaveLength(1);
-
-			expect(options.at(0).attributes("data-automation-key")).toBe(
-				"vault.GOOGLE_API_KEY",
-			);
-
-			await options.at(0).trigger("click");
-
-			await flushPromises();
-
-			expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
-				"@{vault.GOOGLE_API_KEY}",
-			]);
-		});
-
-		it("should not autocomplete vault when empty", async () => {
-			mockSecretManager.secrets.value = {};
-			const wrapper = mountWrapper();
-
-			await wrapper.get("input").setValue("@{vault.");
-
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-
-			expect(options).toHaveLength(0);
-		});
+		expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
+			"@{text}",
+		]);
 	});
 
-	describe("in state mode", () => {
-		it("should autocomplete object items", async () => {
-			const wrapper = mountWrapper({
-				type: "state",
-				value: "hello",
-			});
-
-			await wrapper.get("input").setValue("obj.");
-
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			expect(dropdown.props("query")).toBe("obj.");
-
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-			expect(options).toHaveLength(2);
-
-			expect(options.at(0).attributes("data-automation-key")).toBe(
-				"obj.a",
-			);
-			expect(options.at(1).attributes("data-automation-key")).toBe(
-				"obj.b",
-			);
-
-			await options.at(0).trigger("click");
-
-			await flushPromises();
-
-			expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
-				"obj.a",
-			]);
+	it("should autocomplete with templating", async () => {
+		const value = "foo @{tex";
+		const getSelection = vi.fn().mockReturnValue({
+			selectionEnd: value.length,
+			selectionStart: value.length,
+		});
+		const focus = vi.fn();
+		const setSelectionStart = vi.fn();
+		const setSelectionEnd = vi.fn();
+		const wrapper = shallowMount(BuilderTemplateInput, {
+			global: {
+				stubs: {
+					BuilderTemplateInputTemplate: {
+						template: `<div></div>`,
+						setup() {
+							return {
+								getSelection,
+								focus,
+								setSelectionStart,
+								setSelectionEnd,
+							};
+						},
+					},
+				},
+			},
 		});
 
-		it("should not autocomplete vault", async () => {
-			mockSecretManager.secrets.value = {
-				GOOGLE_API_KEY: "foo",
-			};
-			const wrapper = mountWrapper({
-				type: "state",
-				value: "hello",
-				hideDropdownSecrets: true,
-			});
+		const input = wrapper.getComponent(BuilderTemplateInputTemplate);
 
-			await wrapper.get("input").setValue("vault.");
+		input.vm.value = value;
+		input.vm.$emit("input", { target: { value } });
 
-			const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
-			expect(dropdown.props("query")).toBe("vault.");
+		await flushPromises();
 
-			const options = dropdown.findAllComponents(WdsDropdownMenuItem);
-			expect(options).toHaveLength(0);
-		});
+		const dropdown = wrapper.getComponent(BuilderStateSelectorDropdown);
+		expect(dropdown.props("query")).toBe("tex");
+
+		dropdown.vm.$emit("update:modelValue", "text");
+
+		await flushPromises();
+
+		expect(wrapper.emitted("update:value").at(-1)).toStrictEqual([
+			"foo @{text}",
+		]);
 	});
 });

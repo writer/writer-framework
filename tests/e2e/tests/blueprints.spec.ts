@@ -96,15 +96,16 @@ test.describe("Blueprints", () => {
 			.click();
 		const payload = "blue";
 		await page
-			.locator(`.BuilderFieldsText[data-automation-key="payload"] textarea`)
+			.locator(`.BuilderFieldsText[data-automation-key="payload"]`)
+			.locator(".BuilderTemplateEditorContent")
 			.fill(payload);
-		await page.locator(`[data-automation-action="collapse-settings"]`).click();
 
 		await runBlueprintBlock.locator(".ball.success").dragTo(returnValueBlock);
 
 		await returnValueBlock.click();
 		await page
-			.locator(`.BuilderFieldsText[data-automation-key="value"] textarea`)
+			.locator(`.BuilderFieldsText[data-automation-key="value"]`)
+			.locator(".BuilderTemplateEditorContent")
 			.fill("@{result}");
 
 		await page.locator(`[data-automation-action="run-blueprint"]`).click();

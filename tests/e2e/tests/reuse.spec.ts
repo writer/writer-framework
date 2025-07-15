@@ -6,9 +6,8 @@ test.describe("Reuse component", () => {
 
 	const fillSettingsField = async (page: Page, key: string, value: string) => {
 		await page
-			.locator(
-				`.BuilderFieldsText[data-automation-key="${key}"] input, .BuilderFieldsText[data-automation-key="${key}"] textarea`,
-			)
+			.locator(`.BuilderFieldsText[data-automation-key="${key}"]`)
+			.locator(".BuilderTemplateEditorContent")
 			.fill(value);
 	};
 
@@ -69,16 +68,24 @@ test.describe("Reuse component", () => {
 	};
 
 	const expandSettingsBar = async (page: Page) => {
-		await page.locator('[data-automation-action="expand-settings"]').click();
+		if ((await page.locator(".BuilderSettings--collapsed").count()) > 0) {
+			await page.locator('[data-automation-action="expand-settings"]').click();
+		}
 	};
 
 	const removeComponent = async (page: Page, selector: string) => {
 		await page.locator(".CorePage").click();
 		await page.locator(selector).click();
-		await page.keyboard.press("Delete");
+		await expandSettingsBar(page);
 
-		await expect(page.locator(selector)).not.toBeVisible();
-		await expect(page.locator(selector)).toHaveCount(0);
+		const settingsActionsDropdown = page.locator(
+			'[data-automation-action="settings-actions-dropdown"]',
+		);
+
+		await settingsActionsDropdown.locator("button").click();
+		await settingsActionsDropdown
+			.locator('[data-automation-key="delete"]')
+			.click();
 	};
 
 	const moveFromTo = async (

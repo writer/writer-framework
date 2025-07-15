@@ -78,7 +78,6 @@ export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue"
 import {
 	computed,
 	defineAsyncComponent,
-	nextTick,
 	PropType,
 	ref,
 	useTemplateRef,
@@ -185,7 +184,7 @@ watch(
 	() => {
 		if (!hasFocus.value) {
 			// wait next tick to let event propagate
-			nextTick().then(() => (isOpen.value = false));
+			setTimeout(() => (isOpen.value = false), 300);
 		}
 	},
 	{ immediate: true },

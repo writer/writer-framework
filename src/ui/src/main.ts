@@ -5,7 +5,6 @@ import { generateBuilderManager } from "./builder/builderManager.js";
 import { generateCore } from "./core";
 import "./fonts";
 import injectionKeys from "./injectionKeys";
-import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
 import { useWriterApi } from "./composables/useWriterApi.js";
 import { useCollaborationManager } from "./composables/useCollaborationManager.js";
@@ -58,7 +57,6 @@ async function load() {
 	app.provide(injectionKeys.notesManager, notesManager);
 	app.provide(injectionKeys.collaborationManager, collaborationManager);
 	app.provide(injectionKeys.secretsManager, secretsManager);
-	setCaptureTabsDirective(app);
 
 	app.mount("#app");
 

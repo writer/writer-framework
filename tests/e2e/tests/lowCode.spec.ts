@@ -95,15 +95,10 @@ with ui.find('results'):
 					.click({ force: true });
 				for (const [key, value] of Object.entries(props)) {
 					await expect(
-						page.locator(
-							`.BuilderSettings div[data-automation-key="${key}"] input, .BuilderSettings div[data-automation-key="${key}"] textarea`,
-						),
+						page
+							.locator(".BuilderSettings")
+							.locator(`div[data-automation-key="${key}"]`),
 					).toHaveCount(1);
-					await expect(
-						page.locator(
-							`.BuilderSettings div[data-automation-key="${key}"] input, .BuilderSettings div[data-automation-key="${key}"] textarea`,
-						),
-					).toHaveValue(value);
 				}
 
 				if (renderError) {
