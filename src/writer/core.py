@@ -46,6 +46,7 @@ import writer.blocks
 import writer.evaluator
 from writer import core_ui
 from writer.core_ui import Component
+from writer.logs import use_stdout_redirect
 from writer.ss_types import (
     BlueprintExecutionError,
     BlueprintExecutionLog,
@@ -1239,13 +1240,13 @@ class EventHandlerRegistry:
         This handler is used to run a blueprint via the API.
         It is used by the frontend to run a blueprint when the user clicks on a button.
         """
-        blueprint_key = payload.pop("blueprint_key", None)
-        if not blueprint_key:
-            raise ValueError("Missing blueprint_key in payload")
+        blueprint_id = payload.pop("blueprint_id", None)
+        if not blueprint_id:
+            raise ValueError("Missing blueprint_id in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_blueprint_via_api(blueprint_key=blueprint_key, execution_environment=execution_environment)
+        return blueprint_runner.run_blueprint_via_api(blueprint_id=blueprint_id, execution_environment=execution_environment)
 
     @staticmethod
     def run_blueprint_branch(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
@@ -1788,19 +1789,14 @@ class EventHandler:
     def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
         current_app_process = get_app_process()
         result = None
-        captured_stdout = None
         with (
             core_ui.use_component_tree(self.session.session_component_tree),
-            contextlib.redirect_stdout(io.StringIO()) as f,
+            use_stdout_redirect(lambda entry: self.session_state.add_log_entry("info", "Stdout message", entry)),
         ):
             middlewares_executors = current_app_process.middleware_registry.executors()
             result = EventHandlerExecutor.invoke_with_middlewares(
                 middlewares_executors, handler_callable, calling_arguments
             )
-            captured_stdout = f.getvalue()
-
-        if captured_stdout:
-            self.session_state.add_log_entry("info", "Stdout message", captured_stdout)
 
         return result
 

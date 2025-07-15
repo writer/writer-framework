@@ -6,7 +6,7 @@ import threading
 import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
-from contextvars import copy_context
+from contextvars import ContextVar, copy_context
 from typing import Any, Dict, Generator, List, Literal, Optional, OrderedDict, Union
 
 import writer.blocks
@@ -16,6 +16,10 @@ import writer.core_ui
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 MAX_DAG_DEPTH = 32
+
+_current_block: ContextVar[Optional[writer.blocks.base_block.BlueprintBlock]] = \
+    ContextVar("current_block", default=None)
+
 
 class BlueprintRunManager:
     def __init__(self):
@@ -49,6 +53,7 @@ class BlueprintRunManager:
         with self._lock:
             if run_id in self._runs:
                 self._runs[run_id]["event"].set()
+
 
 class BlueprintRunner:
     def __init__(self, session: writer.core.WriterSession):
@@ -118,18 +123,18 @@ class BlueprintRunner:
         )
 
     def is_blueprint_api_available(
-        self, blueprint_key: str
+        self, blueprint_id: str
     ):
         """
         Checks if a blueprint with the given key is available for API execution.
 
-        :param blueprint_key: The blueprint identifier.
+        :param blueprint_id: The blueprint identifier.
         :return: True if the blueprint is available for API execution, False otherwise.
         """
-        return blueprint_key in self.api_blueprints
+        return blueprint_id in self.api_blueprints
 
     def get_blueprint_api_trigger(
-        self, blueprint_key: str
+        self, blueprint_id: str
     ):
         """
         Retrieves the API trigger for a given blueprint key.
@@ -137,11 +142,11 @@ class BlueprintRunner:
         :param blueprint_key: The blueprint identifier.
         :return: The API trigger component.
         """
-        if not self.is_blueprint_api_available(blueprint_key):
+        if not self.is_blueprint_api_available(blueprint_id):
             raise ValueError(
-                f'API trigger not found for blueprint "{blueprint_key}".'
+                f'API trigger not found for blueprint "{blueprint_id}".'
             )
-        return self.api_blueprints[blueprint_key]
+        return self.api_blueprints[blueprint_id]
 
     def _gather_api_blueprints(self):
         """
@@ -169,20 +174,20 @@ class BlueprintRunner:
                 parent_blueprint.type == "blueprints_blueprint"
             ):
                 # Store the blueprint key against its trigger ID
-                api_blueprints[parent_blueprint.content.get("key")] = \
+                api_blueprints[parent_blueprint_id] = \
                     trigger.id
 
         return api_blueprints
 
     def run_blueprint_via_api(
         self,
-        blueprint_key: str,
+        blueprint_id: str,
         execution_environment: Optional[Dict[str, Any]] = None
     ):
         """
         Executes a blueprint by its key via the API.
 
-        :param blueprint_key: The blueprint identifier.
+        :param blueprint_id: The blueprint identifier.
         :param execution_environment: The execution environment for
         the blueprint.
         :return: The result of the blueprint execution.
@@ -190,13 +195,13 @@ class BlueprintRunner:
         if execution_environment is None:
             execution_environment = {}
 
-        trigger_id = self.get_blueprint_api_trigger(blueprint_key)
+        trigger_id = self.get_blueprint_api_trigger(blueprint_id)
 
         return self.run_branch(
             trigger_id,
             None,
             execution_environment,
-            f"API trigger execution ({blueprint_key})"
+            f"API trigger execution ({blueprint_id})"
         )
 
     def run_blueprint_batch(self, blueprint_key: str, execution_environments: List[Dict]):
@@ -351,7 +356,8 @@ class GraphNode:
 
         try:
             tool.outcome = "in_progress"
-            tool.run()
+            with use_current_block(tool):
+                tool.run()
             if self.outcome == "stopped":
                 return self
             tool.outcome = tool.outcome or "success"
@@ -799,3 +805,14 @@ class GraphRunner:
         raw_id = f"{self.runner.session.session_id}_{timestamp}_{salt}"
         hashed_id = hashlib.sha256(raw_id.encode()).hexdigest()[:24]
         return hashed_id
+
+
+def get_current_block() -> Optional[writer.blocks.base_block.BlueprintBlock]:
+    return _current_block.get(None)
+
+
+@contextmanager
+def use_current_block(block: writer.blocks.base_block.BlueprintBlock):
+    token = _current_block.set(block)
+    yield
+    _current_block.reset(token)

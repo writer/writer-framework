@@ -2,7 +2,10 @@
 	<div
 		ref="rootEl"
 		class="BuilderEmbeddedCodeEditor"
-		:class="{ 'BuilderEmbeddedCodeEditor--full': variant == 'full' }"
+		:class="{
+			'BuilderEmbeddedCodeEditor--full': variant === 'full',
+			'BuilderEmbeddedCodeEditor--halfScreen': variant === 'half-screen',
+		}"
 	>
 		<div ref="editorContainerEl" class="editorContainer"></div>
 	</div>
@@ -27,7 +30,10 @@ let editor: monaco.editor.IStandaloneCodeEditor = null;
 
 const props = defineProps({
 	language: { type: String, required: false, default: "" },
-	variant: { type: String as PropType<"full" | "minimal">, required: true },
+	variant: {
+		type: String as PropType<"full" | "minimal" | "half-screen">,
+		required: true,
+	},
 	modelValue: { type: String, required: false, default: "" },
 	disabled: { type: Boolean, required: false },
 });
@@ -106,6 +112,10 @@ onUnmounted(() => {
 
 .BuilderEmbeddedCodeEditor--full {
 	min-height: 300px;
+}
+
+.BuilderEmbeddedCodeEditor--halfScreen {
+	min-height: 50vh;
 }
 
 .editorContainer {

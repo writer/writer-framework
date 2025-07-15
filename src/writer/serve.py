@@ -67,7 +67,6 @@ if typing.TYPE_CHECKING:
 MAX_WEBSOCKET_MESSAGE_SIZE = 201 * 1024 * 1024
 BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_EXECUTION_TIMEOUT", "600"))
 BLUEPRINT_API_RETRY_TIMEOUT = int(os.getenv("AGENT_BUILDER_BLUEPRINT_API_RETRY_TIMEOUT", "10000"))
-logging.getLogger().setLevel(logging.INFO)
 
 
 class WriterState(typing.Protocol):
@@ -361,8 +360,8 @@ def get_asgi_app(
 
         return JSONResponse(content=blueprints)
 
-    @app.post("/private/api/blueprint/{blueprint_key}")
-    async def create_blueprint_job(blueprint_key: str, request: Request, response: Response):
+    @app.post("/private/api/blueprint/{blueprint_id}")
+    async def create_blueprint_job(blueprint_id: str, request: Request, response: Response):
         # Keep-alive interval for SSE streaming
         KEEPALIVE_INTERVAL = 15
         payload = await _get_payload_as_json(request)
@@ -387,19 +386,11 @@ def get_asgi_app(
 
         # --- Blueprint discovery logic ---
 
-        def find_blueprint_id(app_runner: AppRunner, key: str) -> Optional[str]:
+        def check_blueprint(app_runner: AppRunner, blueprint_id: str) -> bool:
             # Locate blueprint component by its key
             if not app_runner.bmc_components:
-                return None
-            return next(
-                (
-                    comp["id"]
-                    for comp in app_runner.bmc_components.values()
-                    if comp["type"] == "blueprints_blueprint"
-                    and comp.get("content", {}).get("key") == key
-                ),
-                None
-            )
+                return False
+            return blueprint_id in app_runner.bmc_components
 
         # --- Result serialization (recursive) ---
 
@@ -443,22 +434,22 @@ def get_asgi_app(
                 if not app_runner.bmc_components:
                     raise RuntimeError("No blueprints defined in the agent.")
 
-                blueprint_id = find_blueprint_id(app_runner, blueprint_key)
-                if not blueprint_id:
+                blueprint_exists = check_blueprint(app_runner, blueprint_id)
+                if not blueprint_exists:
                     await queue.put(await format_event("error", {
-                        "msg": f"Blueprint '{blueprint_key}' was not found.",
+                        "msg": f"Blueprint '{blueprint_id}' was not found.",
                         "finished_at": int(time.time())
                     }))
                     return
 
                 if not has_api_trigger(app_runner, blueprint_id):
                     await queue.put(await format_event("error", {
-                        "msg": f"Blueprint '{blueprint_key}' lacks an API trigger.",
+                        "msg": f"Blueprint '{blueprint_id}' lacks an API trigger.",
                         "finished_at": int(time.time())
                     }))
                     return
 
-                await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_key}..."}))
+                await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_id}..."}))
 
                 # Kick off actual blueprint execution as background task
                 task = asyncio.create_task(
@@ -468,7 +459,7 @@ def get_asgi_app(
                             type="wf-run-blueprint-via-api",
                             isSafe=True,
                             handler="run_blueprint_via_api",
-                            payload={"blueprint_key": blueprint_key, **(payload or {})},
+                            payload={"blueprint_id": blueprint_id, **(payload or {})},
                         )
                     )
                 )

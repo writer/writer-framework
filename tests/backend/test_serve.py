@@ -241,10 +241,10 @@ class TestServe:
     def test_create_blueprint_job_api(self, monkeypatch):
         asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        blueprint_key = "blueprint2"
+        blueprint_id = "8ffkuce0ermsm9dr"
 
         with fastapi.testclient.TestClient(asgi_app) as client:
-            with client.stream("POST", f"/private/api/blueprint/{blueprint_key}",
+            with client.stream("POST", f"/private/api/blueprint/{blueprint_id}",
                                 json={"proposedSessionId": None},
                                 headers={"Content-Type": "application/json"}) as response:
 
@@ -291,11 +291,11 @@ class TestServe:
     def test_create_blueprint_job_api_streaming_events(self, monkeypatch):
         asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
-        blueprint_key = "blueprint2"
+        blueprint_id = "8ffkuce0ermsm9dr"
 
         with fastapi.testclient.TestClient(asgi_app) as client:
             with client.stream(
-                "POST", f"/private/api/blueprint/{blueprint_key}",
+                "POST", f"/private/api/blueprint/{blueprint_id}",
                 json={"proposedSessionId": None},
                 headers={"Content-Type": "application/json"}
             ) as response:

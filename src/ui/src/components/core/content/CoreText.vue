@@ -14,7 +14,7 @@
 				:style="contentStyle"
 			>
 			</BaseMarkdown>
-			<div class="text-container">
+			<div v-else class="text-container">
 				<p class="plainText" :style="contentStyle">
 					{{ fields.text.value }}
 				</p>
@@ -162,7 +162,7 @@ function handleCopy() {
 	line-height: 140%;
 	white-space: pre-wrap;
 	max-width: 100%;
-	overflow: hidden;
+	overflow: visible;
 	font-size: 0.875rem;
 	font-weight: 400;
 }
