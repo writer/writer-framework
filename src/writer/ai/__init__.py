@@ -1702,13 +1702,19 @@ class Conversation:
             f"prepared messages – {prepared_messages}, " +
             f"request_data – {request_data}"
             )
+        tools = request_data.get('tools', NotGiven())
+        tool_choice: Union[ToolChoice, NotGiven]
+        if isinstance(tools, NotGiven):
+            tool_choice = NotGiven()
+        else:
+            tool_choice = request_data.get('tool_choice', cast(ToolChoice, 'auto'))
         return client.chat.chat(
             messages=prepared_messages,
             model=request_model,
             stream=stream,
             logprobs=request_data.get('logprobs', NotGiven()),
-            tools=request_data.get('tools', NotGiven()),
-            tool_choice=request_data.get('tool_choice', cast(ToolChoice, 'auto')),
+            tools=tools,
+            tool_choice=tool_choice,
             response_format=request_data.get('response_format', NotGiven()),
             max_tokens=request_data.get('max_tokens', NotGiven()),
             n=request_data.get('n', NotGiven()),
