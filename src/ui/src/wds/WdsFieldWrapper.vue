@@ -29,7 +29,7 @@
 					data-writer-tooltip="Expand"
 					@click="handleExpansion"
 				>
-					<i class="material-symbols-outlined">open_in_new</i>
+					<WdsIcon name="expand" />
 				</WdsButton>
 				<WdsButton
 					v-if="helpButton"
@@ -41,7 +41,7 @@
 					"
 					@click="$emit('helpClick')"
 				>
-					<i class="material-symbols-outlined">help</i>
+					<WdsIcon name="circle-question-mark" />
 				</WdsButton>
 			</div>
 			<div class="WdsFieldWrapper__slot">
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import WdsButton from "./WdsButton.vue";
+import WdsIcon from "./WdsIcon.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 
 defineProps({

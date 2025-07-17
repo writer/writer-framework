@@ -22,7 +22,7 @@
 					data-writer-tooltip-placement="left"
 					@click="handleAutoArrange"
 				>
-					<i class="material-symbols-outlined">apps</i>
+					<WdsIcon name="grid-3x3" />
 				</WdsButton>
 			</div>
 			<div class="zoomer">
@@ -37,7 +37,7 @@
 					data-writer-tooltip-placement="left"
 					@click="handleZoomOutClick"
 				>
-					<i class="material-symbols-outlined">remove</i>
+					<WdsIcon name="minus" />
 				</WdsButton>
 				<WdsTextInput
 					v-model="zoomLevelAsText"
@@ -56,7 +56,7 @@
 					data-writer-tooltip-placement="right"
 					@click="handleZoomInClick"
 				>
-					<i class="material-symbols-outlined">add</i>
+					<WdsIcon name="plus" />
 				</WdsButton>
 				<WdsButton
 					variant="neutral"
@@ -65,7 +65,7 @@
 					data-writer-tooltip-placement="right"
 					@click="handleResetZoom"
 				>
-					<i class="material-symbols-outlined">undo</i>
+					<WdsIcon name="undo-2" />
 				</WdsButton>
 			</div>
 			<div class="miniMapCollapser">
@@ -78,7 +78,9 @@
 					data-writer-tooltip-placement="right"
 					@click="toggleMiniMap"
 				>
-					<i class="material-symbols-outlined">close_fullscreen</i>
+					<WdsIcon
+						:name="isMiniMapShown ? 'minimize-2' : 'maximize-2'"
+					/>
 				</WdsButton>
 			</div>
 		</div>
@@ -96,6 +98,7 @@ import {
 } from "vue";
 import BlueprintMiniMap from "./BlueprintMiniMap.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 
 import { ZOOM_SETTINGS } from "../BlueprintsBlueprint.vue";

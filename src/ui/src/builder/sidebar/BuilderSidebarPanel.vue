@@ -8,7 +8,7 @@
 				data-automation-action="search"
 				:placeholder="placeholder"
 				:right-text="searchRightText"
-				right-icon="close"
+				:right-icon="model ? 'x' : undefined"
 				@right-icon-click="model = ''"
 			/>
 		</div>

@@ -16,11 +16,7 @@
 		<BuilderTemplateInputState
 			v-if="type === 'state'"
 			ref="input"
-			:right-icon="
-				showAutocompletions
-					? 'keyboard_arrow_up'
-					: 'keyboard_arrow_down'
-			"
+			:right-icon="showAutocompletions ? 'chevron-up' : 'chevron-down'"
 			:model-value="props.value"
 			@right-icon-click="
 				showAutocompletions = showAutocompletions

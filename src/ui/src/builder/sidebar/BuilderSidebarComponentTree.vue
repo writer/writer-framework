@@ -22,9 +22,9 @@
 					data-automation-action="add-page"
 					@click="addPage"
 				>
-					<i class="material-symbols-outlined"> add </i> Add
-					page</WdsButton
-				>
+					<WdsIcon name="plus" />
+					Add page
+				</WdsButton>
 				<WdsButton
 					v-if="rootComponentId == 'blueprints_root'"
 					variant="special"
@@ -32,9 +32,9 @@
 					data-automation-action="add-blueprint"
 					@click="addBlueprint"
 				>
-					<i class="material-symbols-outlined"> add </i> Add
-					blueprint</WdsButton
-				>
+					<WdsIcon name="plus" />
+					Add blueprint
+				</WdsButton>
 			</div>
 		</template>
 	</BuilderSidebarPanel>
@@ -46,6 +46,7 @@ import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBranch.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useComponentActions } from "../useComponentActions";
 import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
 import { useWriterTracking } from "@/composables/useWriterTracking";

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import WdsLoaderDots from "@/wds/WdsLoaderDots.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { computed, inject } from "vue";
 
@@ -42,16 +43,18 @@ const result = computed(() => {
 	<div class="BuilderBlueprintState">
 		<slot v-if="!result" name="unknown"></slot>
 		<slot v-else-if="result === 'success'" name="success">
-			<span
-				class="BuilderBlueprintState__status BuilderBlueprintState__status--success material-symbols-outlined"
-				>check</span
+			<div
+				class="BuilderBlueprintState__status BuilderBlueprintState__status--success"
 			>
+				<WdsIcon name="check" />
+			</div>
 		</slot>
 		<slot v-else-if="result === 'error'" name="error">
-			<span
-				class="BuilderBlueprintState__status BuilderBlueprintState__status--error material-symbols-outlined"
-				>error</span
+			<div
+				class="BuilderBlueprintState__status BuilderBlueprintState__status--error"
 			>
+				<WdsIcon name="circle-alert" />
+			</div>
 		</slot>
 		<slot v-else-if="result === 'in_progress'" name="running">
 			<WdsLoaderDots

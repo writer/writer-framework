@@ -28,7 +28,7 @@
 					}"
 					@click="jumpTo(fields.page.value - 1)"
 				>
-					<i class="material-symbols-outlined"> navigate_before </i>
+					<WdsIcon name="chevron-left" />
 				</div>
 				<template v-for="(l, index) in links" :key="index">
 					<div
@@ -56,7 +56,7 @@
 					:class="{ 'paginationpicker-disabled': pageNextDisabled }"
 					@click="jumpTo(fields.page.value + 1)"
 				>
-					<i class="material-symbols-outlined"> navigate_next </i>
+					<WdsIcon name="chevron-right" />
 				</div>
 			</div>
 			<div v-show="jumptoEnabled" class="pagination-jump">
@@ -75,6 +75,7 @@
 import { FieldType } from "@/writerTypes";
 import { validatorPositiveNumber } from "@/constants/validators";
 import { baseYesNoField } from "@/renderer/sharedStyleFields";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const pageChangeStub = `
 def handle_page_change(state, payload):

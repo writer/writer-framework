@@ -28,16 +28,16 @@
 				<template
 					v-if="Object.keys(component.handlers ?? {}).length > 0"
 				>
-					<span class="middot"></span
-					><i class="material-symbols-outlined">bolt</i>
+					<span class="middot"></span>
+					<WdsIcon name="zap" />
 				</template>
 				<template v-if="!isComponentVisible(component.id)">
-					<span class="middot"></span
-					><i class="material-symbols-outlined">visibility_off</i>
+					<span class="middot"></span>
+					<WdsIcon name="eye-off" />
 				</template>
 				<template v-if="component.isCodeManaged">
-					<span class="middot"></span
-					><i class="material-symbols-outlined">terminal</i>
+					<span class="middot"></span>
+					<WdsIcon name="square-terminal" />
 				</template>
 				<template v-if="previewText">
 					<span class="middot"></span
@@ -82,6 +82,7 @@ import {
 	COMPONENT_TYPES_ROOT,
 	COMPONENT_TYPES_TOP_LEVEL,
 } from "@/constants/component";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const props = defineProps({
 	componentId: { type: String, required: true },

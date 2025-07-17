@@ -42,9 +42,7 @@
 							data-writer-tooltip="Jump to this block"
 							@click="selectBlock(item.componentId)"
 						>
-							<i class="material-symbols-outlined"
-								>jump_to_element</i
-							>
+							<WdsIcon name="square-dashed-mouse-pointer" />
 						</WdsButton>
 					</div>
 					<div class="outcome">
@@ -97,9 +95,7 @@
 							size="small"
 							@click="() => (displayedItemId = itemId)"
 						>
-							<i class="material-symbols-outlined"
-								>find_in_page</i
-							>
+							<WdsIcon name="file-search-2" />
 							Trace
 						</WdsButton>
 					</div>
@@ -125,6 +121,7 @@ import { computed, inject, nextTick, ref } from "vue";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import BuilderLogBlueprintExecutionTrace from "./BuilderLogBlueprintExecutionTrace.vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import BuilderListItem from "../BuilderListItem.vue";

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, useId } from "vue";
+import WdsIcon from "./WdsIcon.vue";
 
 const props = defineProps({
 	label: { type: String, required: false, default: undefined },
@@ -25,9 +26,7 @@ function onChange(event: InputEvent) {
 <template>
 	<label :for="id" class="WdsCheckbox" :class="classes" @mousedown.prevent>
 		<div class="WdsCheckbox__checkbox">
-			<i class="WdsCheckbox__checkbox__check material-symbols-outlined"
-				>check</i
-			>
+			<WdsIcon name="check" class="WdsCheckbox__checkbox__check" />
 		</div>
 		<span v-if="label" class="WdsCheckbox__label">{{ label }}</span>
 		<span v-if="detail" class="WdsCheckbox__detail">{{ detail }}</span>
@@ -60,6 +59,9 @@ function onChange(event: InputEvent) {
 	border: 1px solid var(--wdsColorGray4);
 	width: 18px;
 	height: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	border-radius: 4px;
 	grid-row-start: 1;
@@ -70,16 +72,17 @@ function onChange(event: InputEvent) {
 	font-weight: bold;
 }
 
-.WdsCheckbox__checkbox__check {
+:deep(.WdsCheckbox__checkbox__check) {
 	display: none;
 }
 
 .WdsCheckbox:hover:not(.WdsCheckbox--checked):not(.WdsCheckbox--disabled)
-	.WdsCheckbox__checkbox__check {
+	:deep(.WdsCheckbox__checkbox__check) {
 	display: block;
 	color: var(--wdsColorGray4);
 }
-.WdsCheckbox--checked .WdsCheckbox__checkbox__check {
+
+.WdsCheckbox--checked :deep(.WdsCheckbox__checkbox__check) {
 	display: block;
 	color: var(--wdsColorWhite);
 }

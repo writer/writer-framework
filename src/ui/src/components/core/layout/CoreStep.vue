@@ -31,12 +31,7 @@
 						completed: fields.isCompleted.value,
 					}"
 				>
-					<i
-						v-if="fields.isCompleted.value"
-						class="material-symbols-outlined"
-					>
-						done
-					</i>
+					<WdsIcon v-if="fields.isCompleted.value" name="check" />
 				</div>
 				<div class="linker right"></div>
 			</div>
@@ -74,6 +69,7 @@ import {
 	contentPadding,
 	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { onBeforeUnmount } from "vue";
 
 const description =

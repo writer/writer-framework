@@ -204,11 +204,13 @@ const className = computed(() => [
 }
 
 .WdsButton--icon {
+	padding: 0;
 	height: 40px;
 	width: 40px;
 }
 
 .WdsButton--smallIcon {
+	padding: 0;
 	height: 32px;
 	width: 32px;
 }

@@ -17,15 +17,15 @@
 					class="delete"
 					@click.stop="deleteTool(toolName)"
 				>
-					<i class="material-symbols-outlined">delete</i>
+					<WdsIcon name="trash-2" />
 				</WdsButton>
 			</div>
 		</div>
 
 		<WdsButton size="small" @click="resetAndShowToolFormModal">
-			<i class="material-symbols-outlined">add</i>
-			Add tool</WdsButton
-		>
+			<WdsIcon name="plus" />
+			Add tool
+		</WdsButton>
 		<WdsModal
 			v-if="toolForm.isShown"
 			:actions="modalActions"
@@ -75,6 +75,7 @@ import { Component } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";

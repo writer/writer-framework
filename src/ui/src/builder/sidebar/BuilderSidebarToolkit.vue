@@ -42,7 +42,7 @@
 					class="BuilderSidebarPanel__footer__btn"
 					@click="showAutogen"
 				>
-					<i class="material-symbols-outlined">wand_shine</i>
+					<WdsIcon name="wand-sparkles" />
 					Autogenerate
 				</WdsButton>
 			</div>
@@ -54,6 +54,7 @@
 import { computed, inject, ref, watch } from "vue";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import {
 	getComponentDefinition,
 	getSupportedComponentTypes,

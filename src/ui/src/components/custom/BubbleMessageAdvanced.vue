@@ -17,10 +17,10 @@ You _can_ use **markdown**.
 			</div>
 			<div class="actions">
 				<div class="action" @click="emitPinEvent">
-					<i class="material-symbols-outlined"> keep </i>
+					<WdsIcon name="pin" />
 				</div>
 				<div class="action" @click="emitFlagEvent">
-					<i class="material-symbols-outlined"> flag </i>
+					<WdsIcon name="flag" />
 				</div>
 			</div>
 		</div>
@@ -117,6 +117,7 @@ import {
 } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { inject, computed, useTemplateRef } from "vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 /* Standard style fields can be imported from "sharedStyleFields" 
 to avoid repetition. */

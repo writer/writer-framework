@@ -11,7 +11,7 @@
 				data-automation-key="openAssistedMode"
 				@click="isModalOpen = true"
 			>
-				<i class="material-symbols-outlined">edit</i>
+				<WdsIcon name="pencil" />
 			</WdsButton>
 		</div>
 		<BuilderFieldsKeyValueModal
@@ -31,7 +31,7 @@
 				size="small"
 				@click="isModalOpen = true"
 			>
-				<i class="material-symbols-outlined">keyboard_backspace</i>
+				<WdsIcon name="pencil" />
 				Edit
 			</WdsButton>
 		</div>
@@ -71,6 +71,7 @@ import { useEvaluator } from "@/renderer/useEvaluator";
 import type { InstancePath } from "@/writerTypes";
 import { useComponentActions } from "../useComponentActions";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import BuilderFieldsKeyValueModal from "./BuilderFieldsKeyValueModal.vue";
 
 const props = defineProps({

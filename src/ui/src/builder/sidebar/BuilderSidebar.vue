@@ -4,7 +4,7 @@
 			<div v-if="!isPreview" class="BuilderSidebar__toolbar__top">
 				<hr />
 				<BuilderSidebarButton
-					icon="stacks"
+					icon="layers"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`${paneTitles.layers} (${modifierKeyName}I)`"
 					:active="activePane === 'layers'"
@@ -12,7 +12,7 @@
 					@click="changeActivePane('layers')"
 				/>
 				<BuilderSidebarButton
-					icon="dashboard_customize"
+					icon="wds-blocks"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`${paneTitles.add} (${modifierKeyName}B)`"
 					:active="activePane === 'add'"
@@ -21,7 +21,7 @@
 				/>
 				<BuilderSidebarButton
 					v-if="wf.isWriterCloudApp.value"
-					icon="comment"
+					icon="message-square"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`${paneTitles.notes}`"
 					:active="activePane === 'notes'"
@@ -32,7 +32,7 @@
 			<div v-if="!isPreview" class="BuilderSidebar__toolbar__center">
 				<hr />
 				<BuilderSidebarButton
-					icon="undo"
+					icon="undo-2"
 					data-automation-key="undo"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`Undo (${modifierKeyName}Z)`"
@@ -43,7 +43,7 @@
 					data-automation-key="redo"
 					data-writer-tooltip-placement="right"
 					:data-writer-tooltip="`Redo (${modifierKeyName}Y)`"
-					icon="redo"
+					icon="redo-2"
 					:disabled="!undoRedoSnapshot.isRedoAvailable"
 					@click="redo()"
 				/>
@@ -57,7 +57,7 @@
 				<BuilderSidebarButton
 					target="_blank"
 					href="https://dev.writer.com/agent-builder/overview"
-					icon="help"
+					icon="circle-question-mark"
 					data-writer-tooltip-placement="right"
 					data-writer-tooltip="Docs"
 				/>
@@ -71,27 +71,23 @@
 				}"
 			>
 				<template v-if="activePaneGoBack">
-					<button
-						type="button"
-						class="BuilderSidebar__pane__header__btn"
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
 						@click="goBack"
 					>
-						<span class="material-symbols-outlined">
-							arrow_back
-						</span>
-					</button>
+						<WdsIcon name="arrow-left" />
+					</WdsButton>
 					<h2>Back</h2>
 				</template>
 				<h2 v-else>{{ paneTitles[activePane] }}</h2>
-				<button
-					type="button"
-					class="BuilderSidebar__pane__header__btn"
+				<WdsButton
+					variant="neutral"
+					size="smallIcon"
 					@click="activePane = undefined"
 				>
-					<span class="material-symbols-outlined">
-						left_panel_close
-					</span>
-				</button>
+					<WdsIcon name="arrow-left-to-line" />
+				</WdsButton>
 			</div>
 			<BuilderSidebarToolkit v-if="activePane === 'add'" />
 			<BuilderSidebarComponentTree v-if="activePane === 'layers'" />
@@ -115,6 +111,8 @@ import {
 	watch,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
+import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useSessionStorageJSON } from "@/composables/useStorageJSON";
 import { useComponentActions } from "../useComponentActions";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
@@ -296,13 +294,5 @@ function changeActivePane(value: Pane | undefined) {
 	flex-grow: 1;
 	font-weight: 500;
 	font-size: 16px;
-}
-.BuilderSidebar__pane__header__btn {
-	background-color: transparent;
-	border: none;
-	cursor: pointer;
-	font-size: 16px;
-	display: flex;
-	align-items: center;
 }
 </style>

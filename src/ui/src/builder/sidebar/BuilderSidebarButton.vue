@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import WdsIcon from "@/wds/WdsIcon.vue";
+
 defineProps({
 	icon: { type: String, required: true },
 	active: { type: Boolean },
@@ -9,7 +11,7 @@ defineProps({
 
 <template>
 	<a v-if="href" class="BuilderSidebarButton" :href="href">
-		<span class="material-symbols-outlined">{{ icon }}</span>
+		<WdsIcon :name="icon" />
 	</a>
 	<button
 		v-else
@@ -18,7 +20,7 @@ defineProps({
 		role="button"
 		:disabled="disabled"
 	>
-		<span class="material-symbols-outlined">{{ icon }}</span>
+		<WdsIcon :name="icon" />
 	</button>
 </template>
 

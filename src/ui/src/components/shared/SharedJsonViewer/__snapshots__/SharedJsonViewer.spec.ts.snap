@@ -17,10 +17,12 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
       data-v-55c4d015=""
     >
       <span
-        class="SharedCollapsible__summary__icon material-symbols-outlined"
         data-v-55c4d015=""
+        style="display: contents;"
       >
-        keyboard_arrow_right
+        <i
+          data-lucide="chevron-right"
+        />
       </span>
       
       <div
@@ -68,10 +70,12 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
               data-v-55c4d015=""
             >
               <span
-                class="SharedCollapsible__summary__icon material-symbols-outlined"
                 data-v-55c4d015=""
+                style="display: contents;"
               >
-                keyboard_arrow_right
+                <i
+                  data-lucide="chevron-right"
+                />
               </span>
               
               <div
@@ -125,10 +129,12 @@ exports[`SharedJsonViewer > should render a nested object 1`] = `
               data-v-55c4d015=""
             >
               <span
-                class="SharedCollapsible__summary__icon material-symbols-outlined"
                 data-v-55c4d015=""
+                style="display: contents;"
               >
-                keyboard_arrow_right
+                <i
+                  data-lucide="chevron-right"
+                />
               </span>
               
               <div
@@ -196,10 +202,12 @@ exports[`SharedJsonViewer > should render an array 1`] = `
       data-v-55c4d015=""
     >
       <span
-        class="SharedCollapsible__summary__icon material-symbols-outlined"
         data-v-55c4d015=""
+        style="display: contents;"
       >
-        keyboard_arrow_right
+        <i
+          data-lucide="chevron-right"
+        />
       </span>
       
       <div

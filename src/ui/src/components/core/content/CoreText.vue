@@ -25,9 +25,7 @@
 					@click="handleCopy"
 				>
 					<div class="icon">
-						<span class="material-symbols-outlined">
-							{{ isCopied ? "check" : "content_copy" }}
-						</span>
+						<WdsIcon :name="isCopied ? 'check' : 'clipboard'" />
 					</div>
 				</WdsButton>
 			</div>
@@ -44,6 +42,7 @@ import {
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const clickHandlerStub = `
 def click_handler(state):

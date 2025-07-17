@@ -203,7 +203,7 @@ const component = computed(() => wf.getComponentById(componentId.value));
 
 const selectOptions = computed(() => {
 	return subModes.map((m) => {
-		return { value: m.key, label: m.label, icon: "padding" };
+		return { value: m.key, label: m.label, icon: "panel-top-dashed" };
 	});
 });
 

@@ -19,8 +19,9 @@
 				data-writer-tooltip="Expand settings"
 				data-automation-action="expand-settings"
 				@click="toggleSettings"
-				><i class="material-symbols-outlined">settings</i></WdsButton
 			>
+				<WdsIcon name="settings" />
+			</WdsButton>
 			<WdsButton
 				v-else
 				class="BuilderSettings__collapser__btn"
@@ -30,10 +31,9 @@
 				data-writer-tooltip="Collapse settings"
 				data-automation-action="collapse-settings"
 				@click="toggleSettings"
-				><i class="material-symbols-outlined"
-					>double_arrow</i
-				></WdsButton
 			>
+				<WdsIcon name="arrow-right-to-line" />
+			</WdsButton>
 		</div>
 		<div
 			v-if="ssbm.isSingleSelectionActive"
@@ -52,15 +52,14 @@
 						isComponentIdCopied ? 'Copied!' : 'Copy result variable'
 					"
 					@click.prevent="copyComponentId"
-					><i class="material-symbols-outlined"
-						>alternate_email</i
-					></WdsButton
 				>
+					<WdsIcon name="at-sign" />
+				</WdsButton>
 				<SharedMoreDropdown
 					data-automation-action="settings-actions-dropdown"
 					:options="dropdownOptions"
 					trigger-custom-size="32px"
-					trigger-icon="more_vert"
+					trigger-icon="ellipsis-vertical"
 					@select="handleDropdownSelect"
 				/>
 			</div>
@@ -95,6 +94,7 @@ import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { SelectionStatus } from "../builderManager";
 import { useButtonClipboard } from "../useButtonClipboard";
 import { COMPONENT_TYPES_PAGE } from "@/constants/component";

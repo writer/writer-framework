@@ -24,9 +24,7 @@
 				:disabled="disabled"
 				@click.stop="toggleCollapse(undefined)"
 			>
-				<i class="material-symbols-outlined">{{
-					collapsed ? "expand_more" : "expand_less"
-				}}</i>
+				<WdsIcon :name="collapsed ? 'chevron-down' : 'chevron-up'" />
 			</WdsButton>
 
 			<slot name="nameLeft" />
@@ -69,6 +67,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
 const SharedMoreDropdown = defineAsyncComponent(

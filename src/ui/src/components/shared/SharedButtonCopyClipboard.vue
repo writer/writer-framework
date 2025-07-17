@@ -5,16 +5,15 @@
 		:loading="isCoping"
 		@click="copyToClipboard"
 	>
-		<span v-if="copied" class="material-symbols-outlined">
-			check_circle
-		</span>
-		{{ copied ? "Copied to clipboard" : label }}</WdsButton
-	>
+		<WdsIcon v-if="copied" name="check" />
+		{{ copied ? "Copied to clipboard" : label }}
+	</WdsButton>
 </template>
 
 <script setup lang="ts">
 import { useLogger } from "@/composables/useLogger";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { onBeforeUnmount, ref, toRef, watch } from "vue";
 
 const props = defineProps({

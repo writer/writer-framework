@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
 import { useKeyValueEditor } from "./settings/composables/useKeyValueEditor";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { computed, inject, onMounted } from "vue";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import injectionKeys from "@/injectionKeys";
@@ -61,9 +61,7 @@ onMounted(async () => {
 <template>
 	<div class="BuilderVault">
 		<h1>
-			<span class="material-symbols-outlined">
-				{{ BUILDER_MANAGER_MODE_ICONS.vault }}
-			</span>
+			<WdsIcon name="key-round" />
 			Secrets vault
 		</h1>
 		<p>
@@ -129,9 +127,7 @@ onMounted(async () => {
 							:disabled="readonly"
 							@click="removeAssistedEntry(id)"
 						>
-							<span class="material-symbols-outlined"
-								>delete</span
-							>
+							<WdsIcon name="trash-2" />
 						</WdsButton>
 					</div>
 				</template>
@@ -142,9 +138,10 @@ onMounted(async () => {
 					size="small"
 					:disabled="readonly"
 					@click="addAssistedEntry"
-					><span class="material-symbols-outlined">add</span>Add a
-					pair</WdsButton
 				>
+					<WdsIcon name="plus" />
+					Add a pair
+				</WdsButton>
 				<WdsButton
 					variant="primary"
 					size="small"

@@ -15,8 +15,9 @@
 			:href="ressourceUrl"
 			target="_blank"
 			:data-writer-tooltip="linkTooltip"
-			><i class="material-symbols-outlined"> open_in_new </i></a
 		>
+			<WdsIcon name="external-link" />
+		</a>
 	</div>
 </template>
 
@@ -32,6 +33,7 @@ import {
 } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const BuilderApplicationSelect = defineAsyncComponent(
 	() => import("../BuilderApplicationSelect.vue"),

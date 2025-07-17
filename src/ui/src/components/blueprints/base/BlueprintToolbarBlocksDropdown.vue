@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { Component } from "@/writerTypes";
 import { computed, inject, PropType } from "vue";
 
@@ -79,7 +80,7 @@ const options = computed(() =>
 					"
 					@click="$emit('runBranch', option.id)"
 				>
-					<i class="material-symbols-outlined">play_arrow</i>
+					<WdsIcon name="play" />
 				</WdsButton>
 				<div>
 					<p
@@ -100,7 +101,7 @@ const options = computed(() =>
 					data-writer-tooltip="Jump to the blueprint"
 					@click="$emit('jumpToComponent', option.id)"
 				>
-					<i class="material-symbols-outlined">jump_to_element</i>
+					<WdsIcon name="square-dashed-mouse-pointer" />
 				</WdsButton>
 			</div>
 		</div>

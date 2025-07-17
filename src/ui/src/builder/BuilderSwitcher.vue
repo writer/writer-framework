@@ -6,9 +6,7 @@
 			type="button"
 			@click="selectOption('ui')"
 		>
-			<i class="icon material-symbols-outlined">{{
-				BUILDER_MANAGER_MODE_ICONS.ui
-			}}</i>
+			<WdsIcon name="frame" />
 			Interface
 		</button>
 		<button
@@ -17,9 +15,7 @@
 			type="button"
 			@click="selectOption('blueprints')"
 		>
-			<i class="icon material-symbols-outlined">{{
-				BUILDER_MANAGER_MODE_ICONS.blueprints
-			}}</i>
+			<WdsIcon name="wds-blueprints" />
 			Blueprints
 		</button>
 		<button
@@ -29,9 +25,7 @@
 			type="button"
 			@click="selectOption('vault')"
 		>
-			<i class="icon material-symbols-outlined">{{
-				BUILDER_MANAGER_MODE_ICONS.vault
-			}}</i>
+			<WdsIcon name="key-round" />
 			Vault
 		</button>
 		<button
@@ -40,9 +34,7 @@
 			type="button"
 			@click="selectOption('preview')"
 		>
-			<i class="icon material-symbols-outlined">{{
-				BUILDER_MANAGER_MODE_ICONS.preview
-			}}</i>
+			<WdsIcon name="view" />
 			Preview
 		</button>
 	</div>
@@ -52,7 +44,7 @@
 import { computed, inject, Ref, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useWriterTracking } from "@/composables/useWriterTracking";
-import { BUILDER_MANAGER_MODE_ICONS } from "@/constants/icons";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import type { BuilderManagerMode } from "./builderManager";
 import { Component } from "@/writerTypes";
 
@@ -140,7 +132,7 @@ const activeId = computed(() => wfbm.getMode());
 	cursor: pointer;
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 10px;
 	height: 32px;
 	border-radius: 4px;
 }

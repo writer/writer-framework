@@ -66,7 +66,7 @@ describe("BuilderFieldsBlueprintKey", () => {
 		expect(options.at(1)).toStrictEqual({
 			value: componentWf1.content.key,
 			label: componentWf1.content.key,
-			icon: "linked_services",
+			icon: "wds-blueprints",
 		});
 	});
 

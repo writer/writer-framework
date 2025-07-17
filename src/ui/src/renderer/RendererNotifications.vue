@@ -5,14 +5,14 @@
 		@click="toggle"
 	>
 		<div ref="balloon" class="balloon" title="Toggle notifications">
-			<i class="icon material-symbols-outlined"> notifications </i>
+			<WdsIcon class="icon" name="bell" />
 			<div class="counter">{{ notifications.length }}</div>
 		</div>
 		<div class="balloonFlash"></div>
 		<div v-show="isActive" class="main">
 			<div class="clearContainer">
 				<WdsButton @click="clearAll">
-					<i class="material-symbols-outlined"> clear_all </i>
+					<WdsIcon name="trash-2" />
 					Clear all
 				</WdsButton>
 			</div>
@@ -22,7 +22,7 @@
 				class="notification"
 			>
 				<div class="icon" :class="notification.type">
-					<i class="material-symbols-outlined"> exclamation </i>
+					<WdsIcon name="triangle-alert" />
 				</div>
 				<div class="content">
 					<header>
@@ -42,6 +42,7 @@
 import { inject, onMounted, reactive, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const MAX_ITEMS_IN_LIST = 100;
 const wf = inject(injectionKeys.core);
@@ -141,11 +142,11 @@ const clearAll = () => {
 	flex-direction: column;
 }
 
-.balloon .icon {
+.balloon :deep(.icon) {
 	font-size: 1.25rem;
 }
 
-.balloon.alert .icon {
+.balloon.alert :deep(.icon) {
 	animation-name: ring;
 	animation-duration: 0.3s;
 	animation-iteration-count: 4;

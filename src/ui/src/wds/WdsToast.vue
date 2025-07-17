@@ -1,12 +1,12 @@
 <template>
 	<div class="WdsToast" :class="`WdsToast--${type}`">
 		<div class="WdsToast__icon">
-			<span class="material-symbols-outlined">{{ icon }}</span>
+			<WdsIcon :name="icon" />
 		</div>
 		<p>{{ message }}</p>
 		<button v-if="action" class="WdsToast__action" @click="action.func">
 			{{ action.label }}
-			<span class="material-symbols-outlined">{{ action.icon }}</span>
+			<WdsIcon :name="action.icon" />
 		</button>
 		<WdsButton
 			v-if="closable"
@@ -15,7 +15,7 @@
 			size="smallIcon"
 			@click="$emit('close')"
 		>
-			<span class="material-symbols-outlined">close</span>
+			<WdsIcon name="x" />
 		</WdsButton>
 	</div>
 </template>
@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue";
 import WdsButton from "./WdsButton.vue";
+import WdsIcon from "./WdsIcon.vue";
 import type { Toast, ToastAction } from "@/builder/useToast";
 
 const props = defineProps({
@@ -47,9 +48,9 @@ const icon = computed(() => {
 		case "success":
 			return "check";
 		case "error":
-			return "close";
+			return "x";
 		default:
-			return "question_mark";
+			return "circle-question-mark";
 	}
 });
 </script>
@@ -86,6 +87,7 @@ const icon = computed(() => {
 	background-color: transparent;
 	border: none;
 	display: flex;
+	align-items: center;
 	gap: 4px;
 	font-weight: 500;
 }

@@ -1,15 +1,13 @@
 <template>
 	<button
 		class="WdsButtonLink"
-		:disabled="disbaled"
+		:disabled="disabled"
 		:class="className"
 		type="button"
 	>
-		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
+		<WdsIcon v-if="leftIcon" :name="leftIcon" />
 		<span class="WdsButtonLink__text">{{ text }}</span>
-		<i v-if="rightIcon" class="material-symbols-outlined">{{
-			rightIcon
-		}}</i>
+		<WdsIcon v-if="rightIcon" :name="rightIcon" />
 	</button>
 </template>
 
@@ -20,6 +18,7 @@ export type WdsButtonLinkVariant = "primary" | "secondary";
 
 <script setup lang="ts">
 import { computed, PropType } from "vue";
+import WdsIcon from "./WdsIcon.vue";
 
 const props = defineProps({
 	variant: {
@@ -33,7 +32,7 @@ const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },
 	rightIcon: { type: String, required: false, default: undefined },
 	text: { type: String, required: true },
-	disbaled: { type: Boolean },
+	disabled: { type: Boolean },
 });
 const className = computed(() => [
 	`WdsButtonLink--variant-${props.variant}`,

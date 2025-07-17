@@ -97,21 +97,21 @@ const horizontalSubmodes: SubModes = [
 		label: "Left",
 		match: (v) => v == "start",
 		default: "start",
-		icon: "format_align_left",
+		icon: "align-left",
 	},
 	{
 		key: SubMode.hcenter,
 		label: "Center",
 		match: (v) => v == "center",
 		default: "center",
-		icon: "format_align_center",
+		icon: "align-center",
 	},
 	{
 		key: SubMode.hright,
 		label: "Right",
 		match: (v) => v == "end",
 		default: "end",
-		icon: "format_align_right",
+		icon: "align-right",
 	},
 ];
 
@@ -121,21 +121,21 @@ const verticalSubmodes: SubModes = [
 		label: "Top",
 		match: (v) => v == "start",
 		default: "start",
-		icon: "vertical_align_top",
+		icon: "arrow-up-to-line",
 	},
 	{
 		key: SubMode.vcenter,
 		label: "Center",
 		match: (v) => v == "center",
 		default: "center",
-		icon: "vertical_align_center",
+		icon: "fold-vertical",
 	},
 	{
 		key: SubMode.vbottom,
 		label: "Bottom",
 		match: (v) => v == "end",
 		default: "end",
-		icon: "vertical_align_bottom",
+		icon: "arrow-down-to-line",
 	},
 ];
 

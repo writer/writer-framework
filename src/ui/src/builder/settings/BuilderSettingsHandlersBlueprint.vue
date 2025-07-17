@@ -4,6 +4,7 @@ import { computed, inject, PropType } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import { Component } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "../useToast";
 import BuilderListItem from "../BuilderListItem.vue";
 import { useBlueprintsRun } from "@/composables/useBlueprintRun";
@@ -106,7 +107,7 @@ async function createLinkedBlueprint() {
 					blueprintId,
 					getBlueprintTriggerBlock(blueprintId)?.id,
 				),
-			icon: "linked_services",
+			icon: "wds-blueprints",
 		},
 	});
 }
@@ -152,15 +153,14 @@ function jumpToBlueprint(blueprintId: string, triggerId?: string) {
 				:loading="isRunning"
 				@click="run"
 			>
-				<i class="material-symbols-outlined">play_arrow</i>
+				<WdsIcon name="play" />
 			</WdsButton>
 			<p>{{ eventTypeFormated }}</p>
-			<span
+			<WdsIcon
 				v-if="eventDescription"
 				:data-writer-tooltip="eventDescription"
-				class="material-symbols-outlined"
-				>help</span
-			>
+				name="circle-question-mark"
+			/>
 		</div>
 
 		<div class="BuilderSettingsHandlersBlueprint__list">
@@ -193,7 +193,7 @@ function jumpToBlueprint(blueprintId: string, triggerId?: string) {
 						:disabled="isRunning"
 						@click="deleteLinkedBlueprint(trigger)"
 					>
-						<i class="material-symbols-outlined">link_off</i>
+						<WdsIcon name="link-2-off" />
 					</WdsButton>
 				</div>
 			</BuilderListItem>
@@ -203,7 +203,7 @@ function jumpToBlueprint(blueprintId: string, triggerId?: string) {
 						variant="primary"
 						weight="semibold"
 						:disabled="isRunning"
-						left-icon="add"
+						left-icon="plus"
 						text="Create blueprint"
 						@click="createLinkedBlueprint"
 					/>

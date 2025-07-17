@@ -15,7 +15,7 @@
 				class="download"
 				@click="download"
 			>
-				<i class="material-symbols-outlined">download</i>
+				<WdsIcon name="download" />
 			</WdsControl>
 		</div>
 		<div
@@ -42,9 +42,7 @@
 						data-writer-grid-col="0"
 						class="CoreDataframe__table__th CoreDataframe__table__th--index"
 					>
-						<span class="widthAdjuster material-symbols-outlined">
-							drag_indicator
-						</span>
+						<WdsIcon class="widthAdjuster" name="grip-vertical" />
 					</div>
 					<div
 						v-for="(columnName, columnPosition) in shownColumnNames"
@@ -61,18 +59,16 @@
 						>
 							{{ columnName }}
 						</button>
-						<span
+						<WdsIcon
 							v-if="orderSetting?.columnName == columnName"
-							class="CoreDataframe__table__th__icon material-symbols-outlined"
-							>{{
+							class="CoreDataframe__table__th__icon"
+							:name="
 								orderSetting?.descending
-									? "arrow_drop_up"
-									: "arrow_drop_down"
-							}}</span
-						>
-						<span class="widthAdjuster material-symbols-outlined">
-							drag_indicator
-						</span>
+									? 'arrow-up'
+									: 'arrow-down'
+							"
+						/>
+						<WdsIcon class="widthAdjuster" name="grip-vertical" />
 					</div>
 					<div
 						v-if="hasActions"
@@ -113,7 +109,7 @@
 				variant="tertiary"
 				@click="onAddRow"
 			>
-				<i class="material-symbols-outlined">add</i>
+				<WdsIcon name="plus" />
 				Add a row
 			</WdsButton>
 		</div>
@@ -153,6 +149,7 @@ import {
 	UNNAMED_INDEX_COLUMN_PATTERN,
 } from "./CoreDataframe/constants";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { useLogger } from "@/composables/useLogger";
 import {
@@ -803,7 +800,7 @@ onUnmounted(() => {
 	text-overflow: ellipsis;
 }
 
-.CoreDataframe__table__th__icon {
+:deep(.CoreDataframe__table__th__icon) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -825,8 +822,10 @@ onUnmounted(() => {
 	z-index: 1;
 }
 
-.widthAdjuster {
-	display: block;
+:deep(.widthAdjuster) {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	cursor: col-resize;
 	width: 18px;
 	height: 18px;
@@ -836,14 +835,11 @@ onUnmounted(() => {
 	transform: translateX(50%);
 	z-index: 1;
 
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
 	background-color: var(--dataframeBackgroundColor);
 	color: var(--wdsColorGray4);
 }
-.widthAdjuster:hover {
+
+:deep(.widthAdjuster:hover) {
 	color: var(--wdsColorBlack);
 }
 </style>

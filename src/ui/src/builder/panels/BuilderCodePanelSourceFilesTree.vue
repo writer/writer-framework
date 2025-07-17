@@ -44,7 +44,7 @@ import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import BuilderCodePanelFileUploading from "./BuilderCodePanelFileUploading.vue";
 
 const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
-	{ label: "Delete", value: "delete", icon: "delete" },
+	{ label: "Delete", value: "delete", icon: "trash-2" },
 ];
 </script>
 

@@ -7,11 +7,7 @@
 		@toggle="onToggle"
 	>
 		<summary class="SharedCollapsible__summary">
-			<span
-				v-if="icons"
-				class="SharedCollapsible__summary__icon material-symbols-outlined"
-				>{{ icon }}</span
-			>
+			<WdsIcon v-if="icons" :name="icon" />
 			<slot name="title" />
 		</summary>
 		<div class="content">
@@ -22,6 +18,7 @@
 
 <script setup lang="ts">
 import { computed, PropType, ref, toRef, watch } from "vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const props = defineProps({
 	open: { type: Boolean, required: false },
@@ -99,13 +96,6 @@ details summary:before {
 }
 .SharedCollapsible--customMarker summary:before {
 	content: none;
-}
-.SharedCollapsible__summary__icon {
-	height: 18px;
-	width: 18px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 summary:focus-visible:before {

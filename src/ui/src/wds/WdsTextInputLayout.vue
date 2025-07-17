@@ -8,7 +8,7 @@
 			gridTemplateColumns: gridTemplateColumns,
 		}"
 	>
-		<i v-if="leftIcon" class="material-symbols-outlined">{{ leftIcon }}</i>
+		<WdsIcon v-if="leftIcon" :name="leftIcon" />
 		<slot />
 		<p v-if="rightText" class="WdsTextInputLayout__rightText">
 			{{ rightText }}
@@ -19,13 +19,14 @@
 			type="button"
 			@click="$emit('rightIconClick')"
 		>
-			<i class="material-symbols-outlined">{{ rightIcon }}</i>
+			<WdsIcon :name="rightIcon" />
 		</button>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, PropType } from "vue";
+import WdsIcon from "./WdsIcon.vue";
 
 const props = defineProps({
 	leftIcon: { type: String, required: false, default: undefined },

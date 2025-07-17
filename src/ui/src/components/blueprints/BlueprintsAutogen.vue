@@ -44,7 +44,7 @@
 					:disabled="isBusy"
 					@click="handleAutogen"
 				>
-					<i class="material-symbols-outlined">bolt</i>
+					<WdsIcon name="sparkles" />
 					{{ isBusy ? "Autogenerating..." : "Autogenerate agent" }}
 				</WdsButton>
 			</div>
@@ -55,6 +55,7 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 
 import BlueprintsAutogenContents from "./BlueprintsAutogenContents.vue";

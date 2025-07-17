@@ -2,25 +2,25 @@
 	<div ref="rootEl" class="CorePDF">
 		<div v-if="fields.controls.value" class="controls">
 			<WdsControl @click="() => gotoPage(page - 1)">
-				<i class="material-symbols-outlined">arrow_upward</i>
+				<WdsIcon name="arrow-up" />
 			</WdsControl>
 			<WdsControl @click="() => gotoPage(page + 1)">
-				<i class="material-symbols-outlined">arrow_downward</i>
+				<WdsIcon name="arrow-down" />
 			</WdsControl>
 			<span :key="page">{{ page }} / {{ pages }}</span>
 			<WdsControl :disabled="loading" @click="incrementScale">
-				<i class="material-symbols-outlined">zoom_in</i>
+				<WdsIcon name="zoom-in" />
 			</WdsControl>
 			<WdsControl :disabled="loading" @click="decrementScale">
-				<i class="material-symbols-outlined">zoom_out</i>
+				<WdsIcon name="zoom-out" />
 			</WdsControl>
 			<span>{{ Math.round(scale * 100) }}%</span>
 			<span class="separator" />
 			<WdsControl v-if="matches.length" @click="decrementMatchIdx">
-				<i class="material-symbols-outlined">navigate_before</i>
+				<WdsIcon name="chevron-left" />
 			</WdsControl>
 			<WdsControl v-if="matches.length" @click="incrementMatchIdx">
-				<i class="material-symbols-outlined">navigate_next</i>
+				<WdsIcon name="chevron-right" />
 			</WdsControl>
 			<span v-if="matches.length"
 				>Matches {{ currentMatch }} / {{ matches.length }}</span
@@ -54,6 +54,7 @@ import {
 	baseYesNoField,
 } from "@/renderer/sharedStyleFields";
 import WdsControl from "@/wds/WdsControl.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import { validatorArrayOfString } from "@/constants/validators";
 import type { PDFSrc } from "@tato30/vue-pdf";
 import { dataURLToArrayBuffer } from "@/utils/base64";
