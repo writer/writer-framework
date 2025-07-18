@@ -29,7 +29,6 @@ function checkFlags(required?: string[]): boolean {
 
 // input
 import CoreCheckboxInput from "../components/core/input/CoreCheckboxInput.vue";
-import CoreColorInput from "../components/core/input/CoreColorInput.vue";
 import CoreDateInput from "../components/core/input/CoreDateInput.vue";
 import CoreDropdownInput from "../components/core/input/CoreDropdownInput.vue";
 import CoreFileInput from "../components/core/input/CoreFileInput.vue";
@@ -116,7 +115,6 @@ const templateMap: TemplateMap = {
 	numberinput: CoreNumberInput,
 	sliderinput: CoreSliderInput,
 	rangeinput: CoreSliderRangeInput,
-	colorinput: CoreColorInput,
 	dateinput: CoreDateInput,
 	timeinput: CoreTimeInput,
 	radioinput: CoreRadioInput,
