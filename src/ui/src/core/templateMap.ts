@@ -65,7 +65,6 @@ import CoreReuse from "../components/core/other/CoreReuse.vue";
 // embed
 import CorePDF from "../components/core/embed/CorePDF.vue";
 import CoreIFrame from "../components/core/embed/CoreIFrame.vue";
-import CoreGoogleMaps from "../components/core/embed/CoreGoogleMaps.vue";
 // root
 import CorePage from "../components/core/root/CorePage.vue";
 import CoreRoot from "../components/core/root/CoreRoot.vue";
@@ -107,7 +106,6 @@ const templateMap: TemplateMap = {
 	image: CoreImage,
 	pdf: CorePDF,
 	iframe: CoreIFrame,
-	googlemaps: CoreGoogleMaps,
 	mapbox: CoreMapbox,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
