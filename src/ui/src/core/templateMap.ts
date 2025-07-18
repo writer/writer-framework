@@ -3,7 +3,6 @@ import type { Component as VueComponent } from "vue";
 // content
 import CoreDataframe from "../components/core/content/CoreDataframe.vue";
 import CoreHeading from "../components/core/content/CoreHeading.vue";
-import CoreIcon from "../components/core/content/CoreIcon.vue";
 import CoreImage from "../components/core/content/CoreImage.vue";
 import CoreMessage from "../components/core/content/CoreMessage.vue";
 import CoreMetric from "../components/core/content/CoreMetric.vue";
@@ -113,7 +112,6 @@ const templateMap: TemplateMap = {
 	iframe: CoreIFrame,
 	googlemaps: CoreGoogleMaps,
 	mapbox: CoreMapbox,
-	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
 	textareainput: CoreTextareaInput,
