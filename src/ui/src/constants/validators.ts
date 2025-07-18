@@ -89,30 +89,6 @@ export const validatorArrayOfString: SchemaObject = {
 	items: { type: "string" },
 };
 
-export const validatorGpsLat = buildJsonSchemaForNumberBetween(-90, 90);
-
-export const validatorGpsLng = buildJsonSchemaForNumberBetween(-180, 180);
-
-export const validatorGpsMarker: SchemaObject = {
-	$id: generateSchemaId("gpsMarker"),
-	type: "object",
-	properties: {
-		name: {
-			type: "string",
-		},
-		lat: validatorGpsLat,
-		lng: validatorGpsLng,
-	},
-	required: ["lat", "lng", "name"],
-	additionalProperties: false,
-};
-
-export const validatorGpsMarkers: SchemaObject = {
-	$id: generateSchemaId("gpsMarkers"),
-	type: "array",
-	items: validatorGpsMarker,
-};
-
 export const validatorObjectRecordNotNested: SchemaObject = {
 	$id: generateSchemaId("objectRecordNotNested"),
 	type: "object",

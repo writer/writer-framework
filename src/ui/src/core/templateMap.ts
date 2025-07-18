@@ -68,7 +68,6 @@ import CoreIFrame from "../components/core/embed/CoreIFrame.vue";
 // root
 import CorePage from "../components/core/root/CorePage.vue";
 import CoreRoot from "../components/core/root/CoreRoot.vue";
-import CoreMapbox from "../components/core/embed/CoreMapbox.vue";
 
 // Blueprints
 
@@ -106,7 +105,6 @@ const templateMap: TemplateMap = {
 	image: CoreImage,
 	pdf: CorePDF,
 	iframe: CoreIFrame,
-	mapbox: CoreMapbox,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
 	textareainput: CoreTextareaInput,
