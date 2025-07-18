@@ -50,7 +50,6 @@ import CoreSwitchInput from "../components/core/input/CoreSwitchInput.vue";
 // layout
 import CoreColumn from "../components/core/layout/CoreColumn.vue";
 import CoreColumns from "../components/core/layout/CoreColumns.vue";
-import CoreHeader from "../components/core/layout/CoreHeader.vue";
 import CoreHorizontalStack from "../components/core/layout/CoreHorizontalStack.vue";
 import CoreSection from "../components/core/layout/CoreSection.vue";
 import CoreSeparator from "../components/core/layout/CoreSeparator.vue";
@@ -97,7 +96,6 @@ const templateMap: TemplateMap = {
 	button: CoreButton,
 	text: CoreText,
 	section: CoreSection,
-	header: CoreHeader,
 	heading: CoreHeading,
 	dataframe: CoreDataframe,
 	html: CoreHtml,
@@ -220,8 +218,7 @@ export function getTemplate(type: string) {
 		templateMap[type] ??
 		fallbackTemplate(type);
 
-	const required =
-		(tmpl as any)?.writer?.featureFlags;
+	const required = (tmpl as any)?.writer?.featureFlags;
 
 	if (!checkFlags(required)) {
 		return fallbackTemplate(type);
@@ -230,17 +227,22 @@ export function getTemplate(type: string) {
 }
 
 export function getComponentDefinition(
-        type: string,
+	type: string,
 ): WriterComponentDefinition {
-        return getTemplate(type)?.writer;
+	return getTemplate(type)?.writer;
 }
 
 export function getSupportedComponentTypes() {
-        const allTypes = [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
-        return allTypes.filter((t) => {
-			const required = (templateMap[t] as any)?.writer?.featureFlags as string[] | undefined;
-			return checkFlags(required);
-        });
+	const allTypes = [
+		...Object.keys(templateMap),
+		...Object.keys(abstractTemplateMap),
+	];
+	return allTypes.filter((t) => {
+		const required = (templateMap[t] as any)?.writer?.featureFlags as
+			| string[]
+			| undefined;
+		return checkFlags(required);
+	});
 }
 
 export function registerComponentTemplate(
