@@ -13,7 +13,6 @@ import CoreVideoPlayer from "../components/core/content/CoreVideoPlayer.vue";
 import CoreLink from "../components/core/content/CoreLink.vue";
 import CoreChatbot from "../components/core/content/CoreChatbot.vue";
 import CoreTags from "../components/core/content/CoreTags.vue";
-import CoreAvatar from "../components/core/content/CoreAvatar.vue";
 import CoreAnnotatedText from "../components/core/content/CoreAnnotatedText.vue";
 import CoreJsonViewer from "../components/core/content/CoreJsonViewer.vue";
 import CoreProgressBar from "../components/core/content/CoreProgressBar.vue";
@@ -140,7 +139,6 @@ const templateMap: TemplateMap = {
 	tags: CoreTags,
 	switchinput: CoreSwitchInput,
 	reuse: CoreReuse,
-	avatar: CoreAvatar,
 	annotatedtext: CoreAnnotatedText,
 	jsonviewer: CoreJsonViewer,
 	blueprints_root: BlueprintsRoot,
