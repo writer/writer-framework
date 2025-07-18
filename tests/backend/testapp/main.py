@@ -118,10 +118,6 @@ def payload_inspector(state, payload, context):
     print("Context: " + repr(context))
 
 
-def handle_webcam(state, payload):
-    state["webcam_image"] = wf.pack_bytes(payload, "image/png")
-
-
 def handle_form_submit(state):
     if state["b"]["pet_count"] <= 0:
         state["b"]["message"] = "-You must have pets"

@@ -839,15 +839,6 @@ class TestEventDeserialiser:
             "route_vars": {"param": "1"},
         }
 
-    def test_webcam(self) -> None:
-        ev = WriterEvent(
-            type="wf-webcam",
-            instancePath=self.root_instance_path,
-            payload="data:text/plain;base64,aGVsbG8gd29ybGQ=",
-        )
-        self.ed.transform(ev)
-        assert bytes(ev.payload).decode("utf-8") == "hello world"
-
     def test_file_change(self) -> None:
         ev = WriterEvent(
             type="wf-file-change",

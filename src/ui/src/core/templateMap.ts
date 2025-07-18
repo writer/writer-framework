@@ -60,7 +60,6 @@ import CoreHtml from "../components/core/other/CoreHtml.vue";
 import CorePagination from "../components/core/other/CorePagination.vue";
 import CoreRepeater from "../components/core/other/CoreRepeater.vue";
 import CoreTimer from "../components/core/other/CoreTimer.vue";
-import CoreWebcamCapture from "../components/core/other/CoreWebcamCapture.vue";
 import CoreReuse from "../components/core/other/CoreReuse.vue";
 // embed
 import CorePDF from "../components/core/embed/CorePDF.vue";
@@ -119,7 +118,6 @@ const templateMap: TemplateMap = {
 	selectinput: CoreSelectInput,
 	multiselectinput: CoreMultiselectInput,
 	fileinput: CoreFileInput,
-	webcamcapture: CoreWebcamCapture,
 	plotlygraph: CorePlotlyGraph,
 	metric: CoreMetric,
 	message: CoreMessage,
