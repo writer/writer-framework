@@ -1,7 +1,3 @@
-<docs lang="md">
-    Writer Framework uses Material Symbols to display icons. To include an icon, check https://fonts.google.com/icons, find the icon's id (such as \`arrow_forward\`) and it to your _Button_.
-</docs>
-
 <template>
 	<WdsButton
 		ref="rootInstance"
@@ -10,15 +6,12 @@
 		:disabled="!isBeingEdited && isDisabled"
 		@click="handleClick"
 	>
-		<i v-if="fields.icon.value" class="material-symbols-outlined">{{
-			fields.icon.value
-		}}</i>
 		<span class="CoreButton__text">{{ fields.text.value }}</span>
 	</WdsButton>
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "@/writerTypes";
+import { FieldType } from "@/writerTypes";
 import WdsButton from "@/wds/WdsButton.vue";
 import {
 	buttonColor,
@@ -66,12 +59,6 @@ export default {
 			},
 			buttonColor,
 			buttonTextColor,
-			icon: {
-				name: "Icon",
-				type: FieldType.Text,
-				desc: `A Material Symbols id, such as "arrow_forward".`,
-				category: FieldCategory.Style,
-			},
 			buttonShadow,
 			separatorColor,
 			cssClasses,
