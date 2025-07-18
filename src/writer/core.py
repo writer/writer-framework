@@ -353,7 +353,7 @@ class StateSerialiser:
             return self._serialise_pyarrow_table(v)
 
         if hasattr(v, "to_dict") and callable(v.to_dict):
-            # Covers Altair charts, Plotly graphs
+            # Covers Plotly graphs
             return self._serialise_dict_recursively(v.to_dict())
 
         raise StateSerialiserException(

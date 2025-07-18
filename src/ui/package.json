@@ -37,9 +37,6 @@
 		"plotly.js-dist-min": "^2.35.2",
 		"pretty-bytes": "^6.1.1",
 		"typescript": "^5.4.3",
-		"vega": "^5.22.1",
-		"vega-embed": "^6.22.1",
-		"vega-lite": "^5.7.1",
 		"vue": "^3.5.0",
 		"vue-dompurify-html": "^5.0.1"
 	},

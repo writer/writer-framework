@@ -60,7 +60,6 @@ optional = true
 
 [tool.poetry.group.build.dependencies]
 alfred-cli = "^2.2.7"
-altair = ">= 5.2.0, < 6"
 httpx = ">=0.26.0, < 1"
 mypy = ">= 1.8.0, < 2"
 pandas = ">= 2.2.0, < 3"

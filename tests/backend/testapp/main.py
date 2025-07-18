@@ -2,7 +2,6 @@ import asyncio
 import logging
 import statistics
 
-import altair as alt
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -15,19 +14,23 @@ writer.Config.feature_flags.append("flag_one")
 writer.Config.feature_flags.append("flag_two")
 writer.Config.feature_flags.append("api_trigger")
 
+
 @wf.middleware()
 def my_middleware(state):
     state['counter_middleware'] += 1
     yield
 
+
 @wf.middleware()
 def no_yield_middleware(state):
     state['counter_middleware_without_yield'] += 1
+
 
 @wf.middleware()
 def post_middleware(state):
     yield
     state['counter_post_middleware'] += 1
+
 
 @wf.session_verifier
 def check_headers(headers):
@@ -41,6 +44,7 @@ def check_cookies(cookies):
     if cookies.get("fail_cookie") is not None:
         return False
     return True
+
 
 def update_cities(state, payload):
     if payload == "ar":
@@ -70,11 +74,13 @@ logging.info(writer.core.session_manager.verifiers)
 
 my_var = 3
 
+
 def increment(state):
     state["counter"] += 1*my_var
     return 1
 
 # EVENT HANDLERS
+
 
 def file_change_handler(state, payload):
     uploaded_files = payload
@@ -83,6 +89,7 @@ def file_change_handler(state, payload):
         file_data = uploaded_file.get("data")
         with open(f"{name}-{i}.jpeg", "wb") as file_handle:
             file_handle.write(file_data)
+
 
 def handle_timer_tick(state):
     state["counter"] += 1
@@ -93,14 +100,17 @@ def handle_file_download(state):
     file_name = "thestory.txt"
     state.file_download(data, file_name)
 
+
 def add_notification(state):
     state.add_notification("error", "An Error", "Something bad happened.")
     state.add_notification("warning", "A Warning", "Be aware that something happened.")
     state.add_notification("info", "Some Info", "Something happened.")
     state.add_notification("success", "A Success", "Something good happened.")
 
+
 def bad_event_handler(state):
     state["prog_languages"][1/0] = "bad"
+
 
 def payload_inspector(state, payload, context):
     state["inspected_payload"] = repr(payload)
@@ -222,17 +232,6 @@ def _update_scatter_chart(state):
     )
     state["scatter_chart"] = fig
 
-def _get_altair_chart():
-    x, y = np.meshgrid(range(-5, 5), range(-5, 5))
-    z = x ** 2 + y ** 2
-    source = pd.DataFrame({'x': x.ravel(),'y': y.ravel(),'z': z.ravel()})
-    chart = alt.Chart(source).mark_rect().encode(
-        x='x:O',
-        y='y:O',
-        color='z:Q'
-    )
-    return chart
-
 # STATE INIT
 
 
@@ -279,7 +278,6 @@ initial_state = wf.init_state({
         }
     },
     "order_list": [],
-    "altair_chart": _get_altair_chart()
 })
 
 update(initial_state, None)

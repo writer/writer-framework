@@ -8,7 +8,6 @@ import CoreMessage from "../components/core/content/CoreMessage.vue";
 import CoreMetric from "../components/core/content/CoreMetric.vue";
 import CorePlotlyGraph from "../components/core/content/CorePlotlyGraph.vue";
 import CoreText from "../components/core/content/CoreText.vue";
-import CoreVegaLiteChart from "../components/core/content/CoreVegaLiteChart.vue";
 import CoreVideoPlayer from "../components/core/content/CoreVideoPlayer.vue";
 import CoreLink from "../components/core/content/CoreLink.vue";
 import CoreChatbot from "../components/core/content/CoreChatbot.vue";
@@ -127,7 +126,6 @@ const templateMap: TemplateMap = {
 	multiselectinput: CoreMultiselectInput,
 	fileinput: CoreFileInput,
 	webcamcapture: CoreWebcamCapture,
-	vegalitechart: CoreVegaLiteChart,
 	plotlygraph: CorePlotlyGraph,
 	metric: CoreMetric,
 	message: CoreMessage,

@@ -5,7 +5,6 @@ import unittest
 import urllib
 from typing import Any, Dict
 
-import altair
 import numpy as np
 import pandas
 import pandas as pd
@@ -1041,13 +1040,6 @@ class TestStateSerialiser:
         }
         d = {"name": "Normal name", "df": pd.DataFrame(data)}
         self.sts.serialise(d)
-
-    def test_unserialisable_altair(self) -> None:
-        chart = altair.Chart([3, 3, 3]).mark_line().encode(x="x", y="y")
-        d = {"chart": chart}
-        with pytest.warns(UserWarning):
-            with pytest.raises(ValueError):
-                self.sts.serialise(d)
 
     def test_plotly_should_be_serialize_to_json(self) -> None:
         """
