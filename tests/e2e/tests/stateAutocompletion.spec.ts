@@ -68,16 +68,17 @@ test.describe("state autocompletion", () => {
 		}) => {
 			await page.locator("div.CoreText.component").click();
 
-			const checkboxWrapper = page.locator(
+			const field = page.locator(
 				'.BuilderFieldsCheckbox[data-automation-key="useMarkdown"]',
 			);
-			const visualCheckbox = checkboxWrapper.locator(".WdsCheckbox__label");
 
-			await expect(visualCheckbox).toHaveCount(1);
+			const checkbox = field.locator(".WdsCheckbox");
 
-			await expect(checkboxWrapper).toContainText("No");
-			await visualCheckbox.click();
-			await expect(checkboxWrapper).toContainText("Yes");
+			await expect(checkbox).toHaveCount(1);
+
+			await expect(checkbox).not.toHaveClass(/WdsCheckbox--checked/);
+			await checkbox.click();
+			await expect(checkbox).toHaveClass(/WdsCheckbox--checked/);
 		});
 	});
 

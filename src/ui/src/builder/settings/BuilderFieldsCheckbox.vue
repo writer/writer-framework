@@ -2,7 +2,8 @@
 	<div class="BuilderFieldsCheckbox" :data-automation-key="props.fieldKey">
 		<WdsCheckbox
 			v-model="model"
-			:label="model ? 'Yes' : 'No'"
+			:label="label"
+			:detail="hint"
 			:invalid="Boolean(error)"
 		/>
 	</div>
@@ -18,7 +19,9 @@ import { useComponentActions } from "../useComponentActions";
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
-	error: { type: String, required: false, default: undefined },
+	label: { type: String, default: undefined },
+	hint: { type: String, default: undefined },
+	error: { type: String, default: undefined },
 });
 
 const wf = inject(injectionKeys.core);
@@ -42,8 +45,4 @@ const model = computed<boolean>({
 
 <style scoped>
 @import "../sharedStyles.css";
-
-.BuilderFieldsCheckbox[aria-invalid="true"] {
-	border-color: var(--wdsColorOrange5);
-}
 </style>

@@ -22,7 +22,17 @@
 				:key="fieldKey"
 				class="BuilderSettingsProperties__category__field"
 			>
+				<BuilderFieldsCheckbox
+					v-if="fieldValue.type === FieldType.Boolean"
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:error="errorsByFields[fieldKey]"
+				/>
+
 				<WdsFieldWrapper
+					v-else
 					:label="
 						propertyCategory === 'Tools'
 							? undefined
@@ -54,13 +64,6 @@
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:instance-path="selectedInstancePath"
-						:error="errorsByFields[fieldKey]"
-					/>
-
-					<BuilderFieldsCheckbox
-						v-if="fieldValue.type == FieldType.Boolean"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
 						:error="errorsByFields[fieldKey]"
 					/>
 
