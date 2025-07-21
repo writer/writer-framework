@@ -101,16 +101,30 @@ function onChange(event: InputEvent) {
 	color: var(--wdsColorWhite);
 }
 
-.WdsCheckbox__detail,
 .WdsCheckbox__label {
+	font-size: 14px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
+}
+
+.WdsCheckbox__detail {
+	font-size: 12px;
+}
+
+.WdsCheckbox__label,
+.WdsCheckbox__detail {
+	line-height: 180%;
 	text-align: left;
 }
 
 .WdsCheckbox:has(.WdsCheckbox__detail) {
+	align-items: start;
 	grid-template-rows: auto auto;
+}
+
+.WdsCheckbox:has(.WdsCheckbox__detail) .WdsCheckbox__checkbox {
+	margin-top: 14px;
 }
 
 .WdsCheckbox__detail {
