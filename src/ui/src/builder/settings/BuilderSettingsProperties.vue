@@ -256,7 +256,7 @@ const componentDefinition = computed(() => {
 const fields = computed(() => {
 	const allFields = componentDefinition.value?.fields ?? {};
 	return Object.fromEntries(
-			Object.entries(allFields).filter(([, f]) => !f.isArtifactField)
+		Object.entries(allFields).filter(([, f]) => !f.isArtifactField),
 	);
 });
 
