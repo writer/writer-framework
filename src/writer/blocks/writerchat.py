@@ -24,9 +24,11 @@ class WriterChat(WriterBlock):
                         },
                         "useStreaming": {
                             "name": "Use streaming",
-                            "type": "Text",
+                            "type": "Boolean",
                             "default": "yes",
-                            "options": {"yes": "Yes", "no": "No"},
+                            "validator": {
+                                "type": "boolean",
+                            },
                         },
                         "tools": {
                             "name": "Tools",
@@ -82,8 +84,10 @@ class WriterChat(WriterBlock):
         try:
             import writer.ai
 
-            conversation_state_element = self._get_field("conversationStateElement", required=True)
-            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
+            conversation_state_element = self._get_field(
+                "conversationStateElement", required=True)
+            use_streaming = self._get_field(
+                "useStreaming", False, "yes") == "yes"
             tools_raw = self._get_field("tools", True)
             tools = []
 

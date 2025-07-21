@@ -62,23 +62,22 @@ test.describe("state autocompletion", () => {
 		});
 	});
 
-	test.describe.skip("text with dropdown", () => {
-		test("options should show on focus", async ({ page }) => {
+	test.describe.skip("checkbox field", () => {
+		test("checkbox should toggle on click and have correct label", async ({
+			page,
+		}) => {
 			await page.locator("div.CoreText.component").click();
-			await page
-				.locator('.BuilderFieldsText[data-automation-key="useMarkdown"]')
-				.locator(".BuilderTemplateEditorContent")
-				.focus();
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="yes"]',
-				),
-			).toHaveCount(1);
-			await expect(
-				page.locator(
-					'.BuilderFieldsText[data-automation-key="useMarkdown"] datalist option[value="no"]',
-				),
-			).toHaveCount(1);
+
+			const checkboxWrapper = page.locator(
+				'.BuilderFieldsCheckbox[data-automation-key="useMarkdown"]',
+			);
+			const visualCheckbox = checkboxWrapper.locator(".WdsCheckbox__label");
+
+			await expect(visualCheckbox).toHaveCount(1);
+
+			await expect(checkboxWrapper).toContainText("No");
+			await visualCheckbox.click();
+			await expect(checkboxWrapper).toContainText("Yes");
 		});
 	});
 

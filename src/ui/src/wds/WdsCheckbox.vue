@@ -1,30 +1,34 @@
 <script lang="ts" setup>
-import { computed, useId } from "vue";
+import { useId } from "vue";
 import WdsIcon from "./WdsIcon.vue";
 
-const props = defineProps({
+defineProps({
 	label: { type: String, required: false, default: undefined },
 	detail: { type: String, required: false, default: undefined },
 	disabled: { type: Boolean, required: false },
+	invalid: { type: Boolean, default: false },
 });
 
 const id = useId();
 
 const checked = defineModel({ type: Boolean, default: false });
 
-const classes = computed(() =>
-	[
-		props.disabled ? "WdsCheckbox--disabled" : undefined,
-		checked.value ? "WdsCheckbox--checked" : undefined,
-	].filter(Boolean),
-);
 function onChange(event: InputEvent) {
 	checked.value = (event.target as HTMLInputElement).checked;
 }
 </script>
 
 <template>
-	<label :for="id" class="WdsCheckbox" :class="classes" @mousedown.prevent>
+	<label
+		:for="id"
+		class="WdsCheckbox"
+		:class="{
+			'WdsCheckbox--disabled': disabled,
+			'WdsCheckbox--invalid': invalid,
+			'WdsCheckbox--checked': checked,
+		}"
+		@mousedown.prevent
+	>
 		<div class="WdsCheckbox__checkbox">
 			<WdsIcon name="check" class="WdsCheckbox__checkbox__check" />
 		</div>
@@ -35,6 +39,7 @@ function onChange(event: InputEvent) {
 			type="checkbox"
 			:checked="checked"
 			:disabled="disabled"
+			:aria-invalid="invalid"
 			@change.stop="onChange"
 		/>
 	</label>
@@ -55,6 +60,15 @@ function onChange(event: InputEvent) {
 	opacity: 40%;
 	cursor: not-allowed;
 }
+
+.WdsCheckbox--invalid .WdsCheckbox__checkbox {
+	border-color: var(--wdsColorOrange5);
+}
+
+.WdsCheckbox--invalid .WdsCheckbox__label {
+	color: var(--wdsColorOrange5);
+}
+
 .WdsCheckbox__checkbox {
 	border: 1px solid var(--wdsColorGray4);
 	width: 18px;

@@ -121,7 +121,6 @@ export const baseYesNoField = Object.freeze<
 	Pick<WriterComponentDefinitionField, "type" | "validator" | "options">
 >({
 	type: FieldType.Boolean,
-	options: { yes: "Yes", no: "No" },
 	validator: {
 		type: "boolean",
 	},

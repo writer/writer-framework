@@ -57,10 +57,16 @@
 						:error="errorsByFields[fieldKey]"
 					/>
 
+					<BuilderFieldsCheckbox
+						v-if="fieldValue.type == FieldType.Boolean"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+						:error="errorsByFields[fieldKey]"
+					/>
+
 					<BuilderFieldsText
 						v-if="
 							fieldValue.type == FieldType.Text ||
-							fieldValue.type == FieldType.Boolean ||
 							fieldValue.type == FieldType.Number ||
 							fieldValue.type == FieldType.Binding ||
 							fieldValue.type == FieldType.IdKey
@@ -211,6 +217,7 @@ import {
 } from "@/writerTypes";
 import BuilderFieldsAlign from "./BuilderFieldsAlign.vue";
 import BuilderFieldsColor from "./BuilderFieldsColor.vue";
+import BuilderFieldsCheckbox from "./BuilderFieldsCheckbox.vue";
 import BuilderFieldsKeyValue from "./BuilderFieldsKeyValue.vue";
 import BuilderFieldsObject from "./BuilderFieldsObject.vue";
 import BuilderFieldsPadding from "./BuilderFieldsPadding.vue";

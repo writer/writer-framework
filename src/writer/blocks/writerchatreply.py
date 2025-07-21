@@ -72,10 +72,12 @@ class WriterChatReply(WriterBlock):
                         },
                         "useStreaming": {
                             "name": "Use streaming",
-                            "type": "Text",
+                            "type": "Boolean",
                             "default": "yes",
                             "desc": "If set to 'yes', the block will stream the reply as it is generated. If set to 'no', it will wait for the entire reply to be generated before returning.",
-                            "options": {"yes": "Yes", "no": "No"},
+                            "validator": {
+                                "type": "boolean",
+                            },
                         },
                         "tools": {
                             "name": "Tools",
@@ -142,11 +144,15 @@ class WriterChatReply(WriterBlock):
                 "initModelId", False, default_field_value=DEFAULT_MODEL
             )
             try:
-                init_temperature = float(self._get_field("initTemperature", False, "0.7"))
-                init_max_tokens = int(self._get_field("initMaxTokens", False, "1024"))
+                init_temperature = float(self._get_field(
+                    "initTemperature", False, "0.7"))
+                init_max_tokens = int(self._get_field(
+                    "initMaxTokens", False, "1024"))
             except ValueError as e:
-                raise WriterConfigurationError(f"Invalid numeric value in configuration: {e}")
-            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
+                raise WriterConfigurationError(
+                    f"Invalid numeric value in configuration: {e}")
+            use_streaming = self._get_field(
+                "useStreaming", False, "yes") == "yes"
             tools_raw = self._get_field("tools", True)
             tools = []
 
@@ -182,7 +188,8 @@ class WriterChatReply(WriterBlock):
                     "model": init_model_id,
                     "max_tokens": init_max_tokens,
                 }
-                conversation = writer.ai.Conversation(prompt_or_history=system_prompt, config=config)
+                conversation = writer.ai.Conversation(
+                    prompt_or_history=system_prompt, config=config)
                 self._set_state(conversation_state_element, conversation)
             elif not isinstance(conversation, writer.ai.Conversation):
                 raise WriterConfigurationError(

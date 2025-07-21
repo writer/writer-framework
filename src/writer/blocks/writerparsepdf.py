@@ -25,12 +25,14 @@ class WriterParsePDFByFileID(WriterBlock):
                                     "type": "string",
                                     "format": "uuid"
                                 }
-                            },
+                        },
                         "markdown": {
                             "name": "Use Markdown",
-                            "type": "Text",
+                            "type": "Boolean",
                             "default": "yes",
-                            "options": {"yes": "Yes", "no": "No"},
+                            "validator": {
+                                "type": "boolean",
+                            },
                         }
                     },
                     "outs": {
