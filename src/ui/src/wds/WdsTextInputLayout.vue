@@ -70,7 +70,6 @@ const gridTemplateColumns = computed(() =>
 
 .WdsTextInputLayout:focus,
 .WdsTextInputLayout:focus-within {
-	border: 1px solid var(--softenedAccentColor);
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 }
 

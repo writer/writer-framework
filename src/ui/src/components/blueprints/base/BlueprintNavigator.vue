@@ -220,7 +220,8 @@ onUnmounted(() => {
 }
 
 .bar {
-	display: flex;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
 	background: var(--builderBackgroundColor);
 }
 
@@ -235,18 +236,16 @@ onUnmounted(() => {
 }
 
 .zoomer {
-	flex: 1 0 auto;
-	display: flex;
+	display: grid;
+	grid-template-columns: 32px 1fr 32px 32px;
 	padding: 4px;
 	gap: 4px;
 	align-items: center;
 	justify-content: center;
 }
 
-.zoomer .zoomLevelInput {
+.zoomer:deep(.zoomLevelInput) {
 	font-size: 12px;
-	padding: 4px;
-	width: 60px;
 	text-align: center;
 }
 
