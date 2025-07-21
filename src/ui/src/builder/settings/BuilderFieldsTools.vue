@@ -13,7 +13,7 @@
 				<div class="toolName">{{ toolName }}</div>
 				<WdsButton
 					variant="primary"
-					size="small"
+					size="smallIcon"
 					class="delete"
 					@click.stop="deleteTool(toolName)"
 				>
@@ -326,11 +326,11 @@ const modalActions = computed<ModalAction[]>(() => [
 }
 
 .tool .delete {
-	display: none;
+	visibility: hidden;
 }
 
 .tool:hover .delete {
-	display: unset;
+	visibility: visible;
 }
 
 .addToolForm {

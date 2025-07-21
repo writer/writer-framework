@@ -4,7 +4,7 @@
 			v-if="ssbm.selectionStatus.value === SelectionStatus.Multiple"
 			class="BuilderSettingsActions__btn"
 			variant="neutral"
-			size="small"
+			size="smallIcon"
 			data-automation-action="clear-selection"
 			data-writer-tooltip="Clear selection"
 			data-writer-tooltip-placement="left"
@@ -15,7 +15,7 @@
 		<WdsButton
 			class="BuilderSettingsActions__btn BuilderSettingsActions__btn--delete"
 			variant="neutral"
-			size="small"
+			size="smallIcon"
 			data-automation-action="delete"
 			data-writer-tooltip="Delete (Del)"
 			data-writer-tooltip-placement="left"
