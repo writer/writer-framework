@@ -91,7 +91,7 @@ export default {
 				desc: "The page to be displayed.",
 			},
 			controls: createBooleanField({
-				name: "Controls",
+				name: "Enable controls",
 				desc: "Show controls to navigate the PDF.",
 				default: "yes",
 			}),

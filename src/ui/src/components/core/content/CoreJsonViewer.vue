@@ -67,7 +67,7 @@ const definition: WriterComponentDefinition = {
 			category: FieldCategory.Style,
 		}),
 		copy: createBooleanField({
-			name: "Copy",
+			name: "Enable copy button",
 			desc: "If active, adds a control bar with copy JSON button.",
 			default: "no",
 			category: FieldCategory.Style,

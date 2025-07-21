@@ -27,7 +27,7 @@ class WriterParsePDFByFileID(WriterBlock):
                                 }
                         },
                         "markdown": {
-                            "name": "Use Markdown",
+                            "name": "Enable markdown",
                             "type": "Boolean",
                             "default": "yes",
                             "validator": {

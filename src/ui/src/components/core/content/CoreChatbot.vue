@@ -203,7 +203,7 @@ export default {
 				type: FieldType.Text,
 			},
 			useMarkdown: createBooleanField({
-				name: "Use Markdown",
+				name: "Enable markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
 			}),

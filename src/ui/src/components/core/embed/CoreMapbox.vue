@@ -68,7 +68,7 @@ export default {
 				validator: validatorGpsMarkers,
 			},
 			controls: createBooleanField({
-				name: "Controls visible",
+				name: "Enable controls",
 				default: "yes",
 				desc: "Show map controls",
 			}),

@@ -79,12 +79,12 @@ export default {
 				category: FieldCategory.Style,
 			}),
 			useMarkdown: createBooleanField({
-				name: "Use Markdown",
+				name: "Enable markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
 			}),
 			copyButtons: createBooleanField({
-				name: "Copy buttons",
+				name: "Enable copy buttons",
 				desc: "If active, adds a control bar with both copy text and JSON buttons.",
 				default: "no",
 				category: FieldCategory.Style,

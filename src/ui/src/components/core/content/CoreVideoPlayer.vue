@@ -45,7 +45,7 @@ export default {
 				validator: validatorUri,
 			},
 			controls: createBooleanField({
-				name: "Controls",
+				name: "Enable controls",
 				desc: "Display Video player controls.",
 				default: "yes",
 			}),

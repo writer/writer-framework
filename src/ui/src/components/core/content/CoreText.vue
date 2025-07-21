@@ -68,7 +68,7 @@ export default {
 				control: FieldControl.Textarea,
 			},
 			useMarkdown: createBooleanField({
-				name: "Use Markdown",
+				name: "Enable markdown",
 				desc: "The Markdown output will be sanitised; unsafe elements will be removed.",
 				default: "no",
 			}),
@@ -84,7 +84,7 @@ export default {
 				category: FieldCategory.Style,
 			},
 			quickCopy: createBooleanField({
-				name: "Show copy button",
+				name: "Enable copy button",
 				desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
 				default: "no",
 			}),
