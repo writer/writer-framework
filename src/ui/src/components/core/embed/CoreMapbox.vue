@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
+import { createBooleanField, cssClasses } from "@/renderer/sharedStyleFields";
 import { useLogger } from "@/composables/useLogger";
 import {
 	validatorGpsLat,
@@ -67,12 +67,11 @@ export default {
 				type: FieldType.Object,
 				validator: validatorGpsMarkers,
 			},
-			controls: {
-				...baseYesNoField,
+			controls: createBooleanField({
 				name: "Controls visible",
 				default: "yes",
 				desc: "Show map controls",
-			},
+			}),
 			cssClasses,
 		},
 		events: {

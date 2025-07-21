@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import {
-	baseYesNoField,
+	createBooleanField,
 	cssClasses,
 	secondaryTextColor,
 	separatorColor,
@@ -60,20 +60,18 @@ const definition: WriterComponentDefinition = {
 			init: "0",
 			validator: validatorPositiveNumber,
 		},
-		hideRoot: {
-			...baseYesNoField,
+		hideRoot: createBooleanField({
 			name: "Hide root",
 			desc: "Don't show the type of the root node when it's an Object or an Array.",
 			default: "no",
 			category: FieldCategory.Style,
-		},
-		copy: {
-			...baseYesNoField,
+		}),
+		copy: createBooleanField({
 			name: "Copy",
 			desc: "If active, adds a control bar with copy JSON button.",
 			default: "no",
 			category: FieldCategory.Style,
-		},
+		}),
 		jsonViewerIndentationSpacing: {
 			name: "JSON indentation",
 			type: FieldType.Width,

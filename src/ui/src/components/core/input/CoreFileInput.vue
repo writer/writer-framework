@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import { ComponentPublicInstance } from "vue";
-import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
+import { createBooleanField, cssClasses } from "@/renderer/sharedStyleFields";
 import { FieldType } from "@/writerTypes";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 
@@ -93,11 +93,10 @@ export default {
 				].join(", "),
 				desc: "Provides hints for browsers to select the correct file types. You can specify extensions and MIME types separated by comma, or leave empty to accept any file.",
 			},
-			allowMultipleFiles: {
-				...baseYesNoField,
+			allowMultipleFiles: createBooleanField({
 				name: "Allow multiple files",
 				default: "no",
-			},
+			}),
 			cssClasses,
 		},
 		events: {

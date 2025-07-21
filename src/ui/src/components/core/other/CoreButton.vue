@@ -26,7 +26,7 @@ import {
 	buttonShadow,
 	separatorColor,
 	cssClasses,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 import { watch } from "vue";
 import { getClick } from "@/renderer/syntheticEvents";
@@ -58,12 +58,11 @@ export default {
 				init: "Button Text",
 				type: FieldType.Text,
 			},
-			isDisabled: {
-				...baseYesNoField,
+			isDisabled: createBooleanField({
 				name: "Disabled",
 				default: "no",
 				desc: "Disables all event handlers.",
-			},
+			}),
 			buttonColor,
 			buttonTextColor,
 			icon: {

@@ -36,7 +36,7 @@
 
 <script lang="ts">
 import {
-	baseYesNoField,
+	createBooleanField,
 	buttonColor,
 	buttonTextColor,
 	cssClasses,
@@ -72,26 +72,23 @@ export default {
 				default: "1",
 				category: FieldCategory.Style,
 			},
-			rotateHue: {
-				...baseYesNoField,
+			rotateHue: createBooleanField({
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
 				default: "yes",
 				category: FieldCategory.Style,
-			},
-			useMarkdown: {
-				...baseYesNoField,
+			}),
+			useMarkdown: createBooleanField({
 				name: "Use Markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
-			},
-			copyButtons: {
-				...baseYesNoField,
+			}),
+			copyButtons: createBooleanField({
 				name: "Copy buttons",
 				desc: "If active, adds a control bar with both copy text and JSON buttons.",
 				default: "no",
 				category: FieldCategory.Style,
-			},
+			}),
 			buttonColor,
 			buttonTextColor,
 			primaryTextColor,

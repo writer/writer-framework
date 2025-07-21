@@ -47,7 +47,7 @@ import {
 	accentColor,
 	primaryTextColor,
 	separatorColor,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 
 const clickHandlerStub = `
@@ -81,12 +81,11 @@ const definition: WriterComponentDefinition = {
 			type: FieldType.Number,
 			default: "1",
 		},
-		displayPercentage: {
-			...baseYesNoField,
+		displayPercentage: createBooleanField({
 			name: "Display percentage",
 			default: "no",
 			category: FieldCategory.Style,
-		},
+		}),
 		accentColor,
 		primaryTextColor,
 		separatorColor,

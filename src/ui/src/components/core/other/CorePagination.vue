@@ -74,7 +74,7 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { validatorPositiveNumber } from "@/constants/validators";
-import { baseYesNoField } from "@/renderer/sharedStyleFields";
+import { createBooleanField } from "@/renderer/sharedStyleFields";
 import WdsIcon from "@/wds/WdsIcon.vue";
 
 const pageChangeStub = `
@@ -132,18 +132,16 @@ export default {
 				type: FieldType.Text,
 				desc: "A comma-separated list of page size options. If it's empty, the user can't change the page size. Set your default page size as the first option.",
 			},
-			pageSizeShowAll: {
-				...baseYesNoField,
+			pageSizeShowAll: createBooleanField({
 				name: "Show All Option",
 				default: "no",
 				desc: "Show an option to show all records.",
-			},
-			jumpTo: {
-				...baseYesNoField,
+			}),
+			jumpTo: createBooleanField({
 				name: "Jump To",
 				default: "no",
 				desc: "Show an option to jump to a specific page.",
-			},
+			}),
 		},
 		events: {
 			"wf-change-page": {

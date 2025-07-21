@@ -30,7 +30,7 @@
 <script lang="ts">
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
-	baseYesNoField,
+	createBooleanField,
 	cssClasses,
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
@@ -69,13 +69,12 @@ export default {
 				default: "1",
 				category: FieldCategory.Style,
 			},
-			rotateHue: {
-				...baseYesNoField,
+			rotateHue: createBooleanField({
 				name: "Rotate hue",
 				desc: "If active, rotates the hue depending on the content of the string. If turned off, the reference colour is always used.",
 				default: "yes",
 				category: FieldCategory.Style,
-			},
+			}),
 			primaryTextColor,
 			cssClasses,
 		},
