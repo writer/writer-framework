@@ -266,6 +266,10 @@ watch(component, (newComponent) => {
 	transition: 0.2s margin linear;
 }
 
+.BuilderSettings--collapsed .BuilderSettings__collapser {
+	background: var(--wdsColorGray2);
+}
+
 .BuilderSettings--collapsed .BuilderSettings__main {
 	overflow: hidden;
 	max-height: 400px;
