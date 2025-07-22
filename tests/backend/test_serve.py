@@ -66,8 +66,8 @@ class TestServe:
                         "payload": 9
                     }
                 })
-                a = websocket.receive_json()
-                assert a.get("messageType") == "eventResponse"
+                a = websocket.receive_bytes()
+                assert json.loads(a.decode()).get("messageType") == "eventResponse"
                 websocket.close(1000)
 
     def test_bad_session(self) -> None:
@@ -83,7 +83,7 @@ class TestServe:
                     }
                 })
                 with pytest.raises(fastapi.WebSocketDisconnect):
-                    websocket.receive_json()
+                    websocket.receive_bytes()
 
     def test_session_verifier_header(self) -> None:
         asgi_app: fastapi.FastAPI = writer.serve.get_asgi_app(
@@ -157,7 +157,7 @@ class TestServe:
                     }
                 })
                 with pytest.raises(fastapi.WebSocketDisconnect):
-                    websocket.receive_json()
+                    websocket.receive_bytes()
 
             # test websocket connection on app2
             with client.websocket_connect("/app2/api/stream") as websocket:
@@ -169,7 +169,7 @@ class TestServe:
                     }
                 })
                 with pytest.raises(fastapi.WebSocketDisconnect):
-                    websocket.receive_json()
+                    websocket.receive_bytes()
 
     def test_server_setup_hook_is_executed_when_its_present_and_enabled(self):
         """
