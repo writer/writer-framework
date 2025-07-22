@@ -33,7 +33,7 @@ def onchange_handler(state, payload):
 	state["new_color"] = payload`;
 
 const definition = {
-	name: "Color Input",
+	name: "Color input",
 	description,
 	category: "Input",
 	fields: {

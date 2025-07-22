@@ -43,7 +43,7 @@ def handle_toggle(state, payload):
 
 export default {
 	writer: {
-		name: "Switch Input",
+		name: "Switch input",
 		description,
 		category: "Input",
 		fields: {

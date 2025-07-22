@@ -68,13 +68,13 @@ test.describe("low-code UI", () => {
 
 	components
 		.filter((c) => c.category !== "Internal")
-		.forEach(({ type, name, fields, allowedParentTypes, toolkit }) => {
+		.forEach(({ type, internalName, fields, allowedParentTypes, toolkit }) => {
 			if (toolkit && toolkit !== "core") return;
 			const renderError =
 				type === "root" ||
 				(allowedParentTypes && !allowedParentTypes.includes("section"));
-			const componentName = name.replaceAll(/\s/g, "");
-			test(`create ${type} with ui.${componentName}() inside of section ${renderError ? "- render error" : ""}`, async ({
+
+			test(`create ${type} with ui.${internalName}() inside of section ${renderError ? "- render error" : ""}`, async ({
 				page,
 			}) => {
 				const props = generateValues(fields);
@@ -82,7 +82,7 @@ test.describe("low-code UI", () => {
 					page,
 					`
 with ui.find('results'):
-		ui.${componentName}(${JSON.stringify(props)})
+		ui.${internalName}(${JSON.stringify(props)})
 			`,
 				);
 				await execute(page);

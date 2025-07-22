@@ -44,7 +44,7 @@ const initialData = {
 };
 
 const definition: WriterComponentDefinition = {
-	name: "JSON Viewer",
+	name: "JSON viewer",
 	description,
 	category: "Content",
 	fields: {

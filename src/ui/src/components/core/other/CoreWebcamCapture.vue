@@ -61,7 +61,7 @@ def webcam_handler(payload):
 
 export default {
 	writer: {
-		name: "Webcam Capture",
+		name: "Webcam capture",
 		description,
 		category: "Other",
 		fields: {

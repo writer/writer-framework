@@ -120,7 +120,7 @@ const searchCount = computed(() => {
 });
 
 const placeholder = computed(() => {
-	if (activeToolkit.value == "core") return "Core toolkit";
+	if (activeToolkit.value == "core") return "Interface toolkit";
 	if (activeToolkit.value == "blueprints") return "Blueprints toolkit";
 	return "Toolkit";
 });
@@ -139,9 +139,12 @@ function getRelevantToolsInCategory(categoryId: string) {
 		return { type, name, description, category: category ?? "Other" };
 	});
 	const q = query.value.toLocaleLowerCase();
-	const queryApplied = enriched.filter(
-		(tool) => !q || tool.name.toLocaleLowerCase().includes(q),
-	);
+	const queryApplied = enriched
+		.filter((tool) => !q || tool.name.toLocaleLowerCase().includes(q))
+		.sort((a, b) =>
+			a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+		);
+
 	return queryApplied;
 }
 

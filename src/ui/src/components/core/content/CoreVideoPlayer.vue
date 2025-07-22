@@ -29,11 +29,11 @@ import { validatorUri } from "@/constants/validators";
 import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
 
 const description =
-	"A video player component that can play various video formats.";
+	"A Video player component that can play various video formats.";
 
 export default {
 	writer: {
-		name: "Video Player",
+		name: "Video player",
 		description,
 		category: "Content",
 		fields: {
@@ -47,7 +47,7 @@ export default {
 			controls: {
 				...baseYesNoField,
 				name: "Controls",
-				desc: "Display video player controls.",
+				desc: "Display Video player controls.",
 				default: "yes",
 			},
 			autoplay: {

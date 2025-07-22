@@ -14,7 +14,7 @@ class HTTPRequest(BlueprintBlock):
             AbstractTemplate(
                 baseType="blueprints_node",
                 writer={
-                    "name": "HTTP Request",
+                    "name": "HTTP request",
                     "description": "Sends a HTTP request to an API endpoint. Used to fetch data or send data.",
                     "category": "Other",
                     "fields": {

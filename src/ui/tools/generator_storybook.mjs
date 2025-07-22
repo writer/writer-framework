@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { promises as fs, existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -29,17 +28,6 @@ const storyFile = (...args) =>
 
 const relPath = (from, to) => path.relative(path.dirname(from), to);
 
-async function loadComponents() {
-	const rawComponents = await core.loadComponents();
-	// eslint-disable-next-line no-console
-	return rawComponents.map((component) => {
-		return {
-			nameTrim: component.name.replaceAll(/\s/g, ""),
-			...component,
-		};
-	});
-}
-
 function generateImports(component, { filePath, srcPath }) {
 	return `/* eslint-disable prettier/prettier */
 /* 
@@ -50,7 +38,7 @@ function generateImports(component, { filePath, srcPath }) {
 
 import type { Meta, StoryObj } from "@storybook/vue3";
 import { provide, ref, computed } from "vue";
-import ${component.nameTrim} from "${relPath(filePath, component.fileRef)}";
+import ${component.internalName} from "${relPath(filePath, component.fileRef)}";
 import injectionKeys from "${srcPath("injectionKeys")}";
 import { generateCore } from "${srcPath("stories", "fakeCore")}";`;
 }
@@ -154,8 +142,8 @@ function generateMeta(component, { module }) {
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories
 const meta = {
-	title: "core-components/${module}/${component.nameTrim}",
-	component: ${component.nameTrim},
+	title: "core-components/${module}/${component.internalName}",
+	component: ${component.internalName},
 	// This component will have an automatically generated docsPage entry: https://storybook.js.org/docs/writing-docs/autodocs
 	tags: ["autodocs"],
 	argTypes: {
@@ -164,7 +152,7 @@ ${generateArgTypes(component)}
 	args: {
 ${generateInitArgValues(component)}
 	},
-} satisfies Meta<typeof ${component.nameTrim}>;
+} satisfies Meta<typeof ${component.internalName}>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;`;
@@ -175,7 +163,7 @@ function generateStory(component) {
 
 export const Sample: Story = {
 	render: (args) => ({
-		components: { ${component.nameTrim} },
+		components: { ${component.internalName} },
 		setup() {
 			const wf = generateCore();
 			const rootStyle = computed(() => {
@@ -213,28 +201,28 @@ ${generateArgWrap(component)}
 			return { args, rootStyle };
 		},
 		template:
-			'<div :style="rootStyle"><${component.nameTrim} /></div>',
+			'<div :style="rootStyle"><${component.internalName} /></div>',
 	}),
 };
 	`;
 }
 
 export async function generate() {
-	const components = await loadComponents();
+	const components = await core.loadComponents();
 
 	for (const component of components) {
 		if (IGNORE_COMPONENT_TYPES.includes(component.type)) {
 			continue;
 		}
-		component.nameTrim = component.name.replaceAll(/\s/g, "");
-		const name = path.basename(component.fileRef, ".vue");
+
+		const fileName = path.basename(component.fileRef, ".vue");
 		const mod = component.fileRef.split("/").slice(-2, -1)[0];
 		// eslint-disable-next-line no-console
-		console.log("Generating ", storyFile(mod, name + ".stories.ts"));
+		console.log("Generating ", storyFile(mod, fileName + ".stories.ts"));
 		if (!existsSync(storyFile(mod))) {
 			await fs.mkdir(storyFile(mod), { recursive: true });
 		}
-		const filePath = storyFile(mod, name + ".stories.ts");
+		const filePath = storyFile(mod, fileName + ".stories.ts");
 
 		await fs.writeFile(
 			filePath,

@@ -13,7 +13,7 @@ class WriterUploadFile(WriterBlock):
         register_abstract_template(type, AbstractTemplate(
             baseType="blueprints_node",
             writer={
-                "name": "Add files to Writer Cloud",
+                "name": "Add files to Writer cloud",
                 "description": "Uploads files to the Writer platform.",
                 "category": "Writer",
                 "fields": {
@@ -21,7 +21,7 @@ class WriterUploadFile(WriterBlock):
                         "name": "Files",
                         "type": "Object",
                         "default": "[]",
-                        "desc": "A list of files to be uploaded to the Writer platform. You can use files uploaded via the File Input component or specify dictionaries with data, type and name.",
+                        "desc": "A list of files to be uploaded to the Writer platform. You can use files uploaded via the File input component or specify dictionaries with data, type and name.",
                         "validator": {
                             "type": "array"
                         }
