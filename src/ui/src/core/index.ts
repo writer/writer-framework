@@ -53,7 +53,7 @@ export function generateCore() {
 	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const writerApplication = ref<
-		{ id: string; organizationId: string } | { id: string; organizationId: string; apiKey: string } | undefined
+		{ id: string; organizationId: string; apiKey?: string } | undefined
 	>();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
