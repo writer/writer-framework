@@ -28,6 +28,7 @@
 					:component-id="selectedComponent.id"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
 				/>
 
