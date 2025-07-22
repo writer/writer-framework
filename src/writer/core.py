@@ -1082,6 +1082,10 @@ class WriterState(State):
             shortened_message = message[0 : WriterState.LOG_ENTRY_MAX_LEN] + "..."
         else:
             shortened_message = message
+
+        if id is not None:
+            self._remove_duplicates_in_mail(id)
+
         self.add_mail(
             "logEntry",
             {
@@ -1108,6 +1112,15 @@ class WriterState(State):
 
     def clear_mail(self) -> None:
         self.mail = []
+
+    def _remove_duplicates_in_mail(self, id: str) -> None:
+        new_mail = []
+        for entry in self.mail:
+            log_id = entry["payload"].get("id")
+            if log_id != id:
+                new_mail.append(entry)
+                continue
+        self.mail = new_mail
 
     def set_page(self, active_page_key: str) -> None:
         self.add_mail("pageChange", active_page_key)
