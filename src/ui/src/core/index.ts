@@ -82,7 +82,7 @@ export function generateCore() {
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
 	const writerAppId = computed(() => writerApplication.value?.id);
-	const writerApiKey = computed(() => "apiKey" in writerApplication.value ? writerApplication.value.apiKey : undefined);
+	const writerApiKey = computed(() => writerApplication.value?.apiKey);
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
 	);
