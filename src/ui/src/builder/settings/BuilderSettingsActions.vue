@@ -72,7 +72,7 @@ const selectedId = ssbm.firstSelectedId;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	background: var(--builderBackgroundColor);
+	background: var(--wdsColorGray2);
 	pointer-events: auto;
 	overflow: hidden;
 	justify-content: space-between;
