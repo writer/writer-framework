@@ -31,6 +31,7 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
+import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -250,9 +251,7 @@ export function generateCore() {
 			sendFrontendMessage("streamInit", { sessionId });
 		};
 
-		webSocket.onmessage = (wsEvent) => {
-			const message = JSON.parse(wsEvent.data);
-
+		function processMessage(message) {
 			if (
 				message.messageType == "announcement" &&
 				message.payload.type == "codeUpdate"
@@ -310,6 +309,25 @@ export function generateCore() {
 			const mapItem = frontendMessageMap.value.get(message.trackingId);
 			mapItem?.callback?.({ ok: true, payload: message.payload });
 			frontendMessageMap.value.delete(message.trackingId);
+		}
+
+		webSocket.onmessage = async (wsEvent) => {
+			let message;
+			try {
+				if (wsEvent.data instanceof Blob) {
+					message = await readBlobAsArrayBufferJson(wsEvent.data);
+				} else {
+					message = JSON.parse(wsEvent.data);
+				}
+			} catch (error) {
+				logger.error("Error parsing WebSocket message:", error);
+				return;
+			}
+			try {
+				processMessage(message);
+			} catch (error) {
+				logger.error("Error processing WebSocket message:", error);
+			}
 		};
 
 		webSocket.onclose = async (ev: CloseEvent) => {

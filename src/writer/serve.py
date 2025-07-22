@@ -31,6 +31,7 @@ from typing import (
 )
 from urllib.parse import urlsplit
 
+import orjson
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -549,7 +550,8 @@ def get_asgi_app(
 
     async def _send_json_or_queue(session_id: str, data: Any, websocket: WebSocket):
         try:
-            await websocket.send_json(data)
+            binary_data = orjson.dumps(data)
+            await websocket.send_bytes(binary_data)
         except (RuntimeError, WebSocketDisconnect):
             await app_runner.queue_message(session_id, data)
 
