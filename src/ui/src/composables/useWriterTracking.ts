@@ -1,6 +1,6 @@
 import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
-import { computed, watch } from "vue";
+import { watch } from "vue";
 import { useLogger } from "./useLogger";
 
 let isIdentified = false;
@@ -52,9 +52,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const logger = useLogger();
 	const { writerApi } = useWriterApi({ signal: abortControler.signal });
 
-	const canTrack = computed(
-		() => wf.mode.value === "edit" && wf.isWriterCloudApp.value,
-	);
+	const canTrack = wf.isWriterCloudApp;
 
 	if (!isIdentified) {
 		const stop = watch(
@@ -85,6 +83,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	async function initializeChameleon(
 		fetchUserProfile = writerApi.fetchUserProfile(),
 	) {
+		if (wf.mode.value === "run") return;
 		const chameleon = await import("@chamaeleonidae/chmln");
 		chameleon.init(
 			"S6dr31v4MO4wuteztVhxysLkoA9HsZ6HnDaOTDLqNXHYZq-1P02ek-E3BR4Zgv4pMwdoYO",

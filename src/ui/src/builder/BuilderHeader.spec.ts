@@ -10,7 +10,7 @@ const fetchApplicationDeployment = vi.fn();
 const publishApplication = vi.fn();
 const fetchUserProfile = vi.fn();
 const analyticsIdentify = vi.fn();
-
+const analyticsTrack = vi.fn();
 const updateApplicationMetadata = vi.fn();
 
 vitest.mock("@/writerApi", () => ({
@@ -20,6 +20,7 @@ vitest.mock("@/writerApi", () => ({
 		fetchUserProfile = fetchUserProfile;
 		analyticsIdentify = analyticsIdentify;
 		updateApplicationMetadata = updateApplicationMetadata;
+		analyticsTrack = analyticsTrack;
 	},
 }));
 

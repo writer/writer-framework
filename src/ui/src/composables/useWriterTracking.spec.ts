@@ -58,13 +58,19 @@ describe(useWriterTracking.name, () => {
 			mockCore.writerApplication.value = { id: "1", organizationId: "2" };
 		});
 
-		it("should not track event ", async () => {
+		it("should track event ", async () => {
 			mockCore.mode.value = "run";
 			const wrapper = shallowMount(Wrapper);
 			await flushPromises();
 			await wrapper.vm.track("ui_block_added");
 
-			expect(analyticsTrack).not.toHaveBeenCalled();
+			expect(analyticsTrack).toHaveBeenCalledExactlyOnceWith(
+				"[AgentEditor] ui_block_added",
+				{
+					writerApplicationId: "1",
+					writerOrganizationId: "2",
+				},
+			);
 		});
 	});
 
