@@ -24,7 +24,6 @@ function onChange(event: InputEvent) {
 		class="WdsCheckbox"
 		:class="{
 			'WdsCheckbox--disabled': disabled,
-			'WdsCheckbox--invalid': invalid,
 			'WdsCheckbox--checked': checked,
 		}"
 		@mousedown.prevent
@@ -61,11 +60,11 @@ function onChange(event: InputEvent) {
 	cursor: not-allowed;
 }
 
-.WdsCheckbox--invalid .WdsCheckbox__checkbox {
+.WdsCheckbox:has(input[aria-invalid="true"]) .WdsCheckbox__checkbox {
 	border-color: var(--wdsColorOrange5);
 }
 
-.WdsCheckbox--invalid .WdsCheckbox__label {
+.WdsCheckbox:has(input[aria-invalid="true"]) .WdsCheckbox__label {
 	color: var(--wdsColorOrange5);
 }
 
