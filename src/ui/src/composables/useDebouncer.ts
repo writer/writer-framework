@@ -1,7 +1,10 @@
-export function useDebouncer(callback: () => void | Promise<void>, ms: number) {
+export function useDebouncer<ARGS extends unknown[]>(
+	callback: (...args: ARGS) => void | Promise<void>,
+	ms: number,
+) {
 	let id: ReturnType<typeof setTimeout>;
-	return () => {
+	return (...args: ARGS) => {
 		if (id) clearTimeout(id);
-		id = setTimeout(callback, ms);
+		id = setTimeout(() => callback(...args), ms);
 	};
 }
