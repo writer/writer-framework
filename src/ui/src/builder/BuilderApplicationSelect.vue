@@ -87,9 +87,16 @@ const selectedData = computed(() => {
 	return apps.value.find((g) => g.id === currentValue.value);
 });
 
-watch(selectedData, (data) => {
-	emit("selected-data", data);
-});
+watch(
+	() => currentValue.value,
+	() => {
+		// Ignore empty states where apps haven't loaded yet
+		if (!apps.value.length) return;
+
+		const picked = apps.value.find((a) => a.id === currentValue.value);
+		emit("selected-data", picked);
+	},
+);
 
 defineExpose({ selectedData });
 </script>
