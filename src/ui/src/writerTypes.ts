@@ -80,7 +80,6 @@ export type WriterComponentDefinitionField = {
 	category?: FieldCategory;
 	/** Use the value of this field as a CSS variable */
 	applyStyleVariable?: boolean;
-	isArtifactField?: boolean;
 	validator?:
 		| SchemaObject
 		| ((wf?: Core, componentId?: ComponentId) => SchemaObject); // dynamic schema depending on the context;
@@ -118,19 +117,15 @@ export type WriterComponentDefinition = {
 	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
 	outs?: Record<
-		string,
-		{
-			name: string;
-			description: string;
-			style: string;
-			field?: keyof WriterComponentDefinition["fields"];
-		}
+			string,
+			{
+					name: string;
+					description: string;
+					style: string;
+					field?: keyof WriterComponentDefinition["fields"];
+			}
 	>;
 	featureFlags?: string[];
-	settingsArtifacts?: {
-		key: string;
-		position?: "top" | "bottom";
-	}[];
 };
 
 export type BuilderManager = ReturnType<typeof generateBuilderManager>;
@@ -160,7 +155,6 @@ export const enum FieldType {
 	ComponentPicker = "Component",
 	Code = "Code",
 	BlueprintKey = "Blueprint Key",
-	BlueprintId = "Blueprint Id",
 	Handler = "Handler",
 	WriterGraphId = "Graph Id",
 	WriterGraphIds = "Graph Ids",

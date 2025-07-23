@@ -16,15 +16,10 @@ class APITrigger(BlueprintTrigger):
                     "description": "Triggers an event via API call.",
                     "category": "Triggers",
                     "fields": {
-                        "blueprintId": {
-                            "name": "Blueprint ID",
-                            "type": "Blueprint Id",
-                        },
                         "defaultResult": {
-                            "name": "Default result",
+                            "name": "Default payload",
                             "type": "Code",
-                            "desc": 'The result that is used when the blueprint is triggered from the "Run blueprint" button',
-                            "isArtifactField": True,
+                            "desc": 'The payload that is used when the blueprint is triggered from the "Run blueprint" button',
                         },
                     },
                     "outs": {
@@ -35,11 +30,9 @@ class APITrigger(BlueprintTrigger):
                     },
                     "featureFlags": [
                         "api_trigger"
-                    ],
-                    "settingsArtifacts": [
-                        {"key": "apiTriggerDetails", "position": "bottom"}
                     ]
                 },
+                
             ),
         )
 

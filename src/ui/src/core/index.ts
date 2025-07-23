@@ -54,7 +54,7 @@ export function generateCore() {
 	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const writerApplication = ref<
-		{ id: string; organizationId: string; apiKey?: string } | undefined
+		{ id: string; organizationId: string } | undefined
 	>();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
@@ -83,7 +83,6 @@ export function generateCore() {
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
 	const writerAppId = computed(() => writerApplication.value?.id);
-	const writerApiKey = computed(() => writerApplication.value?.apiKey);
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
 	);
@@ -918,7 +917,6 @@ export function generateCore() {
 		isWriterCloudApp,
 		writerOrgId,
 		writerAppId,
-		writerApiKey
 	};
 
 	return core;
