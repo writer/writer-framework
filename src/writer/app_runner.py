@@ -185,8 +185,6 @@ class AppProcess(multiprocessing.Process):
             writer_application = WriterApplicationInformation(
                 id=writer_app_id, organizationId=writer_org_id
             )
-            if writer.Config.mode == "edit":
-                writer_application.apiKey = os.getenv("WRITER_API_KEY")
 
         res_payload = InitSessionResponsePayload(
             userState=user_state,

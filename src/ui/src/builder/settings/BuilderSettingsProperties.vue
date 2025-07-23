@@ -75,12 +75,6 @@
 						:error="errorsByFields[fieldKey]"
 					/>
 
-					<BuilderFieldsBlueprintId
-						v-if="fieldValue.type == FieldType.BlueprintId"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-					/>
-
 					<BuilderFieldsBlueprintKey
 						v-if="fieldValue.type == FieldType.BlueprintKey"
 						:field-key="fieldKey"
@@ -227,7 +221,6 @@ import BuilderFieldsTools from "./BuilderFieldsTools.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsBlueprintKey from "./BuilderFieldsBlueprintKey.vue";
-import BuilderFieldsBlueprintId from "./BuilderFieldsBlueprintId.vue";
 import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
@@ -254,10 +247,7 @@ const componentDefinition = computed(() => {
 	return wf.getComponentDefinition(type);
 });
 const fields = computed(() => {
-	const allFields = componentDefinition.value?.fields ?? {};
-	return Object.fromEntries(
-		Object.entries(allFields).filter(([, f]) => !f.isArtifactField),
-	);
+	return componentDefinition.value?.fields;
 });
 
 function isExpansible(field: WriterComponentDefinitionField) {
