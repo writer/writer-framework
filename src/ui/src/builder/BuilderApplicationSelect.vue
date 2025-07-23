@@ -6,6 +6,7 @@ import {
 	inject,
 	onMounted,
 	PropType,
+	watch,
 } from "vue";
 import { useListResources } from "@/composables/useListResources";
 import type { Option } from "@/wds/WdsSelect.vue";
@@ -20,6 +21,10 @@ const WdsSelect = defineAsyncComponent({
 
 const wf = inject(injectionKeys.core);
 
+const emit = defineEmits<{
+	(event: "selected-data", data: WriterApplication | undefined): void;
+}>();
+
 defineProps({
 	enableMultiSelection: { type: Boolean, required: false },
 });
@@ -30,12 +35,12 @@ const currentValue = defineModel({
 });
 
 const {
-	load: loadGraphs,
-	data: graphs,
+	load: loadApps,
+	data: apps,
 	isLoading,
 } = useListResources<WriterApplication>(wf, "applications");
 
-onMounted(loadGraphs);
+onMounted(loadApps);
 
 function getAppType(app: WriterApplication) {
 	switch (app.type) {
@@ -51,7 +56,7 @@ function getAppType(app: WriterApplication) {
 }
 
 const options = computed(() =>
-	graphs.value
+	apps.value
 		.map<Option>((app) => ({
 			label: app.name,
 			value: app.id,
@@ -76,10 +81,22 @@ const currentValueStr = computed<string>({
 const selectedData = computed(() => {
 	if (currentValue.value === undefined) return undefined;
 
-	return typeof currentValue.value === "string"
-		? graphs.value.find((g) => g.id === currentValue.value)
-		: graphs.value.filter((g) => currentValue.value.includes(g.id));
+	// Application select should never support multi-selection
+	if (typeof currentValue.value !== "string") return undefined;
+
+	return apps.value.find((g) => g.id === currentValue.value);
 });
+
+watch(
+	() => currentValue.value,
+	() => {
+		// Ignore empty states where apps haven't loaded yet
+		if (!apps.value.length) return;
+
+		const picked = apps.value.find((a) => a.id === currentValue.value);
+		emit("selected-data", picked);
+	},
+);
 
 defineExpose({ selectedData });
 </script>
@@ -87,7 +104,7 @@ defineExpose({ selectedData });
 <template>
 	<div class="BuilderGraphSelect--text">
 		<WdsSelect
-			v-if="graphs.length > 0 || isLoading"
+			v-if="apps.length > 0 || isLoading"
 			v-model="currentValue"
 			:options="options"
 			hide-icons

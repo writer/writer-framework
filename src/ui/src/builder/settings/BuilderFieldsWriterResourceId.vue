@@ -8,6 +8,7 @@
 			ref="selectorEl"
 			v-model="selected"
 			:enable-multi-selection="enableMultiSelection"
+			@selected-data="onSelectedData"
 		/>
 		<a
 			v-if="ressourceUrl"
@@ -29,11 +30,12 @@ import {
 	PropType,
 	defineAsyncComponent,
 	useTemplateRef,
-	watch,
+	ref,
 } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import injectionKeys from "@/injectionKeys";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import { WriterApplication } from "@/writerTypes";
 
 const BuilderApplicationSelect = defineAsyncComponent(
 	() => import("../BuilderApplicationSelect.vue"),
@@ -149,20 +151,25 @@ const selected = computed<string | string[]>({
 	},
 });
 
-watch(selected, async (newAppId) => {
-	if (props.resourceType !== "application" || !newAppId) return;
+const selectedData = ref<WriterApplication | undefined>();
 
-	const appData = selectorEl.value?.selectedData;
-	const inputsList = appData?.inputs;
-
-	if (!inputsList || typeof inputsList !== "object") return;
+function onSelectedData(appData: WriterApplication | undefined) {
+	selectedData.value = appData; // for readability
+	if (
+		props.resourceType !== "application" ||
+		!appData ||
+		!appData.inputs ||
+		typeof appData.inputs !== "object"
+	) {
+		return;
+	}
 
 	setContentValue(
 		component.value.id,
 		"appInputs",
-		JSON.stringify(inputsList),
+		JSON.stringify(appData.inputs),
 	);
-});
+}
 </script>
 
 <style scoped>

@@ -251,6 +251,7 @@ export type WriterApplication = {
 	type: string;
 	status: string;
 	organization_id?: string;
+	inputs?: Record<string, string>;
 };
 
 export type UserCollaborationPing = {
