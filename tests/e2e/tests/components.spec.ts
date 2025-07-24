@@ -51,14 +51,16 @@ function findTest(component: Component) {
 	return "none";
 }
 
-const tests = components.map(
-	(component: Component): ComponentTestData => ({
-		...component,
-		test: findTest(component),
-		locator: ".component.wf-type-" + component.type,
-		...(mapComponents[component.type] || {}),
-	}),
-);
+const tests = components
+	.filter((component) => !component.deprecated)
+	.map(
+		(component): ComponentTestData => ({
+			...component,
+			test: findTest(component),
+			locator: ".component.wf-type-" + component.type,
+			...(mapComponents[component.type] || {}),
+		}),
+	);
 
 tests
 	.filter((component: ComponentTestData) => !component.ignore)

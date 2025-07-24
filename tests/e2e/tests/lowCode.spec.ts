@@ -67,7 +67,7 @@ test.describe("low-code UI", () => {
 	});
 
 	components
-		.filter((c) => c.category !== "Internal")
+		.filter((c) => c.category !== "Internal" && !c.deprecated)
 		.forEach(({ type, internalName, fields, allowedParentTypes, toolkit }) => {
 			if (toolkit && toolkit !== "core") return;
 			const renderError =
