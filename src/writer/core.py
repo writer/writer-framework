@@ -1116,6 +1116,9 @@ class WriterState(State):
     def _remove_duplicates_in_mail(self, id: str) -> None:
         new_mail = []
         for entry in self.mail:
+            if entry["type"] != "logEntry":
+                new_mail.append(entry)
+                continue
             log_id = entry["payload"].get("id")
             if log_id != id:
                 new_mail.append(entry)
