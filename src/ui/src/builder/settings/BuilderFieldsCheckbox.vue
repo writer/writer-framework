@@ -9,7 +9,12 @@
 		:data-automation-key="props.fieldKey"
 		@unbind="toggleBindingMode"
 	>
-		<BuilderFieldsText type="template" :component-id :field-key :error />
+		<BuilderFieldsText
+			type="state-template"
+			:component-id
+			:field-key
+			:error
+		/>
 	</WdsFieldWrapper>
 	<div
 		v-else

@@ -10,9 +10,9 @@
 				class="content"
 				:component-id="componentId"
 				:input-id="inputId"
-				:value="component.content[fieldKey]"
+				:value="inputValue"
 				:placeholder="templateField?.default"
-				:type
+				:type="inputType"
 				:options
 				:error
 				:autofocus
@@ -26,9 +26,9 @@
 				class="content"
 				:input-id="inputId"
 				:component-id="componentId"
-				:value="component.content[fieldKey]"
+				:value="inputValue"
 				:placeholder="templateField?.default"
-				:type
+				:type="inputType"
 				:error
 				:autofocus
 				@input="handleInput"
@@ -54,7 +54,7 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	type: {
-		type: String as PropType<"state" | "template">,
+		type: String as PropType<"state" | "template" | "state-template">,
 		required: false,
 		default: "template",
 	},
@@ -115,13 +115,45 @@ const options = computed(() => {
 	return field.options;
 });
 
+const inputType = computed(() =>
+	["state", "state-template"].includes(props.type) ? "state" : "template",
+);
+
+const inputValue = computed(() =>
+	parseContentValue(component.value.content[fieldKey.value]),
+);
+
 const handleInput = (ev: Event) => {
 	setContentValue(
 		component.value.id,
 		fieldKey.value,
-		(ev.target as HTMLInputElement).value,
+		transformToContentValue((ev.target as HTMLInputElement).value),
 	);
 };
+
+function transformToContentValue(value: unknown): string {
+	if (typeof value !== "string") {
+		return "";
+	}
+
+	if (props.type === "state-template") {
+		return `@{${value}}`;
+	}
+
+	return value;
+}
+
+function parseContentValue(value: unknown): string {
+	if (typeof value !== "string") {
+		return "";
+	}
+
+	if (props.type === "state-template") {
+		return value.replace(/^@{/, "").replace(/}$/, "");
+	}
+
+	return value;
+}
 </script>
 
 <style>

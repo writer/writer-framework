@@ -1,7 +1,7 @@
 <template>
 	<WdsTextInputLayout
 		class="BuilderTemplateInputState"
-		:left-icon="displayEmptyVariant ? 'alternate_email' : undefined"
+		:left-icon="displayEmptyVariant ? 'at-sign' : undefined"
 		:right-icon="rightIcon"
 		@right-icon-click="$emit('rightIconClick')"
 		@click="input.focus()"
