@@ -4,15 +4,15 @@ import { computed, CSSProperties, PropType, useTemplateRef } from "vue";
 const props = defineProps({
 	tag: { type: String, required: false, default: undefined },
 	backgroundColors: {
-		type: Object as PropType<Record<string, Set<string>>>,
+		type: Object as PropType<Record<string, string[]>>,
 		required: false,
 		default: () => {},
 	},
 });
 
 const style = computed<CSSProperties>(() => {
-	const type = Object.entries(props.backgroundColors ?? {}).find(([, v]) =>
-		v.has(props.tag),
+	const type = Object.entries(props.backgroundColors ?? {}).find(([, keys]) =>
+		keys.some((k) => props.tag === k || props.tag.startsWith(`${k}.`)),
 	)?.[0];
 
 	if (!type) return {};
@@ -21,6 +21,8 @@ const style = computed<CSSProperties>(() => {
 		backgroundColor: type,
 	};
 });
+
+const content = computed(() => `@{${props.tag}}`);
 
 const root = useTemplateRef("root");
 
@@ -41,10 +43,8 @@ function onDblClick() {
 		:style
 		@dblclick="onDblClick"
 	>
-		<span class="BuilderTemplateEditorContentTag__sign">@</span
-		><span class="BuilderTemplateEditorContentTag__bracket">{</span>{{ tag
-		}}<span class="BuilderTemplateEditorContentTag__bracket">}</span></span
-	>
+		{{ content }}
+	</span>
 </template>
 
 <style lang="css" scoped>
@@ -53,15 +53,5 @@ function onDblClick() {
 	color: var(--wdsColorBlack);
 	padding: 2px 8px;
 	border-radius: 4px;
-}
-.BuilderTemplateEditorContentTag::selection {
-	background: var(--wdsColorBlue3);
-}
-
-.BuilderTemplateEditorContentTag__bracket {
-	color: transparent;
-	caret-color: var(--wdsColorBlack);
-	display: inline-block;
-	width: 0;
 }
 </style>

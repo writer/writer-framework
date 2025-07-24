@@ -145,7 +145,7 @@ export function generateCore() {
 		mode.value = initData.mode;
 		components.value = initData.components;
 		userState.value = initData.userState;
-		userStateInitial.value = initData.userState;
+		userStateInitial.value = structuredClone(initData.userState);
 		collateMail(initData.mail);
 		sessionId = initData.sessionId;
 		sessionTimestamp.value = new Date().getTime();
