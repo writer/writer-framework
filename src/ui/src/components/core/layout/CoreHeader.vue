@@ -16,6 +16,7 @@ const description =
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Header",
 		description,
 		category: "Layout",

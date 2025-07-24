@@ -25,6 +25,7 @@ const markersDefaultData = [
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Mapbox",
 		description:
 			"A component to embed a Mapbox map. It can be used to display a map with markers.",

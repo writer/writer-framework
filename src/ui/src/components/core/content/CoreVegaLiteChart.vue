@@ -40,6 +40,7 @@ const defaultSpec = {
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Vega Lite chart",
 		description,
 		category: "Content",
