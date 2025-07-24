@@ -25,7 +25,7 @@ The user interface is a template, which is defined visually. The template contai
 
 ### Flexible
 
-- Elements are highly customizable with no CSS required, allowing for shadows, button icons, background colors, etc.
+- Elements are highly customizable with no CSS required, allowing for shadows, background colors, etc.
 - HTML elements with custom CSS can be included using the _HTML Element_ component. They can serve as containers for built-in components.
 
 ### Fast

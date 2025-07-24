@@ -33,6 +33,7 @@ def onchange_handler(state, payload):
 	state["new_color"] = payload`;
 
 const definition = {
+	deprecated: true,
 	name: "Color input",
 	description,
 	category: "Input",

@@ -61,6 +61,7 @@ def webcam_handler(payload):
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Webcam capture",
 		description,
 		category: "Other",

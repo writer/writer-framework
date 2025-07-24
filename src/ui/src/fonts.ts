@@ -1,5 +1,3 @@
-import "@fontsource-variable/material-symbols-outlined";
-
 import "@fontsource/poppins/300-italic.css";
 import "@fontsource/poppins/300.css";
 import "@fontsource/poppins/400-italic.css";

@@ -28,6 +28,7 @@ const markersDefaultData = [
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Google Maps",
 		description,
 		category: "Embed",

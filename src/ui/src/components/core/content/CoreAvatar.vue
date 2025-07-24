@@ -40,6 +40,7 @@ const description = "A component to display user avatars.";
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Avatar",
 		description,
 		category: "Content",
