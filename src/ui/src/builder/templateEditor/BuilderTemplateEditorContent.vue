@@ -16,7 +16,7 @@ export default defineComponent({
 	props: {
 		content: { type: String, required: false, default: undefined },
 		backgroundColors: {
-			type: Object as PropType<Record<string, Set<string>>>,
+			type: Object as PropType<Record<string, string[]>>,
 			required: false,
 			default: () => {},
 		},

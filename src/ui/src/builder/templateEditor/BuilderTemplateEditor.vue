@@ -43,19 +43,15 @@ const { bindings, blueprintsResults, blueprintsSetStates } =
 
 const backgroundTagColors = computed(() => {
 	return {
-		[WdsColor.Green2]: new Set(
-			extractObjectPaths(wf.userStateInitial.value),
-		),
-		[WdsColor.Gray2]: new Set(extractObjectPaths(bindings.value)),
-		[WdsColor.Blue2]: new Set([
+		[WdsColor.Green2]: [...extractObjectPaths(wf.userState.value)],
+		[WdsColor.Gray2]: [...extractObjectPaths(bindings.value)],
+		[WdsColor.Blue2]: [
 			...extractObjectPaths(blueprintsSetStates.value),
 			...extractObjectPaths(blueprintsResults.value),
-		]),
-		[WdsColor.Yellow2]: new Set(
-			[...extractObjectPaths(secretsManager.secrets.value)].map(
-				(v) => `vault.${v}`,
-			),
-		),
+		],
+		[WdsColor.Yellow2]: [
+			...extractObjectPaths(secretsManager.secrets.value),
+		].map((v) => `vault.${v}`),
 	};
 });
 
