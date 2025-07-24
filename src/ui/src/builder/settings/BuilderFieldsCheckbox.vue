@@ -78,7 +78,10 @@ const model = computed<boolean>({
 	},
 });
 
-const isBindingMode = ref<boolean>(!["yes", "no"].includes(contentValue.value));
+const isBindingMode = ref<boolean>(
+	typeof contentValue.value === "string" &&
+		!["yes", "no", ""].includes(contentValue.value),
+);
 
 const lastBindingValue = ref("");
 const lastCheckboxValue = ref(model.value ? "yes" : "no");
@@ -97,8 +100,6 @@ function toggleBindingMode() {
 </script>
 
 <style scoped>
-@import "../sharedStyles.css";
-
 .BuilderFieldsCheckbox {
 	display: grid;
 	grid-template-columns: 1fr auto;
