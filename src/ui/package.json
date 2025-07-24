@@ -21,7 +21,6 @@
 		"@apache-arrow/ts": "^15.0.2",
 		"@chamaeleonidae/chmln": "^1.0.1",
 		"@floating-ui/vue": "^1.1.5",
-		"@fontsource-variable/material-symbols-outlined": "^5.2.10",
 		"@fontsource/poppins": "^5.0.14",
 		"@fullstory/browser": "^2.0.6",
 		"@googlemaps/js-api-loader": "^1.16.6",

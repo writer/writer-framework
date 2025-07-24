@@ -3,7 +3,6 @@ import type { Component as VueComponent } from "vue";
 // content
 import CoreDataframe from "../components/core/content/CoreDataframe.vue";
 import CoreHeading from "../components/core/content/CoreHeading.vue";
-import CoreIcon from "../components/core/content/CoreIcon.vue";
 import CoreImage from "../components/core/content/CoreImage.vue";
 import CoreMessage from "../components/core/content/CoreMessage.vue";
 import CoreMetric from "../components/core/content/CoreMetric.vue";
@@ -115,7 +114,6 @@ const templateMap: TemplateMap = {
 	iframe: CoreIFrame,
 	googlemaps: CoreGoogleMaps,
 	mapbox: CoreMapbox,
-	icon: CoreIcon,
 	timer: CoreTimer,
 	textinput: CoreTextInput,
 	textareainput: CoreTextareaInput,
@@ -220,8 +218,7 @@ export function getTemplate(type: string) {
 		templateMap[type] ??
 		fallbackTemplate(type);
 
-	const required =
-		(tmpl as any)?.writer?.featureFlags;
+	const required = (tmpl as any)?.writer?.featureFlags;
 
 	if (!checkFlags(required)) {
 		return fallbackTemplate(type);
@@ -230,17 +227,22 @@ export function getTemplate(type: string) {
 }
 
 export function getComponentDefinition(
-        type: string,
+	type: string,
 ): WriterComponentDefinition {
-        return getTemplate(type)?.writer;
+	return getTemplate(type)?.writer;
 }
 
 export function getSupportedComponentTypes() {
-        const allTypes = [...Object.keys(templateMap), ...Object.keys(abstractTemplateMap)];
-        return allTypes.filter((t) => {
-			const required = (templateMap[t] as any)?.writer?.featureFlags as string[] | undefined;
-			return checkFlags(required);
-        });
+	const allTypes = [
+		...Object.keys(templateMap),
+		...Object.keys(abstractTemplateMap),
+	];
+	return allTypes.filter((t) => {
+		const required = (templateMap[t] as any)?.writer?.featureFlags as
+			| string[]
+			| undefined;
+		return checkFlags(required);
+	});
 }
 
 export function registerComponentTemplate(
