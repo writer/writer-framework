@@ -34,7 +34,7 @@ describe(BuilderTemplateEditorContentTag, () => {
 				backgroundColors: {
 					red: ["foo"],
 				},
-				tag: "bar.foo",
+				tag: "fooBar",
 			},
 		});
 		expect(wrapper.element.style.backgroundColor).toBe("");

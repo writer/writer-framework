@@ -20,25 +20,7 @@ exports[`BuilderTemplateEditorContent > should render text with breaking lines 1
     data-v-4e6e767a=""
     data-v-f4c188f2=""
   >
-    <span
-      class="BuilderTemplateEditorContentTag__sign"
-      data-v-4e6e767a=""
-    >
-      @
-    </span>
-    <span
-      class="BuilderTemplateEditorContentTag__bracket"
-      data-v-4e6e767a=""
-    >
-      {
-    </span>
-    tag
-    <span
-      class="BuilderTemplateEditorContentTag__bracket"
-      data-v-4e6e767a=""
-    >
-      }
-    </span>
+    @{tag}
   </span>
   
   <br
@@ -60,25 +42,7 @@ exports[`BuilderTemplateEditorContent > should render text with one tag 1`] = `
     data-v-4e6e767a=""
     data-v-f4c188f2=""
   >
-    <span
-      class="BuilderTemplateEditorContentTag__sign"
-      data-v-4e6e767a=""
-    >
-      @
-    </span>
-    <span
-      class="BuilderTemplateEditorContentTag__bracket"
-      data-v-4e6e767a=""
-    >
-      {
-    </span>
-    tag
-    <span
-      class="BuilderTemplateEditorContentTag__bracket"
-      data-v-4e6e767a=""
-    >
-      }
-    </span>
+    @{tag}
   </span>
 </div>
 `;
