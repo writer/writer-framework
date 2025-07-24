@@ -18,11 +18,21 @@
 
 		<div class="BuilderSettingsMain__section" :inert="isReadOnly">
 			<BuilderSettingsProperties />
+			<component
+				:is="artifactRegistry[a.key]"
+				v-for="a in artifactsTop"
+				:key="a.key"
+			/>
 			<template v-if="displaySettings">
 				<BuilderSettingsBinding v-if="isBindable" />
 				<BuilderSettingsHandlers />
 				<BuilderSettingsVisibility />
 			</template>
+			<component
+				:is="artifactRegistry[a.key]"
+				v-for="a in artifactsBottom"
+				:key="a.key"
+			/>
 		</div>
 
 		<div class="BuilderSettingsMain__spacer"></div>
@@ -61,6 +71,7 @@ import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useButtonClipboard } from "../useButtonClipboard";
+import { artifactRegistry } from "./artifacts";
 
 const BuilderSettingsHandlers = defineAsyncComponent({
 	loader: () => import("./BuilderSettingsHandlers.vue"),
@@ -100,6 +111,17 @@ const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
 const isBindable = computed(() =>
 	Object.values(componentDefinition.value?.events ?? {}).some(
 		(e) => e.bindable,
+	),
+);
+
+const artifactsTop = computed(() =>
+	(componentDefinition.value?.settingsArtifacts ?? []).filter(
+		(a) => a.position !== "bottom",
+	),
+);
+const artifactsBottom = computed(() =>
+	(componentDefinition.value?.settingsArtifacts ?? []).filter(
+		(a) => a.position === "bottom",
 	),
 );
 </script>

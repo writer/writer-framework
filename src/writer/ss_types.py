@@ -71,6 +71,8 @@ SourceFiles = Union[SourceFilesFile, SourceFilesDirectory, SourceFilesBinary]
 class WriterApplicationInformation(BaseModel):
     id: str
     organizationId: str
+    baseUrl: Optional[str] = None
+    apiKey: Optional[str] = None
 
 
 class AutogenRequestBody(BaseModel):
