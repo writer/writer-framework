@@ -26,7 +26,7 @@ Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { validatorUri } from "@/constants/validators";
-import { baseYesNoField, cssClasses } from "@/renderer/sharedStyleFields";
+import { createBooleanField, cssClasses } from "@/renderer/sharedStyleFields";
 
 const description =
 	"A Video player component that can play various video formats.";
@@ -44,30 +44,26 @@ export default {
 				type: FieldType.Text,
 				validator: validatorUri,
 			},
-			controls: {
-				...baseYesNoField,
-				name: "Controls",
+			controls: createBooleanField({
+				name: "Enable controls",
 				desc: "Display Video player controls.",
 				default: "yes",
-			},
-			autoplay: {
-				...baseYesNoField,
+			}),
+			autoplay: createBooleanField({
 				name: "Autoplay",
 				desc: "Autoplay the video when the component is loaded.",
 				default: "no",
-			},
-			loop: {
-				...baseYesNoField,
+			}),
+			loop: createBooleanField({
 				name: "Loop",
 				desc: "Loop the video when it reaches the end.",
 				default: "no",
-			},
-			muted: {
-				...baseYesNoField,
+			}),
+			muted: createBooleanField({
 				name: "Muted",
 				desc: "Mute the video by default.",
 				default: "no",
-			},
+			}),
 			cssClasses,
 		},
 	},

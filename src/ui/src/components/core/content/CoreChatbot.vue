@@ -99,7 +99,7 @@ See the stubs for more details.
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	accentColor,
-	baseYesNoField,
+	createBooleanField,
 	buttonColor,
 	buttonTextColor,
 	containerBackgroundColor,
@@ -202,12 +202,11 @@ export default {
 				default: "YOU",
 				type: FieldType.Text,
 			},
-			useMarkdown: {
-				...baseYesNoField,
-				name: "Use Markdown",
+			useMarkdown: createBooleanField({
+				name: "Enable markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
-			},
+			}),
 			enableFileUpload: {
 				name: "Enable file upload",
 				default: "no",

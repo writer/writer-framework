@@ -31,7 +31,7 @@
 import { FieldCategory, FieldType } from "@/writerTypes";
 import {
 	accentColor,
-	baseYesNoField,
+	createBooleanField,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
 import { ComponentPublicInstance } from "vue";
@@ -61,12 +61,11 @@ export default {
 				name: "Placeholder",
 				type: FieldType.Text,
 			},
-			passwordMode: {
-				...baseYesNoField,
+			passwordMode: createBooleanField({
 				name: "Password mode",
 				default: "no",
 				category: FieldCategory.Style,
-			},
+			}),
 			accentColor,
 			cssClasses,
 		},

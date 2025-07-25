@@ -12,7 +12,7 @@ import { FieldType } from "@/writerTypes";
 import { validatorPositiveNumber } from "@/constants/validators";
 import {
 	accentColor,
-	baseYesNoField,
+	createBooleanField,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
 const description =
@@ -38,12 +38,11 @@ export default {
 				type: FieldType.Number,
 				validator: validatorPositiveNumber,
 			},
-			isActive: {
-				...baseYesNoField,
+			isActive: createBooleanField({
 				name: "Active",
 				default: "yes",
 				desc: "Whether the timer should trigger tick events.",
-			},
+			}),
 			accentColor,
 			cssClasses,
 		},

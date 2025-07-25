@@ -23,7 +23,6 @@
 				</label>
 				<WdsButton
 					v-if="isExpansible"
-					class="WdsFieldWrapper__title__help"
 					variant="neutral"
 					size="smallIcon"
 					data-writer-tooltip="Expand"
@@ -33,7 +32,6 @@
 				</WdsButton>
 				<WdsButton
 					v-if="helpButton"
-					class="WdsFieldWrapper__title__help"
 					variant="neutral"
 					size="smallIcon"
 					:data-writer-tooltip="
@@ -42,6 +40,16 @@
 					@click="$emit('helpClick')"
 				>
 					<WdsIcon name="circle-question-mark" />
+				</WdsButton>
+				<WdsButton
+					v-if="isUnbindButtonShown"
+					variant="neutral"
+					size="smallIcon"
+					data-writer-tooltip-placement="left"
+					data-writer-tooltip="Unbind from variable"
+					@click="$emit('unbind')"
+				>
+					<WdsIcon name="wds-at-sign-slash" />
 				</WdsButton>
 			</div>
 			<div class="WdsFieldWrapper__slot">
@@ -65,6 +73,7 @@ defineProps({
 	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	isExpansible: { type: Boolean, required: false, default: false },
+	isUnbindButtonShown: { type: Boolean, required: false, default: false },
 	helpButton: {
 		type: [String, Boolean],
 		required: false,
@@ -76,6 +85,7 @@ const emits = defineEmits({
 	helpClick: () => true,
 	expand: () => true,
 	shrink: () => true,
+	unbind: () => true,
 });
 
 const isExpanded = ref(false);

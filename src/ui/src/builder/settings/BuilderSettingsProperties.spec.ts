@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
+import BuilderFieldsCheckbox from "./BuilderFieldsCheckbox.vue";
 import { shallowMount } from "@vue/test-utils";
 import {
 	buildMockComponent,
@@ -41,8 +42,16 @@ describe("BuilderSettingsProperties", () => {
 				},
 			});
 
+			const wrapperFields = wrapper.findAllComponents(WdsFieldWrapper);
+			const checkboxFields = wrapper.findAllComponents(
+				BuilderFieldsCheckbox,
+			);
+
+			const renderedFieldsCount =
+				wrapperFields.length + checkboxFields.length;
+
 			// check that each fields is renderer
-			expect(wrapper.findAllComponents(WdsFieldWrapper)).toHaveLength(
+			expect(renderedFieldsCount).toBe(
 				// @ts-expect-error TS doesn't infer the right type for the component
 				Object.keys(templateMap[type].writer.fields).length,
 			);

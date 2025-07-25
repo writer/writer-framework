@@ -51,7 +51,7 @@ import {
 	separatorColor,
 	primaryTextColor,
 	containerBackgroundColor,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 import WdsControl from "@/wds/WdsControl.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -90,12 +90,11 @@ export default {
 				type: FieldType.Number,
 				desc: "The page to be displayed.",
 			},
-			controls: {
-				...baseYesNoField,
-				name: "Controls",
+			controls: createBooleanField({
+				name: "Enable controls",
 				desc: "Show controls to navigate the PDF.",
 				default: "yes",
-			},
+			}),
 			containerBackgroundColor,
 			separatorColor,
 			primaryTextColor,

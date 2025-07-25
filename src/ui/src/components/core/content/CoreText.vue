@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import {
-	baseYesNoField,
+	createBooleanField,
 	cssClasses,
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
@@ -67,12 +67,11 @@ export default {
 				type: FieldType.Text,
 				control: FieldControl.Textarea,
 			},
-			useMarkdown: {
-				...baseYesNoField,
-				name: "Use Markdown",
+			useMarkdown: createBooleanField({
+				name: "Enable markdown",
 				desc: "The Markdown output will be sanitised; unsafe elements will be removed.",
 				default: "no",
-			},
+			}),
 			alignment: {
 				name: "Alignment",
 				default: "left",
@@ -84,12 +83,11 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			quickCopy: {
-				...baseYesNoField,
-				name: "Show copy button",
+			quickCopy: createBooleanField({
+				name: "Enable copy button",
 				desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
 				default: "no",
-			},
+			}),
 			primaryTextColor,
 			cssClasses,
 		},

@@ -24,16 +24,11 @@ class WriterAskGraphQuestion(WriterBlock):
                     },
                     "useStreaming": {
                         "name": "Use streaming",
-                        "type": "Text",
+                        "type": "Boolean",
                         "default": "yes",
-                        "options": {
-                            "yes": "Yes",
-                            "no": "No"
-                        },
                         "validator": {
-                            "type": "string",
-                            "enum": ["yes", "no"]
-                        }
+                            "type": "boolean",
+                        },
                     },
                     "stateElement": {
                         "name": "Link Variable",
@@ -55,17 +50,12 @@ class WriterAskGraphQuestion(WriterBlock):
                     },
                     "subqueries": {
                         "name": "Use subqueries",
-                        "type": "Text",
+                        "type": "Boolean",
                         "desc": "Enables LLM to ask follow-up questions to the knowledge graph. This improves answers, but may be slower.",
-                        "default": "no",
-                        "options": {
-                            "yes": "Yes",
-                            "no": "No"
-                        },
+                        "default": "yes",
                         "validator": {
-                            "type": "string",
-                            "enum": ["yes", "no"]
-                        }
+                            "type": "boolean",
+                        },
                     }
                 },
                 "outs": {
@@ -87,20 +77,25 @@ class WriterAskGraphQuestion(WriterBlock):
         try:
             client = self.writer_sdk_client
 
-            graph_ids = self._get_field("graphIds", as_json=True, required=True)
-            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
+            graph_ids = self._get_field(
+                "graphIds", as_json=True, required=True)
+            use_streaming = self._get_field(
+                "useStreaming", False, "yes") == "yes"
             if isinstance(graph_ids, str):
                 graph_ids = [graph_ids]
             elif not isinstance(graph_ids, list):
-                raise ValueError("graphIds must be a string or a list of strings")
+                raise ValueError(
+                    "graphIds must be a string or a list of strings")
             if len(graph_ids) == 0:
                 raise ValueError("graphIds must not be empty")
 
             question = self._get_field("question", required=True)
             state_element = self._get_field("stateElement", required=False)
             if not state_element and use_streaming:
-                raise ValueError("A state element must be provided when using streaming.")
-            subqueries = self._get_field("subqueries", default_field_value="no") == "yes"
+                raise ValueError(
+                    "A state element must be provided when using streaming.")
+            subqueries = self._get_field(
+                "subqueries", default_field_value="no") == "yes"
 
             answer_so_far = ""
 
@@ -117,7 +112,8 @@ class WriterAskGraphQuestion(WriterBlock):
                         answer_so_far += delta
                         self._set_state(state_element, answer_so_far)
                     except json.JSONDecodeError:
-                        logging.error("Could not parse stream chunk from graph.question")
+                        logging.error(
+                            "Could not parse stream chunk from graph.question")
             else:
                 answer_so_far = response.answer
                 self._set_state(state_element, answer_so_far)

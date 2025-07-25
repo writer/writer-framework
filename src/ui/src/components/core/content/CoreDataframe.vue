@@ -133,7 +133,7 @@ import {
 	secondaryTextColor,
 	accentColor,
 	separatorColor,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 import { onMounted } from "vue";
 import { watch } from "vue";
@@ -230,33 +230,28 @@ export default {
 				type: FieldType.Text,
 				default: DEFAULT_DATA_FRAME,
 			},
-			showIndex: {
-				...baseYesNoField,
+			showIndex: createBooleanField({
 				name: "Show index",
 				desc: "Shows the dataframe's index. If an Arrow table is used, shows the zero-based integer index.",
 				default: "yes",
-			},
-			enableSearch: {
-				...baseYesNoField,
+			}),
+			enableSearch: createBooleanField({
 				name: "Enable search",
 				default: "no",
-			},
-			enableRecordAdd: {
-				...baseYesNoField,
+			}),
+			enableRecordAdd: createBooleanField({
 				name: "Enable adding a record",
 				default: "no",
-			},
-			enableRecordUpdate: {
-				...baseYesNoField,
+			}),
+			enableRecordUpdate: createBooleanField({
 				name: "Enable updating a record",
 				default: "no",
-			},
-			enableDownload: {
-				...baseYesNoField,
+			}),
+			enableDownload: createBooleanField({
 				name: "Enable download",
 				desc: "Allows the user to download the data as CSV.",
 				default: "no",
-			},
+			}),
 			actions: {
 				name: "Actions",
 				desc: "Define rows actions",
@@ -264,12 +259,11 @@ export default {
 				default: JSON.stringify({ remove: "Remove", open: "Open" }),
 				validator: validatorObjectRecordNotNested,
 			},
-			useMarkdown: {
-				...baseYesNoField,
-				name: "Use Markdown",
+			useMarkdown: createBooleanField({
+				name: "Enable markdown",
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
-			},
+			}),
 			displayRowCount: {
 				name: "Display row count",
 				desc: "Specifies how many rows to show simultaneously.",
@@ -278,13 +272,12 @@ export default {
 				default: "10",
 				validator: validatorPositiveNumber,
 			},
-			wrapText: {
-				...baseYesNoField,
+			wrapText: createBooleanField({
 				name: "Wrap text",
 				category: FieldCategory.Style,
 				desc: "Not wrapping text allows for an uniform grid, but may be inconvenient if your data contains longer text fields.",
 				default: "no",
-			},
+			}),
 			primaryTextColor,
 			secondaryTextColor,
 			accentColor,

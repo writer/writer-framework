@@ -67,7 +67,7 @@ import {
 	contentHAlign,
 	cssClasses,
 	contentPadding,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { onBeforeUnmount } from "vue";
@@ -93,12 +93,11 @@ export default {
 				...contentPadding,
 				default: "16px",
 			},
-			isCompleted: {
-				...baseYesNoField,
+			isCompleted: createBooleanField({
 				name: "Completed",
 				desc: "Use a state reference to dynamically mark this step as complete.",
 				default: "no",
-			},
+			}),
 			contentHAlign,
 			cssClasses,
 		},

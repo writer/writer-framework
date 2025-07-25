@@ -47,7 +47,7 @@ import {
 	separatorColor,
 	startCollapsed,
 	isCollapsible as isCollapsibleField,
-	baseYesNoField,
+	createBooleanField,
 } from "@/renderer/sharedStyleFields";
 import { validatorPositiveNumber } from "@/constants/validators";
 
@@ -75,12 +75,11 @@ export default {
 				category: FieldCategory.Style,
 				validator: validatorPositiveNumber,
 			},
-			isSticky: {
-				...baseYesNoField,
+			isSticky: createBooleanField({
 				name: "Sticky",
 				default: "no",
 				category: FieldCategory.Style,
-			},
+			}),
 			isCollapsible: isCollapsibleField,
 			startCollapsed: {
 				...startCollapsed,
