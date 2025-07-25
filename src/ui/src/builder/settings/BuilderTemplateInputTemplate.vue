@@ -23,9 +23,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, PropType, useTemplateRef } from "vue";
+import { defineAsyncComponent, onMounted, PropType, useTemplateRef } from "vue";
 import WdsTextInputLayout from "@/wds/WdsTextInputLayout.vue";
-import BuilderTemplateEditor from "../templateEditor/BuilderTemplateEditor.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+
+const BuilderTemplateEditor = defineAsyncComponent({
+	loader: () => import("../templateEditor/BuilderTemplateEditor.vue"),
+	loadingComponent: BuilderAsyncLoader,
+});
 
 const model = defineModel({ type: String });
 
@@ -72,15 +77,7 @@ function setSelectionEnd(value: number) {
 }
 
 function getSelection() {
-	const res = { selectionStart: undefined, selectionEnd: undefined };
-
-	if (!input.value) return res;
-
-	const selection = input.value.getSelection();
-	res.selectionStart = selection;
-	res.selectionEnd = selection;
-
-	return res;
+	return input.value?.getSelection();
 }
 
 function focus() {

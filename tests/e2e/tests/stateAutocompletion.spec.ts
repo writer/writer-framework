@@ -4,7 +4,7 @@ const setTextField = async (page, text) => {
 	await page.locator("div.CoreText.component").click();
 	await page
 		.locator('.BuilderFieldsText[data-automation-key="text"]')
-		.locator(".BuilderTemplateEditorContent")
+		.locator('[data-automation-key="template-editor"]')
 		.fill(text);
 };
 
@@ -36,9 +36,9 @@ test.describe("state autocompletion", () => {
 			field
 				.locator('.WdsDropdownMenuItem[data-automation-key="types.string"]')
 				.click();
-			await expect(field.locator(".BuilderTemplateEditorContent")).toHaveText(
-				"@{types.string}",
-			);
+			await expect(
+				field.locator('[data-automation-key="template-editor"]'),
+			).toHaveText("@{types.string}");
 		});
 		test("counter", async ({ page }) => {
 			await setTextField(page, "@{counter");
@@ -153,7 +153,7 @@ test.describe("state autocompletion", () => {
 			await field.locator(`button.WdsTab:text-matches("CSS")`).click();
 			await field
 				.locator(`.BuilderTemplateInput`)
-				.locator(".BuilderTemplateEditorContent")
+				.locator('[data-automation-key="template-editor"]')
 				.fill("@{types.");
 			await expect(field.locator(`.WdsDropdownMenuItem__label`)).toHaveText([
 				"types.float",
@@ -165,7 +165,7 @@ test.describe("state autocompletion", () => {
 			await expect(
 				field
 					.locator(`.BuilderTemplateInput`)
-					.locator(".BuilderTemplateEditorContent"),
+					.locator('[data-automation-key="template-editor"]'),
 			).toHaveText("@{types.string}");
 		});
 	}

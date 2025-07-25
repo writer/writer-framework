@@ -97,7 +97,7 @@ test.describe("Blueprints", () => {
 		const payload = "blue";
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="payload"]`)
-			.locator(".BuilderTemplateEditorContent")
+			.locator('[data-automation-key="template-editor"]')
 			.fill(payload);
 
 		await runBlueprintBlock.locator(".ball.success").dragTo(returnValueBlock);
@@ -105,7 +105,7 @@ test.describe("Blueprints", () => {
 		await returnValueBlock.click();
 		await page
 			.locator(`.BuilderFieldsText[data-automation-key="value"]`)
-			.locator(".BuilderTemplateEditorContent")
+			.locator('[data-automation-key="template-editor"]')
 			.fill("@{result}");
 
 		await page.locator(`[data-automation-action="run-blueprint"]`).click();
