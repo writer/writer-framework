@@ -21,12 +21,12 @@
 				<WdsButton
 					v-if="fields.quickCopy.value"
 					class="copy-button"
+					variant="neutral"
+					size="smallIcon"
 					:class="{ copied: isCopied }"
 					@click="handleCopy"
 				>
-					<div class="icon">
-						<WdsIcon :name="isCopied ? 'check' : 'clipboard'" />
-					</div>
+					<WdsIcon :name="isCopied ? 'check' : 'clipboard'" />
 				</WdsButton>
 			</div>
 		</template>
@@ -181,32 +181,16 @@ function handleCopy() {
 }
 
 .text-container {
-	position: relative;
-}
-
-.copy-button {
-	position: absolute;
-	right: 10px;
-	top: 40%;
-	background-color: transparent;
-	border: none;
-	cursor: pointer;
-	padding: 0;
-	margin: 0;
-	font-size: 2em;
-	transition: all 0.2s ease;
-}
-
-.copy-button:hover {
-	transform: scale(1.1);
+	gap: 8px;
+	display: grid;
+	grid-template-columns: 1fr auto;
 }
 
 .copy-button.copied {
 	color: #4caf50;
-	transform: scale(1.1);
 }
 
-.copy-button.copied .icon {
+.copy-button.copied :deep(svg) {
 	animation: pulse 0.3s ease-in-out;
 }
 
