@@ -5,7 +5,7 @@
 			:enable-copy-to-json="true"
 			:initial-depth="1"
 			:hide-root="true"
-		></SharedJsonViewer>
+		/>
 	</div>
 </template>
 
