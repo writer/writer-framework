@@ -4,7 +4,7 @@ const setTextField = async (page, text) => {
 	await page.locator("div.CoreText.component").click();
 	await page
 		.locator('.BuilderFieldsText[data-automation-key="text"]')
-		.locator(".BuilderTemplateEditorContent")
+		.locator('[data-automation-key="template-editor"]')
 		.fill(text);
 };
 

@@ -27,13 +27,13 @@ test.describe("JSON viewer", () => {
 
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="initialDepth"]')
-			.locator(".BuilderTemplateEditorContent")
+			.locator('[data-automation-key="template-editor"]')
 			.fill("1");
 		expect(await page.locator(".CoreJsonViewer details[open]").count()).toBe(1);
 
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="initialDepth"]')
-			.locator(".BuilderTemplateEditorContent")
+			.locator('[data-automation-key="template-editor"]')
 			.fill("-1");
 		expect(await page.locator(".CoreJsonViewer details[open]").count()).toBe(5);
 	});

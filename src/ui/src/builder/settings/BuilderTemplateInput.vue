@@ -244,11 +244,7 @@ async function onSelectStaticAutocomplete(selectedText: string) {
 }
 
 function onChange(value: string) {
-	handleInput({
-		target: {
-			value,
-		},
-	});
+	handleInput({ target: { value } });
 }
 
 function handleInput(ev) {

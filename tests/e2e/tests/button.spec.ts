@@ -29,7 +29,7 @@ test.describe("button", () => {
 		await page.locator(COMPONENT_LOCATOR).click();
 		await page
 			.locator('.BuilderFieldsText[data-automation-key="text"]')
-			.locator(".BuilderTemplateEditorContent")
+			.locator('[data-automation-key="template-editor"]')
 			.fill("Hello, World!");
 		await expect(page.locator(COMPONENT_LOCATOR)).toContainText(
 			"Hello, World!",
