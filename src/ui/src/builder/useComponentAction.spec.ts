@@ -158,6 +158,28 @@ describe(useComponentActions.name, () => {
 				"Delete",
 			);
 		});
+
+		it("should recreate an empty page when removing all pages", () => {
+			const { removeComponentsSubtree } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
+			removeComponentsSubtree("pageId");
+
+			expect(mockCore.core.getComponents("root")).toHaveLength(1);
+		});
+
+		it("should recreate an empty page when removing all pages", () => {
+			const { removeComponentsSubtree } = useComponentActions(
+				mockCore.core,
+				wfbm,
+			);
+			removeComponentsSubtree("blueprints_blueprint-id");
+
+			expect(mockCore.core.getComponents("blueprints_root")).toHaveLength(
+				1,
+			);
+		});
 	});
 
 	describe("components movements", () => {

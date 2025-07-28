@@ -385,6 +385,23 @@ export function useComponentActions(
 			}
 		}
 
+		// recreate an empty `page` or `blueprints_blueprint` if the root becomes empty
+		for (const { pageType, rootId } of [
+			{ rootId: "root", pageType: "page" },
+			{ rootId: "blueprints_root", pageType: "blueprints_blueprint" },
+		]) {
+			const pages = wf.getComponents(rootId, {
+				includeBMC: true,
+				includeCMC: true,
+			});
+			if (pages.length > 0) continue;
+
+			const newPage = createComponent(pageType, rootId);
+			wf.addComponent(newPage);
+			ssbm.registerPostMutation(newPage);
+			wf.setActivePageId(newPage.id);
+		}
+
 		ssbm.closeMutationTransaction(transactionId);
 		wf.sendComponentUpdate();
 	}
