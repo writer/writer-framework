@@ -3,18 +3,20 @@
 		v-if="ssbm.isSingleSelectionActive && fields"
 		class="BuilderSettingsProperties"
 	>
+		<WdsTabs
+			v-if="fieldCategories.length > 1"
+			v-model="selectedCategoryTab"
+			variant="bar"
+			:tabs="fieldCategoryTabOptions"
+		/>
+
 		<div
-			v-for="propertyCategory in fieldCategories"
+			v-for="propertyCategory in fieldCategories.length > 1
+				? [selectedCategoryTab]
+				: fieldCategories"
 			:key="propertyCategory"
 			class="BuilderSettingsProperties__category"
 		>
-			<WdsTitle2
-				v-if="
-					fieldsByCategory[propertyCategory].length > 0 &&
-					propertyCategory !== 'General'
-				"
-				>{{ propertyCategory }}</WdsTitle2
-			>
 			<div
 				v-for="[fieldKey, fieldValue] in fieldsByCategory[
 					propertyCategory
@@ -244,7 +246,7 @@ import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
-import WdsTitle2 from "@/wds/WdsTitle2.vue";
+import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -285,6 +287,28 @@ const errorsByFields = useFieldsErrors(
 	selectedInstancePath,
 	secretsManager,
 );
+
+const selectedCategoryTab = ref<FieldCategory>(FieldCategory.General);
+
+const fieldCategoryTabOptions = computed<WdsTabOptions<FieldCategory>[]>(() => {
+	function categoryToLabel(category: FieldCategory) {
+		switch (category) {
+			case FieldCategory.General:
+				return "Configure";
+			case FieldCategory.Style:
+				return "Style";
+			case FieldCategory.Tools:
+				return "Tools";
+			default:
+				return category;
+		}
+	}
+
+	return fieldCategories.value.map((category) => ({
+		label: categoryToLabel(category),
+		value: category,
+	}));
+});
 
 const fieldCategories = computed(() => {
 	return [
@@ -329,12 +353,12 @@ function handleShrink(fieldKey: string) {
 
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 24px;
 }
 
 .BuilderSettingsProperties__category {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 24px;
 }
 </style>

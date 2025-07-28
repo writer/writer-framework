@@ -9,6 +9,7 @@
 		<WdsTab
 			v-for="tab of tabs"
 			:key="tab.value"
+			:value="tab.value"
 			:variant
 			:disabled="tab.disabled"
 			:selected="tab.value === selected"
