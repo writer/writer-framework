@@ -25,7 +25,6 @@ Afterwards, you can reference the video using the syntax \`@{vid_f}\`.
 
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
-import { validatorUri } from "@/constants/validators";
 import { createBooleanField, cssClasses } from "@/renderer/sharedStyleFields";
 
 const description =
@@ -42,7 +41,6 @@ export default {
 				desc: "The URL of the video file. Alternatively, you can pass a file via state.",
 				default: "",
 				type: FieldType.Text,
-				validator: validatorUri,
 			},
 			controls: createBooleanField({
 				name: "Enable controls",

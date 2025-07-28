@@ -16,7 +16,6 @@
 <script lang="ts">
 import { FieldType } from "@/writerTypes";
 import { cssClasses, separatorColor } from "@/renderer/sharedStyleFields";
-import { validatorUri } from "@/constants/validators";
 
 const description = "A component to embed an external resource in an iframe.";
 
@@ -38,7 +37,6 @@ export default {
 				default: "",
 				desc: "A valid URL",
 				type: FieldType.Text,
-				validator: validatorUri,
 			},
 			separatorColor,
 			cssClasses,
