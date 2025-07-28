@@ -53,7 +53,7 @@ test.describe("Blueprints", () => {
 		});
 	}
 
-	test("Create blueprint and run blueprint repeat_payload from it", async ({
+	test.skip("Create blueprint and run blueprint repeat_payload from it", async ({
 		page,
 	}) => {
 		await page

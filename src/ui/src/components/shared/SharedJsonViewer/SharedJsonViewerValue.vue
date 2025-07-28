@@ -18,9 +18,17 @@ const props = defineProps({
 		] as PropType<JsonData>,
 		required: true,
 	},
+	maxValueLength: {
+		type: Number,
+		default: 1_000,
+	},
 });
 
-const dataFormatted = computed(() => JSON.stringify(props.data));
+const dataFormatted = computed(() => {
+	const data = JSON.stringify(props.data);
+	if (data.length <= props.maxValueLength) return data;
+	return `${data.slice(0, props.maxValueLength)}..."`;
+});
 </script>
 
 <style scoped>
