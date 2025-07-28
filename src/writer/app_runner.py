@@ -181,10 +181,16 @@ class AppProcess(multiprocessing.Process):
         writer_application: Optional[WriterApplicationInformation] = None
         writer_app_id = os.getenv("WRITER_APP_ID")
         writer_org_id = os.getenv("WRITER_ORG_ID")
+        writer_base_url = \
+            os.getenv("WRITER_BASE_URL", "https://api.writer.com")
         if writer_app_id is not None and writer_org_id is not None:
             writer_application = WriterApplicationInformation(
-                id=writer_app_id, organizationId=writer_org_id
+                id=writer_app_id,
+                organizationId=writer_org_id,
+                baseUrl=writer_base_url
             )
+            if writer.Config.mode == "edit":
+                writer_application.apiKey = os.getenv("WRITER_API_KEY")
 
         res_payload = InitSessionResponsePayload(
             userState=user_state,
