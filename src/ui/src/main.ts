@@ -91,6 +91,9 @@ load()
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
 		const errorDiv = document.createElement("div");
+		errorDiv.className = "error-message";
+		errorDiv.setAttribute("role", "alert");
+		errorDiv.style.cssText = "padding: 20px; color: #d32f2f; background: #ffebee; border: 1px solid #e57373; border-radius: 4px; margin: 20px; font-family: system-ui, sans-serif;";
 		errorDiv.textContent =
 				"Failed to initialise application" +
 				(reason?.message ? `: ${reason.message}` : "");
