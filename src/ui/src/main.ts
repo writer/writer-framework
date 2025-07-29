@@ -90,5 +90,11 @@ load()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
-		document.write(reason);
+		const errorDiv = document.createElement("div");
+		errorDiv.textContent =
+				"Failed to initialise application" +
+				(reason?.message ? `: ${reason.message}` : "");
+		const loadingSpinner = document.getElementById("loading_L1");
+		loadingSpinner?.remove();
+		document.body.appendChild(errorDiv);
 	});

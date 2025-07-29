@@ -129,7 +129,7 @@ export function generateCore() {
 			} catch {
 				if (attempt >= maxRetries - 1) {
 					throw new Error(
-						`Failed to acquire initialization data. Server responded with ${response.status} status.`,
+						`Failed to acquire initialization data. Server responded with ${response?.status ?? "no response"} status.`,
 					);
 				}
 				await new Promise((r) => setTimeout(r, RECONNECT_DELAY_MS * (attempt + 1)));
@@ -362,8 +362,25 @@ export function generateCore() {
 		};
 
 		return new Promise((resolve, reject) => {
-			webSocket.addEventListener("open", () => resolve(), { once: true });
-			webSocket.addEventListener("close", () => reject(), { once: true });
+			function handleOpen() {
+				cleanup();
+				resolve();
+			}
+			function handleClose() {
+				cleanup();
+				reject(
+					new Error(
+						"WebSocket connection closed before establishing.",
+					),
+				);
+			}
+			function cleanup() {
+				webSocket.removeEventListener("open", handleOpen);
+				webSocket.removeEventListener("close", handleClose);
+			}
+
+			webSocket.addEventListener("open", handleOpen);
+			webSocket.addEventListener("close", handleClose);
 		});
 	}
 
