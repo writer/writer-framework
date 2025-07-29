@@ -1,4 +1,4 @@
-import type { Component as VueComponent } from "vue";
+import type { ComputedRef, Component as VueComponent } from "vue";
 import { generateCore } from "./core";
 import { generateBuilderManager, Selection } from "./builder/builderManager";
 import type { SchemaObject } from "ajv";
@@ -56,6 +56,10 @@ export type InstancePathItem = {
  */
 export type InstancePath = InstancePathItem[];
 
+export type WriterComponentDefinitionPropEnabled = (context: {
+	evaluatedFields: Record<string, ComputedRef<unknown>>;
+}) => boolean;
+
 /**
  * Defines component structure and behaviour. Included in Component templates.
  */
@@ -84,6 +88,7 @@ export type WriterComponentDefinitionField = {
 	validator?:
 		| SchemaObject
 		| ((wf?: Core, componentId?: ComponentId) => SchemaObject); // dynamic schema depending on the context;
+	enabled?: WriterComponentDefinitionPropEnabled;
 };
 
 export type WriterComponentDefinitionEvent = {
@@ -95,6 +100,7 @@ export type WriterComponentDefinitionEvent = {
 	bindable?: boolean;
 	/** The payload that will be given  */
 	eventPayloadExample?: string | boolean | object;
+	enabled?: WriterComponentDefinitionPropEnabled;
 };
 
 export type WriterComponentDefinition = {

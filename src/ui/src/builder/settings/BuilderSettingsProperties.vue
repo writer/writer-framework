@@ -246,11 +246,12 @@ import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
-import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
+import { useFieldsErrors } from "@/renderer/useFieldsErrors";
+import { useEvaluator } from "@/renderer/useEvaluator";
 
 defineProps({
-	isReadOnly: { type: Boolean, required: true },
+	isReadOnly: { type: Boolean },
 });
 
 const wf = inject(injectionKeys.core);
@@ -267,15 +268,25 @@ const selectedComponent = computed(() => {
 	return wf.getComponentById(ssbm.firstSelectedId.value);
 });
 
-const componentDefinition = computed(() => {
-	const { type } = selectedComponent.value;
-	return wf.getComponentDefinition(type);
-});
+const componentDefinition = computed(() =>
+	wf.getComponentDefinition(selectedComponent.value?.type),
+);
+
+const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
+const evaluatedFields = computed(() =>
+	getEvaluatedFields(selectedInstancePath.value),
+);
+
 const fields = computed(() => {
-	const allFields = componentDefinition.value?.fields ?? {};
-	return Object.fromEntries(
-		Object.entries(allFields).filter(([, f]) => !f.isArtifactField),
-	);
+	const entries = Object.entries(
+		componentDefinition.value?.fields ?? {},
+	).filter(([_, v]) => {
+		if (v.isArtifactField) return false;
+		if (v.enabled === undefined) return true;
+		return v.enabled({ evaluatedFields: evaluatedFields.value });
+	});
+
+	return Object.fromEntries(entries);
 });
 
 function isExpansible(field: WriterComponentDefinitionField) {
