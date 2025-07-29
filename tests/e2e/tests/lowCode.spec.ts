@@ -86,29 +86,50 @@ with ui.find('results'):
 			`,
 				);
 				await execute(page);
-				await expect(
-					page.locator(`.results .wf-type-${type}.component`),
-				).toHaveCount(1);
 
-				await page
-					.locator(`.results .wf-type-${type}.component`)
-					.click({ force: true });
+				const componentLocator = page.locator(
+					`.results .wf-type-${type}.component`,
+				);
+
+				const settingsLocator = page.locator(".BuilderSettings");
+
+				await expect(componentLocator).toHaveCount(1);
+
+				await componentLocator.click({ force: true });
+
 				for (const [key, value] of Object.entries(props)) {
-					await expect(
-						page
-							.locator(".BuilderSettings")
-							.locator(`div[data-automation-key="${key}"]`),
-					).toHaveCount(1);
+					const fieldLocator = settingsLocator.locator(
+						`div[data-automation-key="${key}"]`,
+					);
+
+					let isFieldFound = (await fieldLocator.count()) > 0;
+
+					if (!isFieldFound) {
+						const categoryTabLocator = settingsLocator.locator(
+							`.WdsTabs.WdsTabs--variant-bar button`,
+						);
+						const categoryTabCount = await categoryTabLocator.count();
+
+						for (let i = 0; i < Math.max(1, categoryTabCount); i++) {
+							if (categoryTabCount > 0) {
+								await categoryTabLocator.nth(i).click({ force: true });
+								await page.waitForTimeout(100);
+							}
+
+							if ((await fieldLocator.count()) > 0) {
+								isFieldFound = true;
+								break;
+							}
+						}
+					}
+
+					expect(isFieldFound).toBe(true);
 				}
 
 				if (renderError) {
-					await expect(
-						page.locator(`.results .wf-type-${type}.component`),
-					).toHaveClass(/RenderError/);
+					await expect(componentLocator).toHaveClass(/RenderError/);
 				} else {
-					await expect(
-						page.locator(`.results .wf-type-${type}.component`),
-					).not.toHaveClass(/RenderError/);
+					await expect(componentLocator).not.toHaveClass(/RenderError/);
 				}
 			});
 		});

@@ -25,6 +25,9 @@ test.describe("Builder field validation", () => {
 			.locator(`.BuilderSidebarToolkit [data-component-type="button"]`)
 			.dragTo(page.locator(".CoreSection"));
 		await page.locator(`button.CoreButton.component`).click();
+		await page
+			.locator(`.BuilderSettingsProperties button[value="Style"]`)
+			.click();
 
 		// css classes
 		const fieldWrapper = page.locator(

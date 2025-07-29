@@ -150,6 +150,9 @@ test.describe("state autocompletion", () => {
 			const FIELD = `.${type}[data-automation-key="${key}"]`;
 			const field = page.locator(`.${type}[data-automation-key="${key}"]`);
 			await page.locator(componentSelector).click();
+			await page
+				.locator(`.BuilderSettingsProperties button[value="Style"]`)
+				.click();
 			await field.locator(`button.WdsTab:text-matches("CSS")`).click();
 			await field
 				.locator(`.BuilderTemplateInput`)
