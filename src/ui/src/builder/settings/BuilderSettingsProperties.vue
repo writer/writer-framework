@@ -295,22 +295,15 @@ const errorsByFields = useFieldsErrors(
 
 const selectedCategoryTab = ref<FieldCategory>(FieldCategory.General);
 
-function categoryToLabel(category: FieldCategory) {
-	switch (category) {
-		case FieldCategory.General:
-			return "Configure";
-		case FieldCategory.Style:
-			return "Style";
-		case FieldCategory.Tools:
-			return "Tools";
-		default:
-			return category;
-	}
-}
+const LABELS_BY_CATEGORY = Object.freeze<Record<FieldCategory, string>>({
+	[FieldCategory.General]: "Configure",
+	[FieldCategory.Style]: "Style",
+	[FieldCategory.Tools]: "Tools",
+});
 
 const fieldCategoryTabOptions = computed<WdsTabOptions<FieldCategory>[]>(() => {
 	return fieldCategories.value.map((category) => ({
-		label: categoryToLabel(category),
+		label: LABELS_BY_CATEGORY[category] ?? category,
 		value: category,
 	}));
 });
