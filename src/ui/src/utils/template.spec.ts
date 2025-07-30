@@ -32,6 +32,7 @@ describe(getCurrentOpenedTemplate.name, () => {
 		{ input: "before @{other.var}", result: "" },
 		{ input: "before @{var1} @{var", result: "var" },
 		{ input: "before @var1", result: "var1" },
+		{ input: "before @{var1\n", result: "" },
 		{ input: "before @var1 ", result: "" },
 		{ input: "before @{var1 ", result: "var1 " },
 		{ input: "@{other.var} foo", result: "" },

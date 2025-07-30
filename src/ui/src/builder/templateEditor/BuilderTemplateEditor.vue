@@ -64,7 +64,7 @@ function findTemplateTags(doc: Node): DecorationSet {
 				.find(([, tags]) =>
 					tags.some((t) => t === tag || tag.startsWith(`${t}.`)),
 				)
-				?.pop();
+				?.shift();
 
 			const index = match.index || 0;
 			const from = position + index;
@@ -140,13 +140,33 @@ const editor = useEditor({
 	},
 });
 
+/**
+ * TipTap doesn't handle when using `setContent` with a string containing breaklines (`\n`). The safest solution is to recreate the document as JSON representation
+ */
+function computeJSONDocument(text: string) {
+	const paragraphContent = text.split("\n").reduce((acc, line, i, lines) => {
+		if (line === "") {
+			acc.push({ type: "hardBreak" });
+			return acc;
+		}
+
+		acc.push({ type: "text", text: line });
+		if (i < lines.length - 1) acc.push({ type: "hardBreak" });
+		return acc;
+	}, []);
+
+	return {
+		type: "doc",
+		content: [{ type: "paragraph", content: paragraphContent }],
+	};
+}
+
 watch(model, () => {
-	const isSame = editor.value.getText() === model.value;
-	if (!isSame) {
-		editor.value.commands.setContent(model.value, {
-			parseOptions: { preserveWhitespace: "full" },
-		});
-	}
+	if (editor.value.getText() === model.value) return;
+
+	editor.value.commands.setContent(computeJSONDocument(model.value), {
+		emitUpdate: false,
+	});
 });
 
 function setSelectionStart(value: number) {
@@ -159,8 +179,8 @@ function setSelectionEnd(value: number) {
 function getSelection() {
 	const selection = editor.value.state.selection;
 	return {
-		selectionStart: selection.from,
-		selectionEnd: selection.to,
+		selectionStart: selection.from - 1,
+		selectionEnd: selection.to - 1,
 	};
 }
 
