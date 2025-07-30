@@ -16,23 +16,22 @@
 			</span>
 		</p>
 
-		<div class="BuilderSettingsMain__section" :inert="isReadOnly">
-			<BuilderSettingsProperties />
-			<component
-				:is="artifactRegistry[a.key]"
-				v-for="a in artifactsTop"
-				:key="a.key"
-			/>
-			<template v-if="displaySettings">
-				<BuilderSettingsBinding v-if="isBindable" />
-				<BuilderSettingsHandlers />
-				<BuilderSettingsVisibility />
+		<div class="BuilderSettingsMain__section">
+			<BuilderSettingsProperties :is-read-only="isReadOnly" />
+			<template v-for="a in artifactsTop" :key="a.key">
+				<component :is="artifactRegistry[a.key]" :inert="isReadOnly" />
 			</template>
-			<component
-				:is="artifactRegistry[a.key]"
-				v-for="a in artifactsBottom"
-				:key="a.key"
-			/>
+			<template v-if="displaySettings">
+				<BuilderSettingsBinding
+					v-if="isBindable"
+					:is-read-only="isReadOnly"
+				/>
+				<BuilderSettingsHandlers :is-read-only="isReadOnly" />
+				<BuilderSettingsVisibility :is-read-only="isReadOnly" />
+			</template>
+			<template v-for="a in artifactsBottom" :key="a.key">
+				<component :is="artifactRegistry[a.key]" :inert="isReadOnly" />
+			</template>
 		</div>
 
 		<div class="BuilderSettingsMain__spacer"></div>
@@ -149,12 +148,12 @@ const artifactsBottom = computed(() =>
 	padding: 24px;
 }
 
-.BuilderSettingsMain__section > *:not(:first-child) {
-	border-top: 1px solid var(--builderSeparatorColor);
+.BuilderSettingsMain__section > *[inert] {
+	opacity: 0.7;
 }
 
-.BuilderSettingsMain__section[inert] {
-	opacity: 0.7;
+.BuilderSettingsMain__section > *:not(:first-child) {
+	border-top: 1px solid var(--builderSeparatorColor);
 }
 
 .BuilderSettingsMain__spacer {

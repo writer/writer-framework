@@ -106,14 +106,17 @@ with ui.find('results'):
 
 					if (!isFieldFound) {
 						const categoryTabLocator = settingsLocator.locator(
-							`.WdsTabs.WdsTabs--variant-bar button`,
+							`button.WdsTab.WdsTab--variant-bar`,
 						);
 						const categoryTabCount = await categoryTabLocator.count();
 
 						for (let i = 0; i < Math.max(1, categoryTabCount); i++) {
 							if (categoryTabCount > 0) {
-								await categoryTabLocator.nth(i).click({ force: true });
-								await page.waitForTimeout(100);
+								await categoryTabLocator.nth(i).click();
+
+								expect(categoryTabLocator.nth(i)).toHaveClass(
+									/WdsTab--selected/,
+								);
 							}
 
 							if ((await fieldLocator.count()) > 0) {
@@ -135,9 +138,13 @@ with ui.find('results'):
 		});
 	test("settings should be enabled for bmc", async ({ page }) => {
 		await page.locator(`.results`).click({ force: true });
-		await expect(
-			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
-		).not.toHaveAttribute("inert");
+
+		const readOnlySections = page.locator(
+			".BuilderSettingsMain > .BuilderSettingsMain__section *[inert]",
+		);
+
+		expect(await readOnlySections.count()).toBe(0);
+
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),
 		).toHaveCount(0);
@@ -155,9 +162,13 @@ with ui.find('results'):
 		await page
 			.locator(`.results .wf-type-text.component.out`)
 			.click({ force: true });
-		await expect(
-			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
-		).toHaveAttribute("inert");
+
+		const readOnlySections = page.locator(
+			".BuilderSettingsMain > .BuilderSettingsMain__section *[inert]",
+		);
+
+		expect(await readOnlySections.count()).toBeGreaterThan(0);
+
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),
 		).toHaveCount(1);

@@ -1,5 +1,9 @@
 <template>
-	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsVisibility">
+	<div
+		v-if="ssbm.isSingleSelectionActive"
+		:inert="isReadOnly"
+		class="BuilderSettingsVisibility"
+	>
 		<WdsTitle2>Visibility</WdsTitle2>
 		<div class="main">
 			<WdsTabs v-model="tab" :tabs="tabs" />
@@ -53,6 +57,10 @@ import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
+defineProps({
+	isReadOnly: { type: Boolean, required: true },
+});
+
 type Mode = "yes" | "no" | "custom";
 
 const tabs: WdsTabOptions<Mode>[] = [
@@ -98,6 +106,10 @@ const hint =
 
 <style scoped>
 @import "../sharedStyles.css";
+
+.BuilderSettingsVisibility[inert] {
+	opacity: 0.7;
+}
 
 .main {
 	margin-top: 16px;

@@ -15,6 +15,7 @@
 				? [selectedCategoryTab]
 				: fieldCategories"
 			:key="propertyCategory"
+			:inert="isReadOnly"
 			class="BuilderSettingsProperties__category"
 		>
 			<div
@@ -248,6 +249,10 @@ import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.v
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
 
+defineProps({
+	isReadOnly: { type: Boolean, required: true },
+});
+
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const secretsManager = inject(injectionKeys.secretsManager);
@@ -290,20 +295,20 @@ const errorsByFields = useFieldsErrors(
 
 const selectedCategoryTab = ref<FieldCategory>(FieldCategory.General);
 
-const fieldCategoryTabOptions = computed<WdsTabOptions<FieldCategory>[]>(() => {
-	function categoryToLabel(category: FieldCategory) {
-		switch (category) {
-			case FieldCategory.General:
-				return "Configure";
-			case FieldCategory.Style:
-				return "Style";
-			case FieldCategory.Tools:
-				return "Tools";
-			default:
-				return category;
-		}
+function categoryToLabel(category: FieldCategory) {
+	switch (category) {
+		case FieldCategory.General:
+			return "Configure";
+		case FieldCategory.Style:
+			return "Style";
+		case FieldCategory.Tools:
+			return "Tools";
+		default:
+			return category;
 	}
+}
 
+const fieldCategoryTabOptions = computed<WdsTabOptions<FieldCategory>[]>(() => {
 	return fieldCategories.value.map((category) => ({
 		label: categoryToLabel(category),
 		value: category,
@@ -360,5 +365,9 @@ function handleShrink(fieldKey: string) {
 	display: flex;
 	flex-direction: column;
 	gap: 24px;
+}
+
+.BuilderSettingsProperties__category[inert] {
+	opacity: 0.7;
 }
 </style>
