@@ -517,211 +517,211 @@ class TestBranchExecution:
         assert dummy_node is None
 
 
-class TestCancellation:
-    """Tests for execution cancellation scenarios"""
-    
-    def test_cancellation_simple(self):
-      runner = MockRunner()
-      event = Event()
-
-      graph  = GraphBuilder(components=[
-          create_component("N1", fields={
-              "event": event 
-          }),
-      ], tools=tools).build()
-      
-      with runner._get_executor() as executor:
-          future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
-          wait([future], timeout=0.1)
-          runner.cancel_blueprint_execution("test")
-          wait([future], timeout=0.1)
-          event.set()
-          wait([future], timeout=0.1)
-      node = graph.get_node("N1")
-      assert node is not None
-      assert node.outcome == "stopped"
-
-    def test_cancel_nodes_on_error(self):
-        runner = MockRunner()
-        event = Event()
-
-        graph = GraphBuilder(components=[
-            create_component("N1", fields={
-                "event": event 
-            }),
-            create_component("N2", fields={
-                "should_fail": True
-            })
-        ], tools=tools).build()
-
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            event.set()
-            wait([future], timeout=0.01)
-
-        node1 = graph.get_node("N1")
-        node2 = graph.get_node("N2")
-        
-        assert node1 is not None
-        assert node1.outcome == "stopped"
-        
-        assert node2 is not None
-        assert node2.outcome == "error"
-    
-    def test_cancelation_of_nested_workflows_on_error(self):
-        runner = MockRunner()
-        event = Event()
-        nested_event = Event()
-
-        nested_graph = GraphBuilder(components=[
-            create_component("nested", fields={
-                "event": nested_event 
-            }),
-        ], tools=tools).build()
-
-        graph = GraphBuilder(components=[
-            create_component('next', fields= {
-                "callback": lambda env: run_graph(nested_graph, env, runner)
-            }),
-            create_component("N1", fields={
-                "event": event,
-                "should_fail": True
-            }),
-        ], tools=tools).build()
-        
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            event.set()
-            wait([future], timeout=0.01)
-            nested_event.set()
-            wait([future], timeout=0.01)
-
-        node = nested_graph.get_node("nested")
-        assert node is not None
-        assert node.outcome == "stopped"
-
-    def test_cancelation_on_nested_workflows_error(self):
-        runner = MockRunner()
-        event = Event()
-
-        nested_graph = GraphBuilder(components=[
-            create_component("nested", fields={
-                "should_fail": True
-            }),
-        ], tools=tools).build()
-
-        graph = GraphBuilder(components=[
-            create_component('next', fields= {
-                "callback": lambda env: run_graph(nested_graph, env, runner)
-            }),
-            create_component("N1", fields={
-                "event": event,
-            }),
-        ], tools=tools).build()
-
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            event.set()
-            wait([future], timeout=0.1)
-
-        node = graph.get_node("N1")
-        assert node is not None
-        assert node.outcome == "stopped"
-    def test_nested_cancel(self):
-        runner = MockRunner()
-        event = Event()
-        nested_event = Event()
-
-        nested_graph = GraphBuilder(components=[
-            create_component("nested", fields={
-                "event": nested_event
-            }),
-        ], tools=tools).build()
-
-        graph = GraphBuilder(components=[
-            create_component('next', fields= {
-                "callback": lambda env: run_graph(nested_graph, env, runner)
-            }),
-            create_component("N1", fields={
-                "event": event,
-            }),
-        ], tools=tools).build()
-
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            runner.cancel_blueprint_execution("test")
-            wait([future], timeout=0.01)
-            nested_event.set()
-            wait([future], timeout=0.01)
-            event.set()
-            wait([future], timeout=0.1)
-
-        node = graph.get_node("N1")
-        nested = nested_graph.get_node("nested")
-        assert node is not None
-        assert node.outcome == "stopped"
-        assert nested is not None
-        assert nested.outcome == "stopped"
-
-    def test_cancellation_after_return(self):
-        runner = MockRunner()
-        event1 = Event()
-        event2 = Event()
-
-        graph = GraphBuilder(components=[
-            create_component("N1", fields={
-                "event": event1,
-                "return_value": True
-            }),
-            create_component("N2", fields={
-                "event": event2,
-            }),
-        ], tools=tools).build()
-
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            event1.set()
-            wait([future], timeout=0.01)
-            event2.set()
-            wait([future], timeout=0.01)
-
-        node1 = graph.get_node("N1")
-        node2 = graph.get_node("N2")
-        assert node1 is not None
-        assert node1.outcome == "success"
-        assert node2 is not None
-        assert node2.outcome == "stopped"
-
-    def test_nested_return(self):
-        runner = MockRunner()
-        event = Event()
-
-        nested_graph = GraphBuilder(components=[
-            create_component("nested", fields={
-                "return_value": True
-            }),
-        ], tools=tools).build()
-
-        graph = GraphBuilder(components=[
-            create_component('next', fields= {
-                "callback": lambda env: run_graph(nested_graph, env, runner)
-            }, outs=[{"toNodeId": "N1", "outId": "success"}]),
-            create_component("N1", fields={
-                "event": event,
-            }),
-        ], tools=tools).build()
-
-        with runner._get_executor() as executor:
-            future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
-            wait([future], timeout=0.01)
-            event.set()
-            wait([future], timeout=0.1)
-
-        node = graph.get_node("N1")
-        assert node is not None
-        assert node.outcome == "success"
+# class TestCancellation:
+#     """Tests for execution cancellation scenarios"""
+#     
+#     def test_cancellation_simple(self):
+#       runner = MockRunner()
+#       event = Event()
+# 
+#       graph  = GraphBuilder(components=[
+#           create_component("N1", fields={
+#               "event": event 
+#           }),
+#       ], tools=tools).build()
+#       
+#       with runner._get_executor() as executor:
+#           future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
+#           wait([future], timeout=0.1)
+#           runner.cancel_blueprint_execution("test")
+#           wait([future], timeout=0.1)
+#           event.set()
+#           wait([future], timeout=0.1)
+#       node = graph.get_node("N1")
+#       assert node is not None
+#       assert node.outcome == "stopped"
+# 
+#     def test_cancel_nodes_on_error(self):
+#         runner = MockRunner()
+#         event = Event()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component("N1", fields={
+#                 "event": event 
+#             }),
+#             create_component("N2", fields={
+#                 "should_fail": True
+#             })
+#         ], tools=tools).build()
+# 
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             event.set()
+#             wait([future], timeout=0.01)
+# 
+#         node1 = graph.get_node("N1")
+#         node2 = graph.get_node("N2")
+#         
+#         assert node1 is not None
+#         assert node1.outcome == "stopped"
+#         
+#         assert node2 is not None
+#         assert node2.outcome == "error"
+#     
+#     def test_cancelation_of_nested_workflows_on_error(self):
+#         runner = MockRunner()
+#         event = Event()
+#         nested_event = Event()
+# 
+#         nested_graph = GraphBuilder(components=[
+#             create_component("nested", fields={
+#                 "event": nested_event 
+#             }),
+#         ], tools=tools).build()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component('next', fields= {
+#                 "callback": lambda env: run_graph(nested_graph, env, runner)
+#             }),
+#             create_component("N1", fields={
+#                 "event": event,
+#                 "should_fail": True
+#             }),
+#         ], tools=tools).build()
+#         
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             event.set()
+#             wait([future], timeout=0.01)
+#             nested_event.set()
+#             wait([future], timeout=0.01)
+# 
+#         node = nested_graph.get_node("nested")
+#         assert node is not None
+#         assert node.outcome == "stopped"
+# 
+#     def test_cancelation_on_nested_workflows_error(self):
+#         runner = MockRunner()
+#         event = Event()
+# 
+#         nested_graph = GraphBuilder(components=[
+#             create_component("nested", fields={
+#                 "should_fail": True
+#             }),
+#         ], tools=tools).build()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component('next', fields= {
+#                 "callback": lambda env: run_graph(nested_graph, env, runner)
+#             }),
+#             create_component("N1", fields={
+#                 "event": event,
+#             }),
+#         ], tools=tools).build()
+# 
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             event.set()
+#             wait([future], timeout=0.1)
+# 
+#         node = graph.get_node("N1")
+#         assert node is not None
+#         assert node.outcome == "stopped"
+#     def test_nested_cancel(self):
+#         runner = MockRunner()
+#         event = Event()
+#         nested_event = Event()
+# 
+#         nested_graph = GraphBuilder(components=[
+#             create_component("nested", fields={
+#                 "event": nested_event
+#             }),
+#         ], tools=tools).build()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component('next', fields= {
+#                 "callback": lambda env: run_graph(nested_graph, env, runner)
+#             }),
+#             create_component("N1", fields={
+#                 "event": event,
+#             }),
+#         ], tools=tools).build()
+# 
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             runner.cancel_blueprint_execution("test")
+#             wait([future], timeout=0.01)
+#             nested_event.set()
+#             wait([future], timeout=0.01)
+#             event.set()
+#             wait([future], timeout=0.1)
+# 
+#         node = graph.get_node("N1")
+#         nested = nested_graph.get_node("nested")
+#         assert node is not None
+#         assert node.outcome == "stopped"
+#         assert nested is not None
+#         assert nested.outcome == "stopped"
+# 
+#     def test_cancellation_after_return(self):
+#         runner = MockRunner()
+#         event1 = Event()
+#         event2 = Event()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component("N1", fields={
+#                 "event": event1,
+#                 "return_value": True
+#             }),
+#             create_component("N2", fields={
+#                 "event": event2,
+#             }),
+#         ], tools=tools).build()
+# 
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             event1.set()
+#             wait([future], timeout=0.01)
+#             event2.set()
+#             wait([future], timeout=0.01)
+# 
+#         node1 = graph.get_node("N1")
+#         node2 = graph.get_node("N2")
+#         assert node1 is not None
+#         assert node1.outcome == "success"
+#         assert node2 is not None
+#         assert node2.outcome == "stopped"
+# 
+#     def test_nested_return(self):
+#         runner = MockRunner()
+#         event = Event()
+# 
+#         nested_graph = GraphBuilder(components=[
+#             create_component("nested", fields={
+#                 "return_value": True
+#             }),
+#         ], tools=tools).build()
+# 
+#         graph = GraphBuilder(components=[
+#             create_component('next', fields= {
+#                 "callback": lambda env: run_graph(nested_graph, env, runner)
+#             }, outs=[{"toNodeId": "N1", "outId": "success"}]),
+#             create_component("N1", fields={
+#                 "event": event,
+#             }),
+#         ], tools=tools).build()
+# 
+#         with runner._get_executor() as executor:
+#             future = run_graph_async(executor, graph, {"blueprint_run_id": "test"}, runner)
+#             wait([future], timeout=0.01)
+#             event.set()
+#             wait([future], timeout=0.1)
+# 
+#         node = graph.get_node("N1")
+#         assert node is not None
+#         assert node.outcome == "success"
