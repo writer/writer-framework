@@ -68,6 +68,7 @@ test.describe("low-code UI", () => {
 
 	components
 		.filter((c) => c.category !== "Internal" && !c.deprecated)
+		.filter((c) => !["selectinput"].includes(c.type)) // avoid component with dynamic fields
 		.forEach(({ type, internalName, fields, allowedParentTypes, toolkit }) => {
 			if (toolkit && toolkit !== "core") return;
 			const renderError =

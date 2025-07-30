@@ -16,6 +16,7 @@ import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import templateMap from "@/core/templateMap";
 import { useSecretsManager } from "@/core/useSecretsManager";
 import { FieldCategory, WriterComponentDefinitionField } from "@/writerTypes";
+import { computed } from "vue";
 
 describe("BuilderSettingsProperties", () => {
 	it.each(Object.keys(templateMap))(
@@ -67,27 +68,36 @@ describe("BuilderSettingsProperties", () => {
 			Object.values(
 				// @ts-expect-error TS doesn't infer the right type for the component
 				templateMap[type].writer.fields,
-			).forEach((field: WriterComponentDefinitionField) => {
-				switch (field.category) {
-					case FieldCategory.General:
-					case undefined: {
-						// fields with an empty category will be also rendered in General category
-						fieldsByCategory[FieldCategory.General].push(field);
-						break;
+			)
+				.filter((f) => {
+					if (f.enabled === undefined) return true;
+					return f.enabled({
+						evaluatedFields: {
+							allowMultiSelect: computed(() => false),
+						},
+					});
+				})
+				.forEach((field: WriterComponentDefinitionField) => {
+					switch (field.category) {
+						case FieldCategory.General:
+						case undefined: {
+							// fields with an empty category will be also rendered in General category
+							fieldsByCategory[FieldCategory.General].push(field);
+							break;
+						}
+						case FieldCategory.Style: {
+							fieldsByCategory[FieldCategory.Style].push(field);
+							break;
+						}
+						case FieldCategory.Tools: {
+							fieldsByCategory[FieldCategory.Tools].push(field);
+							break;
+						}
+						default: {
+							break;
+						}
 					}
-					case FieldCategory.Style: {
-						fieldsByCategory[FieldCategory.Style].push(field);
-						break;
-					}
-					case FieldCategory.Tools: {
-						fieldsByCategory[FieldCategory.Tools].push(field);
-						break;
-					}
-					default: {
-						break;
-					}
-				}
-			});
+				});
 
 			const nonEmptyCategories = Object.entries(fieldsByCategory)
 				.filter(([_, fields]) => fields.length > 0)

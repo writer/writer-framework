@@ -17,7 +17,11 @@
 <script lang="ts">
 import { computed, inject } from "vue";
 import { ref } from "vue";
-import { FieldCategory, FieldType } from "@/writerTypes";
+import {
+	FieldCategory,
+	FieldType,
+	WriterComponentDefinition,
+} from "@/writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
@@ -45,6 +49,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Multiselect input",
 		description,
 		category: "Input",
@@ -98,7 +103,7 @@ export default {
 				eventPayloadExample: Object.keys(defaultOptions),
 			},
 		},
-	},
+	} satisfies WriterComponentDefinition,
 };
 </script>
 

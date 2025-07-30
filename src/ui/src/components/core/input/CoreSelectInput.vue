@@ -8,6 +8,7 @@
 			v-model="model"
 			:options="options"
 			:placeholder="fields.placeholder.value"
+			:enable-multi-selection="fields.allowMultiSelect.value"
 			hide-icons
 		/>
 	</BaseInputWrapper>
@@ -16,7 +17,11 @@
 <script lang="ts">
 import { computed, inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "@/writerTypes";
+import {
+	FieldCategory,
+	FieldType,
+	WriterComponentDefinition,
+} from "@/writerTypes";
 import {
 	accentColor,
 	containerBackgroundColor,
@@ -28,9 +33,10 @@ import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import { ComponentPublicInstance } from "vue";
 import { validatorObjectRecordNotNested } from "@/constants/validators";
 import { validatorPositiveNumber } from "@/constants/validators";
+import { WdsColor } from "@/wds/tokens";
 
 const description =
-	"A user input component that allows users to select a single value from a searchable list of options.";
+	"A user input component that allows users to select a single or multiples value(s) from a searchable list of options.";
 const defaultOptions = { a: "Option A", b: "Option B" };
 const onChangeHandlerStub = `
 def onchange_handler(state, payload):
@@ -50,6 +56,10 @@ export default {
 				init: "Input Label",
 				type: FieldType.Text,
 			},
+			allowMultiSelect: {
+				name: "Allow Multi-select",
+				type: FieldType.Boolean,
+			},
 			options: {
 				name: "Options",
 				desc: "Key-value object with options. Must be a JSON string or a state reference to a dictionary.",
@@ -68,9 +78,25 @@ export default {
 				type: FieldType.Number,
 				default: "0",
 				validator: validatorPositiveNumber,
+				enabled(context) {
+					const fields = context.evaluatedFields;
+					return Boolean(fields.allowMultiSelect.value);
+				},
 			},
 			accentColor,
 			primaryTextColor,
+			chipTextColor: {
+				name: "Chip text",
+				type: FieldType.Color,
+				default: WdsColor.White,
+				desc: "The colour of the text in the chips.",
+				category: FieldCategory.Style,
+				applyStyleVariable: true,
+				enabled(context) {
+					const fields = context.evaluatedFields;
+					return Boolean(fields.allowMultiSelect.value);
+				},
+			},
 			containerBackgroundColor,
 			separatorColor,
 			cssClasses,
@@ -80,9 +106,23 @@ export default {
 				desc: "Sent when the selected option changes.",
 				stub: onChangeHandlerStub.trim(),
 				bindable: true,
+				enabled(context) {
+					const fields = context.evaluatedFields;
+					return !fields.allowMultiSelect.value;
+				},
+			},
+			"wf-options-change": {
+				desc: "Sent when the selected options change.",
+				stub: onChangeHandlerStub.trim(),
+				bindable: true,
+				eventPayloadExample: Object.keys(defaultOptions),
+				enabled(context) {
+					const fields = context.evaluatedFields;
+					return Boolean(fields.allowMultiSelect.value);
+				},
 			},
 		},
-	},
+	} satisfies WriterComponentDefinition,
 };
 </script>
 
@@ -114,7 +154,10 @@ const model = computed<string[]>({
 		return formValue.value;
 	},
 	set(value) {
-		handleInput(value, "wf-option-change");
+		const event = fields.allowMultiSelect.value
+			? "wf-options-change"
+			: "wf-option-change";
+		handleInput(value, event);
 	},
 });
 </script>

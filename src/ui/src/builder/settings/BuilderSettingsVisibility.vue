@@ -58,7 +58,7 @@ import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
 defineProps({
-	isReadOnly: { type: Boolean, required: true },
+	isReadOnly: { type: Boolean },
 });
 
 type Mode = "yes" | "no" | "custom";

@@ -50,14 +50,16 @@ test.describe("Builder field validation", () => {
 	}) => {
 		await page.locator(`[data-automation-action="sidebar-add"]`).click();
 		await page
-			.locator(
-				`.BuilderSidebarToolkit [data-component-type="multiselectinput"]`,
-			)
+			.locator(`.BuilderSidebarToolkit [data-component-type="selectinput"]`)
 			.dragTo(page.locator(".CoreSection"));
-		await page.locator(`.CoreMultiselectInput.component`).click();
+		await page.locator(`.CoreSelectInput.component`).click();
+
+		await page
+			.locator('.BuilderFieldsCheckbox[data-automation-key="allowMultiSelect"]')
+			.locator(".WdsCheckbox")
+			.click();
 
 		// maximum count
-
 		const fieldWrapper = page.locator(
 			'.BuilderFieldsText[data-automation-key="maximumCount"]',
 		);

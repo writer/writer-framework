@@ -24,27 +24,43 @@
 import { computed, ComputedRef, inject } from "vue";
 
 import injectionKeys from "@/injectionKeys";
-import { WriterComponentDefinition } from "@/writerTypes";
+import { InstancePath, WriterComponentDefinition } from "@/writerTypes";
 import BuilderSettingsHandlersBlueprint from "./BuilderSettingsHandlersBlueprint.vue";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
+import { useEvaluator } from "@/renderer/useEvaluator";
+import { parseInstancePathString } from "@/renderer/instancePath";
 
 defineProps({
-	isReadOnly: { type: Boolean, required: true },
+	isReadOnly: { type: Boolean },
 });
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const secretsManager = inject(injectionKeys.secretsManager);
 
 const component = computed(() =>
 	wf.getComponentById(wfbm.firstSelectedId.value),
 );
+const selectedInstancePath = computed<InstancePath>(() =>
+	parseInstancePathString(wfbm.firstSelectedItem?.value?.instancePath),
+);
+
+const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
+const evaluatedFields = computed(() =>
+	getEvaluatedFields(selectedInstancePath.value),
+);
 
 const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	computed(() => {
+		if (!component.value) return {};
 		const { type } = component.value;
 		const { events: supportedEvents } = wf.getComponentDefinition(type);
 
-		const recEvents = { ...supportedEvents };
+		const entries = Object.entries(supportedEvents).filter(([_, v]) => {
+			if (v.enabled === undefined) return true;
+			return v.enabled({ evaluatedFields: evaluatedFields.value });
+		});
+		const recEvents = Object.fromEntries(entries);
 
 		Object.keys({ ...component.value.handlers }).forEach((eventType) => {
 			if (recEvents[eventType]) return;
