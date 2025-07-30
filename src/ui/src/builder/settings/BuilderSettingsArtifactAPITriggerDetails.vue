@@ -48,9 +48,10 @@
 						size="small"
 						@click="copyCreate"
 					>
-						<i class="material-symbols-outlined">{{
-							isCreateCopied ? "check" : "content_copy"
-						}}</i>
+						<WdsIcon
+							:name="isCreateCopied ? 'check' : 'clipboard'"
+						/>
+
 						Copy cURL command
 					</WdsButton>
 				</li>
@@ -84,9 +85,7 @@
 						:disabled="isPollDisabled"
 						@click="copyPoll"
 					>
-						<i class="material-symbols-outlined">{{
-							isPollCopied ? "check" : "content_copy"
-						}}</i>
+						<WdsIcon :name="isPollCopied ? 'check' : 'clipboard'" />
 						Copy poll async
 					</WdsButton>
 				</li>
@@ -99,6 +98,7 @@
 import { computed, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
