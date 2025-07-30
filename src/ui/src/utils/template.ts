@@ -35,6 +35,7 @@ export function getCurrentOpenedTemplate(input: string): string {
 
 	const slice = input.slice(startIndex);
 	if (slice.includes("}")) return "";
+	if (slice.includes("\n")) return "";
 
 	if (!slice.startsWith("@{") && slice.includes(" ")) return "";
 
