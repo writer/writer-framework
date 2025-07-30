@@ -86,37 +86,65 @@ with ui.find('results'):
 			`,
 				);
 				await execute(page);
-				await expect(
-					page.locator(`.results .wf-type-${type}.component`),
-				).toHaveCount(1);
 
-				await page
-					.locator(`.results .wf-type-${type}.component`)
-					.click({ force: true });
+				const componentLocator = page.locator(
+					`.results .wf-type-${type}.component`,
+				);
+
+				const settingsLocator = page.locator(".BuilderSettings");
+
+				await expect(componentLocator).toHaveCount(1);
+
+				await componentLocator.click({ force: true });
+
 				for (const [key, value] of Object.entries(props)) {
-					await expect(
-						page
-							.locator(".BuilderSettings")
-							.locator(`div[data-automation-key="${key}"]`),
-					).toHaveCount(1);
+					const fieldLocator = settingsLocator.locator(
+						`div[data-automation-key="${key}"]`,
+					);
+
+					let isFieldFound = (await fieldLocator.count()) > 0;
+
+					if (!isFieldFound) {
+						const categoryTabLocator = settingsLocator.locator(
+							`button.WdsTab.WdsTab--variant-bar`,
+						);
+						const categoryTabCount = await categoryTabLocator.count();
+
+						for (let i = 0; i < Math.max(1, categoryTabCount); i++) {
+							if (categoryTabCount > 0) {
+								await categoryTabLocator.nth(i).click();
+
+								expect(categoryTabLocator.nth(i)).toHaveClass(
+									/WdsTab--selected/,
+								);
+							}
+
+							if ((await fieldLocator.count()) > 0) {
+								isFieldFound = true;
+								break;
+							}
+						}
+					}
+
+					expect(isFieldFound).toBe(true);
 				}
 
 				if (renderError) {
-					await expect(
-						page.locator(`.results .wf-type-${type}.component`),
-					).toHaveClass(/RenderError/);
+					await expect(componentLocator).toHaveClass(/RenderError/);
 				} else {
-					await expect(
-						page.locator(`.results .wf-type-${type}.component`),
-					).not.toHaveClass(/RenderError/);
+					await expect(componentLocator).not.toHaveClass(/RenderError/);
 				}
 			});
 		});
 	test("settings should be enabled for bmc", async ({ page }) => {
 		await page.locator(`.results`).click({ force: true });
-		await expect(
-			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
-		).not.toHaveAttribute("inert");
+
+		const readOnlySections = page.locator(
+			".BuilderSettingsMain > .BuilderSettingsMain__section *[inert]",
+		);
+
+		expect(await readOnlySections.count()).toBe(0);
+
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),
 		).toHaveCount(0);
@@ -134,9 +162,13 @@ with ui.find('results'):
 		await page
 			.locator(`.results .wf-type-text.component.out`)
 			.click({ force: true });
-		await expect(
-			page.locator(`.BuilderSettingsMain > .BuilderSettingsMain__section`),
-		).toHaveAttribute("inert");
+
+		const readOnlySections = page.locator(
+			".BuilderSettingsMain > .BuilderSettingsMain__section *[inert]",
+		);
+
+		expect(await readOnlySections.count()).toBeGreaterThan(0);
+
 		await expect(
 			page.locator(`.BuilderSettingsMain > .cmc-warning`),
 		).toHaveCount(1);

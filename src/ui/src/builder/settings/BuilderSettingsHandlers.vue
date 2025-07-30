@@ -1,5 +1,9 @@
 <template>
-	<div v-if="shoudBeDisplayed" class="BuilderSettingsHandlers">
+	<div
+		v-if="shoudBeDisplayed"
+		:inert="isReadOnly"
+		class="BuilderSettingsHandlers"
+	>
 		<WdsTitle2 class="BuilderSettingsHandlers__title">Blueprints</WdsTitle2>
 		<div class="BuilderSettingsHandlers__list">
 			<div
@@ -23,6 +27,10 @@ import injectionKeys from "@/injectionKeys";
 import { WriterComponentDefinition } from "@/writerTypes";
 import BuilderSettingsHandlersBlueprint from "./BuilderSettingsHandlersBlueprint.vue";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
+
+defineProps({
+	isReadOnly: { type: Boolean, required: true },
+});
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -57,6 +65,10 @@ const shoudBeDisplayed = computed(() => {
 
 .BuilderSettingsHandlers {
 	padding: 24px;
+}
+
+.BuilderSettingsHandlers[inert] {
+	opacity: 0.7;
 }
 
 .BuilderSettingsHandlers__title {

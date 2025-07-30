@@ -1,5 +1,9 @@
 <template>
-	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsBinding">
+	<div
+		v-if="ssbm.isSingleSelectionActive"
+		:inert="isReadOnly"
+		class="BuilderSettingsBinding"
+	>
 		<WdsTitle2>Binding</WdsTitle2>
 		<WdsFieldWrapper
 			class="BuilderSettingsBinding__main"
@@ -30,6 +34,10 @@ import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
 
+defineProps({
+	isReadOnly: { type: Boolean, required: true },
+});
+
 const hint =
 	"Connect the result of this block to a dynamic variable you can use across this agent";
 
@@ -47,6 +55,10 @@ const component = computed(() =>
 
 .BuilderSettingsBinding {
 	padding: 24px;
+}
+
+.BuilderSettingsBinding[inert] {
+	opacity: 0.7;
 }
 
 .BuilderSettingsBinding__main {

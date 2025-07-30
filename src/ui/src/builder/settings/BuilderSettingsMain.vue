@@ -16,22 +16,27 @@
 			</span>
 		</p>
 
-		<div class="BuilderSettingsMain__section" :inert="isReadOnly">
-			<BuilderSettingsProperties />
+		<div class="BuilderSettingsMain__section">
+			<BuilderSettingsProperties :is-read-only="isReadOnly" />
 			<component
 				:is="artifactRegistry[a.key]"
 				v-for="a in artifactsTop"
 				:key="a.key"
+				:inert="isReadOnly"
 			/>
 			<template v-if="displaySettings">
-				<BuilderSettingsBinding v-if="isBindable" />
-				<BuilderSettingsHandlers />
-				<BuilderSettingsVisibility />
+				<BuilderSettingsBinding
+					v-if="isBindable"
+					:is-read-only="isReadOnly"
+				/>
+				<BuilderSettingsHandlers :is-read-only="isReadOnly" />
+				<BuilderSettingsVisibility :is-read-only="isReadOnly" />
 			</template>
 			<component
 				:is="artifactRegistry[a.key]"
 				v-for="a in artifactsBottom"
 				:key="a.key"
+				:inert="isReadOnly"
 			/>
 		</div>
 
@@ -149,12 +154,12 @@ const artifactsBottom = computed(() =>
 	padding: 24px;
 }
 
-.BuilderSettingsMain__section > *:not(:first-child) {
-	border-top: 1px solid var(--builderSeparatorColor);
+.BuilderSettingsMain__section > *[inert] {
+	opacity: 0.7;
 }
 
-.BuilderSettingsMain__section[inert] {
-	opacity: 0.7;
+.BuilderSettingsMain__section > *:not(:first-child) {
+	border-top: 1px solid var(--builderSeparatorColor);
 }
 
 .BuilderSettingsMain__spacer {

@@ -3,18 +3,21 @@
 		v-if="ssbm.isSingleSelectionActive && fields"
 		class="BuilderSettingsProperties"
 	>
+		<WdsTabs
+			v-if="fieldCategories.length > 1"
+			v-model="selectedCategoryTab"
+			variant="bar"
+			:tabs="fieldCategoryTabOptions"
+		/>
+
 		<div
-			v-for="propertyCategory in fieldCategories"
+			v-for="propertyCategory in fieldCategories.length > 1
+				? [selectedCategoryTab]
+				: fieldCategories"
 			:key="propertyCategory"
+			:inert="isReadOnly"
 			class="BuilderSettingsProperties__category"
 		>
-			<WdsTitle2
-				v-if="
-					fieldsByCategory[propertyCategory].length > 0 &&
-					propertyCategory !== 'General'
-				"
-				>{{ propertyCategory }}</WdsTitle2
-			>
 			<div
 				v-for="[fieldKey, fieldValue] in fieldsByCategory[
 					propertyCategory
@@ -244,7 +247,11 @@ import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
-import WdsTitle2 from "@/wds/WdsTitle2.vue";
+import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
+
+defineProps({
+	isReadOnly: { type: Boolean, required: true },
+});
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -285,6 +292,21 @@ const errorsByFields = useFieldsErrors(
 	selectedInstancePath,
 	secretsManager,
 );
+
+const selectedCategoryTab = ref<FieldCategory>(FieldCategory.General);
+
+const LABELS_BY_CATEGORY = Object.freeze<Record<FieldCategory, string>>({
+	[FieldCategory.General]: "Configure",
+	[FieldCategory.Style]: "Style",
+	[FieldCategory.Tools]: "Tools",
+});
+
+const fieldCategoryTabOptions = computed<WdsTabOptions<FieldCategory>[]>(() => {
+	return fieldCategories.value.map((category) => ({
+		label: LABELS_BY_CATEGORY[category] ?? category,
+		value: category,
+	}));
+});
 
 const fieldCategories = computed(() => {
 	return [
@@ -329,12 +351,16 @@ function handleShrink(fieldKey: string) {
 
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 24px;
 }
 
 .BuilderSettingsProperties__category {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 24px;
+}
+
+.BuilderSettingsProperties__category[inert] {
+	opacity: 0.7;
 }
 </style>
