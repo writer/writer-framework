@@ -18,9 +18,12 @@
 
 		<div class="BuilderSettingsMain__section">
 			<BuilderSettingsProperties :is-read-only="isReadOnly" />
-			<template v-for="a in artifactsTop" :key="a.key">
-				<component :is="artifactRegistry[a.key]" :inert="isReadOnly" />
-			</template>
+			<component
+				:is="artifactRegistry[a.key]"
+				v-for="a in artifactsTop"
+				:key="a.key"
+				:inert="isReadOnly"
+			/>
 			<template v-if="displaySettings">
 				<BuilderSettingsBinding
 					v-if="isBindable"
@@ -29,9 +32,12 @@
 				<BuilderSettingsHandlers :is-read-only="isReadOnly" />
 				<BuilderSettingsVisibility :is-read-only="isReadOnly" />
 			</template>
-			<template v-for="a in artifactsBottom" :key="a.key">
-				<component :is="artifactRegistry[a.key]" :inert="isReadOnly" />
-			</template>
+			<component
+				:is="artifactRegistry[a.key]"
+				v-for="a in artifactsBottom"
+				:key="a.key"
+				:inert="isReadOnly"
+			/>
 		</div>
 
 		<div class="BuilderSettingsMain__spacer"></div>
