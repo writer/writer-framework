@@ -33,9 +33,6 @@ class APITrigger(BlueprintTrigger):
                             "style": "success",
                         },
                     },
-                    "featureFlags": [
-                        "api_trigger"
-                    ],
                     "settingsArtifacts": [
                         {"key": "apiTriggerDetails", "position": "bottom"}
                     ]
