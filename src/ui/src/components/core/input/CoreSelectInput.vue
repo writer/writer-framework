@@ -58,6 +58,7 @@ export default {
 			},
 			allowMultiSelect: {
 				name: "Allow Multi-select",
+				desc: "Select more than one option from the dropdown.",
 				type: FieldType.Boolean,
 			},
 			options: {
