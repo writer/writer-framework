@@ -362,25 +362,10 @@ export function generateCore() {
 		};
 
 		return new Promise((resolve, reject) => {
-			function handleOpen() {
-				cleanup();
-				resolve();
-			}
-			function handleClose() {
-				cleanup();
-				reject(
-					new Error(
-						"WebSocket connection closed before establishing.",
-					),
-				);
-			}
-			function cleanup() {
-				webSocket.removeEventListener("open", handleOpen);
-				webSocket.removeEventListener("close", handleClose);
-			}
-
-			webSocket.addEventListener("open", handleOpen);
-			webSocket.addEventListener("close", handleClose);
+			webSocket.addEventListener("open", () => resolve(), { once: true });
+			webSocket.addEventListener("close", () => {
+				reject(new Error("WebSocket connection closed before establishing."));
+			}, { once: true });
 		});
 	}
 
