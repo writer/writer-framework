@@ -169,6 +169,7 @@
 						v-if="fieldValue.type == FieldType.WriterGraphId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 						resource-type="graph"
 					/>
@@ -177,6 +178,7 @@
 						v-if="fieldValue.type == FieldType.WriterGraphIds"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 						resource-type="graph"
 						enable-multi-selection
@@ -186,6 +188,7 @@
 						v-if="fieldValue.type == FieldType.WriterAppId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 						resource-type="application"
 					/>
@@ -194,6 +197,7 @@
 						v-if="fieldValue.type == FieldType.WriterModelId"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 						resource-type="model"
 					/>

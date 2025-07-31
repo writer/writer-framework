@@ -50,6 +50,7 @@ const { setContentValue } = useComponentActions(wf, ssbm);
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
+	defaultValue: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	resourceType: {
 		type: String as PropType<"graph" | "application" | "model">,
@@ -110,17 +111,12 @@ const ressourceUrl = computed(() => {
 	}
 });
 
-const fieldDefinition = computed(() => {
-	const def = wf.getComponentDefinition(component.value.type);
-	return def?.fields?.[props.fieldKey];
-});
-
 const selected = computed<string | string[]>({
 	get() {
 		if (props.enableMultiSelection) {
 			const raw =
-				component.value.content[props.fieldKey] ??
-				fieldDefinition.value.default ??
+				component.value.content[props.fieldKey] ||
+				props.defaultValue ||
 				"[]";
 			try {
 				return JSON.parse(raw);
@@ -129,9 +125,7 @@ const selected = computed<string | string[]>({
 			}
 		}
 		return (
-			component.value.content[props.fieldKey] ||
-			fieldDefinition.value.default ||
-			""
+			component.value.content[props.fieldKey] || props.defaultValue || ""
 		);
 	},
 	set(value: string | string[]) {
