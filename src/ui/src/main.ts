@@ -90,5 +90,33 @@ load()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
-		document.write(reason);
+		const errorDiv = document.createElement("div");
+		errorDiv.className = "error-message";
+		errorDiv.setAttribute("role", "alert");
+		errorDiv.style.cssText = "padding: 20px; color: #d32f2f; background: #ffebee; border: 1px solid #e57373; border-radius: 4px; margin: 20px; font-family: \"Poppins\", \"Helvetica Neue\", \"Lucida Grande\", sans-serif;";
+
+		const message = document.createElement("div");
+		message.textContent =
+			"Failed to initialise application" +
+			(reason?.message ? `: ${reason.message}` : "");
+
+		const instructions = document.createElement("div");
+		instructions.style.marginTop = "12px";
+		instructions.textContent =
+			"This might mean the Agent Builder is still being prepared. Try reloading the page in a few seconds.";
+
+		const reloadButton = document.createElement("button");
+		reloadButton.textContent = "Reload page";
+		reloadButton.className = "WdsButton WdsButton--small WdsButton--tertiary";
+		reloadButton.style.cssText =
+			"margin-top: 16px; font-size: .875rem; font-weight: 600; border-radius: 300px; padding: 4px 16px; height: 32px; background: var(--wdsColorWhite); color: var(--wdsColorBlack); border-color: var(--wdsColorGray2); border-width: 1px; border-style: solid; box-shadow: var(--buttonShadow); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; outline: none; position: relative; overflow: hidden; max-width: 100%; width: fit-content;";
+		reloadButton.onclick = () => window.location.reload();
+
+		errorDiv.appendChild(message);
+		errorDiv.appendChild(instructions);
+		errorDiv.appendChild(reloadButton);
+
+		const loadingSpinner = document.getElementById("loading_L1");
+		loadingSpinner?.remove();
+		document.body.appendChild(errorDiv);
 	});
