@@ -125,7 +125,7 @@ if (props.multiline) {
 
 const editor = useEditor({
 	extensions: editorExtensions,
-	content: model.value,
+	content: computeJSONDocument(model.value ?? ""),
 	editorProps: {
 		attributes: {
 			"data-automation-key": "template-editor",
