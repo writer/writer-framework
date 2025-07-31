@@ -42,14 +42,22 @@
 					<WdsIcon name="circle-question-mark" />
 				</WdsButton>
 				<WdsButton
-					v-if="isUnbindButtonShown"
+					v-if="isBindingButtonShown"
 					variant="neutral"
 					size="smallIcon"
 					data-writer-tooltip-placement="left"
-					data-writer-tooltip="Unbind from variable"
-					@click="$emit('unbind')"
+					:data-writer-tooltip="
+						isBindingEnabled
+							? 'Unbind from variable'
+							: 'Bind to a variable'
+					"
+					@click="isBindingEnabled = !isBindingEnabled"
 				>
-					<WdsIcon name="wds-at-sign-slash" />
+					<WdsIcon
+						:name="
+							isBindingEnabled ? 'wds-at-sign-slash' : 'at-sign'
+						"
+					/>
 				</WdsButton>
 			</div>
 			<div class="WdsFieldWrapper__slot">
@@ -67,13 +75,19 @@ import WdsButton from "./WdsButton.vue";
 import WdsIcon from "./WdsIcon.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 
+const isBindingEnabled = defineModel("isBindingEnabled", {
+	type: Boolean,
+	required: false,
+	default: false,
+});
+
 defineProps({
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
 	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	isExpansible: { type: Boolean, required: false, default: false },
-	isUnbindButtonShown: { type: Boolean, required: false, default: false },
+	isBindingButtonShown: { type: Boolean, required: false, default: false },
 	helpButton: {
 		type: [String, Boolean],
 		required: false,
@@ -85,7 +99,6 @@ const emits = defineEmits({
 	helpClick: () => true,
 	expand: () => true,
 	shrink: () => true,
-	unbind: () => true,
 });
 
 const isExpanded = ref(false);
