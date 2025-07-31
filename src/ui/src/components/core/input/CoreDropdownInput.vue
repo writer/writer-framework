@@ -28,7 +28,7 @@
 <script lang="ts">
 import { inject } from "vue";
 import { ref } from "vue";
-import { FieldType } from "@/writerTypes";
+import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import { cssClasses } from "@/renderer/sharedStyleFields";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
@@ -47,6 +47,7 @@ def onchange_handler(state, payload):
 
 export default {
 	writer: {
+		deprecated: true,
 		name: "Dropdown input",
 		description,
 		category: "Input",
@@ -73,7 +74,7 @@ export default {
 				eventPayloadExample: Object.keys(defaultOptions)[0],
 			},
 		},
-	},
+	} satisfies WriterComponentDefinition,
 };
 </script>
 
