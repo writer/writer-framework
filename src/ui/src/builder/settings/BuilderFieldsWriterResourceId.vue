@@ -1,8 +1,5 @@
 <template>
-	<div
-		class="BuilderFieldsWriterResourceId"
-		:data-automation-key="props.fieldKey"
-	>
+	<div class="BuilderFieldsWriterResourceId" :data-automation-key="fieldKey">
 		<component
 			:is="selector"
 			ref="selectorEl"
@@ -24,7 +21,6 @@
 
 <script setup lang="ts">
 import {
-	toRefs,
 	inject,
 	computed,
 	PropType,
@@ -61,8 +57,8 @@ const props = defineProps({
 	},
 	enableMultiSelection: { type: Boolean, required: false, default: false },
 });
-const { componentId, fieldKey, enableMultiSelection } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+
+const component = computed(() => wf.getComponentById(props.componentId));
 
 const selectorEl = useTemplateRef("selectorEl");
 
@@ -121,7 +117,7 @@ const fieldDefinition = computed(() => {
 
 const selected = computed<string | string[]>({
 	get() {
-		if (enableMultiSelection.value) {
+		if (props.enableMultiSelection) {
 			const raw =
 				component.value.content[props.fieldKey] ??
 				fieldDefinition.value.default ??
@@ -139,14 +135,14 @@ const selected = computed<string | string[]>({
 		);
 	},
 	set(value: string | string[]) {
-		if (enableMultiSelection.value) {
+		if (props.enableMultiSelection) {
 			setContentValue(
 				component.value.id,
-				fieldKey.value,
+				props.fieldKey,
 				JSON.stringify(value),
 			);
 		} else {
-			setContentValue(component.value.id, fieldKey.value, String(value));
+			setContentValue(component.value.id, props.fieldKey, String(value));
 		}
 	},
 });
