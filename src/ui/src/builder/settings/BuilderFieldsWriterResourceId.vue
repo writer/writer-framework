@@ -96,7 +96,7 @@ const { isBindingMode, toggleBindingMode } = useBindingMode({
 
 const { setFieldValue: setAppInputsValue } = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
-	fieldKey: ref("appInputs"),
+	fieldKey: "appInputs",
 });
 
 const selectorEl = useTemplateRef("selectorEl");

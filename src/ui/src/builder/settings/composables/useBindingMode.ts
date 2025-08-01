@@ -1,4 +1,4 @@
-import { ref, DeepReadonly, Ref } from "vue";
+import { ref, DeepReadonly, Ref, readonly } from "vue";
 
 function checkIsBindingFormat(val: unknown): boolean {
 	return typeof val === "string" && val.startsWith("@{") && val.endsWith("}");
@@ -37,7 +37,7 @@ export function useBindingMode({ fieldValue, setFieldValue }: Params) {
 	}
 
 	return {
-		isBindingMode,
+		isBindingMode: readonly(isBindingMode),
 		toggleBindingMode,
 	};
 }

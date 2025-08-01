@@ -1,31 +1,48 @@
-import { computed, inject, Ref, DeepReadonly } from "vue";
+import { computed, inject, MaybeRef, toValue } from "vue";
+import { BuilderManager, Core } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { useComponentActions } from "./useComponentActions";
 
 type Params = {
-	componentId: DeepReadonly<Ref<string>>;
-	fieldKey: DeepReadonly<Ref<string>>;
-	defaultValue?: DeepReadonly<Ref<string>>;
+	componentId: MaybeRef<string>;
+	fieldKey: MaybeRef<string>;
+	defaultValue?: MaybeRef<string>;
 };
 
-export function useComponentFieldViewModel(params: Params) {
-	const wf = inject(injectionKeys.core);
-	const ssbm = inject(injectionKeys.builderManager);
+type Dependencies = {
+	wf?: Core;
+	ssbm?: BuilderManager;
+};
+
+export function useComponentFieldViewModel(
+	params: Params,
+	dependencies?: Dependencies,
+) {
+	const wf = dependencies?.wf ?? inject(injectionKeys.core);
+	const ssbm = dependencies?.ssbm ?? inject(injectionKeys.builderManager);
+
+	if (!wf) {
+		throw new Error("Missing core injection.");
+	}
+
+	if (!ssbm) {
+		throw new Error("Missing builderManager injection.");
+	}
 
 	const { setContentValue } = useComponentActions(wf, ssbm);
 
 	const component = computed(() => {
-		return wf.getComponentById(params.componentId.value);
+		return wf.getComponentById(toValue(params.componentId));
 	});
 
 	function setFieldValue(value: string) {
-		setContentValue(component.value.id, params.fieldKey.value, value);
+		setContentValue(component.value.id, toValue(params.fieldKey), value);
 	}
 
 	const fieldValue = computed<string>(() => {
 		return (
-			component.value.content[params.fieldKey.value] ||
-			params.defaultValue?.value ||
+			component.value.content[toValue(params.fieldKey)] ||
+			toValue(params.defaultValue) ||
 			""
 		);
 	});
