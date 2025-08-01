@@ -21,15 +21,14 @@
 
 <script setup lang="ts">
 import {
-	inject,
 	computed,
 	PropType,
 	defineAsyncComponent,
 	useTemplateRef,
 	ref,
+	toRef,
 } from "vue";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { WriterApplication } from "@/writerTypes";
 
@@ -43,10 +42,6 @@ const BuilderModelSelect = defineAsyncComponent(
 	() => import("../BuilderModelSelect.vue"),
 );
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
-
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
@@ -59,7 +54,16 @@ const props = defineProps({
 	enableMultiSelection: { type: Boolean, required: false, default: false },
 });
 
-const component = computed(() => wf.getComponentById(props.componentId));
+const { fieldValue, setFieldValue } = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: toRef(props, "defaultValue"),
+});
+
+const { setFieldValue: setAppInputsValue } = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: ref("appInputs"),
+});
 
 const selectorEl = useTemplateRef("selectorEl");
 
@@ -114,29 +118,20 @@ const ressourceUrl = computed(() => {
 const selected = computed<string | string[]>({
 	get() {
 		if (props.enableMultiSelection) {
-			const raw =
-				component.value.content[props.fieldKey] ||
-				props.defaultValue ||
-				"[]";
+			const raw = fieldValue.value || "[]";
 			try {
 				return JSON.parse(raw);
 			} catch {
 				return [];
 			}
 		}
-		return (
-			component.value.content[props.fieldKey] || props.defaultValue || ""
-		);
+		return fieldValue.value;
 	},
 	set(value: string | string[]) {
 		if (props.enableMultiSelection) {
-			setContentValue(
-				component.value.id,
-				props.fieldKey,
-				JSON.stringify(value),
-			);
+			setFieldValue(JSON.stringify(value));
 		} else {
-			setContentValue(component.value.id, props.fieldKey, String(value));
+			setFieldValue(String(value));
 		}
 	},
 });
@@ -154,11 +149,7 @@ function onSelectedData(appData: WriterApplication | undefined) {
 		return;
 	}
 
-	setContentValue(
-		component.value.id,
-		"appInputs",
-		JSON.stringify(appData.inputs),
-	);
+	setAppInputsValue(JSON.stringify(appData.inputs));
 }
 </script>
 
