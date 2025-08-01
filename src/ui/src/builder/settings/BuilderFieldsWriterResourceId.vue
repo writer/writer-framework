@@ -1,22 +1,44 @@
 <template>
-	<div class="BuilderFieldsWriterResourceId" :data-automation-key="fieldKey">
-		<component
-			:is="selector"
-			ref="selectorEl"
-			v-model="selected"
-			:enable-multi-selection="enableMultiSelection"
-			@selected-data="onSelectedData"
-		/>
-		<a
-			v-if="ressourceUrl"
-			class="BuilderFieldsWriterResourceId__link"
-			:href="ressourceUrl"
-			target="_blank"
-			:data-writer-tooltip="linkTooltip"
+	<WdsFieldWrapper
+		:is-binding-button-shown
+		:is-binding-enabled="isBindingMode"
+		:label
+		:unit
+		:hint
+		:error
+		:data-automation-key="fieldKey"
+		@update:is-binding-enabled="toggleBindingMode"
+	>
+		<div
+			class="BuilderFieldsWriterResourceId"
+			:data-automation-key="fieldKey"
 		>
-			<WdsIcon name="external-link" />
-		</a>
-	</div>
+			<BuilderFieldsText
+				v-if="isBindingMode"
+				type="state-template"
+				:component-id
+				:field-key
+				:error
+			/>
+			<component
+				:is="selector"
+				v-else
+				ref="selectorEl"
+				v-model="selected"
+				:enable-multi-selection="enableMultiSelection"
+				@selected-data="onSelectedData"
+			/>
+			<a
+				v-if="ressourceUrl"
+				class="BuilderFieldsWriterResourceId__link"
+				:href="ressourceUrl"
+				target="_blank"
+				:data-writer-tooltip="linkTooltip"
+			>
+				<WdsIcon name="external-link" />
+			</a>
+		</div>
+	</WdsFieldWrapper>
 </template>
 
 <script setup lang="ts">
@@ -29,8 +51,11 @@ import {
 	toRef,
 } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
+import { useBindingMode } from "./composables/useBindingMode";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { WriterApplication } from "@/writerTypes";
+import BuilderFieldsText from "./BuilderFieldsText.vue";
 
 const BuilderApplicationSelect = defineAsyncComponent(
 	() => import("../BuilderApplicationSelect.vue"),
@@ -46,18 +71,27 @@ const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 	defaultValue: { type: String, required: false, default: undefined },
+	label: { type: String, required: false, default: undefined },
+	unit: { type: String, required: false, default: undefined },
+	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	resourceType: {
 		type: String as PropType<"graph" | "application" | "model">,
 		required: true,
 	},
 	enableMultiSelection: { type: Boolean, required: false, default: false },
+	isBindingButtonShown: { type: Boolean, required: false, default: false },
 });
 
 const { fieldValue, setFieldValue } = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
 	defaultValue: toRef(props, "defaultValue"),
+});
+
+const { isBindingMode, toggleBindingMode } = useBindingMode({
+	fieldValue,
+	setFieldValue,
 });
 
 const { setFieldValue: setAppInputsValue } = useComponentFieldViewModel({
