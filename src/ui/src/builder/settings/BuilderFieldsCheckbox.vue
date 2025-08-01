@@ -65,7 +65,17 @@ const ssbm = inject(injectionKeys.builderManager);
 const { setContentValue: _setContentValue } = useComponentActions(wf, ssbm);
 
 const component = computed(() => wf.getComponentById(props.componentId));
-const contentValue = computed(() => component.value.content[props.fieldKey]);
+const templateField = computed(() => {
+	const type = component.value?.type;
+	if (!type) return;
+	const definition = wf.getComponentDefinition(type);
+	if (!definition) return;
+	return definition.fields[props.fieldKey];
+});
+const contentValue = computed(
+	() =>
+		component.value.content[props.fieldKey] ?? templateField.value?.default,
+);
 
 function setContentValue(value: string) {
 	_setContentValue(component.value.id, props.fieldKey, value);
