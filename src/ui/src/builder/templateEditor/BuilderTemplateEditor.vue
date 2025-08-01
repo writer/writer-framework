@@ -144,16 +144,21 @@ const editor = useEditor({
  * TipTap doesn't handle when using `setContent` with a string containing breaklines (`\n`). The safest solution is to recreate the document as JSON representation
  */
 function computeJSONDocument(text: string) {
-	const paragraphContent = text.split("\n").reduce((acc, line, i, lines) => {
-		if (line === "") {
-			acc.push({ type: "hardBreak" });
-			return acc;
-		}
+	let paragraphContent = [];
+	if (text) {
+		paragraphContent = text.split("\n").reduce((acc, line, i, lines) => {
+			if (line === "" && props.multiline) {
+				acc.push({ type: "hardBreak" });
+				return acc;
+			}
 
-		acc.push({ type: "text", text: line });
-		if (i < lines.length - 1) acc.push({ type: "hardBreak" });
-		return acc;
-	}, []);
+			acc.push({ type: "text", text: line });
+			if (i < lines.length - 1 && props.multiline) {
+				acc.push({ type: "hardBreak" });
+			}
+			return acc;
+		}, []);
+	}
 
 	return {
 		type: "doc",

@@ -1,0 +1,122 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BuilderTemplateEditor > multi line > should render multiline 1`] = `
+<div
+  class="BuilderTemplateEditor"
+  data-v-a0921c0a=""
+  modelvalue="This is a single line with a @{var}!
+with a @{second} line"
+>
+  <div
+    class="tiptap ProseMirror"
+    contenteditable="true"
+    data-automation-key="template-editor"
+    tabindex="0"
+    translate="no"
+  >
+    <p>
+      This is a single line with a 
+      <span
+        class="BuilderTemplateEditorInterpolation"
+        style="background-color: rgb(212, 255, 242);"
+      >
+        @{var}
+      </span>
+      !
+      <br />
+      with a 
+      <span
+        class="BuilderTemplateEditorInterpolation"
+      >
+        @{second}
+      </span>
+       line
+    </p>
+  </div>
+</div>
+`;
+
+exports[`BuilderTemplateEditor > multi line > should render multiples multiline 1`] = `
+<div
+  class="BuilderTemplateEditor"
+  data-v-a0921c0a=""
+  modelvalue="
+
+
+line 3
+
+line 5"
+>
+  <div
+    class="tiptap ProseMirror"
+    contenteditable="true"
+    data-automation-key="template-editor"
+    tabindex="0"
+    translate="no"
+  >
+    <p>
+      <br />
+      <br />
+      <br />
+      line 3
+      <br />
+      <br />
+      line 5
+    </p>
+  </div>
+</div>
+`;
+
+exports[`BuilderTemplateEditor > multi line > should render var 1`] = `
+<div
+  class="BuilderTemplateEditor"
+  data-v-a0921c0a=""
+  modelvalue="This is a single line with a @{var}!"
+>
+  <div
+    class="tiptap ProseMirror"
+    contenteditable="true"
+    data-automation-key="template-editor"
+    tabindex="0"
+    translate="no"
+  >
+    <p>
+      This is a single line with a 
+      <span
+        class="BuilderTemplateEditorInterpolation"
+        style="background-color: rgb(212, 255, 242);"
+      >
+        @{var}
+      </span>
+      !
+    </p>
+  </div>
+</div>
+`;
+
+exports[`BuilderTemplateEditor > single line > should render var 1`] = `
+<div
+  class="BuilderTemplateEditor"
+  data-v-a0921c0a=""
+  modelvalue="This is a single line with a @{var}!"
+>
+  <div
+    class="tiptap ProseMirror"
+    contenteditable="true"
+    data-automation-key="template-editor"
+    tabindex="0"
+    translate="no"
+  >
+    <p>
+      This is a single line with a 
+      <span
+        class="BuilderTemplateEditorInterpolation"
+        style="background-color: rgb(212, 255, 242);"
+      >
+        @{var}
+      </span>
+      !
+    </p>
+  </div>
+</div>
+`;
