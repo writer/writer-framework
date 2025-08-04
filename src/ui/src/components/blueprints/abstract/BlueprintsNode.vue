@@ -30,6 +30,7 @@
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
 				</div>
+				<BlueprintsNodeActions v-if="isTrigger" />
 			</div>
 			<div
 				v-for="(outs, fieldKey) in dynamicOuts"
@@ -79,29 +80,10 @@
 					></div>
 				</div>
 			</div>
-			<div class="BlueprintsNode__main__footer">
-				<WdsButton
-					v-if="resultId"
-					size="smallIcon"
-					variant="neutral"
-					data-writer-tooltip-placement="bottom"
-					:data-writer-unselectable="true"
-					:data-writer-tooltip="
-						isComponentIdCopied ? 'Copied!' : 'Copy result variable'
-					"
-					@click.prevent="copyComponentId"
-				>
-					<WdsIcon name="at-sign" />
-				</WdsButton>
-				<SharedMoreDropdown
-					data-automation-action="node-actions-dropdown"
-					:options="dropdownOptions"
-					:data-writer-unselectable="true"
-					trigger-custom-size="32px"
-					trigger-icon="ellipsis-vertical"
-					@select="settingsActions.handleDropdownSelect"
-				/>
-			</div>
+			<BlueprintsNodeActions
+				v-if="!isTrigger"
+				class="BlueprintsNode__main__footer"
+			/>
 		</div>
 	</div>
 </template>
@@ -133,17 +115,7 @@ import { useComponentActions } from "@/builder/useComponentActions";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useComponentInformation } from "@/composables/useComponentInformation";
-import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
-import { useButtonClipboard } from "@/builder/useButtonClipboard";
-import WdsButton from "@/wds/WdsButton.vue";
-import WdsIcon from "@/wds/WdsIcon.vue";
-import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
-import { useWriterTracking } from "@/composables/useWriterTracking";
-import {
-	BuilderSettingsDropdownActions,
-	useBuilderSettingsActions,
-} from "@/builder/settings/useBuilderSettingsActions";
-import { flattenInstancePath } from "@/renderer/instancePath";
+import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -151,7 +123,6 @@ const wfbm = inject(injectionKeys.builderManager);
 const { removeOut } = useComponentActions(wf, wfbm);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-const instancePath = inject(injectionKeys.instancePath);
 
 const isTrigger = computed(() => {
 	return def?.value?.category == "Triggers";
@@ -166,40 +137,6 @@ const isDeprecated = computed(() => {
 });
 
 const { component, definition: def } = useComponentInformation(wf, componentId);
-
-const resultId = useBlueprintComponentResultId(component, def);
-const tracking = useWriterTracking(wf);
-
-const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
-	useButtonClipboard(resultId);
-
-const settingsActions = useBuilderSettingsActions(
-	wf,
-	wfbm,
-	tracking,
-	{},
-	{
-		instancePath: flattenInstancePath(instancePath),
-		componentId,
-	},
-);
-
-const dropdownActionsHidden = new Set([
-	BuilderSettingsDropdownActions.Add,
-	BuilderSettingsDropdownActions.MoveUp,
-	BuilderSettingsDropdownActions.MoveDown,
-	BuilderSettingsDropdownActions.Paste,
-	BuilderSettingsDropdownActions.GoToParent,
-]);
-
-const dropdownOptions = computed(() =>
-	settingsActions.dropdownOptions.value.filter(
-		(o) =>
-			!dropdownActionsHidden.has(
-				o.value as BuilderSettingsDropdownActions,
-			),
-	),
-);
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
@@ -505,7 +442,7 @@ watch(isEngaged, () => {
 	gap: 10px;
 	border-radius: 12px 12px 0 0;
 	align-items: center;
-	grid-template-columns: 24px 1fr;
+	grid-template-columns: 24px 1fr auto;
 }
 .BlueprintsNode__main__title,
 .BlueprintsNode__main__footer {
@@ -607,10 +544,6 @@ watch(isEngaged, () => {
 
 .BlueprintsNode__main__footer {
 	border-top: 1px solid var(--builderSeparatorColor);
-	display: flex;
-	gap: 4px;
-
-	justify-content: flex-end;
 }
 
 @keyframes spin {
