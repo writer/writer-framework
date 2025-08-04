@@ -1,41 +1,61 @@
 <template>
-	<div
-		class="BuilderFieldsWriterResourceId"
-		:data-automation-key="props.fieldKey"
+	<WdsFieldWrapper
+		:is-binding-button-shown
+		:is-binding-enabled="isBindingMode"
+		:label
+		:unit
+		:hint
+		:error
+		:data-automation-key="fieldKey"
+		@update:is-binding-enabled="toggleBindingMode"
 	>
-		<component
-			:is="selector"
-			ref="selectorEl"
-			v-model="selected"
-			:enable-multi-selection="enableMultiSelection"
-			@selected-data="onSelectedData"
-		/>
-		<a
-			v-if="ressourceUrl"
-			class="BuilderFieldsWriterResourceId__link"
-			:href="ressourceUrl"
-			target="_blank"
-			:data-writer-tooltip="linkTooltip"
+		<div
+			class="BuilderFieldsWriterResourceId"
+			:data-automation-key="fieldKey"
 		>
-			<WdsIcon name="external-link" />
-		</a>
-	</div>
+			<BuilderFieldsText
+				v-if="isBindingMode"
+				type="state-template"
+				:component-id
+				:field-key
+				:error
+			/>
+			<component
+				:is="selector"
+				v-else
+				ref="selectorEl"
+				v-model="selected"
+				:enable-multi-selection="enableMultiSelection"
+				@selected-data="onSelectedData"
+			/>
+			<a
+				v-if="ressourceUrl"
+				class="BuilderFieldsWriterResourceId__link"
+				:href="ressourceUrl"
+				target="_blank"
+				:data-writer-tooltip="linkTooltip"
+			>
+				<WdsIcon name="external-link" />
+			</a>
+		</div>
+	</WdsFieldWrapper>
 </template>
 
 <script setup lang="ts">
 import {
-	toRefs,
-	inject,
 	computed,
 	PropType,
 	defineAsyncComponent,
 	useTemplateRef,
 	ref,
+	toRef,
 } from "vue";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
+import { useBindingMode } from "./composables/useBindingMode";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { WriterApplication } from "@/writerTypes";
+import BuilderFieldsText from "./BuilderFieldsText.vue";
 
 const BuilderApplicationSelect = defineAsyncComponent(
 	() => import("../BuilderApplicationSelect.vue"),
@@ -47,22 +67,36 @@ const BuilderModelSelect = defineAsyncComponent(
 	() => import("../BuilderModelSelect.vue"),
 );
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
-
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
+	defaultValue: { type: String, required: false, default: undefined },
+	label: { type: String, required: false, default: undefined },
+	unit: { type: String, required: false, default: undefined },
+	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	resourceType: {
 		type: String as PropType<"graph" | "application" | "model">,
 		required: true,
 	},
 	enableMultiSelection: { type: Boolean, required: false, default: false },
+	isBindingButtonShown: { type: Boolean, required: false, default: false },
 });
-const { componentId, fieldKey, enableMultiSelection } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: toRef(props, "defaultValue"),
+});
+
+const { isBindingMode, toggleBindingMode } = useBindingMode({
+	fieldViewModel,
+});
+
+const appInputsViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: "appInputs",
+});
 
 const selectorEl = useTemplateRef("selectorEl");
 
@@ -114,40 +148,22 @@ const ressourceUrl = computed(() => {
 	}
 });
 
-const fieldDefinition = computed(() => {
-	const def = wf.getComponentDefinition(component.value.type);
-	return def?.fields?.[props.fieldKey];
-});
-
 const selected = computed<string | string[]>({
 	get() {
-		if (enableMultiSelection.value) {
-			const raw =
-				component.value.content[props.fieldKey] ??
-				fieldDefinition.value.default ??
-				"[]";
+		if (props.enableMultiSelection) {
+			const raw = fieldViewModel.value || "[]";
 			try {
 				return JSON.parse(raw);
 			} catch {
 				return [];
 			}
 		}
-		return (
-			component.value.content[props.fieldKey] ||
-			fieldDefinition.value.default ||
-			""
-		);
+		return fieldViewModel.value;
 	},
 	set(value: string | string[]) {
-		if (enableMultiSelection.value) {
-			setContentValue(
-				component.value.id,
-				fieldKey.value,
-				JSON.stringify(value),
-			);
-		} else {
-			setContentValue(component.value.id, fieldKey.value, String(value));
-		}
+		fieldViewModel.value = props.enableMultiSelection
+			? JSON.stringify(value)
+			: String(value);
 	},
 });
 
@@ -164,11 +180,7 @@ function onSelectedData(appData: WriterApplication | undefined) {
 		return;
 	}
 
-	setContentValue(
-		component.value.id,
-		"appInputs",
-		JSON.stringify(appData.inputs),
-	);
+	appInputsViewModel.value = JSON.stringify(appData.inputs);
 }
 </script>
 

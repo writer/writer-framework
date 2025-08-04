@@ -35,6 +35,57 @@
 					:error="errorsByFields[fieldKey]"
 				/>
 
+				<BuilderFieldsWriterResourceId
+					v-else-if="fieldValue.type === FieldType.WriterGraphId"
+					is-binding-button-shown
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:default-value="fieldValue.default"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
+					resource-type="graph"
+				/>
+
+				<BuilderFieldsWriterResourceId
+					v-else-if="fieldValue.type === FieldType.WriterGraphIds"
+					is-binding-button-shown
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:default-value="fieldValue.default"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
+					resource-type="graph"
+					enable-multi-selection
+				/>
+
+				<BuilderFieldsWriterResourceId
+					v-else-if="fieldValue.type === FieldType.WriterAppId"
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:default-value="fieldValue.default"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
+					resource-type="application"
+				/>
+
+				<BuilderFieldsWriterResourceId
+					v-else-if="fieldValue.type === FieldType.WriterModelId"
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:default-value="fieldValue.default"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
+					resource-type="model"
+				/>
+
 				<WdsFieldWrapper
 					v-else
 					:label="
@@ -163,39 +214,6 @@
 						:component-id="selectedComponent.id"
 						:is-expanded="expandedFields.has(fieldKey)"
 						:input-language="'python'"
-					/>
-
-					<BuilderFieldsWriterResourceId
-						v-if="fieldValue.type == FieldType.WriterGraphId"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-						resource-type="graph"
-					/>
-
-					<BuilderFieldsWriterResourceId
-						v-if="fieldValue.type == FieldType.WriterGraphIds"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-						resource-type="graph"
-						enable-multi-selection
-					/>
-
-					<BuilderFieldsWriterResourceId
-						v-if="fieldValue.type == FieldType.WriterAppId"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-						resource-type="application"
-					/>
-
-					<BuilderFieldsWriterResourceId
-						v-if="fieldValue.type == FieldType.WriterModelId"
-						:field-key="fieldKey"
-						:component-id="selectedComponent.id"
-						:error="errorsByFields[fieldKey]"
-						resource-type="model"
 					/>
 
 					<BuilderFieldsComponentId

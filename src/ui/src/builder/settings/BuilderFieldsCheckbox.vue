@@ -1,13 +1,14 @@
 <template>
 	<WdsFieldWrapper
 		v-if="isBindingMode"
-		is-unbind-button-shown
+		is-binding-button-shown
+		:is-binding-enabled="isBindingMode"
 		:label
 		:unit
 		:hint
 		:error
 		:data-automation-key="props.fieldKey"
-		@unbind="toggleBindingMode"
+		@update:is-binding-enabled="toggleBindingMode"
 	>
 		<BuilderFieldsText
 			type="state-template"
@@ -98,11 +99,11 @@ const lastCheckboxValue = ref(model.value ? "yes" : "no");
 
 function toggleBindingMode() {
 	if (isBindingMode.value) {
-		lastBindingValue.value = component.value.content[props.fieldKey];
+		lastBindingValue.value = contentValue.value;
 		setContentValue(lastCheckboxValue.value);
 		isBindingMode.value = false;
 	} else {
-		lastCheckboxValue.value = component.value.content[props.fieldKey];
+		lastCheckboxValue.value = contentValue.value;
 		setContentValue(lastBindingValue.value);
 		isBindingMode.value = true;
 	}
