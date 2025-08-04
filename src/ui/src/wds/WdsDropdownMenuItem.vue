@@ -5,12 +5,26 @@ import WdsIcon from "./WdsIcon.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 
 const props = defineProps({
+	showCustomAction: { type: Boolean },
 	selected: { type: Boolean, required: false },
 	option: {
 		type: Object as PropType<WdsDropdownMenuOption>,
 		required: true,
 	},
 	hideIcons: { type: Boolean, required: false },
+});
+
+const style = computed<CSSProperties>(() => {
+	const columns = [];
+	if (!props.hideIcons && props.option.icon) {
+		columns.push("auto");
+	}
+	columns.push("minmax(0, 1fr)");
+	if (props.selected || props.showCustomAction) columns.push("auto");
+
+	return {
+		"grid-template-columns": columns.join(" "),
+	};
 });
 
 const iconStyle = computed(() => {
@@ -36,6 +50,7 @@ const iconStyle = computed(() => {
 			'WdsDropdownMenuItem--hideIcon': hideIcons,
 			'WdsDropdownMenuItem--danger': option.variant === 'danger',
 		}"
+		:style
 		:data-automation-key="option.value"
 		:disabled="option.disabled"
 	>
@@ -70,16 +85,11 @@ const iconStyle = computed(() => {
 			>
 		</div>
 		<div
-			v-if="option.detail"
-			class="WdsDropdownMenuItem__detail"
-			:data-writer-tooltip="option.detail"
-			data-writer-tooltip-strategy="overflow"
+			v-if="selected || showCustomAction"
+			class="WdsDropdownMenuItem__action"
 		>
-			{{ option.detail }}
-		</div>
-		<div class="WdsDropdownMenuItem__action">
 			<WdsIcon v-if="selected" name="check" />
-			<slot v-else name="action" />
+			<slot v-else-if="showCustomAction" name="action" />
 		</div>
 	</button>
 </template>
@@ -92,7 +102,6 @@ const iconStyle = computed(() => {
 	width: 100%;
 
 	display: grid;
-	grid-template-columns: 1fr auto;
 	column-gap: 8px;
 	align-items: center;
 
@@ -109,9 +118,6 @@ const iconStyle = computed(() => {
 .WdsDropdownMenuItem:disabled {
 	opacity: 40%;
 	cursor: not-allowed !important;
-}
-.WdsDropdownMenuItem:has(.WdsDropdownMenuItem__icon) {
-	grid-template-columns: auto 1fr auto;
 }
 .WdsDropdownMenuItem:has(.WdsDropdownMenuItem__icon)
 	.WdsDropdownMenuItem__detail {
@@ -132,15 +138,13 @@ const iconStyle = computed(() => {
 .WdsDropdownMenuItem--selected {
 	background-color: var(--wdsColorBlue2);
 }
-.WdsDropdownMenuItem--hideIcon {
-	grid-template-columns: 1fr auto;
-}
 .WdsDropdownMenuItem--danger {
 	color: var(--wdsColorOrange5);
 }
 
 .WdsDropdownMenuItem__detail,
-.WdsDropdownMenuItem__label {
+.WdsDropdownMenuItem__label,
+.WdsDropdownMenuItem__label span {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
