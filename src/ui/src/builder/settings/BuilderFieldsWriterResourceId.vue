@@ -83,18 +83,17 @@ const props = defineProps({
 	isBindingButtonShown: { type: Boolean, required: false, default: false },
 });
 
-const { fieldValue, setFieldValue } = useComponentFieldViewModel({
+const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
 	defaultValue: toRef(props, "defaultValue"),
 });
 
 const { isBindingMode, toggleBindingMode } = useBindingMode({
-	fieldValue,
-	setFieldValue,
+	fieldViewModel,
 });
 
-const { setFieldValue: setAppInputsValue } = useComponentFieldViewModel({
+const appInputsViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: "appInputs",
 });
@@ -152,21 +151,19 @@ const ressourceUrl = computed(() => {
 const selected = computed<string | string[]>({
 	get() {
 		if (props.enableMultiSelection) {
-			const raw = fieldValue.value || "[]";
+			const raw = fieldViewModel.value || "[]";
 			try {
 				return JSON.parse(raw);
 			} catch {
 				return [];
 			}
 		}
-		return fieldValue.value;
+		return fieldViewModel.value;
 	},
 	set(value: string | string[]) {
-		if (props.enableMultiSelection) {
-			setFieldValue(JSON.stringify(value));
-		} else {
-			setFieldValue(String(value));
-		}
+		fieldViewModel.value = props.enableMultiSelection
+			? JSON.stringify(value)
+			: String(value);
 	},
 });
 
@@ -183,7 +180,7 @@ function onSelectedData(appData: WriterApplication | undefined) {
 		return;
 	}
 
-	setAppInputsValue(JSON.stringify(appData.inputs));
+	appInputsViewModel.value = JSON.stringify(appData.inputs);
 }
 </script>
 

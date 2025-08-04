@@ -54,9 +54,5 @@ export function useComponentFieldViewModel(
 		},
 	});
 
-	return {
-		setFieldValue,
-		fieldValue,
-		fieldViewModel,
-	};
+	return fieldViewModel;
 }
