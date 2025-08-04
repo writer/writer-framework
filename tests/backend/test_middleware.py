@@ -2,8 +2,8 @@ import pytest
 from writer.app_runner import AppRunner
 from writer.ss_types import WriterEvent
 
-from backend import test_app_dir
-from backend.fixtures.app_runner_fixtures import init_app_session
+from tests.backend import test_app_dir
+from tests.backend.fixtures.app_runner_fixtures import init_app_session
 
 
 @pytest.mark.asyncio

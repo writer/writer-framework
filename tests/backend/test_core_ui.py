@@ -3,7 +3,7 @@ from typing import List
 from writer import core_ui
 from writer.ss_types import ComponentDefinition
 
-from backend.fixtures import load_fixture_content
+from tests.backend.fixtures import load_fixture_content
 
 
 def test_filter_components_by_should_retrieve_a_list_of_components_that_fit_the_parent():

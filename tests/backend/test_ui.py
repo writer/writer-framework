@@ -13,8 +13,8 @@ from writer.core_ui import (
 )
 from writer.ui import WriterUIManager
 
-from backend.fixtures import core_ui_fixtures
 from tests.backend import test_app_dir
+from tests.backend.fixtures import core_ui_fixtures
 
 _, sc = wf_project.read_files(test_app_dir)
 sc = audit_and_fix.fix_components(sc)
