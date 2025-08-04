@@ -2,7 +2,7 @@ import json
 
 from writer import audit_and_fix
 
-from backend.fixtures import load_fixture_content
+from tests.backend.fixtures import load_fixture_content
 
 
 def test_fix_components_should_fix_visible_fields():
