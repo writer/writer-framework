@@ -40,45 +40,25 @@
 				<h4 v-if="def.fields?.[fieldKey]">
 					{{ def.fields[fieldKey].name }}
 				</h4>
-				<div
+				<BlueprintsNodeOutput
 					v-for="(out, outId) in outs"
 					:key="outId"
 					class="BlueprintsNode__main__outputs__output"
-				>
-					{{ out.name }}
-					<div
-						class="BlueprintsNode__main__outputs__output__ball"
-						:class="out.style"
-						:data-writer-socket-id="outId"
-						:data-writer-unselectable="true"
-						@click.capture.stop
-						@mousedown.capture="
-							(ev: DragEvent) => handleOutMousedown(ev, outId)
-						"
-					></div>
-				</div>
+					:out-id="outId"
+					:out="out"
+					@click="$emit('outMousedown', outId)"
+				/>
 				<div v-if="Object.keys(outs).length == 0">None configured.</div>
 			</div>
 			<div class="BlueprintsNode__main__outputs">
-				<div
+				<BlueprintsNodeOutput
 					v-for="(out, outId) in { ...staticOuts, ...unknownOuts }"
 					:key="outId"
 					class="BlueprintsNode__main__outputs__output"
-				>
-					<template v-if="outId !== 'trigger'">
-						{{ out.name }}
-					</template>
-					<div
-						class="BlueprintsNode__main__outputs__output__ball"
-						:class="out.style"
-						:data-writer-socket-id="outId"
-						:data-writer-unselectable="true"
-						@click.capture.stop
-						@mousedown.capture="
-							(ev: DragEvent) => handleOutMousedown(ev, outId)
-						"
-					></div>
-				</div>
+					:out-id="String(outId)"
+					:out="out"
+					@click="$emit('outMousedown', outId)"
+				/>
 			</div>
 			<BlueprintsNodeActions
 				v-if="!isTrigger"
@@ -116,6 +96,7 @@ import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
+import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -285,11 +266,6 @@ watch(
 	},
 	{ immediate: true },
 );
-
-function handleOutMousedown(ev: DragEvent, outId: string | number) {
-	ev.stopPropagation();
-	emit("outMousedown", outId);
-}
 
 const possibleImageUrls = computed(() => {
 	if (
@@ -501,45 +477,6 @@ watch(isEngaged, () => {
 	padding: 0;
 	height: 100%;
 	justify-content: center;
-}
-
-.BlueprintsNode__main__outputs__output {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	justify-content: right;
-	font-size: 12px;
-	font-style: normal;
-	font-weight: 400;
-	color: var(--wdsColorGray5);
-	font-feature-settings:
-		"liga" off,
-		"clig" off;
-}
-
-.BlueprintsNode__main__outputs__output__ball {
-	margin-right: -9px;
-	height: 16px;
-	width: 16px;
-	border-radius: 50%;
-	border: 1px solid var(--builderBackgroundColor);
-	cursor: pointer;
-}
-
-.BlueprintsNode__main__outputs__output__ball.success {
-	background: var(--wdsColorGreen5);
-}
-
-.BlueprintsNode__main__outputs__output__ball.error {
-	background: var(--wdsColorOrange5);
-}
-
-.BlueprintsNode__main__outputs__output__ball.dynamic {
-	background: var(--wdsColorPurple4);
-}
-
-.BlueprintsNode__main__outputs__output__ball.branching {
-	background: var(--wdsColorPurple4);
 }
 
 .BlueprintsNode__main__footer {
