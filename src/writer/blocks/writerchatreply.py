@@ -57,7 +57,7 @@ class WriterChatReply(WriterBlock):
                             "validator": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1,
+                                "maximum": 2,
                             },
                         },
                         "initMaxTokens": {
