@@ -8,6 +8,7 @@ defineProps({
 		type: Object as PropType<WriterComponentDefinitionOut>,
 		required: true,
 	},
+	displayLabel: { type: Boolean },
 });
 
 defineEmits({
@@ -17,7 +18,7 @@ defineEmits({
 
 <template>
 	<div class="BlueprintsNodeOutput">
-		<template v-if="outId !== 'trigger'">
+		<template v-if="displayLabel">
 			{{ out.name }}
 		</template>
 		<div

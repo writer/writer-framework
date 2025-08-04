@@ -1,4 +1,4 @@
-import { computed, ComputedRef, MaybeRef, unref } from "vue";
+import { computed, MaybeRef, unref } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import { Core, BuilderManager } from "@/writerTypes";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
@@ -15,6 +15,17 @@ export enum BuilderSettingsDropdownActions {
 	Paste = "paste",
 	GoToParent = "goToParent",
 	Delete = "delete",
+}
+
+export function isBuilderSettingsDropdownAction(
+	value: unknown,
+): value is BuilderSettingsDropdownActions {
+	return (
+		typeof value === "string" &&
+		Object.values(BuilderSettingsDropdownActions).includes(
+			value as BuilderSettingsDropdownActions,
+		)
+	);
 }
 
 /**

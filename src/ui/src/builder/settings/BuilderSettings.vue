@@ -97,7 +97,6 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { SelectionStatus } from "../builderManager";
 import { useButtonClipboard } from "../useButtonClipboard";
-import { COMPONENT_TYPES_PAGE } from "@/constants/component";
 import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderSettingsActions from "./BuilderSettingsActions.vue";

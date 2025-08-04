@@ -30,7 +30,11 @@
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
 				</div>
-				<BlueprintsNodeActions v-if="isTrigger" />
+				<BlueprintsNodeActions
+					v-if="isTrigger"
+					:show-display-error-option="canDisplayErrorOut"
+					@show-error="forceDisplayErrorOut = true"
+				/>
 			</div>
 			<div
 				v-for="(outs, fieldKey) in dynamicOuts"
@@ -46,23 +50,36 @@
 					class="BlueprintsNode__main__outputs__output"
 					:out-id="outId"
 					:out="out"
+					display-label
 					@click="$emit('outMousedown', outId)"
 				/>
 				<div v-if="Object.keys(outs).length == 0">None configured.</div>
 			</div>
 			<div class="BlueprintsNode__main__outputs">
 				<BlueprintsNodeOutput
-					v-for="(out, outId) in { ...staticOuts, ...unknownOuts }"
+					v-for="(out, outId) in staticOuts"
 					:key="outId"
 					class="BlueprintsNode__main__outputs__output"
-					:out-id="String(outId)"
+					:out-id="outId"
 					:out="out"
+					:display-label="displayStaticOutsLabel"
+					@click="$emit('outMousedown', outId)"
+				/>
+				<BlueprintsNodeOutput
+					v-for="(out, outId) in unknownOuts"
+					:key="outId"
+					class="BlueprintsNode__main__outputs__output"
+					:out-id="outId"
+					:out="out"
+					display-label
 					@click="$emit('outMousedown', outId)"
 				/>
 			</div>
 			<BlueprintsNodeActions
 				v-if="!isTrigger"
 				class="BlueprintsNode__main__footer"
+				:show-display-error-option="canDisplayErrorOut"
+				@show-error="forceDisplayErrorOut = true"
 			/>
 		</div>
 	</div>
@@ -86,8 +103,9 @@ export default {
 	},
 };
 </script>
+
 <script setup lang="ts">
-import { computed, inject, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
@@ -179,14 +197,45 @@ const isEngaged = computed(() => {
 	return isSelected;
 });
 
-const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
-	const processedOuts = {};
-	Object.entries(def.value.outs ?? {}).forEach(([outId, out]) => {
-		if (out.style == "dynamic") return;
-		processedOuts[outId] = out;
-	});
-	return processedOuts;
+const forceDisplayErrorOut = ref(false);
+
+const canDisplayErrorOut = computed(() => {
+	if (!hasErrorOut.value) return false;
+	if (shouldDisplayError.value) return false;
+	return !forceDisplayErrorOut.value;
 });
+
+const hasErrorOut = computed(() => def.value?.outs?.["error"] !== undefined);
+
+const shouldDisplayError = computed(() => {
+	if (!hasErrorOut.value) return false;
+
+	const isConnected = component.value.outs?.some((o) => o.outId === "error");
+
+	if (isConnected) return true;
+
+	return forceDisplayErrorOut.value;
+});
+
+const displayStaticOutsLabel = computed(() => {
+	if (Object.keys(dynamicOuts.value ?? {}).length > 0) return true;
+	if (Object.keys(unknownOuts.value ?? {}).length > 0) return true;
+	if (Object.keys(staticOuts.value ?? {}).length > 1) return true;
+	return false;
+});
+
+const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
+	return Object.entries(def.value.outs ?? {}).reduce<
+		WriterComponentDefinition["outs"]
+	>((acc, [outId, out]) => {
+		if (out.style == "dynamic") return acc;
+
+		if (outId === "error" && !shouldDisplayError.value) return acc;
+
+		acc[outId] = out;
+		return acc;
+	}, {});
+}, {});
 
 const unknownOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const knownsOutIds = new Set([
