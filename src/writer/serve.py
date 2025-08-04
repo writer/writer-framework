@@ -340,6 +340,48 @@ def get_asgi_app(
             comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
             for comp in app_runner.bmc_components.values()
         )
+    
+    async def validate_api_trigger_payload(app_runner: AppRunner, blueprint_id: str, payload: Optional[Dict[str, Any]]) -> Tuple[bool, Optional[str]]:
+        """Validate API payload against API trigger's input field definitions.
+        
+        :param app_runner: The application runner instance
+        :param blueprint_id: ID of the blueprint to validate against
+        :param payload: The JSON payload to validate
+        :return: Tuple of (is_valid, error_message). error_message is None if valid.
+        """
+        if not app_runner.bmc_components or not payload:
+            return True, None
+            
+        # Find the API trigger component for this blueprint
+        api_trigger_comp = next((
+            comp for comp in app_runner.bmc_components.values()
+            if comp["type"] == "blueprints_apitrigger" and comp.get("parentId") == blueprint_id
+        ), None)
+        
+        if not api_trigger_comp:
+            return True, None
+            
+        # Check if validation is enabled
+        content = api_trigger_comp.get("content", {})
+        if not content.get("enableValidation", False):
+            return True, None
+            
+        # Get input field definitions
+        input_fields_str = content.get("inputFields", "[]")
+        try:
+            if isinstance(input_fields_str, str):
+                input_fields = json.loads(input_fields_str)
+            else:
+                input_fields = input_fields_str
+        except json.JSONDecodeError:
+            return False, "Invalid input field definitions"
+            
+        if not input_fields:
+            return True, None
+            
+        # Import and use APITrigger validation
+        from writer.blocks.apitrigger import APITrigger
+        return APITrigger.validate_payload(payload, input_fields)
 
     @app.get("/private/api/blueprints")
     async def get_blueprints(request: Request):
@@ -446,6 +488,15 @@ def get_asgi_app(
                 if not has_api_trigger(app_runner, blueprint_id):
                     await queue.put(await format_event("error", {
                         "msg": f"Blueprint '{blueprint_id}' lacks an API trigger.",
+                        "finished_at": int(time.time())
+                    }))
+                    return
+
+                # Validate payload if API trigger has validation enabled
+                is_valid, validation_error = await validate_api_trigger_payload(app_runner, blueprint_id, payload)
+                if not is_valid:
+                    await queue.put(await format_event("error", {
+                        "msg": f"Payload validation failed: {validation_error}",
                         "finished_at": int(time.time())
                     }))
                     return
