@@ -70,6 +70,7 @@ test.describe("undo and redo", () => {
 		await expect(page.locator(COMPONENT_LOCATOR)).toHaveText("cool text");
 
 		await page.locator(COMPONENT_LOCATOR).click();
+		await page.locator('[data-automation-action="expand-settings"]').click();
 		const actionDropdown = page
 			.locator(".BuilderSettings")
 			.locator('[data-automation-action="settings-actions-dropdown"]');

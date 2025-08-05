@@ -49,31 +49,37 @@
 			</button>
 		</template>
 
-		<template v-else-if="enableMultiSelection">
-			<WdsCheckbox
-				v-for="option in optionsFiltered"
-				:key="option.value"
-				class="WdsDropdownMenu__checkbox"
-				:checked="isSelected(option.value)"
-				:label="option.label"
-				:detail="option.detail"
-				:data-automation-key="option.value"
-				:disabled="option.disabled"
-				:model-value="isSelected(option.value)"
-				@update:model-value="onSelect(option.value)"
-			/>
-		</template>
-
-		<template v-else>
-			<WdsDropdownMenuItem
-				v-for="option in optionsFiltered"
-				:key="option.value"
-				:option="option"
-				:data-automation-key="option.value"
-				:selected="isSelected(option.value)"
-				@click.stop="onSelect(option.value)"
-			/>
-		</template>
+		<SharedLazyLoader
+			v-for="option in optionsFiltered"
+			v-else
+			:key="option.value"
+		>
+			<template #spinner>
+				<div class="WdsDropdownMenu__itemLazyLoader">
+					<WdsSkeletonLoader />
+				</div>
+			</template>
+			<template #content>
+				<WdsCheckbox
+					v-if="enableMultiSelection"
+					class="WdsDropdownMenu__checkbox"
+					:checked="isSelected(option.value)"
+					:label="option.label"
+					:detail="option.detail"
+					:data-automation-key="option.value"
+					:disabled="option.disabled"
+					:model-value="isSelected(option.value)"
+					@update:model-value="onSelect(option.value)"
+				/>
+				<WdsDropdownMenuItem
+					v-else
+					:option="option"
+					:data-automation-key="option.value"
+					:selected="isSelected(option.value)"
+					@click.stop="onSelect(option.value)"
+				/>
+			</template>
+		</SharedLazyLoader>
 	</div>
 </template>
 
@@ -101,6 +107,7 @@ import WdsIcon from "./WdsIcon.vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
 import WdsDropdownMenuItem from "./WdsDropdownMenuItem.vue";
+import SharedLazyLoader from "@/components/shared/SharedLazyLoader.vue";
 
 const props = defineProps({
 	options: {
@@ -222,6 +229,10 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	cursor: pointer;
 	transition: all 0.2s;
 	pointer-events: all;
+}
+
+.WdsDropdownMenu__itemLazyLoader {
+	padding: 12px;
 }
 
 .WdsDropdownMenu__header {

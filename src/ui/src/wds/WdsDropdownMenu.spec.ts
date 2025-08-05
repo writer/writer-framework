@@ -1,4 +1,4 @@
-import { shallowMount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
 import WdsDropdownMenu from "./WdsDropdownMenu.vue";
@@ -15,11 +15,16 @@ describe("WdsDropdownMenu", () => {
 
 	describe("single mode", () => {
 		it("should select an option", async () => {
-			const wrapper = shallowMount(WdsDropdownMenu, {
+			const wrapper = mount(WdsDropdownMenu, {
 				props: {
 					selected: "a",
 					enableMultiSelection: false,
 					options,
+				},
+				global: {
+					stubs: {
+						WdsDropdownMenuItem: true,
+					},
 				},
 			});
 
@@ -34,11 +39,16 @@ describe("WdsDropdownMenu", () => {
 
 	describe("multiple mode", () => {
 		it("should support multiple mode", () => {
-			const wrapper = shallowMount(WdsDropdownMenu, {
+			const wrapper = mount(WdsDropdownMenu, {
 				props: {
 					selected: ["???"],
 					enableMultiSelection: true,
 					options,
+				},
+				global: {
+					stubs: {
+						WdsDropdownMenuItem: true,
+					},
 				},
 			});
 
