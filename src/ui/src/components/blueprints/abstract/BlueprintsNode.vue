@@ -41,7 +41,10 @@
 				:key="fieldKey"
 				class="BlueprintsNode__main__outputs"
 			>
-				<h4 v-if="def.fields?.[fieldKey]">
+				<h4
+					v-if="def.fields?.[fieldKey]"
+					class="BlueprintsNode__main__outputs__title"
+				>
 					{{ def.fields[fieldKey].name }}
 				</h4>
 				<BlueprintsNodeOutput
@@ -55,14 +58,30 @@
 				/>
 				<div v-if="Object.keys(outs).length == 0">None configured.</div>
 			</div>
-			<div class="BlueprintsNode__main__outputs">
+			<div
+				v-if="Object.keys(staticOuts).length > 0"
+				class="BlueprintsNode__main__outputs"
+				:class="{
+					'BlueprintsNode__main__outputs--float':
+						hasOnlySuccessOut && !isTrigger,
+				}"
+			>
+				<h4
+					v-if="
+						!hasOnlySuccessOut &&
+						Object.keys(dynamicOuts).length > 0
+					"
+					class="BlueprintsNode__main__outputs__title"
+				>
+					THEN
+				</h4>
 				<BlueprintsNodeOutput
 					v-for="(out, outId) in staticOuts"
 					:key="outId"
 					class="BlueprintsNode__main__outputs__output"
 					:out-id="outId"
 					:out="out"
-					:display-label="displayStaticOutsLabel"
+					:display-label="!hasOnlySuccessOut"
 					@click="$emit('outMousedown', outId)"
 				/>
 				<BlueprintsNodeOutput
@@ -217,11 +236,11 @@ const shouldDisplayError = computed(() => {
 	return forceDisplayErrorOut.value;
 });
 
-const displayStaticOutsLabel = computed(() => {
-	if (Object.keys(dynamicOuts.value ?? {}).length > 0) return true;
-	if (Object.keys(unknownOuts.value ?? {}).length > 0) return true;
-	if (Object.keys(staticOuts.value ?? {}).length > 1) return true;
-	return false;
+const hasOnlySuccessOut = computed(() => {
+	if (Object.keys(dynamicOuts.value ?? {}).length > 0) return false;
+	if (Object.keys(unknownOuts.value ?? {}).length > 0) return false;
+	if (Object.keys(staticOuts.value ?? {}).length > 1) return false;
+	return true;
 });
 
 const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
@@ -468,6 +487,11 @@ watch(isEngaged, () => {
 	border-radius: 12px 12px 0 0;
 	align-items: center;
 	grid-template-columns: 24px 1fr auto;
+	border-bottom: 1px solid var(--builderSeparatorColor);
+}
+
+.BlueprintsNode--trigger .BlueprintsNode__main__title {
+	border-bottom: unset;
 }
 .BlueprintsNode__main__title,
 .BlueprintsNode__main__footer {
@@ -509,12 +533,30 @@ watch(isEngaged, () => {
 
 .BlueprintsNode__main__outputs {
 	border-radius: 0 0 12px 12px;
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	gap: 8px;
-	padding: 12px 0 12px 16px;
-	border-top: 1px solid var(--builderSeparatorColor);
+	padding-left: 6px;
+	padding-top: 12px;
+	padding-bottom: 12px;
 	font-size: 12px;
+}
+
+.BlueprintsNode__main__outputs__title {
+	grid-column: 1;
+	color: var(--wdsColorGray4);
+	text-transform: uppercase;
+	font-weight: 500;
+}
+.BlueprintsNode__main__outputs__output {
+	grid-column: 2;
+}
+.BlueprintsNode__main__outputs--float {
+	position: absolute;
+	right: 0;
+	bottom: 48px;
+	padding: 0;
+	border-top: none;
 }
 
 .BlueprintsNode--trigger .BlueprintsNode__main__outputs {
@@ -530,6 +572,10 @@ watch(isEngaged, () => {
 
 .BlueprintsNode__main__footer {
 	border-top: 1px solid var(--builderSeparatorColor);
+}
+.BlueprintsNode:has(.BlueprintsNode__main__outputs--float)
+	.BlueprintsNode__main__footer {
+	border-top: none;
 }
 
 @keyframes spin {

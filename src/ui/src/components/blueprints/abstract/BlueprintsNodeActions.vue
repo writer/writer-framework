@@ -119,10 +119,8 @@ const dropdownOptions = computed(() => {
 
 <style scoped>
 .BlueprintsNodeActions {
-	/* border-top: 1px solid var(--builderSeparatorColor); */
 	display: flex;
 	gap: 4px;
-
 	justify-content: flex-end;
 }
 </style>
