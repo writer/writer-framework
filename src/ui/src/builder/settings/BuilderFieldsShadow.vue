@@ -196,7 +196,8 @@ const handleCSSInput = (ev: Event) => {
 };
 
 const parsedValue = computed(() => {
-	return fieldViewModel.value.match(boxShadowRegex).groups;
+	const match = fieldViewModel.value.match(boxShadowRegex);
+	return match?.groups ?? {};
 });
 
 onMounted(() => {
