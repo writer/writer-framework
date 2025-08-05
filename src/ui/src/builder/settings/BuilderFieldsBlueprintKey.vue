@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, defineAsyncComponent } from "vue";
-import { useComponentActions } from "../useComponentActions";
+import { inject, computed, defineAsyncComponent, toRef } from "vue";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -28,19 +28,16 @@ const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 });
 
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
-
-const selectedBlueprintKey = computed<string>({
-	get: () => component.value?.content[props.fieldKey] ?? "",
-	set: (key) => setContentValue(component.value.id, fieldKey.value, key),
+const selectedBlueprintKey = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: "",
 });
 
 const options = computed<Option[]>(() => {

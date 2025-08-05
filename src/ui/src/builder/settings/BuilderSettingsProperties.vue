@@ -29,6 +29,7 @@
 					v-if="fieldValue.type === FieldType.Boolean"
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
+					:default-value="fieldValue.default"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
@@ -161,6 +162,7 @@
 						v-if="fieldValue.type == FieldType.Object"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 					/>
 

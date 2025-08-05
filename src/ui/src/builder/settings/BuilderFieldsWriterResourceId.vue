@@ -96,6 +96,7 @@ const { isBindingMode, toggleBindingMode } = useBindingMode({
 const appInputsViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: "appInputs",
+	defaultValue: "",
 });
 
 const selectorEl = useTemplateRef("selectorEl");
@@ -188,8 +189,7 @@ function onSelectedData(appData: WriterApplication | undefined) {
 @import "../sharedStyles.css";
 
 .BuilderFieldsWriterResourceId {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
+	display: flex;
 	align-items: center;
 	gap: 12px;
 }

@@ -70,10 +70,9 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, ref, defineAsyncComponent } from "vue";
+import { computed, ref, defineAsyncComponent, toRef } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
@@ -119,10 +118,6 @@ type ToolForm = {
 	graphIds: string;
 };
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
-
 const initFunctionToolCode = `
 {
 	"description": "Gets info for an employee, given an employee id",
@@ -167,17 +162,19 @@ const props = defineProps<{
 	componentId: Component["id"];
 	fieldKey: string;
 }>();
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: "",
+});
 
 const tools = computed<Record<string, Tool>>(() => {
-	let value = {};
 	try {
-		value = JSON.parse(component.value.content[fieldKey.value]);
+		return JSON.parse(fieldViewModel.value);
 	} catch {
-		value = {};
+		return {};
 	}
-	return value;
 });
 
 function resetAndShowToolFormModal() {
@@ -233,14 +230,15 @@ function saveToolForm() {
 		alert("Incorrect tool definition");
 		return;
 	}
-	const newFieldValue = JSON.stringify({
+
+	fieldViewModel.value = JSON.stringify({
 		...tools.value,
 		...(toolForm.value.originalName
 			? { [toolForm.value.originalName]: undefined }
 			: {}),
 		[toolForm.value.name]: toolFromForm,
 	});
-	setContentValue(component.value.id, fieldKey.value, newFieldValue);
+
 	toolForm.value.isShown = false;
 }
 
@@ -276,11 +274,10 @@ function editTool(toolName: string) {
 }
 
 function deleteTool(toolName: string) {
-	const newFieldValue = JSON.stringify({
+	fieldViewModel.value = JSON.stringify({
 		...tools.value,
 		[toolName]: undefined,
 	});
-	setContentValue(component.value.id, fieldKey.value, newFieldValue);
 }
 
 const modalActions = computed<ModalAction[]>(() => [

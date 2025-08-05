@@ -41,73 +41,42 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, PropType, ref } from "vue";
+import { computed, PropType, toRef } from "vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 import { Component } from "@/writerTypes";
-import injectionKeys from "@/injectionKeys";
-import { useComponentActions } from "../useComponentActions";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
+import { useBindingMode } from "./composables/useBindingMode";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
+	defaultValue: { type: String, default: undefined },
 	label: { type: String, default: undefined },
 	unit: { type: String, default: undefined },
 	hint: { type: String, default: undefined },
 	error: { type: String, default: undefined },
 });
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-
-const { setContentValue: _setContentValue } = useComponentActions(wf, ssbm);
-
-const component = computed(() => wf.getComponentById(props.componentId));
-const templateField = computed(() => {
-	const type = component.value?.type;
-	if (!type) return;
-	const definition = wf.getComponentDefinition(type);
-	if (!definition) return;
-	return definition.fields[props.fieldKey];
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: toRef(props, "defaultValue"),
 });
-const contentValue = computed(
-	() =>
-		component.value.content[props.fieldKey] ?? templateField.value?.default,
-);
 
-function setContentValue(value: string) {
-	_setContentValue(component.value.id, props.fieldKey, value);
-}
+const { isBindingMode, toggleBindingMode } = useBindingMode({
+	fieldViewModel,
+});
 
 const model = computed<boolean>({
-	get: () => contentValue.value === "yes",
+	get: () => fieldViewModel.value === "yes",
 	set: (checked) => {
-		setContentValue(checked ? "yes" : "no");
+		fieldViewModel.value = checked ? "yes" : "no";
 	},
 });
-
-const isBindingMode = ref<boolean>(
-	typeof contentValue.value === "string" &&
-		!["yes", "no", ""].includes(contentValue.value),
-);
-
-const lastBindingValue = ref("");
-const lastCheckboxValue = ref(model.value ? "yes" : "no");
-
-function toggleBindingMode() {
-	if (isBindingMode.value) {
-		lastBindingValue.value = contentValue.value;
-		setContentValue(lastCheckboxValue.value);
-		isBindingMode.value = false;
-	} else {
-		lastCheckboxValue.value = contentValue.value;
-		setContentValue(lastBindingValue.value);
-		isBindingMode.value = true;
-	}
-}
 </script>
 
 <style scoped>

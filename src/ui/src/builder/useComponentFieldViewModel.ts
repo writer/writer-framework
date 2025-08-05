@@ -6,7 +6,7 @@ import { useComponentActions } from "./useComponentActions";
 type Params = {
 	componentId: MaybeRef<string>;
 	fieldKey: MaybeRef<string>;
-	defaultValue?: MaybeRef<string>;
+	defaultValue: MaybeRef<string | undefined>;
 };
 
 type Dependencies = {

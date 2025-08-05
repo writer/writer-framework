@@ -15,8 +15,8 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, defineAsyncComponent } from "vue";
-import { useComponentActions } from "../useComponentActions";
+import { inject, computed, defineAsyncComponent, toRef } from "vue";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import type { Option } from "@/wds/WdsSelect.vue";
 import { useComponentDescription } from "../useComponentDescription";
@@ -27,15 +27,18 @@ const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
 	error: { type: String, required: false, default: undefined },
 });
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: "",
+});
 
 function* getComponents() {
 	yield wf.getComponentById("root");
@@ -66,10 +69,10 @@ const options = computed<Option[]>(() => {
 	return options;
 });
 
-const selected = computed<string>({
-	get: () => component.value.content[props.fieldKey] ?? "",
+const selected = computed<string, string | string[]>({
+	get: () => fieldViewModel.value,
 	set(value) {
-		setContentValue(component.value.id, fieldKey.value, String(value));
+		fieldViewModel.value = String(value);
 	},
 });
 

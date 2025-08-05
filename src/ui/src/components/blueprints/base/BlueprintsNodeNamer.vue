@@ -22,31 +22,29 @@
 				@blur="handleAliasChange"
 				@keydown.enter="handleAliasChange"
 			>
-				{{ aliasFieldValue }}
+				{{ aliasFieldViewModel }}
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, useTemplateRef } from "vue";
-import { useComponentActions } from "@/builder/useComponentActions";
+import { computed, nextTick, ref, toRef, useTemplateRef } from "vue";
+import { useComponentFieldViewModel } from "@/builder/useComponentFieldViewModel";
 import { Component } from "@/writerTypes";
-import injectionKeys from "@/injectionKeys";
 
 const props = defineProps<{
 	componentId: Component["id"];
 	blockName: string;
 }>();
 
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
+const aliasFieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: "alias",
+	defaultValue: "",
+});
 
-const aliasFieldValue = computed(
-	() => wf.getComponentById(props.componentId)?.content["alias"],
-);
-const isAliased = computed(() => Boolean(aliasFieldValue.value));
+const isAliased = computed(() => Boolean(aliasFieldViewModel.value));
 const aliasEditorEl = useTemplateRef("aliasEditorEl");
 const isAliasBeingEdited = ref(false);
 
@@ -70,7 +68,7 @@ function handleAliasChange() {
 	const newValue = aliasEditorEl.value.textContent;
 	aliasEditorEl.value.blur();
 	isAliasBeingEdited.value = false;
-	setContentValue(props.componentId, "alias", newValue);
+	aliasFieldViewModel.value = newValue;
 }
 
 function handleAliasEditorMousemove(ev: MouseEvent) {

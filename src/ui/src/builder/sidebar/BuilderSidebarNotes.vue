@@ -6,6 +6,7 @@ import BuilderSidebarNote from "./BuilderSidebarNote.vue";
 import BuilderSidebarNotesEmpty from "./BuilderSidebarNotesEmpty.vue";
 import BuilderSidebarNoteForm from "./BuilderSidebarNoteForm.vue";
 import { useComponentActions } from "../useComponentActions";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { ComponentNote, ComponentNoteDraft } from "@/core/useNotesManager";
 
 const wf = inject(injectionKeys.core);
@@ -22,10 +23,13 @@ const {
 	useNoteInformation,
 } = inject(injectionKeys.notesManager);
 
-const { setContentValue, createAndInsertComponent } = useComponentActions(
-	wf,
-	wfbm,
-);
+const { createAndInsertComponent } = useComponentActions(wf, wfbm);
+
+const contentFieldViewModel = useComponentFieldViewModel({
+	componentId: selectedNoteId,
+	fieldKey: "content",
+	defaultValue: "",
+});
 
 const query = ref("");
 
@@ -52,7 +56,7 @@ function getNoteState(component: ComponentNote | ComponentNoteDraft) {
 
 function onSaveNoteContent(content: string) {
 	if (wf.getComponentById(selectedNoteId.value)) {
-		setContentValue(selectedNoteId.value, "content", content);
+		contentFieldViewModel.value = content;
 	} else {
 		createAndInsertComponent(
 			selectedNote.value.type,

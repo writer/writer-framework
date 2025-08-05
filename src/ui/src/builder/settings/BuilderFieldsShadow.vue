@@ -92,7 +92,7 @@
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
+				:value="fieldViewModel"
 				:error="error"
 				@input="handleCSSInput"
 			/>
@@ -103,29 +103,23 @@
 <script setup lang="ts">
 import {
 	computed,
-	inject,
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
 	PropType,
 	Ref,
 	ref,
-	toRefs,
+	toRef,
 	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import {
 	BuilderFieldCssMode as Mode,
 	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
 } from "./constants/builderFieldsCssTabs";
-
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl = useTemplateRef("rootEl");
 const freehandInputEl = useTemplateRef("freehandInputEl");
@@ -147,14 +141,18 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: "",
+});
 
 const boxShadowRegex =
 	/^(?<offsetX>[0-9]+)px (?<offsetY>[0-9]+)px (?<blurRadius>[0-9]+)px (?<spreadRadius>[0-9-]+)px (?<color>#[A-Fa-f0-9]{6})$/;
 
 const getInitialMode = (): Mode => {
-	const value = component.value.content[fieldKey.value];
+	const value = fieldViewModel.value;
+
 	if (!value) return "default";
 	const bIsHex = boxShadowRegex.test(value);
 	if (bIsHex) return "pick";
@@ -179,7 +177,7 @@ const setMode = async (newMode: Mode) => {
 	autofocus();
 
 	if (newMode === "default") {
-		setContentValue(component.value.id, fieldKey.value, undefined);
+		fieldViewModel.value = "";
 	}
 };
 
@@ -190,21 +188,15 @@ const handleInput = () => {
 	const spreadRadius = paramSpreadRadiusEl.value.value;
 	const color = paramColorEl.value.value;
 	const boxShadowCSS = `${offsetX}px ${offsetY}px ${blurRadius}px ${spreadRadius}px ${color}`;
-	setContentValue(component.value.id, fieldKey.value, boxShadowCSS);
+	fieldViewModel.value = boxShadowCSS;
 };
 
 const handleCSSInput = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value,
-	);
+	fieldViewModel.value = (ev.target as HTMLInputElement).value;
 };
 
 const parsedValue = computed(() => {
-	const value = component.value.content[fieldKey.value];
-	const match = value?.match(boxShadowRegex)?.groups;
-	return match;
+	return fieldViewModel.value.match(boxShadowRegex).groups;
 });
 
 onMounted(() => {
