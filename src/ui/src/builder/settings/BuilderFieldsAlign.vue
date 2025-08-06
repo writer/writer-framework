@@ -44,7 +44,6 @@ import {
 	Ref,
 	ref,
 	toRef,
-	toRefs,
 	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
@@ -150,8 +149,6 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
-const { direction } = toRefs(props);
-
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
@@ -159,8 +156,8 @@ const fieldViewModel = useComponentFieldViewModel({
 });
 
 const subModes: ComputedRef<SubModes> = computed(() => {
-	if (direction.value == "vertical") return verticalSubmodes;
-	if (direction.value == "horizontal") return horizontalSubmodes;
+	if (props.direction == "vertical") return verticalSubmodes;
+	if (props.direction == "horizontal") return horizontalSubmodes;
 	return verticalSubmodes;
 });
 
