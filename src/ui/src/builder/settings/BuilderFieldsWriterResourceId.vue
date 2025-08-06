@@ -71,7 +71,6 @@ const BuilderModelSelect = defineAsyncComponent(
 const props = defineProps({
 	componentId: { type: String, required: true },
 	fieldKey: { type: String, required: true },
-	defaultValue: { type: String, required: false, default: undefined },
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
 	hint: { type: String, required: false, default: undefined },
@@ -87,7 +86,6 @@ const props = defineProps({
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue: toRef(props, "defaultValue"),
 });
 
 const { isBindingMode, toggleBindingMode } = useBindingMode({
@@ -97,7 +95,6 @@ const { isBindingMode, toggleBindingMode } = useBindingMode({
 const appInputsViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: "appInputs",
-	defaultValue: "",
 });
 
 const selectorEl = useTemplateRef("selectorEl");

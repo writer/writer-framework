@@ -41,7 +41,6 @@ const props = defineProps<{
 const aliasFieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: "alias",
-	defaultValue: "",
 });
 
 const isAliased = computed(() => Boolean(aliasFieldViewModel.value));

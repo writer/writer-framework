@@ -22,7 +22,6 @@ const props = defineProps({
 const selectedHandler = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue: "",
 });
 
 const options = computed<Option[]>(() => {

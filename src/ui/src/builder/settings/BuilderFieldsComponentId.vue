@@ -37,7 +37,6 @@ const props = defineProps({
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue: "",
 });
 
 function* getComponents() {

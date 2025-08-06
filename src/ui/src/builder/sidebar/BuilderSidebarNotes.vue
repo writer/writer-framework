@@ -28,7 +28,6 @@ const { createAndInsertComponent } = useComponentActions(wf, wfbm);
 const contentFieldViewModel = useComponentFieldViewModel({
 	componentId: selectedNoteId,
 	fieldKey: "content",
-	defaultValue: "",
 });
 
 const query = ref("");

@@ -37,7 +37,6 @@ const props = defineProps({
 const selectedBlueprintKey = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue: "",
 });
 
 const options = computed<Option[]>(() => {

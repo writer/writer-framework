@@ -1,12 +1,12 @@
 import { computed, inject, MaybeRef, toValue } from "vue";
-import { BuilderManager, Core } from "@/writerTypes";
+import { BuilderManager, Component, Core } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { useComponentActions } from "./useComponentActions";
 
 type Params = {
 	componentId: MaybeRef<string>;
 	fieldKey: MaybeRef<string>;
-	defaultValue: MaybeRef<string | undefined>;
+	defaultValue?: MaybeRef<string | undefined>;
 };
 
 type Dependencies = {
@@ -29,11 +29,30 @@ export function useComponentFieldViewModel(
 		throw new Error("Missing builderManager injection.");
 	}
 
-	const { setContentValue } = useComponentActions(wf, ssbm);
+	const component = computed<Component>(() => {
+		const id = toValue(params.componentId);
+		const comp = wf.getComponentById(id);
 
-	const component = computed(() => {
-		return wf.getComponentById(toValue(params.componentId));
+		if (!comp) {
+			throw new Error(`Component with id "${id}" not found`);
+		}
+
+		return comp;
 	});
+
+	const fallbackValue = computed<string>(() => {
+		const defaultValue = toValue(params.defaultValue);
+
+		if (typeof defaultValue === "string") {
+			return defaultValue;
+		}
+
+		const compDef = wf.getComponentDefinition(component.value.type);
+
+		return compDef?.fields?.[toValue(params.fieldKey)]?.default ?? "";
+	});
+
+	const { setContentValue } = useComponentActions(wf, ssbm);
 
 	function setFieldValue(value: string) {
 		setContentValue(component.value.id, toValue(params.fieldKey), value);
@@ -42,8 +61,7 @@ export function useComponentFieldViewModel(
 	const fieldValue = computed<string>(() => {
 		return (
 			component.value.content[toValue(params.fieldKey)] ||
-			toValue(params.defaultValue) ||
-			""
+			fallbackValue.value
 		);
 	});
 

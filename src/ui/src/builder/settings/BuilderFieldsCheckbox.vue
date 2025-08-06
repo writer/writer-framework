@@ -55,7 +55,6 @@ import BuilderFieldsText from "./BuilderFieldsText.vue";
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
-	defaultValue: { type: String, default: undefined },
 	label: { type: String, default: undefined },
 	unit: { type: String, default: undefined },
 	hint: { type: String, default: undefined },
@@ -65,7 +64,6 @@ const props = defineProps({
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue: toRef(props, "defaultValue"),
 });
 
 const { isBindingMode, toggleBindingMode } = useBindingMode({

@@ -195,16 +195,15 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 			fieldType == FieldType.Tools
 		) {
 			if (!evaluated) {
-				return JSON.parse(defaultValue ?? null);
+				return JSON.parse(defaultValue || null);
 			}
 			if (typeof evaluated !== "string") return evaluated;
-			let parsedValue: any;
+
 			try {
-				parsedValue = JSON.parse(evaluated);
+				return JSON.parse(evaluated);
 			} catch {
-				return JSON.parse(defaultValue ?? null);
+				return JSON.parse(defaultValue || null);
 			}
-			return parsedValue;
 		} else if (fieldType == FieldType.Number) {
 			const floatDefaultValue =
 				defaultValue === null ? null : parseFloat(defaultValue);
@@ -220,7 +219,7 @@ export function useEvaluator(wf: Core, secretsManager?: SecretsManager) {
 		} else if (fieldType == FieldType.IdKey) {
 			return contentValue;
 		} else {
-			if (isValueEmpty) return defaultValue ?? "";
+			if (isValueEmpty) return defaultValue || "";
 			return evaluated;
 		}
 	}
