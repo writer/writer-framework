@@ -23,6 +23,9 @@ globalThis.core = wf;
 
 const logger = useLogger();
 
+const RECONNECT_DELAY_MS = 5000;
+const MAX_RETRIES = 5;
+
 async function load() {
 	await wf.init();
 
@@ -83,8 +86,43 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	});
 }
 
+async function initialise() {
+	for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+		try {
+			await load();
+			return;
+		} catch (reason) {
+			if (
+				reason?.message?.includes(
+					"WebSocket connection closed before establishing",
+				) &&
+				attempt < MAX_RETRIES - 1
+			) {
+				logger.warn(
+					"WebSocket connection closed before establishing. Retrying...",
+				);
+				const appEl = document.getElementById("app");
+				if (appEl && !document.getElementById("loading_message")) {
+					const message = document.createElement("div");
+					message.id = "loading_message";
+					message.textContent =
+						"We're getting things ready. Hang tight while we connect...";
+					message.style.cssText =
+						"text-align:center;margin-top:16px;font-family: 'Poppins','Helvetica Neue','Lucida Grande',sans-serif;";
+					appEl.appendChild(message);
+				}
+				await new Promise((r) =>
+					setTimeout(r, RECONNECT_DELAY_MS * (attempt + 1)),
+				);
+				continue;
+			}
+			throw reason;
+		}
+	}
+}
+
 logger.log("Initialising core...");
-load()
+initialise()
 	.then(async () => {
 		logger.log("Core initialised.");
 	})
@@ -93,7 +131,8 @@ load()
 		const errorDiv = document.createElement("div");
 		errorDiv.className = "error-message";
 		errorDiv.setAttribute("role", "alert");
-		errorDiv.style.cssText = "padding: 20px; color: #d32f2f; background: #ffebee; border: 1px solid #e57373; border-radius: 4px; margin: 20px; font-family: \"Poppins\", \"Helvetica Neue\", \"Lucida Grande\", sans-serif;";
+		errorDiv.style.cssText =
+			'padding: 20px; color: #d32f2f; background: #ffebee; border: 1px solid #e57373; border-radius: 4px; margin: 20px; font-family: "Poppins", "Helvetica Neue", "Lucida Grande", sans-serif;';
 
 		const message = document.createElement("div");
 		message.textContent =
@@ -107,7 +146,8 @@ load()
 
 		const reloadButton = document.createElement("button");
 		reloadButton.textContent = "Reload page";
-		reloadButton.className = "WdsButton WdsButton--small WdsButton--tertiary";
+		reloadButton.className =
+			"WdsButton WdsButton--small WdsButton--tertiary";
 		reloadButton.style.cssText =
 			"margin-top: 16px; font-size: .875rem; font-weight: 600; border-radius: 300px; padding: 4px 16px; height: 32px; background: var(--wdsColorWhite); color: var(--wdsColorBlack); border-color: var(--wdsColorGray2); border-width: 1px; border-style: solid; box-shadow: var(--buttonShadow); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; outline: none; position: relative; overflow: hidden; max-width: 100%; width: fit-content;";
 		reloadButton.onclick = () => window.location.reload();
