@@ -1,11 +1,6 @@
 <template>
 	<div class="BuilderFieldsText" :data-automation-key="props.fieldKey">
-		<template
-			v-if="
-				!templateField.control ||
-				templateField.control == FieldControl.Text
-			"
-		>
+		<template v-if="fieldControl == FieldControl.Text">
 			<BuilderTemplateInput
 				class="content"
 				:component-id="componentId"
@@ -19,7 +14,7 @@
 				@input="handleInput"
 			/>
 		</template>
-		<template v-else-if="templateField.control == FieldControl.Textarea">
+		<template v-else-if="fieldControl == FieldControl.Textarea">
 			<BuilderTemplateInput
 				multiline
 				variant="text"
@@ -49,6 +44,12 @@ const wf = inject(injectionKeys.core);
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
+	fieldControl: {
+		type: String as PropType<FieldControl>,
+		required: false,
+		default: FieldControl.Text,
+	},
+	defaultValue: { type: String, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	type: {
@@ -58,18 +59,10 @@ const props = defineProps({
 	},
 });
 
-const templateField = computed(() => {
-	const { type } = wf.getComponentById(props.componentId);
-	const definition = wf.getComponentDefinition(type);
-	return definition.fields[props.fieldKey];
-});
-
-const defaultValue = computed(() => templateField.value.default ?? "");
-
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
-	defaultValue,
+	defaultValue: toRef(props, "defaultValue"),
 });
 
 const inputId = computed(() => `${props.componentId}-${props.fieldKey}`);
@@ -109,7 +102,10 @@ const predefinedOptionFns = {
 };
 
 const options = computed(() => {
-	const field = templateField.value;
+	const component = wf.getComponentById(props.componentId);
+	const componentDefinition = wf.getComponentDefinition(component.type);
+	const field = componentDefinition.fields[props.fieldKey];
+
 	if (!field.options) return {};
 	if (typeof field.options === "function") {
 		return field.options(wf, props.componentId);

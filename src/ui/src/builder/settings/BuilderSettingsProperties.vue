@@ -136,7 +136,9 @@
 								: 'template'
 						"
 						:field-key="fieldKey"
+						:field-control="fieldValue.control"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 					/>
 

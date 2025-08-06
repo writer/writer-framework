@@ -19,6 +19,7 @@
 				:component-id
 				:field-key
 				:error
+				default-value=""
 			/>
 			<component
 				:is="selector"

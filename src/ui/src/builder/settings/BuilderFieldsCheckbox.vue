@@ -15,6 +15,7 @@
 			:component-id
 			:field-key
 			:error
+			default-value=""
 		/>
 	</WdsFieldWrapper>
 	<div
