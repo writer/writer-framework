@@ -54,7 +54,8 @@ const recognisedEvents: ComputedRef<WriterComponentDefinition["events"]> =
 	computed(() => {
 		if (!component.value) return {};
 		const { type } = component.value;
-		const { events: supportedEvents } = wf.getComponentDefinition(type);
+		const componentDefinition = wf.getComponentDefinition(type);
+		const supportedEvents = componentDefinition?.events ?? {};
 
 		const entries = Object.entries(supportedEvents).filter(([_, v]) => {
 			if (v.enabled === undefined) return true;
