@@ -46,6 +46,7 @@ async function goToComponent() {
 		class="BuilderStateSelectorDropdownItemComponent"
 		:option="option"
 		:selected="selected"
+		show-custom-action
 		@mousemove="isHovered = true"
 		@mouseout="isHovered = false"
 	>

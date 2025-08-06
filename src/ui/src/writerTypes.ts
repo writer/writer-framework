@@ -103,6 +103,13 @@ export type WriterComponentDefinitionEvent = {
 	enabled?: WriterComponentDefinitionPropEnabled;
 };
 
+export type WriterComponentDefinitionOut = {
+	name: string;
+	description: string;
+	style: string;
+	field?: keyof WriterComponentDefinition["fields"];
+};
+
 export type WriterComponentDefinition = {
 	name: string; // Display name for the component
 	description: string; // Short description
@@ -123,15 +130,7 @@ export type WriterComponentDefinition = {
 	>;
 	previewField?: string; // Which field to use for previewing in the Component Tree
 	positionless?: boolean; // Whether this type of component is positionless (like Sidebar)
-	outs?: Record<
-		string,
-		{
-			name: string;
-			description: string;
-			style: string;
-			field?: keyof WriterComponentDefinition["fields"];
-		}
-	>;
+	outs?: Record<string, WriterComponentDefinitionOut>;
 	featureFlags?: string[];
 	settingsArtifacts?: {
 		key: string;

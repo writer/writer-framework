@@ -22,6 +22,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-automation-key="setState"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
+      style="grid-template-columns: auto minmax(0, 1fr) auto;"
     >
       
       <div
@@ -46,14 +47,6 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
           setState
         </span>
         <!--v-if-->
-      </div>
-      <div
-        class="WdsDropdownMenuItem__detail"
-        data-v-eb3dac76=""
-        data-writer-tooltip="Fallback Component"
-        data-writer-tooltip-strategy="overflow"
-      >
-        Fallback Component
       </div>
       <div
         class="WdsDropdownMenuItem__action"
@@ -81,6 +74,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-automation-key="binding"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
+      style="grid-template-columns: auto minmax(0, 1fr) auto;"
     >
       
       <div
@@ -105,14 +99,6 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
           binding
         </span>
         <!--v-if-->
-      </div>
-      <div
-        class="WdsDropdownMenuItem__detail"
-        data-v-eb3dac76=""
-        data-writer-tooltip="Fallback Component"
-        data-writer-tooltip-strategy="overflow"
-      >
-        Fallback Component
       </div>
       <div
         class="WdsDropdownMenuItem__action"
@@ -141,6 +127,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-automation-key="vault.apiKey"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
+      style="grid-template-columns: auto minmax(0, 1fr);"
     >
       
       <div
@@ -172,13 +159,6 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <!--v-if-->
-      <div
-        class="WdsDropdownMenuItem__action"
-        data-v-eb3dac76=""
-      >
-        
-        
-      </div>
     </button>
     
   </div>
@@ -198,6 +178,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       data-automation-key="state"
       data-v-eb3dac76=""
       data-v-ee0f150a=""
+      style="grid-template-columns: auto minmax(0, 1fr);"
     >
       
       <div
@@ -229,13 +210,6 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <!--v-if-->
-      <div
-        class="WdsDropdownMenuItem__action"
-        data-v-eb3dac76=""
-      >
-        
-        
-      </div>
     </button>
     
   </div>

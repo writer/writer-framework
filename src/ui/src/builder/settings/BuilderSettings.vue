@@ -97,7 +97,6 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { SelectionStatus } from "../builderManager";
 import { useButtonClipboard } from "../useButtonClipboard";
-import { COMPONENT_TYPES_PAGE } from "@/constants/component";
 import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderSettingsActions from "./BuilderSettingsActions.vue";
@@ -106,25 +105,17 @@ import {
 	useBuilderSettingsActions,
 } from "./useBuilderSettingsActions";
 import BuilderSettingsAddComponentModal from "./BuilderSettingsAddComponentModal.vue";
+import { useComponentInformation } from "@/composables/useComponentInformation";
+import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 
-const component = computed(() =>
-	wf.getComponentById(ssbm.firstSelectedId.value),
+const { component, definition: componentDefinition } = useComponentInformation(
+	wf,
+	ssbm.firstSelectedId,
 );
-
-const resultId = computed(() => {
-	const componentType = component.value?.type;
-
-	const hasResultId =
-		componentType &&
-		!COMPONENT_TYPES_PAGE.has(componentType) &&
-		component.value?.type.startsWith("blueprints_") &&
-		componentDefinition.value?.outs?.["success"] !== undefined;
-
-	return hasResultId ? `@{results.${component.value.id}}` : "";
-});
+const resultId = useBlueprintComponentResultId(component, componentDefinition);
 
 const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
 	useButtonClipboard(resultId);
@@ -153,12 +144,6 @@ const selectionCount = computed(() => ssbm.selection.value.length);
 function toggleSettings() {
 	ssbm.isSettingsBarCollapsed.value = !ssbm.isSettingsBarCollapsed.value;
 }
-
-const componentDefinition = computed(() => {
-	const { type } = component.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition;
-});
 
 watch(component, (newComponent) => {
 	if (!newComponent) ssbm.setSelection(null);

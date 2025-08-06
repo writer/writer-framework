@@ -14,13 +14,13 @@
 	>
 		<div
 			v-if="isIntelligent && completionStyle === null"
-			class="side"
+			class="BlueprintsNode__side"
 		></div>
-		<div class="extraBorder">
+		<div class="BlueprintsNode__extraBorder">
 			<div v-if="completionStyle == 'running'" class="runner"></div>
 		</div>
-		<div class="main">
-			<div class="title">
+		<div class="BlueprintsNode__main">
+			<div class="BlueprintsNode__main__title">
 				<SharedImgWithFallback :urls="possibleImageUrls" class="icon" />
 				<BlueprintsNodeNamer
 					:component-id="componentId"
@@ -30,51 +30,76 @@
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
 				</div>
+				<BlueprintsNodeActions
+					v-if="isTrigger"
+					:show-display-error-option="canDisplayErrorOut"
+					@show-error="forceDisplayErrorOut = true"
+				/>
 			</div>
 			<div
 				v-for="(outs, fieldKey) in dynamicOuts"
 				:key="fieldKey"
-				class="outputs"
+				class="BlueprintsNode__main__outputs"
 			>
-				<h4 v-if="def.fields?.[fieldKey]">
+				<h4
+					v-if="def.fields?.[fieldKey]"
+					class="BlueprintsNode__main__outputs__title"
+				>
 					{{ def.fields[fieldKey].name }}
 				</h4>
-				<div v-for="(out, outId) in outs" :key="outId" class="output">
-					{{ out.name }}
-					<div
-						class="ball"
-						:class="out.style"
-						:data-writer-socket-id="outId"
-						:data-writer-unselectable="true"
-						@click.capture.stop
-						@mousedown.capture="
-							(ev: DragEvent) => handleOutMousedown(ev, outId)
-						"
-					></div>
-				</div>
+				<BlueprintsNodeOutput
+					v-for="(out, outId) in outs"
+					:key="outId"
+					class="BlueprintsNode__main__outputs__output"
+					:out-id="outId"
+					:out="out"
+					display-label
+					@click="$emit('outMousedown', outId)"
+				/>
 				<div v-if="Object.keys(outs).length == 0">None configured.</div>
 			</div>
-			<div class="outputs">
-				<div
-					v-for="(out, outId) in { ...staticOuts, ...unknownOuts }"
-					:key="outId"
-					class="output"
+			<div
+				v-if="Object.keys(staticOuts).length > 0"
+				class="BlueprintsNode__main__outputs"
+				:class="{
+					'BlueprintsNode__main__outputs--float':
+						hasOnlySuccessOut && !isTrigger,
+				}"
+			>
+				<h4
+					v-if="
+						!hasOnlySuccessOut &&
+						Object.keys(dynamicOuts).length > 0
+					"
+					class="BlueprintsNode__main__outputs__title"
 				>
-					<template v-if="outId !== 'trigger'">
-						{{ out.name }}
-					</template>
-					<div
-						class="ball"
-						:class="out.style"
-						:data-writer-socket-id="outId"
-						:data-writer-unselectable="true"
-						@click.capture.stop
-						@mousedown.capture="
-							(ev: DragEvent) => handleOutMousedown(ev, outId)
-						"
-					></div>
-				</div>
+					THEN
+				</h4>
+				<BlueprintsNodeOutput
+					v-for="(out, outId) in staticOuts"
+					:key="outId"
+					class="BlueprintsNode__main__outputs__output"
+					:out-id="outId"
+					:out="out"
+					:display-label="!hasOnlySuccessOut"
+					@click="$emit('outMousedown', outId)"
+				/>
+				<BlueprintsNodeOutput
+					v-for="(out, outId) in unknownOuts"
+					:key="outId"
+					class="BlueprintsNode__main__outputs__output"
+					:out-id="outId"
+					:out="out"
+					display-label
+					@click="$emit('outMousedown', outId)"
+				/>
 			</div>
+			<BlueprintsNodeActions
+				v-if="!isTrigger"
+				class="BlueprintsNode__main__footer"
+				:show-display-error-option="canDisplayErrorOut"
+				@show-error="forceDisplayErrorOut = true"
+			/>
 		</div>
 	</div>
 </template>
@@ -97,14 +122,18 @@ export default {
 	},
 };
 </script>
+
 <script setup lang="ts">
-import { computed, inject, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
 import { useComponentActions } from "@/builder/useComponentActions";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
+import { useComponentInformation } from "@/composables/useComponentInformation";
+import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
+import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -112,15 +141,6 @@ const wfbm = inject(injectionKeys.builderManager);
 const { removeOut } = useComponentActions(wf, wfbm);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
-
-const component = computed(() => {
-	const component = wf.getComponentById(componentId);
-	return component;
-});
-
-const def = computed(() => {
-	return wf?.getComponentDefinition(component.value?.type);
-});
 
 const isTrigger = computed(() => {
 	return def?.value?.category == "Triggers";
@@ -133,6 +153,8 @@ const isIntelligent = computed(() => {
 const isDeprecated = computed(() => {
 	return def?.value?.deprecated;
 });
+
+const { component, definition: def } = useComponentInformation(wf, componentId);
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
@@ -194,14 +216,45 @@ const isEngaged = computed(() => {
 	return isSelected;
 });
 
-const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
-	const processedOuts = {};
-	Object.entries(def.value.outs ?? {}).forEach(([outId, out]) => {
-		if (out.style == "dynamic") return;
-		processedOuts[outId] = out;
-	});
-	return processedOuts;
+const forceDisplayErrorOut = ref(false);
+
+const canDisplayErrorOut = computed(() => {
+	if (!hasErrorOut.value) return false;
+	if (shouldDisplayError.value) return false;
+	return !forceDisplayErrorOut.value;
 });
+
+const hasErrorOut = computed(() => def.value?.outs?.["error"] !== undefined);
+
+const shouldDisplayError = computed(() => {
+	if (!hasErrorOut.value) return false;
+
+	const isConnected = component.value.outs?.some((o) => o.outId === "error");
+
+	if (isConnected) return true;
+
+	return forceDisplayErrorOut.value;
+});
+
+const hasOnlySuccessOut = computed(() => {
+	if (Object.keys(dynamicOuts.value ?? {}).length > 0) return false;
+	if (Object.keys(unknownOuts.value ?? {}).length > 0) return false;
+	if (Object.keys(staticOuts.value ?? {}).length > 1) return false;
+	return true;
+});
+
+const staticOuts = computed<WriterComponentDefinition["outs"]>(() => {
+	return Object.entries(def.value.outs ?? {}).reduce<
+		WriterComponentDefinition["outs"]
+	>((acc, [outId, out]) => {
+		if (out.style == "dynamic") return acc;
+
+		if (outId === "error" && !shouldDisplayError.value) return acc;
+
+		acc[outId] = out;
+		return acc;
+	}, {});
+}, {});
 
 const unknownOuts = computed<WriterComponentDefinition["outs"]>(() => {
 	const knownsOutIds = new Set([
@@ -282,11 +335,6 @@ watch(
 	{ immediate: true },
 );
 
-function handleOutMousedown(ev: DragEvent, outId: string | number) {
-	ev.stopPropagation();
-	emit("outMousedown", outId);
-}
-
 const possibleImageUrls = computed(() => {
 	if (
 		["success", "error", "skipped", "stopped"].includes(
@@ -358,7 +406,7 @@ watch(isEngaged, () => {
 	}
 }
 
-.side {
+.BlueprintsNode__side {
 	position: absolute;
 	border-radius: 8px 0 0 8px;
 	left: 0;
@@ -375,7 +423,7 @@ watch(isEngaged, () => {
 	pointer-events: none;
 }
 
-.extraBorder {
+.BlueprintsNode__extraBorder {
 	height: 100%;
 	width: 100%;
 	border-radius: 8px;
@@ -385,22 +433,22 @@ watch(isEngaged, () => {
 	left: 0;
 }
 
-.BlueprintsNode:hover .extraBorder {
+.BlueprintsNode:hover .BlueprintsNode__extraBorder {
 	background-color: var(--wdsColorBlue2);
 }
 
-.BlueprintsNode--intelligent:hover .extraBorder {
+.BlueprintsNode--intelligent:hover .BlueprintsNode__extraBorder {
 	background: var(
 		--Gradients-Summer-Dawn-2,
 		linear-gradient(0deg, #ffd5f8 0.01%, #bfcbff 99.42%)
 	);
 }
 
-.BlueprintsNode.selected.component .extraBorder {
+.BlueprintsNode.selected.component .BlueprintsNode__extraBorder {
 	background: var(--wdsColorBlue4);
 }
 
-.extraBorder .runner {
+.BlueprintsNode__extraBorder .runner {
 	height: 200%;
 	width: 200%;
 	position: absolute;
@@ -411,47 +459,56 @@ watch(isEngaged, () => {
 	animation: spin 1.5s linear infinite;
 }
 
-.BlueprintsNode--intelligent .extraBorder .runner {
+.BlueprintsNode--intelligent .BlueprintsNode__extraBorder .runner {
 	background: conic-gradient(#6985ff, #ffd5f8, #bfcbff);
 }
 
-.main {
+.BlueprintsNode__main {
 	position: relative;
 	margin: 2px;
 	background: var(--builderBackgroundColor);
 	border-radius: 6px;
 }
 
-.BlueprintsNode--intelligent .main {
+.BlueprintsNode--intelligent .BlueprintsNode__main {
 	margin-left: 8px;
 	border-radius: 0 6px 6px 0;
 }
 
 .BlueprintsNode--trigger,
-.BlueprintsNode--trigger .main,
-.BlueprintsNode--trigger .extraBorder {
+.BlueprintsNode--trigger .BlueprintsNode__main,
+.BlueprintsNode--trigger .BlueprintsNode__extraBorder {
 	border-radius: 36px;
 }
 
-.title {
+.BlueprintsNode__main__title {
 	display: grid;
 	gap: 10px;
-	padding: 12px;
 	border-radius: 12px 12px 0 0;
 	align-items: center;
-	grid-template-columns: 24px 1fr;
+	grid-template-columns: 24px 1fr auto;
+	border-bottom: 1px solid var(--builderSeparatorColor);
 }
 
-.BlueprintsNode--intelligent .title {
+.BlueprintsNode--trigger .BlueprintsNode__main__title {
+	border-bottom: unset;
+}
+.BlueprintsNode__main__title,
+.BlueprintsNode__main__footer {
+	padding: 12px;
+}
+
+.BlueprintsNode--intelligent .BlueprintsNode__main__title,
+.BlueprintsNode--intelligent .BlueprintsNode__main__footer {
 	padding-left: 6px;
 }
 
-.title img {
+.BlueprintsNode__main__title img {
 	width: 24px;
 	height: 24px;
 }
 
-.title .deprecationNotice {
+.BlueprintsNode__main__title .deprecationNotice {
 	font-size: 12px;
 	text-transform: uppercase;
 	font-size: 12px;
@@ -462,7 +519,7 @@ watch(isEngaged, () => {
 	color: var(--builderSecondaryTextColor);
 }
 
-.BlueprintsNode--trigger .title img {
+.BlueprintsNode--trigger .BlueprintsNode__main__title img {
 	border-radius: 50%;
 }
 
@@ -474,17 +531,35 @@ watch(isEngaged, () => {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.outputs {
+.BlueprintsNode__main__outputs {
 	border-radius: 0 0 12px 12px;
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	gap: 8px;
-	padding: 12px 0 12px 16px;
-	border-top: 1px solid var(--builderSeparatorColor);
+	padding-left: 6px;
+	padding-top: 12px;
+	padding-bottom: 12px;
 	font-size: 12px;
 }
 
-.BlueprintsNode--trigger .outputs {
+.BlueprintsNode__main__outputs__title {
+	grid-column: 1;
+	color: var(--wdsColorGray4);
+	text-transform: uppercase;
+	font-weight: 500;
+}
+.BlueprintsNode__main__outputs__output {
+	grid-column: 2;
+}
+.BlueprintsNode__main__outputs--float {
+	position: absolute;
+	right: 0;
+	bottom: 48px;
+	padding: 0;
+	border-top: none;
+}
+
+.BlueprintsNode--trigger .BlueprintsNode__main__outputs {
 	border: none;
 	position: absolute;
 	right: 0;
@@ -495,43 +570,12 @@ watch(isEngaged, () => {
 	justify-content: center;
 }
 
-.output {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	justify-content: right;
-	font-size: 12px;
-	font-style: normal;
-	font-weight: 400;
-	color: var(--wdsColorGray5);
-	font-feature-settings:
-		"liga" off,
-		"clig" off;
+.BlueprintsNode__main__footer {
+	border-top: 1px solid var(--builderSeparatorColor);
 }
-
-.output .ball {
-	margin-right: -9px;
-	height: 16px;
-	width: 16px;
-	border-radius: 50%;
-	border: 1px solid var(--builderBackgroundColor);
-	cursor: pointer;
-}
-
-.output .ball.success {
-	background: var(--wdsColorGreen5);
-}
-
-.output .ball.error {
-	background: var(--wdsColorOrange5);
-}
-
-.output .ball.dynamic {
-	background: var(--wdsColorPurple4);
-}
-
-.output .ball.branching {
-	background: var(--wdsColorPurple4);
+.BlueprintsNode:has(.BlueprintsNode__main__outputs--float)
+	.BlueprintsNode__main__footer {
+	border-top: none;
 }
 
 @keyframes spin {

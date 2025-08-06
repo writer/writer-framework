@@ -1,4 +1,4 @@
-import { computed } from "vue";
+import { computed, MaybeRef, unref } from "vue";
 import { useComponentActions } from "../useComponentActions";
 import { Core, BuilderManager } from "@/writerTypes";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
@@ -17,11 +17,26 @@ export enum BuilderSettingsDropdownActions {
 	Delete = "delete",
 }
 
+export function isBuilderSettingsDropdownAction(
+	value: unknown,
+): value is BuilderSettingsDropdownActions {
+	return (
+		typeof value === "string" &&
+		Object.values(BuilderSettingsDropdownActions).includes(
+			value as BuilderSettingsDropdownActions,
+		)
+	);
+}
+
+/**
+ * @param targetComponent specific the component that will be used for actions
+ */
 export function useBuilderSettingsActions(
 	wf: Core,
-	ssbm: BuilderManager,
+	wfbm: BuilderManager,
 	tracking?: ReturnType<typeof useWriterTracking>,
 	callbacks: Partial<Record<BuilderSettingsDropdownActions, () => void>> = {},
+	targetComponent?: MaybeRef<{ instancePath: string; componentId: string }>,
 ) {
 	const {
 		moveComponentUp,
@@ -38,49 +53,59 @@ export function useBuilderSettingsActions(
 		getEnabledMoves,
 		removeComponentsSubtree,
 		goToParent,
-	} = useComponentActions(wf, ssbm, tracking);
+	} = useComponentActions(wf, wfbm, tracking);
 
 	const toasts = useToasts();
 
-	const selectedId = ssbm.firstSelectedId;
-	const selectedInstancePath = computed(
-		() => ssbm.firstSelectedItem.value?.instancePath,
-	);
+	const componentId = computed(() => {
+		return targetComponent
+			? unref(targetComponent).componentId
+			: wfbm.firstSelectedId.value;
+	});
+	const instancePath = computed(() => {
+		return targetComponent
+			? unref(targetComponent).instancePath
+			: wfbm.firstSelectedItem.value.instancePath;
+	});
 
 	const shortcutsInfo = computed(() => {
-		const component = wf.getComponentById(selectedId.value);
+		const component = wf.getComponentById(componentId.value);
 		if (!component) return {};
 		const { up: isMoveUpEnabled, down: isMoveDownEnabled } =
-			getEnabledMoves(selectedId.value);
+			getEnabledMoves(componentId.value);
 		return {
-			isAddEnabled: isAddAllowed(selectedId.value),
+			isAddEnabled: isAddAllowed(componentId.value),
 			componentTypeName: wf.getComponentDefinition(component.type)?.name,
 			toolkit: wf.getComponentDefinition(component.type)?.toolkit,
 			isMoveUpEnabled,
 			isMoveDownEnabled,
-			isCopyEnabled: isCopyAllowed(selectedId.value),
-			isCutEnabled: isCutAllowed(selectedId.value),
-			isGoToParentEnabled: isGoToParentAllowed(selectedId.value),
-			isDeleteEnabled: isDeleteAllowed(selectedId.value),
+			isCopyEnabled: isCopyAllowed(componentId.value),
+			isCutEnabled: isCutAllowed(componentId.value),
+			isGoToParentEnabled: isGoToParentAllowed(componentId.value),
+			isDeleteEnabled: isDeleteAllowed(componentId.value),
 		};
 	});
 
 	const isPasteEnabled = computed(() => {
-		if (!ssbm.firstSelectedId.value) return false;
-		return isPasteAllowed(ssbm.firstSelectedId.value);
+		if (!wfbm.firstSelectedId.value) return false;
+		return isPasteAllowed(wfbm.firstSelectedId.value);
 	});
 
 	async function handlePasteComponent() {
 		try {
-			await pasteComponent(selectedId.value);
+			await pasteComponent(componentId.value);
 		} catch (error) {
 			toasts.pushToast({ type: "error", message: String(error) });
 		}
 	}
 
-	function deleteSelectedComponents() {
+	function deleteComponent() {
 		if (!shortcutsInfo.value.isDeleteEnabled) return;
-		const componentIds = ssbm.selection.value.map((c) => c.componentId);
+		if (targetComponent) {
+			removeComponentsSubtree(unref(targetComponent).componentId);
+			return;
+		}
+		const componentIds = wfbm.selection.value.map((c) => c.componentId);
 		if (componentIds.length === 0) return;
 		removeComponentsSubtree(...componentIds);
 	}
@@ -154,25 +179,25 @@ export function useBuilderSettingsActions(
 				// Handled by callback
 				break;
 			case BuilderSettingsDropdownActions.MoveUp:
-				moveComponentUp(selectedId.value);
+				moveComponentUp(componentId.value);
 				break;
 			case BuilderSettingsDropdownActions.MoveDown:
-				moveComponentDown(selectedId.value);
+				moveComponentDown(componentId.value);
 				break;
 			case BuilderSettingsDropdownActions.Cut:
-				cutComponent(selectedId.value);
+				cutComponent(componentId.value);
 				break;
 			case BuilderSettingsDropdownActions.Copy:
-				copyComponent(selectedId.value);
+				copyComponent(componentId.value);
 				break;
 			case BuilderSettingsDropdownActions.Paste:
 				handlePasteComponent();
 				break;
 			case BuilderSettingsDropdownActions.GoToParent:
-				goToParent(selectedId.value, selectedInstancePath.value);
+				goToParent(componentId.value, instancePath.value);
 				break;
 			case BuilderSettingsDropdownActions.Delete:
-				deleteSelectedComponents();
+				deleteComponent();
 				break;
 		}
 
