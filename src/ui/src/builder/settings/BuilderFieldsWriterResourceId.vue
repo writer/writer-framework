@@ -187,9 +187,14 @@ function onSelectedData(appData: WriterApplication | undefined) {
 @import "../sharedStyles.css";
 
 .BuilderFieldsWriterResourceId {
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr;
 	align-items: center;
 	gap: 12px;
+}
+
+.BuilderFieldsWriterResourceId:has(.BuilderFieldsWriterResourceId__link) {
+	grid-template-columns: 1fr auto;
 }
 
 .BuilderFieldsWriterResourceId__link {
