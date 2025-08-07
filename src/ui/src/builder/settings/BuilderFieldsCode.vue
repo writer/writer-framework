@@ -1,6 +1,6 @@
 <template>
 	<BuilderEmbeddedCodeEditor
-		v-model="code"
+		v-model="fieldViewModel"
 		:language="inputLanguage"
 		:variant="isExpanded ? 'half-screen' : 'minimal'"
 		class="BuilderFieldsCode"
@@ -9,17 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-	toRefs,
-	inject,
-	computed,
-	PropType,
-	ref,
-	watch,
-	defineAsyncComponent,
-} from "vue";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { PropType, defineAsyncComponent, toRef } from "vue";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { Component } from "@/writerTypes";
 import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 
@@ -27,10 +18,6 @@ const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
-
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
@@ -42,12 +29,10 @@ const props = defineProps({
 		required: true,
 	},
 });
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
-const code = ref(component.value.content[fieldKey.value]);
 
-watch(code, (newCode) => {
-	setContentValue(component.value.id, fieldKey.value, newCode);
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
 });
 </script>
 

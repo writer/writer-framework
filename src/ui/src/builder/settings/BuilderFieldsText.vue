@@ -1,17 +1,12 @@
 <template>
 	<div class="BuilderFieldsText" :data-automation-key="props.fieldKey">
-		<template
-			v-if="
-				!templateField.control ||
-				templateField.control == FieldControl.Text
-			"
-		>
+		<template v-if="fieldControl == FieldControl.Text">
 			<BuilderTemplateInput
 				class="content"
 				:component-id="componentId"
 				:input-id="inputId"
 				:value="inputValue"
-				:placeholder="templateField?.default"
+				:placeholder="defaultValue"
 				:type="inputType"
 				:options
 				:error
@@ -19,7 +14,7 @@
 				@input="handleInput"
 			/>
 		</template>
-		<template v-else-if="templateField.control == FieldControl.Textarea">
+		<template v-else-if="fieldControl == FieldControl.Textarea">
 			<BuilderTemplateInput
 				multiline
 				variant="text"
@@ -27,7 +22,7 @@
 				:input-id="inputId"
 				:component-id="componentId"
 				:value="inputValue"
-				:placeholder="templateField?.default"
+				:placeholder="defaultValue"
 				:type="inputType"
 				:error
 				:autofocus
@@ -38,19 +33,23 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, inject, computed, PropType } from "vue";
+import { inject, computed, PropType, toRef } from "vue";
 import { Component, FieldControl } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
 	fieldKey: { type: String, required: true },
+	fieldControl: {
+		type: String as PropType<FieldControl>,
+		required: false,
+		default: FieldControl.Text,
+	},
+	defaultValue: { type: String, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	autofocus: { type: Boolean },
 	type: {
@@ -59,12 +58,11 @@ const props = defineProps({
 		default: "template",
 	},
 });
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
-const templateField = computed(() => {
-	const { type } = component.value;
-	const definition = wf.getComponentDefinition(type);
-	return definition.fields[fieldKey.value];
+
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+	defaultValue: toRef(props, "defaultValue"),
 });
 
 const inputId = computed(() => `${props.componentId}-${props.fieldKey}`);
@@ -104,13 +102,16 @@ const predefinedOptionFns = {
 };
 
 const options = computed(() => {
-	const field = templateField.value;
+	const component = wf.getComponentById(props.componentId);
+	const componentDefinition = wf.getComponentDefinition(component.type);
+	const field = componentDefinition.fields[props.fieldKey];
+
 	if (!field.options) return {};
 	if (typeof field.options === "function") {
-		return field.options(wf, componentId.value);
+		return field.options(wf, props.componentId);
 	}
 	if (typeof field.options === "string") {
-		return predefinedOptionFns?.[field.options](wf, componentId.value);
+		return predefinedOptionFns?.[field.options](wf, props.componentId);
 	}
 	return field.options;
 });
@@ -119,15 +120,11 @@ const inputType = computed(() =>
 	["state", "state-template"].includes(props.type) ? "state" : "template",
 );
 
-const inputValue = computed(() =>
-	parseContentValue(component.value.content[fieldKey.value]),
-);
+const inputValue = computed(() => parseContentValue(fieldViewModel.value));
 
 const handleInput = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		transformToContentValue((ev.target as HTMLInputElement).value),
+	fieldViewModel.value = transformToContentValue(
+		(ev.target as HTMLInputElement).value,
 	);
 };
 

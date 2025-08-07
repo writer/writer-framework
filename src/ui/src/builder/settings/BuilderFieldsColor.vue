@@ -15,7 +15,7 @@
 				<input
 					ref="pickerEl"
 					type="color"
-					:value="component.content[fieldKey]"
+					:value="fieldViewModel"
 					@input="handleInput"
 				/>
 			</div>
@@ -23,7 +23,7 @@
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
+				:value="fieldViewModel"
 				:error="error"
 				@input="handleInput"
 			/>
@@ -33,30 +33,23 @@
 
 <script setup lang="ts">
 import {
-	computed,
-	inject,
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
 	Ref,
 	ref,
-	toRefs,
 	PropType,
 	useTemplateRef,
+	toRef,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import {
 	BuilderFieldCssMode as Mode,
 	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
 } from "./constants/builderFieldsCssTabs";
-
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl = useTemplateRef("rootEl");
 const pickerEl = useTemplateRef("pickerEl");
@@ -74,11 +67,14 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+});
 
 const getInitialMode = (): Mode => {
-	const value = component.value.content[fieldKey.value];
+	const value = fieldViewModel.value;
+
 	if (!value) return "default";
 	const hexColorRegex = /#[A-Fa-f0-9]{6}/;
 	const bIsHex = hexColorRegex.test(value);
@@ -104,16 +100,12 @@ const setMode = async (newMode: Mode) => {
 	autofocus();
 
 	if (newMode === "default") {
-		setContentValue(component.value.id, fieldKey.value, undefined);
+		fieldViewModel.value = "";
 	}
 };
 
 const handleInput = (ev: Event) =>
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value,
-	);
+	(fieldViewModel.value = (ev.target as HTMLInputElement).value);
 
 onMounted(() => {
 	rootEl.value.addEventListener("focus", autofocus);

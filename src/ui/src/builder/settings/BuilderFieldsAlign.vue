@@ -24,7 +24,7 @@
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
+				:value="fieldViewModel"
 				:error="error"
 				@input="handleInputCss"
 			/>
@@ -37,19 +37,17 @@ import {
 	computed,
 	ComputedRef,
 	defineAsyncComponent,
-	inject,
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
 	PropType,
 	Ref,
 	ref,
-	toRefs,
+	toRef,
 	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import {
@@ -62,10 +60,6 @@ const WdsSelect = defineAsyncComponent({
 	loader: () => import("@/wds/WdsSelect.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
-
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl = useTemplateRef("rootEl");
 const pickerEl = useTemplateRef("pickerEl");
@@ -155,12 +149,14 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
-const { componentId, fieldKey, direction } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+});
 
 const subModes: ComputedRef<SubModes> = computed(() => {
-	if (direction.value == "vertical") return verticalSubmodes;
-	if (direction.value == "horizontal") return horizontalSubmodes;
+	if (props.direction == "vertical") return verticalSubmodes;
+	if (props.direction == "horizontal") return horizontalSubmodes;
 	return verticalSubmodes;
 });
 
@@ -171,7 +167,8 @@ const selectOptions = computed(() => {
 });
 
 const subMode = computed(() => {
-	const value = component.value.content[fieldKey.value];
+	const value = fieldViewModel.value;
+
 	for (const k in subModes.value) {
 		if (value && subModes.value[k].match(value)) {
 			return subModes.value[k].key;
@@ -181,22 +178,13 @@ const subMode = computed(() => {
 	return null;
 });
 
-const valueCss = computed(() => {
-	const value = component.value.content[fieldKey.value];
-	if (!value) {
-		return "";
-	} else {
-		return value;
-	}
-});
-
 const getInitialMode = (): Mode => {
-	if (!valueCss.value) {
+	if (!fieldViewModel.value) {
 		return "default";
 	}
 
 	for (const k in subModes.value) {
-		if (subModes.value[k].match(valueCss.value)) {
+		if (subModes.value[k].match(fieldViewModel.value)) {
 			return "pick";
 		}
 	}
@@ -222,26 +210,20 @@ const setMode = async (newMode: Mode) => {
 	autofocus();
 
 	if (newMode === "default") {
-		setContentValue(component.value.id, fieldKey.value, undefined);
+		fieldViewModel.value = "";
 	}
 };
 
 const handleInputSelect = (select: string) => {
 	for (const k in subModes.value) {
 		if (subModes.value[k].key == select) {
-			const value = subModes.value[k].default;
-			component.value.content[fieldKey.value] = value;
-			setContentValue(component.value.id, fieldKey.value, value);
+			fieldViewModel.value = subModes.value[k].default;
 		}
 	}
 };
 
 const handleInputCss = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value,
-	);
+	fieldViewModel.value = (ev.target as HTMLInputElement).value;
 };
 
 onMounted(() => {

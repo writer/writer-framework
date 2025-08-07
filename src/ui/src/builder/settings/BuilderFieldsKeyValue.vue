@@ -18,7 +18,7 @@
 			v-if="isModalOpen"
 			:data="field"
 			@submit="onModalSubmit"
-			@close="isModalOpen = undefined"
+			@close="isModalOpen = false"
 		/>
 
 		<div
@@ -69,7 +69,7 @@ import { PropType, computed, inject, ref, toRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import type { InstancePath } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import BuilderFieldsKeyValueModal from "./BuilderFieldsKeyValueModal.vue";
@@ -81,33 +81,29 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+});
+
 const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
 const secretsManager = inject(injectionKeys.secretsManager);
 
-const { setContentValue } = useComponentActions(wf, ssbm);
 const { getEvaluatedFields } = useEvaluator(wf, secretsManager);
-
-const componentId = toRef(props, "componentId");
-const fieldKey = toRef(props, "fieldKey");
 
 const isModalOpen = ref(false);
 
 const evaluatedValue = computed<JSONValue>(
-	() => getEvaluatedFields(props.instancePath)?.[fieldKey.value].value ?? {},
+	() => getEvaluatedFields(props.instancePath)?.[props.fieldKey].value ?? {},
 );
 
-const component = computed(() => wf.getComponentById(componentId.value));
-
 const field = computed(
-	() =>
-		component.value.content?.[fieldKey.value] ??
-		JSON.stringify(evaluatedValue.value),
+	() => fieldViewModel.value || JSON.stringify(evaluatedValue.value),
 );
 
 function onModalSubmit(data: string) {
-	isModalOpen.value = undefined;
-	setContentValue(component.value.id, fieldKey.value, String(data));
+	isModalOpen.value = false;
+	fieldViewModel.value = data;
 }
 </script>
 

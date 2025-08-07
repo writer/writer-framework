@@ -94,7 +94,7 @@
 			<BuilderTemplateInput
 				v-if="mode == 'css'"
 				ref="freehandInputEl"
-				:value="component.content[fieldKey]"
+				:value="fieldViewModel"
 				:error="error"
 				@input="handleInputCss"
 			/>
@@ -106,19 +106,17 @@
 import {
 	computed,
 	defineAsyncComponent,
-	inject,
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
 	PropType,
 	Ref,
 	ref,
-	toRefs,
+	toRef,
 	useTemplateRef,
 } from "vue";
 import { Component } from "@/writerTypes";
-import { useComponentActions } from "../useComponentActions";
-import injectionKeys from "@/injectionKeys";
+import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
@@ -132,10 +130,6 @@ const WdsSelect = defineAsyncComponent({
 	loader: () => import("@/wds/WdsSelect.vue"),
 	loadingComponent: BuilderAsyncLoader,
 });
-
-const wf = inject(injectionKeys.core);
-const ssbm = inject(injectionKeys.builderManager);
-const { setContentValue } = useComponentActions(wf, ssbm);
 
 const rootEl = useTemplateRef("rootEl");
 const pickerEl = useTemplateRef("pickerEl");
@@ -198,8 +192,10 @@ const props = defineProps({
 	error: { type: String, required: false, default: undefined },
 });
 
-const { componentId, fieldKey } = toRefs(props);
-const component = computed(() => wf.getComponentById(componentId.value));
+const fieldViewModel = useComponentFieldViewModel({
+	componentId: toRef(props, "componentId"),
+	fieldKey: toRef(props, "fieldKey"),
+});
 
 const selectOptions = computed(() => {
 	return subModes.map((m) => {
@@ -208,7 +204,8 @@ const selectOptions = computed(() => {
 });
 
 const subMode = computed(() => {
-	const value = component.value.content[fieldKey.value];
+	const value = fieldViewModel.value;
+
 	for (const k in subModes) {
 		if (value && subModes[k].match(value)) {
 			return subModes[k].key;
@@ -216,15 +213,6 @@ const subMode = computed(() => {
 	}
 
 	return null;
-});
-
-const valueCss = computed(() => {
-	const value = component.value.content[fieldKey.value];
-	if (!value) {
-		return "";
-	} else {
-		return value;
-	}
 });
 
 const valuePadding = computed(() => {
@@ -245,7 +233,8 @@ const valuePadding = computed(() => {
  * Returns the padding value as an array of 4 values, or null if the value is not valid
  */
 const rawPadding = computed(() => {
-	const value = component.value.content[fieldKey.value];
+	const value = fieldViewModel.value;
+
 	if (!value) {
 		return null;
 	} else {
@@ -273,12 +262,12 @@ const rawPadding = computed(() => {
 });
 
 const getInitialMode = (): Mode => {
-	if (!valueCss.value) {
+	if (!fieldViewModel.value) {
 		return "default";
 	}
 
 	for (const k in subModes) {
-		if (subModes[k].match(valueCss.value)) {
+		if (subModes[k].match(fieldViewModel.value)) {
 			return "pick";
 		}
 	}
@@ -304,16 +293,14 @@ const setMode = async (newMode: Mode) => {
 	autofocus();
 
 	if (newMode === "default") {
-		setContentValue(component.value.id, fieldKey.value, undefined);
+		fieldViewModel.value = "";
 	}
 };
 
 const handleInputSelect = (select: string) => {
 	for (const k in subModes) {
 		if (subModes[k].key == select) {
-			const value = subModes[k].default();
-			component.value.content[fieldKey.value] = value;
-			setContentValue(component.value.id, fieldKey.value, value);
+			fieldViewModel.value = subModes[k].default();
 		}
 	}
 
@@ -323,19 +310,15 @@ const handleInputSelect = (select: string) => {
 };
 
 const handleInputCss = (ev: Event) => {
-	setContentValue(
-		component.value.id,
-		fieldKey.value,
-		(ev.target as HTMLInputElement).value,
-	);
+	fieldViewModel.value = (ev.target as HTMLInputElement).value;
 };
 
 const handleInputs = (ev: string, subMode: SubMode, inputType?: string) => {
 	const value = Number(ev);
-	const cssValue = component.value.content[fieldKey.value];
+	const cssValue = fieldViewModel.value;
 
 	if (subMode == SubMode.all_sides) {
-		setContentValue(component.value.id, fieldKey.value, value + "px");
+		fieldViewModel.value = value + "px";
 	} else if (subMode == SubMode.xy_sides) {
 		const partCssValues = cssValue.split(" ");
 		if (inputType == "x") {
@@ -344,11 +327,7 @@ const handleInputs = (ev: string, subMode: SubMode, inputType?: string) => {
 			partCssValues[0] = value + "px";
 		}
 
-		setContentValue(
-			component.value.id,
-			fieldKey.value,
-			partCssValues.join(" "),
-		);
+		fieldViewModel.value = partCssValues.join(" ");
 	} else if (subMode == SubMode.per_side) {
 		const partCssValues = cssValue.split(" ");
 		if (inputType == "top") {
@@ -361,11 +340,7 @@ const handleInputs = (ev: string, subMode: SubMode, inputType?: string) => {
 			partCssValues[3] = value + "px";
 		}
 
-		setContentValue(
-			component.value.id,
-			fieldKey.value,
-			partCssValues.join(" "),
-		);
+		fieldViewModel.value = partCssValues.join(" ");
 	}
 };
 

@@ -40,7 +40,6 @@
 					is-binding-button-shown
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
-					:default-value="fieldValue.default"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
@@ -53,7 +52,6 @@
 					is-binding-button-shown
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
-					:default-value="fieldValue.default"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
@@ -66,7 +64,6 @@
 					v-else-if="fieldValue.type === FieldType.WriterAppId"
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
-					:default-value="fieldValue.default"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
@@ -78,7 +75,6 @@
 					v-else-if="fieldValue.type === FieldType.WriterModelId"
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
-					:default-value="fieldValue.default"
 					:label="fieldValue.name ?? fieldKey"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
@@ -135,7 +131,9 @@
 								: 'template'
 						"
 						:field-key="fieldKey"
+						:field-control="fieldValue.control"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 					/>
 
@@ -161,6 +159,7 @@
 						v-if="fieldValue.type == FieldType.Object"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
+						:default-value="fieldValue.default"
 						:error="errorsByFields[fieldKey]"
 					/>
 
