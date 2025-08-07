@@ -32,6 +32,7 @@ import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
+import { RECONNECT_DELAY_MS } from "@/constants/retry";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -40,7 +41,6 @@ import {
 	moveFileToSourceFiles,
 } from "./sourceFiles";
 
-const RECONNECT_DELAY_MS = 5000;
 const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {
@@ -109,31 +109,24 @@ export function generateCore() {
 
 		let initData: any = null;
 		let response: Response | null = null;
-		const maxRetries = 5;
-		for (let attempt = 0; attempt < maxRetries; attempt++) {
-			try {
-				response = await fetch("./api/init", {
-					method: "post",
-					cache: "no-store",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						proposedSessionId: sessionId,
-					}),
-				});
+		try {
+			response = await fetch("./api/init", {
+				method: "post",
+				cache: "no-store",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					proposedSessionId: sessionId,
+				}),
+			});
 
-				const bodyText = await response.text();
-				initData = JSON.parse(bodyText);
-				break;
-			} catch {
-				if (attempt >= maxRetries - 1) {
-					throw new Error(
-						`Failed to acquire initialization data. Server responded with ${response?.status ?? "no response"} status.`,
-					);
-				}
-				await new Promise((r) => setTimeout(r, RECONNECT_DELAY_MS * (attempt + 1)));
-			}
+			const bodyText = await response.text();
+			initData = JSON.parse(bodyText);
+		} catch {
+			throw new Error(
+				`Failed to acquire initialization data. Server responded with ${response?.status ?? "no response"} status.`,
+			);
 		}
 
 		if (response.status > 400) {
