@@ -1,6 +1,7 @@
-import { computed, inject, MaybeRef, toValue } from "vue";
-import { BuilderManager, Component, Core } from "@/writerTypes";
+import { computed, inject, MaybeRef, toValue, watch } from "vue";
+import { BuilderManager, Core } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
+import { useLogger } from "@/composables/useLogger";
 import { useComponentActions } from "./useComponentActions";
 
 type Params = {
@@ -29,16 +30,25 @@ export function useComponentFieldViewModel(
 		throw new Error("Missing builderManager injection.");
 	}
 
-	const component = computed<Component>(() => {
-		const id = toValue(params.componentId);
-		const comp = wf.getComponentById(id);
+	const logger = useLogger();
 
-		if (!comp) {
-			throw new Error(`Component with id "${id}" not found`);
-		}
-
-		return comp;
+	const component = computed(() => {
+		return wf.getComponentById(toValue(params.componentId));
 	});
+
+	watch(
+		component,
+		(componentValue) => {
+			if (!componentValue) {
+				logger.error(
+					`useComponentFieldViewModel: component with id "${toValue(params.componentId)}" not found`,
+				);
+			}
+		},
+		{
+			immediate: true,
+		},
+	);
 
 	const fallbackValue = computed<string>(() => {
 		const defaultValue = toValue(params.defaultValue);
@@ -47,7 +57,7 @@ export function useComponentFieldViewModel(
 			return defaultValue;
 		}
 
-		const compDef = wf.getComponentDefinition(component.value.type);
+		const compDef = wf.getComponentDefinition(component.value?.type);
 
 		return compDef?.fields?.[toValue(params.fieldKey)]?.default ?? "";
 	});
@@ -55,12 +65,16 @@ export function useComponentFieldViewModel(
 	const { setContentValue } = useComponentActions(wf, ssbm);
 
 	function setFieldValue(value: string) {
+		if (!component.value) {
+			return;
+		}
+
 		setContentValue(component.value.id, toValue(params.fieldKey), value);
 	}
 
 	const fieldValue = computed<string>(() => {
 		return (
-			component.value.content[toValue(params.fieldKey)] ||
+			component.value?.content?.[toValue(params.fieldKey)] ||
 			fallbackValue.value
 		);
 	});
