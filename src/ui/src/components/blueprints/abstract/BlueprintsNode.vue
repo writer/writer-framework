@@ -73,7 +73,7 @@
 					"
 					class="BlueprintsNode__main__outputs__title"
 				>
-					THEN
+					{{ staticOutLabel }}
 				</h4>
 				<BlueprintsNodeOutput
 					v-for="(out, outId) in staticOuts"
@@ -165,6 +165,10 @@ const completionStyle = computed(() => {
 	// Any dynamic out is considered success
 	return def.value?.outs?.[latestKnownOutcome.value]?.style ?? "success";
 });
+
+const staticOutLabel = computed(() =>
+	component.value?.type === "blueprints_writerclassification" ? "OR" : "THEN",
+);
 
 const latestRun = computed(() => {
 	const logEntries = wfbm.getLogEntries();
