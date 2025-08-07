@@ -32,6 +32,7 @@ import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
+import { RECONNECT_DELAY_MS } from "@/constants/retry";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -40,7 +41,6 @@ import {
 	moveFileToSourceFiles,
 } from "./sourceFiles";
 
-const RECONNECT_DELAY_MS = 5000;
 const KEEP_ALIVE_DELAY_MS = 60000;
 
 export function generateCore() {

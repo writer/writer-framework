@@ -11,6 +11,7 @@ import { useCollaborationManager } from "./composables/useCollaborationManager.j
 import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
+import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
 
 const wf = generateCore();
 
@@ -22,9 +23,6 @@ globalThis.injectionKeys = injectionKeys;
 globalThis.core = wf;
 
 const logger = useLogger();
-
-const RECONNECT_DELAY_MS = 5000;
-const MAX_RETRIES = 5;
 
 async function load() {
 	await wf.init();
