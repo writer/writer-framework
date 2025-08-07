@@ -53,23 +53,26 @@ defineEmits({
 	height: 16px;
 	width: 16px;
 	border-radius: 50%;
-	border: 1px solid var(--builderBackgroundColor);
 	cursor: pointer;
+
+	/* we are using outline instead of background to make the dot looks smaller */
+	outline: 4px var(--builderBackgroundColor) solid;
+	outline-offset: -8px;
 }
 
 .BlueprintsNodeOutput__ball.success {
-	background: var(--wdsColorGreen5);
+	outline-color: var(--wdsColorGreen5);
 }
 
 .BlueprintsNodeOutput__ball.error {
-	background: var(--wdsColorOrange5);
+	outline-color: var(--wdsColorOrange5);
 }
 
 .BlueprintsNodeOutput__ball.dynamic {
-	background: var(--wdsColorPurple4);
+	outline-color: var(--wdsColorPurple4);
 }
 
 .BlueprintsNodeOutput__ball.branching {
-	background: var(--wdsColorPurple4);
+	outline-color: var(--wdsColorPurple4);
 }
 </style>

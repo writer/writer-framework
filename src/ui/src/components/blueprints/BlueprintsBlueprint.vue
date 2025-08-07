@@ -578,7 +578,7 @@ function calculateArrow(
 		y1,
 		x2,
 		y2,
-		color: getComputedStyle(fromEl).backgroundColor,
+		color: getComputedStyle(fromEl).outlineColor,
 		fromNodeId,
 		fromOutId,
 		toNodeId,
