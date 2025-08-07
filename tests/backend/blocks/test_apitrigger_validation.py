@@ -226,3 +226,60 @@ class TestAPITriggerValidation:
         }
         is_valid, error_msg = APITrigger.validate_payload(payload, field_defs)
         assert is_valid == True
+
+    def test_validate_payload_strict_mode_allows_defined_fields(self):
+        """Test that strict mode allows only defined fields."""
+        field_defs = [
+            {"name": "name", "type": "string", "required": True},
+            {"name": "age", "type": "integer", "required": False}
+        ]
+        
+        # Valid payload with only defined fields
+        payload = {"name": "test", "age": 25}
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs, strict=True)
+        assert is_valid == True
+        assert error_msg == "Valid"
+        
+        # Valid payload with only required fields
+        payload = {"name": "test"}
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs, strict=True)
+        assert is_valid == True
+        assert error_msg == "Valid"
+
+    def test_validate_payload_strict_mode_rejects_unknown_fields(self):
+        """Test that strict mode rejects payloads with unknown fields."""
+        field_defs = [
+            {"name": "name", "type": "string", "required": True},
+            {"name": "age", "type": "integer", "required": False}
+        ]
+        
+        # Payload with unknown field
+        payload = {"name": "test", "age": 25, "unknown_field": "value"}
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs, strict=True)
+        assert is_valid == False
+        assert "Unknown fields not allowed: unknown_field" in error_msg
+        
+        # Payload with multiple unknown fields
+        payload = {"name": "test", "unknown1": "value1", "unknown2": "value2"}
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs, strict=True)
+        assert is_valid == False
+        assert "Unknown fields not allowed:" in error_msg
+        assert "unknown1" in error_msg
+        assert "unknown2" in error_msg
+
+    def test_validate_payload_non_strict_mode_allows_unknown_fields(self):
+        """Test that non-strict mode (default) allows unknown fields."""
+        field_defs = [
+            {"name": "name", "type": "string", "required": True}
+        ]
+        
+        # Payload with unknown fields should pass in non-strict mode
+        payload = {"name": "test", "extra_field1": "value1", "extra_field2": "value2"}
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs, strict=False)
+        assert is_valid == True
+        assert error_msg == "Valid"
+        
+        # Default behavior (strict=False by default)
+        is_valid, error_msg = APITrigger.validate_payload(payload, field_defs)
+        assert is_valid == True
+        assert error_msg == "Valid"

@@ -1,8 +1,20 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_trigger import BlueprintTrigger
 from writer.ss_types import AbstractTemplate
+from writer.validation.base import SchemaProviderRegistry
+from writer.validation.legacy_provider import LegacySchemaProvider
+
+# Register providers with legacy as default for backward compatibility
+SchemaProviderRegistry.register(LegacySchemaProvider(), make_default=True)
+try:
+    from writer.validation.jtd_provider import JTDSchemaProvider
+    # Register JTD as optional provider if available
+    SchemaProviderRegistry.register(JTDSchemaProvider())
+except ImportError:
+    # JTD not available, that's fine - legacy will handle everything
+    pass
 
 
 class APITrigger(BlueprintTrigger):
@@ -41,6 +53,14 @@ class APITrigger(BlueprintTrigger):
                             "desc": "Define expected input fields for validation",
                             "isArtifactField": True,
                         },
+                        "strictValidation": {
+                            "name": "Reject unknown fields",
+                            "type": "Boolean",
+                            "default": "no",
+                            "desc": ("Reject payloads that contain fields not "
+                                     "defined in the schema"),
+                            "isArtifactField": True,
+                        },
                     },
                     "outs": {
                         "trigger": {
@@ -49,6 +69,7 @@ class APITrigger(BlueprintTrigger):
                         },
                     },
                     "settingsArtifacts": [
+                        {"key": "apiFieldDefinitions", "position": "bottom"},
                         {"key": "apiTriggerDetails", "position": "bottom"}
                     ]
                 },
@@ -57,61 +78,68 @@ class APITrigger(BlueprintTrigger):
 
     def run(self):
         super().run()
+
+        # If validation is enabled and we have a payload, validate it
+        enable_validation = self._get_field("enableValidation", False, "no")
+        if self.result is not None and enable_validation == "yes":
+            try:
+                input_fields_str = self._get_field(
+                    "inputFields", False, "[]")
+                if isinstance(input_fields_str, str):
+                    import json
+                    input_fields = json.loads(input_fields_str)
+                else:
+                    input_fields = input_fields_str
+
+                # Convert result to dict if it's a JSON string
+                payload = self.result
+                if isinstance(payload, str):
+                    payload = json.loads(payload)
+
+                # Check if strict validation is enabled
+                strict_validation_raw = self._get_field("strictValidation", False, "no")
+                strict_validation = strict_validation_raw == "yes"
+
+                # Validate the payload
+                is_valid, error_message = self.validate_payload(
+                    payload, input_fields, strict_validation)
+                if not is_valid:
+                    raise ValueError(
+                        f"Payload validation failed: {error_message}")
+            except json.JSONDecodeError as e:
+                raise ValueError(
+                    f"Invalid JSON in payload or input fields: {str(e)}")
+            except ValueError:
+                self.outcome = "error"
+                # Re-raise validation errors as-is
+                raise
+            except Exception as e:
+                self.outcome = "error"
+                raise RuntimeError(f"Validation error: {str(e)}")
         self.outcome = "trigger"
     
     @staticmethod
-    def validate_payload(payload: Dict[str, Any], field_definitions: List[Dict[str, Any]]) -> Tuple[bool, str]:
-        """Validate API payload against field definitions."""
-        if not isinstance(payload, dict):
-            return False, "Payload must be a JSON object"
+    def validate_payload(
+        payload: Dict[str, Any],
+        field_definitions: List[Dict[str, Any]],
+        strict: bool = False,
+        provider_name: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        """
+        Validate API payload against field definitions using pluggable providers.
+        
+        Args:
+            payload: JSON data to validate
+            field_definitions: Field definition schema
+            strict: If True, reject payloads with undefined fields
+            provider_name: Optional provider name ("legacy", "jtd", etc.)
             
-        for field_def in field_definitions:
-            field_name = field_def.get("name")
-            is_required = field_def.get("required", False)
-            
-            # Check presence
-            if is_required and field_name not in payload:
-                return False, f"Missing required field: '{field_name}'"
-            if field_name not in payload:
-                continue
-                
-            # Validate field
-            is_valid, error_msg = APITrigger._validate_field(payload[field_name], field_def)
-            if not is_valid:
-                return False, error_msg
-                
-        return True, "Valid"
-    
-    @staticmethod
-    def _validate_field(value: Any, field_def: Dict[str, Any]) -> Tuple[bool, str]:
-        """Validate single field with type and constraint checks."""
-        field_name = field_def.get("name")
-        field_type = field_def.get("type")
-        
-        # Type validators
-        type_checks = {
-            "string": lambda v: isinstance(v, str),
-            "number": lambda v: isinstance(v, (int, float)),
-            "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
-            "boolean": lambda v: isinstance(v, bool),
-            "array": lambda v: isinstance(v, list),
-            "object": lambda v: isinstance(v, dict),
-            "null": lambda v: v is None,
-        }
-        
-        if field_type not in type_checks or not type_checks[field_type](value):
-            return False, f"Field '{field_name}' must be a {field_type}"
-        
-        # Constraint checks
-        if field_type == "string":
-            if "minLength" in field_def and len(value) < field_def["minLength"]:
-                return False, f"Field '{field_name}' too short (min {field_def['minLength']})"
-            if "maxLength" in field_def and len(value) > field_def["maxLength"]:
-                return False, f"Field '{field_name}' too long (max {field_def['maxLength']})"
-        elif field_type in ("number", "integer"):
-            if "minValue" in field_def and value < field_def["minValue"]:
-                return False, f"Field '{field_name}' below minimum ({field_def['minValue']})"
-            if "maxValue" in field_def and value > field_def["maxValue"]:
-                return False, f"Field '{field_name}' above maximum ({field_def['maxValue']})"
-        
-        return True, "Valid"
+        Returns:
+            Tuple of (is_valid, error_message) for backward compatibility
+        """
+        try:
+            provider = SchemaProviderRegistry.get_provider(provider_name)
+            result = provider.validate_payload(payload, field_definitions, strict)
+            return result.is_valid, result.error_message
+        except Exception as e:
+            return False, f"Validation error: {str(e)}"

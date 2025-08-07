@@ -122,7 +122,9 @@ const componentDefinition = computed(() => {
 
 const artifactFields = computed(() => {
 	const allFields = componentDefinition.value?.fields ?? {};
-	return Object.entries(allFields).filter(([, f]) => f.isArtifactField);
+	return Object.entries(allFields).filter(
+		([key, f]) => f.isArtifactField && key === "defaultResult",
+	);
 });
 
 const baseURL = (wf.writerBaseUrl.value ?? "https://api.writer.com").replace(

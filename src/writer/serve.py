@@ -492,14 +492,6 @@ def get_asgi_app(
                     }))
                     return
 
-                # Validate payload if API trigger has validation enabled
-                is_valid, validation_error = await validate_api_trigger_payload(app_runner, blueprint_id, payload)
-                if not is_valid:
-                    await queue.put(await format_event("error", {
-                        "msg": f"Payload validation failed: {validation_error}",
-                        "finished_at": int(time.time())
-                    }))
-                    return
 
                 await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_id}..."}))
 
