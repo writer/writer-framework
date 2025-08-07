@@ -163,10 +163,7 @@ const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == "in_progress") return "running";
 
 	// Any dynamic out is considered success
-
-	return (
-		{ ...staticOuts.value }?.[latestKnownOutcome.value]?.style ?? "success"
-	);
+	return def.value?.outs?.[latestKnownOutcome.value]?.style ?? "success";
 });
 
 const latestRun = computed(() => {
@@ -230,7 +227,6 @@ const shouldDisplayError = computed(() => {
 	if (!hasErrorOut.value) return false;
 
 	const isConnected = component.value.outs?.some((o) => o.outId === "error");
-
 	if (isConnected) return true;
 
 	return forceDisplayErrorOut.value;
