@@ -90,24 +90,24 @@ async function initialise() {
 			await load();
 			return;
 		} catch (reason) {
-			if (
-				reason?.message?.includes(
-					"WebSocket connection closed before establishing",
-				) &&
-				attempt < MAX_RETRIES - 1
-			) {
+			if (attempt < MAX_RETRIES - 1) {
 				logger.warn(
-					"WebSocket connection closed before establishing. Retrying...",
+					`Core initialization failed (attempt ${attempt + 1}/${MAX_RETRIES}). Retrying...`,
+					reason,
 				);
-				const appEl = document.getElementById("app");
-				if (appEl && !document.getElementById("loading_message")) {
+				const loaderEl = document.getElementById("loading_L1");
+				if (loaderEl && !document.getElementById("loading_message") && attempt >= 2) {
 					const message = document.createElement("div");
 					message.id = "loading_message";
 					message.textContent =
-						"We're getting things ready. Hang tight while we connect...";
+						"We're getting things ready.\nHang tight while we connect...";
 					message.style.cssText =
-						"text-align:center;margin-top:16px;font-family: 'Poppins','Helvetica Neue','Lucida Grande',sans-serif;";
-					appEl.appendChild(message);
+						"position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);margin-top:120px;text-align:center;font-family: 'Poppins','Helvetica Neue','Lucida Grande',sans-serif;color:#666;font-size:14px;line-height:1.4;max-width:400px;padding:0 20px;z-index:1000;white-space:pre-line;opacity:0;transition:opacity 0.5s ease-in;";
+					document.body.appendChild(message);
+					// Trigger fade-in animation
+					setTimeout(() => {
+						message.style.opacity = "1";
+					}, 50);
 				}
 				await new Promise((r) =>
 					setTimeout(r, RECONNECT_DELAY_MS * (attempt + 1)),
@@ -126,6 +126,7 @@ initialise()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
+		
 		const errorDiv = document.createElement("div");
 		errorDiv.className = "error-message";
 		errorDiv.setAttribute("role", "alert");
@@ -156,5 +157,10 @@ initialise()
 
 		const loadingSpinner = document.getElementById("loading_L1");
 		loadingSpinner?.remove();
+		// Remove loading message if it exists
+		const loadingMessage = document.getElementById("loading_message");
+		if (loadingMessage) {
+			loadingMessage.remove();
+		}
 		document.body.appendChild(errorDiv);
 	});
