@@ -2366,7 +2366,7 @@ class Apps:
     def generate_content(
             self,
             application_id: str,
-            input_dict: Optional[Dict[str, str]] = None,
+            input_dict: Optional[Dict[str, Optional[Union[List[str], str]]]] = None,
             async_job: Optional[bool] = False,
             config: Optional[APIOptions] = None
             ) -> Union[str, JobCreateResponse]:
@@ -2429,9 +2429,16 @@ class Apps:
         inputs = []
 
         for k, v in input_dict.items():
+            # Convert None/empty to []
+            # to avoid API 400 errors on optional inputs
+            if v is None or v == "":
+                value = []
+            else:
+                value = v if isinstance(v, list) else [v]
+
             inputs.append(Input({
                 "id": k,
-                "value": v if isinstance(v, list) else [v]
+                "value": value
             }))
 
         if not async_job:
