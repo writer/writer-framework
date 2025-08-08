@@ -56,16 +56,22 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { WriterApplication } from "@/writerTypes";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 
-const BuilderApplicationSelect = defineAsyncComponent(
-	() => import("../BuilderApplicationSelect.vue"),
-);
-const BuilderGraphSelect = defineAsyncComponent(
-	() => import("../BuilderGraphSelect.vue"),
-);
-const BuilderModelSelect = defineAsyncComponent(
-	() => import("../BuilderModelSelect.vue"),
-);
+const BuilderApplicationSelect = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("../BuilderApplicationSelect.vue"),
+});
+
+const BuilderGraphSelect = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("../BuilderGraphSelect.vue"),
+});
+
+const BuilderModelSelect = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("../BuilderModelSelect.vue"),
+});
 
 const props = defineProps({
 	componentId: { type: String, required: true },

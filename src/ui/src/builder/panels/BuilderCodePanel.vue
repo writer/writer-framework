@@ -110,9 +110,10 @@ import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 
-const SharedMoreDropdown = defineAsyncComponent(
-	() => import("@/components/shared/SharedMoreDropdown.vue"),
-);
+const SharedMoreDropdown = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
+});
 
 const BuilderEmbeddedCodeEditor = defineAsyncComponent({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),

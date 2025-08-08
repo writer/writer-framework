@@ -45,10 +45,12 @@ import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
 
-const WdsDropdownMenu = defineAsyncComponent(
-	() => import("@/wds/WdsDropdownMenu.vue"),
-);
+const WdsDropdownMenu = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/wds/WdsDropdownMenu.vue"),
+});
 
 const props = defineProps({
 	options: {

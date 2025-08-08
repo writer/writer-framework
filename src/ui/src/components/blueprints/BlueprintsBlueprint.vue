@@ -199,8 +199,10 @@ import {
 	translatePoint,
 } from "@/utils/geometry";
 import BaseNote from "@/components/core/base/BaseNote.vue";
+import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
 
 const BlueprintToolbar = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
 	loader: () => import("./base/BlueprintToolbar.vue"),
 });
 

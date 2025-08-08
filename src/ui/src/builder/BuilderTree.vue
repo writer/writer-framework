@@ -70,9 +70,11 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
-const SharedMoreDropdown = defineAsyncComponent(
-	() => import("@/components/shared/SharedMoreDropdown.vue"),
-);
+import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
+const SharedMoreDropdown = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
+});
 
 const props = defineProps({
 	name: { type: String, required: true },

@@ -86,9 +86,10 @@ const BuilderGraphSelect = defineAsyncComponent({
 	loadingComponent: BuilderAsyncLoader,
 });
 
-const BuilderEmbeddedCodeEditor = defineAsyncComponent(
-	() => import("../BuilderEmbeddedCodeEditor.vue"),
-);
+const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
+});
 
 type FunctionTool = {
 	type: "function";

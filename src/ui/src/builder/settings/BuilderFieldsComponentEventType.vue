@@ -20,8 +20,12 @@ import injectionKeys from "@/injectionKeys";
 import type { Option } from "@/wds/WdsSelect.vue";
 import { FieldType } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 
-const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
+const WdsSelect = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/wds/WdsSelect.vue"),
+});
 
 const wf = inject(injectionKeys.core);
 

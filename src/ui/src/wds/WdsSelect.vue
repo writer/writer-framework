@@ -88,10 +88,12 @@ import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
+import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
 
-const WdsDropdownMenu = defineAsyncComponent(
-	() => import("@/wds/WdsDropdownMenu.vue"),
-);
+const WdsDropdownMenu = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/wds/WdsDropdownMenu.vue"),
+});
 
 const props = defineProps({
 	options: {

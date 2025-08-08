@@ -9,8 +9,12 @@ import { inject, computed, defineAsyncComponent, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import { Option } from "@/wds/WdsSelect.vue";
+import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 
-const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
+const WdsSelect = defineAsyncComponent({
+	loadingComponent: BuilderAsyncLoader,
+	loader: () => import("@/wds/WdsSelect.vue"),
+});
 
 const wf = inject(injectionKeys.core);
 
