@@ -98,18 +98,9 @@
 
 <script setup lang="ts">
 /* global WRITER_FRAMEWORK_VERSION */
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import BuilderSidebarButton from "./BuilderSidebarButton.vue";
 import BuilderSidebarVersion from "./BuilderSidebarVersion.vue";
-import {
-	computed,
-	defineAsyncComponent,
-	inject,
-	onMounted,
-	onUnmounted,
-	ref,
-	watch,
-} from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -117,14 +108,13 @@ import { useSessionStorageJSON } from "@/composables/useStorageJSON";
 import { useComponentActions } from "../useComponentActions";
 import { getModifierKeyName, isPlatformMac } from "@/core/detectPlatform";
 import BuilderSidebarNotes from "./BuilderSidebarNotes.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderSidebarToolkit = defineAsyncComponent({
+const BuilderSidebarToolkit = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderSidebarToolkit.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
-const BuilderSidebarComponentTree = defineAsyncComponent({
+const BuilderSidebarComponentTree = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderSidebarComponentTree.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 type Pane = "layers" | "add" | "notes";

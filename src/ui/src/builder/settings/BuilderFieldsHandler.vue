@@ -5,14 +5,13 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, defineAsyncComponent, toRef } from "vue";
+import { inject, computed, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import { Option } from "@/wds/WdsSelect.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsSelect = defineAsyncComponent({
-	loadingComponent: BuilderAsyncLoader,
+const WdsSelect = defineAsyncComponentWithLoader({
 	loader: () => import("@/wds/WdsSelect.vue"),
 });
 

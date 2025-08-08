@@ -26,15 +26,7 @@ export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue"
 </script>
 
 <script setup lang="ts">
-import {
-	defineAsyncComponent,
-	nextTick,
-	PropType,
-	ref,
-	toRef,
-	useTemplateRef,
-	watch,
-} from "vue";
+import { nextTick, PropType, ref, toRef, useTemplateRef, watch } from "vue";
 import {
 	useFloating,
 	autoPlacement,
@@ -45,10 +37,9 @@ import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
-import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsDropdownMenu = defineAsyncComponent({
-	loadingComponent: BuilderAsyncLoader,
+const WdsDropdownMenu = defineAsyncComponentWithLoader({
 	loader: () => import("@/wds/WdsDropdownMenu.vue"),
 });
 

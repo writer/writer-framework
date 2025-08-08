@@ -105,7 +105,6 @@
 <script setup lang="ts">
 import {
 	computed,
-	defineAsyncComponent,
 	nextTick,
 	onBeforeUnmount,
 	onMounted,
@@ -124,11 +123,10 @@ import {
 	BuilderFieldCssMode as Mode,
 	BUILDER_FIELD_CSS_TAB_OPTIONS as tabs,
 } from "./constants/builderFieldsCssTabs";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsSelect = defineAsyncComponent({
+const WdsSelect = defineAsyncComponentWithLoader({
 	loader: () => import("@/wds/WdsSelect.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const rootEl = useTemplateRef("rootEl");

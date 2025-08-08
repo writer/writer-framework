@@ -66,21 +66,19 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, watch, defineAsyncComponent } from "vue";
+import { inject, computed, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
-
 import BuilderSettingsProperties from "./BuilderSettingsProperties.vue";
 import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useButtonClipboard } from "../useButtonClipboard";
 import { artifactRegistry } from "./artifacts";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderSettingsHandlers = defineAsyncComponent({
+const BuilderSettingsHandlers = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderSettingsHandlers.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const wf = inject(injectionKeys.core);

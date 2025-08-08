@@ -1,21 +1,14 @@
 <script setup lang="ts">
 import injectionKeys from "@/injectionKeys";
-import {
-	computed,
-	defineAsyncComponent,
-	inject,
-	onMounted,
-	PropType,
-} from "vue";
+import { computed, inject, onMounted, PropType } from "vue";
 import { useListResources } from "@/composables/useListResources";
 import type { Option } from "@/wds/WdsSelect.vue";
-import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import type { WriterModel } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsSelect = defineAsyncComponent({
+const WdsSelect = defineAsyncComponentWithLoader({
 	loader: () => import("@/wds/WdsSelect.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const wf = inject(injectionKeys.core);

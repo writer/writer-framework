@@ -178,7 +178,6 @@ export const ZOOM_SETTINGS = {
 <script setup lang="ts">
 import {
 	computed,
-	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -199,10 +198,9 @@ import {
 	translatePoint,
 } from "@/utils/geometry";
 import BaseNote from "@/components/core/base/BaseNote.vue";
-import BuilderAsyncLoader from "@/builder/BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BlueprintToolbar = defineAsyncComponent({
-	loadingComponent: BuilderAsyncLoader,
+const BlueprintToolbar = defineAsyncComponentWithLoader({
 	loader: () => import("./base/BlueprintToolbar.vue"),
 });
 

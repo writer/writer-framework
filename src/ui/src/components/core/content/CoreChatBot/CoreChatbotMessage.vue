@@ -53,15 +53,16 @@ export type Message = {
 </script>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, PropType } from "vue";
+import { computed, PropType } from "vue";
 import CoreChatbotAvatar from "./CoreChatbotAvatar.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BaseMarkdown = defineAsyncComponent(
-	() => import("../../base/BaseMarkdown.vue"),
-);
-const WdsLoaderDots = defineAsyncComponent(
-	() => import("@/wds/WdsLoaderDots.vue"),
-);
+const BaseMarkdown = defineAsyncComponentWithLoader({
+	loader: () => import("../../base/BaseMarkdown.vue"),
+});
+const WdsLoaderDots = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsLoaderDots.vue"),
+});
 
 const props = defineProps({
 	initials: { type: String, required: true },

@@ -87,19 +87,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from "vue";
+import { computed } from "vue";
 import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { Mode, useKeyValueEditor } from "./composables/useKeyValueEditor";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const props = defineProps({
