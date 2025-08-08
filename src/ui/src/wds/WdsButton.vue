@@ -27,11 +27,12 @@ export type WdsButtonSize = "big" | "small" | "icon" | "smallIcon";
 </script>
 
 <script setup lang="ts">
-import { computed, CSSProperties, defineAsyncComponent, PropType } from "vue";
+import { computed, CSSProperties, PropType } from "vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsLoaderDots = defineAsyncComponent(
-	() => import("@/wds/WdsLoaderDots.vue"),
-);
+const WdsLoaderDots = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsLoaderDots.vue"),
+});
 
 const props = defineProps({
 	variant: { type: String as PropType<WdsButtonVariant>, default: "primary" },

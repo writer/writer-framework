@@ -1,11 +1,9 @@
-import { defineAsyncComponent } from "vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 export const artifactRegistry = {
-    apiTriggerDetails: defineAsyncComponent({
-        loader: () => import("./BuilderSettingsArtifactAPITriggerDetails.vue"),
-        loadingComponent: BuilderAsyncLoader,
-    })
+	apiTriggerDetails: defineAsyncComponentWithLoader({
+		loader: () => import("./BuilderSettingsArtifactAPITriggerDetails.vue"),
+	}),
 };
 
 export type ArtifactKey = keyof typeof artifactRegistry;

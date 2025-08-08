@@ -86,7 +86,6 @@
 <script setup lang="ts">
 import {
 	computed,
-	defineAsyncComponent,
 	inject,
 	nextTick,
 	onMounted,
@@ -96,7 +95,6 @@ import {
 	watch,
 } from "vue";
 import BuilderPanel from "./BuilderPanel.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
 import injectionKeys from "@/injectionKeys";
 import { useSourceFiles } from "@/core/useSourceFiles";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
@@ -109,14 +107,14 @@ import { useLogger } from "@/composables/useLogger";
 import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const SharedMoreDropdown = defineAsyncComponent(
-	() => import("@/components/shared/SharedMoreDropdown.vue"),
-);
+const SharedMoreDropdown = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
+});
 
-const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 defineProps<{

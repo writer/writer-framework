@@ -43,29 +43,26 @@
 </template>
 
 <script setup lang="ts">
-import {
-	computed,
-	PropType,
-	defineAsyncComponent,
-	useTemplateRef,
-	toRef,
-} from "vue";
+import { computed, PropType, useTemplateRef, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { useBindingMode } from "./composables/useBindingMode";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import { WriterApplication } from "@/writerTypes";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderApplicationSelect = defineAsyncComponent(
-	() => import("../BuilderApplicationSelect.vue"),
-);
-const BuilderGraphSelect = defineAsyncComponent(
-	() => import("../BuilderGraphSelect.vue"),
-);
-const BuilderModelSelect = defineAsyncComponent(
-	() => import("../BuilderModelSelect.vue"),
-);
+const BuilderApplicationSelect = defineAsyncComponentWithLoader({
+	loader: () => import("../BuilderApplicationSelect.vue"),
+});
+
+const BuilderGraphSelect = defineAsyncComponentWithLoader({
+	loader: () => import("../BuilderGraphSelect.vue"),
+});
+
+const BuilderModelSelect = defineAsyncComponentWithLoader({
+	loader: () => import("../BuilderModelSelect.vue"),
+});
 
 const props = defineProps({
 	componentId: { type: String, required: true },

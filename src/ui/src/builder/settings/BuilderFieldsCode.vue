@@ -9,14 +9,13 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, defineAsyncComponent, toRef } from "vue";
+import { PropType, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { Component } from "@/writerTypes";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderEmbeddedCodeEditor = defineAsyncComponent({
+const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
 	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const props = defineProps({

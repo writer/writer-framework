@@ -54,16 +54,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, PropType, ref } from "vue";
+import { computed, PropType, ref } from "vue";
 import CoreDataframeCell from "./CoreDataframeCell.vue";
 import { ARQUERO_INTERNAL_ID } from "./constants";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import { Middleware, offset, shift } from "@floating-ui/vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const SharedMoreDropdown = defineAsyncComponent(
-	() => import("@/components/shared/SharedMoreDropdown.vue"),
-);
+const SharedMoreDropdown = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
+});
 
 const floatingMiddleware: Middleware[] = [offset(16), shift()];
 

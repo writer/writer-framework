@@ -65,14 +65,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, PropType, ref } from "vue";
+import { computed, PropType, ref } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import type { Option } from "@/components/shared/SharedMoreDropdown.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
-const SharedMoreDropdown = defineAsyncComponent(
-	() => import("@/components/shared/SharedMoreDropdown.vue"),
-);
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const SharedMoreDropdown = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
+});
 
 const props = defineProps({
 	name: { type: String, required: true },

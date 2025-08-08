@@ -23,13 +23,12 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, PropType, useTemplateRef } from "vue";
+import { onMounted, PropType, useTemplateRef } from "vue";
 import WdsTextInputLayout from "@/wds/WdsTextInputLayout.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderTemplateEditor = defineAsyncComponent({
+const BuilderTemplateEditor = defineAsyncComponentWithLoader({
 	loader: () => import("../templateEditor/BuilderTemplateEditor.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const model = defineModel({ type: String });

@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, defineAsyncComponent, toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import { Component } from "@/writerTypes";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import WdsButton from "@/wds/WdsButton.vue";
@@ -79,16 +79,15 @@ import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import BuilderAsyncLoader from "../BuilderAsyncLoader.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderGraphSelect = defineAsyncComponent({
+const BuilderGraphSelect = defineAsyncComponentWithLoader({
 	loader: () => import("../BuilderGraphSelect.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
-const BuilderEmbeddedCodeEditor = defineAsyncComponent(
-	() => import("../BuilderEmbeddedCodeEditor.vue"),
-);
+const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
+	loader: () => import("../BuilderEmbeddedCodeEditor.vue"),
+});
 
 type FunctionTool = {
 	type: "function";

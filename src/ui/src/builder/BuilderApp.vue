@@ -124,7 +124,6 @@
 <script setup lang="ts">
 import {
 	computed,
-	defineAsyncComponent,
 	inject,
 	onMounted,
 	onUnmounted,
@@ -139,7 +138,6 @@ import injectionKeys from "@/injectionKeys";
 import { isPlatformMac } from "@/core/detectPlatform";
 import BuilderHeader from "./BuilderHeader.vue";
 import BuilderTooltip from "./BuilderTooltip.vue";
-import BuilderAsyncLoader from "./BuilderAsyncLoader.vue";
 import BuilderPanelSwitcher from "./panels/BuilderPanelSwitcher.vue";
 import BuilderSidebar from "./sidebar/BuilderSidebar.vue";
 import { WDS_CSS_PROPERTIES } from "@/wds/tokens";
@@ -151,29 +149,25 @@ import BuilderInstanceTracker from "./BuilderInstanceTracker.vue";
 import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
-const BuilderSettings = defineAsyncComponent({
+const BuilderSettings = defineAsyncComponentWithLoader({
 	loader: () => import("./settings/BuilderSettings.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
-const ComponentRenderer = defineAsyncComponent({
+const ComponentRenderer = defineAsyncComponentWithLoader({
 	loader: () => import("@/renderer/ComponentRenderer.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
-const BuilderInsertionOverlay = defineAsyncComponent({
+const BuilderInsertionOverlay = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderInsertionOverlay.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
-const BuilderInsertionLabel = defineAsyncComponent({
+const BuilderInsertionLabel = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderInsertionLabel.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
-const BuilderVault = defineAsyncComponent({
+const BuilderVault = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderVault.vue"),
-	loadingComponent: BuilderAsyncLoader,
 });
 
 const wf = inject(injectionKeys.core);

@@ -73,14 +73,7 @@ export type { WdsDropdownMenuOption as Option } from "@/wds/WdsDropdownMenu.vue"
 </script>
 
 <script setup lang="ts">
-import {
-	computed,
-	defineAsyncComponent,
-	PropType,
-	ref,
-	useTemplateRef,
-	watch,
-} from "vue";
+import { computed, PropType, ref, useTemplateRef, watch } from "vue";
 import { useFloating, autoPlacement } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -88,10 +81,11 @@ import { useFocusWithin } from "@/composables/useFocusWithin";
 import WdsTag from "@/wds/WdsTag.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import BaseTransitionSlideFade from "@/components/core/base/BaseTransitionSlideFade.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsDropdownMenu = defineAsyncComponent(
-	() => import("@/wds/WdsDropdownMenu.vue"),
-);
+const WdsDropdownMenu = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsDropdownMenu.vue"),
+});
 
 const props = defineProps({
 	options: {

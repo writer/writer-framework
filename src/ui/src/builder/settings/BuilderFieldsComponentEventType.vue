@@ -14,14 +14,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, defineAsyncComponent, toRef } from "vue";
+import { inject, computed, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import type { Option } from "@/wds/WdsSelect.vue";
 import { FieldType } from "@/writerTypes";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsSelect = defineAsyncComponent(() => import("@/wds/WdsSelect.vue"));
+const WdsSelect = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsSelect.vue"),
+});
 
 const wf = inject(injectionKeys.core);
 
