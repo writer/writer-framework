@@ -48,7 +48,6 @@ import {
 	PropType,
 	defineAsyncComponent,
 	useTemplateRef,
-	ref,
 	toRef,
 } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
@@ -166,10 +165,7 @@ const selected = computed<string | string[]>({
 	},
 });
 
-const selectedData = ref<WriterApplication | undefined>();
-
 function onSelectedData(appData: WriterApplication | undefined) {
-	selectedData.value = appData; // for readability
 	if (
 		props.resourceType !== "application" ||
 		!appData ||
@@ -187,9 +183,14 @@ function onSelectedData(appData: WriterApplication | undefined) {
 @import "../sharedStyles.css";
 
 .BuilderFieldsWriterResourceId {
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr;
 	align-items: center;
 	gap: 12px;
+}
+
+.BuilderFieldsWriterResourceId:has(.BuilderFieldsWriterResourceId__link) {
+	grid-template-columns: 1fr auto;
 }
 
 .BuilderFieldsWriterResourceId__link {
