@@ -178,11 +178,11 @@ class AppProcess(multiprocessing.Process):
             session.session_component_tree, mode=writer.Config.mode
         )
 
+        headers = session.headers or {}
         writer_application: Optional[WriterApplicationInformation] = None
-        writer_app_id = os.getenv("WRITER_APP_ID")
-        writer_org_id = os.getenv("WRITER_ORG_ID")
-        writer_base_url = \
-            os.getenv("WRITER_BASE_URL", "https://api.writer.com")
+        writer_app_id = headers.get("x-agent-id") or os.getenv("WRITER_APP_ID")
+        writer_org_id = headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID")
+        writer_base_url = os.getenv("WRITER_BASE_URL", "https://api.writer.com")
         if writer_app_id is not None and writer_org_id is not None:
             writer_application = WriterApplicationInformation(
                 id=writer_app_id,
