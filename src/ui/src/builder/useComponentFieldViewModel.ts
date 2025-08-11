@@ -4,13 +4,13 @@ import injectionKeys from "@/injectionKeys";
 import { useLogger } from "@/composables/useLogger";
 import { useComponentActions } from "./useComponentActions";
 
-type Params = {
+export type Params = {
 	componentId: MaybeRef<string>;
 	fieldKey: MaybeRef<string>;
 	defaultValue?: MaybeRef<string | undefined>;
 };
 
-type Dependencies = {
+export type Dependencies = {
 	wf?: Core;
 	ssbm?: BuilderManager;
 };
