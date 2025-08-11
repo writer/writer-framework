@@ -74,6 +74,13 @@ export function useComponentFieldViewModel(
 
 	const isDirty = ref(false);
 
+	watch(
+		[() => toValue(params.componentId), () => toValue(params.fieldKey)],
+		() => {
+			isDirty.value = false;
+		},
+	);
+
 	const fieldValue = computed<string>(() => {
 		const val = component.value?.content?.[toValue(params.fieldKey)];
 
