@@ -479,7 +479,7 @@ class Graph:
     def get_results(self) -> Dict[str, Any]:
         results = {}
         for node in self.nodes:
-            if node.tool and node.tool.outcome == "success":
+            if node.tool and node.tool.outcome in ["success", "trigger"]:
                 results[node.id] = node.result
         return results
 
