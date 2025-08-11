@@ -107,10 +107,68 @@ class BlueprintBlock:
             response = self._parent_client_class.send(self_inner, request, **kw)
             log_entry = response.extensions.get("log_entry")
             if log_entry:
+                # Store reference to log entry for later update
+                response._log_entry_ref = log_entry
+                
                 try:
-                    log_entry["response"]["content"] = (
-                        response.text if response.is_closed or response.is_stream_consumed else "<stream>"
-                    )
+                    # For non-streaming responses, capture content immediately
+                    if response.is_closed or response.is_stream_consumed:
+                        log_entry["response"]["content"] = response.text
+                    else:
+                        # For streaming responses, we'll update after consumption
+                        log_entry["response"]["content"] = "<pending stream consumption>"
+                        
+                        # Wrap the response read/iter methods to capture content after streaming
+                        original_read = response.read
+                        original_iter_bytes = response.iter_bytes
+                        original_iter_text = response.iter_text
+                        original_iter_lines = response.iter_lines
+                        
+                        def wrapped_read():
+                            content = original_read()
+                            if hasattr(response, '_log_entry_ref'):
+                                try:
+                                    response._log_entry_ref["response"]["content"] = content.decode('utf-8', errors='replace')
+                                except Exception:
+                                    response._log_entry_ref["response"]["content"] = "<binary content>"
+                            return content
+                        
+                        def wrapped_iter_bytes(*args, **kwargs):
+                            accumulated_content = []
+                            for chunk in original_iter_bytes(*args, **kwargs):
+                                accumulated_content.append(chunk)
+                                yield chunk
+                            # After iteration completes, update log
+                            if hasattr(response, '_log_entry_ref'):
+                                try:
+                                    full_content = b''.join(accumulated_content)
+                                    response._log_entry_ref["response"]["content"] = full_content.decode('utf-8', errors='replace')
+                                except Exception:
+                                    response._log_entry_ref["response"]["content"] = "<binary content>"
+                        
+                        def wrapped_iter_text(*args, **kwargs):
+                            text_chunks = []
+                            for chunk in original_iter_text(*args, **kwargs):
+                                text_chunks.append(chunk)
+                                yield chunk
+                            # After iteration completes, update log
+                            if hasattr(response, '_log_entry_ref'):
+                                response._log_entry_ref["response"]["content"] = ''.join(text_chunks)
+                        
+                        def wrapped_iter_lines(*args, **kwargs):
+                            lines = []
+                            for line in original_iter_lines(*args, **kwargs):
+                                lines.append(line)
+                                yield line
+                            # After iteration completes, update log
+                            if hasattr(response, '_log_entry_ref'):
+                                response._log_entry_ref["response"]["content"] = '\n'.join(lines)
+                        
+                        response.read = wrapped_read
+                        response.iter_bytes = wrapped_iter_bytes
+                        response.iter_text = wrapped_iter_text
+                        response.iter_lines = wrapped_iter_lines
+                        
                 except Exception as e:
                     log_entry["response"]["content"] = f"<error reading response: {e}>"
             return response
@@ -158,25 +216,44 @@ class BlueprintBlock:
                     env: Dict,
                     env_storage_key: Optional[str] = None
             ):
-                self.env = env
+                self.env = env  # Fallback environment
 
                 if env_storage_key:
                     self.env_storage_key = env_storage_key
 
-                self.env.setdefault(
-                    self.env_storage_key, []
-                    )
+                # Create a copy of inherited API calls to avoid shared reference issues
+                inherited_calls = self.env.get(self.env_storage_key, [])
+                self.env[self.env_storage_key] = inherited_calls.copy()
                 self.instance_path = instance_path
+            
+            def _get_current_execution_environment(self) -> Dict:
+                """Resolve the currently executing block's environment for logging."""
+                try:
+                    from writer.blueprints import get_current_block
+                    current_block = get_current_block()
+                    if current_block and hasattr(current_block, 'execution_environment'):
+                        return current_block.execution_environment
+                except Exception:
+                    pass
+                return self.env
 
             def request_hook(self, request: httpx.Request):
                 import datetime as dt
                 request_id = str(uuid.uuid4())
-                if not request.stream:
-                    content = \
-                        request.content.decode('utf-8', errors='replace') \
-                        if request.content else None
+                
+                # Capture request content
+                content = None
+                if request.content:
+                    try:
+                        content = request.content.decode('utf-8', errors='replace')
+                    except Exception:
+                        content = "<binary content>"
+                elif request.stream:
+                    # For streaming requests, we can't easily capture the content
+                    # without consuming the stream
+                    content = "<streaming request body>"
                 else:
-                    content = "<stream>"
+                    content = None
 
                 log_entry = {
                     'id': request_id,
@@ -191,7 +268,9 @@ class BlueprintBlock:
                     'response': None  # Will populate later
                 }
 
-                self.env[self.env_storage_key].append(log_entry)
+                # Resolve current block's environment for accurate logging
+                target_env = self._get_current_execution_environment()
+                target_env.setdefault(self.env_storage_key, []).append(log_entry)
                 request.extensions['log_entry'] = log_entry
 
             def response_hook(self, response: httpx.Response):

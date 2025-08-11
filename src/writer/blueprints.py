@@ -407,6 +407,10 @@ class GraphNode:
                     env['call_stack'] = from_node.tool.execution_environment.get('call_stack', [])
                     env['result'] = result
                     env['message'] = from_node.tool.message
+                    
+                    # Pass through accumulated API calls from previous block (like call_stack)
+                    env['api_calls'] = from_node.tool.execution_environment.get('api_calls', [])
+                    env['httpx_requests'] = from_node.tool.execution_environment.get('httpx_requests', [])
         env['results'] = self.graph.get_results()
         return env
 
