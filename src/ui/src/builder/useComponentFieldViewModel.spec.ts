@@ -1,51 +1,55 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect } from "vitest";
+import { ref, nextTick } from "vue";
+import { buildMockComponent, buildMockCore } from "@/tests/mocks";
+import { generateBuilderManager } from "./builderManager";
+import {
+	useComponentFieldViewModel,
+	Dependencies,
+} from "./useComponentFieldViewModel";
+import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 
-import { describe, it, expect, vi } from "vitest";
-import { ref, reactive, nextTick } from "vue";
-import { useComponentFieldViewModel } from "./useComponentFieldViewModel";
-
-type Component = { id: string; type: string; content: Record<string, string> };
-type Defs = Record<string, { fields?: Record<string, { default?: string }> }>;
-
-function mockDependencies(
-	initial: Record<string, Component>,
-	defs: Defs = {},
-): { components: Record<string, Component>; wf: any; ssbm: any } {
-	const components = reactive(initial);
-
-	function getComponentById(id: string) {
-		return components[id];
-	}
-
-	function getComponentDefinition(type?: string) {
-		return type ? defs[type] : undefined;
-	}
-
-	return {
-		components,
-		wf: {
-			getComponentById,
-			getComponentDefinition,
-			sendComponentUpdate: vi.fn(),
-		},
-		ssbm: {
-			openMutationTransaction: vi.fn(),
-			registerPreMutation: vi.fn(),
-			registerPostMutation: vi.fn(),
-			closeMutationTransaction: vi.fn(),
-		},
-	};
-}
-
-describe("useComponentFieldViewModel", () => {
+describe(useComponentFieldViewModel.name, () => {
 	const componentId = "TestComponent";
 	const fieldKey = "TestField";
 
-	function setupMockDependencies(componentId: string, fieldKey: string) {
-		return mockDependencies(
-			{ [componentId]: { id: componentId, type: "Text", content: {} } },
-			{ Text: { fields: { [fieldKey]: { default: "default test" } } } },
+	let mockCore: ReturnType<typeof buildMockCore>;
+
+	function setupMockDependencies(
+		componentId: string,
+		fieldKey: string,
+	): Dependencies {
+		mockCore = buildMockCore();
+		mockCore.core.addComponent(
+			buildMockComponent({
+				id: componentId,
+				type: FieldType.Text,
+				content: {
+					[fieldKey]: undefined,
+				},
+			}),
 		);
+
+		function getComponentDefinition(): WriterComponentDefinition {
+			return {
+				name: "",
+				description: "",
+				fields: {
+					[fieldKey]: {
+						name: "",
+						type: FieldType.Text,
+						default: "default test",
+					},
+				},
+			};
+		}
+
+		return {
+			wf: {
+				...mockCore.core,
+				getComponentDefinition,
+			},
+			ssbm: generateBuilderManager(),
+		};
 	}
 
 	it("Default: uses field default from component definition when content is unset", async () => {
@@ -98,9 +102,9 @@ describe("useComponentFieldViewModel", () => {
 
 		await nextTick();
 
-		expect(dependencies.components[componentId].content[fieldKey]).toBe(
-			"new value",
-		);
+		expect(
+			mockCore.core.getComponentById(componentId).content[fieldKey],
+		).toBe("new value");
 
 		expect(vm.value).toBe("new value");
 	});
