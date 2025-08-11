@@ -49,6 +49,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <div
+        class="WdsDropdownMenuItem__detail"
+        data-v-eb3dac76=""
+        data-writer-tooltip="Fallback Component"
+        data-writer-tooltip-strategy="overflow"
+      >
+        Fallback Component
+      </div>
+      <div
         class="WdsDropdownMenuItem__action"
         data-v-eb3dac76=""
       >
@@ -99,6 +107,14 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
           binding
         </span>
         <!--v-if-->
+      </div>
+      <div
+        class="WdsDropdownMenuItem__detail"
+        data-v-eb3dac76=""
+        data-writer-tooltip="Fallback Component"
+        data-writer-tooltip-strategy="overflow"
+      >
+        Fallback Component
       </div>
       <div
         class="WdsDropdownMenuItem__action"
@@ -159,6 +175,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         <!--v-if-->
       </div>
       <!--v-if-->
+      <!--v-if-->
     </button>
     
   </div>
@@ -209,6 +226,7 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
         </span>
         <!--v-if-->
       </div>
+      <!--v-if-->
       <!--v-if-->
     </button>
     

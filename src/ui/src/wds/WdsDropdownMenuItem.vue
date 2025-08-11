@@ -85,6 +85,14 @@ const iconStyle = computed(() => {
 			>
 		</div>
 		<div
+			v-if="option.detail"
+			class="WdsDropdownMenuItem__detail"
+			:data-writer-tooltip="option.detail"
+			data-writer-tooltip-strategy="overflow"
+		>
+			{{ option.detail }}
+		</div>
+		<div
 			v-if="selected || showCustomAction"
 			class="WdsDropdownMenuItem__action"
 		>
