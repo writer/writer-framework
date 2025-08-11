@@ -1,4 +1,4 @@
-import { computed, inject, MaybeRef, toValue, watch } from "vue";
+import { computed, inject, MaybeRef, ref, toValue, watch } from "vue";
 import { BuilderManager, Core } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import { useLogger } from "@/composables/useLogger";
@@ -72,16 +72,23 @@ export function useComponentFieldViewModel(
 		setContentValue(component.value.id, toValue(params.fieldKey), value);
 	}
 
+	const isDirty = ref(false);
+
 	const fieldValue = computed<string>(() => {
-		return (
-			component.value?.content?.[toValue(params.fieldKey)] ||
-			fallbackValue.value
-		);
+		const val = component.value?.content?.[toValue(params.fieldKey)];
+
+		if (isDirty.value && typeof val === "string") {
+			return val;
+		}
+
+		return val || fallbackValue.value;
 	});
 
 	const fieldViewModel = computed<string>({
 		get: () => fieldValue.value,
 		set: (value: string) => {
+			isDirty.value = true;
+
 			setFieldValue(value);
 		},
 	});
