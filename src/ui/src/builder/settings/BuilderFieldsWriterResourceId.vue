@@ -187,7 +187,7 @@ function onSelectedData(appData: WriterApplication | undefined) {
 }
 
 .BuilderFieldsWriterResourceId:has(.BuilderFieldsWriterResourceId__link) {
-	grid-template-columns: 1fr auto;
+	grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .BuilderFieldsWriterResourceId__link {
