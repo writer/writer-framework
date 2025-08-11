@@ -1,5 +1,5 @@
 <template>
-	<div ref="root" class="BuilderTemplateInput" @keydown="onKeydown">
+	<div ref="root" class="BuilderTemplateInput" @keydown.stop="onKeydown">
 		<BuilderTemplateInputTemplate
 			v-if="type === 'template'"
 			ref="input"
