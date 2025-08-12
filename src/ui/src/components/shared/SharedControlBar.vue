@@ -10,8 +10,6 @@
 	</div>
 </template>
 
-<script setup lang="ts"></script>
-
 <style scoped>
 .SharedControlBar {
 	gap: 8px;

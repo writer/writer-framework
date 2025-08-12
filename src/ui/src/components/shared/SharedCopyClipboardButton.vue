@@ -1,9 +1,9 @@
 <template>
-	<div ref="trigger" class="WdsCopyClipboardButton">
+	<div ref="trigger" class="SharedCopyClipboardButton">
 		<WdsButton
 			variant="tertiary"
 			size="smallIcon"
-			class="WdsCopyClipboardButton__button"
+			class="button"
 			:class="{
 				copied,
 			}"
@@ -24,7 +24,7 @@
 		<WdsDropdownMenu
 			v-if="!isSingleButtonMode && isMenuOpen"
 			ref="menu"
-			class="WdsCopyClipboardButton__menu"
+			class="menu"
 			:options="options"
 			:style="floatingStyles"
 			@select="onMenuItemSelect"
@@ -35,7 +35,7 @@
 <script lang="ts">
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 
-export type WdsCopyClipboardButtonOption = Pick<
+export type SharedCopyClipboardButtonOption = Pick<
 	WdsDropdownMenuOption,
 	"label" | "value"
 >;
@@ -54,7 +54,7 @@ const props = defineProps({
 	label: { type: String, required: false, default: "" },
 	value: { type: String, required: false, default: "" },
 	options: {
-		type: Array as PropType<WdsCopyClipboardButtonOption[]>,
+		type: Array as PropType<SharedCopyClipboardButtonOption[]>,
 		required: false,
 		default: () => [],
 	},
@@ -114,11 +114,11 @@ function onMenuItemSelect(value: string) {
 </script>
 
 <style scoped>
-.WdsCopyClipboardButton {
+.SharedCopyClipboardButton {
 	position: relative;
 }
 
-.WdsCopyClipboardButton__menu {
+.menu {
 	width: 160px;
 }
 
@@ -134,11 +134,11 @@ function onMenuItemSelect(value: string) {
 	}
 }
 
-.WdsCopyClipboardButton__button.copied :deep(svg) {
+.button.copied :deep(svg) {
 	animation: pulse 0.3s ease-in-out;
 }
 
-.WdsCopyClipboardButton__button.copied {
+.button.copied {
 	color: #4caf50;
 }
 </style>

@@ -27,7 +27,7 @@
 			</span>
 		</template>
 		<template #actions>
-			<WdsCopyClipboardButton
+			<SharedCopyClipboardButton
 				v-if="fields.copyButtons.value"
 				:options="[
 					{
@@ -115,8 +115,8 @@ import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdownRaw from "../base/BaseMarkdownRaw.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
-	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
 });
 
 type AnnotatedTextElementArray = [content: string, tag: string, color?: string];

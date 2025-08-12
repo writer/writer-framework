@@ -18,7 +18,7 @@
 			</p>
 
 			<template #actions>
-				<WdsCopyClipboardButton
+				<SharedCopyClipboardButton
 					v-if="fields.quickCopy.value"
 					label="Copy text"
 					:value="fields.text.value"
@@ -102,8 +102,8 @@ import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
-	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
 });
 
 const rootEl = useTemplateRef("rootEl");

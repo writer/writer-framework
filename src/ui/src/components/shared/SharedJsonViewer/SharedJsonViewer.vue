@@ -26,7 +26,7 @@
 		<SharedJsonViewerChildrenCounter v-else :data="{}" />
 
 		<template #actions>
-			<WdsCopyClipboardButton
+			<SharedCopyClipboardButton
 				v-if="enableCopyToJson"
 				label="Copy JSON"
 				:value="dataAsString"
@@ -63,8 +63,8 @@ import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.v
 import SharedControlBar from "../SharedControlBar.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
-	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
 });
 
 const props = defineProps({
