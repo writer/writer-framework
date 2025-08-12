@@ -61,7 +61,11 @@ import SharedJsonViewerObject from "./SharedJsonViewerObject.vue";
 import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
 import SharedControlBar from "../SharedControlBar.vue";
-import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+});
 
 const props = defineProps({
 	data: {

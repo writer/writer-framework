@@ -123,36 +123,7 @@ exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
     data-v-5ef423de=""
   >
     
-    <div
-      class="WdsCopyClipboardButton"
-      data-v-13ebc398=""
-      data-v-43f70582=""
-    >
-      <button
-        aria-expanded="false"
-        aria-haspopup="menu"
-        aria-label="Open options"
-        class="WdsButton colorTransformer WdsButton WdsButton--tertiary WdsButton--smallIcon WdsCopyClipboardButton__button"
-        data-v-21dd4644=""
-        data-v-43f70582=""
-        data-writer-tooltip-placement="top"
-        disabled=""
-        type="button"
-      >
-        <!--v-if-->
-        
-        <span
-          data-v-43f70582=""
-          style="display: contents;"
-        >
-          <i
-            data-lucide="clipboard"
-          />
-        </span>
-        
-      </button>
-      <!--v-if-->
-    </div>
+    <!---->
     
   </div>
 </div>

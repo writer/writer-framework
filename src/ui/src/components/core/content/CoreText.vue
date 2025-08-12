@@ -37,7 +37,6 @@ import {
 } from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
-import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
 import SharedControlBar from "../../shared/SharedControlBar.vue";
 
 const clickHandlerStub = `
@@ -101,6 +100,11 @@ import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+});
 
 const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);

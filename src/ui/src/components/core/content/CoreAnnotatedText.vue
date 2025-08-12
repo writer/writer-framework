@@ -54,7 +54,6 @@ import {
 	createEnableCopyButtonField,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
-import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorAnotatedText } from "@/constants/validators";
 export default {
@@ -114,6 +113,11 @@ import { computed, inject, readonly, ref, watch } from "vue";
 import chroma, { Color } from "chroma-js";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdownRaw from "../base/BaseMarkdownRaw.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const WdsCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsCopyClipboardButton.vue"),
+});
 
 type AnnotatedTextElementArray = [content: string, tag: string, color?: string];
 type AnnotatedTextElement = string | AnnotatedTextElementArray;

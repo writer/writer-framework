@@ -47,7 +47,7 @@ import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
 import { computed, nextTick, PropType, ref, useTemplateRef, watch } from "vue";
-import { autoPlacement, useFloating } from "@floating-ui/vue";
+import { useFloating } from "@floating-ui/vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
 
 const props = defineProps({
@@ -65,11 +65,8 @@ const { copy, copied, isSupported } = useClipboard();
 const isSingleButtonMode = computed(() => props.options.length === 0);
 
 const tooltipMessage = computed(() => {
-	if (isSingleButtonMode.value) {
-		return copied.value ? "Copied to clipboard" : props.label;
-	}
-
-	return undefined;
+	if (!isSingleButtonMode.value) return;
+	return copied.value ? "Copied to clipboard" : props.label;
 });
 
 const isMenuOpen = ref(false);
@@ -79,7 +76,6 @@ const menu = useTemplateRef("menu");
 
 const { floatingStyles } = useFloating(trigger, menu, {
 	placement: "bottom-end",
-	middleware: [autoPlacement({ allowedPlacements: ["bottom-end"] })],
 });
 
 // close the menu when clicking outside
