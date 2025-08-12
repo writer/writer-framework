@@ -2,7 +2,6 @@
 import { computed } from "vue";
 
 const props = defineProps({
-	status: { type: Boolean },
 	count: { type: Number, required: true },
 	completionStyle: { type: String, required: false, default: undefined },
 });

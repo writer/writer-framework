@@ -1,5 +1,6 @@
 <template>
 	<BuilderPanel
+		ref="panel"
 		panel-id="log"
 		name="Log"
 		:contents-teleport-el="contentsTeleportEl"
@@ -60,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, nextTick, useTemplateRef, watch } from "vue";
 import BuilderPanel, { type BuilderPanelAction } from "./BuilderPanel.vue";
 import BuilderLogBlueprintExecution from "./BuilderLogBlueprintExecution.vue";
 import injectionKeys from "@/injectionKeys";
@@ -75,10 +76,15 @@ defineProps<{
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
+const panel = useTemplateRef("panel");
+
 const tracking = useWriterTracking(wf);
 
-function onOpenPanel(open: boolean) {
-	if (open) tracking.track("nav_logs_opened");
+async function onOpenPanel(open: boolean) {
+	if (!open) return;
+	tracking.track("nav_logs_opened");
+	await nextTick();
+	await scrollToSelectedLog();
 }
 
 const actions: BuilderPanelAction[] = [
@@ -97,6 +103,30 @@ const actions: BuilderPanelAction[] = [
 
 const logEntries = computed(() => {
 	return wfbm.getLogEntries();
+});
+
+async function scrollToSelectedLog() {
+	const mainEl = panel.value?.mainContents;
+	if (!mainEl) return;
+
+	const selectedEl = mainEl.querySelector(".item.selected");
+	if (!selectedEl) return;
+
+	const mainRect = mainEl.getBoundingClientRect();
+	const selectedRect = selectedEl.getBoundingClientRect();
+
+	// Current scroll position + offset needed to center
+	const top =
+		mainEl.scrollTop +
+		(selectedRect.top - mainRect.top) -
+		(mainRect.height / 2 - selectedRect.height / 2);
+
+	mainEl.scrollTo({ top, behavior: "smooth" });
+}
+
+watch(wfbm.selection, async () => {
+	await nextTick();
+	await scrollToSelectedLog();
 });
 </script>
 
