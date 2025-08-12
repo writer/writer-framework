@@ -4,120 +4,153 @@ exports[`CoreAnnotatedText > should render in markdown mode 1`] = `""`;
 
 exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
 <div
-  class="CoreAnnotatedText"
+  class="SharedControlBar CoreAnnotatedText"
   data-v-13ebc398=""
+  data-v-5ef423de=""
 >
-  
-  <!--v-if-->
-  
-  <span
-    data-v-13ebc398=""
+  <div
+    class="SharedControlBar__content"
+    data-v-5ef423de=""
   >
     
-    # This
-
-
     
     <!--v-if-->
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    <!--v-if-->
+    
     <span
-      class="CoreAnnotatedText__annotation"
       data-v-13ebc398=""
-      style="background-color: red;"
     >
-      **is** 
+      
+      # This
+
+
+      
+      <!--v-if-->
+    </span>
+    <span
+      data-v-13ebc398=""
+    >
+      <!--v-if-->
       <span
-        class="CoreAnnotatedText__annotation__subject"
+        class="CoreAnnotatedText__annotation"
         data-v-13ebc398=""
+        style="background-color: red;"
       >
-        Verb
+        **is** 
+        <span
+          class="CoreAnnotatedText__annotation__subject"
+          data-v-13ebc398=""
+        >
+          Verb
+        </span>
       </span>
     </span>
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    
-     some 
-    
-    <!--v-if-->
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    <!--v-if-->
     <span
-      class="CoreAnnotatedText__annotation"
       data-v-13ebc398=""
-      style="background-color: rgb(180, 237, 238);"
     >
-      _annotated_ 
+      
+       some 
+      
+      <!--v-if-->
+    </span>
+    <span
+      data-v-13ebc398=""
+    >
+      <!--v-if-->
       <span
-        class="CoreAnnotatedText__annotation__subject"
+        class="CoreAnnotatedText__annotation"
         data-v-13ebc398=""
+        style="background-color: rgb(180, 237, 238);"
       >
-        Adjective
+        _annotated_ 
+        <span
+          class="CoreAnnotatedText__annotation__subject"
+          data-v-13ebc398=""
+        >
+          Adjective
+        </span>
       </span>
     </span>
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    <!--v-if-->
     <span
-      class="CoreAnnotatedText__annotation"
       data-v-13ebc398=""
-      style="background-color: rgb(229, 208, 250);"
     >
-      text 
+      <!--v-if-->
       <span
-        class="CoreAnnotatedText__annotation__subject"
+        class="CoreAnnotatedText__annotation"
         data-v-13ebc398=""
+        style="background-color: rgb(229, 208, 250);"
       >
-        Noun
+        text 
+        <span
+          class="CoreAnnotatedText__annotation__subject"
+          data-v-13ebc398=""
+        >
+          Noun
+        </span>
       </span>
     </span>
-  </span>
-  <span
-    data-v-13ebc398=""
+    <span
+      data-v-13ebc398=""
+    >
+      
+      . 
+      
+      <!--v-if-->
+    </span>
+    <span
+      data-v-13ebc398=""
+    >
+      
+      ## title 2
+
+
+      
+      <!--v-if-->
+    </span>
+    <span
+      data-v-13ebc398=""
+    >
+      
+      And [here](https://google.com)'s paragraph 2
+      
+      <!--v-if-->
+    </span>
+    
+    
+    
+  </div>
+  <div
+    class="SharedControlBar__actions"
+    data-v-5ef423de=""
   >
     
-    . 
+    <div
+      class="WdsCopyClipboardButton"
+      data-v-13ebc398=""
+      data-v-43f70582=""
+    >
+      <button
+        class="WdsButton colorTransformer WdsButton WdsButton--tertiary WdsButton--smallIcon WdsCopyClipboardButton__button"
+        data-v-21dd4644=""
+        data-v-43f70582=""
+        data-writer-tooltip-placement="top"
+        disabled=""
+        type="button"
+      >
+        <!--v-if-->
+        
+        <span
+          data-v-43f70582=""
+          style="display: contents;"
+        >
+          <i
+            data-lucide="clipboard"
+          />
+        </span>
+        
+      </button>
+      <!--v-if-->
+    </div>
     
-    <!--v-if-->
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    
-    ## title 2
-
-
-    
-    <!--v-if-->
-  </span>
-  <span
-    data-v-13ebc398=""
-  >
-    
-    And [here](https://google.com)'s paragraph 2
-    
-    <!--v-if-->
-  </span>
-  
-  
-  <shared-control-bar-stub
-    copyrawcontent="# This
-
-**is** some _annotated_text. ## title 2
-
-And [here](https://google.com)'s paragraph 2"
-    copystructuredcontent="["# This\\n\\n",["**is**","Verb","red"]," some ",["_annotated_","Adjective"],["text","Noun"],". ","## title 2\\n\\n","And [here](https://google.com)'s paragraph 2"]"
-    data-v-13ebc398=""
-  />
+  </div>
 </div>
 `;
