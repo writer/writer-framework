@@ -8,6 +8,13 @@
 				copied,
 			}"
 			:disabled="!isSupported"
+			:aria-label="
+				isSingleButtonMode
+					? label || 'Copy to clipboard'
+					: 'Open options'
+			"
+			:aria-haspopup="isSingleButtonMode ? undefined : 'menu'"
+			:aria-expanded="isSingleButtonMode ? undefined : String(isMenuOpen)"
 			:data-writer-tooltip="tooltipMessage"
 			data-writer-tooltip-placement="top"
 			@click="onCopyButtonClick"
@@ -94,13 +101,13 @@ watch(
 );
 
 async function onCopyButtonClick() {
-	if (props.options.length > 1) {
-		isMenuOpen.value = true;
+	if (isSingleButtonMode.value) {
+		copy(props.value);
 
 		return;
 	}
 
-	copy(props.value);
+	isMenuOpen.value = true;
 }
 
 function onMenuItemSelect(value: string) {

@@ -129,6 +129,9 @@ exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
       data-v-43f70582=""
     >
       <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        aria-label="Open options"
         class="WdsButton colorTransformer WdsButton WdsButton--tertiary WdsButton--smallIcon WdsCopyClipboardButton__button"
         data-v-21dd4644=""
         data-v-43f70582=""
