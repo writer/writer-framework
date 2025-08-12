@@ -100,7 +100,15 @@ describe(useComponentFieldViewModel.name, () => {
 		expect(
 			mockCore.core.getComponentById(componentId).content[fieldKey],
 		).toBe("new value");
-
 		expect(vm.value).toBe("new value");
+
+		vm.value = "";
+
+		await nextTick();
+
+		expect(
+			mockCore.core.getComponentById(componentId).content[fieldKey],
+		).toBe("");
+		expect(vm.value).toBe("");
 	});
 });
