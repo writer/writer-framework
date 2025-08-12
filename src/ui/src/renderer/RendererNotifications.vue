@@ -5,7 +5,7 @@
 		@click="toggle"
 	>
 		<div ref="balloon" class="balloon" title="Toggle notifications">
-			<WdsIcon class="icon" name="bell" />
+			<WdsIcon name="bell" />
 			<div class="counter">{{ notifications.length }}</div>
 		</div>
 		<div class="balloonFlash"></div>
@@ -142,11 +142,11 @@ const clearAll = () => {
 	flex-direction: column;
 }
 
-.balloon :deep(.icon) {
+.balloon :deep(svg) {
 	font-size: 1.25rem;
 }
 
-.balloon.alert :deep(.icon) {
+.balloon.alert :deep(svg) {
 	animation-name: ring;
 	animation-duration: 0.3s;
 	animation-iteration-count: 4;

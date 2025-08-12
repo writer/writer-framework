@@ -29,7 +29,7 @@ function onChange(event: InputEvent) {
 		@mousedown.prevent
 	>
 		<div class="WdsCheckbox__checkbox">
-			<WdsIcon name="check" class="WdsCheckbox__checkbox__check" />
+			<WdsIcon name="check" />
 		</div>
 		<span v-if="label" class="WdsCheckbox__label">{{ label }}</span>
 		<span v-if="detail" class="WdsCheckbox__detail">{{ detail }}</span>
@@ -85,17 +85,18 @@ function onChange(event: InputEvent) {
 	font-weight: bold;
 }
 
-:deep(.WdsCheckbox__checkbox__check) {
+.WdsCheckbox__checkbox :deep(svg) {
 	display: none;
 }
 
 .WdsCheckbox:hover:not(.WdsCheckbox--checked):not(.WdsCheckbox--disabled)
-	:deep(.WdsCheckbox__checkbox__check) {
+	.WdsCheckbox__checkbox
+	:deep(svg) {
 	display: block;
 	color: var(--wdsColorGray4);
 }
 
-.WdsCheckbox--checked :deep(.WdsCheckbox__checkbox__check) {
+.WdsCheckbox--checked .WdsCheckbox__checkbox :deep(svg) {
 	display: block;
 	color: var(--wdsColorWhite);
 }

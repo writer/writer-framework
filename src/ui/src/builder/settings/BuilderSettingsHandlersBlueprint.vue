@@ -156,11 +156,15 @@ function jumpToBlueprint(blueprintId: string, triggerId?: string) {
 				<WdsIcon name="play" />
 			</WdsButton>
 			<p>{{ eventTypeFormated }}</p>
-			<WdsIcon
+			<WdsButton
 				v-if="eventDescription"
 				:data-writer-tooltip="eventDescription"
-				name="circle-question-mark"
-			/>
+				variant="neutral"
+				size="smallIcon"
+				custom-size="18px"
+			>
+				<WdsIcon name="circle-question-mark" />
+			</WdsButton>
 		</div>
 
 		<div class="BuilderSettingsHandlersBlueprint__list">

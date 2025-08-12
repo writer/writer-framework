@@ -42,7 +42,9 @@
 						data-writer-grid-col="0"
 						class="CoreDataframe__table__th CoreDataframe__table__th--index"
 					>
-						<WdsIcon class="widthAdjuster" name="grip-vertical" />
+						<div class="widthAdjuster">
+							<WdsIcon name="grip-vertical" />
+						</div>
 					</div>
 					<div
 						v-for="(columnName, columnPosition) in shownColumnNames"
@@ -59,16 +61,21 @@
 						>
 							{{ columnName }}
 						</button>
-						<WdsIcon
+						<div
 							v-if="orderSetting?.columnName == columnName"
 							class="CoreDataframe__table__th__icon"
-							:name="
-								orderSetting?.descending
-									? 'arrow-up'
-									: 'arrow-down'
-							"
-						/>
-						<WdsIcon class="widthAdjuster" name="grip-vertical" />
+						>
+							<WdsIcon
+								:name="
+									orderSetting?.descending
+										? 'arrow-up'
+										: 'arrow-down'
+								"
+							/>
+						</div>
+						<div class="widthAdjuster">
+							<WdsIcon name="grip-vertical" />
+						</div>
 					</div>
 					<div
 						v-if="hasActions"
@@ -793,7 +800,7 @@ onUnmounted(() => {
 	text-overflow: ellipsis;
 }
 
-:deep(.CoreDataframe__table__th__icon) {
+.CoreDataframe__table__th__icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -815,7 +822,7 @@ onUnmounted(() => {
 	z-index: 1;
 }
 
-:deep(.widthAdjuster) {
+.widthAdjuster {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -832,7 +839,7 @@ onUnmounted(() => {
 	color: var(--wdsColorGray4);
 }
 
-:deep(.widthAdjuster:hover) {
+.widthAdjuster:hover {
 	color: var(--wdsColorBlack);
 }
 </style>
