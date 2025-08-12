@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { ref, nextTick } from "vue";
 import { buildMockComponent, buildMockCore } from "@/tests/mocks";
+import { FieldType } from "@/writerTypes";
 import { generateBuilderManager } from "./builderManager";
 import {
 	useComponentFieldViewModel,
 	Dependencies,
 } from "./useComponentFieldViewModel";
-import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 
 describe(useComponentFieldViewModel.name, () => {
 	const componentId = "TestComponent";
@@ -29,25 +29,20 @@ describe(useComponentFieldViewModel.name, () => {
 			}),
 		);
 
-		function getComponentDefinition(): WriterComponentDefinition {
-			return {
-				name: "",
-				description: "",
-				fields: {
-					[fieldKey]: {
-						name: "",
-						type: FieldType.Text,
-						default: "default test",
-					},
+		vi.spyOn(mockCore.core, "getComponentDefinition").mockReturnValue({
+			name: "",
+			description: "",
+			fields: {
+				[fieldKey]: {
+					name: "",
+					type: FieldType.Text,
+					default: "default test",
 				},
-			};
-		}
+			},
+		});
 
 		return {
-			wf: {
-				...mockCore.core,
-				getComponentDefinition,
-			},
+			wf: mockCore.core,
 			ssbm: generateBuilderManager(),
 		};
 	}
