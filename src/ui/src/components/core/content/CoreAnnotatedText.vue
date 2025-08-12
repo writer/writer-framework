@@ -51,6 +51,7 @@ import {
 	buttonTextColor,
 	cssClasses,
 	primaryTextColor,
+	createEnableCopyButtonField,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
 import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
@@ -94,11 +95,8 @@ export default {
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
 			}),
-			copyButtons: createBooleanField({
-				name: "Enable copy buttons",
-				desc: "If active, adds a control bar with both copy text and JSON buttons.",
+			copyButtons: createEnableCopyButtonField({
 				default: "no",
-				category: FieldCategory.Style,
 			}),
 			buttonColor,
 			buttonTextColor,

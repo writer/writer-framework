@@ -31,6 +31,7 @@
 <script lang="ts">
 import {
 	createBooleanField,
+	createEnableCopyButtonField,
 	cssClasses,
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
@@ -78,9 +79,7 @@ export default {
 				},
 				category: FieldCategory.Style,
 			},
-			quickCopy: createBooleanField({
-				name: "Enable copy button",
-				desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
+			quickCopy: createEnableCopyButtonField({
 				default: "no",
 			}),
 			primaryTextColor,
