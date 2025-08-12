@@ -1,8 +1,5 @@
 <template>
-	<div
-		v-if="ssbm.isSingleSelectionActive && fields"
-		class="BuilderSettingsProperties"
-	>
+	<div v-if="ssbm.isSingleSelectionActive" class="BuilderSettingsProperties">
 		<WdsTabs
 			v-if="fieldCategories.length > 1"
 			v-model="selectedCategoryTab"
@@ -344,23 +341,41 @@ const fieldCategories = computed(() => {
 	].filter((c) => fieldsByCategory.value[c]?.length);
 });
 
-const fieldsByCategory = computed(() => {
-	const entries = Object.entries(fields.value);
-	const result = {
-		[FieldCategory.General]: entries.filter(
-			([_, fieldValue]) =>
-				!fieldValue.category ||
-				fieldValue.category == FieldCategory.General,
-		),
-		[FieldCategory.Style]: entries.filter(
-			([_, fieldValue]) => fieldValue.category == FieldCategory.Style,
-		),
-		[FieldCategory.Tools]: entries.filter(
-			([_, fieldValue]) => fieldValue.category == FieldCategory.Tools,
-		),
+type FieldEntry = [string, WriterComponentDefinitionField];
+
+const fieldsByCategory = computed<Record<FieldCategory, FieldEntry[]>>(() => {
+	const result: Record<FieldCategory, FieldEntry[]> = {
+		[FieldCategory.General]: [],
+		[FieldCategory.Style]: [],
+		[FieldCategory.Tools]: [],
 	};
-	return result;
+
+	Object.entries(fields.value).forEach(([k, v]) => {
+		const category = v.category || FieldCategory.General;
+
+		if (result[category]) {
+			result[category].push([k, v]);
+		}
+	});
+
+	return {
+		[FieldCategory.General]: sortByOrder(result[FieldCategory.General]),
+		[FieldCategory.Style]: sortByOrder(result[FieldCategory.Style]),
+		[FieldCategory.Tools]: sortByOrder(result[FieldCategory.Tools]),
+	};
 });
+
+function sortByOrder(fieldEntries: FieldEntry[]): FieldEntry[] {
+	return fieldEntries
+		.map((item, itemIndex) => [item, itemIndex] as const)
+		.sort(([a, aIndex], [b, bIndex]) => {
+			const aOrder = a[1].order ?? 0;
+			const bOrder = b[1].order ?? 0;
+
+			return bOrder - aOrder || aIndex - bIndex;
+		})
+		.map(([item]) => item);
+}
 
 function handleExpand(fieldKey: string) {
 	expandedFields.value.add(fieldKey);

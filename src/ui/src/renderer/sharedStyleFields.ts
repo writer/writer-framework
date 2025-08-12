@@ -139,6 +139,7 @@ export function createEnableCopyButtonField(params: {
 		desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
 		default: params.default,
 		category: FieldCategory.Style,
+		order: 1,
 	});
 }
 
