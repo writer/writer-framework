@@ -96,14 +96,18 @@ async function initialise() {
 					reason,
 				);
 				const loaderEl = document.getElementById("loading_L1");
-				if (loaderEl && !document.getElementById("loading_message") && attempt >= 2) {
+				if (
+					loaderEl &&
+					!document.getElementById("loading_message") &&
+					attempt >= 2
+				) {
 					const message = document.createElement("div");
 					message.id = "loading_message";
 					message.textContent =
 						"We're getting things ready.\nHang tight while we connect...";
 					message.style.cssText =
 						"position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);margin-top:120px;text-align:center;font-family: 'Poppins','Helvetica Neue','Lucida Grande',sans-serif;color:#666;font-size:14px;line-height:1.4;max-width:400px;padding:0 20px;z-index:1000;white-space:pre-line;opacity:0;transition:opacity 0.5s ease-in;";
-					document.body.appendChild(message);
+					document.getElementById("loading_L1")?.appendChild(message);
 					// Trigger fade-in animation
 					setTimeout(() => {
 						message.style.opacity = "1";
@@ -126,7 +130,7 @@ initialise()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
-		
+
 		const errorDiv = document.createElement("div");
 		errorDiv.className = "error-message";
 		errorDiv.setAttribute("role", "alert");
