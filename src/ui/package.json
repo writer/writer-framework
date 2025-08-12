@@ -30,6 +30,7 @@
 		"@tiptap/extension-text": "^3.0.7",
 		"@tiptap/extensions": "^3.0.7",
 		"@tiptap/vue-3": "^3.0.7",
+		"@vueuse/core": "^13.6.0",
 		"ajv": "^8.17.1",
 		"ajv-errors": "^3.0.0",
 		"arquero": "^5.2.0",

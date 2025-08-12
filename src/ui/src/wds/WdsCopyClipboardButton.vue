@@ -1,0 +1,141 @@
+<template>
+	<div ref="trigger" class="WdsCopyClipboardButton">
+		<WdsButton
+			variant="tertiary"
+			size="smallIcon"
+			class="WdsCopyClipboardButton__button"
+			:class="{
+				copied,
+			}"
+			:disabled="!isSupported"
+			:data-writer-tooltip="tooltipMessage"
+			data-writer-tooltip-placement="top"
+			@click="onCopyButtonClick"
+		>
+			<WdsIcon :name="copied ? 'check' : 'clipboard'" />
+		</WdsButton>
+		<WdsDropdownMenu
+			v-if="!isSingleButtonMode && isMenuOpen"
+			ref="menu"
+			class="WdsCopyClipboardButton__menu"
+			:options="options"
+			:style="floatingStyles"
+			@select="onMenuItemSelect"
+		/>
+	</div>
+</template>
+
+<script lang="ts">
+import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
+
+export type WdsCopyClipboardButtonOption = Pick<
+	WdsDropdownMenuOption,
+	"label" | "value"
+>;
+</script>
+
+<script setup lang="ts">
+import { useClipboard } from "@vueuse/core";
+import WdsButton from "@/wds/WdsButton.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
+import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
+import { computed, nextTick, PropType, ref, useTemplateRef, watch } from "vue";
+import { autoPlacement, useFloating } from "@floating-ui/vue";
+import { useFocusWithin } from "@/composables/useFocusWithin";
+
+const props = defineProps({
+	label: { type: String, required: false, default: "" },
+	value: { type: String, required: false, default: "" },
+	options: {
+		type: Array as PropType<WdsCopyClipboardButtonOption[]>,
+		required: false,
+		default: () => [],
+	},
+});
+
+const { copy, copied, isSupported } = useClipboard();
+
+const isSingleButtonMode = computed(() => props.options.length === 0);
+
+const tooltipMessage = computed(() => {
+	if (isSingleButtonMode.value) {
+		return copied.value ? "Copied to clipboard" : props.label;
+	}
+
+	return undefined;
+});
+
+const isMenuOpen = ref(false);
+
+const trigger = useTemplateRef("trigger");
+const menu = useTemplateRef("menu");
+
+const { floatingStyles } = useFloating(trigger, menu, {
+	placement: "bottom-end",
+	middleware: [autoPlacement({ allowedPlacements: ["bottom-end"] })],
+});
+
+// close the menu when clicking outside
+const hasFocus = useFocusWithin(trigger);
+
+watch(
+	hasFocus,
+	() => {
+		if (!hasFocus.value) {
+			// wait next tick to let event propagate
+			nextTick().then(() => {
+				isMenuOpen.value = false;
+			});
+		}
+	},
+	{
+		immediate: true,
+	},
+);
+
+async function onCopyButtonClick() {
+	if (props.options.length > 1) {
+		isMenuOpen.value = true;
+
+		return;
+	}
+
+	copy(props.value);
+}
+
+function onMenuItemSelect(value: string) {
+	copy(value);
+
+	isMenuOpen.value = false;
+}
+</script>
+
+<style scoped>
+.WdsCopyClipboardButton {
+	position: relative;
+}
+
+.WdsCopyClipboardButton__menu {
+	width: 160px;
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.WdsCopyClipboardButton__button.copied :deep(svg) {
+	animation: pulse 0.3s ease-in-out;
+}
+
+.WdsCopyClipboardButton__button.copied {
+	color: #4caf50;
+}
+</style>
