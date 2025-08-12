@@ -6,7 +6,7 @@
 		size="icon"
 		@click="isCollapsed = !isCollapsed"
 	>
-		<WdsIcon class="BaseCollapseIcon__icon" :name="icon" />
+		<WdsIcon :name="icon" />
 	</WdsButton>
 </template>
 
@@ -50,12 +50,12 @@ const icon = computed(() => {
 	border-color: var(--separatorColor);
 }
 
-:deep(.BaseCollapseIcon__icon) {
+.BaseCollapseIcon :deep(svg) {
 	transition: all 0.3s ease-in-out;
 	transform: rotate(0deg);
 }
 
-.BaseCollapseIcon--collapsed :deep(.BaseCollapseIcon__icon) {
+.BaseCollapseIcon--collapsed :deep(svg) {
 	transform: rotate(180deg);
 }
 </style>

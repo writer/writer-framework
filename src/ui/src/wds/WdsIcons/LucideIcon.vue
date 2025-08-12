@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, toRef, useAttrs, watch } from "vue";
+import { nextTick, ref, toRef, watch } from "vue";
 import { createIcons, icons } from "lucide";
 
 defineOptions({
@@ -15,8 +15,6 @@ defineOptions({
 const props = defineProps({
 	name: { type: String, required: true },
 });
-
-const attrs = useAttrs();
 
 const rawHtml = ref("");
 
@@ -29,7 +27,6 @@ function renderIcon(name: string) {
 			attrs: {
 				width: "1em",
 				height: "1em",
-				...attrs,
 			},
 		});
 	});
