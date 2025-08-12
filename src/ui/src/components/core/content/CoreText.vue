@@ -7,29 +7,24 @@
 		@click="handleClick"
 	>
 		<BaseEmptiness v-if="isEmpty" :component-id="componentId" />
-		<template v-else>
+		<SharedControlBar v-else>
 			<BaseMarkdown
 				v-if="fields.useMarkdown.value"
 				:raw-text="fields.text.value"
 				:style="contentStyle"
-			>
-			</BaseMarkdown>
-			<div v-else class="text-container">
-				<p class="plainText" :style="contentStyle">
-					{{ fields.text.value }}
-				</p>
-				<WdsButton
+			/>
+			<p v-else class="plainText" :style="contentStyle">
+				{{ fields.text.value }}
+			</p>
+
+			<template #actions>
+				<WdsCopyClipboardButton
 					v-if="fields.quickCopy.value"
-					class="copy-button"
-					variant="neutral"
-					size="smallIcon"
-					:class="{ copied: isCopied }"
-					@click="handleCopy"
-				>
-					<WdsIcon :name="isCopied ? 'check' : 'clipboard'" />
-				</WdsButton>
-			</div>
-		</template>
+					label="Copy text"
+					:value="fields.text.value"
+				/>
+			</template>
+		</SharedControlBar>
 	</div>
 </template>
 
@@ -41,8 +36,8 @@ import {
 } from "@/renderer/sharedStyleFields";
 import { getClick } from "@/renderer/syntheticEvents";
 import { FieldCategory, FieldControl, FieldType } from "@/writerTypes";
-import WdsButton from "@/wds/WdsButton.vue";
-import WdsIcon from "@/wds/WdsIcon.vue";
+import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
+import SharedControlBar from "../../shared/SharedControlBar.vue";
 
 const clickHandlerStub = `
 def click_handler(state):
@@ -103,7 +98,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, useTemplateRef, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
@@ -116,9 +111,6 @@ const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
 const isEmpty = computed(() => !fields.text.value);
 const shouldDisplay = computed(() => !isEmpty.value || isBeingEdited.value);
-
-// Add reactive state for copy feedback
-const isCopied = ref(false);
 
 const rootStyle = computed(() => {
 	const component = wf.getComponentById(componentId);
@@ -139,15 +131,6 @@ const contentStyle = computed(() => {
 function handleClick(ev: MouseEvent) {
 	const ssEv = getClick(ev);
 	rootEl.value.dispatchEvent(ssEv);
-}
-
-function handleCopy() {
-	navigator.clipboard.writeText(fields.text.value).then(() => {
-		isCopied.value = true;
-		setTimeout(() => {
-			isCopied.value = false;
-		}, 2000);
-	});
 }
 </script>
 
@@ -176,31 +159,5 @@ function handleCopy() {
 
 .CoreText img {
 	width: 100%;
-}
-
-.text-container {
-	gap: 8px;
-	display: grid;
-	grid-template-columns: 1fr auto;
-}
-
-.copy-button.copied {
-	color: #4caf50;
-}
-
-.copy-button.copied :deep(svg) {
-	animation: pulse 0.3s ease-in-out;
-}
-
-@keyframes pulse {
-	0% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.2);
-	}
-	100% {
-		transform: scale(1);
-	}
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-	<div v-if="shouldDisplay" class="CoreAnnotatedText">
+	<SharedControlBar v-if="shouldDisplay" class="CoreAnnotatedText">
 		<BaseMarkdownRaw
 			v-if="useMarkdown"
 			:raw-markdown="markdown"
@@ -26,12 +26,22 @@
 				</span>
 			</span>
 		</template>
-		<SharedControlBar
-			v-if="fields.copyButtons.value"
-			:copy-raw-content="copyRawContent"
-			:copy-structured-content="copyStructuredContent"
-		/>
-	</div>
+		<template #actions>
+			<WdsCopyClipboardButton
+				v-if="fields.copyButtons.value"
+				:options="[
+					{
+						label: 'Copy text',
+						value: copyRawContent,
+					},
+					{
+						label: 'Copy JSON',
+						value: copyStructuredContent,
+					},
+				]"
+			/>
+		</template>
+	</SharedControlBar>
 </template>
 
 <script lang="ts">
@@ -43,6 +53,7 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
+import WdsCopyClipboardButton from "@/wds/WdsCopyClipboardButton.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorAnotatedText } from "@/constants/validators";
 export default {
