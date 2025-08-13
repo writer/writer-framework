@@ -63,7 +63,10 @@
 								<WdsIcon :name="action.icon" />
 							</WdsButton>
 						</div>
-						<div class="BuilderPanel__mainContents">
+						<div
+							ref="mainContents"
+							class="BuilderPanel__mainContents"
+						>
 							<slot></slot>
 						</div>
 					</template>
@@ -91,7 +94,14 @@ import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
-import { computed, inject, onMounted, onUnmounted, ref } from "vue";
+import {
+	computed,
+	inject,
+	onMounted,
+	onUnmounted,
+	ref,
+	useTemplateRef,
+} from "vue";
 import BuilderDropFileZone from "../BuilderDropFileZone.vue";
 
 const wfbm = inject(injectionKeys.builderManager);
@@ -113,6 +123,10 @@ const emits = defineEmits({
 	openned: (open: boolean) => typeof open === "boolean",
 	filesDrop: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
+
+const mainContents = useTemplateRef("mainContents");
+
+defineExpose({ mainContents });
 
 const showDropingFilesZone = computed(
 	() => props.enableDropFile && isDropingFiles.value,

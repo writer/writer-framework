@@ -94,12 +94,18 @@
 					@click="$emit('outMousedown', outId)"
 				/>
 			</div>
-			<BlueprintsNodeActions
-				v-if="!isTrigger"
-				class="BlueprintsNode__main__footer"
-				:show-display-error-option="canDisplayErrorOut"
-				@show-error="forceDisplayErrorOut = true"
-			/>
+			<div v-if="!isTrigger" class="BlueprintsNode__main__footer">
+				<BlueprintsNodeLogs
+					v-if="latestKnownOutcomes.length > 0"
+					:completion-style
+					:count="latestKnownOutcomes.length"
+					@click="openLogs"
+				/>
+				<BlueprintsNodeActions
+					:show-display-error-option="canDisplayErrorOut"
+					@show-error="forceDisplayErrorOut = true"
+				/>
+			</div>
 		</div>
 	</div>
 </template>
@@ -134,6 +140,7 @@ import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
 import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
+import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -190,25 +197,30 @@ const outcomeSeverity = {
 	none: 0,
 };
 
-const latestKnownOutcome = computed(() => {
+const latestKnownOutcomes = computed(() => {
 	const executionLogs = latestRun.value
 		.map((entry) => {
 			return entry.blueprintExecution;
 		})
 		.filter(Boolean);
-	let outcome = "none";
-	executionLogs.forEach((log) => {
-		log.summary
+	return executionLogs.flatMap((log) => {
+		return log.summary
 			.filter((item) => item.componentId === component.value.id)
-			.filter((item) => Boolean(item.outcome))
-			.forEach((item) => {
-				const severity =
-					outcomeSeverity[item.outcome] ?? outcomeSeverity.success;
-				if (severity > outcomeSeverity[outcome]) {
-					outcome = item.outcome;
-				}
-			});
+			.filter((item) => Boolean(item.outcome));
 	});
+});
+
+const latestKnownOutcome = computed(() => {
+	let outcome = "none";
+
+	for (const item of latestKnownOutcomes.value) {
+		const severity =
+			outcomeSeverity[item.outcome] ?? outcomeSeverity.success;
+		if (severity > outcomeSeverity[outcome]) {
+			outcome = item.outcome;
+		}
+	}
+
 	return outcome === "none" ? null : outcome;
 });
 
@@ -356,6 +368,13 @@ const possibleImageUrls = computed(() => {
 
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
+
+function openLogs() {
+	const item = latestKnownOutcomes.value.at(-1);
+	if (!item) return;
+	wfbm.openPanels.value.add("log");
+	wfbm.setSelection(componentId, undefined, "click");
+}
 
 watch(isEngaged, () => {
 	emit("engaged");
@@ -572,6 +591,8 @@ watch(isEngaged, () => {
 
 .BlueprintsNode__main__footer {
 	border-top: 1px solid var(--builderSeparatorColor);
+	display: grid;
+	grid-template-columns: 1fr auto;
 }
 .BlueprintsNode:has(.BlueprintsNode__main__outputs--float)
 	.BlueprintsNode__main__footer {
