@@ -1,5 +1,5 @@
 <template>
-	<div v-if="shouldDisplay" class="CoreAnnotatedText">
+	<SharedControlBar v-if="shouldDisplay" class="CoreAnnotatedText">
 		<BaseMarkdownRaw
 			v-if="useMarkdown"
 			:raw-markdown="markdown"
@@ -26,12 +26,13 @@
 				</span>
 			</span>
 		</template>
-		<SharedControlBar
-			v-if="fields.copyButtons.value"
-			:copy-raw-content="copyRawContent"
-			:copy-structured-content="copyStructuredContent"
-		/>
-	</div>
+		<template #actions>
+			<SharedCopyClipboardButton
+				v-if="fields.copyButtons.value"
+				:options="copyButtonOptions"
+			/>
+		</template>
+	</SharedControlBar>
 </template>
 
 <script lang="ts">
@@ -41,6 +42,7 @@ import {
 	buttonTextColor,
 	cssClasses,
 	primaryTextColor,
+	createEnableCopyButtonField,
 } from "@/renderer/sharedStyleFields";
 import SharedControlBar from "@/components/shared/SharedControlBar.vue";
 import { WdsColor } from "@/wds/tokens";
@@ -83,11 +85,8 @@ export default {
 				desc: "If active, the output will be sanitized; unsafe elements will be removed.",
 				default: "no",
 			}),
-			copyButtons: createBooleanField({
-				name: "Enable copy buttons",
-				desc: "If active, adds a control bar with both copy text and JSON buttons.",
+			copyButtons: createEnableCopyButtonField({
 				default: "no",
-				category: FieldCategory.Style,
 			}),
 			buttonColor,
 			buttonTextColor,
@@ -105,6 +104,11 @@ import { computed, inject, readonly, ref, watch } from "vue";
 import chroma, { Color } from "chroma-js";
 import BaseEmptiness from "../base/BaseEmptiness.vue";
 import BaseMarkdownRaw from "../base/BaseMarkdownRaw.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
+});
 
 type AnnotatedTextElementArray = [content: string, tag: string, color?: string];
 type AnnotatedTextElement = string | AnnotatedTextElementArray;
@@ -261,6 +265,11 @@ const copyStructuredContent = computed(() => {
 		return text.value.join("");
 	}
 });
+
+const copyButtonOptions = computed(() => [
+	{ label: "Copy text", value: copyRawContent.value },
+	{ label: "Copy JSON", value: copyStructuredContent.value },
+]);
 </script>
 
 <style scoped>

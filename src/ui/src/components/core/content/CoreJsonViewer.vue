@@ -12,6 +12,7 @@
 <script lang="ts">
 import {
 	createBooleanField,
+	createEnableCopyButtonField,
 	cssClasses,
 	secondaryTextColor,
 	separatorColor,
@@ -66,11 +67,8 @@ const definition: WriterComponentDefinition = {
 			default: "no",
 			category: FieldCategory.Style,
 		}),
-		copy: createBooleanField({
-			name: "Enable copy button",
-			desc: "If active, adds a control bar with copy JSON button.",
+		copy: createEnableCopyButtonField({
 			default: "no",
-			category: FieldCategory.Style,
 		}),
 		jsonViewerIndentationSpacing: {
 			name: "JSON indentation",

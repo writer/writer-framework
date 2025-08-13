@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeEach, beforeAll } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import BaseMarkdown from "../base/BaseMarkdown.vue";
 import CoreText from "./CoreText.vue";
 import injectionKeys from "@/injectionKeys";
 import { buildMockComponent, buildMockCore, mockProvides } from "@/tests/mocks";
-import { shallowMount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 import { Core } from "@/writerTypes";
 
@@ -22,7 +22,7 @@ describe("CoreText", async () => {
 	});
 
 	it("should render in non-markdown mode", () => {
-		const wrapper = shallowMount(CoreText, {
+		const wrapper = mount(CoreText, {
 			global: {
 				provide: {
 					...mockProvides,
@@ -42,7 +42,7 @@ describe("CoreText", async () => {
 	});
 
 	it("should render in markdown mode", () => {
-		const wrapper = shallowMount(CoreText, {
+		const wrapper = mount(CoreText, {
 			global: {
 				provide: {
 					...mockProvides,

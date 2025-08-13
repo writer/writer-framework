@@ -1,32 +1,38 @@
 <template>
-	<template v-if="isJSONObject(data) || isJSONArray(data)">
-		<SharedJsonViewerCollapsible
-			v-if="isRoot"
-			:open="isRootOpen"
-			:data="data"
-			@toggle="$emit('toggle', { path: [], open: $event })"
-		>
+	<SharedControlBar>
+		<template v-if="isJSONObject(data) || isJSONArray(data)">
+			<SharedJsonViewerCollapsible
+				v-if="isRoot"
+				:open="isRootOpen"
+				:data="data"
+				@toggle="$emit('toggle', { path: [], open: $event })"
+			>
+				<SharedJsonViewerObject
+					:data="data"
+					:path="path"
+					:initial-depth="initialDepth"
+					@toggle="$emit('toggle', $event)"
+				/>
+			</SharedJsonViewerCollapsible>
 			<SharedJsonViewerObject
+				v-else
 				:data="data"
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
 			/>
-		</SharedJsonViewerCollapsible>
-		<SharedJsonViewerObject
-			v-else
-			:data="data"
-			:path="path"
-			:initial-depth="initialDepth"
-			@toggle="$emit('toggle', $event)"
-		/>
-	</template>
-	<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
-	<SharedJsonViewerChildrenCounter v-else :data="{}" />
-	<SharedControlBar
-		v-if="enableCopyToJson"
-		:copy-structured-content="dataAsString"
-	/>
+		</template>
+		<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
+		<SharedJsonViewerChildrenCounter v-else :data="{}" />
+
+		<template #actions>
+			<SharedCopyClipboardButton
+				v-if="enableCopyToJson"
+				label="Copy JSON"
+				:value="dataAsString"
+			/>
+		</template>
+	</SharedControlBar>
 </template>
 
 <script lang="ts">
@@ -55,6 +61,11 @@ import SharedJsonViewerObject from "./SharedJsonViewerObject.vue";
 import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
 import SharedControlBar from "../SharedControlBar.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
+	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
+});
 
 const props = defineProps({
 	data: {

@@ -6,15 +6,27 @@ exports[`CoreText > should render in markdown mode 1`] = `
   data-v-810f69c0=""
   style="cursor: pointer;"
 >
-  
-  <base-markdown-stub
+  <div
+    class="SharedControlBar"
+    data-v-5ef423de=""
     data-v-810f69c0=""
-    rawtext="# Hello
-
-I'm the **content**."
-    style="text-align: center;"
-  />
-  
+  >
+    <div
+      class="SharedControlBar__content"
+      data-v-5ef423de=""
+    >
+      
+      <!--v-if-->
+      
+    </div>
+    <div
+      class="SharedControlBar__actions"
+      data-v-5ef423de=""
+    >
+      
+      
+    </div>
+  </div>
 </div>
 `;
 
@@ -24,22 +36,34 @@ exports[`CoreText > should render in non-markdown mode 1`] = `
   data-v-810f69c0=""
   style="cursor: pointer;"
 >
-  
   <div
-    class="text-container"
+    class="SharedControlBar"
+    data-v-5ef423de=""
     data-v-810f69c0=""
   >
-    <p
-      class="plainText"
-      data-v-810f69c0=""
-      style="text-align: center;"
+    <div
+      class="SharedControlBar__content"
+      data-v-5ef423de=""
     >
-      # Hello
+      
+      <p
+        class="plainText"
+        data-v-810f69c0=""
+        style="text-align: center;"
+      >
+        # Hello
 
 I'm the **content**.
-    </p>
-    <!--v-if-->
+      </p>
+      
+    </div>
+    <div
+      class="SharedControlBar__actions"
+      data-v-5ef423de=""
+    >
+      
+      
+    </div>
   </div>
-  
 </div>
 `;

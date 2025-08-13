@@ -131,6 +131,18 @@ export function createBooleanField(
 	};
 }
 
+export function createEnableCopyButtonField(params: {
+	default: "yes" | "no";
+}): WriterComponentDefinitionField {
+	return createBooleanField({
+		name: "Enable copy button",
+		desc: "Enable a copy button that lets users to copy the contents in this field to their clipboard",
+		default: params.default,
+		category: FieldCategory.Style,
+		order: 1,
+	});
+}
+
 export const isCollapsible = createBooleanField({
 	name: "Collapsible",
 	default: "no",

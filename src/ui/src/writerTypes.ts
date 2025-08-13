@@ -89,6 +89,8 @@ export type WriterComponentDefinitionField = {
 		| SchemaObject
 		| ((wf?: Core, componentId?: ComponentId) => SchemaObject); // dynamic schema depending on the context;
 	enabled?: WriterComponentDefinitionPropEnabled;
+	/** z-index-like config for displaying the field above the others */
+	order?: number;
 };
 
 export type WriterComponentDefinitionEvent = {

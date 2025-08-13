@@ -4,7 +4,7 @@ import CoreAnnotatedText from "./CoreAnnotatedText.vue";
 import VueDOMPurifyHTML from "vue-dompurify-html";
 import injectionKeys from "@/injectionKeys";
 import { buildMockCore, mockProvides } from "@/tests/mocks";
-import { flushPromises, shallowMount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { ref } from "vue";
 import { WdsColor } from "@/wds/tokens";
 
@@ -23,7 +23,7 @@ describe("CoreAnnotatedText", async () => {
 	it("should render in non-markdown mode", async () => {
 		const { core } = buildMockCore();
 
-		const wrapper = shallowMount(CoreAnnotatedText, {
+		const wrapper = mount(CoreAnnotatedText, {
 			global: {
 				plugins: [VueDOMPurifyHTML],
 				provide: {
@@ -37,7 +37,6 @@ describe("CoreAnnotatedText", async () => {
 						rotateHue: ref(true),
 						referenceColor: ref(WdsColor.Blue5),
 						copyButtons: ref(true),
-						quickCopy: ref(false),
 					},
 				},
 			},
@@ -64,7 +63,7 @@ describe("CoreAnnotatedText", async () => {
 	it("should render in markdown mode", async () => {
 		const { core } = buildMockCore();
 
-		const wrapper = shallowMount(CoreAnnotatedText, {
+		const wrapper = mount(CoreAnnotatedText, {
 			global: {
 				plugins: [VueDOMPurifyHTML],
 				provide: {
@@ -78,7 +77,6 @@ describe("CoreAnnotatedText", async () => {
 						rotateHue: ref(true),
 						referenceColor: ref(WdsColor.Blue5),
 						copyButtons: ref(true),
-						quickCopy: ref(false),
 					},
 				},
 			},
