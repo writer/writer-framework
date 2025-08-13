@@ -29,16 +29,7 @@
 		<template #actions>
 			<SharedCopyClipboardButton
 				v-if="fields.copyButtons.value"
-				:options="[
-					{
-						label: 'Copy text',
-						value: copyRawContent,
-					},
-					{
-						label: 'Copy JSON',
-						value: copyStructuredContent,
-					},
-				]"
+				:options="copyButtonOptions"
 			/>
 		</template>
 	</SharedControlBar>
@@ -274,6 +265,11 @@ const copyStructuredContent = computed(() => {
 		return text.value.join("");
 	}
 });
+
+const copyButtonOptions = computed(() => [
+	{ label: "Copy text", value: copyRawContent.value },
+	{ label: "Copy JSON", value: copyStructuredContent.value },
+]);
 </script>
 
 <style scoped>

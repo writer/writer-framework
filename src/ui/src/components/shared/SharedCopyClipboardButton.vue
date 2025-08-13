@@ -17,6 +17,7 @@
 			:aria-expanded="isSingleButtonMode ? undefined : String(isMenuOpen)"
 			:data-writer-tooltip="tooltipMessage"
 			data-writer-tooltip-placement="top"
+			data-writer-unselectable="true"
 			@click="onCopyButtonClick"
 		>
 			<WdsIcon :name="copied ? 'check' : 'clipboard'" />
@@ -103,7 +104,7 @@ async function onCopyButtonClick() {
 		return;
 	}
 
-	isMenuOpen.value = true;
+	isMenuOpen.value = !isMenuOpen.value;
 }
 
 function onMenuItemSelect(value: string) {
