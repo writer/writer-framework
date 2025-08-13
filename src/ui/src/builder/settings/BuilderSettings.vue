@@ -96,7 +96,7 @@ import BuilderSettingsMain from "./BuilderSettingsMain.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { SelectionStatus } from "../builderManager";
-import { useButtonClipboard } from "../useButtonClipboard";
+import { useClipboard } from "@vueuse/core";
 import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderSettingsActions from "./BuilderSettingsActions.vue";
@@ -117,8 +117,11 @@ const { component, definition: componentDefinition } = useComponentInformation(
 );
 const resultId = useBlueprintComponentResultId(component, componentDefinition);
 
-const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
-	useButtonClipboard(resultId);
+const { copy, copied: isComponentIdCopied } = useClipboard();
+
+function copyComponentId() {
+	copy(resultId.value);
+}
 
 const tracking = useWriterTracking(wf);
 

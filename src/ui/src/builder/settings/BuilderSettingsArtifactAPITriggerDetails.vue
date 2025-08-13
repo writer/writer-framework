@@ -46,7 +46,7 @@
 					<WdsButton
 						variant="tertiary"
 						size="small"
-						@click="copyCreate"
+						@click="copyCreate()"
 					>
 						<WdsIcon
 							:name="isCreateCopied ? 'check' : 'clipboard'"
@@ -83,7 +83,7 @@
 						variant="tertiary"
 						size="small"
 						:disabled="isPollDisabled"
-						@click="copyPoll"
+						@click="copyPoll()"
 					>
 						<WdsIcon :name="isPollCopied ? 'check' : 'clipboard'" />
 						Copy poll async
@@ -103,7 +103,7 @@ import WdsTabs, { WdsTabOptions } from "@/wds/WdsTabs.vue";
 import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
-import { useButtonClipboard } from "../useButtonClipboard";
+import { useClipboard } from "@vueuse/core";
 import WdsTitle2 from "@/wds/WdsTitle2.vue";
 import { FieldType } from "@/writerTypes";
 
@@ -153,8 +153,9 @@ const parsedOutput = computed(() => {
 	}
 });
 
-const { copyText: copyCreate, isCopied: isCreateCopied } =
-	useButtonClipboard(curlCreate);
+const { copy: copyCreate, copied: isCreateCopied } = useClipboard({
+	source: curlCreate,
+});
 
 const isPollDisabled = computed(() => {
 	return !parsedOutput.value?.poll_url?.trim();
@@ -168,8 +169,9 @@ const curlPoll = computed(() => {
 	);
 });
 
-const { copyText: copyPoll, isCopied: isPollCopied } =
-	useButtonClipboard(curlPoll);
+const { copy: copyPoll, copied: isPollCopied } = useClipboard({
+	source: curlPoll,
+});
 </script>
 
 <style scoped>

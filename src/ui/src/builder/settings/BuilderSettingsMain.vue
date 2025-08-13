@@ -73,7 +73,7 @@ import BuilderSettingsBinding from "./BuilderSettingsBinding.vue";
 import BuilderSettingsVisibility from "./BuilderSettingsVisibility.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
-import { useButtonClipboard } from "../useButtonClipboard";
+import { useClipboard } from "@vueuse/core";
 import { artifactRegistry } from "./artifacts";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
@@ -108,8 +108,11 @@ watch(component, (newComponent) => {
 	if (!newComponent) ssbm.setSelection(null);
 });
 
-const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
-	useButtonClipboard(computed(() => ssbm.firstSelectedId.value));
+const { copy, copied: isComponentIdCopied } = useClipboard();
+
+function copyComponentId() {
+	copy(ssbm.firstSelectedId.value);
+}
 
 const isBindable = computed(() =>
 	Object.values(componentDefinition.value?.events ?? {}).some(

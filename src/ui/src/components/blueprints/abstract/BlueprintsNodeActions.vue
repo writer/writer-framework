@@ -3,7 +3,7 @@ import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
-import { useButtonClipboard } from "@/builder/useButtonClipboard";
+import { useClipboard } from "@vueuse/core";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import SharedMoreDropdown from "@/components/shared/SharedMoreDropdown.vue";
@@ -33,8 +33,11 @@ const { component, definition: def } = useComponentInformation(wf, componentId);
 const resultId = useBlueprintComponentResultId(component, def);
 const tracking = useWriterTracking(wf);
 
-const { copyText: copyComponentId, isCopied: isComponentIdCopied } =
-	useButtonClipboard(resultId);
+const { copy, copied: isComponentIdCopied } = useClipboard();
+
+function copyComponentId() {
+	copy(resultId.value);
+}
 
 const settingsActions = useBuilderSettingsActions(
 	wf,
