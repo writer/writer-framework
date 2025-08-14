@@ -25,7 +25,12 @@ export function useComponentClipboard() {
 			const text = await navigator.clipboard.readText();
 			const data = JSON.parse(text);
 			return isClipboardData(data) ? data.components : undefined;
-		} catch {
+		} catch (e) {
+			if (e instanceof Error && e.name === "NotAllowedError") {
+				throw Error(
+					"Please allow clipboard access in your browser settings or try again",
+				);
+			}
 			return undefined;
 		}
 	}
