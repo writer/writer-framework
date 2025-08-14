@@ -742,6 +742,8 @@ export function useComponentActions(
 		);
 
 		if (!isSubtreeIngestable(subtree)) {
+			const nextParentId = wf.getComponentById(targetParentId)?.parentId;
+			if (nextParentId) return pasteCopyComponent(nextParentId, subtree);
 			throw Error("Could not paste the components here");
 		}
 
