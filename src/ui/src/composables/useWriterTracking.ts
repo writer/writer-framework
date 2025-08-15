@@ -6,6 +6,8 @@ import { useLogger } from "./useLogger";
 let isIdentified = false;
 
 type WriterTrackingEventName =
+	| "nav_export_clicked"
+	| "nav_import_clicked"
 	| "nav_ui_opened"
 	| "nav_blueprints_opened"
 	| "nav_preview_opened"

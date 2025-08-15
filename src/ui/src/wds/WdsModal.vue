@@ -49,6 +49,7 @@
 									: 'tertiary'
 							"
 							:disabled="action.disabled"
+							:loading="action.loading"
 							@click="action.fn"
 						>
 							<WdsIcon v-if="action.icon" :name="action.icon" />
@@ -70,6 +71,7 @@ export type ModalAction = {
 	desc: string;
 	fn: (..._args: unknown[]) => unknown;
 	disabled?: boolean;
+	loading?: boolean;
 	icon?: string;
 };
 

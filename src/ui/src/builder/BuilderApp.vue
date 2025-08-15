@@ -500,7 +500,7 @@ onUnmounted(() => {
 .builderHeader {
 	grid-column: 1 / 3;
 	grid-row: 1;
-	z-index: 2;
+	z-index: 5;
 }
 
 .sidebar {
