@@ -40,6 +40,7 @@
 			>
 				<WdsIcon name="share-2" />
 			</WdsButton>
+			<BuilderHeaderMoreDropdown />
 			<WdsButton
 				v-if="canDeploy"
 				size="small"
@@ -113,6 +114,7 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
+import BuilderHeaderMoreDropdown from "./BuilderHeaderMoreDropdown.vue";
 
 const wf = inject(injectionKeys.core);
 

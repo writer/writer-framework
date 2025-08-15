@@ -1,8 +1,8 @@
 <template>
 	<div ref="trigger" class="BuilderMoreDropdown">
 		<WdsButton
-			variant="neutral"
-			size="smallIcon"
+			:variant="triggerVariant"
+			:size="triggerSize"
 			:disabled="disabled"
 			:custom-size="triggerCustomSize"
 			@click.stop="isOpen = !isOpen"
@@ -35,7 +35,10 @@ import {
 } from "@floating-ui/vue";
 import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
-import WdsButton from "@/wds/WdsButton.vue";
+import WdsButton, {
+	WdsButtonSize,
+	WdsButtonVariant,
+} from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
@@ -48,7 +51,15 @@ const props = defineProps({
 		type: Array as PropType<WdsDropdownMenuOption[]>,
 		default: () => [],
 	},
-	triggerCustomSize: { type: String, default: "smallIcon" },
+	triggerSize: {
+		type: String as PropType<WdsButtonSize>,
+		default: "smallIcon",
+	},
+	triggerVariant: {
+		type: String as PropType<WdsButtonVariant>,
+		default: "neutral",
+	},
+	triggerCustomSize: { type: String, default: undefined },
 	triggerIcon: { type: String, default: "ellipsis" },
 	disabled: { type: Boolean },
 	hideIcons: { type: Boolean, required: false },
