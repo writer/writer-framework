@@ -1,3 +1,4 @@
+import { useLogger } from "@/composables/useLogger";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import { h } from "vue";
 import { AsyncComponentOptions, defineAsyncComponent } from "vue";
@@ -43,11 +44,25 @@ function loadingComponent() {
 	);
 }
 
+const ASYNC_COMP_MAX_RETRIES = 5;
+
 export function defineAsyncComponentWithLoader(options: AsyncComponentOptions) {
 	return defineAsyncComponent({
 		loadingComponent,
 		errorComponent,
 		delay: 300,
+		onError(error, retry, fail, attempts) {
+			const logger = useLogger();
+			if (attempts <= ASYNC_COMP_MAX_RETRIES) {
+				const msg = `Failed to load async component (retry ${attempts}/${ASYNC_COMP_MAX_RETRIES})`;
+				logger.warn(msg, error);
+				setTimeout(retry, 1_000);
+			} else {
+				const msg = `Failed to load async component after ${ASYNC_COMP_MAX_RETRIES} attempts`;
+				logger.error(msg, error);
+				fail();
+			}
+		},
 		...options,
 	});
 }
