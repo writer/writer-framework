@@ -120,55 +120,78 @@ class BlueprintBlock:
                         
                         # Wrap the response read/iter methods to capture content after streaming
                         original_read = response.read
+                        original_iter_raw = response.iter_raw
                         original_iter_bytes = response.iter_bytes
                         original_iter_text = response.iter_text
                         original_iter_lines = response.iter_lines
                         
                         def wrapped_read():
-                            content = original_read()
-                            if hasattr(response, '_log_entry_ref'):
-                                try:
-                                    response._log_entry_ref["response"]["content"] = content.decode('utf-8', errors='replace')
-                                except Exception:
-                                    response._log_entry_ref["response"]["content"] = "<binary content>"
-                            return content
+                            try:
+                                content = original_read()
+                            except Exception as e:
+                                if hasattr(response, '_log_entry_ref'):
+                                    response._log_entry_ref["response"]["content"] = f"<error reading response stream: {e}>"
+                                raise
+                            else:
+                                if hasattr(response, '_log_entry_ref'):
+                                    try:
+                                        response._log_entry_ref["response"]["content"] = content.decode('utf-8', errors='replace')
+                                    except Exception:
+                                        response._log_entry_ref["response"]["content"] = "<binary content>"
+                                return content
+                        
+                        def wrapped_iter_raw(*args, **kwargs):
+                            chunks = []
+                            try:
+                                for chunk in original_iter_raw(*args, **kwargs):
+                                    chunks.append(chunk)
+                                    yield chunk
+                            finally:
+                                if hasattr(response, '_log_entry_ref'):
+                                    try:
+                                        response._log_entry_ref["response"]["content"] = b"".join(chunks).decode("utf-8", errors="replace")
+                                    except Exception:
+                                        response._log_entry_ref["response"]["content"] = "<binary content>"
                         
                         def wrapped_iter_bytes(*args, **kwargs):
                             accumulated_content = []
-                            for chunk in original_iter_bytes(*args, **kwargs):
-                                accumulated_content.append(chunk)
-                                yield chunk
-                            # After iteration completes, update log
-                            if hasattr(response, '_log_entry_ref'):
-                                try:
-                                    full_content = b''.join(accumulated_content)
-                                    response._log_entry_ref["response"]["content"] = full_content.decode('utf-8', errors='replace')
-                                except Exception:
-                                    response._log_entry_ref["response"]["content"] = "<binary content>"
+                            try:
+                                for chunk in original_iter_bytes(*args, **kwargs):
+                                    accumulated_content.append(chunk)
+                                    yield chunk
+                            finally:
+                                if hasattr(response, '_log_entry_ref'):
+                                    try:
+                                        full_content = b''.join(accumulated_content)
+                                        response._log_entry_ref["response"]["content"] = full_content.decode('utf-8', errors='replace')
+                                    except Exception:
+                                        response._log_entry_ref["response"]["content"] = "<binary content>"
                         
                         def wrapped_iter_text(*args, **kwargs):
                             text_chunks = []
-                            for chunk in original_iter_text(*args, **kwargs):
-                                text_chunks.append(chunk)
-                                yield chunk
-                            # After iteration completes, update log
-                            if hasattr(response, '_log_entry_ref'):
-                                response._log_entry_ref["response"]["content"] = ''.join(text_chunks)
+                            try:
+                                for chunk in original_iter_text(*args, **kwargs):
+                                    text_chunks.append(chunk)
+                                    yield chunk
+                            finally:
+                                if hasattr(response, '_log_entry_ref'):
+                                    response._log_entry_ref["response"]["content"] = ''.join(text_chunks)
                         
                         def wrapped_iter_lines(*args, **kwargs):
                             lines = []
-                            for line in original_iter_lines(*args, **kwargs):
-                                lines.append(line)
-                                yield line
-                            # After iteration completes, update log
-                            if hasattr(response, '_log_entry_ref'):
-                                response._log_entry_ref["response"]["content"] = '\n'.join(lines)
+                            try:
+                                for line in original_iter_lines(*args, **kwargs):
+                                    lines.append(line)
+                                    yield line
+                            finally:
+                                if hasattr(response, '_log_entry_ref'):
+                                    response._log_entry_ref["response"]["content"] = '\n'.join(lines)
                         
                         response.read = wrapped_read
+                        response.iter_raw = wrapped_iter_raw
                         response.iter_bytes = wrapped_iter_bytes
                         response.iter_text = wrapped_iter_text
                         response.iter_lines = wrapped_iter_lines
-                        
                 except Exception as e:
                     log_entry["response"]["content"] = f"<error reading response: {e}>"
             return response
