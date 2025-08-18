@@ -93,7 +93,7 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 			},
 		);
 		const profile = await fetchUserProfile;
-		chameleon.identify(profile.id, {
+		chameleon.identify(`segment-prefix-${profile.id}`, {
 			email: profile?.email,
 			name:
 				profile?.fullName ??
