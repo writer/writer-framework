@@ -89,7 +89,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue";
+import { computed, CSSProperties, inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 const rootEl = useTemplateRef("rootEl");
@@ -107,12 +107,12 @@ const rootStyle = computed(() => {
 	};
 });
 
-const imgStyle = computed(() => {
+const imgStyle = computed<CSSProperties>(() => {
 	const maxWidth = fields.maxWidth.value;
 	const maxHeight = fields.maxHeight.value;
 	return {
-		"max-width": maxWidth !== -1 ? `${maxWidth}px` : undefined,
-		"max-height": maxHeight !== -1 ? `${maxHeight}px` : undefined,
+		maxWidth: maxWidth !== -1 ? `${maxWidth}px` : undefined,
+		maxHeight: maxHeight !== -1 ? `${maxHeight}px` : undefined,
 	};
 });
 
@@ -131,6 +131,7 @@ function handleClick(ev: MouseEvent) {
 
 img {
 	max-width: 100%;
+	width: 100%;
 }
 
 .CoreImage.selected img {
