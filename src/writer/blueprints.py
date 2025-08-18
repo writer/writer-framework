@@ -226,8 +226,7 @@ class BlueprintRunner:
             if not node:
                 break
             if node.type == "blueprints_blueprint":
-                nodes = self.session.session_component_tree.get_descendents(current_node_id)
-                return [node for node in nodes if node.type != 'note']
+                return self.session.session_component_tree.get_descendents(current_node_id)
             current_node_id = node.parentId
         return []
 
