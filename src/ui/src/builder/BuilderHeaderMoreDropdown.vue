@@ -146,7 +146,7 @@ async function onSelect(key: string) {
 </script>
 
 <style scoped>
-.BuilderHeaderMoreDropdown:deep(.BuilderMoreDropdown__dropdown) {
+.BuilderHeaderMoreDropdown:deep(.SharedMoreDropdown__dropdown) {
 	min-width: 200px;
 }
 </style>

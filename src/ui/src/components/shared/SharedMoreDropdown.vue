@@ -1,5 +1,5 @@
 <template>
-	<div ref="trigger" class="BuilderMoreDropdown">
+	<div ref="trigger" class="SharedMoreDropdown">
 		<WdsButton
 			:variant="triggerVariant"
 			:size="triggerSize"
@@ -12,7 +12,7 @@
 		<WdsDropdownMenu
 			v-if="isOpen"
 			ref="dropdown"
-			class="BuilderMoreDropdown__dropdown"
+			class="SharedMoreDropdown__dropdown"
 			:options="options"
 			:style="floatingStyles"
 			:hide-icons="hideIcons"
@@ -112,10 +112,10 @@ function onSelect(value: string) {
 </script>
 
 <style scoped>
-.BuilderMoreDropdown {
+.SharedMoreDropdown {
 	position: relative;
 }
-.BuilderMoreDropdown__dropdown {
+.SharedMoreDropdown__dropdown {
 	min-width: 180px;
 }
 </style>
