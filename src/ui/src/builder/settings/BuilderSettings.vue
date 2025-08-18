@@ -1,6 +1,7 @@
 <template>
 	<div
 		v-if="ssbm.selectionStatus.value !== SelectionStatus.None"
+		ref="root"
 		class="BuilderSettings"
 		:class="{
 			'BuilderSettings--collapsed': collapsed,
@@ -56,6 +57,7 @@
 					<WdsIcon name="at-sign" />
 				</WdsButton>
 				<SharedMoreDropdown
+					class="BuilderSettings__titleBar__actions__more"
 					data-automation-action="settings-actions-dropdown"
 					:options="dropdownOptions"
 					trigger-custom-size="32px"
@@ -89,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, watch, ref } from "vue";
+import { inject, computed, watch, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 
 import BuilderSettingsMain from "./BuilderSettingsMain.vue";
@@ -107,9 +109,18 @@ import {
 import BuilderSettingsAddComponentModal from "./BuilderSettingsAddComponentModal.vue";
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
+import { useElementClientHeight } from "@/composables/useComponentClientHeight";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
+
+const root = useTemplateRef("root");
+const rootHeight = useElementClientHeight(root, 1_000);
+const dropdownMaxHeight = computed(() => {
+	if (!rootHeight.value) return "unset";
+	const maxHeight = rootHeight.value - 42;
+	return maxHeight > 0 ? `${maxHeight}px` : "unset";
+});
 
 const { component, definition: componentDefinition } = useComponentInformation(
 	wf,
@@ -263,5 +274,9 @@ watch(component, (newComponent) => {
 	max-height: 400px;
 	margin-top: -400px;
 	grid-column: 2;
+}
+
+.BuilderSettings__titleBar__actions__more:deep(.SharedMoreDropdown__dropdown) {
+	max-height: v-bind(dropdownMaxHeight);
 }
 </style>
