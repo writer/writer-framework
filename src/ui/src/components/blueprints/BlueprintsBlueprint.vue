@@ -202,6 +202,7 @@ import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWith
 
 const BlueprintToolbar = defineAsyncComponentWithLoader({
 	loader: () => import("./base/BlueprintToolbar.vue"),
+	loadingComponentProps: { width: "250px", height: "40px" },
 });
 
 const wf = inject(injectionKeys.core);
