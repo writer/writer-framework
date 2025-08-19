@@ -156,6 +156,8 @@ class JSONFormatter(logging.Formatter):
             session = get_session()
         except RuntimeError:
             current_block = None
+            session = None
+            app_process = None
 
         data: Dict[str, Any] = {
             "severity": record.levelname.upper(),
@@ -166,7 +168,6 @@ class JSONFormatter(logging.Formatter):
             },
         }
 
-        current_block = get_current_block()
         if current_block is not None:
             data["component"] = {
                 "id": current_block.component.id,
@@ -178,7 +179,8 @@ class JSONFormatter(logging.Formatter):
                 "id": session.session_id,
             }
 
-        data["process"]["mode"] = app_process.mode
+        if app_process is not None:
+            data["process"]["mode"] = app_process.mode
 
         if isinstance(record.args, dict):
             data.update(record.args)
