@@ -1,7 +1,9 @@
 import { useLogger } from "@/composables/useLogger";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
-import { h } from "vue";
+import { CSSProperties, h } from "vue";
 import { AsyncComponentOptions, defineAsyncComponent } from "vue";
+
+type LoadingComponentProps = Pick<CSSProperties, "height" | "width">;
 
 function errorComponent() {
 	return h(
@@ -27,7 +29,7 @@ function errorComponent() {
 	);
 }
 
-function loadingComponent() {
+function loadingComponent(props: LoadingComponentProps) {
 	return h(
 		"div",
 		{
@@ -35,8 +37,8 @@ function loadingComponent() {
 				display: "flex",
 				alignItems: "center",
 				justifyContent: "center",
-				height: "100%",
-				width: "100%",
+				height: props.height ?? "100%",
+				width: props.width ?? "100%",
 				padding: "8px",
 			},
 		},
@@ -46,9 +48,14 @@ function loadingComponent() {
 
 const ASYNC_COMP_MAX_RETRIES = 5;
 
-export function defineAsyncComponentWithLoader(options: AsyncComponentOptions) {
+export function defineAsyncComponentWithLoader(
+	options: AsyncComponentOptions & {
+		loadingComponentProps?: LoadingComponentProps;
+	},
+) {
 	return defineAsyncComponent({
-		loadingComponent,
+		loadingComponent: () =>
+			loadingComponent(options.loadingComponentProps ?? {}),
 		errorComponent,
 		delay: 300,
 		onError(error, retry, fail, attempts) {
