@@ -33,21 +33,37 @@ class Evaluator:
         self,
         instance_path: InstancePath,
         field_key: str,
-        as_json=False,
-        default_field_value="",
-        base_context={},
+        as_json: bool = False,
+        default_field_value: str = "",
+        base_context: Optional[Dict[str, Any]] = None,
     ) -> Any:
+        if base_context is None:
+            base_context = {}
+
         def decode_json(text):
             if not isinstance(text, str):
                 return text
             try:
-                # Remove control chars
                 clean_text = Evaluator.CONTROL_CHARS.sub("", text)
                 return json.loads(clean_text, strict=False)
             except json.JSONDecodeError as exception:
-                raise WriterConfigurationError(
-                    "Error decoding JSON. " + str(exception)
-                ) from exception
+                raise WriterConfigurationError("Error decoding JSON. " + str(exception)) from exception
+
+        def inside_json_string(src: str, pos: int) -> bool:
+            in_str = False
+            escaped = False
+            i = 0
+            while i < pos:
+                c = src[i]
+                if escaped:
+                    escaped = False
+                else:
+                    if c == '\\':
+                        escaped = True
+                    elif c == '"':
+                        in_str = not in_str
+                i += 1
+            return in_str
 
         component_id = instance_path[-1]["componentId"]
         component = self.component_tree.get_component(component_id)
@@ -60,17 +76,39 @@ class Evaluator:
         def replacer(matched: re.Match):
             if matched.group(0)[0] == "\\":  # Escaped @, don't evaluate
                 return matched.group(0)
+
             expr = matched.group(1).strip()
-            expr_value = self.evaluate_expression(expr, instance_path, base_context)
+            expr_value = self.evaluate_expression(
+                expr,
+                instance_path,
+                base_context
+            )
+
+            # FULL MATCH: return raw, with a special-case
+            # for None in non-JSON mode
             if full_match is not None:
+                if not as_json and expr_value is None:
+                    return None
+                # raw; decode_json() will handle strings if needed
                 return expr_value
+
+            # EMBEDDED
             if as_json:
-                dumped = expr_value
-                if not isinstance(dumped, str):
-                    dumped = json.dumps(dumped)
+                # Decide context by scanning quotes up to the match
+                inside_str = inside_json_string(field_value, matched.start())
+                if inside_str:
+                    # Insert as escaped string fragment
+                    text = (
+                        expr_value
+                        if isinstance(expr_value, str)
+                        else json.dumps(expr_value)
+                        )
+                    return json.dumps(text)[1:-1]
                 else:
-                    dumped = json.dumps(dumped)[1:-1]
-                return re.sub(r'(?<!\\)"', r'\"', dumped)
+                    # Insert as JSON literal
+                    return json.dumps(expr_value)
+
+            # Non-JSON embedded: stringify non-strings
             if not isinstance(expr_value, str):
                 return json.dumps(expr_value)
             return expr_value
@@ -79,7 +117,9 @@ class Evaluator:
             replaced = self.TEMPLATE_REGEX.sub(replacer, field_value)
         else:
             replaced = replacer(full_match)
-        if as_json:
+
+        # Only parse if we ended with a string and caller asked for JSON
+        if as_json and isinstance(replaced, str):
             replaced = decode_json(replaced)
 
         return replaced
