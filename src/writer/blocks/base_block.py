@@ -264,6 +264,17 @@ class BlueprintBlock:
                 import datetime as dt
                 request_id = str(uuid.uuid4())
                 
+                # Get the current block's ID for accurate logging
+                current_block_id = self.instance_path  # fallback (should be componentId)
+                try:
+                    from writer.blueprints import get_current_block
+                    current_block = get_current_block()
+                    if current_block and hasattr(current_block, 'instance_path'):
+                        # Extract componentId from the current block's instance path
+                        current_block_id = current_block.instance_path[0].get('componentId', None)
+                except Exception:
+                    pass
+                
                 # Capture request content
                 content = None
                 if request.content:
@@ -281,7 +292,7 @@ class BlueprintBlock:
                 log_entry = {
                     'id': request_id,
                     'created_at': dt.datetime.now(dt.timezone.utc).isoformat(),
-                    'created_by': self.instance_path,
+                    'created_by': current_block_id,
                     'request': {
                         'method': request.method,
                         'url': str(request.url),
