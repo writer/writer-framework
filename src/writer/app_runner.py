@@ -1078,6 +1078,50 @@ class AppRunner:
         zip_buffer.seek(0)
         return zip_buffer
 
+    def _sync_folders(self, src: str, dst: str):
+        """
+        Synchronizes the contents of the source folder to the destination folder in a one-way manner.
+
+        - Copies all files and subdirectories from `src` to `dst`.
+        - Creates any missing directories in `dst` to match `src`.
+        - Removes any files or directories in `dst` that do not exist in `src`.
+        """
+        # Create dst if it doesn't exist
+        os.makedirs(dst, exist_ok=True)
+
+        # Copy files and folders from src to dst
+        for root, dirs, files in os.walk(src):
+            rel_path = os.path.relpath(root, src)
+            dst_path = os.path.join(dst, rel_path)
+
+            # Create directories in dst
+            os.makedirs(dst_path, exist_ok=True)
+
+            # Copy files
+            for file in files:
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(dst_path, file)
+                shutil.copy2(src_file, dst_file)
+
+        # Remove files and folders in dst that don't exist in src
+        for root, dirs, files in os.walk(dst):
+            rel_path = os.path.relpath(root, dst)
+            src_path = os.path.join(src, rel_path)
+
+            # Remove files not in src
+            for file in files:
+                dst_file = os.path.join(root, file)
+                src_file = os.path.join(src_path, file)
+                if not os.path.exists(src_file):
+                    os.remove(dst_file)
+
+            # Remove empty directories not in src
+            for dir in dirs:
+                dst_dir = os.path.join(root, dir)
+                src_dir = os.path.join(src_path, dir)
+                if not os.path.exists(src_dir):
+                    shutil.rmtree(dst_dir)
+
     async def import_zip(self, zip_path: str):
         if self.mode != "edit":
             raise PermissionError("Cannot import in non-edit mode.")
@@ -1107,9 +1151,9 @@ class AppRunner:
                 logging.info("Copying app at %s", main_py_dir)
                 if self.observer is not None:
                     self.observer.unschedule_all()
-                shutil.rmtree(self.app_path)
-                os.makedirs(self.app_path)
-                shutil.copytree(main_py_dir, self.app_path, dirs_exist_ok=True)
+
+                self._sync_folders(main_py_dir, self.app_path)
+
                 self._start_fs_observer()
                 self.bmc_components = self._load_persisted_components()
                 self.reload_code_from_saved()
