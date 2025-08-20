@@ -40,8 +40,30 @@ class Evaluator:
         if base_context is None:
             base_context = {}
 
-        def decode_json(text):
-            if not isinstance(text, str):
+        def decode_json(text: str):
+            def _looks_like_json_literal(t: str) -> bool:
+                t = t.strip()
+                if not t:
+                    # Empty string - json.loads would fail, invalid case
+                    return False
+                if (
+                    (t[0] == '{' and t[-1] == '}')
+                    or
+                    (t[0] == '[' and t[-1] == ']')
+                ):
+                    # JSON container - object ({...}) or array ([...])
+                    # - valid case
+                    return True
+                if t[0] == '"' and t[-1] == '"':
+                    # Quoted JSON string ("...") - valid case
+                    return True
+                if t in ("true", "false", "null"):
+                    # JSON literals (true, false, null) - valid case
+                    return True
+                return False
+
+            if not _looks_like_json_literal(text):
+                # Avoid processing strings w/o JSON structure
                 return text
             try:
                 clean_text = Evaluator.CONTROL_CHARS.sub("", text)

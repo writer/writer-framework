@@ -95,7 +95,7 @@ def test_invalid_images_type(monkeypatch, session, runner, fake_client):
         "images": 'not_a_list'
     })
     block = WriterVision(component, runner, {})
-    with pytest.raises(WriterConfigurationError, match="Error decoding JSON.*"):
+    with pytest.raises(ValueError, match="Images must be a list*"):
         block.run()
     assert block.outcome == "error"
 
