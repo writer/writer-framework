@@ -1,12 +1,14 @@
 import json
 
 import numpy as np
+import pytest
 import writer as wf
 from writer import audit_and_fix, evaluator, wf_project
 from writer.core import (
     WriterState,
 )
 from writer.core_ui import Component
+from writer.ss_types import WriterConfigurationError
 
 from tests.backend import test_app_dir
 from tests.backend.fixtures import (
@@ -263,6 +265,8 @@ class TestEvaluator:
             ('{"key": "value"}', 6, False),  # Between key and value - pos 6 is ':'
             ('{"key": "value"}', 0, False),  # At start - pos 0 is '{'
             ('{"key": "value"}', 8, False),  # At quote start - pos 8 is '"'
+            ('{"key": "value"}', 14, True),  # At closing quote - still inside before processing
+            ('{"key": "value"}', 15, False), # Right after closing quote (closing brace)
             ('{"text": "hello \\"world\\""}', 15, True),  # Inside escaped quotes  
             ('{"text": "hello \\"world\\""}', 26, False), # Outside string (closing brace)
             ('{"a": 1, "b": "text"}', 10, True), # Inside key "b"
@@ -310,6 +314,7 @@ class TestEvaluator:
             ('null', None),
             ('true', True),
             ('false', False),
+            ('  true  ', True),  # Whitespace-tolerant booleans should parse
             # Note: Numbers without quotes are NOT detected as JSON literals by _looks_like_json_literal
             # They would be returned as strings, then parsed if they're valid JSON
         ]
@@ -324,6 +329,9 @@ class TestEvaluator:
             ('just text', 'just text'),
             ('42', '42'),  # Plain numbers are not detected as JSON literals
             ('42.5', '42.5'),  # Plain numbers are not detected as JSON literals
+            ('True', 'True'),  # Uppercase variants are not JSON
+            ('False', 'False'),  # Uppercase variants are not JSON
+            ('NULL', 'NULL'),  # Uppercase variants are not JSON
         ]
         
         # Create a mock decode_json function to test _looks_like_json_literal logic
@@ -361,7 +369,6 @@ class TestEvaluator:
 
     def test_none_handling_in_full_match(self) -> None:
         """Test None value handling in full match non-JSON mode"""
-        from writer.core_ui import Component
         
         session.session_component_tree = core_ui_fixtures.build_fake_component_tree([
             Component(id="test_comp", parentId="root", type="text", 
@@ -425,6 +432,28 @@ class TestEvaluator:
         
         expected = {"text": "helloworld"}
         assert result == expected, f"Expected {expected}, got {result}"
+
+    def test_invalid_json_raises_error(self) -> None:
+        """Test that invalid JSON raises WriterConfigurationError"""
+        session.session_component_tree = core_ui_fixtures.build_fake_component_tree([
+            Component(id="test_comp", parentId="root", type="text", 
+                     content={"text": "@{invalid_json}"})
+        ], init_root=True)
+        
+        # Test invalid JSON that should raise an error
+        session.session_state = WriterState({
+            "invalid_json": '{"incomplete": }',  # Invalid JSON
+        })
+        
+        e = evaluator.Evaluator(session.session_state, session.session_component_tree)
+        
+        # Test that invalid JSON raises WriterConfigurationError when as_json=True
+        with pytest.raises(WriterConfigurationError, match="Error decoding JSON"):
+            e.evaluate_field(
+                [{"componentId": "root", "instanceNumber": 0}, 
+                 {"componentId": "test_comp", "instanceNumber": 0}], 
+                "text", as_json=True
+            )
 
     def test_embedded_expressions_json_context(self) -> None:
         """Test embedded expressions in JSON strings vs JSON literals"""
