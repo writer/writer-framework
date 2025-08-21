@@ -71,7 +71,7 @@ See the stubs for more details.
 			<WdsTextareaInput
 				v-model="outgoingMessage"
 				:placeholder="fields.placeholder.value"
-				@keydown.prevent.enter="handleMessageSent"
+				@keydown.enter="handleMessageSent"
 			>
 			</WdsTextareaInput>
 		</div>
@@ -329,7 +329,10 @@ const displayExtraLoader = computed(() => {
 	return messageIndexLoading.value >= messages.value.length;
 });
 
-function handleMessageSent() {
+function handleMessageSent(e: KeyboardEvent) {
+	if (e.shiftKey) return;
+
+	e.preventDefault();
 	if (messageIndexLoading.value) return;
 	messageIndexLoading.value = messages.value.length + 1;
 	const event = new CustomEvent("wf-chatbot-message", {
