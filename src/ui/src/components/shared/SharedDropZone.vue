@@ -50,8 +50,8 @@
 <script setup lang="ts">
 import { useTemplateRef, PropType, computed, toRef } from "vue";
 import { useDropZone } from "@vueuse/core";
+import prettyBytes from "pretty-bytes";
 import { useFileTypeAccept } from "@/composables/useFileTypeAccept";
-import { formatBytes } from "@/utils/binary";
 
 const props = defineProps({
 	multiple: {
@@ -98,9 +98,7 @@ const formattedAcceptedFileTypes = computed<string>(() => {
 
 const formattedTotalSizeLimit = computed<string>(() => {
 	if (typeof props.totalSizeLimit === "number" && props.totalSizeLimit > 0) {
-		return formatBytes(props.totalSizeLimit, {
-			minUnit: "KB",
-		});
+		return prettyBytes(props.totalSizeLimit);
 	}
 
 	return "";

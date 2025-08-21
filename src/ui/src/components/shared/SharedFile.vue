@@ -24,11 +24,11 @@
 
 <script setup lang="ts">
 import { computed, PropType } from "vue";
+import prettyBytes from "pretty-bytes";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTag from "@/wds/WdsTag.vue";
 import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
-import { formatBytes } from "@/utils/binary";
 
 const props = defineProps({
 	status: {
@@ -56,12 +56,7 @@ const areActionsShown = computed<boolean>(
 	() => isSizeShown.value || isDownloadButtonShown.value,
 );
 
-const formattedSize = computed<string>(() =>
-	formatBytes(props.size, {
-		minUnit: "KB",
-		maxUnit: "MB",
-	}),
-);
+const formattedSize = computed<string>(() => prettyBytes(props.size));
 </script>
 
 <style scoped>
