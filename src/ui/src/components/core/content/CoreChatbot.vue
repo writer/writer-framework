@@ -32,39 +32,37 @@ See the stubs for more details.
 		<template v-if="files.length > 0">
 			<div class="filesArea">
 				<template v-if="isUploadingFiles"> Uploading... </template>
-				<div v-if="!isUploadingFiles" class="list">
-					<div
-						v-for="(file, fileIndex) in files"
-						:key="fileIndex"
-						class="file"
-					>
+				<div v-else class="list">
+					<div v-for="uiFile in files" :key="uiFile.id" class="file">
 						<div>
-							<div class="name" :title="file.name">
-								{{ file.name }}
+							<div class="name" :title="uiFile.name">
+								{{ uiFile.name }}
 							</div>
 							<div class="size">
-								{{ prettyBytes(file.size) }}
+								{{ prettyBytes(uiFile.size) }}
 							</div>
 						</div>
-						<WdsControl @click="handleRemoveFile(fileIndex)">
+						<WdsControl @click="removeFile(uiFile.id)">
 							<WdsIcon name="trash-2" />
 						</WdsControl>
 					</div>
 				</div>
 			</div>
 			<div class="filesButtons">
+				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
+					<WdsIcon name="triangle-alert" />
+					<span>
+						Size limit of
+						{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
+					</span>
+				</div>
 				<WdsControl
-					v-if="!isUploadSizeExceeded && !isUploadingFiles"
+					v-else-if="!isUploadingFiles"
 					title="Upload"
 					@click="handleUploadFiles"
 				>
 					<WdsIcon name="upload" />
 				</WdsControl>
-				<div v-if="isUploadSizeExceeded" class="sizeExceededMessage">
-					<WdsIcon name="triangle-alert" />
-					Size limit of
-					{{ prettyBytes(MAX_FILE_SIZE) }} exceeded.
-				</div>
 			</div>
 		</template>
 		<div class="inputArea">
@@ -114,8 +112,6 @@ import WdsControl from "@/wds/WdsControl.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorChatBotMessages } from "@/constants/validators";
-
-const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
@@ -290,7 +286,6 @@ import {
 	type Ref,
 	onMounted,
 	onBeforeUnmount,
-	shallowRef,
 	inject,
 	ref,
 	computed,
@@ -298,6 +293,7 @@ import {
 	useTemplateRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
+import { useFilesEncoder } from "@/composables/useFilesEncoder";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
 
@@ -306,8 +302,6 @@ const messageAreaEl = useTemplateRef("messageAreaEl");
 const messagesEl = useTemplateRef("messagesEl");
 const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
-const files: Ref<File[]> = shallowRef([]);
-const isUploadingFiles = ref(false);
 let resizeObserver: ResizeObserver;
 
 const messages: ComputedRef<Message[]> = computed(() => {
@@ -316,13 +310,20 @@ const messages: ComputedRef<Message[]> = computed(() => {
 
 const outgoingMessage: Ref<string> = ref("");
 
-const isUploadSizeExceeded = computed(() => {
-	let filesSize = 0;
-	Array.from(files.value).forEach((file) => {
-		filesSize += file.size;
+const isMultipleFilesAllowed = computed<boolean>(
+	() => fields.enableFileUpload.value === "multiple",
+);
+
+const { files, calcTotalSize, addFiles, removeFile, clearFiles, encodeFiles } =
+	useFilesEncoder({
+		multiple: isMultipleFilesAllowed,
 	});
-	return filesSize >= MAX_FILE_SIZE;
-});
+
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
+
+const isUploadSizeExceeded = computed(
+	() => calcTotalSize(files.value) > MAX_FILE_SIZE,
+);
 
 const displayExtraLoader = computed(() => {
 	if (messageIndexLoading.value === undefined) return false;
@@ -363,29 +364,13 @@ function handleActionClick(action: Message["actions"][number]) {
 function handleAttachFiles() {
 	const el: HTMLInputElement = document.createElement("input");
 	el.type = "file";
-	if (fields.enableFileUpload.value == "multiple") {
+	if (isMultipleFilesAllowed.value) {
 		el.multiple = true;
 	}
 	el.addEventListener("change", () => {
-		// A new list is created to allow shallowRef to detect the change
-
-		let newList: File[];
-		if (fields.enableFileUpload.value == "multiple") {
-			newList = [...files.value];
-		} else {
-			newList = [];
-		}
-		Array.from(el.files).forEach((file) => {
-			newList.push(file);
-		});
-		files.value = newList;
+		addFiles(Array.from(el.files || []));
 	});
 	el.dispatchEvent(new MouseEvent("click"));
-}
-
-function handleRemoveFile(index: number) {
-	const newList = files.value.toSpliced(index, 1);
-	files.value = newList;
 }
 
 function scrollToBottom() {
@@ -395,60 +380,38 @@ function scrollToBottom() {
 	});
 }
 
-const encodeFile = async (file: File) => {
-	const reader = new FileReader();
-	reader.readAsDataURL(file);
-
-	return new Promise((resolve, reject) => {
-		reader.onload = () => resolve(reader.result);
-		reader.onerror = () => reject(reader.error);
-	});
-};
-
+const isUploadingFiles = ref(false);
 async function handleUploadFiles() {
 	if (files.value.length == 0) return;
 	if (isUploadingFiles.value) return;
+	if (isUploadSizeExceeded.value) return;
 
 	isUploadingFiles.value = true;
 
-	const getPayload = async () => {
-		let accumSize = 0;
-		const encodedFiles = Promise.all(
-			Array.from(files.value).map(async (f) => {
-				accumSize += f.size;
-				const fileItem = {
-					name: f.name,
-					type: f.type,
-					data: await encodeFile(f),
-				};
-				return fileItem;
-			}),
-		);
-		if (accumSize > MAX_FILE_SIZE) {
-			alert("Size limit exceeded.");
+	try {
+		const { encodedFiles } = await encodeFiles();
+
+		if (encodedFiles.length === 0) {
+			isUploadingFiles.value = false;
 			return;
 		}
-		return encodedFiles;
-	};
 
-	const payload = await getPayload();
-	if (!payload) {
-		isUploadingFiles.value = false;
-		return;
-	}
-
-	const event = new CustomEvent("wf-file-change", {
-		detail: {
-			payload,
-			callback: () => {
-				isUploadingFiles.value = false;
-				files.value = [];
+		const event = new CustomEvent("wf-file-change", {
+			detail: {
+				encodedFiles,
+				callback: () => {
+					isUploadingFiles.value = false;
+					clearFiles();
+				},
 			},
-		},
-	});
+		});
 
-	rootEl.value.dispatchEvent(event);
+		rootEl.value.dispatchEvent(event);
+	} catch {
+		isUploadingFiles.value = false;
+	}
 }
+
 onMounted(() => {
 	/**
 	 * A ResizeObserver allows the component to scroll to the bottom when a
