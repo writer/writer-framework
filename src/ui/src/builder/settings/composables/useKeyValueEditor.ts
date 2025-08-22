@@ -160,13 +160,12 @@ export function useKeyValueEditor(originalValue: string | JSONValue) {
 	const currentValue = computed<string>(() => {
 		switch (mode.value) {
 			case "assisted": {
-				const obj = Object.values(assistedEntries.value).reduce(
-					(acc, v) => {
+				const obj = Object.values(assistedEntries.value)
+					.filter((v) => !(v.key === "" && v.value === ""))
+					.reduce((acc, v) => {
 						acc[v.key] = v.value;
 						return acc;
-					},
-					{},
-				);
+					}, {});
 				return JSON.stringify(obj);
 			}
 			case "freehand":

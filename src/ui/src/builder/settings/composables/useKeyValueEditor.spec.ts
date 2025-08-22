@@ -31,6 +31,16 @@ describe(useKeyValueEditor.name, () => {
 			);
 		});
 
+		it("should filter empty entries", () => {
+			const initial = { foo: "bar" };
+			const { currentValue, addAssistedEntry } =
+				useKeyValueEditor(initial);
+
+			addAssistedEntry();
+
+			expect(currentValue.value).toBe(JSON.stringify(initial));
+		});
+
 		it("should update an entry", () => {
 			const {
 				assistedEntries,
