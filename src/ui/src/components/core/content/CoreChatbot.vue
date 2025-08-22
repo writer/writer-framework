@@ -406,8 +406,6 @@ async function handleUploadFiles() {
 			},
 		}),
 	);
-
-	isUploadingFiles.value = false;
 }
 
 onMounted(() => {
