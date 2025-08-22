@@ -1,46 +1,28 @@
 <template>
 	<BaseInputWrapper
 		ref="rootInstance"
-		:label="!processingFiles ? fields.label.value : ''"
+		:label="fields.label.value"
 		class="CoreFileInput"
 	>
 		<div class="main">
-			<div v-if="!processingFiles" class="file-input">
-				<input
-					v-show="false"
-					ref="fileEl"
-					type="file"
-					:multiple="allowMultipleFilesFlag"
-					:accept="allowFileTypes"
-					@change="fileChange($event as InputEvent)"
-				/>
-				<div>
-					<WdsButton
-						variant="tertiary"
-						size="small"
-						@click="fileEl.click()"
-					>
-						{{ triggerText }}
-					</WdsButton>
-				</div>
-				<ul v-if="selectedFiles" class="file-input__files">
-					<li v-for="(file, i) of selectedFiles" :key="i">
-						<a href="#" @click="downloadFile(file)">{{
-							file.name
-						}}</a>
-					</li>
-				</ul>
-				<p v-else>{{ emptyMessage }}</p>
-			</div>
-			<div v-if="message || processingFiles" class="status">
-				<LoadingSymbol
-					v-if="processingFiles"
-					class="loadingSymbol"
-				></LoadingSymbol>
-				<span v-if="processingFiles"
-					>Processing {{ processingFiles.join(", ") }}...</span
-				>
-				<span v-if="message">{{ message }}</span>
+			<SharedDropZone
+				:multiple="isMultipleFilesAllowed"
+				:accepted-file-types="acceptedFileTypes"
+				:total-size-limit="MAX_FILE_SIZE"
+				@drop="handleUploadFiles"
+			/>
+			<ul v-if="files.length > 0" class="file-input__files">
+				<li v-for="uiFile of files" :key="uiFile.id">
+					<SharedFile
+						:status="isUploading ? 'uploading' : 'ready'"
+						:name="uiFile.name"
+						:size="uiFile.size"
+						@download="downloadFile(uiFile.file)"
+					/>
+				</li>
+			</ul>
+			<div v-if="uploadingErrorMessage" class="status">
+				<span>{{ uploadingErrorMessage }}</span>
 			</div>
 		</div>
 	</BaseInputWrapper>
@@ -51,8 +33,6 @@ import { ComponentPublicInstance } from "vue";
 import { createBooleanField, cssClasses } from "@/renderer/sharedStyleFields";
 import { FieldType } from "@/writerTypes";
 import BaseInputWrapper from "../base/BaseInputWrapper.vue";
-
-const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 const description = "A user input component that allows users to upload files.";
 
@@ -118,102 +98,75 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, Ref, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, ref } from "vue";
+import prettyBytes from "pretty-bytes";
 import injectionKeys from "@/injectionKeys";
-import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import WdsButton from "@/wds/WdsButton.vue";
-
-type SavedFile = { name: string; type: string; data: unknown };
+import { useFilesEncoder } from "@/composables/useFilesEncoder";
+import SharedFile from "@/components/shared/SharedFile.vue";
+import SharedDropZone from "@/components/shared/SharedDropZone.vue";
 
 const fields = inject(injectionKeys.evaluatedFields);
 const rootInstance = ref<ComponentPublicInstance | null>(null);
-const fileEl = useTemplateRef("fileEl");
-const message: Ref<string> = ref(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
-const processingFiles: Ref<string[]> = ref(null);
 
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
+const { handleInput } = useFormValueBroker(wf, instancePath, rootInstance);
+
+const acceptedFileTypes = computed<string[]>(() =>
+	(fields.allowFileTypes?.value ?? "").split(", "),
 );
 
-const selectedFiles = computed<SavedFile[]>(() =>
-	Array.isArray(formValue.value) ? formValue.value : [],
+const isMultipleFilesAllowed = computed<boolean>(() =>
+	Boolean(fields.allowMultipleFiles.value),
 );
 
-const allowFileTypes = computed(() => fields.allowFileTypes?.value ?? "");
-
-const allowMultipleFilesFlag = computed(() => {
-	return fields.allowMultipleFiles.value || undefined;
+const { files, calcTotalSize, replaceFiles, encodeFiles } = useFilesEncoder({
+	multiple: isMultipleFilesAllowed,
 });
 
-const encodeFile = async (file: File) => {
-	const reader = new FileReader();
-	reader.readAsDataURL(file);
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
+const isUploading = ref(false);
+const uploadingErrorMessage = ref<string | null>(null);
+async function handleUploadFiles(files: File[]) {
+	if (isUploading.value) return;
 
-	return new Promise((resolve, reject) => {
-		reader.onload = () => resolve(reader.result);
-		reader.onerror = () => reject(reader.error);
-	});
-};
+	if (calcTotalSize(files) > MAX_FILE_SIZE) {
+		uploadingErrorMessage.value = `Files are too big. Total size limit is ${prettyBytes(MAX_FILE_SIZE)}.`;
 
-const fileChange = async (ev: InputEvent) => {
-	const el = ev.target as HTMLInputElement;
-	if (!el.files || el.files.length == 0) return;
-
-	const getValue = async () => {
-		let accumSize = 0;
-		message.value = null;
-		const encodedFiles = Promise.all(
-			Array.from(el.files).map(async (f) => {
-				accumSize += f.size;
-				const fileItem: SavedFile = {
-					name: f.name,
-					type: f.type,
-					data: await encodeFile(f),
-				};
-				return fileItem;
-			}),
-		);
-		if (accumSize > MAX_FILE_SIZE) {
-			message.value = `Files are too big. Total size limit is ${Math.floor(MAX_FILE_SIZE / Math.pow(1024, 2))}mb.`;
-			return [];
-		}
-		return encodedFiles;
-	};
-
-	processingFiles.value = Array.from(el.files).map((file) => file.name);
-	formValue.value = getValue();
-
-	const customCallback = () => {
-		processingFiles.value = null;
-	};
-
-	handleInput(getValue(), "wf-file-change", customCallback);
-};
-
-watch(formValue, (newValue: string) => {
-	if (typeof newValue === "undefined" && fileEl.value) {
-		fileEl.value.value = "";
+		return;
 	}
-});
 
-function downloadFile(file: SavedFile) {
+	isUploading.value = true;
+
+	replaceFiles(files);
+
+	try {
+		const { encodedFiles } = await encodeFiles();
+
+		handleInput(encodedFiles, "wf-file-change");
+
+		uploadingErrorMessage.value = null;
+	} catch {
+		uploadingErrorMessage.value = "Failed to prepare files.";
+	} finally {
+		isUploading.value = false;
+	}
+}
+
+function downloadFile(file: File) {
+	const blobURL = window.URL.createObjectURL(file);
+
 	const link = document.createElement("a");
-	link.href = String(file.data);
+	link.href = blobURL;
 	link.download = file.name;
 	link.click();
 	link.remove();
-}
 
-const fileLabel = computed(() =>
-	allowMultipleFilesFlag.value ? "files" : "file",
-);
-const triggerText = computed(() => `Browse ${fileLabel.value}`);
-const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
+	setTimeout(() => {
+		window.URL.revokeObjectURL(blobURL);
+	}, 200);
+}
 </script>
 
 <style scoped>
@@ -233,14 +186,14 @@ const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
 .file-input {
 	display: flex;
 	gap: 8px;
-	align-items: center;
+	flex-direction: column;
 }
 
 .file-input__files {
 	list-style: none;
 	display: flex;
-	flex-wrap: wrap;
-	gap: 4px;
+	flex-direction: column;
+	gap: 12px;
 }
 
 .file-input__files li {
@@ -252,10 +205,6 @@ const emptyMessage = computed(() => `No ${fileLabel.value} selected`);
 	align-items: center;
 	gap: 12px;
 	min-height: 36px;
-}
-
-.status .loadingSymbol {
-	flex: 0 0 24px;
 }
 
 .status span {
