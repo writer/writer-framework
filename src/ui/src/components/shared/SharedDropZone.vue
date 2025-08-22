@@ -1,6 +1,7 @@
 <template>
 	<label
 		ref="dropZoneElement"
+		:for="inputId"
 		class="SharedDropZone"
 		:class="{
 			SharedDropZone_active: isOverDropZone,
@@ -8,6 +9,7 @@
 	>
 		<input
 			v-show="false"
+			:id="inputId"
 			type="file"
 			:multiple="multiple"
 			:accept="acceptAttr"
@@ -48,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, PropType, computed, toRef } from "vue";
+import { useTemplateRef, PropType, computed, toRef, useId } from "vue";
 import { useDropZone } from "@vueuse/core";
 import prettyBytes from "pretty-bytes";
 import { useFileTypeAccept } from "@/composables/useFileTypeAccept";
@@ -72,6 +74,8 @@ const emit = defineEmits({
 	drop: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
 
+const inputId = useId();
+
 const { acceptAttr, checkIsFileAccepted, normalizedAcceptedFileTypes } =
 	useFileTypeAccept({
 		acceptedFileTypes: toRef(props, "acceptedFileTypes"),
@@ -93,7 +97,7 @@ const formattedAcceptedFileTypes = computed<string>(() => {
 		return `${normalizedAcceptedFileTypes.value.join(", ")} accepted.`;
 	}
 
-	return "All data types accepted.";
+	return "All file types accepted.";
 });
 
 const formattedTotalSizeLimit = computed<string>(() => {

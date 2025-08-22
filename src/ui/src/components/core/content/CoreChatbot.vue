@@ -370,7 +370,7 @@ function handleAttachFiles() {
 	el.addEventListener("change", () => {
 		addFiles(Array.from(el.files || []));
 	});
-	el.dispatchEvent(new MouseEvent("click"));
+	el.click();
 }
 
 function scrollToBottom() {
@@ -388,28 +388,26 @@ async function handleUploadFiles() {
 
 	isUploadingFiles.value = true;
 
-	try {
-		const { encodedFiles } = await encodeFiles();
+	const { encodedFiles } = await encodeFiles();
 
-		if (encodedFiles.length === 0) {
-			isUploadingFiles.value = false;
-			return;
-		}
+	if (encodedFiles.length === 0) {
+		isUploadingFiles.value = false;
+		return;
+	}
 
-		const event = new CustomEvent("wf-file-change", {
+	rootEl.value.dispatchEvent(
+		new CustomEvent("wf-file-change", {
 			detail: {
-				encodedFiles,
+				payload: encodedFiles,
 				callback: () => {
 					isUploadingFiles.value = false;
 					clearFiles();
 				},
 			},
-		});
+		}),
+	);
 
-		rootEl.value.dispatchEvent(event);
-	} catch {
-		isUploadingFiles.value = false;
-	}
+	isUploadingFiles.value = false;
 }
 
 onMounted(() => {

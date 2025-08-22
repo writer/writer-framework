@@ -11,7 +11,7 @@
 				:total-size-limit="MAX_FILE_SIZE"
 				@drop="handleUploadFiles"
 			/>
-			<ul v-if="files.length > 0" class="file-input__files">
+			<ul v-if="files.length > 0" class="file-list">
 				<li v-for="uiFile of files" :key="uiFile.id">
 					<SharedFile
 						:status="isUploading ? 'uploading' : 'ready'"
@@ -114,7 +114,7 @@ const instancePath = inject(injectionKeys.instancePath);
 const { handleInput } = useFormValueBroker(wf, instancePath, rootInstance);
 
 const acceptedFileTypes = computed<string[]>(() =>
-	(fields.allowFileTypes?.value ?? "").split(", "),
+	(fields.allowFileTypes?.value ?? "").split(","),
 );
 
 const isMultipleFilesAllowed = computed<boolean>(() =>
@@ -138,20 +138,20 @@ async function handleUploadFiles(files: File[]) {
 	}
 
 	isUploading.value = true;
+	uploadingErrorMessage.value = null;
 
 	replaceFiles(files);
 
-	try {
-		const { encodedFiles } = await encodeFiles();
+	const { encodedFiles } = await encodeFiles();
 
-		handleInput(encodedFiles, "wf-file-change");
-
-		uploadingErrorMessage.value = null;
-	} catch {
-		uploadingErrorMessage.value = "Failed to prepare files.";
-	} finally {
+	if (encodedFiles.length === 0) {
 		isUploading.value = false;
+		return;
 	}
+
+	handleInput(encodedFiles, "wf-file-change");
+
+	isUploading.value = false;
 }
 
 function downloadFile(file: File) {
@@ -183,20 +183,14 @@ function downloadFile(file: File) {
 	gap: 16px;
 }
 
-.file-input {
-	display: flex;
-	gap: 8px;
-	flex-direction: column;
-}
-
-.file-input__files {
+.file-list {
 	list-style: none;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
 }
 
-.file-input__files li {
+.file-list li {
 	margin-left: 0;
 }
 

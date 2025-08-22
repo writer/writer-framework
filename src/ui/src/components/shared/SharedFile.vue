@@ -14,6 +14,7 @@
 				variant="tertiary"
 				size="smallIcon"
 				data-writer-tooltip="Download File"
+				:aria-label="`Download ${name || 'File'}`"
 				@click="$emit('download')"
 			>
 				<WdsIcon name="download" />

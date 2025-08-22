@@ -1,6 +1,6 @@
 import { computed, DeepReadonly, MaybeRef, toValue } from "vue";
 
-type UseFileTypeAcceptParams = {
+export type UseFileTypeAcceptParams = {
 	acceptedFileTypes?: DeepReadonly<MaybeRef<string[]>>;
 };
 
@@ -32,7 +32,7 @@ export function useFileTypeAccept({
 	});
 
 	const acceptAttr = computed<string | undefined>(
-		() => normalizedAcceptedFileTypes.value.join(", ") || undefined,
+		() => normalizedAcceptedFileTypes.value.join(",") || undefined,
 	);
 
 	const matchers = computed(() => {

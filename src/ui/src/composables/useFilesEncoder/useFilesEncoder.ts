@@ -33,20 +33,17 @@ export type UseFilesEncoderParams = {
 
 export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 	const uiFiles = ref<UiFile[]>([]);
-	const isEncoding = ref(false);
 
 	function calcTotalSize(files: readonly Pick<File, "size">[]): number {
 		return files.reduce((sum, file) => sum + file.size, 0);
 	}
 
 	function addFiles(files: File[]) {
-		if (toValue(multiple)) {
-			uiFiles.value = uiFiles.value.concat(
-				files.map((file) => convertFileToUiFile(file)),
-			);
-		} else {
-			uiFiles.value = files.map((file) => convertFileToUiFile(file));
-		}
+		const convertedFiles = files.map((file) => convertFileToUiFile(file));
+
+		uiFiles.value = toValue(multiple)
+			? uiFiles.value.concat(convertedFiles)
+			: convertedFiles.slice(0, 1);
 	}
 
 	function removeFile(id: string) {
@@ -58,7 +55,11 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 	}
 
 	function replaceFiles(files: File[]) {
-		uiFiles.value = files.map((file) => convertFileToUiFile(file));
+		const convertedFiles = files.map((file) => convertFileToUiFile(file));
+
+		uiFiles.value = toValue(multiple)
+			? convertedFiles
+			: convertedFiles.slice(0, 1);
 	}
 
 	function clearFiles() {
@@ -69,16 +70,6 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 		encodedFiles: EncodedFile[];
 		rejectedFiles: Error[];
 	}> {
-		if (uiFiles.value.length === 0) {
-			return;
-		}
-
-		if (isEncoding.value) {
-			return;
-		}
-
-		isEncoding.value = true;
-
 		const settledResults = await Promise.allSettled(
 			uiFiles.value.map(async ({ file }) => {
 				const encodedFile = await encodeFileAsDataURL(file);
@@ -102,8 +93,6 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 			}
 		});
 
-		isEncoding.value = false;
-
 		return {
 			encodedFiles,
 			rejectedFiles,
@@ -112,7 +101,6 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 
 	return {
 		files: readonly(uiFiles),
-		isEncoding: readonly(isEncoding),
 
 		calcTotalSize,
 
