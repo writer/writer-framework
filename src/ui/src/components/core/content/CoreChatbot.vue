@@ -65,11 +65,41 @@ See the stubs for more details.
 				</WdsControl>
 			</div>
 		</template>
+		<template
+			v-if="
+				pastedImages.length > 0 &&
+				fields.enableImagePaste.value === true
+			"
+		>
+			<div class="pastedImagesArea">
+				<div class="pastedImagesList">
+					<div
+						v-for="(image, imageIndex) in pastedImages"
+						:key="imageIndex"
+						class="pastedImage"
+						:class="{
+							processing:
+								processingImages &&
+								image.includes('data:image/svg+xml'),
+						}"
+					>
+						<img :src="image" alt="Pasted image" />
+						<WdsControl
+							class="removeImage"
+							@click="handleRemovePastedImage(imageIndex)"
+						>
+							<WdsIcon name="x" />
+						</WdsControl>
+					</div>
+				</div>
+			</div>
+		</template>
 		<div class="inputArea">
 			<WdsTextareaInput
 				v-model="outgoingMessage"
 				:placeholder="fields.placeholder.value"
-				@keydown.enter="handleMessageSent"
+				@keydown.prevent.enter="handleMessageSent"
+				@paste="handlePaste"
 			>
 			</WdsTextareaInput>
 		</div>
@@ -213,6 +243,11 @@ export default {
 					no: "No",
 				},
 			},
+			enableImagePaste: createBooleanField({
+				name: "Enable image paste",
+				desc: "Allow users to paste images directly into the chat input using Ctrl/Cmd+V.",
+				default: "yes",
+			}),
 			placeholder: {
 				name: "Placeholder",
 				default: "What do you need?",
@@ -291,17 +326,23 @@ import {
 	computed,
 	ComputedRef,
 	useTemplateRef,
+	shallowRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
-import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
+import type {
+	Message,
+	ContentFragment,
+} from "./CoreChatBot/CoreChatbotMessage.vue";
+import { useLogger } from "@/composables/useLogger";
 
 const rootEl = useTemplateRef("rootEl");
 const messageAreaEl = useTemplateRef("messageAreaEl");
 const messagesEl = useTemplateRef("messagesEl");
 const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
+const logger = useLogger();
 let resizeObserver: ResizeObserver;
 
 const messages: ComputedRef<Message[]> = computed(() => {
@@ -335,13 +376,53 @@ function handleMessageSent(e: KeyboardEvent) {
 
 	e.preventDefault();
 	if (messageIndexLoading.value) return;
+	if (!outgoingMessage.value && pastedImages.value.length === 0) return;
+
 	messageIndexLoading.value = messages.value.length + 1;
+
+	// Create payload based on whether we have images or just text
+	type MessagePayload = {
+		role: string;
+		content: string | ContentFragment[];
+	};
+	let payload: MessagePayload;
+	if (pastedImages.value.length > 0) {
+		// Create multimodal content
+		const contentFragments: ContentFragment[] = [];
+
+		// Add text fragment if there's text
+		if (outgoingMessage.value.trim()) {
+			contentFragments.push({
+				type: "text",
+				text: outgoingMessage.value,
+			});
+		}
+
+		// Add image fragments
+		pastedImages.value.forEach((imageUrl) => {
+			contentFragments.push({
+				type: "image_url",
+				image_url: {
+					url: imageUrl,
+				},
+			});
+		});
+
+		payload = {
+			role: "user",
+			content: contentFragments,
+		};
+	} else {
+		// Simple text message
+		payload = {
+			role: "user",
+			content: outgoingMessage.value,
+		};
+	}
+
 	const event = new CustomEvent("wf-chatbot-message", {
 		detail: {
-			payload: {
-				role: "user",
-				content: outgoingMessage.value,
-			},
+			payload,
 			callback: () => {
 				messageIndexLoading.value = undefined;
 			},
@@ -349,6 +430,7 @@ function handleMessageSent(e: KeyboardEvent) {
 	});
 	rootEl.value.dispatchEvent(event);
 	outgoingMessage.value = "";
+	pastedImages.value = [];
 }
 
 function handleActionClick(action: Message["actions"][number]) {
@@ -370,7 +452,80 @@ function handleAttachFiles() {
 	el.addEventListener("change", () => {
 		addFiles(Array.from(el.files || []));
 	});
-	el.click();
+	el.dispatchEvent(new MouseEvent("click"));
+}
+
+async function handlePaste(event: ClipboardEvent) {
+	// Check if image pasting is enabled
+	if (fields.enableImagePaste.value !== true) return;
+
+	const items = event.clipboardData?.items;
+	if (!items) return;
+
+	const imageItems = [];
+	for (let i = 0; i < items.length; i++) {
+		const item = items[i];
+		if (item.type.startsWith("image/")) {
+			const file = item.getAsFile();
+			if (file) {
+				imageItems.push(file);
+			}
+		}
+	}
+
+	if (imageItems.length === 0) return;
+
+	// Prevent default paste for images
+	event.preventDefault();
+
+	// Show immediate visual feedback with placeholder URLs
+	const placeholderImages = imageItems.map(
+		() =>
+			"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMTIwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9IiNmM2Y0ZjYiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjQwIiByPSIxNiIgZmlsbD0iIzlca2E0YWYiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC4yOzE7MC4yIiBkdXI9IjEuNXMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PC9zdmc+",
+	);
+	pastedImages.value = [...pastedImages.value, ...placeholderImages];
+	processingImages.value = true;
+
+	// Process images in the background
+	try {
+		await Promise.all(
+			imageItems.map(async (file, index) => {
+				try {
+					// Optimize image if it's too large
+					const optimizedFile = await optimizeImage(file);
+					const dataUrl = await encodeFile(optimizedFile);
+
+					// Replace placeholder with actual image
+					const currentImages = [...pastedImages.value];
+					const placeholderIndex =
+						currentImages.length - imageItems.length + index;
+					currentImages[placeholderIndex] = dataUrl as string;
+					pastedImages.value = currentImages;
+
+					return dataUrl as string;
+				} catch (error) {
+					logger.error("Failed to process pasted image:", error);
+					// Remove the placeholder if processing fails
+					const currentImages = [...pastedImages.value];
+					const placeholderIndex =
+						currentImages.length - imageItems.length + index;
+					currentImages.splice(placeholderIndex, 1);
+					pastedImages.value = currentImages;
+					return null;
+				}
+			}),
+		);
+	} catch (error) {
+		logger.error("Error processing pasted images:", error);
+	} finally {
+		processingImages.value = false;
+	}
+}
+
+function handleRemovePastedImage(index: number) {
+	const newList = [...pastedImages.value];
+	newList.splice(index, 1);
+	pastedImages.value = newList;
 }
 
 function scrollToBottom() {
@@ -380,7 +535,68 @@ function scrollToBottom() {
 	});
 }
 
+const pastedImages: Ref<string[]> = shallowRef([]);
+const processingImages: Ref<boolean> = ref(false);
 const isUploadingFiles = ref(false);
+
+const optimizeImage = async (file: File): Promise<File> => {
+	// Only optimize if file is larger than 2MB
+	if (file.size <= 2 * 1024 * 1024) {
+		return file;
+	}
+
+	return new Promise((resolve) => {
+		const canvas = document.createElement("canvas");
+		const ctx = canvas.getContext("2d")!;
+		const img = new Image();
+
+		img.onload = () => {
+			// Calculate new dimensions (max 1920x1080)
+			const maxWidth = 1920;
+			const maxHeight = 1080;
+			let { width, height } = img;
+
+			if (width > maxWidth || height > maxHeight) {
+				const ratio = Math.min(maxWidth / width, maxHeight / height);
+				width = Math.floor(width * ratio);
+				height = Math.floor(height * ratio);
+			}
+
+			canvas.width = width;
+			canvas.height = height;
+
+			// Draw and compress
+			ctx.drawImage(img, 0, 0, width, height);
+			canvas.toBlob(
+				(blob) => {
+					if (blob) {
+						resolve(
+							new File([blob], file.name, { type: "image/jpeg" }),
+						);
+					} else {
+						resolve(file);
+					}
+				},
+				"image/jpeg",
+				0.85,
+			);
+		};
+
+		img.onerror = () => resolve(file);
+		img.src = URL.createObjectURL(file);
+	});
+};
+
+const encodeFile = async (file: File) => {
+	const reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	return new Promise((resolve, reject) => {
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error);
+	});
+};
+
 async function handleUploadFiles() {
 	if (files.value.length == 0) return;
 	if (isUploadingFiles.value) return;
@@ -439,7 +655,7 @@ onBeforeUnmount(() => {
 .CoreChatbot {
 	display: grid;
 	grid-template-columns: 1fr 20%;
-	grid-template-rows: 1fr fit-content(20%) 20%;
+	grid-template-rows: 1fr fit-content(20%) fit-content(150px) 20%;
 	height: 80vh;
 	gap: 16px;
 }
@@ -505,9 +721,16 @@ onBeforeUnmount(() => {
 	padding-right: 14px;
 }
 
-.inputArea {
+.pastedImagesArea {
 	grid-column: 1 / 3;
 	grid-row: 3;
+	overflow-x: auto;
+	padding: 8px 0;
+}
+
+.inputArea {
+	grid-column: 1 / 3;
+	grid-row: 4;
 	text-align: right;
 	display: flex;
 	align-items: top;
@@ -524,7 +747,7 @@ onBeforeUnmount(() => {
 
 .inputButtons {
 	grid-column: 2;
-	grid-row: 3;
+	grid-row: 4;
 	display: flex;
 	padding: 14px;
 	flex-direction: column;
@@ -535,5 +758,61 @@ onBeforeUnmount(() => {
 .inputButtons .action {
 	color: var(--buttonTextColor);
 	background-color: var(--buttonColor);
+}
+
+.pastedImagesList {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.pastedImage {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.pastedImage img {
+	width: 120px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 8px;
+	box-shadow: var(--wdsShadowMd);
+	display: block;
+}
+
+.pastedImage .removeImage {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	width: 32px;
+	height: 32px;
+}
+
+.pastedImage.processing {
+	opacity: 0.7;
+	position: relative;
+}
+
+.pastedImage.processing::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 16px;
+	height: 16px;
+	border: 2px solid var(--wdsColorPrimary);
+	border-top: 2px solid transparent;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+	100% {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
 }
 </style>

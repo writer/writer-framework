@@ -7,10 +7,58 @@
 		>
 			<WdsLoaderDots v-if="displayLoader" />
 			<div v-else class="CoreChatbotMessage__content__text">
-				<BaseMarkdown v-if="useMarkdown" :raw-text="content">
-				</BaseMarkdown>
+				<!-- Handle multimodal content (array) -->
+				<template v-if="Array.isArray(content)">
+					<!-- Render text fragments first -->
+					<template
+						v-for="(fragment, index) in content"
+						:key="`text-${index}`"
+					>
+						<div
+							v-if="fragment.type === 'text'"
+							class="content-fragment"
+						>
+							<BaseMarkdown
+								v-if="useMarkdown"
+								:raw-text="fragment.text || ''"
+							>
+							</BaseMarkdown>
+							<span v-else>{{ fragment.text }}</span>
+						</div>
+					</template>
+
+					<!-- Render images in horizontal scrollable container -->
+					<div
+						v-if="hasImages(content)"
+						class="message-images-wrapper"
+					>
+						<div class="message-images-container">
+							<template
+								v-for="(fragment, index) in content"
+								:key="`image-${index}`"
+							>
+								<img
+									v-if="fragment.type === 'image_url'"
+									:src="fragment.image_url?.url"
+									:alt="'Image from conversation'"
+									class="message-image-preview"
+									loading="lazy"
+									@error="handleImageError"
+									@click="
+										openImageModal(fragment.image_url?.url)
+									"
+								/>
+							</template>
+						</div>
+					</div>
+				</template>
+				<!-- Handle string content -->
 				<template v-else>
-					{{ content }}
+					<BaseMarkdown v-if="useMarkdown" :raw-text="content">
+					</BaseMarkdown>
+					<template v-else>
+						{{ content }}
+					</template>
 				</template>
 			</div>
 			<div
@@ -34,6 +82,19 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Image Modal -->
+	<WdsModal
+		v-if="showImageModal"
+		:display-close-button="true"
+		@close="closeImageModal"
+	>
+		<img
+			:src="modalImageUrl"
+			:alt="'Full size image'"
+			class="image-modal-img"
+		/>
+	</WdsModal>
 </template>
 
 <script lang="ts">
@@ -44,17 +105,24 @@ export type Action = {
 	data?: string;
 };
 
+export type ContentFragment = {
+	type: "text" | "image_url";
+	text?: string;
+	image_url?: { url: string };
+};
+
 export type Message = {
 	role: string;
 	pending: boolean;
-	content: string;
+	content: string | ContentFragment[];
 	actions?: Action[];
 };
 </script>
 
 <script lang="ts" setup>
-import { computed, PropType } from "vue";
+import { computed, PropType, ref } from "vue";
 import CoreChatbotAvatar from "./CoreChatbotAvatar.vue";
+import WdsModal from "@/wds/WdsModal.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 const BaseMarkdown = defineAsyncComponentWithLoader({
@@ -92,7 +160,15 @@ const role = computed(() => {
 	return props.message?.role ?? "";
 });
 
-const content = computed(() => props.message?.content.trim() ?? "");
+const content = computed(() => {
+	const rawContent = props.message?.content;
+	if (Array.isArray(rawContent)) {
+		// For multimodal content, we'll handle rendering in the template
+		return rawContent;
+	}
+	// For string content, trim as before
+	return rawContent?.trim() ?? "";
+});
 
 const contentBgColor = computed(() => {
 	switch (role.value) {
@@ -107,6 +183,30 @@ const contentBgColor = computed(() => {
 			return "";
 	}
 });
+
+const handleImageError = (event: Event) => {
+	const img = event.target as HTMLImageElement;
+	img.style.display = "none";
+};
+
+const showImageModal = ref(false);
+const modalImageUrl = ref("");
+
+const openImageModal = (url?: string) => {
+	if (url) {
+		modalImageUrl.value = url;
+		showImageModal.value = true;
+	}
+};
+
+const closeImageModal = () => {
+	showImageModal.value = false;
+	modalImageUrl.value = "";
+};
+
+const hasImages = (content: ContentFragment[]) => {
+	return content.some((fragment) => fragment.type === "image_url");
+};
 </script>
 
 <style scoped>
@@ -135,7 +235,7 @@ const contentBgColor = computed(() => {
 
 .CoreChatbotMessage__content__actions {
 	padding: 16px;
-	background: rgba(0, 0, 0, 0.02);
+	background: var(--wdsColorBackground);
 	display: flex;
 	gap: 12px;
 	flex-wrap: wrap;
@@ -150,7 +250,7 @@ const contentBgColor = computed(() => {
 	display: flex;
 	gap: 4px;
 	flex-direction: column;
-	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--wdsShadowSm);
 	cursor: pointer;
 	border: 0;
 }
@@ -162,5 +262,72 @@ const contentBgColor = computed(() => {
 
 .action .desc {
 	font-size: 0.7rem;
+}
+
+.content-fragment {
+	margin-bottom: 8px;
+}
+
+.content-fragment:last-child {
+	margin-bottom: 0;
+}
+
+.message-images-wrapper {
+	max-width: 400px; /* 25rem equivalent at 16px base */
+	margin-top: 8px;
+}
+
+.message-images-container {
+	display: flex;
+	gap: 8px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 4px 0;
+	scrollbar-width: thin;
+}
+
+.message-images-container::-webkit-scrollbar {
+	height: 4px;
+}
+
+.message-images-container::-webkit-scrollbar-track {
+	background: var(--wdsColorGray1);
+	border-radius: 2px;
+}
+
+.message-images-container::-webkit-scrollbar-thumb {
+	background: var(--wdsColorGray4);
+	border-radius: 2px;
+}
+
+.message-images-container::-webkit-scrollbar-thumb:hover {
+	background: var(--wdsColorGray5);
+}
+
+.message-image-preview {
+	width: 120px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 8px;
+	box-shadow: var(--wdsShadowMd);
+	flex-shrink: 0;
+	cursor: pointer;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.message-image-preview:hover {
+	transform: scale(1.02);
+	box-shadow: var(--wdsShadowLg);
+}
+
+.image-modal-img {
+	max-width: 100%;
+	max-height: calc(80vh - 64px);
+	width: auto;
+	height: auto;
+	border-radius: 8px;
+	display: block;
 }
 </style>

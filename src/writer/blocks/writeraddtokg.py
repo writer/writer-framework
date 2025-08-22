@@ -35,6 +35,19 @@ class WriterAddToKG(WriterBlock):
                             "type": "array",
                         }
                     },
+                    "urls": {
+                        "name": "URLs",
+                        "type": "Object",
+                        "default": "[]",
+                        "desc": "A list of URLs to be added to the knowledge graph. Web content from these URLs will be indexed.",
+                        "validator": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uri",
+                            }
+                        }
+                    },
                 },
                 "outs": {
                     "success": {
@@ -65,22 +78,36 @@ class WriterAddToKG(WriterBlock):
             import writer.ai
 
             graph_id = self._get_field("graphId", required=True)
-            raw_files = self._get_field("files", as_json=True)
+            raw_files = self._get_field("files", as_json=True, default_field_value=[])
+            urls = self._get_field("urls", as_json=True, default_field_value=[])
             prepared_files = []
 
             if not isinstance(raw_files, list):
                 raise WriterConfigurationError("Files must be a list.")
+            
+            if not isinstance(urls, list):
+                raise WriterConfigurationError("URLs must be a list.")
+            
+            if not raw_files and not urls:
+                raise WriterConfigurationError("At least one file or URL must be provided.")
 
             for raw_file in raw_files:
                 prepared_files.append(self._get_prepared_file(raw_file))
                 
             graph = writer.ai.retrieve_graph(graph_id)
             
+            # Add files to the graph
             for prepared_file in prepared_files:
                 file = writer.ai.upload_file(prepared_file.get("data"),
                                              prepared_file.get("type"),
                                              prepared_file.get("name"))
                 graph.add_file(file)
+            
+            # Add URLs to the graph using SDK 2.3.0 feature
+            for url in urls:
+                if not isinstance(url, str):
+                    raise WriterConfigurationError(f"URL must be a string, got {type(url)}")
+                graph.add_url(url)
 
             self.outcome = "success"
         except BaseException as e:

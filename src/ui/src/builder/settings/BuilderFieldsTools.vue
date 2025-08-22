@@ -37,6 +37,7 @@
 					<WdsDropdownInput v-model="toolForm.type">
 						<option value="function">Function</option>
 						<option value="graph">Knowledge graph</option>
+						<option value="web_search">Web search</option>
 					</WdsDropdownInput>
 				</WdsFieldWrapper>
 				<WdsFieldWrapper label="Tool name">
@@ -64,6 +65,36 @@
 						enable-multi-selection
 					/>
 				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					v-if="toolForm.type == 'web_search'"
+					label="Include domains (optional)"
+					hint="Comma-separated list of domains to search within (e.g., wikipedia.org, docs.python.org)"
+				>
+					<WdsTextInput
+						v-model="toolForm.includeDomains"
+						placeholder="domain1.com, domain2.org"
+					></WdsTextInput>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					v-if="toolForm.type == 'web_search'"
+					label="Exclude domains (optional)"
+					hint="Comma-separated list of domains to exclude from results"
+				>
+					<WdsTextInput
+						v-model="toolForm.excludeDomains"
+						placeholder="spam.com, ads.net"
+					></WdsTextInput>
+				</WdsFieldWrapper>
+				<WdsFieldWrapper
+					v-if="toolForm.type == 'web_search'"
+					label="Include raw content"
+					hint="Include full page content in search results"
+				>
+					<WdsCheckbox
+						v-model="toolForm.includeRawContent"
+						label="Include raw content"
+					></WdsCheckbox>
+				</WdsFieldWrapper>
 			</div>
 		</WdsModal>
 	</div>
@@ -79,6 +110,7 @@ import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
+import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 const BuilderGraphSelect = defineAsyncComponentWithLoader({
@@ -106,15 +138,25 @@ type GraphTool = {
 	graph_ids: string[];
 };
 
-type Tool = FunctionTool | GraphTool;
+type WebSearchTool = {
+	type: "web_search";
+	include_domains?: string[];
+	exclude_domains?: string[];
+	include_raw_content?: boolean;
+};
+
+type Tool = FunctionTool | GraphTool | WebSearchTool;
 
 type ToolForm = {
 	isShown: boolean;
-	type: "function" | "graph";
+	type: "function" | "graph" | "web_search";
 	originalName?: string;
 	name: string;
 	code: string;
 	graphIds: string;
+	includeDomains: string;
+	excludeDomains: string;
+	includeRawContent: boolean;
 };
 
 const initFunctionToolCode = `
@@ -128,10 +170,13 @@ const initFunctionToolCode = `
 
 const toolFormInitValue: ToolForm = {
 	isShown: false,
-	type: "function" as "function" | "graph",
+	type: "function" as "function" | "graph" | "web_search",
 	name: "new_tool",
 	code: initFunctionToolCode,
 	graphIds: "",
+	includeDomains: "",
+	excludeDomains: "",
+	includeRawContent: false,
 };
 
 const toolForm = ref<ToolForm>(toolFormInitValue);
@@ -142,6 +187,8 @@ const saveDisabled = computed(() => {
 			return !toolForm.value.code;
 		case "graph":
 			return !toolForm.value.graphIds;
+		case "web_search":
+			return false; // Web search tool has no required fields
 		default:
 			return true;
 	}
@@ -183,7 +230,14 @@ function resetAndShowToolFormModal() {
 }
 
 function getToolFromForm(): Tool {
-	const { type, code, graphIds } = toolForm.value;
+	const {
+		type,
+		code,
+		graphIds,
+		includeDomains,
+		excludeDomains,
+		includeRawContent,
+	} = toolForm.value;
 	if (type == "function") {
 		return {
 			...JSON.parse(code),
@@ -196,6 +250,25 @@ function getToolFromForm(): Tool {
 			type,
 			graph_ids: graphArr,
 		};
+	}
+	if (type == "web_search") {
+		const tool: WebSearchTool = { type };
+		if (includeDomains.trim()) {
+			tool.include_domains = includeDomains
+				.split(",")
+				.map((d) => d.trim())
+				.filter((d) => d);
+		}
+		if (excludeDomains.trim()) {
+			tool.exclude_domains = excludeDomains
+				.split(",")
+				.map((d) => d.trim())
+				.filter((d) => d);
+		}
+		if (includeRawContent) {
+			tool.include_raw_content = includeRawContent;
+		}
+		return tool;
 	}
 	throw "Unexpected tool type.";
 }
@@ -250,6 +323,9 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 			name: toolName,
 			graphIds: "",
 			code: JSON.stringify(tool, undefined, 2),
+			includeDomains: "",
+			excludeDomains: "",
+			includeRawContent: false,
 		};
 	}
 	if (type == "graph") {
@@ -258,8 +334,24 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 			type: "graph",
 			originalName: toolName,
 			name: toolName,
-			graphIds: tool.graph_ids?.join(","),
+			graphIds: tool.graph_ids?.join(",") ?? "",
 			code: "",
+			includeDomains: "",
+			excludeDomains: "",
+			includeRawContent: false,
+		};
+	}
+	if (type == "web_search") {
+		return {
+			isShown: true,
+			type: "web_search",
+			originalName: toolName,
+			name: toolName,
+			graphIds: "",
+			code: "",
+			includeDomains: tool.include_domains?.join(", ") ?? "",
+			excludeDomains: tool.exclude_domains?.join(", ") ?? "",
+			includeRawContent: tool.include_raw_content ?? false,
 		};
 	}
 	throw "Unexpected tool type;";

@@ -25,11 +25,32 @@ class WriterAddChatMessage(BlueprintBlock):
                         "name": "Message",
                         "type": "Object",
                         "init": '{ "role": "assistant", "content": "Hello" }',
+                        "desc": "A message object. Content can be text string or array of objects for multimodal (text + images) with X5 model.",
                         "validator": {
                             "type": "object",
                             "properties": {
-                                "role": { "type": "string" },
-                                "content": { "type": "string" },
+                                "role": {"type": "string"},
+                                "content": {
+                                    "oneOf": [
+                                        {"type": "string"},
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {"type": "string", "enum": ["text", "image_url"]},
+                                                    "text": {"type": "string"},
+                                                    "image_url": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {"type": "string"}
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
                             },
                             "additionalProperties": False,
                         }

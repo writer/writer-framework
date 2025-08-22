@@ -35,12 +35,32 @@ class WriterChatReply(WriterBlock):
                             "name": "Message",
                             "type": "Object",
                             "init": '{ "role": "user", "content": "Hello" }',
-                            "desc": "An array with messages or a variable to contain save your conversation as an object. ",
+                            "desc": "A message object. Content can be text string or array of objects for multimodal (text + images) with X5 model.",
                             "validator": {
                                 "type": "object",
                                 "properties": {
                                     "role": {"type": "string"},
-                                    "content": {"type": "string"},
+                                    "content": {
+                                        "oneOf": [
+                                            {"type": "string"},
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "type": {"type": "string", "enum": ["text", "image_url"]},
+                                                        "text": {"type": "string"},
+                                                        "image_url": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "url": {"type": "string"}
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
                                 },
                                 "additionalProperties": False,
                             },
@@ -173,6 +193,13 @@ class WriterChatReply(WriterBlock):
                         graph_ids=tool_raw.get("graph_ids"),
                         subqueries=False,
                         description=tool_name,
+                    )
+                elif tool_type == "web_search":
+                    tool = writer.ai.WebSearchTool(
+                        type="web_search",
+                        include_domains=tool_raw.get("include_domains"),
+                        exclude_domains=tool_raw.get("exclude_domains"),
+                        include_raw_content=tool_raw.get("include_raw_content"),
                     )
                 else:
                     continue

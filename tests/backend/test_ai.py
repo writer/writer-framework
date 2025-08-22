@@ -636,6 +636,79 @@ def test_conversation_validate_message():
         Conversation.validate_message(invalid_message_non_dict)
 
 
+def test_conversation_validate_message_with_images():
+    # Test message validation with images
+    valid_text_message = {"role": "user", "content": "Hello"}
+    valid_image_message = {
+        "role": "user", 
+        "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
+        ]
+    }
+    valid_mixed_message = {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "Compare these images:"},
+            {"type": "image_url", "image_url": {"url": "https://example.com/image1.jpg"}},
+            {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,/9j/4AAQ..."}}
+        ]
+    }
+    
+    invalid_content_type = {
+        "role": "user",
+        "content": [
+            {"type": "invalid_type", "text": "Hello"}
+        ]
+    }
+    
+    invalid_content_structure = {
+        "role": "user",
+        "content": [
+            {"type": "text", "invalid_field": "Hello"}
+        ]
+    }
+    
+    # These should pass without exceptions
+    Conversation.validate_message(valid_text_message)
+    Conversation.validate_message(valid_image_message)
+    Conversation.validate_message(valid_mixed_message)
+    
+    # These should raise ValueError
+    with pytest.raises(ValueError):
+        Conversation.validate_message(invalid_content_type)
+    with pytest.raises(ValueError):
+        Conversation.validate_message(invalid_content_structure)
+
+
+def test_conversation_add_with_images():
+    # Test adding messages with images
+    conversation = Conversation()
+    
+    # Add text message
+    conversation.add_with_images("user", text="Hello")
+    assert len(conversation.messages) == 1
+    assert conversation.messages[0]["content"][0]["type"] == "text"
+    assert conversation.messages[0]["content"][0]["text"] == "Hello"
+    
+    # Add image message
+    conversation.add_with_images("user", image_urls=["https://example.com/image.jpg"])
+    assert len(conversation.messages) == 2
+    assert conversation.messages[1]["content"][0]["type"] == "image_url"
+    assert conversation.messages[1]["content"][0]["image_url"]["url"] == "https://example.com/image.jpg"
+    
+    # Add mixed message
+    conversation.add_with_images("user", text="What's in this image?", image_urls=["https://example.com/image.jpg"])
+    assert len(conversation.messages) == 3
+    assert len(conversation.messages[2]["content"]) == 2
+    assert conversation.messages[2]["content"][0]["type"] == "text"
+    assert conversation.messages[2]["content"][1]["type"] == "image_url"
+    
+    # Test error when no content provided
+    with pytest.raises(ValueError):
+        conversation.add_with_images("user")
+
+
 def test_conversation_serialized_messages_excludes_system():
     # Initialize with a mix of system and non-system messages
     history = [
@@ -1948,3 +2021,145 @@ def test_explicit_tools_comprehend_medical_snomed(emulate_app_process):
 
 # For doing a explicit test of apps.generate_content() we need a no-code app
 # that nobody will touch. That is a challenge.
+
+
+@explicit
+def test_explicit_conversation_chat_with_images(emulate_app_process):
+    """
+    Test real API call for chat with images functionality.
+    
+    This test makes an actual API call to Writer AI with multimodal content
+    (text + images) and verifies the response.
+    """
+    conversation = Conversation()
+    
+    # Add a multimodal message with text and image
+    # Using a simple base64 encoded 1x1 pixel PNG for testing
+    test_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    
+    conversation.add_with_images(
+        "user",
+        text="What do you see in this image? Describe it briefly.",
+        image_urls=[test_image]
+    )
+    
+    # Make API call
+    response = conversation.complete()
+    
+    # Verify response structure
+    assert response["role"] == "assistant"
+    assert "content" in response
+    assert isinstance(response["content"], str)
+    assert len(response["content"]) > 0
+    
+    # The response should acknowledge the image, even if it's just a pixel
+    response_lower = response["content"].lower()
+    
+    # Check that the response indicates image analysis was attempted
+    # (even for a 1x1 pixel, the model should respond about seeing an image)
+    image_indicators = [
+        "image", "picture", "see", "visual", "pixel", "small", "tiny", "square"
+    ]
+    
+    assert any(indicator in response_lower for indicator in image_indicators), \
+        f"Response doesn't seem to acknowledge image: {response['content']}"
+    
+    # Verify conversation history includes multimodal message
+    messages = conversation.messages
+    assert len(messages) == 1  # user message only (response not auto-added)
+    
+    user_message = messages[0]
+    assert user_message["role"] == "user"
+    assert isinstance(user_message["content"], list)
+    assert len(user_message["content"]) == 2  # text + image
+    
+    # Verify message structure
+    content_fragments = user_message["content"]
+    text_fragment = content_fragments[0]
+    image_fragment = content_fragments[1]
+    
+    assert text_fragment["type"] == "text"
+    assert "What do you see" in text_fragment["text"]
+    
+    assert image_fragment["type"] == "image_url"
+    assert image_fragment["image_url"]["url"] == test_image
+    
+    print("✅ Chat with images test completed successfully!")
+    print(f"Response: {response['content'][:100]}...")
+
+
+@explicit  
+def test_explicit_conversation_multiple_images(emulate_app_process):
+    """
+    Test real API call with multiple images in a single message.
+    """
+    conversation = Conversation()
+    
+    # Create two different test images (1x1 pixels with different colors)
+    red_pixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+    blue_pixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPjPQAwAABgAggIDGgAAAABJRU5ErkJggg=="
+    
+    conversation.add_with_images(
+        "user",
+        text="I'm showing you two different colored pixels. Can you tell me what colors they are?",
+        image_urls=[red_pixel, blue_pixel]
+    )
+    
+    response = conversation.complete()
+    
+    # Verify response
+    assert response["role"] == "assistant"
+    assert len(response["content"]) > 0
+    
+    # Verify conversation structure
+    user_message = conversation.messages[0]
+    assert len(user_message["content"]) == 3  # 1 text + 2 images
+    
+    # Check all fragments are properly structured
+    fragments = user_message["content"]
+    assert fragments[0]["type"] == "text"
+    assert fragments[1]["type"] == "image_url"
+    assert fragments[2]["type"] == "image_url"
+    
+    print("✅ Multiple images test completed successfully!")
+    print(f"Response: {response['content'][:100]}...")
+
+
+@explicit
+def test_explicit_conversation_web_image_url(emulate_app_process):
+    """
+    Test real API call with web-hosted image URL.
+    
+    Note: This test uses a public image URL. If the URL becomes unavailable,
+    the test may fail or the AI may respond that it cannot access the image.
+    """
+    conversation = Conversation()
+    
+    # Use a reliable public image (Writer logo from GitHub)
+    web_image_url = "https://avatars.githubusercontent.com/u/8090724?s=200&v=4"
+    
+    conversation.add_with_images(
+        "user",
+        text="What company logo is shown in this image?",
+        image_urls=[web_image_url]
+    )
+    
+    response = conversation.complete()
+    
+    # Verify response structure
+    assert response["role"] == "assistant"
+    assert len(response["content"]) > 0
+    
+    # Verify the message structure includes the web URL
+    user_message = conversation.messages[0]
+    image_fragment = user_message["content"][1]
+    assert image_fragment["image_url"]["url"] == web_image_url
+    
+    # The response should attempt to analyze the image
+    response_lower = response["content"].lower()
+    assert any(word in response_lower for word in ["logo", "image", "see", "company"]), \
+        f"Response doesn't seem to analyze the image: {response['content']}"
+    
+    print("✅ Web image URL test completed successfully!")
+    print(f"Response: {response['content'][:100]}...")
+

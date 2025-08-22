@@ -45,7 +45,14 @@ from writerai.types.applications import (
     JobRetryResponse,
 )
 from writerai.types.applications.application_graphs_response import ApplicationGraphsResponse
-from writerai.types.chat_chat_params import GraphData, ResponseFormat, ToolChoice
+from writerai.types.chat_chat_params import (
+    GraphData,
+    MessageContentMixedContentImageFragment,
+    MessageContentMixedContentImageFragmentImageURL,
+    MessageContentMixedContentTextFragment,
+    ResponseFormat,
+    ToolChoice,
+)
 from writerai.types.chat_chat_params import Message as WriterAIMessage
 from writerai.types.chat_completion_message import ChatCompletionMessage
 from writerai.types.question import Question
@@ -53,6 +60,7 @@ from writerai.types.question_response_chunk import QuestionResponseChunk
 from writerai.types.shared_params.tool_param import FunctionTool as SDKFunctionTool
 from writerai.types.shared_params.tool_param import GraphTool as SDKGraphTool
 from writerai.types.shared_params.tool_param import LlmTool as SDKLlmTool
+from writerai.types.shared_params.tool_param import WebSearchTool as SDKWebSearchTool
 
 from writer.core import get_app_process
 
@@ -60,7 +68,15 @@ DEFAULT_CHAT_MODEL = "palmyra-x5"
 DEFAULT_COMPLETION_MODEL = "palmyra-x5"
 
 
-_ai_client: ContextVar[Optional[Writer]] = ContextVar("ai_client", default=None)
+_ai_client: ContextVar[Optional[Writer]] = ContextVar(
+    "ai_client", default=None
+)
+
+
+class ExtendedWebSearchTool(TypedDict, total=False):
+    """Extended web search tool that includes all fields supported by the API"""
+    type: Literal["web_search"]
+    function: Dict[str, Any]  # Flexible to support include_raw_content and other fields
 
 
 class APIOptions(TypedDict, total=False):
@@ -75,7 +91,7 @@ class ChatOptions(APIOptions, total=False):
     tool_choice: ToolChoice
     tools: Union[
             Iterable[
-                Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]
+                Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool, SDKWebSearchTool]
                 ],
             NotGiven
         ]
@@ -165,6 +181,12 @@ def create_function_tool(
 class LLMTool(Tool):
     model: str
     description: str
+
+
+class WebSearchTool(Tool):
+    include_domains: Optional[List[str]]
+    exclude_domains: Optional[List[str]]
+    include_raw_content: Optional[bool]
 
 
 def _process_completion_data_chunk(choice: CompletionChunk) -> str:
@@ -452,7 +474,12 @@ class Graph(SDKWrapper):
         if description:
             payload["description"] = description
         graphs = self._retrieve_graphs_accessor()
-        response = graphs.update(self.id, **payload, **config)
+        response = graphs.update(
+            self.id,
+            name=payload.get("name", NotGiven()),
+            description=payload.get("description", NotGiven()),
+            **config
+        )
         Graph.stale_ids.add(self.id)
         return response
 
@@ -1108,17 +1135,24 @@ class Conversation:
     the `temperature` to 0.7 for this specific call.
 
     """
+    class ContentFragment(TypedDict, total=False):
+        """Content fragment for messages that can contain text or images."""
+        type: Literal["text", "image_url"]
+        text: Optional[str]
+        image_url: Optional[Dict[str, str]]
+
     class Message(TypedDict, total=False):
         """
         Typed dictionary for conversation messages.
 
         :param role: Specifies the sender role.
-        :param content: Text content of the message.
+        :param content: Text content of the message or array of content fragments
+        for multimodal messages.
         :param actions: Optional dictionary containing actions
         related to the message.
         """
         role: Literal["system", "assistant", "user", "tool"]
-        content: str
+        content: Union[str, List['Conversation.ContentFragment']]
         actions: Optional[dict]
         name: Optional[str]
         tool_call_id: Optional[str]
@@ -1145,13 +1179,44 @@ class Conversation:
                 f"Improper message format to add to Conversation: {message}"
                 )
 
-        if not (
-            isinstance(message["content"], str)
-            or
-            message["content"] is None
+        content = message["content"]
+        if isinstance(content, list):
+            # Validate multimodal content structure
+            for fragment in content:
+                if not isinstance(fragment, dict):
+                    raise ValueError(
+                        f"Invalid content fragment in message: {message}. "
+                        f"Fragments must be dictionaries."
+                    )
+                fragment_type = fragment.get("type")
+                if fragment_type not in ["text", "image_url"]:
+                    raise ValueError(
+                        f"Invalid fragment type '{fragment_type}' in message: {message}. "
+                        f"Type must be 'text' or 'image_url'."
+                    )
+                if fragment_type == "text" and "text" not in fragment:
+                    raise ValueError(
+                        f"Text fragment missing 'text' field in message: {message}"
+                    )
+                if fragment_type == "image_url" and "image_url" not in fragment:
+                    raise ValueError(
+                        f"Image fragment missing 'image_url' field in message: {message}"
+                    )
+                if fragment_type == "image_url" and not isinstance(fragment.get("image_url"), dict):
+                    raise ValueError(
+                        f"Image fragment 'image_url' must be a dict in message: {message}"
+                    )
+                if fragment_type == "image_url" and "url" not in fragment.get("image_url", {}):
+                    raise ValueError(
+                        f"Image fragment missing 'url' in 'image_url' in message: {message}"
+                    )
+        elif not (
+            isinstance(content, str)
+            or content is None
         ):
             raise ValueError(
-                f"Non-string content in message cannot be added: {message}"
+                f"Invalid content format in message: {message}. "
+                f"Content must be a string, None, or array of content fragments."
                 )
 
         if message["role"] not in ["system", "assistant", "user", "tool"]:
@@ -1233,7 +1298,24 @@ class Conversation:
         clear_chunk = _clear_chunk_flag(raw_chunk)
         updated_last_message: 'Conversation.Message' = self.messages[-1]
         if "content" in clear_chunk:
-            updated_last_message["content"] += clear_chunk.pop("content") or ""
+            new_content = clear_chunk.pop("content") or ""
+            if isinstance(updated_last_message["content"], list):
+                # Handle list content (multimodal)
+                if isinstance(new_content, str) and new_content:
+                    # Find the last text fragment and append to it, or create new one
+                    last_text_fragment = None
+                    for i in range(len(updated_last_message["content"]) - 1, -1, -1):
+                        if updated_last_message["content"][i].get("type") == "text":
+                            last_text_fragment = updated_last_message["content"][i]
+                            break
+
+                    if last_text_fragment:
+                        last_text_fragment["text"] = (last_text_fragment.get("text") or "") + new_content
+                    else:
+                        updated_last_message["content"].append({"type": "text", "text": new_content})
+            else:
+                # Handle string content
+                updated_last_message["content"] = str(updated_last_message["content"]) + str(new_content)
 
         if "tool_calls" in clear_chunk:
             # Ensure 'tool_calls' exists in updated_last_message as list
@@ -1291,15 +1373,48 @@ class Conversation:
         Converts a message object stored in Conversation to a Writer AI SDK
         `Message` model, suitable for calls to API.
 
-        :param raw_chunk: The data to be merged into the last message.
+        :param message: The message to prepare.
         :raises ValueError: If there are no messages in the conversation
         to merge with.
         """
         if not ("role" in message and "content" in message):
             raise ValueError("Improper message format")
-        sdk_message = WriterAIMessage(
-            content=message.get("content", None) or "",
-            role=message["role"]
+
+        content = message.get("content")
+        if isinstance(content, list):
+            # Handle multimodal content (text + images)
+            # Convert our ContentFragment format to SDK format
+            sdk_content: List[Union[MessageContentMixedContentTextFragment, MessageContentMixedContentImageFragment]] = []
+            for fragment in content:
+                if fragment.get("type") == "text":
+                    sdk_content.append({
+                        "type": "text",
+                        "text": fragment.get("text") or ""
+                    })
+                elif fragment.get("type") == "image_url":
+                    image_url_data = fragment.get("image_url", {})
+                    if isinstance(image_url_data, dict):
+                        # Extract the URL from the dict structure
+                        url = image_url_data.get("url", "")
+                    else:
+                        # Assume it's already a URL string
+                        url = str(image_url_data) if image_url_data else ""
+
+                    image_url_obj: MessageContentMixedContentImageFragmentImageURL = {"url": url}
+                    sdk_content.append({
+                        "type": "image_url",
+                        "image_url": image_url_obj
+                    })
+
+            sdk_message = WriterAIMessage(
+                content=sdk_content,
+                role=message["role"]
+            )
+        else:
+            # Handle simple text content
+            sdk_message = WriterAIMessage(
+                content=content or "",
+                role=message["role"]
             )
         if msg_name := message.get("name"):
             sdk_message["name"] = cast(str, msg_name)
@@ -1384,8 +1499,8 @@ class Conversation:
 
     def _prepare_tool(
             self,
-            tool_instance: Union['Graph', GraphTool, FunctionTool, LLMTool]
-            ) -> Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool]:
+            tool_instance: Union['Graph', GraphTool, FunctionTool, LLMTool, WebSearchTool, dict]
+            ) -> Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool, SDKWebSearchTool]:
         """
         Internal helper function to process a tool instance
         into the required format.
@@ -1625,6 +1740,32 @@ class Conversation:
                         }
                     }
                 )
+            elif tool_type == "web_search":
+                # Return web search tool JSON - SDK format
+                tool_instance = cast(WebSearchTool, tool_instance)
+                function_config: Dict[str, Any] = {}
+
+                # Add required parameters - SDK expects these as lists
+                if "include_domains" in tool_instance:
+                    include_domains = tool_instance["include_domains"]
+                    if include_domains:
+                        function_config["include_domains"] = include_domains
+                if "exclude_domains" in tool_instance:
+                    exclude_domains = tool_instance["exclude_domains"]
+                    if exclude_domains:
+                        function_config["exclude_domains"] = exclude_domains
+                if "include_raw_content" in tool_instance:
+                    include_raw_content = tool_instance["include_raw_content"]
+                    if include_raw_content is not None:
+                        function_config["include_raw_content"] = include_raw_content
+
+                # Return as ExtendedWebSearchTool but ensure SDK compatibility
+                result = ExtendedWebSearchTool({
+                    "type": "web_search",
+                    "function": function_config
+                })
+                # Cast to SDKWebSearchTool for SDK compatibility while preserving extra fields
+                return cast(SDKWebSearchTool, result)
             else:
                 raise ValueError(f"Unsupported tool type: {tool_type}")
 
@@ -1676,6 +1817,36 @@ class Conversation:
         :param message: The content of the message.
         """
         self.__add__({"role": role, "content": message})
+
+    def add_with_images(
+            self,
+            role: Literal["system", "assistant", "user", "tool"],
+            text: Optional[str] = None,
+            image_urls: Optional[List[str]] = None
+            ):
+        """
+        Adds a new multimodal message with text and/or images.
+
+        :param role: The role of the message sender.
+        :param text: Optional text content.
+        :param image_urls: Optional list of image URLs (web URLs or base64 data URLs).
+        """
+        if not text and not image_urls:
+            raise ValueError("At least one of text or image_urls must be provided")
+
+        content: List['Conversation.ContentFragment'] = []
+
+        if text:
+            content.append({"type": "text", "text": text})
+
+        if image_urls:
+            for image_url in image_urls:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image_url}
+                })
+
+        self.__add__({"role": role, "content": content})
 
     def _send_chat_request(
             self,
@@ -2415,11 +2586,19 @@ class Apps:
         ...     async_job=True
         ... )
         >>> print(response)
-        JobCreateResponse(id="job_456", created_at=datetime(2025, 2, 24, 12, 30, 45), status="in_progress")
+        JobCreateResponse(
+            id="job_456",
+            created_at=datetime(2025, 2, 24, 12, 30, 45),
+            status="in_progress"
+        )
         >>> result = writer.ai.apps.retrieve_job(job_id=response.id)
         >>> if result.status == "completed":
         ...     print(result.data)
-        {"title": "output", "suggestion": "Climate change refers to long-term shifts in temperatures and weather patterns..."}
+        {
+            "title": "output",
+            "suggestion": "Climate change refers to long-term shifts in "
+                         "temperatures and weather patterns..."
+        }
 
         """
 
