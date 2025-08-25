@@ -34,17 +34,22 @@
 				/>
 			</svg>
 			<span class="SharedDropZone__label">
-				Drag & drop, or
-				<span>browse files</span>
+				<template v-if="label">{{ label }}</template>
+				<template v-else>
+					Drag & drop, or <span>browse files</span>
+				</template>
 			</span>
 		</div>
 		<p class="SharedDropZone__restrictions">
-			<span>
-				{{ formattedAcceptedFileTypes }}
-			</span>
-			<span v-if="formattedTotalSizeLimit">
-				Total files size limit is {{ formattedTotalSizeLimit }}.
-			</span>
+			<template v-if="restrictions">{{ restrictions }}</template>
+			<template v-else>
+				<span>
+					{{ formattedAcceptedFileTypes }}
+				</span>
+				<span v-if="formattedTotalSizeLimit">
+					Total files size limit is {{ formattedTotalSizeLimit }}.
+				</span>
+			</template>
 		</p>
 	</label>
 </template>
@@ -67,6 +72,14 @@ const props = defineProps({
 	totalSizeLimit: {
 		type: Number,
 		default: undefined,
+	},
+	label: {
+		type: String,
+		default: "",
+	},
+	restrictions: {
+		type: String,
+		default: "",
 	},
 });
 
@@ -136,7 +149,7 @@ function onSelectFiles(event: Event): void {
 	gap: 16px;
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
+	justify-content: center;
 	align-items: center;
 
 	cursor: pointer;

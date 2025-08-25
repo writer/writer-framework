@@ -33,7 +33,13 @@
 					@dragover="handleDragEvent($event, true)"
 					@dragleave="handleDragEvent($event, false)"
 				>
-					<BuilderDropFileZone v-if="showDropingFilesZone" />
+					<SharedDropZone
+						v-if="showDropingFilesZone"
+						multiple
+						label="Drop files here"
+						:restrictions="`Files can be up to ${maxFileSizeLimit}`"
+						@drop="handleDropFiles"
+					/>
 					<template v-else>
 						<div
 							v-if="enableLeftPanel"
@@ -91,6 +97,7 @@ export type BuilderPanelAction = {
 
 <script setup lang="ts">
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
+import { SOURCE_FILE_MAX_SIZE_MB } from "@/core/useSourceFiles";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -102,7 +109,10 @@ import {
 	ref,
 	useTemplateRef,
 } from "vue";
-import BuilderDropFileZone from "../BuilderDropFileZone.vue";
+import prettyBytes from "pretty-bytes";
+import SharedDropZone from "@/components/shared/SharedDropZone.vue";
+
+const maxFileSizeLimit = prettyBytes(SOURCE_FILE_MAX_SIZE_MB * 1000 * 1000);
 
 const wfbm = inject(injectionKeys.builderManager);
 
@@ -142,24 +152,12 @@ function handleDragEvent(event: DragEvent, hover: boolean) {
 }
 
 function handleDrop(event: DragEvent) {
-	isDropingFiles.value = false;
-
-	if (!props.enableDropFile) return;
 	event.preventDefault();
+	isDropingFiles.value = false;
+}
 
-	const files: File[] = [];
-
-	if (event.dataTransfer.items) {
-		for (const item of event.dataTransfer.items) {
-			if (item.kind !== "file") continue;
-			const file = item.getAsFile();
-			if (file) files.push(file);
-		}
-	} else {
-		for (const file of event.dataTransfer.files) {
-			files.push(file);
-		}
-	}
+function handleDropFiles(files: File[]) {
+	if (!props.enableDropFile) return;
 
 	if (files.length > 0) emits("filesDrop", files);
 }

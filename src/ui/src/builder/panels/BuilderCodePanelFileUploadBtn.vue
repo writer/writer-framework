@@ -5,11 +5,13 @@ import { useTemplateRef } from "vue";
 const input = useTemplateRef("input");
 
 const emits = defineEmits({
-	selected: (files: FileList) => Array.isArray(files) && files.length > 0,
+	selected: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
 
 function onFileUploaded() {
-	if (input.value.files?.length) emits("selected", input.value.files);
+	if (input.value.files instanceof FileList) {
+		emits("selected", Array.from(input.value.files));
+	}
 }
 </script>
 

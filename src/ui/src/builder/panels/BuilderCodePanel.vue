@@ -152,8 +152,8 @@ const {
 	save,
 } = useSourceFiles(wf);
 
-async function handleUpload(files: FileList | File[]) {
-	await Promise.all([...files].map(handleFileUpload));
+async function handleUpload(files: File[]) {
+	await Promise.all(files.map(handleFileUpload));
 }
 async function handleFileUpload(file: File) {
 	try {
