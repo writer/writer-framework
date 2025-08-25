@@ -293,7 +293,7 @@ import {
 	useTemplateRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { useFilesEncoder } from "@/composables/useFilesEncoder";
+import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
 

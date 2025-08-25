@@ -102,7 +102,7 @@ import { computed, inject, ref } from "vue";
 import prettyBytes from "pretty-bytes";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
-import { useFilesEncoder } from "@/composables/useFilesEncoder";
+import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
 import SharedFile from "@/components/shared/SharedFile.vue";
 import SharedDropZone from "@/components/shared/SharedDropZone.vue";
 
