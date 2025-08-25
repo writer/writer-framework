@@ -1,4 +1,4 @@
-from typing import List, Optional
+from urllib.parse import urlparse
 
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
@@ -78,18 +78,59 @@ class WriterWebSearch(WriterBlock):
             ),
         )
 
+    def _normalize_domains(self, domains):
+        """Normalize and validate domain list."""
+        if not isinstance(domains, list):
+            raise ValueError("Domains must be a list.")
+        
+        normalized = []
+        seen = set()
+        
+        for domain in domains:
+            if not isinstance(domain, str):
+                continue
+            
+            # Normalize: lowercase, strip whitespace
+            normalized_domain = domain.lower().strip()
+            
+            # Skip empty strings
+            if not normalized_domain:
+                continue
+            
+            # Extract hostname (drop protocol, path, query, and port; trim leading www.)
+            parsed = urlparse(normalized_domain if '://' in normalized_domain else f'http://{normalized_domain}')
+            host = parsed.netloc or parsed.path.split('/', 1)[0]
+            
+            # Skip if we couldn't extract a valid hostname
+            if not host:
+                continue
+                
+            host = host.split(':', 1)[0]  # drop port if any
+            if host.startswith('www.'):
+                host = host[len('www.'):]
+            normalized_domain = host.rstrip('.')
+            
+            # Skip if normalization resulted in empty domain
+            if not normalized_domain:
+                continue
+            
+            # Add to list if not duplicate
+            if normalized_domain not in seen:
+                seen.add(normalized_domain)
+                normalized.append(normalized_domain)
+        
+        return normalized
+    
     def run(self):
         try:
             query = self._get_field("query", required=True)
-            include_domains = self._get_field("includeDomains", as_json=True, default_field_value=[])
-            exclude_domains = self._get_field("excludeDomains", as_json=True, default_field_value=[])
-            include_raw_content = self._get_field("includeRawContent", False, "yes") == "yes"
+            include_domains = self._get_field("includeDomains", as_json=True, default_field_value="[]")
+            exclude_domains = self._get_field("excludeDomains", as_json=True, default_field_value="[]")
+            include_raw_content = self._get_field("includeRawContent", False, "no") == "yes"
             
-            if not isinstance(include_domains, list):
-                raise ValueError("Include domains must be a list.")
-            
-            if not isinstance(exclude_domains, list):
-                raise ValueError("Exclude domains must be a list.")
+            # Normalize domain lists
+            include_domains = self._normalize_domains(include_domains)
+            exclude_domains = self._normalize_domains(exclude_domains)
             
             client = self.writer_sdk_client
             

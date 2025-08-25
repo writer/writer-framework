@@ -36,17 +36,33 @@ class WriterAddChatMessage(BlueprintBlock):
                                         {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "type": {"type": "string", "enum": ["text", "image_url"]},
-                                                    "text": {"type": "string"},
-                                                    "image_url": {
+                                                "oneOf": [
+                                                    {
                                                         "type": "object",
                                                         "properties": {
-                                                            "url": {"type": "string"}
-                                                        }
+                                                            "type": {"type": "string", "enum": ["text"]},
+                                                            "text": {"type": "string"}
+                                                        },
+                                                        "required": ["type", "text"],
+                                                        "additionalProperties": False
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {"type": "string", "enum": ["image_url"]},
+                                                            "image_url": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "url": {"type": "string"}
+                                                                },
+                                                                "required": ["url"],
+                                                                "additionalProperties": False
+                                                            }
+                                                        },
+                                                        "required": ["type", "image_url"],
+                                                        "additionalProperties": False
                                                     }
-                                                }
+                                                ]
                                             }
                                         }
                                     ]

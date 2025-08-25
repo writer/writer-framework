@@ -104,3 +104,56 @@ def test_web_search_invalid_domains(session, runner, fake_client):
     
     with pytest.raises(Exception):  # WriterConfigurationError for invalid JSON
         block.run()
+
+
+def test_normalize_domains():
+    """Test domain normalization logic."""
+    block = WriterWebSearch.__new__(WriterWebSearch)  # Skip __init__
+    
+    # Test cases: (input, expected_output)
+    test_cases = [
+        # Basic domains
+        (["example.com"], ["example.com"]),
+        (["www.example.com"], ["example.com"]),
+        
+        # Full URLs with paths/queries
+        (["https://example.com/docs/page"], ["example.com"]),
+        (["http://api.github.com/repos/user/repo"], ["api.github.com"]),
+        
+        # URLs with ports
+        (["http://example.com:8080/path"], ["example.com"]),
+        (["https://www.example.com:443"], ["example.com"]),
+        
+        # Subdomains
+        (["subdomain.example.com/path"], ["subdomain.example.com"]),
+        (["www.subdomain.example.com"], ["subdomain.example.com"]),
+        
+        # Edge cases
+        ([""], []),  # Empty string
+        (["   "], []),  # Whitespace only
+        ([123], []),  # Non-string input
+        (["example.com", "example.com"], ["example.com"]),  # Duplicates
+        (["EXAMPLE.COM"], ["example.com"]),  # Case normalization
+        
+        # Invalid domains (should be skipped)
+        ([""], []),
+        (["://invalid"], []),
+        
+        # Mixed valid/invalid
+        (["example.com", "", "github.com"], ["example.com", "github.com"]),
+    ]
+    
+    for inputs, expected in test_cases:
+        result = block._normalize_domains(inputs)
+        assert result == expected, f"Input {inputs} -> {result}, expected {expected}"
+
+
+def test_normalize_domains_invalid_input():
+    """Test domain normalization with invalid input types."""
+    block = WriterWebSearch.__new__(WriterWebSearch)  # Skip __init__
+    
+    with pytest.raises(ValueError, match="Domains must be a list"):
+        block._normalize_domains("not a list")
+    
+    with pytest.raises(ValueError, match="Domains must be a list"):
+        block._normalize_domains(123)

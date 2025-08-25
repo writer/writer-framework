@@ -75,17 +75,21 @@ See the stubs for more details.
 				<div class="pastedImagesList">
 					<div
 						v-for="(image, imageIndex) in pastedImages"
-						:key="imageIndex"
+						:key="imageIds[imageIndex]"
 						class="pastedImage"
-						:class="{
-							processing:
-								processingImages &&
-								image.includes('data:image/svg+xml'),
-						}"
 					>
-						<img :src="image" alt="Pasted image" />
+						<WdsSkeletonLoader
+							v-if="imageProcessingState[imageIndex]"
+							class="imageSkeletonLoader"
+						/>
+						<img
+							v-if="!imageProcessingState[imageIndex] && image"
+							:src="image"
+							alt="Pasted image"
+						/>
 						<WdsControl
 							class="removeImage"
+							:aria-label="`Remove pasted image ${imageIndex + 1}`"
 							@click="handleRemovePastedImage(imageIndex)"
 						>
 							<WdsIcon name="x" />
@@ -94,11 +98,17 @@ See the stubs for more details.
 				</div>
 			</div>
 		</template>
+		<template v-if="errorMessage">
+			<div class="errorMessage" :class="{ 'fade-out': isErrorFadingOut }">
+				<WdsIcon name="alert-circle" />
+				<span>{{ errorMessage }}</span>
+			</div>
+		</template>
 		<div class="inputArea">
 			<WdsTextareaInput
 				v-model="outgoingMessage"
 				:placeholder="fields.placeholder.value"
-				@keydown.prevent.enter="handleMessageSent"
+				@keydown.enter.exact.prevent="handleMessageSent"
 				@paste="handlePaste"
 			>
 			</WdsTextareaInput>
@@ -142,6 +152,7 @@ import WdsControl from "@/wds/WdsControl.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorChatBotMessages } from "@/constants/validators";
+import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
@@ -336,6 +347,7 @@ import type {
 	ContentFragment,
 } from "./CoreChatBot/CoreChatbotMessage.vue";
 import { useLogger } from "@/composables/useLogger";
+import { optimizeImage } from "@/utils/img";
 
 const rootEl = useTemplateRef("rootEl");
 const messageAreaEl = useTemplateRef("messageAreaEl");
@@ -343,7 +355,16 @@ const messagesEl = useTemplateRef("messagesEl");
 const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
 const logger = useLogger();
+const pastedImages = shallowRef<(string | null)[]>([]);
+const imageProcessingState = shallowRef<boolean[]>([]);
+const imageIds = shallowRef<string[]>([]);
+let nextImageId = 0;
+const processingImages = ref(false);
+const errorMessage: Ref<string | null> = ref(null);
+const isErrorFadingOut = ref(false);
+const isUploadingFiles = ref(false);
 let resizeObserver: ResizeObserver;
+let errorTimeout: number | undefined;
 
 const messages: ComputedRef<Message[]> = computed(() => {
 	return fields.conversation?.value ?? [];
@@ -371,12 +392,16 @@ const displayExtraLoader = computed(() => {
 	return messageIndexLoading.value >= messages.value.length;
 });
 
-function handleMessageSent(e: KeyboardEvent) {
-	if (e.shiftKey) return;
-
-	e.preventDefault();
+function handleMessageSent(e?: KeyboardEvent | MouseEvent) {
+	// Ignore key events while composing (IME)
+	if (e && "isComposing" in e && (e as KeyboardEvent).isComposing) return;
 	if (messageIndexLoading.value) return;
-	if (!outgoingMessage.value && pastedImages.value.length === 0) return;
+	if (processingImages.value) {
+		showError("Images are still processing. Please wait a moment…");
+		return;
+	}
+	const trimmedMessage = outgoingMessage.value?.trim();
+	if (!trimmedMessage && pastedImages.value.length === 0) return;
 
 	messageIndexLoading.value = messages.value.length + 1;
 
@@ -399,14 +424,16 @@ function handleMessageSent(e: KeyboardEvent) {
 		}
 
 		// Add image fragments
-		pastedImages.value.forEach((imageUrl) => {
-			contentFragments.push({
-				type: "image_url",
-				image_url: {
-					url: imageUrl,
-				},
+		pastedImages.value
+			.filter((imageUrl): imageUrl is string => imageUrl !== null)
+			.forEach((imageUrl) => {
+				contentFragments.push({
+					type: "image_url",
+					image_url: {
+						url: imageUrl,
+					},
+				});
 			});
-		});
 
 		payload = {
 			role: "user",
@@ -416,7 +443,7 @@ function handleMessageSent(e: KeyboardEvent) {
 		// Simple text message
 		payload = {
 			role: "user",
-			content: outgoingMessage.value,
+			content: trimmedMessage!,
 		};
 	}
 
@@ -431,6 +458,8 @@ function handleMessageSent(e: KeyboardEvent) {
 	rootEl.value.dispatchEvent(event);
 	outgoingMessage.value = "";
 	pastedImages.value = [];
+	imageProcessingState.value = [];
+	imageIds.value = [];
 }
 
 function handleActionClick(action: Message["actions"][number]) {
@@ -452,7 +481,7 @@ function handleAttachFiles() {
 	el.addEventListener("change", () => {
 		addFiles(Array.from(el.files || []));
 	});
-	el.dispatchEvent(new MouseEvent("click"));
+	el.click();
 }
 
 async function handlePaste(event: ClipboardEvent) {
@@ -462,59 +491,195 @@ async function handlePaste(event: ClipboardEvent) {
 	const items = event.clipboardData?.items;
 	if (!items) return;
 
+	// Define constraints
+	const MAX_IMAGES = 10;
+	const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total
+	const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB per image
+	const SUPPORTED_FORMATS = [
+		"image/jpeg",
+		"image/jpg",
+		"image/png",
+		"image/webp",
+	];
+
 	const imageItems = [];
+	let totalSize = 0;
+	let skippedLargeImages = 0;
+	let skippedUnsupportedFormats = 0;
+
 	for (let i = 0; i < items.length; i++) {
 		const item = items[i];
 		if (item.type.startsWith("image/")) {
+			// Check if format is supported
+			if (!SUPPORTED_FORMATS.includes(item.type.toLowerCase())) {
+				skippedUnsupportedFormats++;
+				continue;
+			}
+
 			const file = item.getAsFile();
 			if (file) {
+				// Check individual image size
+				if (file.size > MAX_IMAGE_SIZE) {
+					skippedLargeImages++;
+					continue;
+				}
+				totalSize += file.size;
 				imageItems.push(file);
 			}
 		}
 	}
 
-	if (imageItems.length === 0) return;
+	if (imageItems.length === 0) {
+		if (skippedUnsupportedFormats > 0 && skippedLargeImages > 0) {
+			showError(
+				`Images not added: ${skippedUnsupportedFormats} unsupported format(s) (only JPG, JPEG, PNG supported), ${skippedLargeImages} too large (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB each).`,
+			);
+		} else if (skippedUnsupportedFormats > 0) {
+			showError(
+				`Unsupported image format(s). Only JPG, JPEG, and PNG images are supported.`,
+			);
+		} else if (skippedLargeImages > 0) {
+			showError(
+				`Image too large. Maximum size is ${MAX_IMAGE_SIZE / 1024 / 1024}MB per image.`,
+			);
+		}
+		return;
+	}
+
+	// Check total number of images
+	const totalImages = pastedImages.value.length + imageItems.length;
+	if (totalImages > MAX_IMAGES) {
+		const allowedCount = MAX_IMAGES - pastedImages.value.length;
+		if (allowedCount <= 0) {
+			showError(
+				`Maximum ${MAX_IMAGES} images allowed. Please remove some images first.`,
+			);
+			return;
+		}
+		// Only take what we can fit
+		imageItems.splice(allowedCount);
+		showError(
+			`Only ${allowedCount} image(s) added. Maximum ${MAX_IMAGES} images allowed.`,
+		);
+	}
+
+	// Check total size
+	if (totalSize > MAX_TOTAL_SIZE) {
+		showError(
+			`Total size too large (${(totalSize / 1024 / 1024).toFixed(1)}MB). Maximum ${MAX_TOTAL_SIZE / 1024 / 1024}MB total.`,
+		);
+		return;
+	}
+
+	// Show warning for skipped images
+	const warnings = [];
+	if (skippedLargeImages > 0) {
+		warnings.push(
+			`${skippedLargeImages} image(s) too large (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB each)`,
+		);
+	}
+	if (skippedUnsupportedFormats > 0) {
+		warnings.push(
+			`${skippedUnsupportedFormats} unsupported format(s) (only JPG, JPEG, PNG supported)`,
+		);
+	}
+	if (warnings.length > 0) {
+		showError(`${warnings.join(", ")} - these images were skipped.`);
+	}
 
 	// Prevent default paste for images
 	event.preventDefault();
 
-	// Show immediate visual feedback with placeholder URLs
-	const placeholderImages = imageItems.map(
-		() =>
-			"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMTIwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9IiNmM2Y0ZjYiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjQwIiByPSIxNiIgZmlsbD0iIzlca2E0YWYiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC4yOzE7MC4yIiBkdXI9IjEuNXMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PC9zdmc+",
-	);
-	pastedImages.value = [...pastedImages.value, ...placeholderImages];
+	// Show immediate visual feedback with placeholder URLs and stable IDs
+	const newImageSlots = imageItems.map(() => null);
+	const newProcessingStates = imageItems.map(() => true);
+	const newImageIds = imageItems.map(() => `img-${nextImageId++}`);
+	pastedImages.value = [...pastedImages.value, ...newImageSlots];
+	imageProcessingState.value = [
+		...imageProcessingState.value,
+		...newProcessingStates,
+	];
+	imageIds.value = [...imageIds.value, ...newImageIds];
 	processingImages.value = true;
 
 	// Process images in the background
+	const failures: number[] = [];
 	try {
 		await Promise.all(
 			imageItems.map(async (file, index) => {
 				try {
 					// Optimize image if it's too large
-					const optimizedFile = await optimizeImage(file);
+					const optimizedFile = await optimizeImage(file, logger);
+					if (optimizedFile === file && file.size > 2 * 1024 * 1024) {
+						logger.log(
+							`Using original file for ${file.name} (optimization failed)`,
+						);
+					} else if (optimizedFile !== file) {
+						logger.log(
+							`Successfully optimized ${file.name} from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`,
+						);
+					}
 					const dataUrl = await encodeFile(optimizedFile);
 
-					// Replace placeholder with actual image
-					const currentImages = [...pastedImages.value];
-					const placeholderIndex =
-						currentImages.length - imageItems.length + index;
-					currentImages[placeholderIndex] = dataUrl as string;
-					pastedImages.value = currentImages;
+					// Set the processed image and update processing state using stable ID
+					const imageId = newImageIds[index];
+					const imageIndex = imageIds.value.findIndex(
+						(id) => id === imageId,
+					);
+					if (
+						imageIndex !== -1 &&
+						imageIndex < pastedImages.value.length
+					) {
+						const currentImages = [...pastedImages.value];
+						const currentProcessingState = [
+							...imageProcessingState.value,
+						];
+
+						currentImages[imageIndex] = dataUrl as string;
+						currentProcessingState[imageIndex] = false;
+
+						pastedImages.value = currentImages;
+						imageProcessingState.value = currentProcessingState;
+					}
 
 					return dataUrl as string;
 				} catch (error) {
 					logger.error("Failed to process pasted image:", error);
-					// Remove the placeholder if processing fails
-					const currentImages = [...pastedImages.value];
-					const placeholderIndex =
-						currentImages.length - imageItems.length + index;
-					currentImages.splice(placeholderIndex, 1);
-					pastedImages.value = currentImages;
+					// Track failure for later cleanup instead of immediate splice
+					failures.push(index);
 					return null;
 				}
 			}),
 		);
+
+		// Process failures using stable IDs, in descending order to preserve indices
+		failures
+			.map((failureIndex) => ({
+				failureIndex,
+				imageId: newImageIds[failureIndex],
+			}))
+			.map(({ imageId }) =>
+				imageIds.value.findIndex((id) => id === imageId),
+			)
+			.filter((imageIndex) => imageIndex !== -1)
+			.sort((a, b) => b - a)
+			.forEach((imageIndex) => {
+				if (imageIndex < pastedImages.value.length) {
+					const currentImages = [...pastedImages.value];
+					const currentProcessingState = [
+						...imageProcessingState.value,
+					];
+					const currentIds = [...imageIds.value];
+
+					currentImages.splice(imageIndex, 1);
+					currentProcessingState.splice(imageIndex, 1);
+					currentIds.splice(imageIndex, 1);
+
+					pastedImages.value = currentImages;
+					imageProcessingState.value = currentProcessingState;
+					imageIds.value = currentIds;
+				}
+			});
 	} catch (error) {
 		logger.error("Error processing pasted images:", error);
 	} finally {
@@ -523,9 +688,36 @@ async function handlePaste(event: ClipboardEvent) {
 }
 
 function handleRemovePastedImage(index: number) {
-	const newList = [...pastedImages.value];
-	newList.splice(index, 1);
-	pastedImages.value = newList;
+	const newImageList = [...pastedImages.value];
+	const newProcessingList = [...imageProcessingState.value];
+	const newIdList = [...imageIds.value];
+
+	newImageList.splice(index, 1);
+	newProcessingList.splice(index, 1);
+	newIdList.splice(index, 1);
+
+	pastedImages.value = newImageList;
+	imageProcessingState.value = newProcessingList;
+	imageIds.value = newIdList;
+}
+
+function showError(message: string) {
+	errorMessage.value = message;
+	isErrorFadingOut.value = false;
+	// Clear any existing timeout
+	if (errorTimeout) {
+		clearTimeout(errorTimeout);
+	}
+	// Auto-hide error after 5 seconds with fade-out animation
+	errorTimeout = setTimeout(() => {
+		// Start fade-out animation
+		isErrorFadingOut.value = true;
+		// Remove the message after animation completes
+		setTimeout(() => {
+			errorMessage.value = null;
+			isErrorFadingOut.value = false;
+		}, 300); // Match animation duration
+	}, 5000) as unknown as number;
 }
 
 function scrollToBottom() {
@@ -534,58 +726,6 @@ function scrollToBottom() {
 		left: 0,
 	});
 }
-
-const pastedImages: Ref<string[]> = shallowRef([]);
-const processingImages: Ref<boolean> = ref(false);
-const isUploadingFiles = ref(false);
-
-const optimizeImage = async (file: File): Promise<File> => {
-	// Only optimize if file is larger than 2MB
-	if (file.size <= 2 * 1024 * 1024) {
-		return file;
-	}
-
-	return new Promise((resolve) => {
-		const canvas = document.createElement("canvas");
-		const ctx = canvas.getContext("2d")!;
-		const img = new Image();
-
-		img.onload = () => {
-			// Calculate new dimensions (max 1920x1080)
-			const maxWidth = 1920;
-			const maxHeight = 1080;
-			let { width, height } = img;
-
-			if (width > maxWidth || height > maxHeight) {
-				const ratio = Math.min(maxWidth / width, maxHeight / height);
-				width = Math.floor(width * ratio);
-				height = Math.floor(height * ratio);
-			}
-
-			canvas.width = width;
-			canvas.height = height;
-
-			// Draw and compress
-			ctx.drawImage(img, 0, 0, width, height);
-			canvas.toBlob(
-				(blob) => {
-					if (blob) {
-						resolve(
-							new File([blob], file.name, { type: "image/jpeg" }),
-						);
-					} else {
-						resolve(file);
-					}
-				},
-				"image/jpeg",
-				0.85,
-			);
-		};
-
-		img.onerror = () => resolve(file);
-		img.src = URL.createObjectURL(file);
-	});
-};
 
 const encodeFile = async (file: File) => {
 	const reader = new FileReader();
@@ -646,6 +786,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	resizeObserver.unobserve(messagesEl.value);
+	if (errorTimeout) {
+		clearTimeout(errorTimeout);
+		errorTimeout = undefined;
+	}
 });
 </script>
 <style scoped>
@@ -655,7 +799,9 @@ onBeforeUnmount(() => {
 .CoreChatbot {
 	display: grid;
 	grid-template-columns: 1fr 20%;
-	grid-template-rows: 1fr fit-content(20%) fit-content(150px) 20%;
+	grid-template-rows:
+		1fr fit-content(20%) fit-content(150px) fit-content(60px)
+		fit-content(40px);
 	height: 80vh;
 	gap: 16px;
 }
@@ -788,31 +934,54 @@ onBeforeUnmount(() => {
 	height: 32px;
 }
 
-.pastedImage.processing {
-	opacity: 0.7;
-	position: relative;
+.errorMessage {
+	grid-column: 1 / 3;
+	grid-row: 5;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	background-color: var(--wdsColorOrange1);
+	border: 1px solid var(--wdsColorOrange3);
+	color: var(--wdsColorOrange5);
+	border-radius: 8px;
+	font-size: 14px;
+	animation: fadeIn 0.3s ease-out;
 }
 
-.pastedImage.processing::after {
-	content: "";
+.errorMessage.fade-out {
+	animation: fadeOut 0.3s ease-out forwards;
+}
+
+.errorMessage .WdsIcon {
+	flex-shrink: 0;
+	color: var(--wdsColorOrange5);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+.imageSkeletonLoader {
+	width: 120px;
+	height: 80px;
+	border-radius: 8px;
 	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 16px;
-	height: 16px;
-	border: 2px solid var(--wdsColorPrimary);
-	border-top: 2px solid transparent;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-	0% {
-		transform: translate(-50%, -50%) rotate(0deg);
-	}
-	100% {
-		transform: translate(-50%, -50%) rotate(360deg);
-	}
+	top: 0;
+	left: 0;
 }
 </style>

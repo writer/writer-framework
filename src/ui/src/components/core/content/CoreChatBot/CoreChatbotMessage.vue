@@ -38,14 +38,26 @@
 								:key="`image-${index}`"
 							>
 								<img
-									v-if="fragment.type === 'image_url'"
+									v-if="
+										fragment.type === 'image_url' &&
+										fragment.image_url?.url
+									"
 									:src="fragment.image_url?.url"
 									:alt="'Image from conversation'"
 									class="message-image-preview"
 									loading="lazy"
+									role="button"
+									tabindex="0"
+									:aria-label="`Open image in modal - ${fragment.image_url?.url}`"
 									@error="handleImageError"
 									@click="
-										openImageModal(fragment.image_url?.url)
+										modalImageUrl = fragment.image_url.url
+									"
+									@keydown="
+										handleImageKeydown(
+											$event,
+											fragment.image_url.url,
+										)
 									"
 								/>
 							</template>
@@ -85,13 +97,13 @@
 
 	<!-- Image Modal -->
 	<WdsModal
-		v-if="showImageModal"
+		v-if="modalImageUrl"
 		:display-close-button="true"
-		@close="closeImageModal"
+		@close="modalImageUrl = undefined"
 	>
 		<img
 			:src="modalImageUrl"
-			:alt="'Full size image'"
+			alt="Full size image"
 			class="image-modal-img"
 		/>
 	</WdsModal>
@@ -189,23 +201,19 @@ const handleImageError = (event: Event) => {
 	img.style.display = "none";
 };
 
-const showImageModal = ref(false);
-const modalImageUrl = ref("");
-
-const openImageModal = (url?: string) => {
-	if (url) {
-		modalImageUrl.value = url;
-		showImageModal.value = true;
-	}
-};
-
-const closeImageModal = () => {
-	showImageModal.value = false;
-	modalImageUrl.value = "";
-};
+const modalImageUrl = ref<string | undefined>();
 
 const hasImages = (content: ContentFragment[]) => {
-	return content.some((fragment) => fragment.type === "image_url");
+	return content.some(
+		(fragment) => fragment.type === "image_url" && fragment.image_url?.url,
+	);
+};
+
+const handleImageKeydown = (event: KeyboardEvent, imageUrl: string) => {
+	if (event.key === "Enter" || event.key === " ") {
+		event.preventDefault();
+		modalImageUrl.value = imageUrl;
+	}
 };
 </script>
 
@@ -315,11 +323,6 @@ const hasImages = (content: ContentFragment[]) => {
 	transition:
 		transform 0.2s ease,
 		box-shadow 0.2s ease;
-}
-
-.message-image-preview:hover {
-	transform: scale(1.02);
-	box-shadow: var(--wdsShadowLg);
 }
 
 .image-modal-img {

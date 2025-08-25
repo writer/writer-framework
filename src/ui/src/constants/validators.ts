@@ -169,23 +169,40 @@ export const validatorChatBotMessage: SchemaObject = {
 				{ type: "string" },
 				{
 					type: "array",
+					minItems: 1,
 					items: {
 						type: "object",
-						properties: {
-							type: {
-								type: "string",
-								enum: ["text", "image_url"]
-							},
-							text: { type: "string" },
-							image_url: {
+						oneOf: [
+							{
 								type: "object",
 								properties: {
-									url: { type: "string" }
+									type: { type: "string", enum: ["text"] },
+									text: { type: "string" }
 								},
-								required: ["url"]
+								required: ["type", "text"],
+								additionalProperties: false
+							},
+							{
+								type: "object",
+								properties: {
+									type: { type: "string", enum: ["image_url"] },
+									image_url: {
+										type: "object",
+										properties: {
+											url: { 
+												type: "string", 
+												format: ValidatorCustomFormat.Uri,
+												pattern: "^(https?:\\/\\/|data:image\\/)"
+											}
+										},
+										required: ["url"],
+										additionalProperties: false
+									}
+								},
+								required: ["type", "image_url"],
+								additionalProperties: false
 							}
-						},
-						required: ["type"]
+						]
 					}
 				}
 			]
