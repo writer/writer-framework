@@ -1,4 +1,4 @@
-import { MaybeRef, readonly, ref, toValue } from "vue";
+import { MaybeRef, readonly, shallowRef, toValue } from "vue";
 import { encodeFileAsDataURL } from "./encodeFileAsDataURL";
 
 export type UiFile = {
@@ -32,7 +32,7 @@ export type UseFilesEncoderParams = {
 };
 
 export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
-	const uiFiles = ref<UiFile[]>([]);
+	const uiFiles = shallowRef<UiFile[]>([]);
 
 	function calcTotalSize(files: readonly Pick<File, "size">[]): number {
 		return files.reduce((sum, file) => sum + file.size, 0);
@@ -47,11 +47,7 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 	}
 
 	function removeFile(id: string) {
-		const index = uiFiles.value.findIndex((uiFile) => uiFile.id === id);
-
-		if (index !== -1) {
-			uiFiles.value.splice(index, 1);
-		}
+		uiFiles.value = uiFiles.value.filter((uiFile) => uiFile.id !== id);
 	}
 
 	function replaceFiles(files: File[]) {
