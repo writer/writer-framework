@@ -1,5 +1,6 @@
 import { MaybeRef, readonly, shallowRef, toValue } from "vue";
-import { encodeFileAsDataURL } from "./encodeFileAsDataURL";
+import { useAbortController } from "../useAbortController";
+import { encodeFileAsDataURL, AbortError } from "./encodeFileAsDataURL";
 
 export type UiFile = {
 	id: string;
@@ -32,6 +33,8 @@ export type UseFilesEncoderParams = {
 };
 
 export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
+	const abort = useAbortController();
+
 	const uiFiles = shallowRef<UiFile[]>([]);
 
 	function calcTotalSize(files: readonly Pick<File, "size">[]): number {
@@ -68,7 +71,9 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 	}> {
 		const settledResults = await Promise.allSettled(
 			uiFiles.value.map(async ({ file }) => {
-				const encodedFile = await encodeFileAsDataURL(file);
+				const encodedFile = await encodeFileAsDataURL(file, {
+					signal: abort.signal,
+				});
 
 				return {
 					name: file.name,
@@ -85,6 +90,11 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 			if (result.status === "fulfilled") {
 				encodedFiles.push(result.value);
 			} else if (result.reason instanceof Error) {
+				if (result.reason instanceof AbortError) {
+					// skip aborted files from the results
+					return;
+				}
+
 				rejectedFiles.push(result.reason);
 			}
 		});
