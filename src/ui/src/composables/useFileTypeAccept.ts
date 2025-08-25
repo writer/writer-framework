@@ -25,7 +25,12 @@ export function useFileTypeAccept({
 			const normalizedType = fileType.trim().toLowerCase();
 
 			if (normalizedType) {
-				result.add(normalizedType);
+				// '*.pdf' -> '.pdf'
+				result.add(
+					normalizedType.startsWith("*.")
+						? normalizedType.slice(1)
+						: normalizedType,
+				);
 			}
 		});
 
