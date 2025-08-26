@@ -6,6 +6,7 @@
 		<iframe
 			v-else
 			:src="fields.src.value"
+			:referrerpolicy="fields.referrerPolicy.value"
 			draggable="false"
 			@load="handleLoad"
 		/>
@@ -14,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { FieldType } from "@/writerTypes";
+import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import { cssClasses, separatorColor } from "@/renderer/sharedStyleFields";
 
 const description = "A component to embed an external resource in an iframe.";
@@ -25,6 +26,17 @@ def load_handler(state):
 	# Sets status message when resource is loaded
 
 	state["status"] = "Page loaded"`;
+
+const REFERRER_POLICY_OPTIONS = Object.freeze([
+	"no-referrer",
+	"no-referrer-when-downgrade",
+	"origin",
+	"origin-when-cross-origin",
+	"same-origin",
+	"strict-origin",
+	"strict-origin-when-cross-origin",
+	"unsafe-url",
+]);
 
 export default {
 	writer: {
@@ -38,6 +50,16 @@ export default {
 				desc: "A valid URL",
 				type: FieldType.Text,
 			},
+			referrerPolicy: {
+				name: "Referrer Policy",
+				default: "strict-origin-when-cross-origin",
+				desc: "Define which referrer is sent when fetching the resource",
+				type: FieldType.Text,
+				options: REFERRER_POLICY_OPTIONS.reduce((acc, v) => {
+					acc[v] = v;
+					return acc;
+				}, {}),
+			},
 			separatorColor,
 			cssClasses,
 		},
@@ -47,7 +69,7 @@ export default {
 				stub: loadHandlerStub.trim(),
 			},
 		},
-	},
+	} satisfies WriterComponentDefinition,
 };
 </script>
 
