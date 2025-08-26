@@ -9,6 +9,7 @@
 		keyboard-shortcut-key="J"
 		class="BuilderCodePanel"
 		enable-drop-file
+		:max-file-size-limit="SOURCE_FILE_MAX_SIZE_MB * 1000 * 1000"
 		@files-drop="handleUpload"
 		@openned="onOpenPanel"
 	>
@@ -96,7 +97,7 @@ import {
 } from "vue";
 import BuilderPanel from "./BuilderPanel.vue";
 import injectionKeys from "@/injectionKeys";
-import { useSourceFiles } from "@/core/useSourceFiles";
+import { useSourceFiles, SOURCE_FILE_MAX_SIZE_MB } from "@/core/useSourceFiles";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -152,8 +153,8 @@ const {
 	save,
 } = useSourceFiles(wf);
 
-async function handleUpload(files: FileList | File[]) {
-	await Promise.all([...files].map(handleFileUpload));
+async function handleUpload(files: File[]) {
+	await Promise.all(files.map(handleFileUpload));
 }
 async function handleFileUpload(file: File) {
 	try {

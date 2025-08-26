@@ -5,11 +5,18 @@ import { useTemplateRef } from "vue";
 const input = useTemplateRef("input");
 
 const emits = defineEmits({
-	selected: (files: FileList) => Array.isArray(files) && files.length > 0,
+	selected: (files: File[]) => Array.isArray(files) && files.length > 0,
 });
 
 function onFileUploaded() {
-	if (input.value.files?.length) emits("selected", input.value.files);
+	const { files } = input.value;
+
+	if (files instanceof FileList && files.length > 0) {
+		emits("selected", Array.from(files));
+
+		// allows selecting the same files again to retrigger `change` event
+		input.value.value = "";
+	}
 }
 </script>
 
@@ -19,7 +26,7 @@ function onFileUploaded() {
 			v-show="false"
 			ref="input"
 			type="file"
-			multiple="true"
+			multiple
 			@change="onFileUploaded"
 		/>
 		<WdsButtonLink

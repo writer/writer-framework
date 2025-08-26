@@ -34,6 +34,7 @@
 		"ajv": "^8.17.1",
 		"ajv-errors": "^3.0.0",
 		"arquero": "^5.2.0",
+		"attr-accept": "^2.2.5",
 		"chroma-js": "^2.4.2",
 		"lucide": "^0.525.0",
 		"mapbox-gl": "^3.2.0",
