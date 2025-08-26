@@ -9,8 +9,13 @@ const emits = defineEmits({
 });
 
 function onFileUploaded() {
-	if (input.value.files instanceof FileList) {
-		emits("selected", Array.from(input.value.files));
+	const { files } = input.value;
+
+	if (files instanceof FileList && files.length > 0) {
+		emits("selected", Array.from(files));
+
+		// allows selecting the same files again to retrigger `change` event
+		input.value.value = "";
 	}
 }
 </script>
@@ -21,7 +26,7 @@ function onFileUploaded() {
 			v-show="false"
 			ref="input"
 			type="file"
-			multiple="true"
+			multiple
 			@change="onFileUploaded"
 		/>
 		<WdsButtonLink
