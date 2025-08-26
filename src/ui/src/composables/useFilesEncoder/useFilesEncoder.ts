@@ -28,6 +28,18 @@ export type EncodedFile = {
 	data: string;
 };
 
+function isEncodedFile(input: unknown): input is EncodedFile {
+	return (
+		typeof input === "object" &&
+		input !== null &&
+		"name" in input &&
+		"type" in input &&
+		"data" in input &&
+		typeof input.data === "string" &&
+		input.data.startsWith("data:")
+	);
+}
+
 export type UseFilesEncoderParams = {
 	multiple: MaybeRef<boolean>;
 };
@@ -69,6 +81,16 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 		encodedFiles: EncodedFile[];
 		rejectedFiles: Error[];
 	}> {
+		const encodedFiles: EncodedFile[] = [];
+		const rejectedFiles: Error[] = [];
+
+		if (abort.signal.aborted) {
+			return {
+				encodedFiles,
+				rejectedFiles,
+			};
+		}
+
 		const settledResults = await Promise.allSettled(
 			uiFiles.value.map(async ({ file }) => {
 				const encodedFile = await encodeFileAsDataURL(file, {
@@ -82,9 +104,6 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 				};
 			}),
 		);
-
-		const encodedFiles: EncodedFile[] = [];
-		const rejectedFiles: Error[] = [];
 
 		settledResults.forEach((result) => {
 			if (result.status === "fulfilled") {
@@ -105,6 +124,47 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 		};
 	}
 
+	async function decodeFiles(files: EncodedFile[]): Promise<{
+		decodedFiles: File[];
+	}> {
+		const decodedFiles: File[] = [];
+
+		if (abort.signal.aborted) {
+			return {
+				decodedFiles,
+			};
+		}
+
+		const settledResults = await Promise.allSettled(
+			files
+				.filter((file) => isEncodedFile(file))
+				.map(async (file) => {
+					const response = await fetch(file.data, {
+						signal: abort.signal,
+					});
+
+					const blob = await response.blob();
+					const type =
+						blob.type ||
+						response.headers.get("Content-Type") ||
+						file.type ||
+						"";
+
+					return new File([blob], file.name, { type });
+				}),
+		);
+
+		settledResults.forEach((result) => {
+			if (result.status === "fulfilled") {
+				decodedFiles.push(result.value);
+			}
+		});
+
+		return {
+			decodedFiles,
+		};
+	}
+
 	return {
 		files: readonly(uiFiles),
 
@@ -116,5 +176,6 @@ export function useFilesEncoder({ multiple }: UseFilesEncoderParams) {
 		clearFiles,
 
 		encodeFiles,
+		decodeFiles,
 	};
 }

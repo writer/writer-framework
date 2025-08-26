@@ -98,7 +98,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import prettyBytes from "pretty-bytes";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
@@ -111,7 +111,11 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
-const { handleInput } = useFormValueBroker(wf, instancePath, rootInstance);
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
 
 const acceptedFileTypes = computed<string[]>(() =>
 	(fields.allowFileTypes?.value ?? "").split(","),
@@ -121,8 +125,17 @@ const isMultipleFilesAllowed = computed<boolean>(() =>
 	Boolean(fields.allowMultipleFiles.value),
 );
 
-const { files, calcTotalSize, replaceFiles, encodeFiles } = useFilesEncoder({
-	multiple: isMultipleFilesAllowed,
+const { files, calcTotalSize, replaceFiles, encodeFiles, decodeFiles } =
+	useFilesEncoder({
+		multiple: isMultipleFilesAllowed,
+	});
+
+onMounted(async () => {
+	if (Array.isArray(formValue.value)) {
+		const { decodedFiles } = await decodeFiles(formValue.value);
+
+		replaceFiles(decodedFiles);
+	}
 });
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
