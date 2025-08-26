@@ -37,7 +37,7 @@
 						v-if="showDropingFilesZone"
 						multiple
 						label="Drop files here"
-						:restrictions="`Files can be up to ${maxFileSizeLimit}`"
+						:restrictions="dropZoneRestrictions"
 						@drop="handleDropFiles"
 					/>
 					<template v-else>
@@ -97,7 +97,6 @@ export type BuilderPanelAction = {
 
 <script setup lang="ts">
 import { getModifierKeyName, isModifierKeyActive } from "@/core/detectPlatform";
-import { SOURCE_FILE_MAX_SIZE_MB } from "@/core/useSourceFiles";
 import injectionKeys from "@/injectionKeys";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -112,8 +111,6 @@ import {
 import prettyBytes from "pretty-bytes";
 import SharedDropZone from "@/components/shared/SharedDropZone.vue";
 
-const maxFileSizeLimit = prettyBytes(SOURCE_FILE_MAX_SIZE_MB * 1000 * 1000);
-
 const wfbm = inject(injectionKeys.builderManager);
 
 const panelIds: ("code" | "log")[] = ["code", "log"];
@@ -127,7 +124,16 @@ const props = defineProps<{
 	keyboardShortcutKey: string;
 	enableLeftPanel?: boolean;
 	enableDropFile?: boolean;
+	maxFileSizeLimit?: number;
 }>();
+
+const dropZoneRestrictions = computed<string | undefined>(() => {
+	if (typeof props.maxFileSizeLimit === "number") {
+		return `Files can be up to ${prettyBytes(props.maxFileSizeLimit)}`;
+	}
+
+	return undefined;
+});
 
 const emits = defineEmits({
 	openned: (open: boolean) => typeof open === "boolean",
