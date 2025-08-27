@@ -21,6 +21,7 @@ class WriterAskGraphQuestion(WriterBlock):
                         "name": "Question",
                         "type": "Text",
                         "desc": "The natural language question to ask.",
+                        "control": "Textarea",
                     },
                     "useStreaming": {
                         "name": "Use streaming",
