@@ -35,5 +35,6 @@ const dataFormatted = computed(() => {
 .SharedJsonViewerValue {
 	font-family: monospace;
 	color: var(--secondaryTextColor);
+	word-break: break-all;
 }
 </style>
