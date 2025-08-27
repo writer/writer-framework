@@ -39,13 +39,9 @@ class WriterAskGraphQuestion(WriterBlock):
                         "name": "Graph Ids",
                         "type": "Graph Ids",
                         "desc": "IDs of the graphs to query.",
-                        "default": "[]",
+                        "default": "",
                         "validator": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "format": "uuid"
-                            }
+                            "type": "string",
                         }
                     },
                     "subqueries": {
