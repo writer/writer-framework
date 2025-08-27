@@ -25,11 +25,48 @@ class WriterAddChatMessage(BlueprintBlock):
                         "name": "Message",
                         "type": "Object",
                         "init": '{ "role": "assistant", "content": "Hello" }',
+                        "desc": "A message object. Content can be text string or array of objects for multimodal (text + images) with X5 model.",
                         "validator": {
                             "type": "object",
                             "properties": {
-                                "role": { "type": "string" },
-                                "content": { "type": "string" },
+                                "role": {"type": "string"},
+                                "content": {
+                                    "oneOf": [
+                                        {"type": "string"},
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {"type": "string", "enum": ["text"]},
+                                                            "text": {"type": "string"}
+                                                        },
+                                                        "required": ["type", "text"],
+                                                        "additionalProperties": False
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {"type": "string", "enum": ["image_url"]},
+                                                            "image_url": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "url": {"type": "string"}
+                                                                },
+                                                                "required": ["url"],
+                                                                "additionalProperties": False
+                                                            }
+                                                        },
+                                                        "required": ["type", "image_url"],
+                                                        "additionalProperties": False
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
                             },
                             "additionalProperties": False,
                         }

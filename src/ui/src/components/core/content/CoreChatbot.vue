@@ -65,11 +65,51 @@ See the stubs for more details.
 				</WdsControl>
 			</div>
 		</template>
+		<template
+			v-if="
+				pastedImages.length > 0 &&
+				fields.enableImagePaste.value === true
+			"
+		>
+			<div class="pastedImagesArea">
+				<div class="pastedImagesList">
+					<div
+						v-for="(image, imageIndex) in pastedImages"
+						:key="imageIds[imageIndex]"
+						class="pastedImage"
+					>
+						<WdsSkeletonLoader
+							v-if="imageProcessingState[imageIndex]"
+							class="imageSkeletonLoader"
+						/>
+						<img
+							v-if="!imageProcessingState[imageIndex] && image"
+							:src="image"
+							alt="Pasted image"
+						/>
+						<WdsControl
+							class="removeImage"
+							:aria-label="`Remove pasted image ${imageIndex + 1}`"
+							@click="handleRemovePastedImage(imageIndex)"
+						>
+							<WdsIcon name="x" />
+						</WdsControl>
+					</div>
+				</div>
+			</div>
+		</template>
+		<template v-if="errorMessage">
+			<div class="errorMessage" :class="{ 'fade-out': isErrorFadingOut }">
+				<WdsIcon name="alert-circle" />
+				<span>{{ errorMessage }}</span>
+			</div>
+		</template>
 		<div class="inputArea">
 			<WdsTextareaInput
 				v-model="outgoingMessage"
 				:placeholder="fields.placeholder.value"
-				@keydown.enter="handleMessageSent"
+				@keydown.enter.exact.prevent="handleMessageSent"
+				@paste="handlePaste"
 			>
 			</WdsTextareaInput>
 		</div>
@@ -112,6 +152,7 @@ import WdsControl from "@/wds/WdsControl.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { WdsColor } from "@/wds/tokens";
 import { validatorChatBotMessages } from "@/constants/validators";
+import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
@@ -213,6 +254,11 @@ export default {
 					no: "No",
 				},
 			},
+			enableImagePaste: createBooleanField({
+				name: "Enable image paste",
+				desc: "Allow users to paste images directly into the chat input using Ctrl/Cmd+V.",
+				default: "yes",
+			}),
 			placeholder: {
 				name: "Placeholder",
 				default: "What do you need?",
@@ -291,18 +337,34 @@ import {
 	computed,
 	ComputedRef,
 	useTemplateRef,
+	shallowRef,
 } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
 import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
-import type { Message } from "./CoreChatBot/CoreChatbotMessage.vue";
+import type {
+	Message,
+	ContentFragment,
+} from "./CoreChatBot/CoreChatbotMessage.vue";
+import { useLogger } from "@/composables/useLogger";
+import { optimizeImage } from "@/utils/img";
 
 const rootEl = useTemplateRef("rootEl");
 const messageAreaEl = useTemplateRef("messageAreaEl");
 const messagesEl = useTemplateRef("messagesEl");
 const messageIndexLoading: Ref<number | undefined> = ref(undefined);
 const fields = inject(injectionKeys.evaluatedFields);
+const logger = useLogger();
+const pastedImages = shallowRef<(string | null)[]>([]);
+const imageProcessingState = shallowRef<boolean[]>([]);
+const imageIds = shallowRef<string[]>([]);
+let nextImageId = 0;
+const processingImages = ref(false);
+const errorMessage: Ref<string | null> = ref(null);
+const isErrorFadingOut = ref(false);
+const isUploadingFiles = ref(false);
 let resizeObserver: ResizeObserver;
+let errorTimeout: number | undefined;
 
 const messages: ComputedRef<Message[]> = computed(() => {
 	return fields.conversation?.value ?? [];
@@ -330,18 +392,64 @@ const displayExtraLoader = computed(() => {
 	return messageIndexLoading.value >= messages.value.length;
 });
 
-function handleMessageSent(e: KeyboardEvent) {
-	if (e.shiftKey) return;
-
-	e.preventDefault();
+function handleMessageSent(e?: KeyboardEvent | MouseEvent) {
+	// Ignore key events while composing (IME)
+	if (e && "isComposing" in e && (e as KeyboardEvent).isComposing) return;
 	if (messageIndexLoading.value) return;
+	if (processingImages.value) {
+		showError("Images are still processing. Please wait a moment…");
+		return;
+	}
+	const trimmedMessage = outgoingMessage.value?.trim();
+	if (!trimmedMessage && pastedImages.value.length === 0) return;
+
 	messageIndexLoading.value = messages.value.length + 1;
+
+	// Create payload based on whether we have images or just text
+	type MessagePayload = {
+		role: string;
+		content: string | ContentFragment[];
+	};
+	let payload: MessagePayload;
+	if (pastedImages.value.length > 0) {
+		// Create multimodal content
+		const contentFragments: ContentFragment[] = [];
+
+		// Add text fragment if there's text
+		if (outgoingMessage.value.trim()) {
+			contentFragments.push({
+				type: "text",
+				text: outgoingMessage.value,
+			});
+		}
+
+		// Add image fragments
+		pastedImages.value
+			.filter((imageUrl): imageUrl is string => imageUrl !== null)
+			.forEach((imageUrl) => {
+				contentFragments.push({
+					type: "image_url",
+					image_url: {
+						url: imageUrl,
+					},
+				});
+			});
+
+		payload = {
+			role: "user",
+			content: contentFragments,
+		};
+	} else {
+		// Simple text message
+		payload = {
+			role: "user",
+			content: trimmedMessage!,
+		};
+	}
+
 	const event = new CustomEvent("wf-chatbot-message", {
 		detail: {
-			payload: {
-				role: "user",
-				content: outgoingMessage.value,
-			},
+			payload,
 			callback: () => {
 				messageIndexLoading.value = undefined;
 			},
@@ -349,6 +457,9 @@ function handleMessageSent(e: KeyboardEvent) {
 	});
 	rootEl.value.dispatchEvent(event);
 	outgoingMessage.value = "";
+	pastedImages.value = [];
+	imageProcessingState.value = [];
+	imageIds.value = [];
 }
 
 function handleActionClick(action: Message["actions"][number]) {
@@ -373,6 +484,242 @@ function handleAttachFiles() {
 	el.click();
 }
 
+async function handlePaste(event: ClipboardEvent) {
+	// Check if image pasting is enabled
+	if (fields.enableImagePaste.value !== true) return;
+
+	const items = event.clipboardData?.items;
+	if (!items) return;
+
+	// Define constraints
+	const MAX_IMAGES = 10;
+	const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total
+	const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB per image
+	const SUPPORTED_FORMATS = [
+		"image/jpeg",
+		"image/jpg",
+		"image/png",
+		"image/webp",
+	];
+
+	const imageItems = [];
+	let totalSize = 0;
+	let skippedLargeImages = 0;
+	let skippedUnsupportedFormats = 0;
+
+	for (let i = 0; i < items.length; i++) {
+		const item = items[i];
+		if (item.type.startsWith("image/")) {
+			// Check if format is supported
+			if (!SUPPORTED_FORMATS.includes(item.type.toLowerCase())) {
+				skippedUnsupportedFormats++;
+				continue;
+			}
+
+			const file = item.getAsFile();
+			if (file) {
+				// Check individual image size
+				if (file.size > MAX_IMAGE_SIZE) {
+					skippedLargeImages++;
+					continue;
+				}
+				totalSize += file.size;
+				imageItems.push(file);
+			}
+		}
+	}
+
+	if (imageItems.length === 0) {
+		if (skippedUnsupportedFormats > 0 && skippedLargeImages > 0) {
+			showError(
+				`Images not added: ${skippedUnsupportedFormats} unsupported format(s) (only JPG, JPEG, PNG supported), ${skippedLargeImages} too large (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB each).`,
+			);
+		} else if (skippedUnsupportedFormats > 0) {
+			showError(
+				`Unsupported image format(s). Only JPG, JPEG, and PNG images are supported.`,
+			);
+		} else if (skippedLargeImages > 0) {
+			showError(
+				`Image too large. Maximum size is ${MAX_IMAGE_SIZE / 1024 / 1024}MB per image.`,
+			);
+		}
+		return;
+	}
+
+	// Check total number of images
+	const totalImages = pastedImages.value.length + imageItems.length;
+	if (totalImages > MAX_IMAGES) {
+		const allowedCount = MAX_IMAGES - pastedImages.value.length;
+		if (allowedCount <= 0) {
+			showError(
+				`Maximum ${MAX_IMAGES} images allowed. Please remove some images first.`,
+			);
+			return;
+		}
+		// Only take what we can fit
+		imageItems.splice(allowedCount);
+		showError(
+			`Only ${allowedCount} image(s) added. Maximum ${MAX_IMAGES} images allowed.`,
+		);
+	}
+
+	// Check total size
+	if (totalSize > MAX_TOTAL_SIZE) {
+		showError(
+			`Total size too large (${(totalSize / 1024 / 1024).toFixed(1)}MB). Maximum ${MAX_TOTAL_SIZE / 1024 / 1024}MB total.`,
+		);
+		return;
+	}
+
+	// Show warning for skipped images
+	const warnings = [];
+	if (skippedLargeImages > 0) {
+		warnings.push(
+			`${skippedLargeImages} image(s) too large (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB each)`,
+		);
+	}
+	if (skippedUnsupportedFormats > 0) {
+		warnings.push(
+			`${skippedUnsupportedFormats} unsupported format(s) (only JPG, JPEG, PNG supported)`,
+		);
+	}
+	if (warnings.length > 0) {
+		showError(`${warnings.join(", ")} - these images were skipped.`);
+	}
+
+	// Prevent default paste for images
+	event.preventDefault();
+
+	// Show immediate visual feedback with placeholder URLs and stable IDs
+	const newImageSlots = imageItems.map(() => null);
+	const newProcessingStates = imageItems.map(() => true);
+	const newImageIds = imageItems.map(() => `img-${nextImageId++}`);
+	pastedImages.value = [...pastedImages.value, ...newImageSlots];
+	imageProcessingState.value = [
+		...imageProcessingState.value,
+		...newProcessingStates,
+	];
+	imageIds.value = [...imageIds.value, ...newImageIds];
+	processingImages.value = true;
+
+	// Process images in the background
+	const failures: number[] = [];
+	try {
+		await Promise.all(
+			imageItems.map(async (file, index) => {
+				try {
+					// Optimize image if it's too large
+					const optimizedFile = await optimizeImage(file, logger);
+					if (optimizedFile === file && file.size > 2 * 1024 * 1024) {
+						logger.log(
+							`Using original file for ${file.name} (optimization failed)`,
+						);
+					} else if (optimizedFile !== file) {
+						logger.log(
+							`Successfully optimized ${file.name} from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`,
+						);
+					}
+					const dataUrl = await encodeFile(optimizedFile);
+
+					// Set the processed image and update processing state using stable ID
+					const imageId = newImageIds[index];
+					const imageIndex = imageIds.value.findIndex(
+						(id) => id === imageId,
+					);
+					if (
+						imageIndex !== -1 &&
+						imageIndex < pastedImages.value.length
+					) {
+						const currentImages = [...pastedImages.value];
+						const currentProcessingState = [
+							...imageProcessingState.value,
+						];
+
+						currentImages[imageIndex] = dataUrl as string;
+						currentProcessingState[imageIndex] = false;
+
+						pastedImages.value = currentImages;
+						imageProcessingState.value = currentProcessingState;
+					}
+
+					return dataUrl as string;
+				} catch (error) {
+					logger.error("Failed to process pasted image:", error);
+					// Track failure for later cleanup instead of immediate splice
+					failures.push(index);
+					return null;
+				}
+			}),
+		);
+
+		// Process failures using stable IDs, in descending order to preserve indices
+		failures
+			.map((failureIndex) => ({
+				failureIndex,
+				imageId: newImageIds[failureIndex],
+			}))
+			.map(({ imageId }) =>
+				imageIds.value.findIndex((id) => id === imageId),
+			)
+			.filter((imageIndex) => imageIndex !== -1)
+			.sort((a, b) => b - a)
+			.forEach((imageIndex) => {
+				if (imageIndex < pastedImages.value.length) {
+					const currentImages = [...pastedImages.value];
+					const currentProcessingState = [
+						...imageProcessingState.value,
+					];
+					const currentIds = [...imageIds.value];
+
+					currentImages.splice(imageIndex, 1);
+					currentProcessingState.splice(imageIndex, 1);
+					currentIds.splice(imageIndex, 1);
+
+					pastedImages.value = currentImages;
+					imageProcessingState.value = currentProcessingState;
+					imageIds.value = currentIds;
+				}
+			});
+	} catch (error) {
+		logger.error("Error processing pasted images:", error);
+	} finally {
+		processingImages.value = false;
+	}
+}
+
+function handleRemovePastedImage(index: number) {
+	const newImageList = [...pastedImages.value];
+	const newProcessingList = [...imageProcessingState.value];
+	const newIdList = [...imageIds.value];
+
+	newImageList.splice(index, 1);
+	newProcessingList.splice(index, 1);
+	newIdList.splice(index, 1);
+
+	pastedImages.value = newImageList;
+	imageProcessingState.value = newProcessingList;
+	imageIds.value = newIdList;
+}
+
+function showError(message: string) {
+	errorMessage.value = message;
+	isErrorFadingOut.value = false;
+	// Clear any existing timeout
+	if (errorTimeout) {
+		clearTimeout(errorTimeout);
+	}
+	// Auto-hide error after 5 seconds with fade-out animation
+	errorTimeout = setTimeout(() => {
+		// Start fade-out animation
+		isErrorFadingOut.value = true;
+		// Remove the message after animation completes
+		setTimeout(() => {
+			errorMessage.value = null;
+			isErrorFadingOut.value = false;
+		}, 300); // Match animation duration
+	}, 5000) as unknown as number;
+}
+
 function scrollToBottom() {
 	messageAreaEl.value.scrollTo({
 		top: messageAreaEl.value.scrollHeight,
@@ -380,7 +727,16 @@ function scrollToBottom() {
 	});
 }
 
-const isUploadingFiles = ref(false);
+const encodeFile = async (file: File) => {
+	const reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	return new Promise((resolve, reject) => {
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = () => reject(reader.error);
+	});
+};
+
 async function handleUploadFiles() {
 	if (files.value.length == 0) return;
 	if (isUploadingFiles.value) return;
@@ -430,6 +786,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	resizeObserver.unobserve(messagesEl.value);
+	if (errorTimeout) {
+		clearTimeout(errorTimeout);
+		errorTimeout = undefined;
+	}
 });
 </script>
 <style scoped>
@@ -439,7 +799,9 @@ onBeforeUnmount(() => {
 .CoreChatbot {
 	display: grid;
 	grid-template-columns: 1fr 20%;
-	grid-template-rows: 1fr fit-content(20%) 20%;
+	grid-template-rows:
+		1fr fit-content(20%) fit-content(150px) fit-content(60px)
+		fit-content(40px);
 	height: 80vh;
 	gap: 16px;
 }
@@ -505,9 +867,16 @@ onBeforeUnmount(() => {
 	padding-right: 14px;
 }
 
-.inputArea {
+.pastedImagesArea {
 	grid-column: 1 / 3;
 	grid-row: 3;
+	overflow-x: auto;
+	padding: 8px 0;
+}
+
+.inputArea {
+	grid-column: 1 / 3;
+	grid-row: 4;
 	text-align: right;
 	display: flex;
 	align-items: top;
@@ -524,7 +893,7 @@ onBeforeUnmount(() => {
 
 .inputButtons {
 	grid-column: 2;
-	grid-row: 3;
+	grid-row: 4;
 	display: flex;
 	padding: 14px;
 	flex-direction: column;
@@ -535,5 +904,84 @@ onBeforeUnmount(() => {
 .inputButtons .action {
 	color: var(--buttonTextColor);
 	background-color: var(--buttonColor);
+}
+
+.pastedImagesList {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.pastedImage {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.pastedImage img {
+	width: 120px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 8px;
+	box-shadow: var(--wdsShadowMd);
+	display: block;
+}
+
+.pastedImage .removeImage {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	width: 32px;
+	height: 32px;
+}
+
+.errorMessage {
+	grid-column: 1 / 3;
+	grid-row: 5;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	background-color: var(--wdsColorOrange1);
+	border: 1px solid var(--wdsColorOrange3);
+	color: var(--wdsColorOrange5);
+	border-radius: 8px;
+	font-size: 14px;
+	animation: fadeIn 0.3s ease-out;
+}
+
+.errorMessage.fade-out {
+	animation: fadeOut 0.3s ease-out forwards;
+}
+
+.errorMessage .WdsIcon {
+	flex-shrink: 0;
+	color: var(--wdsColorOrange5);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+.imageSkeletonLoader {
+	width: 120px;
+	height: 80px;
+	border-radius: 8px;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 </style>
