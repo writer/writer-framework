@@ -1,3 +1,4 @@
+import { isPlainObject } from "@/utils/object";
 import type {
 	JsonData,
 	JsonValue,
@@ -18,7 +19,7 @@ export function isJSONArray(data: JsonData): data is JsonData[] {
 export function isJSONObject(
 	data: JsonData,
 ): data is { [x: string]: JsonData } {
-	return !isJSONArray(data) && typeof data === "object" && data !== null;
+	return isPlainObject(data);
 }
 
 export function getJSONLength(data: JsonData): number {

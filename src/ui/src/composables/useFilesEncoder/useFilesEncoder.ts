@@ -1,4 +1,5 @@
 import { MaybeRef, readonly, shallowRef, toValue } from "vue";
+import { isPlainObject } from "@/utils/object";
 import { useAbortController } from "../useAbortController";
 import { encodeFileAsDataURL, AbortError } from "./encodeFileAsDataURL";
 
@@ -30,8 +31,7 @@ export type EncodedFile = {
 
 function isEncodedFile(input: unknown): input is EncodedFile {
 	return (
-		typeof input === "object" &&
-		input !== null &&
+		isPlainObject(input) &&
 		"name" in input &&
 		"type" in input &&
 		"data" in input &&

@@ -1,3 +1,4 @@
+import { isPlainObject } from "@/utils/object";
 import { useLogger } from "@/composables/useLogger";
 import { Component } from "@/writerTypes";
 
@@ -8,8 +9,7 @@ type ClipboardData = {
 
 function isClipboardData(data: unknown): data is ClipboardData {
 	return (
-		typeof data === "object" &&
-		data !== null &&
+		isPlainObject(data) &&
 		"type" in data &&
 		data.type === "writer/clipboard" &&
 		"components" in data &&
