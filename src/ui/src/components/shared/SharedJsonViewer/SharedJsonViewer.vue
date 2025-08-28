@@ -6,6 +6,7 @@
 				:open="isRootOpen"
 				:data="data"
 				@toggle="$emit('toggle', { path: [], open: $event })"
+				@copy.stop.prevent="onCopyToClipboard(data)"
 			>
 				<SharedJsonViewerObject
 					:data="data"
@@ -20,6 +21,7 @@
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
+				@copy.stop.prevent="onCopyToClipboard(data)"
 			/>
 		</template>
 		<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
@@ -50,6 +52,7 @@ export type JsonViewerTogglePayload = { path: JsonPath; open: boolean };
  * This component will detect the shape of the JSON and redirect the right dedicated component.
  */
 import { PropType, computed } from "vue";
+import { useClipboard } from "@vueuse/core";
 import {
 	isJSONArray,
 	isJSONObject,
@@ -62,6 +65,7 @@ import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
 import SharedControlBar from "../SharedControlBar.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { selectionToJson } from "./selectionToJson";
 
 const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
 	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
@@ -99,8 +103,33 @@ const isRoot = computed(() => props.path.length === 0 && !props.hideRoot);
 const isRootOpen = computed(
 	() => props.initialDepth === -1 || props.initialDepth > 0,
 );
-const dataAsString = computed(() => {
-	if (props.data === undefined) return JSON.stringify(null);
-	return JSON.stringify(props.data);
-});
+
+function prettyJson(input: unknown, space = 2) {
+	if (input === undefined) {
+		return JSON.stringify(null);
+	}
+
+	try {
+		return JSON.stringify(input, null, space);
+	} catch {
+		return JSON.stringify(null);
+	}
+}
+
+const dataAsString = computed(() => prettyJson(props.data, 0));
+
+const { copy } = useClipboard();
+
+function onCopyToClipboard(
+	arrayOrObject: Record<string, JsonData> | JsonData[],
+) {
+	const selection = window.getSelection();
+	const selectionText = selection?.toString().trim() ?? "";
+
+	const json = selectionText
+		? selectionToJson(arrayOrObject, selectionText)
+		: arrayOrObject;
+
+	copy(prettyJson(json));
+}
 </script>
