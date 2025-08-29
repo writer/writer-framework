@@ -6,6 +6,10 @@
 		:disabled="!isBeingEdited && isDisabled"
 		@click="handleClick"
 	>
+		<WdsIcon
+			v-if="fields.lucideIcon.value"
+			:name="fields.lucideIcon.value"
+		/>
 		<span class="CoreButton__text">{{ fields.text.value }}</span>
 	</WdsButton>
 </template>
@@ -51,6 +55,11 @@ export default {
 				init: "Button Text",
 				type: FieldType.Text,
 			},
+			lucideIcon: {
+				name: "Icon",
+				type: FieldType.Text,
+				desc: 'Lucide icon name in kebab-case, e.g. "badge-check".',
+			},
 			isDisabled: createBooleanField({
 				name: "Disabled",
 				default: "no",
@@ -69,6 +78,7 @@ export default {
 <script setup lang="ts">
 import { ComponentPublicInstance, inject, ref } from "vue";
 import injectionKeys from "@/injectionKeys";
+import WdsIcon from "@/wds/WdsIcon.vue";
 
 const rootInstance = ref<ComponentPublicInstance | null>(null);
 const fields = inject(injectionKeys.evaluatedFields);
