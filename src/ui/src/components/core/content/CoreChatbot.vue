@@ -134,25 +134,25 @@ See the stubs for more details.
 </template>
 
 <script lang="ts">
-import { FieldCategory, FieldType } from "@/writerTypes";
+import { validatorChatBotMessages } from "@/constants/validators";
 import {
 	accentColor,
-	createBooleanField,
 	buttonColor,
 	buttonTextColor,
 	containerBackgroundColor,
+	createBooleanField,
 	cssClasses,
 	primaryTextColor,
 	secondaryTextColor,
 	separatorColor,
 } from "@/renderer/sharedStyleFields";
-import prettyBytes from "pretty-bytes";
-import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
 import WdsControl from "@/wds/WdsControl.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
-import { WdsColor } from "@/wds/tokens";
-import { validatorChatBotMessages } from "@/constants/validators";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
+import WdsTextareaInput from "@/wds/WdsTextareaInput.vue";
+import { WdsColor } from "@/wds/tokens";
+import { FieldCategory, FieldType } from "@/writerTypes";
+import prettyBytes from "pretty-bytes";
 
 const description = "A chatbot component to build human-to-AI interactions.";
 
@@ -328,26 +328,26 @@ export default {
 };
 </script>
 <script setup lang="ts">
+import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
+import { useLogger } from "@/composables/useLogger";
+import injectionKeys from "@/injectionKeys";
+import { optimizeImage } from "@/utils/img";
 import {
 	type Ref,
-	onMounted,
-	onBeforeUnmount,
-	inject,
-	ref,
 	computed,
 	ComputedRef,
-	useTemplateRef,
+	inject,
+	onBeforeUnmount,
+	onMounted,
+	ref,
 	shallowRef,
+	useTemplateRef,
 } from "vue";
-import injectionKeys from "@/injectionKeys";
-import { useFilesEncoder } from "@/composables/useFilesEncoder/useFilesEncoder";
-import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 import type {
-	Message,
 	ContentFragment,
+	Message,
 } from "./CoreChatBot/CoreChatbotMessage.vue";
-import { useLogger } from "@/composables/useLogger";
-import { optimizeImage } from "@/utils/img";
+import CoreChatbotMessage from "./CoreChatBot/CoreChatbotMessage.vue";
 
 const rootEl = useTemplateRef("rootEl");
 const messageAreaEl = useTemplateRef("messageAreaEl");
@@ -800,7 +800,7 @@ onBeforeUnmount(() => {
 	display: grid;
 	grid-template-columns: 1fr 20%;
 	grid-template-rows:
-		1fr fit-content(20%) fit-content(150px) fit-content(60px)
+		1fr fit-content(20%) fit-content(150px) auto
 		fit-content(40px);
 	height: 80vh;
 	gap: 16px;
@@ -885,6 +885,7 @@ onBeforeUnmount(() => {
 .inputArea textarea {
 	width: 100%;
 	height: 100%;
+	min-height: 120px;
 	resize: none;
 	border-radius: 12px;
 	padding: 14px 20% 14px 14px;
