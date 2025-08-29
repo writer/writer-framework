@@ -105,19 +105,19 @@ const isRootOpen = computed(
 	() => props.initialDepth === -1 || props.initialDepth > 0,
 );
 
-function prettyJson(input: unknown, space = 2) {
+function prettyJson(input: unknown) {
 	if (input === undefined) {
 		return JSON.stringify(null);
 	}
 
 	try {
-		return JSON.stringify(input, null, space);
+		return JSON.stringify(input, null, 2);
 	} catch {
 		return JSON.stringify(null);
 	}
 }
 
-const dataAsString = computed(() => prettyJson(props.data, 0));
+const dataAsString = computed(() => prettyJson(props.data));
 
 const { copy } = useClipboard();
 
