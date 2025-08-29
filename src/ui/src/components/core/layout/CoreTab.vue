@@ -1,11 +1,11 @@
 <template>
-	<div v-show="isVisible" class="CoreTab">
+	<div v-show="isVisible" ref="root" class="CoreTab">
 		<button
 			v-if="isTabBit"
 			class="bit"
 			:class="{ active: isTabActive }"
 			tabindex="0"
-			@click="activateTab"
+			@click="onActivateTab"
 		>
 			{{ fields.name.value }}
 		</button>
@@ -38,7 +38,12 @@
 const TAB_BIT_INSTANCE_NUMBER = 0;
 const CONTENT_DISPLAYING_INSTANCE_NUMBER = 1;
 
-import { Component, FieldType, InstancePath } from "@/writerTypes";
+import {
+	Component,
+	FieldType,
+	InstancePath,
+	WriterComponentDefinition,
+} from "@/writerTypes";
 import { useEvaluator } from "@/renderer/useEvaluator";
 import {
 	contentHAlign,
@@ -70,12 +75,18 @@ export default {
 			contentHAlign,
 			cssClasses,
 		},
+		events: {
+			"wf-tab-open": {
+				desc: "Emitted when the tab is opened.",
+			},
+		},
 		previewField: "name",
-	},
+	} satisfies WriterComponentDefinition,
 };
 </script>
+
 <script setup lang="ts">
-import { computed, inject, onBeforeMount, watch } from "vue";
+import { computed, inject, onBeforeMount, useTemplateRef, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseContainer from "../base/BaseContainer.vue";
 
@@ -85,10 +96,14 @@ const instanceData = inject(injectionKeys.instanceData);
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const componentId = inject(injectionKeys.componentId);
+
+const root = useTemplateRef("root");
+
 const { isComponentVisible } = useEvaluator(wf);
+
 const selectedId = computed(() => ssbm?.firstSelectedId.value);
 
-const getDirectChildInstanceNegativeIndex = () => {
+function getDirectChildInstanceNegativeIndex() {
 	for (let i = -2; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
 		const { type } = wf.getComponentById(item.componentId);
@@ -96,7 +111,7 @@ const getDirectChildInstanceNegativeIndex = () => {
 		return i + 1;
 	}
 	return;
-};
+}
 
 const tabContainerDirectChildInstanceItem = computed(() => {
 	const i = getDirectChildInstanceNegativeIndex();
@@ -119,7 +134,7 @@ const isVisible = computed(() => {
 	return isTabBit.value || (isContentDisplaying.value && isTabActive.value);
 });
 
-const getTabContainerData = () => {
+function getTabContainerData() {
 	for (let i = -1; i > -1 * instancePath.length; i--) {
 		const item = instancePath.at(i);
 		const { type } = wf.getComponentById(item.componentId);
@@ -127,9 +142,9 @@ const getTabContainerData = () => {
 		return instanceData.at(i);
 	}
 	return;
-};
+}
 
-const getMatchingTabInstancePath = () => {
+function getMatchingTabInstancePath() {
 	const i = getDirectChildInstanceNegativeIndex();
 	const itemsBefore = instancePath.slice(0, i);
 	const itemsAfter = i + 1 < 0 ? instancePath.slice(i + 1) : [];
@@ -142,14 +157,23 @@ const getMatchingTabInstancePath = () => {
 		...itemsAfter,
 	];
 	return matchingInstancePath;
-};
+}
 
-const activateTab = () => {
+function onActivateTab() {
+	const wasActive = isTabActive.value;
+	activateTab();
+	if (!wasActive) {
+		const event = new CustomEvent("wf-tab-open", {});
+		root.value.dispatchEvent(event);
+	}
+}
+
+function activateTab() {
 	const tabContainerData = getTabContainerData();
 	tabContainerData.value = {
 		activeTab: getMatchingTabInstancePath(),
 	};
-};
+}
 
 const checkIfTabIsParent = (childId: Component["id"]): boolean => {
 	const child = wf.getComponentById(childId);

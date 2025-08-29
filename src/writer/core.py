@@ -1481,6 +1481,10 @@ class EventDeserialiser:
         tf_payload = {"page_key": page_key, "route_vars": route_vars}
         return tf_payload
 
+    def _transform_tab_open(self, ev) -> str:
+        payload = str(ev.payload)
+        return payload
+
     def _transform_page_open(self, ev) -> str:
         payload = str(ev.payload)
         return payload
