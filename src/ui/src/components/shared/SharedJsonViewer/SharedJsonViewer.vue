@@ -6,7 +6,7 @@
 				:open="isRootOpen"
 				:data="data"
 				@toggle="$emit('toggle', { path: [], open: $event })"
-				@copy.stop.prevent="onCopyToClipboard(data)"
+				@copy="onCopyToClipboard($event, data)"
 			>
 				<SharedJsonViewerObject
 					:data="data"
@@ -21,7 +21,7 @@
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
-				@copy.stop.prevent="onCopyToClipboard(data)"
+				@copy="onCopyToClipboard($event, data)"
 			/>
 		</template>
 		<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
@@ -53,6 +53,7 @@ export type JsonViewerTogglePayload = { path: JsonPath; open: boolean };
  */
 import { PropType, computed } from "vue";
 import { useClipboard } from "@vueuse/core";
+import { isPlainObject } from "@/utils/object";
 import {
 	isJSONArray,
 	isJSONObject,
@@ -120,16 +121,32 @@ const dataAsString = computed(() => prettyJson(props.data, 0));
 
 const { copy } = useClipboard();
 
+function isEmptySubset(subset: Record<string, unknown> | unknown[]): boolean {
+	if (Array.isArray(subset)) return subset.length === 0;
+	if (isPlainObject(subset)) return Object.keys(subset).length === 0;
+	return false;
+}
+
 function onCopyToClipboard(
+	event: ClipboardEvent,
 	arrayOrObject: Record<string, JsonData> | JsonData[],
 ) {
-	const selection = window.getSelection();
-	const selectionText = selection?.toString().trim() ?? "";
+	event.stopPropagation();
 
-	const json = selectionText
-		? selectionToJson(arrayOrObject, selectionText)
-		: arrayOrObject;
+	const selectionText = (window.getSelection()?.toString() ?? "").trim();
 
-	copy(prettyJson(json));
+	if (!selectionText) {
+		return; // no selection → do nothing
+	}
+
+	const subset = selectionToJson(arrayOrObject, selectionText);
+
+	if (isEmptySubset(subset)) {
+		return; // nothing meaningful recognized → allow native copy of raw text
+	}
+
+	event.preventDefault();
+
+	copy(prettyJson(subset)); // copy subset
 }
 </script>
