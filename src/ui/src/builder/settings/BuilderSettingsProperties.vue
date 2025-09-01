@@ -32,6 +32,16 @@
 					:error="errorsByFields[fieldKey]"
 				/>
 
+				<BuilderFieldsMCPTools
+					v-if="fieldValue.type === FieldType.McpTools"
+					:field-key="fieldKey"
+					:component-id="selectedComponent.id"
+					:label="fieldValue.name ?? fieldKey"
+					:hint="fieldValue.desc"
+					:unit="fieldValue.type"
+					:error="errorsByFields[fieldKey]"
+				/>
+
 				<BuilderFieldsWriterResourceId
 					v-else-if="fieldValue.type === FieldType.WriterGraphId"
 					is-binding-button-shown
@@ -263,6 +273,7 @@ import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.v
 import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 import { useEvaluator } from "@/renderer/useEvaluator";
+import BuilderFieldsMCPTools from "./BuilderFieldsMCPTools.vue";
 
 defineProps({
 	isReadOnly: { type: Boolean },

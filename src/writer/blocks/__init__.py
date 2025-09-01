@@ -1,3 +1,4 @@
+from writer.blocks import writermcpcalling
 from writer.blocks.addtostatelist import AddToStateList
 from writer.blocks.apitrigger import APITrigger
 from writer.blocks.calleventhandler import CallEventHandler
@@ -20,13 +21,14 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerfileapi import WriterUploadFile
 from writer.blocks.writerinitchat import WriterInitChat
+from writer.blocks.writermcpcalling import WriterMCPCalling
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerparsepdf import WriterParsePDFByFileID
 from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 from writer.blocks.writervision import WriterVision
 from writer.blocks.writerwebsearch import WriterWebSearch
- 
+
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
 WriterCompletion.register("blueprints_writercompletion")
@@ -55,3 +57,4 @@ WriterParsePDFByFileID.register("blueprints_writerparsepdf")
 WriterUploadFile.register("blueprints_writeruploadfile")
 WriterVision.register("blueprints_writervision")
 WriterWebSearch.register("blueprints_writerwebsearch")
+WriterMCPCalling.register("blueprints_writermcpcalling")

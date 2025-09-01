@@ -175,6 +175,7 @@ export const enum FieldType {
 	WriterModelId = "Model Id",
 	ComponentId = "Component Id",
 	ComponentEventType = "Component Event Type",
+	McpTools = "MCP Tools",
 }
 
 export const enum FieldCategory {

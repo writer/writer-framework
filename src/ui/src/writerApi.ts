@@ -1,3 +1,5 @@
+type RequestInit = Parameters<typeof fetch>[1];
+
 export class WriterApi {
 	#signal: AbortSignal | undefined;
 	#baseUrl: string;
@@ -16,18 +18,40 @@ export class WriterApi {
 		};
 	}
 
-	async fetchApplicationDeployment(
+	async #fetchJSON(
+		path: string,
+		params?: RequestInit & {
+			query?: Record<string, string | number | boolean>;
+		},
+	) {
+		const query = new URLSearchParams(
+			Object.entries(params?.query ?? {}).map(([k, v]) => [k, String(v)]),
+		);
+
+		const url = new URL(`${path}?${query}`, this.#baseUrl);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: params?.method ?? "GET",
+			headers: {
+				...this.#requestInitBase.headers,
+				accept: "application/json",
+				"content-type": "application/json",
+				...(params?.headers ?? {}),
+			},
+			body: params?.body,
+		});
+		if (!res.ok) throw Error(`Error fetching ${url}\n${await res.text()}`);
+		return res.json();
+	}
+
+	fetchApplicationDeployment(
 		orgId: number,
 		appId: string,
 	): Promise<WriterApiApplicationDeployment> {
-		const url = new URL(
+		return this.#fetchJSON(
 			`/api/template/organization/${orgId}/application/${appId}/deployment`,
-			this.#baseUrl,
 		);
-		const res = await fetch(url, this.#requestInitBase);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
 	async fetchOrganizationUsers(
@@ -39,22 +63,9 @@ export class WriterApi {
 			limit?: number;
 		} = {},
 	): Promise<WriterApiOrganizationUsers> {
-		const url = new URL(
-			`/api/user/v2/organization/${orgId}`,
-			this.#baseUrl,
-		);
-		const params = new URLSearchParams();
-		for (const [key, value] of Object.entries(filters)) {
-			params.append(key, String(value));
-		}
-
-		const res = await fetch(
-			`${url}?${params.toString()}`,
-			this.#requestInitBase,
-		);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+		return this.#fetchJSON(`/api/user/v2/organization/${orgId}`, {
+			query: filters,
+		});
 	}
 
 	async publishApplication(
@@ -244,7 +255,101 @@ export class WriterApi {
 
 		return key ? `${url}/${key}` : url;
 	}
+
+	// MCP
+
+	mcpFetchProjects(orgId: number): Promise<WriterMcpProject[]> {
+		return this.#fetchJSON(
+			`/api/mcp-gateway/v1/organization/${orgId}/projects/`,
+		);
+	}
+
+	mcpCreateProject(orgId: number): Promise<WriterMcpProject> {
+		return this.#fetchJSON(
+			`/api/mcp-gateway/v1/organization/${orgId}/projects`,
+			{
+				method: "POST",
+				body: JSON.stringify({
+					name: "Alex was here",
+					description:
+						"a test I ran from a Node.js script, can be removed",
+				}),
+			},
+		);
+	}
+
+	mcpFetchAppConfigurations(
+		orgId: number,
+		mcpProjectId: string,
+	): Promise<ResponsePaginated<WriterMcpAppConfiguration[]>> {
+		return this.#fetchJSON(
+			`/api/mcp-gateway/v1/organization/${orgId}/app-configurations/project/${mcpProjectId}`,
+		);
+	}
+
+	mcpFetchAppFunctions(appId: string): Promise<WriterMcpAppFunction[]> {
+		return this.#fetchJSON(`/api/mcp-gateway/v1/functions/list/${appId}`);
+	}
 }
+
+interface ResponsePaginated<T> {
+	totalCount: number;
+	pagination: {
+		offset: number;
+		limit: number;
+	};
+	result: T;
+}
+
+export type WriterMcpProject = {
+	id: string;
+	name: string;
+	displayName: string;
+	description: string;
+	createdBy: number;
+	visibilityAccess: string;
+	createdAt: string;
+	updatedAt: string;
+	orgId: number;
+	deleted: boolean;
+};
+
+export type WriterMcpAppConfiguration = {
+	id: string;
+	projectId: string;
+	appId: string;
+	securityScheme: string;
+	securitySchemeOverrides: unknown;
+	enabled: boolean;
+	allFunctionsEnabled: boolean;
+	enabledFunctions: string[];
+	status: string;
+	app: {
+		displayName: string;
+		logo: string;
+	};
+} & WriterApiBlamable;
+
+export type WriterMcpAppFunction = {
+	id: string;
+	appId: string;
+	name: string;
+	displayName: string;
+	description: string;
+	tags: string[];
+	visibility: string;
+	active: boolean;
+	protocol: string;
+	protocolData: {
+		path: string;
+		method: string;
+		server_url: string;
+	};
+	parameters: object;
+	response: unknown;
+	createdAt: string;
+	updatedAt: string;
+};
 
 export type WriterApiUser = Pick<
 	WriterApiUserProfile,
