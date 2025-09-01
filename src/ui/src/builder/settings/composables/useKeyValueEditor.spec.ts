@@ -136,4 +136,50 @@ describe(useKeyValueEditor.name, () => {
 			});
 		});
 	});
+
+	describe("initial mode", () => {
+		it("should open record in assisted", () => {
+			const { mode } = useKeyValueEditor({
+				foo: "bar",
+			});
+			expect(mode.value).toBe("assisted");
+		});
+
+		it("should open string record in assisted", () => {
+			const { mode } = useKeyValueEditor(
+				JSON.stringify({
+					foo: "bar",
+				}),
+			);
+			expect(mode.value).toBe("assisted");
+		});
+
+		it("should open simple template in freehand", () => {
+			const { mode } = useKeyValueEditor(
+				JSON.stringify({
+					foo: "@{var}",
+				}),
+			);
+			expect(mode.value).toBe("freehand");
+		});
+
+		it("should open full template in freehand", () => {
+			const { mode } = useKeyValueEditor("@{var}");
+			expect(mode.value).toBe("freehand");
+		});
+
+		it("should open malformed JSON in freehand", () => {
+			const { mode } = useKeyValueEditor("{");
+			expect(mode.value).toBe("freehand");
+		});
+
+		it("should open record in freehand", () => {
+			const { mode } = useKeyValueEditor(
+				JSON.stringify({
+					foo: [1, 2],
+				}),
+			);
+			expect(mode.value).toBe("freehand");
+		});
+	});
 });

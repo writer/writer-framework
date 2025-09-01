@@ -21,6 +21,10 @@ function tryToParse(value: string) {
 	}
 }
 
+function isFlatRecordString(obj: object): obj is Record<string, string> {
+	return Object.values(obj).every((v) => typeof v === "string");
+}
+
 export function useKeyValueEditor(originalValue: string | JSONValue) {
 	const getId = useId();
 
@@ -105,11 +109,16 @@ export function useKeyValueEditor(originalValue: string | JSONValue) {
 	}
 
 	function computeInitialMode(objectOrString: string | JSONValue): Mode {
-		return typeof objectOrString === "string" &&
-			(TEMPLATE_REGEX.exec(objectOrString) ||
-				!isValidJSON(objectOrString))
-			? "freehand"
-			: "assisted";
+		if (typeof objectOrString !== "string") {
+			return isFlatRecordString(objectOrString) ? "assisted" : "freehand";
+		}
+
+		if (TEMPLATE_REGEX.exec(objectOrString)) return "freehand";
+		if (!isValidJSON(objectOrString)) return "freehand";
+
+		return isFlatRecordString(tryToParse(objectOrString))
+			? "assisted"
+			: "freehand";
 	}
 
 	function initializeAssistedEntries(objectOrString: string | JSONValue) {
