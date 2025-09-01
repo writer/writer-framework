@@ -17,6 +17,7 @@ class WriterWebSearch(WriterBlock):
                     "name": "Web search",
                     "description": "Search the web for information and return relevant results with source URLs.",
                     "category": "Writer",
+                    "featureFlags": ["web_search_block"],
                     "fields": {
                         "query": {
                             "name": "Query",
