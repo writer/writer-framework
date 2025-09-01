@@ -281,9 +281,11 @@ export class WriterApi {
 	mcpFetchAppConfigurations(
 		orgId: number,
 		mcpProjectId: string,
+		query: { limit?: number; offset?: number } = {},
 	): Promise<ResponsePaginated<WriterMcpAppConfiguration[]>> {
 		return this.#fetchJSON(
 			`/api/mcp-gateway/v1/organization/${orgId}/app-configurations/project/${mcpProjectId}`,
+			{ query },
 		);
 	}
 

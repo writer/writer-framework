@@ -1,7 +1,19 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, PropType, shallowRef, toRef } from "vue";
+import {
+	computed,
+	inject,
+	MaybeRef,
+	onMounted,
+	PropType,
+	readonly,
+	ref,
+	shallowRef,
+	toRef,
+	toValue,
+	watch,
+} from "vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
-import { Component } from "@/writerTypes";
+import { Component, Core } from "@/writerTypes";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useAbortController } from "@/composables/useAbortController";
@@ -13,6 +25,7 @@ import {
 } from "@/writerApi";
 import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 import SharedCollapsible from "@/components/shared/SharedCollapsible.vue";
+import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 
 const props = defineProps({
 	componentId: { type: String as PropType<Component["id"]>, required: true },
@@ -33,56 +46,156 @@ const wf = inject(injectionKeys.core);
 const abort = useAbortController();
 const { writerApi } = useWriterApi({ signal: abort.signal });
 
-function useMcp() {
-	const project = shallowRef<WriterMcpProject | undefined>();
-	const appConfigurations = shallowRef<WriterMcpAppConfiguration[]>([]);
-	const functionsByAppId = shallowRef<Record<string, WriterMcpAppFunction[]>>(
-		{},
+function useAsyncResource<T>(
+	func: () => Promise<T>,
+	defaultData: T | undefined,
+) {
+	const data = shallowRef<T | undefined>(defaultData);
+	const isLoading = ref(false);
+	const error = shallowRef();
+
+	async function load() {
+		isLoading.value = true;
+		error.value = undefined;
+		try {
+			data.value = await func();
+		} catch (e) {
+			error.value = e;
+			data.value = undefined;
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	return { data: readonly(data), isLoading, error, load };
+}
+
+function useMcpProject(wf: Core) {
+	const { data, error, isLoading, load } = useAsyncResource<WriterMcpProject>(
+		async () => {
+			if (!wf.isWriterCloudApp.value || !wf.writerOrgId.value) return;
+			const projects = await writerApi.mcpFetchProjects(
+				wf.writerOrgId.value,
+			);
+			return projects.at(0);
+		},
+		undefined,
 	);
 
+	return { project: data, isLoading, error, load };
+}
+
+function useMcpApps(projectId: MaybeRef<string | undefined>) {
+	const appConfigurations = shallowRef([]);
+	const functionsByAppId = shallowRef<
+		Record<string, { data: WriterMcpAppFunction[]; loading?: boolean }>
+	>({});
+
 	async function loadAppFunction(c: WriterMcpAppConfiguration) {
+		functionsByAppId.value = {
+			...functionsByAppId.value,
+			[c.appId]: { loading: true, data: [] },
+		};
+
 		const functionsRes = await writerApi.mcpFetchAppFunctions(c.appId);
 
 		functionsByAppId.value = {
 			...functionsByAppId.value,
-			[c.appId]: functionsRes,
+			[c.appId]: { loading: false, data: functionsRes },
 		};
 	}
 
-	onMounted(async () => {
-		if (!wf.isWriterCloudApp.value || !wf.writerOrgId.value) return;
-		const projects = await writerApi.mcpFetchProjects(wf.writerOrgId.value);
-		// TODO: create the project ?
-		project.value = projects.at(0);
+	async function load() {
+		const pId = toValue(projectId);
+		if (
+			!wf.isWriterCloudApp.value ||
+			!wf.writerOrgId.value ||
+			pId === undefined
+		)
+			return;
 
-		const configurationRes = await writerApi.mcpFetchAppConfigurations(
-			wf.writerOrgId.value,
-			project.value.id,
-		);
-		appConfigurations.value = configurationRes.result;
+		const allAppConfigurations: WriterMcpAppConfiguration[] = [];
+
+		const limit = 10;
+
+		// eslint-disable-next-line no-constant-condition
+		while (true) {
+			const configurationRes = await writerApi.mcpFetchAppConfigurations(
+				wf.writerOrgId.value,
+				pId,
+				{ limit, offset: allAppConfigurations.length },
+			);
+
+			allAppConfigurations.push(...configurationRes.result);
+
+			if (configurationRes.result.length < limit) break;
+		}
+
+		appConfigurations.value = allAppConfigurations;
 
 		await Promise.allSettled(appConfigurations.value.map(loadAppFunction));
-	});
+	}
 
-	return { project, appConfigurations, functionsByAppId };
+	return { appConfigurations, functionsByAppId, load };
 }
 
 function getActivatedToolCount(conf: WriterMcpAppConfiguration) {
-	const allToolsCount = functionsByAppId.value[conf.appId]?.length ?? 0;
-	const activatedToolsCount = conf.allFunctionsEnabled
-		? allToolsCount
-		: conf.enabledFunctions.length;
-	return `${activatedToolsCount} / ${allToolsCount}`;
+	const allFunctions = functionsByAppId.value[conf.appId]?.data ?? [];
+	const availableFunctions = conf.allFunctionsEnabled
+		? allFunctions
+		: allFunctions.filter((f) => conf.enabledFunctions.includes(f.name));
+
+	const activatedFunctionIds = activatedFunctions.value.map((f) => f.id);
+
+	const activatedFunctionsForThisApp = availableFunctions.filter((c) =>
+		activatedFunctionIds.includes(c.id),
+	);
+
+	return `${activatedFunctionsForThisApp.length} / ${availableFunctions.length}`;
 }
 
-const { appConfigurations, functionsByAppId } = useMcp();
+const {
+	project,
+	load: loadProject,
+	isLoading: isProjectLoading,
+} = useMcpProject(wf);
 
-const model = computed<boolean>({
-	get: () => fieldViewModel.value === "yes",
-	set: (checked) => {
-		fieldViewModel.value = checked ? "yes" : "no";
-	},
+const projectId = computed(() => project.value?.id);
+
+onMounted(loadProject);
+
+const {
+	appConfigurations,
+	functionsByAppId,
+	load: loadProjectApps,
+} = useMcpApps(projectId);
+
+watch(projectId, async () => {
+	await loadProjectApps();
 });
+
+const activatedFunctions = computed<WriterMcpAppFunction[]>(() => {
+	try {
+		const data = JSON.parse(fieldViewModel.value);
+		return Array.isArray(data) ? data : [];
+	} catch {
+		return [];
+	}
+});
+
+function toggleFunctionActivated(funcId: string) {
+	if (activatedFunctions.value.some((f) => f.id === funcId)) {
+		const newValue = activatedFunctions.value.filter(
+			(f) => f.id !== funcId,
+		);
+		fieldViewModel.value = JSON.stringify(newValue);
+	} else {
+		fieldViewModel.value = JSON.stringify([
+			...activatedFunctions.value,
+			funcId,
+		]);
+	}
+}
 </script>
 
 <template>
@@ -94,8 +207,10 @@ const model = computed<boolean>({
 		:data-automation-key="props.fieldKey"
 	>
 		<div class="BuilderFieldsMCPTools__content">
+			<WdsSkeletonLoader v-if="isProjectLoading" />
 			<SharedCollapsible
 				v-for="conf of appConfigurations"
+				v-else
 				:key="conf.id"
 				:icons="{ close: 'chevron-down', open: 'chevron-up' }"
 			>
@@ -122,8 +237,12 @@ const model = computed<boolean>({
 						v-if="functionsByAppId[conf.appId]"
 						class="BuilderFieldsMCPTools__content__functions"
 					>
+						<WdsSkeletonLoader
+							v-if="functionsByAppId[conf.appId].loading"
+						/>
 						<li
-							v-for="func of functionsByAppId[conf.appId]"
+							v-for="func of functionsByAppId[conf.appId].data"
+							v-else
 							:key="func.id"
 						>
 							<WdsCheckbox
@@ -132,6 +251,12 @@ const model = computed<boolean>({
 								:disabled="
 									!conf.allFunctionsEnabled &&
 									!conf.enabledFunctions.includes(func.name)
+								"
+								:model-value="
+									activatedFunctions.includes(func.id)
+								"
+								@update:model-value="
+									toggleFunctionActivated(func.id)
 								"
 							/>
 						</li>
@@ -144,6 +269,7 @@ const model = computed<boolean>({
 
 <style scoped>
 .BuilderFieldsMCPTools__content {
+	padding-top: 8px;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -169,5 +295,8 @@ const model = computed<boolean>({
 .BuilderFieldsMCPTools__content__functions {
 	list-style: none;
 	margin-top: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 </style>

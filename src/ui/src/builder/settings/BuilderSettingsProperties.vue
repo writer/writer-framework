@@ -33,7 +33,7 @@
 				/>
 
 				<BuilderFieldsMCPTools
-					v-if="fieldValue.type === FieldType.McpTools"
+					v-else-if="fieldValue.type === FieldType.McpTools"
 					:field-key="fieldKey"
 					:component-id="selectedComponent.id"
 					:label="fieldValue.name ?? fieldKey"
@@ -270,10 +270,10 @@ import BuilderFieldsHandler from "./BuilderFieldsHandler.vue";
 import BuilderFieldsWriterResourceId from "./BuilderFieldsWriterResourceId.vue";
 import BuilderFieldsComponentId from "./BuilderFieldsComponentId.vue";
 import BuilderFieldsComponentEventType from "./BuilderFieldsComponentEventType.vue";
+import BuilderFieldsMCPTools from "./BuilderFieldsMCPTools.vue";
 import WdsTabs, { type WdsTabOptions } from "@/wds/WdsTabs.vue";
 import { useFieldsErrors } from "@/renderer/useFieldsErrors";
 import { useEvaluator } from "@/renderer/useEvaluator";
-import BuilderFieldsMCPTools from "./BuilderFieldsMCPTools.vue";
 
 defineProps({
 	isReadOnly: { type: Boolean },

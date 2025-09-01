@@ -33,18 +33,11 @@ class WriterMCPCalling(WriterBlock):
                         "tools": {
                             "name": "Tools",
                             "type": "MCP Tools",
-                            "default": "{}",
+                            "default": "[]",
                             "init": "",
-                            "category": "Tools",
                         },
                     },
                     "outs": {
-                        "tools": {
-                            "name": "Tools",
-                            "field": "tools",
-                            "description": "Run associated tools.",
-                            "style": "dynamic",
-                        },
                         "success": {
                             "name": "Success",
                             "description": "If the function doesn't raise an Exception.",
