@@ -174,8 +174,10 @@ class WriterToolCalling(WriterBlock):
         """).strip()
 
     def _project_common_tools_result(self, tool_result):
-        if tool_result.get("request", "") and tool_result.get("body"):
-            return tool_result["body"]
+        # Handle common HTTP-like shapes safely; pass through other types.
+        if isinstance(tool_result, dict):
+            if tool_result.get("request") and "body" in tool_result:
+                return tool_result["body"]
         return tool_result
 
 
