@@ -54,7 +54,13 @@ export function generateCore() {
 	 */
 	const mode: Ref<"run" | "edit"> = ref(null);
 	const writerApplication = ref<
-		{ id: string; organizationId: string; apiKey?: string; baseUrl?: string } | undefined
+		| {
+				id: string;
+				organizationId: string;
+				apiKey?: string;
+				baseUrl?: string;
+		  }
+		| undefined
 	>();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
@@ -84,7 +90,9 @@ export function generateCore() {
 	);
 	const writerAppId = computed(() => writerApplication.value?.id);
 	const writerApiKey = computed(() => writerApplication.value?.apiKey);
-	const writerBaseUrl = computed(() => writerApplication.value?.baseUrl ?? "https://api.writer.com");
+	const writerBaseUrl = computed(
+		() => writerApplication.value?.baseUrl ?? "https://api.writer.com",
+	);
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
 	);
@@ -343,7 +351,18 @@ export function generateCore() {
 
 			// Connection lost due to some other reason. Try to reconnect.
 
-			logger.error("WebSocket closed. Attempting to reconnect...");
+			const WEBSOCKET_CODE_UPDATE_CODE = 4001;
+
+			if (ev.code == WEBSOCKET_CODE_UPDATE_CODE) {
+				logger.info(
+					"WebSocket closed due to code update. Attempting to reconnect...",
+				);
+			} else {
+				logger.error(
+					`WebSocket closed with code ${ev.code}. Attempting to reconnect...`,
+				);
+			}
+
 			setTimeout(async () => {
 				try {
 					await startSync();
@@ -356,9 +375,17 @@ export function generateCore() {
 
 		return new Promise((resolve, reject) => {
 			webSocket.addEventListener("open", () => resolve(), { once: true });
-			webSocket.addEventListener("close", () => {
-				reject(new Error("WebSocket connection closed before establishing."));
-			}, { once: true });
+			webSocket.addEventListener(
+				"close",
+				() => {
+					reject(
+						new Error(
+							"WebSocket connection closed before establishing.",
+						),
+					);
+				},
+				{ once: true },
+			);
 		});
 	}
 
@@ -915,7 +942,7 @@ export function generateCore() {
 		writerOrgId,
 		writerAppId,
 		writerApiKey,
-		writerBaseUrl
+		writerBaseUrl,
 	};
 
 	return core;

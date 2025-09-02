@@ -770,6 +770,7 @@ def get_asgi_app(
         Handles outgoing communications to the client (announcements).
         """
 
+        WEBSOCKET_CODE_UPDATE_CODE = 4001
         session_queue: asyncio.Queue = asyncio.Queue()
         app_runner.announcement_queues[session_id] = session_queue
 
@@ -782,6 +783,7 @@ def get_asgi_app(
                 if websocket.application_state == WebSocketState.CONNECTED:
                     await websocket.send_json(announcement.dict())
                 if announcement_data.get("type") == "codeUpdate":
+                    await websocket.close(WEBSOCKET_CODE_UPDATE_CODE, "Code update.")
                     return
         except WebSocketDisconnect:
             pass
