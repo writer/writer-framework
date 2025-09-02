@@ -7,6 +7,7 @@ from writer.ss_types import AbstractTemplate
 
 DEFAULT_MODEL = "palmyra-x5"
 
+
 class WriterToolCalling(WriterBlock):
     @classmethod
     def register(cls, type: str):
@@ -81,6 +82,9 @@ class WriterToolCalling(WriterBlock):
                 )
 
             transformed_result = self._project_common_tools_result(raw_return_value)
+            if transformed_result is None:
+                # Fallback avoids returning the literal string "None"
+                transformed_result = raw_return_value
             return_value = repr(transformed_result)
 
             trace = self.execution_environment.get("trace")
@@ -180,9 +184,9 @@ class WriterToolCalling(WriterBlock):
                 return tool_result["body"]
         return tool_result
 
-
     def run(self):
         import writer.ai
+
         self.is_complete = False
 
         try:
