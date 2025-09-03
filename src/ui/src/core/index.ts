@@ -335,9 +335,9 @@ export function generateCore() {
 
 		webSocket.onclose = async (ev: CloseEvent) => {
 			webSocket = null;
-			syncHealth.value = "offline";
 
 			if (ev.code == 1008) {
+				syncHealth.value = "offline";
 				// 1008: Policy Violation
 				// Connection established correctly but closed due to invalid session.
 				// Do not attempt to reconnect, the session will remain invalid. Initialise a new session.
@@ -354,10 +354,12 @@ export function generateCore() {
 			const WEBSOCKET_CODE_UPDATE_CODE = 4001;
 
 			if (ev.code == WEBSOCKET_CODE_UPDATE_CODE) {
+				syncHealth.value = "suspended";
 				logger.info(
 					"WebSocket closed due to code update. Attempting to reconnect...",
 				);
 			} else {
+				syncHealth.value = "offline";
 				logger.error(
 					`WebSocket closed with code ${ev.code}. Attempting to reconnect...`,
 				);

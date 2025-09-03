@@ -3,46 +3,15 @@ export type WdsStateDotState = "error" | "deployed" | "newDraft" | "draft";
 </script>
 
 <script setup lang="ts">
-import { PropType, watch, ref } from "vue";
-import WdsModal from "@/wds/WdsModal.vue";
+import { PropType } from "vue";
 
-const props = defineProps({
+defineProps({
 	state: { type: String as PropType<WdsStateDotState>, required: true },
 });
-
-let modalTimer: ReturnType<typeof setTimeout>;
-const isModalShown = ref(false);
-
-watch(
-	() => props.state,
-	(newState) => {
-		if (newState !== "error") {
-			isModalShown.value = false;
-			clearTimeout(modalTimer);
-			return;
-		}
-		modalTimer = setTimeout(() => {
-			isModalShown.value = true;
-		}, 1000);
-	},
-);
 </script>
 
 <template>
-	<div class="WdsStateDotState" :class="`WdsStateDotState--${state}`">
-		<div v-if="state == 'error'" class="WdsStateDotState--cover">
-			<WdsModal
-				v-if="isModalShown"
-				title="We’re trying to reconnect..."
-				size="normal"
-			>
-				<p>
-					Connection was lost due to a network issue or an ongoing
-					update. Please hang tight!
-				</p>
-			</WdsModal>
-		</div>
-	</div>
+	<div class="WdsStateDotState" :class="`WdsStateDotState--${state}`"></div>
 </template>
 
 <style scoped>
@@ -91,14 +60,5 @@ watch(
 }
 .WdsStateDotState--draft::after {
 	background-color: var(--wdsColorWhite);
-}
-
-.WdsStateDotState--cover {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100vh;
-	width: 100vw;
-	background: rgba(255, 255, 255, 0.5);
 }
 </style>
