@@ -64,13 +64,7 @@ export default {
 			allowFileTypes: {
 				name: "Allowed file types",
 				type: FieldType.Text,
-				init: [
-					".pdf",
-					".txt",
-					".doc",
-					"application/msword",
-					"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-				].join(", "),
+				init: [".pdf", ".txt", ".doc", ".docx", "image/*"].join(", "),
 				desc: "Provides hints for browsers to select the correct file types. You can specify extensions and MIME types separated by comma, or leave empty to accept any file.",
 			},
 			allowMultipleFiles: createBooleanField({

@@ -89,15 +89,24 @@
 						fn: () => (isInviteCollaboratorsShown = false),
 					},
 					{
-						desc: 'Copy edit link',
-						fn: () => copyInviteCollaboratorsURL(),
-						icon: 'clipboard',
+						desc: clipboard.copied.value
+							? 'Copied'
+							: 'Copy edit link',
+						fn: copyInviteCollaboratorsURL,
+						icon: clipboard.copied.value ? 'check' : 'clipboard',
+						disabled: clipboard.copied.value,
 					},
 				]"
 				@close="isInviteCollaboratorsShown = false"
 			>
 			</WdsModal>
 		</div>
+		<WdsModal
+			v-if="alertModal"
+			:title="alertModal.title"
+			:description="alertModal.description"
+			size="normal"
+		/>
 	</div>
 </template>
 
@@ -107,7 +116,7 @@ import BuilderSwitcher from "./BuilderSwitcher.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderStateExplorer from "./BuilderStateExplorer.vue";
-import WdsStateDot, { WdsStateDotState } from "@/wds/WdsStateDot.vue";
+import WdsStateDot from "@/wds/WdsStateDot.vue";
 import { useWriterAppDeployment } from "./useWriterAppDeployment";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
@@ -115,6 +124,8 @@ import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import BuilderHeaderConnected from "./BuilderHeaderConnected.vue";
 import BuilderHeaderMoreDropdown from "./BuilderHeaderMoreDropdown.vue";
+import { useClipboard } from "@vueuse/core";
+import { useSyncHealth } from "./useSyncHealth";
 
 const wf = inject(injectionKeys.core);
 
@@ -123,6 +134,8 @@ const isInviteCollaboratorsShown = ref(false);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
+const clipboard = useClipboard();
+const { alertModal, stateDotState, syncHealthStatus } = useSyncHealth(wf);
 
 const {
 	canDeploy,
@@ -175,41 +188,6 @@ const deployLabel = computed(() => {
 	return "Configure deployment";
 });
 
-const syncHealthStatus = computed(() => {
-	let s = "";
-	switch (wf.syncHealth.value) {
-		case "offline":
-			s += "Offline. Not syncing.";
-			break;
-		case "connected":
-			s += "Online. Syncing...";
-			break;
-		case "idle":
-			s += "Sync not initialised.";
-			break;
-		case "suspended":
-			s += "Sync suspended.";
-			break;
-	}
-
-	if (wf.featureFlags.value.length > 0) {
-		s += ` Feature flags: ${wf.featureFlags.value.join(", ")}`;
-	}
-
-	return s;
-});
-
-const stateDotState = computed<WdsStateDotState>(() => {
-	switch (wf.syncHealth.value) {
-		case "offline":
-		case "suspended":
-		case "idle":
-			return "error";
-		default:
-			return "deployed";
-	}
-});
-
 function showStateExplorer() {
 	tracking.track("nav_state_explorer_opened");
 	isStateExplorerShown.value = true;
@@ -220,24 +198,8 @@ function showInviteCollaborators() {
 }
 
 async function copyInviteCollaboratorsURL() {
-	const url = location.href;
 	try {
-		if (navigator.clipboard?.writeText) {
-			await navigator.clipboard.writeText(url);
-		} else {
-			const tmp = document.createElement("textarea");
-			tmp.value = url;
-			tmp.style.position = "fixed";
-			tmp.style.opacity = "0";
-			document.body.appendChild(tmp);
-			tmp.select();
-			document.execCommand("copy");
-			document.body.removeChild(tmp);
-		}
-		toasts.pushToast({
-			type: "success",
-			message: "Edit link copied to clipboard.",
-		});
+		await clipboard.copy(location.href);
 	} catch {
 		toasts.pushToast({ type: "error", message: "Could not copy link." });
 	}
@@ -245,8 +207,6 @@ async function copyInviteCollaboratorsURL() {
 </script>
 
 <style scoped>
-@import "./sharedStyles.css";
-
 .BuilderHeader {
 	background: var(--wdsColorBlack);
 	color: var(--builderBackgroundColor);
@@ -315,32 +275,6 @@ async function copyInviteCollaboratorsURL() {
 
 .BuilderHeader img {
 	width: 32px;
-}
-
-.panelToggler,
-.panelToggler:hover {
-	font-size: 12px;
-	--buttonColor: black;
-	--builderSeparatorColor: var(--wdsColorGray6);
-	--buttonTextColor: white;
-}
-
-.panelToggler:focus {
-	outline: 1px solid #606060;
-	background: var(--buttonColor);
-}
-
-.panelToggler.active,
-.panelToggler.active:focus {
-	--buttonColor: white;
-	--buttonTextColor: black;
-	--builderSeparatorColor: unset;
-	background: var(--buttonColor);
-	color: var(--buttonTextColor);
-}
-
-.panelToggler .indicator {
-	margin-right: -12px;
 }
 
 button {

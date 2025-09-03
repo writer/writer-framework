@@ -1,12 +1,15 @@
 <template>
 	<div class="WdsToast" :class="`WdsToast--${type}`">
 		<div class="WdsToast__icon">
-			<WdsIcon :name="icon" />
+			<WdsLoaderDots v-if="type === 'loading'" :size="18" />
+			<template v-else-if="type === 'info'">i</template>
+			<WdsIcon v-else :name="icon" />
 		</div>
 		<p>{{ message }}</p>
 		<button v-if="action" class="WdsToast__action" @click="action.func">
 			{{ action.label }}
-			<WdsIcon :name="action.icon" />
+			<template v-if="type === 'info'">i</template>
+			<WdsIcon v-else :name="action.icon" />
 		</button>
 		<WdsButton
 			v-if="closable"
@@ -25,6 +28,7 @@ import { computed, PropType } from "vue";
 import WdsButton from "./WdsButton.vue";
 import WdsIcon from "./WdsIcon.vue";
 import type { Toast, ToastAction } from "@/builder/useToast";
+import WdsLoaderDots from "./WdsLoaderDots.vue";
 
 const props = defineProps({
 	type: { type: String as PropType<Toast["type"]>, required: true },
@@ -57,10 +61,12 @@ const icon = computed(() => {
 
 <style scoped>
 .WdsToast {
-	height: 48px;
+	min-height: 48px;
 	padding: 10px 12px;
+	width: 300px;
 
-	display: flex;
+	display: grid;
+	grid-template-columns: 18px 1fr;
 	align-items: center;
 	gap: 12px;
 
@@ -80,7 +86,7 @@ const icon = computed(() => {
 	align-items: center;
 	justify-content: center;
 
-	background-color: var(--wdsColorGreen3);
+	background-color: var(--wdsColorBlue2);
 }
 
 .WdsToast__action {
