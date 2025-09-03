@@ -1,9 +1,15 @@
+export function isPlainObject(
+	input: unknown,
+): input is Record<string, unknown> {
+	return typeof input === "object" && input !== null && !Array.isArray(input);
+}
+
 export function* extractObjectPaths(
 	obj: unknown,
 	prefix = "",
 	visited = new WeakSet(),
 ): Generator<string> {
-	if (typeof obj !== "object" || obj === null) return;
+	if (!isPlainObject(obj)) return;
 	if (visited.has(obj)) return;
 	visited.add(obj);
 

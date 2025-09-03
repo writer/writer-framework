@@ -6,6 +6,7 @@
 				:open="isRootOpen"
 				:data="data"
 				@toggle="$emit('toggle', { path: [], open: $event })"
+				@copy="onCopyToClipboard($event, data)"
 			>
 				<SharedJsonViewerObject
 					:data="data"
@@ -20,6 +21,7 @@
 				:path="path"
 				:initial-depth="initialDepth"
 				@toggle="$emit('toggle', $event)"
+				@copy="onCopyToClipboard($event, data)"
 			/>
 		</template>
 		<SharedJsonViewerValue v-else-if="isJSONValue(data)" :data="data" />
@@ -50,6 +52,8 @@ export type JsonViewerTogglePayload = { path: JsonPath; open: boolean };
  * This component will detect the shape of the JSON and redirect the right dedicated component.
  */
 import { PropType, computed } from "vue";
+import { useClipboard } from "@vueuse/core";
+import { isPlainObject } from "@/utils/object";
 import {
 	isJSONArray,
 	isJSONObject,
@@ -62,6 +66,7 @@ import SharedJsonViewerValue from "./SharedJsonViewerValue.vue";
 import SharedJsonViewerChildrenCounter from "./SharedJsonViewerChildrenCounter.vue";
 import SharedControlBar from "../SharedControlBar.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { selectionToJson } from "./selectionToJson";
 
 const SharedCopyClipboardButton = defineAsyncComponentWithLoader({
 	loader: () => import("@/components/shared/SharedCopyClipboardButton.vue"),
@@ -99,8 +104,49 @@ const isRoot = computed(() => props.path.length === 0 && !props.hideRoot);
 const isRootOpen = computed(
 	() => props.initialDepth === -1 || props.initialDepth > 0,
 );
-const dataAsString = computed(() => {
-	if (props.data === undefined) return JSON.stringify(null);
-	return JSON.stringify(props.data);
-});
+
+function prettyJson(input: unknown) {
+	if (input === undefined) {
+		return JSON.stringify(null);
+	}
+
+	try {
+		return JSON.stringify(input, null, 2);
+	} catch {
+		return JSON.stringify(null);
+	}
+}
+
+const dataAsString = computed(() => prettyJson(props.data));
+
+const { copy } = useClipboard();
+
+function isEmptySubset(subset: Record<string, unknown> | unknown[]): boolean {
+	if (Array.isArray(subset)) return subset.length === 0;
+	if (isPlainObject(subset)) return Object.keys(subset).length === 0;
+	return false;
+}
+
+function onCopyToClipboard(
+	event: ClipboardEvent,
+	arrayOrObject: Record<string, JsonData> | JsonData[],
+) {
+	event.stopPropagation();
+
+	const selectionText = (window.getSelection()?.toString() ?? "").trim();
+
+	if (!selectionText) {
+		return; // no selection → do nothing
+	}
+
+	const subset = selectionToJson(arrayOrObject, selectionText);
+
+	if (isEmptySubset(subset)) {
+		return; // nothing meaningful recognized → allow native copy of raw text
+	}
+
+	event.preventDefault();
+
+	copy(prettyJson(subset)); // copy subset
+}
 </script>
