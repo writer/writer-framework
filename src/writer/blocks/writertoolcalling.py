@@ -192,7 +192,7 @@ class WriterToolCalling(WriterBlock):
         try:
             prompt = self._get_field("prompt")
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
-            max_iterations = int(self._get_field("maxIterations", False, "10"))
+            max_iterations = max(1, int(self._get_field("maxIterations", False, "10")))
             conversation = writer.ai.Conversation()
             tools = self._get_tools()
 
