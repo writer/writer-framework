@@ -92,7 +92,7 @@ class WriterAskGraphQuestion(WriterBlock):
                 raise ValueError(
                     "A state element must be provided when using streaming.")
             subqueries = self._get_field(
-                "subqueries", default_field_value="no") == "yes"
+                "subqueries", default_field_value="yes") == "yes"
 
             answer_so_far = ""
 
