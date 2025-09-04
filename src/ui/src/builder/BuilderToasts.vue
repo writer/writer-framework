@@ -9,7 +9,9 @@
 				:message="toast.message"
 				:type="toast.type"
 				:action="toast.action"
-				@click="removeToast(toast.id)"
+				@click="
+					toast.closable !== false ? removeToast(toast.id) : undefined
+				"
 			/>
 		</TransitionGroup>
 	</div>

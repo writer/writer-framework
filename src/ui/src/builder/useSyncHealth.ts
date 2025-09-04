@@ -1,58 +1,53 @@
 import type { WdsStateDotState } from "@/wds/WdsStateDot.vue";
 import type { Core } from "@/writerTypes";
-import { computed, shallowRef, watch } from "vue";
-import { useToasts } from "./useToast";
-
-type AlertModal = { title: string; description: string };
+import { computed, watch } from "vue";
+import { Toast, useToasts } from "./useToast";
 
 export function useSyncHealth(wf: Core) {
-	const alertModal = shallowRef<AlertModal | undefined>();
-	const toast = useToasts();
+	const toastManager = useToasts();
 
-	let restartingToast: number | undefined = undefined;
+	let activeToastId: Toast["id"] | undefined = undefined;
 
-	let syncHealthTimer: ReturnType<typeof setTimeout>;
-
-	function displayAlertModal(ms: number) {
-		if (syncHealthTimer) clearTimeout(syncHealthTimer);
-
-		syncHealthTimer = setTimeout(() => {
-			alertModal.value = {
-				title: "We’re trying to reconnect...",
-				description:
-					"Connection was lost due to a network issue or an ongoing update. Please hang tight!",
-			};
-		}, ms);
+	function displayToast(toast: Omit<Toast, "id">) {
+		if (activeToastId) {
+			toastManager.pushToast({ id: activeToastId, ...toast });
+		} else {
+			activeToastId = toastManager.pushToast(toast);
+		}
 	}
 
-	function closeAlertModal() {
-		if (alertModal.value) alertModal.value = undefined;
-		if (syncHealthTimer) clearTimeout(syncHealthTimer);
-	}
-
-	watch(wf.syncHealth, (syncHealth, prevSyncHealth) => {
-		if (syncHealth === "offline") {
-			return displayAlertModal(1_000);
-		}
-		closeAlertModal();
-
-		if (prevSyncHealth === "connected" && syncHealth === "suspended") {
-			displayAlertModal(10_000);
-			restartingToast = toast.pushToast({
-				message: "Restarting the server...",
-				type: "loading",
-				closable: false,
-				delayMs: Infinity,
-			});
-		}
-
-		if (syncHealth === "connected" && restartingToast !== undefined) {
-			toast.updateToast({
-				id: restartingToast,
-				message: "Server restarted successfully",
-				type: "info",
-			});
-			restartingToast = undefined;
+	watch(wf.syncHealth, (syncHealth, previousSyncHealth) => {
+		switch (syncHealth) {
+			case "idle":
+				return displayToast({
+					type: "loading",
+					message: "Connecting to the server",
+					closable: false,
+					delayMs: Infinity,
+				});
+			case "connected":
+				return displayToast({
+					message:
+						previousSyncHealth === "suspended"
+							? "The server has restarded"
+							: "The connection to the server has been restored.",
+					type: "success",
+				});
+			case "offline":
+				return displayToast({
+					type: "loading",
+					message:
+						"Connection was lost due to a network issue or an ongoing update. Please hang tight!",
+					closable: false,
+					delayMs: Infinity,
+				});
+			case "suspended":
+				return displayToast({
+					message: "Restarting the server...",
+					type: "loading",
+					closable: false,
+					delayMs: Infinity,
+				});
 		}
 	});
 
@@ -91,5 +86,5 @@ export function useSyncHealth(wf: Core) {
 		}
 	});
 
-	return { alertModal, syncHealthStatus, stateDotState };
+	return { syncHealthStatus, stateDotState };
 }

@@ -101,12 +101,6 @@
 			>
 			</WdsModal>
 		</div>
-		<WdsModal
-			v-if="alertModal"
-			:title="alertModal.title"
-			:description="alertModal.description"
-			size="normal"
-		/>
 	</div>
 </template>
 
@@ -135,7 +129,7 @@ const isInviteCollaboratorsShown = ref(false);
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
 const clipboard = useClipboard();
-const { alertModal, stateDotState, syncHealthStatus } = useSyncHealth(wf);
+const { stateDotState, syncHealthStatus } = useSyncHealth(wf);
 
 const {
 	canDeploy,
