@@ -46,7 +46,6 @@ export function useFileTypeAccept({
 	}
 
 	return {
-		normalizedAcceptedFileTypes,
 		acceptAttr,
 		checkIsFileAccepted,
 	};

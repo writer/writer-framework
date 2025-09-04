@@ -29,7 +29,7 @@ export function useSyncHealth(wf: Core) {
 				return displayToast({
 					message:
 						previousSyncHealth === "suspended"
-							? "The server has restarded"
+							? "The server has restarted"
 							: "The connection to the server has been restored.",
 					type: "success",
 				});

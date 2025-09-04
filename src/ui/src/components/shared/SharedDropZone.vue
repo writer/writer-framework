@@ -40,17 +40,6 @@
 				</template>
 			</span>
 		</div>
-		<p class="SharedDropZone__restrictions">
-			<template v-if="restrictions">{{ restrictions }}</template>
-			<template v-else>
-				<span>
-					{{ formattedAcceptedFileTypes }}
-				</span>
-				<span v-if="formattedTotalSizeLimit">
-					Total files size limit is {{ formattedTotalSizeLimit }}.
-				</span>
-			</template>
-		</p>
 	</label>
 </template>
 
@@ -89,10 +78,9 @@ const emit = defineEmits({
 
 const inputId = useId();
 
-const { acceptAttr, checkIsFileAccepted, normalizedAcceptedFileTypes } =
-	useFileTypeAccept({
-		acceptedFileTypes: toRef(props, "acceptedFileTypes"),
-	});
+const { acceptAttr, checkIsFileAccepted } = useFileTypeAccept({
+	acceptedFileTypes: toRef(props, "acceptedFileTypes"),
+});
 
 function emitAcceptedFiles(files: File[]) {
 	const acceptedFiles = files.filter((file) => checkIsFileAccepted(file));
@@ -104,22 +92,6 @@ function emitAcceptedFiles(files: File[]) {
 		);
 	}
 }
-
-const formattedAcceptedFileTypes = computed<string>(() => {
-	if (normalizedAcceptedFileTypes.value.length > 0) {
-		return `${normalizedAcceptedFileTypes.value.join(", ")} accepted.`;
-	}
-
-	return "All file types accepted.";
-});
-
-const formattedTotalSizeLimit = computed<string>(() => {
-	if (typeof props.totalSizeLimit === "number" && props.totalSizeLimit > 0) {
-		return prettyBytes(props.totalSizeLimit);
-	}
-
-	return "";
-});
 
 const dropZoneElement = useTemplateRef("dropZoneElement");
 const { isOverDropZone } = useDropZone(dropZoneElement, {
@@ -160,14 +132,6 @@ function onSelectFiles(event: Event): void {
 	border-color: var(--wdsColorBlue3);
 	border-radius: 12px;
 	width: 100%;
-}
-
-.SharedDropZone__restrictions {
-	font-size: 12px;
-	font-weight: 500;
-	line-height: 180%;
-	text-align: center;
-	color: var(--wdsColorGray4);
 }
 
 .SharedDropZone__labelWrapper {
