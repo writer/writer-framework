@@ -1,7 +1,7 @@
 <template>
 	<div class="WdsToast" :class="`WdsToast--${type}`">
 		<div class="WdsToast__icon">
-			<WdsLoaderDots v-if="type === 'loading'" :size="18" />
+			<WdsLoaderDots v-if="type === 'loading'" :size="18" color="white" />
 			<template v-else-if="type === 'info'">i</template>
 			<WdsIcon v-else :name="icon" />
 		</div>
@@ -85,8 +85,6 @@ const icon = computed(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-
-	background-color: var(--wdsColorBlue2);
 }
 
 .WdsToast__action {

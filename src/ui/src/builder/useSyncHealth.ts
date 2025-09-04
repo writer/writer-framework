@@ -46,19 +46,13 @@ export function useSyncHealth(wf: Core) {
 			});
 		}
 
-		if (prevSyncHealth === "suspended" && syncHealth === "connected") {
-			if (restartingToast) {
-				toast.updateToast({
-					id: restartingToast,
-					message: "Server restarted successfully",
-					type: "info",
-				});
-			} else {
-				toast.pushToast({
-					message: "Server restarted successfully",
-					type: "info",
-				});
-			}
+		if (syncHealth === "connected" && restartingToast !== undefined) {
+			toast.updateToast({
+				id: restartingToast,
+				message: "Server restarted successfully",
+				type: "info",
+			});
+			restartingToast = undefined;
 		}
 	});
 
