@@ -14,34 +14,54 @@ export type Toast = {
 const toasts = shallowRef<Toast[]>([]);
 
 export function useToasts() {
+	const scheduleClosingTimers: Record<
+		Toast["id"],
+		ReturnType<typeof setTimeout>
+	> = {};
+
 	function removeToast(id: number) {
-		toasts.value = toasts.value.filter((t) => t.id !== id);
+		const toastIndex = toasts.value.findIndex((t) => t.id === id);
+		if (toastIndex === -1) return;
+		toasts.value = toasts.value.filter((_, i) => toastIndex !== i);
 	}
 
-	function pscheduleClosing(toast: Toast) {
+	function scheduleClosing(toast: Toast) {
+		if (scheduleClosingTimers[toast.id]) {
+			clearTimeout(scheduleClosingTimers[toast.id]);
+			delete scheduleClosingTimers[toast.id];
+		}
+
 		if (!toast.closable && toast.delayMs !== Infinity) {
-			setTimeout(() => removeToast(toast.id), toast.delayMs ?? 3_000);
+			scheduleClosingTimers[toast.id] = setTimeout(
+				() => removeToast(toast.id),
+				toast.delayMs ?? 3_000,
+			);
 		}
 	}
 
-	function pushToast(toastData: Omit<Toast, "id">) {
-		const id = new Date().getTime();
+	function pushToast(toastData: Omit<Toast, "id"> | Toast) {
+		if (
+			"id" in toastData &&
+			toasts.value.some((t) => t.id === toastData.id)
+		) {
+			toasts.value = toasts.value.map((t) =>
+				t.id === toastData.id ? toastData : t,
+			);
+			scheduleClosing(toastData);
+			return toastData.id;
+		}
+
+		const id = "id" in toastData ? toastData.id : new Date().getTime();
 		const toast: Toast = { ...toastData, id };
 		toasts.value = [...toasts.value, toast];
-		pscheduleClosing(toast);
+		scheduleClosing(toast);
 
 		return id;
-	}
-
-	function updateToast(toast: Toast) {
-		toasts.value = toasts.value.map((t) => (t.id === toast.id ? toast : t));
-		pscheduleClosing(toast);
 	}
 
 	return {
 		pushToast,
 		removeToast,
-		updateToast,
 		toasts: readonly(toasts),
 	};
 }
