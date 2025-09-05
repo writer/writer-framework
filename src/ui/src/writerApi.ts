@@ -1,3 +1,5 @@
+type RequestInit = Parameters<typeof fetch>[1];
+
 export class WriterApi {
 	#signal: AbortSignal | undefined;
 	#baseUrl: string;
@@ -16,18 +18,43 @@ export class WriterApi {
 		};
 	}
 
-	async fetchApplicationDeployment(
+	async #fetchJSON(
+		path: string,
+		params?: RequestInit & {
+			query?: Record<string, string | number | boolean>;
+		},
+	) {
+		const query = new URLSearchParams(
+			Object.entries(params?.query ?? {}).map(([k, v]) => [k, String(v)]),
+		);
+
+		const url = new URL(
+			query.size > 0 ? `${path}?${query}` : path,
+			this.#baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: params?.method ?? "GET",
+			headers: {
+				...this.#requestInitBase.headers,
+				accept: "application/json",
+				"content-type": "application/json",
+				...(params?.headers ?? {}),
+			},
+			body: params?.body,
+		});
+		if (!res.ok) throw Error(`Error fetching ${url}\n${await res.text()}`);
+		return res.json();
+	}
+
+	fetchApplicationDeployment(
 		orgId: number,
 		appId: string,
 	): Promise<WriterApiApplicationDeployment> {
-		const url = new URL(
+		return this.#fetchJSON(
 			`/api/template/organization/${orgId}/application/${appId}/deployment`,
-			this.#baseUrl,
 		);
-		const res = await fetch(url, this.#requestInitBase);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
 	async fetchOrganizationUsers(
@@ -39,25 +66,12 @@ export class WriterApi {
 			limit?: number;
 		} = {},
 	): Promise<WriterApiOrganizationUsers> {
-		const url = new URL(
-			`/api/user/v2/organization/${orgId}`,
-			this.#baseUrl,
-		);
-		const params = new URLSearchParams();
-		for (const [key, value] of Object.entries(filters)) {
-			params.append(key, String(value));
-		}
-
-		const res = await fetch(
-			`${url}?${params.toString()}`,
-			this.#requestInitBase,
-		);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+		return this.#fetchJSON(`/api/user/v2/organization/${orgId}`, {
+			query: filters,
+		});
 	}
 
-	async publishApplication(
+	publishApplication(
 		orgId: number,
 		appId: string,
 		body: {
@@ -65,22 +79,16 @@ export class WriterApi {
 			applicationVersionDataId: string;
 		},
 	): Promise<WriterApiDeployResult> {
-		const url = new URL(
+		return this.#fetchJSON(
 			`/api/template/organization/${orgId}/application/${appId}/publish`,
-			this.#baseUrl,
+			{
+				method: "PUT",
+				body: JSON.stringify(body),
+			},
 		);
-
-		const res = await fetch(url, {
-			...this.#requestInitBase,
-			method: "PUT",
-			body: JSON.stringify(body),
-		});
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
-	async updateApplicationMetadata(
+	updateApplicationMetadata(
 		orgId: number,
 		appId: string,
 		body: Partial<
@@ -95,35 +103,21 @@ export class WriterApi {
 			>
 		>,
 	): Promise<WriterApiApplicationMetadata> {
-		const url = new URL(
+		return this.#fetchJSON(
 			`/api/template/organization/${orgId}/application/${appId}/metadata`,
-			this.#baseUrl,
+			{
+				method: "PUT",
+				body: JSON.stringify(body),
+			},
 		);
-
-		const res = await fetch(url, {
-			...this.#requestInitBase,
-			method: "PUT",
-			body: JSON.stringify(body),
-		});
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
-	async fetchUserProfile(): Promise<WriterApiUserProfile> {
-		const url = new URL(`/api/user/v2/profile`, this.#baseUrl);
-		const res = await fetch(url, this.#requestInitBase);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+	fetchUserProfile(): Promise<WriterApiUserProfile> {
+		return this.#fetchJSON(`/api/user/v2/profile`);
 	}
 
-	async fetchUserById(userId: number): Promise<WriterApiUser> {
-		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
-		const res = await fetch(url, this.#requestInitBase);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+	fetchUserById(userId: number): Promise<WriterApiUser> {
+		return this.#fetchJSON(`/api/user/v2/user/${userId}`);
 	}
 
 	async analyticsIdentify() {
@@ -156,44 +150,33 @@ export class WriterApi {
 	) {
 		const url = new URL(`/api/analytics/page`, this.#baseUrl);
 		const res = await fetch(url, {
+			...this.#requestInitBase,
 			method: "POST",
 			body: JSON.stringify({
 				name,
 				organizationId,
 				properties,
 			}),
-			signal: this.#signal,
-			credentials: "include",
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
 
-	async fetchThirdUserProfile(
-		userId: number,
-	): Promise<WriterApiThirdUserProfile> {
-		const url = new URL(`/api/user/v2/user/${userId}`, this.#baseUrl);
-		const res = await fetch(url, this.#requestInitBase);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+	fetchThirdUserProfile(userId: number): Promise<WriterApiThirdUserProfile> {
+		return this.#fetchJSON(`/api/user/v2/user/${userId}`);
 	}
 
 	// secrets
 
-	async createSecret(
+	createSecret(
 		orgId: number,
 		appId: string,
 		key: string,
 		data: unknown,
 	): Promise<WriterApiSecretResponse> {
-		const res = await fetch(this.#getSecretUrl(orgId, appId), {
-			...this.#requestInitBase,
+		return this.#fetchJSON(this.#getSecretUrl(orgId, appId), {
 			method: "POST",
 			body: JSON.stringify({ key, secret: data }),
 		});
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
 	async fetchSecret(
@@ -201,23 +184,13 @@ export class WriterApi {
 		appId: string,
 		key: string,
 	): Promise<WriterApiSecretResponse> {
-		const res = await fetch(
-			this.#getSecretUrl(orgId, appId, key),
-			this.#requestInitBase,
-		);
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
+		return this.#fetchJSON(this.#getSecretUrl(orgId, appId, key));
 	}
 
-	async deleteSecret(orgId: number, appId: string, key: string) {
-		const res = await fetch(this.#getSecretUrl(orgId, appId, key), {
-			...this.#requestInitBase,
+	deleteSecret(orgId: number, appId: string, key: string) {
+		return this.#fetchJSON(this.#getSecretUrl(orgId, appId, key), {
 			method: "DELETE",
 		});
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
 	async updateSecret(
@@ -226,22 +199,14 @@ export class WriterApi {
 		key: string,
 		data: unknown,
 	): Promise<WriterApiSecretResponse> {
-		const res = await fetch(this.#getSecretUrl(orgId, appId, key), {
-			...this.#requestInitBase,
+		return this.#fetchJSON(this.#getSecretUrl(orgId, appId, key), {
 			method: "PUT",
 			body: JSON.stringify({ key, secret: data }),
 		});
-		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 
 	#getSecretUrl(orgId: number, appId: string, key?: string) {
-		const url = new URL(
-			`/api/template/organization/${orgId}/agent/${appId}/secret`,
-			this.#baseUrl,
-		);
-
+		const url = `/api/template/organization/${orgId}/agent/${appId}/secret`;
 		return key ? `${url}/${key}` : url;
 	}
 }
