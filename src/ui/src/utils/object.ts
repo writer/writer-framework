@@ -26,3 +26,31 @@ export function* extractObjectPaths(
 		}
 	}
 }
+
+export function isPlainObjectDeepEqual(a: unknown, b: unknown): boolean {
+	if (a === b) return true;
+
+	if (a === null || b === null || !isPlainObject(a) || !isPlainObject(b)) {
+		return false;
+	}
+
+	const keysA = Object.keys(a);
+	const keysB = Object.keys(b);
+
+	// Different number of keys
+	if (keysA.length !== keysB.length) {
+		return false;
+	}
+
+	// Compare each key and value
+	for (const key of keysA) {
+		if (!keysB.includes(key)) {
+			return false;
+		}
+		if (!isPlainObjectDeepEqual(a[key], b[key])) {
+			return false;
+		}
+	}
+
+	return true;
+}
