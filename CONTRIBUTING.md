@@ -25,7 +25,13 @@ Pull requests should be done on the `dev` branch. When the release is finalised,
 
 Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Writer Framework, these are the suggested steps for setting up a development environment.
 
+- Writer Framework uses [Poetry](https://python-poetry.org/) for dependency management. Please see the [Poetry installation docs](https://python-poetry.org/docs/#installation) if you don't already have it installed.
 - You can install the package in editable mode using `poetry install  --with build`
-- Enable the virtual environment with `poetry shell`
+- Enable the virtual environment:
+  - Bash/Zsh/Csh: `eval "$(poetry env activate)"`
+  - Fish: `eval (poetry env activate)`
+  - PowerShell: `Invoke-Expression (poetry env activate)`
+ 
+  (see [Poetry docs](https://python-poetry.org/docs/managing-environments/) for more info)
 - Install all the dev dependencies with `alfred install.dev`
 - Run Writer Framework on port 5000. For example, `writer edit apps/hello --port 5000`.
