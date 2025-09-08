@@ -28,7 +28,7 @@ Whether you're interested in contributing to the repository, creating a fork, or
 - Writer Framework uses [Poetry](https://python-poetry.org/) for dependency management. Please see the [Poetry installation docs](https://python-poetry.org/docs/#installation) if you don't already have it installed.
 - You can install the package in editable mode using `poetry install  --with build`
 - Enable the virtual environment:
-	- Bash/Zsh/Csh: `eval $(poetry env activate)`
+  - Bash/Zsh/Csh: `eval "$(poetry env activate)"`
   - Fish: `eval (poetry env activate)`
   - PowerShell: `Invoke-Expression (poetry env activate)`
  
