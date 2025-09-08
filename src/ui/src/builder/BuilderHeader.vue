@@ -44,14 +44,16 @@
 			<WdsButton
 				v-if="canDeploy"
 				size="small"
-				class="BuilderHeader__toolbar__deployBtn"
 				:loading="isDeploying"
 				:data-writer-tooltip="deployTooltip"
 				data-writer-tooltip-placement="bottom"
 				data-automation-key="deploy"
 				@click="requestDeployment"
 			>
-				{{ deployLabel }}
+				<span class="BuilderHeader__toolbar__deployBtn">{{
+					deployLabel
+				}}</span>
+
 				<WdsModal
 					v-if="confirmDeployModalOpen"
 					title="Are you sure you want to deploy these changes?"
