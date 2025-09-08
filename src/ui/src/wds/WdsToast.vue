@@ -66,7 +66,7 @@ const icon = computed(() => {
 	width: 300px;
 
 	display: grid;
-	grid-template-columns: 18px 1fr;
+	grid-template-columns: 18px 1fr auto;
 	align-items: center;
 	gap: 12px;
 
