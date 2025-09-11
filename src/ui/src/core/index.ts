@@ -82,6 +82,8 @@ export function generateCore() {
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
+	
+	let pendingComponentUpdate = false;
 
 	const activePageId = ref<Component["id"] | undefined>();
 
@@ -252,6 +254,14 @@ export function generateCore() {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
+			
+			if (pendingComponentUpdate) {
+				pendingComponentUpdate = false;
+				sendComponentUpdate().catch((error) => {
+					logger.error("Failed to retry component update after reconnect:", error);
+					pendingComponentUpdate = true;
+				});
+			}
 		};
 
 		function processMessage(message) {
@@ -779,7 +789,10 @@ export function generateCore() {
 				ok: boolean;
 				payload?: Record<string, any>;
 			}) => {
-				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (!r.ok) {
+					pendingComponentUpdate = true;
+					return reject("Couldn't connect to the server.");
+				}
 				resolve();
 			};
 			sendFrontendMessage("componentUpdate", payload, messageCallback);
