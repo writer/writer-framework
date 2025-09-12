@@ -744,7 +744,7 @@ export function generateCore() {
 				trackingId,
 				payload: awaitedPayload,
 			};
-			if (webSocket.readyState !== webSocket.OPEN) {
+			if (webSocket.readyState !== WebSocket.OPEN) {
 				throw "Connection lost.";
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
