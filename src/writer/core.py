@@ -803,7 +803,7 @@ class State(metaclass=StateMeta):
         If there is a StateProxy, it is a fault in the code.
         """
         annotations = get_annotations(self)
-        expected_type = annotations.get(key, None)
+        expected_type = cast(Type, annotations.get(key, None))
         expect_dict = _type_match_dict(expected_type)
         if isinstance(value, dict) and not expect_dict:
             """
@@ -1224,34 +1224,58 @@ class EventHandlerRegistry:
 
     # === BLUEPRINT HANLDERS ===
     @staticmethod
-    def stop_blueprint_run(payload: dict, blueprint_runner: 'BlueprintRunner'):
+    def stop_blueprint_run(payload: dict, blueprint_runner: "BlueprintRunner"):
         run_id = payload.pop("run_id", None)
         if not run_id:
             raise ValueError("Missing run_id in payload")
         return blueprint_runner.cancel_blueprint_execution(run_id=run_id)
 
     @staticmethod
-    def run_blueprint_by_id(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
+    def run_blueprint_by_id(
+        payload: dict,
+        context: dict,
+        session: dict,
+        blueprint_runner: "BlueprintRunner",
+        vault: Dict,
+    ):
         blueprint_id = payload.pop("blueprint_id", None)
         if not blueprint_id:
             raise ValueError("Missing blueprint_id in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_blueprint(component_id=blueprint_id, execution_environment=execution_environment, title="Blueprint execution triggered on demand")
+        return blueprint_runner.run_blueprint(
+            component_id=blueprint_id,
+            execution_environment=execution_environment,
+            title="Blueprint execution triggered on demand",
+        )
 
     @staticmethod
-    def run_blueprint_by_key(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
+    def run_blueprint_by_key(
+        payload: dict,
+        context: dict,
+        session: dict,
+        blueprint_runner: "BlueprintRunner",
+        vault: Dict,
+    ):
         blueprint_key = payload.pop("blueprint_key", None)
         if not blueprint_key:
             raise ValueError("Missing blueprint_key in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_blueprint_by_key(blueprint_key=blueprint_key, execution_environment=execution_environment)
+        return blueprint_runner.run_blueprint_by_key(
+            blueprint_key=blueprint_key, execution_environment=execution_environment
+        )
 
     @staticmethod
-    def run_blueprint_via_api(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
+    def run_blueprint_via_api(
+        payload: dict,
+        context: dict,
+        session: dict,
+        blueprint_runner: "BlueprintRunner",
+        vault: Dict,
+    ):
         """
         This handler is used to run a blueprint via the API.
         It is used by the frontend to run a blueprint when the user clicks on a button.
@@ -1262,56 +1286,66 @@ class EventHandlerRegistry:
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_blueprint_via_api(blueprint_id=blueprint_id, execution_environment=execution_environment)
+        return blueprint_runner.run_blueprint_via_api(
+            blueprint_id=blueprint_id, execution_environment=execution_environment
+        )
 
     @staticmethod
-    def run_blueprint_branch(payload: dict, context: dict, session: dict, blueprint_runner: 'BlueprintRunner', vault: Dict):
+    def run_blueprint_branch(
+        payload: dict,
+        context: dict,
+        session: dict,
+        blueprint_runner: "BlueprintRunner",
+        vault: Dict,
+    ):
         branch_id = payload.pop("branch_id", None)
         if not branch_id:
             raise ValueError("Missing branch_id in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
-        return blueprint_runner.run_branch(start_node_id=branch_id, branch_out_id=None, execution_environment=execution_environment, title="Branch execution triggered by demand")
+        return blueprint_runner.run_branch(
+            start_node_id=branch_id,
+            branch_out_id=None,
+            execution_environment=execution_environment,
+            title="Branch execution triggered by demand",
+        )
 
     def __init__(self):
         self.handler_map: Dict[str, "EventHandlerRegistry.HandlerEntry"] = {
-                "stop_blueprint_run": {
-                    "callable": self.stop_blueprint_run,
-                    "meta": {
-                        "name": "stop_blueprint_run",
-                        "args": ["payload", "blueprint_runner"]
-                    }
+            "stop_blueprint_run": {
+                "callable": self.stop_blueprint_run,
+                "meta": {"name": "stop_blueprint_run", "args": ["payload", "blueprint_runner"]},
+            },
+            "run_blueprint_by_key": {
+                "callable": self.run_blueprint_by_key,
+                "meta": {
+                    "name": "run_blueprint_by_key",
+                    "args": ["payload", "context", "session", "blueprint_runner", "vault"],
                 },
-                "run_blueprint_by_key": {
-                   "callable": self.run_blueprint_by_key,
-                   "meta": {
-                        "name": "run_blueprint_by_key",
-                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
-                   }
+            },
+            "run_blueprint_by_id": {
+                "callable": self.run_blueprint_by_id,
+                "meta": {
+                    "name": "run_blueprint_by_id",
+                    "args": ["payload", "context", "session", "blueprint_runner", "vault"],
                 },
-                "run_blueprint_by_id": {
-                    "callable": self.run_blueprint_by_id,
-                    "meta": {
-                        "name": "run_blueprint_by_id",
-                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
-                    }
+            },
+            "run_blueprint_via_api": {
+                "callable": self.run_blueprint_via_api,
+                "meta": {
+                    "name": "run_blueprint_via_api",
+                    "args": ["payload", "context", "session", "blueprint_runner", "vault"],
                 },
-                "run_blueprint_via_api": {
-                    "callable": self.run_blueprint_via_api,
-                    "meta": {
-                        "name": "run_blueprint_via_api",
-                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
-                    }
+            },
+            "run_blueprint_branch": {
+                "callable": self.run_blueprint_branch,
+                "meta": {
+                    "name": "run_blueprint_branch",
+                    "args": ["payload", "context", "session", "blueprint_runner", "vault"],
                 },
-                "run_blueprint_branch": {
-                    "callable": self.run_blueprint_branch,
-                    "meta": {
-                        "name": "run_blueprint_branch",
-                        "args": ["payload", "context", "session", "blueprint_runner", "vault"]
-                    }
-                }
-            }
+            },
+        }
 
     def __iter__(self):
         return iter(self.handler_map.keys())
@@ -1764,7 +1798,9 @@ class EventHandler:
         branch_id: Optional[str] = None,
     ):
         def fn(payload, context, session, vault):
-            execution_environment = self._get_blueprint_execution_environment(payload, context, session, vault)
+            execution_environment = self._get_blueprint_execution_environment(
+                payload, context, session, vault
+            )
             if blueprint_key:
                 return self.blueprint_runner.run_blueprint_by_key(
                     blueprint_key, execution_environment
@@ -1799,7 +1835,7 @@ class EventHandler:
             "session": _event_handler_session_info(),
             "ui": _event_handler_ui_manager(),
             "blueprint_runner": self.blueprint_runner,
-            "vault": writer_vault.get_secrets()
+            "vault": writer_vault.get_secrets(),
         }
 
     def _call_handler_callable(self, handler_callable: Callable, calling_arguments: Dict) -> Any:
@@ -1807,7 +1843,9 @@ class EventHandler:
         result = None
         with (
             core_ui.use_component_tree(self.session.session_component_tree),
-            use_stdout_redirect(lambda entry: self.session_state.add_log_entry("info", "Stdout message", entry)),
+            use_stdout_redirect(
+                lambda entry: self.session_state.add_log_entry("info", "Stdout message", entry)
+            ),
         ):
             middlewares_executors = current_app_process.middleware_registry.executors()
             result = EventHandlerExecutor.invoke_with_middlewares(
@@ -1875,7 +1913,8 @@ class EventHandler:
                 calling_arguments.get("payload"),
                 calling_arguments.get("context"),
                 calling_arguments.get("session"),
-                calling_arguments.get("vault"))
+                calling_arguments.get("vault"),
+            )
             self.blueprint_runner.execute_ui_trigger(target_id, ev.type, execution_environment)
             if not target_component.handlers:
                 return None
@@ -1968,7 +2007,7 @@ class EventHandlerExecutor:
     def invoke_with_middlewares(
         middlewares_executors: List[MiddlewareExecutor],
         callable_handler: Callable,
-        writer_args: dict
+        writer_args: dict,
     ) -> Any:
         """
         Runs the middlewares then the handler. This function allows you to manage exceptions that are triggered in middleware
