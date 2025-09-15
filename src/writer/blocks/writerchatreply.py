@@ -50,35 +50,50 @@ class WriterChatReply(WriterBlock):
                                                         {
                                                             "type": "object",
                                                             "properties": {
-                                                                "type": {"type": "string", "enum": ["text"]},
-                                                                "text": {"type": "string"}
+                                                                "type": {
+                                                                    "type": "string",
+                                                                    "enum": ["text"],
+                                                                },
+                                                                "text": {"type": "string"},
                                                             },
                                                             "required": ["type", "text"],
-                                                            "additionalProperties": False
+                                                            "additionalProperties": False,
                                                         },
                                                         {
                                                             "type": "object",
                                                             "properties": {
-                                                                "type": {"type": "string", "enum": ["image_url"]},
+                                                                "type": {
+                                                                    "type": "string",
+                                                                    "enum": ["image_url"],
+                                                                },
                                                                 "image_url": {
                                                                     "type": "object",
                                                                     "properties": {
                                                                         "url": {"type": "string"}
                                                                     },
                                                                     "required": ["url"],
-                                                                    "additionalProperties": False
-                                                                }
+                                                                    "additionalProperties": False,
+                                                                },
                                                             },
                                                             "required": ["type", "image_url"],
-                                                            "additionalProperties": False
-                                                        }
+                                                            "additionalProperties": False,
+                                                        },
                                                     ]
-                                                }
-                                            }
+                                                },
+                                            },
                                         ]
                                     },
                                 },
                                 "additionalProperties": False,
+                            },
+                        },
+                        "generateReply": {
+                            "name": "Generate reply",
+                            "type": "Boolean",
+                            "default": "yes",
+                            "desc": "If set to 'yes', the block will generate a reply from the model after adding the message. If set to 'no', it will only add the message to the conversation.",
+                            "validator": {
+                                "type": "boolean",
                             },
                         },
                         "initModelId": {
@@ -169,28 +184,50 @@ class WriterChatReply(WriterBlock):
         try:
             import writer.ai
 
-            conversation_state_element = self._get_field(
-                "conversationStateElement", required=True
-            )
+            conversation_state_element = self._get_field("conversationStateElement", required=True)
             message = self._get_field("message", as_json=True)
-            system_prompt = self._get_field(
-                "systemPrompt", False, default_field_value=None
-            )
-            init_model_id = self._get_field(
-                "initModelId", False, default_field_value=DEFAULT_MODEL
-            )
+            generate_reply = self._get_field("generateReply", False, "yes") == "yes"
+
+            system_prompt = self._get_field("systemPrompt", False, default_field_value=None)
+            init_model_id = self._get_field("initModelId", False, default_field_value=DEFAULT_MODEL)
             try:
-                init_temperature = float(self._get_field(
-                    "initTemperature", False, "0.7"))
-                init_max_tokens = int(self._get_field(
-                    "initMaxTokens", False, "1024"))
+                init_temperature = float(self._get_field("initTemperature", False, "0.7"))
+                init_max_tokens = int(self._get_field("initMaxTokens", False, "1024"))
             except ValueError as e:
-                raise WriterConfigurationError(
-                    f"Invalid numeric value in configuration: {e}")
-            use_streaming = self._get_field(
-                "useStreaming", False, "yes") == "yes"
+                raise WriterConfigurationError(f"Invalid numeric value in configuration: {e}")
+            use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
             tools_raw = self._get_field("tools", True)
             tools = []
+
+            conversation = self.evaluator.evaluate_expression(
+                conversation_state_element, self.instance_path, self.execution_environment
+            )
+
+            if conversation is None:
+                config = {
+                    "temperature": init_temperature,
+                    "model": init_model_id,
+                    "max_tokens": init_max_tokens,
+                }
+                conversation = writer.ai.Conversation(
+                    prompt_or_history=system_prompt, config=config
+                )
+                self._set_state(conversation_state_element, conversation)
+            elif not isinstance(conversation, writer.ai.Conversation):
+                raise WriterConfigurationError(
+                    "The state element specified doesn't contain a Conversation."
+                )
+
+            if message not in (None, {}, ""):
+                writer.ai.Conversation.validate_message(message)
+                conversation += message
+                self._set_state(conversation_state_element, conversation)
+
+            if not generate_reply:
+                # Fast exit if no reply generation is needed
+                self.result = ""
+                self.outcome = "success"
+                return
 
             for tool_name, tool_raw in tools_raw.items():
                 tool_type = tool_raw.get("type")
@@ -220,29 +257,6 @@ class WriterChatReply(WriterBlock):
                 else:
                     continue
                 tools.append(tool)
-
-            conversation = self.evaluator.evaluate_expression(
-                conversation_state_element, self.instance_path, self.execution_environment
-            )
-
-            if conversation is None:
-                config = {
-                    "temperature": init_temperature,
-                    "model": init_model_id,
-                    "max_tokens": init_max_tokens,
-                }
-                conversation = writer.ai.Conversation(
-                    prompt_or_history=system_prompt, config=config)
-                self._set_state(conversation_state_element, conversation)
-            elif not isinstance(conversation, writer.ai.Conversation):
-                raise WriterConfigurationError(
-                    "The state element specified doesn't contain a Conversation."
-                )
-
-            if message not in (None, {}, ""):
-                writer.ai.Conversation.validate_message(message)
-                conversation += message
-                self._set_state(conversation_state_element, conversation)
 
             msg = ""
             if not use_streaming:
