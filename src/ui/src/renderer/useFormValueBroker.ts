@@ -55,18 +55,6 @@ export function useFormValueBroker<T = any>(
 	) {
 		formValue.value = eventValue;
 
-		const isHandlerSet = component.value.handlers?.[emitEventType];
-		const isBindingSet =
-			component.value.binding?.eventType == emitEventType;
-		const isBlueprintAttached = useComponentLinkedBlueprints(
-			wf,
-			componentId,
-			emitEventType,
-		).isLinked.value;
-
-		// Event is not used
-		if (!isHandlerSet && !isBindingSet && !isBlueprintAttached) return;
-
 		if (isBusy.value) {
 			// Queued event is overwritten for debouncing purposes
 
