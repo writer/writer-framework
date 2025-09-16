@@ -8,7 +8,9 @@ from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
 from typing import Any, Dict, Generator, List, Literal, Optional, OrderedDict, Union
-
+import traceloop.sdk
+import traceloop.sdk.decorators
+import writer.abstract
 import writer.blocks
 import writer.blocks.base_block
 import writer.core
@@ -25,6 +27,7 @@ class BlueprintRunManager:
     def __init__(self):
         self._runs: Dict[str, Dict] = {}
         self._lock = threading.Lock()
+        traceloop.sdk.Traceloop.init()
 
     @contextmanager
     def register(self, run_id: str):
@@ -265,6 +268,7 @@ class BlueprintRunner:
 
         return results
 
+    @traceloop.sdk.decorators.workflow(name="Blueprint execution")
     def run_blueprint(
         self, component_id: str, execution_environment: Dict, title="Blueprint execution"
     ):
@@ -345,6 +349,9 @@ class GraphNode:
     def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock) -> "GraphNode":
         start_time = time.time()
 
+        ctx = copy_context()
+        logging.error(list(ctx.items()))
+
         call_stack = tool.execution_environment.get("call_stack", []) + [self.id]
         call_depth = call_stack.count(tool.component.id)
         if call_depth > MAX_DAG_DEPTH:
@@ -357,8 +364,13 @@ class GraphNode:
 
         try:
             tool.outcome = "in_progress"
-            with use_current_block(tool):
-                tool.run()
+            block_name = writer.abstract.templates.get(tool.component.type).writer.get("name")
+            @traceloop.sdk.decorators.task(name=f"Block | {block_name}")
+            def run():
+                with use_current_block(tool):
+                    tool.run()
+                return tool.outcome
+            run()
             if self.outcome == "stopped":
                 return self
             tool.outcome = tool.outcome or "success"
