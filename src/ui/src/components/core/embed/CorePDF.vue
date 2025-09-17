@@ -33,7 +33,7 @@
 					:pdf="pdf"
 					:page="p"
 					text-layer
-					:highlight-text="highlightText"
+					:highlight-text="highlights"
 					:highlight-options="highlightOptions"
 					@highlight="(e) => onHighlight(e)"
 					@loaded="onLoaded"
@@ -115,12 +115,8 @@ const fields = inject(injectionKeys.evaluatedFields, {});
 
 let pdf, pages, VuePDF;
 
-const highlightText = computed(() => {
-	return fields.highlights.value
-		? fields.highlights.value
-				.map((v: string) => v.replaceAll("|", "\\|"))
-				.join("|")
-		: "";
+const highlights = computed(() => {
+	return fields.highlights.value;
 });
 const highlightOptions = ref({
 	completeWords: false,
@@ -305,7 +301,7 @@ watch(pagesLoaded, () => {
 
 watch([highlightsList, pagesLoaded], () => {
 	if (
-		(!highlightText.value ||
+		(highlights.value.length == 0 ||
 			highlightsList.value.length === pages?.value) &&
 		pagesLoaded.value === pages?.value
 	) {
