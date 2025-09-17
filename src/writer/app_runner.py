@@ -615,8 +615,9 @@ class AppProcess(multiprocessing.Process):
         thread_pool_future.add_done_callback(self._send_packet)
 
     def run(self) -> None:
+        max_workers = int(os.getenv("WRITER_MAX_WORKERS", (os.cpu_count() or 4) * 10))
         self.executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=(os.cpu_count() or 4) * 10
+            max_workers=max_workers,
         )
         self.server_conn_lock = threading.Lock()
         self.client_conn.close()
