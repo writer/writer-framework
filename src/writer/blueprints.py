@@ -702,6 +702,8 @@ class StatusLogger:
                 for k, v in itertools.islice(data.items(), MAX_LOG_ITERABLE_SIZE)
             }
         if isinstance(data, str):
+            if len(data) <= MAX_LOG_STRING_LENGTH:
+                return data
             return f"{data[:MAX_LOG_STRING_LENGTH]}... <truncated>"
         if isinstance(data, (int, float, bool, type(None))):
             return data
