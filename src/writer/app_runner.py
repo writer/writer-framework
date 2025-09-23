@@ -776,10 +776,11 @@ class AppRunner:
             path=self.app_path,
             recursive=True,
         )
-        self.observer.schedule(
-            FileEventHandler(self._install_requirements, patterns=["requirements.txt"]),
-            path=self.app_path,
-        )
+        # See _install_requirements docstring for info
+        # self.observer.schedule(
+        #     FileEventHandler(self._install_requirements, patterns=["requirements.txt"]),
+        #     path=self.app_path,
+        # )
         if not self.observer.is_alive():
             self.observer.start()
 
@@ -789,6 +790,11 @@ class AppRunner:
         )
 
     def _install_requirements(self) -> None:
+        """
+        Not used anywhere anymore as this method of installing dependencies is not supported.
+        Left because might change in the future.
+        """
+
         logger = logging.getLogger("writer")
         logger.debug("\nDetected changes in requirements.txt. Installing dependencies...")
         try:
