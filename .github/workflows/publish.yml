@@ -3,7 +3,8 @@ name: publish
 on:
     push:
         tags:
-            - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?-image-[0-9]+.[0-9]+.[0-9]+-main'
+            - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
+            - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+rc[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
 
 jobs:
     build:
