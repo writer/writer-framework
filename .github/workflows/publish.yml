@@ -49,7 +49,7 @@ jobs:
               run: poetry install --with build
 
             - name: install ci dependencies and generate code
-              run: poetry run alfred install.ci
+              run: WRITER_FRAMEWORK_VERSION=${{ steps.extract_version.outputs.version }} poetry run alfred install.ci
 
             - name: publish on pypi
               run: |
