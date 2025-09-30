@@ -5,6 +5,11 @@ on:
         tags:
             - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
             - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+rc[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: 'Tag to publish'
+                required: true
 
 jobs:
     build:
@@ -13,11 +18,13 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                ref: ${{ github.event.inputs.tag || github.ref_name }}
 
             - name: Extract version from tag
               id: extract_version
               run: |
-                REF="${{ github.ref_name }}"
+                REF="${{ github.event.inputs.tag || github.ref_name }}"
                 if [[ "$REF" =~ ^agent-builder-turbo-([0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?)-image-([0-9]+\.[0-9]+\.[0-9]+)-main$ ]]; then
                   echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
                 else
