@@ -66,7 +66,6 @@ jobs:
               run: WRITER_FRAMEWORK_VERSION=${{ steps.extract_version.outputs.version }} poetry run alfred install.ci
 
             - name: publish on pypi
-              run: |
-                poetry run alfred publish.pypi
+              run: WRITER_FRAMEWORK_VERSION=${{ steps.extract_version.outputs.version }} poetry run alfred publish.pypi
               env:
                   PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
