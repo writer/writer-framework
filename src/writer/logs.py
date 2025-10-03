@@ -4,6 +4,7 @@ import logging
 import logging.config
 import os
 from contextlib import contextmanager, redirect_stdout
+from time import time
 from typing import Any, Callable, Dict, Optional
 
 WRITER_LOG_LEVEL = os.getenv("WRITER_LOG_LEVEL", "INFO")
@@ -166,6 +167,7 @@ class JSONFormatter(logging.Formatter):
             "process": {
                 "name": record.processName
             },
+            "timestamp": time(),
         }
 
         if current_block is not None:
