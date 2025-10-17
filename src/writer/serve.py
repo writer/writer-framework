@@ -43,7 +43,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
-from writer.metrics import get_metrics, get_metrics_content_type, track_http_request
+from writer.metrics import get_metrics, get_metrics_content_type, track_http_request, should_track_endpoint
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -165,19 +165,10 @@ def get_asgi_app(
     async def track_http_requests(request: Request, call_next):
         start_time = time.time()
         
-        if request.url.path == "/metrics":
-            response = await call_next(request)
-            return response
-        
         method = request.method
         endpoint = request.url.path
         
-        # Skip static assets
-        if (
-            endpoint.startswith("/static/") or
-            endpoint.startswith("/assets/") or
-            endpoint.endswith((".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".css", ".js", ".woff", ".woff2"))
-        ):
+        if not should_track_endpoint(endpoint):
             response = await call_next(request)
             return response
         
@@ -261,7 +252,7 @@ def get_asgi_app(
     async def health():
         return {"status": "ok"}
 
-    @app.get("/metrics")
+    @app.get("/api/metrics")
     def metrics():
         """Prometheus metrics endpoint."""
         return Response(get_metrics(), media_type=get_metrics_content_type())
