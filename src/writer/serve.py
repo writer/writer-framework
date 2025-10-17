@@ -43,6 +43,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
+from writer.metrics import get_metrics, get_metrics_content_type, track_http_request
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -159,6 +160,43 @@ def get_asgi_app(
     than `app.state.is_server_static_mounted` already use in Writer Framework.
     """
     app.state.writer_app = True
+
+    @app.middleware("http")
+    async def track_http_requests(request: Request, call_next):
+        start_time = time.time()
+        
+        if request.url.path == "/metrics":
+            response = await call_next(request)
+            return response
+        
+        method = request.method
+        endpoint = request.url.path
+        
+        # Skip static assets
+        if (
+            endpoint.startswith("/static/") or
+            endpoint.startswith("/assets/") or
+            endpoint.endswith((".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".css", ".js", ".woff", ".woff2"))
+        ):
+            response = await call_next(request)
+            return response
+        
+        try:
+            response = await call_next(request)
+            status_code = response.status_code
+        except Exception:
+            status_code = 500
+            raise
+        finally:
+            duration = time.time() - start_time
+            # Get instance metadata from environment variables
+            org_id = os.getenv("WRITER_ORG_ID", "unknown")
+            app_id = os.getenv("WRITER_APP_ID", "unknown")
+            instance_type = "editor" if serve_mode == "edit" else "agent"
+            
+            track_http_request(method, endpoint, status_code, duration, org_id, app_id, instance_type)
+        
+        return response
     app.state.app_runner = app_runner
 
     def _get_extension_paths() -> List[str]:
@@ -223,6 +261,11 @@ def get_asgi_app(
     async def health():
         return {"status": "ok"}
 
+    @app.get("/metrics")
+    def metrics():
+        """Prometheus metrics endpoint."""
+        return Response(get_metrics(), media_type=get_metrics_content_type())
+    
     @app.get("/api/export")
     async def export_zip():
         if serve_mode != "edit":
