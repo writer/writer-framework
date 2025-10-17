@@ -25,10 +25,9 @@ def get_metrics():
     """Get Prometheus metrics in text format, filtered to exclude bloat."""
     filtered_registry = CollectorRegistry()
     
-    for collector in REGISTRY._collector_to_names:
-        if hasattr(collector, '_name'):
-            if collector._name in ['writer_framework_http_requests_total', 'writer_framework_http_request_duration_seconds']:
-                filtered_registry.register(collector)
+    # Register only our custom metrics directly
+    filtered_registry.register(http_requests_total)
+    filtered_registry.register(http_request_duration_seconds)
     
     return generate_latest(filtered_registry)
 
