@@ -1,6 +1,10 @@
+import re
+
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
+
+ALLOWED_CHARS = re.compile(r'^[A-Za-z0-9\-_]*$')
 
 
 class WriterKeyValueStorage(WriterBlock):
@@ -13,7 +17,7 @@ class WriterKeyValueStorage(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "Key-Value Storage",
-                    "description": "Allows to store data between sessions. Uses unique keys (names) to identify the data.",
+                    "description": "Allows to store data between sessions. Uses unique keys (names) to identify the data. Keys can only contain alphanumeric characters, underscores and hephens",
                     "category": "Writer",
                     "fields": {
                         "action": {
@@ -30,7 +34,7 @@ class WriterKeyValueStorage(WriterBlock):
                         "key": {
                             "name": "Key",
                             "type": "Text",
-                            "description": "Unique identifier of your data that will be used to retrieve, update and delete it.",
+                            "description": "Unique identifier of your data that will be used to retrieve, update and delete it",
                         },
                         "value": {
                             "name": "Value",
@@ -60,6 +64,8 @@ class WriterKeyValueStorage(WriterBlock):
         try:
             action = self._get_field("action")
             key = self._get_field("key")
+            if not ALLOWED_CHARS.fullmatch(key):
+                raise ValueError("Key can only contain alphanumeric characters, underscores and hephens")
             value = self._get_field("value")
 
             if action == "save":
