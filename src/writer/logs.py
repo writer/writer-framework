@@ -246,6 +246,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
         "writer": get_logger(),
         "app": get_logger(),
         "from_app": get_logger(),
+        "kv_storage": get_logger(),
         "exec_logger": {
             "handlers": ["basic", "routing"],
             "level": "DEBUG",

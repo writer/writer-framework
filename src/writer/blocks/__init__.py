@@ -20,6 +20,7 @@ from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerfileapi import WriterUploadFile
 from writer.blocks.writerinitchat import WriterInitChat
+from writer.blocks.writerkeyvaluestorage import WriterKeyValueStorage
 from writer.blocks.writernocodeapp import WriterNoCodeApp
 from writer.blocks.writerparsepdf import WriterParsePDFByFileID
 from writer.blocks.writerstructuredoutput import WriterStructuredOutput
@@ -55,3 +56,4 @@ WriterParsePDFByFileID.register("blueprints_writerparsepdf")
 WriterUploadFile.register("blueprints_writeruploadfile")
 WriterVision.register("blueprints_writervision")
 WriterWebSearch.register("blueprints_writerwebsearch")
+WriterKeyValueStorage.register("blueprints_writerkeyvaluestorage")

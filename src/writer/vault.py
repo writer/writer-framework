@@ -8,9 +8,85 @@ configuration and error handling.
 
 import logging
 import os
-from typing import Dict, Optional
+from functools import partial
+from typing import Any, Dict, Literal, Optional, Protocol
 
 import requests
+
+logger = logging.getLogger("kv_storage")
+
+
+class _WrappedRequestFunc(Protocol):
+    def __call__(
+        self,
+        headers: Dict[str, str],
+        timeout: int,
+    ) -> requests.Response: ...
+
+
+class KeyValueStorage:
+    def __init__(self) -> None:
+        base_url = os.getenv("WRITER_BASE_URL")
+        self.api_key = os.getenv("WRITER_API_KEY")
+        if None in (base_url, self.api_key):
+            logger.warning("Missing required environment variables for KV storage access")
+        self.api_url = f"{base_url}/v1" if base_url else None
+
+    def _get_agent_ids(self):
+        from writer.core import get_session
+        current_session = get_session()
+
+        if current_session:
+            headers = current_session.headers or {}
+            agent_id = headers.get("x-agent-id") or os.getenv("WRITER_APP_ID")
+            org_id = headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID")
+            return (agent_id, org_id)
+
+        agent_id = os.getenv("WRITER_APP_ID")
+        org_id = os.getenv("WRITER_ORG_ID")
+        return (agent_id, org_id)
+
+    def get(self, key: str, type_: Literal["data", "secret"]) -> Dict[str, Any]:
+        return self._request(partial(requests.get, url=f"{self.api_url}/agent_{type_}/{key}")).json()
+    
+    def save(self, key: str, data: Any) -> Dict[str, Any]:
+        try:
+            return self._create(key, data).json()
+        except requests.HTTPError as e:
+            if "already exists" in e.response.text:
+                return self._update(key, data).json()
+            raise e
+
+    def _create(self, key: str, data: Any) -> requests.Response:
+        return self._request(partial(requests.post, url=f"{self.api_url}/agent_data", json={"key": key, "data": data}))
+
+    def _update(self, key: str, data: Any) -> requests.Response:
+        return self._request(partial(requests.put, url=f"{self.api_url}/agent_data/{key}", json={"data": data}))
+
+    def delete(self, key: str) -> Dict[str, str]:
+        self._request(partial(requests.delete, url=f"{self.api_url}/agent_data/{key}"))
+        return {"key": key}
+
+    def _request(self, request_func: _WrappedRequestFunc) -> requests.Response:
+
+        agent_id, org_id = self._get_agent_ids()
+        if None in (agent_id, org_id):
+            raise ValueError("Can't access KV storage. Missing agent id or org id")
+
+        if None in (self.api_key, self.api_url):
+            raise ValueError("Can't access KV storage. Missing required env vars")
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "X-Organization-Id": org_id,
+            "X-Agent-Id": agent_id,
+        }
+
+        response = request_func(headers=headers, timeout=3)
+        response.raise_for_status()
+        return response
+
+writer_kv_storage = KeyValueStorage()
 
 
 class WriterVault:
@@ -30,54 +106,15 @@ class WriterVault:
         """Force refresh of secrets from the vault service."""
         self.secrets = self._fetch()
 
-    def _get_agent_ids(self):
-        from writer.core import get_session
-        current_session = get_session()
-
-        if current_session:
-            headers = current_session.headers or {}
-            agent_id = headers.get("x-agent-id") or os.getenv("WRITER_APP_ID")
-            org_id = headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID")
-            return (agent_id, org_id)
-
-        agent_id = os.getenv("WRITER_APP_ID")
-        org_id = os.getenv("WRITER_ORG_ID")
-        return (agent_id, org_id)
-
     def _fetch(self) -> Dict:
-        # TODO: move the API call to a service
-        base_url = os.getenv("WRITER_BASE_URL")
-        api_key = os.getenv("WRITER_API_KEY")
-        (agent_id, org_id) = self._get_agent_ids()
-
-        if None in (base_url, api_key):
-            logging.warning("Missing required environment variables for vault access")
-            return {}
-
-        if None in (agent_id, org_id):
-            logging.warning("Missing Org Id or Agent Id for vault access")
-            return {}
-
-        url = f"{base_url}/v1/agent_secret/vault"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "X-Organization-Id": org_id,
-            "X-Agent-Id": agent_id,
-        }
-
         try:
-            logging.debug("fetching Writer Vault secrets")
-            response = requests.get(url, headers=headers, timeout=3)
-            if response.status_code == 200:
-                data = response.json()
-                secrets = data.get("secret")
-                if isinstance(secrets, dict):
-                    return secrets
-                logging.warning("Invalid vault response format: expected dict in 'secret' field")
-            else:
-                logging.warning("Vault API returned status %s", response.status_code)
-        except requests.RequestException as e:
-            logging.error("Failed to fetch vault secrets: %s", e)
+            data = writer_kv_storage.get("vault", "secret")
+            secrets = data.get("secret")
+            if isinstance(secrets, dict):
+                return secrets
+            logger.warning("Invalid vault response format: expected dict in 'secret' field")
+        except (requests.RequestException, ValueError) as e:
+            logger.error("Failed to fetch vault secrets: %s", e)
         return {}
 
 
