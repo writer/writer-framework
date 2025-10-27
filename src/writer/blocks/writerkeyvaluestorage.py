@@ -4,7 +4,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
 
-ALLOWED_CHARS = re.compile(r'^[A-Za-z0-9\-_]*$')
+ALLOWED_CHARS = re.compile(r'^[A-Za-z0-9\-_]+$')
 
 
 class WriterKeyValueStorage(WriterBlock):
@@ -17,7 +17,7 @@ class WriterKeyValueStorage(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "Key-Value Storage",
-                    "description": "Allows to store data between sessions. Uses unique keys (names) to identify the data. Keys can only contain alphanumeric characters, underscores and hephens",
+                    "description": "Allows to store data between sessions. Uses unique keys (names) to identify the data. Keys can only contain alphanumeric characters, underscores and hyphens",
                     "category": "Writer",
                     "fields": {
                         "action": {
@@ -34,7 +34,7 @@ class WriterKeyValueStorage(WriterBlock):
                         "key": {
                             "name": "Key",
                             "type": "Text",
-                            "description": "Unique identifier of your data that will be used to retrieve, update and delete it",
+                            "description": "Unique identifier of your data that will be used to retrieve, update and delete it.",
                         },
                         "value": {
                             "name": "Value",
@@ -59,16 +59,16 @@ class WriterKeyValueStorage(WriterBlock):
         )
 
     def run(self):
-        from writer.vault import writer_kv_storage
+        from writer.keyvalue_storage import writer_kv_storage
 
         try:
-            action = self._get_field("action")
-            key = self._get_field("key")
+            action = self._get_field("action", required=True)
+            key = self._get_field("key", required=True)
             if not ALLOWED_CHARS.fullmatch(key):
-                raise ValueError("Key can only contain alphanumeric characters, underscores and hephens")
-            value = self._get_field("value")
+                raise ValueError("Key can only contain alphanumeric characters, underscores and hyphens")
 
             if action == "save":
+                value = self._get_field("value")
                 response = writer_kv_storage.save(key, value)
             elif action == "get":
                 response = writer_kv_storage.get(key, type_="data")
