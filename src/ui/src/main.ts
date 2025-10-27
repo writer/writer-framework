@@ -5,7 +5,6 @@ import { generateBuilderManager } from "./builder/builderManager.js";
 import { generateCore } from "./core";
 import "./fonts";
 import injectionKeys from "./injectionKeys";
-import { setCaptureTabsDirective } from "./directives.js";
 import { useLogger } from "./composables/useLogger.js";
 
 const wf = generateCore();
@@ -41,7 +40,13 @@ async function load() {
 	app.use(VueDOMPurifyHTML);
 	app.provide(injectionKeys.core, wf);
 	app.provide(injectionKeys.builderManager, wfbm);
-	setCaptureTabsDirective(app);
+
+	// Prevent tab closing
+	window.addEventListener("beforeunload", (event) => {
+		event.preventDefault();
+		event.returnValue = "";
+		return "";
+	});
 
 	app.mount("#app");
 }
