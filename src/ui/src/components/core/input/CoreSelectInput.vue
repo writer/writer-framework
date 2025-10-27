@@ -68,6 +68,11 @@ export default {
 				default: JSON.stringify(defaultOptions, null, 2),
 				validator: validatorObjectRecordNotNested,
 			},
+			defaultValue: {
+				name: "Default value",
+				desc: "Default selected option(s). For single-select, provide a single value key. For multi-select, provide comma-separated value keys (e.g., 'a, b, c').",
+				type: FieldType.Text,
+			},
 			placeholder: {
 				name: "Placeholder",
 				desc: "Text to show when no options are selected.",
@@ -128,6 +133,7 @@ export default {
 </script>
 
 <script setup lang="ts">
+import { watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 import WdsSelect, { Option } from "@/wds/WdsSelect.vue";
@@ -137,11 +143,33 @@ const rootInstance = ref<ComponentPublicInstance | null>(null);
 const wf = inject(injectionKeys.core);
 const instancePath = inject(injectionKeys.instancePath);
 
+const defaultValue = computed(() => {
+	const value = fields.defaultValue.value?.trim();
+	if (!value) return [];
+
+	if (fields.allowMultiSelect.value) {
+		return value
+			.split(",")
+			.map((item) => item.trim())
+			.filter((item) => Object.keys(fields.options.value).includes(item));
+	} else {
+		if (!Object.keys(fields.options.value).includes(value)) {
+			return "";
+		}
+		return value;
+	}
+});
+
 const { formValue, handleInput } = useFormValueBroker(
 	wf,
 	instancePath,
 	rootInstance,
+	defaultValue.value,
 );
+
+watch(fields.allowMultiSelect, () => {
+	formValue.value = defaultValue.value;
+});
 
 const options = computed(() =>
 	Object.entries(fields.options.value).map<Option>(([key, value]) => ({
