@@ -145,7 +145,9 @@ const instancePath = inject(injectionKeys.instancePath);
 
 const defaultValue = computed(() => {
 	const value = fields.defaultValue.value?.trim();
-	if (!value) return [];
+	if (!value) {
+		return fields.allowMultiSelect.value ? [] : "";
+	}
 
 	if (fields.allowMultiSelect.value) {
 		return value
@@ -178,7 +180,7 @@ const options = computed(() =>
 	})),
 );
 
-const model = computed<string[]>({
+const model = computed<string | string[]>({
 	get() {
 		return formValue.value;
 	},
