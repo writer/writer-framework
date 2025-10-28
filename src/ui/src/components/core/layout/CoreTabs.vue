@@ -27,6 +27,13 @@ import {
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
 
+const tabChangeHandlerStub = `
+def tab_change_handler(state, payload):
+
+	# The payload contains the name of the newly activated tab
+
+	state["active_tab"] = payload`;
+
 const description =
 	"A container component for organising and displaying Tab components in a tabbed interface.";
 
@@ -36,6 +43,14 @@ export default {
 		description,
 		category: "Layout",
 		allowedChildrenTypes: ["tab", "repeater"],
+		events: {
+			"wf-tab-change": {
+				desc: "Sent when the active tab changes.",
+				stub: tabChangeHandlerStub.trim(),
+				eventPayloadExample: "Tab Name",
+				bindable: true,
+			},
+		},
 		fields: {
 			accentColor,
 			primaryTextColor,
