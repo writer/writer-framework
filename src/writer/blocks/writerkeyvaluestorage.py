@@ -55,6 +55,9 @@ class WriterKeyValueStorage(WriterBlock):
                             "style": "error",
                         },
                     },
+                    "featureFlags": [
+                        "keyvalue_storage",
+                    ],
                 },
             ),
         )
