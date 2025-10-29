@@ -40,6 +40,7 @@ class WriterKeyValueStorage(WriterBlock):
                             "name": "Value",
                             "type": "Text",
                             "description": "Data that you want to store.",
+                            "control": "Textarea",
                         }
                     },
                     "outs": {
@@ -59,7 +60,7 @@ class WriterKeyValueStorage(WriterBlock):
         )
 
     def run(self):
-        from writer.keyvalue_storage import writer_kv_storage
+        from writer.keyvalue_storage import KeyValueStorage
 
         try:
             action = self._get_field("action", required=True)
@@ -67,15 +68,18 @@ class WriterKeyValueStorage(WriterBlock):
             if not ALLOWED_CHARS.fullmatch(key):
                 raise ValueError("Key can only contain alphanumeric characters, underscores and hyphens")
 
-            if action == "save":
-                value = self._get_field("value")
-                response = writer_kv_storage.save(key, value)
-            elif action == "get":
-                response = writer_kv_storage.get(key, type_="data")
-            elif action == "delete":
-                response = writer_kv_storage.delete(key)
-            else:
-                raise ValueError(f"Unknown action for the Key-Value Storage: {action}")
+            with self.acquire_httpx_client() as client:
+                writer_kv_storage = KeyValueStorage(client=client)
+
+                if action == "save":
+                    value = self._get_field("value")
+                    response = writer_kv_storage.save(key, value)
+                elif action == "get":
+                    response = writer_kv_storage.get(key, type_="data")
+                elif action == "delete":
+                    response = writer_kv_storage.delete(key)
+                else:
+                    raise ValueError(f"Unknown action for the Key-Value Storage: {action}")
 
             self.result = response
             self.outcome = "success"
