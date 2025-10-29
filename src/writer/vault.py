@@ -9,7 +9,7 @@ configuration and error handling.
 import logging
 from typing import Dict, Optional
 
-import requests
+import httpx
 
 from writer.keyvalue_storage import writer_kv_storage
 
@@ -40,7 +40,7 @@ class WriterVault:
             if isinstance(secrets, dict):
                 return secrets
             logger.warning("Invalid vault response format: expected dict in 'secret' field")
-        except (requests.RequestException, ValueError) as e:
+        except (httpx.HTTPStatusError, ValueError) as e:
             logger.error("Failed to fetch vault secrets: %s", e)
         return {}
 
