@@ -20,8 +20,8 @@
 					:paths-unsaved="pathsUnsaved"
 					:source-files="sourceFileDraft"
 					@add-file="handleAddFile"
-					@select="openFile"
-					@delete="handleDeleteFile"
+					@select="handleFileSelect"
+					@delete="handleFileDelete"
 				/>
 				<div class="BuilderCodePanel__tree__actions">
 					<WdsButtonLink
@@ -82,6 +82,14 @@
 			</div>
 		</template>
 	</BuilderPanel>
+
+	<UnsavedChangesModal
+		v-if="showModal"
+		:filename="filepathOpenStr"
+		:is-saving="isDisabled"
+		@save="handleModalSave"
+		@cancel="handleModalCancel"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -94,6 +102,7 @@ import {
 	ref,
 	useTemplateRef,
 	watch,
+	watchEffect,
 } from "vue";
 import BuilderPanel from "./BuilderPanel.vue";
 import injectionKeys from "@/injectionKeys";
@@ -109,6 +118,11 @@ import BuilderCodePanelFileUploadBtn from "./BuilderCodePanelFileUploadBtn.vue";
 import WdsButtonLink from "@/wds/WdsButtonLink.vue";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { useUnsavedChangesPrevention } from "@/composables/useUnsavedChangesPrevention";
+import { useUnsavedChangesModal } from "../composables/useUnsavedChangesModal";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
+import UnsavedChangesModal from "../modals/UnsavedChangesModal.vue";
+import { findSourceFileFromPath } from "@/core/sourceFiles";
 
 const SharedMoreDropdown = defineAsyncComponentWithLoader({
 	loader: () => import("@/components/shared/SharedMoreDropdown.vue"),
@@ -123,6 +137,7 @@ defineProps<{
 }>();
 
 const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 
 const moreOptions: Option[] = [
 	{
@@ -152,6 +167,15 @@ const {
 	pathsUnsaved,
 	save,
 } = useSourceFiles(wf);
+
+const { enablePrevention, disablePrevention } = useUnsavedChangesPrevention();
+
+const {
+	showModal,
+	checkUnsavedChanges,
+	executePendingAction,
+	cancelPendingAction,
+} = useUnsavedChangesModal();
 
 async function handleUpload(files: File[]) {
 	await Promise.all(files.map(handleFileUpload));
@@ -184,7 +208,7 @@ function useKeydownCmdS(callback: () => void | Promise<void>) {
 				const isSKey = event.key === "s" || event.key === "S";
 				if (!isCmdOrCtrl || !isSKey) return;
 
-				event.preventDefault(); // Prevent the default save dialog
+				event.preventDefault();
 				await callback();
 			},
 			{ signal: abortController.signal },
@@ -192,7 +216,22 @@ function useKeydownCmdS(callback: () => void | Promise<void>) {
 	});
 	onUnmounted(() => abortController.abort());
 }
-useKeydownCmdS(handleSave);
+useKeydownCmdS(async () => {
+	await handleSave();
+});
+
+useKeyboardShortcuts([
+	{
+		key: "w",
+		modifier: "ctrl",
+		handler: handleClosePanel,
+	},
+	{
+		key: "w",
+		modifier: "cmd",
+		handler: handleClosePanel,
+	},
+]);
 
 const filenameEl = useTemplateRef("filenameEl");
 const filename = ref("");
@@ -210,9 +249,15 @@ const isCodeSaved = computed(() => {
 	if (isRenaming.value) return false;
 	if (filepathOpen.value === undefined) return true;
 
-	return !pathsUnsaved.value
+	const isInUnsavedPaths = pathsUnsaved.value
 		.map((p) => p.join("/"))
 		.includes(filepathOpenStr.value);
+
+	const isNewFile =
+		filepathOpen.value &&
+		!findSourceFileFromPath(filepathOpen.value, wf.sourceFiles.value);
+
+	return !isInUnsavedPaths && !isNewFile;
 });
 
 watch(filepathOpen, () => {
@@ -222,6 +267,23 @@ watch(filepathOpen, () => {
 watch(wf.sessionTimestamp, () => {
 	isDisabled.value = false;
 });
+
+watchEffect(() => {
+	if (isCodeSaved.value) {
+		disablePrevention();
+	} else {
+		enablePrevention();
+	}
+});
+
+watch(
+	() => wfbm.openPanels.value.has("code"),
+	(isOpen, wasOpen) => {
+		if (wasOpen && !isOpen) {
+			handlePanelClosing();
+		}
+	},
+);
 
 function onOpenPanel(open: boolean) {
 	if (!open) return;
@@ -266,7 +328,7 @@ async function handleSave() {
 	} else if (isCodeSaved.value) {
 		return pushToast({
 			type: "info",
-			message: "There are not file changes to save",
+			message: "There are no file changes to save",
 		});
 	}
 
@@ -295,6 +357,62 @@ async function handleSave() {
 		return;
 	} finally {
 		isDisabled.value = false;
+	}
+}
+
+async function handleModalSave() {
+	await handleSave();
+	executePendingAction();
+}
+
+function handleModalCancel() {
+	cancelPendingAction();
+}
+
+async function handleFileSelect(path: string[]) {
+	if (
+		checkUnsavedChanges(
+			!isCodeSaved.value,
+			() => openFile(path),
+			"switch file",
+		)
+	) {
+		return;
+	}
+	openFile(path);
+}
+
+async function handleFileDelete(path: string[]) {
+	if (
+		checkUnsavedChanges(
+			!isCodeSaved.value,
+			() => handleDeleteFile(path),
+			"delete file",
+		)
+	) {
+		return;
+	}
+	await handleDeleteFile(path);
+}
+
+function handleClosePanel() {
+	if (
+		checkUnsavedChanges(
+			!isCodeSaved.value,
+			() => wfbm.openPanels.value.delete("code"),
+			"close panel",
+		)
+	) {
+		return;
+	}
+	wfbm.openPanels.value.delete("code");
+}
+
+function handlePanelClosing() {
+	if (checkUnsavedChanges(!isCodeSaved.value, () => {}, "close panel")) {
+		nextTick(() => {
+			wfbm.openPanels.value.add("code");
+		});
 	}
 }
 
