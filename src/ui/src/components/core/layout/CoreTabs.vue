@@ -48,7 +48,6 @@ export default {
 				desc: "Sent when the active tab changes.",
 				stub: tabChangeHandlerStub.trim(),
 				eventPayloadExample: "Tab Name",
-				bindable: true,
 			},
 		},
 		fields: {
