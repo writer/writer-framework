@@ -63,7 +63,7 @@ const importModalActions = computed<ModalAction[]>(() => [
 		},
 	},
 	{
-		disabled: importInProgress.value || !importConfirmCheckbox.value,
+		disabled: !importConfirmCheckbox.value,
 		loading: importInProgress.value,
 		desc: "Import",
 		fn: importModalConfirm,
