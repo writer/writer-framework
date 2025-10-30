@@ -1,10 +1,14 @@
 import { ref, onMounted, onUnmounted } from "vue";
+import { useAbortController } from "@/composables/useAbortController";
 
-const BEFORE_UNLOAD_MESSAGE = "You have unsaved changes. Are you sure you want to leave?";
+const BEFORE_UNLOAD_MESSAGE =
+	"You have unsaved changes. Are you sure you want to leave?";
 
 export function useUnsavedChangesPrevention() {
 	const hasUnsavedChanges = ref(false);
-	const beforeUnloadHandler = ref<((event: BeforeUnloadEvent) => void) | null>(null);
+	const beforeUnloadHandler = ref<
+		((event: BeforeUnloadEvent) => void) | null
+	>(null);
 
 	function enablePrevention() {
 		hasUnsavedChanges.value = true;
@@ -29,8 +33,18 @@ export function useUnsavedChangesPrevention() {
 
 	onUnmounted(() => {
 		if (beforeUnloadHandler.value) {
-			window.removeEventListener("beforeunload", beforeUnloadHandler.value);
+			window.removeEventListener(
+				"beforeunload",
+				beforeUnloadHandler.value,
+			);
 		}
+	});
+
+	const abort = useAbortController();
+	onMounted(() => {
+		window.addEventListener("beforeunload", handleBeforeUnload, {
+			signal: abort.signal,
+		});
 	});
 
 	return {
@@ -38,4 +52,3 @@ export function useUnsavedChangesPrevention() {
 		disablePrevention,
 	};
 }
-

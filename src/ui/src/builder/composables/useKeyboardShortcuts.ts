@@ -1,7 +1,7 @@
 import { onMounted } from "vue";
 import { useAbortController } from "../../composables/useAbortController";
 
-interface KeyboardShortcut {
+export interface KeyboardShortcut {
 	key: string;
 	modifier?: "ctrl" | "cmd" | "alt" | "shift";
 	handler: () => void;
