@@ -4,7 +4,7 @@
 		description="You have unsaved changes. What would you like to do?"
 		:actions="modalActions"
 		display-close-button
-		@close="() => emits('cancel')"
+		@close="emits('cancel')"
 	>
 		<div class="UnsavedChangesModal__content">
 			<div class="UnsavedChangesModal__icon">
@@ -26,21 +26,15 @@ import { computed, withDefaults } from "vue";
 import WdsModal, { type ModalAction } from "@/wds/WdsModal.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 
-interface UnsavedChangesModalProps {
-	filename: string;
-	isSaving?: boolean;
-}
-
-interface UnsavedChangesModalEmits {
-	save: [];
-	cancel: [];
-}
-
-const props = withDefaults(defineProps<UnsavedChangesModalProps>(), {
-	isSaving: false,
+const props = defineProps({
+	filename: { type: String, required: true },
+	isSaving: { type: Boolean, required: false },
 });
 
-const emits = defineEmits<UnsavedChangesModalEmits>();
+const emits = defineEmits({
+	save: () => true,
+	cancel: () => true,
+});
 
 const modalActions = computed<ModalAction[]>(() => [
 	{

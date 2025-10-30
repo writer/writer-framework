@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { shallowRef } from "vue";
 
 interface PendingAction {
 	action: () => void;
@@ -6,10 +6,13 @@ interface PendingAction {
 }
 
 export function useUnsavedChangesModal() {
-	const showModal = ref(false);
-	const pendingAction = ref<PendingAction | null>(null);
+	const showModal = shallowRef(false);
+	const pendingAction = shallowRef<PendingAction | null>(null);
 
-	const showUnsavedChangesModal = (action: () => void, description?: string) => {
+	const showUnsavedChangesModal = (
+		action: () => void,
+		description?: string,
+	) => {
 		showModal.value = true;
 		pendingAction.value = { action, description };
 	};
@@ -46,4 +49,3 @@ export function useUnsavedChangesModal() {
 		checkUnsavedChanges,
 	};
 }
-
