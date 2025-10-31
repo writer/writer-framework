@@ -147,20 +147,20 @@ class WriterToolCalling(WriterBlock):
         reasoning_tool = {
             "type": "function",
             "name": "disclose_reasoning",
-            "description": "Use this function to disclose your reasoning.",
+            "description": "Use this only to briefly summarize your reasoning and to signal completion. Call this when you're ready to finalize your answer.",
             "callable": reasoning_callable,
             "parameters": {
                 "thought": {
                     "type": "string",
-                    "description": "A look into your internal reasoning.",
+                    "description": "A brief summary of your reasoning process.",
                 },
                 "action": {
                     "type": "string",
-                    "description": "A summary of the actions you took and why.",
+                    "description": "When status is DONE, always set this to 'finalize_and_answer'. Otherwise, summarize the actions you took and why.",
                 },
                 "status": {
                     "type": "string",
-                    "description": "Set to DONE if you consider the task complete. Set to INCOMPLETE if you wish to keep iterating.",
+                    "description": "Set to DONE if you consider the task complete and are ready to provide the final answer. Set to INCOMPLETE if you wish to keep iterating.",
                 },
             },
         }
@@ -172,9 +172,33 @@ class WriterToolCalling(WriterBlock):
     def _get_react_prompt(self, base_prompt: str):
         return textwrap.dedent(f"""
             You're a ReAct agent. Your knowledge cut-off date is 2024, but today is {str(date.today())}.
-            Disclose your reasoning using "disclose_reasoning" function.
             
             Task: {base_prompt.strip()}
+            
+            ## Available Tools
+            You have access to various tools to help complete the task. Use them as needed to gather information.
+            - `disclose_reasoning` - Use this only to briefly summarize your reasoning and to signal completion
+            
+            ## Finalization Protocol (CRITICAL)
+            When your analysis is complete, follow these steps EXACTLY:
+            
+            1. Make one final function call to `disclose_reasoning` with:
+               {{
+                 "thought": "<brief reasoning summary>",
+                 "action": "finalize_and_answer",
+                 "status": "DONE"
+               }}
+            
+            2. **IMMEDIATELY AFTER** that tool call, output a normal assistant message (no further tool calls) containing your complete, final answer to the user.
+            
+            3. **DO NOT** end with a null/None action. Always provide the full answer in your final assistant message.
+            
+            If more information is still needed, call `disclose_reasoning` with `"status": "INCOMPLETE"` and continue gathering information.
+            
+            ## Important Notes
+            - Use tools to gather all necessary information before finalizing
+            - The `action` field in `disclose_reasoning` should always be set to "finalize_and_answer" when status is "DONE"
+            - Your final assistant message (after the final `disclose_reasoning` call) should contain the complete response to the user
         """).strip()
 
     def _project_common_tools_result(self, tool_result):
@@ -188,6 +212,7 @@ class WriterToolCalling(WriterBlock):
         import writer.ai
 
         self.is_complete = False
+        self.result = None
 
         try:
             prompt = self._get_field("prompt")
@@ -203,9 +228,21 @@ class WriterToolCalling(WriterBlock):
                 msg = conversation.complete(tools=tools, config=config)
                 conversation += msg
                 if self.is_complete:
+                    # According to the protocol, after disclose_reasoning with status="DONE",
+                    # the agent should output a final assistant message with the complete answer.
+                    # Check if this message has content (the final answer)
+                    if msg.get("content"):
+                        self.result = msg.get("content")
+                        break
+                    # If no content yet, allow one more iteration to get the final message
+                    # (the tool call processing might need another round)
+                    if i < max_iterations - 1:
+                        continue
                     break
 
-            self.result = msg.get("content")
+            # If we didn't capture the result yet, try to get it from the last message
+            if not self.result:
+                self.result = msg.get("content", "")
             self.outcome = "success"
         except BaseException as e:
             self.outcome = "error"
