@@ -183,11 +183,13 @@ class WriterToolCalling(WriterBlock):
             When your analysis is complete, follow these steps EXACTLY:
             
             1. Make one final function call to `disclose_reasoning` with:
-               {{
-                 "thought": "<brief reasoning summary>",
-                 "action": "finalize_and_answer",
-                 "status": "DONE"
-               }}
+            ```json
+            {{
+                "thought": "<brief reasoning summary>",
+                "action": "finalize_and_answer",
+                "status": "DONE"
+            }}
+            ```
             
             2. **IMMEDIATELY AFTER** that tool call, output a normal assistant message (no further tool calls) containing your complete, final answer to the user.
             
