@@ -114,6 +114,7 @@
 
 		<div id="modal"></div>
 
+		<BuilderAppSocketTimeoutModal />
 		<!-- TOOLTIP -->
 
 		<BuilderTooltip id="tooltip" />
@@ -150,6 +151,7 @@ import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 

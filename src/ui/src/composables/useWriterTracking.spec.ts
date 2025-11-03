@@ -98,10 +98,19 @@ describe(useWriterTracking.name, () => {
 		it("should track", async () => {
 			const wrapper = shallowMount(Wrapper);
 			await flushPromises();
+			const trackCallback = vi.fn();
+			wrapper.vm.registerTrackCallback(trackCallback);
 			await wrapper.vm.track("ui_block_added");
 
 			expect(analyticsTrack).toHaveBeenCalledExactlyOnceWith(
 				"[AgentEditor] ui_block_added",
+				{
+					writerApplicationId: "2",
+					writerOrganizationId: "1",
+				},
+			);
+			expect(trackCallback).toHaveBeenCalledExactlyOnceWith(
+				"ui_block_added",
 				{
 					writerApplicationId: "2",
 					writerOrganizationId: "1",

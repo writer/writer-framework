@@ -48,6 +48,10 @@ interface EventPropertiesWithResources extends EventProperties {
 
 const EVENT_PREFIX = "[AgentEditor]";
 
+let trackCallbacks: Array<
+	(eventName: WriterTrackingEventName, properties: EventProperties) => void
+> = [];
+
 export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 	const abortControler = new AbortController();
 
@@ -182,6 +186,8 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 			expandEventPropertiesWithResources(properties);
 		logger.log("[tracking]", eventNameFormated, propertiesExpanded);
 
+		trackCallbacks.forEach((c) => c(eventName, propertiesExpanded));
+
 		return await Promise.all([
 			trackWithApi(eventNameFormated, propertiesExpanded),
 			trackWithFullStory(eventNameFormated, propertiesExpanded),
@@ -201,5 +207,18 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		);
 	}
 
-	return { track, page };
+	function registerTrackCallback(
+		callback: (
+			eventName: WriterTrackingEventName,
+			properties: EventProperties,
+		) => void,
+	) {
+		trackCallbacks.push(callback);
+
+		return () => {
+			trackCallbacks = trackCallbacks.filter((c) => c !== callback);
+		};
+	}
+
+	return { track, page, registerTrackCallback };
 }
