@@ -15,7 +15,7 @@ export function usePromiseQueue(
 	const jobs: Job[] = [];
 	let isRunning = false;
 
-	async function add<T>(func: () => Promise<T>): Promise<T> {
+	function add<T>(func: () => Promise<T>): Promise<T> {
 		// eslint-disable-next-line no-async-promise-executor
 		return new Promise(async (res, rej) => {
 			async function callback() {

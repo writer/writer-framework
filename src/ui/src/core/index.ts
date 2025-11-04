@@ -730,10 +730,11 @@ export function generateCore() {
 
 		// eslint-disable-next-line no-async-promise-executor
 		return new Promise<void>(async (res) => {
-			while (syncHealth.value !== value) {
-				await new Promise((r) => setTimeout(r, 500));
-			}
-			return res();
+			const tick = () => {
+				if (syncHealth.value === value) return res();
+				setTimeout(tick, 1000);
+			};
+			tick();
 		});
 	}
 
