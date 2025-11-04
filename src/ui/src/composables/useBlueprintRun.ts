@@ -1,7 +1,8 @@
-import type { generateCore } from "@/core";
-import { generateBuilderManager } from "@/builder/builderManager";
 import { computed, readonly, Ref, ref, unref } from "vue";
 import { useWriterTracking } from "./useWriterTracking";
+import type { BuilderManager, Core } from "@/writerTypes";
+import { inject } from "vue";
+import injectionKeys from "@/injectionKeys";
 
 interface RunBlueprintResponse {
 	ok: boolean;
@@ -19,7 +20,7 @@ interface RunBlueprintResponse {
 }
 
 function runBlueprint(
-	wf: ReturnType<typeof generateCore>,
+	wf: Core,
 	blueprintComponentId: string,
 	branchId?: string,
 ) {
@@ -68,7 +69,7 @@ function runBlueprint(
 	});
 }
 
-function stopBlueprintRun(wf: ReturnType<typeof generateCore>, runId: string) {
+function stopBlueprintRun(wf: Core, runId: string) {
 	return new Promise<void>((res, rej) => {
 		const tracking = useWriterTracking(wf);
 		tracking.track("blueprints_run_stopped");
@@ -94,8 +95,8 @@ function stopBlueprintRun(wf: ReturnType<typeof generateCore>, runId: string) {
 }
 
 export function useBlueprintRun(
-	wf: ReturnType<typeof generateCore>,
-	wfbm: ReturnType<typeof generateBuilderManager>,
+	wf: Core,
+	wfbm: BuilderManager,
 	blueprintComponentId: string | Ref<string>,
 ) {
 	const isRunning = ref(false);
@@ -123,10 +124,11 @@ export type BlueprintsRunListItem = { blueprintId: string; branchId: string };
 type MaybeRef<T> = T | Ref<T>;
 
 export function useBlueprintsRun(
-	wf: ReturnType<typeof generateCore>,
+	wf: Core,
 	blueprintComponentIds: MaybeRef<BlueprintsRunListItem[]>,
 ) {
 	const runningBlueprintIds = ref<string[]>([]);
+	const socketTimeout = inject(injectionKeys.socketTimeout);
 
 	async function handleRunBlueprint({
 		blueprintId,
@@ -135,6 +137,7 @@ export function useBlueprintsRun(
 		if (runningBlueprintIds.value.includes(blueprintId)) return;
 
 		try {
+			if (socketTimeout) socketTimeout.prevent.value = true;
 			runningBlueprintIds.value = [
 				blueprintId,
 				...runningBlueprintIds.value,
@@ -144,6 +147,7 @@ export function useBlueprintsRun(
 			runningBlueprintIds.value = runningBlueprintIds.value.filter(
 				(id) => id !== blueprintId,
 			);
+			if (socketTimeout) socketTimeout.prevent.value = false;
 		}
 	}
 	async function run() {
