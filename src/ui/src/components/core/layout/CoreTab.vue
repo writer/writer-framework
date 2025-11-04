@@ -149,18 +149,8 @@ const activateTab = () => {
 	const tabContainerData = getTabContainerData();
 	tabContainerData.value = {
 		activeTab: getMatchingTabInstancePath(),
+		activeTabName: fields.name.value,
 	};
-
-	if (rootEl.value) {
-		const payload = fields.name.value;
-		const event = new CustomEvent("wf-tab-change", {
-			detail: {
-				payload,
-			},
-			bubbles: true,
-		});
-		rootEl.value.dispatchEvent(event);
-	}
 };
 
 const checkIfTabIsParent = (childId: Component["id"]): boolean => {
@@ -192,12 +182,13 @@ const isTabActive = computed(() => {
 });
 
 onBeforeMount(() => {
-	if (isTabBit.value) return;
+	if (!isTabBit.value) return;
 	const tabContainerData = getTabContainerData();
-	const activeTab = tabContainerData.value?.activeTab;
-	if (activeTab) return;
-	if (!isComponentVisible(componentId, instancePath)) return;
-	tabContainerData.value = { activeTab: instancePath };
+	tabContainerData.value.tabs.push({
+		name: fields.name.value,
+		instancePath: getMatchingTabInstancePath(),
+		componentId: componentId,
+	});
 });
 </script>
 

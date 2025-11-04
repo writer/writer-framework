@@ -1,5 +1,5 @@
 <template>
-	<div class="CoreTabs">
+	<div ref="rootInstance" class="CoreTabs">
 		<nav
 			class="tabSelector horizontal"
 			data-writer-cage
@@ -26,6 +26,7 @@ import {
 	buttonShadow,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
+import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
 const tabChangeHandlerStub = `
 def tab_change_handler(state, payload):
@@ -48,6 +49,7 @@ export default {
 				desc: "Sent when the active tab changes.",
 				stub: tabChangeHandlerStub.trim(),
 				eventPayloadExample: "Tab Name",
+				bindable: true,
 			},
 		},
 		fields: {
@@ -66,11 +68,52 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { inject } from "vue";
+import { ComponentPublicInstance, inject, onMounted, ref, watch } from "vue";
+import { useEvaluator } from "@/renderer/useEvaluator";
 import injectionKeys from "@/injectionKeys";
-
+const rootInstance = ref<ComponentPublicInstance | null>(null);
+const wf = inject(injectionKeys.core);
+const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
-instanceData.at(-1).value = { activeTab: undefined };
+const containerState = instanceData.at(-1);
+const { isComponentVisible } = useEvaluator(wf);
+
+const { formValue, handleInput } = useFormValueBroker(
+	wf,
+	instancePath,
+	rootInstance,
+);
+
+containerState.value = {
+	activeTab: undefined,
+	activeTabName: formValue.value,
+	tabs: [],
+};
+
+watch(containerState, (newVal) => {
+	if (!rootInstance.value) return;
+	handleInput(newVal.activeTabName, "wf-tab-change");
+});
+
+onMounted(() => {
+	if (containerState.value.activeTab) return;
+	if (!containerState.value.tabs) return;
+
+	const visibleTabs = containerState.value.tabs.filter((t) =>
+		isComponentVisible(t.componentId, t.instancePath),
+	);
+	if (!visibleTabs) return;
+
+	const initialActiveTabName = containerState.value.activeTabName;
+	let tabToActivate = initialActiveTabName
+		? visibleTabs.find((t) => t.name === initialActiveTabName)
+		: visibleTabs[0];
+
+	if (!tabToActivate) return;
+
+	containerState.value.activeTab = tabToActivate.instancePath;
+	containerState.value.activeTabName = tabToActivate.name;
+});
 </script>
 
 <style scoped>
