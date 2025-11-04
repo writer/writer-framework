@@ -25,9 +25,9 @@ class WriterKeyValueStorage(WriterBlock):
                             "type": "Text",
                             "description": "What action to perform on the data (save, get, delete).",
                             "options": {
-                                "save": "Save",
-                                "get": "Get",
-                                "delete": "Delete",
+                                "Save": "Save",
+                                "Get": "Get",
+                                "Delete": "Delete",
                             },
                             "default": "Save",
                         },
@@ -55,9 +55,6 @@ class WriterKeyValueStorage(WriterBlock):
                             "style": "error",
                         },
                     },
-                    "featureFlags": [
-                        "keyvalue_storage",
-                    ],
                 },
             ),
         )
@@ -74,12 +71,12 @@ class WriterKeyValueStorage(WriterBlock):
             with self.acquire_httpx_client() as client:
                 writer_kv_storage = KeyValueStorage(client=client)
 
-                if action == "save":
+                if action == "Save":
                     value = self._get_field("value")
                     response = writer_kv_storage.save(key, value)
-                elif action == "get":
+                elif action == "Get":
                     response = writer_kv_storage.get(key, type_="data")
-                elif action == "delete":
+                elif action == "Delete":
                     response = writer_kv_storage.delete(key)
                 else:
                     raise ValueError(f"Unknown action for the Key-Value Storage: {action}")
