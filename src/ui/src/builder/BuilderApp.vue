@@ -24,15 +24,25 @@
 						<BuilderVault v-if="builderMode === 'vault'" />
 						<div
 							v-else
+							ref="rendererWrapperEl"
 							class="rendererWrapper"
 							:class="{
 								addNoteCursor:
 									notesManager.isAnnotating.value &&
 									ssbm.mode.value !== 'preview',
+								isSelecting: isCursorSelecting,
+								canSelect:
+									isHoveringSelectableArea &&
+									!isCursorSelecting,
 							}"
 							@scroll="refreshNotesPosition"
+							@mousedown.capture="handleRendererMousedown"
+							@mousemove="handleRendererMousemove"
+							@mouseup="handleRendererMouseup"
+							@mouseleave="handleRendererMouseleave"
 						>
 							<ComponentRenderer
+								ref="rendererEl"
 								class="componentRenderer"
 								:class="{
 									settingsOpen: ssbm.isSingleSelectionActive,
@@ -45,6 +55,17 @@
 								@dblclick="handleRendererDblClick"
 							>
 							</ComponentRenderer>
+							<!-- Selection rectangle overlay -->
+							<div
+								v-if="selectionRect.isSelecting"
+								class="selectionRectangle"
+								:style="{
+									left: `${selectionRect.left}px`,
+									top: `${selectionRect.top}px`,
+									width: `${selectionRect.width}px`,
+									height: `${selectionRect.height}px`,
+								}"
+							></div>
 						</div>
 						<BuilderSettings
 							v-if="ssbm.isSingleSelectionActive"
@@ -150,6 +171,7 @@ import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { useDragToSelect } from "./composables/useDragToSelect";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -179,6 +201,27 @@ const tracking = useWriterTracking(wf);
 const toasts = useToasts();
 
 const noteEl = useTemplateRef("noteEl");
+const rendererEl = useTemplateRef("rendererEl");
+const rendererWrapperEl = useTemplateRef("rendererWrapperEl");
+
+const justCompletedDragSelection = ref(false);
+
+const {
+	selectionRect,
+	isCursorSelecting,
+	isHoveringSelectableArea,
+	handleMousedown: handleRendererMousedown,
+	handleMousemove: handleRendererMousemove,
+	handleMouseup: handleRendererMouseup,
+	handleMouseleave: handleRendererMouseleave,
+	handleDocumentMouseup,
+} = useDragToSelect({
+	wrapperRef: rendererWrapperEl,
+	builderMode: ssbm.mode,
+	builderManager: ssbm,
+	isAnnotating: notesManager.isAnnotating,
+	justCompletedDragSelection,
+});
 
 function refreshNotesPosition() {
 	const isNotesIterable =
@@ -356,12 +399,16 @@ function handleRendererDrop(ev: DragEvent) {
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
-	const unselectableEl: HTMLElement = (ev.target as HTMLElement).closest(
+	if (justCompletedDragSelection.value) {
+		return;
+	}
+
+	const unselectableEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-unselectable]",
 	);
 	if (unselectableEl) return;
 
-	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
+	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-id]",
 	);
 	if (!targetEl) return;
@@ -392,14 +439,16 @@ function handleRendererDblClick() {
 const handleRendererDragStart = (ev: DragEvent) => {
 	if (builderMode.value === "preview") return;
 
-	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
+	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-id]",
 	);
+	if (!targetEl) return;
 
 	const componentId = targetEl.dataset.writerId;
+	if (!componentId) return;
+
 	const { type } = wf.getComponentById(componentId);
 
-	// we don't support yet dragginfg multiple components in UI. If drag is starting with multiple selections, we select only one component
 	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) {
 		ssbm.setSelection(componentId, undefined, "click");
 		ssbm.isSettingsBarCollapsed.value = true;
@@ -429,6 +478,9 @@ watch(ssbm.selection, () => {
 
 onMounted(() => {
 	document.addEventListener("keydown", handleKeydown, {
+		signal: abort.signal,
+	});
+	document.addEventListener("mouseup", handleDocumentMouseup, {
 		signal: abort.signal,
 	});
 });
@@ -526,9 +578,18 @@ onUnmounted(() => {
 	flex-direction: column;
 	height: 100%;
 	overflow-y: auto;
+	position: relative;
 }
 .rendererWrapper--annotating {
 	cursor: context-menu;
+}
+
+.rendererWrapper.isSelecting {
+	cursor: crosshair;
+}
+
+.rendererWrapper.canSelect {
+	cursor: crosshair;
 }
 
 .componentRenderer {
@@ -566,5 +627,13 @@ onUnmounted(() => {
 #tooltip {
 	position: absolute;
 	z-index: 11;
+}
+
+.selectionRectangle {
+	position: absolute;
+	border: 2px solid var(--builderAccentColor);
+	background: rgba(59, 130, 246, 0.1);
+	pointer-events: none;
+	z-index: 2;
 }
 </style>

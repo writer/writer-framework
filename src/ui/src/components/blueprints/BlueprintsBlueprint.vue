@@ -2,6 +2,9 @@
 	<div
 		ref="rootEl"
 		class="BlueprintsBlueprint"
+		:class="{
+			isPanning: activeCanvasMove !== null,
+		}"
 		:data-writer-unselectable="isUnselectable"
 		@click="handleClick"
 		@dragover.prevent.stop
@@ -730,6 +733,11 @@ function moveCanvas(ev: MouseEvent) {
 	);
 }
 
+function isDragToSelectActive(): boolean {
+	const selectionRect = document.querySelector(".selectionRectangle");
+	return selectionRect !== null;
+}
+
 function handleMousemove(ev: MouseEvent) {
 	if (ev.buttons != 1) return;
 
@@ -741,7 +749,7 @@ function handleMousemove(ev: MouseEvent) {
 		moveNode(ev);
 		return;
 	}
-	if (activeCanvasMove.value) {
+	if (activeCanvasMove.value && !isDragToSelectActive()) {
 		moveCanvas(ev);
 		return;
 	}
@@ -1071,6 +1079,11 @@ onUnmounted(() => {
 	align-items: stretch;
 	position: relative;
 	overflow: hidden;
+	cursor: grab;
+}
+
+.BlueprintsBlueprint.isPanning {
+	cursor: grabbing;
 }
 
 .blueprintsToolbar {
