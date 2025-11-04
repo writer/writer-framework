@@ -241,7 +241,7 @@ export function generateCore() {
 	// Open and setup websocket
 
 	async function startSync(): Promise<void> {
-		if (webSocket) return; // Open WebSocket exists
+		if (webSocket && syncHealth.value === "connected") return; // Open WebSocket exists
 
 		const logger = useLogger();
 

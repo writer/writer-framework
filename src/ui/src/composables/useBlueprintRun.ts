@@ -44,27 +44,21 @@ function runBlueprint(
 		}
 
 		wf.forwardEvent(
-			branchId ?
-			new CustomEvent(
-				"wf-run-blueprint-branch", 
-				{
-					detail: {
-						callback,
-						handler: "run_blueprint_branch",
-						payload: { "branch_id": branchId }
-					},
-				}
-			) :
-			new CustomEvent(
-				"wf-run-blueprint", 
-				{
-					detail: {
-						callback,
-						handler: "run_blueprint_by_id",
-						payload: { blueprint_id: blueprintComponentId },
-					},
-				}
-			),
+			branchId
+				? new CustomEvent("wf-run-blueprint-branch", {
+						detail: {
+							callback,
+							handler: "run_blueprint_branch",
+							payload: { branch_id: branchId },
+						},
+					})
+				: new CustomEvent("wf-run-blueprint", {
+						detail: {
+							callback,
+							handler: "run_blueprint_by_id",
+							payload: { blueprint_id: blueprintComponentId },
+						},
+					}),
 			null,
 			true,
 		).catch((err) => {
@@ -74,10 +68,7 @@ function runBlueprint(
 	});
 }
 
-function stopBlueprintRun(
-	wf: ReturnType<typeof generateCore>,
-	runId: string,
-) {
+function stopBlueprintRun(wf: ReturnType<typeof generateCore>, runId: string) {
 	return new Promise<void>((res, rej) => {
 		const tracking = useWriterTracking(wf);
 		tracking.track("blueprints_run_stopped");
@@ -86,7 +77,7 @@ function stopBlueprintRun(
 			new CustomEvent("wf-stop-blueprint", {
 				detail: {
 					handler: "stop_blueprint_run",
-					payload: { run_id: runId},
+					payload: { run_id: runId },
 				},
 			}),
 			null,
@@ -94,7 +85,9 @@ function stopBlueprintRun(
 		)
 			.then(() => res())
 			.catch((err) => {
-				tracking.track("blueprints_run_stop_failed", { error: String(err) });
+				tracking.track("blueprints_run_stop_failed", {
+					error: String(err),
+				});
 				rej(err);
 			});
 	});
@@ -119,7 +112,7 @@ export function useBlueprintRun(
 
 	async function stop() {
 		const activeRunId = wfbm.activeBlueprintRunId.value;
-		if(!activeRunId) return;
+		if (!activeRunId) return;
 		await stopBlueprintRun(wf, activeRunId);
 	}
 

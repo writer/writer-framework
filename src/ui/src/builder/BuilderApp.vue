@@ -152,6 +152,7 @@ import BaseNote from "@/components/core/base/BaseNote.vue";
 import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
+import { useSocketTimeout } from "./useSocketTimeout";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -179,6 +180,8 @@ const collaborationManager = inject(injectionKeys.collaborationManager);
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
+
+provide(injectionKeys.socketTimeout, useSocketTimeout(wf, 10));
 
 const noteEl = useTemplateRef("noteEl");
 
