@@ -16,24 +16,16 @@ interface SelectionRectangle {
 
 const MIN_SELECTION_SIZE_PX = 5;
 const DRAG_SELECTION_CLICK_DELAY_MS = 100;
-const MOVEMENT_THRESHOLD = 3;
 
 interface UseDragToSelectOptions {
 	wrapperRef: Ref<HTMLElement | null>;
 	builderMode: Ref<BuilderManagerMode>;
 	builderManager: BuilderManager;
 	isAnnotating: Ref<boolean>;
-	justCompletedDragSelection: Ref<boolean>;
 }
 
 export function useDragToSelect(options: UseDragToSelectOptions) {
-	const {
-		wrapperRef,
-		builderMode,
-		builderManager,
-		isAnnotating,
-		justCompletedDragSelection,
-	} = options;
+	const { wrapperRef, builderMode, builderManager, isAnnotating } = options;
 
 	const selectionRect = ref<SelectionRectangle>({
 		isSelecting: false,
@@ -50,6 +42,7 @@ export function useDragToSelect(options: UseDragToSelectOptions) {
 	const isCursorSelecting = computed(() => selectionRect.value.isSelecting);
 
 	const isHoveringSelectableArea = ref(false);
+	const justCompletedDragSelection = ref(false);
 
 	function shouldAllowSelectionInBlueprints(target: HTMLElement): boolean {
 		const targetEl = target.closest<HTMLElement>("[data-writer-id]");
@@ -60,9 +53,7 @@ export function useDragToSelect(options: UseDragToSelectOptions) {
 		);
 		if (!blueprintsBlueprint) return false;
 
-		if (targetEl === blueprintsBlueprint) return true;
-
-		return false;
+		return targetEl === blueprintsBlueprint;
 	}
 
 	function isClickOnBlueprintsCanvas(target: HTMLElement): boolean {
@@ -340,6 +331,7 @@ export function useDragToSelect(options: UseDragToSelectOptions) {
 		isCursorSelecting,
 		isHoveringSelectableArea,
 		isSelecting: computed(() => selectionRect.value.isSelecting),
+		justCompletedDragSelection,
 		handleMousedown,
 		handleMousemove,
 		handleMouseup,

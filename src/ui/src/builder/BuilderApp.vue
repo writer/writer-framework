@@ -204,12 +204,11 @@ const noteEl = useTemplateRef("noteEl");
 const rendererEl = useTemplateRef("rendererEl");
 const rendererWrapperEl = useTemplateRef("rendererWrapperEl");
 
-const justCompletedDragSelection = ref(false);
-
 const {
 	selectionRect,
 	isCursorSelecting,
 	isHoveringSelectableArea,
+	justCompletedDragSelection,
 	handleMousedown: handleRendererMousedown,
 	handleMousemove: handleRendererMousemove,
 	handleMouseup: handleRendererMouseup,
@@ -220,7 +219,6 @@ const {
 	builderMode: ssbm.mode,
 	builderManager: ssbm,
 	isAnnotating: notesManager.isAnnotating,
-	justCompletedDragSelection,
 });
 
 function refreshNotesPosition() {
