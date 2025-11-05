@@ -82,7 +82,7 @@ export function generateCore() {
 	let mailInbox: MailItem[] = [];
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
-	
+
 	let pendingComponentUpdate = false;
 
 	const activePageId = ref<Component["id"] | undefined>();
@@ -241,7 +241,7 @@ export function generateCore() {
 	// Open and setup websocket
 
 	async function startSync(): Promise<void> {
-		if (webSocket) return; // Open WebSocket exists
+		if (webSocket && syncHealth.value === "connected") return; // Open WebSocket exists
 
 		const logger = useLogger();
 
@@ -254,11 +254,14 @@ export function generateCore() {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
-			
+
 			if (pendingComponentUpdate) {
 				pendingComponentUpdate = false;
 				sendComponentUpdate().catch((error) => {
-					logger.error("Failed to retry component update after reconnect:", error);
+					logger.error(
+						"Failed to retry component update after reconnect:",
+						error,
+					);
 					pendingComponentUpdate = true;
 				});
 			}
@@ -399,6 +402,13 @@ export function generateCore() {
 				{ once: true },
 			);
 		});
+	}
+
+	function stopSync(): void {
+		if (!webSocket) return;
+		webSocket.onclose = () => {};
+		webSocket.close();
+		syncHealth.value = "offline";
 	}
 
 	/**
@@ -951,6 +961,7 @@ export function generateCore() {
 		isChildOf,
 		featureFlags: readonly(featureFlags),
 		getWebSocket,
+		stopSync,
 		// writer cloud variables
 		writerApplication: readonly(writerApplication),
 		isWriterCloudApp,

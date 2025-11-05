@@ -1,5 +1,5 @@
 import { ComputedRef, InjectionKey, Ref, VNode } from "vue";
-import {
+import type {
 	BuilderManager,
 	CollaborationManager,
 	Component,
@@ -8,6 +8,7 @@ import {
 	InstancePathItem,
 	NotesManager,
 	SecretsManager,
+	SocketTimeout,
 } from "./writerTypes";
 
 export default {
@@ -34,4 +35,5 @@ export default {
 	flattenedInstancePath: Symbol() as InjectionKey<string>,
 	instanceData: Symbol() as InjectionKey<Ref[]>,
 	isAutogenModalShown: Symbol() as InjectionKey<Ref<boolean>>,
+	socketTimeout: Symbol() as InjectionKey<SocketTimeout>,
 };

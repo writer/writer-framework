@@ -168,7 +168,10 @@ const {
 	save,
 } = useSourceFiles(wf);
 
-const { enablePrevention, disablePrevention } = useUnsavedChangesPrevention();
+const socketTimeout = inject(injectionKeys.socketTimeout);
+
+const { enablePrevention, disablePrevention } =
+	useUnsavedChangesPrevention(socketTimeout);
 
 const {
 	showModal,
