@@ -123,14 +123,12 @@ onMounted(() => {
 	const visibleTabs = containerState.value.tabs.filter((t) =>
 		isComponentVisible(t.componentId, t.instancePath),
 	);
-	if (!visibleTabs) return;
+	if (visibleTabs.length === 0) return;
 
 	const initialActiveTabName = containerState.value.activeTabName;
-	let tabToActivate = initialActiveTabName
-		? visibleTabs.find((t) => t.name === initialActiveTabName)
-		: visibleTabs[0];
-
-	if (!tabToActivate) return;
+	const tabToActivate =
+		visibleTabs.find((t) => t.name === initialActiveTabName) ??
+		visibleTabs[0];
 
 	containerState.value.activeTab = tabToActivate.instancePath;
 	containerState.value.activeTabName = tabToActivate.name;
