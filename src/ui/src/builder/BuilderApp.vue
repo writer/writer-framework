@@ -30,16 +30,8 @@
 								addNoteCursor:
 									notesManager.isAnnotating.value &&
 									ssbm.mode.value !== 'preview',
-								isSelecting: isCursorSelecting,
-								canSelect:
-									isHoveringSelectableArea &&
-									!isCursorSelecting,
 							}"
 							@scroll="refreshNotesPosition"
-							@mousedown.capture="handleRendererMousedown"
-							@mousemove="handleRendererMousemove"
-							@mouseup="handleRendererMouseup"
-							@mouseleave="handleRendererMouseleave"
 						>
 							<ComponentRenderer
 								ref="rendererEl"
@@ -55,17 +47,6 @@
 								@dblclick="handleRendererDblClick"
 							>
 							</ComponentRenderer>
-							<!-- Selection rectangle overlay -->
-							<div
-								v-if="selectionRect.isSelecting"
-								class="selectionRectangle"
-								:style="{
-									left: `${selectionRect.left}px`,
-									top: `${selectionRect.top}px`,
-									width: `${selectionRect.width}px`,
-									height: `${selectionRect.height}px`,
-								}"
-							></div>
 						</div>
 						<BuilderSettings
 							v-if="ssbm.isSingleSelectionActive"
@@ -171,7 +152,6 @@ import BuilderCollaborationTracker from "./BuilderCollaborationTracker.vue";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
-import { useDragToSelect } from "./composables/useDragToSelect";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -203,23 +183,6 @@ const toasts = useToasts();
 const noteEl = useTemplateRef("noteEl");
 const rendererEl = useTemplateRef("rendererEl");
 const rendererWrapperEl = useTemplateRef("rendererWrapperEl");
-
-const {
-	selectionRect,
-	isCursorSelecting,
-	isHoveringSelectableArea,
-	justCompletedDragSelection,
-	handleMousedown: handleRendererMousedown,
-	handleMousemove: handleRendererMousemove,
-	handleMouseup: handleRendererMouseup,
-	handleMouseleave: handleRendererMouseleave,
-	handleDocumentMouseup,
-} = useDragToSelect({
-	wrapperRef: rendererWrapperEl,
-	builderMode: ssbm.mode,
-	builderManager: ssbm,
-	isAnnotating: notesManager.isAnnotating,
-});
 
 function refreshNotesPosition() {
 	const isNotesIterable =
@@ -397,14 +360,27 @@ function handleRendererDrop(ev: DragEvent) {
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
-	if (justCompletedDragSelection.value) {
-		return;
-	}
-
 	const unselectableEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-unselectable]",
 	);
 	if (unselectableEl) return;
+
+	// In blueprints mode, if we have multiple selections, don't allow single-click selection
+	// This prevents interference with drag-to-select multi-selection
+	if (
+		builderMode.value === "blueprints" &&
+		ssbm.selectionStatus.value === SelectionStatus.Multiple
+	) {
+		const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
+			"[data-writer-id]",
+		);
+		if (targetEl && ssbm.isComponentIdSelected(targetEl.dataset.writerId)) {
+			// If clicking on an already-selected component in multi-selection mode, don't change selection
+			ev.preventDefault();
+			ev.stopPropagation();
+			return;
+		}
+	}
 
 	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-id]",
@@ -476,9 +452,6 @@ watch(ssbm.selection, () => {
 
 onMounted(() => {
 	document.addEventListener("keydown", handleKeydown, {
-		signal: abort.signal,
-	});
-	document.addEventListener("mouseup", handleDocumentMouseup, {
 		signal: abort.signal,
 	});
 });
@@ -625,13 +598,5 @@ onUnmounted(() => {
 #tooltip {
 	position: absolute;
 	z-index: 11;
-}
-
-.selectionRectangle {
-	position: absolute;
-	border: 2px solid var(--builderAccentColor);
-	background: rgba(59, 130, 246, 0.1);
-	pointer-events: none;
-	z-index: 2;
 }
 </style>
