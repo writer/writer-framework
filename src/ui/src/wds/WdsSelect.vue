@@ -225,6 +225,13 @@ function handleRemoveValue(value: string) {
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 	outline: none;
 }
+
+.WdsSelect__trigger .skeleton {
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+}
+
 .WdsSelect__trigger__label {
 	text-overflow: ellipsis;
 	overflow: hidden;

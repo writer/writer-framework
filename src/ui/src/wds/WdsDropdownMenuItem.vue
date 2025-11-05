@@ -192,4 +192,10 @@ const iconStyle = computed(() => {
 	display: flex;
 	align-items: center;
 }
+
+.WdsDropdownMenuItem__icon .skeleton {
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+}
 </style>

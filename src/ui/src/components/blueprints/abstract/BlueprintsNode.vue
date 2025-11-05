@@ -527,6 +527,13 @@ watch(isEngaged, () => {
 	height: 24px;
 }
 
+.BlueprintsNode__main__title .skeleton {
+	max-width: 24px;
+	max-height: 24px;
+	aspect-ratio: 1 / 1;
+	border-radius: 4px;
+}
+
 .BlueprintsNode__main__title .deprecationNotice {
 	font-size: 12px;
 	text-transform: uppercase;

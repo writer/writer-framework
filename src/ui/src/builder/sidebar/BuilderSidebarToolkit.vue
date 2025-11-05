@@ -202,6 +202,13 @@ watch(activeToolkit, () => {
 	aspect-ratio: 1 / 1;
 }
 
+.tool .skeleton {
+	max-width: 18px;
+	max-height: 18px;
+	aspect-ratio: 1 / 1;
+	border-radius: 4px;
+}
+
 .tool:hover {
 	background: var(--builderSubtleSeparatorColor);
 }
