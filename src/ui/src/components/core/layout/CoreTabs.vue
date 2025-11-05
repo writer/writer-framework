@@ -108,12 +108,17 @@ watch(formValue, (newTabName) => {
 	);
 	if (!visibleTabs.length) return;
 
-	const tabToActivate = visibleTabs.find((t) => t.name === newTabName);
+	let tabToActivate = visibleTabs.find((t) => t.name === newTabName);
 
-	if (tabToActivate) {
-		containerState.value.activeTab = tabToActivate.instancePath;
-		containerState.value.activeTabName = tabToActivate.name;
+	if (!tabToActivate) {
+		const currentActiveInState = visibleTabs.find(
+			(t) => t.name === containerState.value.activeTabName,
+		);
+		tabToActivate = currentActiveInState ?? visibleTabs[0];
 	}
+
+	containerState.value.activeTab = tabToActivate.instancePath;
+	containerState.value.activeTabName = tabToActivate.name;
 });
 
 onMounted(() => {
