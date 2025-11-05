@@ -349,7 +349,7 @@ const isUnselectable = computed(() => {
 });
 
 function handleClick(ev: MouseEvent) {
-	if (_justCompletedDragSelection) {
+	if (_justCompletedDragSelection.value) {
 		ev.preventDefault();
 		ev.stopPropagation();
 		return;
