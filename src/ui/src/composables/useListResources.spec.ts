@@ -23,7 +23,7 @@ describe(useListResources.name, () => {
 	});
 
 	afterAll(() => {
-		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
 	});
 
 	it("should load the resources", async () => {

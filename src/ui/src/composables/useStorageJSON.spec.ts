@@ -15,7 +15,7 @@ describe(useLocalStorageJSON.name, () => {
 	});
 
 	afterAll(() => {
-		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
 	});
 
 	it("should get the value", () => {
