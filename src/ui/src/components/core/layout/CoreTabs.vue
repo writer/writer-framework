@@ -90,9 +90,30 @@ containerState.value = {
 	tabs: [],
 };
 
-watch(containerState, (newVal) => {
-	if (!rootInstance.value) return;
-	handleInput(newVal.activeTabName, "wf-tab-change");
+watch(
+	() => containerState.value?.activeTabName,
+	(activeTabName) => {
+		if (!rootInstance.value) return;
+		if (activeTabName === formValue.value) return;
+		handleInput(activeTabName, "wf-tab-change");
+	},
+);
+
+watch(formValue, (newTabName) => {
+	if (newTabName === containerState.value.activeTabName) return;
+	if (!containerState.value.tabs?.length) return;
+
+	const visibleTabs = containerState.value.tabs.filter((t) =>
+		isComponentVisible(t.componentId, t.instancePath),
+	);
+	if (!visibleTabs.length) return;
+
+	const tabToActivate = visibleTabs.find((t) => t.name === newTabName);
+
+	if (tabToActivate) {
+		containerState.value.activeTab = tabToActivate.instancePath;
+		containerState.value.activeTabName = tabToActivate.name;
+	}
 });
 
 onMounted(() => {

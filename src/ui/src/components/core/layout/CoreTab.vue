@@ -75,11 +75,10 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, onBeforeMount, useTemplateRef, watch } from "vue";
+import { computed, inject, onBeforeMount, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import BaseContainer from "../base/BaseContainer.vue";
 
-const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
 const instancePath = inject(injectionKeys.instancePath);
 const instanceData = inject(injectionKeys.instanceData);
@@ -147,10 +146,8 @@ const getMatchingTabInstancePath = () => {
 
 const activateTab = () => {
 	const tabContainerData = getTabContainerData();
-	tabContainerData.value = {
-		activeTab: getMatchingTabInstancePath(),
-		activeTabName: fields.name.value,
-	};
+	tabContainerData.value.activeTab = getMatchingTabInstancePath();
+	tabContainerData.value.activeTabName = fields.name.value;
 };
 
 const checkIfTabIsParent = (childId: Component["id"]): boolean => {
