@@ -99,7 +99,6 @@
 					left: `${(temporaryNodeCoordinates?.[node.id]?.x ?? node.x) - renderOffset.x}px`,
 				}"
 			/>
-			<!-- Selection rectangle overlay -->
 			<div
 				v-if="selectionRect.isSelecting"
 				class="selectionRectangle"
@@ -783,10 +782,8 @@ function isDragToSelectActive(): boolean {
 }
 
 function handleMousemove(ev: MouseEvent) {
-	// Call drag-to-select handler first (it's also attached to nodeContainerEl)
 	handleDragToSelectMousemove(ev);
 
-	// If drag-to-select is active, don't process other mouse move logic
 	if (isDragToSelectActive()) {
 		return;
 	}
@@ -808,8 +805,6 @@ function handleMousemove(ev: MouseEvent) {
 }
 
 function handleMousedown(ev: MouseEvent) {
-	// Drag-to-select is handled directly on nodeContainerEl
-	// This handler is for canvas panning (when not in drag-to-select mode)
 	if (isDragToSelectActive()) {
 		return;
 	}
@@ -828,8 +823,6 @@ function handleMousedown(ev: MouseEvent) {
 }
 
 async function handleMouseup(ev: MouseEvent) {
-	// Drag-to-select is handled directly on nodeContainerEl
-
 	if (activeNodeMove.value) {
 		saveNodeMove();
 	}

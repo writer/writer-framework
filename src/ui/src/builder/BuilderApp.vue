@@ -365,8 +365,6 @@ function handleRendererClick(ev: PointerEvent): void {
 	);
 	if (unselectableEl) return;
 
-	// In blueprints mode, if we have multiple selections, don't allow single-click selection
-	// This prevents interference with drag-to-select multi-selection
 	if (
 		builderMode.value === "blueprints" &&
 		ssbm.selectionStatus.value === SelectionStatus.Multiple
@@ -375,7 +373,6 @@ function handleRendererClick(ev: PointerEvent): void {
 			"[data-writer-id]",
 		);
 		if (targetEl && ssbm.isComponentIdSelected(targetEl.dataset.writerId)) {
-			// If clicking on an already-selected component in multi-selection mode, don't change selection
 			ev.preventDefault();
 			ev.stopPropagation();
 			return;
