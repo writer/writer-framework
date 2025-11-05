@@ -4,7 +4,7 @@
 		:for="inputId"
 		class="SharedDropZone"
 		:class="{
-			SharedDropZone_active: isOverDropZone,
+			SharedDropZone_active: isOverDropZone.value,
 		}"
 	>
 		<input

@@ -7,7 +7,7 @@
 			:class="{
 				copied,
 			}"
-			:disabled="!isSupported"
+			:disabled="!isSupported.value"
 			:aria-label="
 				isSingleButtonMode
 					? label || 'Copy to clipboard'
