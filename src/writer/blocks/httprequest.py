@@ -28,7 +28,6 @@ class HTTPRequest(BlueprintBlock):
                                 "PATCH": "PATCH",
                                 "DELETE": "DELETE",
                             },
-                            "default": "GET",
                             "validator": {
                                 "type": "string",
                                 "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
