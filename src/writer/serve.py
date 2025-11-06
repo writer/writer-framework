@@ -379,11 +379,41 @@ def get_asgi_app(
 
         return JSONResponse(content=blueprints)
 
+    @app.get("/private/api/blueprint/{blueprint_id}/cron-triggers")
+    async def get_blueprint_cron_triggers(blueprint_id: str, request: Request):
+        """
+        Returns a list of Cron Trigger blocks for the given blueprint.
+        """
+        if not app_runner.bmc_components:
+            return JSONResponse(content=[], status_code=200)
+
+        bp = app_runner.bmc_components.get(blueprint_id)
+        if not bp or bp.get("type") != "blueprints_blueprint":
+            return JSONResponse(
+                content={"error": f"Blueprint '{blueprint_id}' was not found."},
+                status_code=404,
+            )
+
+        cron_triggers = [
+            {
+                "id": comp.get("id"),
+                "name": comp.get("name") or comp.get("content", {}).get("name"),
+                "cronExpression": comp.get("content", {}).get("cronExpression"),
+                "timezone": comp.get("content", {}).get("timezone", "UTC"),
+            }
+            for comp in app_runner.bmc_components.values()
+            if comp.get("type") == "blueprints_crontrigger"
+            and comp.get("parentId") == blueprint_id
+        ]
+
+        return JSONResponse(content=cron_triggers, status_code=200)
+
     @app.post("/private/api/blueprint/{blueprint_id}")
     async def create_blueprint_job(blueprint_id: str, request: Request, response: Response):
         # Keep-alive interval for SSE streaming
         KEEPALIVE_INTERVAL = 15
         payload = await _get_payload_as_json(request)
+        branch_id = request.query_params.get("branch_id")
 
         # --- Session initialization ---
 
@@ -461,29 +491,50 @@ def get_asgi_app(
                     }))
                     return
 
-                if not has_api_trigger(app_runner, blueprint_id):
+                if not branch_id and not has_api_trigger(app_runner, blueprint_id):
                     await queue.put(await format_event("error", {
                         "msg": f"Blueprint '{blueprint_id}' lacks an API trigger.",
                         "finished_at": int(time.time())
                     }))
                     return
 
-                await queue.put(await format_event("status", {"status": "executing", "msg": f"Executing blueprint: {blueprint_id}..."}))
+                if branch_id:
+                    block = app_runner.bmc_components.get(branch_id)
+                    if not block:
+                        await queue.put(await format_event("error", {
+                            "msg": f"Block '{branch_id}' was not found.",
+                            "finished_at": int(time.time())
+                        }))
+                        return
 
-                # Kick off actual blueprint execution as background task
-                task = asyncio.create_task(
-                    app_runner.handle_event(
-                        session_id,
-                        WriterEvent(
-                            type="wf-run-blueprint-via-api",
-                            isSafe=True,
-                            handler="run_blueprint_via_api",
-                            payload={"blueprint_id": blueprint_id, **(payload or {})},
+                await queue.put(await format_event("status", {"status": "executing", "msg": (f"Executing branch: {branch_id}..." if branch_id else f"Executing blueprint: {blueprint_id}...")}))
+
+                if branch_id:
+                    task = asyncio.create_task(
+                        app_runner.handle_event(
+                            session_id,
+                            WriterEvent(
+                                type="wf-run-blueprint-branch",
+                                isSafe=True,
+                                handler="run_blueprint_branch",
+                                payload={"branch_id": branch_id, **(payload or {})},
+                            )
                         )
                     )
-                )
+                else:
+                    task = asyncio.create_task(
+                        app_runner.handle_event(
+                            session_id,
+                            WriterEvent(
+                                type="wf-run-blueprint-via-api",
+                                isSafe=True,
+                                handler="run_blueprint_via_api",
+                                payload={"blueprint_id": blueprint_id, **(payload or {})},
+                            )
+                        )
+                    )
 
-                await queue.put(await format_event("status", {"status": "running", "msg": "Blueprint is running. Awaiting output..."}))
+                await queue.put(await format_event("status", {"status": "running", "msg": ("Branch is running. Awaiting output..." if branch_id else "Blueprint is running. Awaiting output...")}))
 
                 # Await blueprint execution with timeout protection
                 apsr = await asyncio.wait_for(task, timeout=BLUEPRINT_API_EXECUTION_TIMEOUT_SECONDS)
