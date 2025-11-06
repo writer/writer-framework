@@ -11,6 +11,7 @@ on:
         description: 'Additional arbitrary JSON payload to send'
         required: false
         type: string
+        default: "{}"
     secrets:
       AGENT_MANAGER_PAT:
         description: 'Personal Access Token for triggering agent manager repo'
@@ -30,7 +31,7 @@ jobs:
         repo_name="be.agent-manager"
         event_type="${{ inputs.event_type }}"
         commit_sha="${{ github.sha }}"
-        extra_payload=$(echo '${{ inputs.extra_payload || "{}" }}')
+        extra_payload=$(echo '${{ inputs.extra_payload }}')
 
         echo "Triggering agent manager with event_type=$event_type"
         echo "Extra payload (raw): $extra_payload"
