@@ -32,13 +32,19 @@ jobs:
         commit_sha="${{ github.sha }}"
         extra_payload="${{ inputs.extra_payload || '{}' }}"
 
-        echo "Triggering agent manager with event_type=$event_type and extra_payload=$extra_payload"
+        echo "Triggering agent manager with event_type=$event_type"
+        echo "Extra payload (raw): $extra_payload"
 
-        # Merge commit_sha into the extra_payload JSON
-        merged_payload=$(jq -n \
-          --arg extra "$extra_payload" \
+        # Ensure JSON is valid and compact (remove pretty-printing / whitespace)
+        compact_payload=$(echo "$extra_payload" | jq -c .)
+
+        # Merge commit_sha into payload
+        merged_payload=$(jq -c \
+          --argjson extra "$compact_payload" \
           --arg commit_sha "$commit_sha" \
-          '($extra | fromjson) + {commit_sha: $commit_sha}')
+          '$extra + {commit_sha: $commit_sha}')
+
+        echo "Merged payload: $merged_payload"
 
         curl -L \
           -X POST \
