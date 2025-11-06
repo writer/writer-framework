@@ -1,6 +1,7 @@
 from writer.blocks.addtostatelist import AddToStateList
 from writer.blocks.apitrigger import APITrigger
 from writer.blocks.calleventhandler import CallEventHandler
+from writer.blocks.crontrigger import CronTrigger
 from writer.blocks.changepage import ChangePage
 from writer.blocks.code import CodeBlock
 from writer.blocks.crontrigger import CronTrigger
