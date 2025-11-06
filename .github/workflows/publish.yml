@@ -61,7 +61,8 @@ jobs:
                 rc_prefix = str(new_version)
 
                 rc_versions = [v for v in data["releases"] if v.startswith(rc_prefix) and "rc" in v]
-                rc_num = int(re.search(r"rc(\d+)", rc_versions[-1]).group(1)) + 1 if rc_versions else 1
+                rc_numbers = [int(re.search(r"rc(\d+)", v).group(1)) for v in rc_versions]
+                rc_num = max(rc_numbers) + 1 if rc_numbers else 1
                 final = f"{rc_prefix}rc{rc_num}"
                 print("Next RC:", final)
                 with open(os.environ["GITHUB_OUTPUT"], "a") as f:
