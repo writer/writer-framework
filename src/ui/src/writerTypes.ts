@@ -5,6 +5,7 @@ import type { SchemaObject } from "ajv";
 import type { useNotesManager } from "./core/useNotesManager";
 import type { useCollaborationManager } from "./composables/useCollaborationManager";
 import type { useSecretsManager } from "./core/useSecretsManager";
+import type { useSocketTimeout } from "./builder/useSocketTimeout";
 
 export type Core = ReturnType<typeof generateCore>;
 
@@ -145,6 +146,8 @@ export type BuilderManager = ReturnType<typeof generateBuilderManager>;
 export type NotesManager = ReturnType<typeof useNotesManager>;
 
 export type SecretsManager = ReturnType<typeof useSecretsManager>;
+
+export type SocketTimeout = ReturnType<typeof useSocketTimeout>;
 
 export type CollaborationManager = ReturnType<typeof useCollaborationManager>;
 

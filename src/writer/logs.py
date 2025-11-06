@@ -4,6 +4,7 @@ import logging
 import logging.config
 import os
 from contextlib import contextmanager, redirect_stdout
+from time import time
 from typing import Any, Callable, Dict, Optional
 
 WRITER_LOG_LEVEL = os.getenv("WRITER_LOG_LEVEL", "INFO")
@@ -166,6 +167,7 @@ class JSONFormatter(logging.Formatter):
             "process": {
                 "name": record.processName
             },
+            "timestamp": time(),
         }
 
         if current_block is not None:
@@ -190,7 +192,11 @@ class JSONFormatter(logging.Formatter):
             if len(record.args) > 0 and isinstance(record.args[0], dict):
                 data.update(record.args[0])
 
-        return json.dumps(data)
+        try:
+            data_as_json = json.dumps(data)
+            return data_as_json 
+        except Exception:
+            return '{"unserializable": true}' 
 
 
 def get_handler(format: str = WRITER_LOG_FORMAT, level: str = WRITER_LOG_LEVEL):
@@ -240,6 +246,8 @@ LOGGING_CONFIG: Dict[str, Any] = {
         "writer": get_logger(),
         "app": get_logger(),
         "from_app": get_logger(),
+        "kv_storage": get_logger(),
+        "vault": get_logger(),
         "exec_logger": {
             "handlers": ["basic", "routing"],
             "level": "DEBUG",

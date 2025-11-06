@@ -57,10 +57,19 @@
 				</WdsFieldWrapper>
 				<WdsFieldWrapper
 					v-if="toolForm.type == 'graph'"
+					v-model:is-binding-enabled="toolForm.binding"
 					label="Graph id(s)"
 					hint="Specify the id of the knowledge graph you want to use. If multiple, separate the ids using commas."
+					is-binding-button-shown
 				>
+					<BuilderTemplateInput
+						v-if="toolForm.binding"
+						type="state"
+						:value="graphIdBinding"
+						@update:value="graphIdBinding = $event"
+					/>
 					<BuilderGraphSelect
+						v-else
 						v-model="graphIds"
 						enable-multi-selection
 					/>
@@ -112,6 +121,8 @@ import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { TEMPLATE_REGEX } from "@/renderer/useEvaluator";
+import BuilderTemplateInput from "./BuilderTemplateInput.vue";
 
 const BuilderGraphSelect = defineAsyncComponentWithLoader({
 	loader: () => import("../BuilderGraphSelect.vue"),
@@ -154,6 +165,7 @@ type ToolForm = {
 	name: string;
 	code: string;
 	graphIds: string;
+	binding: boolean;
 	includeDomains: string;
 	excludeDomains: string;
 	includeRawContent: boolean;
@@ -174,6 +186,7 @@ const toolFormInitValue: ToolForm = {
 	name: "new_tool",
 	code: initFunctionToolCode,
 	graphIds: "",
+	binding: false,
 	includeDomains: "",
 	excludeDomains: "",
 	includeRawContent: false,
@@ -195,12 +208,20 @@ const saveDisabled = computed(() => {
 });
 
 const graphIds = computed<string[]>({
-	get: () => toolForm.value.graphIds.split(","),
+	get: () =>
+		toolForm.value.graphIds.split(",").filter((i) => !i.startsWith("@{")),
 	set(ids) {
-		toolForm.value = {
-			...toolForm.value,
-			graphIds: ids.join(","),
-		};
+		toolForm.value = { ...toolForm.value, graphIds: ids.join(",") };
+	},
+});
+
+const graphIdBinding = computed<string>({
+	get: () => {
+		const match = TEMPLATE_REGEX.exec(toolForm.value.graphIds);
+		return match?.[1] ?? "";
+	},
+	set(binding) {
+		toolForm.value = { ...toolForm.value, graphIds: `@{${binding}}` };
 	},
 });
 
@@ -246,10 +267,7 @@ function getToolFromForm(): Tool {
 	}
 	if (type == "graph") {
 		const graphArr = graphIds.split(",").map((gId) => gId.trim());
-		return {
-			type,
-			graph_ids: graphArr,
-		};
+		return { type, graph_ids: graphArr };
 	}
 	if (type == "web_search") {
 		const tool: WebSearchTool = { type };
@@ -319,6 +337,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 		return {
 			isShown: true,
 			type: "function",
+			binding: false,
 			originalName: toolName,
 			name: toolName,
 			graphIds: "",
@@ -329,11 +348,13 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 		};
 	}
 	if (type == "graph") {
+		const binding = TEMPLATE_REGEX.test(tool.graph_ids?.at(0) ?? "");
 		return {
 			isShown: true,
 			type: "graph",
 			originalName: toolName,
 			name: toolName,
+			binding,
 			graphIds: tool.graph_ids?.join(",") ?? "",
 			code: "",
 			includeDomains: "",
@@ -348,6 +369,7 @@ function getFormFromToolEntry(toolName: string, tool: Tool): ToolForm {
 			originalName: toolName,
 			name: toolName,
 			graphIds: "",
+			binding: false,
 			code: "",
 			includeDomains: tool.include_domains?.join(", ") ?? "",
 			excludeDomains: tool.exclude_domains?.join(", ") ?? "",

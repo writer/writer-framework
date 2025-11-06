@@ -301,7 +301,7 @@ def generate_blueprint(description: str, token_header: Optional[str] = None):
             ]
         response = client.chat.chat(
             messages=messages,
-            model="palmyra-x-004-turbo",
+            model="palmyra-x5",
             tool_choice="required",
             tools=tools,
             stream=False,  # type: ignore

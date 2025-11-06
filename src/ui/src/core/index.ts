@@ -83,6 +83,8 @@ export function generateCore() {
 	let mailSubscriptions: { mailType: string; fn: Function }[] = [];
 	const collaborationPingSubscriptions: { fn: Function }[] = [];
 
+	let pendingComponentUpdate = false;
+
 	const activePageId = ref<Component["id"] | undefined>();
 
 	const writerOrgId = computed(
@@ -239,7 +241,7 @@ export function generateCore() {
 	// Open and setup websocket
 
 	async function startSync(): Promise<void> {
-		if (webSocket) return; // Open WebSocket exists
+		if (webSocket && syncHealth.value === "connected") return; // Open WebSocket exists
 
 		const logger = useLogger();
 
@@ -252,6 +254,17 @@ export function generateCore() {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
 			sendFrontendMessage("streamInit", { sessionId });
+
+			if (pendingComponentUpdate) {
+				pendingComponentUpdate = false;
+				sendComponentUpdate().catch((error) => {
+					logger.error(
+						"Failed to retry component update after reconnect:",
+						error,
+					);
+					pendingComponentUpdate = true;
+				});
+			}
 		};
 
 		function processMessage(message) {
@@ -389,6 +402,13 @@ export function generateCore() {
 				{ once: true },
 			);
 		});
+	}
+
+	function stopSync(): void {
+		if (!webSocket) return;
+		webSocket.onclose = () => {};
+		webSocket.close();
+		syncHealth.value = "offline";
 	}
 
 	/**
@@ -734,7 +754,7 @@ export function generateCore() {
 				trackingId,
 				payload: awaitedPayload,
 			};
-			if (webSocket.readyState !== webSocket.OPEN) {
+			if (webSocket.readyState !== WebSocket.OPEN) {
 				throw "Connection lost.";
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
@@ -779,7 +799,10 @@ export function generateCore() {
 				ok: boolean;
 				payload?: Record<string, any>;
 			}) => {
-				if (!r.ok) return reject("Couldn't connect to the server.");
+				if (!r.ok) {
+					pendingComponentUpdate = true;
+					return reject("Couldn't connect to the server.");
+				}
 				resolve();
 			};
 			sendFrontendMessage("componentUpdate", payload, messageCallback);
@@ -938,6 +961,7 @@ export function generateCore() {
 		isChildOf,
 		featureFlags: readonly(featureFlags),
 		getWebSocket,
+		stopSync,
 		// writer cloud variables
 		writerApplication: readonly(writerApplication),
 		isWriterCloudApp,

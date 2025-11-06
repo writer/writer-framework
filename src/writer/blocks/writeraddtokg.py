@@ -78,8 +78,8 @@ class WriterAddToKG(WriterBlock):
             import writer.ai
 
             graph_id = self._get_field("graphId", required=True)
-            raw_files = self._get_field("files", as_json=True, default_field_value=[])
-            urls = self._get_field("urls", as_json=True, default_field_value=[])
+            raw_files = self._get_field("files", as_json=True, default_field_value="[]")
+            urls = self._get_field("urls", as_json=True, default_field_value="[]")
             prepared_files = []
 
             if not isinstance(raw_files, list):

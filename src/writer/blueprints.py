@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import json
 import logging
 import os
@@ -16,6 +17,8 @@ import writer.core_ui
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 MAX_DAG_DEPTH = 32
+MAX_LOG_ITERABLE_SIZE = 100
+MAX_LOG_STRING_LENGTH = 5000
 
 _current_block: ContextVar[Optional[writer.blocks.base_block.BlueprintBlock]] = \
     ContextVar("current_block", default=None)
@@ -691,16 +694,18 @@ class StatusLogger:
         if data is None:
             return None
 
-        MAX_ROWS = 100
         if isinstance(data, list):
-            return [self._summarize_data_for_log(item) for item in data[:MAX_ROWS]]
+            return [self._summarize_data_for_log(item) for item in data[:MAX_LOG_ITERABLE_SIZE]]
         if isinstance(data, dict):
             return {
                 k: self._summarize_data_for_log(v)
-                for i, (k, v) in enumerate(data.items())
-                if i < MAX_ROWS
+                for k, v in itertools.islice(data.items(), MAX_LOG_ITERABLE_SIZE)
             }
-        if isinstance(data, (str, int, float, bool, type(None))):
+        if isinstance(data, str):
+            if len(data) <= MAX_LOG_STRING_LENGTH:
+                return data
+            return f"{data[:MAX_LOG_STRING_LENGTH]}... <truncated>"
+        if isinstance(data, (int, float, bool, type(None))):
             return data
 
         try:

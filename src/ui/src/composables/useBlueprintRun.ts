@@ -1,7 +1,8 @@
-import type { generateCore } from "@/core";
-import { generateBuilderManager } from "@/builder/builderManager";
 import { computed, readonly, Ref, ref, unref } from "vue";
 import { useWriterTracking } from "./useWriterTracking";
+import type { BuilderManager, Core } from "@/writerTypes";
+import { inject } from "vue";
+import injectionKeys from "@/injectionKeys";
 
 interface RunBlueprintResponse {
 	ok: boolean;
@@ -19,7 +20,7 @@ interface RunBlueprintResponse {
 }
 
 function runBlueprint(
-	wf: ReturnType<typeof generateCore>,
+	wf: Core,
 	blueprintComponentId: string,
 	branchId?: string,
 ) {
@@ -44,27 +45,21 @@ function runBlueprint(
 		}
 
 		wf.forwardEvent(
-			branchId ?
-			new CustomEvent(
-				"wf-run-blueprint-branch", 
-				{
-					detail: {
-						callback,
-						handler: "run_blueprint_branch",
-						payload: { "branch_id": branchId }
-					},
-				}
-			) :
-			new CustomEvent(
-				"wf-run-blueprint", 
-				{
-					detail: {
-						callback,
-						handler: "run_blueprint_by_id",
-						payload: { blueprint_id: blueprintComponentId },
-					},
-				}
-			),
+			branchId
+				? new CustomEvent("wf-run-blueprint-branch", {
+						detail: {
+							callback,
+							handler: "run_blueprint_branch",
+							payload: { branch_id: branchId },
+						},
+					})
+				: new CustomEvent("wf-run-blueprint", {
+						detail: {
+							callback,
+							handler: "run_blueprint_by_id",
+							payload: { blueprint_id: blueprintComponentId },
+						},
+					}),
 			null,
 			true,
 		).catch((err) => {
@@ -74,10 +69,7 @@ function runBlueprint(
 	});
 }
 
-function stopBlueprintRun(
-	wf: ReturnType<typeof generateCore>,
-	runId: string,
-) {
+function stopBlueprintRun(wf: Core, runId: string) {
 	return new Promise<void>((res, rej) => {
 		const tracking = useWriterTracking(wf);
 		tracking.track("blueprints_run_stopped");
@@ -86,7 +78,7 @@ function stopBlueprintRun(
 			new CustomEvent("wf-stop-blueprint", {
 				detail: {
 					handler: "stop_blueprint_run",
-					payload: { run_id: runId},
+					payload: { run_id: runId },
 				},
 			}),
 			null,
@@ -94,15 +86,17 @@ function stopBlueprintRun(
 		)
 			.then(() => res())
 			.catch((err) => {
-				tracking.track("blueprints_run_stop_failed", { error: String(err) });
+				tracking.track("blueprints_run_stop_failed", {
+					error: String(err),
+				});
 				rej(err);
 			});
 	});
 }
 
 export function useBlueprintRun(
-	wf: ReturnType<typeof generateCore>,
-	wfbm: ReturnType<typeof generateBuilderManager>,
+	wf: Core,
+	wfbm: BuilderManager,
 	blueprintComponentId: string | Ref<string>,
 ) {
 	const isRunning = ref(false);
@@ -119,7 +113,7 @@ export function useBlueprintRun(
 
 	async function stop() {
 		const activeRunId = wfbm.activeBlueprintRunId.value;
-		if(!activeRunId) return;
+		if (!activeRunId) return;
 		await stopBlueprintRun(wf, activeRunId);
 	}
 
@@ -130,10 +124,11 @@ export type BlueprintsRunListItem = { blueprintId: string; branchId: string };
 type MaybeRef<T> = T | Ref<T>;
 
 export function useBlueprintsRun(
-	wf: ReturnType<typeof generateCore>,
+	wf: Core,
 	blueprintComponentIds: MaybeRef<BlueprintsRunListItem[]>,
 ) {
 	const runningBlueprintIds = ref<string[]>([]);
+	const socketTimeout = inject(injectionKeys.socketTimeout);
 
 	async function handleRunBlueprint({
 		blueprintId,
@@ -142,6 +137,7 @@ export function useBlueprintsRun(
 		if (runningBlueprintIds.value.includes(blueprintId)) return;
 
 		try {
+			if (socketTimeout) socketTimeout.prevent.value = true;
 			runningBlueprintIds.value = [
 				blueprintId,
 				...runningBlueprintIds.value,
@@ -151,6 +147,7 @@ export function useBlueprintsRun(
 			runningBlueprintIds.value = runningBlueprintIds.value.filter(
 				(id) => id !== blueprintId,
 			);
+			if (socketTimeout) socketTimeout.prevent.value = false;
 		}
 	}
 	async function run() {

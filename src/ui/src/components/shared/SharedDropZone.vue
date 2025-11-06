@@ -44,9 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, PropType, computed, toRef, useId } from "vue";
+import { useTemplateRef, PropType, toRef, useId } from "vue";
 import { useDropZone } from "@vueuse/core";
-import prettyBytes from "pretty-bytes";
 import { useFileTypeAccept } from "@/composables/useFileTypeAccept";
 
 const props = defineProps({
