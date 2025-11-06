@@ -124,3 +124,5 @@ jobs:
                 "tag": "writer-framework-${{ needs.build.outputs.version }}",
                 "version": "${{ needs.build.outputs.version }}"
               }
+        secrets:
+          AGENT_MANAGER_PAT: ${{ secrets.AGENT_MANAGER_PAT }}

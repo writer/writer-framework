@@ -24,9 +24,9 @@ jobs:
       run: |
         repo_owner="WriterInternal"
         repo_name="be.agent-manager"
-        event_type="${{ github.event.inputs.event_type }}"
+        event_type="${{ inputs.event_type }}"
         commit_sha="${{ github.sha }}"
-        extra_payload="${{ github.event.inputs.extra_payload || '{}' }}"
+        extra_payload="${{ inputs.extra_payload || '{}' }}"
 
         echo "Triggering agent manager with event_type=$event_type and extra_payload=$extra_payload"
 
