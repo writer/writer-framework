@@ -36,9 +36,9 @@ jobs:
 
         # Merge commit_sha into the extra_payload JSON
         merged_payload=$(jq -n \
-          --argjson extra "$extra_payload" \
+          --arg extra "$extra_payload" \
           --arg commit_sha "$commit_sha" \
-          '$extra + {commit_sha: $commit_sha}')
+          '($extra | fromjson) + {commit_sha: $commit_sha}')
 
         curl -L \
           -X POST \
