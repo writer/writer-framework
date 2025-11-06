@@ -28,6 +28,8 @@
 						:alt="`(Icon for ${tool.name})`"
 						draggable="false"
 						:urls="getToolIcons(tool)"
+						:loader-max-width-px="18"
+						:loader-max-height-px="18"
 					/>
 					<div class="name">{{ tool.name }}</div>
 				</div>
@@ -200,13 +202,6 @@ watch(activeToolkit, () => {
 	max-width: 18px;
 	max-height: 18px;
 	aspect-ratio: 1 / 1;
-}
-
-.tool .skeleton {
-	max-width: 18px;
-	max-height: 18px;
-	aspect-ratio: 1 / 1;
-	border-radius: 4px;
 }
 
 .tool:hover {

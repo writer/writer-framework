@@ -31,6 +31,8 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       >
         <shared-img-with-fallback-stub
           data-v-eb3dac76=""
+          loadermaxheightpx="18"
+          loadermaxwidthpx="18"
           urls="http://localhost:3000/components/blueprints_setstate.svg,http://localhost:3000/components/category_Fallback.svg,http://localhost:3000/components/blueprints_category_Fallback.svg"
         />
       </div>
@@ -91,6 +93,8 @@ exports[`BuilderStateSelectorDropdown > should search from the options 1`] = `
       >
         <shared-img-with-fallback-stub
           data-v-eb3dac76=""
+          loadermaxheightpx="18"
+          loadermaxwidthpx="18"
           urls="http://localhost:3000/components/blueprints_setstate.svg,http://localhost:3000/components/category_Fallback.svg,http://localhost:3000/components/blueprints_category_Fallback.svg"
         />
       </div>

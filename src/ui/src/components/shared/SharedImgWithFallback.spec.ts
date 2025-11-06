@@ -26,12 +26,17 @@ describe("SharedImgWithFallback", () => {
 			});
 
 		const wrapper = shallowMount(SharedImgWithFallback, {
-			props: { urls: ["/img1.svg", "/img2.svg", "/img3.svg"] },
+			props: {
+				urls: ["/img1.svg", "/img2.svg", "/img3.svg"],
+				loaderMaxWidthPx: 18,
+				loaderMaxHeightPx: 18,
+			},
 		});
-		expect(wrapper.get("img").attributes().src).toBe("");
+		expect(wrapper.find(".skeleton").exists()).toBe(true);
 
 		await flushPromises();
 
-		expect(wrapper.get("img").attributes().src).toBe("/img3.svg");
+		expect(wrapper.find("img").exists()).toBe(true);
+		expect(wrapper.find("img").attributes().src).toBe("/img3.svg");
 	});
 });
