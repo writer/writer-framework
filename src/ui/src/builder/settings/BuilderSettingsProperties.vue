@@ -84,7 +84,7 @@
 					:label="
 						propertyCategory === 'Tools'
 							? undefined
-							: fieldValue.name ?? fieldKey
+							: (fieldValue.name ?? fieldKey)
 					"
 					:hint="fieldValue.desc"
 					:unit="fieldValue.type"
