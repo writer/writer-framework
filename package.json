@@ -7,8 +7,8 @@
 		"tests/e2e"
 	],
   "engines": {
-    "node": "24.x.x",
-    "npm": "11.x.x"
+    "node": "22.x.x",
+    "npm": "10.x.x"
   },
 	"scripts": {
 		"build": "npm run ui:build && npm run apps:build && npm run ui:codegen",
