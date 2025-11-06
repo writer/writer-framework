@@ -11,6 +11,10 @@ on:
         description: 'Additional arbitrary JSON payload to send'
         required: false
         type: string
+    secrets:
+      AGENT_MANAGER_PAT:
+        description: 'Personal Access Token for triggering agent manager repo'
+        required: true
 
 permissions:
   contents: read
