@@ -119,10 +119,6 @@ jobs:
         uses: ./.github/workflows/trigger-workflow.yml
         with:
             event_type: framework_updated
-            extra_payload: |
-              {
-                "tag": "writer-framework-${{ needs.build.outputs.version }}",
-                "version": "${{ needs.build.outputs.version }}"
-              }
+            extra_payload: '{"tag": "writer-framework-${{ needs.build.outputs.version }}", "version": "${{ needs.build.outputs.version }}"}'
         secrets:
           AGENT_MANAGER_PAT: ${{ secrets.AGENT_MANAGER_PAT }}
