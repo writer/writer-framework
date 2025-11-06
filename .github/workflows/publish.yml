@@ -2,70 +2,123 @@ name: publish
 
 on:
     push:
+        branches:
+            - 'dev'
         tags:
-            - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
-            - 'agent-builder-turbo-[0-9]+.[0-9]+.[0-9]+rc[0-9]+-image-[0-9]+.[0-9]+.[0-9]+-main'
+            - 'writer-framework-[0-9]+.[0-9]+.[0-9]+'
     workflow_dispatch:
         inputs:
-            tag:
-                description: 'Tag to publish'
+            commit_sha:
+                description: 'Commit SHA to publish'
                 required: true
             version:
-                description: 'Version to set before publishing (optional, overrides extracted version)'
+                description: 'Version to publish (optional, overrides calculated version)'
                 required: false
 
 jobs:
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        outputs:
+            version: ${{ steps.set_version.outputs.version }}
 
         steps:
             - uses: actions/checkout@v4
               with:
-                ref: ${{ github.event.inputs.tag || github.ref_name }}
-
-            - name: Extract version from tag
-              id: extract_version
-              run: |
-                if [[ -n "${{ github.event.inputs.version }}" ]]; then
-                    echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
-                else
-                    REF="${{ github.event.inputs.tag || github.ref_name }}"
-                    if [[ "$REF" =~ ^agent-builder-turbo-([0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?)-image-([0-9]+\.[0-9]+\.[0-9]+)-main$ ]]; then
-                        echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
-                    else
-                        echo "Unable to parse version from tag: $REF" >&2
-                        exit 1
-                    fi
-                fi
-
-            - name: Show extracted version
-              run: echo "Version is ${{ steps.extract_version.outputs.version }}"
-
-            - name: Install poetry
-              run: pipx install poetry
+                ref: ${{ github.event.inputs.commit_sha || github.ref_name }}
 
             - name: Set up Python
               uses: actions/setup-python@v5
               with:
                 cache: 'poetry'
 
+            - name: Install dependencies
+              run: pip install poetry requests packaging semver
+
+            - name: Determine next RC version
+              id: bump_version
+              if: github.ref_name == 'dev'
+              run: |
+                python - <<'EOF'
+                import os, re, requests, subprocess, semver, packaging.version
+
+                data = requests.get(f"https://pypi.org/pypi/writer/json", timeout=10).json()
+                releases = sorted(
+                    (v for v in data["releases"] if not packaging.version.parse(v).is_prerelease),
+                    key=packaging.version.parse
+                )
+                latest = releases[-1]
+                print("Latest stable:", latest)
+
+                log = subprocess.check_output(
+                    ["git", "log", f"writer-framework-{latest}..HEAD", "--pretty=%s"],
+                    text=True
+                )
+                base = semver.VersionInfo.parse(latest)
+                new_version = base.bump_minor() if re.search(r"^feat:", log, re.M) else base.bump_patch()
+                rc_prefix = str(new_version)
+
+                rc_versions = [v for v in data["releases"] if v.startswith(rc_prefix) and "rc" in v]
+                rc_num = int(re.search(r"rc(\d+)", rc_versions[-1]).group(1)) + 1 if rc_versions else 1
+                final = f"{rc_prefix}rc{rc_num}"
+                print("Next RC:", final)
+                with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                    f.write(f"version={final}\n")
+                EOF
+
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
                 node-version: "22.x"
                 cache: npm
+            
+            - name: Determine final version
+              id: set_version
+              run: |
+                # Determine version based on workflow inputs or tags
+                if [ -n "${{ github.event.inputs.version }}" ]; then
+                  VERSION="${{ github.event.inputs.version }}"
+                elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
+                  VERSION="${{ steps.bump_version.outputs.version }}"
+                elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+                  TAG_NAME="${GITHUB_REF#refs/tags/}"
+                  VERSION="${TAG_NAME#writer-framework-}"
+                else
+                  echo "Unable to determine version"
+                  exit 1
+                fi
+
+                echo "Final version: $VERSION"
+                echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
             - name: Update version before publishing
-              run: poetry version ${{ steps.extract_version.outputs.version }}
-
-            - name: install python3 environment
-              run: poetry install --with build
-
-            - name: install ci dependencies and generate code
-              run: WRITER_FRAMEWORK_VERSION=${{ steps.extract_version.outputs.version }} poetry run alfred install.ci
-
-            - name: publish on pypi
-              run: WRITER_FRAMEWORK_VERSION=${{ steps.extract_version.outputs.version }} poetry run alfred publish.pypi
+              run: |
+                poetry version ${{ steps.set_version.outputs.version }}
+                poetry install --with build
+                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred install.ci
+                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred publish.pypi
               env:
                   PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+            - name: Create and push tag for RC (only dev)
+              if: github.ref_name == 'dev'
+              run: |
+                  TAG="writer-framework-${{ steps.bump_version.outputs.version }}"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git tag -a "$TAG" -m "Release $TAG"
+                  git push origin "$TAG"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    trigger-agent-manager:
+        needs: build
+        if: github.ref_name == 'dev'
+        uses: ./.github/workflows/trigger-workflow.yml
+        with:
+            event_type: framework_updated
+            extra_payload: |
+              {
+                "tag": "writer-framework-${{ needs.build.outputs.version }}",
+                "version": "${{ needs.build.outputs.version }}"
+              }
