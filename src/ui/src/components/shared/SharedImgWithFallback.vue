@@ -25,9 +25,11 @@ const loaderStyle = computed(() => {
 	const style: CSSProperties = {};
 	if (props.loaderMaxWidthPx !== undefined) {
 		style.maxWidth = `${props.loaderMaxWidthPx}px`;
+		style.width = `${props.loaderMaxWidthPx}px`;
 	}
 	if (props.loaderMaxHeightPx !== undefined) {
 		style.maxHeight = `${props.loaderMaxHeightPx}px`;
+		style.height = `${props.loaderMaxHeightPx}px`;
 	}
 	return style;
 });
