@@ -21,7 +21,12 @@
 		</div>
 		<div class="BlueprintsNode__main">
 			<div class="BlueprintsNode__main__title">
-				<SharedImgWithFallback :urls="possibleImageUrls" class="icon" />
+				<SharedImgWithFallback
+					:urls="possibleImageUrls"
+					class="icon"
+					:loader-max-width-px="24"
+					:loader-max-height-px="24"
+				/>
 				<BlueprintsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"

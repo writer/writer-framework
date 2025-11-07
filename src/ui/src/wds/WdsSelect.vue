@@ -17,6 +17,8 @@
 				<SharedImgWithFallback
 					v-if="Array.isArray(currentIcon)"
 					:urls="currentIcon"
+					:loader-max-width-px="18"
+					:loader-max-height-px="18"
 				/>
 				<WdsIcon v-else :name="currentIcon" />
 			</template>
@@ -225,6 +227,7 @@ function handleRemoveValue(value: string) {
 	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
 	outline: none;
 }
+
 .WdsSelect__trigger__label {
 	text-overflow: ellipsis;
 	overflow: hidden;

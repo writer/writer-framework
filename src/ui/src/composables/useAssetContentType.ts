@@ -1,7 +1,7 @@
 const cacheUrlContentType = new Map<string, Promise<undefined | string>>();
 
 /**
- * Do an HTTP `HEAD` call to get the `Content-Type` of an URL. Handle parrallel calls and use a cache mechanism.
+ * Do an HTTP `HEAD` call to get the `Content-Type` of an URL. Handle parallel calls and use a cache mechanism.
  */
 export function useAssetContentType() {
 	function fetchAssetContentType(url: string) {

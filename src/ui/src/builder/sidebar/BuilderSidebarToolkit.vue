@@ -28,6 +28,8 @@
 						:alt="`(Icon for ${tool.name})`"
 						draggable="false"
 						:urls="getToolIcons(tool)"
+						:loader-max-width-px="18"
+						:loader-max-height-px="18"
 					/>
 					<div class="name">{{ tool.name }}</div>
 				</div>

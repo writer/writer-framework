@@ -59,7 +59,11 @@ const iconStyle = computed(() => {
 				v-if="Array.isArray(option.icon)"
 				class="WdsDropdownMenuItem__icon WdsDropdownMenuItem__icon--img"
 			>
-				<SharedImgWithFallback :urls="option.icon" />
+				<SharedImgWithFallback
+					:urls="option.icon"
+					:loader-max-width-px="18"
+					:loader-max-height-px="18"
+				/>
 			</div>
 			<div
 				v-else-if="option.icon"
