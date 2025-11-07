@@ -398,7 +398,7 @@ def get_asgi_app(
             {
                 "id": comp.get("id"),
                 "name": comp.get("name") or comp.get("content", {}).get("name"),
-                "cronExpression": comp.get("content", {}).get("cronExpression"),
+                "cron_expression": comp.get("content", {}).get("cronExpression"),
                 "timezone": comp.get("content", {}).get("timezone", "UTC"),
             }
             for comp in app_runner.bmc_components.values()
@@ -409,11 +409,10 @@ def get_asgi_app(
         return JSONResponse(content=cron_triggers, status_code=200)
 
     @app.post("/private/api/blueprint/{blueprint_id}")
-    async def create_blueprint_job(blueprint_id: str, request: Request, response: Response):
+    async def create_blueprint_job(blueprint_id: str, request: Request, response: Response, branch_id: str | None = None):
         # Keep-alive interval for SSE streaming
         KEEPALIVE_INTERVAL = 15
         payload = await _get_payload_as_json(request)
-        branch_id = request.query_params.get("branch_id")
 
         # --- Session initialization ---
 
