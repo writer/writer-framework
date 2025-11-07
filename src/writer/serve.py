@@ -221,6 +221,24 @@ def get_asgi_app(
 
     @app.get("/api/health")
     async def health():
+        app_runner = app.state.app_runner
+        
+        # Check user app process
+        if app_runner.app_process is None or not app_runner.app_process.is_alive():
+            return JSONResponse(
+                status_code=503,
+                content={"status": "error", "message": "User app process is not running"}
+            )
+        
+        # Check project saver process (only in edit mode)
+        if app_runner.mode == "edit":
+            project_saver = app_runner.wf_project_context.write_files_async_process
+            if project_saver is None or not project_saver.is_alive():
+                return JSONResponse(
+                    status_code=503,
+                    content={"status": "error", "message": "Project saver process is not running"}
+                )
+        
         return {"status": "ok"}
 
     @app.get("/api/export")

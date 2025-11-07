@@ -321,3 +321,61 @@ class TestServe:
                 if event_type == "error":
                     assert "msg" in final_payload
                     assert "finished_at" in final_payload
+
+    def test_health_endpoint_returns_ok_when_all_processes_running_run_mode(self):
+        """
+        Test that health endpoint returns {"status": "ok"} when all processes are running in run mode.
+        Run mode has 2 processes: main web server and user app process.
+        """
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/api/health")
+            assert res.status_code == 200
+            assert res.json() == {"status": "ok"}
+
+    def test_health_endpoint_returns_ok_when_all_processes_running_edit_mode(self):
+        """
+        Test that health endpoint returns {"status": "ok"} when all processes are running in edit mode.
+        Edit mode has 3 processes: main web server, user app process, and project saver process.
+        """
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "edit")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/api/health")
+            assert res.status_code == 200
+            assert res.json() == {"status": "ok"}
+
+    def test_health_endpoint_returns_error_when_user_app_process_down(self):
+        """
+        Test that health endpoint returns 503 when user app process is not running.
+        """
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            # Kill the user app process
+            app_runner = asgi_app.state.app_runner
+            if app_runner.app_process is not None:
+                app_runner.app_process.terminate()
+                app_runner.app_process.join(timeout=2)
+            
+            res = client.get("/api/health")
+            assert res.status_code == 503
+            response_json = res.json()
+            assert response_json["status"] == "error"
+            assert "User app process is not running" in response_json["message"]
+
+    def test_health_endpoint_returns_error_when_project_saver_process_down_edit_mode(self):
+        """
+        Test that health endpoint returns 503 when project saver process is not running in edit mode.
+        """
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "edit")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            # Kill the project saver process
+            app_runner = asgi_app.state.app_runner
+            if app_runner.wf_project_context.write_files_async_process is not None:
+                app_runner.wf_project_context.write_files_async_process.terminate()
+                app_runner.wf_project_context.write_files_async_process.join(timeout=2)
+            
+            res = client.get("/api/health")
+            assert res.status_code == 503
+            response_json = res.json()
+            assert response_json["status"] == "error"
+            assert "Project saver process is not running" in response_json["message"]
