@@ -15,6 +15,7 @@ class CronTrigger(BlueprintTrigger):
                     "name": "Cron Trigger",
                     "description": "Triggers an event on a schedule based on a cron expression.",
                     "category": "Triggers",
+                    "featureFlags": ["cron_trigger"],
                     "fields": {
                         "cronExpression": {
                             "name": "Cron Expression",
